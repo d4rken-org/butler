@@ -11,6 +11,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
+import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.provider.documents.core.ButlerDocumentsProvider
@@ -70,7 +71,9 @@ class DocumentModifier @Inject constructor(
             }
 
             log(TAG, INFO) { "Renaming $sourcePath -> $destinationPath" }
-            gatewaySwitch.move(sourcePath, destinationPath)
+            if (gatewaySwitch.move(sourcePath, destinationPath) !is MoveOutcome.Moved) {
+                throw IllegalStateException("Rename not supported: $sourcePath -> $destinationPath")
+            }
 
             val newDocumentId = codec.encode(destinationPath)
             log(TAG, INFO) { "Renamed successfully, new ID: $newDocumentId" }

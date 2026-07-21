@@ -14,6 +14,7 @@ import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.FileSystemOps
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
+import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.CreateAction
 import eu.darken.butler.common.files.actions.DeleteAction
@@ -446,14 +447,14 @@ class LocalGateway @Inject constructor(
         clientOp = { it.canonicalize(path) },
     )
 
-    override suspend fun move(source: LocalPath, destination: LocalPath): Boolean =
+    override suspend fun move(source: LocalPath, destination: LocalPath): MoveOutcome =
         move(source, destination, Mode.AUTO)
 
     suspend fun move(
         source: LocalPath,
         destination: LocalPath,
         mode: Mode = Mode.AUTO
-    ): Boolean = executeWithModeSelection(
+    ): MoveOutcome = executeWithModeSelection(
         mode = mode,
         operation = "move",
         path = source,

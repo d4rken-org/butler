@@ -1,6 +1,7 @@
 package eu.darken.butler.common.files.saf
 
 import eu.darken.butler.common.files.LookupOptions
+import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.operations.MockFileSystemOps
@@ -189,7 +190,7 @@ class MockSAFFileSystemOps : MockFileSystemOps<SAFPath, SAFPathLookup>(
         throw UnsupportedOperationException("SAF (Storage Access Framework) does not support symlinks")
     }
 
-    override suspend fun move(source: SAFPath, destination: SAFPath): Boolean {
+    override suspend fun move(source: SAFPath, destination: SAFPath): MoveOutcome {
         // Check permissions for both source and destination
         if (pathsWithoutPermission.contains(source.path)) {
             throw MissingUriPermissionException(path = source)
@@ -198,17 +199,19 @@ class MockSAFFileSystemOps : MockFileSystemOps<SAFPath, SAFPathLookup>(
             throw MissingUriPermissionException(path = destination)
         }
 
-        // Simulate SAF atomic move behavior:
-        // - Same tree: atomic move succeeds
-        // - Different tree: throws exception
-        val sourceTree = source.treeRootUri
-        val destTree = destination.treeRootUri
-
-        if (sourceTree != destTree) {
-            throw eu.darken.butler.common.files.errors.WriteException(
-                "Cannot move across different document trees",
-                source
-            )
+        // Model the real SAFFileSystemOps contract: structural refusals are NotSupported
+        // (provably nothing mutated) so callers exercise their copy+delete fallback.
+        if (source == destination) return MoveOutcome.Moved
+        if (source.treeRootUri != destination.treeRootUri) {
+            return MoveOutcome.NotSupported("Cross-tree SAF moves are not atomic")
+        }
+        val sameParent = source.segments.dropLast(1) == destination.segments.dropLast(1)
+        val sameName = source.segments.last() == destination.segments.last()
+        if (!sameParent && !sameName) {
+            return MoveOutcome.NotSupported("SAF cannot atomically reparent and rename")
+        }
+        if (files.containsKey(destination.path)) {
+            return MoveOutcome.NotSupported("Destination already exists: $destination")
         }
 
         return super.move(source, destination)

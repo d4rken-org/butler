@@ -16,6 +16,7 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LookupOptions
+import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.common.files.archive.ArchiveIndex
@@ -126,6 +127,8 @@ class ExtractOperation @AssistedInject constructor(
                     )
                     when (resolution) {
                         is PathActionIssue.PathAlreadyExists.Resolution.Overwrite -> ConflictDecision.OVERWRITE
+                        is PathActionIssue.PathAlreadyExists.Resolution.Cancel ->
+                            throw CancellationException("User cancelled")
                         else -> ConflictDecision.SKIP
                     }
                 }
@@ -402,10 +405,11 @@ class ExtractOperation @AssistedInject constructor(
             return WriteOutcome.Skipped
         }
 
+        var overwriteAuthorized = false
         if (gatewaySwitch.exists(destPath)) {
             val destLookup = gatewaySwitch.lookup(destPath, LookupOptions())
             when (onExistingConflict(destLookup)) {
-                ConflictDecision.OVERWRITE -> Unit
+                ConflictDecision.OVERWRITE -> overwriteAuthorized = true
                 ConflictDecision.SKIP -> {
                     session.reportBuilder.addSkipped(segments.joinToString("/"))
                     return WriteOutcome.Skipped
@@ -416,7 +420,12 @@ class ExtractOperation @AssistedInject constructor(
         // Write to a temp sibling and commit on success so an interrupted extract never
         // leaves a truncated file at the destination. A random token keeps the temp name from
         // ever colliding with a real archive entry or a user's file (which we'd otherwise delete).
+        //
+        // Once a pre-existing destination is deleted the temp may be the only surviving copy of
+        // that user file's replacement, so it must be kept on any later failure. Before that
+        // boundary the temp is a discardable orphan (the archive still has the data).
         val tempPath = destParent!!.child(".${destPath.name}.${Uuid.random().toString().take(8)}.part")
+        var destructiveBoundaryCrossed = false
         try {
             val written = gatewaySwitch.openOutputStream(tempPath).use { output ->
                 var count = 0L
@@ -431,18 +440,33 @@ class ExtractOperation @AssistedInject constructor(
                 output.flush()
                 count
             }
-            if (gatewaySwitch.exists(destPath) && !gatewaySwitch.delete(destPath)) {
-                throw WriteException("Failed to replace existing file", destPath)
-            }
-            if (!gatewaySwitch.move(tempPath, destPath)) {
-                throw WriteException("Failed to commit extracted file", destPath)
+            // Commit serialized per output path so concurrent operations on the same name
+            // can't interleave their delete/move steps.
+            archiveService.withOutputCommitLock(destPath) {
+                if (gatewaySwitch.exists(destPath)) {
+                    if (!overwriteAuthorized) {
+                        // Appeared after the conflict check - never delete what the user
+                        // didn't authorize us to replace.
+                        throw WriteException("Destination appeared during extraction", destPath)
+                    }
+                    if (!gatewaySwitch.delete(destPath)) {
+                        throw WriteException("Could not replace existing file", destPath)
+                    }
+                    destructiveBoundaryCrossed = true
+                }
+                if (gatewaySwitch.move(tempPath, destPath) !is MoveOutcome.Moved || !gatewaySwitch.exists(destPath)) {
+                    val kept = if (destructiveBoundaryCrossed) ", data kept as ${tempPath.name}" else ""
+                    throw WriteException("Could not finalize extracted file$kept", destPath)
+                }
             }
             val lookup = runCatching { gatewaySwitch.lookup(destPath, LookupOptions()) }.getOrNull()
             return WriteOutcome.Written(destPath = destPath, bytes = written, lookup = lookup)
         } catch (e: Exception) {
-            // Cleanup must survive cancellation - the surrounding context may already be cancelled.
-            withContext(NonCancellable) {
-                runCatching { if (gatewaySwitch.exists(tempPath)) gatewaySwitch.delete(tempPath) }
+            if (!destructiveBoundaryCrossed) {
+                // Cleanup runs even though the coroutine may already be cancelled.
+                withContext(NonCancellable) {
+                    runCatching { if (gatewaySwitch.exists(tempPath)) gatewaySwitch.delete(tempPath) }
+                }
             }
             throw e
         }

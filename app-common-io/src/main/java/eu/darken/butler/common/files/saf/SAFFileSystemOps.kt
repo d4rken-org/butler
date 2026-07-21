@@ -18,11 +18,14 @@ import eu.darken.butler.common.files.metadata.FileSystem
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
+import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import okio.FileHandle
+import java.io.FilterOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -112,6 +115,37 @@ class SAFFileSystemOps @Inject constructor(
     @Volatile private var supportsSetModifiedAt: Boolean? = null
     @Volatile private var supportsSetPermissions: Boolean? = null
     @Volatile private var supportsSetOwnership: Boolean? = null
+
+    /**
+     * Cache the provider-returned handle for a just-created/just-moved document.
+     * Predicted URIs can be wrong on providers with opaque document IDs; the returned URI is authoritative.
+     */
+    private fun cacheCreated(path: SAFPath, docFile: SAFDocFile) {
+        docFileCache[path] = CacheEntry(docFile, Clock.System.now())
+        lookupCache.remove(path)
+    }
+
+    private fun invalidatePath(path: SAFPath) {
+        docFileCache.remove(path)
+        lookupCache.remove(path)
+    }
+
+    /** Invalidate a path and all cached descendants (stale after directory move/delete). */
+    private fun invalidateSubtree(path: SAFPath) {
+        invalidatePath(path)
+        val isDescendant = { candidate: SAFPath ->
+            candidate.treeRootUri == path.treeRootUri &&
+                candidate.segments.size > path.segments.size &&
+                candidate.segments.subList(0, path.segments.size) == path.segments
+        }
+        synchronized(docFileCache) { docFileCache.keys.removeAll { isDescendant(it) } }
+        synchronized(lookupCache) { lookupCache.keys.removeAll { isDescendant(it) } }
+    }
+
+    /** Drop the cached lookup of a path's parent (child count/mtime changed). */
+    private fun invalidateParentLookup(path: SAFPath) {
+        path.parent?.let { lookupCache.remove(it) }
+    }
 
     private fun SAFPath.resolveDocFile(): SAFDocFile {
         val now = Clock.System.now()
@@ -209,6 +243,8 @@ class SAFFileSystemOps @Inject constructor(
             }
 
             lookup
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             log(TAG, WARN) { "lookup($path, $options) failed." }
 
@@ -262,6 +298,8 @@ class SAFFileSystemOps @Inject constructor(
 
             childPath
         }
+    } catch (e: CancellationException) {
+        throw e
     } catch (e: Exception) {
         log(TAG, WARN) { "listFiles($path) failed." }
         throw ReadException(path = path, cause = e)
@@ -293,25 +331,27 @@ class SAFFileSystemOps @Inject constructor(
             }
 
             // Delete the path itself
-            docFile.delete()
+            val deleted = docFile.delete()
+            if (deleted) {
+                invalidateSubtree(path)
+                invalidateParentLookup(path)
+            }
+            deleted
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             throw WriteException(path = path, cause = e)
         }
     }
 
-    private fun createDocumentFile(mimeType: String, targetSafPath: SAFPath): SAFDocFile {
+    private suspend fun createDocumentFile(mimeType: String, targetSafPath: SAFPath): SAFDocFile {
         if (targetSafPath.segments.isEmpty()) {
             throw IllegalArgumentException("Can't create file/dir on treeRoot without segments!")
         }
         val targetName = targetSafPath.segments.last()
 
-        // Get parent path - must already exist (mkdir semantics, not mkdirs)
-        val parentPath = if (targetSafPath.segments.size > 1) {
-            targetSafPath.copy(segments = targetSafPath.segments.dropLast(1))
-        } else {
-            targetSafPath.copy(segments = emptyList())
-        }
-
+        // Parent must already exist (mkdir semantics, not mkdirs)
+        val parentPath = targetSafPath.parent!!
         val targetParentDocFile = parentPath.resolveDocFile()
         if (!targetParentDocFile.exists) {
             throw WriteException("Parent directory does not exist: $parentPath", targetSafPath)
@@ -325,12 +365,69 @@ class SAFFileSystemOps @Inject constructor(
         } else {
             targetParentDocFile.createFile(mimeType, targetName)
         }
-        require(targetName == targetDocFile.name) {
-            "Unexpected name change: Wanted $targetName, but got ${targetDocFile.name}"
+
+        return try {
+            targetDocFile.withVerifiedName(targetName).also {
+                log(TAG, VERBOSE) { "createDocumentFile(mimeType=$mimeType, targetSafPath=$targetSafPath)" }
+            }
+        } catch (e: NameVerificationException) {
+            // The mismatched document exists — clean it up rather than orphaning it, and name
+            // what the provider produced so the user can recover if the cleanup fails too.
+            val cleanedUp = try {
+                e.doc.delete()
+            } catch (inner: Exception) {
+                false
+            }
+            throw WriteException(
+                "Provider created '${e.actualName}' instead of '$targetName' " +
+                    "(uri=${e.doc.uri}, cleanedUp=$cleanedUp)",
+                targetSafPath,
+                e,
+            )
+        }
+    }
+
+    /**
+     * Verify this (created/moved) document landed under [expectedName]; providers may munge names
+     * (sanitize characters, auto-suffix collisions). Attempts one corrective rename.
+     *
+     * @return the verified document (this, or the corrected one)
+     * @throws WriteException if the name is unknown after retries — never rename/delete on guesses
+     * @throws NameVerificationException on a confirmed, uncorrectable mismatch
+     */
+    private suspend fun SAFDocFile.withVerifiedName(expectedName: String): SAFDocFile {
+        val actualName = awaitName()
+        if (actualName == expectedName) return this
+        if (actualName == null) {
+            throw WriteException("Document has no queryable name (uri=$uri)")
         }
 
-        log(TAG, VERBOSE) { "createDocumentFile(mimeType=$mimeType, targetSafPath=$targetSafPath" }
-        return targetDocFile
+        val corrected = try {
+            renameTo(expectedName)
+        } catch (e: Exception) {
+            log(TAG, WARN) { "Corrective rename to '$expectedName' failed: ${e.asLog()}" }
+            null
+        }
+        if (corrected != null && corrected.awaitName() == expectedName) {
+            log(TAG, VERBOSE) { "Corrected provider name '$actualName' -> '$expectedName'" }
+            return corrected
+        }
+
+        throw NameVerificationException(actualName, corrected ?: this)
+    }
+
+    private class NameVerificationException(
+        val actualName: String,
+        val doc: SAFDocFile,
+    ) : IOException("Document landed as '$actualName' (uri=${doc.uri})")
+
+    /** Query the display name via the provider-returned URI, retrying briefly for slow providers. */
+    private suspend fun SAFDocFile.awaitName(maxAttempts: Int = 3): String? {
+        repeat(maxAttempts) { attempt ->
+            if (attempt > 0) delay(50.milliseconds)
+            nameStrict()?.let { return it }
+        }
+        return null
     }
 
     /**
@@ -398,33 +495,16 @@ class SAFFileSystemOps @Inject constructor(
     private suspend fun createMissingParentDir(parentPath: SAFPath) {
         require(parentPath.segments.isNotEmpty()) { "Cannot create tree root" }
 
-        val parentName = parentPath.segments.last()
-        val grandParentPath = if (parentPath.segments.size > 1) {
-            parentPath.copy(segments = parentPath.segments.dropLast(1))
-        } else {
-            parentPath.copy(segments = emptyList())
-        }
-
-        val grandParentDocFile = grandParentPath.resolveDocFile()
-
-        if (!grandParentDocFile.exists || !grandParentDocFile.isDirectory) {
-            throw WriteException(
-                "Grandparent directory does not exist or is not a directory: $grandParentPath",
-                parentPath
-            )
-        }
-
-        val newParentDocFile = grandParentDocFile.createDirectory(parentName)
+        // Same normalized create path as regular creation (name-munging handling included)
+        val newParentDocFile = createDocumentFile(DocumentsContract.Document.MIME_TYPE_DIR, parentPath)
 
         log(TAG, VERBOSE) { "createMissingParentDir() created: $parentPath" }
 
-        // Update caches
-        val now = Clock.System.now()
-        docFileCache[parentPath] = CacheEntry(newParentDocFile, now)
+        cacheCreated(parentPath, newParentDocFile)
 
         // Also cache lookup data (basic only for newly created directory)
         val lookup = newParentDocFile.performLookup(parentPath, LookupOptions.BASE)
-        lookupCache[parentPath] = LookupCacheEntry(lookup, now)
+        lookupCache[parentPath] = LookupCacheEntry(lookup, Clock.System.now())
     }
 
     override suspend fun createDir(path: SAFPath, createParents: Boolean) {
@@ -435,7 +515,7 @@ class SAFFileSystemOps @Inject constructor(
 
             val docFile = path.resolveDocFile()
 
-            if (docFile.exists) {
+            if (docFile.existsStrict()) {
                 if (docFile.isDirectory) return // Already exists - idempotent
 
                 throw PathAlreadyExistsException(
@@ -444,12 +524,16 @@ class SAFFileSystemOps @Inject constructor(
                 )
             }
 
-            createDocumentFile(DocumentsContract.Document.MIME_TYPE_DIR, path)
+            val created = createDocumentFile(DocumentsContract.Document.MIME_TYPE_DIR, path)
+            cacheCreated(path, created)
+            invalidateParentLookup(path)
 
             // Wait for DocumentsProvider to make directory queryable (race condition fix)
             waitUntilQueryable(path)
         } catch (e: PathAlreadyExistsException) {
             throw e // Re-throw PathAlreadyExistsException as-is
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             log(TAG, WARN) { "createDir($path) failed: ${e.asLog()}" }
             throw WriteException(path = path, cause = e)
@@ -463,14 +547,18 @@ class SAFFileSystemOps @Inject constructor(
             ensureParentExists(path, createParents)
 
             val docFile = path.resolveDocFile()
-            if (docFile.exists) throw PathAlreadyExistsException(path = path)
+            if (docFile.existsStrict()) throw PathAlreadyExistsException(path = path)
 
-            createDocumentFile("application/octet-stream", path)
+            val created = createDocumentFile("application/octet-stream", path)
+            cacheCreated(path, created)
+            invalidateParentLookup(path)
 
             // Wait for DocumentsProvider to make file queryable (race condition fix)
             waitUntilQueryable(path)
         } catch (e: PathAlreadyExistsException) {
             throw e // Re-throw PathAlreadyExistsException as-is
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             log(TAG, WARN) { "createFile($path) failed: ${e.asLog()}" }
             throw WriteException(path = path, cause = e)
@@ -491,14 +579,49 @@ class SAFFileSystemOps @Inject constructor(
     }
 
     override suspend fun openOutputStream(path: SAFPath, append: Boolean): OutputStream = try {
-        val docFile = path.resolveDocFile()
+        var docFile = path.resolveDocFile()
         log(TAG, VERBOSE) { "openOutputStream(append=$append): $path -> $docFile" }
 
-        if (!docFile.writable) throw IOException("writable=false")
+        // Match Local's create-on-write semantics (StandardOpenOption.CREATE, both modes).
+        // The parent must already exist — createDocumentFile enforces that.
+        val created = if (!docFile.existsStrict()) {
+            docFile = createDocumentFile("application/octet-stream", path)
+            cacheCreated(path, docFile)
+            invalidateParentLookup(path)
+            true
+        } else {
+            // Size/mtime become stale once the caller writes
+            lookupCache.remove(path)
+            false
+        }
 
         val mode = if (append) "wa" else "w"
-        contentResolver.openOutputStream(docFile.uri, mode)
-            ?: throw IOException("Couldn't open output stream for $path")
+        val rawStream = try {
+            contentResolver.openOutputStream(docFile.uri, mode)
+                ?: throw IOException("Couldn't open output stream for $path")
+        } catch (e: IOException) {
+            if (!created) throw e
+            // Freshly created documents may not be openable immediately on slow providers
+            waitUntilQueryable(path)
+            contentResolver.openOutputStream(docFile.uri, mode)
+                ?: throw IOException("Couldn't open output stream for $path")
+        }
+
+        // A concurrent lookup during the write may cache partial size/mtime; drop it once the
+        // write is finished so fresh metadata is queried.
+        object : FilterOutputStream(rawStream) {
+            override fun write(b: ByteArray, off: Int, len: Int) = out.write(b, off, len)
+
+            override fun close() {
+                try {
+                    super.close()
+                } finally {
+                    lookupCache.remove(path)
+                }
+            }
+        }
+    } catch (e: CancellationException) {
+        throw e
     } catch (e: Exception) {
         log(TAG, WARN) { "openOutputStream($path, append=$append) failed: ${e.asLog()}" }
         throw WriteException(path = path, cause = e)
@@ -614,60 +737,133 @@ class SAFFileSystemOps @Inject constructor(
     // SAF has no symlinks, so a path is already its own canonical form.
     override suspend fun canonicalize(path: SAFPath): SAFPath = path
 
-    override suspend fun move(source: SAFPath, destination: SAFPath): Boolean = try {
+    override suspend fun move(source: SAFPath, destination: SAFPath): MoveOutcome = try {
         log(TAG, VERBOSE) { "move(): $source -> $destination" }
-
-        val sourceDocFile = source.resolveDocFile()
-
-        if (!sourceDocFile.exists) {
-            throw ReadException("Source does not exist", source)
-        }
-
-        // Get source parent directory
-        val sourceParentPath = if (source.segments.size > 1) {
-            source.copy(segments = source.segments.dropLast(1))
-        } else {
-            source.copy(segments = emptyList())
-        }
-        val sourceParentDocFile = sourceParentPath.resolveDocFile()
-
-        // Get destination parent directory
-        val destParentPath = if (destination.segments.size > 1) {
-            destination.copy(segments = destination.segments.dropLast(1))
-        } else {
-            destination.copy(segments = emptyList())
-        }
-        val destParentDocFile = destParentPath.resolveDocFile()
-
-        if (!destParentDocFile.exists || !destParentDocFile.isDirectory) {
-            throw WriteException("Destination parent does not exist or is not a directory", destination)
-        }
-
-        // Use DocumentsContract.moveDocument (requires API 24+)
-        val movedUri = DocumentsContract.moveDocument(
-            contentResolver,
-            sourceDocFile.uri,
-            sourceParentDocFile.uri,
-            destParentDocFile.uri
-        )
-
-        val success = movedUri != null
-
-        if (success) {
-            // Invalidate cache entries for both source and destination
-            docFileCache.remove(source)
-            docFileCache.remove(destination)
-            lookupCache.remove(source)
-            lookupCache.remove(destination)
-        }
-
-        success
-    } catch (e: UnsupportedOperationException) {
-        // Don't wrap - let caller handle when document provider doesn't support move
+        moveInternal(source, destination)
+    } catch (e: CancellationException) {
         throw e
     } catch (e: Exception) {
+        // The failure may have had side effects — drop possibly-stale handles (including cached
+        // descendants of a directory) so callers verifying state afterwards resolve freshly by path.
+        invalidateSubtree(source)
+        invalidateSubtree(destination)
         log(TAG, WARN) { "move($source, $destination) failed: ${e.asLog()}" }
         throw WriteException(path = source, cause = e)
+    }
+
+    private suspend fun moveInternal(source: SAFPath, destination: SAFPath): MoveOutcome {
+        // Structural refusals — all decided before any contract call, so nothing is mutated.
+        if (source.segments.isEmpty() || destination.segments.isEmpty()) {
+            return MoveOutcome.NotSupported("Cannot move a SAF tree root")
+        }
+        if (source.treeRoot != destination.treeRoot) {
+            return MoveOutcome.NotSupported("Cross-tree SAF moves are not atomic")
+        }
+        if (destination.segments.size > source.segments.size &&
+            destination.segments.subList(0, source.segments.size) == source.segments
+        ) {
+            return MoveOutcome.NotSupported("Cannot move a path into its own subtree")
+        }
+        val sameParent = source.segments.dropLast(1) == destination.segments.dropLast(1)
+        val sameName = source.segments.last() == destination.segments.last()
+        if (!sameParent && !sameName) {
+            // SAF has no atomic reparent+rename; a compound move could strand the document
+            // half-moved if the second step fails.
+            return MoveOutcome.NotSupported("SAF cannot atomically reparent and rename")
+        }
+
+        val sourceDocFile = source.resolveDocFile()
+        if (!sourceDocFile.existsStrict()) {
+            throw ReadException("Source does not exist", source)
+        }
+        if (source == destination) return MoveOutcome.Moved // No-op for an existing document
+        val sourceIsDirectory = sourceDocFile.isDirectory
+
+        val sourceName = source.segments.last()
+        val destName = destination.segments.last()
+        val sourceParentDocFile = source.parent!!.resolveDocFile()
+        val destParentDocFile = if (sameParent) {
+            sourceParentDocFile
+        } else {
+            destination.parent!!.resolveDocFile().also {
+                if (!it.existsStrict() || !it.isDirectory) {
+                    throw WriteException("Destination parent does not exist or is not a directory", destination)
+                }
+            }
+        }
+
+        // renameDocument/moveDocument may collide or silently auto-suffix on an existing destination
+        if (destination.resolveDocFile().existsStrict()) {
+            return MoveOutcome.NotSupported("Destination already exists: $destination")
+        }
+
+        val movedDoc: SAFDocFile? = try {
+            if (sameParent) {
+                sourceDocFile.renameTo(destName)
+            } else {
+                DocumentsContract.moveDocument(
+                    contentResolver,
+                    sourceDocFile.uri,
+                    sourceParentDocFile.uri,
+                    destParentDocFile.uri,
+                )?.let { sourceDocFile.copy(uri = it) }
+            }
+        } catch (e: UnsupportedOperationException) {
+            // Providers that don't implement rename/move throw before mutating anything — but
+            // NotSupported guarantees no mutation, so verify state instead of trusting that.
+            invalidatePath(source)
+            invalidatePath(destination)
+            val sourceIntact = sourceParentDocFile.findFile(sourceName) != null
+            val destAbsent = destParentDocFile.findFile(destName) == null
+            if (sourceIntact && destAbsent) {
+                return MoveOutcome.NotSupported("Provider does not support move/rename: ${e.message}")
+            }
+            throw WriteException(
+                "Move unsupported but left ambiguous state (sourceIntact=$sourceIntact, destAbsent=$destAbsent)",
+                source,
+                e,
+            )
+        }
+
+        if (movedDoc == null) {
+            // Null contract result is ambiguous — only report NotSupported if provably nothing
+            // moved. Verify via fresh parent/child queries: cached document handles can survive
+            // a move under a stable document ID and would lie about the source path.
+            invalidatePath(source)
+            invalidatePath(destination)
+            val sourceIntact = sourceParentDocFile.findFile(sourceName) != null
+            val destAbsent = destParentDocFile.findFile(destName) == null
+            if (sourceIntact && destAbsent) {
+                return MoveOutcome.NotSupported("Provider returned null result, nothing was mutated")
+            }
+            throw WriteException(
+                "Move returned no result and left ambiguous state " +
+                    "(sourceIntact=$sourceIntact, destAbsent=$destAbsent)",
+                source,
+            )
+        }
+
+        // The move happened — verify it landed under the requested name (providers may auto-suffix).
+        // From here on failures must be loud: the source is gone, a fallback copy would be impossible.
+        val resultDoc = try {
+            movedDoc.withVerifiedName(destName)
+        } catch (e: NameVerificationException) {
+            throw WriteException(
+                "Moved, but landed as '${e.actualName}' instead of '$destName' (uri=${e.doc.uri})",
+                source,
+                e,
+            )
+        }
+
+        // Unconditional subtree invalidation: for files it degrades to the path itself, and the
+        // isDirectory probe above is best-effort — don't let a failed probe leave stale descendants.
+        invalidateSubtree(destination)
+        cacheCreated(destination, resultDoc)
+        invalidateSubtree(source)
+        invalidateParentLookup(source)
+        invalidateParentLookup(destination)
+
+        return MoveOutcome.Moved
     }
 
     override suspend fun canRead(path: SAFPath): Boolean = try {
@@ -731,6 +927,8 @@ class SAFFileSystemOps @Inject constructor(
                 lookup(path, LookupOptions())
                 if (Bugs.isTrace) log(TAG, VERBOSE) { "Path queryable after ${attempt + 1} attempt(s): $path" }
                 return // Success!
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 if (attempt == maxAttempts - 1) {
                     // Last attempt failed - log but don't throw

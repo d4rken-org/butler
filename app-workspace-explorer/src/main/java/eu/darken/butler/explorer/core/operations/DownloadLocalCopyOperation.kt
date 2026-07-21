@@ -14,6 +14,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LookupOptions
+import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.progress.Progress
@@ -103,6 +104,9 @@ class DownloadLocalCopyOperation @AssistedInject constructor(
         }
 
         val tempPath = command.destinationDir.child(".${destPath.name}.${Uuid.random().toString().take(8)}.part")
+        // Once the pre-existing destination is deleted, the temp is the only surviving copy and
+        // must be kept on any later failure; before that boundary it is a discardable orphan.
+        var destructiveBoundaryCrossed = false
         val written = try {
             gatewaySwitch.openInputStream(command.source).use { input ->
                 gatewaySwitch.openOutputStream(tempPath).use { output ->
@@ -133,17 +137,23 @@ class DownloadLocalCopyOperation @AssistedInject constructor(
                     count
                 }
             }.also {
-                if (gatewaySwitch.exists(destPath) && !gatewaySwitch.delete(destPath)) {
-                    throw WriteException("Failed to replace existing file", destPath)
+                if (gatewaySwitch.exists(destPath)) {
+                    if (!gatewaySwitch.delete(destPath)) {
+                        throw WriteException("Could not replace existing file", destPath)
+                    }
+                    destructiveBoundaryCrossed = true
                 }
-                if (!gatewaySwitch.move(tempPath, destPath)) {
-                    throw WriteException("Failed to commit downloaded copy", destPath)
+                if (gatewaySwitch.move(tempPath, destPath) !is MoveOutcome.Moved || !gatewaySwitch.exists(destPath)) {
+                    val kept = if (destructiveBoundaryCrossed) ", data kept as ${tempPath.name}" else ""
+                    throw WriteException("Could not finalize downloaded copy$kept", destPath)
                 }
             }
         } catch (e: Exception) {
-            log(tag, WARN) { "Download failed, cleaning up partial: ${e.asLog()}" }
-            withContext(NonCancellable) {
-                runCatching { if (gatewaySwitch.exists(tempPath)) gatewaySwitch.delete(tempPath) }
+            log(tag, WARN) { "Download failed: ${e.asLog()}" }
+            if (!destructiveBoundaryCrossed) {
+                withContext(NonCancellable) {
+                    runCatching { if (gatewaySwitch.exists(tempPath)) gatewaySwitch.delete(tempPath) }
+                }
             }
             throw e
         }

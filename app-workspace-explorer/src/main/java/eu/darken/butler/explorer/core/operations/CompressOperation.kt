@@ -14,6 +14,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LookupOptions
+import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.archive.ArchivePasswordStore
 import eu.darken.butler.common.files.archive.ArchiveService
 import eu.darken.butler.common.files.archive.ArchiveWriteOptions
@@ -180,7 +181,7 @@ class CompressOperation @AssistedInject constructor(
                     }
                     destructiveBoundaryCrossed = true
                 }
-                if (!gatewaySwitch.move(tempPath, outputPath) || !gatewaySwitch.exists(outputPath)) {
+                if (gatewaySwitch.move(tempPath, outputPath) !is MoveOutcome.Moved || !gatewaySwitch.exists(outputPath)) {
                     throw WriteException("Could not finalize archive, data kept as ${tempPath.name}", outputPath)
                 }
 

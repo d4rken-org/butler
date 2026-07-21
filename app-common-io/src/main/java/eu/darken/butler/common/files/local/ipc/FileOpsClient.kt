@@ -10,6 +10,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.FileSystemOps
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.DeleteAction
@@ -169,8 +170,13 @@ class FileOpsClient @AssistedInject constructor(
         throw e.refineException()
     }
 
-    override suspend fun move(source: LocalPath, destination: LocalPath): Boolean = try {
-        fileOpsConnection.move(source, destination)
+    override suspend fun move(source: LocalPath, destination: LocalPath): MoveOutcome = try {
+        // AIDL wire format is Boolean: true = Moved, false = NotSupported (nothing mutated)
+        if (fileOpsConnection.move(source, destination)) {
+            MoveOutcome.Moved
+        } else {
+            MoveOutcome.NotSupported("Remote atomic move not supported")
+        }
     } catch (e: Exception) {
         throw e.refineException()
     }

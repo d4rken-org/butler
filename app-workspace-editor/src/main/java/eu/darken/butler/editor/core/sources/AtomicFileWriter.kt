@@ -6,6 +6,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
+import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.extensions.exists
 import kotlinx.coroutines.NonCancellable
@@ -100,17 +101,29 @@ class AtomicFileWriter(
             var backedUp = false
             try {
                 if (target.exists(gatewaySwitch)) {
-                    check(gatewaySwitch.move(target, backupPath)) { "Backup move failed: $target -> $backupPath" }
+                    check(gatewaySwitch.move(target, backupPath) is MoveOutcome.Moved) { "Backup move failed: $target -> $backupPath" }
                     backedUp = true
                 }
-                check(gatewaySwitch.move(tempPath, target)) { "Commit move failed: $tempPath -> $target" }
+                check(gatewaySwitch.move(tempPath, target) is MoveOutcome.Moved) { "Commit move failed: $tempPath -> $target" }
             } catch (e: Exception) {
-                // Moves are atomic, so a failure here means the commit never landed and the target
-                // path is free; if we had moved the original aside, put it back.
-                var restored = !backedUp
-                if (backedUp) {
-                    try {
-                        check(gatewaySwitch.move(backupPath, target)) { "Restore move returned false" }
+                // An exception may still have moved documents (e.g. a lost IPC reply), so
+                // reconcile from observable state instead of trusting the bookkeeping flag.
+                // Failed observations are "unknown" (null), never "absent" — an unknown backup
+                // state must funnel into the restore attempt, whose own failure is loud.
+                val backupPresent = if (backedUp) true else runCatching { backupPath.exists(gatewaySwitch) }.getOrNull()
+                val targetPresent = runCatching { target.exists(gatewaySwitch) }.getOrNull()
+                var restored = backupPresent == false
+                when {
+                    backupPresent == false -> Unit // Provably nothing to restore
+
+                    backupPresent == true && targetPresent == true -> {
+                        // The commit landed despite the exception; keep the original as backup.
+                        log(tag, WARN) { "Commit errored but target exists - original kept at $backupPath: ${e.asLog()}" }
+                        restored = true
+                    }
+
+                    else -> try {
+                        check(gatewaySwitch.move(backupPath, target) is MoveOutcome.Moved) { "Restore move returned false" }
                         restored = true
                     } catch (restoreError: Exception) {
                         log(tag, ERROR) { "Restore failed - original preserved at $backupPath: ${restoreError.asLog()}" }

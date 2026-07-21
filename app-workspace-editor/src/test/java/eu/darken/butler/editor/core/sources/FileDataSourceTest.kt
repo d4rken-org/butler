@@ -5,6 +5,7 @@ import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
+import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.local.LocalFileSystemOps
 import eu.darken.butler.common.files.metadata.OwnershipResolver
 import eu.darken.butler.workspace.core.Workspace
@@ -70,7 +71,7 @@ class FileDataSourceTest : BaseTest() {
         coEvery { move(any<APath<*>>(), any<APath<*>>()) } coAnswers {
             val source = firstArg<APath<*>>() as LocalPath
             val target = secondArg<APath<*>>() as LocalPath
-            source.file.renameTo(target.file)
+            if (source.file.renameTo(target.file)) MoveOutcome.Moved else MoveOutcome.NotSupported("rename failed")
         }
 
         // Mock createFile() - delegates to REAL file system operations
@@ -203,7 +204,7 @@ class FileDataSourceTest : BaseTest() {
             val source = firstArg<APath<*>>() as LocalPath
             val target = secondArg<APath<*>>() as LocalPath
             if (source.name.contains("butler-save-tmp")) throw IOException("simulated commit failure")
-            source.file.renameTo(target.file)
+            if (source.file.renameTo(target.file)) MoveOutcome.Moved else MoveOutcome.NotSupported("rename failed")
         }
         val testFile = File(tempDir, "test.txt").apply { writeText("Hello World") }
         val dataSource = FileDataSource(workspaceId, LocalPath.build(testFile), gateway).apply { open() }
@@ -218,12 +219,16 @@ class FileDataSourceTest : BaseTest() {
     }
 
     @Test
-    fun `save failure via false move result also preserves the original`(@TempDir tempDir: File) = runTest {
+    fun `save failure via non-Moved result also preserves the original`(@TempDir tempDir: File) = runTest {
         val gateway = createMockGateway()
         coEvery { gateway.move(any<APath<*>>(), any<APath<*>>()) } coAnswers {
             val source = firstArg<APath<*>>() as LocalPath
             val target = secondArg<APath<*>>() as LocalPath
-            if (source.name.contains("butler-save-tmp")) false else source.file.renameTo(target.file)
+            when {
+                source.name.contains("butler-save-tmp") -> MoveOutcome.NotSupported("test")
+                source.file.renameTo(target.file) -> MoveOutcome.Moved
+                else -> MoveOutcome.NotSupported("rename failed")
+            }
         }
         val testFile = File(tempDir, "test.txt").apply { writeText("Hello World") }
         val dataSource = FileDataSource(workspaceId, LocalPath.build(testFile), gateway).apply { open() }
@@ -254,7 +259,11 @@ class FileDataSourceTest : BaseTest() {
         coEvery { gateway.move(any<APath<*>>(), any<APath<*>>()) } coAnswers {
             val source = firstArg<APath<*>>() as LocalPath
             val target = secondArg<APath<*>>() as LocalPath
-            if (target.name == "test.txt") throw IOException("write barrier") else source.file.renameTo(target.file)
+            when {
+                target.name == "test.txt" -> throw IOException("write barrier")
+                source.file.renameTo(target.file) -> MoveOutcome.Moved
+                else -> MoveOutcome.NotSupported("rename failed")
+            }
         }
         val testFile = File(tempDir, "test.txt").apply { writeText("Hello World") }
         val dataSource = FileDataSource(workspaceId, LocalPath.build(testFile), gateway).apply { open() }

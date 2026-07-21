@@ -41,6 +41,21 @@ data class SAFDocFile(
     val exists: Boolean
         get() = queryForString(DocumentsContract.Document.COLUMN_DOCUMENT_ID) != null
 
+    /**
+     * Strict existence check for mutation decisions.
+     *
+     * Unlike [exists], only a definitive "no such document" answer reads as absent;
+     * query failures (permission, dead provider) propagate instead of masquerading as absence.
+     */
+    fun existsStrict(): Boolean = queryForStringStrict(DocumentsContract.Document.COLUMN_DOCUMENT_ID) != null
+
+    /**
+     * Strict display-name read for mutation decisions.
+     *
+     * Null means the provider definitively reported no document/value; query failures propagate.
+     */
+    fun nameStrict(): String? = queryForStringStrict(DocumentsContract.Document.COLUMN_DISPLAY_NAME)
+
     private val mimeType: String?
         get() = queryForString(DocumentsContract.Document.COLUMN_MIME_TYPE)
 
@@ -157,6 +172,19 @@ data class SAFDocFile(
         val newFileUri = DocumentsContract.createDocument(resolver, uri, mimeType, name)
         requireNotNull(newFileUri) { "createFile(mimeType=$mimeType, name=$name) failed for $uri" }
         return SAFDocFile(context, resolver, newFileUri)
+    }
+
+    /**
+     * Rename this document in place via [DocumentsContract.renameDocument].
+     *
+     * @return the renamed document, or null if the provider reported the documented no-op
+     * failure (document not found). Other failures propagate.
+     */
+    fun renameTo(name: String): SAFDocFile? = try {
+        DocumentsContract.renameDocument(resolver, uri, name)
+            ?.let { SAFDocFile(context, resolver, it) }
+    } catch (e: FileNotFoundException) {
+        null
     }
 
     // https://commonsware.com/blog/2019/11/23/scoped-storage-stories-documentscontract.html
@@ -340,15 +368,14 @@ data class SAFDocFile(
     }
 
     @SuppressLint("Recycle")
+    private fun queryColumnRaw(column: String): String? =
+        resolver.query(uri, arrayOf(column), null, null, null).useQuietly { c ->
+            if (c != null && c.moveToFirst() && !c.isNull(0)) c.getString(0) else null
+        }
+
     private fun queryForString(column: String): String? {
         return try {
-            resolver.query(uri, arrayOf(column), null, null, null).useQuietly { c ->
-                if (c != null && c.moveToFirst() && !c.isNull(0)) {
-                    c.getString(0)
-                } else {
-                    null
-                }
-            }
+            queryColumnRaw(column)
         } catch (e: Exception) {
             if (e !is IllegalArgumentException || !e.toString().contains("is child of")) {
                 log(SAFGateway.TAG + ":SAFDocFile", WARN) { "queryForString(column=$column): $e" }
@@ -356,6 +383,21 @@ data class SAFDocFile(
 
             null
         }
+    }
+
+    /**
+     * Strict variant of [queryForString] for mutation decisions.
+     *
+     * Absent-document answers (empty cursor, provider FileNotFound, the "is child of" quirk for
+     * removed documents) return null; every other failure propagates so callers never mistake
+     * "query failed" for "document absent".
+     */
+    private fun queryForStringStrict(column: String): String? = try {
+        queryColumnRaw(column)
+    } catch (e: FileNotFoundException) {
+        null
+    } catch (e: IllegalArgumentException) {
+        if (e.toString().contains("is child of") || e.cause is FileNotFoundException) null else throw e
     }
 
     @SuppressLint("Recycle")

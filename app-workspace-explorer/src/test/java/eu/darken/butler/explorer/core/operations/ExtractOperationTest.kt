@@ -5,6 +5,7 @@ import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
+import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.archive.ArchiveEntryMeta
 import eu.darken.butler.common.files.archive.ArchiveFormat
@@ -17,6 +18,7 @@ import eu.darken.butler.common.files.archive.SequentialEntry
 import eu.darken.butler.common.files.archive.SequentialOutcome
 import eu.darken.butler.common.files.archive.SequentialResult
 import eu.darken.butler.common.files.errors.ReadException
+import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.workspace.core.Workspace
@@ -41,6 +43,7 @@ import testhelpers.coroutine.runTest2
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Clock
 
 class ExtractOperationTest : BaseTest() {
@@ -57,6 +60,7 @@ class ExtractOperationTest : BaseTest() {
 
     private val writtenStreams = mutableMapOf<String, ByteArrayOutputStream>()
     private val moves = mutableListOf<Pair<APath<*>, APath<*>>>()
+    private val existingPaths = mutableSetOf<String>()
 
     private fun lookupOf(path: LocalPath, isDir: Boolean = false) = LocalPathLookup(
         lookedUp = path,
@@ -65,15 +69,19 @@ class ExtractOperationTest : BaseTest() {
         modifiedAt = null,
     )
 
+    private fun isTemp(path: APath<*>) = path.name.endsWith(".part")
+
     @Before
     fun setup() {
         writtenStreams.clear()
         moves.clear()
+        existingPaths.clear()
         coEvery { gatewaySwitch.lookup(any(), any<LookupOptions>()) } answers {
             @Suppress("UNCHECKED_CAST")
             lookupOf(firstArg<LocalPath>()) as APathLookup<APath<*>>
         }
-        coEvery { gatewaySwitch.exists(any()) } returns false
+        // A path only "exists" after a successful move committed it there.
+        coEvery { gatewaySwitch.exists(any()) } answers { firstArg<APath<*>>().path in existingPaths }
         coEvery { gatewaySwitch.createDir(any(), any()) } returns Unit
         coEvery { gatewaySwitch.canonicalize(any()) } answers { firstArg<LocalPath>() }
         coEvery { gatewaySwitch.openOutputStream(any(), any()) } answers {
@@ -81,9 +89,13 @@ class ExtractOperationTest : BaseTest() {
         }
         coEvery { gatewaySwitch.move(any<APath<*>>(), any<APath<*>>()) } coAnswers {
             moves += firstArg<APath<*>>() to secondArg<APath<*>>()
-            true
+            existingPaths += secondArg<APath<*>>().path
+            MoveOutcome.Moved
         }
         coEvery { gatewaySwitch.delete(any<APath<*>>(), any<Boolean>()) } returns true
+        coEvery { archiveService.withOutputCommitLock(any(), any()) } coAnswers {
+            secondArg<suspend () -> Unit>().invoke()
+        }
     }
 
     private fun meta(vararg segments: String, dir: Boolean = false) = ArchiveEntryMeta(
@@ -183,6 +195,92 @@ class ExtractOperationTest : BaseTest() {
         report.extractedFiles shouldBe 1
         report.skippedEntries shouldContain "a.txt"
         report.affectedPaths.map { it.path } shouldBe listOf(baseDir.child("b.txt"))
+    }
+
+    @Test
+    fun `cancel resolution cancels the operation instead of skipping`() = runTest2 {
+        mockSeekable(meta("a.txt"))
+        coEvery { gatewaySwitch.exists(baseDir.child("a.txt")) } returns true
+        coEvery { issueHandler.handleIssue(any(), any()) } returns
+            PathActionIssue.PathAlreadyExists.Resolution.Cancel()
+
+        shouldThrow<CancellationException> {
+            operation(command()).perform(context()).toList()
+        }
+
+        coVerify(exactly = 0) { gatewaySwitch.openOutputStream(any(), any()) }
+        coVerify(exactly = 0) { gatewaySwitch.delete(any<APath<*>>(), any<Boolean>()) }
+    }
+
+    @Test
+    fun `destination appearing mid-operation is never deleted without authorization`() = runTest2 {
+        mockSeekable(meta("a.txt"))
+        val destFile = baseDir.child("a.txt")
+        // Absent at the conflict check (no prompt), present at commit time.
+        coEvery { gatewaySwitch.exists(destFile) } returns false andThen true
+        coEvery { gatewaySwitch.exists(match<APath<*>> { isTemp(it) }) } returns true
+
+        val states = operation(command()).perform(context()).toList()
+
+        val completed = states.completed()
+        val error = completed.error.shouldBeInstanceOf<WriteException>()
+        error.message shouldContain "appeared"
+        (completed.report as ExtractOperationReport).extractedFiles shouldBe 0
+        coVerify(exactly = 0) { gatewaySwitch.delete(destFile, any<Boolean>()) }
+        coVerify(exactly = 0) { gatewaySwitch.move(any<APath<*>>(), any<APath<*>>()) }
+        coVerify { gatewaySwitch.delete(match<APath<*>> { isTemp(it) }, any<Boolean>()) }
+    }
+
+    @Test
+    fun `failed delete of the existing destination aborts before the move`() = runTest2 {
+        mockSeekable(meta("a.txt"))
+        val destFile = baseDir.child("a.txt")
+        coEvery { gatewaySwitch.exists(destFile) } returns true
+        coEvery { issueHandler.handleIssue(any(), any()) } returns
+            PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
+        coEvery { gatewaySwitch.delete(destFile, any<Boolean>()) } returns false
+        coEvery { gatewaySwitch.exists(match<APath<*>> { isTemp(it) }) } returns true
+
+        val states = operation(command()).perform(context()).toList()
+
+        val completed = states.completed()
+        completed.error.shouldBeInstanceOf<WriteException>()
+        // Nothing was destroyed: the move never ran and the temp is a discardable orphan.
+        coVerify(exactly = 0) { gatewaySwitch.move(any<APath<*>>(), any<APath<*>>()) }
+        coVerify { gatewaySwitch.delete(match<APath<*>> { isTemp(it) }, any<Boolean>()) }
+    }
+
+    @Test
+    fun `failed move after deleting the existing destination keeps the temp`() = runTest2 {
+        mockSeekable(meta("a.txt"))
+        val destFile = baseDir.child("a.txt")
+        coEvery { gatewaySwitch.exists(destFile) } returns true
+        coEvery { issueHandler.handleIssue(any(), any()) } returns
+            PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
+        coEvery { gatewaySwitch.move(any<APath<*>>(), any<APath<*>>()) } returns
+            MoveOutcome.NotSupported("test")
+
+        val states = operation(command()).perform(context()).toList()
+
+        val completed = states.completed()
+        val error = completed.error.shouldBeInstanceOf<WriteException>()
+        error.message shouldContain "data kept as"
+        // The deleted destination may only survive as the temp - it must not be cleaned up.
+        coVerify(exactly = 0) { gatewaySwitch.delete(match<APath<*>> { isTemp(it) }, any<Boolean>()) }
+    }
+
+    @Test
+    fun `move reported as success without a destination is a failure`() = runTest2 {
+        mockSeekable(meta("a.txt"))
+        coEvery { gatewaySwitch.move(any<APath<*>>(), any<APath<*>>()) } returns MoveOutcome.Moved
+        coEvery { gatewaySwitch.exists(match<APath<*>> { isTemp(it) }) } returns true
+
+        val states = operation(command()).perform(context()).toList()
+
+        val completed = states.completed()
+        completed.error.shouldBeInstanceOf<WriteException>()
+        (completed.report as ExtractOperationReport).extractedFiles shouldBe 0
+        coVerify { gatewaySwitch.delete(match<APath<*>> { isTemp(it) }, any<Boolean>()) }
     }
 
     @Test

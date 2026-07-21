@@ -5,6 +5,7 @@ import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
+import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.local.LocalFileSystemOps
 import eu.darken.butler.common.files.metadata.OwnershipResolver
 import eu.darken.butler.editor.core.engine.ContentSource
@@ -69,7 +70,7 @@ class FileDataSourceEncodingTest : BaseTest() {
         coEvery { move(any<APath<*>>(), any<APath<*>>()) } coAnswers {
             val source = firstArg<APath<*>>() as LocalPath
             val dest = secondArg<APath<*>>() as LocalPath
-            source.file.renameTo(dest.file)
+            if (source.file.renameTo(dest.file)) MoveOutcome.Moved else MoveOutcome.NotSupported("rename failed")
         }
     }
 

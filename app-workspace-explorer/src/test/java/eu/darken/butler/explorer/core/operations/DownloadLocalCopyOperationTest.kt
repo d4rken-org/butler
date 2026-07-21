@@ -5,6 +5,7 @@ import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
+import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.local.LocalPathLookup
@@ -48,6 +49,7 @@ class DownloadLocalCopyOperationTest : BaseTest() {
     private val content = "0123456789".repeat(10).toByteArray()
     private val writtenStreams = mutableMapOf<String, ByteArrayOutputStream>()
     private val moves = mutableListOf<Pair<APath<*>, APath<*>>>()
+    private val existingPaths = mutableSetOf<String>()
 
     private fun lookupOf(path: LocalPath, size: Long = content.size.toLong()) = LocalPathLookup(
         lookedUp = path,
@@ -60,20 +62,23 @@ class DownloadLocalCopyOperationTest : BaseTest() {
     fun setup() {
         writtenStreams.clear()
         moves.clear()
+        existingPaths.clear()
         coEvery { gatewaySwitch.lookup(any(), any<LookupOptions>()) } answers {
             @Suppress("UNCHECKED_CAST")
             lookupOf(firstArg<LocalPath>()) as APathLookup<APath<*>>
         }
         coEvery { gatewaySwitch.getFileSystem(any()) } returns FileSystem(freeSpace = 1_000_000L)
         coEvery { gatewaySwitch.createDir(any(), any()) } returns Unit
-        coEvery { gatewaySwitch.exists(any()) } returns false
+        // A path only "exists" after a successful move committed it there.
+        coEvery { gatewaySwitch.exists(any()) } answers { firstArg<APath<*>>().path in existingPaths }
         coEvery { gatewaySwitch.openInputStream(sourcePath) } answers { ByteArrayInputStream(content) }
         coEvery { gatewaySwitch.openOutputStream(any(), any()) } answers {
             ByteArrayOutputStream().also { writtenStreams[firstArg<LocalPath>().path] = it }
         }
         coEvery { gatewaySwitch.move(any<APath<*>>(), any<APath<*>>()) } coAnswers {
             moves += firstArg<APath<*>>() to secondArg<APath<*>>()
-            true
+            existingPaths += secondArg<APath<*>>().path
+            MoveOutcome.Moved
         }
         coEvery { gatewaySwitch.delete(any<APath<*>>(), any<Boolean>()) } returns true
     }
@@ -160,6 +165,23 @@ class DownloadLocalCopyOperationTest : BaseTest() {
         states.completed().error.shouldBeNull()
         coVerify { gatewaySwitch.delete(destPath, any()) }
         moves.single().second shouldBe destPath
+    }
+
+    @Test
+    fun `failed move after deleting the existing destination keeps the temp`() = runTest2 {
+        coEvery { gatewaySwitch.exists(destPath) } returns true
+        coEvery { issueHandler.handleIssue(any(), any()) } returns
+            PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
+        coEvery { gatewaySwitch.move(any<APath<*>>(), any<APath<*>>()) } returns
+            MoveOutcome.NotSupported("test")
+
+        val e = shouldThrow<WriteException> {
+            operation().perform(context()).toList()
+        }
+
+        e.message shouldContain "data kept as"
+        // The deleted destination may only survive as the temp - it must not be cleaned up.
+        coVerify(exactly = 0) { gatewaySwitch.delete(match<APath<*>> { it.name.endsWith(".part") }, any<Boolean>()) }
     }
 
     @Test

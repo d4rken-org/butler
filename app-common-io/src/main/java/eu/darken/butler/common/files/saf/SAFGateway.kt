@@ -240,6 +240,7 @@ class SAFGateway @Inject constructor(
         sources.move(
             destination = destination,
             fileSystemOps = fileSystemOps,
+            options = options,
             onIssue = onIssue,
         ).collect { state ->
             emit(state)
