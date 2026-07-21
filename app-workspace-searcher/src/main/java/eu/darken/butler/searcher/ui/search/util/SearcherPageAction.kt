@@ -95,6 +95,11 @@ sealed interface SearcherPageAction {
         data object OpenPicker : Targets
 
         /**
+         * Add a MediaStore media collection as a search target
+         */
+        data class AddMediaStore(val collection: SearchTarget.MediaStore.Collection) : Targets
+
+        /**
          * Add default search paths (all public storage volumes)
          */
         data object AddDefaultPaths : Targets

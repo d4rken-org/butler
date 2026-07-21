@@ -5,6 +5,7 @@ import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.searcher.core.engine.SearchEngine
+import eu.darken.butler.searcher.core.engine.backend.SearchBackend
 import eu.darken.butler.searcher.core.operations.DeleteOperation
 import eu.darken.butler.searcher.core.operations.SearcherCommand
 import eu.darken.butler.workspace.contracts.searcher.FilenameQuery
@@ -26,6 +27,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.jupiter.api.Test
@@ -62,7 +64,10 @@ class SearcherWorkspaceLiveUpdateTest : BaseTest() {
             every { setupRequirements } returns MutableStateFlow(PathRequirements())
             every { targetProgressState } returns MutableStateFlow(emptyList())
             coEvery { search(any(), any()) } answers {
-                SearchEngine.Result.Success(engineFlows[minOf(searchCount++, engineFlows.size - 1)])
+                SearchEngine.Result.Success(
+                    engineFlows[minOf(searchCount++, engineFlows.size - 1)]
+                        .map { SearchBackend.BackendResult(it, SearchBackend.BackendResult.RANK_FILESYSTEM) }
+                )
             }
         }
         val engineFactory = mockk<SearchEngine.Factory> {

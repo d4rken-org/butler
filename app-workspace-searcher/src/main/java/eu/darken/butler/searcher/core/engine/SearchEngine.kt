@@ -68,7 +68,7 @@ class SearchEngine @AssistedInject constructor(
             val savedTargets = searcherSettings.searchDefaultTargets.value()
             if (savedTargets != null) {
                 log(tag, INFO) { "Loaded ${savedTargets.size} targets from settings" }
-                _targetState.value = savedTargets
+                _targetState.value = savedTargets.normalized()
             } else {
                 log(tag, INFO) { "No saved targets, using defaults" }
                 _targetState.value = getDefaultSearchPaths()
@@ -101,7 +101,7 @@ class SearchEngine @AssistedInject constructor(
     }
 
     data class SearchProgress(
-        val currentPath: APath<*>,
+        val currentPath: APath<*>?,
         val itemsScanned: Int,
         val resultsFound: Int
     )
@@ -121,13 +121,17 @@ class SearchEngine @AssistedInject constructor(
     }
 
     fun updateTargets(transform: (List<SearchTarget>) -> List<SearchTarget>) {
-        val newTargets = transform(_targetState.value)
+        val newTargets = transform(_targetState.value).normalized()
         log(tag, INFO) { "Updating search targets: ${newTargets.size} targets" }
         _targetState.value = newTargets
         scope.launch {
             searcherSettings.searchDefaultTargets.value(newTargets)
         }
     }
+
+    // Persisted target lists can carry identity-duplicates (e.g. hand-edited settings or old
+    // versions); progress tracking and dedup rely on identity being unique per scan.
+    private fun List<SearchTarget>.normalized(): List<SearchTarget> = distinctBy { it.identity }
 
     fun addDefaultPaths() {
         log(tag, INFO) { "Adding default search paths" }
@@ -265,15 +269,15 @@ class SearchEngine @AssistedInject constructor(
         data class InvalidQuery(val reason: String? = null) : Result
         data object NoTargets : Result
         data class PermissionsRequired(val requirements: PathRequirements) : Result
-        data class Success(val results: Flow<SearchItem>) : Result
+        data class Success(val results: Flow<SearchBackend.BackendResult>) : Result
         data class Error(val exception: Exception) : Result
     }
 
     private suspend fun executeSearch(
         searchQuery: SearchQuery,
         onProgress: ((SearchProgress) -> Unit)? = null
-    ): Flow<SearchItem> = channelFlow {
-        val enabledTargets = searchQuery.targets.filter { it.enabled }
+    ): Flow<SearchBackend.BackendResult> = channelFlow {
+        val enabledTargets = searchQuery.targets.filter { it.enabled }.distinctBy { it.identity }
 
         log(
             tag,
@@ -314,7 +318,7 @@ class SearchEngine @AssistedInject constructor(
                         query = searchQuery,
                         includeBinaries = includeBinaries,
                         onProgress = { scanProgress ->
-                            scanProgress.currentPath?.let { progressAggregator.update(it, scanProgress) }
+                            progressAggregator.update(target, scanProgress)
 
                             updateProgress(target) {
                                 it.copy(
@@ -328,16 +332,13 @@ class SearchEngine @AssistedInject constructor(
                             // Report aggregate progress every 100 items
                             if (scanProgress.itemsScanned % 100 == 0) {
                                 val aggregate = progressAggregator.createSnapshot()
-                                val currentPath = aggregate.currentPath ?: scanProgress.currentPath
-                                if (currentPath != null) {
-                                    onProgress?.invoke(
-                                        SearchProgress(
-                                            currentPath = currentPath,
-                                            itemsScanned = aggregate.totalScanned,
-                                            resultsFound = aggregate.totalFound,
-                                        )
+                                onProgress?.invoke(
+                                    SearchProgress(
+                                        currentPath = aggregate.currentPath ?: scanProgress.currentPath,
+                                        itemsScanned = aggregate.totalScanned,
+                                        resultsFound = aggregate.totalFound,
                                     )
-                                }
+                                )
                             }
                         }
                     )

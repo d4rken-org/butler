@@ -27,8 +27,9 @@
     <string name="searcher_placeholder_filename">Filename</string>
     <string name="searcher_placeholder_content">Content</string>
     <string name="searcher_search_error">Search error</string>
-    <string name="searcher_no_paths_hint">Tap + to add search paths</string>
-    <string name="searcher_add_path_action">Add path</string>
+    <string name="searcher_no_paths_hint">Tap + to add search locations</string>
+    <string name="searcher_add_path_action">Add location</string>
+    <string name="searcher_add_folder_action">Folder…</string>
     <string name="searcher_multipath_show_fewer_action">Show fewer</string>
     <string name="searcher_empty_state_title">No search paths configured</string>
     <string name="searcher_empty_state_description">Add storage locations to search through your files</string>

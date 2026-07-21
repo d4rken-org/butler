@@ -31,7 +31,8 @@ class SearchEngineNoCapTest : BaseTest() {
         override fun canHandle(target: SearchTarget): Boolean = true
         override fun supports(condition: FilterCondition): Boolean = true
         override fun monitorRequirements(target: SearchTarget): Flow<PathRequirements> = flowOf(PathRequirements())
-        override suspend fun scan(session: SearchBackend.ScanSession): Flow<SearchItem> = items.asFlow()
+        override suspend fun scan(session: SearchBackend.ScanSession): Flow<SearchBackend.BackendResult> =
+            items.map { SearchBackend.BackendResult(it, SearchBackend.BackendResult.RANK_FILESYSTEM) }.asFlow()
     }
 
     @Test

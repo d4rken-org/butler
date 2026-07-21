@@ -15,6 +15,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.extensions.isAncestorOfOrSelf
 import eu.darken.butler.common.flow.chunked
@@ -52,7 +53,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.transformWhile
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.KSerializer
@@ -216,13 +217,22 @@ class SearcherWorkspace @AssistedInject constructor(
 
         // Scope against the query that produced the displayed results, not the editable engine
         // targets — editing targets without re-searching must not stop pruning of old results.
-        val targets = _searchState.value.currentSearchQuery?.targets
-            ?.filterIsInstance<SearchTarget.Path>()?.filter { it.enabled }
+        val queryTargets = _searchState.value.currentSearchQuery?.targets?.filter { it.enabled }
             ?: emptyList()
-        if (targets.isEmpty()) return
+        val pathTargets = queryTargets.filterIsInstance<SearchTarget.Path>()
+        // MediaStore results can live anywhere on external storage, so with an active media
+        // target ANY removed local path is relevant — ancestry against a target root can't scope
+        // an index-backed collection.
+        val hasMediaTargets = queryTargets.any { it is SearchTarget.MediaStore }
+        if (pathTargets.isEmpty() && !hasMediaTargets) return
 
-        val relevant = event.paths.map { it.lookedUp }.filter { removed ->
-            targets.any { it.path.isAncestorOfOrSelf(removed) || removed.isAncestorOfOrSelf(it.path) }
+        // Alias-normalized comparison: MediaStore reports /storage/emulated/0/... while a target
+        // or removal event may use an alias spelling like /sdcard/...
+        val relevant = event.paths.map { ResultPathKeys.comparable(it.lookedUp) }.filter { removed ->
+            (hasMediaTargets && removed is LocalPath) || pathTargets.any { target ->
+                val targetPath = ResultPathKeys.comparable(target.path)
+                targetPath.isAncestorOfOrSelf(removed) || removed.isAncestorOfOrSelf(targetPath)
+            }
         }
         if (relevant.isEmpty()) return
         log(tag) { "onFileSystemEvent(): pruning ${relevant.size} removed paths from results" }
@@ -239,8 +249,13 @@ class SearcherWorkspace @AssistedInject constructor(
         }
     }
 
+    // Entries in `removed` are already alias-normalized (see onFileSystemEvent); item paths are
+    // normalized here so both sides of the ancestry check compare in the same spelling.
     private fun List<SearchItem>.pruning(removed: Collection<APath<*>>): List<SearchItem> =
-        filterNot { item -> removed.any { it.isAncestorOfOrSelf(item.path) } }
+        filterNot { item ->
+            val comparable = ResultPathKeys.comparable(item.path)
+            removed.any { it.isAncestorOfOrSelf(comparable) }
+        }
 
     private fun Set<APath<*>>.plusMinimal(new: Collection<APath<*>>): Set<APath<*>> {
         val result = toMutableSet()
@@ -328,14 +343,13 @@ class SearcherWorkspace @AssistedInject constructor(
     private suspend fun processSearchRequest(command: SearcherCommand.Search, generation: Long) {
         log(tag) { "processSearchRequest(): filename=${command.filenameQuery.pattern}, content=${command.contentQuery.pattern}" }
 
-        // Set initial progress with first target
-        val initialProgress = (command.targets.firstOrNull() as? SearchTarget.Path)?.let { firstTarget ->
-            SearchEngine.SearchProgress(
-                currentPath = firstTarget.path,
-                itemsScanned = 0,
-                resultsFound = 0,
-            )
-        }
+        // Set initial progress; the display path is optional (index-backed targets have none)
+        val initialProgress = SearchEngine.SearchProgress(
+            currentPath = command.targets.firstOrNull { it.enabled }
+                ?.let { it as? SearchTarget.Path }?.path,
+            itemsScanned = 0,
+            resultsFound = 0,
+        )
 
         // Build search query for display
         val searchQuery = SearchQuery(
@@ -427,34 +441,46 @@ class SearcherWorkspace @AssistedInject constructor(
                     // the limit is a normal completion, not a cancellation. One extra item is
                     // requested to tell "exactly the limit exists" apart from actual truncation.
                     // Dedup runs BEFORE the cap: overlapping search roots surface the same file
-                    // once, and duplicates must not consume the result budget.
+                    // once, and duplicates must not consume the result budget. Duplicates from a
+                    // higher-ranked source REPLACE the kept item (fresh filesystem metadata wins
+                    // over a possibly stale index row) — best-effort once the cap fires.
+                    // All accumulator access happens downstream of chunked() (its upstream runs
+                    // in a producer coroutine) so accumulation stays single-threaded. Trade-off:
+                    // the cap is observed per batch, so scanners may run up to one batch interval
+                    // past the limit before cancellation — bounded and accepted.
                     val maxResults = command.options.maxResults?.takeIf { it > 0 }
-                    val seenPaths = HashSet<String>()
-                    val distinctResults = result.results.filter { seenPaths.add(it.path.path) }
-                    val cappedResults = when (maxResults) {
-                        null -> distinctResults
-                        else -> distinctResults.take(maxResults + 1)
-                    }
+                    val accumulator = ResultAccumulator()
 
-                    val results = mutableListOf<SearchItem>()
-                    cappedResults
+                    result.results
                         .chunked(SearchConfig.RESULT_BATCH_SIZE, SearchConfig.RESULT_BATCH_INTERVAL)
-                        .collect { batch ->
+                        .transformWhile { batch ->
+                            val changed = mutableListOf<SearchItem>()
+                            for (backendResult in batch) {
+                                // Sentinel reached: drop the batch remainder, matching take(n)
+                                if (maxResults != null && accumulator.uniqueCount > maxResults) break
+                                if (accumulator.add(backendResult) != ResultAccumulator.Outcome.Ignored) {
+                                    changed += backendResult.item
+                                }
+                            }
+                            if (changed.isNotEmpty()) emit(changed)
+                            maxResults == null || accumulator.uniqueCount <= maxResults
+                        }
+                        .collect { changed ->
                             // Directory results resolve fresh collages for this search
-                            val dirs = batch.filterIsInstance<SearchItem.Directory>().map { it.path }
+                            val dirs = changed.filterIsInstance<SearchItem.Directory>().map { it.path }
                             folderPreviewResolver.invalidateDirs(dirs)
 
-                            results += batch
                             updateGuarded(generation) { state ->
                                 // The truncation sentinel item is never displayed
-                                state.copy(results = results.take(maxResults ?: results.size))
+                                state.copy(results = accumulator.snapshot(maxResults))
                             }
                         }
 
-                    val limitReached = maxResults != null && results.size > maxResults
+                    val limitReached = maxResults != null && accumulator.uniqueCount > maxResults
                     if (limitReached) {
-                        results.removeAt(results.size - 1)
+                        accumulator.removeLast()
                     }
+                    val results = accumulator.snapshot()
 
                     // Check if all targets failed with errors
                     val targetProgress = searchEngine.targetProgressState.value
@@ -479,7 +505,7 @@ class SearcherWorkspace @AssistedInject constructor(
                         // Fold accumulated removals into the final list, then drop exactly the
                         // folded tombstones — one added concurrently must keep filtering.
                         val foldedTombstones = removedPaths.value
-                        val finalResults = results.toList().pruning(foldedTombstones)
+                        val finalResults = results.pruning(foldedTombstones)
                         updateGuarded(generation) {
                             it.copy(
                                 searchStatus = State.SearchStatus.COMPLETED,

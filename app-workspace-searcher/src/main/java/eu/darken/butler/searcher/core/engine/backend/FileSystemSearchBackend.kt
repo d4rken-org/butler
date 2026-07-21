@@ -14,12 +14,6 @@ import eu.darken.butler.common.files.metadata.MetadataRepo
 import eu.darken.butler.permissions.core.PathPermissionCheck
 import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.searcher.core.SearchItem
-import eu.darken.butler.searcher.core.SearchQuery
-import eu.darken.butler.searcher.core.engine.ContentMatcher
-import eu.darken.butler.searcher.core.engine.PatternMatcher
-import eu.darken.butler.searcher.core.engine.SearchConfig
-import eu.darken.butler.searcher.core.engine.patternOptions
-import eu.darken.butler.workspace.contracts.searcher.FilenameQuery
 import eu.darken.butler.workspace.contracts.searcher.FilterCondition
 import eu.darken.butler.workspace.contracts.searcher.SearchTarget
 import kotlinx.coroutines.CancellationException
@@ -28,6 +22,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.isActive
@@ -39,7 +34,7 @@ class FileSystemSearchBackend @Inject constructor(
     private val gatewaySwitch: GatewaySwitch,
     private val metadataRepo: MetadataRepo,
     private val dispatcherProvider: DispatcherProvider,
-    private val contentMatcher: ContentMatcher,
+    private val matcher: SearchItemMatcher,
     private val pathPermissionCheck: PathPermissionCheck,
 ) : SearchBackend {
 
@@ -55,34 +50,19 @@ class FileSystemSearchBackend @Inject constructor(
 
     override fun monitorRequirements(target: SearchTarget): Flow<PathRequirements> = when (target) {
         is SearchTarget.Path -> pathPermissionCheck.monitor(target.path)
+        // Unreachable, canHandle() guards dispatch
+        is SearchTarget.MediaStore -> flowOf(PathRequirements())
     }
 
-    override suspend fun scan(session: SearchBackend.ScanSession): Flow<SearchItem> {
+    override suspend fun scan(session: SearchBackend.ScanSession): Flow<SearchBackend.BackendResult> {
         val target = session.target as? SearchTarget.Path ?: return emptyFlow()
         return scanPath(target.path, session)
     }
 
-    private fun scanPath(path: APath<*>, session: SearchBackend.ScanSession): Flow<SearchItem> = flow {
+    private fun scanPath(path: APath<*>, session: SearchBackend.ScanSession): Flow<SearchBackend.BackendResult> = flow {
         log(tag, INFO) { "[${session.workspaceId.shortTag}] Scanning path: $path" }
         val query = session.query
-
-        var itemsScanned = 0
-        var resultsFound = 0
-        var errorCount = 0
-        var firstErrorPath: APath<*>? = null
-
-        fun progressSnapshot() = SearchBackend.ScanProgress(
-            currentPath = path,
-            itemsScanned = itemsScanned,
-            resultsFound = resultsFound,
-            errorCount = errorCount,
-            firstErrorPath = firstErrorPath,
-        )
-
-        fun recordError(errorPath: APath<*>?) {
-            errorCount++
-            if (firstErrorPath == null) firstErrorPath = errorPath
-        }
+        val progress = ScanProgressTracker(currentPath = path, onProgress = session.onProgress)
 
         try {
             val gateway = gatewaySwitch.getGateway(path)
@@ -96,7 +76,7 @@ class FileSystemSearchBackend @Inject constructor(
             val walkOptions = APathGateway.WalkOptions<APath<*>, APathLookup<APath<*>>>(
                 onError = { lookup, error ->
                     log(tag, VERBOSE) { "Error accessing ${lookup.lookedUp}: $error" }
-                    recordError(lookup.lookedUp)
+                    progress.recordError(lookup.lookedUp)
                     true // Continue walking, the failure is reported via progress
                 },
                 followSymlinks = query.options.followSymlinks,
@@ -107,15 +87,12 @@ class FileSystemSearchBackend @Inject constructor(
                 .mapNotNull { lookup ->
                     if (!currentCoroutineContext().isActive) throw CancellationException()
 
-                    itemsScanned++
-                    if (itemsScanned % SearchConfig.PROGRESS_UPDATE_INTERVAL == 0) {
-                        session.onProgress(progressSnapshot())
-                    }
+                    progress.onItemScanned()
 
                     // Entries that exist but couldn't be read arrive as UNKNOWN with an error
                     // (continueOnError) — count them toward the partial signal, don't match them
                     if (lookup.fileType == FileType.UNKNOWN && lookup.error != null) {
-                        recordError(lookup.lookedUp)
+                        progress.recordError(lookup.lookedUp)
                         return@mapNotNull null
                     }
 
@@ -123,98 +100,30 @@ class FileSystemSearchBackend @Inject constructor(
                         return@mapNotNull null
                     }
 
-                    val matchResult = matchesSearch(lookup, query, session.includeBinaries, ::recordError)
+                    val matchResult = matcher.match(lookup, query, session.includeBinaries, progress::recordError)
                         ?: return@mapNotNull null
 
-                    resultsFound++
+                    progress.onResultFound()
                     val metadata = metadataRepo.extract(lookup)
-                    val matchedQuery = when (matchResult.matchType) {
-                        SearchItem.MatchContext.MatchType.FILENAME -> query.filenameQuery.pattern
-                        SearchItem.MatchContext.MatchType.CONTENT -> query.contentQuery.pattern
-                        SearchItem.MatchContext.MatchType.BOTH -> query.filenameQuery.pattern
-                        SearchItem.MatchContext.MatchType.FILTER -> ""
-                    }
                     SearchItem.fromLookup(
                         lookup = lookup,
-                        matchedQuery = matchedQuery,
+                        matchedQuery = matcher.matchedQueryFor(matchResult.matchType, query),
                         matchContext = matchResult,
                         metadata = metadata,
                     )
                 }
-                .collect { emit(it) }
+                .collect {
+                    emit(SearchBackend.BackendResult(it, SearchBackend.BackendResult.RANK_FILESYSTEM))
+                }
 
             // Final flush so totals and error counts are accurate between progress intervals
-            session.onProgress(progressSnapshot())
-            log(tag, INFO) { "Completed scan for path: $path ($errorCount errors)" }
+            progress.flush()
+            log(tag, INFO) { "Completed scan for path: $path (${progress.errorCount} errors)" }
         } catch (e: CancellationException) {
             log(tag, INFO) { "Scan cancelled for path: $path" }
             throw e
         }
     }.flowOn(dispatcherProvider.IO)
-
-    private suspend fun matchesSearch(
-        lookup: APathLookup<*>,
-        searchQuery: SearchQuery,
-        includeBinaries: Boolean,
-        recordError: (APath<*>?) -> Unit,
-    ): SearchItem.MatchContext? {
-        val filenameQuery = searchQuery.filenameQuery
-        val contentQuery = searchQuery.contentQuery
-        val hasFilenameQuery = filenameQuery.isNotEmpty
-        val hasContentQuery = contentQuery.isNotEmpty
-
-        suspend fun contentContext(): SearchItem.MatchContext? =
-            when (val outcome = contentMatcher.matchesContent(lookup, contentQuery, includeBinaries)) {
-                is ContentMatcher.Outcome.Match -> {
-                    if (outcome.degraded) recordError(lookup.lookedUp)
-                    outcome.context
-                }
-                is ContentMatcher.Outcome.NoMatch -> {
-                    if (outcome.degraded) recordError(lookup.lookedUp)
-                    null
-                }
-                is ContentMatcher.Outcome.Skipped -> null
-                is ContentMatcher.Outcome.Failed -> {
-                    recordError(lookup.lookedUp)
-                    null
-                }
-            }
-
-        return when {
-            // Case 1: Only filename pattern - match filename only
-            hasFilenameQuery && !hasContentQuery -> {
-                if (matchesFilename(lookup.name, filenameQuery)) {
-                    SearchItem.MatchContext(matchType = SearchItem.MatchContext.MatchType.FILENAME)
-                } else {
-                    null
-                }
-            }
-
-            // Case 2: Only content pattern - match content only (for files)
-            !hasFilenameQuery && hasContentQuery -> {
-                if (lookup.fileType != FileType.FILE) return null
-                contentContext()
-            }
-
-            // Case 3: Both patterns - filename must match first (AND logic)
-            hasFilenameQuery && hasContentQuery -> {
-                if (!matchesFilename(lookup.name, filenameQuery)) return null
-                if (lookup.fileType != FileType.FILE) return null
-                contentContext()?.copy(matchType = SearchItem.MatchContext.MatchType.BOTH)
-            }
-
-            // Case 4: Filter-only - no patterns but filters exist (already applied upstream)
-            searchQuery.filter.hasConditions() ->
-                SearchItem.MatchContext(matchType = SearchItem.MatchContext.MatchType.FILTER)
-
-            // Case 5: No patterns and no filters - shouldn't happen (validated upstream)
-            else -> null
-        }
-    }
-
-    private fun matchesFilename(name: String, filenameQuery: FilenameQuery): Boolean {
-        return PatternMatcher.matches(name, filenameQuery.pattern, filenameQuery.patternOptions).isFound
-    }
 
     companion object {
         /**

@@ -5,6 +5,7 @@ import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.searcher.core.engine.SearchEngine
+import eu.darken.butler.searcher.core.engine.backend.SearchBackend
 import eu.darken.butler.searcher.core.operations.DeleteOperation
 import eu.darken.butler.searcher.core.operations.SearcherCommand
 import eu.darken.butler.workspace.contracts.searcher.FilenameQuery
@@ -49,7 +50,11 @@ class SearcherWorkspaceCapTest : BaseTest() {
             every { targetState } returns MutableStateFlow(emptyList())
             every { setupRequirements } returns MutableStateFlow(PathRequirements())
             every { targetProgressState } returns MutableStateFlow(emptyList())
-            coEvery { search(any(), any()) } returns SearchEngine.Result.Success(engineResults.asFlow())
+            coEvery { search(any(), any()) } returns SearchEngine.Result.Success(
+                engineResults
+                    .map { SearchBackend.BackendResult(it, SearchBackend.BackendResult.RANK_FILESYSTEM) }
+                    .asFlow()
+            )
         }
         val engineFactory = mockk<SearchEngine.Factory> {
             every { create(any(), any()) } returns engine

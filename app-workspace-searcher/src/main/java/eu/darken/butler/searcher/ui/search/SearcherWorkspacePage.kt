@@ -53,6 +53,7 @@ import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearcherViewStyle
 import eu.darken.butler.searcher.core.SearcherWorkspace
+import eu.darken.butler.searcher.core.resultKey
 import eu.darken.butler.searcher.ui.search.dialogs.SearchErrorDialog
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogHost
 import eu.darken.butler.searcher.ui.search.elements.PermissionSetupCard
@@ -430,7 +431,7 @@ fun SearcherWorkspacePage(
                                 items = currentState.listItems,
                                 key = { item ->
                                     when (item) {
-                                        is SearchListItem.Result -> item.searchItem.path.path
+                                        is SearchListItem.Result -> item.searchItem.resultKey
                                         is SearchListItem.Error -> "error"
                                     }
                                 },
@@ -541,7 +542,7 @@ fun SearcherWorkspacePage(
                         if (gridResultItems.isNotEmpty()) {
                             items(
                                 items = gridResultItems,
-                                key = { item -> item.searchItem.path.path }
+                                key = { item -> item.searchItem.resultKey }
                             ) { item ->
                                 SelectableFileGrid(
                                     result = item.searchItem,

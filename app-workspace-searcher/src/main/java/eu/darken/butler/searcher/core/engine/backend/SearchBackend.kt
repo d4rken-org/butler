@@ -32,7 +32,25 @@ interface SearchBackend {
     fun monitorRequirements(target: SearchTarget): Flow<PathRequirements>
 
     /** Streams matches for the session's target. Cancellation-transparent, cold per collection. */
-    suspend fun scan(session: ScanSession): Flow<SearchItem>
+    suspend fun scan(session: ScanSession): Flow<BackendResult>
+
+    /**
+     * Envelope around a match: [sourceRank] resolves duplicates when multiple targets surface
+     * the same path — higher rank wins and replaces an already accepted lower-ranked item.
+     * The rank is consumed during result accumulation and never reaches the UI.
+     */
+    data class BackendResult(
+        val item: SearchItem,
+        val sourceRank: Int,
+    ) {
+        companion object {
+            /** Index-based sources (MediaStore): metadata may be stale. */
+            const val RANK_INDEX = 0
+
+            /** Filesystem lookups: fresh metadata, wins over index results. */
+            const val RANK_FILESYSTEM = 100
+        }
+    }
 
     data class ScanSession(
         val workspaceId: Workspace.Id,
