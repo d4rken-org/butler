@@ -352,6 +352,8 @@
 
     <string name="explorer_operation_extract_title">Extract operation</string>
     <string name="explorer_operation_extract_description">Extract \"%1$s\" to \"%2$s\".</string>
+    <string name="explorer_operation_download_copy_title">Local copy operation</string>
+    <string name="explorer_operation_download_copy_description">Copy \"%1$s\" to \"%2$s\" for local browsing.</string>
     <plurals name="explorer_operation_report_files_extracted">
         <item quantity="one">%d file extracted.</item>
         <item quantity="other">%d files extracted.</item>
@@ -419,6 +421,10 @@
 
     <!-- Navigation Error Messages -->
     <string name="explorer_navigation_error_title">Navigation failed</string>
+    <string name="explorer_archive_unbrowsable_title">Archive can\'t be browsed here</string>
+    <string name="explorer_archive_unbrowsable_msg">\"%1$s\" is on storage that only supports sequential reading, but browsing an archive requires random access. Extract the archive here, or download a local copy to browse it.</string>
+    <string name="explorer_archive_unbrowsable_extract_action">Extract archive</string>
+    <string name="explorer_archive_unbrowsable_download_action">Download local copy</string>
 
     <!-- SAF Location Auto-Labels -->
     <string name="explorer_saf_location_android_data_label">Android/data (special access)</string>

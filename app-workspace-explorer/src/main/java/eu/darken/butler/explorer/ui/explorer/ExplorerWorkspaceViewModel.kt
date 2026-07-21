@@ -18,11 +18,13 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.ArchivePath
+import eu.darken.butler.common.storage.StorageEnvironment
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.common.files.archive.CompressionPreset
 import eu.darken.butler.common.files.TextFileDetector
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.files.validation.FilenameValidator
@@ -93,7 +95,9 @@ import eu.darken.butler.workspace.core.returnResult
 import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.emptyFlow
@@ -133,6 +137,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val favoritesRepo: ExplorerFavoritesRepo,
     private val operationFocusRequest: OperationFocusRequest,
     private val folderPreviewResolver: FolderPreviewResolver,
+    private val storageEnvironment: StorageEnvironment,
     chromeFactory: WorkspacePageChrome.Factory,
 ) : ViewModel4(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page")) {
 
@@ -524,6 +529,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     val clipboard = chrome.clipboard.asStateFlow()
 
     val operations = chrome.operations.asStateFlow()
+
+    // Guards the unbrowsable-archive card actions: prevents double-launch and drives the card's
+    // busy indication while extract/download is starting or running.
+    private val _archiveActionBusy = MutableStateFlow(false)
+    val archiveActionBusy: StateFlow<Boolean> get() = _archiveActionBusy
 
     fun navigate(item: ExplorerItem) = navigation.navigate(item)
 
@@ -998,6 +1008,62 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             if (completed.error == null) {
                 completed.report?.affectedPaths?.map { it.path }?.let { revealItems(it) }
             }
+        }
+    }
+
+    /**
+     * "Extract archive" from the unbrowsable-archive error card. Leaves the broken [ArchivePath]
+     * target first and waits (bounded) until the workspace actually shows the parent directory -
+     * navigate() only enqueues, and a reveal against the stale location would be lost.
+     */
+    fun extractUnbrowsableArchive(container: APath<*>) = launch {
+        if (!_archiveActionBusy.compareAndSet(expect = false, update = true)) return@launch
+        try {
+            log(tag, INFO) { "extractUnbrowsableArchive($container)" }
+            val destinationDir = container.parent
+                ?: throw WriteException("Archive has no parent directory", container)
+            getWorkspace().navigate(ExplorerNavigation.Target.Directory(destinationDir))
+            withTimeoutOrNull(NAVIGATION_AWAIT_MS) {
+                state.filterNotNull().first { current ->
+                    (current.currentLocation as? ExplorerLocation.Directory)?.path == destinationDir
+                }
+            } ?: log(tag, WARN) { "Timed out waiting for navigation to $destinationDir" }
+            val completed = getWorkspace().execute(
+                ExplorerCommand.Extract(archive = container, destinationDir = destinationDir, entries = null),
+            )
+            if (completed.error == null) {
+                // Whole-archive extraction lands in the archive-named base dir; reveal that, not
+                // the individual (possibly deeply nested) extracted files.
+                val baseDir = destinationDir.child(ArchiveFormat.stemOf(container.name))
+                navigation.revealItems(listOf(baseDir))
+            }
+        } finally {
+            _archiveActionBusy.value = false
+        }
+    }
+
+    /**
+     * "Download local copy" from the unbrowsable-archive error card: explicit copy to the local
+     * Downloads folder, then browse straight into the copy - that is the promise of the action.
+     */
+    fun downloadArchiveCopy(container: APath<*>) = launch {
+        if (!_archiveActionBusy.compareAndSet(expect = false, update = true)) return@launch
+        try {
+            log(tag, INFO) { "downloadArchiveCopy($container)" }
+            val destinationDir = storageEnvironment.downloadsDirectory
+                ?: throw WriteException("No local downloads directory available")
+            val completed = getWorkspace().execute(
+                ExplorerCommand.DownloadLocalCopy(source = container, destinationDir = destinationDir),
+            )
+            if (completed.error == null) {
+                completed.report?.affectedPaths?.firstOrNull()?.path?.let { copied ->
+                    getWorkspace().navigate(
+                        ExplorerNavigation.Target.Directory(ArchivePath(container = copied, segments = emptyList())),
+                    )
+                }
+            }
+        } finally {
+            _archiveActionBusy.value = false
         }
     }
 
@@ -1519,5 +1585,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     @AssistedFactory
     interface Factory {
         fun create(id: Workspace.Id): ExplorerWorkspaceViewModel
+    }
+
+    companion object {
+        private const val NAVIGATION_AWAIT_MS = 5_000L
     }
 }

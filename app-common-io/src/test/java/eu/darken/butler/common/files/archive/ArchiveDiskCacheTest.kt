@@ -97,13 +97,13 @@ class ArchiveDiskCacheTest : BaseTest() {
         // the exact cache paths a materialize(prefix, key) would hit for the current fingerprint.
         val containerKey = "content://tree/archive.zip:1024:0"
         val entryKey = "content://tree/archive.zip:1024:0:dir/a.txt"
-        File(cacheDir, "${ArchiveDiskCache.PREFIX_CONTAINER}-${sha256Hex(containerKey)}").writeText("STALE-CONTAINER")
+        File(cacheDir, "container-${sha256Hex(containerKey)}").writeText("STALE-CONTAINER")
         File(cacheDir, "${ArchiveDiskCache.PREFIX_ENTRY}-${sha256Hex(entryKey)}").writeText("STALE-ENTRY")
 
         val cache = create()
 
         var containerProducerRan = false
-        val container = cache.materialize(ArchiveDiskCache.PREFIX_CONTAINER, containerKey) { part ->
+        val container = cache.materialize("container", containerKey) { part ->
             containerProducerRan = true
             part.writeText("FRESH-CONTAINER")
         }
