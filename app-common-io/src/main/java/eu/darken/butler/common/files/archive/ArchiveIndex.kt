@@ -21,6 +21,14 @@ data class ArchiveEntryMeta(
     val linkTarget: String? = null,
     /** True for directory nodes synthesized from entry paths (no explicit archive entry). */
     val synthesized: Boolean = false,
+    /** Zip only: byte offset of the entry's local file header, enables positioned entry reads. */
+    val localHeaderOffset: Long? = null,
+    /** Zip only: compressed size from the central directory. */
+    val compressedSize: Long? = null,
+    /** Zip only: CRC-32 from the central directory. */
+    val crc: Long? = null,
+    /** Zip only: raw central-directory compression method code (0=STORE, 8=DEFLATE, 99=AES). */
+    val rawMethod: Int? = null,
 )
 
 data class ArchiveIndex(

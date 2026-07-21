@@ -9,7 +9,6 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
-import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.errors.ReadException
 import kotlinx.coroutines.CancellationException
@@ -26,6 +25,8 @@ import net.lingala.zip4j.model.enums.AesKeyStrength
 import net.lingala.zip4j.model.enums.CompressionLevel
 import net.lingala.zip4j.model.enums.CompressionMethod
 import net.lingala.zip4j.model.enums.EncryptionMethod
+import net.lingala.zip4j.util.PasswordCallback
+import net.lingala.zip4j.io.inputstream.ZipInputStream as Zip4jStreamInput
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry
 import org.apache.commons.compress.archivers.zip.ZipFile
@@ -34,14 +35,12 @@ import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream
 import org.apache.commons.compress.compressors.gzip.GzipParameters
+import okio.FileHandle
 import java.io.File
 import java.io.FilterInputStream
 import java.io.IOException
 import java.io.InputStream
-import java.nio.ByteBuffer
 import java.nio.channels.SeekableByteChannel
-import java.nio.file.Files
-import java.nio.file.StandardOpenOption
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -52,9 +51,11 @@ import kotlin.time.Instant
  * container/entry materialization. [ArchiveGateway] is a thin adapter over this; Explorer
  * operations orchestrate it. No commons-compress/zip4j types leak out of this package.
  *
- * Reads work on any gateway backend: zip random access goes through a [SeekableByteChannel]
- * over `gatewaySwitch.file()` (falling back to a one-time local materialization when the
- * backend isn't seekable), tar family formats are scanned sequentially.
+ * Zip reads require random access: a [SeekableByteChannel] over `gatewaySwitch.file()` for
+ * commons-compress, or positioned zip4j streams ([Zip4jPositionedStream]) for encrypted entries.
+ * Forward-only backends throw [ArchiveNotSeekableException] - there is deliberately NO hidden
+ * whole-container copy; callers offer explicit extraction or an explicit local copy instead.
+ * Tar family formats are scanned/streamed sequentially and work on any backend.
  */
 @Singleton
 class ArchiveService @Inject constructor(
@@ -210,6 +211,142 @@ class ArchiveService @Inject constructor(
     }
 
     /**
+     * Sequential whole-archive extraction for forward-only backends (zip only - tar formats go
+     * through the regular index/stream path, which is already sequential). Streams the container
+     * once, delivering every safe file entry in archive order.
+     *
+     * - [processedOrdinals]: entry ordinals already handled in a previous pass (password restart);
+     *   they are drained but not delivered again. Ordinals are the only stable identity - raw
+     *   names may legally repeat within an archive.
+     * - [expectedFingerprint]: fingerprint from the first pass; a container swapped between
+     *   passes aborts instead of mixing content from different archive versions.
+     * - A missing password surfaces as [ArchivePasswordRequiredException] from inside
+     *   `getNextEntry` (zip4j's PasswordCallback) before any entry data is consumed; a wrong
+     *   cached password evicts and re-prompts with attemptFailed=true.
+     * - Aborts ([SequentialAbortException]) on unsupported effective compression methods and on
+     *   streamed STORE entries with data descriptors - zip4j cannot safely skip past either.
+     * - Limitations vs the indexed path: zip symlinks are NOT detectable sequentially (unix mode
+     *   lives in the central directory) and extract as regular files; [onContainerProgress] is
+     *   invoked from the reading thread (non-suspending, keep it cheap) and reports raw container
+     *   bytes, not decompressed output.
+     */
+    suspend fun extractZipSequential(
+        container: APath<*>,
+        processedOrdinals: Set<Int> = emptySet(),
+        expectedFingerprint: String? = null,
+        onContainerProgress: (bytesRead: Long, totalBytes: Long?) -> Unit = { _, _ -> },
+        action: suspend (SequentialEntry, InputStream) -> SequentialOutcome,
+    ): SequentialResult = withContext(dispatcherProvider.IO) {
+        if (requireSupported(container) != ArchiveFormat.ZIP) {
+            throw ReadException("Sequential extraction only supports zip archives", container)
+        }
+        val stat = statContainer(container)
+        if (expectedFingerprint != null && stat.fingerprint != expectedFingerprint) {
+            throw SequentialAbortException("Archive changed between extraction passes", container, 0, 0)
+        }
+        var extracted = 0
+        var skippedUnsafe = 0
+        var headersSeen = 0
+
+        fun abort(message: String, cause: Throwable? = null): Nothing =
+            throw SequentialAbortException(message, container, extracted, skippedUnsafe, cause)
+
+        gatewaySwitch.openInputStream(container).use { raw ->
+            val counting = object : FilterInputStream(raw) {
+                private var count = 0L
+                override fun read(): Int = super.read().also { if (it != -1) bump(1) }
+                override fun read(b: ByteArray, off: Int, len: Int): Int =
+                    super.read(b, off, len).also { if (it > 0) bump(it.toLong()) }
+
+                override fun skip(n: Long): Long = super.skip(n).also { if (it > 0) bump(it) }
+                private fun bump(n: Long) {
+                    count += n
+                    onContainerProgress(count, stat.size)
+                }
+            }
+            // zip4j retains this copy for per-entry cipher init across the whole pass; wiped
+            // once the stream is closed.
+            val cachedPassword = passwordStore.get(container)
+            val zipIn = if (cachedPassword != null) {
+                Zip4jStreamInput(counting, cachedPassword)
+            } else {
+                Zip4jStreamInput(counting, PasswordCallback { throw ArchivePasswordRequiredException(container) })
+            }
+            try {
+                zipIn.use { zip ->
+                    while (true) {
+                        currentCoroutineContext().ensureActive()
+                        val local = try {
+                            zip.nextEntry
+                        } catch (e: ArchivePasswordRequiredException) {
+                            throw e
+                        } catch (e: CancellationException) {
+                            throw e
+                        } catch (e: ZipException) {
+                            if (e.type == ZipException.Type.WRONG_PASSWORD) {
+                                passwordStore.evict(container)
+                                throw ArchivePasswordRequiredException(container, attemptFailed = true, cause = e)
+                            }
+                            abort("Archive stream failed: ${e.message}", e)
+                        } catch (e: IOException) {
+                            abort("Archive stream failed", e)
+                        } ?: break
+
+                        val ordinal = headersSeen
+                        headersSeen++
+                        if (headersSeen > MAX_ENTRIES) {
+                            throw ReadException("Archive has too many entries (limit $MAX_ENTRIES)", container)
+                        }
+                        // Gates before anything that would require draining this entry: zip4j treats
+                        // every effective non-DEFLATE method as STORE, so it cannot skip past entries
+                        // it can't actually decompress.
+                        val effective = local.aesExtraDataRecord?.compressionMethod ?: local.compressionMethod
+                        if (effective != CompressionMethod.STORE && effective != CompressionMethod.DEFLATE) {
+                            abort("Unsupported compression method $effective for ${local.fileName}")
+                        }
+                        if (local.isDataDescriptorExists && effective == CompressionMethod.STORE) {
+                            abort("Streamed STORE entry with unknown size: ${local.fileName}")
+                        }
+                        if (local.isDirectory) continue
+                        if (ordinal in processedOrdinals) continue
+                        val segments = ArchiveEntrySafety.parseEntryName(local.fileName)
+                        if (segments == null) {
+                            skippedUnsafe++
+                            continue
+                        }
+                        val entry = SequentialEntry(
+                            ordinal = ordinal,
+                            segments = segments,
+                            rawName = local.fileName,
+                            isEncrypted = local.isEncrypted,
+                        )
+                        val outcome = try {
+                            // Shield: the shared zip stream continues to the next entry.
+                            action(entry, object : FilterInputStream(zip) {
+                                override fun close() = Unit
+                            })
+                        } catch (e: ZipException) {
+                            // ZipCrypto reports a wrong password only via CRC mismatch at entry EOF.
+                            if (e.type == ZipException.Type.WRONG_PASSWORD) {
+                                passwordStore.evict(container)
+                                throw ArchivePasswordRequiredException(container, attemptFailed = true, cause = e)
+                            }
+                            abort("Failed to read entry data: ${local.fileName}", e)
+                        }
+                        if (outcome == SequentialOutcome.EXTRACTED) extracted++
+                    }
+                    if (headersSeen == 0) {
+                        throw ReadException("Not a streamable zip (preamble/SFX or no local headers)", container)
+                    }
+                }
+            } finally {
+                cachedPassword?.fill(Char.MIN_VALUE)
+            }
+        }
+        SequentialResult(extracted = extracted, skippedUnsafe = skippedUnsafe)
+    }
+
+    /**
      * True if the archive holds encrypted entries and no currently-cached password decrypts them.
      * Used by operations to prompt before streaming rather than mid-stream.
      */
@@ -217,31 +354,45 @@ class ArchiveService @Inject constructor(
         val index = index(container)
         if (!index.isEncrypted) return@withContext false
         val cached = passwordStore.get(container) ?: return@withContext true
-        !verifyPassword(container, cached)
+        try {
+            !verifyPassword(container, cached)
+        } finally {
+            cached.fill(Char.MIN_VALUE)
+        }
     }
 
     /**
      * Checks [password] against the archive without caching it. True if entry content decrypts.
      *
-     * v1 limitation: this validates only the first encrypted entry (reads one byte). It does not
-     * detect archives whose entries use different passwords, nor mid-stream CRC/MAC failures - those
-     * surface as a failed read during extraction, after earlier entries were already written.
+     * Probes the SMALLEST encrypted entry: drained fully when its compressed size is at most
+     * [VERIFY_DRAIN_LIMIT] (full AES-MAC/CRC verification), otherwise a single byte is read (the
+     * cipher's header verifier check). It does not detect archives whose entries use different
+     * passwords - those surface as a failed read during extraction, after earlier entries were
+     * already written.
      */
     suspend fun verifyPassword(container: APath<*>, password: CharArray): Boolean =
         withContext(dispatcherProvider.IO) {
             val index = index(container)
-            val probe = index.entriesBySegments.values.firstOrNull { it.isEncrypted && !it.isDirectory }
+            val probe = index.entriesBySegments.values
+                .filter { it.isEncrypted && !it.isDirectory && !it.isSymlink }
+                .minByOrNull { it.compressedSize ?: it.size ?: Long.MAX_VALUE }
                 ?: return@withContext true
-            val file = directLocalFile(container) ?: materializeContainer(container)
+            val handle = openSeekableHandle(container)
             try {
-                net.lingala.zip4j.ZipFile(file, password).use { zip4j ->
-                    val header = zip4j.getFileHeader(probe.rawName) ?: return@withContext false
-                    zip4j.getInputStream(header).use { it.read() }
+                Zip4jPositionedStream.open(handle, container, probe, password).use { stream ->
+                    if ((probe.compressedSize ?: Long.MAX_VALUE) <= VERIFY_DRAIN_LIMIT) {
+                        val buffer = ByteArray(COPY_BUFFER_SIZE)
+                        while (stream.read(buffer) != -1) currentCoroutineContext().ensureActive()
+                    } else {
+                        stream.read()
+                    }
                 }
                 true
             } catch (e: ZipException) {
                 if (e.type == ZipException.Type.WRONG_PASSWORD) false
                 else throw ReadException("Failed to verify password", container, e)
+            } finally {
+                runCatching { handle.close() }
             }
         }
 
@@ -455,6 +606,7 @@ class ArchiveService @Inject constructor(
 
     private suspend fun scanZip(container: APath<*>): ScanResult {
         var skippedUnsafe = 0
+        var skippedSpecial = 0
         val metas = ArrayList<ArchiveEntryMeta>()
         openContainerChannel(container).use { channel ->
             ZipFile.builder().setSeekableByteChannel(channel).get().use { zip ->
@@ -462,6 +614,12 @@ class ArchiveService @Inject constructor(
                     currentCoroutineContext().ensureActive()
                     if (metas.size >= MAX_ENTRIES) {
                         throw ReadException("Archive has too many entries (limit $MAX_ENTRIES)", container)
+                    }
+                    // Split/multi-disk entries can't be read through a single-container channel;
+                    // their local-header offsets point into a different volume.
+                    if (entry.diskNumberStart > 0) {
+                        skippedSpecial++
+                        continue
                     }
                     val segments = ArchiveEntrySafety.parseEntryName(entry.name)
                     if (segments == null) {
@@ -472,7 +630,7 @@ class ArchiveService @Inject constructor(
                 }
             }
         }
-        return ScanResult(metas, skippedUnsafe, 0)
+        return ScanResult(metas, skippedUnsafe, skippedSpecial)
     }
 
     private fun ZipArchiveEntry.toMeta(segments: List<String>): ArchiveEntryMeta {
@@ -485,6 +643,10 @@ class ArchiveService @Inject constructor(
             modifiedAt = time.takeIf { it > 0 }?.let { Instant.fromEpochMilliseconds(it) },
             isEncrypted = generalPurposeBit.usesEncryption(),
             isSymlink = isLink && !isDirectory,
+            localHeaderOffset = localHeaderOffset.takeIf { it >= 0 },
+            compressedSize = compressedSize.takeIf { it >= 0 },
+            crc = crc.takeIf { it >= 0 },
+            rawMethod = method.takeIf { it >= 0 },
         )
     }
 
@@ -546,51 +708,37 @@ class ArchiveService @Inject constructor(
     // region container access
 
     /**
-     * Best random access to the container bytes: a channel over the gateway's [okio.FileHandle]
-     * when the backend supports positioned reads (verified by an actual probe read), else a
-     * channel over a one-time materialized local copy.
+     * Opens the container through the gateway and verifies positioned reads actually work via a
+     * probe read at the last byte. Only a failed probe on a successfully opened handle classifies
+     * as [ArchiveNotSeekableException] — open failures (permissions, offline, vanished files)
+     * propagate untouched so callers/UI don't mistake them for a capability limitation.
      */
-    private suspend fun openContainerChannel(container: APath<*>): SeekableByteChannel {
-        var channel: OkioSeekableByteChannel? = null
+    private suspend fun openSeekableHandle(container: APath<*>): FileHandle {
+        val handle = gatewaySwitch.file(container, readWrite = false)
         try {
-            val handle = gatewaySwitch.file(container, readWrite = false)
-            channel = OkioSeekableByteChannel(handle)
-            val size = try {
-                channel.size()
-            } catch (e: IOException) {
-                -1L
-            }
-            if (size > 0) {
-                val probe = ByteBuffer.allocate(1)
-                channel.position(size - 1)
-                if (channel.read(probe) == 1) {
-                    channel.position(0)
-                    return channel
-                }
-            }
-            log(TAG) { "openContainerChannel($container): not seekable, falling back to materialization" }
+            // Any positioned read that completes proves seekability - including -1 (EOF) at
+            // offset 0 of an empty file, which is invalid as an archive but not stream-only.
+            // Pipe-backed descriptors fail the pread itself (and report size -1).
+            val size = handle.size()
+            val probe = ByteArray(1)
+            handle.read(if (size > 0) size - 1 else 0L, probe, 0, 1)
+            return handle
         } catch (e: CancellationException) {
-            runCatching { channel?.close() }
+            runCatching { handle.close() }
             throw e
         } catch (e: Exception) {
-            log(TAG, WARN) { "openContainerChannel($container): seekable access failed: ${e.asLog()}" }
-        }
-        // Reached only on non-seekable / failed probe - always release the probed handle.
-        runCatching { channel?.close() }
-        val file = materializeContainer(container)
-        return Files.newByteChannel(file.toPath(), StandardOpenOption.READ)
-    }
-
-    private suspend fun materializeContainer(container: APath<*>): File {
-        val stat = statContainer(container)
-        return diskCache.materialize(PREFIX_CONTAINER, "$container:${stat.fingerprint}") { part ->
-            gatewaySwitch.openInputStream(container).use { input -> part.copyFromStream(input) }
+            log(TAG, WARN) { "openSeekableHandle($container): probe failed: ${e.asLog()}" }
+            runCatching { handle.close() }
+            throw ArchiveNotSeekableException(container, e)
         }
     }
 
-    /** The container's backing [File] when it is directly readable without privilege escalation. */
-    private fun directLocalFile(container: APath<*>): File? =
-        (container as? LocalPath)?.file?.takeIf { it.isFile && it.canRead() }
+    /**
+     * Random access to the container bytes over the gateway's [okio.FileHandle]. Forward-only
+     * backends throw [ArchiveNotSeekableException] — there is deliberately no local-copy fallback.
+     */
+    private suspend fun openContainerChannel(container: APath<*>): SeekableByteChannel =
+        OkioSeekableByteChannel(openSeekableHandle(container))
 
     private suspend fun File.copyFromStream(input: InputStream) {
         outputStream().use { output ->
@@ -636,31 +784,51 @@ class ArchiveService @Inject constructor(
         }
     }
 
+    /**
+     * Maps zip4j failures on encrypted entry access: a wrong password evicts the cached one and
+     * becomes a re-prompt, other zip4j errors become read errors. AES MAC failures arrive as plain
+     * [java.io.IOException] and pass through as corruption - they must never trigger a password loop.
+     */
+    private fun mapEncryptedZipError(e: Exception, container: APath<*>): Exception = when {
+        e is ArchivePasswordRequiredException || e is ReadException || e is CancellationException -> e
+        e is ZipException && e.type == ZipException.Type.WRONG_PASSWORD -> {
+            passwordStore.evict(container)
+            ArchivePasswordRequiredException(container, attemptFailed = true, cause = e)
+        }
+        e is ZipException -> ReadException("Failed to read encrypted entry", container, e)
+        else -> e
+    }
+
     private suspend fun openEncryptedZipEntry(container: APath<*>, meta: ArchiveEntryMeta): InputStream {
         val password = passwordStore.get(container) ?: throw ArchivePasswordRequiredException(container)
-        val file = directLocalFile(container) ?: materializeContainer(container)
-        val zip4j = net.lingala.zip4j.ZipFile(file, password)
-        try {
-            val header = zip4j.getFileHeader(meta.rawName)
-                ?: throw ReadException("Entry vanished from archive: ${meta.rawName}", container)
-            val stream = try {
-                zip4j.getInputStream(header)
-            } catch (e: ZipException) {
-                if (e.type == ZipException.Type.WRONG_PASSWORD) {
-                    passwordStore.evict(container)
-                    throw ArchivePasswordRequiredException(container, attemptFailed = true, cause = e)
-                }
-                throw ReadException("Failed to read encrypted entry", container, e)
-            }
-            return object : FilterInputStream(stream) {
-                override fun close() {
-                    super.close()
-                    zip4j.close()
-                }
-            }
+        val handle = openSeekableHandle(container)
+        val stream = try {
+            // The adapter copies the password for zip4j; our store-derived copy is wiped either way.
+            Zip4jPositionedStream.open(handle, container, meta, password)
         } catch (e: Exception) {
-            runCatching { zip4j.close() }
-            throw e
+            runCatching { handle.close() }
+            throw mapEncryptedZipError(e, container)
+        } finally {
+            password.fill(Char.MIN_VALUE)
+        }
+        // ZipCrypto reports a wrong password only via CRC mismatch at entry EOF, so reads need the
+        // same mapping as stream setup. Closing releases the handle owned by this single-entry read.
+        return object : FilterInputStream(stream) {
+            override fun read(): Int = guarded { super.read() }
+            override fun read(b: ByteArray, off: Int, len: Int): Int = guarded { super.read(b, off, len) }
+            private inline fun <T> guarded(block: () -> T): T = try {
+                block()
+            } catch (e: ZipException) {
+                throw mapEncryptedZipError(e, container)
+            }
+
+            override fun close() {
+                try {
+                    super.close()
+                } finally {
+                    runCatching { handle.close() }
+                }
+            }
         }
     }
 
@@ -713,23 +881,20 @@ class ArchiveService @Inject constructor(
         }
         if (encrypted.isNotEmpty()) {
             val password = passwordStore.get(container) ?: throw ArchivePasswordRequiredException(container)
-            val file = directLocalFile(container) ?: materializeContainer(container)
-            net.lingala.zip4j.ZipFile(file, password).use { zip4j ->
+            // One probed handle serves all encrypted entries; each entry gets its own positioned stream.
+            val handle = openSeekableHandle(container)
+            try {
                 encrypted.forEach { meta ->
                     currentCoroutineContext().ensureActive()
-                    val header = zip4j.getFileHeader(meta.rawName)
-                        ?: throw ReadException("Entry vanished from archive: ${meta.rawName}", container)
-                    val stream = try {
-                        zip4j.getInputStream(header)
-                    } catch (e: ZipException) {
-                        if (e.type == ZipException.Type.WRONG_PASSWORD) {
-                            passwordStore.evict(container)
-                            throw ArchivePasswordRequiredException(container, attemptFailed = true, cause = e)
-                        }
-                        throw ReadException("Failed to read encrypted entry", container, e)
+                    try {
+                        Zip4jPositionedStream.open(handle, container, meta, password).use { action(meta, it) }
+                    } catch (e: Exception) {
+                        throw mapEncryptedZipError(e, container)
                     }
-                    stream.use { action(meta, it) }
                 }
+            } finally {
+                runCatching { handle.close() }
+                password.fill(Char.MIN_VALUE)
             }
         }
     }
@@ -806,9 +971,11 @@ class ArchiveService @Inject constructor(
         private const val COPY_BUFFER_SIZE = 64 * 1024
         private const val UNIX_TYPE_MASK = 0xF000
         private const val UNIX_TYPE_SYMLINK = 0xA000
+        // Full-drain limit for password verification: below this the probe entry is read to EOF so
+        // the cipher's MAC/CRC check runs; above it only the header verifier is consulted.
+        private const val VERIFY_DRAIN_LIMIT = 1L * 1024 * 1024
         // Prefixes live in ArchiveDiskCache, which sweeps them all on startup so no materialized
         // archive cache survives a process restart (stale content or decrypted plaintext).
-        private val PREFIX_CONTAINER = ArchiveDiskCache.PREFIX_CONTAINER
         private val PREFIX_ENTRY = ArchiveDiskCache.PREFIX_ENTRY
         private val PREFIX_ENTRY_DECRYPTED = ArchiveDiskCache.PREFIX_EPHEMERAL_DECRYPTED
     }

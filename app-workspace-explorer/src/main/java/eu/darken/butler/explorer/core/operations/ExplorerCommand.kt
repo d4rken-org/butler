@@ -111,6 +111,16 @@ sealed interface ExplorerCommand {
         val entries: Set<List<String>>? = null,
     ) : ExplorerCommand
 
+    /**
+     * Copies [source] (an archive on a forward-only backend) to [destinationDir] as an explicit,
+     * user-initiated operation so it becomes browsable via random access. Written via a temp
+     * sibling and committed atomically - a cancelled/failed download never leaves a truncated copy.
+     */
+    data class DownloadLocalCopy(
+        val source: APath<*>,
+        val destinationDir: APath<*>,
+    ) : ExplorerCommand
+
     data class Restore(
         val rootItemIds: Set<Uuid> = emptySet(),
         val nestedItems: List<NestedTarget> = emptyList(),

@@ -28,6 +28,7 @@ import eu.darken.butler.explorer.core.operations.CreateTextFileOperation
 import eu.darken.butler.explorer.core.operations.DeleteOperation
 import eu.darken.butler.explorer.core.operations.ExplorerCommand
 import eu.darken.butler.explorer.core.operations.ExplorerOperation
+import eu.darken.butler.explorer.core.operations.DownloadLocalCopyOperation
 import eu.darken.butler.explorer.core.operations.ExtractOperation
 import eu.darken.butler.explorer.core.operations.RestoreOperation
 import eu.darken.butler.explorer.core.operations.MoveOperation
@@ -84,6 +85,7 @@ class ExplorerWorkspace @AssistedInject constructor(
     private val moveOperationFactory: MoveOperation.Factory,
     private val compressOperationFactory: CompressOperation.Factory,
     private val extractOperationFactory: ExtractOperation.Factory,
+    private val downloadLocalCopyOperationFactory: DownloadLocalCopyOperation.Factory,
     private val restoreOperationFactory: RestoreOperation.Factory,
     private val explorerSettings: ExplorerSettings,
 ) : Workspace<ExplorerArguments> {
@@ -398,6 +400,10 @@ class ExplorerWorkspace @AssistedInject constructor(
             command = command,
         )
         is ExplorerCommand.Extract -> extractOperationFactory.create(
+            workspaceId = id,
+            command = command,
+        )
+        is ExplorerCommand.DownloadLocalCopy -> downloadLocalCopyOperationFactory.create(
             workspaceId = id,
             command = command,
         )

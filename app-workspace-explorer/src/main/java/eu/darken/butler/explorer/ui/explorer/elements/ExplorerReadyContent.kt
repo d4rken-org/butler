@@ -14,6 +14,9 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshState
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -23,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.files.archive.ArchiveNotSeekableException
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
@@ -36,6 +40,7 @@ import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStackState
 import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
 import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
 import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
+import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
  * The Explorer page's "ready" branch: pull-to-refresh list/grid content, navigation error card
@@ -120,17 +125,33 @@ internal fun ExplorerReadyContent(
 
         // Error card (floating below top bar stack)
         state.error?.let { error ->
-            ErrorCard(
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .offset(y = topContentPadding)
-                    .padding(horizontal = 16.dp),
-                title = stringResource(R.string.explorer_navigation_error_title),
-                error = error,
-                onShareError = { vm?.shareNavigationError() },
-                onRetry = { vm?.retryNavigation() },
-                onDismiss = { vm?.dismissNavigationError() },
-            )
+            if (error is ArchiveNotSeekableException) {
+                val archiveBusy by (vm?.archiveActionBusy ?: remember { MutableStateFlow(false) }).collectAsState()
+                ArchiveAccessErrorCard(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .offset(y = topContentPadding)
+                        .padding(horizontal = 16.dp),
+                    archiveName = error.container.name,
+                    busy = archiveBusy,
+                    onExtract = { vm?.extractUnbrowsableArchive(error.container) },
+                    onDownloadCopy = { vm?.downloadArchiveCopy(error.container) },
+                    onRetry = { vm?.retryNavigation() },
+                    onDismiss = { vm?.dismissNavigationError() },
+                )
+            } else {
+                ErrorCard(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .offset(y = topContentPadding)
+                        .padding(horizontal = 16.dp),
+                    title = stringResource(R.string.explorer_navigation_error_title),
+                    error = error,
+                    onShareError = { vm?.shareNavigationError() },
+                    onRetry = { vm?.retryNavigation() },
+                    onDismiss = { vm?.dismissNavigationError() },
+                )
+            }
         }
 
         // Bottom FloatingBarStack

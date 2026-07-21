@@ -23,9 +23,10 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * On-disk LRU cache for materialized archive data: whole containers (when random access over a
- * gateway isn't possible, e.g. non-seekable SAF providers or zip4j decryption) and single entries
- * (when a seekable [okio.FileHandle] is required, e.g. Editor/preview on compressed entries).
+ * On-disk LRU cache for materialized SINGLE archive entries (when a seekable [okio.FileHandle]
+ * is required, e.g. Editor on compressed entries) - bounded by the size of the entry the user
+ * opened. Whole containers are deliberately never cached here; forward-only backends surface
+ * [ArchiveNotSeekableException] instead of a hidden archive-sized copy.
  *
  * Files are produced atomically (temp `.part` + rename) under a per-key lock. Eviction unlinks by
  * oldest access time; POSIX semantics keep already-open handles on evicted files valid.
@@ -144,9 +145,6 @@ class ArchiveDiskCache @Inject constructor(
         private const val MAX_CACHE_BYTES = 256L * 1024 * 1024
         private const val EVICT_GRACE_MS = 30_000L
 
-        /** Key prefix for a materialized whole-container copy (seekable access to SAF/root/ADB archives). */
-        const val PREFIX_CONTAINER = "container"
-
         /** Key prefix for a materialized plain (non-encrypted) archive entry. */
         const val PREFIX_ENTRY = "entry"
 
@@ -158,6 +156,8 @@ class ArchiveDiskCache @Inject constructor(
 
         // All materialized-cache prefixes; every one is swept on startup (see [sweepStaleFiles]).
         // "entrydec-" does not start with "entry-", so the two are matched distinctly.
-        private val SWEEP_PREFIXES = listOf(PREFIX_CONTAINER, PREFIX_ENTRY, PREFIX_EPHEMERAL_DECRYPTED)
+        // "container" is a legacy prefix: whole-container copies are no longer created, but files
+        // left behind by older app versions must still be cleaned up on startup.
+        private val SWEEP_PREFIXES = listOf("container", PREFIX_ENTRY, PREFIX_EPHEMERAL_DECRYPTED)
     }
 }

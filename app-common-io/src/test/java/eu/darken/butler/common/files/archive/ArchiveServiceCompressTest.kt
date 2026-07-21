@@ -27,6 +27,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import net.lingala.zip4j.model.enums.AesKeyStrength
 import net.lingala.zip4j.model.enums.EncryptionMethod
+import okio.Path.Companion.toOkioPath
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -66,6 +67,9 @@ class ArchiveServiceCompressTest : BaseTest() {
             }
             coEvery { openOutputStream(any(), any()) } answers {
                 (firstArg<LocalPath>()).file.outputStream()
+            }
+            coEvery { file(any(), any()) } answers {
+                okio.FileSystem.SYSTEM.openReadOnly(firstArg<LocalPath>().file.toOkioPath())
             }
             coEvery { lookup(any(), any<LookupOptions>()) } answers {
                 val path = firstArg<LocalPath>()
