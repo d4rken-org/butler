@@ -318,7 +318,7 @@
 
     <!-- Adaptive Workspace -->
     <string name="workspace_adaptive_pane_ready">Pane %1$d is ready for content</string>
-    <string name="workspace_adaptive_add_action">Add workspace</string>
+    <string name="workspace_adaptive_add_action">Add tab</string>
 
     <string name="workspace_badge_tip_title">Tip: Tab button indicators</string>
     <string name="workspace_badge_open_workspaces">Number of open tabs</string>

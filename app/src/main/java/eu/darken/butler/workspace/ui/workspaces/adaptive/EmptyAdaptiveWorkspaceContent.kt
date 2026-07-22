@@ -93,7 +93,7 @@ internal fun EmptyAdaptiveWorkspaceContent(
 
             ButlerTip()
 
-            // Add workspace button
+            // Add tab button
             if (onAddWorkspace != null) {
                 Spacer(modifier = Modifier.size(4.dp))
                 Card(
