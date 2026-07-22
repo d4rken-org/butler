@@ -38,6 +38,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
@@ -66,6 +67,10 @@ import eu.darken.butler.workspace.core.icon
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.template.WorkspaceTemplate
+
+object TemplatesWorkspacePageDefaults {
+    const val SETTINGS_CARD_TEST_TAG = "templates.settingsCard"
+}
 
 @Composable
 fun TemplatesWorkspacePageHost(
@@ -112,7 +117,6 @@ fun TemplatesWorkspacePage(
     } else 0.dp
 
     // Dynamically measured settings card height for content padding
-    val localDensity = LocalDensity.current
     var settingsCardHeight by remember { mutableStateOf(96.dp) } // Initial estimate
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -125,7 +129,9 @@ fun TemplatesWorkspacePage(
             horizontalAlignment = Alignment.Start,
             contentPadding = PaddingValues(
                 top = statusBarInset + 16.dp,
-                bottom = settingsCardHeight + 16.dp,
+                // The floating settings card only exists in single-pane; without it we just
+                // reserve the nav bar inset instead of the (stale) measured card height.
+                bottom = if (design.isSingle) settingsCardHeight + 16.dp else navBarInset + 16.dp,
             ),
         ) {
             item {
@@ -163,81 +169,86 @@ fun TemplatesWorkspacePage(
             }
         }
 
-        // Floating settings card with gradient fades
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .onGloballyPositioned { coordinates ->
-                    settingsCardHeight = with(localDensity) { coordinates.size.height.toDp() }
-                },
-        ) {
-            // Gradient fades behind card's rounded corners
-            GradientFade(
-                modifier = Modifier.align(Alignment.TopCenter),
-                fadeDirection = FadeDirection.DOWN,
-            )
-            GradientFade(
-                modifier = Modifier.align(Alignment.BottomCenter),
-                height = 48.dp + navBarInset,
-                fadeDirection = FadeDirection.UP,
-            )
-
-            // Floating settings card
-            ElevatedCard(
+        // Floating settings card with gradient fades.
+        // Single-pane only: every multi-pane layout renders the navigation rail, which
+        // already exposes a Butler/settings button, so this card would be redundant there.
+        if (design.isSingle) {
+            Box(
                 modifier = Modifier
+                    .align(Alignment.BottomCenter)
                     .fillMaxWidth()
-                    .padding(top = 32.dp, bottom = navBarInset + 16.dp)
-                    .padding(horizontal = 24.dp),
-                colors = CardDefaults.elevatedCardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                ),
-                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
+                    .onGloballyPositioned { coordinates ->
+                        settingsCardHeight = with(density) { coordinates.size.height.toDp() }
+                    },
             ) {
-                Row(
-                    modifier = Modifier
-                        .clickable { onNavToSettings() }
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    ButlerMascot(
-                        modifier = Modifier.size(64.dp),
-                        variant = if (state.isUpgraded) ButlerMascotMode.Static.Happy() else ButlerMascotMode.Static.Normal()
-                    )
+                // Gradient fades behind card's rounded corners
+                GradientFade(
+                    modifier = Modifier.align(Alignment.TopCenter),
+                    fadeDirection = FadeDirection.DOWN,
+                )
+                GradientFade(
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                    height = 48.dp + navBarInset,
+                    fadeDirection = FadeDirection.UP,
+                )
 
-                    Column(modifier = Modifier.weight(1f)) {
-                        if (state.isUpgraded) {
-                            ColoredTitleText(
-                                fullTitle = stringResource(eu.darken.butler.common.R.string.app_name_upgraded),
-                                postfix = stringResource(eu.darken.butler.common.R.string.app_name_upgrade_postfix),
-                                style = MaterialTheme.typography.titleMedium,
-                            )
-                        } else {
+                // Floating settings card
+                ElevatedCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 32.dp, bottom = navBarInset + 16.dp)
+                        .padding(horizontal = 24.dp),
+                    colors = CardDefaults.elevatedCardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    ),
+                    elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .clickable { onNavToSettings() }
+                            .testTag(TemplatesWorkspacePageDefaults.SETTINGS_CARD_TEST_TAG)
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        ButlerMascot(
+                            modifier = Modifier.size(64.dp),
+                            variant = if (state.isUpgraded) ButlerMascotMode.Static.Happy() else ButlerMascotMode.Static.Normal()
+                        )
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            if (state.isUpgraded) {
+                                ColoredTitleText(
+                                    fullTitle = stringResource(eu.darken.butler.common.R.string.app_name_upgraded),
+                                    postfix = stringResource(eu.darken.butler.common.R.string.app_name_upgrade_postfix),
+                                    style = MaterialTheme.typography.titleMedium,
+                                )
+                            } else {
+                                Text(
+                                    text = stringResource(eu.darken.butler.common.R.string.app_name),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
+                            }
                             Text(
-                                text = stringResource(eu.darken.butler.common.R.string.app_name),
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.primary,
+                                text = randomSlogan.get(LocalContext.current),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = state.versionDescription,
+                                style = MaterialTheme.typography.labelMedium,
+                                modifier = Modifier.padding(top = 2.dp),
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                             )
                         }
-                        Text(
-                            text = randomSlogan.get(LocalContext.current),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(
-                            text = state.versionDescription,
-                            style = MaterialTheme.typography.labelMedium,
-                            modifier = Modifier.padding(top = 2.dp),
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+
+                        Icon(
+                            imageVector = Icons.TwoTone.Settings,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                         )
                     }
-
-                    Icon(
-                        imageVector = Icons.TwoTone.Settings,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                    )
                 }
             }
         }
@@ -367,6 +378,18 @@ private fun GradientFade(
     )
 }
 
+private fun previewState(workspaceId: Workspace.Id) = TemplatesWorkspaceViewModel.State(
+    id = workspaceId,
+    templates = listOf(
+        previewTemplate(Workspace.Type.EXPLORER, "Explorer", "Browse and manage files", 10),
+        previewTemplate(Workspace.Type.SEARCHER, "Searcher", "Find files and folders", 20),
+        previewTemplate(Workspace.Type.EDITOR, "Editor", "View and edit text files", 30),
+        previewTemplate(Workspace.Type.APPS, "Apps", "Manage installed apps", 40),
+    ),
+    isUpgraded = true,
+    versionDescription = "1.0.0-preview",
+)
+
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
@@ -374,17 +397,20 @@ private fun TemplatesWorkspacePagePreview() {
     val workspaceId = Workspace.Id()
     TemplatesWorkspacePage(
         workspaceId = workspaceId,
-        state = TemplatesWorkspaceViewModel.State(
-            id = workspaceId,
-            templates = listOf(
-                previewTemplate(Workspace.Type.EXPLORER, "Explorer", "Browse and manage files", 10),
-                previewTemplate(Workspace.Type.SEARCHER, "Searcher", "Find files and folders", 20),
-                previewTemplate(Workspace.Type.EDITOR, "Editor", "View and edit text files", 30),
-                previewTemplate(Workspace.Type.APPS, "Apps", "Manage installed apps", 40),
-            ),
-            isUpgraded = true,
-            versionDescription = "1.0.0-preview",
-        ),
+        state = previewState(workspaceId),
+        onNavToSettings = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun TemplatesWorkspacePageMultiPanePreview() {
+    val workspaceId = Workspace.Id()
+    TemplatesWorkspacePage(
+        workspaceId = workspaceId,
+        design = WorkspaceDesign(layout = WorkspaceDesign.Layout.DUAL_VERTICAL),
+        state = previewState(workspaceId),
         onNavToSettings = {},
     )
 }
