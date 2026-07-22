@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -92,6 +93,9 @@ internal fun EmptyClassicWorkspaceContent(
                     tips = listOf(R.string.workspace_classic_empty_tip),
                 )
 
+                // Separate the info group (empty-state + tip) from the action group
+                Spacer(modifier = Modifier.size(8.dp))
+
                 // Create workspace card (primary action)
                 Card(
                     onClick = { workspaceActionHandler?.executeWorkspaceAction(WorkspaceAction.Create()) },
@@ -139,11 +143,12 @@ internal fun EmptyClassicWorkspaceContent(
                     }
                 }
 
-                // Upgrade (demoted below settings, same card shape as Settings)
+                // Upgrade (same card shape as Settings, tertiary accent)
                 if (!isUpgraded) {
                     Card(
                         onClick = { workspaceActionHandler?.navToUpgradeButler() },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)
                     ) {
                         Row(
                             modifier = Modifier.padding(20.dp),
@@ -153,11 +158,13 @@ internal fun EmptyClassicWorkspaceContent(
                             Text(
                                 text = stringResource(R.string.upgrade_prompt_title),
                                 style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onTertiaryContainer,
                                 modifier = Modifier.weight(1f),
                             )
                             Icon(
                                 imageVector = Icons.TwoTone.Stars,
                                 contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onTertiaryContainer,
                             )
                         }
                     }
