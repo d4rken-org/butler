@@ -8,8 +8,10 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -17,6 +19,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Check
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.Info
+import androidx.compose.material.icons.automirrored.twotone.OpenInNew
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -33,6 +37,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
@@ -45,6 +51,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.uuid.Uuid
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun MotdCard(
     motd: MotdState,
@@ -85,32 +92,25 @@ fun MotdCard(
             ),
         ) {
             Column(
-                modifier = Modifier.padding(16.dp),
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Top,
-                ) {
-                    Row(
-                        modifier = Modifier.weight(1f),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalAlignment = Alignment.Top,
-                    ) {
-                        Icon(
-                            imageVector = Icons.TwoTone.Info,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                        )
-                        Text(
-                            text = motd.motd.message,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer,
-                            maxLines = 4,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
+                // Header: info icon (left), centered "Announcement", close (right)
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    Icon(
+                        imageVector = Icons.TwoTone.Info,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                        modifier = Modifier.align(Alignment.CenterStart),
+                    )
+                    Text(
+                        text = stringResource(eu.darken.butler.R.string.motd_card_header),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.align(Alignment.Center),
+                    )
                     IconButton(
                         onClick = {
                             scope.launch {
@@ -119,6 +119,7 @@ fun MotdCard(
                                 onHide()
                             }
                         },
+                        modifier = Modifier.align(Alignment.CenterEnd),
                     ) {
                         Icon(
                             imageVector = Icons.TwoTone.Close,
@@ -128,9 +129,41 @@ fun MotdCard(
                     }
                 }
 
-                Row(
+                motd.motd.title?.let { title ->
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+
+                Text(
+                    text = motd.motd.message,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    maxLines = 6,
+                    overflow = TextOverflow.Ellipsis,
+                )
+
+                motd.motd.description?.let { description ->
+                    Text(
+                        text = description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f),
+                        maxLines = 4,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+
+                // Actions: "Mark as read" (secondary, left), "Read more" (primary, right).
+                // FlowRow wraps to a new line instead of clipping on narrow widths / large fonts.
+                FlowRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     TextButton(
                         onClick = {
@@ -147,22 +180,22 @@ fun MotdCard(
                             modifier = Modifier
                                 .size(18.dp)
                                 .padding(end = 4.dp),
-                            tint = MaterialTheme.colorScheme.primary,
                         )
-                        Text(
-                            text = stringResource(eu.darken.butler.common.R.string.general_mark_as_read_action),
-                            color = MaterialTheme.colorScheme.primary,
-                        )
+                        Text(text = stringResource(eu.darken.butler.common.R.string.general_mark_as_read_action))
                     }
 
                     motd.motd.primaryLink?.let { link ->
-                        TextButton(
+                        Button(
                             onClick = { onLinkClick(link) },
                         ) {
-                            Text(
-                                text = stringResource(eu.darken.butler.common.R.string.general_read_more_action),
-                                color = MaterialTheme.colorScheme.primary,
+                            Icon(
+                                imageVector = Icons.AutoMirrored.TwoTone.OpenInNew,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(18.dp)
+                                    .padding(end = 4.dp),
                             )
+                            Text(text = stringResource(eu.darken.butler.common.R.string.general_read_more_action))
                         }
                     }
                 }
@@ -174,12 +207,14 @@ fun MotdCard(
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
-private fun MotdCardPreview() {
+private fun MotdCardFullPreview() {
     MotdCard(
         motd = MotdState(
             motd = MotdApi.Motd(
                 id = Uuid.random(),
+                title = "New in v0.20",
                 message = "This is a message of the day. It can contain important information about updates, new features, or announcements.",
+                description = "Tap “Read more” for the full changelog and details.",
                 primaryLink = "https://example.com",
                 minimumVersion = null,
                 maximumVersion = null,
@@ -195,12 +230,12 @@ private fun MotdCardPreview() {
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
-private fun MotdCardNoLinkPreview() {
+private fun MotdCardMessageOnlyPreview() {
     MotdCard(
         motd = MotdState(
             motd = MotdApi.Motd(
                 id = Uuid.random(),
-                message = "This is a shorter MOTD without a link.",
+                message = "This is a shorter MOTD without a title, description, or link.",
                 primaryLink = null,
                 minimumVersion = null,
                 maximumVersion = null,

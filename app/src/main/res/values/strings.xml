@@ -185,6 +185,7 @@
     <string name="updater_check_enabled_setting_description">Allow Butler to check online if a new version is available.</string>
     <string name="motd_check_enabled_setting_title">Check announcements</string>
     <string name="motd_check_enabled_setting_description">Allow Butler to fetch important messages from the developer.</string>
+    <string name="motd_card_header">Announcement</string>
 
     <string name="confirm_exit_setting_title">Confirm exit</string>
     <string name="confirm_exit_setting_description">Show a confirmation dialog when exiting the app.</string>

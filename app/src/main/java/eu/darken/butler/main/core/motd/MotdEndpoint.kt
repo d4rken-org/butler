@@ -57,18 +57,18 @@ class MotdEndpoint @Inject constructor(
     ): MotdState? = withContext(dispatcherProvider.IO) {
         log(TAG, VERBOSE) { "getMotd($flavor, $buildType, $locale)..." }
 
-        val branch = when (BuildConfigWrap.BUILD_TYPE) {
+        val branch = when (buildType) {
             BuildConfigWrap.BuildType.DEV -> "motd"
             BuildConfigWrap.BuildType.BETA, BuildConfigWrap.BuildType.RELEASE -> "main"
         }
 
-        val flavorRaw = when (BuildConfigWrap.FLAVOR) {
+        val flavorRaw = when (flavor) {
             BuildConfigWrap.Flavor.FOSS -> "foss"
             BuildConfigWrap.Flavor.GPLAY -> "gplay"
             BuildConfigWrap.Flavor.NONE -> throw IllegalArgumentException("flavor can't be NONE")
         }
 
-        val buildRaw = when (BuildConfigWrap.BUILD_TYPE) {
+        val buildRaw = when (buildType) {
             BuildConfigWrap.BuildType.DEV -> "dev"
             BuildConfigWrap.BuildType.BETA -> "beta"
             BuildConfigWrap.BuildType.RELEASE -> "release"
@@ -89,7 +89,7 @@ class MotdEndpoint @Inject constructor(
             usedLocale = Locale.ENGLISH
         }
         if (localizedMotd == null) {
-            localizedMotd = filteredMotds.singleOrNull { it.name.endsWith(".json") }
+            localizedMotd = filteredMotds.filter { it.name.endsWith(".json") }.minByOrNull { it.name }
             usedLocale = Locale.ENGLISH
         }
 

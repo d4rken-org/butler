@@ -122,4 +122,68 @@ class MotdDataTest : BaseTest() {
         webServer.enqueue(MockResponse().setResponseCode(404))
         motdEndpoint.getMotd(Locale.ENGLISH) shouldBe null
     }
+
+    @Test
+    fun `optional title and description are parsed`() = runTest {
+        mockListingResponse("foss", "dev", Locale.ENGLISH)
+        webServer.enqueue(
+            MockResponse().setBody(
+                """
+                {
+                    "id": "a1b2c3d4-0000-4a1b-9c2d-deadbeef0001",
+                    "title": "A title",
+                    "message": "A message",
+                    "description": "A description",
+                    "primaryLink": "https://example.com"
+                }
+                """.trimIndent()
+            )
+        )
+        motdEndpoint.getMotd(Locale.ENGLISH)!!.motd.apply {
+            title shouldBe "A title"
+            message shouldBe "A message"
+            description shouldBe "A description"
+        }
+    }
+
+    @Test
+    fun `optional fields default to null when absent`() = runTest {
+        mockListingResponse("foss", "dev", Locale.ENGLISH)
+        webServer.enqueue(
+            MockResponse().setBody(
+                """
+                {
+                    "id": "a1b2c3d4-0000-4a1b-9c2d-deadbeef0001",
+                    "message": "Only a message"
+                }
+                """.trimIndent()
+            )
+        )
+        motdEndpoint.getMotd(Locale.ENGLISH)!!.motd.apply {
+            title shouldBe null
+            description shouldBe null
+            primaryLink shouldBe null
+            minimumVersion shouldBe null
+            maximumVersion shouldBe null
+        }
+    }
+
+    @Test
+    fun `falls back deterministically when locale and english are missing`() = runTest {
+        val listing = """
+            [
+                {"name": "motd-zz.json", "download_url": "${mockUrl}zz.json", "type": "file"},
+                {"name": "motd-aa.json", "download_url": "${mockUrl}aa.json", "type": "file"}
+            ]
+        """.trimIndent()
+        webServer.enqueue(MockResponse().setBody(listing))
+        webServer.enqueue(
+            MockResponse().setBody(
+                """{"id":"a1b2c3d4-0000-4a1b-9c2d-deadbeef0001","message":"fallback"}"""
+            )
+        )
+        // Neither the requested locale nor "-en" is present, and there are multiple json
+        // files: the old singleOrNull returned null; the fallback now picks one by name.
+        motdEndpoint.getMotd(Locale.forLanguageTag("xx"))!!.motd.message shouldBe "fallback"
+    }
 }

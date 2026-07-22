@@ -28,9 +28,11 @@ interface MotdApi {
     data class Motd(
         @SerialName("id") @Contextual val id: Uuid,
         @SerialName("message") val message: String,
-        @SerialName("primaryLink") val primaryLink: String?,
-        @SerialName("versionMinimum") val minimumVersion: Long?,
-        @SerialName("versionMaximum") val maximumVersion: Long?,
+        @SerialName("title") val title: String? = null,
+        @SerialName("description") val description: String? = null,
+        @SerialName("primaryLink") val primaryLink: String? = null,
+        @SerialName("versionMinimum") val minimumVersion: Long? = null,
+        @SerialName("versionMaximum") val maximumVersion: Long? = null,
     )
 
     @GET
