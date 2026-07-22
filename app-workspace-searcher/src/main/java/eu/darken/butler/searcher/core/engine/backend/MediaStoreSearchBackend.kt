@@ -41,6 +41,16 @@ import javax.inject.Singleton
  * Searches the MediaStore index instead of walking the filesystem. Fast, but only as complete
  * and fresh as the media scanner's index — that trade-off is the point of the explicit
  * [SearchTarget.MediaStore] targets (it never silently replaces a filesystem walk).
+ *
+ * Scoped storage: opening the indexed DATA paths requires path access. On Android 10 this is
+ * covered by `requestLegacyExternalStorage` in the manifest (All-Files-Access doesn't exist
+ * until 11, where it takes over; the flag is ignored there). Without path access (Android 11+
+ * with All-Files-Access declined) content queries report candidates as access errors. A
+ * `content://` read fallback via ContentResolver (keep `_ID`, stream through
+ * `openAssetFileDescriptor` when the path open fails) was evaluated and rejected: matching
+ * would succeed, but results still carry only a [LocalPath] that previews, the editor, and
+ * file operations can't open either — findable but not actionable. Don't reintroduce the
+ * fallback without also plumbing the content URI through [SearchItem] to those consumers.
  */
 @Singleton
 class MediaStoreSearchBackend @Inject constructor(
