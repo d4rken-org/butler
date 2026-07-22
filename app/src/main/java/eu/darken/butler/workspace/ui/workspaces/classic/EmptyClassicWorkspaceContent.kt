@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -20,7 +19,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,60 +45,57 @@ internal fun EmptyClassicWorkspaceContent(
     isUpgraded: Boolean,
 ) {
     val workspaceActionHandler = LocalWorkspaceButtonProvider.current
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
-        contentAlignment = Alignment.Center,
+    Column(
+        modifier = modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Column(
-            modifier = Modifier.padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState()),
+            contentAlignment = Alignment.Center,
         ) {
-            ButlerMascot(
-                modifier = Modifier.size(180.dp),
-                variant = ButlerMascotMode.Animated.Drink(
-                    standalone = true,
-                    loopDelay = (5..15).random().seconds,
-                    speed = 0.9f,
-                ),
-            )
-
-            // Empty state message in highlighted card
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                ),
-            ) {
-                Text(
-                    text = stringResource(R.string.workspace_classic_empty_tabs_closed),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                )
-            }
-
-            ButlerTip(
-                tips = listOf(R.string.workspace_classic_empty_tip),
-            )
-
-            Spacer(modifier = Modifier.size(8.dp))
-
-            // Action cards in order: Create (primary), Settings, then demoted Upgrade
             Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
+                ButlerMascot(
+                    modifier = Modifier.size(180.dp),
+                    variant = ButlerMascotMode.Animated.Drink(
+                        standalone = true,
+                        loopDelay = (5..15).random().seconds,
+                        speed = 0.9f,
+                    ),
+                )
+
+                // Empty state message in highlighted card
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    ),
+                ) {
+                    Text(
+                        text = stringResource(R.string.workspace_classic_empty_tabs_closed),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                    )
+                }
+
+                ButlerTip(
+                    tips = listOf(R.string.workspace_classic_empty_tip),
+                )
+
                 // Create workspace card (primary action)
                 Card(
                     onClick = { workspaceActionHandler?.executeWorkspaceAction(WorkspaceAction.Create()) },
-                    modifier = Modifier
-                        .fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
                 ) {
                     Row(
@@ -125,8 +120,7 @@ internal fun EmptyClassicWorkspaceContent(
                 // Settings card
                 Card(
                     onClick = { workspaceActionHandler?.navToSettings() },
-                    modifier = Modifier
-                        .fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
                         modifier = Modifier.padding(20.dp),
@@ -145,40 +139,49 @@ internal fun EmptyClassicWorkspaceContent(
                     }
                 }
 
-                // Upgrade (demoted, below settings, rendered as a subtle text action)
+                // Upgrade (demoted below settings, same card shape as Settings)
                 if (!isUpgraded) {
-                    TextButton(
+                    Card(
                         onClick = { workspaceActionHandler?.navToUpgradeButler() },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Icon(
-                            imageVector = Icons.TwoTone.Stars,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp),
-                        )
-                        Spacer(modifier = Modifier.size(8.dp))
-                        Text(
-                            text = stringResource(R.string.upgrade_prompt_title),
-                            style = MaterialTheme.typography.labelLarge,
-                        )
+                        Row(
+                            modifier = Modifier.padding(20.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.upgrade_prompt_title),
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.weight(1f),
+                            )
+                            Icon(
+                                imageVector = Icons.TwoTone.Stars,
+                                contentDescription = null,
+                            )
+                        }
                     }
                 }
             }
+        }
 
-            Spacer(modifier = Modifier.size(16.dp))
-
-            // Branding + version at bottom
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                ButlerAppTitle(
-                    isUpgraded = isUpgraded,
-                    style = MaterialTheme.typography.titleSmall,
-                )
-                Text(
-                    text = BuildConfigWrap.VERSION_DESCRIPTION_SHORT,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+        // Branding + version pinned to the bottom
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            ButlerAppTitle(
+                isUpgraded = isUpgraded,
+                style = MaterialTheme.typography.titleSmall,
+            )
+            Text(
+                text = BuildConfigWrap.VERSION_DESCRIPTION_SHORT,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }
