@@ -1,30 +1,30 @@
 {
   "permissions": {
-	"allow": [
-	  "mcp__ide__getDiagnostics",
-	  "Bash(./gradlew:*)",
-	  "Bash(git log:*)",
-	  "Bash(git commit:*)",
-	  "Bash(git push:*)",
-	  "Bash(git branch:*)",
-	  "Bash(git add:*)",
-	  "Bash(git diff:*)",
-	  "Bash(git show:*)",
-	  "Bash(gh issue list:*)",
-	  "Bash(gh pr list:*)",
-	  "Bash(gh label list:*)",
-	  "Bash(adb:*)",
-	  "WebSearch",
-	  "WebFetch(domain:android.googlesource.com)",
-	  "WebFetch(domain:developer.android.com)"
-	],
-	"deny": []
+    "allow": [
+      "mcp__ide__getDiagnostics",
+      "Bash(./gradlew:*)",
+      "Bash(git log:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git branch:*)",
+      "Bash(git add:*)",
+      "Bash(git diff:*)",
+      "Bash(git show:*)",
+      "Bash(gh issue list:*)",
+      "Bash(gh pr list:*)",
+      "Bash(gh label list:*)",
+      "Bash(adb:*)",
+      "WebSearch",
+      "WebFetch(domain:android.googlesource.com)",
+      "WebFetch(domain:developer.android.com)"
+    ],
+    "deny": []
   },
   "enabledPlugins": {
-	"android-translation@claude-code-cafe": true,
-	"debugbadger@claude-code-cafe": true,
-	"jvm-tools@claude-code-cafe": true,
-	"frontend-design@claude-plugins-official": true,
-	"kotlin-lsp@claude-plugins-official": true
+    "android-translation@claude-code-cafe": true,
+    "debugbadger@claude-code-cafe": true,
+    "jvm-tools@claude-code-cafe": true,
+    "frontend-design@claude-plugins-official": true,
+    "kotlin-lsp@claude-plugins-official": true
   }
 }
