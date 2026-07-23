@@ -1,6 +1,7 @@
 package eu.darken.butler.workspace.ui.workspaces
 
 import android.graphics.Color as AndroidColor
+import android.graphics.drawable.ColorDrawable
 import android.view.ViewGroup
 import android.view.WindowManager
 import androidx.compose.foundation.layout.Box
@@ -53,21 +54,23 @@ fun WorkspaceModalDialog(
             decorFitsSystemWindows = false
         )
     ) {
-        // The default Dialog window stops short of the system bar regions, so the parent's bottom
-        // toolbar bleeds through in the nav-bar strip. Stretch the window to MATCH_PARENT and add
-        // FLAG_LAYOUT_NO_LIMITS so it covers the whole screen, fully occluding the parent.
+        // A Dialog window is not created with the Activity's enableEdgeToEdge() setup. In particular
+        // it lacks FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS, so the platform draws opaque system-bar scrims
+        // and ignores transparent bar colors / light-icon requests, and it dims + insets its content
+        // — leaving black strips behind the status and navigation bars. Reconcile the window with the
+        // Activity so this full-screen modal is genuinely edge-to-edge.
         val dialogWindow = (LocalView.current.parent as? DialogWindowProvider)?.window
         if (dialogWindow != null) {
             dialogWindow.setLayout(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT,
             )
-            dialogWindow.addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
-            dialogWindow.decorView.fitsSystemWindows = false
-            // A fresh Dialog window does not inherit the Activity's enableEdgeToEdge() setup, so its
-            // system bar scrims fall back to the platform default (opaque black). Mirror the Activity:
-            // draw edge-to-edge with transparent bars so the modal content shows behind them.
             WindowCompat.setDecorFitsSystemWindows(dialogWindow, false)
+            dialogWindow.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+            // A full-screen modal shouldn't dim behind itself; the dim would show as strips at the bars.
+            dialogWindow.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+            dialogWindow.setDimAmount(0f)
+            dialogWindow.setBackgroundDrawable(ColorDrawable(AndroidColor.TRANSPARENT))
             dialogWindow.statusBarColor = AndroidColor.TRANSPARENT
             dialogWindow.navigationBarColor = AndroidColor.TRANSPARENT
         }
