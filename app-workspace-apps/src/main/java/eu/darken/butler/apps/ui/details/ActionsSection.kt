@@ -28,10 +28,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import eu.darken.butler.apps.R
 import eu.darken.butler.apps.core.details.AppInfo
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
@@ -105,34 +103,21 @@ sealed class AppAction {
 }
 
 sealed class ActionGroup {
-    abstract val titleRes: Int
     abstract val actions: List<AppAction>
-    abstract val color: @Composable () -> Color
 
     data object Primary : ActionGroup() {
-        override val titleRes = R.string.apps_actions_group_primary
         override val actions = listOf(AppAction.Launch, AppAction.OpenInfo)
-        override val color: @Composable () -> Color = { MaterialTheme.colorScheme.primary }
     }
 
     data class Management(
-        val isEnabled: Boolean,
         override val actions: List<AppAction>,
-    ) : ActionGroup() {
-        override val titleRes = R.string.apps_actions_group_management
-        override val color: @Composable () -> Color = { MaterialTheme.colorScheme.primary }
-    }
+    ) : ActionGroup()
 
     data object Export : ActionGroup() {
-        override val titleRes = R.string.apps_actions_group_export
         override val actions = listOf(AppAction.ExportApk, AppAction.ShareApk)
-        override val color: @Composable () -> Color = { MaterialTheme.colorScheme.primary }
     }
 
-    data class Destructive(override val actions: List<AppAction>) : ActionGroup() {
-        override val titleRes = R.string.apps_actions_group_destructive
-        override val color: @Composable () -> Color = { MaterialTheme.colorScheme.error }
-    }
+    data class Destructive(override val actions: List<AppAction>) : ActionGroup()
 }
 
 @Composable
@@ -168,7 +153,7 @@ fun ActionsSection(
 
     val actionGroups = buildList {
         add(ActionGroup.Primary)
-        if (managementActions.isNotEmpty()) add(ActionGroup.Management(app.isEnabled, managementActions))
+        if (managementActions.isNotEmpty()) add(ActionGroup.Management(managementActions))
         add(ActionGroup.Export)
         add(ActionGroup.Destructive(destructiveActions))
     }
@@ -205,11 +190,6 @@ private fun ActionGroupSection(
     actionHandlers: Map<AppAction, () -> Unit>,
     showDivider: Boolean,
 ) {
-    ActionGroupHeader(
-        title = stringResource(group.titleRes),
-        color = group.color()
-    )
-
     group.actions.forEach { action ->
         val isDestructive = group is ActionGroup.Destructive
         ActionItem(
@@ -228,26 +208,6 @@ private fun ActionGroupSection(
             color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
         )
     }
-}
-
-@Composable
-private fun ActionGroupHeader(
-    title: String,
-    modifier: Modifier = Modifier,
-    color: Color = MaterialTheme.colorScheme.primary,
-) {
-    Text(
-        text = title.uppercase(),
-        style = MaterialTheme.typography.labelSmall.copy(
-            fontSize = 11.sp,
-            letterSpacing = 0.5.sp,
-            fontWeight = FontWeight.Medium
-        ),
-        color = color.copy(alpha = 0.8f),
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 6.dp)
-    )
 }
 
 @Composable

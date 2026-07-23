@@ -57,12 +57,6 @@
     <string name="apps_action_clear_cache_desc">Delete temporary cached files</string>
     <string name="apps_action_clear_data_desc">Delete all app data and settings</string>
 
-    <!-- Action Groups -->
-    <string name="apps_actions_group_primary">Quick Actions</string>
-    <string name="apps_actions_group_management">Management</string>
-    <string name="apps_actions_group_export">Export</string>
-    <string name="apps_actions_group_destructive">Danger Zone</string>
-
     <!-- App Info Labels -->
     <string name="apps_package_name_label">Package</string>
     <string name="apps_version_label">Version</string>

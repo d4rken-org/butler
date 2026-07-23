@@ -140,6 +140,7 @@ fun AppDetailsToolbarCard(
 
             // Workspace button (non-modal mode, single pane)
             if (!isModal && design.isSingle) {
+                Spacer(modifier = Modifier.width(8.dp))
                 WorkspaceButton(
                     buttonSize = 40.dp,
                     currentWorkspaceId = currentWorkspaceId,

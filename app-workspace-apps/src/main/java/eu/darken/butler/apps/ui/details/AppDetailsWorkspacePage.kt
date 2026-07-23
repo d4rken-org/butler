@@ -6,12 +6,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -157,143 +156,61 @@ fun AppDetailsWorkspacePage(
                 start = 12.dp,
                 end = 12.dp,
             ),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             val appInfo = state.app
             if (appInfo != null) {
                 // Overview Section
                 item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surface
-                        ),
-                        elevation = CardDefaults.cardElevation(
-                            defaultElevation = 1.dp
+                    DetailSectionCard(title = stringResource(R.string.apps_details_section_overview)) {
+                        AppInformationFields(app = appInfo)
+                    }
+                }
+
+                // Actions Section
+                item {
+                    DetailSectionCard(title = stringResource(R.string.apps_details_section_actions)) {
+                        ActionsSection(
+                            app = appInfo,
+                            onLaunchApp = { onPageAction(AppDetailsPageAction.LaunchApp(appInfo)) },
+                            onShowAppInfo = { onPageAction(AppDetailsPageAction.ShowAppInfo(appInfo)) },
+                            onEnableDisable = { onPageAction(AppDetailsPageAction.EnableDisable(appInfo)) },
+                            onUninstall = { onPageAction(AppDetailsPageAction.Uninstall(appInfo)) },
+                            onExportApk = { onPageAction(AppDetailsPageAction.ExportApk(appInfo)) },
+                            onShareApk = { onPageAction(AppDetailsPageAction.ShareApk(appInfo)) },
+                            onForceStop = { onPageAction(AppDetailsPageAction.ForceStop(appInfo)) },
+                            onClearCache = { onPageAction(AppDetailsPageAction.ClearCache(appInfo)) },
+                            onClearData = { onPageAction(AppDetailsPageAction.ClearData(appInfo)) },
+                            canEnableDisable = state.canEnableDisable,
+                            canForceStop = state.canForceStop,
+                            canClearCache = state.canClearCache,
+                            canClearData = state.canClearData,
                         )
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp)
-                        ) {
-                            Text(
-                                text = stringResource(R.string.apps_details_section_overview),
-                                style = MaterialTheme.typography.titleSmall,
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(bottom = 12.dp)
-                            )
-                            AppInformationFields(app = appInfo)
-                        }
                     }
                 }
 
                 // Storage Section
                 if (state.availablePaths.isNotEmpty() || appInfo.appSize != null || appInfo.cacheSize != null || appInfo.dataSize != null) {
-                    item { Spacer(modifier = Modifier.height(8.dp)) }
                     item {
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surface
-                            ),
-                            elevation = CardDefaults.cardElevation(
-                                defaultElevation = 1.dp
-                            )
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(16.dp)
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.apps_details_section_storage),
-                                    style = MaterialTheme.typography.titleSmall,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.padding(bottom = 12.dp)
-                                )
-                                StorageListItems(
-                                    availablePaths = state.availablePaths,
-                                    onBrowsePath = { onPageAction(AppDetailsPageAction.BrowsePath(it)) },
-                                    app = appInfo,
-                                )
-                            }
-                        }
-                    }
-                }
-
-                item { Spacer(modifier = Modifier.height(8.dp)) }
-
-                // Actions Section
-                item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surface
-                        ),
-                        elevation = CardDefaults.cardElevation(
-                            defaultElevation = 1.dp
-                        )
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(
-                                top = 16.dp,
-                                start = 16.dp,
-                                end = 16.dp,
-                                bottom = 8.dp
-                            )
-                        ) {
-                            Text(
-                                text = stringResource(R.string.apps_details_section_actions),
-                                style = MaterialTheme.typography.titleSmall,
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(bottom = 12.dp)
-                            )
-                            ActionsSection(
+                        DetailSectionCard(title = stringResource(R.string.apps_details_section_storage)) {
+                            StorageListItems(
+                                availablePaths = state.availablePaths,
+                                onBrowsePath = { onPageAction(AppDetailsPageAction.BrowsePath(it)) },
                                 app = appInfo,
-                                onLaunchApp = { onPageAction(AppDetailsPageAction.LaunchApp(appInfo)) },
-                                onShowAppInfo = { onPageAction(AppDetailsPageAction.ShowAppInfo(appInfo)) },
-                                onEnableDisable = { onPageAction(AppDetailsPageAction.EnableDisable(appInfo)) },
-                                onUninstall = { onPageAction(AppDetailsPageAction.Uninstall(appInfo)) },
-                                onExportApk = { onPageAction(AppDetailsPageAction.ExportApk(appInfo)) },
-                                onShareApk = { onPageAction(AppDetailsPageAction.ShareApk(appInfo)) },
-                                onForceStop = { onPageAction(AppDetailsPageAction.ForceStop(appInfo)) },
-                                onClearCache = { onPageAction(AppDetailsPageAction.ClearCache(appInfo)) },
-                                onClearData = { onPageAction(AppDetailsPageAction.ClearData(appInfo)) },
-                                canEnableDisable = state.canEnableDisable,
-                                canForceStop = state.canForceStop,
-                                canClearCache = state.canClearCache,
-                                canClearData = state.canClearData,
                             )
                         }
                     }
                 }
-
-                item { Spacer(modifier = Modifier.height(8.dp)) }
 
                 // Components Section
                 item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surface
-                        ),
-                        elevation = CardDefaults.cardElevation(
-                            defaultElevation = 1.dp
+                    DetailSectionCard(title = stringResource(R.string.apps_details_section_components)) {
+                        ComponentsSection(
+                            app = appInfo,
+                            onLaunchActivity = { activity ->
+                                onPageAction(AppDetailsPageAction.LaunchActivity(activity))
+                            },
                         )
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp)
-                        ) {
-                            Text(
-                                text = stringResource(R.string.apps_details_section_components),
-                                style = MaterialTheme.typography.titleSmall,
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(bottom = 12.dp)
-                            )
-                            ComponentsSection(
-                                app = appInfo,
-                                onLaunchActivity = { activity ->
-                                    onPageAction(AppDetailsPageAction.LaunchActivity(activity))
-                                },
-                            )
-                        }
                     }
                 }
             }
@@ -323,6 +240,31 @@ fun AppDetailsWorkspacePage(
                 }
             },
         )
+    }
+}
+
+@Composable
+private fun DetailSectionCard(
+    title: String,
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(bottom = 12.dp),
+            )
+            content()
+        }
     }
 }
 
