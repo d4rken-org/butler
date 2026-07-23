@@ -1,13 +1,17 @@
 package eu.darken.butler.upgrade.ui
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.Restore
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -21,47 +25,61 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 
-// Single restore section reused by both the acquisition and the ownership screens ("Status looks
-// wrong?"), so the two can't drift apart.
+// Described restore section, shared by all restore audiences (copy and emphasis differ, wiring
+// doesn't). No contact-support action here — self-service gets its chance first; escalation is on
+// the failed-restore dialog only.
 @Composable
-fun UpgradeRestoreSection(
+internal fun UpgradeRestoreSection(
+    title: String,
+    body: String,
+    onRestore: () -> Unit,
     modifier: Modifier = Modifier,
-    onRestorePurchase: () -> Unit,
-    restoreInProgress: Boolean,
+    restoreInProgress: Boolean = false,
+    emphasized: Boolean = false,
+    restoreTag: String = UpgradeScreenTags.RESTORE,
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .testTag(UpgradeScreenTestTags.RESTORE_SECTION),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+    UpgradeSectionCard(
+        title = title,
+        icon = Icons.TwoTone.Restore,
+        modifier = modifier,
+        colors = if (emphasized) {
+            CardDefaults.elevatedCardColors(
+                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+            )
+        } else {
+            null
+        },
     ) {
-        Text(
-            text = stringResource(R.string.upgrade_screen_restore_status_title),
-            style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.primary,
-        )
-        Text(
-            text = stringResource(R.string.upgrade_screen_restore_status_body),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        TextButton(
-            onClick = onRestorePurchase,
-            enabled = !restoreInProgress,
-            modifier = Modifier
-                .fillMaxWidth()
-                .testTag(UpgradeScreenTestTags.RESTORE_ACTION),
-        ) {
-            if (restoreInProgress) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(18.dp),
-                    strokeWidth = 2.dp,
-                )
-            } else {
-                Text(text = stringResource(R.string.upgrade_screen_restore_purchase_action))
-            }
+        if (emphasized) {
+            Text(text = body, style = MaterialTheme.typography.bodyMedium)
+            Button(
+                onClick = onRestore,
+                enabled = !restoreInProgress,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag(restoreTag),
+            ) { RestoreButtonLabel(restoreInProgress) }
+        } else {
+            UpgradeSectionBody(text = body)
+            OutlinedButton(
+                onClick = onRestore,
+                enabled = !restoreInProgress,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag(restoreTag),
+            ) { RestoreButtonLabel(restoreInProgress) }
         }
     }
+}
+
+@Composable
+private fun RestoreButtonLabel(restoreInProgress: Boolean) {
+    if (restoreInProgress) {
+        CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+        Spacer(modifier = Modifier.width(8.dp))
+    }
+    Text(stringResource(R.string.upgrade_screen_restore_purchase_action))
 }
 
 @Composable
@@ -70,9 +88,7 @@ fun RestoreFailedDialog(onDismiss: () -> Unit) {
         onDismissRequest = onDismiss,
         title = { Text(text = stringResource(eu.darken.butler.common.R.string.general_error_label)) },
         confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(id = android.R.string.ok))
-            }
+            TextButton(onClick = onDismiss) { Text(stringResource(id = android.R.string.ok)) }
         },
         text = {
             Text(
@@ -100,25 +116,19 @@ fun SimpleMessageDialog(
         onDismissRequest = onDismiss,
         title = { Text(text = title) },
         confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(id = android.R.string.ok))
-            }
+            TextButton(onClick = onDismiss) { Text(stringResource(id = android.R.string.ok)) }
         },
         text = { Text(text = message) },
     )
-}
-
-internal object UpgradeScreenTestTags {
-    const val RESTORE_SECTION = "upgrade_restore_section"
-    const val RESTORE_ACTION = "upgrade_restore_action"
-    const val SWITCH_ACTION = "upgrade_switch_action"
-    const val IAP_ACTION = "upgrade_iap_action"
-    const val SUB_ACTION = "upgrade_sub_action"
 }
 
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun UpgradeRestoreSectionPreview() {
-    UpgradeRestoreSection(onRestorePurchase = {}, restoreInProgress = false)
+    UpgradeRestoreSection(
+        title = "Already bought Pro?",
+        body = "Restoring asks Google Play to re-check this app's purchases for the current account.",
+        onRestore = {},
+    )
 }

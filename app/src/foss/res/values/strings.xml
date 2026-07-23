@@ -22,6 +22,7 @@
     <string name="upgrade_screen_status_free_title">You\'re on the free version</string>
     <string name="upgrade_screen_status_free_body">Butler FOSS is fully open source. Unlock the extra features by supporting development.</string>
     <string name="upgrade_screen_status_free_action">See upgrade options</string>
+    <string name="upgrade_screen_status_upgraded_title">You\'re a supporter</string>
     <string name="upgrade_screen_status_upgraded_body">Thank you for supporting open-source development ❤️ All extra features are unlocked.</string>
     <string name="upgrade_screen_recurring_title">Keep it going</string>
     <string name="upgrade_screen_recurring_body">Butler is developed in my spare time. A recurring donation helps keep it alive.</string>

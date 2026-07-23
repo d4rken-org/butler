@@ -35,6 +35,16 @@
     <string name="upgrade_screen_offers_or">or</string>
     <string name="upgrade_screen_unavailable_retry_action">Try again</string>
 
+    <string name="upgrade_screen_offers_title">Upgrade options</string>
+    <string name="upgrade_screen_offers_body">Both options unlock the exact same Pro features — pick whichever pricing suits you.</string>
+    <string name="upgrade_screen_offers_unavailable_message">Butler couldn\'t load the upgrade options from Google Play. This is often temporary — try again in a moment.</string>
+    <string name="upgrade_screen_subscription_offer_title">Yearly subscription</string>
+    <string name="upgrade_screen_subscription_offer_body">Starts with a free 14-day trial, then billed once per year. Cancel anytime.</string>
+    <string name="upgrade_screen_subscription_offer_body_no_trial">Billed once per year. Cancel anytime.</string>
+    <string name="upgrade_screen_iap_offer_title">One-time purchase</string>
+    <string name="upgrade_screen_iap_offer_body">Pay once, yours for good. No subscription.</string>
+    <string name="upgrade_screen_restore_body">Restoring asks Google Play to re-check this app\'s purchases for the current account.</string>
+
     <string name="upgrade_screen_owned_hero_title">You have Butler Pro!</string>
     <string name="upgrade_screen_owned_hero_iap_body">Thank you for the one-time purchase — you\'re set for good ❤️</string>
     <string name="upgrade_screen_owned_hero_sub_body">Thank you for subscribing ❤️</string>
@@ -46,9 +56,6 @@
     <string name="upgrade_screen_owned_both_renewing_warning">You own the one-time purchase but your subscription is still renewing. Cancel it in Google Play to avoid paying twice.</string>
     <string name="upgrade_screen_manage_subscription_action">Manage subscription</string>
 
-    <string name="upgrade_screen_switch_title">Switch to the one-time purchase</string>
-    <string name="upgrade_screen_switch_body">Prefer to pay once instead of yearly? Buy the one-time purchase and let your subscription lapse.</string>
-    <string name="upgrade_screen_switch_action">Buy one-time (%s)</string>
     <string name="upgrade_screen_switch_locked_note">First cancel renewal via \"Manage subscription\", otherwise you\'d be charged for both.</string>
     <string name="upgrade_screen_switch_purchase_note">Your subscription won\'t renew — you can safely buy the one-time purchase now.</string>
 
