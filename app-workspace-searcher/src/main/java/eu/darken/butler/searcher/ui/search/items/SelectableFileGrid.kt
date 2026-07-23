@@ -26,7 +26,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
@@ -62,8 +64,14 @@ fun SelectableFileGrid(
         else -> MaterialTheme.colorScheme.surfaceVariant
     }
 
-    // Parent path for context
-    val parentPath = result.lookup.parent?.userReadablePath?.asComposable()
+    // Parent path for context (memoize the allocation-heavy parent lookup + CaString)
+    val parentCaString = remember(result.lookup) { result.lookup.parent?.userReadablePath }
+    val parentPath = parentCaString?.asComposable()
+
+    val context = LocalContext.current
+    val sizeText = remember(result.size, context) {
+        result.size?.let { formatFileSize(context = context, bytes = it) }
+    }
 
     val shape = RoundedCornerShape(4.dp)
     Card(
@@ -157,9 +165,9 @@ fun SelectableFileGrid(
                 Spacer(modifier = Modifier.width(4.dp))
 
                 // File size in top-right
-                result.size?.let { size ->
+                sizeText?.let { size ->
                     Text(
-                        text = formatFileSize(size),
+                        text = size,
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onScrim,
                         maxLines = 1,

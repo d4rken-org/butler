@@ -542,7 +542,8 @@ fun SearcherWorkspacePage(
                         if (gridResultItems.isNotEmpty()) {
                             items(
                                 items = gridResultItems,
-                                key = { item -> item.searchItem.resultKey }
+                                key = { item -> item.searchItem.resultKey },
+                                contentType = { "result" },
                             ) { item ->
                                 SelectableFileGrid(
                                     result = item.searchItem,

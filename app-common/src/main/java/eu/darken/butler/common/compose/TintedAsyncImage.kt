@@ -6,6 +6,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -33,10 +34,12 @@ fun TintedAsyncImage(
     val context = LocalContext.current
     val sizeResolver = rememberConstraintsSizeResolver()
 
-    val request = ImageRequest.Builder(context)
-        .data(model)
-        .size(sizeResolver)
-        .build()
+    val request = remember(context, model, sizeResolver) {
+        ImageRequest.Builder(context)
+            .data(model)
+            .size(sizeResolver)
+            .build()
+    }
 
     val painter = rememberAsyncImagePainter(request)
     val state by painter.state.collectAsState()

@@ -5,7 +5,9 @@ import coil3.request.Options
 import coil3.size.Dimension
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.main.core.GeneralSettings
-import eu.darken.butler.main.core.themeStateBlocking
+import eu.darken.butler.main.core.themeState
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 /**
@@ -18,7 +20,9 @@ class PathPreviewKeyer @Inject constructor(
 ) : Keyer<APathLookup<*>> {
 
     override fun key(data: APathLookup<*>, options: Options): String {
-        val themeState = generalSettings.themeStateBlocking
+        // Read the whole theme in a single blocking dispatch (DataStore is warm once the UI is
+        // themed) rather than one runBlocking per theme field.
+        val themeState = runBlocking { generalSettings.themeState.first() }
 
         val sizeWidth = (options.size.width as? Dimension.Pixels)?.px ?: 0
         val sizeHeight = (options.size.height as? Dimension.Pixels)?.px ?: 0
