@@ -28,6 +28,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -91,11 +92,17 @@ import eu.darken.butler.workspace.ui.operations.bar.OperationsBar
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
+import eu.darken.butler.common.debug.compose.ReportScrollJank
+import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.workspace.ui.preview.ProvideFolderPreviews
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
+
+private val scrollTagGrid = logTag("Searcher", "Scroll", "Grid")
+private val scrollTagList = logTag("Searcher", "Scroll", "List")
 
 @Composable
 fun SearcherWorkspacePage(
@@ -141,6 +148,7 @@ fun SearcherWorkspacePage(
         with(density) { WindowInsets.statusBars.getTop(density).toDp() }
     } else 0.dp
     val listState = rememberLazyListState()
+    ReportScrollJank(listState, scrollTagList)
     var showTemplatesSheet by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -333,6 +341,22 @@ fun SearcherWorkspacePage(
             }
     ) {
         val gridState = rememberLazyGridState()
+        ReportScrollJank(gridState, scrollTagGrid)
+
+        // Defer-previews experiment (Developer toggle): true once scrolling has settled ~120ms.
+        // Asymmetric on purpose — false immediately on scroll start, so new work is suppressed for
+        // the whole gesture, not just after a debounce.
+        val previewsSettled = remember { mutableStateOf(true) }
+        LaunchedEffect(gridState) {
+            snapshotFlow { gridState.isScrollInProgress }.collectLatest { scrolling ->
+                if (scrolling) {
+                    previewsSettled.value = false
+                } else {
+                    delay(120)
+                    previewsSettled.value = true
+                }
+            }
+        }
 
         // Auto-scroll grid to top when a new search starts
         LaunchedEffect(currentState.workspaceState.searchStatus) {
@@ -559,6 +583,7 @@ fun SearcherWorkspacePage(
                                     onLongPress = {
                                         wrappedOnEnterSelectionMode(item.searchItem)
                                     },
+                                    previewsSettled = previewsSettled,
                                 )
                             }
                         }

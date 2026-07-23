@@ -12,8 +12,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -50,11 +53,23 @@ fun ProvideFolderPreviews(
     CompositionLocalProvider(LocalFolderPreviewObserver provides observer, content = content)
 }
 
+/**
+ * Collects the collage children for [dir] from the ambient observer.
+ *
+ * When [loadingEnabled] is false, in-flight collection is cancelled but the last emitted children
+ * are **retained** — so a tile that already shows a collage does not blank back to its fallback
+ * while scrolling. Re-enabling re-collects (a resolver cache hit repopulates immediately). A tile
+ * first composed while disabled shows nothing until enabled.
+ */
 @Composable
-fun rememberFolderPreviewChildren(dir: APath<*>): List<APathLookup<*>> {
+fun rememberFolderPreviewChildren(
+    dir: APath<*>,
+    loadingEnabled: Boolean = true,
+): List<APathLookup<*>> {
     val observer = LocalFolderPreviewObserver.current ?: return emptyList()
-    val children by produceState(initialValue = emptyList<APathLookup<*>>(), dir, observer) {
-        observer(dir).collect { value = it }
+    var children by remember(dir, observer) { mutableStateOf(emptyList<APathLookup<*>>()) }
+    LaunchedEffect(dir, observer, loadingEnabled) {
+        if (loadingEnabled) observer(dir).collect { children = it }
     }
     return children
 }

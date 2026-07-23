@@ -31,6 +31,10 @@ class DebugSettings @Inject constructor(
         "debug.logview.floating.visible",
         false,
     )
+    val deferSearcherPreviews = dataStore.createValue(
+        "debug.searcher.defer_previews_while_scrolling",
+        false,
+    )
     val recorderPath = dataStore.createValue<String?>(
         "recorder.log.path",
         null

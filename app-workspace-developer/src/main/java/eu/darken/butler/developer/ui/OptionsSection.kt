@@ -40,6 +40,7 @@ internal fun OptionsSection(
     onToggleDebugMode: (Boolean) -> Unit,
     onToggleTraceMode: (Boolean) -> Unit,
     onToggleFloatingLog: (Boolean) -> Unit,
+    onToggleDeferSearcherPreviews: (Boolean) -> Unit,
     onTestRoot: () -> Unit,
     onTestShizuku: () -> Unit,
     onHideDeveloperMode: () -> Unit,
@@ -70,6 +71,12 @@ internal fun OptionsSection(
                     checked = optionsState.isFloatingLogEnabled,
                     onCheckedChange = onToggleFloatingLog,
                     enabled = optionsState.isDebugMode,
+                )
+                DeveloperToggleRow(
+                    title = stringResource(R.string.developer_options_defer_searcher_previews),
+                    description = stringResource(R.string.developer_options_defer_searcher_previews_desc),
+                    checked = optionsState.isDeferSearcherPreviews,
+                    onCheckedChange = onToggleDeferSearcherPreviews,
                 )
             }
         }
@@ -300,6 +307,7 @@ private fun OptionsSectionPreview() {
             isDebugMode = false,
             isTraceMode = false,
             isFloatingLogEnabled = false,
+            isDeferSearcherPreviews = false,
             rootTestResult = null,
             isRootTesting = false,
             shizukuTestResult = null,
@@ -309,6 +317,7 @@ private fun OptionsSectionPreview() {
         onToggleDebugMode = {},
         onToggleTraceMode = {},
         onToggleFloatingLog = {},
+        onToggleDeferSearcherPreviews = {},
         onTestRoot = {},
         onTestShizuku = {},
         onHideDeveloperMode = {},
@@ -324,6 +333,7 @@ private fun OptionsSectionWithResultsPreview() {
             isDebugMode = true,
             isTraceMode = true,
             isFloatingLogEnabled = true,
+            isDeferSearcherPreviews = true,
             rootTestResult = RootTestResult(
                 isInstalled = true,
                 isRooted = true,
@@ -342,6 +352,7 @@ private fun OptionsSectionWithResultsPreview() {
         onToggleDebugMode = {},
         onToggleTraceMode = {},
         onToggleFloatingLog = {},
+        onToggleDeferSearcherPreviews = {},
         onTestRoot = {},
         onTestShizuku = {},
         onHideDeveloperMode = {},
