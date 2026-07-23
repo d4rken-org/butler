@@ -278,6 +278,7 @@ private fun EmptyState(
                     }
                 ),
                 style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface,
             )
             Text(
                 text = stringResource(
