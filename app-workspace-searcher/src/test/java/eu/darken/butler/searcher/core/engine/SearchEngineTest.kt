@@ -17,6 +17,7 @@ import eu.darken.butler.workspace.contracts.searcher.SearchFilter
 import eu.darken.butler.workspace.contracts.searcher.SearchTarget
 import eu.darken.butler.workspace.core.Workspace
 import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -381,11 +382,12 @@ class SearchEngineTest : BaseTest() {
             )
 
             progress.errorCount shouldBe 0
-            progress.firstErrorPath shouldBe null
+            progress.accessErrorCount shouldBe 0
+            progress.accessErrorPaths.shouldBeEmpty()
         }
 
         @Test
-        fun `SearchTargetProgress carries error count and first error path`() {
+        fun `SearchTargetProgress carries access error count and paths`() {
             val target = SearchTarget.Path(LocalPath.build("/sdcard"), enabled = true)
             val errorPath = LocalPath.build("/sdcard/Android/data")
             val progress = SearchEngine.SearchTargetProgress(
@@ -393,12 +395,12 @@ class SearchEngineTest : BaseTest() {
                 itemsScanned = 10,
                 resultsFound = 1,
                 status = SearchEngine.SearchTargetProgress.Status.COMPLETED,
-                errorCount = 3,
-                firstErrorPath = errorPath,
+                accessErrorCount = 3,
+                accessErrorPaths = listOf(errorPath),
             )
 
-            progress.errorCount shouldBe 3
-            progress.firstErrorPath shouldBe errorPath
+            progress.accessErrorCount shouldBe 3
+            progress.accessErrorPaths shouldContainExactly listOf(errorPath)
         }
     }
 }

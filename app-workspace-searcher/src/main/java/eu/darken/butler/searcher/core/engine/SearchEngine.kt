@@ -113,7 +113,8 @@ class SearchEngine @AssistedInject constructor(
         val status: Status,
         val exception: Throwable? = null,
         val errorCount: Int = 0,
-        val firstErrorPath: APath<*>? = null,
+        val accessErrorCount: Int = 0,
+        val accessErrorPaths: List<APath<*>> = emptyList(),
     ) {
         enum class Status {
             SEARCHING, COMPLETED, ERROR, CANCELLED
@@ -325,7 +326,8 @@ class SearchEngine @AssistedInject constructor(
                                     itemsScanned = scanProgress.itemsScanned,
                                     resultsFound = scanProgress.resultsFound,
                                     errorCount = scanProgress.errorCount,
-                                    firstErrorPath = scanProgress.firstErrorPath,
+                                    accessErrorCount = scanProgress.accessErrorCount,
+                                    accessErrorPaths = scanProgress.accessErrorPaths,
                                 )
                             }
 

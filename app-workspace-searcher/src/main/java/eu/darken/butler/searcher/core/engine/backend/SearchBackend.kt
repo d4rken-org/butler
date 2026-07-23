@@ -65,6 +65,7 @@ interface SearchBackend {
         val itemsScanned: Int,
         val resultsFound: Int,
         val errorCount: Int = 0,
-        val firstErrorPath: APath<*>? = null,
+        val accessErrorCount: Int = 0,
+        val accessErrorPaths: List<APath<*>> = emptyList(),
     )
 }

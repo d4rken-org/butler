@@ -76,7 +76,7 @@ class FileSystemSearchBackend @Inject constructor(
             val walkOptions = APathGateway.WalkOptions<APath<*>, APathLookup<APath<*>>>(
                 onError = { lookup, error ->
                     log(tag, VERBOSE) { "Error accessing ${lookup.lookedUp}: $error" }
-                    progress.recordError(lookup.lookedUp)
+                    progress.recordAccessError(lookup.lookedUp)
                     true // Continue walking, the failure is reported via progress
                 },
                 followSymlinks = query.options.followSymlinks,
@@ -92,7 +92,7 @@ class FileSystemSearchBackend @Inject constructor(
                     // Entries that exist but couldn't be read arrive as UNKNOWN with an error
                     // (continueOnError) — count them toward the partial signal, don't match them
                     if (lookup.fileType == FileType.UNKNOWN && lookup.error != null) {
-                        progress.recordError(lookup.lookedUp)
+                        progress.recordAccessError(lookup.lookedUp)
                         return@mapNotNull null
                     }
 
@@ -116,12 +116,15 @@ class FileSystemSearchBackend @Inject constructor(
                     emit(SearchBackend.BackendResult(it, SearchBackend.BackendResult.RANK_FILESYSTEM))
                 }
 
-            // Final flush so totals and error counts are accurate between progress intervals
-            progress.flush()
-            log(tag, INFO) { "Completed scan for path: $path (${progress.errorCount} errors)" }
+            log(tag, INFO) { "Completed scan for path: $path (${progress.accessErrorCount} access errors)" }
         } catch (e: CancellationException) {
             log(tag, INFO) { "Scan cancelled for path: $path" }
             throw e
+        } finally {
+            // Flush the final snapshot even on cancel-by-cap or a thrown scan so errors recorded
+            // after the last progress interval still reach the UI. flush() only invokes the
+            // progress callback (no emit), so it is safe during cancellation.
+            progress.flush()
         }
     }.flowOn(dispatcherProvider.IO)
 

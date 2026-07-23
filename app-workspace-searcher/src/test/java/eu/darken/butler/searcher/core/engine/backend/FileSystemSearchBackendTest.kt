@@ -10,6 +10,7 @@ import eu.darken.butler.common.files.metadata.MetadataRepo
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchQuery
 import eu.darken.butler.searcher.core.engine.ContentMatcher
+import eu.darken.butler.searcher.core.engine.SearchConfig
 import eu.darken.butler.workspace.contracts.searcher.ContentQuery
 import eu.darken.butler.workspace.contracts.searcher.FilenameQuery
 import eu.darken.butler.workspace.contracts.searcher.FilterComparator
@@ -17,7 +18,9 @@ import eu.darken.butler.workspace.contracts.searcher.FilterCondition
 import eu.darken.butler.workspace.contracts.searcher.SearchFilter
 import eu.darken.butler.workspace.contracts.searcher.SearchTarget
 import eu.darken.butler.workspace.core.Workspace
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -123,8 +126,33 @@ class FileSystemSearchBackendTest : BaseTest() {
         // The walk must continue after errors, they are reported via progress instead
         onErrorReturns shouldBe listOf(true, true)
         val finalProgress = harness.progressUpdates.last()
-        finalProgress.errorCount shouldBe 2
-        finalProgress.firstErrorPath shouldBe firstDenied.lookedUp
+        finalProgress.accessErrorCount shouldBe 2
+        finalProgress.errorCount shouldBe 0
+        finalProgress.accessErrorPaths shouldContainExactly listOf(firstDenied.lookedUp, secondDenied.lookedUp)
+    }
+
+    @Test
+    fun `access error paths are capped but the count stays exact`(): Unit = runTest {
+        val harness = Harness()
+        val denied = (0..SearchConfig.MAX_REPORTED_ERROR_PATHS).map {
+            lookup("/sdcard/denied-$it", fileType = FileType.DIRECTORY)
+        }
+        harness.stubWalk {
+            val onError = harness.walkOptionsSlot.captured.onError!!
+            denied.forEach { onError.invoke(it, IOException("denied")) }
+        }
+        val query = SearchQuery(
+            filenameQuery = FilenameQuery(pattern = "needle"),
+            targets = listOf(target),
+        )
+
+        harness.backend.scan(harness.session(query)).toList()
+
+        val finalProgress = harness.progressUpdates.last()
+        // count is exact (51), retained sample is capped (50), and it keeps the earliest paths
+        finalProgress.accessErrorCount shouldBe SearchConfig.MAX_REPORTED_ERROR_PATHS + 1
+        finalProgress.accessErrorPaths shouldHaveSize SearchConfig.MAX_REPORTED_ERROR_PATHS
+        finalProgress.accessErrorPaths.first() shouldBe denied.first().lookedUp
     }
 
     @Test
@@ -145,8 +173,10 @@ class FileSystemSearchBackendTest : BaseTest() {
 
         results.size shouldBe 1
         val finalProgress = harness.progressUpdates.last()
+        // Degraded content is a fully-readable file — a generic partial signal, NOT inaccessible
         finalProgress.errorCount shouldBe 1
-        finalProgress.firstErrorPath shouldBe file.lookedUp
+        finalProgress.accessErrorCount shouldBe 0
+        finalProgress.accessErrorPaths.shouldBeEmpty()
     }
 
     @Test
@@ -166,8 +196,11 @@ class FileSystemSearchBackendTest : BaseTest() {
 
         results.size shouldBe 0
         val finalProgress = harness.progressUpdates.last()
+        // A content-read failure on an otherwise-listed file is a generic partial signal, not an
+        // "item couldn't be accessed"
         finalProgress.errorCount shouldBe 1
-        finalProgress.firstErrorPath shouldBe file.lookedUp
+        finalProgress.accessErrorCount shouldBe 0
+        finalProgress.accessErrorPaths.shouldBeEmpty()
     }
 
     @Test
@@ -188,8 +221,10 @@ class FileSystemSearchBackendTest : BaseTest() {
 
         results.map { it.item.path.path } shouldContainExactly listOf("/sdcard/needle.txt")
         val finalProgress = harness.progressUpdates.last()
-        finalProgress.errorCount shouldBe 1
-        finalProgress.firstErrorPath shouldBe unreadable.lookedUp
+        // An entry that exists but can't be read (UNKNOWN + error) is a genuine access failure
+        finalProgress.accessErrorCount shouldBe 1
+        finalProgress.errorCount shouldBe 0
+        finalProgress.accessErrorPaths shouldContainExactly listOf(unreadable.lookedUp)
     }
 
     @Test

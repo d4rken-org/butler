@@ -14,6 +14,7 @@ class SearcherWorkspacePartialResultsTest : BaseTest() {
     private fun targetProgress(
         status: SearchEngine.SearchTargetProgress.Status,
         errorCount: Int = 0,
+        accessErrorCount: Int = 0,
         path: String = "/sdcard",
     ) = SearchEngine.SearchTargetProgress(
         target = SearchTarget.Path.from(LocalPath.build(path)),
@@ -21,6 +22,7 @@ class SearcherWorkspacePartialResultsTest : BaseTest() {
         resultsFound = 1,
         status = status,
         errorCount = errorCount,
+        accessErrorCount = accessErrorCount,
     )
 
     private fun item(path: String): SearchItem = SearchItem.fromLookup(
@@ -55,6 +57,20 @@ class SearcherWorkspacePartialResultsTest : BaseTest() {
             results = emptyList(),
             targetProgress = listOf(
                 targetProgress(SearchEngine.SearchTargetProgress.Status.COMPLETED, errorCount = 1),
+            ),
+        )
+
+        state.partialResults shouldBe true
+    }
+
+    @Test
+    fun `a completed target with only inaccessible items is partial`() {
+        // The reported scenario: one location finished ("Done") but couldn't read some items
+        val state = SearcherWorkspace.State(
+            searchStatus = SearcherWorkspace.State.SearchStatus.COMPLETED,
+            results = emptyList(),
+            targetProgress = listOf(
+                targetProgress(SearchEngine.SearchTargetProgress.Status.COMPLETED, accessErrorCount = 4),
             ),
         )
 

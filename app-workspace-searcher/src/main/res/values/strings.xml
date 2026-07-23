@@ -133,7 +133,8 @@
     <string name="searcher_progress_action_searched">Searched</string>
     <string name="searcher_progress_status_completed_with_errors">Completed with errors</string>
     <string name="searcher_result_limit_reached">Result limit reached</string>
-    <string name="searcher_progress_partial_results">Some locations could not be searched</string>
+    <!-- Banner: some individual items inside a searched location could not be read (e.g. permission denied) -->
+    <string name="searcher_progress_items_partial">Some items couldn\'t be fully searched</string>
     <string name="searcher_progress_clear_action">Clear</string>
 
     <plurals name="searcher_progress_failed_count">
@@ -141,9 +142,14 @@
         <item quantity="other">%d failed</item>
     </plurals>
 
-    <plurals name="searcher_progress_access_errors_count">
-        <item quantity="one">%d access error</item>
-        <item quantity="other">%d access errors</item>
+    <plurals name="searcher_progress_items_inaccessible_count">
+        <item quantity="one">%d item couldn\'t be accessed</item>
+        <item quantity="other">%d items couldn\'t be accessed</item>
+    </plurals>
+
+    <plurals name="searcher_progress_inaccessible_more">
+        <item quantity="one">…and %d more</item>
+        <item quantity="other">…and %d more</item>
     </plurals>
 
     <plurals name="searcher_progress_locations_count">

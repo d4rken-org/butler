@@ -126,15 +126,16 @@ class SearcherWorkspace @AssistedInject constructor(
         val targetProgress: List<SearchEngine.SearchTargetProgress> = emptyList(), // From engine
     ) {
         /**
-         * True when the result set may be incomplete: some target failed outright or hit
-         * per-subtree/per-file errors while others produced results. Derived from target
-         * progress (not separately stored) and also true when there are zero results — "nothing
-         * found" and "nothing found, but some locations couldn't be searched" must not look
-         * alike. Cap truncation is NOT partiality; it is reported via [limitReached].
+         * True when the result set may be incomplete: some target failed outright, hit inaccessible
+         * items (permission denied etc.), or had a degraded/partial read. Derived from target
+         * progress (not separately stored). Cap truncation is NOT partiality; it is reported via
+         * [limitReached].
          */
         val partialResults: Boolean
             get() = targetProgress.any {
-                it.errorCount > 0 || it.status == SearchEngine.SearchTargetProgress.Status.ERROR
+                it.errorCount > 0 ||
+                    it.accessErrorCount > 0 ||
+                    it.status == SearchEngine.SearchTargetProgress.Status.ERROR
             } && searchStatus != SearchStatus.ERROR
 
         enum class SearchStatus {

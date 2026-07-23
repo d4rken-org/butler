@@ -157,8 +157,6 @@ class MediaStoreSearchBackend @Inject constructor(
                     }
                 }
 
-                // Final flush so totals and error counts are accurate between progress intervals
-                progress.flush()
                 log(tag, INFO) { "Completed scan for collection: $collection (${progress.errorCount} errors)" }
             } catch (e: OperationCanceledException) {
                 // Only translate when OUR signal fired due to coroutine cancellation (target
@@ -170,6 +168,10 @@ class MediaStoreSearchBackend @Inject constructor(
                 log(tag, INFO) { "Scan cancelled for collection: $collection" }
                 throw e
             } finally {
+                // Flush the final snapshot even on cancel/throw so errors recorded after the last
+                // progress interval still reach the UI. flush() only invokes the progress callback
+                // (no emit), so it is safe during cancellation.
+                progress.flush()
                 signalRelay.cancel()
             }
         }

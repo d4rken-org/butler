@@ -28,6 +28,13 @@ object SearchConfig {
     /** Report progress every N items scanned */
     const val PROGRESS_UPDATE_INTERVAL = 100
 
+    /**
+     * Maximum number of inaccessible paths retained per target for display. The exact count is
+     * still tracked uncapped; only the retained example paths are bounded to avoid holding a huge
+     * list when a large permission-blocked subtree (e.g. Android/data) is walked.
+     */
+    const val MAX_REPORTED_ERROR_PATHS = 50
+
     /** Number of context lines to capture before a match */
     const val CONTEXT_LINES_BEFORE = 2
 
