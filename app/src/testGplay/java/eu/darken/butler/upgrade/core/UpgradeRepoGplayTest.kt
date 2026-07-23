@@ -35,7 +35,7 @@ class UpgradeRepoGplayTest : BaseTest() {
     private val scope = CoroutineScope(Dispatchers.Unconfined)
     private val dispatcherProvider = TestDispatcherProvider()
     private val billingManager = mockk<BillingManager>()
-    private val billingCache = mockk<BillingCache>()
+    private val billingCache = mockk<BillingCache>(relaxed = true)
     private lateinit var lastProAtMock: DataStoreValue<Long>
     private lateinit var lastProSkuMock: DataStoreValue<String>
 
@@ -50,6 +50,7 @@ class UpgradeRepoGplayTest : BaseTest() {
         every { billingManager.billingData } returns flowOf(billingData)
         every { billingManager.purchaseFailures } returns
             if (purchaseFailures.isEmpty()) emptyFlow() else flowOf(*purchaseFailures.toTypedArray())
+        every { billingManager.connectionFailures } returns emptyFlow()
         lastProAtMock = mockk<DataStoreValue<Long>>(relaxed = true).apply {
             every { flow } returns flowOf(lastProAt)
         }
@@ -58,6 +59,9 @@ class UpgradeRepoGplayTest : BaseTest() {
             every { flow } returns flowOf(lastSku)
         }
         every { billingCache.lastProStateSku } returns lastProSkuMock
+        every { billingCache.proUnconfirmedSince } returns mockk<DataStoreValue<Long>>(relaxed = true).apply {
+            every { flow } returns flowOf(0L)
+        }
         return UpgradeRepoGplay(scope, dispatcherProvider, billingManager, billingCache)
     }
 
@@ -66,6 +70,7 @@ class UpgradeRepoGplayTest : BaseTest() {
     private fun proPurchase() = mockk<Purchase>().apply {
         every { products } returns OurSku.PRO_SKUS.map { it.id }
         every { purchaseTime } returns Instant.parse("2024-01-01T00:00:00Z").toEpochMilliseconds()
+        every { isAutoRenewing } returns false
     }
 
     @Test fun `test upgrade info pro status mapping`() {
@@ -89,6 +94,7 @@ class UpgradeRepoGplayTest : BaseTest() {
                     mockk<Purchase>().apply {
                         every { products } returns OurSku.PRO_SKUS.map { it.id }
                         every { purchaseTime } returns Instant.parse("2023-12-10T00:00:00Z").toEpochMilliseconds()
+                        every { isAutoRenewing } returns false
                     }
                 )
             )
@@ -202,15 +208,12 @@ class UpgradeRepoGplayTest : BaseTest() {
         errors.single().shouldBeInstanceOf<ItemAlreadyOwnedBillingException>()
     }
 
-    @Test fun `explicit restore stamps the grace cache, sku before timestamp`() = runTest2 {
+    @Test fun `explicit restore stamps the grace cache atomically`() = runTest2 {
         coEvery { billingManager.refresh() } returns BillingData(setOf(proPurchase()))
 
         repo(lastProAt = 0L).restorePurchaseNow().isUpgraded shouldBe true
 
-        coVerifyOrder {
-            lastProSkuMock.update(any())
-            lastProAtMock.update(any())
-        }
+        coVerify { billingCache.stampProConfirmed(any(), any()) }
     }
 
     @Test fun `background refresh stamps the grace cache from the fresh result`() = runTest2 {
@@ -218,18 +221,16 @@ class UpgradeRepoGplayTest : BaseTest() {
 
         repo(lastProAt = 0L).refresh()
 
-        coVerify(exactly = 1) { lastProAtMock.update(any()) }
+        coVerify(exactly = 1) { billingCache.stampProConfirmed(any(), any()) }
     }
 
-    @Test fun `reactive emissions stamp once via the init collector, the map never stamps`() = runTest2 {
-        // billingData carries a pro purchase: the persistent init collector stamps exactly once.
-        // Collecting upgradeInfo runs the map at least twice (onStart-null + pro data) — the map is
-        // read-only now, so if it still stamped the count would exceed one.
-        val repo = repo(lastProAt = 0L, billingData = BillingData(setOf(proPurchase())))
+    @Test fun `reactive pro emission stamps once via the init collector`() = runTest2 {
+        // billingData carries a pro purchase: the persistent init collector (Unconfined, eager) stamps
+        // exactly once at construction. The reactive upgradeInfo map is read-only (it calls no cache
+        // write), so no additional stamp can come from it.
+        repo(lastProAt = 0L, billingData = BillingData(setOf(proPurchase())))
 
-        repo.upgradeInfo.first { it.isUpgraded }.isUpgraded shouldBe true
-
-        coVerify(exactly = 1) { lastProAtMock.update(any()) }
+        coVerify(exactly = 1) { billingCache.stampProConfirmed(any(), any()) }
     }
 
     @Test fun `async already-owned purchase event triggers a silent restore`() = runTest2 {

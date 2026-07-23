@@ -29,6 +29,7 @@ class BillingConnectionTest : BaseTest() {
         try {
             val owned = purchase(1_000).apply {
                 every { purchaseState } returns Purchase.PurchaseState.PURCHASED
+                every { purchaseToken } returns "token-1"
             }
             val client = mockk<BillingClient>()
             // refreshPurchases() queries INAPP first, then SUBS; the mocked call suspends on nothing,
@@ -45,6 +46,57 @@ class BillingConnectionTest : BaseTest() {
             // Regression: the failed SUBS side used to leave its cache null, gating the combine
             // forever - the purchase never reached ack/upgradeInfo despite a successful restore.
             connection.purchases.first() shouldBe listOf(owned)
+        } finally {
+            unmockkStatic("com.android.billingclient.api.BillingClientKotlinKt")
+        }
+    }
+
+    @Test fun `querySubscriptions returns purchased and pending subs and propagates errors`() = runTest2 {
+        mockkStatic("com.android.billingclient.api.BillingClientKotlinKt")
+        try {
+            val purchased = purchase(1_000).apply {
+                every { purchaseState } returns Purchase.PurchaseState.PURCHASED
+                every { purchaseToken } returns "sub-purchased"
+            }
+            val pending = purchase(2_000).apply {
+                every { purchaseState } returns Purchase.PurchaseState.PENDING
+                every { purchaseToken } returns "sub-pending"
+            }
+            val client = mockk<BillingClient>()
+            coEvery { client.queryPurchasesAsync(any<com.android.billingclient.api.QueryPurchasesParams>()) } returns
+                PurchasesResult(result(BillingClient.BillingResponseCode.OK), listOf(purchased, pending))
+            val connection = BillingConnection(client, MutableStateFlow(null))
+
+            // Pending must be reported to the gate (blocking) but only PURCHASED heals the entitlement.
+            connection.querySubscriptions().toSet() shouldBe setOf(purchased, pending)
+        } finally {
+            unmockkStatic("com.android.billingclient.api.BillingClientKotlinKt")
+        }
+    }
+
+    @Test fun `querySubscriptions propagates a query failure`() = runTest2 {
+        mockkStatic("com.android.billingclient.api.BillingClientKotlinKt")
+        try {
+            val client = mockk<BillingClient>()
+            coEvery { client.queryPurchasesAsync(any<com.android.billingclient.api.QueryPurchasesParams>()) } returns
+                PurchasesResult(result(BillingClient.BillingResponseCode.SERVICE_UNAVAILABLE), emptyList())
+            val connection = BillingConnection(client, MutableStateFlow(null))
+
+            shouldThrow<Exception> { connection.querySubscriptions() }
+        } finally {
+            unmockkStatic("com.android.billingclient.api.BillingClientKotlinKt")
+        }
+    }
+
+    @Test fun `queryInApps propagates a query failure so the subscribe gate fails closed`() = runTest2 {
+        mockkStatic("com.android.billingclient.api.BillingClientKotlinKt")
+        try {
+            val client = mockk<BillingClient>()
+            coEvery { client.queryPurchasesAsync(any<com.android.billingclient.api.QueryPurchasesParams>()) } returns
+                PurchasesResult(result(BillingClient.BillingResponseCode.SERVICE_UNAVAILABLE), emptyList())
+            val connection = BillingConnection(client, MutableStateFlow(null))
+
+            shouldThrow<Exception> { connection.queryInApps() }
         } finally {
             unmockkStatic("com.android.billingclient.api.BillingClientKotlinKt")
         }

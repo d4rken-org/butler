@@ -45,17 +45,24 @@ data class BillingConnection(
         queryCacheIaps.filterNotNull(),
         queryCacheSubs.filterNotNull(),
     ) { purchaseEvent, iapCache, subCache ->
-        val combined = mutableSetOf<Purchase>()
+        // Dedupe by purchaseToken so a fresh authoritative query wins over a stale listener overlay
+        // of the same token. Without this, a subscription cancelled in Play keeps its old
+        // auto-renewing listener copy unioned on top forever, locking the sub->IAP switch row.
+        val byToken = LinkedHashMap<String, Purchase>()
 
-        combined.addAll(iapCache)
-        combined.addAll(subCache)
+        // Query snapshots (refreshPurchases / querySubscriptions) are authoritative for their type.
+        iapCache.forEach { byToken[it.purchaseToken] = it }
+        subCache.forEach { byToken[it.purchaseToken] = it }
 
+        // Listener events are add-only and NOT a full snapshot: only surface a listener purchase for
+        // a token the authoritative caches don't already cover, so a query that healed renewal state
+        // wins, while a genuinely new purchase racing an in-flight query still surfaces.
         purchaseEvent
             ?.takeIf { (result, _) -> result.isSuccess }
             ?.let { (_, purchases) -> purchases?.filter { it.purchaseState == PurchaseState.PURCHASED } }
-            ?.let { combined.addAll(it) }
+            ?.forEach { byToken.putIfAbsent(it.purchaseToken, it) }
 
-        combined.sortedByDescending { it.purchaseTime }
+        byToken.values.sortedByDescending { it.purchaseTime }
     }.setupCommonEventHandlers(TAG) { "purchases" }
 
     // Non-OK results from onPurchasesUpdated (e.g. async ITEM_ALREADY_OWNED after the Play sheet
@@ -116,6 +123,34 @@ data class BillingConnection(
         // compareAndSet so a concurrent successful refresh can't be overwritten with empty.
         cache.compareAndSet(null, emptyList())
         Result.failure(e.tryMapUserFriendly())
+    }
+
+    // Fresh SUBS-only read for the subscription->IAP switch gate. Commits the PURCHASED subs into the
+    // shared sub cache so the reactive purchases/upgradeInfo heal renewal state (e.g. after the user
+    // cancels renewal in Play), and returns ALL current sub purchases INCLUDING pending — the gate
+    // must treat a pending or auto-renewing sub as still-owned. Errors PROPAGATE (fail-closed): the
+    // caller has to tell "no active sub" apart from "couldn't verify".
+    suspend fun querySubscriptions(): Collection<Purchase> {
+        log(TAG) { "querySubscriptions()" }
+        val subs = queryPurchases(BillingClient.ProductType.SUBS)
+        // Heal the entitlement view with confirmed subs only; a pending sub must not grant Pro.
+        queryCacheSubs.value = subs.filter { it.purchaseState == PurchaseState.PURCHASED }
+        return subs.filter {
+            it.purchaseState == PurchaseState.PURCHASED || it.purchaseState == PurchaseState.PENDING
+        }
+    }
+
+    // Fresh authoritative INAPP-only read for the subscribe gate (symmetric to querySubscriptions()).
+    // Unlike refreshPurchases(), this does NOT tolerate a suppressed INAPP failure: the error PROPAGATES
+    // so the caller fails closed instead of mistaking "couldn't verify" for "not owned". Returns
+    // PURCHASED + PENDING (a pending IAP must still block buying a subscription on top).
+    suspend fun queryInApps(): Collection<Purchase> {
+        log(TAG) { "queryInApps()" }
+        val iaps = queryPurchases(BillingClient.ProductType.INAPP)
+        queryCacheIaps.value = iaps.filter { it.purchaseState == PurchaseState.PURCHASED }
+        return iaps.filter {
+            it.purchaseState == PurchaseState.PURCHASED || it.purchaseState == PurchaseState.PENDING
+        }
     }
 
     suspend fun acknowledgePurchase(purchase: Purchase): BillingResult {

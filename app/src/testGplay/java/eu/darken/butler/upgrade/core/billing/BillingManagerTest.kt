@@ -20,6 +20,7 @@ import io.mockk.verify
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
@@ -61,6 +62,7 @@ class BillingManagerTest : BaseTest() {
         }
         val provider = mockk<BillingConnectionProvider>().apply {
             every { this@apply.connection } returns flowOf(connection)
+            every { connectionFailures } returns MutableSharedFlow()
         }
         return BillingManager(scope, provider)
     }
@@ -115,6 +117,7 @@ class BillingManagerTest : BaseTest() {
                 if (attempts++ == 0) throw BillingException("first connect fails")
                 emit(connection)
             }
+            every { connectionFailures } returns MutableSharedFlow()
         }
     }
 

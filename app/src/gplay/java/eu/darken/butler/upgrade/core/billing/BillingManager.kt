@@ -3,6 +3,8 @@ package eu.darken.butler.upgrade.core.billing
 import android.app.Activity
 import com.android.billingclient.api.BillingClient.*
 import com.android.billingclient.api.BillingResult
+import com.android.billingclient.api.Purchase
+import com.android.billingclient.api.Purchase.PurchaseState
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
@@ -30,6 +32,7 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.withTimeoutOrNull
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -42,6 +45,9 @@ class BillingManager @Inject constructor(
     // Wakes a pending connection-retry backoff early. Zero replay: kicks fired while no retry is
     // waiting are dropped, so a healthy connection can't accumulate stale wake-ups.
     private val connectionKick = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+
+    // Wall-clock times of retryable billing connection failures (see BillingConnectionProvider).
+    val connectionFailures: Flow<Long> = connectionProvider.connectionFailures
 
     private val connection = connectionProvider.connection
         .onEach {
@@ -85,57 +91,65 @@ class BillingManager @Inject constructor(
         .flatMapLatest { it.purchaseFailures }
         .setupCommonEventHandlers(TAG) { "purchaseFailures" }
 
+    // Tokens we've successfully acknowledged. Only used to lower repeat-log severity: an immutable
+    // Purchase snapshot keeps reporting isAcknowledged=false even after Play accepted the ack, so we
+    // KEEP issuing idempotent acks (a missed ack -> Play auto-refunds after ~3 days, far worse than a
+    // redundant IPC). We never skip on this set.
+    private val ackedTokens = ConcurrentHashMap.newKeySet<String>()
+
     init {
         purchases
             .onEach { purchases ->
+                val failures = mutableListOf<Throwable>()
                 purchases
-                    .filter {
-                        val needsAck = !it.isAcknowledged
-
-                        if (needsAck) log(TAG, INFO) { "Needs ACK: $it" }
-                        else log(TAG) { "Already ACK'ed: $it" }
-
-                        needsAck
-                    }
-                    .forEach {
-                        log(TAG, INFO) { "Acknowledging purchase: $it" }
-
+                    // Never acknowledge a PENDING purchase; only PURCHASED ones need (and allow) ack.
+                    .filter { it.purchaseState == PurchaseState.PURCHASED && !it.isAcknowledged }
+                    .forEach { purchase ->
+                        if (purchase.purchaseToken in ackedTokens) {
+                            log(TAG, VERBOSE) { "Re-acknowledging (stale isAcknowledged): $purchase" }
+                        } else {
+                            log(TAG, INFO) { "Acknowledging purchase: $purchase" }
+                        }
                         try {
-                            useConnection {
-                                acknowledgePurchase(it)
-                            }
+                            useConnection { acknowledgePurchase(purchase) }
+                            ackedTokens.add(purchase.purchaseToken)
+                        } catch (e: CancellationException) {
+                            throw e
                         } catch (e: Exception) {
-                            log(TAG, ERROR) { "Failed to ancknowledge purchase: $it\n${e.asLog()}" }
+                            // Collect and rethrow after the loop so the outer retryWhen retries; do NOT
+                            // add to ackedTokens on failure, so the token stays retryable.
+                            failures.add(e)
                         }
                     }
+                if (failures.isNotEmpty()) {
+                    throw failures.first().also { first -> failures.drop(1).forEach(first::addSuppressed) }
+                }
             }
             .setupCommonEventHandlers(TAG) { "connection-acks" }
             .retryWhen { cause, attempt ->
                 if (cause is CancellationException) {
-                    log(TAG) { "Ack was cancelled (appScope?) cancelled." }
+                    log(TAG) { "Ack collector cancelled (appScope)." }
                     return@retryWhen false
                 }
-                if (attempt > 5) {
-                    log(TAG, WARN) { "Reached attempt limit: $attempt due to $cause" }
-                    return@retryWhen false
-                }
-                if (cause !is BillingException) {
-                    log(TAG, WARN) { "Unknown BillingClient exception type: $cause" }
-                    return@retryWhen false
-                } else {
-                    log(TAG) { "BillingClient exception: $cause" }
-                }
-
-                if (cause is BillingClientException && cause.result.responseCode == BillingResponseCode.BILLING_UNAVAILABLE) {
-                    log(TAG) { "Got BILLING_UNAVAILABLE while trying to ACK purchase." }
-                    return@retryWhen false
-                }
-
-                log(TAG) { "Will retry ACK" }
-                delay(3000 * attempt)
+                // Never terminally give up while an unacked purchase is present — including on
+                // BILLING_UNAVAILABLE: leaving a purchase unacknowledged lets Play auto-refund it.
+                // Retry with capped backoff; a recovering Play heals this. The replayed shareIn value
+                // re-runs the loop, and once every token is acked the loop stops throwing.
+                log(TAG, WARN) { "Ack attempt=$attempt failed, will retry: ${cause.asLog()}" }
+                delay((3000L * (attempt + 1)).coerceAtMost(ACK_RETRY_CAP_MS))
                 true
             }
             .launchIn(scope)
+    }
+
+    suspend fun querySubscriptions(): Collection<Purchase> = useConnection {
+        log(TAG) { "querySubscriptions()" }
+        querySubscriptions()
+    }
+
+    suspend fun queryInApps(): Collection<Purchase> = useConnection {
+        log(TAG) { "queryInApps()" }
+        queryInApps()
     }
 
     private suspend fun <T> useConnection(action: suspend BillingConnection.() -> T): T {
@@ -206,6 +220,8 @@ class BillingManager @Inject constructor(
                 else -> this
             }
         }
+
+        private const val ACK_RETRY_CAP_MS = 60_000L
 
         val TAG: String = logTag("Upgrade", "Gplay", "Billing", "Manager")
     }
