@@ -4,6 +4,7 @@ import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.getQuantityString2
 import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.Workspace
@@ -23,7 +24,7 @@ sealed interface ClipboardClip {
         override val clippedAt: Instant = Clock.System.now(),
         override val origin: Workspace.Id,
         val mode: Mode,
-        val paths: List<APath<*>>,
+        val paths: List<APathLookup<*>>,
     ) : ClipboardClip {
         override val title: CaString
             get() = caString {

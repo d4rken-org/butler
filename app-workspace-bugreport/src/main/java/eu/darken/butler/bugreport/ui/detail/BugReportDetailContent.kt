@@ -284,6 +284,7 @@ private fun LazyListScope.logSection(
                     text = logState.lines.joinToString("\n"),
                     style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp, lineHeight = 14.sp),
                     fontFamily = FontFamily.Monospace,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.fillMaxWidth(),
                 )
             }

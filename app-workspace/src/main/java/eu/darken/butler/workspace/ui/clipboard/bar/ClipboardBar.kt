@@ -40,7 +40,7 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.workspace.ui.clipboard.mockFileLookup
 import eu.darken.butler.common.ui.SwipeToDismissItem
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
@@ -223,9 +223,9 @@ fun ClipboardBarPreview() {
             origin = Workspace.Id(Uuid.random()),
             mode = ClipboardClip.Paths.Mode.COPY,
             paths = listOf(
-                LocalPath.build("/storage/emulated/0/Pictures/photo1.jpg"),
-                LocalPath.build("/storage/emulated/0/Pictures/photo2.jpg"),
-                LocalPath.build("/storage/emulated/0/Pictures/photo3.jpg"),
+                mockFileLookup("/storage/emulated/0/Pictures/photo1.jpg"),
+                mockFileLookup("/storage/emulated/0/Pictures/photo2.jpg"),
+                mockFileLookup("/storage/emulated/0/Pictures/photo3.jpg"),
             ),
             clippedAt = Clock.System.now() - 5.minutes,
         ),
@@ -233,7 +233,7 @@ fun ClipboardBarPreview() {
             origin = Workspace.Id(Uuid.random()),
             mode = ClipboardClip.Paths.Mode.CUT,
             paths = listOf(
-                LocalPath.build("/storage/emulated/0/Documents/report.pdf"),
+                mockFileLookup("/storage/emulated/0/Documents/report.pdf"),
             ),
             clippedAt = Clock.System.now() - 2.minutes,
         ),
@@ -257,7 +257,7 @@ fun ClipboardBarSingleItemPreview() {
         origin = Workspace.Id(Uuid.random()),
         mode = ClipboardClip.Paths.Mode.COPY,
         paths = listOf(
-            LocalPath.build("/storage/emulated/0/Documents/important_document.pdf"),
+            mockFileLookup("/storage/emulated/0/Documents/important_document.pdf"),
         ),
         clippedAt = Clock.System.now() - 2.minutes,
     )
@@ -287,9 +287,9 @@ fun ClipboardBarExpandedPreview() {
             origin = Workspace.Id(Uuid.random()),
             mode = ClipboardClip.Paths.Mode.COPY,
             paths = listOf(
-                LocalPath.build("/storage/emulated/0/Pictures/photo1.jpg"),
-                LocalPath.build("/storage/emulated/0/Pictures/photo2.jpg"),
-                LocalPath.build("/storage/emulated/0/Pictures/photo3.jpg"),
+                mockFileLookup("/storage/emulated/0/Pictures/photo1.jpg"),
+                mockFileLookup("/storage/emulated/0/Pictures/photo2.jpg"),
+                mockFileLookup("/storage/emulated/0/Pictures/photo3.jpg"),
             ),
             clippedAt = Clock.System.now() - 5.minutes,
         ),
@@ -297,7 +297,7 @@ fun ClipboardBarExpandedPreview() {
             origin = Workspace.Id(Uuid.random()),
             mode = ClipboardClip.Paths.Mode.CUT,
             paths = listOf(
-                LocalPath.build("/storage/emulated/0/Documents/report.pdf"),
+                mockFileLookup("/storage/emulated/0/Documents/report.pdf"),
             ),
             clippedAt = Clock.System.now() - 2.minutes,
         ),
@@ -305,7 +305,7 @@ fun ClipboardBarExpandedPreview() {
             origin = Workspace.Id(Uuid.random()),
             mode = ClipboardClip.Paths.Mode.COPY,
             paths = listOf(
-                LocalPath.build("/storage/emulated/0/Downloads/app.apk"),
+                mockFileLookup("/storage/emulated/0/Downloads/app.apk"),
             ),
             clippedAt = Clock.System.now() - 1.minutes,
         ),

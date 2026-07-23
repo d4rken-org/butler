@@ -72,6 +72,34 @@ class PasteFileReaderTest : BaseTest() {
         error.message shouldContain "binary"
     }
 
+    @Test
+    fun `null-free content with many control bytes is rejected as binary`() {
+        // The ISO-8859-1 fallback would otherwise decode this to control-char garbage.
+        val bytes = byteArrayOf(0x01, 0x02, 0x03, 0x04, 0x05, 0x61, 0x62, 0x63)
+        shouldThrow<PasteBinaryException> { decoder.decodeBytes(bytes) }
+    }
+
+    @Test
+    fun `non-UTF-8 content with many C1 control bytes is rejected as binary`() {
+        // 0x80..0x83 are C1 controls; they fail strict UTF-8 and, via the ISO-8859-1 fallback,
+        // must be caught by the decoded-text heuristic rather than passed through.
+        val bytes = byteArrayOf(0x80.toByte(), 0x81.toByte(), 0x82.toByte(), 0x83.toByte(), 0x61, 0x62, 0x63)
+        shouldThrow<PasteBinaryException> { decoder.decodeBytes(bytes) }
+    }
+
+    @Test
+    fun `tabs newlines and carriage returns are not treated as binary`() {
+        val text = "line1\n\tindented\r\nline3\n"
+        decoder.decodeBytes(text.toByteArray(Charsets.UTF_8)) shouldBe text
+    }
+
+    @Test
+    fun `ANSI escape sequences in log text are not treated as binary`() {
+        // Captured terminal logs legitimately contain ESC (0x1B); they must paste, not be rejected.
+        val text = "\u001B[31mERROR\u001B[0m something failed\n\u001B[32mOK\u001B[0m"
+        decoder.decodeBytes(text.toByteArray(Charsets.UTF_8)) shouldBe text
+    }
+
     // ==================== read (streaming cap) ====================
 
     @Test

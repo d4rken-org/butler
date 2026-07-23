@@ -2,6 +2,8 @@ package eu.darken.butler.editor.ui.editor
 
 import eu.darken.butler.common.SystemClipboardHelper
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.local.LocalPathLookup
+import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.editor.core.EditorWorkspace
 import eu.darken.butler.editor.core.PasteFileReader
 import eu.darken.butler.editor.core.PasteTooLargeException
@@ -34,6 +36,13 @@ class EditorClipboardControllerTest : BaseTest() {
     private val workspaceId = Workspace.Id()
 
     private fun path(name: String) = LocalPath.build(File("/tmp/clip-test", name))
+
+    private fun fileLookup(name: String, fileType: FileType = FileType.FILE) = LocalPathLookup(
+        lookedUp = path(name),
+        fileType = fileType,
+        size = null,
+        modifiedAt = null,
+    )
 
     /** Mirrors ViewModel3's error handler: thrown controller errors surface here, not as crashes. */
     private val surfacedErrors = mutableListOf<Throwable>()
@@ -306,7 +315,7 @@ class EditorClipboardControllerTest : BaseTest() {
         val clip = ClipboardClip.Paths(
             origin = workspaceId,
             mode = ClipboardClip.Paths.Mode.COPY,
-            paths = listOf(path("archive.zip"), path("notes.txt")),
+            paths = listOf(fileLookup("archive.zip"), fileLookup("notes.txt")),
         )
 
         controller.pasteFromClipboard(clip)
@@ -339,7 +348,7 @@ class EditorClipboardControllerTest : BaseTest() {
         val clip = ClipboardClip.Paths(
             origin = workspaceId,
             mode = ClipboardClip.Paths.Mode.COPY,
-            paths = listOf(path("archive.zip")),
+            paths = listOf(fileLookup("archive.zip")),
         )
 
         controller.pasteFromClipboard(clip)
@@ -353,12 +362,12 @@ class EditorClipboardControllerTest : BaseTest() {
         val textClip = ClipboardClip.Paths(
             origin = workspaceId,
             mode = ClipboardClip.Paths.Mode.COPY,
-            paths = listOf(path("notes.md")),
+            paths = listOf(fileLookup("notes.md")),
         )
         val binaryClip = ClipboardClip.Paths(
             origin = workspaceId,
             mode = ClipboardClip.Paths.Mode.COPY,
-            paths = listOf(path("image.png")),
+            paths = listOf(fileLookup("image.png")),
         )
         val textEntry = ClipboardClip.Text(origin = workspaceId, content = "text")
         val controller = controller(repo = mockRepo(listOf(textClip, binaryClip, textEntry)))
@@ -367,5 +376,46 @@ class EditorClipboardControllerTest : BaseTest() {
 
         pasteable shouldHaveSize 1
         pasteable.single().paths.single().name shouldBe "notes.md"
+    }
+
+    @Test
+    fun `pasteable clipboard suggests extensionless and known-name text files but not directories`() = runTest {
+        val extensionless = ClipboardClip.Paths(
+            origin = workspaceId,
+            mode = ClipboardClip.Paths.Mode.COPY,
+            paths = listOf(fileLookup("changelog")),
+        )
+        val dotfile = ClipboardClip.Paths(
+            origin = workspaceId,
+            mode = ClipboardClip.Paths.Mode.COPY,
+            paths = listOf(fileLookup(".gitignore")),
+        )
+        val directory = ClipboardClip.Paths(
+            origin = workspaceId,
+            mode = ClipboardClip.Paths.Mode.COPY,
+            paths = listOf(fileLookup("logs", fileType = FileType.DIRECTORY)),
+        )
+        val controller = controller(repo = mockRepo(listOf(extensionless, dotfile, directory)))
+
+        val pasteable = controller.pasteableClipboard.first()
+
+        pasteable shouldHaveSize 2
+        pasteable.flatMap { it.paths }.map { it.name } shouldBe listOf("changelog", ".gitignore")
+    }
+
+    @Test
+    fun `pasting a paths clip skips directories`() = runTest {
+        val workspace = mockWorkspace()
+        val controller = controller(workspace)
+        val clip = ClipboardClip.Paths(
+            origin = workspaceId,
+            mode = ClipboardClip.Paths.Mode.COPY,
+            paths = listOf(fileLookup("subdir", fileType = FileType.DIRECTORY), fileLookup("notes.txt")),
+        )
+
+        controller.pasteFromClipboard(clip)
+        runCurrent()
+
+        coVerify { workspace.readFileContent(match { it.name == "notes.txt" }) }
     }
 }

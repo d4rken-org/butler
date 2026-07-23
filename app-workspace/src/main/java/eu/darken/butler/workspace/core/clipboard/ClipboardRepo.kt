@@ -4,7 +4,6 @@ import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.sync.Mutex
@@ -34,13 +33,6 @@ class ClipboardRepo @Inject constructor(
         log(TAG, INFO) { "Removing entry with id $id" }
         _state.value = _state.value.copy(
             entries = _state.value.entries.filter { it.id != id }
-        )
-    }
-
-    suspend fun prune(id: Workspace.Id) = lock.withLock {
-        log(TAG, INFO) { "Pruning entries for workspace $id" }
-        _state.value = _state.value.copy(
-            entries = _state.value.entries.filter { it.origin != id }
         )
     }
 

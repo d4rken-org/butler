@@ -1,7 +1,6 @@
 package eu.darken.butler.common.debug.logviewer.ui
 
 import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import androidx.core.content.FileProvider
@@ -9,6 +8,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.R
 import eu.darken.butler.common.BuildConfigWrap
+import eu.darken.butler.common.SystemClipboardHelper
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.DebugSettings
@@ -42,6 +42,7 @@ class FloatingLogPanelViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val debugSettings: DebugSettings,
     private val recorder: LogHistoryRecorder,
+    private val clipboardHelper: SystemClipboardHelper,
 ) : ViewModel3(dispatcherProvider, tag = TAG) {
 
     private val lifecycleStarted = MutableStateFlow(false)
@@ -188,11 +189,8 @@ class FloatingLogPanelViewModel @Inject constructor(
         val visible = state.value.lines
         val truncatedBy = (visible.size - COPY_LINE_CAP).coerceAtLeast(0)
         val text = visible.takeLast(COPY_LINE_CAP).joinToString("\n") { it.render() }
-        withContext(dispatcherProvider.Main) {
-            val clipboard = context.getSystemService(ClipboardManager::class.java)
-            clipboard?.setPrimaryClip(ClipData.newPlainText(CLIP_LABEL, text))
-            events.emit(Event.Copied(truncatedBy = truncatedBy))
-        }
+        clipboardHelper.copyToClipboard(text)
+        events.emit(Event.Copied(truncatedBy = truncatedBy))
     }
 
     fun shareAll() = launch {
@@ -268,7 +266,6 @@ class FloatingLogPanelViewModel @Inject constructor(
         private val TAG = logTag("Debug", "LogView", "Floating", "ViewModel")
         private const val SNAPSHOT_THROTTLE_MS = 250L
         private const val SHARING_STOP_TIMEOUT_MS = 5_000L
-        private const val CLIP_LABEL = "Butler log"
         private const val SHARE_DIR = "logview_share"
         private const val EXPORT_MAX_AGE_MS = 60L * 60L * 1000L
         const val COPY_LINE_CAP = 1000
