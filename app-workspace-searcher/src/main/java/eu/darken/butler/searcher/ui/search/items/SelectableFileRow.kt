@@ -74,7 +74,7 @@ fun SelectableFileRow(
         ) {
             // Leading content - either checkbox OR icon
             Box(
-                modifier = Modifier.size(64.dp),
+                modifier = Modifier.size(40.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 if (isSelectionMode) {
@@ -86,7 +86,7 @@ fun SelectableFileRow(
                     TintedAsyncImage(
                         model = result.lookup,
                         contentDescription = result.fileType.name,
-                        modifier = Modifier.size(64.dp),
+                        modifier = Modifier.size(40.dp),
                     )
                 }
             }
@@ -106,49 +106,42 @@ fun SelectableFileRow(
                     overflow = TextOverflow.Ellipsis,
                 )
 
-                // Line 2: Size (left) + Date (right)
+                // Line 2: Parent path (left) + size · date (right)
                 val isDirectory = result.fileType == FileType.DIRECTORY
-                val size = result.size
-                val modifiedAt = result.modifiedAt
-                val hasSize = !isDirectory && size != null
-                val hasDate = modifiedAt != null
+                val parentPath = result.lookup.parent?.userReadablePath?.asComposable()
+                val metaText = listOfNotNull(
+                    result.size?.takeIf { !isDirectory }?.let { formatFileSize(it) },
+                    result.modifiedAt?.let { formatRelativeTime(it) },
+                ).joinToString(" · ")
 
-                if (hasSize || hasDate) {
+                if (!parentPath.isNullOrEmpty() || metaText.isNotEmpty()) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        if (hasSize) {
-                            Text(
-                                text = formatFileSize(size),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        } else {
-                            Spacer(modifier = Modifier.width(0.dp))
-                        }
+                        Text(
+                            text = parentPath ?: "",
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                fontSize = 10.sp,
+                                fontFamily = FontFamily.Monospace,
+                            ),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                            maxLines = 1,
+                            overflow = TextOverflow.MiddleEllipsis,
+                            modifier = Modifier.weight(1f),
+                        )
 
-                        if (hasDate) {
+                        if (metaText.isNotEmpty()) {
+                            Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = formatRelativeTime(modifiedAt),
+                                text = metaText,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
                             )
                         }
                     }
                 }
-
-                // Line 3: Parent path
-                Text(
-                    text = result.lookup.parent?.userReadablePath?.asComposable() ?: "",
-                    style = MaterialTheme.typography.bodySmall.copy(
-                        fontSize = 10.sp,
-                        fontFamily = FontFamily.Monospace,
-                    ),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                    maxLines = 1,
-                    overflow = TextOverflow.MiddleEllipsis,
-                )
 
                 // Line 4: Match context (if available)
                 val matchDisplay = remember(result.matchContext) {
