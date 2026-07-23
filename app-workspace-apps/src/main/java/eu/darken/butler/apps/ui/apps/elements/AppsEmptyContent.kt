@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -25,8 +26,14 @@ fun AppsEmptyContent() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Text(stringResource(R.string.apps_empty_no_apps))
-        Text(stringResource(R.string.apps_empty_no_apps_desc))
+        Text(
+            text = stringResource(R.string.apps_empty_no_apps),
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Text(
+            text = stringResource(R.string.apps_empty_no_apps_desc),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
