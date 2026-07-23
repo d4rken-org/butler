@@ -7,6 +7,8 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.APathLookup
+import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.editor.core.EditorWorkspace
 import eu.darken.butler.editor.core.engine.ClipboardCapacityException
 import eu.darken.butler.editor.core.engine.ContentSource
@@ -154,7 +156,7 @@ class EditorClipboardController(
             is ClipboardClip.Paths -> {
                 val textFile = clip.paths.firstOrNull { isLikelyTextFile(it) }
                 if (textFile != null) {
-                    pasteFileContent(textFile)
+                    pasteFileContent(textFile.lookedUp)
                 } else {
                     log(tag, WARN) { "No text files found in clipboard paths" }
                 }
@@ -197,9 +199,18 @@ class EditorClipboardController(
         clipboardRepo.clear()
     }
 
-    private fun isLikelyTextFile(path: APath<*>): Boolean {
-        val ext = path.name.substringAfterLast('.', "").lowercase()
-        return ext in TEXT_EXTENSIONS
+    /**
+     * Cheap, no-I/O suggestion heuristic for the paste sheet. Requires regular-file metadata (so
+     * directories/symlinks never surface) and then accepts a known text extension, a known text
+     * filename/dotfile, or any extensionless regular file. It only decides what is *suggested* -
+     * an explicitly picked file is always attempted and [PasteFileReader] rejects real binaries.
+     */
+    private fun isLikelyTextFile(lookup: APathLookup<*>): Boolean {
+        if (lookup.fileType != FileType.FILE) return false
+        val name = lookup.name
+        if (name in KNOWN_TEXT_FILENAMES) return true
+        val ext = name.substringAfterLast('.', "").lowercase()
+        return ext.isEmpty() || ext in TEXT_EXTENSIONS
     }
 
     companion object {
@@ -220,6 +231,12 @@ class EditorClipboardController(
             "txt", "md", "json", "xml", "html", "css", "js", "kt", "java", "py", "sh",
             "yml", "yaml", "csv", "log", "conf", "ini", "properties", "gradle", "toml",
             "c", "cpp", "h", "hpp", "rs", "go", "rb", "php", "sql", "ts", "tsx", "jsx",
+        )
+
+        /** Common extensionless / dotfile text files the extension heuristic would otherwise miss. */
+        internal val KNOWN_TEXT_FILENAMES = setOf(
+            ".env", ".gitignore", ".gitattributes", ".editorconfig", ".bashrc", ".zshrc",
+            ".profile", "Makefile", "Dockerfile", "LICENSE", "README", "CHANGELOG",
         )
     }
 }

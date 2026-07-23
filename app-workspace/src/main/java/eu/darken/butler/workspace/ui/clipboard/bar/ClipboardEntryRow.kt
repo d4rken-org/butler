@@ -32,7 +32,7 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
-import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.workspace.ui.clipboard.mockFileLookup
 import eu.darken.butler.common.formatRelativeTime
 import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.Workspace
@@ -353,9 +353,9 @@ private fun ClipboardEntryRowCollapsedPreview() {
             origin = Workspace.Id(Uuid.random()),
             mode = ClipboardClip.Paths.Mode.COPY,
             paths = listOf(
-                LocalPath.build("/storage/emulated/0/Pictures/photo1.jpg"),
-                LocalPath.build("/storage/emulated/0/Pictures/photo2.jpg"),
-                LocalPath.build("/storage/emulated/0/Pictures/photo3.jpg"),
+                mockFileLookup("/storage/emulated/0/Pictures/photo1.jpg"),
+                mockFileLookup("/storage/emulated/0/Pictures/photo2.jpg"),
+                mockFileLookup("/storage/emulated/0/Pictures/photo3.jpg"),
             ),
             clippedAt = Clock.System.now() - 5.minutes,
         ),
@@ -375,7 +375,7 @@ private fun ClipboardEntryRowExpandedPreview() {
             origin = Workspace.Id(Uuid.random()),
             mode = ClipboardClip.Paths.Mode.CUT,
             paths = listOf(
-                LocalPath.build("/storage/emulated/0/Documents/report.pdf"),
+                mockFileLookup("/storage/emulated/0/Documents/report.pdf"),
             ),
             clippedAt = Clock.System.now() - 2.minutes,
         ),

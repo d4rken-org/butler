@@ -746,7 +746,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                         ClipboardClip.Paths(
                             origin = id,
                             mode = ClipboardClip.Paths.Mode.COPY,
-                            paths = action.results.map { it.path }
+                            paths = action.results.map { it.lookup }
                         )
                     )
                 }
@@ -757,7 +757,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                         ClipboardClip.Paths(
                             origin = id,
                             mode = ClipboardClip.Paths.Mode.CUT,
-                            paths = action.results.map { it.path }
+                            paths = action.results.map { it.lookup }
                         )
                     )
                 }
@@ -1104,7 +1104,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                     return@launch
                 }
 
-                val commonParent = clip.paths.commonParent()
+                val commonParent = clip.paths.map { it.lookedUp }.commonParent()
                 if (commonParent == null) {
                     log(TAG, WARN) { "Cannot open in Explorer - paths have no common parent" }
                     return@launch

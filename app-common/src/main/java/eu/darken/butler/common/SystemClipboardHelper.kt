@@ -5,6 +5,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
+import androidx.core.text.HtmlCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -29,11 +30,16 @@ class SystemClipboardHelper @Inject constructor(
             var clipboardManager: ClipboardManager? = null
 
             Handler(Looper.getMainLooper()).postAtFrontOfQueue {
-                clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                lock.withLock { lockCondition.signal() }
+                lock.withLock {
+                    clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                    lockCondition.signal()
+                }
             }
 
-            lock.withLock { lockCondition.await() }
+            lock.withLock {
+                // Predicate loop: guards against a lost wakeup if main signals before we await.
+                while (clipboardManager == null) lockCondition.await()
+            }
 
             clipboardManager!!
         }
@@ -44,16 +50,26 @@ class SystemClipboardHelper @Inject constructor(
         clipboard.setPrimaryClip(clip)
     }
 
+    /**
+     * Text representation of the primary clip. Prefers a plain-text item, then converts an HTML
+     * item via [HtmlCompat], and finally falls back to a URI item's literal string. A URI's
+     * *content* is never dereferenced here - that would be an unbounded, provider-controlled read.
+     */
     fun getClipboardText(): String? {
         val primaryClip = clipboard.primaryClip ?: return null
         if (primaryClip.itemCount == 0) return null
 
         val item = primaryClip.getItemAt(0)
-        return item.text?.toString()
+        item.text?.let { return it.toString() }
+        item.htmlText?.let { return HtmlCompat.fromHtml(it, HtmlCompat.FROM_HTML_MODE_LEGACY).toString() }
+        item.uri?.let { return it.toString() }
+        return null
     }
 
     fun hasClipboardContent(): Boolean {
-        return clipboard.hasPrimaryClip() && clipboard.primaryClipDescription?.hasMimeType("text/plain") == true
+        if (!clipboard.hasPrimaryClip()) return false
+        // "text/*" covers text/plain, text/html and text/uri-list.
+        return clipboard.primaryClipDescription?.hasMimeType("text/*") == true
     }
 
     companion object {

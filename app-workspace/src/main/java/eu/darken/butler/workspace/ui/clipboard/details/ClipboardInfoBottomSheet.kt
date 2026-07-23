@@ -55,8 +55,10 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
-import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.workspace.ui.clipboard.mockFileLookup
 import eu.darken.butler.common.formatRelativeTime
 import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.Workspace
@@ -358,7 +360,7 @@ private fun ClipboardOverviewSection(
 
 @Composable
 private fun ClipboardFilesSection(
-    paths: List<APath<*>>,
+    paths: List<APathLookup<*>>,
     onCopyPath: ((String) -> Unit)? = null,
 ) {
     var isExpanded by remember { mutableStateOf(false) }
@@ -790,13 +792,9 @@ private fun ClipboardActionsSection(
     }
 }
 
-private fun getPathIcon(path: APath<*>): ImageVector {
-    // Simple heuristic - in a real implementation, you'd use file type detection
-    return if (path.name.contains('.')) {
-        Icons.AutoMirrored.TwoTone.InsertDriveFile
-    } else {
-        Icons.TwoTone.FolderOpen
-    }
+private fun getPathIcon(path: APathLookup<*>): ImageVector = when (path.fileType) {
+    FileType.DIRECTORY -> Icons.TwoTone.FolderOpen
+    else -> Icons.AutoMirrored.TwoTone.InsertDriveFile
 }
 
 @Preview2
@@ -807,9 +805,9 @@ private fun ClipboardInfoBottomSheetPreview() {
         origin = Workspace.Id(Uuid.random()),
         mode = ClipboardClip.Paths.Mode.COPY,
         paths = listOf(
-            LocalPath.build("/storage/emulated/0/Pictures/photo1.jpg"),
-            LocalPath.build("/storage/emulated/0/Pictures/photo2.jpg"),
-            LocalPath.build("/storage/emulated/0/Documents/report.pdf"),
+            mockFileLookup("/storage/emulated/0/Pictures/photo1.jpg"),
+            mockFileLookup("/storage/emulated/0/Pictures/photo2.jpg"),
+            mockFileLookup("/storage/emulated/0/Documents/report.pdf"),
         ),
         clippedAt = Clock.System.now() - 5.minutes,
     )
@@ -834,7 +832,7 @@ private fun ClipboardInfoSingleFilePreview() {
         origin = Workspace.Id(Uuid.random()),
         mode = ClipboardClip.Paths.Mode.CUT,
         paths = listOf(
-            LocalPath.build("/storage/emulated/0/Documents/important_document.pdf"),
+            mockFileLookup("/storage/emulated/0/Documents/important_document.pdf"),
         ),
         clippedAt = Clock.System.now() - 2.minutes,
     )

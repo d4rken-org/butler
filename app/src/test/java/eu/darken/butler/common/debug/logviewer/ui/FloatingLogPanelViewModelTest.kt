@@ -1,19 +1,17 @@
 package eu.darken.butler.common.debug.logviewer.ui
 
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
+import eu.darken.butler.common.SystemClipboardHelper
 import eu.darken.butler.common.datastore.DataStoreValue
 import eu.darken.butler.common.debug.DebugSettings
 import eu.darken.butler.common.debug.logging.Logging
 import eu.darken.butler.common.debug.logviewer.core.LogHistoryRecorder
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkStatic
 import io.mockk.slot
-import io.mockk.unmockkStatic
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -32,6 +30,7 @@ class FloatingLogPanelViewModelTest : BaseTest() {
     private lateinit var debugValue: DataStoreValue<Boolean>
     private lateinit var debugSettings: DebugSettings
     private val context: Context = mockk(relaxed = true)
+    private val clipboardHelper: SystemClipboardHelper = mockk(relaxed = true)
 
     @BeforeEach
     fun setup() {
@@ -60,6 +59,7 @@ class FloatingLogPanelViewModelTest : BaseTest() {
         context = context,
         debugSettings = debugSettings,
         recorder = recorder,
+        clipboardHelper = clipboardHelper,
     )
 
     private fun emit(message: String, priority: Logging.Priority = Logging.Priority.DEBUG) =
@@ -171,25 +171,16 @@ class FloatingLogPanelViewModelTest : BaseTest() {
 
     @Test
     fun `copyAll truncates to the cap and reports it`() = runTest {
-        // ClipData.newPlainText is an android.jar stub that throws on the JVM, and the relaxed
-        // Context mock returns a bare Object for the erased getSystemService(Class) generic.
-        mockkStatic(ClipData::class)
-        try {
-            every { ClipData.newPlainText(any(), any()) } returns mockk()
-            every { context.getSystemService(ClipboardManager::class.java) } returns mockk(relaxed = true)
+        val vm = createViewModel()
+        val total = FloatingLogPanelViewModel.COPY_LINE_CAP + 5
+        repeat(total) { emit("line $it") }
+        vm.state.first { it.lines.size == total }
 
-            val vm = createViewModel()
-            val total = FloatingLogPanelViewModel.COPY_LINE_CAP + 5
-            repeat(total) { emit("line $it") }
-            vm.state.first { it.lines.size == total }
+        vm.copyAll()
 
-            vm.copyAll()
-
-            val event = vm.events.first() as FloatingLogPanelViewModel.Event.Copied
-            event.truncatedBy shouldBe 5
-        } finally {
-            unmockkStatic(ClipData::class)
-        }
+        val event = vm.events.first() as FloatingLogPanelViewModel.Event.Copied
+        event.truncatedBy shouldBe 5
+        coVerify { clipboardHelper.copyToClipboard(any()) }
     }
 
     @Test
