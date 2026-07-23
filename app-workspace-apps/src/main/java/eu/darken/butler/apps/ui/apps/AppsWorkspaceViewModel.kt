@@ -471,6 +471,7 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
                         arguments = SaverArguments.Default(
                             sourceUris = apkUris,
                             callerPackage = null,
+                            callerWorkspaceId = id,
                         ),
                     )
                     getWorkspace().clearSelection()

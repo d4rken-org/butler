@@ -7,6 +7,7 @@ import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 /**
  * Arguments for creating a Saver workspace.
@@ -27,5 +28,15 @@ sealed interface SaverArguments : Workspace.Arguments {
         val callerPackage: Pkg.Id? = null,
         /** Selected destination path, null if not yet selected */
         val destinationPath: APath<*>? = null,
-    ) : SaverArguments
+        /**
+         * Set when this Saver was launched by another workspace (e.g. APK export from Apps/App
+         * details) so it renders as a modal sub-workspace and is exempt from the tab limit.
+         * Null for the ACTION_SEND share entry point, which stays a normal tab.
+         * Session-transient: sub-workspaces are excluded from session save.
+         */
+        @Transient override val callerWorkspaceId: Workspace.Id? = null,
+    ) : SaverArguments, Workspace.ArgumentsWithCaller {
+        override val modalPresentation: Workspace.ModalPresentationMode
+            get() = Workspace.ModalPresentationMode.FULL_SCREEN
+    }
 }

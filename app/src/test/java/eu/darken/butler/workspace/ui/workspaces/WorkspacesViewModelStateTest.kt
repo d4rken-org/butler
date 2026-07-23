@@ -217,6 +217,152 @@ class WorkspacesViewModelStateTest : BaseTest() {
         state.fullScreenModalWorkspace shouldBe null
     }
 
+    @Test
+    fun `fullScreenModalWorkspace - returns deepest modal in a nested chain`() {
+        val tab = Workspace.Id()
+        val saver = Workspace.Id()
+        val picker = Workspace.Id()
+
+        val state = createState(
+            infos = listOf(
+                createWorkspaceInfo(id = tab),
+                createWorkspaceInfo(id = saver, callerWorkspaceId = tab),
+                createWorkspaceInfo(id = picker, callerWorkspaceId = saver),
+            ),
+            focusedWorkspace = tab,
+            currentPaneCount = 1,
+        )
+
+        state.fullScreenModalWorkspace?.id shouldBe picker
+    }
+
+    @Test
+    fun `fullScreenModalWorkspace - reveals parent modal after deepest is removed`() {
+        val tab = Workspace.Id()
+        val saver = Workspace.Id()
+
+        val state = createState(
+            infos = listOf(
+                createWorkspaceInfo(id = tab),
+                createWorkspaceInfo(id = saver, callerWorkspaceId = tab),
+            ),
+            focusedWorkspace = tab,
+            currentPaneCount = 1,
+        )
+
+        state.fullScreenModalWorkspace?.id shouldBe saver
+    }
+
+    @Test
+    fun `fullScreenModalWorkspace - prefers the leaf rooted at the focused workspace`() {
+        val tab1 = Workspace.Id()
+        val tab2 = Workspace.Id()
+        val modal1 = Workspace.Id()
+        val modal2 = Workspace.Id()
+
+        val state = createState(
+            infos = listOf(
+                createWorkspaceInfo(id = tab1),
+                createWorkspaceInfo(id = modal1, callerWorkspaceId = tab1),
+                createWorkspaceInfo(id = tab2),
+                createWorkspaceInfo(id = modal2, callerWorkspaceId = tab2),
+            ),
+            focusedWorkspace = tab1,
+            currentPaneCount = 1,
+        )
+
+        state.fullScreenModalWorkspace?.id shouldBe modal1
+    }
+
+    @Test
+    fun `fullScreenModalWorkspace - matches focus on the sub-workspace itself, not the newest leaf`() {
+        val tab1 = Workspace.Id()
+        val tab2 = Workspace.Id()
+        val modal1 = Workspace.Id()
+        val modal2 = Workspace.Id()
+
+        val state = createState(
+            infos = listOf(
+                createWorkspaceInfo(id = tab1),
+                createWorkspaceInfo(id = modal1, callerWorkspaceId = tab1),
+                createWorkspaceInfo(id = tab2),
+                createWorkspaceInfo(id = modal2, callerWorkspaceId = tab2),
+            ),
+            // createAndFocus focuses the sub-workspace itself, not its owning tab.
+            focusedWorkspace = modal1,
+            currentPaneCount = 1,
+        )
+
+        state.fullScreenModalWorkspace?.id shouldBe modal1
+    }
+
+    @Test
+    fun `fullScreenModalWorkspace - falls back to newest leaf when focus has no modal`() {
+        val tab1 = Workspace.Id()
+        val tab2 = Workspace.Id()
+        val modal1 = Workspace.Id()
+        val modal2 = Workspace.Id()
+
+        val state = createState(
+            infos = listOf(
+                createWorkspaceInfo(id = tab1),
+                createWorkspaceInfo(id = modal1, callerWorkspaceId = tab1),
+                createWorkspaceInfo(id = tab2),
+                createWorkspaceInfo(id = modal2, callerWorkspaceId = tab2),
+            ),
+            // Focus on a tab that has no modal chain -> newest (last) leaf wins deterministically.
+            focusedWorkspace = Workspace.Id(),
+            currentPaneCount = 1,
+        )
+
+        state.fullScreenModalWorkspace?.id shouldBe modal2
+    }
+
+    @Test
+    fun `fullScreenModalWorkspace - pane-local descendant of full-screen parent renders in multi-pane`() {
+        val tab = Workspace.Id()
+        val fullScreenParent = Workspace.Id()
+        val paneLocalChild = Workspace.Id()
+
+        val state = createState(
+            infos = listOf(
+                createWorkspaceInfo(id = tab),
+                createWorkspaceInfo(
+                    id = fullScreenParent,
+                    callerWorkspaceId = tab,
+                    modalPresentation = Workspace.ModalPresentationMode.FULL_SCREEN,
+                ),
+                createWorkspaceInfo(
+                    id = paneLocalChild,
+                    callerWorkspaceId = fullScreenParent,
+                    modalPresentation = Workspace.ModalPresentationMode.PANE_LOCAL,
+                ),
+            ),
+            focusedWorkspace = tab,
+            currentPaneCount = 2,
+        )
+
+        // Even though the leaf is PANE_LOCAL on multi-pane, a full-screen ancestor keeps it visible.
+        state.fullScreenModalWorkspace?.id shouldBe paneLocalChild
+    }
+
+    @Test
+    fun `fullScreenModalWorkspace - survives a caller cycle without crashing`() {
+        val a = Workspace.Id()
+        val b = Workspace.Id()
+
+        val state = createState(
+            infos = listOf(
+                createWorkspaceInfo(id = a, callerWorkspaceId = b),
+                createWorkspaceInfo(id = b, callerWorkspaceId = a),
+            ),
+            currentPaneCount = 1,
+        )
+
+        // No leaf exists in a pure cycle; must not loop forever, just resolve to null.
+        state.fullScreenModalWorkspace shouldBe null
+    }
+
     // endregion
 
     // region paneLocalModals tests

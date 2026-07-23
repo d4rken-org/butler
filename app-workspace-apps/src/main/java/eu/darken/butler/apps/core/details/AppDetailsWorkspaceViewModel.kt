@@ -119,6 +119,7 @@ class AppDetailsWorkspaceViewModel @AssistedInject constructor(
                 arguments = SaverArguments.Default(
                     sourceUris = listOf(apkUri),
                     callerPackage = null,
+                    callerWorkspaceId = id,
                 ),
             )
         } else {

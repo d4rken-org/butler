@@ -42,6 +42,8 @@ internal fun SaverActionArea(
     onFinishApp: () -> Unit,
     onRetry: () -> Unit,
     onOperationClick: (Operation.Id) -> Unit = {},
+    isModal: Boolean = false,
+    onDone: () -> Unit = {},
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -71,18 +73,21 @@ internal fun SaverActionArea(
                     }
                 }
 
-                // "Open directory" button - enabled only on success with files
-                val isEnabled = saveState is SaverWorkspace.SaveState.Success &&
-                    saveState.report.successes.isNotEmpty()
-                Button(
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = isEnabled,
-                    onClick = onOpenSaved,
-                ) {
-                    Text(stringResource(R.string.saver_open_saved_action))
+                // "Open directory" button - enabled only on success with files.
+                // Hidden for modal export: opening an Explorer tab would sit behind the modal.
+                if (!isModal) {
+                    val isEnabled = saveState is SaverWorkspace.SaveState.Success &&
+                        saveState.report.successes.isNotEmpty()
+                    Button(
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = isEnabled,
+                        onClick = onOpenSaved,
+                    ) {
+                        Text(stringResource(R.string.saver_open_saved_action))
+                    }
                 }
 
-                // "Save to new location" and "Close Butler & tab" buttons - only shown on success
+                // "Save to new location" and the finish/close button - only shown on success
                 if (saveState is SaverWorkspace.SaveState.Success) {
                     OutlinedButton(
                         modifier = Modifier.fillMaxWidth(),
@@ -92,9 +97,13 @@ internal fun SaverActionArea(
                     }
                     Button(
                         modifier = Modifier.fillMaxWidth(),
-                        onClick = onFinishApp,
+                        onClick = if (isModal) onDone else onFinishApp,
                     ) {
-                        Text(stringResource(R.string.saver_close_butler_action))
+                        Text(
+                            stringResource(
+                                if (isModal) R.string.saver_done_action else R.string.saver_close_butler_action,
+                            )
+                        )
                     }
                 }
             }
@@ -234,6 +243,48 @@ private fun SaverActionAreaSuccessPreview() {
             onSaveAgain = {},
             onFinishApp = {},
             onRetry = {},
+        )
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun SaverActionAreaModalSuccessPreview() {
+    val report = SaveFilesReport(
+        results = listOf(
+            SaveFilesReport.FileResult.Success(
+                filename = "app.apk",
+                savedPath = LocalPath.build("/sdcard/Download/app.apk"),
+                bytes = 8_000_000,
+            )
+        )
+    )
+    PreviewWrapper {
+        SaverActionArea(
+            state = SaverWorkspaceViewModel.State(
+                saveState = SaverWorkspace.SaveState.Success(report = report),
+                isModal = true,
+            ),
+            operationDisplay = OperationDisplay(
+                id = Operation.Id(),
+                startedAt = Clock.System.now(),
+                icon = Icons.TwoTone.Save,
+                title = "Exporting APK".toCaString(),
+                description = "".toCaString(),
+                state = OperationDisplay.State.Completed(
+                    summary = report.summary,
+                    completedAt = Clock.System.now(),
+                    report = report,
+                ),
+            ),
+            onSave = {},
+            onOpenSaved = {},
+            onSaveAgain = {},
+            onFinishApp = {},
+            onRetry = {},
+            isModal = true,
+            onDone = {},
         )
     }
 }

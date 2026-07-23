@@ -127,6 +127,21 @@ class WorkspaceSessionManager @Inject constructor(
         val uiState = workspacePageManager.state.first()
         val now = Clock.System.now()
 
+        // Sub-workspaces (modal pickers/exports) are transient and not persisted, so a focus that
+        // currently points at one must be resolved up to its owning tab — otherwise restore falls
+        // back to an arbitrary tab and clobbers the wrong pane.
+        val infosById = repoState.infos.associateBy { it.id }
+        val focusToPersist = run {
+            val id = uiState.focusedWorkspaceId ?: return@run null
+            var current = infosById[id] ?: return@run id
+            val visited = mutableSetOf<Workspace.Id>()
+            while (current.isSubWorkspace) {
+                if (!visited.add(current.id)) return@run null
+                current = current.callerWorkspaceId?.let { infosById[it] } ?: return@run null
+            }
+            current.id
+        }
+
         // Perform incremental save within transaction
         storage.database.withTransaction {
             // 1. Upsert session metadata (including UI state)
@@ -134,7 +149,7 @@ class WorkspaceSessionManager @Inject constructor(
                 defaultSession.copy(
                     updatedAt = now,
                     uiState = WorkspaceUIState(
-                        focusedWorkspaceId = uiState.focusedWorkspaceId,
+                        focusedWorkspaceId = focusToPersist,
                         paneSelections = uiState.selectedWorkspaces,
                     ),
                 )

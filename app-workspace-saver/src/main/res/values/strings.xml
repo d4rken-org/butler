@@ -16,6 +16,7 @@
     <string name="saver_save_again_action">Save to new location</string>
     <string name="saver_close_tab_action">Close tab</string>
     <string name="saver_close_butler_action">Close tab and return</string>
+    <string name="saver_done_action">Done</string>
     <plurals name="saver_source_expired_warning">
         <item quantity="one">Source file is no longer accessible. Please share again.</item>
         <item quantity="other">%1$d source files are no longer accessible. Please share again.</item>

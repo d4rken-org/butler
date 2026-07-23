@@ -86,6 +86,8 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
         val callerPackage: Pkg.Id? = null,
         val createdAt: Instant? = null,
         val operationDisplay: OperationDisplay? = null,
+        /** True when launched by another workspace (APK export): render as a modal, not an app-share tab. */
+        val isModal: Boolean = false,
     ) {
         val isBatchMode: Boolean
             get() = sourceInfos.size > 1
@@ -141,6 +143,7 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
                     callerPackage = wsState.callerPackage,
                     createdAt = wsState.createdAt,
                     operationDisplay = managedOp?.toDisplayModel(),
+                    isModal = wsState.callerWorkspaceId != null,
                 )
             }
         }

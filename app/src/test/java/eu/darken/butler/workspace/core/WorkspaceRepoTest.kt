@@ -207,6 +207,34 @@ class WorkspaceRepoTest : BaseTest() {
     }
 
     @Test
+    fun `saver with a caller is exempt while a null-caller saver still counts`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo(isPro = false)
+        // Fill 4 of 5 slots with normal tabs.
+        repeat(WorkspaceRepo.FREE_TIER_WORKSPACE_LIMIT - 1) { repo.createTab() }
+        val tab = createdWorkspaces.first().id
+
+        // A modal APK-export Saver (caller set) does not consume a slot.
+        repo.execute(
+            WorkspaceAction.Create(
+                type = Workspace.Type.SAVER,
+                arguments = FakePickerArguments(Workspace.Type.SAVER, tab),
+            )
+        ).shouldBeInstanceOf<WorkspaceAction.Create.Result.Success>()
+
+        // The 5th normal tab still fits (the Saver child did not count).
+        repo.execute(createReq(Workspace.Type.EXPLORER))
+            .shouldBeInstanceOf<WorkspaceAction.Create.Result.Success>()
+
+        // Now at the limit: an ACTION_SEND Saver (no caller) is a normal tab and is blocked.
+        repo.execute(
+            WorkspaceAction.Create(
+                type = Workspace.Type.SAVER,
+                arguments = FakeArguments(Workspace.Type.SAVER),
+            )
+        ).shouldBeInstanceOf<WorkspaceAction.Create.Result.LimitReached>()
+    }
+
+    @Test
     fun `pro users have no workspace limit`() = runTest(UnconfinedTestDispatcher()) {
         val repo = createRepo(isPro = true)
         repeat(WorkspaceRepo.FREE_TIER_WORKSPACE_LIMIT + 2) { repo.createTab() }

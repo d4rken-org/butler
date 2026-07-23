@@ -136,6 +136,29 @@ class SaverArgumentsSerializationTest : BaseTest() {
     }
 
     @Test
+    fun `callerWorkspaceId is transient and dropped from serialization`() {
+        val args = SaverArguments.Default(
+            sourceUris = listOf("content://provider/file"),
+            callerWorkspaceId = Workspace.Id(),
+        )
+        val serialized = json.encodeToJsonElement<SaverArguments>(args)
+
+        // Session-transient: the caller relationship must not appear in persisted JSON...
+        serialized.toString().toComparableJson() shouldBe """
+            {
+                "type": "default",
+                "sourceUris": ["content://provider/file"]
+            }
+        """.toComparableJson()
+
+        // ...and deserializes back as a null-caller (normal-tab) Saver.
+        json.decodeFromString<SaverArguments>(serialized.toString()) shouldBe SaverArguments.Default(
+            sourceUris = listOf("content://provider/file"),
+            callerPackage = null,
+        )
+    }
+
+    @Test
     fun `factory serialization matches direct serialization and roundtrips`() {
         val factory = object : SaverWorkspace.Factory {
             override fun create(id: Workspace.Id, arguments: SaverArguments): SaverWorkspace = error("unused")

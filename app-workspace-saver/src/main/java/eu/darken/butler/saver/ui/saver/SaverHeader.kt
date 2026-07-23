@@ -11,8 +11,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.twotone.ArrowBack
 import androidx.compose.material.icons.twotone.MoveToInbox
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
@@ -34,6 +36,7 @@ import androidx.core.graphics.drawable.toBitmap
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.R as CommonR
 import eu.darken.butler.common.pkgs.Pkg
 import eu.darken.butler.common.pkgs.getIcon2
 import eu.darken.butler.common.pkgs.toPkgId
@@ -54,25 +57,43 @@ internal fun SaverHeader(
     callerPackage: Pkg.Id?,
     createdAt: Instant?,
     workspaceId: Workspace.Id,
+    isModal: Boolean = false,
+    onBack: () -> Unit = {},
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         Row(verticalAlignment = Alignment.CenterVertically) {
+            if (isModal) {
+                IconButton(onClick = onBack) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.TwoTone.ArrowBack,
+                        contentDescription = stringResource(CommonR.string.general_back_action),
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+            }
             Text(
                 modifier = Modifier.weight(1f),
                 text = stringResource(R.string.saver_workspace_title),
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            WorkspaceButton(currentWorkspaceId = workspaceId)
+            // The workspace button (tabs/manager) is meaningless inside a modal export overlay.
+            if (!isModal) {
+                WorkspaceButton(currentWorkspaceId = workspaceId)
+            }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        // "Shared from <app>" context only applies to the ACTION_SEND share flow, not modal export.
+        if (!isModal) {
+            Spacer(modifier = Modifier.height(12.dp))
 
-        SharedFromCard(
-            callerLabel = callerLabel,
-            callerPackage = callerPackage,
-            createdAt = createdAt,
-        )
+            SharedFromCard(
+                callerLabel = callerLabel,
+                callerPackage = callerPackage,
+                createdAt = createdAt,
+            )
+        }
     }
 }
 
@@ -182,6 +203,21 @@ private fun SaverHeaderUnknownCallerPreview() {
             callerPackage = null,
             createdAt = Instant.fromEpochMilliseconds(1_752_000_000_000),
             workspaceId = Workspace.Id(),
+        )
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun SaverHeaderModalPreview() {
+    PreviewWrapper {
+        SaverHeader(
+            callerLabel = null,
+            callerPackage = null,
+            createdAt = null,
+            workspaceId = Workspace.Id(),
+            isModal = true,
         )
     }
 }

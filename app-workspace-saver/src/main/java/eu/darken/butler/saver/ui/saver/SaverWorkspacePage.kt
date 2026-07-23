@@ -1,6 +1,7 @@
 package eu.darken.butler.saver.ui.saver
 
 import android.content.Intent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -17,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -96,7 +98,11 @@ internal fun SaverWorkspacePage(
     } else 0.dp
 
     Box(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            // As a full-screen modal the page renders into a transparent Dialog, so it must paint
+            // its own opaque background; as a tab this simply matches the container surface.
+            .background(MaterialTheme.colorScheme.surface)
     ) {
         if (state.isBatchMode) {
             // Batch mode: use non-scrolling Column with weight for file list
@@ -185,6 +191,8 @@ private fun SingleFileModeContent(
             callerPackage = state.callerPackage,
             createdAt = state.createdAt,
             workspaceId = workspaceId,
+            isModal = state.isModal,
+            onBack = { vm?.onClose() },
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -235,6 +243,8 @@ private fun SingleFileModeContent(
             onFinishApp = { vm?.onFinishApp() },
             onRetry = { vm?.onRetry() },
             onOperationClick = onOperationClick,
+            isModal = state.isModal,
+            onDone = { vm?.onClose() },
         )
     }
 }
@@ -267,6 +277,8 @@ private fun BatchModeContent(
             callerPackage = state.callerPackage,
             createdAt = state.createdAt,
             workspaceId = workspaceId,
+            isModal = state.isModal,
+            onBack = { vm?.onClose() },
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -313,6 +325,8 @@ private fun BatchModeContent(
             onFinishApp = { vm?.onFinishApp() },
             onRetry = { vm?.onRetry() },
             onOperationClick = onOperationClick,
+            isModal = state.isModal,
+            onDone = { vm?.onClose() },
         )
     }
 }

@@ -145,6 +145,8 @@ class SaverWorkspace @AssistedInject constructor(
         val callerLabel: String? = null,
         val callerPackage: Pkg.Id? = null,
         val createdAt: Instant? = null,
+        /** Set when launched by another workspace (modal export); drives modal UI + close behavior. */
+        val callerWorkspaceId: Workspace.Id? = null,
     ) {
         val isBatchMode: Boolean get() = sourceInfos.size > 1
         val fileCount: Int get() = sourceInfos.size
@@ -189,7 +191,8 @@ class SaverWorkspace @AssistedInject constructor(
             lifecycleState = Workspace.LifecycleState.Ready,
             operationCount = operationCount,
             attentionCount = attentionCount,
-            callerWorkspaceId = null,
+            callerWorkspaceId = creationArguments.callerWorkspaceId,
+            modalPresentation = creationArguments.modalPresentation,
         )
     }.stateInWorkspace(
         scope = scope,
@@ -258,6 +261,7 @@ class SaverWorkspace @AssistedInject constructor(
                 callerLabel = callerLabel,
                 callerPackage = creationArguments.callerPackage?.takeIf { !isUnknownCaller(it) },
                 createdAt = createdAt,
+                callerWorkspaceId = creationArguments.callerWorkspaceId,
             )
         }
             .onEach { _state.updateBlocking { it } }
@@ -268,6 +272,7 @@ class SaverWorkspace @AssistedInject constructor(
         sourceUris = creationArguments.sourceUris,
         callerPackage = creationArguments.callerPackage,
         destinationPath = _destination.value,
+        callerWorkspaceId = creationArguments.callerWorkspaceId,
     )
 
     override suspend fun release() {

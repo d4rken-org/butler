@@ -433,19 +433,72 @@ class WorkspacesViewModel @Inject constructor(
 
         /**
          * Workspace that should render as a full-screen Dialog overlay covering all panes.
-         * Includes:
-         * - FULL_SCREEN modals (pickers, settings dialogs) - always render as Dialog
-         * - PANE_LOCAL modals on single-pane devices (phones) - render as Dialog
+         *
+         * Sub-workspaces can nest (e.g. App details → APK-export Saver → Explorer destination
+         * picker), so this resolves the *deepest* modal of the active chain rather than the first
+         * match. Selection: among modal chain leaves (a sub-workspace that is not the caller of
+         * any other sub-workspace) that are full-screen-eligible, prefer the one whose chain is
+         * rooted at [focusedWorkspace], else the newest (last in info order). Caller walks are
+         * cycle- and dangling-guarded.
+         *
+         * A modal is full-screen-eligible if its own mode is FULL_SCREEN, any ancestor modal is
+         * FULL_SCREEN (so a pane-local descendant of a full-screen parent still renders), or it is
+         * a PANE_LOCAL root on a single-pane layout. PANE_LOCAL modals on multi-pane render via
+         * [paneLocalModals] instead.
          */
         val fullScreenModalWorkspace: Workspace.Info?
-            get() = state.infos.firstOrNull { info ->
-                info.isSubWorkspace && when (info.modalPresentation) {
-                    // Full-screen modals always render as Dialog overlay
-                    Workspace.ModalPresentationMode.FULL_SCREEN -> true
+            get() {
+                val infos = state.infos
+                val subs = infos.filter { it.isSubWorkspace }
+                if (subs.isEmpty()) return null
+                val byId = infos.associateBy { it.id }
 
-                    // Pane-local modals only render as Dialog in single-pane layout
-                    Workspace.ModalPresentationMode.PANE_LOCAL -> !isMultiPane
+                // The modal-only ancestor chain (self first), stopping at the owning tab / a
+                // missing caller, guarded against cycles.
+                fun ancestorModals(info: Workspace.Info): List<Workspace.Info> {
+                    val chain = mutableListOf<Workspace.Info>()
+                    val visited = mutableSetOf<Workspace.Id>()
+                    var current: Workspace.Info? = info
+                    while (current != null && current.isSubWorkspace && visited.add(current.id)) {
+                        chain += current
+                        current = current.callerWorkspaceId?.let { byId[it] }
+                    }
+                    return chain
                 }
+
+                fun isFullScreenEligible(info: Workspace.Info): Boolean {
+                    val anyFullScreen = ancestorModals(info).any {
+                        it.modalPresentation == Workspace.ModalPresentationMode.FULL_SCREEN
+                    }
+                    return anyFullScreen ||
+                        (info.modalPresentation == Workspace.ModalPresentationMode.PANE_LOCAL && !isMultiPane)
+                }
+
+                // The tab that owns this modal chain (null if the chain is dangling / has a cycle).
+                fun rootTabId(info: Workspace.Info): Workspace.Id? {
+                    val visited = mutableSetOf<Workspace.Id>()
+                    var current = info
+                    while (visited.add(current.id)) {
+                        val caller = current.callerWorkspaceId ?: return null
+                        val callerInfo = byId[caller] ?: return caller
+                        if (!callerInfo.isSubWorkspace) return callerInfo.id
+                        current = callerInfo
+                    }
+                    return null
+                }
+
+                val callerIds = subs.mapNotNull { it.callerWorkspaceId }.toSet()
+                val eligibleLeaves = subs
+                    .filter { it.id !in callerIds && isFullScreenEligible(it) }
+                if (eligibleLeaves.isEmpty()) return null
+
+                // createAndFocus focuses the sub-workspace itself, so a leaf belongs to the active
+                // chain if focus lands anywhere along it (the leaf, an ancestor modal, or the root tab).
+                val focusedId = focusedWorkspace
+                return eligibleLeaves.firstOrNull { leaf ->
+                    focusedId != null &&
+                        (ancestorModals(leaf).any { it.id == focusedId } || rootTabId(leaf) == focusedId)
+                } ?: eligibleLeaves.last()
             }
 
         /**
