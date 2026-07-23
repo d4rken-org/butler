@@ -285,16 +285,9 @@
 
     <!-- Upgrade Status -->
     <string name="settings_upgrade_status_label">Butler upgrade status</string>
-    <string name="settings_upgrade_status_description">View upgrade status and benefits.</string>
-    <string name="upgrade_status_screen_title">Upgrade status</string>
-    <string name="upgrade_status_card_title">Upgrade status</string>
     <string name="upgrade_status_free">Status: Free</string>
     <string name="upgrade_status_pro">Status: Pro</string>
     <string name="upgrade_status_foss">Status: FOSS</string>
-    <string name="upgrade_status_upgraded">Upgraded</string>
-    <string name="upgrade_status_upgraded_on">Upgraded on: %1$s</string>
-    <string name="upgrade_status_button_upgrade_pro">Upgrade to Butler Pro</string>
-    <string name="upgrade_status_button_upgrade_foss">Upgrade to Butler FOSS</string>
 
     <string name="storage_area_sdcard_label">SD card</string>
     <string name="storage_area_public_label">Public storage</string>

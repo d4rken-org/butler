@@ -18,6 +18,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.retryWhen
@@ -28,6 +29,11 @@ import javax.inject.Singleton
 class BillingConnectionProvider @Inject constructor(
     @ApplicationContext private val context: Context,
 ) {
+
+    // Emits the wall-clock time of each retryable billing connection failure. Feeds the grace
+    // "unconfirmed episode" clock in UpgradeRepoGplay: a connection we can't (re)establish while the
+    // user was recently Pro is exactly the "Play won't confirm" situation the diagnostics UI covers.
+    val connectionFailures = MutableSharedFlow<Long>(extraBufferCapacity = 8)
 
     private val provider: Flow<BillingConnection> = callbackFlow {
         val purchaseEvents = MutableStateFlow<Pair<BillingResult, Collection<Purchase>?>?>(null)
@@ -94,6 +100,10 @@ class BillingConnectionProvider @Inject constructor(
                 log(TAG) { "BillingClient connection cancelled." }
                 return@retryWhen false
             }
+
+            // Record the failure time (bounded buffer, non-suspending) so the grace episode clock can
+            // advance even when we never reach a successful query to observe the missing entitlement.
+            connectionFailures.tryEmit(System.currentTimeMillis())
 
             if (cause !is BillingException) {
                 log(TAG, WARN) { "Unknown exception type: $cause" }

@@ -19,6 +19,14 @@
     <string name="upgrade_screen_thanks_toast">Thank you for supporting open-source development ❤️</string>
     <string name="upgrade_screen_sponsor_too_fast">Back already? Your support keeps Butler alive — please take a moment to check out the sponsors page.</string>
 
+    <string name="upgrade_screen_status_free_title">You\'re on the free version</string>
+    <string name="upgrade_screen_status_free_body">Butler FOSS is fully open source. Unlock the extra features by supporting development.</string>
+    <string name="upgrade_screen_status_free_action">See upgrade options</string>
+    <string name="upgrade_screen_status_upgraded_body">Thank you for supporting open-source development ❤️ All extra features are unlocked.</string>
+    <string name="upgrade_screen_recurring_title">Keep it going</string>
+    <string name="upgrade_screen_recurring_body">Butler is developed in my spare time. A recurring donation helps keep it alive.</string>
+    <string name="upgrade_screen_recurring_action">Become a recurring sponsor</string>
+
     <string name="upgrade_benefits_title">Upgrade benefits</string>
     <string name="upgrade_benefit_multitasking">• Unlimited tabs and operations</string>
     <string name="upgrade_benefit_customization">• Customize design, feel and look</string>

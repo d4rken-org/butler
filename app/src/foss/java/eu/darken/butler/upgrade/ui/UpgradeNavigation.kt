@@ -9,12 +9,18 @@ import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoSet
 import eu.darken.butler.common.navigation.DestinationUpgrade
 import eu.darken.butler.common.navigation.NavigationEntry
+import eu.darken.butler.main.ui.settings.DestinationUpgradeStatus
 import javax.inject.Inject
 
 class UpgradeNavigation @Inject constructor() : NavigationEntry {
     override fun EntryProviderScope<NavKey>.setup() {
+        // Sponsor pitch route; auto-closes once the user becomes a supporter.
         entry<DestinationUpgrade> {
-            UpgradeScreenHost()
+            UpgradeScreenHost(manage = false)
+        }
+        // Supporter-status route (same host). Route class kept for restored back-stack compatibility.
+        entry<DestinationUpgradeStatus> {
+            UpgradeScreenHost(manage = true)
         }
     }
 

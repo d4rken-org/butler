@@ -28,6 +28,38 @@
     <string name="upgrade_screen_restore_troubleshooting_msg">Troubleshooting tips for unrecognized upgrades:</string>
     <string name="upgrade_screen_restore_sync_patience_hint">Play Store synchronization may take time. Try rebooting, clearing Google Play cache or simply wait.</string>
     <string name="upgrade_screen_restore_multiaccount_hint">Multiple accounts can confuse Google Play. Log out of other accounts or install through the Google Play website, which forces associations with a specific account.</string>
+    <string name="upgrade_screen_restore_success_message">Your purchase was restored ❤️</string>
+    <string name="upgrade_screen_restore_status_title">Status looks wrong?</string>
+    <string name="upgrade_screen_restore_status_body">If you already bought Pro but it isn\'t showing, restore your purchase.</string>
+
+    <string name="upgrade_screen_offers_or">or</string>
+    <string name="upgrade_screen_unavailable_retry_action">Try again</string>
+
+    <string name="upgrade_screen_owned_hero_title">You have Butler Pro!</string>
+    <string name="upgrade_screen_owned_hero_iap_body">Thank you for the one-time purchase — you\'re set for good ❤️</string>
+    <string name="upgrade_screen_owned_hero_sub_body">Thank you for subscribing ❤️</string>
+    <string name="upgrade_screen_owned_iap_title">One-time purchase</string>
+    <string name="upgrade_screen_owned_iap_body">You own the permanent Pro upgrade.</string>
+    <string name="upgrade_screen_owned_sub_title">Subscription</string>
+    <string name="upgrade_screen_owned_sub_renewing_body">Your subscription is active and renews automatically.</string>
+    <string name="upgrade_screen_owned_sub_not_renewing_body">Your subscription is active but set to not renew. Pro stays until the current period ends.</string>
+    <string name="upgrade_screen_owned_both_renewing_warning">You own the one-time purchase but your subscription is still renewing. Cancel it in Google Play to avoid paying twice.</string>
+    <string name="upgrade_screen_manage_subscription_action">Manage subscription</string>
+
+    <string name="upgrade_screen_switch_title">Switch to the one-time purchase</string>
+    <string name="upgrade_screen_switch_body">Prefer to pay once instead of yearly? Buy the one-time purchase and let your subscription lapse.</string>
+    <string name="upgrade_screen_switch_action">Buy one-time (%s)</string>
+    <string name="upgrade_screen_switch_locked_note">First cancel renewal via \"Manage subscription\", otherwise you\'d be charged for both.</string>
+    <string name="upgrade_screen_switch_purchase_note">Your subscription won\'t renew — you can safely buy the one-time purchase now.</string>
+
+    <string name="upgrade_screen_sub_still_renewing_title">Subscription still active</string>
+    <string name="upgrade_screen_sub_still_renewing_message">Your subscription is still set to renew. Cancel renewal in Google Play first so you aren\'t charged for both, then buy the one-time purchase.</string>
+    <string name="upgrade_screen_sub_check_failed_title">Couldn\'t verify</string>
+    <string name="upgrade_screen_sub_check_failed_message">Butler couldn\'t confirm your subscription status with Google Play, so the purchase was stopped to avoid charging you twice. Please try again in a moment.</string>
+
+    <string name="upgrade_screen_grace_title">Confirming your purchase</string>
+    <string name="upgrade_screen_grace_body_short">Google Play is taking a moment to confirm your Pro status. You still have full access.</string>
+    <string name="upgrade_screen_grace_body">Google Play still hasn\'t re-confirmed your Pro status. You still have access for now. If this looks wrong, try restoring your purchase.</string>
 
     <string name="upgrades_gplay_already_owned_error_title">Already purchased?</string>
     <string name="upgrades_gplay_already_owned_error_description">Google Play reports that you already own this upgrade, but it couldn\'t be restored automatically. Make sure you are logged in with the Google account used for the original purchase, then try \"Restore purchase\".</string>

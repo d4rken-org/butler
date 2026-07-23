@@ -1,115 +1,99 @@
 package eu.darken.butler.upgrade.ui
 
-import android.content.Context
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.onAllNodesWithTag
-import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.test.core.app.ApplicationProvider
-import eu.darken.butler.R
 import eu.darken.butler.common.compose.PreviewWrapper
 import org.junit.Test
-import org.robolectric.annotation.Config
 import testhelpers.ComposeTest
 
 class UpgradeScreenTest : ComposeTest() {
 
-    private fun loadedState(
+    private fun acquisition(
         wasPreviouslyPro: Boolean = false,
         restoreInProgress: Boolean = false,
-        trialAvailable: Boolean = true,
-    ) = UpgradeViewModel.State(
-        isLoadingPrices = false,
-        iapState = UpgradeViewModel.State.Iap(available = true, formattedPrice = "$4.99"),
-        subState = UpgradeViewModel.State.Sub(available = true, formattedPrice = "$2.99"),
-        trialState = UpgradeViewModel.State.Trial(available = trialAvailable, formattedPrice = "$2.99"),
+        trial: Boolean = false,
+    ) = UpgradeUiState.Loaded(
+        manage = false,
+        settled = true,
+        ownership = UpgradeUiState.Ownership(),
+        grace = null,
+        subscriptionAction = if (trial) UpgradeUiState.SubscriptionAction.TRIAL else UpgradeUiState.SubscriptionAction.STANDARD,
+        subscriptionPrice = "$2.99",
+        trialPrice = "$2.99",
+        iapPrice = "$4.99",
         wasPreviouslyPro = wasPreviouslyPro,
         restoreInProgress = restoreInProgress,
+        verificationInProgress = false,
+    )
+
+    private fun ownedSub(renewing: Boolean) = UpgradeUiState.Loaded(
+        manage = true,
+        settled = true,
+        ownership = UpgradeUiState.Ownership(
+            hasIap = false,
+            subscription = UpgradeUiState.SubscriptionOwnership(isAutoRenewing = renewing),
+        ),
+        grace = null,
+        subscriptionAction = UpgradeUiState.SubscriptionAction.UNAVAILABLE,
+        subscriptionPrice = null,
+        trialPrice = null,
+        iapPrice = "$4.99",
+        wasPreviouslyPro = false,
+        restoreInProgress = false,
+        verificationInProgress = false,
     )
 
     private fun setScreen(
-        state: UpgradeViewModel.State,
+        state: UpgradeUiState,
+        onSwitchOrIap: () -> Unit = {},
         onRestorePurchase: () -> Unit = {},
     ) = composeTestRule.setContent {
         PreviewWrapper {
             UpgradeScreen(
                 state = state,
+                snackbarHostState = SnackbarHostState(),
                 onNavigateBack = {},
-                onGoIap = {},
+                onGoIap = onSwitchOrIap,
                 onGoSubscription = {},
                 onGoSubscriptionTrial = {},
                 onRestorePurchase = onRestorePurchase,
+                onManageSubscription = {},
+                onRetry = {},
             )
         }
     }
 
     @Test
-    fun `returning buyer sees the restore banner and can trigger restore`() {
-        var restoreClicks = 0
-        setScreen(
-            state = loadedState(wasPreviouslyPro = true),
-            onRestorePurchase = { restoreClicks++ },
-        )
-
-        composeTestRule.onAllNodesWithTag(UpgradeScreenTestTags.RESTORE_BANNER).assertCountEquals(1)
-        composeTestRule.onNodeWithTag(UpgradeScreenTestTags.RESTORE_BANNER_ACTION).performClick()
-        composeTestRule.runOnIdle { check(restoreClicks == 1) { "expected 1 restore click, got $restoreClicks" } }
+    fun `acquisition shows both offers and a restore section`() {
+        setScreen(state = acquisition())
+        composeTestRule.onAllNodesWithTag(UpgradeScreenTestTags.SUB_ACTION).assertCountEquals(1)
+        composeTestRule.onAllNodesWithTag(UpgradeScreenTestTags.IAP_ACTION).assertCountEquals(1)
+        composeTestRule.onAllNodesWithTag(UpgradeScreenTestTags.RESTORE_SECTION).assertCountEquals(1)
     }
 
     @Test
-    fun `banner is hidden without a prior purchase on this device`() {
-        setScreen(state = loadedState(wasPreviouslyPro = false))
-
-        composeTestRule.onAllNodesWithTag(UpgradeScreenTestTags.RESTORE_BANNER).assertCountEquals(0)
-    }
-
-    @Test
-    fun `both restore affordances are disabled while a restore is running`() {
-        setScreen(state = loadedState(wasPreviouslyPro = true, restoreInProgress = true))
-
-        composeTestRule.onNodeWithTag(UpgradeScreenTestTags.RESTORE_BANNER_ACTION).assertIsNotEnabled()
+    fun `restore action is disabled while a restore is running`() {
+        setScreen(state = acquisition(restoreInProgress = true))
         composeTestRule.onNodeWithTag(UpgradeScreenTestTags.RESTORE_ACTION).assertIsNotEnabled()
-        composeTestRule
-            .onNodeWithTag(UpgradeScreenTestTags.RESTORE_BANNER_PROGRESS, useUnmergedTree = true)
-            .assertExists()
     }
 
     @Test
-    @Config(qualifiers = "w840dp-h900dp")
-    fun `wide layout also shows the banner for returning buyers`() {
-        var restoreClicks = 0
-        setScreen(
-            state = loadedState(wasPreviouslyPro = true),
-            onRestorePurchase = { restoreClicks++ },
-        )
-
-        composeTestRule.onAllNodesWithTag(UpgradeScreenTestTags.RESTORE_BANNER).assertCountEquals(1)
-        composeTestRule.onNodeWithTag(UpgradeScreenTestTags.RESTORE_BANNER_ACTION).performClick()
-        composeTestRule.runOnIdle { check(restoreClicks == 1) { "expected 1 restore click, got $restoreClicks" } }
+    fun `switch offer is locked while the subscription still renews`() {
+        setScreen(state = ownedSub(renewing = true))
+        composeTestRule.onNodeWithTag(UpgradeScreenTestTags.SWITCH_ACTION).assertIsNotEnabled()
     }
 
     @Test
-    fun `subscription copy promises the trial only when the trial offer exists`() {
-        val context = ApplicationProvider.getApplicationContext<Context>()
-        setScreen(state = loadedState(trialAvailable = true))
-
-        composeTestRule.onNodeWithText(context.getString(R.string.upgrade_screen_how_body)).assertExists()
-        composeTestRule
-            .onAllNodesWithText(context.getString(R.string.upgrade_screen_how_body_no_trial))
-            .assertCountEquals(0)
-    }
-
-    @Test
-    fun `subscription copy does not promise a trial when play withholds the trial offer`() {
-        val context = ApplicationProvider.getApplicationContext<Context>()
-        setScreen(state = loadedState(trialAvailable = false))
-
-        composeTestRule.onNodeWithText(context.getString(R.string.upgrade_screen_how_body_no_trial)).assertExists()
-        composeTestRule
-            .onAllNodesWithText(context.getString(R.string.upgrade_screen_how_body))
-            .assertCountEquals(0)
+    fun `switch offer unlocks once the subscription stops renewing`() {
+        var clicks = 0
+        setScreen(state = ownedSub(renewing = false), onSwitchOrIap = { clicks++ })
+        composeTestRule.onNodeWithTag(UpgradeScreenTestTags.SWITCH_ACTION).assertIsEnabled()
+        composeTestRule.onNodeWithTag(UpgradeScreenTestTags.SWITCH_ACTION).performClick()
+        composeTestRule.runOnIdle { check(clicks == 1) { "expected 1 switch click, got $clicks" } }
     }
 }

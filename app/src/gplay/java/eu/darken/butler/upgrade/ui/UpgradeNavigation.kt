@@ -9,12 +9,19 @@ import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoSet
 import eu.darken.butler.common.navigation.DestinationUpgrade
 import eu.darken.butler.common.navigation.NavigationEntry
+import eu.darken.butler.main.ui.settings.DestinationUpgradeStatus
 import javax.inject.Inject
 
 class UpgradeNavigation @Inject constructor() : NavigationEntry {
     override fun EntryProviderScope<NavKey>.setup() {
+        // Acquisition route (the "get Pro" pitch); auto-closes once the user becomes Pro.
         entry<DestinationUpgrade> {
-            UpgradeScreenHost()
+            UpgradeScreenHost(manage = false)
+        }
+        // Status/manage route (the same flavor host, ownership + grace + sub->IAP switch); stays open.
+        // Route class kept from the old flavor-agnostic status screen so restored back stacks resolve.
+        entry<DestinationUpgradeStatus> {
+            UpgradeScreenHost(manage = true)
         }
     }
 
