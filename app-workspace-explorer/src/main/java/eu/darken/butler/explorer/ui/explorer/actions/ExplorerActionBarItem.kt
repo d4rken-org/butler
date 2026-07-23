@@ -45,7 +45,7 @@ sealed interface ExplorerActionBarItem : WorkspaceActionBarItem {
     sealed interface Common : ExplorerActionBarItem {
         data class Refresh(
             override val isEnabled: Boolean = true,
-            override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.PRIMARY,
+            override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.SECONDARY,
         ) : Common {
             override val icon = Icons.TwoTone.Refresh
             override val label = R.string.explorer_action_refresh.toCaString()
