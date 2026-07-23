@@ -1,17 +1,22 @@
 package eu.darken.butler.workspace.ui.workspaces
 
+import android.graphics.Color as AndroidColor
 import android.view.ViewGroup
 import android.view.WindowManager
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.DialogWindowProvider
+import androidx.core.view.WindowCompat
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
@@ -59,6 +64,23 @@ fun WorkspaceModalDialog(
             )
             dialogWindow.addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
             dialogWindow.decorView.fitsSystemWindows = false
+            // A fresh Dialog window does not inherit the Activity's enableEdgeToEdge() setup, so its
+            // system bar scrims fall back to the platform default (opaque black). Mirror the Activity:
+            // draw edge-to-edge with transparent bars so the modal content shows behind them.
+            WindowCompat.setDecorFitsSystemWindows(dialogWindow, false)
+            dialogWindow.statusBarColor = AndroidColor.TRANSPARENT
+            dialogWindow.navigationBarColor = AndroidColor.TRANSPARENT
+        }
+
+        // Match the bar icon appearance to the modal content (which paints `surface`), mirroring
+        // ButlerTheme's SideEffect for the Activity window. Re-runs if the theme changes while open.
+        val lightBars = MaterialTheme.colorScheme.surface.luminance() > 0.5f
+        SideEffect {
+            if (dialogWindow != null) {
+                val insetsController = WindowCompat.getInsetsController(dialogWindow, dialogWindow.decorView)
+                insetsController.isAppearanceLightStatusBars = lightBars
+                insetsController.isAppearanceLightNavigationBars = lightBars
+            }
         }
 
         CompositionLocalProvider(
