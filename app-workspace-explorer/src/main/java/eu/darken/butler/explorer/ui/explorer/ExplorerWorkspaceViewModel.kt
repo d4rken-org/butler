@@ -661,7 +661,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     origin = getWorkspace().id,
                     paths = selected
                         .filterIsInstance<ExplorerItem.Lookup>()
-                        .map { it.lookup.lookedUp },
+                        .map { it.lookup },
                 )
                 clipboardRepo.add(clip)
                 clearSelection()
@@ -675,7 +675,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     origin = getWorkspace().id,
                     paths = selected
                         .filterIsInstance<ExplorerItem.Lookup>()
-                        .map { it.lookup.lookedUp },
+                        .map { it.lookup },
                 )
                 clipboardRepo.add(clip)
                 clearSelection()
@@ -969,7 +969,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 val clip = ClipboardClip.Paths(
                     mode = ClipboardClip.Paths.Mode.COPY,
                     origin = getWorkspace().id,
-                    paths = listOf(action.item.lookup.lookedUp),
+                    paths = listOf(action.item.lookup),
                 )
                 clipboardRepo.add(clip)
             }
@@ -977,7 +977,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 val clip = ClipboardClip.Paths(
                     mode = ClipboardClip.Paths.Mode.CUT,
                     origin = getWorkspace().id,
-                    paths = listOf(action.item.lookup.lookedUp),
+                    paths = listOf(action.item.lookup),
                 )
                 clipboardRepo.add(clip)
             }
@@ -1310,12 +1310,12 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 if (currentLocation is ExplorerLocation.Directory) {
                     val command = when (clip.mode) {
                         ClipboardClip.Paths.Mode.COPY -> ExplorerCommand.Copy(
-                            sources = clip.paths.toSet(),
+                            sources = clip.paths.map { it.lookedUp }.toSet(),
                             destination = currentLocation.path,
                             intent = Operation.Metadata.Intent.PASTE_COPY,
                         )
                         ClipboardClip.Paths.Mode.CUT -> ExplorerCommand.Move(
-                            sources = clip.paths.toSet(),
+                            sources = clip.paths.map { it.lookedUp }.toSet(),
                             destination = currentLocation.path,
                             intent = Operation.Metadata.Intent.PASTE_MOVE,
                         )

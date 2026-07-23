@@ -409,6 +409,13 @@ object MockDataProvider {
 
     // MARK: - Clipboard State Factories
 
+    private fun mockFileLookup(path: String): LocalPathLookup = LocalPathLookup(
+        lookedUp = LocalPath.build(path),
+        fileType = FileType.FILE,
+        size = null,
+        modifiedAt = null,
+    )
+
     fun createMockClipboardCopy(
         files: List<String> = listOf("photo1.jpg", "photo2.jpg", "photo3.jpg"),
         basePath: String = "/storage/emulated/0/Pictures",
@@ -417,7 +424,7 @@ object MockDataProvider {
         return ClipboardClip.Paths(
             origin = Workspace.Id(Uuid.random()),
             mode = ClipboardClip.Paths.Mode.COPY,
-            paths = files.map { LocalPath.build("$basePath/$it") },
+            paths = files.map { mockFileLookup("$basePath/$it") },
             clippedAt = MockTimes.minutesAgo(minutesAgo),
         )
     }
@@ -430,7 +437,7 @@ object MockDataProvider {
         return ClipboardClip.Paths(
             origin = Workspace.Id(Uuid.random()),
             mode = ClipboardClip.Paths.Mode.CUT,
-            paths = files.map { LocalPath.build("$basePath/$it") },
+            paths = files.map { mockFileLookup("$basePath/$it") },
             clippedAt = MockTimes.minutesAgo(minutesAgo),
         )
     }
