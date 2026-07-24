@@ -144,6 +144,11 @@ internal fun ClassicWorkspaceContainer(
                                         WorkspaceAction.Close(paneInfo.id)
                                     )
                                 },
+                                onRestoreWorkspace = {
+                                    onWorkspaceScreenAction(
+                                        WorkspaceScreenAction.RestoreDormant(paneInfo.id)
+                                    )
+                                },
                             )
                         }
                     }

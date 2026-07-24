@@ -149,11 +149,23 @@ class WorkspaceRepo @Inject constructor(
         return newWorkspace.id
     }
 
+    /**
+     * Dormant stand-ins are reported as absent: typed consumers cast the result to their concrete
+     * workspace type, so a dormant id must behave exactly like an id that doesn't exist yet — the
+     * flow emits the instance once [WorkspaceAction.Hydrate] has swapped it in.
+     */
     override fun retrieve(id: Workspace.Id): Flow<Workspace<out Workspace.Arguments>?> {
         return _workspaces.flatMapLatest { wss ->
-            flowOf(wss.singleOrNull { it.id == id })
+            flowOf(wss.singleOrNull { it.id == id }?.takeIf { it !is DormantWorkspace })
         }
     }
+
+    /**
+     * Current instance for [id] INCLUDING dormant stand-ins. Only for session saving, which must
+     * serialize the held arguments of workspaces that were never hydrated; everything else uses
+     * [retrieve], which hides dormant entries.
+     */
+    fun peek(id: Workspace.Id): Workspace<out Workspace.Arguments>? = _workspaces.value.singleOrNull { it.id == id }
 
     fun resolveConfirmation(confirmationId: String, confirmed: Boolean) {
         log(TAG, INFO) { "resolveConfirmation($confirmationId, confirmed=$confirmed)" }
@@ -220,6 +232,64 @@ class WorkspaceRepo @Inject constructor(
                 )
 
                 WorkspaceAction.Create.Result.Success(newId)
+            }
+
+            is WorkspaceAction.RegisterDormant -> {
+                log(TAG, INFO) { "Registering dormant workspace ${action.id} (${action.type})" }
+                try {
+                    if (_workspaces.value.any { it.id == action.id }) {
+                        throw IllegalStateException("Cannot register dormant workspace ${action.id}: id already in use")
+                    }
+                    val dormant = DormantWorkspace(
+                        id = action.id,
+                        type = action.type,
+                        heldArguments = action.arguments,
+                    )
+                    _workspaces.value = _workspaces.value + dormant
+                    _events.emit(
+                        WorkspaceEvent.Created(
+                            workspaceId = dormant.id,
+                            replacedId = null,
+                            autoFocus = false,
+                        )
+                    )
+                    WorkspaceAction.RegisterDormant.Result.Success(dormant.id)
+                } catch (e: Exception) {
+                    log(TAG, ERROR) { "Failed to register dormant workspace ${action.id}: ${e.asLog()}" }
+                    WorkspaceAction.RegisterDormant.Result.Failed(e)
+                }
+            }
+
+            is WorkspaceAction.Hydrate -> {
+                // Not dormant (already hydrated by a concurrent call, or never dormant) is a no-op,
+                // which is what keeps double hydration from running the factory twice.
+                val dormant = _workspaces.value.firstOrNull { it.id == action.id } as? DormantWorkspace
+                if (dormant == null) {
+                    log(TAG) { "Hydrate(${action.id}): unknown or not dormant, nothing to do" }
+                    WorkspaceAction.Hydrate.Result.NoOp
+                } else {
+                    try {
+                        @Suppress("UNCHECKED_CAST")
+                        val factory = factoryMap[dormant.type] as? WorkspaceFactory<Workspace.Arguments>
+                            ?: throw IllegalArgumentException("No factory found for workspace type: ${dormant.type}")
+                        val hydrated = factory.create(
+                            id = dormant.id,
+                            arguments = dormant.heldArguments,
+                        ) as Workspace<out Workspace.Arguments>
+
+                        val wip = _workspaces.value.toMutableList()
+                        val index = wip.indexOfFirst { it.id == action.id }
+                        wip[index] = hydrated
+                        _workspaces.value = wip
+
+                        log(TAG, INFO) { "Hydrated workspace ${action.id} (${dormant.type})" }
+                        WorkspaceAction.Hydrate.Result.Success(action.id)
+                    } catch (e: Exception) {
+                        log(TAG, ERROR) { "Failed to hydrate workspace ${action.id}: ${e.asLog()}" }
+                        dormant.markHydrationError(e)
+                        WorkspaceAction.Hydrate.Result.Failed(e)
+                    }
+                }
             }
 
             is WorkspaceAction.CreateBatch -> {

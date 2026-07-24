@@ -24,6 +24,11 @@ sealed interface WorkspaceScreenAction {
         val count: Int,
     ) : WorkspaceScreenAction
 
+    /** Loads a workspace that was restored on demand and is still dormant. Does not change focus. */
+    data class RestoreDormant(
+        val id: Workspace.Id,
+    ) : WorkspaceScreenAction
+
     data object CreateOnDemand : WorkspaceScreenAction
 
     data class CreateForPane(

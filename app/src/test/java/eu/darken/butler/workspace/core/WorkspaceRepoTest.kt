@@ -5,6 +5,7 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.upgrade.UpgradeRepo
+import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -13,6 +14,8 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
@@ -82,9 +85,17 @@ class WorkspaceRepoTest : BaseTest() {
 
     private val createdWorkspaces = mutableListOf<FakeWorkspace>()
 
+    /** When set, the next [FakeFactory.create] throws it instead of creating a workspace. */
+    private var nextCreateFailure: Exception? = null
+
     private inner class FakeFactory : WorkspaceFactory<Workspace.Arguments> {
-        override fun create(id: Workspace.Id, arguments: Workspace.Arguments): Workspace<Workspace.Arguments> =
-            FakeWorkspace(id, arguments).also { createdWorkspaces += it }
+        override fun create(id: Workspace.Id, arguments: Workspace.Arguments): Workspace<Workspace.Arguments> {
+            nextCreateFailure?.let {
+                nextCreateFailure = null
+                throw it
+            }
+            return FakeWorkspace(id, arguments).also { createdWorkspaces += it }
+        }
 
         override val argumentsSerializer: KSerializer<Workspace.Arguments>
             get() = throw NotImplementedError("serialize/deserialize are overridden directly")
@@ -104,14 +115,26 @@ class WorkspaceRepoTest : BaseTest() {
         val upgradeRepo = mockk<UpgradeRepo>().apply {
             every { this@apply.upgradeInfo } returns flowOf(upgradeInfo)
         }
+        // Layout flows must actually emit: WorkspaceRepo.state combines them, so a relaxed mock
+        // would leave the state flow silent and every read of it would hang.
+        val workspaceSettings = mockk<WorkspaceSettings>(relaxed = true).apply {
+            every { layoutModePortrait.flow } returns flowOf(WorkspacePanelMode.AUTO)
+            every { layoutModeLandscape.flow } returns flowOf(WorkspacePanelMode.AUTO)
+        }
         return WorkspaceRepo(
             appScope = backgroundScope,
             factoryMap = Workspace.Type.entries.associateWith { FakeFactory() },
-            workspaceSettings = mockk(relaxed = true),
+            workspaceSettings = workspaceSettings,
             operationsManager = operationsManager,
             upgradeRepo = upgradeRepo,
         )
     }
+
+    private suspend fun WorkspaceRepo.infoFor(id: Workspace.Id): Workspace.Info =
+        state.first().infos.single { it.id == id }
+
+    private suspend fun WorkspaceRepo.workspaceIds(): List<Workspace.Id> =
+        state.first().infos.map { it.id }
 
     private suspend fun WorkspaceRepo.createTab(
         type: Workspace.Type = Workspace.Type.EXPLORER,
@@ -782,6 +805,164 @@ class WorkspaceRepoTest : BaseTest() {
         values.count { it is WorkspaceAction.CreateBatch.CreationResult.Success } shouldBe 2
         values.count { it is WorkspaceAction.CreateBatch.CreationResult.AlreadyOpen } shouldBe 1
     }
+
+    // ==================== Dormant workspaces ====================
+
+    private suspend fun WorkspaceRepo.registerDormant(
+        type: Workspace.Type = Workspace.Type.EXPLORER,
+        id: Workspace.Id = Workspace.Id(),
+        arguments: Workspace.Arguments = FakeArguments(type),
+    ): Workspace.Id {
+        val result = execute(WorkspaceAction.RegisterDormant(id = id, type = type, arguments = arguments))
+        return (result as WorkspaceAction.RegisterDormant.Result.Success).newId
+    }
+
+    @Test
+    fun `registering a dormant workspace never invokes a factory`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+
+        val dormantId = repo.registerDormant()
+
+        createdWorkspaces shouldHaveSize 0
+        repo.infoFor(dormantId).lifecycleState shouldBe Workspace.LifecycleState.Dormant()
+        // Typed consumers must see a dormant id exactly like an id that doesn't exist yet
+        repo.retrieve(dormantId).first() shouldBe null
+    }
+
+    @Test
+    fun `registering a dormant workspace emits a Created event without auto focus`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val events = mutableListOf<WorkspaceEvent>()
+            repo.events.onEach { events += it }.launchIn(backgroundScope)
+
+            val dormantId = repo.registerDormant()
+
+            val created = events.filterIsInstance<WorkspaceEvent.Created>().single()
+            created.workspaceId shouldBe dormantId
+            created.replacedId shouldBe null
+            created.autoFocus shouldBe false
+        }
+
+    @Test
+    fun `hydrating replaces the stand-in at the same position`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val firstId = repo.createTab()
+        val dormantId = repo.registerDormant()
+        val lastId = repo.createTab()
+
+        repo.execute(WorkspaceAction.Hydrate(dormantId))
+            .shouldBeInstanceOf<WorkspaceAction.Hydrate.Result.Success>()
+
+        repo.workspaceIds() shouldBe listOf(firstId, dormantId, lastId)
+        repo.retrieve(dormantId).first() shouldNotBe null
+        createdWorkspaces.count { it.id == dormantId } shouldBe 1
+    }
+
+    @Test
+    fun `hydrating an unknown or already live workspace is a no-op`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val liveId = repo.createTab()
+
+        repo.execute(WorkspaceAction.Hydrate(Workspace.Id())) shouldBe WorkspaceAction.Hydrate.Result.NoOp
+        repo.execute(WorkspaceAction.Hydrate(liveId)) shouldBe WorkspaceAction.Hydrate.Result.NoOp
+        createdWorkspaces shouldHaveSize 1
+    }
+
+    @Test
+    fun `concurrent hydration invokes the factory exactly once`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val dormantId = repo.registerDormant()
+
+        val results = listOf(
+            async { repo.execute(WorkspaceAction.Hydrate(dormantId)) },
+            async { repo.execute(WorkspaceAction.Hydrate(dormantId)) },
+        ).awaitAll()
+
+        createdWorkspaces.count { it.id == dormantId } shouldBe 1
+        results.count { it is WorkspaceAction.Hydrate.Result.Success } shouldBe 1
+        results.count { it is WorkspaceAction.Hydrate.Result.NoOp } shouldBe 1
+    }
+
+    @Test
+    fun `a failed hydration keeps the stand-in and can be retried`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val dormantId = repo.registerDormant()
+        val boom = IllegalStateException("Factory exploded")
+        nextCreateFailure = boom
+
+        val failed = repo.execute(WorkspaceAction.Hydrate(dormantId))
+
+        failed.shouldBeInstanceOf<WorkspaceAction.Hydrate.Result.Failed>()
+        failed.error shouldBe boom
+        // Never LifecycleState.Error - that state would compose the typed page host for a stand-in
+        repo.infoFor(dormantId).lifecycleState shouldBe Workspace.LifecycleState.Dormant(boom)
+        repo.retrieve(dormantId).first() shouldBe null
+
+        repo.execute(WorkspaceAction.Hydrate(dormantId))
+            .shouldBeInstanceOf<WorkspaceAction.Hydrate.Result.Success>()
+        repo.retrieve(dormantId).first() shouldNotBe null
+        repo.infoFor(dormantId).lifecycleState shouldBe Workspace.LifecycleState.Initializing
+    }
+
+    @Test
+    fun `a create for a content path held by a dormant workspace resolves to it`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val dormantId = repo.registerDormant(
+                type = Workspace.Type.EDITOR,
+                arguments = FakeContentArguments(Workspace.Type.EDITOR, pathA),
+            )
+
+            val result = repo.execute(contentReq(pathA))
+
+            result.shouldBeInstanceOf<WorkspaceAction.Create.Result.AlreadyOpen>()
+            result.existingId shouldBe dormantId
+            createdWorkspaces shouldHaveSize 0
+        }
+
+    @Test
+    fun `dormant workspaces count toward the free tier limit`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo(isPro = false)
+        repeat(WorkspaceRepo.FREE_TIER_WORKSPACE_LIMIT) { repo.registerDormant() }
+
+        repo.execute(createReq(Workspace.Type.EXPLORER))
+            .shouldBeInstanceOf<WorkspaceAction.Create.Result.LimitReached>()
+    }
+
+    @Test
+    fun `a dormant singleton blocks creating a second instance`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val dormantId = repo.registerDormant(type = Workspace.Type.DEVELOPER)
+
+        val second = repo.execute(
+            WorkspaceAction.Create(
+                type = Workspace.Type.DEVELOPER,
+                arguments = FakeArguments(Workspace.Type.DEVELOPER),
+            )
+        )
+
+        second.shouldBeInstanceOf<WorkspaceAction.Create.Result.AlreadyOpen>()
+        second.existingId shouldBe dormantId
+    }
+
+    @Test
+    fun `registering a dormant workspace with a used id fails instead of duplicating`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val existingId = repo.createTab()
+
+            val result = repo.execute(
+                WorkspaceAction.RegisterDormant(
+                    id = existingId,
+                    type = Workspace.Type.EXPLORER,
+                    arguments = FakeArguments(Workspace.Type.EXPLORER),
+                )
+            )
+
+            result.shouldBeInstanceOf<WorkspaceAction.RegisterDormant.Result.Failed>()
+            repo.workspaceIds() shouldBe listOf(existingId)
+        }
 
     @Test
     fun `batch rejects a colliding explicit id without dropping the first create`() =

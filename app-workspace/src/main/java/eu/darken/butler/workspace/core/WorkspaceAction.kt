@@ -30,6 +30,44 @@ sealed interface WorkspaceAction {
         }
     }
 
+    /**
+     * Registers a lightweight dormant stand-in for a saved workspace: the entry occupies its slot in
+     * the workspace list (tabs, reorder, close, session saving, quota accounting) while holding only
+     * its [arguments], performing no I/O until [Hydrate] swaps in the real instance.
+     *
+     * Restore-only semantics are baked in: appended in restore order, never auto-focused, never a
+     * replace, and — like a restoring [Create] with `skipLimitCheck` — not limit checked.
+     */
+    data class RegisterDormant(
+        val id: Workspace.Id,
+        val type: Workspace.Type,
+        val arguments: Workspace.Arguments,
+    ) : WorkspaceAction {
+        sealed interface Result : WorkspaceAction.Result {
+            data class Success(val newId: Workspace.Id) : Result
+            data class Failed(val error: Throwable) : Result
+        }
+    }
+
+    /**
+     * Replaces a dormant stand-in with its real instance in place: same [Workspace.Id], same list
+     * position, so focus, pane selections and tab identity survive. Idempotent — an unknown or
+     * already hydrated id resolves to [Result.NoOp].
+     */
+    data class Hydrate(
+        val id: Workspace.Id,
+    ) : WorkspaceAction {
+        sealed interface Result : WorkspaceAction.Result {
+            data class Success(val newId: Workspace.Id) : Result
+
+            /** The id is unknown or its workspace is not dormant; nothing to do. */
+            data object NoOp : Result
+
+            /** Instantiation failed; the stand-in is kept and reports the error. */
+            data class Failed(val error: Throwable) : Result
+        }
+    }
+
     data class CreateBatch(
         val requests: List<Create>,
         val sourceWorkspaceId: Workspace.Id? = null,

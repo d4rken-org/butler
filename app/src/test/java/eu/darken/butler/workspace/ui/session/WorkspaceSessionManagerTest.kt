@@ -1,16 +1,24 @@
 package eu.darken.butler.workspace.ui.session
 
+import android.os.Parcel
 import androidx.room.withTransaction
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceFactory
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.WorkspaceSettings
+import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import eu.darken.butler.workspace.core.session.WorkspaceSessionStorage
+import eu.darken.butler.workspace.core.session.WorkspaceSessionStorage.Companion.DEFAULT_SESSION_ID
 import eu.darken.butler.workspace.core.session.db.WorkspaceInstanceEntity
 import eu.darken.butler.workspace.core.session.db.WorkspaceSessionDatabase
+import eu.darken.butler.workspace.core.session.db.WorkspaceSessionEntity
+import eu.darken.butler.workspace.core.session.db.WorkspaceUIState
 import eu.darken.butler.workspace.ui.WorkspacePageManager
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
@@ -20,17 +28,22 @@ import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.slot
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonPrimitive
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
+import kotlin.time.Instant
 
 class WorkspaceSessionManagerTest : BaseTest() {
 
@@ -296,7 +309,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
             val ws = mockk<Workspace<Workspace.Arguments>>()
             every { ws.id } returns id
             coEvery { ws.createArguments() } answers { workspaceArgs[id]!! }
-            every { workspaceRepo.retrieve(id) } returns flowOf(ws)
+            every { workspaceRepo.peek(id) } returns ws
         }
 
         @AfterEach
@@ -431,8 +444,8 @@ class WorkspaceSessionManagerTest : BaseTest() {
                 infos = listOf(makeInfo(wsIdA), makeInfo(wsIdB)),
             )
 
-            // Workspace B disappears between state read and retrieve
-            every { workspaceRepo.retrieve(wsIdB) } returns flowOf(null)
+            // Workspace B disappears between the state read and the instance lookup
+            every { workspaceRepo.peek(wsIdB) } returns null
 
             sessionManager.saveSession()
 
@@ -440,6 +453,297 @@ class WorkspaceSessionManagerTest : BaseTest() {
             upsertedEntities.size shouldBe 1
             upsertedEntities.single().workspaceId shouldBe wsIdA
         }
+    }
+
+    @Nested
+    inner class OnDemandRestore {
+
+        private val idA = Workspace.Id()
+        private val idB = Workspace.Id()
+        private val idC = Workspace.Id()
+
+        private val createAttempts = mutableListOf<Workspace.Id>()
+        private val createdIds = mutableListOf<Workspace.Id>()
+        private val failingIds = mutableSetOf<Workspace.Id>()
+        private val upsertedEntities = mutableListOf<WorkspaceInstanceEntity>()
+        private val onDemandFlow = MutableStateFlow(true)
+
+        // Restoration and the repo need live coroutines; the outer setup's manager dies on its
+        // fully-relaxed mocks and cancels the shared testScope.
+        private lateinit var restoreScope: TestScope
+        private lateinit var repo: WorkspaceRepo
+        private lateinit var pageManager: WorkspacePageManager
+
+        @BeforeEach
+        fun setupOnDemand() {
+            restoreScope = TestScope(UnconfinedTestDispatcher())
+            createAttempts.clear()
+            createdIds.clear()
+            failingIds.clear()
+            upsertedEntities.clear()
+            onDemandFlow.value = true
+
+            mockkStatic("androidx.room.RoomDatabaseKt")
+            val mockDatabase = mockk<WorkspaceSessionDatabase>(relaxed = true)
+            every { storage.database } returns mockDatabase
+            coEvery { mockDatabase.withTransaction(any<suspend () -> Any?>()) } coAnswers {
+                @Suppress("UNCHECKED_CAST")
+                val block = args[1] as suspend () -> Any?
+                block()
+            }
+            coEvery { storage.dao.upsertWorkspace(any()) } coAnswers { upsertedEntities.add(firstArg()) }
+            coEvery { storage.dao.getWorkspaceIds(any()) } returns emptyList()
+
+            every { workspaceSettings.sessionRestoreEnabled } returns mockk {
+                every { flow } returns flowOf(true)
+            }
+            every { workspaceSettings.restoreWorkspacesOnDemand } returns mockk {
+                every { flow } returns onDemandFlow
+            }
+            every { workspaceSettings.layoutModePortrait } returns mockk {
+                every { flow } returns flowOf(WorkspacePanelMode.AUTO)
+            }
+            every { workspaceSettings.layoutModeLandscape } returns mockk {
+                every { flow } returns flowOf(WorkspacePanelMode.AUTO)
+            }
+
+            factoryMap = Workspace.Type.entries.associateWith { type ->
+                FakeSessionFactory(type) { id ->
+                    createAttempts += id
+                    if (id in failingIds) throw IllegalStateException("Cannot create $id")
+                    createdIds += id
+                }
+            }
+
+            val upgradeInfo = mockk<UpgradeRepo.Info>().apply { every { isUpgraded } returns true }
+            val upgradeRepo = mockk<UpgradeRepo>().apply { every { this@apply.upgradeInfo } returns flowOf(upgradeInfo) }
+            repo = WorkspaceRepo(
+                appScope = restoreScope,
+                factoryMap = factoryMap,
+                workspaceSettings = workspaceSettings,
+                operationsManager = mockk(relaxed = true),
+                upgradeRepo = upgradeRepo,
+            )
+            pageManager = WorkspacePageManager(appScope = restoreScope, workspaceRemote = repo)
+        }
+
+        private fun createManager() = WorkspaceSessionManager(
+            appScope = restoreScope,
+            workspaceSettings = workspaceSettings,
+            workspaceRepo = repo,
+            workspacePageManager = pageManager,
+            storage = storage,
+            json = json,
+            factoryMap = factoryMap,
+        )
+
+        private fun session(
+            focusedId: Workspace.Id?,
+            paneSelections: Map<Int, Workspace.Id> = emptyMap(),
+        ) = WorkspaceSessionEntity(
+            sessionId = DEFAULT_SESSION_ID,
+            label = "Test Session",
+            createdAt = Instant.DISTANT_PAST,
+            uiState = WorkspaceUIState(focusedWorkspaceId = focusedId, paneSelections = paneSelections),
+        )
+
+        private fun entity(
+            id: Workspace.Id,
+            orderIndex: Int,
+            tag: String,
+            type: Workspace.Type = Workspace.Type.EXPLORER,
+        ) = WorkspaceInstanceEntity(
+            workspaceId = id,
+            sessionId = DEFAULT_SESSION_ID,
+            type = type,
+            orderIndex = orderIndex,
+            createdAt = Instant.DISTANT_PAST,
+            lastModified = Instant.DISTANT_PAST,
+            arguments = JsonPrimitive(tag).toString(),
+        )
+
+        private fun savedSession(
+            focusedId: Workspace.Id?,
+            paneSelections: Map<Int, Workspace.Id> = emptyMap(),
+            entities: List<WorkspaceInstanceEntity> = listOf(
+                entity(idA, 0, "a"),
+                entity(idB, 1, "b"),
+                entity(idC, 2, "c"),
+            ),
+        ) {
+            coEvery { storage.dao.getSession(any()) } returns session(focusedId, paneSelections)
+            coEvery { storage.dao.getWorkspaces(any()) } returns entities
+        }
+
+        private suspend fun workspaceIds(): List<Workspace.Id> = repo.state.first().infos.map { it.id }
+
+        private suspend fun dormantIds(): List<Workspace.Id> =
+            repo.state.first().infos.filter { it.isDormant }.map { it.id }
+
+        @Test
+        fun `only the focused workspace is created, the rest stay dormant`() =
+            runTest(UnconfinedTestDispatcher()) {
+                savedSession(focusedId = idB)
+
+                val manager = createManager()
+                restoreScope.testScheduler.runCurrent()
+
+                manager.state.value shouldBe WorkspaceSessionManager.State.Restored(listOf(idA, idB, idC))
+                createAttempts shouldBe listOf(idB)
+                workspaceIds() shouldBe listOf(idA, idB, idC)
+                dormantIds() shouldBe listOf(idA, idC)
+            }
+
+        @Test
+        fun `an unknown saved focus falls back to the first candidate being created`() =
+            runTest(UnconfinedTestDispatcher()) {
+                savedSession(focusedId = Workspace.Id())
+
+                createManager()
+                restoreScope.testScheduler.runCurrent()
+
+                createAttempts shouldBe listOf(idA)
+                dormantIds() shouldBe listOf(idB, idC)
+                pageManager.state.value.focusedWorkspaceId shouldBe idA
+            }
+
+        @Test
+        fun `a dropped focus candidate falls back to the first surviving candidate`() =
+            runTest(UnconfinedTestDispatcher()) {
+                // idB is a duplicate singleton row and gets deduped away during validation
+                savedSession(
+                    focusedId = idB,
+                    entities = listOf(
+                        entity(idA, 0, "a", type = Workspace.Type.DEVELOPER),
+                        entity(idB, 1, "b", type = Workspace.Type.DEVELOPER),
+                        entity(idC, 2, "c"),
+                    ),
+                )
+
+                createManager()
+                restoreScope.testScheduler.runCurrent()
+
+                createAttempts shouldBe listOf(idA)
+                workspaceIds() shouldBe listOf(idA, idC)
+                pageManager.state.value.focusedWorkspaceId shouldBe idA
+            }
+
+        @Test
+        fun `a dormant workspace is promoted when the focused one cannot be created`() =
+            runTest(UnconfinedTestDispatcher()) {
+                failingIds += idB
+                savedSession(focusedId = idB)
+
+                createManager()
+                restoreScope.testScheduler.runCurrent()
+
+                // idB failed, so the first dormant one takes the focused slot
+                createAttempts shouldBe listOf(idB, idA)
+                createdIds shouldBe listOf(idA)
+                workspaceIds() shouldBe listOf(idA, idC)
+                dormantIds() shouldBe listOf(idC)
+                pageManager.state.value.focusedWorkspaceId shouldBe idA
+            }
+
+        @Test
+        fun `with on-demand restore disabled every workspace is created`() =
+            runTest(UnconfinedTestDispatcher()) {
+                onDemandFlow.value = false
+                savedSession(focusedId = idB)
+
+                createManager()
+                restoreScope.testScheduler.runCurrent()
+
+                createAttempts shouldBe listOf(idA, idB, idC)
+                dormantIds() shouldHaveSize 0
+            }
+
+        @Test
+        fun `a stale focus during restoration hydrates nothing`() =
+            runTest(UnconfinedTestDispatcher()) {
+                // Simulates the focus surviving in the SavedStateHandle from the previous process
+                pageManager.applyRestoredUIState(idA, mapOf(0 to idA))
+                savedSession(focusedId = idB)
+
+                createManager()
+                restoreScope.testScheduler.runCurrent()
+
+                createAttempts shouldBe listOf(idB)
+                dormantIds() shouldBe listOf(idA, idC)
+            }
+
+        @Test
+        fun `focusing a dormant workspace after restoration hydrates it`() =
+            runTest(UnconfinedTestDispatcher()) {
+                savedSession(focusedId = idB)
+                createManager()
+                restoreScope.testScheduler.runCurrent()
+
+                pageManager.setLayout(mapOf(0 to idC), focusedId = idC)
+                restoreScope.testScheduler.runCurrent()
+
+                createAttempts shouldBe listOf(idB, idC)
+                dormantIds() shouldBe listOf(idA)
+            }
+
+        @Test
+        fun `a workspace that failed to hydrate is not retried on focus`() =
+            runTest(UnconfinedTestDispatcher()) {
+                failingIds += idC
+                savedSession(focusedId = idB)
+                createManager()
+                restoreScope.testScheduler.runCurrent()
+
+                pageManager.setLayout(mapOf(0 to idC), focusedId = idC)
+                restoreScope.testScheduler.runCurrent()
+                pageManager.setLayout(mapOf(0 to idB), focusedId = idB)
+                restoreScope.testScheduler.runCurrent()
+                pageManager.setLayout(mapOf(0 to idC), focusedId = idC)
+                restoreScope.testScheduler.runCurrent()
+
+                createAttempts.count { it == idC } shouldBe 1
+                repo.state.first().infos.single { it.id == idC }.lifecycleState
+                    .shouldBeInstanceOf<Workspace.LifecycleState.Dormant>()
+            }
+
+        @Test
+        fun `the seeded save cache keeps an unchanged session from being rewritten`() =
+            runTest(UnconfinedTestDispatcher()) {
+                savedSession(focusedId = idB)
+                val manager = createManager()
+                restoreScope.testScheduler.runCurrent()
+
+                manager.saveSession()
+
+                upsertedEntities shouldHaveSize 0
+            }
+
+        @Test
+        fun `saving keeps the arguments of dormant and live workspaces`() =
+            runTest(UnconfinedTestDispatcher()) {
+                savedSession(focusedId = idB)
+                val manager = createManager()
+                restoreScope.testScheduler.runCurrent()
+
+                // Reordering changes every stored index, forcing all three rows to be re-saved
+                repo.execute(WorkspaceAction.Reorder(listOf(idB, idC, idA)))
+                manager.saveSession()
+
+                upsertedEntities shouldHaveSize 3
+                // idB was created during restore, idA and idC are still dormant stand-ins
+                upsertedEntities.single { it.workspaceId == idB }.let {
+                    it.arguments shouldBe JsonPrimitive("b").toString()
+                    it.orderIndex shouldBe 0
+                }
+                upsertedEntities.single { it.workspaceId == idC }.let {
+                    it.arguments shouldBe JsonPrimitive("c").toString()
+                    it.orderIndex shouldBe 1
+                }
+                upsertedEntities.single { it.workspaceId == idA }.let {
+                    it.arguments shouldBe JsonPrimitive("a").toString()
+                    it.orderIndex shouldBe 2
+                }
+            }
     }
 
     @Nested
@@ -488,7 +792,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
             val ws = mockk<Workspace<Workspace.Arguments>>()
             every { ws.id } returns wsId
             coEvery { ws.createArguments() } returns args
-            every { workspaceRepo.retrieve(wsId) } returns flowOf(ws)
+            every { workspaceRepo.peek(wsId) } returns ws
         }
 
         @AfterEach
@@ -558,4 +862,50 @@ class WorkspaceSessionManagerTest : BaseTest() {
             coVerify(exactly = 0) { dao.upsertWorkspace(any()) }
         }
     }
+}
+
+private data class FakeSessionArguments(
+    override val type: Workspace.Type,
+    val tag: String,
+) : Workspace.Arguments {
+    override fun describeContents(): Int = 0
+    override fun writeToParcel(dest: Parcel, flags: Int) = Unit
+}
+
+private class FakeSessionWorkspace(
+    override val id: Workspace.Id,
+    private val arguments: Workspace.Arguments,
+) : Workspace<Workspace.Arguments> {
+    override val type: Workspace.Type = arguments.type
+
+    override val info = MutableStateFlow(
+        Workspace.Info(
+            id = id,
+            type = type,
+            title = "Fake $type".toCaString(),
+            lifecycleState = Workspace.LifecycleState.Ready,
+        )
+    )
+
+    override suspend fun createArguments(): Workspace.Arguments = arguments
+}
+
+private class FakeSessionFactory(
+    private val type: Workspace.Type,
+    private val onCreate: (Workspace.Id) -> Unit,
+) : WorkspaceFactory<Workspace.Arguments> {
+
+    override fun create(id: Workspace.Id, arguments: Workspace.Arguments): Workspace<Workspace.Arguments> {
+        onCreate(id)
+        return FakeSessionWorkspace(id, arguments)
+    }
+
+    override val argumentsSerializer: KSerializer<Workspace.Arguments>
+        get() = throw NotImplementedError("serialize/deserialize are overridden directly")
+
+    override fun serialize(json: Json, arguments: Workspace.Arguments): JsonElement =
+        JsonPrimitive((arguments as FakeSessionArguments).tag)
+
+    override fun deserialize(json: Json, element: JsonElement): Workspace.Arguments =
+        FakeSessionArguments(type, element.jsonPrimitive.content)
 }

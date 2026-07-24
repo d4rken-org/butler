@@ -155,6 +155,11 @@ fun AdaptiveWorkspaceLayout(
                                                     WorkspaceAction.Close(info.id)
                                                 )
                                             },
+                                            onRestoreWorkspace = {
+                                                onScreenAction(
+                                                    WorkspaceScreenAction.RestoreDormant(info.id)
+                                                )
+                                            },
                                         )
                                     }
                                 }
@@ -189,6 +194,11 @@ fun AdaptiveWorkspaceLayout(
                                                     onCloseWorkspace = {
                                                         workspaceActionHandler?.executeWorkspaceAction(
                                                             WorkspaceAction.Close(modal.id)
+                                                        )
+                                                    },
+                                                    onRestoreWorkspace = {
+                                                        onScreenAction(
+                                                            WorkspaceScreenAction.RestoreDormant(modal.id)
                                                         )
                                                     },
                                                 )

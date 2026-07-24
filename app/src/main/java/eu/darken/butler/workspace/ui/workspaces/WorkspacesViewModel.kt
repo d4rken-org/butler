@@ -262,6 +262,10 @@ class WorkspacesViewModel @Inject constructor(
                 log(tag) { "Setting pane count to ${action.count}" }
                 workspacePageManager.setPaneCount(action.count)
             }
+            is WorkspaceScreenAction.RestoreDormant -> {
+                log(tag, INFO) { "Restoring dormant workspace ${action.id}" }
+                workspaceRepo.execute(WorkspaceAction.Hydrate(action.id))
+            }
             is WorkspaceScreenAction.CreateOnDemand -> {
                 log(tag) { "Creating workspace on-demand" }
                 when (val result = workspaceRepo.execute(WorkspaceAction.Create(type = Workspace.Type.TEMPLATES))) {

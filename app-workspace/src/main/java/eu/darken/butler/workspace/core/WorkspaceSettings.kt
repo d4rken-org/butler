@@ -43,6 +43,8 @@ class WorkspaceSettings @Inject constructor(
 
     val sessionRestoreEnabled = dataStore.createValue("workspace.session.restore.enabled", true)
 
+    val restoreWorkspacesOnDemand = dataStore.createValue("workspace.session.restore.ondemand", true)
+
     val showFolderMediaPreviews = dataStore.createValue("workspace.grid.folder_media_previews.enabled", true)
 
     override val mapper = PreferenceStoreMapper(
@@ -55,6 +57,7 @@ class WorkspaceSettings @Inject constructor(
         layoutModePortrait,
         layoutModeLandscape,
         sessionRestoreEnabled,
+        restoreWorkspacesOnDemand,
         showFolderMediaPreviews,
     )
 

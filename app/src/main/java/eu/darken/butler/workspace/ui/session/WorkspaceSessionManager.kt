@@ -23,11 +23,17 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
@@ -100,6 +106,43 @@ class WorkspaceSessionManager @Inject constructor(
             log(TAG) { "Auto-saving session with ${workspaces.size} workspaces" }
             saveSession()
         }.launchIn(appScope)
+
+        // Hydrate a dormant workspace when it gains focus. Only armed once restoration finished:
+        // focus emissions during restore (e.g. the stale SavedStateHandle focus) must not hydrate
+        // anything, which is what keeps the cold start down to a single workspace.
+        state
+            .filterIsInstance<State.Restored>()
+            .take(1)
+            .flatMapLatest {
+                workspacePageManager.state
+                    .map { it.focusedWorkspaceId }
+                    .distinctUntilChanged()
+            }
+            .onEach { focusedId -> hydrateOnFocus(focusedId) }
+            .catch { log(TAG, ERROR) { "Hydrate-on-focus observer failed: ${it.asLog()}" } }
+            .launchIn(appScope)
+    }
+
+    /**
+     * Instantiates the focused workspace if it is still a dormant stand-in. A dormant that already
+     * failed hydration is left alone — retrying on every focus change would loop; the placeholder's
+     * retry button is the way back.
+     */
+    private suspend fun hydrateOnFocus(focusedId: Workspace.Id?) {
+        if (focusedId == null) return
+        try {
+            val info = workspaceRepo.state.first().infos.firstOrNull { it.id == focusedId } ?: return
+            val lifecycleState = info.lifecycleState
+            if (lifecycleState !is Workspace.LifecycleState.Dormant) return
+            if (lifecycleState.error != null) {
+                log(TAG) { "Focused workspace $focusedId failed hydration before, waiting for a manual retry" }
+                return
+            }
+            log(TAG, INFO) { "Focused workspace $focusedId is dormant, hydrating" }
+            workspaceRepo.execute(WorkspaceAction.Hydrate(focusedId))
+        } catch (e: Exception) {
+            log(TAG, ERROR) { "Failed to hydrate focused workspace $focusedId: ${e.asLog()}" }
+        }
     }
 
     /**
@@ -168,7 +211,9 @@ class WorkspaceSessionManager @Inject constructor(
             // 3. Upsert only changed workspaces
             var changedCount = 0
             workspacesToSave.forEachIndexed { index, info ->
-                val workspace = workspaceRepo.retrieve(info.id).first()
+                // peek() instead of retrieve(): a dormant workspace must still be saved with the
+                // arguments it holds, and retrieve() reports dormant entries as absent.
+                val workspace = workspaceRepo.peek(info.id)
                 if (workspace == null) {
                     log(TAG, WARN) { "Workspace ${info.id} disappeared during save (likely replaced), skipping" }
                     return@forEachIndexed
@@ -216,6 +261,12 @@ class WorkspaceSessionManager @Inject constructor(
         }
     }
 
+    private data class RestoreCandidate(
+        val id: Workspace.Id,
+        val type: Workspace.Type,
+        val arguments: Workspace.Arguments,
+    )
+
     private suspend fun restoreSession(): List<Workspace.Id> {
         log(TAG, INFO) { "Restoring session" }
 
@@ -229,26 +280,85 @@ class WorkspaceSessionManager @Inject constructor(
 
         log(TAG, INFO) { "Loaded session with ${workspaceEntities.size} workspaces" }
 
-        val restoredWorkspaceIds = mutableListOf<Workspace.Id>()
-        val restoredSingletonTypes = mutableSetOf<Workspace.Type>()
+        val candidates = buildRestoreCandidates(workspaceEntities)
 
-        workspaceEntities.forEach { entity ->
+        // Which candidate becomes a real instance: the saved focus if it survived validation,
+        // otherwise the first candidate - the same tab applyUIState() would fall back to.
+        val onDemand = workspaceSettings.restoreWorkspacesOnDemand.value()
+        val focusedCandidate = candidates
+            .firstOrNull { it.id == sessionEntity.uiState.focusedWorkspaceId }
+            ?: candidates.firstOrNull()
+        log(TAG, INFO) { "Restoring ${candidates.size} candidates (onDemand=$onDemand, focused=${focusedCandidate?.id})" }
+
+        val restoredWorkspaceIds = mutableListOf<Workspace.Id>()
+        val dormantIds = mutableListOf<Workspace.Id>()
+        var focusedIsLive = false
+
+        candidates.forEach { candidate ->
+            val restoreEagerly = !onDemand || candidate.id == focusedCandidate?.id
+            val restored = if (restoreEagerly) {
+                createEagerly(candidate)
+            } else {
+                registerDormant(candidate)
+            }
+            if (!restored) return@forEach
+
+            restoredWorkspaceIds.add(candidate.id)
+            if (restoreEagerly) {
+                if (candidate.id == focusedCandidate?.id) focusedIsLive = true
+            } else {
+                dormantIds.add(candidate.id)
+            }
+        }
+
+        // The focused slot should hold a real instance: if its creation failed, promote a dormant
+        // one before the UI state is applied.
+        if (!focusedIsLive) {
+            dormantIds.firstOrNull()?.let { promotionId ->
+                log(TAG, WARN) { "Focused workspace could not be created, hydrating $promotionId instead" }
+                workspaceRepo.execute(WorkspaceAction.Hydrate(promotionId))
+            }
+        }
+
+        seedSaveCache(candidates, restoredWorkspaceIds)
+
+        // Apply saved UI state directly (IDs are preserved)
+        applyUIState(
+            focusedId = sessionEntity.uiState.focusedWorkspaceId,
+            selectedIds = sessionEntity.uiState.paneSelections,
+            actualWorkspaceIds = restoredWorkspaceIds,
+        )
+
+        log(TAG, INFO) { "Restored ${restoredWorkspaceIds.size} workspaces, ${dormantIds.size} dormant" }
+        return restoredWorkspaceIds
+    }
+
+    /**
+     * Deserializes and validates the saved rows into an ordered candidate list: rows without a
+     * factory or usable arguments are dropped, duplicate singletons deduped.
+     */
+    private fun buildRestoreCandidates(entities: List<WorkspaceInstanceEntity>): List<RestoreCandidate> {
+        val candidates = mutableListOf<RestoreCandidate>()
+        val seenSingletonTypes = mutableSetOf<Workspace.Type>()
+
+        entities.forEach { entity ->
             try {
                 val type = entity.type
 
                 // Defensive dedup: a singleton type that appears more than once in saved session data
                 // (legacy data, or a bug in some prior version) should restore only the first instance.
-                if (type.isSingleton && type in restoredSingletonTypes) {
+                if (type.isSingleton && type in seenSingletonTypes) {
                     log(TAG, WARN) {
                         "Skipping duplicate singleton ${type} during restore (id=${entity.workspaceId}); first instance already restored"
                     }
                     return@forEach
                 }
 
-                log(TAG) { "Restoring workspace: ${entity.type} with id=${entity.workspaceId}" }
-
                 @Suppress("UNCHECKED_CAST")
-                val factory = factoryMap.getValue(type) as WorkspaceFactory<Workspace.Arguments>
+                val factory = factoryMap[type] as? WorkspaceFactory<Workspace.Arguments> ?: run {
+                    log(TAG, WARN) { "No factory for $type, skipping ${entity.workspaceId}" }
+                    return@forEach
+                }
                 val arguments: Workspace.Arguments = try {
                     factory.deserialize(json, json.parseToJsonElement(entity.arguments))
                 } catch (e: Exception) {
@@ -259,33 +369,69 @@ class WorkspaceSessionManager @Inject constructor(
                     }
                 }
 
-                workspaceRepo.execute(
-                    WorkspaceAction.Create(
-                        type = type,
-                        arguments = arguments,
-                        autoFocus = false,
-                        id = entity.workspaceId,
-                        skipLimitCheck = true,
-                    )
-                )
-
-                restoredWorkspaceIds.add(entity.workspaceId)
-                if (type.isSingleton) restoredSingletonTypes.add(type)
-                log(TAG) { "Restored workspace ${entity.type}: ${entity.workspaceId}" }
+                candidates.add(RestoreCandidate(id = entity.workspaceId, type = type, arguments = arguments))
+                if (type.isSingleton) seenSingletonTypes.add(type)
             } catch (e: Exception) {
-                log(TAG, ERROR) { "Failed to restore workspace ${entity.type}: ${e.asLog()}" }
+                log(TAG, ERROR) { "Failed to prepare workspace ${entity.type}: ${e.asLog()}" }
             }
         }
 
-        // Apply saved UI state directly (IDs are preserved)
-        applyUIState(
-            focusedId = sessionEntity.uiState.focusedWorkspaceId,
-            selectedIds = sessionEntity.uiState.paneSelections,
-            actualWorkspaceIds = restoredWorkspaceIds,
-        )
+        return candidates
+    }
 
-        log(TAG, INFO) { "Restored ${restoredWorkspaceIds.size} workspaces" }
-        return restoredWorkspaceIds
+    private suspend fun createEagerly(candidate: RestoreCandidate): Boolean = try {
+        log(TAG) { "Restoring workspace: ${candidate.type} with id=${candidate.id}" }
+        val result = workspaceRepo.execute(
+            WorkspaceAction.Create(
+                type = candidate.type,
+                arguments = candidate.arguments,
+                autoFocus = false,
+                id = candidate.id,
+                skipLimitCheck = true,
+            )
+        )
+        (result is WorkspaceAction.Create.Result.Success).also {
+            if (!it) log(TAG, WARN) { "Restoring ${candidate.id} did not create a workspace: $result" }
+        }
+    } catch (e: Exception) {
+        log(TAG, ERROR) { "Failed to restore workspace ${candidate.type}: ${e.asLog()}" }
+        false
+    }
+
+    private suspend fun registerDormant(candidate: RestoreCandidate): Boolean = try {
+        log(TAG) { "Registering dormant workspace: ${candidate.type} with id=${candidate.id}" }
+        val result = workspaceRepo.execute(
+            WorkspaceAction.RegisterDormant(
+                id = candidate.id,
+                type = candidate.type,
+                arguments = candidate.arguments,
+            )
+        )
+        (result is WorkspaceAction.RegisterDormant.Result.Success).also {
+            if (!it) log(TAG, WARN) { "Registering dormant ${candidate.id} failed: $result" }
+        }
+    } catch (e: Exception) {
+        log(TAG, ERROR) { "Failed to register dormant workspace ${candidate.type}: ${e.asLog()}" }
+        false
+    }
+
+    /**
+     * Primes the incremental-save cache with what was just restored, so the first auto-save only
+     * writes rows that actually changed instead of rewriting the whole session.
+     */
+    private fun seedSaveCache(candidates: List<RestoreCandidate>, restoredIds: List<Workspace.Id>) {
+        val byId = candidates.associateBy { it.id }
+        restoredIds.forEachIndexed { index, id ->
+            val candidate = byId[id] ?: return@forEachIndexed
+            try {
+                @Suppress("UNCHECKED_CAST")
+                val factory = factoryMap.getValue(candidate.type) as WorkspaceFactory<Workspace.Arguments>
+                val argsHash = factory.serialize(json, candidate.arguments).hashCode()
+                lastSavedWorkspaces[id] = argsHash to index
+            } catch (e: Exception) {
+                log(TAG, WARN) { "Failed to seed save cache for $id: ${e.asLog()}" }
+            }
+        }
     }
 
     internal suspend fun applyUIState(

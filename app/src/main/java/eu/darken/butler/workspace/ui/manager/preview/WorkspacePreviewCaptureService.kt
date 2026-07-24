@@ -37,6 +37,11 @@ class WorkspacePreviewCaptureService @Inject constructor(
     private val pageHosts: Map<Workspace.Type, @JvmSuppressWildcards WorkspacePageHostEntry>,
 ) {
 
+    /**
+     * Callers must not pass a dormant workspace: the capture composes the type's page host by
+     * synthesizing [Workspace.LifecycleState.Ready], which has no instance to bind to while dormant
+     * (and would eagerly load exactly what on-demand restore avoids).
+     */
     suspend fun captureWorkspace(
         workspaceId: Workspace.Id,
         workspaceType: Workspace.Type,
@@ -74,6 +79,7 @@ class WorkspacePreviewCaptureService @Inject constructor(
                             ),
                             onShareError = { /* No-op for preview */ },
                             onCloseWorkspace = { /* No-op for preview */ },
+                            onRestoreWorkspace = { /* No-op for preview */ },
                         )
                     }
                 }

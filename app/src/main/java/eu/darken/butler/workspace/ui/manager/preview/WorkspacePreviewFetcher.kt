@@ -81,6 +81,13 @@ class WorkspacePreviewFetcher @Inject constructor(
             return null
         }
 
+        // A dormant workspace has no instance to render yet - capturing it would load the very
+        // workspace on-demand restore is keeping asleep. Fall back to the static mock preview.
+        if (workspaceInfo.isDormant) {
+            log(TAG) { "Workspace ${data.workspaceId.shortTag} is dormant, skipping capture" }
+            return null
+        }
+
         // Try to extract ViewModelStoreOwner from Coil's context
         val mainActivity = (options.context as? MainActivity)
 

@@ -12,6 +12,7 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.twotone.AutoAwesome
+import androidx.compose.material.icons.twotone.HourglassTop
 import androidx.compose.material.icons.twotone.RestorePage
 import androidx.compose.material.icons.twotone.StayPrimaryLandscape
 import androidx.compose.material.icons.twotone.StayPrimaryPortrait
@@ -63,6 +64,7 @@ fun WorkspaceSettingsScreen(
     onSetLayoutModePortrait: (WorkspacePanelMode) -> Unit,
     onSetLayoutModeLandscape: (WorkspacePanelMode) -> Unit,
     onToggleSessionRestore: () -> Unit,
+    onToggleRestoreWorkspacesOnDemand: () -> Unit,
 ) {
     var showPortraitDialog by remember { mutableStateOf(false) }
     var showLandscapeDialog by remember { mutableStateOf(false) }
@@ -153,6 +155,16 @@ fun WorkspaceSettingsScreen(
             }
 
             if (state.sessionRestoreEnabled) {
+                item {
+                    SettingsSwitchItem(
+                        icon = Icons.TwoTone.HourglassTop,
+                        title = stringResource(R.string.workspace_settings_restore_ondemand_label),
+                        subtitle = stringResource(R.string.workspace_settings_restore_ondemand_description),
+                        checked = state.restoreWorkspacesOnDemand,
+                        onCheckedChange = { onToggleRestoreWorkspacesOnDemand() },
+                    )
+                }
+
                 item {
                     SettingsPreferenceItem(
                         icon = Icons.TwoTone.Storage,
@@ -290,6 +302,7 @@ private fun WorkspaceSettingsScreenPreview() {
             layoutModePortrait = WorkspacePanelMode.AUTO,
             layoutModeLandscape = WorkspacePanelMode.AUTO,
             sessionRestoreEnabled = true,
+            restoreWorkspacesOnDemand = true,
             sessionWorkspaceCount = 3,
             sessionDatabaseSizeBytes = 131072,
         ),
@@ -300,6 +313,7 @@ private fun WorkspaceSettingsScreenPreview() {
         onSetLayoutModePortrait = {},
         onSetLayoutModeLandscape = {},
         onToggleSessionRestore = {},
+        onToggleRestoreWorkspacesOnDemand = {},
     )
 }
 
@@ -320,6 +334,7 @@ fun WorkspaceSettingsScreenHost(vm: WorkspaceSettingsViewModel = hiltViewModel()
             onSetLayoutModePortrait = { mode -> vm.setLayoutModePortrait(mode) },
             onSetLayoutModeLandscape = { mode -> vm.setLayoutModeLandscape(mode) },
             onToggleSessionRestore = { vm.toggleSessionRestore() },
+            onToggleRestoreWorkspacesOnDemand = { vm.toggleRestoreWorkspacesOnDemand() },
         )
     }
 }

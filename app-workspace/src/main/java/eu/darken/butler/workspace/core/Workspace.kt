@@ -67,6 +67,17 @@ interface Workspace<ArgT : Workspace.Arguments> {
         data object Initializing : LifecycleState
         data class Error(val error: Throwable) : LifecycleState
         data object Ready : LifecycleState
+
+        /**
+         * The workspace exists as a lightweight stand-in that holds its arguments but has not been
+         * instantiated yet (on-demand session restore). It performs no I/O until it is hydrated,
+         * either by gaining focus or via the placeholder's restore button.
+         *
+         * [error] carries the failure of the last hydration attempt, if any. A failed hydration
+         * stays [Dormant] and never becomes [Error]: [Error] composes the workspace's typed page
+         * host, which would cast the stand-in to a concrete workspace type.
+         */
+        data class Dormant(val error: Throwable? = null) : LifecycleState
     }
 
     @Parcelize
@@ -280,6 +291,7 @@ interface Workspace<ArgT : Workspace.Arguments> {
         val isReady: Boolean get() = lifecycleState is LifecycleState.Ready
         val isError: Boolean get() = lifecycleState is LifecycleState.Error
         val isInitializing: Boolean get() = lifecycleState is LifecycleState.Initializing
+        val isDormant: Boolean get() = lifecycleState is LifecycleState.Dormant
     }
 }
 
