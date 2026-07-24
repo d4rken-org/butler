@@ -8,6 +8,7 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.ArchivePath
+import eu.darken.butler.common.files.extensions.filterDistinctRoots
 import eu.darken.butler.common.files.extensions.isDescendantOfOrSelf
 import eu.darken.butler.common.files.local.accessibility.LocalPathAccessChecker
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
@@ -17,10 +18,12 @@ import eu.darken.butler.common.storage.saf.SAFPickerIntentBuilder
 import eu.darken.butler.setup.core.SetupModule
 import eu.darken.butler.setup.core.SetupStateProvider
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
@@ -182,6 +185,83 @@ class PathPermissionCheck @Inject constructor(
         }
     }
 
+    /**
+     * Aggregated setup requirements for a set of observed paths (e.g. entries a directory walk
+     * could not read). Paths are reduced to their distinct roots first — descendants share their
+     * ancestor's requirements — and capped at [MAX_BATCH_MONITOR_PATHS] monitored roots.
+     *
+     * Semantics differ from the single-path [monitor] in two deliberate ways:
+     * - Per-path alternatives (existing SAF grant, SAF picker) are not aggregatable: a path with
+     *   an existing SAF grant contributes nothing (it is accessible), a picker-eligible path
+     *   still contributes its setup combos with live tracking (the picker itself is the caller's
+     *   concern, and combos must keep updating as setup completes).
+     * - Combos are combined as a conjunction across paths, not a union: a resulting combo is one
+     *   that unlocks EVERY path. Otherwise "Android/data (root OR Shizuku)" plus "/data (root
+     *   only)" would wrongly advertise Shizuku alone as sufficient.
+     */
+    fun monitor(paths: Collection<APath<*>>): Flow<PathRequirements> {
+        val roots = paths.filterDistinctRoots()
+        if (roots.isEmpty()) return flowOf(PathRequirements())
+        val monitored = roots.take(MAX_BATCH_MONITOR_PATHS)
+        if (monitored.size < roots.size) {
+            log(TAG, WARN) { "Batch monitor capped: ${roots.size} distinct roots, monitoring ${monitored.size}" }
+        }
+        return combine(monitored.map { monitorSetupOnly(it) }) { requirements ->
+            val active = requirements.filter { it.combos.isNotEmpty() }
+            PathRequirements(
+                combos = active.map { it.combos }.combineAsConjunction(),
+                complete = active.flatMap { it.complete }.toSet(),
+                shizukuInstalled = requirements.any { it.shizukuInstalled },
+                rootInstalled = requirements.any { it.rootInstalled },
+            )
+        }.distinctUntilChanged()
+    }
+
+    /**
+     * Single-path monitoring restricted to setup-based requirements: unlike [monitor], a viable
+     * SAF picker does not short-circuit into a single completed emission — the setup combos keep
+     * live-tracking so batch aggregation observes later grants (Android 11-12 would otherwise
+     * freeze on the picker emission and never see root/Shizuku completion).
+     */
+    private fun monitorSetupOnly(path: APath<*>): Flow<PathRequirements> = flow {
+        val determined = determineModuleRequirements(path)
+        val combos = when {
+            // Accessible right now through an existing SAF grant — nothing to set up
+            determined.alternativePath != null -> emptySet()
+            else -> determined.combos
+        }
+        if (combos.isEmpty()) {
+            emit(PathRequirements())
+            return@flow
+        }
+        trackSetupState(
+            relevantTypes = combos.flatten().toSet(),
+            build = { moduleStates, installState ->
+                PathRequirements(
+                    combos = combos,
+                    complete = moduleStates.filterValues { it }.keys,
+                    shizukuInstalled = installState.shizuku,
+                    rootInstalled = installState.root,
+                )
+            },
+        ).collect { emit(it) }
+    }
+
+    // Conjunction with antichain pruning: every step keeps only minimal combos, so the result
+    // stays tiny (bounded by antichains over the small SetupModule.Type domain).
+    private fun List<Set<Set<SetupModule.Type>>>.combineAsConjunction(): Set<Set<SetupModule.Type>> {
+        if (isEmpty()) return emptySet()
+        return fold(setOf(emptySet<SetupModule.Type>())) { acc, pathCombos ->
+            acc.flatMap { globalCombo -> pathCombos.map { combo -> globalCombo + combo } }
+                .toSet()
+                .let { combos ->
+                    combos.filter { combo ->
+                        combos.none { other -> other != combo && combo.containsAll(other) }
+                    }.toSet()
+                }
+        }
+    }
+
     fun monitor(path: APath<*>): Flow<PathRequirements> {
         return flow {
             val requirements = check(path, emptyMap())
@@ -193,38 +273,15 @@ class PathPermissionCheck @Inject constructor(
             }
 
             // For setup-based requirements, monitor setup state
-            setupStateProvider.state
-                .map { providerState ->
-                    val relevantModules = providerState.modules.values
-                        .filterIsInstance<SetupModule.State.Current>()
-                        .filter { module -> module.type in requirements.relevantTypes }
-
-                    val moduleStates = relevantModules.associate { it.type to it.isComplete }
-
-                    val hasAllModules = requirements.relevantTypes.all { type ->
-                        moduleStates.containsKey(type)
-                    }
-
-                    // Derived per-emission so install state tracks modules resolving from Loading.
-                    val installState = InstallState(
-                        shizuku = (providerState.modules[SetupModule.Type.SHIZUKU] as? SetupModule.State.Current)?.isInstalled == true,
-                        root = (providerState.modules[SetupModule.Type.ROOT] as? SetupModule.State.Current)?.isInstalled == true,
-                    )
-
-                    Triple(moduleStates, hasAllModules, installState)
-                }
-                .distinctUntilChanged()
-                .filter { it.second }
-                .onEach { (moduleStates, _, _) ->
-                    log(TAG, VERBOSE) { "Relevant setup state for $path: $moduleStates" }
-                }
-                .map { (moduleStates, _, installState) ->
+            trackSetupState(
+                relevantTypes = requirements.relevantTypes,
+                build = { moduleStates, installState ->
                     check(path, moduleStates).copy(
                         shizukuInstalled = installState.shizuku,
                         rootInstalled = installState.root,
                     )
-                }
-                .distinctUntilChanged()
+                },
+            )
                 .onEach { setupState ->
                     log(TAG) { "Setup state for $path: $setupState" }
                 }
@@ -232,9 +289,48 @@ class PathPermissionCheck @Inject constructor(
         }
     }
 
+    private fun trackSetupState(
+        relevantTypes: Set<SetupModule.Type>,
+        build: suspend (Map<SetupModule.Type, Boolean>, InstallState) -> PathRequirements,
+    ): Flow<PathRequirements> = setupStateProvider.state
+        .map { providerState ->
+            val relevantModules = providerState.modules.values
+                .filterIsInstance<SetupModule.State.Current>()
+                .filter { module -> module.type in relevantTypes }
+
+            val moduleStates = relevantModules.associate { it.type to it.isComplete }
+
+            val hasAllModules = relevantTypes.all { type ->
+                moduleStates.containsKey(type)
+            }
+
+            // Derived per-emission so install state tracks modules resolving from Loading.
+            val installState = InstallState(
+                shizuku = (providerState.modules[SetupModule.Type.SHIZUKU] as? SetupModule.State.Current)?.isInstalled == true,
+                root = (providerState.modules[SetupModule.Type.ROOT] as? SetupModule.State.Current)?.isInstalled == true,
+            )
+
+            Triple(moduleStates, hasAllModules, installState)
+        }
+        .distinctUntilChanged()
+        .filter { it.second }
+        .onEach { (moduleStates, _, _) ->
+            log(TAG, VERBOSE) { "Relevant setup state: $moduleStates" }
+        }
+        .map { (moduleStates, _, installState) -> build(moduleStates, installState) }
+        .distinctUntilChanged()
+
     private data class InstallState(val shizuku: Boolean, val root: Boolean)
 
     companion object {
         private val TAG = logTag("Permission", "PathChecker")
+
+        /**
+         * Upper bound on concurrently monitored roots in the batch overload. Distinct-root
+         * reduction collapses the common case (many entries under one restricted dir) to a
+         * handful; this cap only sheds load for pathological inputs. Truncation can at worst
+         * omit a suggestion, never offer an invalid one.
+         */
+        private const val MAX_BATCH_MONITOR_PATHS = 24
     }
 }

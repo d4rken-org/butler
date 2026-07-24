@@ -57,6 +57,7 @@ import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.searcher.core.resultKey
 import eu.darken.butler.searcher.ui.search.dialogs.SearchErrorDialog
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogHost
+import eu.darken.butler.searcher.ui.search.elements.AccessErrorsSheetContent
 import eu.darken.butler.searcher.ui.search.elements.PermissionSetupCard
 import eu.darken.butler.searcher.ui.search.elements.SearchProgressCard
 import eu.darken.butler.searcher.ui.search.elements.SearchResultItemDetails
@@ -150,6 +151,7 @@ fun SearcherWorkspacePage(
     val listState = rememberLazyListState()
     ReportScrollJank(listState, scrollTagList)
     var showTemplatesSheet by remember { mutableStateOf(false) }
+    var showAccessErrorsSheet by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val shortcutsFocusRequester = remember { FocusRequester() }
@@ -650,6 +652,7 @@ fun SearcherWorkspacePage(
                         searchStatus = currentState.workspaceState.searchStatus,
                         resultCount = currentState.workspaceState.results.size,
                         limitReached = currentState.workspaceState.limitReached,
+                        onAccessErrorsClick = { showAccessErrorsSheet = true },
                         onCancel = { onPageAction(SearcherPageAction.Search.Cancel) },
                         onClear = { onPageAction(SearcherPageAction.Search.ClearResults) },
                         onErrorClick = { path, exception ->
@@ -780,6 +783,29 @@ fun SearcherWorkspacePage(
                 onTemplateClick = { template ->
                     showTemplatesSheet = false
                     onPageAction(SearcherPageAction.Templates.Apply(template))
+                },
+            )
+        }
+
+        // Access-errors detail sheet, opened from the progress card's inaccessible-items line.
+        // Auto-dismiss when the errors clear (e.g. the post-setup rerun succeeded) so it never
+        // shows a stale empty list.
+        val accessErrorCount = currentState.workspaceState.targetProgress.sumOf { it.accessErrorCount }
+        LaunchedEffect(accessErrorCount) {
+            if (accessErrorCount == 0) showAccessErrorsSheet = false
+        }
+        PaneScopedBottomSheet(
+            visible = showAccessErrorsSheet,
+            onDismiss = { showAccessErrorsSheet = false },
+            topInset = statusBarInset,
+        ) {
+            AccessErrorsSheetContent(
+                targetProgress = currentState.workspaceState.targetProgress,
+                accessErrorRequirements = currentState.workspaceState.accessErrorRequirements,
+                bottomPadding = navBarInset,
+                onUnlockAccess = {
+                    showAccessErrorsSheet = false
+                    onPageAction(SearcherPageAction.Setup.Open(currentState.workspaceState.accessErrorRequirements))
                 },
             )
         }

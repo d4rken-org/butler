@@ -114,6 +114,8 @@ class FileSystemSearchBackendTest : BaseTest() {
             onErrorReturns += onError.invoke(firstDenied, IOException("denied"))
             emit(lookup("/sdcard/needle.txt"))
             onErrorReturns += onError.invoke(secondDenied, IOException("denied too"))
+            // Same entry reported again (boundary denial + unreadable lookup) — must not double-count
+            onErrorReturns += onError.invoke(firstDenied, IOException("denied"))
         }
         val query = SearchQuery(
             filenameQuery = FilenameQuery(pattern = "needle"),
@@ -124,7 +126,7 @@ class FileSystemSearchBackendTest : BaseTest() {
 
         results.size shouldBe 1
         // The walk must continue after errors, they are reported via progress instead
-        onErrorReturns shouldBe listOf(true, true)
+        onErrorReturns shouldBe listOf(true, true, true)
         val finalProgress = harness.progressUpdates.last()
         finalProgress.accessErrorCount shouldBe 2
         finalProgress.errorCount shouldBe 0

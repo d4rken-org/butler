@@ -16,6 +16,7 @@ import eu.darken.butler.common.datastore.valueBlocking
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.TextFileDetector
@@ -295,9 +296,40 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 val hadPermissionError = prev.second == SearcherWorkspace.State.SearchStatus.ERROR
                 wasNeedingSetup && noLongerNeedsSetup && hadPermissionError
             }
-            .filter { filenameQuery.value.isNotBlank() || effectiveContentText().isNotBlank() }
+            .filter { hasExecutableSearch() }
             .onEach {
                 log(tag, INFO) { "Permissions granted after setup, auto-retrying search" }
+                performSearch(saveToHistory = false)
+            }
+            .launchIn(vmScope)
+
+        // Auto-rerun when access to previously unreadable items is granted after setup. Unlike the
+        // block above (a search refused outright, status ERROR), this covers a search that
+        // COMPLETED but skipped protected items (e.g. Android/data before root was enabled).
+        // The trigger is a NEEDS_SETUP -> SATISFIED edge: a new search resets the requirements to
+        // empty combos (NONE), which is deliberately NOT a trigger — only an actual grant keeps
+        // the combos and flips one complete. This keeps new-search resets and rerun results
+        // (which either clear the errors or return to NEEDS_SETUP) from re-triggering.
+        workspaceSearchState
+            .map { it.accessErrorRequirements.toAccessSetupPhase() to it.searchStatus }
+            .distinctUntilChanged()
+            .scan(
+                Pair(
+                    AccessSetupPhase.NONE to SearcherWorkspace.State.SearchStatus.IDLE,
+                    AccessSetupPhase.NONE to SearcherWorkspace.State.SearchStatus.IDLE,
+                )
+            ) { prev, curr ->
+                Pair(prev.second, curr)
+            }
+            .filter { (prev, curr) ->
+                prev.first == AccessSetupPhase.NEEDS_SETUP &&
+                    prev.second == SearcherWorkspace.State.SearchStatus.COMPLETED &&
+                    curr.first == AccessSetupPhase.SATISFIED &&
+                    curr.second == SearcherWorkspace.State.SearchStatus.COMPLETED
+            }
+            .filter { hasExecutableSearch() }
+            .onEach {
+                log(tag, INFO) { "Access granted for previously unreadable items, auto-retrying search" }
                 performSearch(saveToHistory = false)
             }
             .launchIn(vmScope)
@@ -1374,4 +1406,19 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             ),
         )
     }
+}
+
+/**
+ * Phases of the access-error setup suggestion, used to edge-trigger the auto-rerun. Distinguishes
+ * "requirements were reset/none exist" (NONE) from "a viable combo was actually completed"
+ * (SATISFIED) — only NEEDS_SETUP -> SATISFIED may rerun; a new search's reset goes to NONE.
+ */
+private enum class AccessSetupPhase {
+    NONE, NEEDS_SETUP, SATISFIED
+}
+
+private fun PathRequirements.toAccessSetupPhase(): AccessSetupPhase = when {
+    !hasSetupOptions -> AccessSetupPhase.NONE
+    needsSetup -> AccessSetupPhase.NEEDS_SETUP
+    else -> AccessSetupPhase.SATISFIED
 }

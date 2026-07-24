@@ -39,23 +39,24 @@ class PathPermissionCheckTest : BaseTest() {
         androidObbPath: LocalPath? = null,
         hasExistingSAFPermission: Boolean = false,  // Does SAFLocationManager have permission?
         documentUIAllowed: Boolean = true,
-        safPickerIntent: Intent? = null
+        safPickerIntent: Intent? = null,
+        completedTypes: Set<SetupModule.Type> = emptySet(),
     ): PathPermissionCheck {
         // Create setup modules for all possible types
         val modules = mapOf(
             SetupModule.Type.STORAGE to mockk<SetupModule.State.Current>(relaxed = true) {
                 every { type } returns SetupModule.Type.STORAGE
-                every { isComplete } returns false
+                every { isComplete } returns (SetupModule.Type.STORAGE in completedTypes)
                 every { isAvailable } returns false
             },
             SetupModule.Type.ROOT to mockk<SetupModule.State.Current>(relaxed = true) {
                 every { type } returns SetupModule.Type.ROOT
-                every { isComplete } returns false
+                every { isComplete } returns (SetupModule.Type.ROOT in completedTypes)
                 every { isAvailable } returns true
             },
             SetupModule.Type.SHIZUKU to mockk<SetupModule.State.Current>(relaxed = true) {
                 every { type } returns SetupModule.Type.SHIZUKU
-                every { isComplete } returns false
+                every { isComplete } returns (SetupModule.Type.SHIZUKU in completedTypes)
                 every { isAvailable } returns true
             }
         )
@@ -339,5 +340,93 @@ class PathPermissionCheckTest : BaseTest() {
         checker.monitor(testPath).first()
 
         coVerify { androidDataAccessChecker.canUseSAFForAndroidData() }
+    }
+
+    @Test
+    fun `batch monitor combines combos as a conjunction across roots`() = runTest {
+        val androidDataPath = LocalPath.build("/storage/emulated/0/Android/data")
+        val checker = createChecker(
+            apiLevel = 33,
+            androidDataPath = androidDataPath,
+        )
+        val restrictedPath = LocalPath.build("/storage/emulated/0/Android/data/com.example")
+        val rootOnlyPath = LocalPath.build("/data/local/tmp")
+
+        val requirements = checker.monitor(listOf(restrictedPath, rootOnlyPath)).first()
+
+        // Android/data (13+) allows ROOT or SHIZUKU, but /data needs ROOT — Shizuku alone must
+        // NOT be advertised as sufficient. Only ROOT unlocks every path ({ROOT,SHIZUKU} is a
+        // pruned superset).
+        requirements.combos shouldBe setOf(setOf(SetupModule.Type.ROOT))
+        requirements.needsSetup shouldBe true
+    }
+
+    @Test
+    fun `batch monitor keeps tracking setup completion when a SAF picker exists`() = runTest {
+        // Android 11-12: the single-path monitor short-circuits on a viable picker and stops
+        // observing setup state. The batch monitor must not — completing root has to be reflected
+        // so the suggestion clears and dependent reruns can trigger.
+        val androidDataPath = LocalPath.build("/storage/emulated/0/Android/data")
+        val testPath = LocalPath.build("/storage/emulated/0/Android/data/com.example")
+
+        val before = createChecker(
+            apiLevel = 30,
+            androidDataPath = androidDataPath,
+            safPickerIntent = Intent(),
+        ).monitor(listOf(testPath)).first()
+        before.combos shouldBe setOf(setOf(SetupModule.Type.ROOT), setOf(SetupModule.Type.SHIZUKU))
+        before.safPickerGrant.shouldBeNull()
+        before.needsSetup shouldBe true
+
+        val after = createChecker(
+            apiLevel = 30,
+            androidDataPath = androidDataPath,
+            safPickerIntent = Intent(),
+            completedTypes = setOf(SetupModule.Type.ROOT),
+        ).monitor(listOf(testPath)).first()
+        after.complete shouldBe setOf(SetupModule.Type.ROOT)
+        after.needsSetup shouldBe false
+    }
+
+    @Test
+    fun `batch monitor skips paths accessible through an existing SAF grant`() = runTest {
+        val androidDataPath = LocalPath.build("/storage/emulated/0/Android/data")
+        val testPath = LocalPath.build("/storage/emulated/0/Android/data/com.example")
+        val checker = createChecker(
+            apiLevel = 33,
+            androidDataPath = androidDataPath,
+            hasExistingSAFPermission = true,
+        )
+
+        val requirements = checker.monitor(listOf(testPath)).first()
+
+        // Accessible right now via SAF — nothing to suggest
+        requirements shouldBe PathRequirements()
+    }
+
+    @Test
+    fun `batch monitor collapses descendants to their ancestor`() = runTest {
+        val androidDataPath = LocalPath.build("/storage/emulated/0/Android/data")
+        val checker = createChecker(
+            apiLevel = 33,
+            androidDataPath = androidDataPath,
+        )
+        val parent = LocalPath.build("/storage/emulated/0/Android/data/com.example")
+        val child = LocalPath.build("/storage/emulated/0/Android/data/com.example/files/deep")
+
+        val batch = checker.monitor(listOf(parent, child)).first()
+        val single = checker.monitor(parent).first()
+
+        batch.combos shouldBe single.combos
+    }
+
+    @Test
+    fun `batch monitor with no paths yields empty requirements`() = runTest {
+        val checker = createChecker(apiLevel = 33)
+
+        val requirements = checker.monitor(emptyList()).first()
+
+        requirements shouldBe PathRequirements()
+        requirements.needsSetup shouldBe false
     }
 }

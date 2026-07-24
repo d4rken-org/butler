@@ -12,7 +12,9 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.extensions.filterDistinctRoots
 import eu.darken.butler.common.storage.StorageManager2
+import eu.darken.butler.permissions.core.PathPermissionCheck
 import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchQuery
@@ -27,6 +29,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.channelFlow
@@ -37,7 +40,9 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -48,6 +53,7 @@ class SearchEngine @AssistedInject constructor(
     private val dispatcherProvider: DispatcherProvider,
     private val storageManager2: StorageManager2,
     private val searcherSettings: SearcherSettings,
+    private val pathPermissionCheck: PathPermissionCheck,
 ) {
 
     private val tag = logTag("Searcher", "Workspace", workspaceId.shortTag, "Engine")
@@ -61,6 +67,22 @@ class SearchEngine @AssistedInject constructor(
 
     private val _targetProgressState = MutableStateFlow<List<SearchTargetProgress>>(emptyList())
     val targetProgressState: StateFlow<List<SearchTargetProgress>> = _targetProgressState.asStateFlow()
+
+    /**
+     * Setup requirements that would unlock the items the current scan could not read
+     * (e.g. Android/data without root/Shizuku enabled). Complements [setupRequirements], which
+     * gates on the target roots before a search starts: a target can pass that pre-flight check
+     * yet still hit protected subtrees mid-walk. Only viable mechanisms are ever suggested —
+     * [PathPermissionCheck] filters on availability (root manager / Shizuku installed). Derived
+     * from [targetProgressState], so it resets with it on every new search.
+     */
+    val accessErrorRequirements: StateFlow<PathRequirements> = _targetProgressState
+        .map { progress -> progress.flatMap { it.accessErrorPaths }.filterDistinctRoots() }
+        .distinctUntilChanged()
+        .flatMapLatest { errorRoots ->
+            if (errorRoots.isEmpty()) flowOf(PathRequirements()) else pathPermissionCheck.monitor(errorRoots)
+        }
+        .stateIn(scope, SharingStarted.Eagerly, PathRequirements())
 
     init {
         log(tag, INFO) { "Initialized with ${backends.size} backend(s)" }

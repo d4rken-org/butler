@@ -152,6 +152,11 @@
         <item quantity="other">…and %d more</item>
     </plurals>
 
+    <!-- Access-errors detail sheet (opened from the "N items couldn't be accessed" line) -->
+    <string name="searcher_access_sheet_body_unlockable">Android protects these locations. Additional access lets Butler search them.</string>
+    <string name="searcher_access_sheet_body_protected">Android protects these locations. There is no way to grant access on this device.</string>
+    <string name="searcher_access_sheet_unlock_action">Unlock access</string>
+
     <plurals name="searcher_progress_locations_count">
         <item quantity="one">%d location</item>
         <item quantity="other">%d locations</item>

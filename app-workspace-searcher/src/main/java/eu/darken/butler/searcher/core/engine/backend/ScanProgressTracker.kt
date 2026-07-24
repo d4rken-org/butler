@@ -49,8 +49,13 @@ internal class ScanProgressTracker(
     }
 
     fun recordAccessError(errorPath: APath<*>) {
+        if (accessErrorPaths.size < SearchConfig.MAX_REPORTED_ERROR_PATHS) {
+            // The same entry can be reported through more than one channel (e.g. a denied route
+            // boundary AND its unreadable lookup) — count unique items, not report events.
+            if (errorPath in accessErrorPaths) return
+            accessErrorPaths.add(errorPath)
+        }
         accessErrorCount++
-        if (accessErrorPaths.size < SearchConfig.MAX_REPORTED_ERROR_PATHS) accessErrorPaths.add(errorPath)
     }
 
     fun flush() = onProgress(snapshot())

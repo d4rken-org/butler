@@ -19,6 +19,7 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.extensions.isAncestorOfOrSelf
 import eu.darken.butler.common.flow.chunked
+import eu.darken.butler.common.flow.combine
 import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.searcher.core.engine.SearchConfig
 import eu.darken.butler.searcher.core.engine.SearchEngine
@@ -49,7 +50,6 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -124,6 +124,7 @@ class SearcherWorkspace @AssistedInject constructor(
         val searchTargets: List<SearchTarget> = emptyList(), // From engine
         val setupRequirements: PathRequirements = PathRequirements(), // From engine
         val targetProgress: List<SearchEngine.SearchTargetProgress> = emptyList(), // From engine
+        val accessErrorRequirements: PathRequirements = PathRequirements(), // From engine
     ) {
         /**
          * True when the result set may be incomplete: some target failed outright, hit inaccessible
@@ -186,13 +187,15 @@ class SearcherWorkspace @AssistedInject constructor(
         searchEngine.targetState,
         searchEngine.setupRequirements,
         searchEngine.targetProgressState,
+        searchEngine.accessErrorRequirements,
         removedPaths,
-    ) { searchState, targets, requirements, targetProgress, removed ->
+    ) { searchState, targets, requirements, targetProgress, accessErrorRequirements, removed ->
         searchState.copy(
             results = visibleResults(searchState.results, removed),
             searchTargets = targets,
             setupRequirements = requirements,
             targetProgress = targetProgress,
+            accessErrorRequirements = accessErrorRequirements,
         )
     }
 
@@ -343,6 +346,11 @@ class SearcherWorkspace @AssistedInject constructor(
 
     private suspend fun processSearchRequest(command: SearcherCommand.Search, generation: Long) {
         log(tag) { "processSearchRequest(): filename=${command.filenameQuery.pattern}, content=${command.contentQuery.pattern}" }
+
+        // Wipe the previous run's per-target progress up front. A rejected request (invalid
+        // query, no targets, permissions) never reaches the engine's own progress init, and must
+        // not keep showing the prior search's counts, access errors, or setup suggestion.
+        searchEngine.clearTargetProgress()
 
         // Set initial progress; the display path is optional (index-backed targets have none)
         val initialProgress = SearchEngine.SearchProgress(

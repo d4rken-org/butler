@@ -19,8 +19,10 @@ import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.preview.FolderPreviewResolver
 import io.kotest.matchers.shouldBe
+import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -62,6 +64,8 @@ class SearcherWorkspaceLiveUpdateTest : BaseTest() {
         val engine = mockk<SearchEngine> {
             every { targetState } returns MutableStateFlow(listOf(SearchTarget.Path(root)))
             every { setupRequirements } returns MutableStateFlow(PathRequirements())
+            every { accessErrorRequirements } returns MutableStateFlow(PathRequirements())
+            every { clearTargetProgress() } just Runs
             every { targetProgressState } returns MutableStateFlow(emptyList())
             coEvery { search(any(), any()) } answers {
                 SearchEngine.Result.Success(

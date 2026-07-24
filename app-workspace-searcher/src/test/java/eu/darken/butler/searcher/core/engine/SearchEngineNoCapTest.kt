@@ -1,5 +1,6 @@
 package eu.darken.butler.searcher.core.engine
 
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.searcher.core.SearchItem
@@ -52,6 +53,9 @@ class SearchEngineNoCapTest : BaseTest() {
                 every { contentSearchBinaries } returns mockk {
                     every { flow } returns flowOf(false)
                 }
+            },
+            pathPermissionCheck = mockk {
+                every { monitor(any<Collection<APath<*>>>()) } returns flowOf(PathRequirements())
             },
         )
 

@@ -1,6 +1,8 @@
 package eu.darken.butler.searcher.core.engine
 
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.permissions.core.PathPermissionCheck
 import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearcherSettings
@@ -23,8 +25,11 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.TestScope
@@ -56,6 +61,9 @@ class SearchEngineTest : BaseTest() {
     private fun TestScope.createEngine(
         backends: Set<SearchBackend>,
         savedTargets: List<SearchTarget>,
+        pathPermissionCheck: PathPermissionCheck = mockk {
+            every { monitor(any<Collection<APath<*>>>()) } returns flowOf(PathRequirements())
+        },
     ) = SearchEngine(
         workspaceId = Workspace.Id(),
         workspaceScope = backgroundScope,
@@ -70,6 +78,7 @@ class SearchEngineTest : BaseTest() {
                 every { flow } returns flowOf(false)
             }
         },
+        pathPermissionCheck = pathPermissionCheck,
     )
 
     @Nested
@@ -401,6 +410,109 @@ class SearchEngineTest : BaseTest() {
 
             progress.accessErrorCount shouldBe 3
             progress.accessErrorPaths shouldContainExactly listOf(errorPath)
+        }
+    }
+
+    @Nested
+    inner class AccessErrorRequirementTests {
+
+        private fun accessErrorBackend(errorPaths: List<APath<*>>) = object : SearchBackend {
+            override val priority: Int = 0
+            override fun canHandle(target: SearchTarget): Boolean = true
+            override fun supports(condition: FilterCondition): Boolean = true
+            override fun monitorRequirements(target: SearchTarget): Flow<PathRequirements> = flowOf(PathRequirements())
+            override suspend fun scan(session: SearchBackend.ScanSession): Flow<SearchBackend.BackendResult> {
+                session.onProgress(
+                    SearchBackend.ScanProgress(
+                        currentPath = null,
+                        itemsScanned = 1,
+                        resultsFound = 0,
+                        accessErrorCount = errorPaths.size,
+                        accessErrorPaths = errorPaths,
+                    )
+                )
+                return emptyFlow()
+            }
+        }
+
+        @Test
+        fun `access error paths drive requirements via deduped roots`(): Unit = runTest {
+            val target = SearchTarget.Path.from(LocalPath.build("/sdcard"))
+            val androidData = LocalPath.build("/sdcard/Android/data")
+            val child = LocalPath.build("/sdcard/Android/data/com.example")
+            val expected = PathRequirements(combos = setOf(setOf(SetupModule.Type.ROOT)))
+            val permissionCheck = mockk<PathPermissionCheck> {
+                every { monitor(any<Collection<APath<*>>>()) } returns flowOf(expected)
+            }
+            val engine = createEngine(
+                backends = setOf(accessErrorBackend(listOf(androidData, child))),
+                savedTargets = listOf(target),
+                pathPermissionCheck = permissionCheck,
+            )
+
+            val result = engine.search(
+                SearcherCommand.Search(filenameQuery = FilenameQuery(pattern = "x"), targets = listOf(target))
+            )
+            result.shouldBeInstanceOf<SearchEngine.Result.Success>()
+            result.results.toList()
+
+            engine.accessErrorRequirements.first { it.needsSetup } shouldBe expected
+            // Descendants collapse to their ancestor before the permission check
+            verify {
+                permissionCheck.monitor(
+                    match<Collection<APath<*>>> { it.toSet() == setOf<APath<*>>(androidData) }
+                )
+            }
+        }
+
+        @Test
+        fun `requirements reset when target progress clears`(): Unit = runTest {
+            val target = SearchTarget.Path.from(LocalPath.build("/sdcard"))
+            val androidData = LocalPath.build("/sdcard/Android/data")
+            val permissionCheck = mockk<PathPermissionCheck> {
+                every { monitor(any<Collection<APath<*>>>()) } returns
+                    flowOf(PathRequirements(combos = setOf(setOf(SetupModule.Type.ROOT))))
+            }
+            val engine = createEngine(
+                backends = setOf(accessErrorBackend(listOf(androidData))),
+                savedTargets = listOf(target),
+                pathPermissionCheck = permissionCheck,
+            )
+
+            val result = engine.search(
+                SearcherCommand.Search(filenameQuery = FilenameQuery(pattern = "x"), targets = listOf(target))
+            )
+            result.shouldBeInstanceOf<SearchEngine.Result.Success>()
+            result.results.toList()
+            engine.accessErrorRequirements.first { it.needsSetup }
+
+            engine.clearTargetProgress()
+
+            engine.accessErrorRequirements.first { !it.needsSetup } shouldBe PathRequirements()
+        }
+
+        @Test
+        fun `no access errors keeps requirements empty without path checks`(): Unit = runTest {
+            val target = SearchTarget.Path.from(LocalPath.build("/sdcard"))
+            val permissionCheck = mockk<PathPermissionCheck> {
+                every { monitor(any<Collection<APath<*>>>()) } returns
+                    flowOf(PathRequirements(combos = setOf(setOf(SetupModule.Type.ROOT))))
+            }
+            val engine = createEngine(
+                backends = setOf(FakeBackend()),
+                savedTargets = listOf(target),
+                pathPermissionCheck = permissionCheck,
+            )
+
+            val result = engine.search(
+                SearcherCommand.Search(filenameQuery = FilenameQuery(pattern = "x"), targets = listOf(target))
+            )
+            result.shouldBeInstanceOf<SearchEngine.Result.Success>()
+            result.results.toList()
+            testScheduler.advanceUntilIdle()
+
+            engine.accessErrorRequirements.value shouldBe PathRequirements()
+            verify(exactly = 0) { permissionCheck.monitor(any<Collection<APath<*>>>()) }
         }
     }
 }

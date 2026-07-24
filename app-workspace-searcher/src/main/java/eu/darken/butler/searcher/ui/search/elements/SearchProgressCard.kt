@@ -1,6 +1,5 @@
 package eu.darken.butler.searcher.ui.search.elements
 
-import android.content.Context
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -21,6 +20,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Cancel
 import androidx.compose.material.icons.twotone.CheckCircle
+import androidx.compose.material.icons.twotone.ChevronRight
 import androidx.compose.material.icons.twotone.Error
 import androidx.compose.material.icons.twotone.ExpandLess
 import androidx.compose.material.icons.twotone.ExpandMore
@@ -69,14 +69,16 @@ fun SearchProgressCard(
     modifier: Modifier = Modifier,
     initiallyExpanded: Boolean = false,
     limitReached: Boolean = false,
+    onAccessErrorsClick: () -> Unit = {},
 ) {
     // Auto-collapse when search completes, but expand during active search
     var isExpanded by rememberSaveable(searchStatus) {
         mutableStateOf(initiallyExpanded)
     }
 
-    // Items that couldn't be read at all (permission denied etc.) — drives the banner wording and
-    // the per-row disclosure. Distinct from the generic "partial" signal (content-degraded reads).
+    // Items that couldn't be read at all (permission denied etc.) — drives the tappable header
+    // line that opens the detail sheet. Distinct from the generic "partial" signal
+    // (content-degraded reads).
     val accessErrorCount = targetProgress.sumOf { it.accessErrorCount }
     val hasOtherPartial = targetProgress.any {
         it.errorCount > 0 || it.status == SearchEngine.SearchTargetProgress.Status.ERROR
@@ -103,6 +105,7 @@ fun SearchProgressCard(
                 limitReached = limitReached,
                 accessErrorCount = accessErrorCount,
                 hasOtherPartial = hasOtherPartial,
+                onAccessErrorsClick = onAccessErrorsClick,
                 isExpanded = isExpanded,
                 onExpandClick = { isExpanded = !isExpanded },
                 onCancelClick = onCancel,
@@ -148,8 +151,6 @@ fun SearchProgressCard(
                                 resultsFound = pathProgress.resultsFound,
                                 status = displayStatus,
                                 exception = pathProgress.exception,
-                                accessErrorCount = pathProgress.accessErrorCount,
-                                errorPaths = pathProgress.relativeErrorLabels(context),
                                 onErrorClick = if (pathProgress.exception != null) {
                                     {
                                         onErrorClick(
@@ -184,6 +185,7 @@ private fun SearchProgressHeader(
     limitReached: Boolean,
     accessErrorCount: Int,
     hasOtherPartial: Boolean,
+    onAccessErrorsClick: () -> Unit,
     isExpanded: Boolean,
     onExpandClick: () -> Unit,
     onCancelClick: () -> Unit,
@@ -293,20 +295,32 @@ private fun SearchProgressHeader(
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            // Access errors (items that couldn't be read) get a concrete count; the softer
-            // "partial" case (degraded content reads) keeps a neutral note. Suppressed while the
-            // whole search is in an ERROR state, which is already shown by the header icon.
+            // Access errors (items that couldn't be read) get a concrete count that opens the
+            // detail sheet (paths + how to unlock); the softer "partial" case (degraded content
+            // reads) keeps a plain neutral note. Suppressed while the whole search is in an ERROR
+            // state, which is already shown by the header icon.
             val notErrored = searchStatus != SearcherWorkspace.State.SearchStatus.ERROR
             when {
-                accessErrorCount > 0 && notErrored -> Text(
-                    text = pluralStringResource(
-                        R.plurals.searcher_progress_items_inaccessible_count,
-                        accessErrorCount,
-                        accessErrorCount,
-                    ),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.error,
-                )
+                accessErrorCount > 0 && notErrored -> Row(
+                    modifier = Modifier.clickable(onClick = onAccessErrorsClick),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = pluralStringResource(
+                            R.plurals.searcher_progress_items_inaccessible_count,
+                            accessErrorCount,
+                            accessErrorCount,
+                        ),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                    Icon(
+                        imageVector = Icons.TwoTone.ChevronRight,
+                        contentDescription = stringResource(eu.darken.butler.common.R.string.general_show_details_action),
+                        modifier = Modifier.size(16.dp),
+                        tint = MaterialTheme.colorScheme.error,
+                    )
+                }
                 hasOtherPartial && notErrored -> Text(
                     text = stringResource(R.string.searcher_progress_items_partial),
                     style = MaterialTheme.typography.labelMedium,
@@ -350,8 +364,6 @@ private fun SearchPathProgressRow(
     status: SearchEngine.SearchTargetProgress.Status,
     exception: Throwable?,
     onErrorClick: (() -> Unit)?,
-    accessErrorCount: Int = 0,
-    errorPaths: List<String> = emptyList(),
 ) {
     val rowModifier =
         if (status == SearchEngine.SearchTargetProgress.Status.ERROR && exception != null && onErrorClick != null) {
@@ -430,63 +442,6 @@ private fun SearchPathProgressRow(
                     overflow = TextOverflow.Ellipsis
                 )
             }
-
-            // Inaccessible items: a single disclosure that expands to the actual paths (no
-            // duplicated count). Retained via the LazyColumn item key above.
-            if (accessErrorCount > 0) {
-                var errorsExpanded by rememberSaveable { mutableStateOf(false) }
-                Row(
-                    modifier = Modifier
-                        .clickable { errorsExpanded = !errorsExpanded }
-                        .padding(vertical = 2.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(
-                        imageVector = if (errorsExpanded) Icons.TwoTone.ExpandLess else Icons.TwoTone.ExpandMore,
-                        contentDescription = stringResource(
-                            if (errorsExpanded) eu.darken.butler.common.R.string.general_collapse_action
-                            else eu.darken.butler.common.R.string.general_expand_action
-                        ),
-                        modifier = Modifier.size(14.dp),
-                        tint = MaterialTheme.colorScheme.error,
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = pluralStringResource(
-                            R.plurals.searcher_progress_items_inaccessible_count,
-                            accessErrorCount,
-                            accessErrorCount,
-                        ),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.error,
-                    )
-                }
-                AnimatedVisibility(visible = errorsExpanded) {
-                    Column(modifier = Modifier.padding(start = 18.dp, top = 2.dp)) {
-                        errorPaths.forEach { label ->
-                            Text(
-                                text = label,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
-                        val more = accessErrorCount - errorPaths.size
-                        if (more > 0) {
-                            Text(
-                                text = pluralStringResource(
-                                    R.plurals.searcher_progress_inaccessible_more,
-                                    more,
-                                    more,
-                                ),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
-                }
-            }
         }
 
         // Status text
@@ -502,20 +457,6 @@ private fun SearchPathProgressRow(
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-    }
-}
-
-// Inaccessible paths rendered relative to the target root so the distinguishing tail stays visible
-// (an end-ellipsized absolute path would show only the shared prefix). Falls back to the full path.
-private fun SearchEngine.SearchTargetProgress.relativeErrorLabels(context: Context): List<String> {
-    val rootSegments = (target as? SearchTarget.Path)?.path?.segments
-    return accessErrorPaths.map { errorPath ->
-        val segs = errorPath.segments
-        if (rootSegments != null && segs.size > rootSegments.size && segs.take(rootSegments.size) == rootSegments) {
-            segs.drop(rootSegments.size).joinToString("/")
-        } else {
-            errorPath.userReadablePath.get(context)
-        }
     }
 }
 
@@ -739,9 +680,9 @@ private fun SearchProgressCardSinglePathPreview() {
     )
 }
 
-// Mirrors the reported bug: a single location that completed ("Done") but couldn't read 4 items
-// inside it. The header should read "4 items couldn't be accessed" with the warning icon, and the
-// row's disclosure expands to the actual paths.
+// Mirrors the reported bug: a single location that completed ("Done") but couldn't read items
+// inside it. The header shows the warning icon and the tappable "2 items couldn't be accessed ›"
+// line that opens the access-errors sheet.
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
@@ -756,8 +697,6 @@ private fun SearchProgressCardSingleLocationAccessErrorsPreview() {
                 errorPaths = listOf(
                     "/storage/emulated/0/Android/data",
                     "/storage/emulated/0/Android/obb",
-                    "/storage/emulated/0/.lost+found",
-                    "/storage/emulated/0/Android/media/com.example/private",
                 ),
             ),
         ),
