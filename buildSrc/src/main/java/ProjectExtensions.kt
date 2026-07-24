@@ -1,5 +1,5 @@
 import com.android.build.api.dsl.CommonExtension
-import com.android.build.gradle.LibraryExtension
+import com.android.build.api.dsl.LibraryExtension
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.tasks.testing.Test
@@ -63,7 +63,6 @@ fun Project.setupKotlinOptions() {
                 "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
                 "-opt-in=kotlinx.coroutines.FlowPreview",
                 "-opt-in=kotlin.time.ExperimentalTime",
-                "-opt-in=kotlin.RequiresOptIn",
                 "-Xjvm-default=all",
                 "-Xcontext-parameters",
                 "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
