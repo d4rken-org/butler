@@ -99,7 +99,7 @@ class AppDetailsWorkspace @AssistedInject constructor(
         val canClearData: Boolean get() = hasRoot || hasAdb
     }
 
-    val state: Flow<State> = eu.darken.butler.common.flow.combine(
+    val state: Flow<State> = combine(
         appInfoFlow,
         selectedTabFlow,
         rootManager.useRoot,

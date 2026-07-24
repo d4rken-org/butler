@@ -29,7 +29,7 @@ import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.common.flow.SingleEventFlow
-import eu.darken.butler.common.flow.combine
+import eu.darken.butler.common.flow.combine as combineMany
 import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.destSetup
@@ -97,6 +97,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
@@ -381,7 +382,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     }
 
     // Sorted/filtered items, shared to prevent duplicate processing
-    private val processedItemsFlow: Flow<List<ExplorerItem>?> = combine(
+    private val processedItemsFlow: Flow<List<ExplorerItem>?> = combineMany(
         workspaceReadyState
             .map { it?.currentLocation?.items }
             .distinctUntilChanged { old, new -> old.hasSameItemsAs(new) },
@@ -430,7 +431,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 is ExplorerWorkspace.State.Initializing,
                 is ExplorerWorkspace.State.Error -> emptyFlow()
 
-                is ExplorerWorkspace.State.Ready -> combine(
+                is ExplorerWorkspace.State.Ready -> combineMany(
                     flowOf(wsState),
                     processedItemsFlow,
                     derivedSelectionStateFlow,

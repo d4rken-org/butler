@@ -24,7 +24,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.developer.DeveloperSettings
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.common.flow.combine
+import eu.darken.butler.common.flow.combine as combineMany
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.common.root.RootManager
 import eu.darken.butler.common.ui.ViewModel4
@@ -56,6 +56,7 @@ import kotlin.uuid.Uuid
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
@@ -141,7 +142,7 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
         )
     }
 
-    private val optionsSource = combine(
+    private val optionsSource = combineMany(
         debugSettings.isDebugMode.flow,
         debugSettings.isTraceMode.flow,
         debugSettings.floatingLogVisible.flow,

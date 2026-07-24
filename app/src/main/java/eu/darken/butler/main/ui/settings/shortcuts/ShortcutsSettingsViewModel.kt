@@ -9,12 +9,12 @@ import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.main.core.shortcuts.LastAccessedPaths
 import eu.darken.butler.main.core.shortcuts.ShortcutRepo
 import eu.darken.butler.main.core.shortcuts.ShortcutSettings
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.combine
 import javax.inject.Inject
 
 @HiltViewModel
@@ -33,14 +33,7 @@ class ShortcutsSettingsViewModel @Inject constructor(
         shortcutSettings.minAccessCount.flow,
         shortcutSettings.lastAccessedData.flow,
         eventFlow,
-    ) { values ->
-        val isEnabled = values[0] as Boolean
-        val autoRememberEnabled = values[1] as Boolean
-        val maxShortcuts = values[2] as Int
-        val minAccess = values[3] as Int
-        val lastAccessedData = values[4] as LastAccessedPaths
-        val event = values[5] as Event?
-
+    ) { isEnabled, autoRememberEnabled, maxShortcuts, minAccess, lastAccessedData, event ->
         State(
             isEnabled = isEnabled,
             autoRememberEnabled = autoRememberEnabled,
