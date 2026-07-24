@@ -54,6 +54,8 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
@@ -86,6 +88,13 @@ class SaverWorkspace @AssistedInject constructor(
 
     val isBatchMode: Boolean get() = sourceUris.size > 1
 
+    /**
+     * Immutable modal marker: set when launched by another workspace (APK export). Read directly
+     * from the creation arguments so it is correct synchronously, before the async state combine
+     * publishes — unlike [state], whose lazy seed carries a null caller id.
+     */
+    val callerWorkspaceId: Workspace.Id? = creationArguments.callerWorkspaceId
+
     // State flows for UI
     private val _sourceInfos = MutableStateFlow<List<ContentUriHelper.SourceInfo>>(emptyList())
     val sourceInfos: Flow<List<ContentUriHelper.SourceInfo>> = _sourceInfos
@@ -101,6 +110,9 @@ class SaverWorkspace @AssistedInject constructor(
 
     private val _saveState = MutableStateFlow<SaveState>(SaveState.Idle)
     val saveState: Flow<SaveState> = _saveState
+
+    // Serializes the check-and-set below so a rapid double-tap can't submit two operations.
+    private val saveMutex = Mutex()
 
     private val _currentOperationId = MutableStateFlow<Operation.Id?>(null)
     val currentOperation: Flow<ManagedOperation?> = _currentOperationId
@@ -339,13 +351,26 @@ class SaverWorkspace @AssistedInject constructor(
             }
         }
 
-        log(tag, INFO) { "Starting save of ${sources.size} file(s) to $destination" }
+        // Idempotency guard: reject a concurrent save (e.g. rapid double-tap) so we never submit
+        // two operations for the same workspace. Check-and-set the initial state under a lock.
+        val accepted = saveMutex.withLock {
+            if (_saveState.value !is SaveState.Idle) {
+                false
+            } else {
+                _saveState.value = SaveState.Saving(
+                    currentFile = 0,
+                    totalFiles = sources.size,
+                    currentFilename = sources.firstOrNull()?.filename ?: "",
+                )
+                true
+            }
+        }
+        if (!accepted) {
+            log(tag, WARN) { "save() ignored - a save is already in progress (${_saveState.value})" }
+            return
+        }
 
-        _saveState.value = SaveState.Saving(
-            currentFile = 0,
-            totalFiles = sources.size,
-            currentFilename = sources.firstOrNull()?.filename ?: "",
-        )
+        log(tag, INFO) { "Starting save of ${sources.size} file(s) to $destination" }
 
         val operation = saveFilesOperationFactory.create(
             workspaceId = id,

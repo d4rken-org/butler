@@ -27,6 +27,9 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapp
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -37,6 +40,7 @@ import eu.darken.butler.saver.R
 import eu.darken.butler.saver.core.ContentUriHelper
 import eu.darken.butler.saver.core.SaverWorkspace
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.issues.IssuesBottomSheet
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
@@ -64,6 +68,19 @@ fun SaverWorkspacePageHost(
         }
     }
 
+    // Auto-surface a new file-conflict sheet only while this page is the focused pane (excludes
+    // offscreen preview capture, which provides focused=false) AND the app is resumed. The effect
+    // isn't composed at all when a deeper modal (e.g. Explorer picker) is on top, which also gates
+    // "this saver is the top-most dialog".
+    val focused = LocalWorkspaceFocused.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(vm, focused, lifecycleOwner) {
+        if (!focused) return@LaunchedEffect
+        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            vm.autoSurfaceModalConflicts()
+        }
+    }
+
     SaverWorkspacePage(
         workspaceId = id,
         design = design,
@@ -86,10 +103,15 @@ internal fun SaverWorkspacePage(
     // Operation dialog state
     var operationDialogState by remember { mutableStateOf<OperationDialogState>(OperationDialogState.None) }
 
-    // Issue state observation. showIssueSheet is durable VM state so a notification-driven open
-    // survives recomposition / late collector subscription.
-    val issueState by (vm?.issueState?.collectAsState(initial = null) ?: remember { mutableStateOf(null) })
-    val showIssueSheet by (vm?.showIssueSheet?.collectAsState() ?: remember { mutableStateOf(false) })
+    // Conflict sheet state. Durable VM state so a notification-driven / auto open survives
+    // recomposition / late collector subscription.
+    val conflictUiState by (vm?.conflictUiState?.collectAsState()
+        ?: remember { mutableStateOf(SaverWorkspaceViewModel.ConflictUiState()) })
+
+    // Never stack the conflict sheet over the operation-details sheet.
+    LaunchedEffect(conflictUiState.visible) {
+        if (conflictUiState.visible) operationDialogState = OperationDialogState.None
+    }
 
     // Navigation bar inset for bottom sheets
     val density = LocalDensity.current
@@ -150,9 +172,10 @@ internal fun SaverWorkspacePage(
         )
 
         // Show issue bottom sheet when needed
-        if (issueState != null && showIssueSheet) {
+        val conflictIssue = conflictUiState.issue
+        if (conflictIssue != null && conflictUiState.visible) {
             IssuesBottomSheet(
-                issue = issueState!!,
+                issue = conflictIssue,
                 onResolution = { resolution ->
                     vm?.resolveConflict(resolution)
                 },
