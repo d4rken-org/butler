@@ -40,6 +40,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -47,6 +48,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 
 @HiltViewModel(assistedFactory = SaverWorkspaceViewModel.Factory::class)
 class SaverWorkspaceViewModel @AssistedInject constructor(
@@ -69,13 +71,23 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
 
     val shareIntentEvent = chrome.shareIntentEvent
 
-    // Issue handling state
-    private val issueStateFlow = MutableStateFlow<Issue?>(null)
-    val issueState = issueStateFlow.asStateFlow()
-    private var currentConflictOperationId: Operation.Id? = null
+    // Conflict sheet UI state — one atomic holder so the pending-conflict observer, the
+    // notification-focus path, manual taps, auto-surface, resolve and dismiss can never interleave
+    // into an inconsistent (operation, issue, visibility) combination.
     // Durable (StateFlow) so a notification-driven open isn't lost if the page subscribes late.
-    private val showIssueSheetFlow = MutableStateFlow(false)
-    val showIssueSheet: StateFlow<Boolean> = showIssueSheetFlow
+    private val conflictUiStateFlow = MutableStateFlow(ConflictUiState())
+    val conflictUiState: StateFlow<ConflictUiState> = conflictUiStateFlow
+
+    /** Atomic view of the conflict bottom sheet: which operation, which issue, and whether it shows. */
+    data class ConflictUiState(
+        val operationId: Operation.Id? = null,
+        val issue: Issue? = null,
+        val visible: Boolean = false,
+    ) {
+        /** Stable identity of the shown conflict; null when nothing is pending. */
+        val key: Pair<Operation.Id, Issue.Id>?
+            get() = operationId?.let { op -> issue?.id?.let { op to it } }
+    }
 
     data class State(
         val sourceInfos: List<ContentUriHelper.SourceInfo> = emptyList(),
@@ -165,18 +177,22 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
             }
             .launchIn(vmScope)
 
-        // Observe pending conflicts and update UI state
+        // Track the pending conflict (any waiting issue) for the row/details and manual tap.
+        // Visibility is owned by the auto-surface / notification / tap paths, so it is preserved here.
         chrome.pendingConflicts
             .onEach { conflicts ->
                 val firstConflictEntry = conflicts.entries.firstOrNull()
-                if (firstConflictEntry != null) {
-                    val (operationId, issue) = firstConflictEntry
-                    currentConflictOperationId = operationId
-                    issueStateFlow.value = issue
-                } else {
-                    currentConflictOperationId = null
-                    issueStateFlow.value = null
-                    showIssueSheetFlow.value = false
+                conflictUiStateFlow.update { current ->
+                    if (firstConflictEntry == null) {
+                        // Nothing pending -> clear identity and hide.
+                        ConflictUiState()
+                    } else {
+                        val next = ConflictUiState(firstConflictEntry.key, firstConflictEntry.value)
+                        // Preserve visibility ONLY while it's the same conflict; a different conflict
+                        // must not inherit the previous one's visible=true (that would show issue X
+                        // while a show-path had made visible=true for issue Y).
+                        if (current.key == next.key) current else next
+                    }
                 }
             }
             .launchIn(vmScope)
@@ -192,9 +208,7 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
             .distinctUntilChanged()
             .onEach { (request, issue) ->
                 if (issue != null) {
-                    currentConflictOperationId = request.operationId
-                    issueStateFlow.value = issue
-                    showIssueSheetFlow.value = true
+                    conflictUiStateFlow.value = ConflictUiState(request.operationId, issue, visible = true)
                     operationFocusRequest.consume(request)
                 }
             }
@@ -281,29 +295,62 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
         navEvents.tryEmit(NavEvent.Finish)
     }
 
+    /**
+     * Auto-open the conflict sheet when a NEW file-already-exists conflict appears — driven by the
+     * Host only while the page is focused + resumed (see [SaverWorkspacePageHost]). Modal-only
+     * (APK-export path); the share-intent tab never auto-opens.
+     *
+     * [drop] discards the conflict state present when this eligible collection begins, so a conflict
+     * that arose while backgrounded / behind a deeper picker is treated as a baseline, not a new
+     * transition, and does not pop on return. Only a genuine empty -> conflict transition surfaces.
+     */
+    suspend fun autoSurfaceModalConflicts() {
+        // Immutable marker (safe before async init); the share-intent tab never auto-opens.
+        if (getWorkspace().callerWorkspaceId == null) {
+            log(tag) { "autoSurfaceModalConflicts(): non-modal saver, skipping" }
+            return
+        }
+        chrome.pendingConflicts
+            .map { conflicts ->
+                conflicts.entries
+                    .firstOrNull { it.value is PathActionIssue.PathAlreadyExists }
+                    ?.let { it.key to it.value }
+            }
+            .distinctUntilChanged { old, new ->
+                old?.first == new?.first && old?.second?.id == new?.second?.id
+            }
+            .drop(1)
+            .collect { entry ->
+                entry ?: return@collect
+                val (operationId, issue) = entry
+                log(tag, INFO) { "Auto-surfacing modal conflict sheet: op=$operationId" }
+                conflictUiStateFlow.value = ConflictUiState(operationId, issue, visible = true)
+            }
+    }
+
     fun resolveConflict(resolution: PathActionIssue.Resolution) = launch {
         log(tag) { "resolveConflict(): $resolution" }
 
-        val operationId = currentConflictOperationId
-        if (operationId != null) {
-            getWorkspace().resolveConflict(operationId, resolution)
-        } else {
+        val resolved = conflictUiStateFlow.value
+        val operationId = resolved.operationId
+        if (operationId == null) {
             log(tag, WARN) { "Cannot resolve conflict: no current operation ID" }
+            return@launch
         }
+        getWorkspace().resolveConflict(operationId, resolution)
 
-        // Clear conflict UI state
-        issueStateFlow.value = null
-        currentConflictOperationId = null
-        showIssueSheetFlow.value = false
+        // Clear only if we're still showing the conflict we just resolved. A fast next-file conflict
+        // may already have replaced it via the pending-conflict observer; don't clobber it.
+        conflictUiStateFlow.update { current ->
+            if (current.key == resolved.key) ConflictUiState() else current
+        }
     }
 
     fun showConflictSheet(operationId: Operation.Id) = launch {
         log(tag) { "showConflictSheet($operationId)" }
         val conflict = chrome.pendingConflicts.first()[operationId]
         if (conflict != null) {
-            currentConflictOperationId = operationId
-            issueStateFlow.value = conflict
-            showIssueSheetFlow.value = true
+            conflictUiStateFlow.value = ConflictUiState(operationId, conflict, visible = true)
         } else {
             log(tag, WARN) { "Cannot show conflict sheet: no conflict for operation $operationId" }
         }
@@ -311,9 +358,8 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
 
     fun dismissConflictSheet() {
         log(tag) { "dismissConflictSheet()" }
-        showIssueSheetFlow.value = false
-        issueStateFlow.value = null
-        currentConflictOperationId = null
+        // Keep the pending conflict identity so the waiting row stays re-tappable; just hide the sheet.
+        conflictUiStateFlow.update { it.copy(visible = false) }
     }
 
     fun shareError(operationId: Operation.Id) = chrome.shareOperationError(operationId)
