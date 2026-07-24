@@ -1,5 +1,6 @@
 package eu.darken.butler.common.compose
 
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,8 +9,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -17,6 +18,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import com.airbnb.lottie.LottieComposition
+import com.airbnb.lottie.LottieCompositionFactory
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec.*
 import com.airbnb.lottie.compose.rememberLottieAnimatable
@@ -25,10 +27,11 @@ import eu.darken.butler.common.Occasions
 import eu.darken.butler.common.R
 import eu.darken.butler.common.compose.ButlerMascotMode.*
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.withContext
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -51,6 +54,26 @@ private fun resolveHat(hat: ButlerMascotMode.Hat): Int? {
             Occasions.Period.NONE -> null
         }
     }
+}
+
+private val randomCyclingSequences: List<List<Int>> = listOf(
+    listOf(R.raw.mascot_lottie_wink),
+    listOf(R.raw.mascot_lottie_drink_standalone),
+    listOf(R.raw.mascot_lottie_moustache_stroke),
+    listOf(
+        R.raw.mascot_lottie_sleep_sleeping,
+        R.raw.mascot_lottie_sleep_snoring,
+        R.raw.mascot_lottie_sleep_waking,
+    ),
+    listOf(R.raw.mascot_lottie_greeting),
+    listOf(R.raw.mascot_lottie_hatoff),
+)
+
+private suspend fun loadComposition(
+    context: Context,
+    @androidx.annotation.RawRes resId: Int,
+): LottieComposition? = withContext(Dispatchers.Default) {
+    LottieCompositionFactory.fromRawResSync(context, resId).value
 }
 
 @Composable
@@ -82,57 +105,23 @@ fun ButlerMascot(
 
             when (variant) {
                 is Animated.RandomCycling -> {
-                    val winkComposition by rememberLottieComposition(RawRes(R.raw.mascot_lottie_wink))
-                    val drinkComposition by rememberLottieComposition(RawRes(R.raw.mascot_lottie_drink_standalone))
-                    val moustacheComposition by rememberLottieComposition(RawRes(R.raw.mascot_lottie_moustache_stroke))
-                    val sleepSleepingComposition by rememberLottieComposition(RawRes(R.raw.mascot_lottie_sleep_sleeping))
-                    val sleepSnoringComposition by rememberLottieComposition(RawRes(R.raw.mascot_lottie_sleep_snoring))
-                    val sleepWakingComposition by rememberLottieComposition(RawRes(R.raw.mascot_lottie_sleep_waking))
-                    val greetingComposition by rememberLottieComposition(RawRes(R.raw.mascot_lottie_greeting))
-                    val hatoffComposition by rememberLottieComposition(RawRes(R.raw.mascot_lottie_hatoff))
-
+                    val context = LocalContext.current
                     val animatable = rememberLottieAnimatable()
 
-                    LaunchedEffect(Unit) {
-                        // Wait until all compositions are loaded (state reads must be inside snapshotFlow)
-                        val allCompositions = snapshotFlow {
-                            listOfNotNull(
-                                winkComposition,
-                                drinkComposition,
-                                moustacheComposition,
-                                sleepSleepingComposition,
-                                sleepSnoringComposition,
-                                sleepWakingComposition,
-                                greetingComposition,
-                                hatoffComposition,
-                            )
-                        }.first { it.size == 8 }
-
-                        // Animation sequences - sleep is a 3-part sequence, others are single
-                        val sleepSequence = listOf(
-                            sleepSleepingComposition!!,
-                            sleepSnoringComposition!!,
-                            sleepWakingComposition!!,
-                        )
-                        val animationSequences: List<List<LottieComposition>> = listOf(
-                            listOf(winkComposition!!),
-                            listOf(drinkComposition!!),
-                            listOf(moustacheComposition!!),
-                            sleepSequence,
-                            listOf(greetingComposition!!),
-                            listOf(hatoffComposition!!),
-                        )
-
-                        animatable.snapTo(composition = allCompositions.first(), progress = 0f)
+                    LaunchedEffect(variant.speed) {
                         while (currentCoroutineContext().isActive) {
-                            val sequence = animationSequences.random()
-                            for (composition in sequence) {
+                            // Load on demand, one at a time - parsing all upfront saturates the CPU during startup
+                            var animated = false
+                            for (resId in randomCyclingSequences.random()) {
+                                val composition = loadComposition(context, resId) ?: continue
+                                animated = true
                                 animatable.animate(
                                     composition = composition,
                                     iterations = 1,
                                     speed = variant.speed,
                                 )
                             }
+                            if (!animated) delay(1.seconds)
                         }
                     }
 
