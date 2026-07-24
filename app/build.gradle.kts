@@ -145,14 +145,18 @@ setupKotlinOptions()
 
 // Rename release/beta APKs to include version and variant. The legacy variant output
 // API is removed by AGP's new DSL, so this uses the new androidComponents variant API.
+// The suffix reproduces AGP's dash-separated base name (e.g. FOSS-BETA) rather than
+// variant.name's camelCase (fossBeta), preserving the pre-migration file names.
 androidComponents {
     onVariants { variant ->
         if (variant.buildType != "release" && variant.buildType != "beta") return@onVariants
+        val baseName = (variant.productFlavors.map { it.second } + listOfNotNull(variant.buildType))
+            .joinToString("-")
         val output = variant.outputs.single()
         output.outputFileName.set(
             "${projectConfig.packageName}" +
                 "-v${projectConfig.version.name}-${projectConfig.version.code}" +
-                "-${variant.name.uppercase()}.apk",
+                "-${baseName.uppercase()}.apk",
         )
     }
 }
