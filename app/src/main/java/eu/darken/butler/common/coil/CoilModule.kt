@@ -5,7 +5,6 @@ import coil3.ImageLoader
 import coil3.disk.DiskCache
 import coil3.disk.directory
 import coil3.util.Logger
-import coil3.video.VideoFrameDecoder
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -80,7 +79,7 @@ class CoilModule {
             add(workspacePreviewFetcher)
 
             // Decoders - decode special formats
-            add(VideoFrameDecoder.Factory())
+            add(BoundedVideoFrameDecoder.Factory(baseDispatcher = dispatcherProvider.IO))
         }
         coroutineContext(
             dispatcherProvider.Default.limitedParallelism(

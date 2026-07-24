@@ -11,10 +11,15 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.GatewaySwitch
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.MimeInfo
+import eu.darken.butler.common.files.extensions.isDescendantOfOrSelf
 import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.extensions.isFile
+import eu.darken.butler.common.files.local.routing.LocalPathRoutingPolicy
+import eu.darken.butler.common.hasApiLevel
+import eu.darken.butler.common.storage.StorageEnvironment
 import eu.darken.butler.workspace.core.WorkspaceSettings
 import eu.darken.butler.workspace.core.filesystem.FileSystemEvent
 import eu.darken.butler.workspace.core.filesystem.FileSystemHinter
@@ -61,7 +66,33 @@ class FolderPreviewResolver @Inject constructor(
     @AppScope appScope: CoroutineScope,
     private val dispatcherProvider: DispatcherProvider,
     workspaceSettings: WorkspaceSettings,
+    private val storageEnvironment: StorageEnvironment,
+    private val routingPolicy: LocalPathRoutingPolicy,
 ) {
+
+    // Scoped-storage roots that are ALWAYS denied to normal apps (API 30+). Previews are
+    // best-effort: enumerating these would only trigger a pointless (and on rooted devices,
+    // expensive) escalation attempt — skip them outright. Butler's OWN public dirs live under
+    // those roots but ARE directly accessible (matching the routing policy's own-dir exception),
+    // so they must keep their previews.
+    private val restrictedPreviewRoots: Set<LocalPath> by lazy {
+        if (!hasApiLevel(30)) return@lazy emptySet()
+        (storageEnvironment.publicDataDirs + storageEnvironment.publicObbDirs)
+            .flatMap { routingPolicy.aliasesOf(it) }
+            .toSet()
+    }
+
+    private val ownPreviewRoots: Set<LocalPath> by lazy {
+        storageEnvironment.ourPublicDirs
+            .flatMap { routingPolicy.aliasesOf(it) }
+            .toSet()
+    }
+
+    private fun isRestrictedPreviewDir(dir: APath<*>): Boolean {
+        if (dir !is LocalPath) return false
+        if (restrictedPreviewRoots.none { dir.isDescendantOfOrSelf(it) }) return false
+        return ownPreviewRoots.none { dir.isDescendantOfOrSelf(it) }
+    }
 
     /** [observe] gated by the global folder-preview setting; what workspace pages should use. */
     val settingsGatedObserver: FolderPreviewObserver = { dir ->
@@ -159,6 +190,12 @@ class FolderPreviewResolver @Inject constructor(
 
         // Archive entries never render thumbnails (no implicit decompression)
         if (dir is ArchivePath) return emptyList()
+
+        // Always-denied scoped-storage roots: no preview, no lookup, no escalation attempt.
+        if (isRestrictedPreviewDir(dir)) {
+            if (Bugs.isTrace) log(TAG, VERBOSE) { "resolve SKIP restricted $dir" }
+            return emptyList()
+        }
 
         // Debug-only timing (gated on Bugs.isTrace): separates permit-wait from lookup, and logs
         // the raw enumerated entry count vs the capped selection so scroll cost can be attributed.

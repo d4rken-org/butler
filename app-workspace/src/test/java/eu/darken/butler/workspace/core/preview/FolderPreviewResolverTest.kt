@@ -1,17 +1,23 @@
 package eu.darken.butler.workspace.core.preview
 
+import eu.darken.butler.common.BuildWrap
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalPathLookup
+import eu.darken.butler.common.files.local.routing.LocalPathRoutingPolicy
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.storage.StorageEnvironment
 import eu.darken.butler.workspace.core.filesystem.FileSystemHinter
 import eu.darken.butler.workspace.core.operations.Operation
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkObject
+import io.mockk.unmockkObject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -50,13 +56,82 @@ class FolderPreviewResolverTest : BaseTest() {
         scope: CoroutineScope,
         gatewaySwitch: GatewaySwitch = mockk(),
         hinter: FileSystemHinter = FileSystemHinter(),
+        storageEnvironment: StorageEnvironment = mockk(),
+        routingPolicy: LocalPathRoutingPolicy = mockk(),
     ) = FolderPreviewResolver(
         gatewaySwitch = gatewaySwitch,
         fileSystemHinter = hinter,
         appScope = scope,
         dispatcherProvider = TestDispatcherProvider(),
         workspaceSettings = mockk(),
+        storageEnvironment = storageEnvironment,
+        routingPolicy = routingPolicy,
     )
+
+    @Test
+    fun `restricted scoped-storage roots are skipped without gateway access`() = runTest {
+        mockkObject(BuildWrap.VersionWrap)
+        try {
+            every { BuildWrap.VersionWrap.SDK_INT } returns 34
+            val dataRoot = LocalPath.build(File("/storage/emulated/0/Android/data"))
+            val obbRoot = LocalPath.build(File("/storage/emulated/0/Android/obb"))
+            val storageEnv = mockk<StorageEnvironment> {
+                every { publicDataDirs } returns listOf(dataRoot)
+                every { publicObbDirs } returns listOf(obbRoot)
+                every { ourPublicDirs } returns emptyList()
+            }
+            val policy = mockk<LocalPathRoutingPolicy> {
+                every { aliasesOf(any()) } answers { setOf(firstArg()) }
+            }
+            val gateway = mockk<GatewaySwitch>()
+            val resolver = create(
+                backgroundScope,
+                gatewaySwitch = gateway,
+                storageEnvironment = storageEnv,
+                routingPolicy = policy,
+            )
+
+            resolver.observe(dataRoot).first() shouldBe emptyList()
+            resolver.observe(dataRoot.child("com.example.app")).first() shouldBe emptyList()
+            resolver.observe(obbRoot.child("com.example.app")).first() shouldBe emptyList()
+
+            coVerify(exactly = 0) { gateway.lookupFiles(any(), any()) }
+        } finally {
+            unmockkObject(BuildWrap.VersionWrap)
+        }
+    }
+
+    @Test
+    fun `our own scoped-storage dir keeps its previews despite the restricted-root skip`() = runTest {
+        mockkObject(BuildWrap.VersionWrap)
+        try {
+            every { BuildWrap.VersionWrap.SDK_INT } returns 34
+            val dataRoot = LocalPath.build(File("/storage/emulated/0/Android/data"))
+            val ownDir = dataRoot.child("eu.darken.butler")
+            val storageEnv = mockk<StorageEnvironment> {
+                every { publicDataDirs } returns listOf(dataRoot)
+                every { publicObbDirs } returns emptyList()
+                every { ourPublicDirs } returns listOf(ownDir)
+            }
+            val policy = mockk<LocalPathRoutingPolicy> {
+                every { aliasesOf(any()) } answers { setOf(firstArg()) }
+            }
+            val gateway = mockk<GatewaySwitch>()
+            coEvery { gateway.lookupFiles(any(), any()) } returns listOf(fileLookup("pic.jpg"))
+            val resolver = create(
+                backgroundScope,
+                gatewaySwitch = gateway,
+                storageEnvironment = storageEnv,
+                routingPolicy = policy,
+            )
+
+            resolver.observe(ownDir.child("files")).first().map { it.name } shouldBe listOf("pic.jpg")
+
+            coVerify(exactly = 1) { gateway.lookupFiles(any(), any()) }
+        } finally {
+            unmockkObject(BuildWrap.VersionWrap)
+        }
+    }
 
     @Test
     fun `newest 4 media children are selected`() = runTest {
