@@ -45,17 +45,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
-import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.searcher.core.engine.SearchEngine
 import eu.darken.butler.workspace.contracts.searcher.SearchTarget
 import java.io.IOException
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 
 @Composable
 fun SearchProgressCard(
@@ -197,7 +196,7 @@ private fun SearchProgressHeader(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onExpandClick)
-            .padding(horizontal = 16.dp, vertical = 2.dp),
+            .padding(horizontal = 16.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Status icon based on search state
