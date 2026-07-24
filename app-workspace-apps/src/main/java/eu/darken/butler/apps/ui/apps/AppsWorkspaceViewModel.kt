@@ -91,6 +91,7 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
             val hasRoot: Boolean = false,
             val hasAdb: Boolean = false,
             val isLoading: Boolean = true,
+            val isRefreshing: Boolean = false,
             val error: Throwable? = null,
             val dialogState: AppsDialogState = AppsDialogState.None,
             val availableActions: List<AppsActionBarItem> = emptyList(),
@@ -127,6 +128,7 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
                             hasRoot = readyState.hasRoot,
                             hasAdb = readyState.hasAdb,
                             isLoading = readyState.isLoading,
+                            isRefreshing = readyState.isRefreshing,
                             error = readyState.error,
                             dialogState = dialogState,
                             availableActions = actions,
@@ -392,7 +394,10 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
             // Dialog
             is AppsPageAction.Dialog.Dismiss -> dismissDialog()
             is AppsPageAction.Dialog.ApplyFilter -> onFilterChanged(action.config)
-            is AppsPageAction.Dialog.ApplySort -> onSortSettingsChanged(action.settings)
+            is AppsPageAction.Dialog.ApplySort -> {
+                dialogStateFlow.value = AppsDialogState.None
+                onSortSettingsChanged(action.settings)
+            }
             is AppsPageAction.Dialog.ConfirmEnable -> performEnableApps(action.apps)
             is AppsPageAction.Dialog.ConfirmDisable -> performDisableApps(action.apps)
             is AppsPageAction.Dialog.ConfirmUninstall -> performUninstallApps(action.apps)

@@ -94,6 +94,7 @@ class AppsWorkspace @AssistedInject constructor(
             val hasRoot: Boolean = false,
             val hasAdb: Boolean = false,
             val isLoading: Boolean = false,
+            val isRefreshing: Boolean = false,
             val error: Throwable? = null,
         ) : State {
             val isMultiSelectMode: Boolean get() = selectedAppIds.isNotEmpty()
@@ -204,6 +205,7 @@ class AppsWorkspace @AssistedInject constructor(
                     hasRoot = hasRoot,
                     hasAdb = hasAdb,
                     isLoading = engineState.isLoading,
+                    isRefreshing = engineState.isRefreshing,
                     error = engineState.error,
                 )
             }
@@ -240,7 +242,7 @@ class AppsWorkspace @AssistedInject constructor(
     }
 
     suspend fun refresh() {
-        appsEngine.refresh()
+        appsEngine.refresh(showIndicator = true)
     }
 
     suspend fun enableApps(apps: List<AppItem>) {

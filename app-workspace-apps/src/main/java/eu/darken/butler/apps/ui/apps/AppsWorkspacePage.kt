@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -14,6 +15,8 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -96,6 +99,10 @@ fun AppsWorkspacePage(
         with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
     } else 0.dp
 
+    // Offset the pull-to-refresh indicator below the floating toolbar/chips (top of the list content).
+    val topContentPadding = topBarStackState.contentPaddingDp()
+    val pullToRefreshState = rememberPullToRefreshState()
+
     val hasActions by remember(state.availableActions) {
         derivedStateOf { state.availableActions.isNotEmpty() }
     }
@@ -106,8 +113,21 @@ fun AppsWorkspacePage(
 
     Box(modifier = Modifier.fillMaxSize()) {
         PullToRefreshBox(
-            isRefreshing = state.isLoading,
-            onRefresh = { onPageAction(AppsPageAction.Apps.Refresh) },
+            isRefreshing = state.isRefreshing,
+            onRefresh = {
+                // Ignore pulls during the initial load — that scan is already running.
+                if (!state.isLoading) onPageAction(AppsPageAction.Apps.Refresh)
+            },
+            state = pullToRefreshState,
+            indicator = {
+                PullToRefreshDefaults.Indicator(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .offset(y = topContentPadding),
+                    state = pullToRefreshState,
+                    isRefreshing = state.isRefreshing,
+                )
+            },
         ) {
             when (state.viewStyle) {
                 is AppsViewStyle.List -> {
@@ -117,7 +137,7 @@ fun AppsWorkspacePage(
                             .nestedScroll(topBarStackState.nestedScrollConnection)
                             .nestedScroll(bottomBarStackState.nestedScrollConnection),
                         contentPadding = PaddingValues(
-                            top = topBarStackState.contentPaddingDp(),
+                            top = topContentPadding,
                             bottom = bottomBarStackState.contentPaddingDp(),
                         ),
                     ) {
@@ -167,7 +187,7 @@ fun AppsWorkspacePage(
                             .nestedScroll(topBarStackState.nestedScrollConnection)
                             .nestedScroll(bottomBarStackState.nestedScrollConnection),
                         contentPadding = PaddingValues(
-                            top = topBarStackState.contentPaddingDp(),
+                            top = topContentPadding,
                             bottom = bottomBarStackState.contentPaddingDp(),
                             start = 8.dp,
                             end = 8.dp,

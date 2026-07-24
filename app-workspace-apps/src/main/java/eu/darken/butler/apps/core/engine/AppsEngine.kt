@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 
 class AppsEngine @AssistedInject constructor(
@@ -47,11 +48,15 @@ class AppsEngine @AssistedInject constructor(
     private val _sortSettings = MutableStateFlow(SortSettings())
     private val _searchQuery = MutableStateFlow("")
     private val _selectedAppIds = MutableStateFlow<Set<InstallId>>(emptySet())
+    private val _isRefreshing = MutableStateFlow(false)
+    private val refreshMutex = Mutex()
 
     init {
         log(tag, INFO) { "AppsEngine initialized for workspace ${workspaceId.shortTag}" }
 
-        combine(
+        // Expensive package processing pipeline. Kept independent of the refresh indicator so a
+        // refresh toggle never re-runs mapping/filtering/sorting (and can't miss the visible window).
+        val processedState = combine(
             pkgRepo.pkgs(),
             userManager.users,
             _filterConfig,
@@ -100,6 +105,13 @@ class AppsEngine @AssistedInject constructor(
                 log(tag, ERROR) { "App loading failed: ${e.asLog()}" }
                 emit(_state.value.copy(isLoading = false, error = e))
             }
+
+        // Cheap overlay of the refresh flag. Because _isRefreshing never completes, this keeps
+        // clearing the indicator (via refresh()'s finally) even if the pipeline above terminates.
+        // Fully-qualified: the project's combine helper only defines 3+ arg overloads.
+        kotlinx.coroutines.flow.combine(processedState, _isRefreshing) { state, isRefreshing ->
+            state.copy(isRefreshing = isRefreshing)
+        }
             .onEach { newState ->
                 log(tag) { "State updated: ${newState.filteredApps.size}/${newState.apps.size} apps visible" }
                 _state.value = newState
@@ -143,9 +155,25 @@ class AppsEngine @AssistedInject constructor(
         _selectedAppIds.value = allIds
     }
 
-    suspend fun refresh() = withContext(dispatcherProvider.IO) {
-        log(tag) { "Manually refreshing package data" }
-        pkgRepo.refresh()
+    suspend fun refresh(showIndicator: Boolean = false) = withContext(dispatcherProvider.IO) {
+        if (!showIndicator) {
+            log(tag) { "Refreshing package data (silent)" }
+            pkgRepo.refresh()
+            return@withContext
+        }
+        // User-initiated refresh: surface a pull-to-refresh indicator and drop overlapping pulls.
+        if (!refreshMutex.tryLock()) {
+            log(tag) { "Refresh already in progress, skipping" }
+            return@withContext
+        }
+        try {
+            log(tag) { "Manually refreshing package data" }
+            _isRefreshing.value = true
+            pkgRepo.refresh()
+        } finally {
+            _isRefreshing.value = false
+            refreshMutex.unlock()
+        }
     }
 
     @AssistedFactory

@@ -17,7 +17,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,6 +25,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.apps.R
+import eu.darken.butler.common.R as CommonR
 import eu.darken.butler.workspace.contracts.apps.SortSettings
 
 @Composable
@@ -34,8 +35,8 @@ fun SortOptionsDialog(
     onApply: (SortSettings) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var selectedMode by remember { mutableStateOf(currentSortSettings.mode) }
-    var isReversed by remember { mutableStateOf(currentSortSettings.reversed) }
+    var selectedMode by rememberSaveable(currentSortSettings) { mutableStateOf(currentSortSettings.mode) }
+    var isReversed by rememberSaveable(currentSortSettings) { mutableStateOf(currentSortSettings.reversed) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -108,7 +109,7 @@ fun SortOptionsDialog(
                     )
                 }
             ) {
-                Text(stringResource(android.R.string.ok))
+                Text(stringResource(CommonR.string.general_apply_action))
             }
         },
         dismissButton = {
