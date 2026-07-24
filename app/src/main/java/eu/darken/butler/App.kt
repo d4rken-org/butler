@@ -141,11 +141,6 @@ open class App : Application(), Configuration.Provider, SingletonImageLoader.Fac
             Bugs.isTrace = isDebug && isTrace
         }.launchIn(appScope)
 
-        // Kept out of the combine above so toggling the experiment doesn't re-run logger setup.
-        debugSettings.deferSearcherPreviews.flow
-            .onEach { Bugs.deferSearcherPreviews = it }
-            .launchIn(appScope)
-
         // Route manual Bugs.report(...) calls to the local reporter (stores a report on-device).
         Bugs.reporter = bugReporter
         bugReporter.setup(this)

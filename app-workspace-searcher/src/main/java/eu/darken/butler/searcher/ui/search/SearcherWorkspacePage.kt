@@ -93,17 +93,12 @@ import eu.darken.butler.workspace.ui.operations.bar.OperationsBar
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
-import eu.darken.butler.common.debug.compose.ReportScrollJank
-import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.workspace.ui.preview.ProvideFolderPreviews
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
-
-private val scrollTagGrid = logTag("Searcher", "Scroll", "Grid")
-private val scrollTagList = logTag("Searcher", "Scroll", "List")
 
 @Composable
 fun SearcherWorkspacePage(
@@ -149,7 +144,6 @@ fun SearcherWorkspacePage(
         with(density) { WindowInsets.statusBars.getTop(density).toDp() }
     } else 0.dp
     val listState = rememberLazyListState()
-    ReportScrollJank(listState, scrollTagList)
     var showTemplatesSheet by remember { mutableStateOf(false) }
     var showAccessErrorsSheet by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
@@ -343,11 +337,9 @@ fun SearcherWorkspacePage(
             }
     ) {
         val gridState = rememberLazyGridState()
-        ReportScrollJank(gridState, scrollTagGrid)
 
-        // Defer-previews experiment (Developer toggle): true once scrolling has settled ~120ms.
-        // Asymmetric on purpose — false immediately on scroll start, so new work is suppressed for
-        // the whole gesture, not just after a debounce.
+        // Folder previews load only once scrolling has settled ~120ms. Asymmetric on purpose —
+        // false immediately on scroll start, so no new preview work begins during the gesture.
         val previewsSettled = remember { mutableStateOf(true) }
         LaunchedEffect(gridState) {
             snapshotFlow { gridState.isScrollInProgress }.collectLatest { scrolling ->

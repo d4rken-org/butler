@@ -146,18 +146,16 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
         debugSettings.isDebugMode.flow,
         debugSettings.isTraceMode.flow,
         debugSettings.floatingLogVisible.flow,
-        debugSettings.deferSearcherPreviews.flow,
         rootTestResult,
         isRootTesting,
         shizukuTestResult,
         isShizukuTesting,
         developerSettings.isDeveloperModeUnlocked.flow,
-    ) { isDebugMode, isTraceMode, isFloatingLog, deferSearcherPreviews, rootResult, rootTesting, shizukuResult, shizukuTesting, isDeveloperModeUnlocked ->
+    ) { isDebugMode, isTraceMode, isFloatingLog, rootResult, rootTesting, shizukuResult, shizukuTesting, isDeveloperModeUnlocked ->
         OptionsState(
             isDebugMode = isDebugMode,
             isTraceMode = isTraceMode,
             isFloatingLogEnabled = isFloatingLog,
-            isDeferSearcherPreviews = deferSearcherPreviews,
             rootTestResult = rootResult,
             isRootTesting = rootTesting,
             shizukuTestResult = shizukuResult,
@@ -440,11 +438,6 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
         launch { debugSettings.floatingLogVisible.value(enabled) }
     }
 
-    fun toggleDeferSearcherPreviews(enabled: Boolean) {
-        log(tag) { "Defer searcher previews toggled: $enabled" }
-        launch { debugSettings.deferSearcherPreviews.value(enabled) }
-    }
-
     fun hideDeveloperMode() = launch {
         log(tag, INFO) { "Hiding developer mode" }
         developerSettings.isDeveloperModeUnlocked.value(false)
@@ -651,7 +644,6 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
         val isDebugMode: Boolean,
         val isTraceMode: Boolean,
         val isFloatingLogEnabled: Boolean,
-        val isDeferSearcherPreviews: Boolean,
         val rootTestResult: RootTestResult?,
         val isRootTesting: Boolean,
         val shizukuTestResult: ShizukuTestResult?,

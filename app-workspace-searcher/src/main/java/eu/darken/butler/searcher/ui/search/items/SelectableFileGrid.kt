@@ -26,7 +26,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,10 +39,6 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.TintedAsyncImage
-import eu.darken.butler.common.debug.Bugs
-import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
-import eu.darken.butler.common.debug.logging.log
-import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.theming.onScrim
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
@@ -58,9 +53,6 @@ import eu.darken.butler.workspace.ui.preview.rememberFolderPreviewChildren
 
 internal const val TEST_TAG_SEARCHER_GRID_THUMBNAIL = "searcher.grid.thumbnail"
 
-private val gridTileTag = logTag("Searcher", "Grid", "Tile")
-private const val RECOMP_WARN_THRESHOLD = 8
-
 /** Default for previews/tests: previews are always considered "settled" (loaded immediately). */
 private val PREVIEWS_ALWAYS_SETTLED: State<Boolean> = mutableStateOf(true)
 
@@ -74,16 +66,6 @@ fun SelectableFileGrid(
     modifier: Modifier = Modifier,
     previewsSettled: State<Boolean> = PREVIEWS_ALWAYS_SETTLED,
 ) {
-    // Debug-only per-tile recomposition counter (SideEffect so abandoned compositions aren't
-    // counted); logs once when it crosses the threshold. Counter resets on lazy-item disposal.
-    val recompositions = remember { intArrayOf(0) }
-    SideEffect {
-        recompositions[0]++
-        if (Bugs.isTrace && recompositions[0] == RECOMP_WARN_THRESHOLD) {
-            log(gridTileTag, VERBOSE) { "tile recomposed ${recompositions[0]}x: ${result.name}" }
-        }
-    }
-
     // Type-specific background color (match Explorer's transparency)
     val backgroundColor = when (result.fileType) {
         FileType.DIRECTORY -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
@@ -242,9 +224,8 @@ fun SelectableFileGrid(
 /**
  * Directory tile background: a collage of the folder's newest media, or the folder icon fallback.
  *
- * Reading [previewsSettled] only matters while the defer-previews experiment is on; the `||`
- * short-circuits when it is off so this child does not recompose on every scroll frame. Isolating
- * the scroll-driven read here keeps the surrounding tile chrome from recomposing.
+ * The scroll-driven [previewsSettled] read is isolated here so scroll start/stop recomposes only
+ * this child, never the surrounding tile chrome or file tiles.
  */
 @Composable
 private fun DirectoryPreviewBackground(
@@ -253,8 +234,7 @@ private fun DirectoryPreviewBackground(
     fallback: APathLookup<*>,
     previewsSettled: State<Boolean>,
 ) {
-    val loadingEnabled = !Bugs.deferSearcherPreviews || previewsSettled.value
-    val children = rememberFolderPreviewChildren(dir, loadingEnabled = loadingEnabled)
+    val children = rememberFolderPreviewChildren(dir, loadingEnabled = previewsSettled.value)
     if (children.isNotEmpty()) {
         FolderPreviewCollage(
             modifier = modifier,

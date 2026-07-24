@@ -81,10 +81,20 @@ class CoilModule {
             // Decoders - decode special formats
             add(BoundedVideoFrameDecoder.Factory(baseDispatcher = dispatcherProvider.IO))
         }
-        coroutineContext(
-            dispatcherProvider.Default.limitedParallelism(
-                (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(2)
-            )
+        val cores = Runtime.getRuntime().availableProcessors()
+        // Cache checks + keying: cheap, but must stay off the main thread (keyer reads DataStore).
+        interceptorCoroutineContext(
+            dispatcherProvider.Default.limitedParallelism((cores / 2).coerceAtLeast(2))
+        )
+        // Fetches are IO-bound (gateway file opens, APK/PDF/text preview generation) — bounded,
+        // but on the IO dispatcher instead of occupying CPU lanes.
+        fetcherCoroutineContext(
+            dispatcherProvider.IO.limitedParallelism((cores / 2).coerceAtLeast(2))
+        )
+        // Bitmap decodes are the CPU work that competes with the UI thread during scroll — keep
+        // them tighter than the fetch pipeline so fast flings don't starve the frame pipeline.
+        decoderCoroutineContext(
+            dispatcherProvider.Default.limitedParallelism((cores / 4).coerceAtLeast(2))
         )
     }.build()
 

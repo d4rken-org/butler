@@ -19,8 +19,6 @@
     <string name="developer_options_trace_mode_desc">Enable trace-level logging</string>
     <string name="developer_options_floating_log">Floating log panel</string>
     <string name="developer_options_floating_log_desc">Show a draggable log overlay on all screens</string>
-    <string name="developer_options_defer_searcher_previews">Defer searcher previews</string>
-    <string name="developer_options_defer_searcher_previews_desc">Load folder preview collages only after scrolling settles (experiment)</string>
     <string name="developer_options_services_header">Service Tests</string>
     <string name="developer_options_root_test_action">Test Root</string>
     <string name="developer_options_root_installed_label">Installed</string>

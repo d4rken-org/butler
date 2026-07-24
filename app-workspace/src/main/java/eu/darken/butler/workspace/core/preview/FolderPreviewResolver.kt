@@ -2,7 +2,6 @@ package eu.darken.butler.workspace.core.preview
 
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.coroutine.DispatcherProvider
-import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
@@ -41,9 +40,7 @@ import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.time.Duration
 import kotlin.time.Instant
-import kotlin.time.TimeSource
 
 typealias FolderPreviewObserver = (APath<*>) -> Flow<List<APathLookup<*>>>
 
@@ -192,25 +189,12 @@ class FolderPreviewResolver @Inject constructor(
         if (dir is ArchivePath) return emptyList()
 
         // Always-denied scoped-storage roots: no preview, no lookup, no escalation attempt.
-        if (isRestrictedPreviewDir(dir)) {
-            if (Bugs.isTrace) log(TAG, VERBOSE) { "resolve SKIP restricted $dir" }
-            return emptyList()
-        }
-
-        // Debug-only timing (gated on Bugs.isTrace): separates permit-wait from lookup, and logs
-        // the raw enumerated entry count vs the capped selection so scroll cost can be attributed.
-        val trace = Bugs.isTrace
-        val waitStart = if (trace) TimeSource.Monotonic.markNow() else null
-        var permitWait: Duration? = null
-        var lookupTime: Duration? = null
-        var rawCount = -1
+        if (isRestrictedPreviewDir(dir)) return emptyList()
 
         val children = try {
             semaphore.withPermit {
-                if (trace) permitWait = waitStart?.elapsedNow()
-                val lookupStart = if (trace) TimeSource.Monotonic.markNow() else null
-                val result = withContext(dispatcherProvider.IO) {
-                    val all = gatewaySwitch.lookupFiles(
+                withContext(dispatcherProvider.IO) {
+                    gatewaySwitch.lookupFiles(
                         dir,
                         LookupOptions(
                             continueOnError = true,
@@ -218,9 +202,7 @@ class FolderPreviewResolver @Inject constructor(
                             fetchSize = true,
                             fetchModifiedAt = true,
                         ),
-                    )
-                    if (trace) rawCount = all.size
-                    all.asSequence()
+                    ).asSequence()
                         .filter { it.isFile }
                         // The preview fetcher renders exactly-0-byte files as generic icons;
                         // unknown (null) sizes may still decode, so only exclude confirmed-empty.
@@ -233,23 +215,13 @@ class FolderPreviewResolver @Inject constructor(
                         .take(MAX_PREVIEW_CHILDREN)
                         .toList()
                 }
-                if (trace) lookupTime = lookupStart?.elapsedNow()
-                result
-            }.also {
-                if (trace) {
-                    log(TAG, VERBOSE) {
-                        "resolve SUCCESS $dir: rawEntries=$rawCount selected=${it.size} " +
-                            "permitWait=$permitWait lookup=$lookupTime"
-                    }
-                }
             }
         } catch (e: CancellationException) {
-            if (trace) log(TAG, VERBOSE) { "resolve CANCELED $dir (elapsed=${waitStart?.elapsedNow()})" }
             throw e
         } catch (e: Exception) {
             // Gateways may wrap cancellation (e.g. SAF's ReadException); never cache that as empty
             currentCoroutineContext().ensureActive()
-            log(TAG, WARN) { "resolve ERROR $dir: ${e.asLog()}" }
+            log(TAG, WARN) { "Failed to resolve preview children for $dir: ${e.asLog()}" }
             emptyList()
         }
 

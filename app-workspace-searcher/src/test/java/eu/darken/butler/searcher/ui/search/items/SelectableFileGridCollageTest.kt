@@ -9,7 +9,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.test.onNodeWithTag
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
@@ -17,18 +16,12 @@ import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
 import eu.darken.butler.workspace.ui.preview.ProvideFolderPreviews
 import eu.darken.butler.workspace.ui.preview.TEST_TAG_FOLDER_PREVIEW_COLLAGE
 import kotlinx.coroutines.flow.flowOf
-import org.junit.After
 import org.junit.Test
 import testhelpers.ComposeTest
 import java.io.File
 import kotlin.time.Instant
 
 class SelectableFileGridCollageTest : ComposeTest() {
-
-    @After
-    fun resetDeferFlag() {
-        Bugs.deferSearcherPreviews = false
-    }
 
     private fun mediaLookup(name: String) = LocalPathLookup(
         lookedUp = LocalPath.build(File("/tmp/collage-test/$name")),
@@ -117,7 +110,6 @@ class SelectableFileGridCollageTest : ComposeTest() {
 
     @Test
     fun `deferral retains an already-visible collage when scrolling starts`() {
-        Bugs.deferSearcherPreviews = true
         lateinit var settled: MutableState<Boolean>
         composeTestRule.setContent {
             PreviewWrapper {
@@ -145,7 +137,6 @@ class SelectableFileGridCollageTest : ComposeTest() {
 
     @Test
     fun `deferral suppresses the preview query for a tile composed while scrolling`() {
-        Bugs.deferSearcherPreviews = true
         var observerCalls = 0
         composeTestRule.setContent {
             PreviewWrapper {
@@ -172,7 +163,6 @@ class SelectableFileGridCollageTest : ComposeTest() {
 
     @Test
     fun `deferral loads the collage once scrolling settles`() {
-        Bugs.deferSearcherPreviews = true
         lateinit var settled: MutableState<Boolean>
         composeTestRule.setContent {
             PreviewWrapper {
