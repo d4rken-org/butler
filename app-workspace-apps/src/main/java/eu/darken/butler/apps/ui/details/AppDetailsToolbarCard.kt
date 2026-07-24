@@ -46,9 +46,10 @@ fun AppDetailsToolbarCard(
     modifier: Modifier = Modifier,
     app: AppInfo?,
     design: WorkspaceDesign,
-    isModal: Boolean,
     collapsedFraction: Float = 0f,
-    onBackClick: () -> Unit,
+    title: String? = null,
+    onBackClick: (() -> Unit)? = null,
+    backContentDescription: String? = null,
     currentWorkspaceId: Workspace.Id? = null,
 ) {
     val context = LocalContext.current
@@ -78,15 +79,16 @@ fun AppDetailsToolbarCard(
                 .padding(cardPadding),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // Back button (modal mode)
-            if (isModal) {
+            // Back button (modal close or sub-screen navigation)
+            if (onBackClick != null) {
                 IconButton(
                     onClick = onBackClick,
                     modifier = Modifier.size(40.dp)
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.TwoTone.ArrowBack,
-                        contentDescription = stringResource(R.string.appdetails_back_action),
+                        contentDescription = backContentDescription
+                            ?: stringResource(R.string.appdetails_back_generic_action),
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }
@@ -119,27 +121,16 @@ fun AppDetailsToolbarCard(
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = app?.label?.get(context) ?: "",
+                    text = title ?: app?.label?.get(context) ?: "",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = if (isCollapsed) 1 else 2,
                     overflow = TextOverflow.Ellipsis,
                 )
-
-                // Show package name only when expanded
-                if (!isCollapsed && app?.packageName != null) {
-                    Text(
-                        text = app.packageName,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
             }
 
-            // Workspace button (non-modal mode, single pane)
-            if (!isModal && design.isSingle) {
+            // Workspace button (no back button shown, single pane)
+            if (onBackClick == null && design.isSingle) {
                 Spacer(modifier = Modifier.width(8.dp))
                 WorkspaceButton(
                     buttonSize = 40.dp,
@@ -157,9 +148,7 @@ private fun AppDetailsToolbarCardExpandedPreview() {
     AppDetailsToolbarCard(
         app = AppsMockDataProvider.Presets.chrome,
         design = WorkspaceDesign(),
-        isModal = false,
         collapsedFraction = 0f,
-        onBackClick = {},
         modifier = Modifier.padding(16.dp)
     )
 }
@@ -171,9 +160,7 @@ private fun AppDetailsToolbarCardCollapsedPreview() {
     AppDetailsToolbarCard(
         app = AppsMockDataProvider.Presets.largeApp,
         design = WorkspaceDesign(),
-        isModal = false,
         collapsedFraction = 1f,
-        onBackClick = {},
         modifier = Modifier.padding(16.dp)
     )
 }
@@ -185,7 +172,6 @@ private fun AppDetailsToolbarCardModalPreview() {
     AppDetailsToolbarCard(
         app = AppsMockDataProvider.Presets.disabledApp,
         design = WorkspaceDesign(),
-        isModal = true,
         collapsedFraction = 0f,
         onBackClick = {},
         modifier = Modifier.padding(16.dp)

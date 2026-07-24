@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -26,6 +28,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import eu.darken.butler.apps.R
@@ -43,6 +46,7 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import androidx.compose.runtime.collectAsState
+import eu.darken.butler.workspace.contracts.apps.DetailTab
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.floatingbar.BarAnimation
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
@@ -54,6 +58,7 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 
 sealed interface AppDetailsPageAction {
     data object Close : AppDetailsPageAction
+    data class NavigateToTab(val tab: DetailTab) : AppDetailsPageAction
     data class BrowsePath(val path: APath<*>) : AppDetailsPageAction
     data class LaunchApp(val app: AppInfo) : AppDetailsPageAction
     data class ShowAppInfo(val app: AppInfo) : AppDetailsPageAction
@@ -91,6 +96,7 @@ fun AppDetailsWorkspacePageHost(
             onPageAction = { action ->
                 when (action) {
                     is AppDetailsPageAction.Close -> vm.close()
+                    is AppDetailsPageAction.NavigateToTab -> vm.onTabSelected(action.tab)
                     is AppDetailsPageAction.BrowsePath -> vm.onBrowsePath(action.path)
                     is AppDetailsPageAction.LaunchApp -> vm.onLaunchApp(action.app)
                     is AppDetailsPageAction.ShowAppInfo -> vm.onShowAppInfo(action.app)
@@ -117,15 +123,30 @@ fun AppDetailsWorkspacePage(
     onPageAction: (AppDetailsPageAction) -> Unit = {},
 ) {
     val density = LocalDensity.current
+    val appInfo = state.app
+    val isModal = state.callerWorkspaceId != null
 
-    // Only enable back handler in modal mode (when called from another workspace)
-    if (state.callerWorkspaceId != null) {
-        BackHandler(enabled = true) {
+    // Only OVERVIEW and COMPONENTS have dedicated UI. PACKAGE_INFO (reachable via legacy persisted
+    // sessions) has no screen yet, so it falls back to the overview. Exhaustive on purpose.
+    val showComponents = when (state.selectedTab) {
+        DetailTab.COMPONENTS -> true
+        DetailTab.OVERVIEW -> false
+        DetailTab.PACKAGE_INFO -> false
+    }
+
+    // Single back handler: the Components sub-screen returns to Overview; an Overview shown as a
+    // modal closes the workspace. Sub-screen selection is transient and not persisted across restore.
+    BackHandler(enabled = showComponents || isModal) {
+        if (showComponents) {
+            onPageAction(AppDetailsPageAction.NavigateToTab(DetailTab.OVERVIEW))
+        } else {
             onPageAction(AppDetailsPageAction.Close)
         }
     }
 
-    val isModal = state.callerWorkspaceId != null
+    // Component data loaded off the main thread, keyed by package + version; shared by the summary
+    // card and the dedicated screen so the query runs at most once per (package, version).
+    val componentsState = appInfo?.let { rememberComponentsUiState(it) } ?: ComponentsUiState.Loading
 
     val topBarStackState = rememberFloatingBarStackState(
         position = BarPosition.TOP,
@@ -135,18 +156,21 @@ fun AppDetailsWorkspacePage(
         includeSystemBarInset = design.paneEdges.touchesTop,
     )
 
-    // Calculate bottom inset based on pane edges
     val navBarInset = if (design.paneEdges.touchesBottom) {
         with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
     } else 0.dp
+
+    // Separate scroll states per route so Overview position survives the round-trip to Components.
+    val overviewListState = rememberLazyListState()
+    val componentsListState = rememberLazyListState()
 
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.surface)
     ) {
-        // Main scrollable content
         LazyColumn(
+            state = if (showComponents) componentsListState else overviewListState,
             modifier = Modifier
                 .fillMaxSize()
                 .nestedScroll(topBarStackState.nestedScrollConnection),
@@ -156,90 +180,131 @@ fun AppDetailsWorkspacePage(
                 start = 12.dp,
                 end = 12.dp,
             ),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            // Cards on the overview are spaced apart; the flat component list stays dense.
+            verticalArrangement = Arrangement.spacedBy(if (showComponents) 0.dp else 8.dp),
         ) {
-            val appInfo = state.app
             if (appInfo != null) {
-                // Overview Section
-                item {
-                    DetailSectionCard(title = stringResource(R.string.apps_details_section_overview)) {
-                        AppInformationFields(app = appInfo)
-                    }
-                }
-
-                // Actions Section
-                item {
-                    DetailSectionCard(title = stringResource(R.string.apps_details_section_actions)) {
-                        ActionsSection(
-                            app = appInfo,
-                            onLaunchApp = { onPageAction(AppDetailsPageAction.LaunchApp(appInfo)) },
-                            onShowAppInfo = { onPageAction(AppDetailsPageAction.ShowAppInfo(appInfo)) },
-                            onEnableDisable = { onPageAction(AppDetailsPageAction.EnableDisable(appInfo)) },
-                            onUninstall = { onPageAction(AppDetailsPageAction.Uninstall(appInfo)) },
-                            onExportApk = { onPageAction(AppDetailsPageAction.ExportApk(appInfo)) },
-                            onShareApk = { onPageAction(AppDetailsPageAction.ShareApk(appInfo)) },
-                            onForceStop = { onPageAction(AppDetailsPageAction.ForceStop(appInfo)) },
-                            onClearCache = { onPageAction(AppDetailsPageAction.ClearCache(appInfo)) },
-                            onClearData = { onPageAction(AppDetailsPageAction.ClearData(appInfo)) },
-                            canEnableDisable = state.canEnableDisable,
-                            canForceStop = state.canForceStop,
-                            canClearCache = state.canClearCache,
-                            canClearData = state.canClearData,
-                        )
-                    }
-                }
-
-                // Storage Section
-                if (state.availablePaths.isNotEmpty() || appInfo.appSize != null || appInfo.cacheSize != null || appInfo.dataSize != null) {
-                    item {
-                        DetailSectionCard(title = stringResource(R.string.apps_details_section_storage)) {
-                            StorageListItems(
-                                availablePaths = state.availablePaths,
-                                onBrowsePath = { onPageAction(AppDetailsPageAction.BrowsePath(it)) },
-                                app = appInfo,
-                            )
-                        }
-                    }
-                }
-
-                // Components Section
-                item {
-                    DetailSectionCard(title = stringResource(R.string.apps_details_section_components)) {
-                        ComponentsSection(
-                            app = appInfo,
-                            onLaunchActivity = { activity ->
-                                onPageAction(AppDetailsPageAction.LaunchActivity(activity))
-                            },
-                        )
-                    }
+                if (showComponents) {
+                    appComponentsItems(
+                        state = componentsState,
+                        onLaunchActivity = { onPageAction(AppDetailsPageAction.LaunchActivity(it)) },
+                    )
+                } else {
+                    overviewItems(
+                        appInfo = appInfo,
+                        state = state,
+                        componentsState = componentsState,
+                        onPageAction = onPageAction,
+                    )
                 }
             }
         }
 
-        // Top floating bars
         FloatingBarStack(
             state = topBarStackState,
             position = BarPosition.TOP,
             modifier = Modifier.align(Alignment.TopCenter),
             bars = {
-                // Toolbar - collapses on scroll
                 FloatingBar(
                     visible = true,
                     scrollBehavior = BarScrollBehavior.CollapseOnScroll(),
                     animation = BarAnimation.Slide(),
+                    // Re-reveal the toolbar when switching routes so it isn't stuck collapsed.
+                    revealOn = showComponents,
                     modifier = Modifier.padding(horizontal = 8.dp),
                 ) {
-                    AppDetailsToolbarCard(
-                        app = state.app,
-                        design = design,
-                        isModal = isModal,
-                        collapsedFraction = collapsedFraction,
-                        onBackClick = { onPageAction(AppDetailsPageAction.Close) },
-                        currentWorkspaceId = workspaceId,
-                    )
+                    if (showComponents) {
+                        AppDetailsToolbarCard(
+                            app = state.app,
+                            design = design,
+                            collapsedFraction = collapsedFraction,
+                            title = stringResource(R.string.apps_details_section_components),
+                            onBackClick = { onPageAction(AppDetailsPageAction.NavigateToTab(DetailTab.OVERVIEW)) },
+                            backContentDescription = stringResource(R.string.appdetails_back_generic_action),
+                            currentWorkspaceId = workspaceId,
+                        )
+                    } else {
+                        AppDetailsToolbarCard(
+                            app = state.app,
+                            design = design,
+                            collapsedFraction = collapsedFraction,
+                            onBackClick = if (isModal) {
+                                { onPageAction(AppDetailsPageAction.Close) }
+                            } else null,
+                            backContentDescription = if (isModal) {
+                                stringResource(R.string.appdetails_back_action)
+                            } else null,
+                            currentWorkspaceId = workspaceId,
+                        )
+                    }
                 }
             },
         )
+    }
+}
+
+private fun LazyListScope.overviewItems(
+    appInfo: AppInfo,
+    state: AppDetailsWorkspace.State,
+    componentsState: ComponentsUiState,
+    onPageAction: (AppDetailsPageAction) -> Unit,
+) {
+    // Overview Section
+    item {
+        DetailSectionCard(title = stringResource(R.string.apps_details_section_overview)) {
+            AppInformationFields(app = appInfo)
+        }
+    }
+
+    // Actions Section (full-width row highlight → no content horizontal padding)
+    item {
+        DetailSectionCard(
+            title = stringResource(R.string.apps_details_section_actions),
+            contentHorizontalPadding = 0.dp,
+        ) {
+            ActionsSection(
+                app = appInfo,
+                onLaunchApp = { onPageAction(AppDetailsPageAction.LaunchApp(appInfo)) },
+                onShowAppInfo = { onPageAction(AppDetailsPageAction.ShowAppInfo(appInfo)) },
+                onEnableDisable = { onPageAction(AppDetailsPageAction.EnableDisable(appInfo)) },
+                onUninstall = { onPageAction(AppDetailsPageAction.Uninstall(appInfo)) },
+                onExportApk = { onPageAction(AppDetailsPageAction.ExportApk(appInfo)) },
+                onShareApk = { onPageAction(AppDetailsPageAction.ShareApk(appInfo)) },
+                onForceStop = { onPageAction(AppDetailsPageAction.ForceStop(appInfo)) },
+                onClearCache = { onPageAction(AppDetailsPageAction.ClearCache(appInfo)) },
+                onClearData = { onPageAction(AppDetailsPageAction.ClearData(appInfo)) },
+                canEnableDisable = state.canEnableDisable,
+                canForceStop = state.canForceStop,
+                canClearCache = state.canClearCache,
+                canClearData = state.canClearData,
+            )
+        }
+    }
+
+    // Storage Section (full-width row highlight → no content horizontal padding)
+    if (state.availablePaths.isNotEmpty() || appInfo.appSize != null || appInfo.cacheSize != null || appInfo.dataSize != null) {
+        item {
+            DetailSectionCard(
+                title = stringResource(R.string.apps_details_section_storage),
+                contentHorizontalPadding = 0.dp,
+            ) {
+                StorageListItems(
+                    availablePaths = state.availablePaths,
+                    onBrowsePath = { onPageAction(AppDetailsPageAction.BrowsePath(it)) },
+                    app = appInfo,
+                )
+            }
+        }
+    }
+
+    // Components Section — compact summary; full list lives on a dedicated screen
+    item {
+        DetailSectionCard(title = stringResource(R.string.apps_details_section_components)) {
+            ComponentsSummary(
+                state = componentsState,
+                onViewAll = { onPageAction(AppDetailsPageAction.NavigateToTab(DetailTab.COMPONENTS)) },
+            )
+        }
     }
 }
 
@@ -247,6 +312,7 @@ fun AppDetailsWorkspacePage(
 private fun DetailSectionCard(
     title: String,
     modifier: Modifier = Modifier,
+    contentHorizontalPadding: Dp = 16.dp,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Card(
@@ -256,14 +322,16 @@ private fun DetailSectionCard(
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(vertical = 16.dp)) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(bottom = 12.dp),
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
             )
-            content()
+            Column(modifier = Modifier.padding(horizontal = contentHorizontalPadding)) {
+                content()
+            }
         }
     }
 }
@@ -294,4 +362,3 @@ private fun AppDetailsWorkspacePagePreview() {
         onPageAction = {},
     )
 }
-

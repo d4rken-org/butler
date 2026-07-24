@@ -55,6 +55,7 @@ fun StorageListItems(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
                     .background(
                         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
                         shape = RoundedCornerShape(8.dp)
@@ -120,7 +121,7 @@ fun StorageListItems(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { onBrowsePath(appPath.path) }
-                    .padding(vertical = 12.dp),
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -152,7 +153,7 @@ fun StorageListItems(
             }
 
             if (index < availablePaths.size - 1) {
-                HorizontalDivider()
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
             }
         }
     }
