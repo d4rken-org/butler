@@ -20,7 +20,7 @@ import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.extensions.exists
 import eu.darken.butler.common.files.extensions.lookup
 import eu.darken.butler.common.files.metadata.FileType
-import eu.darken.butler.common.flow.combine
+import eu.darken.butler.common.flow.combine as combineMany
 import eu.darken.butler.editor.core.syntax.Token
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.editor.R
@@ -51,6 +51,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.emptyFlow
@@ -174,7 +175,7 @@ class EditorWorkspace @AssistedInject constructor(
     // Combined editor state for internal use
     private val editorStateInternal: Flow<EditorState> = _engine.flatMapLatest { engine ->
         if (engine == null) return@flatMapLatest emptyFlow()
-        combine(
+        combineMany(
             engine.contentSource,
             engine.totalLines,
             engine.isModified,

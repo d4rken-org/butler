@@ -4,6 +4,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.flow.combine
 import eu.darken.butler.editor.core.EditorWorkspace
 import eu.darken.butler.editor.core.engine.SearchOptions
 import eu.darken.butler.editor.core.engine.SearchResult
@@ -13,7 +14,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 /**
@@ -75,18 +75,19 @@ class EditorSearchController(
         _replaceQueryInput,
         _showReplaceRow,
         _replaceNotice,
-    ) { values ->
+    ) { queryInput, currentResultIndex, caseSensitive, regexEnabled, wholeWord,
+        scrollTrigger, showSearchBar, replaceQueryInput, showReplaceRow, replaceNotice ->
         SearchUiState(
-            queryInput = values[0] as TextFieldValue,
-            currentResultIndex = values[1] as Int,
-            caseSensitive = values[2] as Boolean,
-            regexEnabled = values[3] as Boolean,
-            wholeWord = values[4] as Boolean,
-            scrollTrigger = values[5] as Int,
-            showSearchBar = values[6] as Boolean,
-            replaceQueryInput = values[7] as TextFieldValue,
-            showReplaceRow = values[8] as Boolean,
-            replaceNotice = values[9] as ReplaceNotice?,
+            queryInput = queryInput,
+            currentResultIndex = currentResultIndex,
+            caseSensitive = caseSensitive,
+            regexEnabled = regexEnabled,
+            wholeWord = wholeWord,
+            scrollTrigger = scrollTrigger,
+            showSearchBar = showSearchBar,
+            replaceQueryInput = replaceQueryInput,
+            showReplaceRow = showReplaceRow,
+            replaceNotice = replaceNotice,
         )
     }
 

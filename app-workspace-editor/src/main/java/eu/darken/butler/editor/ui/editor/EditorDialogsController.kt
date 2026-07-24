@@ -1,12 +1,12 @@
 package eu.darken.butler.editor.ui.editor
 
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.flow.combine
 import eu.darken.butler.editor.core.EditorWorkspace
 import eu.darken.butler.editor.core.engine.ContentSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.combine
 
 /**
  * Dialog and notice state for the editor page: go-to-line, close confirmation, encoding
@@ -56,19 +56,22 @@ class EditorDialogsController(
         _showLineEndingDialog,
         _longLinesNoticeDismissed,
         _showLargeDeleteConfirmDialog,
-    ) { values ->
+    ) { showGoToLineDialog, showCloseConfirmDialog, showEncodingDialog, pendingEncoding,
+        pendingSaveAsOverwrite, backupNoticeDismissed, showReloadConfirmDialog,
+        externalChangeDismissedGeneration, showLineEndingDialog, longLinesNoticeDismissed,
+        showLargeDeleteConfirmDialog ->
         DialogUiState(
-            showGoToLineDialog = values[0] as Boolean,
-            showCloseConfirmDialog = values[1] as Boolean,
-            showEncodingDialog = values[2] as Boolean,
-            pendingEncoding = values[3] as String?,
-            pendingSaveAsOverwrite = values[4] as APath<*>?,
-            backupNoticeDismissed = values[5] as Boolean,
-            showReloadConfirmDialog = values[6] as Boolean,
-            externalChangeDismissedGeneration = values[7] as Int?,
-            showLineEndingDialog = values[8] as Boolean,
-            longLinesNoticeDismissed = values[9] as Boolean,
-            showLargeDeleteConfirmDialog = values[10] as Boolean,
+            showGoToLineDialog = showGoToLineDialog,
+            showCloseConfirmDialog = showCloseConfirmDialog,
+            showEncodingDialog = showEncodingDialog,
+            pendingEncoding = pendingEncoding,
+            pendingSaveAsOverwrite = pendingSaveAsOverwrite,
+            backupNoticeDismissed = backupNoticeDismissed,
+            showReloadConfirmDialog = showReloadConfirmDialog,
+            externalChangeDismissedGeneration = externalChangeDismissedGeneration,
+            showLineEndingDialog = showLineEndingDialog,
+            longLinesNoticeDismissed = longLinesNoticeDismissed,
+            showLargeDeleteConfirmDialog = showLargeDeleteConfirmDialog,
         )
     }
 
