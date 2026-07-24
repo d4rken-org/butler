@@ -12,9 +12,11 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import eu.darken.butler.apps.R
 import eu.darken.butler.common.ElevatedAccessUnavailableException
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.pkgs.features.AppStore
@@ -171,7 +173,11 @@ class AppDetailsWorkspaceViewModel @AssistedInject constructor(
             }
             context.startActivity(intent)
         } catch (e: Exception) {
-            log(tag, WARN) { "Failed to launch activity ${activityInfo.name}: $e" }
+            // Exported doesn't guarantee launchable (permission-protected/disabled) — surface it.
+            log(tag, WARN) { "Failed to launch activity ${activityInfo.name}: ${e.asLog()}" }
+            errorEvents.emitBlocking(
+                IllegalStateException(context.getString(R.string.apps_components_launch_failed), e),
+            )
         }
     }
 

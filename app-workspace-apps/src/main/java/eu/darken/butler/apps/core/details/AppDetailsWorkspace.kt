@@ -63,7 +63,9 @@ class AppDetailsWorkspace @AssistedInject constructor(
     override val type: Workspace.Type = Workspace.Type.APP_DETAILS
 
     override suspend fun createArguments(): AppDetailsArguments {
-        return args
+        // The Components sub-screen is transient navigation state, not persisted: a restored
+        // workspace always reopens on Overview regardless of where the user navigated.
+        return args.copy(initialTab = DetailTab.OVERVIEW)
     }
 
     private val selectedTabFlow = MutableStateFlow(args.initialTab)
