@@ -1,6 +1,8 @@
 package eu.darken.butler.searcher.ui.search.elements
 
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -60,8 +62,9 @@ class AccessErrorsSheetContentTest : ComposeTest() {
         composeTestRule
             .onNodeWithText("Android protects these locations. Additional access lets Butler search them.")
             .assertIsDisplayed()
-        composeTestRule.onNodeWithText("Android/data").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Android/obb").assertIsDisplayed()
+        // Paths are shown in full — a file explorer must be exact about locations
+        composeTestRule.onNodeWithText("/storage/emulated/0/Android/data").assertIsDisplayed()
+        composeTestRule.onNodeWithText("/storage/emulated/0/Android/obb").assertIsDisplayed()
         composeTestRule.onNodeWithText("Unlock access").performClick()
         unlocked shouldBe true
     }
@@ -80,17 +83,7 @@ class AccessErrorsSheetContentTest : ComposeTest() {
     }
 
     @Test
-    fun `single location shows no location label`() {
-        setSheet(
-            targetProgress = listOf(progress()),
-            requirements = PathRequirements(combos = setOf(setOf(SetupModule.Type.ROOT))),
-        )
-
-        composeTestRule.onNodeWithText("/storage/emulated/0").assertDoesNotExist()
-    }
-
-    @Test
-    fun `multiple errored locations show location labels and truncation`() {
+    fun `multiple errored locations list full paths with a single truncation line`() {
         setSheet(
             targetProgress = listOf(
                 progress(accessErrorCount = 5),
@@ -103,24 +96,25 @@ class AccessErrorsSheetContentTest : ComposeTest() {
         )
 
         composeTestRule.onNodeWithText("6 items couldn't be accessed").assertIsDisplayed()
-        composeTestRule.onNodeWithText("/storage/emulated/0").assertIsDisplayed()
-        composeTestRule.onNodeWithText("/storage/ABCD-1234").assertIsDisplayed()
+        composeTestRule.onNodeWithText("/storage/emulated/0/Android/data").assertIsDisplayed()
+        composeTestRule.onNodeWithText("/storage/ABCD-1234/Android/data").assertIsDisplayed()
         // First location reported 5 errors but retained only 2 paths
         composeTestRule.onNodeWithText("…and 3 more").assertIsDisplayed()
     }
 
     @Test
-    fun `locations without errors are not listed`() {
+    fun `same path reported by overlapping targets is listed once`() {
         setSheet(
             targetProgress = listOf(
-                progress(),
-                progress(path = "/storage/clean", errorPaths = emptyList()),
+                progress(errorPaths = listOf("/storage/emulated/0/Android/data")),
+                progress(
+                    path = "/storage/emulated/0/Android",
+                    errorPaths = listOf("/storage/emulated/0/Android/data"),
+                ),
             ),
             requirements = PathRequirements(combos = setOf(setOf(SetupModule.Type.ROOT))),
         )
 
-        // Only one errored location -> flat list, and the clean location never appears
-        composeTestRule.onNodeWithText("/storage/clean").assertDoesNotExist()
-        composeTestRule.onNodeWithText("/storage/emulated/0").assertDoesNotExist()
+        composeTestRule.onAllNodesWithText("/storage/emulated/0/Android/data").assertCountEquals(1)
     }
 }

@@ -1,6 +1,5 @@
 package eu.darken.butler.searcher.ui.search.elements
 
-import android.content.Context
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -41,9 +40,10 @@ import eu.darken.butler.workspace.contracts.searcher.SearchTarget
 
 /**
  * Detail sheet behind the progress card's "N items couldn't be accessed" line: lists the
- * inaccessible paths and, when a viable mechanism exists (root/Shizuku available — already
- * availability-filtered by PathPermissionCheck), offers the setup action. When nothing can unlock
- * the items, the body text is the terminal explanation and no action is shown.
+ * inaccessible paths in full (absolute — a file explorer must be exact about locations) and, when
+ * a viable mechanism exists (root/Shizuku available — already availability-filtered by
+ * PathPermissionCheck), offers the setup action. When nothing can unlock the items, the body text
+ * is the terminal explanation and no action is shown.
  */
 @Composable
 fun AccessErrorsSheetContent(
@@ -56,7 +56,13 @@ fun AccessErrorsSheetContent(
     val context = LocalContext.current
     val erroredTargets = targetProgress.filter { it.accessErrorCount > 0 }
     val totalErrors = erroredTargets.sumOf { it.accessErrorCount }
-    val showLocationLabels = erroredTargets.size > 1
+    // Full absolute paths, deduped across targets (overlapping roots can report the same path).
+    // The "more" line only counts entries hidden by the per-target retention cap.
+    val fullPaths = erroredTargets
+        .flatMap { it.accessErrorPaths }
+        .distinct()
+        .map { it.userReadablePath.get(context) }
+    val truncatedCount = erroredTargets.sumOf { it.accessErrorCount - it.accessErrorPaths.size }
 
     Box(
         modifier = modifier
@@ -98,37 +104,27 @@ fun AccessErrorsSheetContent(
                 modifier = Modifier.padding(top = 8.dp),
             )
 
-            erroredTargets.forEach { progress ->
-                if (showLocationLabels) {
-                    Text(
-                        text = progress.target.displayText.get(context),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.padding(top = 16.dp),
-                    )
-                } else {
-                    Spacer(modifier = Modifier.padding(top = 8.dp))
-                }
-                progress.relativeErrorLabels(context).forEach { label ->
-                    Text(
-                        text = label,
-                        style = MaterialTheme.typography.bodySmall,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.padding(top = 4.dp),
-                    )
-                }
-                val more = progress.accessErrorCount - progress.accessErrorPaths.size
-                if (more > 0) {
-                    Text(
-                        text = pluralStringResource(R.plurals.searcher_progress_inaccessible_more, more, more),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 4.dp),
-                    )
-                }
+            Spacer(modifier = Modifier.padding(top = 8.dp))
+            fullPaths.forEach { label ->
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(top = 4.dp),
+                )
+            }
+            if (truncatedCount > 0) {
+                Text(
+                    text = pluralStringResource(
+                        R.plurals.searcher_progress_inaccessible_more,
+                        truncatedCount,
+                        truncatedCount,
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 4.dp),
+                )
             }
 
             if (accessErrorRequirements.needsSetup) {
@@ -147,20 +143,6 @@ fun AccessErrorsSheetContent(
                     Text(stringResource(R.string.searcher_access_sheet_unlock_action))
                 }
             }
-        }
-    }
-}
-
-// Inaccessible paths rendered relative to the target root so the distinguishing tail stays visible
-// (an end-ellipsized absolute path would show only the shared prefix). Falls back to the full path.
-private fun SearchEngine.SearchTargetProgress.relativeErrorLabels(context: Context): List<String> {
-    val rootSegments = (target as? SearchTarget.Path)?.path?.segments
-    return accessErrorPaths.map { errorPath ->
-        val segs = errorPath.segments
-        if (rootSegments != null && segs.size > rootSegments.size && segs.take(rootSegments.size) == rootSegments) {
-            segs.drop(rootSegments.size).joinToString("/")
-        } else {
-            errorPath.userReadablePath.get(context)
         }
     }
 }

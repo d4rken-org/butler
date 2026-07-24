@@ -126,7 +126,7 @@ fun SearchProgressCard(
 
                     val context = LocalContext.current
                     LazyColumn(
-                        modifier = Modifier.heightIn(max = 240.dp),
+                        modifier = Modifier.heightIn(max = 320.dp),
                         verticalArrangement = Arrangement.spacedBy(0.dp)
                     ) {
                         itemsIndexed(
