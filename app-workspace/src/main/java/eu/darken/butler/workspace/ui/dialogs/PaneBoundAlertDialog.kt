@@ -1,5 +1,6 @@
 package eu.darken.butler.workspace.ui.dialogs
 
+import android.content.pm.ApplicationInfo
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.MutableTransitionState
@@ -34,6 +35,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
@@ -45,7 +47,6 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.SecureFlagPolicy
-import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -97,7 +98,11 @@ fun PaneBoundAlertDialog(
     properties: DialogProperties = DialogProperties(),
     includeImePadding: Boolean = false,
 ) {
-    if (BuildConfigWrap.DEBUG) {
+    val context = LocalContext.current
+    val isDebuggable = remember(context) {
+        (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
+    }
+    if (isDebuggable) {
         check(properties.securePolicy == SecureFlagPolicy.Inherit) {
             "PaneBoundAlertDialog cannot honor securePolicy=${properties.securePolicy}; " +
                 "a dialog that must block screenshots has to stay a window dialog."
