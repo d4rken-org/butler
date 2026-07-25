@@ -4,9 +4,7 @@ import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
@@ -26,7 +24,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -44,8 +41,6 @@ import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.SortSettings
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionBarItem
-import eu.darken.butler.explorer.ui.explorer.dialogs.AddDeviceStorageSheet
-import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogHost
 import eu.darken.butler.explorer.ui.explorer.elements.ExplorerReadyContent
 import eu.darken.butler.explorer.ui.explorer.elements.ExplorerTopBars
 import eu.darken.butler.explorer.ui.explorer.elements.PermissionRequestCard
@@ -54,19 +49,14 @@ import eu.darken.butler.workspace.ui.preview.ProvideFolderPreviews
 import eu.darken.butler.explorer.ui.explorer.util.OpenDocumentTreeWithIntent
 import eu.darken.butler.explorer.ui.explorer.util.explorerKeyboardShortcuts
 import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
 import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
 import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
-import eu.darken.butler.workspace.ui.issues.IssuesBottomSheet
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
-import eu.darken.butler.workspace.ui.operations.details.CancelOperationConfirmationDialog
-import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
-import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
@@ -118,22 +108,6 @@ fun ExplorerWorkspacePage(
         includeSystemBarInset = design.paneEdges.touchesBottom,
         estimatedContentPadding = 80.dp,
     )
-    val density = LocalDensity.current
-    val navBarInset = if (design.paneEdges.touchesBottom) {
-        with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
-    } else {
-        0.dp
-    }
-
-    // Observe conflict state. showIssueSheet is durable VM state so a notification-driven open
-    // survives recomposition / late collector subscription.
-    val issueState by (vm?.issueState?.collectAsState() ?: remember { mutableStateOf(null) })
-    val showIssueSheet by (vm?.showIssueSheet?.collectAsState() ?: remember { mutableStateOf(false) })
-
-    // Operation dialog state
-    var operationDialogState by remember { mutableStateOf<OperationDialogState>(OperationDialogState.None) }
-    var showCancelConfirmation by remember { mutableStateOf<Operation.Id?>(null) }
-
     // Progress indicator delay state - shows after 200ms to avoid flickering
     val showProgress = rememberDelayedState(state.progress, delayMs = 200)
 
@@ -271,9 +245,7 @@ fun ExplorerWorkspacePage(
                     onRefresh = handleRefresh,
                     initialOperationsExpanded = initialOperationsExpanded,
                     initialClipboardExpanded = initialClipboardExpanded,
-                    onShowOperationDetails = { operationId ->
-                        operationDialogState = OperationDialogState.OperationDetails(operationId)
-                    },
+                    onShowOperationDetails = { operationId -> vm?.showOperationDetails(operationId) },
                 )
             }
 
@@ -293,58 +265,8 @@ fun ExplorerWorkspacePage(
                 },
             )
 
-            // Dialogs - stay in parent
-            ExplorerDialogHost(
-                dialogState = state.dialogState,
-                trashEnabled = state.trashEnabled,
-                vm = vm,
-                bottomInset = navBarInset,
-            )
-
-            OperationDialogHost(
-                dialogState = operationDialogState,
-                operations = operationsState.operations,
-                onDismissDialog = { operationDialogState = OperationDialogState.None },
-                onCancelOperation = { operationId ->
-                    operationDialogState = OperationDialogState.None
-                    showCancelConfirmation = operationId
-                },
-                onShareError = { vm?.shareError(it) },
-                onHandleIssue = { operationId -> vm?.showConflictSheet(operationId) },
-                bottomInset = navBarInset,
-            )
-
-            // Show conflict bottom sheet when needed
-            if (issueState != null && showIssueSheet) {
-                IssuesBottomSheet(
-                    issue = issueState!!,
-                    onResolution = { resolution -> vm?.resolveConflict(resolution) },
-                    onDismiss = { vm?.dismissConflictSheet() },
-                    bottomInset = navBarInset,
-                )
-            }
+            // Dialogs and sheets live in the page host's overlay slot, see ExplorerWorkspaceOverlays
         }
-    }
-
-    // Show add storage bottom sheet
-    val showAddStorageSheet by (vm?.showAddStorageSheet?.collectAsState() ?: remember { mutableStateOf(false) })
-    if (showAddStorageSheet) {
-        AddDeviceStorageSheet(
-            onDismiss = { vm?.dismissAddStorageSheet() },
-            onContinue = { vm?.addSAFLocation() },
-            bottomInset = navBarInset,
-        )
-    }
-
-    // Show cancel confirmation dialog when needed
-    showCancelConfirmation?.let { operationId ->
-        CancelOperationConfirmationDialog(
-            onDismiss = { showCancelConfirmation = null },
-            onConfirm = {
-                vm?.cancelOperation(operationId)
-                showCancelConfirmation = null
-            }
-        )
     }
 }
 
