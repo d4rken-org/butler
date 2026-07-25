@@ -102,6 +102,8 @@ internal fun FloatingBarScope.ExplorerTopBars(
             onClearSelection = { vm?.clearSelection() },
             onSelectFolders = { vm?.selectAllFolders() },
             onSelectFiles = { vm?.selectAllFiles() },
+            onSelectAll = { vm?.selectAll() },
+            canSelectMultiple = state.pickerConfig?.selection?.isMultiSelect != false,
             isTrashDisabled = !state.trashEnabled,
         )
     }

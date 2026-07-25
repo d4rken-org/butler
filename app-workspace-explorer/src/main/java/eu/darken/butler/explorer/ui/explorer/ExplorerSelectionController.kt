@@ -26,34 +26,39 @@ class ExplorerSelectionController(
     private val selectedItemsFlow = MutableStateFlow<Set<ExplorerItem>>(emptySet())
     val selectedItems: StateFlow<Set<ExplorerItem>> = selectedItemsFlow
 
+    /** Single-select picker modes cap the selection at one item, normal browsing is unrestricted. */
+    private val allowsMultiSelect: Boolean
+        get() = pickerConfig()?.selection?.isMultiSelect != false
+
     fun toggle(item: ExplorerItem) {
         if (!item.isSelectable()) {
             log(tag, WARN) { "toggleItemSelection($item) is not selectable" }
             return
         }
-        val pickerConfig = pickerConfig()
         val currentSelection = selectedItemsFlow.value
 
-        // In DirectorySingle mode with Storage items, enforce single selection (radio button behavior)
-        val newSelection =
-            if (pickerConfig?.selection is PickerConfig.Selection.DirectorySingle && item is ExplorerItem.Storage) {
-                if (currentSelection.contains(item)) {
-                    emptySet() // Deselect if clicking the same item
-                } else {
-                    setOf(item) // Replace selection with new item
-                }
+        // Single-select picker modes behave like radio buttons
+        val newSelection = if (!allowsMultiSelect) {
+            if (currentSelection.contains(item)) {
+                emptySet() // Deselect if clicking the same item
             } else {
-                // Normal toggle behavior for multi-select modes
-                if (currentSelection.contains(item)) {
-                    currentSelection - item
-                } else {
-                    currentSelection + item
-                }
+                setOf(item) // Replace selection with new item
             }
+        } else {
+            if (currentSelection.contains(item)) {
+                currentSelection - item
+            } else {
+                currentSelection + item
+            }
+        }
         selectedItemsFlow.value = newSelection
     }
 
     fun set(items: Set<ExplorerItem>) {
+        if (!allowsMultiSelect && items.size > 1) {
+            log(tag, WARN) { "set(${items.size} items) rejected, picker is single-select" }
+            return
+        }
         selectedItemsFlow.value = items
     }
 
@@ -62,10 +67,18 @@ class ExplorerSelectionController(
     }
 
     fun selectAll() = doLaunch {
+        if (!allowsMultiSelect) {
+            log(tag, WARN) { "selectAll() rejected, picker is single-select" }
+            return@doLaunch
+        }
         selectedItemsFlow.value = selectableItems()
     }
 
     fun selectAllFolders() = doLaunch {
+        if (!allowsMultiSelect) {
+            log(tag, WARN) { "selectAllFolders() rejected, picker is single-select" }
+            return@doLaunch
+        }
         val folders = selectableItems().filter { item ->
             item is ExplorerItem.Directory ||
                 (item is ExplorerItem.Trash.Nested && item.isDirectory)
@@ -74,6 +87,10 @@ class ExplorerSelectionController(
     }
 
     fun selectAllFiles() = doLaunch {
+        if (!allowsMultiSelect) {
+            log(tag, WARN) { "selectAllFiles() rejected, picker is single-select" }
+            return@doLaunch
+        }
         val files = selectableItems().filter { item ->
             item is ExplorerItem.File ||
                 (item is ExplorerItem.Trash.Nested && item.isFile)
