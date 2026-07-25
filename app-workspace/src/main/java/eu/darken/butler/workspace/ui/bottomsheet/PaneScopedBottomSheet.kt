@@ -135,8 +135,6 @@ fun PaneScopedBottomSheet(
         }
     }
 
-    WorkspaceBackHandler(enabled = visible, onBack = onDismiss)
-
     // The sheet stays on screen for the ~200ms exit transition after `visible` goes false, so layer
     // registration follows the transition rather than `visible` — otherwise the content behind
     // would become interactive again while the sheet is still covering it.
@@ -144,6 +142,12 @@ fun PaneScopedBottomSheet(
     val layerPresent = transition.currentState || transition.targetState
 
     PaneLayer(modifier = Modifier.fillMaxSize(), enabled = layerPresent) {
+        // Must live inside the layer and follow the same lifetime: composed outside it, this would
+        // read the layer *below* the sheet, and gating it on `visible` would disable it during the
+        // exit transition while the page handlers underneath are still deactivated — leaving back
+        // to fall through to the activity's exit handler.
+        WorkspaceBackHandler(enabled = layerPresent, onBack = onDismiss)
+
         // Scrim overlay (pane-local, not full-screen)
         transition.AnimatedVisibility(
             visible = { it },
