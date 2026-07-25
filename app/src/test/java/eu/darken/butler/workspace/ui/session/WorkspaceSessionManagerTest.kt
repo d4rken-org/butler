@@ -804,6 +804,56 @@ class WorkspaceSessionManagerTest : BaseTest() {
             }
 
         @Test
+        fun `focusing a paused workspace resumes it while session restore is disabled`() =
+            runTest(UnconfinedTestDispatcher()) {
+                every { workspaceSettings.sessionRestoreEnabled } returns mockk {
+                    every { flow } returns flowOf(false)
+                }
+
+                val manager = createManager()
+                restoreScope.testScheduler.runCurrent()
+                manager.state.value shouldBe WorkspaceSessionManager.State.Disabled
+
+                // Auto-paused tabs exist without session restore, so they must still be resumable
+                repo.execute(
+                    WorkspaceAction.RegisterPaused(
+                        id = idA,
+                        type = Workspace.Type.EXPLORER,
+                        arguments = FakeSessionArguments(Workspace.Type.EXPLORER, "a"),
+                    )
+                )
+                pageManager.setLayout(mapOf(0 to idA), focusedId = idA)
+                restoreScope.testScheduler.runCurrent()
+
+                createAttempts shouldBe listOf(idA)
+                pausedIds() shouldBe emptyList()
+            }
+
+        @Test
+        fun `focusing a paused workspace resumes it after a failed restoration`() =
+            runTest(UnconfinedTestDispatcher()) {
+                coEvery { storage.dao.getSession(any()) } returns mockk(relaxed = true)
+                coEvery { storage.dao.getWorkspaces(any()) } throws RuntimeException("row mapping failed")
+
+                val manager = createManager()
+                restoreScope.testScheduler.runCurrent()
+                manager.state.value.shouldBeInstanceOf<WorkspaceSessionManager.State.Error>()
+
+                repo.execute(
+                    WorkspaceAction.RegisterPaused(
+                        id = idA,
+                        type = Workspace.Type.EXPLORER,
+                        arguments = FakeSessionArguments(Workspace.Type.EXPLORER, "a"),
+                    )
+                )
+                pageManager.setLayout(mapOf(0 to idA), focusedId = idA)
+                restoreScope.testScheduler.runCurrent()
+
+                createAttempts shouldBe listOf(idA)
+                pausedIds() shouldBe emptyList()
+            }
+
+        @Test
         fun `the seeded save cache keeps an unchanged session from being rewritten`() =
             runTest(UnconfinedTestDispatcher()) {
                 savedSession(focusedId = idB)

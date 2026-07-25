@@ -27,7 +27,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
@@ -129,10 +129,12 @@ class WorkspaceSessionManager @Inject constructor(
         // workspace's lifecycle state: a plain focus observer would miss a tab that gets paused
         // while already focused (auto-pause landing right after the user switched to it), leaving
         // the user staring at a paused foreground tab that nothing ever wakes up.
-        // Only armed once restoration finished: focus emissions during restore (e.g. the stale
-        // SavedStateHandle focus) must not resume anything, which keeps the cold start to one tab.
+        // Only armed once restoration reached a terminal state: focus emissions during restore
+        // (e.g. the stale SavedStateHandle focus) must not resume anything, which keeps the cold
+        // start to one tab. Disabled and Error are terminal too - auto-pause creates paused
+        // stand-ins without session restore, so those tabs need waking up just the same.
         state
-            .filterIsInstance<State.Restored>()
+            .filter { it !is State.Restoring }
             .take(1)
             .flatMapLatest {
                 combine(
