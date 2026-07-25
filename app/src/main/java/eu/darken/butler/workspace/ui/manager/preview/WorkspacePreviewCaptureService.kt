@@ -15,6 +15,7 @@ import eu.darken.butler.main.core.GeneralSettings
 import eu.darken.butler.main.core.themeStateBlocking
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspacePauseGate
+import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.label
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.LocalWorkspacePageHosts
@@ -22,6 +23,7 @@ import eu.darken.butler.workspace.ui.WorkspacePageHostEntry
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.workspaces.WorkspaceMapper
 import eu.darken.butler.workspace.ui.workspaces.WorkspacePaneInfo
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -37,18 +39,22 @@ class WorkspacePreviewCaptureService @Inject constructor(
     private val dispatcherProvider: DispatcherProvider,
     private val generalSettings: GeneralSettings,
     private val workspacePauseGate: WorkspacePauseGate,
+    private val workspaceRepo: WorkspaceRepo,
     private val pageHosts: Map<Workspace.Type, @JvmSuppressWildcards WorkspacePageHostEntry>,
 ) {
 
     /**
      * Callers must not pass a paused workspace: the capture composes the type's page host by
      * synthesizing [Workspace.LifecycleState.Ready], which has no instance to bind to while paused
-     * (and resuming it here would defeat the pause).
+     * (and resuming it here would defeat the pause). The precondition is enforced defensively below
+     * and a violation yields null, so callers still need their own fallback.
      *
      * The whole capture runs under [WorkspacePauseGate], so a pause of this workspace can neither
      * start nor finish while we compose it. We wait for a pause in flight rather than bail out: a
      * skipped capture would leave a stale thumbnail behind until something else invalidates it,
-     * while waiting only delays a preview by one pause.
+     * while waiting only delays a preview by one pause. Waiting means the caller's "is it live?"
+     * check can have gone stale by the time we get the lease - a manual pause sticks instead of
+     * resuming - so the workspace is re-read inside the lease before anything is composed.
      */
     suspend fun captureWorkspace(
         workspaceId: Workspace.Id,
@@ -60,6 +66,17 @@ class WorkspacePreviewCaptureService @Inject constructor(
         log(TAG, INFO) { "Capturing preview for workspace ${workspaceId.shortTag} (${workspaceType})" }
 
         workspacePauseGate.withLease(workspaceId) {
+            val currentInfo = workspaceRepo.state.first().infos.find { it.id == workspaceId }
+            val skipReason = when {
+                currentInfo == null -> "it is gone from the repo"
+                currentInfo.isPaused -> "it was paused while we waited for the lease"
+                else -> null
+            }
+            if (skipReason != null) {
+                log(TAG, INFO) { "Skipping capture for ${workspaceId.shortTag}: $skipReason" }
+                return@withLease null
+            }
+
             val themeState = generalSettings.themeStateBlocking
 
             withContext(dispatcherProvider.Main) {
