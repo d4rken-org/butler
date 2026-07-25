@@ -9,6 +9,7 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import eu.darken.butler.workspace.core.operations.OperationsManager
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -17,6 +18,7 @@ import io.kotest.matchers.types.shouldBeSameInstanceAs
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,6 +26,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -67,6 +70,18 @@ class WorkspaceRepoTest : BaseTest() {
         var released = false
             private set
 
+        /** What [createArguments] returns; set to simulate state drifting away from creation args. */
+        var currentArguments: Workspace.Arguments = arguments
+
+        /** When set, [createArguments] throws it. */
+        var argumentsError: Throwable? = null
+
+        /** When set, [release] throws it after marking the workspace released. */
+        var releaseError: Throwable? = null
+
+        /** Runs inside [createArguments], for exercising state changes while it suspends. */
+        var whileCapturingArguments: (suspend () -> Unit)? = null
+
         override val info = MutableStateFlow(
             Workspace.Info(
                 id = id,
@@ -79,10 +94,19 @@ class WorkspaceRepoTest : BaseTest() {
             )
         )
 
-        override suspend fun createArguments(): Workspace.Arguments = arguments
+        override suspend fun createArguments(): Workspace.Arguments {
+            whileCapturingArguments?.invoke()
+            argumentsError?.let { throw it }
+            return currentArguments
+        }
 
         override suspend fun release() {
             released = true
+            releaseError?.let { throw it }
+        }
+
+        fun markReady() {
+            info.value = info.value.copy(lifecycleState = Workspace.LifecycleState.Ready)
         }
     }
 
@@ -1311,6 +1335,240 @@ class WorkspaceRepoTest : BaseTest() {
         repo.infoFor(idA).customTitle shouldBe "A"
         repo.infoFor(idB).customTitle shouldBe "B"
     }
+
+    // ==================== Pausing ====================
+
+    private suspend fun WorkspaceRepo.createReadyTab(
+        type: Workspace.Type = Workspace.Type.EXPLORER,
+    ): Workspace.Id = createTab(type).also { fake(it).markReady() }
+
+    private suspend fun WorkspaceRepo.pause(id: Workspace.Id): WorkspaceAction.Result =
+        execute(WorkspaceAction.Pause(id))
+
+    @Test
+    fun `pausing swaps in a stand-in at the same position and keeps the identity`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val firstId = repo.createReadyTab()
+            val pausedId = repo.createReadyTab()
+            val lastId = repo.createReadyTab()
+            val title = "Downloads".toCaString()
+            val subtitle = "/storage/emulated/0/Download".toCaString()
+            fake(pausedId).info.update { it.copy(title = title, subtitle = subtitle, contentPath = pathA) }
+
+            repo.pause(pausedId).shouldBeInstanceOf<WorkspaceAction.Pause.Result.Success>().id shouldBe pausedId
+
+            repo.workspaceIds() shouldBe listOf(firstId, pausedId, lastId)
+            val info = repo.infoFor(pausedId)
+            info.isPaused shouldBe true
+            info.title shouldBe title
+            info.subtitle shouldBe subtitle
+            info.contentPath shouldBe pathA
+            // Typed consumers must see it exactly like a workspace that was never instantiated
+            repo.retrieve(pausedId).first() shouldBe null
+            fake(pausedId).released shouldBe true
+        }
+
+    @Test
+    fun `pausing captures the current arguments, not the creation arguments`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val id = repo.createReadyTab(Workspace.Type.EDITOR)
+            fake(id).currentArguments = FakeContentArguments(Workspace.Type.EDITOR, pathB)
+
+            repo.pause(id)
+
+            // The stand-in holds the state as it was at pause time, not what the tab opened with
+            repo.peek(id)!!.createArguments() shouldBe FakeContentArguments(Workspace.Type.EDITOR, pathB)
+        }
+
+    @Test
+    fun `resuming a paused workspace rebuilds it from the captured arguments`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val id = repo.createReadyTab(Workspace.Type.EDITOR)
+            fake(id).currentArguments = FakeContentArguments(Workspace.Type.EDITOR, pathB)
+            repo.pause(id)
+
+            repo.execute(WorkspaceAction.Resume(id))
+                .shouldBeInstanceOf<WorkspaceAction.Resume.Result.Success>()
+
+            repo.retrieve(id).first() shouldNotBe null
+            createdWorkspaces.count { it.id == id } shouldBe 2
+            repo.infoFor(id).contentPath shouldBe pathB
+        }
+
+    @Test
+    fun `a failing release still leaves the workspace paused`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val id = repo.createReadyTab()
+        fake(id).releaseError = IllegalStateException("Engine stuck")
+
+        repo.pause(id).shouldBeInstanceOf<WorkspaceAction.Pause.Result.Success>()
+
+        repo.infoFor(id).isPaused shouldBe true
+    }
+
+    @Test
+    fun `a failing createArguments keeps the workspace live and untouched`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val id = repo.createReadyTab()
+            val boom = IllegalStateException("Cannot serialize state")
+            fake(id).argumentsError = boom
+
+            val result = repo.pause(id)
+
+            result.shouldBeInstanceOf<WorkspaceAction.Pause.Result.Failed>()
+            result.error shouldBe boom
+            repo.infoFor(id).isPaused shouldBe false
+            repo.retrieve(id).first() shouldNotBe null
+            fake(id).released shouldBe false
+        }
+
+    @Test
+    fun `a cancellation while capturing arguments propagates instead of becoming a failure`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val id = repo.createReadyTab()
+            fake(id).argumentsError = CancellationException("Scope died")
+
+            shouldThrow<CancellationException> { repo.pause(id) }
+
+            repo.infoFor(id).isPaused shouldBe false
+            fake(id).released shouldBe false
+        }
+
+    @Test
+    fun `pausing an unknown or already paused workspace is a no-op`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val id = repo.createReadyTab()
+        repo.pause(id)
+
+        repo.pause(Workspace.Id()) shouldBe WorkspaceAction.Pause.Result.NoOp
+        repo.pause(id) shouldBe WorkspaceAction.Pause.Result.NoOp
+    }
+
+    @Test
+    fun `pausing a sub-workspace is refused`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val parentId = repo.createReadyTab()
+        val childId = repo.createSubWorkspace(caller = parentId)
+        fake(childId).markReady()
+
+        val result = repo.pause(childId)
+
+        result.shouldBeInstanceOf<WorkspaceAction.Pause.Result.Refused>()
+        result.reason shouldBe WorkspaceAction.Pause.Reason.SUB_WORKSPACE
+    }
+
+    @Test
+    fun `pausing a workspace with children is refused`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val parentId = repo.createReadyTab()
+        repo.createSubWorkspace(caller = parentId)
+
+        val result = repo.pause(parentId)
+
+        result.shouldBeInstanceOf<WorkspaceAction.Pause.Result.Refused>()
+        result.reason shouldBe WorkspaceAction.Pause.Reason.HAS_CHILDREN
+    }
+
+    @Test
+    fun `pausing a workspace holding a content claim is refused and keeps the claim`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val id = repo.createReadyTab(Workspace.Type.EDITOR)
+            repo.execute(
+                WorkspaceAction.ClaimContentPath(Workspace.Type.EDITOR, pathA, id)
+            ) shouldBe WorkspaceAction.ClaimContentPath.Result.Granted
+
+            val result = repo.pause(id)
+
+            result.shouldBeInstanceOf<WorkspaceAction.Pause.Result.Refused>()
+            result.reason shouldBe WorkspaceAction.Pause.Reason.CLAIM_HELD
+            // Dropping the claim could let a duplicate tab open on that path mid-transition
+            val create = repo.execute(contentReq(pathA))
+            create.shouldBeInstanceOf<WorkspaceAction.Create.Result.AlreadyOpen>()
+            create.existingId shouldBe id
+        }
+
+    @Test
+    fun `pausing a busy workspace is refused`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val id = repo.createReadyTab()
+        fake(id).info.update { it.copy(operationCount = 1) }
+
+        val result = repo.pause(id)
+
+        result.shouldBeInstanceOf<WorkspaceAction.Pause.Result.Refused>()
+        result.reason shouldBe WorkspaceAction.Pause.Reason.BUSY
+    }
+
+    @Test
+    fun `pausing a workspace needing attention is refused`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val id = repo.createReadyTab()
+        fake(id).info.update { it.copy(attentionCount = 1) }
+
+        val result = repo.pause(id)
+
+        result.shouldBeInstanceOf<WorkspaceAction.Pause.Result.Refused>()
+        result.reason shouldBe WorkspaceAction.Pause.Reason.BUSY
+    }
+
+    @Test
+    fun `pausing a workspace with unsaved changes is refused`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val id = repo.createReadyTab()
+        fake(id).info.update { it.copy(hasUnsavedChanges = true) }
+
+        val result = repo.pause(id)
+
+        result.shouldBeInstanceOf<WorkspaceAction.Pause.Result.Refused>()
+        result.reason shouldBe WorkspaceAction.Pause.Reason.UNSAVED_CHANGES
+    }
+
+    @Test
+    fun `pausing a workspace that opted out is refused`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val id = repo.createReadyTab()
+        fake(id).info.update { it.copy(isPausable = false) }
+
+        val result = repo.pause(id)
+
+        result.shouldBeInstanceOf<WorkspaceAction.Pause.Result.Refused>()
+        result.reason shouldBe WorkspaceAction.Pause.Reason.NOT_PAUSABLE
+    }
+
+    @Test
+    fun `pausing a workspace that is not ready is refused`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val id = repo.createTab()
+
+        val result = repo.pause(id)
+
+        result.shouldBeInstanceOf<WorkspaceAction.Pause.Result.Refused>()
+        result.reason shouldBe WorkspaceAction.Pause.Reason.NOT_READY
+    }
+
+    @Test
+    fun `a guard flipping while arguments are captured refuses without mutating`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val id = repo.createReadyTab()
+            val workspace = fake(id)
+            workspace.whileCapturingArguments = {
+                workspace.info.update { it.copy(hasUnsavedChanges = true) }
+            }
+
+            val result = repo.pause(id)
+
+            result.shouldBeInstanceOf<WorkspaceAction.Pause.Result.Refused>()
+            result.reason shouldBe WorkspaceAction.Pause.Reason.UNSAVED_CHANGES
+            repo.infoFor(id).isPaused shouldBe false
+            workspace.released shouldBe false
+        }
 
     @Test
     fun `batch rejects a colliding explicit id without dropping the first create`() =
