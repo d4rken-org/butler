@@ -20,20 +20,37 @@ import androidx.compose.runtime.mutableStateListOf
 @Stable
 class PaneLayerState {
 
-    private data class Entry(val token: Any, val rank: Int)
+    private data class Entry(val token: Any, val rank: Int, val parent: Any?)
 
     private val entries = mutableStateListOf<Entry>()
 
     /** Topmost layer, or `null` while the pane holds no layer at all. */
     val topLayer: Any? by derivedStateOf { entries.lastOrNull()?.token }
 
+    /**
+     * The topmost layer plus every layer enclosing it.
+     *
+     * A layer that *contains* the top one must not be deactivated: hiding it from accessibility or
+     * refusing focus entry would take the layer on top down with it. It still isn't the active
+     * layer, so its own back handlers stay disabled.
+     */
+    private val topPath: Set<Any> by derivedStateOf {
+        val byToken = entries.associateByTo(mutableMapOf()) { it.token }
+        val path = mutableSetOf<Any>()
+        var current = entries.lastOrNull()
+        while (current != null && path.add(current.token)) {
+            current = current.parent?.let { byToken[it] }
+        }
+        path
+    }
+
     val layerCount: Int
         get() = entries.size
 
-    fun push(token: Any, rank: Int) {
+    fun push(token: Any, rank: Int, parent: Any? = null) {
         if (entries.any { it.token === token }) return
         val insertAt = entries.indexOfFirst { it.rank > rank }.let { if (it == -1) entries.size else it }
-        entries.add(insertAt, Entry(token, rank))
+        entries.add(insertAt, Entry(token, rank, parent))
     }
 
     fun pop(token: Any) {
@@ -41,6 +58,9 @@ class PaneLayerState {
     }
 
     fun isTop(token: Any): Boolean = topLayer === token
+
+    /** True when [token] is the top layer or encloses it. */
+    fun isOnTopPath(token: Any): Boolean = token in topPath
 }
 
 /**
@@ -76,3 +96,6 @@ val LocalPaneFocused = compositionLocalOf { true }
 
 /** Rank a layer registers at when it doesn't pick one explicitly. */
 val LocalPaneLayerRank = compositionLocalOf { PaneLayerRank.CONTENT }
+
+/** Token of the enclosing layer, so nesting can be distinguished from stacking. */
+val LocalPaneLayerParent = compositionLocalOf<Any?> { null }

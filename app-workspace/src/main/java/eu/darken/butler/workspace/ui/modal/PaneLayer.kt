@@ -51,27 +51,31 @@ fun PaneLayer(
     val layerState = LocalPaneLayerState.current
     val paneFocused = LocalPaneFocused.current
     val inheritedActive = LocalLayerActive.current
+    val parentToken = LocalPaneLayerParent.current
     val token = remember { Any() }
     val registered = enabled && layerState != null
 
-    DisposableEffect(layerState, token, rank, registered) {
-        if (registered) layerState?.push(token, rank)
+    DisposableEffect(layerState, token, rank, parentToken, registered) {
+        if (registered) layerState?.push(token, rank, parentToken)
         onDispose { layerState?.pop(token) }
     }
 
     val isTop = !registered || layerState?.isTop(token) == true
+    // A layer that encloses the top one must stay reachable, or it would take the top layer down
+    // with it — but it is still not the active layer.
+    val onTopPath = !registered || layerState?.isOnTopPath(token) == true
     val active = if (registered) paneFocused && isTop else inheritedActive
 
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
     var hasFocus by remember { mutableStateOf(false) }
 
-    LaunchedEffect(registered, isTop, active, modal) {
+    LaunchedEffect(registered, isTop, onTopPath, active, modal) {
         if (!registered) return@LaunchedEffect
-        if (!isTop) {
+        if (!onTopPath) {
             // A text field behind a dialog would otherwise keep focus and the soft keyboard
             if (hasFocus) focusManager.clearFocus(force = true)
-        } else if (modal && active) {
+        } else if (isTop && modal && active) {
             runCatching { focusRequester.requestFocus() }
         }
     }
@@ -84,17 +88,21 @@ fun PaneLayer(
                 if (!registered) return@focusProperties
                 if (isTop) {
                     if (modal) onExit = { cancelFocusChange() }
-                } else {
+                } else if (!onTopPath) {
                     onEnter = { cancelFocusChange() }
                 }
             }
             .focusGroup()
             .then(
-                if (registered && !isTop) Modifier.semantics { hideFromAccessibility() } else Modifier
+                if (registered && !onTopPath) Modifier.semantics { hideFromAccessibility() } else Modifier
             ),
     ) {
         val boxScope = this
-        CompositionLocalProvider(LocalLayerActive provides active) {
+        CompositionLocalProvider(
+            LocalLayerActive provides active,
+            LocalPaneLayerRank provides rank,
+            LocalPaneLayerParent provides if (registered) token else parentToken,
+        ) {
             boxScope.content()
         }
     }
