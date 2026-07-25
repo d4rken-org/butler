@@ -135,7 +135,15 @@ class WorkspaceAutoPauseManager(
         log(TAG, INFO) { "Auto-pausing ${candidates.size} idle workspace(s)" }
         // Strictly sequential: WorkspaceRepo.execute() holds one global lock across the release, so
         // firing these in parallel would queue up behind each other anyway and stall other actions.
-        candidates.forEach { pause(it) }
+        candidates.forEach { candidate ->
+            // Re-checked per candidate, not once per pass: pausing suspends, so the user can open
+            // the tab manager (and its offscreen preview capture) between two pauses.
+            if (workspacePageManager.state.value.isManagerOverlayVisible) {
+                log(TAG, INFO) { "Tab manager opened mid-pass, skipping the remaining candidates" }
+                return
+            }
+            pause(candidate)
+        }
     }
 
     private suspend fun pause(id: Workspace.Id) {
@@ -143,9 +151,13 @@ class WorkspaceAutoPauseManager(
             is WorkspaceAction.Pause.Result.Success -> {
                 idleSince.remove(id)
                 log(TAG, INFO) { "Auto-paused $id" }
-                // Backstop for a focus/selection change that landed while we were pausing
-                if (id in workspacePageManager.state.value.visibleWorkspaceIds()) {
+                // Backstop for a focus/selection change or a tab manager opening while we paused
+                val pageState = workspacePageManager.state.value
+                if (id in pageState.visibleWorkspaceIds()) {
                     log(TAG, INFO) { "$id became visible while pausing, resuming it right away" }
+                    workspaceRepo.execute(WorkspaceAction.Resume(id))
+                } else if (pageState.isManagerOverlayVisible) {
+                    log(TAG, INFO) { "Tab manager opened while pausing $id, resuming it right away" }
                     workspaceRepo.execute(WorkspaceAction.Resume(id))
                 }
             }

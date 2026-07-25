@@ -421,6 +421,32 @@ class WorkspaceAutoPauseManagerTest : BaseTest() {
         }
 
     @Test
+    fun `the tab manager opening mid-pass spares the remaining candidates`() =
+        runTest(UnconfinedTestDispatcher()) {
+            createTab()
+            val firstHiddenId = createTab()
+            val secondHiddenId = createTab()
+            val thirdHiddenId = createTab()
+            val manager = createManager()
+            manager.evaluateNow()
+
+            // The overlay drives offscreen preview capture, so releasing instances while it is up
+            // would pull one out from under a composing preview
+            fake(firstHiddenId).whileCapturingArguments = { pageManager.showManagerOverlay() }
+
+            elapse(3.hours)
+            manager.evaluateNow()
+
+            // The one already in flight is undone by the backstop, the rest are never touched
+            isPaused(firstHiddenId) shouldBe false
+            createdWorkspaces.count { it.id == firstHiddenId } shouldBe 2
+            isPaused(secondHiddenId) shouldBe false
+            isPaused(thirdHiddenId) shouldBe false
+            createdWorkspaces.count { it.id == secondHiddenId } shouldBe 1
+            createdWorkspaces.count { it.id == thirdHiddenId } shouldBe 1
+        }
+
+    @Test
     fun `idle bookkeeping alone does not touch the page manager state`() = runTest(UnconfinedTestDispatcher()) {
         createTab()
         createTab()
