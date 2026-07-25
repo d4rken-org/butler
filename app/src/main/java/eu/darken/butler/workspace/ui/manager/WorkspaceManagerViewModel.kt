@@ -11,6 +11,7 @@ import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
+import eu.darken.butler.workspace.core.WorkspacePauseGate
 import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.WorkspaceSettings
 import eu.darken.butler.workspace.core.defaultArguments
@@ -33,6 +34,7 @@ class WorkspaceManagerViewModel @Inject constructor(
     private val workspaceRepo: WorkspaceRepo,
     private val workspaceSettings: WorkspaceSettings,
     private val workspacePageManager: WorkspacePageManager,
+    private val workspacePauseGate: WorkspacePauseGate,
     private val workspacePreviewManager: WorkspacePreviewManager,
     workspaceTemplates: Set<@JvmSuppressWildcards WorkspaceTemplate>,
 ) : ViewModel4(dispatchers, logTag("Workspace", "Manager", "VM")) {
@@ -111,9 +113,13 @@ class WorkspaceManagerViewModel @Inject constructor(
         workspaceRepo.execute(WorkspaceAction.Close(id))
     }
 
+    /**
+     * The lease keeps the pause from swapping the instance out from under a preview capture of the
+     * same workspace - the manager being open is exactly when captures run.
+     */
     fun pauseWorkspace(id: Workspace.Id) = launch {
         log(tag) { "pauseWorkspace($id)" }
-        val result = workspaceRepo.execute(WorkspaceAction.Pause(id))
+        val result = workspacePauseGate.withLease(id) { workspaceRepo.execute(WorkspaceAction.Pause(id)) }
         // canPause is eventually consistent, so a benign refusal is expected; the card just stays.
         if (result !is WorkspaceAction.Pause.Result.Success) {
             log(tag, WARN) { "Pausing $id did not succeed: $result" }

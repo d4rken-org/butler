@@ -2,17 +2,23 @@ package eu.darken.butler.workspace.ui.manager
 
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.WorkspaceAction
+import eu.darken.butler.workspace.core.WorkspacePauseGate
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.WorkspaceSettings
 import eu.darken.butler.workspace.ui.WorkspacePageManager
 import io.kotest.matchers.shouldBe
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -30,9 +36,11 @@ class WorkspaceManagerViewModelTest : BaseTest() {
     private lateinit var workspaceRepo: WorkspaceRepo
     private lateinit var workspaceSettings: WorkspaceSettings
     private lateinit var workspacePageManager: WorkspacePageManager
+    private lateinit var pauseGate: WorkspacePauseGate
 
     @BeforeEach
     fun setup() {
+        pauseGate = WorkspacePauseGate()
         workspaceRepo = mockk(relaxed = true) {
             every { state } returns repoState
         }
@@ -51,6 +59,7 @@ class WorkspaceManagerViewModelTest : BaseTest() {
         workspaceRepo = workspaceRepo,
         workspaceSettings = workspaceSettings,
         workspacePageManager = workspacePageManager,
+        workspacePauseGate = pauseGate,
         workspacePreviewManager = mockk(relaxed = true),
         workspaceTemplates = emptySet(),
     )
@@ -96,6 +105,39 @@ class WorkspaceManagerViewModelTest : BaseTest() {
 
         items().single { it.id == idB }.canPause shouldBe true
     }
+
+    @Test
+    fun `a manual pause waits for a running preview capture of the same workspace`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val vm = createViewModel()
+            val captureDone = CompletableDeferred<Unit>()
+            // Stands in for WorkspacePreviewCaptureService, which takes the same lease
+            val capture = launch { pauseGate.withLease(idA) { captureDone.await() } }
+
+            vm.pauseWorkspace(idA)
+
+            coVerify(exactly = 0) { workspaceRepo.execute(any()) }
+
+            captureDone.complete(Unit)
+            capture.join()
+
+            coVerify(exactly = 1) { workspaceRepo.execute(WorkspaceAction.Pause(idA)) }
+        }
+
+    @Test
+    fun `a manual pause of another workspace is not blocked by a capture`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val vm = createViewModel()
+            val captureDone = CompletableDeferred<Unit>()
+            val capture = launch { pauseGate.withLease(idB) { captureDone.await() } }
+
+            vm.pauseWorkspace(idA)
+
+            coVerify(exactly = 1) { workspaceRepo.execute(WorkspaceAction.Pause(idA)) }
+
+            captureDone.complete(Unit)
+            capture.join()
+        }
 
     @Test
     fun `a workspace that opted out of pausing cannot be paused`() = runTest {

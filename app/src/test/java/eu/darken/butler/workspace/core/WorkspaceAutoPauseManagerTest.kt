@@ -9,12 +9,14 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -102,10 +104,12 @@ class WorkspaceAutoPauseManagerTest : BaseTest() {
     private lateinit var scope: TestScope
     private lateinit var repo: WorkspaceRepo
     private lateinit var pageManager: WorkspacePageManager
+    private lateinit var pauseGate: WorkspacePauseGate
 
     @BeforeEach
     fun setup() {
         createdWorkspaces.clear()
+        pauseGate = WorkspacePauseGate()
         enabledState.value = true
         timeoutState.value = 2.hours
         failNextEvaluation = false
@@ -143,6 +147,7 @@ class WorkspaceAutoPauseManagerTest : BaseTest() {
         workspaceSettings = workspaceSettings,
         workspaceRepo = repo,
         workspacePageManager = pageManager,
+        workspacePauseGate = pauseGate,
         clock = clock,
     )
 
@@ -444,6 +449,58 @@ class WorkspaceAutoPauseManagerTest : BaseTest() {
             isPaused(thirdHiddenId) shouldBe false
             createdWorkspaces.count { it.id == secondHiddenId } shouldBe 1
             createdWorkspaces.count { it.id == thirdHiddenId } shouldBe 1
+        }
+
+    @Test
+    fun `a preview capture of the same workspace waits for the pause to finish`() =
+        runTest(UnconfinedTestDispatcher()) {
+            createTab()
+            val hiddenId = createTab()
+            val manager = createManager()
+            manager.evaluateNow()
+
+            val order = mutableListOf<String>()
+            val outer = this
+            // Stands in for WorkspacePreviewCaptureService, which takes the same lease
+            fake(hiddenId).whileCapturingArguments = {
+                order += "pause-in-flight"
+                outer.launch(start = CoroutineStart.UNDISPATCHED) {
+                    pauseGate.withLease(hiddenId) { order += "capture" }
+                }
+                order += "pause-still-in-flight"
+            }
+
+            elapse(3.hours)
+            manager.evaluateNow()
+            // Lets the capture proceed once the pause released the lease
+            testScheduler.runCurrent()
+
+            isPaused(hiddenId) shouldBe true
+            order shouldBe listOf("pause-in-flight", "pause-still-in-flight", "capture")
+        }
+
+    @Test
+    fun `a preview capture of another workspace is not blocked by a pause`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val visibleId = createTab()
+            val hiddenId = createTab()
+            val manager = createManager()
+            manager.evaluateNow()
+
+            val order = mutableListOf<String>()
+            val outer = this
+            fake(hiddenId).whileCapturingArguments = {
+                order += "pause-in-flight"
+                outer.launch(start = CoroutineStart.UNDISPATCHED) {
+                    pauseGate.withLease(visibleId) { order += "capture" }
+                }
+                order += "pause-still-in-flight"
+            }
+
+            elapse(3.hours)
+            manager.evaluateNow()
+
+            order shouldBe listOf("pause-in-flight", "capture", "pause-still-in-flight")
         }
 
     @Test

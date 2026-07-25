@@ -38,6 +38,7 @@ class WorkspaceAutoPauseManager(
     private val workspaceSettings: WorkspaceSettings,
     private val workspaceRepo: WorkspaceRepo,
     private val workspacePageManager: WorkspacePageManager,
+    private val workspacePauseGate: WorkspacePauseGate,
     private val clock: Clock,
 ) {
 
@@ -46,7 +47,8 @@ class WorkspaceAutoPauseManager(
         workspaceSettings: WorkspaceSettings,
         workspaceRepo: WorkspaceRepo,
         workspacePageManager: WorkspacePageManager,
-    ) : this(appScope, workspaceSettings, workspaceRepo, workspacePageManager, Clock.System)
+        workspacePauseGate: WorkspacePauseGate,
+    ) : this(appScope, workspaceSettings, workspaceRepo, workspacePageManager, workspacePauseGate, Clock.System)
 
     /** When each hidden-but-live workspace last left the screen. Only touched by the eval loop. */
     private val idleSince = mutableMapOf<Workspace.Id, Instant>()
@@ -146,7 +148,13 @@ class WorkspaceAutoPauseManager(
         }
     }
 
-    private suspend fun pause(id: Workspace.Id) {
+    /**
+     * Held under [WorkspacePauseGate] for this id only, never for the whole pass: a slow release
+     * must not stall preview captures of unrelated tabs. The lease covers the backstop resume too,
+     * so a capture waiting on it never observes the brief paused window of a workspace we are about
+     * to wake up again.
+     */
+    private suspend fun pause(id: Workspace.Id) = workspacePauseGate.withLease(id) {
         when (val result = workspaceRepo.execute(WorkspaceAction.Pause(id))) {
             is WorkspaceAction.Pause.Result.Success -> {
                 idleSince.remove(id)
