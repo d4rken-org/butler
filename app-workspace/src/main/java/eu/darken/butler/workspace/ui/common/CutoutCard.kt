@@ -2,6 +2,7 @@ package eu.darken.butler.workspace.ui.common
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -88,16 +89,27 @@ fun CutoutCard(
     content: @Composable CutoutCardScope.() -> Unit,
 ) {
     if (cutoutContent == null) {
-        // No cutout - render regular card with zero cutout dimensions
+        // No cutout - render regular card with zero cutout dimensions.
+        // BoxWithConstraints recovers an externally enforced min height (e.g. requiredHeightIn).
+        // Card's Column measures its child with minHeight=0, so the min height has to be re-applied
+        // inside, otherwise shorter content is top-aligned instead of centered.
+        // propagateMinConstraints keeps the Card's own constraints identical to what the caller set.
         val scope = CutoutCardScopeImpl(cutoutWidth = 0.dp, cutoutHeight = 0.dp)
-        Card(
-            modifier = modifier,
-            elevation = elevation,
-            shape = RoundedCornerShape(cornerRadius),
-            colors = colors,
-        ) {
-            Column(modifier = Modifier.padding(contentPadding)) {
-                scope.content()
+        BoxWithConstraints(modifier = modifier, propagateMinConstraints = true) {
+            val cardMinHeight = minHeight
+            Card(
+                elevation = elevation,
+                shape = RoundedCornerShape(cornerRadius),
+                colors = colors,
+            ) {
+                Box(
+                    modifier = Modifier.heightIn(min = cardMinHeight),
+                    contentAlignment = Alignment.CenterStart,
+                ) {
+                    Column(modifier = Modifier.padding(contentPadding)) {
+                        scope.content()
+                    }
+                }
             }
         }
         return
