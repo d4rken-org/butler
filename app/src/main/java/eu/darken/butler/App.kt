@@ -44,6 +44,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import eu.darken.butler.workspace.core.WorkspaceAutoPauseManager
 import eu.darken.butler.workspace.core.WorkspaceRegistryValidator
 import java.io.File
 import javax.inject.Inject
@@ -85,6 +86,12 @@ open class App : Application(), Configuration.Provider, SingletonImageLoader.Fac
 
     /** Eagerly constructed so the operation foreground-service/notifications observe from app start. */
     @Inject lateinit var operationFgsCoordinator: dagger.Lazy<OperationFgsCoordinator>
+
+    /**
+     * Nothing else injects it, so without an eager .get() its evaluation loop would never start and
+     * idle tabs would never be paused.
+     */
+    @Inject lateinit var workspaceAutoPauseManager: dagger.Lazy<WorkspaceAutoPauseManager>
 
     private val logCatLogger = LogCatLogger()
 
@@ -169,6 +176,9 @@ open class App : Application(), Configuration.Provider, SingletonImageLoader.Fac
 
         trashCleanupScheduler.setup()
 
+        // Eagerly start the idle-tab auto-pause evaluation loop.
+        val autoPauseManager = workspaceAutoPauseManager.get()
+
         // One-shot cleanup of the retired external/internal debug-log store (recordings now live in
         // the unified bug-report store under filesDir). Idempotent and harmless if already gone.
         appScope.launch(dispatcherProvider.IO) {
@@ -182,6 +192,7 @@ open class App : Application(), Configuration.Provider, SingletonImageLoader.Fac
             override fun onStart(owner: LifecycleOwner) {
                 log(TAG) { "App foregrounded" }
                 fgsCoordinator.onAppForegrounded()
+                autoPauseManager.onAppForegrounded()
                 appScope.launch {
                     safLocationManager.refresh()
                 }
