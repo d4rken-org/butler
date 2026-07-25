@@ -243,6 +243,134 @@ class PaneLayerHostTest : ComposeTest() {
     }
 
     @Test
+    fun `focus is released when the pane holding it stops being focused`() {
+        var paneFocused by mutableStateOf(true)
+        var modalHasFocus = false
+        val modalFocus = FocusRequester()
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = paneFocused) {
+                    PaneLayer(rank = PaneLayerRank.CONTENT, modal = false) {
+                        Box(modifier = Modifier.size(24.dp).focusable())
+                    }
+                    PaneLayer(rank = PaneLayerRank.OVERLAY) {
+                        Box(
+                            modifier = Modifier
+                                .size(24.dp)
+                                .focusRequester(modalFocus)
+                                .onFocusChanged { modalHasFocus = it.isFocused }
+                                .focusable(),
+                        )
+                    }
+                }
+            }
+        }
+
+        composeTestRule.runOnIdle { modalFocus.requestFocus() }
+        composeTestRule.runOnIdle { modalHasFocus shouldBe true }
+
+        composeTestRule.runOnIdle { paneFocused = false }
+
+        composeTestRule.runOnIdle { modalHasFocus shouldBe false }
+    }
+
+    /**
+     * The trap follows pane focus, not just stack position — armed in an unfocused pane it would
+     * keep focus hostage there.
+     */
+    @Test
+    fun `a modal in an unfocused pane does not trap focus`() {
+        var focusManager: androidx.compose.ui.focus.FocusManager? = null
+        var coveredContentEverFocused = false
+        var otherPaneEverFocused = false
+        val modalFocus = FocusRequester()
+        var paneOneFocused by mutableStateOf(true)
+
+        composeTestRule.setContent {
+            focusManager = LocalFocusManager.current
+            PreviewWrapper {
+                Row {
+                    PaneLayerHost(paneFocused = paneOneFocused) {
+                        PaneLayer(rank = PaneLayerRank.CONTENT, modal = false) {
+                            Box(
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .onFocusChanged { if (it.isFocused) coveredContentEverFocused = true }
+                                    .focusable(),
+                            )
+                        }
+                        PaneLayer(rank = PaneLayerRank.OVERLAY) {
+                            Box(
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .focusRequester(modalFocus)
+                                    .focusable(),
+                            )
+                        }
+                    }
+                    PaneLayerHost(paneFocused = !paneOneFocused) {
+                        PaneLayer(rank = PaneLayerRank.CONTENT, modal = false) {
+                            Box(
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .onFocusChanged { if (it.isFocused) otherPaneEverFocused = true }
+                                    .focusable(),
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        composeTestRule.runOnIdle { modalFocus.requestFocus() }
+        composeTestRule.runOnIdle { paneOneFocused = false }
+
+        repeat(6) {
+            composeTestRule.runOnIdle { focusManager!!.moveFocus(FocusDirection.Next) }
+        }
+
+        composeTestRule.runOnIdle {
+            // The other pane can take focus...
+            otherPaneEverFocused shouldBe true
+            // ...while the content covered by the modal stays unreachable
+            coveredContentEverFocused shouldBe false
+        }
+    }
+
+    /** The clear-on-covered effect must also catch focus arriving after the layer was covered. */
+    @Test
+    fun `focus arriving after a layer is covered is still released`() {
+        var showOverlay by mutableStateOf(false)
+        var contentHasFocus = false
+        val contentFocus = FocusRequester()
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = true) {
+                    PaneLayer(rank = PaneLayerRank.CONTENT, modal = false) {
+                        Box(
+                            modifier = Modifier
+                                .size(24.dp)
+                                .focusRequester(contentFocus)
+                                .onFocusChanged { contentHasFocus = it.isFocused }
+                                .focusable(),
+                        )
+                    }
+                    if (showOverlay) {
+                        PaneLayer(rank = PaneLayerRank.OVERLAY) {}
+                    }
+                }
+            }
+        }
+
+        composeTestRule.runOnIdle { showOverlay = true }
+        composeTestRule.runOnIdle { contentFocus.requestFocus() }
+
+        composeTestRule.runOnIdle { contentHasFocus shouldBe false }
+    }
+
+    @Test
     fun `a modal in one pane leaves the other pane's content active`() {
         var paneOneContentActive: Boolean? = null
         var paneTwoContentActive: Boolean? = null

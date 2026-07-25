@@ -141,7 +141,13 @@ fun PaneScopedBottomSheet(
     val transition = updateTransition(targetState = visible, label = "PaneScopedBottomSheet")
     val layerPresent = transition.currentState || transition.targetState
 
-    PaneLayer(modifier = Modifier.fillMaxSize(), enabled = layerPresent) {
+    // Same reasoning as the dialog: a sheet without a text field hides the keyboard on show, so it
+    // must not have focus pushed into it either.
+    PaneLayer(
+        modifier = Modifier.fillMaxSize(),
+        takeFocus = includeImePadding,
+        enabled = layerPresent,
+    ) {
         // Must live inside the layer and follow the same lifetime: composed outside it, this would
         // read the layer *below* the sheet, and gating it on `visible` would disable it during the
         // exit transition while the page handlers underneath are still deactivated — leaving back

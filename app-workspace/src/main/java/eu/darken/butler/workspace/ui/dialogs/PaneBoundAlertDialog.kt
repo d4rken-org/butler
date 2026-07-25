@@ -121,7 +121,9 @@ fun PaneBoundAlertDialog(
 
     val dialogPaneTitle = stringResource(eu.darken.butler.common.R.string.general_dialog_a11y_label)
 
-    PaneLayer(modifier = Modifier.fillMaxSize()) {
+    // A dialog without a text field deliberately dismisses focus and the keyboard as it appears,
+    // so it must not have focus pushed into it by its own layer.
+    PaneLayer(modifier = Modifier.fillMaxSize(), takeFocus = includeImePadding) {
         val layerActive = LocalLayerActive.current
 
         // Always registered, so back can never fall through to workspace navigation while the
