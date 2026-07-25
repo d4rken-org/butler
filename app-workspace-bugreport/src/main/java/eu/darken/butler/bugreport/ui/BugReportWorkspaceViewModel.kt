@@ -19,10 +19,12 @@ import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.update
 
 @HiltViewModel(assistedFactory = BugReportWorkspaceViewModel.Factory::class)
 class BugReportWorkspaceViewModel @AssistedInject constructor(
@@ -40,6 +42,29 @@ class BugReportWorkspaceViewModel @AssistedInject constructor(
 
     /** The report currently shown in the full-screen detail view, or null while on the list. */
     private val selectedReportId = MutableStateFlow<String?>(null)
+
+    // Overlay visibility lives here rather than in the page host: the page and its overlays are
+    // siblings, so a `remember` in the page would be a different instance from the one the overlays
+    // read — and the page's back handler has to see the same values.
+    private val _overlayState = MutableStateFlow(OverlayState())
+    val overlayState: StateFlow<OverlayState> = _overlayState
+
+    fun requestShareConsent(reportId: String) {
+        log(tag) { "requestShareConsent($reportId)" }
+        _overlayState.update { it.copy(shareConsentReportId = reportId) }
+    }
+
+    fun dismissShareConsent() {
+        _overlayState.update { it.copy(shareConsentReportId = null) }
+    }
+
+    fun showShortRecordingWarning() {
+        _overlayState.update { it.copy(showShortRecordingWarning = true) }
+    }
+
+    fun dismissShortRecordingWarning() {
+        _overlayState.update { it.copy(showShortRecordingWarning = false) }
+    }
 
     // Loads the selected report's log tail. flatMapLatest cancels an in-flight load when the selection
     // changes, and runCatching keeps a read failure (e.g. the report deleted between scan and read)
@@ -157,6 +182,12 @@ class BugReportWorkspaceViewModel @AssistedInject constructor(
         val recordingStartedAt: Long = 0L,
         val recordingLogSize: Long = 0L,
         val detail: Detail? = null,
+    )
+
+    data class OverlayState(
+        /** Report awaiting the user's share consent, or null while no consent is being asked for. */
+        val shareConsentReportId: String? = null,
+        val showShortRecordingWarning: Boolean = false,
     )
 
     /** The full-screen detail view's state: the report plus its (async) log tail. */

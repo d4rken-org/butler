@@ -20,7 +20,7 @@ object BugReportWorkspacePageHostEntry : WorkspacePageHostEntry {
 
     @Composable
     override fun Overlays(id: Workspace.Id, design: WorkspaceDesign) {
-        // No pane-scoped overlays
+        BugReportWorkspaceOverlaysHost(id = id)
     }
 
     @Module
