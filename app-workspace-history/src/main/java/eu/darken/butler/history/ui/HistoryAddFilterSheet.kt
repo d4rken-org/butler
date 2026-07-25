@@ -51,6 +51,7 @@ import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 fun HistoryAddFilterSheet(
     visible: Boolean,
     filter: HistoryFilter,
+    topInset: Dp = 0.dp,
     bottomInset: Dp = 0.dp,
     onDismiss: () -> Unit,
     onToggleOutcome: (HistoryOutcome) -> Unit,
@@ -61,6 +62,7 @@ fun HistoryAddFilterSheet(
     PaneScopedBottomSheet(
         visible = visible,
         onDismiss = onDismiss,
+        topInset = topInset,
         bottomInset = bottomInset,
     ) {
         Column(

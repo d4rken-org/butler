@@ -4,9 +4,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -25,7 +23,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -51,7 +48,8 @@ import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
 import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
-import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
+import eu.darken.butler.workspace.ui.insets.paneInsets
+import eu.darken.butler.workspace.ui.insets.rememberPaneFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
@@ -76,28 +74,27 @@ fun AppsWorkspacePage(
         onPageAction(AppsPageAction.Selection.Clear)
     }
 
-    val topBarStackState = rememberFloatingBarStackState(
+    val topBarStackState = rememberPaneFloatingBarStackState(
         position = BarPosition.TOP,
         defaultSpacing = 8.dp,
         edgePadding = 8.dp,
         contentPadding = 8.dp,
-        includeSystemBarInset = design.paneEdges.touchesTop,
+        design = design,
         estimatedContentPadding = 156.dp,
     )
 
-    val bottomBarStackState = rememberFloatingBarStackState(
+    val bottomBarStackState = rememberPaneFloatingBarStackState(
         position = BarPosition.BOTTOM,
         defaultSpacing = 8.dp,
         edgePadding = 8.dp,
         contentPadding = 16.dp,
-        includeSystemBarInset = design.paneEdges.touchesBottom,
+        design = design,
         estimatedContentPadding = 80.dp,
     )
 
-    val density = LocalDensity.current
-    val navBarInset = if (design.paneEdges.touchesBottom) {
-        with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
-    } else 0.dp
+    val paneInsets = design.paneInsets()
+    val navBarInset = paneInsets.bottom
+    val statusBarInset = paneInsets.top
 
     // Offset the pull-to-refresh indicator below the floating toolbar/chips (top of the list content).
     val topContentPadding = topBarStackState.contentPaddingDp()
@@ -309,6 +306,7 @@ fun AppsWorkspacePage(
         onConfirmUninstall = { onPageAction(AppsPageAction.Dialog.ConfirmUninstall(it)) },
         onConfirmClearCache = { onPageAction(AppsPageAction.Dialog.ConfirmClearCache(it)) },
         onConfirmClearData = { onPageAction(AppsPageAction.Dialog.ConfirmClearData(it)) },
+        topInset = statusBarInset,
         bottomInset = navBarInset,
     )
 }

@@ -3,6 +3,8 @@ package eu.darken.butler.workspace.ui.workspaces.classic
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
@@ -22,6 +24,7 @@ import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.WorkspaceOverlayContainer
 import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
+import eu.darken.butler.workspace.ui.insets.paneHorizontalInsetPadding
 import eu.darken.butler.workspace.ui.manager.LocalWorkspaceButtonProvider
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.workspaces.WorkspaceMapper
@@ -132,6 +135,9 @@ internal fun ClassicWorkspaceContainer(
                             onConfirmManagerDialog = onConfirmManagerDialog,
                             bannerStates = bannerStates,
                             onDismissBanner = onDismissBanner,
+                            paneEdges = design.paneEdges,
+                            // Horizontal insets once around the whole page, incl. its sheets/banners
+                            modifier = Modifier.paneHorizontalInsetPadding(design.paneEdges),
                         ) {
                             WorkspaceMapper(
                                 info = paneInfo,
@@ -156,7 +162,11 @@ internal fun ClassicWorkspaceContainer(
             }
         } else {
             EmptyClassicWorkspaceContent(
-                modifier = Modifier.windowInsetsPadding(WindowInsets.systemBars),
+                modifier = Modifier
+                    // Horizontal via the pane helper so cutouts are covered too, vertical from the
+                    // system bars as before.
+                    .paneHorizontalInsetPadding(design.paneEdges)
+                    .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Vertical)),
                 isUpgraded = state.isUpgraded,
             )
         }

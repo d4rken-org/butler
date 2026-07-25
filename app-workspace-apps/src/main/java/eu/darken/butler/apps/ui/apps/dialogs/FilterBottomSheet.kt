@@ -38,11 +38,13 @@ fun FilterBottomSheet(
     availableTags: List<AppTag>,
     onFilterChange: (TagFilterConfig) -> Unit,
     onDismiss: () -> Unit,
+    topInset: Dp = 0.dp,
     bottomInset: Dp = 0.dp,
 ) {
     PaneScopedBottomSheet(
         visible = true,
         onDismiss = onDismiss,
+        topInset = topInset,
         bottomInset = bottomInset,
         modifier = modifier,
     ) {

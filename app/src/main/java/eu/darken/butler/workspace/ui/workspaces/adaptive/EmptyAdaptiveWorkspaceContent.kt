@@ -5,15 +5,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -38,27 +33,24 @@ import eu.darken.butler.common.compose.ButlerTip
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.Preview2Tablet
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.workspace.ui.insets.paneInsets
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign.*
 
 @Composable
 internal fun EmptyAdaptiveWorkspaceContent(
     modifier: Modifier = Modifier,
     paneNumber: Int,
-    paneEdges: PaneEdges = PaneEdges.Both,
+    paneEdges: PaneEdges = PaneEdges.All,
     isUpgraded: Boolean = false,
     onAddWorkspace: (() -> Unit)? = null,
 ) {
-    val insets = when {
-        paneEdges.touchesTop && paneEdges.touchesBottom -> WindowInsets.systemBars
-        paneEdges.touchesTop -> WindowInsets.statusBars
-        paneEdges.touchesBottom -> WindowInsets.navigationBars
-        else -> WindowInsets(0, 0, 0, 0)
-    }
+    // Vertical only - horizontal insets are applied by the pane host.
+    val paneInsets = paneEdges.paneInsets()
 
     Box(
         modifier = modifier
             .fillMaxSize()
-            .windowInsetsPadding(insets)
+            .padding(top = paneInsets.top, bottom = paneInsets.bottom)
             .verticalScroll(rememberScrollState()),
         contentAlignment = Alignment.Center,
     ) {

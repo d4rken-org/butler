@@ -52,11 +52,13 @@ fun TrashItemDetailsBottomSheet(
     onCopyToClipboard: (String) -> Unit,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
+    topInset: Dp = 0.dp,
     bottomInset: Dp = 0.dp,
 ) {
     PaneScopedBottomSheet(
         visible = true,
         onDismiss = onDismiss,
+        topInset = topInset,
         bottomInset = bottomInset,
         modifier = modifier,
     ) {

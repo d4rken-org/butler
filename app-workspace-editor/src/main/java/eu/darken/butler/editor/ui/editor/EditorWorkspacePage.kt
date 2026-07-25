@@ -56,7 +56,8 @@ import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
 import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
-import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
+import eu.darken.butler.workspace.ui.insets.paneInsets
+import eu.darken.butler.workspace.ui.insets.rememberPaneFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -134,24 +135,25 @@ fun EditorWorkspacePage(
     val hasClipboard by remember { derivedStateOf { clipboardState.entries.isNotEmpty() } }
     val hasActions = state.availableActions.isNotEmpty()
 
-    val topBarStackState = rememberFloatingBarStackState(
+    val topBarStackState = rememberPaneFloatingBarStackState(
         position = BarPosition.TOP,
         defaultSpacing = 8.dp,
         edgePadding = 8.dp,
         contentPadding = 8.dp,
-        includeSystemBarInset = design.paneEdges.touchesTop,
+        design = design,
         estimatedContentPadding = 184.dp,
     )
-    val bottomBarStackState = rememberFloatingBarStackState(
+    val bottomBarStackState = rememberPaneFloatingBarStackState(
         position = BarPosition.BOTTOM,
         defaultSpacing = 8.dp,
         edgePadding = 8.dp,
         contentPadding = 16.dp,
-        includeSystemBarInset = design.paneEdges.touchesBottom,
+        design = design,
         // Editor bars (in-document search) and content must rise above the soft keyboard.
         includeImeInset = true,
         estimatedContentPadding = 80.dp,
     )
+    val paneInsets = design.paneInsets()
 
     // Opening a new file is fresh content; reset scroll-collapse so bars don't stay hidden.
     // Keyed on the source's IDENTITY: the contentSource value also refreshes after every save
@@ -463,6 +465,8 @@ fun EditorWorkspacePage(
             onNavigateToSource = null,
             onPaste = { onPageAction(EditorPageAction.Clipboard.Paste(clip)) },
             onRemove = { onPageAction(EditorPageAction.Clipboard.Remove(clip)) },
+            topInset = paneInsets.top,
+            bottomInset = paneInsets.bottom,
         )
     }
 }

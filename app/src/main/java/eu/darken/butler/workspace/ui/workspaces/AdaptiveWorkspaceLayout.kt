@@ -16,6 +16,7 @@ import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.WorkspaceOverlayContainer
 import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
+import eu.darken.butler.workspace.ui.insets.paneHorizontalInsetPadding
 import eu.darken.butler.workspace.ui.manager.LocalWorkspaceButtonProvider
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.workspaces.adaptive.AdaptiveWorkspaceContainer
@@ -117,13 +118,17 @@ fun AdaptiveWorkspaceLayout(
                 showPaneNumbers = showPaneNumbers,
                 showPaneOverlay = showPaneOverlay,
                 paneContent = { info, paneNumber ->
-                    val paneDesign = design.forPane(paneNumber)
+                    // The navigation rail occupies the start edge, so no pane reaches it.
+                    val paneDesign = design.forPane(paneNumber).withoutEdges(start = true)
                     if (info != null) {
                         key(info.id) {
                             // Check if this workspace has a pane-local modal child
                             val childModal = paneLocalModals[info.id]
 
-                            Box {
+                            // Horizontal insets are applied once around the whole pane subtree so
+                            // banners, sheets and dialogs emitted outside a page's root are covered
+                            // too. Vertical insets stay page-controlled (content padding).
+                            Box(modifier = Modifier.paneHorizontalInsetPadding(paneDesign.paneEdges)) {
                                 // Background: Parent workspace
                                 // When overlay is visible, no workspace should be considered focused
                                 CompositionLocalProvider(
@@ -138,6 +143,7 @@ fun AdaptiveWorkspaceLayout(
                                 ) {
                                     WorkspaceOverlayContainer(
                                         workspaceId = info.id,
+                                        paneEdges = paneDesign.paneEdges,
                                         managerDialogStates = managerDialogStates,
                                         onDismissManagerDialog = onDismissManagerDialog,
                                         onConfirmManagerDialog = onConfirmManagerDialog,
@@ -179,6 +185,7 @@ fun AdaptiveWorkspaceLayout(
                                         ) {
                                             WorkspaceOverlayContainer(
                                                 workspaceId = modal.id,
+                                                paneEdges = paneDesign.paneEdges,
                                                 managerDialogStates = managerDialogStates,
                                                 onDismissManagerDialog = onDismissManagerDialog,
                                                 onConfirmManagerDialog = onConfirmManagerDialog,
@@ -210,7 +217,9 @@ fun AdaptiveWorkspaceLayout(
                         }
                     } else {
                         EmptyAdaptiveWorkspaceContent(
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier
+                                .weight(1f)
+                                .paneHorizontalInsetPadding(paneDesign.paneEdges),
                             paneNumber = paneNumber,
                             paneEdges = paneDesign.paneEdges,
                             isUpgraded = isUpgraded,

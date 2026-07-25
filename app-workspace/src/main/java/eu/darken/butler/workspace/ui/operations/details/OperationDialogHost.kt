@@ -14,6 +14,7 @@ fun OperationDialogHost(
     onCancelOperation: ((Operation.Id) -> Unit)? = null,
     onShareError: ((Operation.Id) -> Unit)? = null,
     onHandleIssue: ((Operation.Id) -> Unit)? = null,
+    topInset: Dp = 0.dp,
     bottomInset: Dp = 0.dp,
 ) {
     when (dialogState) {
@@ -29,6 +30,7 @@ fun OperationDialogHost(
                 OperationDetailsSheet(
                     operation = currentOperation,
                     onDismiss = onDismissDialog,
+                    topInset = topInset,
                     bottomInset = bottomInset,
                     onCancel = if (currentOperation.canCancel && currentOperation.state is OperationDisplay.State.Running) {
                         {

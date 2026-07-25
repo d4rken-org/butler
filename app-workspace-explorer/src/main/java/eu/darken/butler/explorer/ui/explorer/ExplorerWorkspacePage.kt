@@ -4,9 +4,7 @@ import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
@@ -26,7 +24,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -50,6 +47,7 @@ import eu.darken.butler.explorer.ui.explorer.elements.ExplorerReadyContent
 import eu.darken.butler.explorer.ui.explorer.elements.ExplorerTopBars
 import eu.darken.butler.explorer.ui.explorer.elements.PermissionRequestCard
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
+import eu.darken.butler.workspace.ui.insets.paneInsets
 import eu.darken.butler.workspace.ui.preview.ProvideFolderPreviews
 import eu.darken.butler.explorer.ui.explorer.util.OpenDocumentTreeWithIntent
 import eu.darken.butler.explorer.ui.explorer.util.explorerKeyboardShortcuts
@@ -60,7 +58,7 @@ import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
 import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
-import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
+import eu.darken.butler.workspace.ui.insets.rememberPaneFloatingBarStackState
 import eu.darken.butler.workspace.ui.issues.IssuesBottomSheet
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
@@ -102,28 +100,25 @@ fun ExplorerWorkspacePage(
     val clipboardState = clipboardStateRaw ?: ClipboardDisplayState()
     val isWorkspaceFocused = LocalWorkspaceFocused.current
 
-    val topBarStackState = rememberFloatingBarStackState(
+    val topBarStackState = rememberPaneFloatingBarStackState(
         position = BarPosition.TOP,
         defaultSpacing = 8.dp,
         edgePadding = 8.dp,
         contentPadding = 8.dp,
-        includeSystemBarInset = design.paneEdges.touchesTop,
+        design = design,
         estimatedContentPadding = 196.dp,
     )
-    val bottomBarStackState = rememberFloatingBarStackState(
+    val bottomBarStackState = rememberPaneFloatingBarStackState(
         position = BarPosition.BOTTOM,
         defaultSpacing = 8.dp,
         edgePadding = 8.dp,
         contentPadding = 16.dp,
-        includeSystemBarInset = design.paneEdges.touchesBottom,
+        design = design,
         estimatedContentPadding = 80.dp,
     )
-    val density = LocalDensity.current
-    val navBarInset = if (design.paneEdges.touchesBottom) {
-        with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
-    } else {
-        0.dp
-    }
+    val paneInsets = design.paneInsets()
+    val navBarInset = paneInsets.bottom
+    val statusBarInset = paneInsets.top
 
     // Observe conflict state. showIssueSheet is durable VM state so a notification-driven open
     // survives recomposition / late collector subscription.
@@ -298,6 +293,7 @@ fun ExplorerWorkspacePage(
                 dialogState = state.dialogState,
                 trashEnabled = state.trashEnabled,
                 vm = vm,
+                topInset = statusBarInset,
                 bottomInset = navBarInset,
             )
 
@@ -311,6 +307,7 @@ fun ExplorerWorkspacePage(
                 },
                 onShareError = { vm?.shareError(it) },
                 onHandleIssue = { operationId -> vm?.showConflictSheet(operationId) },
+                topInset = statusBarInset,
                 bottomInset = navBarInset,
             )
 
@@ -320,6 +317,7 @@ fun ExplorerWorkspacePage(
                     issue = issueState!!,
                     onResolution = { resolution -> vm?.resolveConflict(resolution) },
                     onDismiss = { vm?.dismissConflictSheet() },
+                    topInset = statusBarInset,
                     bottomInset = navBarInset,
                 )
             }
@@ -332,6 +330,7 @@ fun ExplorerWorkspacePage(
         AddDeviceStorageSheet(
             onDismiss = { vm?.dismissAddStorageSheet() },
             onContinue = { vm?.addSAFLocation() },
+            topInset = statusBarInset,
             bottomInset = navBarInset,
         )
     }

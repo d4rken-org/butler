@@ -1,0 +1,153 @@
+package eu.darken.butler.workspace.ui.insets
+
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.displayCutout
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.dp
+import eu.darken.butler.workspace.ui.floatingbar.BarPosition
+import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStackState
+import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
+import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.manager.WorkspaceDesign.PaneEdges
+
+/**
+ * Unmasked system bar insets of the window, in physical (left/right) orientation.
+ */
+@Immutable
+data class RawPaneInsets(
+    val top: Dp = 0.dp,
+    val bottom: Dp = 0.dp,
+    val left: Dp = 0.dp,
+    val right: Dp = 0.dp,
+)
+
+/**
+ * System bar insets a single workspace pane has to account for, already masked by the window edges
+ * the pane actually touches. Left/right are physical, RTL is resolved.
+ */
+@Immutable
+data class WorkspacePaneInsets(
+    val top: Dp = 0.dp,
+    val bottom: Dp = 0.dp,
+    val left: Dp = 0.dp,
+    val right: Dp = 0.dp,
+)
+
+/**
+ * Masks [raw] down to the edges this pane touches and resolves start/end to physical left/right.
+ * Pure on purpose: this is the single place where the edge model turns into padding values.
+ */
+fun PaneEdges.resolve(raw: RawPaneInsets, layoutDirection: LayoutDirection): WorkspacePaneInsets {
+    val startIsLeft = layoutDirection == LayoutDirection.Ltr
+    val touchesLeft = if (startIsLeft) touchesStart else touchesEnd
+    val touchesRight = if (startIsLeft) touchesEnd else touchesStart
+    return WorkspacePaneInsets(
+        top = if (touchesTop) raw.top else 0.dp,
+        bottom = if (touchesBottom) raw.bottom else 0.dp,
+        left = if (touchesLeft) raw.left else 0.dp,
+        right = if (touchesRight) raw.right else 0.dp,
+    )
+}
+
+/**
+ * Whether a floating bar stack at [position] has to reserve room for a system bar.
+ */
+fun PaneEdges.includesSystemBarInset(position: BarPosition): Boolean = when (position) {
+    BarPosition.TOP -> touchesTop
+    BarPosition.BOTTOM -> touchesBottom
+}
+
+/**
+ * The window's system bar insets, unmasked.
+ *
+ * Vertical values come from the status/navigation bar only (matching what pages have always used),
+ * horizontal additionally covers display cutouts, which can occupy a screen side in landscape.
+ */
+@Composable
+private fun rawPaneInsets(): RawPaneInsets {
+    val density = LocalDensity.current
+    val layoutDirection = LocalLayoutDirection.current
+    val horizontal = WindowInsets.systemBars.union(WindowInsets.displayCutout)
+    return with(density) {
+        RawPaneInsets(
+            top = WindowInsets.statusBars.getTop(density).toDp(),
+            bottom = WindowInsets.navigationBars.getBottom(density).toDp(),
+            left = horizontal.getLeft(density, layoutDirection).toDp(),
+            right = horizontal.getRight(density, layoutDirection).toDp(),
+        )
+    }
+}
+
+/**
+ * System bar insets for a pane, masked to the window edges it actually touches.
+ */
+@Composable
+fun PaneEdges.paneInsets(): WorkspacePaneInsets = resolve(rawPaneInsets(), LocalLayoutDirection.current)
+
+@Composable
+fun WorkspaceDesign.paneInsets(): WorkspacePaneInsets = paneEdges.paneInsets()
+
+/**
+ * Pads a pane subtree away from the horizontal system bars / cutouts it touches.
+ *
+ * Applied once around a whole pane (content plus its banners, sheets and dialogs) instead of per
+ * page, so pane-scoped chrome emitted outside a page's root can't slip under a side navigation bar.
+ * Vertical insets stay page-controlled so lists keep scrolling under the status/navigation bar.
+ *
+ * Uses [windowInsetsPadding] with physical left/right values: [androidx.compose.foundation.layout.padding]
+ * with start/end would resolve the layout direction a second time and swap the sides under RTL.
+ */
+@Composable
+fun Modifier.paneHorizontalInsetPadding(edges: PaneEdges): Modifier {
+    val insets = edges.paneInsets()
+    val density = LocalDensity.current
+    val horizontalInsets = remember(insets.left, insets.right, density) {
+        horizontalWindowInsets(insets, density)
+    }
+    return windowInsetsPadding(horizontalInsets)
+}
+
+private fun horizontalWindowInsets(insets: WorkspacePaneInsets, density: Density): WindowInsets = with(density) {
+    WindowInsets(
+        left = insets.left.roundToPx(),
+        top = 0,
+        right = insets.right.roundToPx(),
+        bottom = 0,
+    )
+}
+
+/**
+ * [rememberFloatingBarStackState] for a workspace pane: derives the system bar inset from the pane's
+ * edges instead of taking a boolean, so a stack can't reserve room for a bar its pane doesn't touch.
+ */
+@Composable
+fun rememberPaneFloatingBarStackState(
+    position: BarPosition,
+    design: WorkspaceDesign,
+    defaultSpacing: Dp = 8.dp,
+    edgePadding: Dp = 8.dp,
+    contentPadding: Dp = 0.dp,
+    includeImeInset: Boolean = false,
+    estimatedContentPadding: Dp = Dp.Unspecified,
+): FloatingBarStackState = rememberFloatingBarStackState(
+    position = position,
+    defaultSpacing = defaultSpacing,
+    edgePadding = edgePadding,
+    contentPadding = contentPadding,
+    includeSystemBarInset = design.paneEdges.includesSystemBarInset(position),
+    includeImeInset = includeImeInset,
+    estimatedContentPadding = estimatedContentPadding,
+)

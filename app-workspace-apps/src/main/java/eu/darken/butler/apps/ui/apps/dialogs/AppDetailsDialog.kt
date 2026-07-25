@@ -50,11 +50,13 @@ fun AppDetailsDialog(
     onDismiss: () -> Unit,
     onAction: (AppsActionBarItem) -> Unit,
     modifier: Modifier = Modifier,
+    topInset: Dp = 0.dp,
     bottomInset: Dp = 0.dp,
 ) {
     PaneScopedBottomSheet(
         visible = true,
         onDismiss = onDismiss,
+        topInset = topInset,
         bottomInset = bottomInset,
         modifier = modifier,
     ) {

@@ -34,11 +34,13 @@ import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 fun AddDeviceStorageSheet(
     onDismiss: () -> Unit,
     onContinue: () -> Unit,
+    topInset: Dp = 0.dp,
     bottomInset: Dp = 0.dp,
 ) {
     PaneScopedBottomSheet(
         visible = true,
         onDismiss = onDismiss,
+        topInset = topInset,
         bottomInset = bottomInset,
     ) {
         Column(

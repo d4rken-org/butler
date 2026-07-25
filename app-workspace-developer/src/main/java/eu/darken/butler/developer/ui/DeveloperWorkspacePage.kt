@@ -2,12 +2,9 @@ package eu.darken.butler.developer.ui
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -18,7 +15,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
@@ -34,6 +30,7 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.DeveloperTab
 import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.Factory
+import eu.darken.butler.workspace.ui.insets.paneInsets
 import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
 import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.OptionsState
 import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.State
@@ -80,10 +77,9 @@ fun DeveloperWorkspacePageHost(
     var operationDialogState by remember { mutableStateOf<OperationDialogState>(OperationDialogState.None) }
 
     // Calculate nav bar inset for bottom sheets
-    val density = LocalDensity.current
-    val navBarInset = if (design.paneEdges.touchesBottom) {
-        with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
-    } else 0.dp
+    val paneInsets = design.paneInsets()
+    val navBarInset = paneInsets.bottom
+    val statusBarInset = paneInsets.top
 
     state?.let { state ->
         DeveloperWorkspacePage(
@@ -125,6 +121,7 @@ fun DeveloperWorkspacePageHost(
             },
             onShareError = { vm.shareOperationError(it) },
             onHandleIssue = {},
+            topInset = statusBarInset,
             bottomInset = navBarInset,
         )
     }
@@ -157,14 +154,9 @@ fun DeveloperWorkspacePage(
     onClearCompletedOperations: () -> Unit = {},
     onShowOperationDetails: (Operation.Id) -> Unit = {},
 ) {
-    // System bar insets for edge-to-edge (based on pane edges)
-    val density = LocalDensity.current
-    val statusBarInset = if (design.paneEdges.touchesTop) {
-        with(density) { WindowInsets.statusBars.getTop(density).toDp() }
-    } else 0.dp
-    val navBarInset = if (design.paneEdges.touchesBottom) {
-        with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
-    } else 0.dp
+    val paneInsets = design.paneInsets()
+    val statusBarInset = paneInsets.top
+    val navBarInset = paneInsets.bottom
 
     // Calculate bottom padding for content sections
     val hasOperations = operationsState.operations.isNotEmpty()

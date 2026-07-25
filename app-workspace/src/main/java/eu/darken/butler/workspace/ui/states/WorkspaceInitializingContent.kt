@@ -3,12 +3,9 @@ package eu.darken.butler.workspace.ui.states
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
@@ -18,7 +15,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
@@ -31,6 +27,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.easterEggProgressMsg
 import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.insets.paneInsets
 import eu.darken.butler.workspace.ui.manager.FakeWorkspaceButtonProvider
 import eu.darken.butler.workspace.ui.manager.LocalWorkspaceButtonProvider
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
@@ -44,14 +41,9 @@ fun WorkspaceInitializingContent(
     subtitle: String? = stringResource(remember { easterEggProgressMsg }),
     currentWorkspaceId: Workspace.Id? = null,
 ) {
-    // Compute stable Dp values to prevent UI jumping when WindowInsets update asynchronously
-    val density = LocalDensity.current
-    val statusBarInset = if (design.paneEdges.touchesTop) {
-        with(density) { WindowInsets.statusBars.getTop(density).toDp() }
-    } else 0.dp
-    val navBarInset = if (design.paneEdges.touchesBottom) {
-        with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
-    } else 0.dp
+    val paneInsets = design.paneInsets()
+    val statusBarInset = paneInsets.top
+    val navBarInset = paneInsets.bottom
 
     Box(modifier = modifier.fillMaxSize()) {
         Column(

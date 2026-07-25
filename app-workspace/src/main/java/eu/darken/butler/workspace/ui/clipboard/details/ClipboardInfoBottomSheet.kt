@@ -73,6 +73,7 @@ fun ClipboardInfoBottomSheet(
     clip: ClipboardClip,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
+    topInset: Dp = 0.dp,
     bottomInset: Dp = 0.dp,
     onNavigateToSource: (() -> Unit)? = null,
     onPaste: (() -> Unit)? = null,
@@ -98,6 +99,7 @@ fun ClipboardInfoBottomSheet(
         PaneScopedBottomSheet(
             visible = true,
             onDismiss = onDismiss,
+            topInset = topInset,
             bottomInset = bottomInset,
             modifier = modifier,
         ) {

@@ -4,12 +4,9 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -83,7 +80,8 @@ import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
 import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
-import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
+import eu.darken.butler.workspace.ui.insets.paneInsets
+import eu.darken.butler.workspace.ui.insets.rememberPaneFloatingBarStackState
 import eu.darken.butler.workspace.ui.issues.IssuesBottomSheet
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
@@ -120,29 +118,26 @@ fun SearcherWorkspacePage(
     val operationsState = operationsStateRaw ?: OperationsDisplayState()
 
     // Setup and remember blocks at top level
-    val topBarStackState = rememberFloatingBarStackState(
+    val topBarStackState = rememberPaneFloatingBarStackState(
         position = BarPosition.TOP,
         defaultSpacing = 8.dp,
         edgePadding = 8.dp,
         contentPadding = 8.dp,
-        includeSystemBarInset = design.paneEdges.touchesTop,
+        design = design,
         estimatedContentPadding = 192.dp,
     )
-    val bottomBarStackState = rememberFloatingBarStackState(
+    val bottomBarStackState = rememberPaneFloatingBarStackState(
         position = BarPosition.BOTTOM,
         defaultSpacing = 8.dp,
         edgePadding = 8.dp,
         contentPadding = 16.dp,
-        includeSystemBarInset = design.paneEdges.touchesBottom,
+        design = design,
         estimatedContentPadding = 80.dp,
     )
     val density = LocalDensity.current
-    val navBarInset = if (design.paneEdges.touchesBottom) {
-        with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
-    } else 0.dp
-    val statusBarInset = if (design.paneEdges.touchesTop) {
-        with(density) { WindowInsets.statusBars.getTop(density).toDp() }
-    } else 0.dp
+    val paneInsets = design.paneInsets()
+    val navBarInset = paneInsets.bottom
+    val statusBarInset = paneInsets.top
     val listState = rememberLazyListState()
     var showTemplatesSheet by remember { mutableStateOf(false) }
     var showAccessErrorsSheet by remember { mutableStateOf(false) }
@@ -870,6 +865,8 @@ fun SearcherWorkspacePage(
         onHandleIssue = { operationId ->
             onPageAction(SearcherPageAction.Operations.ShowConflict(operationId))
         },
+        topInset = statusBarInset,
+        bottomInset = navBarInset,
     )
 }
 

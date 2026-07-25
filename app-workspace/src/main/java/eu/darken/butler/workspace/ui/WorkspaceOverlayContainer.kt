@@ -1,10 +1,7 @@
 package eu.darken.butler.workspace.ui
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -15,6 +12,8 @@ import eu.darken.butler.workspace.ui.dialogs.OpenInNewTabsConfirmationDialog
 import eu.darken.butler.workspace.ui.dialogs.WorkspaceCloseConfirmationDialog
 import eu.darken.butler.workspace.ui.feedback.BannerState
 import eu.darken.butler.workspace.ui.feedback.WorkspaceBanner
+import eu.darken.butler.workspace.ui.insets.paneInsets
+import eu.darken.butler.workspace.ui.manager.WorkspaceDesign.PaneEdges
 
 /**
  * Container that wraps workspace content with an overlay layer for manager-controlled UI elements.
@@ -35,6 +34,7 @@ import eu.darken.butler.workspace.ui.feedback.WorkspaceBanner
  * @param onConfirmManagerDialog Callback when manager dialog is confirmed
  * @param bannerStates Map of banner states by workspace ID from WorkspacesViewModel
  * @param onDismissBanner Callback to dismiss the banner for a specific workspace
+ * @param paneEdges Window edges the hosting pane touches, used to inset the banner correctly
  * @param modifier Optional modifier for the container
  * @param content The workspace content to be wrapped
  */
@@ -46,6 +46,7 @@ fun WorkspaceOverlayContainer(
     onConfirmManagerDialog: (ManagerDialog.WorkspaceTargeted) -> Unit,
     bannerStates: Map<Workspace.Id, BannerState>,
     onDismissBanner: (Workspace.Id) -> Unit,
+    paneEdges: PaneEdges = PaneEdges.All,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
@@ -84,7 +85,9 @@ fun WorkspaceOverlayContainer(
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .windowInsetsPadding(WindowInsets.systemBars)
+                    // Only the bottom bar: horizontal insets are already applied by the pane host,
+                    // and a pane that doesn't touch the bottom edge must not reserve nav bar room.
+                    .padding(bottom = paneEdges.paneInsets().bottom)
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
                 WorkspaceBanner(

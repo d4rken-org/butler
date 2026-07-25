@@ -19,9 +19,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,6 +30,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
@@ -45,6 +44,7 @@ import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.workspace.R
+import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 import java.text.DateFormat
 import java.util.Date
 import kotlin.time.Clock
@@ -77,6 +77,8 @@ fun FileInfoBottomSheet(
     onDismiss: () -> Unit,
     onCopyToClipboard: (String) -> Unit,
     modifier: Modifier = Modifier,
+    topInset: Dp = 0.dp,
+    bottomInset: Dp = 0.dp,
 ) {
     val isInPreview = LocalInspectionMode.current
 
@@ -96,11 +98,11 @@ fun FileInfoBottomSheet(
             )
         }
     } else {
-        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
-        ModalBottomSheet(
-            onDismissRequest = onDismiss,
-            sheetState = sheetState,
+        PaneScopedBottomSheet(
+            visible = true,
+            onDismiss = onDismiss,
+            topInset = topInset,
+            bottomInset = bottomInset,
             modifier = modifier,
         ) {
             FileInfoContent(
@@ -252,6 +254,8 @@ fun MultipleItemsInfoBottomSheet(
     totalSize: Long?,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
+    topInset: Dp = 0.dp,
+    bottomInset: Dp = 0.dp,
 ) {
     val isInPreview = LocalInspectionMode.current
 
@@ -268,11 +272,11 @@ fun MultipleItemsInfoBottomSheet(
             )
         }
     } else {
-        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
-        ModalBottomSheet(
-            onDismissRequest = onDismiss,
-            sheetState = sheetState,
+        PaneScopedBottomSheet(
+            visible = true,
+            onDismiss = onDismiss,
+            topInset = topInset,
+            bottomInset = bottomInset,
             modifier = modifier,
         ) {
             MultipleItemsInfoContent(

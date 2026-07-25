@@ -8,11 +8,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -34,7 +32,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
@@ -55,7 +52,8 @@ import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
 import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
-import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
+import eu.darken.butler.workspace.ui.insets.paneInsets
+import eu.darken.butler.workspace.ui.insets.rememberPaneFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -77,19 +75,15 @@ fun BugReportDetailContent(
     onShare: () -> Unit,
     onDelete: () -> Unit,
 ) {
-    val density = LocalDensity.current
-    val navBarInset = if (design.paneEdges.touchesBottom) {
-        with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
-    } else {
-        0.dp
-    }
+    val paneInsets = design.paneInsets()
+    val navBarInset = paneInsets.bottom
 
-    val topBarStackState = rememberFloatingBarStackState(
+    val topBarStackState = rememberPaneFloatingBarStackState(
         position = BarPosition.TOP,
         defaultSpacing = 8.dp,
         edgePadding = 8.dp,
         contentPadding = 8.dp,
-        includeSystemBarInset = design.paneEdges.touchesTop,
+        design = design,
     )
 
     val report = detail.info.report

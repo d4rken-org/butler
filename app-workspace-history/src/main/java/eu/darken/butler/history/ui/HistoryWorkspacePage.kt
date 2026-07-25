@@ -6,10 +6,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -29,7 +27,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -51,7 +48,8 @@ import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
 import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
-import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
+import eu.darken.butler.workspace.ui.insets.paneInsets
+import eu.darken.butler.workspace.ui.insets.rememberPaneFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
@@ -74,12 +72,9 @@ fun HistoryWorkspacePageHost(
     var pathScopeOpen by remember { mutableStateOf(false) }
     var addFilterOpen by remember { mutableStateOf(false) }
 
-    val density = LocalDensity.current
-    val navBarInset = if (design.paneEdges.touchesBottom) {
-        with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
-    } else {
-        0.dp
-    }
+    val paneInsets = design.paneInsets()
+    val navBarInset = paneInsets.bottom
+    val statusBarInset = paneInsets.top
 
     state?.let { s ->
         HistoryWorkspacePage(
@@ -97,6 +92,7 @@ fun HistoryWorkspacePageHost(
         HistoryAddFilterSheet(
             visible = addFilterOpen,
             filter = s.filter,
+            topInset = statusBarInset,
             bottomInset = navBarInset,
             onDismiss = { addFilterOpen = false },
             onToggleOutcome = { vm.toggleOutcome(it) },
@@ -110,6 +106,7 @@ fun HistoryWorkspacePageHost(
 
         HistoryEntryDetailsBottomSheet(
             entry = detailEntry,
+            topInset = statusBarInset,
             bottomInset = navBarInset,
             onDismiss = { detailEntry = null },
         )
@@ -140,19 +137,16 @@ fun HistoryWorkspacePage(
     onClearFilter: () -> Unit = {},
     onEntryClick: (HistoryEntry) -> Unit = {},
 ) {
-    val density = LocalDensity.current
-    val navBarInset = if (design.paneEdges.touchesBottom) {
-        with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
-    } else {
-        0.dp
-    }
+    val paneInsets = design.paneInsets()
+    val navBarInset = paneInsets.bottom
+    val statusBarInset = paneInsets.top
 
-    val topBarStackState = rememberFloatingBarStackState(
+    val topBarStackState = rememberPaneFloatingBarStackState(
         position = BarPosition.TOP,
         defaultSpacing = 8.dp,
         edgePadding = 8.dp,
         contentPadding = 8.dp,
-        includeSystemBarInset = design.paneEdges.touchesTop,
+        design = design,
         estimatedContentPadding = 192.dp,
     )
 

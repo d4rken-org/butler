@@ -7,14 +7,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -64,6 +61,7 @@ import eu.darken.butler.workspace.contracts.templates.TemplatesArguments
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.icon
+import eu.darken.butler.workspace.ui.insets.paneInsets
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.template.WorkspaceTemplate
@@ -107,14 +105,10 @@ fun TemplatesWorkspacePage(
 ) {
     val randomSlogan = remember { Slogans.random }
 
-    // System bar insets for edge-to-edge (based on pane edges)
     val density = LocalDensity.current
-    val statusBarInset = if (design.paneEdges.touchesTop) {
-        with(density) { WindowInsets.statusBars.getTop(density).toDp() }
-    } else 0.dp
-    val navBarInset = if (design.paneEdges.touchesBottom) {
-        with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
-    } else 0.dp
+    val paneInsets = design.paneInsets()
+    val statusBarInset = paneInsets.top
+    val navBarInset = paneInsets.bottom
 
     // Dynamically measured settings card height for content padding
     var settingsCardHeight by remember { mutableStateOf(96.dp) } // Initial estimate

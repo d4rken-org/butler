@@ -7,6 +7,7 @@ import android.view.WindowManager
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
@@ -25,6 +26,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.LocalWorkspacePageHosts
+import eu.darken.butler.workspace.ui.insets.paneHorizontalInsetPadding
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 
 /**
@@ -89,11 +91,23 @@ fun WorkspaceModalDialog(
         CompositionLocalProvider(
             LocalWorkspaceFocused provides true,
         ) {
-            Box(modifier = Modifier.fillMaxSize()) {
-                WorkspaceModalContent(
-                    workspace = workspace,
-                    design = design,
-                )
+            // The dialog window is transparent (see above), so the surface has to be painted across
+            // the FULL area - the horizontal inset padding is applied inside it, otherwise the
+            // inset-width strip next to a side navigation bar would show the workspace underneath.
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = MaterialTheme.colorScheme.surface,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .paneHorizontalInsetPadding(design.paneEdges),
+                ) {
+                    WorkspaceModalContent(
+                        workspace = workspace,
+                        design = design,
+                    )
+                }
             }
         }
     }
