@@ -9,11 +9,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
@@ -24,6 +27,8 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.height
 import androidx.compose.ui.unit.width
 import androidx.compose.ui.unit.dp
@@ -260,15 +265,11 @@ class PaneBoundAlertDialogTest : ComposeTest() {
         (surfaceWidth <= 240.dp) shouldBe true
     }
 
-    /**
-     * Material's rule: dismiss sits left of confirm while both fit on one line, and confirm moves
-     * *above* dismiss once they don't.
-     */
-    @Test
-    fun `the actions sit side by side while they fit`() {
-        composeTestRule.setContent {
+    @Composable
+    private fun ActionRowCase(paneWidth: Dp, layoutDirection: LayoutDirection) {
+        CompositionLocalProvider(LocalLayoutDirection provides layoutDirection) {
             PreviewWrapper {
-                Box(modifier = Modifier.size(width = 500.dp, height = 400.dp)) {
+                Box(modifier = Modifier.size(width = paneWidth, height = 400.dp)) {
                     PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = true) {
                         PaneBoundAlertDialog(
                             onDismissRequest = {},
@@ -279,6 +280,15 @@ class PaneBoundAlertDialogTest : ComposeTest() {
                 }
             }
         }
+    }
+
+    /**
+     * Material's rule: dismiss sits before confirm while both fit on one line, and confirm moves
+     * *above* dismiss once they don't. "Before" is the logical start side, so it mirrors in RTL.
+     */
+    @Test
+    fun `the actions sit side by side while they fit`() {
+        composeTestRule.setContent { ActionRowCase(WIDE_PANE, LayoutDirection.Ltr) }
 
         val confirm = composeTestRule.onNodeWithText("Confirm").getUnclippedBoundsInRoot()
         val dismiss = composeTestRule.onNodeWithText("Cancel").getUnclippedBoundsInRoot()
@@ -288,25 +298,45 @@ class PaneBoundAlertDialogTest : ComposeTest() {
     }
 
     @Test
+    fun `the actions mirror side by side in a right-to-left layout`() {
+        composeTestRule.setContent { ActionRowCase(WIDE_PANE, LayoutDirection.Rtl) }
+
+        val confirm = composeTestRule.onNodeWithText("Confirm").getUnclippedBoundsInRoot()
+        val dismiss = composeTestRule.onNodeWithText("Cancel").getUnclippedBoundsInRoot()
+
+        confirm.top shouldBe dismiss.top
+        // Confirm still sits at the logical end, which is the physical left here
+        (confirm.left < dismiss.left) shouldBe true
+    }
+
+    @Test
     fun `the confirm action wraps above the dismiss action`() {
-        composeTestRule.setContent {
-            PreviewWrapper {
-                Box(modifier = Modifier.size(width = 200.dp, height = 400.dp)) {
-                    PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = true) {
-                        PaneBoundAlertDialog(
-                            onDismissRequest = {},
-                            confirmButton = { TextButton(onClick = {}) { Text("Confirm") } },
-                            dismissButton = { TextButton(onClick = {}) { Text("Cancel") } },
-                        )
-                    }
-                }
-            }
-        }
+        composeTestRule.setContent { ActionRowCase(NARROW_PANE, LayoutDirection.Ltr) }
 
         val confirm = composeTestRule.onNodeWithText("Confirm").getUnclippedBoundsInRoot()
         val dismiss = composeTestRule.onNodeWithText("Cancel").getUnclippedBoundsInRoot()
 
         (confirm.top < dismiss.top) shouldBe true
+        // Both hug the logical end, which is the physical right here
+        val surfaceBounds = composeTestRule.onNodeWithTag(surface).getUnclippedBoundsInRoot()
+        (surfaceBounds.right - confirm.right < confirm.left - surfaceBounds.left) shouldBe true
+        (surfaceBounds.right - dismiss.right < dismiss.left - surfaceBounds.left) shouldBe true
+    }
+
+    @Test
+    fun `the wrapped actions mirror in a right-to-left layout`() {
+        composeTestRule.setContent { ActionRowCase(NARROW_PANE, LayoutDirection.Rtl) }
+
+        val confirm = composeTestRule.onNodeWithText("Confirm").getUnclippedBoundsInRoot()
+        val dismiss = composeTestRule.onNodeWithText("Cancel").getUnclippedBoundsInRoot()
+
+        // Confirm stays above dismiss...
+        (confirm.top < dismiss.top) shouldBe true
+        // ...and both hug the logical end, which is the physical left here — the exact mirror of
+        // the assertion above, so neither test can pass without the row actually mirroring
+        val surfaceBounds = composeTestRule.onNodeWithTag(surface).getUnclippedBoundsInRoot()
+        (confirm.left - surfaceBounds.left < surfaceBounds.right - confirm.right) shouldBe true
+        (dismiss.left - surfaceBounds.left < surfaceBounds.right - dismiss.right) shouldBe true
     }
 
     @Test
@@ -340,6 +370,8 @@ class PaneBoundAlertDialogTest : ComposeTest() {
 
     companion object {
         private const val BEHIND_TAG = "behind"
+        private val WIDE_PANE = 500.dp
+        private val NARROW_PANE = 200.dp
         private const val HOST_TAG = "pane.host"
     }
 }

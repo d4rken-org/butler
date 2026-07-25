@@ -231,8 +231,9 @@ fun PaneBoundAlertDialog(
 }
 
 /**
- * Action row matching Material's `AlertDialogFlowRow`: dismiss left of confirm while both fit on
- * one line, and confirm *above* dismiss once they don't.
+ * Action row matching Material's `AlertDialogFlowRow`: dismiss before confirm while both fit on
+ * one line, and confirm *above* dismiss once they don't. Positions are logical, so the row mirrors
+ * in a right-to-left layout direction.
  *
  * `FlowRow` cannot express that — it fills rows in declaration order, so the wrapped order is
  * always the reverse of what Material does. With at most two actions the layout is trivial enough
@@ -265,16 +266,19 @@ private fun DialogActionRow(
             else -> confirm.height + spacingPx + dismiss.height
         }
 
+        // placeRelative, never place: x is measured from the layout's *start* edge, so the actions
+        // mirror to the left in a right-to-left locale instead of being pinned to the physical
+        // right. Arabic ships as a supported locale, so this is a real configuration.
         layout(width, height) {
             if (sideBySide) {
-                confirm.place(x = width - confirm.width, y = (height - confirm.height) / 2)
-                dismiss?.place(
+                confirm.placeRelative(x = width - confirm.width, y = (height - confirm.height) / 2)
+                dismiss?.placeRelative(
                     x = width - confirm.width - spacingPx - dismiss.width,
                     y = (height - dismiss.height) / 2,
                 )
             } else {
-                confirm.place(x = width - confirm.width, y = 0)
-                dismiss!!.place(x = width - dismiss.width, y = confirm.height + spacingPx)
+                confirm.placeRelative(x = width - confirm.width, y = 0)
+                dismiss!!.placeRelative(x = width - dismiss.width, y = confirm.height + spacingPx)
             }
         }
     }
