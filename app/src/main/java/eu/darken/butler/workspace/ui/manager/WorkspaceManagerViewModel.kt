@@ -53,6 +53,7 @@ class WorkspaceManagerViewModel @Inject constructor(
         filterAttentionFlow,
         quickCreateItems,
     ) { repoState, showBadge, showFabLongPressHint, livePreview, pageManagerState, filterOps, filterAtt, quickCreate ->
+        val parentIds = repoState.infos.mapNotNull { it.callerWorkspaceId }.toSet()
         State(
             workspaces = repoState.infos.map { info ->
                 val panePosition = pageManagerState.selectedWorkspaces.entries
@@ -70,6 +71,8 @@ class WorkspaceManagerViewModel @Inject constructor(
                     autoTitle = info.title,
                     customTitle = info.customTitle,
                     isSubWorkspace = info.isSubWorkspace,
+                    isPaused = info.isPaused,
+                    canPause = info.canBePausedManually(parentIds),
                 )
             },
             useLivePreview = livePreview,
@@ -85,8 +88,35 @@ class WorkspaceManagerViewModel @Inject constructor(
         )
     }.asStateFlow()
 
+    /**
+     * Mirrors WorkspaceRepo's pause guards, minus visibility: manually pausing a visible-but-
+     * unfocused pane is explicit user intent, while auto-pause may not touch it. Content-path
+     * claims are invisible here, so this stays eventually consistent - the repo can still refuse.
+     */
+    private fun Workspace.Info.canBePausedManually(parentIds: Set<Workspace.Id>): Boolean = when {
+        isPaused || !isReady -> false
+        isSubWorkspace || id in parentIds -> false
+        operationCount > 0 || attentionCount > 0 -> false
+        hasUnsavedChanges || !isPausable -> false
+        else -> true
+    }
+
     fun closeWorkspace(id: Workspace.Id) = launch {
         workspaceRepo.execute(WorkspaceAction.Close(id))
+    }
+
+    fun pauseWorkspace(id: Workspace.Id) = launch {
+        log(tag) { "pauseWorkspace($id)" }
+        val result = workspaceRepo.execute(WorkspaceAction.Pause(id))
+        // canPause is eventually consistent, so a benign refusal is expected; the card just stays.
+        if (result !is WorkspaceAction.Pause.Result.Success) {
+            log(tag, WARN) { "Pausing $id did not succeed: $result" }
+        }
+    }
+
+    fun resumeWorkspace(id: Workspace.Id) = launch {
+        log(tag) { "resumeWorkspace($id)" }
+        workspaceRepo.execute(WorkspaceAction.Resume(id))
     }
 
     fun reorderWorkspaces(workspaceIds: List<Workspace.Id>) = launch {
@@ -221,5 +251,7 @@ class WorkspaceManagerViewModel @Inject constructor(
          * would silently not survive a restart - the card hides its rename affordance.
          */
         val isSubWorkspace: Boolean = false,
+        val isPaused: Boolean = false,
+        val canPause: Boolean = false,
     )
 }
