@@ -58,12 +58,13 @@ class WorkspaceManagerViewModel @Inject constructor(
             workspaces = repoState.infos.map { info ->
                 val panePosition = pageManagerState.selectedWorkspaces.entries
                     .find { it.value == info.id }?.key
+                val isFocused = pageManagerState.focusedWorkspaceId == info.id
                 WorkspaceItem(
                     id = info.id,
                     type = info.type,
                     title = info.displayTitle,
                     subtitle = info.subtitle,
-                    isFocused = pageManagerState.focusedWorkspaceId == info.id,
+                    isFocused = isFocused,
                     isSelected = pageManagerState.selectedWorkspaces.values.contains(info.id),
                     paneNumber = panePosition,
                     operationCount = info.operationCount,
@@ -72,7 +73,7 @@ class WorkspaceManagerViewModel @Inject constructor(
                     customTitle = info.customTitle,
                     isSubWorkspace = info.isSubWorkspace,
                     isPaused = info.isPaused,
-                    canPause = info.canBePausedManually(parentIds),
+                    canPause = info.canBePausedManually(parentIds, isFocused),
                 )
             },
             useLivePreview = livePreview,
@@ -89,11 +90,16 @@ class WorkspaceManagerViewModel @Inject constructor(
     }.asStateFlow()
 
     /**
-     * Mirrors WorkspaceRepo's pause guards, minus visibility: manually pausing a visible-but-
-     * unfocused pane is explicit user intent, while auto-pause may not touch it. Content-path
+     * Mirrors WorkspaceRepo's pause guards, relaxed for visible-but-unfocused panes: manually
+     * pausing one of those is explicit user intent, while auto-pause may not touch it. The focused
+     * workspace stays excluded - resume-on-focus would immediately undo the pause. Content-path
      * claims are invisible here, so this stays eventually consistent - the repo can still refuse.
      */
-    private fun Workspace.Info.canBePausedManually(parentIds: Set<Workspace.Id>): Boolean = when {
+    private fun Workspace.Info.canBePausedManually(
+        parentIds: Set<Workspace.Id>,
+        isFocused: Boolean,
+    ): Boolean = when {
+        isFocused -> false
         isPaused || !isReady -> false
         isSubWorkspace || id in parentIds -> false
         operationCount > 0 || attentionCount > 0 -> false
