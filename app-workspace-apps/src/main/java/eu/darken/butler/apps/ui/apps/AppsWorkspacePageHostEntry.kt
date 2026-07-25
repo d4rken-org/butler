@@ -18,6 +18,11 @@ object AppsWorkspacePageHostEntry : WorkspacePageHostEntry {
         AppsWorkspacePageHost(id = id, design = design)
     }
 
+    @Composable
+    override fun Overlays(id: Workspace.Id, design: WorkspaceDesign) {
+        // No pane-scoped overlays
+    }
+
     @Module
     @InstallIn(SingletonComponent::class)
     object PageHostModule {
