@@ -672,6 +672,9 @@ fun SearcherWorkspacePage(
                         onSelectAllFiles = {
                             onPageAction(SearcherPageAction.WorkspaceAction(SearcherActionBarItem.SelectAllFiles))
                         },
+                        onSelectAll = {
+                            onPageAction(SearcherPageAction.WorkspaceAction(SearcherActionBarItem.SelectAll))
+                        },
                         onClearSelection = { onPageAction(SearcherPageAction.Results.ExitSelectionMode) },
                     )
                 }

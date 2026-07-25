@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Description
 import androidx.compose.material.icons.twotone.Folder
-import androidx.compose.material.icons.twotone.Storage
+import androidx.compose.material.icons.twotone.Scale
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
@@ -27,6 +27,7 @@ fun SearcherInfoBar(
     selectedSize: Long = 0L,
     onSelectAllFolders: () -> Unit = {},
     onSelectAllFiles: () -> Unit = {},
+    onSelectAll: () -> Unit = {},
     onClearSelection: () -> Unit = {},
 ) {
     WorkspaceInfoBar(
@@ -55,14 +56,16 @@ fun SearcherInfoBar(
             Spacer(modifier = Modifier.weight(1f))
             if (selectedCount > 0 && selectedSize > 0) {
                 InfoChip(
-                    icon = Icons.TwoTone.Storage,
+                    icon = Icons.TwoTone.Scale,
                     label = formatFileSize(selectedSize),
                     isAccented = true,
+                    onClick = onSelectAll,
                 )
             } else if (selectedCount == 0 && totalSize > 0) {
                 InfoChip(
-                    icon = Icons.TwoTone.Storage,
+                    icon = Icons.TwoTone.Scale,
                     label = formatFileSize(totalSize),
+                    onClick = onSelectAll,
                 )
             }
         },
