@@ -14,9 +14,11 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.filesystem.FileSystemHinter
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.ManagedOperation
+import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.preview.FolderPreviewResolver
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.every
@@ -31,6 +33,7 @@ import kotlinx.coroutines.withTimeout
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import testhelpers.coroutine.TestDispatcherProvider
+import kotlin.time.Clock
 
 /**
  * [Workspace.Info.isPausable] for the searcher: [SearcherWorkspace.createArguments] always persists
@@ -53,6 +56,7 @@ class SearcherWorkspacePausableTest : BaseTest() {
     private fun createWorkspace(
         engineResults: List<SearchItem> = emptyList(),
         hangSearch: Boolean = false,
+        operations: MutableStateFlow<List<ManagedOperation>> = MutableStateFlow(emptyList()),
     ): SearcherWorkspace {
         val engine = mockk<SearchEngine> {
             every { targetState } returns MutableStateFlow(emptyList())
@@ -74,7 +78,7 @@ class SearcherWorkspacePausableTest : BaseTest() {
             every { create(any(), any()) } returns engine
         }
         val operationsManager = mockk<OperationsManager> {
-            every { operations } returns MutableStateFlow(emptyList<ManagedOperation>())
+            every { this@mockk.operations } returns operations
         }
         return SearcherWorkspace(
             id = Workspace.Id(),
@@ -87,6 +91,14 @@ class SearcherWorkspacePausableTest : BaseTest() {
             fileSystemHinter = FileSystemHinter(),
             folderPreviewResolver = mockk<FolderPreviewResolver>(relaxUnitFun = true),
         )
+    }
+
+    private fun queuedOperation(workspaceId: Workspace.Id): ManagedOperation = mockk {
+        every { id } returns Operation.Id()
+        every { state } returns MutableStateFlow(Operation.State.Queued(startedAt = Clock.System.now()))
+        every { metadata } returns mockk {
+            every { origin } returns Operation.Metadata.Origin.Searcher(workspaceId)
+        }
     }
 
     private fun searchCommand() = SearcherCommand.Search(
@@ -121,6 +133,24 @@ class SearcherWorkspacePausableTest : BaseTest() {
         awaitStatus(workspace, SearcherWorkspace.State.SearchStatus.COMPLETED)
 
         workspace.info.value.isPausable shouldBe false
+    }
+
+    @Test
+    fun `the other info writers cannot clobber pausability`() {
+        val operations = MutableStateFlow<List<ManagedOperation>>(emptyList())
+        val workspace = createWorkspace(listOf(item("/sdcard/a.txt")), operations = operations)
+
+        // Drives the subtitle writer: processSearchRequest() publishes the query as subtitle
+        workspace.execute(searchCommand())
+        awaitStatus(workspace, SearcherWorkspace.State.SearchStatus.COMPLETED)
+        workspace.info.value.isPausable shouldBe false
+
+        // Drives the operation-count writer while the results are still held
+        operations.value = listOf(queuedOperation(workspace.id))
+        runBlocking { withTimeout(10_000) { workspace.info.first { it.operationCount == 1 } } }
+
+        workspace.info.value.isPausable shouldBe false
+        workspace.info.value.subtitle shouldNotBe null
     }
 
     @Test

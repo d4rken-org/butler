@@ -166,10 +166,14 @@ class SearcherWorkspace @AssistedInject constructor(
             contentQuery = source.contentQuery,
             targets = source.targets,
         )
-        info.value = info.value.copy(
-            title = display?.title ?: type.label,
-            subtitle = display?.subtitle,
-        )
+        // update(), not value =: the operation-count and pausability collectors write the same
+        // flow concurrently, and a copy() off a stale snapshot would revert their field.
+        info.update {
+            it.copy(
+                title = display?.title ?: type.label,
+                subtitle = display?.subtitle,
+            )
+        }
         log(tag, VERBOSE) { "Republished identity: $display" }
     }
 
@@ -410,10 +414,14 @@ class SearcherWorkspace @AssistedInject constructor(
                     }
                 }
 
-                info.value = info.value.copy(
-                    operationCount = operationCount,
-                    attentionCount = attentionCount
-                )
+                // update(), not value =: the pausability and subtitle collectors write the same
+                // flow concurrently, and a copy() off a stale snapshot would revert their field.
+                info.update {
+                    it.copy(
+                        operationCount = operationCount,
+                        attentionCount = attentionCount,
+                    )
+                }
                 log(tag, VERBOSE) { "Updated operation counts: active=$operationCount, attention=$attentionCount" }
             }
             .launchIn(scope)
@@ -423,7 +431,7 @@ class SearcherWorkspace @AssistedInject constructor(
         _searchState
             .map { it.searchStatus == State.SearchStatus.SEARCHING || it.results.isNotEmpty() }
             .distinctUntilChanged()
-            .onEach { busy -> info.value = info.value.copy(isPausable = !busy) }
+            .onEach { busy -> info.update { it.copy(isPausable = !busy) } }
             .launchIn(scope)
 
         // Live-prune results when files are removed by operations from any workspace
