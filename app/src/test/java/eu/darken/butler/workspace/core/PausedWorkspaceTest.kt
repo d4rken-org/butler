@@ -11,7 +11,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 
-class DormantWorkspaceTest : BaseTest() {
+class PausedWorkspaceTest : BaseTest() {
 
     // Never touched: the titles under test are direct strings, not resource lookups
     private val context: Context = mockk()
@@ -40,9 +40,9 @@ class DormantWorkspaceTest : BaseTest() {
     }
 
     @Test
-    fun `starts dormant without an error`() {
+    fun `starts paused without an error`() {
         val id = Workspace.Id()
-        val workspace = DormantWorkspace(
+        val workspace = PausedWorkspace(
             id = id,
             type = Workspace.Type.EXPLORER,
             heldArguments = FakeArguments(Workspace.Type.EXPLORER),
@@ -51,15 +51,15 @@ class DormantWorkspaceTest : BaseTest() {
 
         workspace.info.value.id shouldBe id
         workspace.info.value.type shouldBe Workspace.Type.EXPLORER
-        workspace.info.value.lifecycleState shouldBe Workspace.LifecycleState.Dormant()
+        workspace.info.value.lifecycleState shouldBe Workspace.LifecycleState.Paused()
         workspace.info.value.callerWorkspaceId shouldBe null
         workspace.info.value.contentPath shouldBe null
     }
 
     @Test
-    fun `seeds the content path so open-dedup matches while dormant`() {
+    fun `seeds the content path so open-dedup matches while paused`() {
         val path = LocalPath.build("/test/a.txt")
-        val workspace = DormantWorkspace(
+        val workspace = PausedWorkspace(
             id = Workspace.Id(),
             type = Workspace.Type.EDITOR,
             heldArguments = FakeContentArguments(Workspace.Type.EDITOR, path),
@@ -72,7 +72,7 @@ class DormantWorkspaceTest : BaseTest() {
     @Test
     fun `seeds caller and presentation of sub-workspace arguments`() {
         val callerId = Workspace.Id()
-        val workspace = DormantWorkspace(
+        val workspace = PausedWorkspace(
             id = Workspace.Id(),
             type = Workspace.Type.EXPLORER,
             heldArguments = FakePickerArguments(Workspace.Type.EXPLORER, callerId),
@@ -87,7 +87,7 @@ class DormantWorkspaceTest : BaseTest() {
     @Test
     fun `passes the held arguments through unchanged`() = runTest {
         val arguments = FakeArguments(Workspace.Type.SEARCHER)
-        val workspace = DormantWorkspace(
+        val workspace = PausedWorkspace(
             id = Workspace.Id(),
             type = Workspace.Type.SEARCHER,
             heldArguments = arguments,
@@ -99,7 +99,7 @@ class DormantWorkspaceTest : BaseTest() {
 
     @Test
     fun `the derived identity lands in the info`() {
-        val workspace = DormantWorkspace(
+        val workspace = PausedWorkspace(
             id = Workspace.Id(),
             type = Workspace.Type.SEARCHER,
             heldArguments = FakeArguments(Workspace.Type.SEARCHER),
@@ -113,7 +113,7 @@ class DormantWorkspaceTest : BaseTest() {
 
     @Test
     fun `an identity without a subtitle publishes none`() {
-        val workspace = DormantWorkspace(
+        val workspace = PausedWorkspace(
             id = Workspace.Id(),
             type = Workspace.Type.EXPLORER,
             heldArguments = FakeArguments(Workspace.Type.EXPLORER),
@@ -125,8 +125,8 @@ class DormantWorkspaceTest : BaseTest() {
     }
 
     @Test
-    fun `a hydration error keeps the identity`() {
-        val workspace = DormantWorkspace(
+    fun `a resume error keeps the identity`() {
+        val workspace = PausedWorkspace(
             id = Workspace.Id(),
             type = Workspace.Type.EXPLORER,
             heldArguments = FakeArguments(Workspace.Type.EXPLORER),
@@ -134,15 +134,15 @@ class DormantWorkspaceTest : BaseTest() {
             subtitle = "Storage".toCaString(),
         )
 
-        workspace.markHydrationError(IllegalStateException("Factory exploded"))
+        workspace.markResumeError(IllegalStateException("Factory exploded"))
 
         workspace.info.value.title.get(context) shouldBe "Home"
         workspace.info.value.subtitle!!.get(context) shouldBe "Storage"
     }
 
     @Test
-    fun `a hydration error is recorded without leaving the dormant state`() {
-        val workspace = DormantWorkspace(
+    fun `a resume error is recorded without leaving the paused state`() {
+        val workspace = PausedWorkspace(
             id = Workspace.Id(),
             type = Workspace.Type.EXPLORER,
             heldArguments = FakeArguments(Workspace.Type.EXPLORER),
@@ -150,8 +150,8 @@ class DormantWorkspaceTest : BaseTest() {
         )
         val error = IllegalStateException("Factory exploded")
 
-        workspace.markHydrationError(error)
+        workspace.markResumeError(error)
 
-        workspace.info.value.lifecycleState shouldBe Workspace.LifecycleState.Dormant(error)
+        workspace.info.value.lifecycleState shouldBe Workspace.LifecycleState.Paused(error)
     }
 }

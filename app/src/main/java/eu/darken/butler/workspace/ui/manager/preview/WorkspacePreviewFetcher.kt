@@ -81,10 +81,10 @@ class WorkspacePreviewFetcher @Inject constructor(
             return null
         }
 
-        // A dormant workspace has no instance to render yet - capturing it would load the very
-        // workspace on-demand restore is keeping asleep. Fall back to the static mock preview.
-        if (workspaceInfo.isDormant) {
-            log(TAG) { "Workspace ${data.workspaceId.shortTag} is dormant, skipping capture" }
+        // A paused workspace has no instance to render yet - capturing it would load the very
+        // workspace the pause is keeping asleep. Fall back to the static mock preview.
+        if (workspaceInfo.isPaused) {
+            log(TAG) { "Workspace ${data.workspaceId.shortTag} is paused, skipping capture" }
             return null
         }
 

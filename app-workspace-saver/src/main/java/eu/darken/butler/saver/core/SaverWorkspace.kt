@@ -164,7 +164,7 @@ class SaverWorkspace @AssistedInject constructor(
         val hasInaccessibleFiles: Boolean get() = sourceInfos.any { !it.isAccessible }
     }
 
-    // Same derivation the factory hands the dormant stand-in, so both name this tab identically
+    // Same derivation the factory hands the paused stand-in, so both name this tab identically
     private val seedDisplay = deriveSaverDisplay(creationArguments)
 
     override val info: StateFlow<Workspace.Info> = combine(
@@ -187,7 +187,7 @@ class SaverWorkspace @AssistedInject constructor(
             id = id,
             type = type,
             // Sources are extracted asynchronously; until they land, the count from the arguments
-            // is the identity the dormant tab already showed - a debug label here would drop it
+            // is the identity the paused tab already showed - a debug label here would drop it
             title = saverTitle(sourceInfos.size.takeIf { it > 0 } ?: sourceUris.size),
             subtitle = when {
                 sourceInfos.size > 1 -> sourceInfos.firstOrNull()?.displayName?.let { "$it, …" }?.toCaString()

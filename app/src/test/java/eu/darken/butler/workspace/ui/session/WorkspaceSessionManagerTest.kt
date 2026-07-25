@@ -677,11 +677,11 @@ class WorkspaceSessionManagerTest : BaseTest() {
 
         private suspend fun workspaceIds(): List<Workspace.Id> = repo.state.first().infos.map { it.id }
 
-        private suspend fun dormantIds(): List<Workspace.Id> =
-            repo.state.first().infos.filter { it.isDormant }.map { it.id }
+        private suspend fun pausedIds(): List<Workspace.Id> =
+            repo.state.first().infos.filter { it.isPaused }.map { it.id }
 
         @Test
-        fun `only the focused workspace is created, the rest stay dormant`() =
+        fun `only the focused workspace is created, the rest stay paused`() =
             runTest(UnconfinedTestDispatcher()) {
                 savedSession(focusedId = idB)
 
@@ -691,7 +691,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
                 manager.state.value shouldBe WorkspaceSessionManager.State.Restored(listOf(idA, idB, idC))
                 createAttempts shouldBe listOf(idB)
                 workspaceIds() shouldBe listOf(idA, idB, idC)
-                dormantIds() shouldBe listOf(idA, idC)
+                pausedIds() shouldBe listOf(idA, idC)
             }
 
         @Test
@@ -703,7 +703,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
                 restoreScope.testScheduler.runCurrent()
 
                 createAttempts shouldBe listOf(idA)
-                dormantIds() shouldBe listOf(idB, idC)
+                pausedIds() shouldBe listOf(idB, idC)
                 pageManager.state.value.focusedWorkspaceId shouldBe idA
             }
 
@@ -729,7 +729,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
             }
 
         @Test
-        fun `a dormant workspace is promoted when the focused one cannot be created`() =
+        fun `a paused workspace is promoted when the focused one cannot be created`() =
             runTest(UnconfinedTestDispatcher()) {
                 failingIds += idB
                 savedSession(focusedId = idB)
@@ -737,11 +737,11 @@ class WorkspaceSessionManagerTest : BaseTest() {
                 createManager()
                 restoreScope.testScheduler.runCurrent()
 
-                // idB failed, so the first dormant one takes the focused slot
+                // idB failed, so the first paused one takes the focused slot
                 createAttempts shouldBe listOf(idB, idA)
                 createdIds shouldBe listOf(idA)
                 workspaceIds() shouldBe listOf(idA, idC)
-                dormantIds() shouldBe listOf(idC)
+                pausedIds() shouldBe listOf(idC)
                 pageManager.state.value.focusedWorkspaceId shouldBe idA
             }
 
@@ -755,11 +755,11 @@ class WorkspaceSessionManagerTest : BaseTest() {
                 restoreScope.testScheduler.runCurrent()
 
                 createAttempts shouldBe listOf(idA, idB, idC)
-                dormantIds() shouldHaveSize 0
+                pausedIds() shouldHaveSize 0
             }
 
         @Test
-        fun `a stale focus during restoration hydrates nothing`() =
+        fun `a stale focus during restoration resumes nothing`() =
             runTest(UnconfinedTestDispatcher()) {
                 // Simulates the focus surviving in the SavedStateHandle from the previous process
                 pageManager.applyRestoredUIState(idA, mapOf(0 to idA))
@@ -769,11 +769,11 @@ class WorkspaceSessionManagerTest : BaseTest() {
                 restoreScope.testScheduler.runCurrent()
 
                 createAttempts shouldBe listOf(idB)
-                dormantIds() shouldBe listOf(idA, idC)
+                pausedIds() shouldBe listOf(idA, idC)
             }
 
         @Test
-        fun `focusing a dormant workspace after restoration hydrates it`() =
+        fun `focusing a paused workspace after restoration resumes it`() =
             runTest(UnconfinedTestDispatcher()) {
                 savedSession(focusedId = idB)
                 createManager()
@@ -783,11 +783,11 @@ class WorkspaceSessionManagerTest : BaseTest() {
                 restoreScope.testScheduler.runCurrent()
 
                 createAttempts shouldBe listOf(idB, idC)
-                dormantIds() shouldBe listOf(idA)
+                pausedIds() shouldBe listOf(idA)
             }
 
         @Test
-        fun `a workspace that failed to hydrate is not retried on focus`() =
+        fun `a workspace that failed to resume is not retried on focus`() =
             runTest(UnconfinedTestDispatcher()) {
                 failingIds += idC
                 savedSession(focusedId = idB)
@@ -803,7 +803,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
 
                 createAttempts.count { it == idC } shouldBe 1
                 repo.state.first().infos.single { it.id == idC }.lifecycleState
-                    .shouldBeInstanceOf<Workspace.LifecycleState.Dormant>()
+                    .shouldBeInstanceOf<Workspace.LifecycleState.Paused>()
             }
 
         @Test
@@ -828,20 +828,20 @@ class WorkspaceSessionManagerTest : BaseTest() {
         )
 
         @Test
-        fun `restore re-applies custom titles to eager and dormant workspaces`() =
+        fun `restore re-applies custom titles to eager and paused workspaces`() =
             runTest(UnconfinedTestDispatcher()) {
-                // idB restores eagerly (it is the saved focus), idA and idC stay dormant
+                // idB restores eagerly (it is the saved focus), idA and idC stay paused
                 savedSession(focusedId = idB, entities = namedEntities)
 
                 createManager()
                 restoreScope.testScheduler.runCurrent()
 
-                dormantIds() shouldBe listOf(idA, idC)
+                pausedIds() shouldBe listOf(idA, idC)
                 customTitles() shouldBe mapOf(idA to "Alpha", idB to "Bravo", idC to null)
             }
 
         @Test
-        fun `hydrating a dormant workspace keeps its custom title`() =
+        fun `resuming a paused workspace keeps its custom title`() =
             runTest(UnconfinedTestDispatcher()) {
                 savedSession(focusedId = idB, entities = namedEntities)
                 createManager()
@@ -850,12 +850,12 @@ class WorkspaceSessionManagerTest : BaseTest() {
                 pageManager.setLayout(mapOf(0 to idA), focusedId = idA)
                 restoreScope.testScheduler.runCurrent()
 
-                dormantIds() shouldBe listOf(idC)
+                pausedIds() shouldBe listOf(idC)
                 repo.state.first().infos.single { it.id == idA }.customTitle shouldBe "Alpha"
             }
 
         @Test
-        fun `a failed focused candidate does not hand its title to the promoted dormant one`() =
+        fun `a failed focused candidate does not hand its title to the promoted paused one`() =
             runTest(UnconfinedTestDispatcher()) {
                 failingIds += idB
                 savedSession(focusedId = idB, entities = namedEntities)
@@ -906,7 +906,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
             }
 
         @Test
-        fun `saving keeps the arguments of dormant and live workspaces`() =
+        fun `saving keeps the arguments of paused and live workspaces`() =
             runTest(UnconfinedTestDispatcher()) {
                 savedSession(focusedId = idB)
                 val manager = createManager()
@@ -917,7 +917,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
                 manager.saveSession()
 
                 upsertedEntities shouldHaveSize 3
-                // idB was created during restore, idA and idC are still dormant stand-ins
+                // idB was created during restore, idA and idC are still paused stand-ins
                 upsertedEntities.single { it.workspaceId == idB }.let {
                     it.arguments shouldBe JsonPrimitive("b").toString()
                     it.orderIndex shouldBe 0

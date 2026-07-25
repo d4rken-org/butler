@@ -39,9 +39,9 @@ class WorkspacePreviewCaptureService @Inject constructor(
 ) {
 
     /**
-     * Callers must not pass a dormant workspace: the capture composes the type's page host by
-     * synthesizing [Workspace.LifecycleState.Ready], which has no instance to bind to while dormant
-     * (and would eagerly load exactly what on-demand restore avoids).
+     * Callers must not pass a paused workspace: the capture composes the type's page host by
+     * synthesizing [Workspace.LifecycleState.Ready], which has no instance to bind to while paused
+     * (and resuming it here would defeat the pause).
      */
     suspend fun captureWorkspace(
         workspaceId: Workspace.Id,
@@ -84,7 +84,7 @@ class WorkspacePreviewCaptureService @Inject constructor(
                             ),
                             onShareError = { /* No-op for preview */ },
                             onCloseWorkspace = { /* No-op for preview */ },
-                            onRestoreWorkspace = { /* No-op for preview */ },
+                            onResumeWorkspace = { /* No-op for preview */ },
                         )
                     }
                 }

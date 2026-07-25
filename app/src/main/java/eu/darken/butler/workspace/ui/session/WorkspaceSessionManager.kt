@@ -125,8 +125,8 @@ class WorkspaceSessionManager @Inject constructor(
             saveSession()
         }.launchIn(appScope)
 
-        // Hydrate a dormant workspace when it gains focus. Only armed once restoration finished:
-        // focus emissions during restore (e.g. the stale SavedStateHandle focus) must not hydrate
+        // Resume a paused workspace when it gains focus. Only armed once restoration finished:
+        // focus emissions during restore (e.g. the stale SavedStateHandle focus) must not resume
         // anything, which is what keeps the cold start down to a single workspace.
         state
             .filterIsInstance<State.Restored>()
@@ -136,30 +136,30 @@ class WorkspaceSessionManager @Inject constructor(
                     .map { it.focusedWorkspaceId }
                     .distinctUntilChanged()
             }
-            .onEach { focusedId -> hydrateOnFocus(focusedId) }
-            .catch { log(TAG, ERROR) { "Hydrate-on-focus observer failed: ${it.asLog()}" } }
+            .onEach { focusedId -> resumeOnFocus(focusedId) }
+            .catch { log(TAG, ERROR) { "Resume-on-focus observer failed: ${it.asLog()}" } }
             .launchIn(appScope)
     }
 
     /**
-     * Instantiates the focused workspace if it is still a dormant stand-in. A dormant that already
-     * failed hydration is left alone — retrying on every focus change would loop; the placeholder's
+     * Instantiates the focused workspace if it is still a paused stand-in. A paused that already
+     * failed resume is left alone — retrying on every focus change would loop; the placeholder's
      * retry button is the way back.
      */
-    private suspend fun hydrateOnFocus(focusedId: Workspace.Id?) {
+    private suspend fun resumeOnFocus(focusedId: Workspace.Id?) {
         if (focusedId == null) return
         try {
             val info = workspaceRepo.state.first().infos.firstOrNull { it.id == focusedId } ?: return
             val lifecycleState = info.lifecycleState
-            if (lifecycleState !is Workspace.LifecycleState.Dormant) return
+            if (lifecycleState !is Workspace.LifecycleState.Paused) return
             if (lifecycleState.error != null) {
-                log(TAG) { "Focused workspace $focusedId failed hydration before, waiting for a manual retry" }
+                log(TAG) { "Focused workspace $focusedId failed resume before, waiting for a manual retry" }
                 return
             }
-            log(TAG, INFO) { "Focused workspace $focusedId is dormant, hydrating" }
-            workspaceRepo.execute(WorkspaceAction.Hydrate(focusedId))
+            log(TAG, INFO) { "Focused workspace $focusedId is paused, resuming" }
+            workspaceRepo.execute(WorkspaceAction.Resume(focusedId))
         } catch (e: Exception) {
-            log(TAG, ERROR) { "Failed to hydrate focused workspace $focusedId: ${e.asLog()}" }
+            log(TAG, ERROR) { "Failed to resume focused workspace $focusedId: ${e.asLog()}" }
         }
     }
 
@@ -224,7 +224,7 @@ class WorkspaceSessionManager @Inject constructor(
             // partial (or empty) snapshot. Deleting on that basis wipes the saved rows of
             // workspaces that still exist, and a process death before the next settled save makes
             // that permanent. So each candidate is confirmed against the repo's authoritative
-            // in-memory list, read synchronously via peek(), which also reports dormant instances
+            // in-memory list, read synchronously via peek(), which also reports paused instances
             // and so protects their rows too.
             // Only the delete pass needs this: a partial snapshot that merely upserts fewer rows
             // loses nothing and the next save catches up.
@@ -240,8 +240,8 @@ class WorkspaceSessionManager @Inject constructor(
             // 3. Upsert only changed workspaces
             var changedCount = 0
             workspacesToSave.forEachIndexed { index, info ->
-                // peek() instead of retrieve(): a dormant workspace must still be saved with the
-                // arguments it holds, and retrieve() reports dormant entries as absent.
+                // peek() instead of retrieve(): a paused workspace must still be saved with the
+                // arguments it holds, and retrieve() reports paused entries as absent.
                 val workspace = workspaceRepo.peek(info.id)
                 if (workspace == null) {
                     log(TAG, WARN) { "Workspace ${info.id} disappeared during save (likely replaced), skipping" }
@@ -326,7 +326,7 @@ class WorkspaceSessionManager @Inject constructor(
         log(TAG, INFO) { "Restoring ${candidates.size} candidates (onDemand=$onDemand, focused=${focusedCandidate?.id})" }
 
         val restoredWorkspaceIds = mutableListOf<Workspace.Id>()
-        val dormantIds = mutableListOf<Workspace.Id>()
+        val pausedIds = mutableListOf<Workspace.Id>()
         var focusedIsLive = false
 
         candidates.forEach { candidate ->
@@ -334,11 +334,11 @@ class WorkspaceSessionManager @Inject constructor(
             val restored = if (restoreEagerly) {
                 createEagerly(candidate)
             } else {
-                registerDormant(candidate)
+                registerPaused(candidate)
             }
             if (!restored) return@forEach
 
-            // Before dormant promotion, cache seeding and applyUIState: a candidate whose creation
+            // Before paused promotion, cache seeding and applyUIState: a candidate whose creation
             // failed must never have its name applied to whatever takes its slot.
             candidate.customTitle?.let { customTitle ->
                 workspaceRepo.execute(WorkspaceAction.Rename(candidate.id, customTitle))
@@ -348,16 +348,16 @@ class WorkspaceSessionManager @Inject constructor(
             if (restoreEagerly) {
                 if (candidate.id == focusedCandidate?.id) focusedIsLive = true
             } else {
-                dormantIds.add(candidate.id)
+                pausedIds.add(candidate.id)
             }
         }
 
-        // The focused slot should hold a real instance: if its creation failed, promote a dormant
+        // The focused slot should hold a real instance: if its creation failed, promote a paused
         // one before the UI state is applied.
         if (!focusedIsLive) {
-            dormantIds.firstOrNull()?.let { promotionId ->
-                log(TAG, WARN) { "Focused workspace could not be created, hydrating $promotionId instead" }
-                workspaceRepo.execute(WorkspaceAction.Hydrate(promotionId))
+            pausedIds.firstOrNull()?.let { promotionId ->
+                log(TAG, WARN) { "Focused workspace could not be created, resuming $promotionId instead" }
+                workspaceRepo.execute(WorkspaceAction.Resume(promotionId))
             }
         }
 
@@ -370,7 +370,7 @@ class WorkspaceSessionManager @Inject constructor(
             actualWorkspaceIds = restoredWorkspaceIds,
         )
 
-        log(TAG, INFO) { "Restored ${restoredWorkspaceIds.size} workspaces, ${dormantIds.size} dormant" }
+        log(TAG, INFO) { "Restored ${restoredWorkspaceIds.size} workspaces, ${pausedIds.size} paused" }
         return restoredWorkspaceIds
     }
 
@@ -446,20 +446,20 @@ class WorkspaceSessionManager @Inject constructor(
         false
     }
 
-    private suspend fun registerDormant(candidate: RestoreCandidate): Boolean = try {
-        log(TAG) { "Registering dormant workspace: ${candidate.type} with id=${candidate.id}" }
+    private suspend fun registerPaused(candidate: RestoreCandidate): Boolean = try {
+        log(TAG) { "Registering paused workspace: ${candidate.type} with id=${candidate.id}" }
         val result = workspaceRepo.execute(
-            WorkspaceAction.RegisterDormant(
+            WorkspaceAction.RegisterPaused(
                 id = candidate.id,
                 type = candidate.type,
                 arguments = candidate.arguments,
             )
         )
-        (result is WorkspaceAction.RegisterDormant.Result.Success).also {
-            if (!it) log(TAG, WARN) { "Registering dormant ${candidate.id} failed: $result" }
+        (result is WorkspaceAction.RegisterPaused.Result.Success).also {
+            if (!it) log(TAG, WARN) { "Registering paused ${candidate.id} failed: $result" }
         }
     } catch (e: Exception) {
-        log(TAG, ERROR) { "Failed to register dormant workspace ${candidate.type}: ${e.asLog()}" }
+        log(TAG, ERROR) { "Failed to register paused workspace ${candidate.type}: ${e.asLog()}" }
         false
     }
 

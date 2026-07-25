@@ -7,7 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
-import eu.darken.butler.workspace.ui.states.WorkspaceDormantContent
+import eu.darken.butler.workspace.ui.states.WorkspacePausedContent
 import eu.darken.butler.workspace.ui.states.WorkspaceErrorContent
 import eu.darken.butler.workspace.ui.states.WorkspaceInitializingContent
 
@@ -17,16 +17,16 @@ fun WorkspaceMapper(
     design: WorkspaceDesign,
     onShareError: (Throwable) -> Unit,
     onCloseWorkspace: () -> Unit,
-    onRestoreWorkspace: () -> Unit,
+    onResumeWorkspace: () -> Unit,
 ) {
     val lifecycleState = info.lifecycleState
 
     Box(modifier = Modifier.fillMaxSize()) {
         // PageHost ALWAYS rendered - visible only when Ready
         // visible(false) = measured/laid out but not drawn = pre-warmed UI
-        // Not for dormant workspaces: there is no instance behind the id yet, so the typed page
+        // Not for paused workspaces: there is no instance behind the id yet, so the typed page
         // host and its ViewModel would cast the stand-in (and pre-warming defeats the laziness).
-        if (lifecycleState !is Workspace.LifecycleState.Dormant) {
+        if (lifecycleState !is Workspace.LifecycleState.Paused) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -36,7 +36,7 @@ fun WorkspaceMapper(
             }
         }
 
-        // Overlay content for Init/Dormant/Error states
+        // Overlay content for Init/Paused/Error states
         when (lifecycleState) {
             is Workspace.LifecycleState.Initializing -> {
                 WorkspaceInitializingContent(
@@ -45,15 +45,15 @@ fun WorkspaceMapper(
                     currentWorkspaceId = info.id,
                 )
             }
-            is Workspace.LifecycleState.Dormant -> {
-                WorkspaceDormantContent(
+            is Workspace.LifecycleState.Paused -> {
+                WorkspacePausedContent(
                     modifier = Modifier.fillMaxSize(),
                     design = design,
                     type = info.type,
                     title = info.title,
                     subtitle = info.subtitle,
                     error = lifecycleState.error,
-                    onRestore = onRestoreWorkspace,
+                    onResume = onResumeWorkspace,
                     currentWorkspaceId = info.id,
                 )
             }

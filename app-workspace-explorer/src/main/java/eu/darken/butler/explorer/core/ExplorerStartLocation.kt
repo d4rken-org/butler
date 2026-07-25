@@ -27,7 +27,7 @@ internal fun explorerStartTarget(
 /**
  * The location the arguments themselves name, or null when they carry none (the default start
  * setting decides then). Single source of the path-before-target precedence: the identity a
- * dormant tab shows and the location its hydration navigates to are read from here, so they cannot
+ * paused tab shows and the location resuming it navigates to are read from here, so they cannot
  * disagree.
  */
 internal fun explorerArgumentsTarget(

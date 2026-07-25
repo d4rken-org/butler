@@ -134,8 +134,8 @@ internal fun ClassicWorkspaceContainer(
                                 WorkspaceAction.Close(workspaceId)
                             )
                         },
-                        onRestoreWorkspace = { workspaceId ->
-                            onWorkspaceScreenAction(WorkspaceScreenAction.RestoreDormant(workspaceId))
+                        onResumeWorkspace = { workspaceId ->
+                            onWorkspaceScreenAction(WorkspaceScreenAction.ResumeWorkspace(workspaceId))
                         },
                     )
                 }

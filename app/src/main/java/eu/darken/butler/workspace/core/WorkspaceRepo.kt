@@ -90,8 +90,8 @@ class WorkspaceRepo @Inject constructor(
      * child coroutine, so an extra stage adds a dispatch boundary and delays every [state] emission
      * by one more hop. On-demand session restore is sensitive to that: WorkspacePageManager awaits
      * `state.first { … }` per Created event and assigns focus from what it sees, so the added
-     * latency let focus land on a dormant stand-in after restore had finished, which then hydrated
-     * a tab that was supposed to stay dormant.
+     * latency let focus land on a paused stand-in after restore had finished, which then resumed
+     * a tab that was supposed to stay paused.
      */
     override val state: Flow<WorkspaceRemote.State> = combine(
         infos,
@@ -192,7 +192,7 @@ class WorkspaceRepo @Inject constructor(
     }
 
     /**
-     * Identity a dormant stand-in shows, from the type's own [WorkspaceFactory.deriveDisplay].
+     * Identity a paused stand-in shows, from the type's own [WorkspaceFactory.deriveDisplay].
      * A broken derivation must never fail session restore, so any failure degrades to the type
      * label. Note the returned [CaString]s can still be lazy: a resolution failure surfaces later,
      * during composition, not here.
@@ -207,20 +207,20 @@ class WorkspaceRepo @Inject constructor(
     }
 
     /**
-     * Dormant stand-ins are reported as absent: typed consumers cast the result to their concrete
-     * workspace type, so a dormant id must behave exactly like an id that doesn't exist yet — the
-     * flow emits the instance once [WorkspaceAction.Hydrate] has swapped it in.
+     * Paused stand-ins are reported as absent: typed consumers cast the result to their concrete
+     * workspace type, so a paused id must behave exactly like an id that doesn't exist yet — the
+     * flow emits the instance once [WorkspaceAction.Resume] has swapped it in.
      */
     override fun retrieve(id: Workspace.Id): Flow<Workspace<out Workspace.Arguments>?> {
         return _workspaces.flatMapLatest { wss ->
-            flowOf(wss.singleOrNull { it.id == id }?.takeIf { it !is DormantWorkspace })
+            flowOf(wss.singleOrNull { it.id == id }?.takeIf { it !is PausedWorkspace })
         }
     }
 
     /**
-     * Current instance for [id] INCLUDING dormant stand-ins. Only for session saving, which must
-     * serialize the held arguments of workspaces that were never hydrated; everything else uses
-     * [retrieve], which hides dormant entries.
+     * Current instance for [id] INCLUDING paused stand-ins. Only for session saving, which must
+     * serialize the held arguments of workspaces that were never resumed; everything else uses
+     * [retrieve], which hides paused entries.
      */
     fun peek(id: Workspace.Id): Workspace<out Workspace.Arguments>? = _workspaces.value.singleOrNull { it.id == id }
 
@@ -291,71 +291,71 @@ class WorkspaceRepo @Inject constructor(
                 WorkspaceAction.Create.Result.Success(newId)
             }
 
-            is WorkspaceAction.RegisterDormant -> {
-                log(TAG, INFO) { "Registering dormant workspace ${action.id} (${action.type})" }
+            is WorkspaceAction.RegisterPaused -> {
+                log(TAG, INFO) { "Registering paused workspace ${action.id} (${action.type})" }
                 try {
                     if (_workspaces.value.any { it.id == action.id }) {
-                        throw IllegalStateException("Cannot register dormant workspace ${action.id}: id already in use")
+                        throw IllegalStateException("Cannot register paused workspace ${action.id}: id already in use")
                     }
                     // A stand-in displaying one type while holding another's arguments would also
-                    // fail hydration permanently: the factory picked by type gets the wrong arguments
+                    // fail resuming permanently: the factory picked by type gets the wrong arguments
                     if (action.type != action.arguments.type) {
                         throw IllegalArgumentException(
-                            "Cannot register dormant workspace ${action.id}: type ${action.type} " +
+                            "Cannot register paused workspace ${action.id}: type ${action.type} " +
                                 "does not match arguments type ${action.arguments.type}"
                         )
                     }
                     val display = deriveDisplay(action.type, action.arguments)
-                    val dormant = DormantWorkspace(
+                    val paused = PausedWorkspace(
                         id = action.id,
                         type = action.type,
                         heldArguments = action.arguments,
                         title = display?.title ?: action.type.label,
                         subtitle = display?.subtitle,
                     )
-                    _workspaces.value = _workspaces.value + dormant
+                    _workspaces.value = _workspaces.value + paused
                     _events.emit(
                         WorkspaceEvent.Created(
-                            workspaceId = dormant.id,
+                            workspaceId = paused.id,
                             replacedId = null,
                             autoFocus = false,
                         )
                     )
-                    WorkspaceAction.RegisterDormant.Result.Success(dormant.id)
+                    WorkspaceAction.RegisterPaused.Result.Success(paused.id)
                 } catch (e: Exception) {
-                    log(TAG, ERROR) { "Failed to register dormant workspace ${action.id}: ${e.asLog()}" }
-                    WorkspaceAction.RegisterDormant.Result.Failed(e)
+                    log(TAG, ERROR) { "Failed to register paused workspace ${action.id}: ${e.asLog()}" }
+                    WorkspaceAction.RegisterPaused.Result.Failed(e)
                 }
             }
 
-            is WorkspaceAction.Hydrate -> {
-                // Not dormant (already hydrated by a concurrent call, or never dormant) is a no-op,
-                // which is what keeps double hydration from running the factory twice.
-                val dormant = _workspaces.value.firstOrNull { it.id == action.id } as? DormantWorkspace
-                if (dormant == null) {
-                    log(TAG) { "Hydrate(${action.id}): unknown or not dormant, nothing to do" }
-                    WorkspaceAction.Hydrate.Result.NoOp
+            is WorkspaceAction.Resume -> {
+                // Not paused (already resumed by a concurrent call, or never paused) is a no-op,
+                // which is what keeps double resume from running the factory twice.
+                val paused = _workspaces.value.firstOrNull { it.id == action.id } as? PausedWorkspace
+                if (paused == null) {
+                    log(TAG) { "Resume(${action.id}): unknown or not paused, nothing to do" }
+                    WorkspaceAction.Resume.Result.NoOp
                 } else {
                     try {
                         @Suppress("UNCHECKED_CAST")
-                        val factory = factoryMap[dormant.type] as? WorkspaceFactory<Workspace.Arguments>
-                            ?: throw IllegalArgumentException("No factory found for workspace type: ${dormant.type}")
-                        val hydrated = factory.create(
-                            id = dormant.id,
-                            arguments = dormant.heldArguments,
+                        val factory = factoryMap[paused.type] as? WorkspaceFactory<Workspace.Arguments>
+                            ?: throw IllegalArgumentException("No factory found for workspace type: ${paused.type}")
+                        val resumed = factory.create(
+                            id = paused.id,
+                            arguments = paused.heldArguments,
                         ) as Workspace<out Workspace.Arguments>
 
                         val wip = _workspaces.value.toMutableList()
                         val index = wip.indexOfFirst { it.id == action.id }
-                        wip[index] = hydrated
+                        wip[index] = resumed
                         _workspaces.value = wip
 
-                        log(TAG, INFO) { "Hydrated workspace ${action.id} (${dormant.type})" }
-                        WorkspaceAction.Hydrate.Result.Success(action.id)
+                        log(TAG, INFO) { "Resumed workspace ${action.id} (${paused.type})" }
+                        WorkspaceAction.Resume.Result.Success(action.id)
                     } catch (e: Exception) {
-                        log(TAG, ERROR) { "Failed to hydrate workspace ${action.id}: ${e.asLog()}" }
-                        dormant.markHydrationError(e)
-                        WorkspaceAction.Hydrate.Result.Failed(e)
+                        log(TAG, ERROR) { "Failed to resume workspace ${action.id}: ${e.asLog()}" }
+                        paused.markResumeError(e)
+                        WorkspaceAction.Resume.Result.Failed(e)
                     }
                 }
             }

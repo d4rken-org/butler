@@ -7,7 +7,7 @@ data class WorkspacePaneInfo(
     val id: Workspace.Id,
     val type: Workspace.Type,
     val lifecycleState: Workspace.LifecycleState,
-    /** Carried so state overlays (e.g. the dormant placeholder) can name the tab they stand for. */
+    /** Carried so state overlays (e.g. the paused placeholder) can name the tab they stand for. */
     val title: CaString,
     val subtitle: CaString? = null,
 )
@@ -17,7 +17,7 @@ fun Workspace.Info.asPaneInfo() = WorkspacePaneInfo(
     type = type,
     lifecycleState = lifecycleState,
     // displayTitle, not title: this is rendered to the user, so a custom name has to win here just
-    // as it does in the rail and the tab manager, or the dormant placeholder contradicts them.
+    // as it does in the rail and the tab manager, or the paused placeholder contradicts them.
     title = displayTitle,
     subtitle = subtitle,
 )

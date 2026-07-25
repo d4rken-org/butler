@@ -139,7 +139,7 @@ fun WorkspaceGridItem(
                     )
 
                     // A blank title would leave the card with nothing to identify it by, so the
-                    // workspace type stands in - same rule the dormant placeholder applies
+                    // workspace type stands in - same rule the paused placeholder applies
                     val title = workspace.title.asComposable().takeIf { it.isNotBlank() }
                         ?: workspace.type.label.asComposable()
                     Text(

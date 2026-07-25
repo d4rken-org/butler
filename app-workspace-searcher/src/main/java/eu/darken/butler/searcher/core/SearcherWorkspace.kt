@@ -111,7 +111,7 @@ class SearcherWorkspace @AssistedInject constructor(
         )
     }
 
-    // Same derivation the factory hands the dormant stand-in, so both name this tab identically
+    // Same derivation the factory hands the paused stand-in, so both name this tab identically
     private val seedDisplay = deriveSearcherDisplay(creationArguments)
 
     override val info: MutableStateFlow<Workspace.Info> = MutableStateFlow(
@@ -154,7 +154,7 @@ class SearcherWorkspace @AssistedInject constructor(
     }
 
     /**
-     * Republishes the tab identity through the same derivation the dormant stand-in uses, so the
+     * Republishes the tab identity through the same derivation the paused stand-in uses, so the
      * two can never disagree. Skipped by VALUE when nothing identifying changed - never by emission
      * position, which would silently drop targets that arrived before the observer subscribed.
      */

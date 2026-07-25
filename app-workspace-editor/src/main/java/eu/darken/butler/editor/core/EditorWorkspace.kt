@@ -113,7 +113,7 @@ class EditorWorkspace @AssistedInject constructor(
 
     override val type: Workspace.Type = Workspace.Type.EDITOR
 
-    // Same derivation the factory hands the dormant stand-in, so both name this tab identically
+    // Same derivation the factory hands the paused stand-in, so both name this tab identically
     private val seedDisplay = deriveEditorDisplay(creationArguments)
     private val scratchTitle = editorScratchTitle(creationArguments)
 

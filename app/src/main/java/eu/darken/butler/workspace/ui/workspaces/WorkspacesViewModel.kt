@@ -262,9 +262,9 @@ class WorkspacesViewModel @Inject constructor(
                 log(tag, INFO) { "Renaming workspace ${action.id} to ${action.customTitle}" }
                 workspaceRepo.execute(WorkspaceAction.Rename(action.id, action.customTitle))
             }
-            is WorkspaceScreenAction.RestoreDormant -> {
-                log(tag, INFO) { "Restoring dormant workspace ${action.id}" }
-                workspaceRepo.execute(WorkspaceAction.Hydrate(action.id))
+            is WorkspaceScreenAction.ResumeWorkspace -> {
+                log(tag, INFO) { "Resuming paused workspace ${action.id}" }
+                workspaceRepo.execute(WorkspaceAction.Resume(action.id))
             }
             is WorkspaceScreenAction.CreateOnDemand -> {
                 log(tag) { "Creating workspace on-demand" }

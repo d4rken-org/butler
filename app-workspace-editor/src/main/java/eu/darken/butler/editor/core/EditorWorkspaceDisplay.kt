@@ -11,7 +11,7 @@ import eu.darken.butler.workspace.core.WorkspaceDisplay
 /**
  * Tab identity of an Editor workspace derived from its arguments alone: the file name, else the
  * suggested name of a scratch tab, else "Untitled" — the same fallback the live tab shows, so a
- * dormant tab never displays a more generic label than its live counterpart.
+ * paused tab never displays a more generic label than its live counterpart.
  */
 fun deriveEditorDisplay(arguments: EditorArguments): WorkspaceDisplay {
     val filePath = (arguments as? EditorArguments.Default)?.filePath
@@ -25,7 +25,7 @@ fun deriveEditorDisplay(arguments: EditorArguments): WorkspaceDisplay {
  * Where a file lives, as shown under its name: the containing folder, never the full path — the
  * name is already the line above it.
  *
- * The ONE rule for this second line. The dormant placeholder, the tab identity in the workspace
+ * The ONE rule for this second line. The paused placeholder, the tab identity in the workspace
  * manager and rail, and the editor's own toolbar all read it from here, so the same tab cannot
  * describe itself two ways depending on which surface is looking.
  */
