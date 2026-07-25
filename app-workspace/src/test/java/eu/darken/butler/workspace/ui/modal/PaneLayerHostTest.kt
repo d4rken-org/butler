@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -24,6 +25,7 @@ import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
 import io.kotest.matchers.shouldBe
 import org.junit.Test
 import testhelpers.ComposeTest
@@ -281,14 +283,14 @@ class PaneLayerHostTest : ComposeTest() {
      */
     @Test
     fun `a modal in an unfocused pane does not trap focus`() {
-        var focusManager: androidx.compose.ui.focus.FocusManager? = null
         var coveredContentEverFocused = false
-        var otherPaneEverFocused = false
+        var modalHasFocus = false
+        var otherPaneHasFocus = false
         val modalFocus = FocusRequester()
+        val otherPaneFocus = FocusRequester()
         var paneOneFocused by mutableStateOf(true)
 
         composeTestRule.setContent {
-            focusManager = LocalFocusManager.current
             PreviewWrapper {
                 Row {
                     PaneLayerHost(paneFocused = paneOneFocused) {
@@ -305,6 +307,7 @@ class PaneLayerHostTest : ComposeTest() {
                                 modifier = Modifier
                                     .size(24.dp)
                                     .focusRequester(modalFocus)
+                                    .onFocusChanged { modalHasFocus = it.isFocused }
                                     .focusable(),
                             )
                         }
@@ -314,7 +317,8 @@ class PaneLayerHostTest : ComposeTest() {
                             Box(
                                 modifier = Modifier
                                     .size(24.dp)
-                                    .onFocusChanged { if (it.isFocused) otherPaneEverFocused = true }
+                                    .focusRequester(otherPaneFocus)
+                                    .onFocusChanged { otherPaneHasFocus = it.isFocused }
                                     .focusable(),
                             )
                         }
@@ -324,17 +328,127 @@ class PaneLayerHostTest : ComposeTest() {
         }
 
         composeTestRule.runOnIdle { modalFocus.requestFocus() }
-        composeTestRule.runOnIdle { paneOneFocused = false }
+        composeTestRule.runOnIdle { modalHasFocus shouldBe true }
 
-        repeat(6) {
-            composeTestRule.runOnIdle { focusManager!!.moveFocus(FocusDirection.Next) }
-        }
+        // The user moves to the other pane
+        composeTestRule.runOnIdle { paneOneFocused = false }
+        composeTestRule.runOnIdle { modalHasFocus shouldBe false }
+
+        // With the trap disarmed the newly focused pane can take focus
+        composeTestRule.runOnIdle { otherPaneFocus.requestFocus() }
 
         composeTestRule.runOnIdle {
-            // The other pane can take focus...
-            otherPaneEverFocused shouldBe true
-            // ...while the content covered by the modal stays unreachable
+            otherPaneHasFocus shouldBe true
+            modalHasFocus shouldBe false
+            // ...and the content covered by the modal was never reachable
             coveredContentEverFocused shouldBe false
+        }
+    }
+
+    /**
+     * Focus can still arrive in an inactive pane after the fact — keyboard traversal into it, or a
+     * child requesting focus asynchronously. That must pull pane focus along with it, otherwise
+     * focus sits in one pane while back dispatch belongs to another.
+     */
+    @Test
+    fun `focus arriving in an inactive pane asks for that pane to be focused`() {
+        var paneFocusRequests = 0
+        val modalFocus = FocusRequester()
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                CompositionLocalProvider(
+                    LocalWorkspaceFocusRequest provides { paneFocusRequests++ },
+                ) {
+                    PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = false) {
+                        PaneLayer(rank = PaneLayerRank.CONTENT, modal = false) {
+                            Box(modifier = Modifier.size(24.dp).focusable())
+                        }
+                        PaneLayer(rank = PaneLayerRank.OVERLAY) {
+                            Box(
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .focusRequester(modalFocus)
+                                    .focusable(),
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        composeTestRule.runOnIdle { modalFocus.requestFocus() }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.runOnIdle { (paneFocusRequests > 0) shouldBe true }
+    }
+
+    @Test
+    fun `focus is released when the pane it landed in stays inactive`() {
+        var modalHasFocus = false
+        val modalFocus = FocusRequester()
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                // No handler: the request cannot be honoured, so the pane stays inactive
+                PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = false) {
+                    PaneLayer(rank = PaneLayerRank.CONTENT, modal = false) {
+                        Box(modifier = Modifier.size(24.dp).focusable())
+                    }
+                    PaneLayer(rank = PaneLayerRank.OVERLAY) {
+                        Box(
+                            modifier = Modifier
+                                .size(24.dp)
+                                .focusRequester(modalFocus)
+                                .onFocusChanged { modalHasFocus = it.isFocused }
+                                .focusable(),
+                        )
+                    }
+                }
+            }
+        }
+
+        composeTestRule.runOnIdle { modalFocus.requestFocus() }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.runOnIdle { modalHasFocus shouldBe false }
+    }
+
+    @Test
+    fun `focus is kept when the pane focus request is honoured`() {
+        var paneFocused by mutableStateOf(false)
+        var modalHasFocus = false
+        val modalFocus = FocusRequester()
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                CompositionLocalProvider(
+                    LocalWorkspaceFocusRequest provides { paneFocused = true },
+                ) {
+                    PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = paneFocused) {
+                        PaneLayer(rank = PaneLayerRank.CONTENT, modal = false) {
+                            Box(modifier = Modifier.size(24.dp).focusable())
+                        }
+                        PaneLayer(rank = PaneLayerRank.OVERLAY) {
+                            Box(
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .focusRequester(modalFocus)
+                                    .onFocusChanged { modalHasFocus = it.isFocused }
+                                    .focusable(),
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        composeTestRule.runOnIdle { modalFocus.requestFocus() }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.runOnIdle {
+            paneFocused shouldBe true
+            modalHasFocus shouldBe true
         }
     }
 

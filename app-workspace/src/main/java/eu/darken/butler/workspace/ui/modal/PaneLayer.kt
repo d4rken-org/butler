@@ -12,6 +12,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
@@ -20,6 +21,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.semantics.hideFromAccessibility
 import androidx.compose.ui.semantics.semantics
+import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
 
 /**
  * One layer of a pane's modal stack.
@@ -77,12 +79,13 @@ fun PaneLayer(
     val focusManager = LocalFocusManager.current
     var hasFocus by remember { mutableStateOf(false) }
 
-    // Read inside onEnter/onExit rather than baked into the modifier: a focus-properties change is
-    // only picked up on the next measure pass, which is *after* the effects below run. Deciding at
-    // invocation time means a trap that has just been disarmed can no longer veto the very
-    // clearFocus() that disarming it was supposed to allow.
+    // The handlers below stay installed and decide when focus actually tries to move, instead of
+    // being added and removed as the state changes. The decision then always reflects the stack and
+    // pane state at that moment, and the modifier chain keeps a stable identity.
     val trapFocus = rememberUpdatedState(registered && isTop && modal && active)
     val blockFocusEntry = rememberUpdatedState(registered && !onTopPath)
+    val currentPaneFocused = rememberUpdatedState(paneFocused)
+    val requestPaneFocus = LocalWorkspaceFocusRequest.current
 
     // A text field behind a dialog would otherwise keep focus and the soft keyboard. Keyed on
     // hasFocus too, so a layer that only gains focus after being covered still gives it up.
@@ -91,11 +94,24 @@ fun PaneLayer(
     }
 
     // Losing pane focus while holding it must release focus as well — a modal that is still top of
-    // its own pane hits neither the covered case above nor the activation case below. Deliberately
-    // keyed on paneFocused only: re-running this when hasFocus changes would clear focus the moment
-    // the user taps into a pane that has not been marked focused yet.
+    // its own pane hits neither the covered case above nor the activation case below. Keyed on
+    // paneFocused only, so this handles the pane being left and never fights the case below.
     LaunchedEffect(registered, paneFocused) {
         if (registered && !paneFocused && hasFocus) focusManager.clearFocus(force = true)
+    }
+
+    // The mirror image: focus arriving in a pane that is not the focused one — keyboard traversal
+    // into it, or a child requesting focus asynchronously. Treat it exactly like a tap on a modal
+    // surface and ask for this pane to become focused, so focus and back dispatch stay in the same
+    // pane. Only if that request goes unhonoured is the focus given up; simply clearing here would
+    // steal focus the instant a user reaches into a pane that is not marked focused yet.
+    LaunchedEffect(registered, hasFocus) {
+        if (!registered || !hasFocus || currentPaneFocused.value) return@LaunchedEffect
+        requestPaneFocus?.invoke()
+        // Let the request land and recompose before judging it
+        withFrameNanos {}
+        withFrameNanos {}
+        if (!currentPaneFocused.value) focusManager.clearFocus(force = true)
     }
 
     LaunchedEffect(registered, isTop, active, takeFocus) {
