@@ -8,12 +8,9 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -35,6 +32,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -44,6 +42,7 @@ import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.paneTitle
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.SecureFlagPolicy
@@ -85,7 +84,6 @@ object PaneBoundAlertDialogDefaults {
  * @param includeImePadding pad the dialog above the soft keyboard. Enable for dialogs containing an
  *        editable text field; when `false` the dialog dismisses the keyboard as it appears.
  */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun PaneBoundAlertDialog(
     onDismissRequest: () -> Unit,
@@ -218,21 +216,65 @@ fun PaneBoundAlertDialog(
                             }
                         }
 
-                        FlowRow(
+                        DialogActionRow(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(top = 16.dp),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                            // Matches Material's AlertDialogFlowRow: once the labels no longer fit
-                            // side by side the confirm action ends up above the dismiss action.
-                            itemVerticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            dismissButton?.invoke()
-                            confirmButton()
-                        }
+                            dismissButton = dismissButton,
+                            confirmButton = confirmButton,
+                        )
                     }
                 }
+            }
+        }
+    }
+}
+
+/**
+ * Action row matching Material's `AlertDialogFlowRow`: dismiss left of confirm while both fit on
+ * one line, and confirm *above* dismiss once they don't.
+ *
+ * `FlowRow` cannot express that — it fills rows in declaration order, so the wrapped order is
+ * always the reverse of what Material does. With at most two actions the layout is trivial enough
+ * to do directly.
+ */
+@Composable
+private fun DialogActionRow(
+    dismissButton: (@Composable () -> Unit)?,
+    confirmButton: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
+    spacing: Dp = 8.dp,
+) {
+    Layout(
+        modifier = modifier,
+        contents = listOf(
+            { if (dismissButton != null) dismissButton() },
+            confirmButton,
+        ),
+    ) { (dismissMeasurables, confirmMeasurables), constraints ->
+        val spacingPx = spacing.roundToPx()
+        val childConstraints = constraints.copy(minWidth = 0, minHeight = 0)
+        val dismiss = dismissMeasurables.firstOrNull()?.measure(childConstraints)
+        val confirm = confirmMeasurables.first().measure(childConstraints)
+
+        val width = constraints.maxWidth
+        val sideBySide = dismiss == null || dismiss.width + spacingPx + confirm.width <= width
+        val height = when {
+            dismiss == null -> confirm.height
+            sideBySide -> maxOf(dismiss.height, confirm.height)
+            else -> confirm.height + spacingPx + dismiss.height
+        }
+
+        layout(width, height) {
+            if (sideBySide) {
+                confirm.place(x = width - confirm.width, y = (height - confirm.height) / 2)
+                dismiss?.place(
+                    x = width - confirm.width - spacingPx - dismiss.width,
+                    y = (height - dismiss.height) / 2,
+                )
+            } else {
+                confirm.place(x = width - confirm.width, y = 0)
+                dismiss!!.place(x = width - dismiss.width, y = confirm.height + spacingPx)
             }
         }
     }

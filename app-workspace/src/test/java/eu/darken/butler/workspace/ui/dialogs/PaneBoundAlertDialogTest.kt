@@ -260,6 +260,55 @@ class PaneBoundAlertDialogTest : ComposeTest() {
         (surfaceWidth <= 240.dp) shouldBe true
     }
 
+    /**
+     * Material's rule: dismiss sits left of confirm while both fit on one line, and confirm moves
+     * *above* dismiss once they don't.
+     */
+    @Test
+    fun `the actions sit side by side while they fit`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                Box(modifier = Modifier.size(width = 500.dp, height = 400.dp)) {
+                    PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = true) {
+                        PaneBoundAlertDialog(
+                            onDismissRequest = {},
+                            confirmButton = { TextButton(onClick = {}) { Text("Confirm") } },
+                            dismissButton = { TextButton(onClick = {}) { Text("Cancel") } },
+                        )
+                    }
+                }
+            }
+        }
+
+        val confirm = composeTestRule.onNodeWithText("Confirm").getUnclippedBoundsInRoot()
+        val dismiss = composeTestRule.onNodeWithText("Cancel").getUnclippedBoundsInRoot()
+
+        confirm.top shouldBe dismiss.top
+        (dismiss.left < confirm.left) shouldBe true
+    }
+
+    @Test
+    fun `the confirm action wraps above the dismiss action`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                Box(modifier = Modifier.size(width = 200.dp, height = 400.dp)) {
+                    PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = true) {
+                        PaneBoundAlertDialog(
+                            onDismissRequest = {},
+                            confirmButton = { TextButton(onClick = {}) { Text("Confirm") } },
+                            dismissButton = { TextButton(onClick = {}) { Text("Cancel") } },
+                        )
+                    }
+                }
+            }
+        }
+
+        val confirm = composeTestRule.onNodeWithText("Confirm").getUnclippedBoundsInRoot()
+        val dismiss = composeTestRule.onNodeWithText("Cancel").getUnclippedBoundsInRoot()
+
+        (confirm.top < dismiss.top) shouldBe true
+    }
+
     @Test
     fun `the pointer barrier covers the whole pane from the first frame`() {
         composeTestRule.mainClock.autoAdvance = false
