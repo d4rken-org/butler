@@ -20,7 +20,7 @@ object SearcherWorkspacePageHostEntry : WorkspacePageHostEntry {
 
     @Composable
     override fun Overlays(id: Workspace.Id, design: WorkspaceDesign) {
-        // No pane-scoped overlays
+        SearcherWorkspaceOverlaysHost(id = id, design = design)
     }
 
     @Module
