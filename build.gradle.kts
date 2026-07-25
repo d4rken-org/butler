@@ -1,3 +1,5 @@
+import com.android.build.api.dsl.ApplicationExtension
+import com.android.build.api.dsl.LibraryExtension
 import kotlinx.kover.gradle.plugin.dsl.KoverProjectExtension
 
 plugins {
@@ -29,6 +31,26 @@ allprojects {
             showExceptions = true
             showCauses = true
             showStackTraces = true
+        }
+    }
+
+    // Kotest's framework engine pulls kotlinx-coroutines-debug, which pulls both jna and
+    // jna-platform; the two ship byte-identical copies of these dual-license texts. Every module
+    // with androidTest sources therefore fails mergeXxxAndroidTestJavaResource with
+    // "2 files found with path 'META-INF/AL2.0'". Handled centrally rather than per-module so new
+    // modules don't rediscover it; modules keep appending their own rules on top.
+    // JNA is androidTest-only today, so this never affects a shipped artifact. pickFirst rather
+    // than exclude anyway: if such a dependency ever does reach production, dropping a license
+    // text is the wrong default.
+    val duplicateLicenseFiles = setOf("META-INF/AL2.0", "META-INF/LGPL2.1")
+    plugins.withId("com.android.library") {
+        extensions.configure(LibraryExtension::class.java) {
+            packaging.resources.pickFirsts.addAll(duplicateLicenseFiles)
+        }
+    }
+    plugins.withId("com.android.application") {
+        extensions.configure(ApplicationExtension::class.java) {
+            packaging.resources.pickFirsts.addAll(duplicateLicenseFiles)
         }
     }
 }

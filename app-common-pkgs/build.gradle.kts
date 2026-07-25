@@ -28,13 +28,6 @@ android {
             setupTestLogging()
         }
     }
-
-    // JNA (via root/shell) ships dual-license files in two jars; needed so the androidTest apk merges.
-    packaging {
-        resources {
-            excludes += setOf("META-INF/AL2.0", "META-INF/LGPL2.1")
-        }
-    }
 }
 
 dependencies {
