@@ -244,6 +244,15 @@ interface Workspace<ArgT : Workspace.Arguments> {
          */
         val hasUnsavedChanges: Boolean = false,
         /**
+         * True when releasing this instance right now would not lose in-flight work or state that
+         * [createArguments] cannot reproduce — i.e. the workspace may be paused
+         * ([WorkspaceAction.Pause]). Workspaces whose arguments fully describe them leave this true.
+         *
+         * A fast reactive signal, not an atomic one: WorkspaceRepo re-checks it after capturing the
+         * arguments, right before the live instance is swapped for the stand-in.
+         */
+        val isPausable: Boolean = true,
+        /**
          * ID of the workspace that created this workspace, if this is a sub-workspace.
          * Null for normal workspaces.
          *

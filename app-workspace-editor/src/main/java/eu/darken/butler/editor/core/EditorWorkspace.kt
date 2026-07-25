@@ -124,7 +124,9 @@ class EditorWorkspace @AssistedInject constructor(
             title = seedDisplay.title ?: type.label,
             subtitle = seedDisplay.subtitle,
             arguments = creationArguments,
-        )
+            // Stays false until the engine reports file-backed content: createArguments() drops
+            // initialContent, so pausing a scratch buffer would throw away its text.
+        ).copy(isPausable = false)
     )
     override val info: MutableStateFlow<Workspace.Info> = _info
 
@@ -183,7 +185,12 @@ class EditorWorkspace @AssistedInject constructor(
         reportedSource = ReportedSource(engine, contentSource)
         _info.update { current ->
             val display = editorContentDisplay(contentSource, current.contentPath, scratchTitle)
-            current.copy(title = display.title ?: type.label, subtitle = display.subtitle)
+            current.copy(
+                title = display.title ?: type.label,
+                subtitle = display.subtitle,
+                // Only file-backed content survives a pause: an in-memory buffer exists nowhere but here.
+                isPausable = contentSource is ContentSource.File,
+            )
         }
         log(tag, DEBUG) { "Updated identity for: $contentSource" }
     }

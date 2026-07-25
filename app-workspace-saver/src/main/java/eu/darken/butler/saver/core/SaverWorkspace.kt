@@ -199,6 +199,9 @@ class SaverWorkspace @AssistedInject constructor(
             lifecycleState = Workspace.LifecycleState.Ready,
             operationCount = operationCount,
             attentionCount = attentionCount,
+            // A transient export flow: filename edits and save progress live only in this instance,
+            // never in the arguments, so releasing it would silently drop the user's export.
+            isPausable = false,
             callerWorkspaceId = creationArguments.callerWorkspaceId,
             modalPresentation = creationArguments.modalPresentation,
         )

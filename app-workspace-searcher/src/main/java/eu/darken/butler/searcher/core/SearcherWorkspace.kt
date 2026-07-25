@@ -418,6 +418,14 @@ class SearcherWorkspace @AssistedInject constructor(
             }
             .launchIn(scope)
 
+        // A running search or a populated result set cannot survive a pause: createArguments()
+        // always persists startSearch=false and never carries results.
+        _searchState
+            .map { it.searchStatus == State.SearchStatus.SEARCHING || it.results.isNotEmpty() }
+            .distinctUntilChanged()
+            .onEach { busy -> info.value = info.value.copy(isPausable = !busy) }
+            .launchIn(scope)
+
         // Live-prune results when files are removed by operations from any workspace
         fileSystemHinter.events
             .onEach { onFileSystemEvent(it) }
