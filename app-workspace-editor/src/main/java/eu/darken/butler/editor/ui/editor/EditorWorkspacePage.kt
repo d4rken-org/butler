@@ -1,6 +1,5 @@
 package eu.darken.butler.editor.ui.editor
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
@@ -49,6 +48,7 @@ import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
 import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
 import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
@@ -114,7 +114,7 @@ fun EditorWorkspacePage(
     val state = stateOrNull ?: return
 
     // Handle back button for selection mode - clear selection first
-    BackHandler(enabled = state.selectionRange != null) {
+    WorkspaceBackHandler(enabled = state.selectionRange != null) {
         onPageAction(EditorPageAction.Navigation.ClearSelection(state.cursorPosition))
     }
 

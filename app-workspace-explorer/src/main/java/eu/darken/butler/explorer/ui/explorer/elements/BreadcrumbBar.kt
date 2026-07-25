@@ -1,6 +1,5 @@
 package eu.darken.butler.explorer.ui.explorer.elements
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ScrollState
@@ -74,6 +73,7 @@ import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
+import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import java.io.File
@@ -150,7 +150,7 @@ fun BreadcrumbBar(
         }
     }
 
-    BackHandler(enabled = isEditMode) {
+    WorkspaceBackHandler(enabled = isEditMode) {
         isEditMode = false
         keyboardController?.hide()
     }

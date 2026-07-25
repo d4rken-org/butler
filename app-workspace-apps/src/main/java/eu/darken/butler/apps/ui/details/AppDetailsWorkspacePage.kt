@@ -1,7 +1,6 @@
 package eu.darken.butler.apps.ui.details
 
 import android.content.pm.ActivityInfo
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -55,6 +54,7 @@ import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
 import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
 import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
 
 sealed interface AppDetailsPageAction {
     data object Close : AppDetailsPageAction
@@ -136,7 +136,7 @@ fun AppDetailsWorkspacePage(
 
     // Single back handler: the Components sub-screen returns to Overview; an Overview shown as a
     // modal closes the workspace. Sub-screen selection is transient and not persisted across restore.
-    BackHandler(enabled = showComponents || isModal) {
+    WorkspaceBackHandler(enabled = showComponents || isModal) {
         if (showComponents) {
             onPageAction(AppDetailsPageAction.NavigateToTab(DetailTab.OVERVIEW))
         } else {

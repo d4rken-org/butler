@@ -1,7 +1,6 @@
 package eu.darken.butler.explorer.ui.explorer
 
 import android.widget.Toast
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -56,6 +55,7 @@ import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
 import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
 import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
 import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -410,7 +410,7 @@ private fun ExplorerBackHandlers(
 ) {
     // Handle back button for picker mode
     if (hasPickerConfig) {
-        BackHandler(enabled = true) {
+        WorkspaceBackHandler(enabled = true) {
             if (canGoBack) {
                 onGoBack()
             } else {
@@ -422,7 +422,7 @@ private fun ExplorerBackHandlers(
     // Handle back button for navigation history (when setting enabled).
     // At the top-level (can't go back) the tab closes, matching the setting's description.
     if (useBackButtonForNavigation && !hasPickerConfig) {
-        BackHandler(enabled = true) {
+        WorkspaceBackHandler(enabled = true) {
             if (canGoBack) {
                 onGoBack()
             } else {
@@ -432,7 +432,7 @@ private fun ExplorerBackHandlers(
     }
 
     // Handle back button for selection mode - clear selection first
-    BackHandler(enabled = isSelectionMode) {
+    WorkspaceBackHandler(enabled = isSelectionMode) {
         onClearSelection()
     }
 }

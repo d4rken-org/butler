@@ -2,7 +2,6 @@ package eu.darken.butler.bugreport.ui
 
 import android.content.Intent
 import android.text.format.Formatter
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateDpAsState
@@ -93,6 +92,7 @@ import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonDefaults
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Instant
@@ -128,7 +128,7 @@ fun BugReportWorkspacePageHost(
     state?.let { s ->
         // While the detail view is open, back returns to the list — but let an open dialog consume
         // back first so it isn't dismissed together with the detail.
-        BackHandler(enabled = s.detail != null && consentFor == null && !showShortRecordingWarning) {
+        WorkspaceBackHandler(enabled = s.detail != null && consentFor == null && !showShortRecordingWarning) {
             vm.closeReport()
         }
 

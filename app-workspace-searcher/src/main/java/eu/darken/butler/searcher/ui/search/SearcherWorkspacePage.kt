@@ -1,6 +1,5 @@
 package eu.darken.butler.searcher.ui.search
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -74,6 +73,7 @@ import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
 import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
 import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
 import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
@@ -271,7 +271,7 @@ fun SearcherWorkspacePage(
     val currentState = mainState as? SearcherWorkspaceViewModel.State.Ready ?: return
 
     // Handle back button for selection mode - clear selection first
-    BackHandler(enabled = currentState.selectionState.isSelectionMode) {
+    WorkspaceBackHandler(enabled = currentState.selectionState.isSelectionMode) {
         onPageAction(SearcherPageAction.Results.ExitSelectionMode)
     }
 
