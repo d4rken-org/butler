@@ -3,9 +3,7 @@ package eu.darken.butler.apps.ui.apps
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -24,11 +22,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import eu.darken.butler.apps.ui.apps.dialogs.AppsDialogHost
 import eu.darken.butler.apps.ui.apps.elements.AppsActionBarItem
 import eu.darken.butler.apps.ui.apps.elements.AppsEmptyContent
 import eu.darken.butler.apps.ui.apps.elements.AppsInfoBar
@@ -93,11 +89,6 @@ fun AppsWorkspacePage(
         includeSystemBarInset = design.paneEdges.touchesBottom,
         estimatedContentPadding = 80.dp,
     )
-
-    val density = LocalDensity.current
-    val navBarInset = if (design.paneEdges.touchesBottom) {
-        with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
-    } else 0.dp
 
     // Offset the pull-to-refresh indicator below the floating toolbar/chips (top of the list content).
     val topContentPadding = topBarStackState.contentPaddingDp()
@@ -296,21 +287,7 @@ fun AppsWorkspacePage(
         )
     }
 
-    // Dialog Host
-    AppsDialogHost(
-        dialogState = state.dialogState,
-        filterConfig = state.filterConfig,
-        onDismiss = { onPageAction(AppsPageAction.Dialog.Dismiss) },
-        onAction = { onPageAction(AppsPageAction.ActionBarClick(it)) },
-        onFilterApply = { onPageAction(AppsPageAction.Dialog.ApplyFilter(it)) },
-        onSortApply = { onPageAction(AppsPageAction.Dialog.ApplySort(it)) },
-        onConfirmEnable = { onPageAction(AppsPageAction.Dialog.ConfirmEnable(it)) },
-        onConfirmDisable = { onPageAction(AppsPageAction.Dialog.ConfirmDisable(it)) },
-        onConfirmUninstall = { onPageAction(AppsPageAction.Dialog.ConfirmUninstall(it)) },
-        onConfirmClearCache = { onPageAction(AppsPageAction.Dialog.ConfirmClearCache(it)) },
-        onConfirmClearData = { onPageAction(AppsPageAction.Dialog.ConfirmClearData(it)) },
-        bottomInset = navBarInset,
-    )
+    // Dialogs and sheets live in the page host's overlay slot, see AppsWorkspaceOverlays
 }
 
 
