@@ -216,6 +216,42 @@ class EditorWorkspaceLifecycleTest : BaseTest() {
     }
 
     @Test
+    fun `a file-backed tab can be paused`(@TempDir tempDir: File): Unit = runBlocking {
+        val file = File(tempDir, "doc.txt").apply { writeText("original") }
+        val workspace = createWorkspace(
+            EditorArguments.Default(filePath = LocalPath.build(file)),
+            createMockGateway(),
+        )
+        try {
+            workspace.awaitFile("doc.txt")
+
+            workspace.info.value.isPausable shouldBe true
+        } finally {
+            workspace.release()
+        }
+    }
+
+    @Test
+    fun `a scratch buffer must not be paused`(): Unit = runBlocking {
+        // createArguments() drops initialContent, so releasing this tab would throw the text away
+        val workspace = createWorkspace(
+            EditorArguments.Default(filePath = null, initialContent = "unsaved scratch text"),
+            createMockGateway(),
+        )
+        try {
+            withTimeout(10_000) {
+                workspace.state.first {
+                    (it as? EditorWorkspace.State.Ready)?.editor?.contentSource is ContentSource.Memory
+                }
+            }
+
+            workspace.info.value.isPausable shouldBe false
+        } finally {
+            workspace.release()
+        }
+    }
+
+    @Test
     fun `auto-save persists modifications after the interval`(@TempDir tempDir: File): Unit = runBlocking {
         val file = File(tempDir, "doc.txt").apply { writeText("original") }
         val workspace = createWorkspace(
