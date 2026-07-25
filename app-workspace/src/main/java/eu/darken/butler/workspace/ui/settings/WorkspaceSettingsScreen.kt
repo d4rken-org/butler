@@ -222,6 +222,7 @@ fun WorkspaceSettingsScreen(
             availableModes = listOf(
                 WorkspacePanelMode.AUTO,
                 WorkspacePanelMode.SINGLE,
+                WorkspacePanelMode.DUAL_VERTICAL,
                 WorkspacePanelMode.DUAL_HORIZONTAL,
                 WorkspacePanelMode.TRIPLE_SIDEBAR_LEFT,
                 WorkspacePanelMode.TRIPLE_SIDEBAR_RIGHT,
