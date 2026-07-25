@@ -1,5 +1,6 @@
 package eu.darken.butler.workspace.core
 
+import eu.darken.butler.common.ca.CaString
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -11,6 +12,9 @@ import kotlinx.coroutines.flow.asStateFlow
  * [Workspace.LifecycleState.Dormant] until [WorkspaceAction.Hydrate] swaps in the real instance
  * built by the type's [WorkspaceFactory].
  *
+ * [title] and [subtitle] come from the type's [WorkspaceFactory.deriveDisplay] — the stand-in stays
+ * dumb and never looks up a factory or decides a fallback itself; that ownership sits with the repo.
+ *
  * Deliberately `internal` to the app module: the UI never composes a typed page host for a dormant
  * workspace and [WorkspaceProvider.retrieve] hides it, so no typed consumer can cast the stand-in.
  */
@@ -18,13 +22,16 @@ internal class DormantWorkspace(
     override val id: Workspace.Id,
     override val type: Workspace.Type,
     val heldArguments: Workspace.Arguments,
+    title: CaString,
+    subtitle: CaString? = null,
 ) : Workspace<Workspace.Arguments> {
 
     // Seeded through the same derivation real workspaces use, so contentPath, callerWorkspaceId and
     // modalPresentation are correct while dormant (content dedup and lifecycle decisions read them).
     private val _info = MutableStateFlow(
         initialInfo(
-            title = type.label,
+            title = title,
+            subtitle = subtitle,
             arguments = heldArguments,
         ).copy(lifecycleState = Workspace.LifecycleState.Dormant())
     )

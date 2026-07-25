@@ -29,6 +29,12 @@ sealed interface ExplorerArguments : Workspace.Arguments {
     @Parcelize
     data class Default(
         override val startPath: APath<*>? = null,
+        /**
+         * Non-directory location the tab was on when it was persisted (Home/Device/Trash), so a
+         * restored tab is identifiable without a path. Null for directory tabs (see [startPath])
+         * and for arguments saved before this field existed.
+         */
+        val startTarget: ExplorerStartTarget? = null,
     ) : ExplorerArguments
 
     /**

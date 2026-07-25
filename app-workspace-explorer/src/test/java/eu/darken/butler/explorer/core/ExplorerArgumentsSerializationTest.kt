@@ -5,6 +5,7 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.serialization.SerializationCommonModule
 import eu.darken.butler.workspace.contracts.explorer.ExplorerArguments
+import eu.darken.butler.workspace.contracts.explorer.ExplorerStartTarget
 import eu.darken.butler.workspace.core.Workspace
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.json.Json
@@ -88,6 +89,48 @@ class ExplorerArgumentsSerializationTest : BaseTest() {
         val args = json.decodeFromString<ExplorerArguments>(jsonString)
 
         args shouldBe ExplorerArguments.Default()
+    }
+
+    @Test
+    fun `serialize Default with a start target`() {
+        val args = ExplorerArguments.Default(startTarget = ExplorerStartTarget.TRASH)
+        val serialized = json.encodeToJsonElement<ExplorerArguments>(args)
+
+        serialized.toString().toComparableJson() shouldBe """
+            {
+                "type": "standard",
+                "startTarget": "trash"
+            }
+        """.toComparableJson()
+    }
+
+    @Test
+    fun `legacy arguments without a start target still deserialize`() {
+        // Exactly what sessions saved before startTarget existed
+        val jsonString = """
+            {
+                "type": "standard",
+                "startPath": {
+                    "type": "LOCAL",
+                    "file": "/sdcard/DCIM"
+                }
+            }
+        """
+
+        val args = json.decodeFromString<ExplorerArguments>(jsonString)
+
+        args shouldBe ExplorerArguments.Default(startPath = LocalPath.build("/sdcard/DCIM"))
+        (args as ExplorerArguments.Default).startTarget shouldBe null
+    }
+
+    @Test
+    fun `roundtrip Default with a start target`() {
+        val original = ExplorerArguments.Default(startTarget = ExplorerStartTarget.HOME)
+
+        val serialized = json.encodeToJsonElement<ExplorerArguments>(original)
+        val deserialized = json.decodeFromString<ExplorerArguments>(serialized.toString())
+
+        deserialized shouldBe original
     }
 
     @Test

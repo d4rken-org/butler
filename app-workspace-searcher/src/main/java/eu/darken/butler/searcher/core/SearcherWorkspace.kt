@@ -8,7 +8,6 @@ import dagger.assisted.AssistedInject
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoMap
-import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
@@ -31,8 +30,11 @@ import eu.darken.butler.workspace.contracts.searcher.SearchFilter
 import eu.darken.butler.workspace.contracts.searcher.SearchTarget
 import eu.darken.butler.workspace.contracts.searcher.SearcherArguments
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.WorkspaceDisplay
 import eu.darken.butler.workspace.core.WorkspaceFactory
 import eu.darken.butler.workspace.core.WorkspaceTypeKey
+import eu.darken.butler.workspace.core.initialInfo
+import eu.darken.butler.workspace.core.label
 import eu.darken.butler.workspace.core.filesystem.FileSystemEvent
 import eu.darken.butler.workspace.core.filesystem.FileSystemHinter
 import eu.darken.butler.workspace.core.preview.FolderPreviewResolver
@@ -50,7 +52,11 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine as kotlinCombine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.transformWhile
@@ -105,14 +111,67 @@ class SearcherWorkspace @AssistedInject constructor(
         )
     }
 
+    // Same derivation the factory hands the dormant stand-in, so both name this tab identically
+    private val seedDisplay = deriveSearcherDisplay(creationArguments)
+
     override val info: MutableStateFlow<Workspace.Info> = MutableStateFlow(
-        Workspace.Info(
-            id = id,
-            type = type,
-            title = "Searcher ${id.shortTag}".toCaString(),
-            lifecycleState = Workspace.LifecycleState.Ready,
-        )
+        initialInfo(
+            title = seedDisplay?.title ?: type.label,
+            subtitle = seedDisplay?.subtitle,
+            arguments = creationArguments,
+        ).copy(lifecycleState = Workspace.LifecycleState.Ready)
     )
+
+    /**
+     * Everything the tab identity is derived from. Blank queries normalize to null so the state
+     * built from arguments compares equal to the arguments themselves.
+     */
+    private data class IdentitySource(
+        val filenameQuery: FilenameQuery?,
+        val contentQuery: ContentQuery?,
+        val targets: List<SearchTarget>,
+    ) {
+        companion object {
+            fun of(
+                filenameQuery: FilenameQuery?,
+                contentQuery: ContentQuery?,
+                targets: List<SearchTarget>,
+            ) = IdentitySource(
+                filenameQuery = filenameQuery?.takeIf { it.isNotEmpty },
+                contentQuery = contentQuery?.takeIf { it.isNotEmpty },
+                targets = targets,
+            )
+        }
+    }
+
+    /** Flipped once the arguments have been applied to the query and target state. */
+    private val identityInitialized = MutableStateFlow(false)
+
+    /** What [info] currently describes; publishing is skipped while this still holds. */
+    @Volatile
+    private var publishedIdentity: IdentitySource = (creationArguments as? SearcherArguments.Default).let {
+        IdentitySource.of(it?.filenameQuery, it?.contentQuery, it?.startTargets.orEmpty())
+    }
+
+    /**
+     * Republishes the tab identity through the same derivation the dormant stand-in uses, so the
+     * two can never disagree. Skipped by VALUE when nothing identifying changed - never by emission
+     * position, which would silently drop targets that arrived before the observer subscribed.
+     */
+    private fun publishIdentity(source: IdentitySource) {
+        if (source == publishedIdentity) return
+        publishedIdentity = source
+        val display = searcherDisplay(
+            filenameQuery = source.filenameQuery,
+            contentQuery = source.contentQuery,
+            targets = source.targets,
+        )
+        info.value = info.value.copy(
+            title = display?.title ?: type.label,
+            subtitle = display?.subtitle,
+        )
+        log(tag, VERBOSE) { "Republished identity: $display" }
+    }
 
     data class State(
         val currentSearchQuery: SearchQuery? = null,
@@ -278,12 +337,6 @@ class SearcherWorkspace @AssistedInject constructor(
         scope.launch {
             val args = creationArguments as? SearcherArguments.Default
 
-            // Initialize targets from args
-            if (args?.startTargets != null) {
-                log(tag, INFO) { "Using targets from arguments: ${args.startTargets}" }
-                searchEngine.updateTargets { args.startTargets!! }
-            }
-
             // Build query from args (no settings defaults - start fresh)
             val filenameQuery = args?.filenameQuery ?: FilenameQuery()
             val contentQuery = args?.contentQuery ?: ContentQuery()
@@ -294,7 +347,8 @@ class SearcherWorkspace @AssistedInject constructor(
                 INFO
             ) { "Initializing query state: filename=${filenameQuery.pattern}, content=${contentQuery.pattern}, filter=$filter" }
 
-            // Always initialize currentSearchQuery with complete data
+            // Always initialize currentSearchQuery with complete data. Before the targets, so the
+            // target change republishes the identity with this query already in place.
             _searchState.update { state ->
                 state.copy(
                     currentSearchQuery = SearchQuery(
@@ -306,7 +360,33 @@ class SearcherWorkspace @AssistedInject constructor(
                     )
                 )
             }
+
+            // Initialize targets from args
+            if (args?.startTargets != null) {
+                log(tag, INFO) { "Using targets from arguments: ${args.startTargets}" }
+                searchEngine.updateTargets { args.startTargets!! }
+            }
+
+            // Only now does the state describe this tab; before that a publish would drop the
+            // argument-derived identity the seed already shows
+            identityInitialized.value = true
         }
+
+        // The single identity publisher: every query change (search, clear) and every target
+        // change (edited, defaults added, engine-loaded) republishes through one derivation.
+        // Gated instead of position-skipped: targets can already be loaded when this subscribes,
+        // and dropping that value would leave the live tab without the targets its own
+        // createArguments() persists.
+        identityInitialized
+            .filter { it }
+            .flatMapLatest {
+                kotlinCombine(
+                    _searchState.map { state -> state.currentSearchQuery }.distinctUntilChanged(),
+                    searchEngine.targetState,
+                ) { query, targets -> IdentitySource.of(query?.filenameQuery, query?.contentQuery, targets) }
+            }
+            .onEach { publishIdentity(it) }
+            .launchIn(scope)
 
         // Track operation counts for this workspace
         operationsManager.operationsForWorkspace(id).withOnlyStateChanges()
@@ -384,16 +464,6 @@ class SearcherWorkspace @AssistedInject constructor(
             )
         }
         removedPaths.update { it - staleTombstones }
-
-        // Update workspace info with current search (triggers session save + shows in tab)
-        val subtitleText = buildString {
-            append(command.filenameQuery.pattern)
-            if (command.contentQuery.isNotEmpty) {
-                append(" | ")
-                append(command.contentQuery.pattern)
-            }
-        }
-        info.value = info.value.copy(subtitle = subtitleText.toCaString())
 
         // Delegate to engine
         try {
@@ -567,6 +637,8 @@ class SearcherWorkspace @AssistedInject constructor(
                 removedPaths.value = emptySet()
                 // Clear target progress from engine
                 searchEngine.clearTargetProgress()
+                // The identity publisher observes currentSearchQuery, so dropping it here is what
+                // takes the stale query out of the tab name
             }
             is SearcherCommand.Delete -> {
                 scope.launch {
@@ -606,6 +678,9 @@ class SearcherWorkspace @AssistedInject constructor(
         override fun create(id: Workspace.Id, arguments: SearcherArguments): SearcherWorkspace
 
         override val argumentsSerializer: KSerializer<SearcherArguments> get() = serializer()
+
+        override fun deriveDisplay(arguments: SearcherArguments): WorkspaceDisplay? =
+            deriveSearcherDisplay(arguments)
     }
 
     @Module

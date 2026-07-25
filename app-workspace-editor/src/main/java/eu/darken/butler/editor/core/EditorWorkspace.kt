@@ -8,8 +8,6 @@ import dagger.assisted.AssistedInject
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoMap
-import eu.darken.butler.common.ca.CaString
-import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
@@ -23,7 +21,6 @@ import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.flow.combine as combineMany
 import eu.darken.butler.editor.core.syntax.Token
 import eu.darken.butler.common.progress.Progress
-import eu.darken.butler.editor.R
 import eu.darken.butler.editor.core.engine.ContentSource
 import eu.darken.butler.editor.core.engine.EditorEngine
 import eu.darken.butler.editor.core.engine.EditorState as EngineState
@@ -35,8 +32,11 @@ import eu.darken.butler.editor.core.engine.TextPosition
 import eu.darken.butler.editor.ui.editor.text.CursorDirection
 import eu.darken.butler.workspace.contracts.editor.EditorArguments
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.WorkspaceDisplay
 import eu.darken.butler.workspace.core.WorkspaceFactory
 import eu.darken.butler.workspace.core.WorkspaceTypeKey
+import eu.darken.butler.workspace.core.initialInfo
+import eu.darken.butler.workspace.core.label
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.operationsForWorkspace
@@ -97,6 +97,8 @@ class EditorWorkspace @AssistedInject constructor(
             cursorLine = ready?.cursorPosition?.line ?: args?.cursorLine,
             cursorColumn = ready?.cursorPosition?.column ?: args?.cursorColumn,
             scrollToLine = ready?.visibleRange?.first ?: args?.scrollToLine,
+            // Without this a restored scratch tab loses its name and falls back to "Untitled"
+            suggestedTitle = args?.suggestedTitle,
             charsetOverride = charsetOverride?.name(),
         )
     }
@@ -111,25 +113,79 @@ class EditorWorkspace @AssistedInject constructor(
 
     override val type: Workspace.Type = Workspace.Type.EDITOR
 
+    // Same derivation the factory hands the dormant stand-in, so both name this tab identically
+    private val seedDisplay = deriveEditorDisplay(creationArguments)
+    private val scratchTitle = editorScratchTitle(creationArguments)
+
+    // Seeded synchronously so per-path open dedup sees this tab's file before the engine
+    // finishes loading (rapid double-open, in-batch duplicates)
     private val _info = MutableStateFlow(
-        Workspace.Info(
-            id = id,
-            type = type,
-            title = generateTitle(),
-            // Seeded synchronously so per-path open dedup sees this tab's file before the engine
-            // finishes loading (rapid double-open, in-batch duplicates)
-            contentPath = (creationArguments as? Workspace.ArgumentsWithContentPath)?.contentPath,
+        initialInfo(
+            title = seedDisplay.title ?: type.label,
+            subtitle = seedDisplay.subtitle,
+            arguments = creationArguments,
         )
     )
     override val info: MutableStateFlow<Workspace.Info> = _info
 
     /**
+     * Last content source reported, tagged with the engine that reported it. A [ContentSource.File]
+     * names the file itself, so one left over from a previous engine would name the PREVIOUS file:
+     * the tag is what lets a switch discard it instead of publishing a path and a name that belong
+     * to different files.
+     */
+    private data class ReportedSource(val engine: EditorEngine, val contentSource: ContentSource)
+
+    @Volatile
+    private var reportedSource: ReportedSource? = null
+
+    /**
+     * What the current engine has reported, or the in-memory placeholder every engine starts on -
+     * which is also what a freshly installed engine reports until it has loaded anything.
+     */
+    private fun currentContentSource(): ContentSource = reportedSource
+        ?.takeIf { it.engine === _engine.value }
+        ?.contentSource
+        ?: ContentSource.Memory(size = 0L)
+
+    /**
      * Publishes the file identity for per-path open dedup ([Workspace.Info.contentPath]). Called
      * synchronously wherever the current engine changes - claim flows rely on the path being
      * visible the moment an open completes, without waiting for an async observer.
+     *
+     * The tab name follows it: [Workspace.Info.contentPath] is what this tab CLAIMS to hold, so
+     * clearing it (the user cancelling an open, closing the file) must drop the file name too -
+     * otherwise the tab keeps advertising a file that a session save no longer persists.
      */
     private fun publishContentPath(path: APath<*>?) {
-        _info.update { if (it.contentPath == path) it else it.copy(contentPath = path) }
+        _info.update { current ->
+            val display = editorContentDisplay(currentContentSource(), path, scratchTitle)
+            current.copy(
+                contentPath = path,
+                title = display.title ?: type.label,
+                subtitle = display.subtitle,
+            )
+        }
+    }
+
+    /**
+     * Republishes the tab name for what [engine] reports. Title AND subtitle move together: after a
+     * Save-As or a file switch a stale path subtitle would describe the previous file.
+     *
+     * Emissions from an engine that is no longer current are dropped - they describe a file this
+     * tab has already moved off.
+     */
+    private fun publishContentSource(engine: EditorEngine, contentSource: ContentSource) {
+        if (_engine.value !== engine) {
+            log(tag, VERBOSE) { "Ignoring content source of a replaced engine: $contentSource" }
+            return
+        }
+        reportedSource = ReportedSource(engine, contentSource)
+        _info.update { current ->
+            val display = editorContentDisplay(contentSource, current.contentPath, scratchTitle)
+            current.copy(title = display.title ?: type.label, subtitle = display.subtitle)
+        }
+        log(tag, DEBUG) { "Updated identity for: $contentSource" }
     }
 
     val filePath: APath<*>? get() = (creationArguments as? EditorArguments.Default)?.filePath
@@ -291,12 +347,14 @@ class EditorWorkspace @AssistedInject constructor(
             }
             .launchIn(workspaceScope)
 
-        // Update title based on content source
+        // Republish the tab name as the content source changes. The identity path it is paired
+        // with is the tab's own contentPath, which tells a real scratch buffer apart from a file
+        // that is still loading (or failed to) - both surface as an in-memory source.
         workspaceScope.launch {
             _engine.flatMapLatest { engine ->
-                engine?.contentSource ?: emptyFlow()
-            }.collect { source ->
-                updateContentSource(source)
+                engine?.contentSource?.map { source -> engine to source } ?: emptyFlow()
+            }.collect { (engine, source) ->
+                publishContentSource(engine, source)
             }
         }
 
@@ -398,35 +456,6 @@ class EditorWorkspace @AssistedInject constructor(
                     engine.updateVisibleRange(scrollLine, scrollLine + windowSize)
                 }
             }
-        }
-    }
-
-    fun updateTitle(fileName: String? = null) {
-        val newTitle = when {
-            fileName != null -> fileName
-            filePath != null -> filePath!!.name
-            else -> "Editor ${id.shortTag}"
-        }
-
-        _info.update { it.copy(title = newTitle.toCaString()) }
-        log(tag, DEBUG) { "Updated title to: $newTitle" }
-    }
-
-    fun updateContentSource(contentSource: ContentSource) {
-        when (contentSource) {
-            is ContentSource.File -> updateTitle(contentSource.path.name)
-            is ContentSource.Memory -> updateTitle(contentSource.name)
-        }
-    }
-
-    private fun generateTitle(): CaString {
-        val args = creationArguments as? EditorArguments.Default
-        val filePath = args?.filePath
-        val suggestedTitle = args?.suggestedTitle
-        return when {
-            filePath != null -> filePath.name.toCaString()
-            suggestedTitle != null -> suggestedTitle.toCaString()
-            else -> R.string.editor_file_untitled.toCaString()
         }
     }
 
@@ -763,6 +792,9 @@ class EditorWorkspace @AssistedInject constructor(
         override fun create(id: Workspace.Id, arguments: EditorArguments): EditorWorkspace
 
         override val argumentsSerializer: KSerializer<EditorArguments> get() = serializer()
+
+        override fun deriveDisplay(arguments: EditorArguments): WorkspaceDisplay =
+            deriveEditorDisplay(arguments)
     }
 
     @Module

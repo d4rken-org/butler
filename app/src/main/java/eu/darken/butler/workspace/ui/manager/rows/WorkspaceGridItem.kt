@@ -39,6 +39,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.icon
+import eu.darken.butler.workspace.core.label
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerViewModel
 import eu.darken.butler.workspace.ui.manager.rows.preview.WorkspacePreview
 
@@ -126,13 +127,17 @@ fun WorkspaceGridItem(
                         tint = MaterialTheme.colorScheme.primary,
                     )
 
+                    // A blank title would leave the card with nothing to identify it by, so the
+                    // workspace type stands in - same rule the dormant placeholder applies
+                    val title = workspace.title.asComposable().takeIf { it.isNotBlank() }
+                        ?: workspace.type.label.asComposable()
                     Text(
                         modifier = Modifier.weight(1f),
-                        text = workspace.title.asComposable(),
-                    style = MaterialTheme.typography.labelMedium,
+                        text = title,
+                        style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
-                    overflow = TextOverflow.StartEllipsis,
+                        overflow = TextOverflow.StartEllipsis,
                     )
 
                     IconButton(
@@ -146,6 +151,21 @@ fun WorkspaceGridItem(
                             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                         )
                     }
+                }
+
+                // Blank (not just null) is suppressed: workspaces can publish an empty subtitle
+                val subtitle = workspace.subtitle?.asComposable()
+                if (!subtitle.isNullOrBlank()) {
+                    Text(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 24.dp, end = 4.dp),
+                        text = subtitle,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.MiddleEllipsis,
+                    )
                 }
 
                 WorkspacePreview(
@@ -195,6 +215,42 @@ private fun WorkspaceGridItemPreview() {
         onSelect = {},
         isDragging = false
     )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspaceGridItemSubtitleSuppressedPreview() {
+    Column(
+        modifier = Modifier.padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        WorkspaceGridItem(
+            reorderableScope = createMockReorderableScope(),
+            workspace = WorkspaceManagerViewModel.WorkspaceItem(
+                id = Workspace.Id(),
+                type = Workspace.Type.EXPLORER,
+                title = "Home".toCaString(),
+                subtitle = null,
+            ),
+            onClose = {},
+            onSelect = {},
+            livePreview = false,
+        )
+
+        WorkspaceGridItem(
+            reorderableScope = createMockReorderableScope(),
+            workspace = WorkspaceManagerViewModel.WorkspaceItem(
+                id = Workspace.Id(),
+                type = Workspace.Type.SAVER,
+                title = "Save as".toCaString(),
+                subtitle = "   ".toCaString(),
+            ),
+            onClose = {},
+            onSelect = {},
+            livePreview = false,
+        )
+    }
 }
 
 @Preview2

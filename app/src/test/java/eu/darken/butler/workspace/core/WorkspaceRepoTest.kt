@@ -1,5 +1,6 @@
 package eu.darken.butler.workspace.core
 
+import android.content.Context
 import android.os.Parcel
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.APath
@@ -88,6 +89,12 @@ class WorkspaceRepoTest : BaseTest() {
     /** When set, the next [FakeFactory.create] throws it instead of creating a workspace. */
     private var nextCreateFailure: Exception? = null
 
+    /** When set, the next [FakeFactory.deriveDisplay] throws it instead of deriving an identity. */
+    private var nextDeriveFailure: Exception? = null
+
+    /** Identity every [FakeFactory] derives; null models a type without a derivation. */
+    private var derivedDisplay: WorkspaceDisplay? = null
+
     private inner class FakeFactory : WorkspaceFactory<Workspace.Arguments> {
         override fun create(id: Workspace.Id, arguments: Workspace.Arguments): Workspace<Workspace.Arguments> {
             nextCreateFailure?.let {
@@ -95,6 +102,14 @@ class WorkspaceRepoTest : BaseTest() {
                 throw it
             }
             return FakeWorkspace(id, arguments).also { createdWorkspaces += it }
+        }
+
+        override fun deriveDisplay(arguments: Workspace.Arguments): WorkspaceDisplay? {
+            nextDeriveFailure?.let {
+                nextDeriveFailure = null
+                throw it
+            }
+            return derivedDisplay
         }
 
         override val argumentsSerializer: KSerializer<Workspace.Arguments>
@@ -107,6 +122,12 @@ class WorkspaceRepoTest : BaseTest() {
     }
 
     private val operationsManager: OperationsManager = mockk(relaxed = true)
+
+    // Resource ids resolve to a stable stand-in so CaStrings can be compared by resolved value
+    // (CaString has no structural equality)
+    private val context: Context = mockk<Context>().apply {
+        every { getString(any()) } answers { "res-${firstArg<Int>()}" }
+    }
 
     private fun TestScope.createRepo(isPro: Boolean = false): WorkspaceRepo {
         val upgradeInfo = mockk<UpgradeRepo.Info>().apply {
@@ -818,16 +839,72 @@ class WorkspaceRepoTest : BaseTest() {
     }
 
     @Test
-    fun `registering a dormant workspace never invokes a factory`() = runTest(UnconfinedTestDispatcher()) {
+    fun `registering a dormant workspace never instantiates it`() = runTest(UnconfinedTestDispatcher()) {
         val repo = createRepo()
 
         val dormantId = repo.registerDormant()
 
+        // Registration derives an identity from the factory, but must never build the workspace
         createdWorkspaces shouldHaveSize 0
         repo.infoFor(dormantId).lifecycleState shouldBe Workspace.LifecycleState.Dormant()
         // Typed consumers must see a dormant id exactly like an id that doesn't exist yet
         repo.retrieve(dormantId).first() shouldBe null
     }
+
+    @Test
+    fun `a dormant workspace shows the factory-derived identity`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        derivedDisplay = WorkspaceDisplay(
+            title = "/sdcard/Download".toCaString(),
+            subtitle = "Storage".toCaString(),
+        )
+
+        val dormantId = repo.registerDormant()
+
+        val info = repo.infoFor(dormantId)
+        info.title.get(context) shouldBe "/sdcard/Download"
+        info.subtitle!!.get(context) shouldBe "Storage"
+    }
+
+    @Test
+    fun `a type without a derivation falls back to the type label`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        derivedDisplay = null
+
+        val dormantId = repo.registerDormant(type = Workspace.Type.APPS)
+
+        repo.infoFor(dormantId).title.get(context) shouldBe Workspace.Type.APPS.label.get(context)
+        repo.infoFor(dormantId).subtitle shouldBe null
+    }
+
+    @Test
+    fun `a broken derivation still registers the workspace`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        nextDeriveFailure = IllegalStateException("Derivation exploded")
+
+        val dormantId = repo.registerDormant(type = Workspace.Type.EXPLORER)
+
+        // A broken derivation must never fail session restore
+        repo.infoFor(dormantId).title.get(context) shouldBe Workspace.Type.EXPLORER.label.get(context)
+        repo.infoFor(dormantId).lifecycleState shouldBe Workspace.LifecycleState.Dormant()
+    }
+
+    @Test
+    fun `registering a dormant workspace whose arguments are of another type is rejected`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+
+            val result = repo.execute(
+                WorkspaceAction.RegisterDormant(
+                    id = Workspace.Id(),
+                    type = Workspace.Type.EXPLORER,
+                    arguments = FakeArguments(Workspace.Type.SEARCHER),
+                )
+            )
+
+            result.shouldBeInstanceOf<WorkspaceAction.RegisterDormant.Result.Failed>()
+            repo.workspaceIds() shouldBe emptyList()
+        }
 
     @Test
     fun `registering a dormant workspace emits a Created event without auto focus`() =

@@ -1,5 +1,6 @@
 package eu.darken.butler.workspace.core
 
+import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.files.APath
@@ -150,6 +151,21 @@ class WorkspaceRepo @Inject constructor(
     }
 
     /**
+     * Identity a dormant stand-in shows, from the type's own [WorkspaceFactory.deriveDisplay].
+     * A broken derivation must never fail session restore, so any failure degrades to the type
+     * label. Note the returned [CaString]s can still be lazy: a resolution failure surfaces later,
+     * during composition, not here.
+     */
+    private fun deriveDisplay(type: Workspace.Type, arguments: Workspace.Arguments): WorkspaceDisplay? = try {
+        @Suppress("UNCHECKED_CAST")
+        val factory = factoryMap[type] as? WorkspaceFactory<Workspace.Arguments>
+        factory?.deriveDisplay(arguments)
+    } catch (e: Exception) {
+        log(TAG, WARN) { "Failed to derive display for $type ($arguments): ${e.asLog()}" }
+        null
+    }
+
+    /**
      * Dormant stand-ins are reported as absent: typed consumers cast the result to their concrete
      * workspace type, so a dormant id must behave exactly like an id that doesn't exist yet — the
      * flow emits the instance once [WorkspaceAction.Hydrate] has swapped it in.
@@ -240,10 +256,21 @@ class WorkspaceRepo @Inject constructor(
                     if (_workspaces.value.any { it.id == action.id }) {
                         throw IllegalStateException("Cannot register dormant workspace ${action.id}: id already in use")
                     }
+                    // A stand-in displaying one type while holding another's arguments would also
+                    // fail hydration permanently: the factory picked by type gets the wrong arguments
+                    if (action.type != action.arguments.type) {
+                        throw IllegalArgumentException(
+                            "Cannot register dormant workspace ${action.id}: type ${action.type} " +
+                                "does not match arguments type ${action.arguments.type}"
+                        )
+                    }
+                    val display = deriveDisplay(action.type, action.arguments)
                     val dormant = DormantWorkspace(
                         id = action.id,
                         type = action.type,
                         heldArguments = action.arguments,
+                        title = display?.title ?: action.type.label,
+                        subtitle = display?.subtitle,
                     )
                     _workspaces.value = _workspaces.value + dormant
                     _events.emit(
