@@ -12,19 +12,15 @@ import androidx.compose.foundation.pager.PagerDefaults
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
-import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
-import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
-import eu.darken.butler.workspace.ui.WorkspaceOverlayContainer
 import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
 import eu.darken.butler.workspace.ui.manager.LocalWorkspaceButtonProvider
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
-import eu.darken.butler.workspace.ui.workspaces.WorkspaceMapper
+import eu.darken.butler.workspace.ui.workspaces.WorkspacePane
 import eu.darken.butler.workspace.ui.workspaces.WorkspaceScreenAction
 import eu.darken.butler.workspace.ui.workspaces.WorkspaceSwitchIndicator
 import eu.darken.butler.workspace.ui.workspaces.WorkspacesViewModel
@@ -115,43 +111,29 @@ internal fun ClassicWorkspaceContainer(
                 } else {
                     // When overlay is visible, no workspace should be considered focused
                     val isFocused = state.focused == paneInfo.id && !isOverlayVisible
-                    CompositionLocalProvider(
-                        LocalWorkspaceFocused provides isFocused,
-                        LocalWorkspaceFocusRequest provides {
-                            onWorkspaceScreenAction(
-                                WorkspaceScreenAction.Select(
-                                    paneInfo.id
-                                )
+                    WorkspacePane(
+                        info = paneInfo,
+                        design = design,
+                        paneFocused = isFocused,
+                        workspaceFocused = isFocused,
+                        onRequestPaneFocus = {
+                            onWorkspaceScreenAction(WorkspaceScreenAction.Select(paneInfo.id))
+                        },
+                        managerDialogStates = managerDialogStates,
+                        onDismissManagerDialog = onDismissManagerDialog,
+                        onConfirmManagerDialog = onConfirmManagerDialog,
+                        bannerStates = bannerStates,
+                        onDismissBanner = onDismissBanner,
+                        onShareError = onShareError,
+                        onCloseWorkspace = { workspaceId ->
+                            workspaceActionHandler?.executeWorkspaceAction(
+                                WorkspaceAction.Close(workspaceId)
                             )
                         },
-                    ) {
-                        WorkspaceOverlayContainer(
-                            workspaceId = paneInfo.id,
-                            managerDialogStates = managerDialogStates,
-                            onDismissManagerDialog = onDismissManagerDialog,
-                            onConfirmManagerDialog = onConfirmManagerDialog,
-                            bannerStates = bannerStates,
-                            onDismissBanner = onDismissBanner,
-                        ) {
-                            WorkspaceMapper(
-                                info = paneInfo,
-                                design = design,
-                                onShareError = { error ->
-                                    onShareError(paneInfo.id, error)
-                                },
-                                onCloseWorkspace = {
-                                    workspaceActionHandler?.executeWorkspaceAction(
-                                        WorkspaceAction.Close(paneInfo.id)
-                                    )
-                                },
-                                onRestoreWorkspace = {
-                                    onWorkspaceScreenAction(
-                                        WorkspaceScreenAction.RestoreDormant(paneInfo.id)
-                                    )
-                                },
-                            )
-                        }
-                    }
+                        onRestoreWorkspace = { workspaceId ->
+                            onWorkspaceScreenAction(WorkspaceScreenAction.RestoreDormant(workspaceId))
+                        },
+                    )
                 }
             }
         } else {

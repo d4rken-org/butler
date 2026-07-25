@@ -1,7 +1,6 @@
 package eu.darken.butler.workspace.ui.workspaces
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -12,9 +11,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
-import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
-import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
-import eu.darken.butler.workspace.ui.WorkspaceOverlayContainer
 import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
 import eu.darken.butler.workspace.ui.manager.LocalWorkspaceButtonProvider
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
@@ -123,90 +119,36 @@ fun AdaptiveWorkspaceLayout(
                             // Check if this workspace has a pane-local modal child
                             val childModal = paneLocalModals[info.id]
 
-                            Box {
-                                // Background: Parent workspace
-                                // When overlay is visible, no workspace should be considered focused
-                                CompositionLocalProvider(
-                                    LocalWorkspaceFocused provides (focusedId == info.id && !isOverlayVisible),
-                                    LocalWorkspaceFocusRequest provides {
-                                        onScreenAction(
-                                            WorkspaceScreenAction.Focus(
-                                                info.id
-                                            )
-                                        )
-                                    },
-                                ) {
-                                    WorkspaceOverlayContainer(
-                                        workspaceId = info.id,
-                                        managerDialogStates = managerDialogStates,
-                                        onDismissManagerDialog = onDismissManagerDialog,
-                                        onConfirmManagerDialog = onConfirmManagerDialog,
-                                        bannerStates = bannerStates,
-                                        onDismissBanner = onDismissBanner,
-                                    ) {
-                                        WorkspaceMapper(
-                                            info = info,
-                                            design = paneDesign,
-                                            onShareError = { error ->
-                                                onShareError(info.id, error)
-                                            },
-                                            onCloseWorkspace = {
-                                                workspaceActionHandler?.executeWorkspaceAction(
-                                                    WorkspaceAction.Close(info.id)
-                                                )
-                                            },
-                                            onRestoreWorkspace = {
-                                                onScreenAction(
-                                                    WorkspaceScreenAction.RestoreDormant(info.id)
-                                                )
-                                            },
-                                        )
-                                    }
-                                }
-
-                                // Overlay: Child modal (if any)
-                                childModal?.let { modal ->
-                                    key(modal.id) {
-                                        CompositionLocalProvider(
-                                            LocalWorkspaceFocused provides (focusedId == modal.id && !isOverlayVisible),
-                                            LocalWorkspaceFocusRequest provides {
-                                                onScreenAction(
-                                                    WorkspaceScreenAction.Focus(
-                                                        modal.id
-                                                    )
-                                                )
-                                            },
-                                        ) {
-                                            WorkspaceOverlayContainer(
-                                                workspaceId = modal.id,
-                                                managerDialogStates = managerDialogStates,
-                                                onDismissManagerDialog = onDismissManagerDialog,
-                                                onConfirmManagerDialog = onConfirmManagerDialog,
-                                                bannerStates = bannerStates,
-                                                onDismissBanner = onDismissBanner,
-                                            ) {
-                                                WorkspaceMapper(
-                                                    info = modal.asPaneInfo(),
-                                                    design = paneDesign,
-                                                    onShareError = { error ->
-                                                        onShareError(modal.id, error)
-                                                    },
-                                                    onCloseWorkspace = {
-                                                        workspaceActionHandler?.executeWorkspaceAction(
-                                                            WorkspaceAction.Close(modal.id)
-                                                        )
-                                                    },
-                                                    onRestoreWorkspace = {
-                                                        onScreenAction(
-                                                            WorkspaceScreenAction.RestoreDormant(modal.id)
-                                                        )
-                                                    },
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+                            WorkspacePane(
+                                info = info,
+                                design = paneDesign,
+                                // Either occupant counts as focusing the pane, and every layer
+                                // requests focus for the parent: a Focus(childModal.id) is silently
+                                // dropped, which would leave another pane active.
+                                paneFocused = !isOverlayVisible &&
+                                    (focusedId == info.id || (childModal != null && focusedId == childModal.id)),
+                                workspaceFocused = focusedId == info.id && !isOverlayVisible,
+                                onRequestPaneFocus = {
+                                    onScreenAction(WorkspaceScreenAction.Focus(info.id))
+                                },
+                                childModal = childModal?.asPaneInfo(),
+                                childWorkspaceFocused = childModal != null &&
+                                    focusedId == childModal.id && !isOverlayVisible,
+                                managerDialogStates = managerDialogStates,
+                                onDismissManagerDialog = onDismissManagerDialog,
+                                onConfirmManagerDialog = onConfirmManagerDialog,
+                                bannerStates = bannerStates,
+                                onDismissBanner = onDismissBanner,
+                                onShareError = onShareError,
+                                onCloseWorkspace = { workspaceId ->
+                                    workspaceActionHandler?.executeWorkspaceAction(
+                                        WorkspaceAction.Close(workspaceId)
+                                    )
+                                },
+                                onRestoreWorkspace = { workspaceId ->
+                                    onScreenAction(WorkspaceScreenAction.RestoreDormant(workspaceId))
+                                },
+                            )
                         }
                     } else {
                         EmptyAdaptiveWorkspaceContent(

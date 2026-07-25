@@ -26,6 +26,10 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.LocalWorkspacePageHosts
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.modal.LocalPaneLayerRank
+import eu.darken.butler.workspace.ui.modal.PaneLayer
+import eu.darken.butler.workspace.ui.modal.PaneLayerHost
+import eu.darken.butler.workspace.ui.modal.PaneLayerRank
 
 /**
  * Full-screen Dialog overlay for displaying sub-workspaces that require full-screen presentation.
@@ -101,13 +105,29 @@ fun WorkspaceModalDialog(
 
 /**
  * Content for modal workspace - extracted for previewability
+ *
+ * A full-screen sub-workspace occupies its own window, so it needs its own layer stack: without one
+ * its page host's [eu.darken.butler.workspace.ui.WorkspacePageHostEntry.Overlays] slot would never
+ * be composed and the workspace would render without any of its dialogs.
  */
 @Composable
 fun WorkspaceModalContent(
     workspace: Workspace.Info,
     design: WorkspaceDesign = WorkspaceDesign(),
 ) {
-    WorkspacePageHostDispatcher(id = workspace.id, type = workspace.type, design = design)
+    PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = true) {
+        PaneLayer(modifier = Modifier.fillMaxSize(), modal = false) {
+            WorkspacePageHostDispatcher(id = workspace.id, type = workspace.type, design = design)
+        }
+
+        if (workspace.lifecycleState is Workspace.LifecycleState.Ready) {
+            LocalWorkspacePageHosts.current[workspace.type]?.let { entry ->
+                CompositionLocalProvider(LocalPaneLayerRank provides PaneLayerRank.OVERLAY) {
+                    entry.Overlays(id = workspace.id, design = design)
+                }
+            }
+        }
+    }
 }
 
 @Preview2

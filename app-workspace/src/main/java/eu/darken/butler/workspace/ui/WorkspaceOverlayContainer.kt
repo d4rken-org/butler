@@ -10,29 +10,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
-import eu.darken.butler.workspace.ui.dialogs.OpenInNewTabsConfirmationDialog
-import eu.darken.butler.workspace.ui.dialogs.WorkspaceCloseConfirmationDialog
 import eu.darken.butler.workspace.ui.feedback.BannerState
 import eu.darken.butler.workspace.ui.feedback.WorkspaceBanner
 
 /**
- * Container that wraps workspace content with an overlay layer for manager-controlled UI elements.
+ * Container that wraps workspace content with the feedback banner for that workspace.
  *
- * This provides a unified location for rendering:
- * - Manager-controlled dialogs (e.g., batch operation confirmations)
- * - Feedback banners
- * - Future: Workspace-level notifications
- * - Future: Workspace-level loading states
- * - Future: Floating action buttons
+ * Banner and content share the pane's content layer on purpose: a banner competes for the same
+ * attention the content does, so a modal covering the content covers the banner too. The banner's
+ * auto-dismiss timer therefore only runs while that layer is the active one.
+ *
+ * Manager-controlled dialogs are NOT rendered here — they are their own layer, composed by the
+ * pane layer host above this container.
  *
  * The container is used consistently across both single-pane (ClassicWorkspaceContainer)
  * and multi-pane (AdaptiveWorkspaceLayout) layouts.
  *
  * @param workspaceId The ID of the workspace being wrapped
- * @param managerDialogStates Map of dialog states by workspace ID from WorkspacesViewModel
- * @param onDismissManagerDialog Callback to dismiss the manager dialog for a specific workspace
- * @param onConfirmManagerDialog Callback when manager dialog is confirmed
  * @param bannerStates Map of banner states by workspace ID from WorkspacesViewModel
  * @param onDismissBanner Callback to dismiss the banner for a specific workspace
  * @param modifier Optional modifier for the container
@@ -41,9 +35,6 @@ import eu.darken.butler.workspace.ui.feedback.WorkspaceBanner
 @Composable
 fun WorkspaceOverlayContainer(
     workspaceId: Workspace.Id,
-    managerDialogStates: Map<Workspace.Id, ManagerDialog.WorkspaceTargeted>,
-    onDismissManagerDialog: (Workspace.Id) -> Unit,
-    onConfirmManagerDialog: (ManagerDialog.WorkspaceTargeted) -> Unit,
     bannerStates: Map<Workspace.Id, BannerState>,
     onDismissBanner: (Workspace.Id) -> Unit,
     modifier: Modifier = Modifier,
@@ -52,30 +43,6 @@ fun WorkspaceOverlayContainer(
     Box(modifier = modifier) {
         // Workspace content
         content()
-
-        // Manager dialog overlay - direct lookup for this workspace
-        val dialogState = managerDialogStates[workspaceId]
-
-        dialogState?.let { dialog ->
-            when (dialog) {
-                is ManagerDialog.WorkspaceTargeted.BatchCreationConfirmation -> {
-                    OpenInNewTabsConfirmationDialog(
-                        totalCount = dialog.totalCount,
-                        onDismiss = { onDismissManagerDialog(dialog.targetWorkspaceId) },
-                        onConfirm = { onConfirmManagerDialog(dialog) },
-                    )
-                }
-
-                is ManagerDialog.WorkspaceTargeted.CloseConfirmation -> {
-                    WorkspaceCloseConfirmationDialog(
-                        workspaceTitle = dialog.workspaceTitle,
-                        hasUnsavedChanges = dialog.hasUnsavedChanges,
-                        onDismiss = { onDismissManagerDialog(dialog.targetWorkspaceId) },
-                        onConfirm = { onConfirmManagerDialog(dialog) },
-                    )
-                }
-            }
-        }
 
         // Banner feedback overlay - direct lookup for this workspace
         val bannerState = bannerStates[workspaceId]
@@ -93,9 +60,5 @@ fun WorkspaceOverlayContainer(
                 )
             }
         }
-
-        // Future overlay types can be added here:
-        // - Workspace-level loading indicators
-        // - Floating action buttons
     }
 }

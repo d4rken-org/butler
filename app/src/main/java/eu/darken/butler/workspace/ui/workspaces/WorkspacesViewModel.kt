@@ -33,7 +33,6 @@ import eu.darken.butler.workspace.ui.WorkspacePageManager
 import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
 import eu.darken.butler.workspace.ui.feedback.BannerState
 import eu.darken.butler.workspace.ui.session.WorkspaceSessionManager
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filter
@@ -162,14 +161,11 @@ class WorkspacesViewModel @Inject constructor(
                                 BannerState.Partial(event.successCount, event.failureCount, event.skippedCount)
                             }
 
+                            // Auto-dismiss is owned by the banner UI, which pauses its countdown
+                            // while the workspace's content layer is covered by a modal. A timer
+                            // here would expire regardless and swallow the banner unseen.
                             _bannerStates.update { states ->
                                 states + (targetWorkspaceId to bannerState)
-                            }
-
-                            // Auto-clear banner after 3 seconds
-                            launch {
-                                delay(3000)
-                                _bannerStates.update { it - targetWorkspaceId }
                             }
                         }
                     }
