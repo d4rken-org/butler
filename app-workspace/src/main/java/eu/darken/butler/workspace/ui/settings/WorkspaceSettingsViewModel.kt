@@ -25,10 +25,9 @@ class WorkspaceSettingsViewModel @Inject constructor(
         workspaceSettings.layoutModePortrait.flow,
         workspaceSettings.layoutModeLandscape.flow,
         workspaceSettings.sessionRestoreEnabled.flow,
-        workspaceSettings.restoreWorkspacesOnDemand.flow,
         sessionStorage.getWorkspaceCount(WorkspaceSessionStorage.DEFAULT_SESSION_ID),
         sessionStorage.getDatabaseSizeBytes(WorkspaceSessionStorage.DEFAULT_SESSION_ID),
-    ) { swipeGesturesEnabled, onDemandWorkspaceCreation, livePreview, layoutModePortrait, layoutModeLandscape, sessionRestoreEnabled, restoreWorkspacesOnDemand, sessionWorkspaceCount, sessionDatabaseSizeBytes ->
+    ) { swipeGesturesEnabled, onDemandWorkspaceCreation, livePreview, layoutModePortrait, layoutModeLandscape, sessionRestoreEnabled, sessionWorkspaceCount, sessionDatabaseSizeBytes ->
         State(
             swipeGesturesEnabled = swipeGesturesEnabled,
             onDemandWorkspaceCreation = onDemandWorkspaceCreation,
@@ -36,7 +35,6 @@ class WorkspaceSettingsViewModel @Inject constructor(
             layoutModePortrait = layoutModePortrait,
             layoutModeLandscape = layoutModeLandscape,
             sessionRestoreEnabled = sessionRestoreEnabled,
-            restoreWorkspacesOnDemand = restoreWorkspacesOnDemand,
             sessionWorkspaceCount = sessionWorkspaceCount,
             sessionDatabaseSizeBytes = sessionDatabaseSizeBytes,
         )
@@ -73,11 +71,6 @@ class WorkspaceSettingsViewModel @Inject constructor(
         }
     }
 
-    fun toggleRestoreWorkspacesOnDemand() = launch {
-        val current = workspaceSettings.restoreWorkspacesOnDemand.value()
-        workspaceSettings.restoreWorkspacesOnDemand.value(!current)
-    }
-
     data class State(
         val swipeGesturesEnabled: Boolean,
         val onDemandWorkspaceCreation: Boolean,
@@ -85,7 +78,6 @@ class WorkspaceSettingsViewModel @Inject constructor(
         val layoutModePortrait: WorkspacePanelMode,
         val layoutModeLandscape: WorkspacePanelMode,
         val sessionRestoreEnabled: Boolean,
-        val restoreWorkspacesOnDemand: Boolean = true,
         val sessionWorkspaceCount: Int = 0,
         val sessionDatabaseSizeBytes: Long = 0L,
     )

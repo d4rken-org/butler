@@ -125,41 +125,47 @@ class WorkspaceSessionManager @Inject constructor(
             saveSession()
         }.launchIn(appScope)
 
-        // Resume a paused workspace when it gains focus. Only armed once restoration finished:
-        // focus emissions during restore (e.g. the stale SavedStateHandle focus) must not resume
-        // anything, which is what keeps the cold start down to a single workspace.
+        // Resume a paused workspace while it holds focus. Tracks the focused id TOGETHER with that
+        // workspace's lifecycle state: a plain focus observer would miss a tab that gets paused
+        // while already focused (auto-pause landing right after the user switched to it), leaving
+        // the user staring at a paused foreground tab that nothing ever wakes up.
+        // Only armed once restoration finished: focus emissions during restore (e.g. the stale
+        // SavedStateHandle focus) must not resume anything, which keeps the cold start to one tab.
         state
             .filterIsInstance<State.Restored>()
             .take(1)
             .flatMapLatest {
-                workspacePageManager.state
-                    .map { it.focusedWorkspaceId }
-                    .distinctUntilChanged()
+                combine(
+                    workspacePageManager.state.map { it.focusedWorkspaceId }.distinctUntilChanged(),
+                    workspaceRepo.state.map { it.infos },
+                ) { focusedId, infos ->
+                    focusedId?.let { id -> infos.firstOrNull { it.id == id } }
+                }
             }
-            .onEach { focusedId -> resumeOnFocus(focusedId) }
+            .distinctUntilChanged { old, new -> old?.id == new?.id && old?.lifecycleState == new?.lifecycleState }
+            .onEach { focusedInfo -> resumeOnFocus(focusedInfo) }
             .catch { log(TAG, ERROR) { "Resume-on-focus observer failed: ${it.asLog()}" } }
             .launchIn(appScope)
     }
 
     /**
-     * Instantiates the focused workspace if it is still a paused stand-in. A paused that already
-     * failed resume is left alone — retrying on every focus change would loop; the placeholder's
+     * Instantiates the focused workspace if it is a paused stand-in. A paused workspace that already
+     * failed to resume is left alone — retrying on every emission would loop; the placeholder's
      * retry button is the way back.
      */
-    private suspend fun resumeOnFocus(focusedId: Workspace.Id?) {
-        if (focusedId == null) return
+    private suspend fun resumeOnFocus(focusedInfo: Workspace.Info?) {
+        if (focusedInfo == null) return
         try {
-            val info = workspaceRepo.state.first().infos.firstOrNull { it.id == focusedId } ?: return
-            val lifecycleState = info.lifecycleState
+            val lifecycleState = focusedInfo.lifecycleState
             if (lifecycleState !is Workspace.LifecycleState.Paused) return
             if (lifecycleState.error != null) {
-                log(TAG) { "Focused workspace $focusedId failed resume before, waiting for a manual retry" }
+                log(TAG) { "Focused workspace ${focusedInfo.id} failed resume before, waiting for a manual retry" }
                 return
             }
-            log(TAG, INFO) { "Focused workspace $focusedId is paused, resuming" }
-            workspaceRepo.execute(WorkspaceAction.Resume(focusedId))
+            log(TAG, INFO) { "Focused workspace ${focusedInfo.id} is paused, resuming" }
+            workspaceRepo.execute(WorkspaceAction.Resume(focusedInfo.id))
         } catch (e: Exception) {
-            log(TAG, ERROR) { "Failed to resume focused workspace $focusedId: ${e.asLog()}" }
+            log(TAG, ERROR) { "Failed to resume focused workspace ${focusedInfo.id}: ${e.asLog()}" }
         }
     }
 
@@ -317,20 +323,20 @@ class WorkspaceSessionManager @Inject constructor(
 
         val candidates = buildRestoreCandidates(workspaceEntities)
 
-        // Which candidate becomes a real instance: the saved focus if it survived validation,
-        // otherwise the first candidate - the same tab applyUIState() would fall back to.
-        val onDemand = workspaceSettings.restoreWorkspacesOnDemand.value()
+        // Only one candidate becomes a real instance: the saved focus if it survived validation,
+        // otherwise the first candidate - the same tab applyUIState() would fall back to. Every
+        // other tab starts paused and wakes up when it is focused or resumed.
         val focusedCandidate = candidates
             .firstOrNull { it.id == sessionEntity.uiState.focusedWorkspaceId }
             ?: candidates.firstOrNull()
-        log(TAG, INFO) { "Restoring ${candidates.size} candidates (onDemand=$onDemand, focused=${focusedCandidate?.id})" }
+        log(TAG, INFO) { "Restoring ${candidates.size} candidates (focused=${focusedCandidate?.id})" }
 
         val restoredWorkspaceIds = mutableListOf<Workspace.Id>()
         val pausedIds = mutableListOf<Workspace.Id>()
         var focusedIsLive = false
 
         candidates.forEach { candidate ->
-            val restoreEagerly = !onDemand || candidate.id == focusedCandidate?.id
+            val restoreEagerly = candidate.id == focusedCandidate?.id
             val restored = if (restoreEagerly) {
                 createEagerly(candidate)
             } else {

@@ -298,8 +298,6 @@
     <string name="workspace_settings_session_title">Session restoration</string>
     <string name="workspace_settings_session_restore_title">Restore tabs on startup</string>
     <string name="workspace_settings_session_restore_desc">Automatically restore previously open tabs when the app starts.</string>
-    <string name="workspace_settings_restore_ondemand_label">Restore tabs on demand</string>
-    <string name="workspace_settings_restore_ondemand_description">Start faster by loading only the last active tab. Other tabs load when you open them.</string>
     <string name="workspace_settings_session_data_title">Session data</string>
     <plurals name="workspace_settings_session_data_desc">
         <item quantity="one">%1$d tab • %2$s</item>

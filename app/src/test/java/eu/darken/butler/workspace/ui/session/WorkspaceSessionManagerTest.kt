@@ -554,7 +554,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
     }
 
     @Nested
-    inner class OnDemandRestore {
+    inner class PausedRestore {
 
         private val idA = Workspace.Id()
         private val idB = Workspace.Id()
@@ -564,7 +564,6 @@ class WorkspaceSessionManagerTest : BaseTest() {
         private val createdIds = mutableListOf<Workspace.Id>()
         private val failingIds = mutableSetOf<Workspace.Id>()
         private val upsertedEntities = mutableListOf<WorkspaceInstanceEntity>()
-        private val onDemandFlow = MutableStateFlow(true)
 
         // Restoration and the repo need live coroutines; the outer setup's manager dies on its
         // fully-relaxed mocks and cancels the shared testScope.
@@ -573,13 +572,12 @@ class WorkspaceSessionManagerTest : BaseTest() {
         private lateinit var pageManager: WorkspacePageManager
 
         @BeforeEach
-        fun setupOnDemand() {
+        fun setupPausedRestore() {
             restoreScope = TestScope(UnconfinedTestDispatcher())
             createAttempts.clear()
             createdIds.clear()
             failingIds.clear()
             upsertedEntities.clear()
-            onDemandFlow.value = true
 
             mockkStatic("androidx.room.RoomDatabaseKt")
             val mockDatabase = mockk<WorkspaceSessionDatabase>(relaxed = true)
@@ -594,9 +592,6 @@ class WorkspaceSessionManagerTest : BaseTest() {
 
             every { workspaceSettings.sessionRestoreEnabled } returns mockk {
                 every { flow } returns flowOf(true)
-            }
-            every { workspaceSettings.restoreWorkspacesOnDemand } returns mockk {
-                every { flow } returns onDemandFlow
             }
             every { workspaceSettings.layoutModePortrait } returns mockk {
                 every { flow } returns flowOf(WorkspacePanelMode.AUTO)
@@ -746,19 +741,6 @@ class WorkspaceSessionManagerTest : BaseTest() {
             }
 
         @Test
-        fun `with on-demand restore disabled every workspace is created`() =
-            runTest(UnconfinedTestDispatcher()) {
-                onDemandFlow.value = false
-                savedSession(focusedId = idB)
-
-                createManager()
-                restoreScope.testScheduler.runCurrent()
-
-                createAttempts shouldBe listOf(idA, idB, idC)
-                pausedIds() shouldHaveSize 0
-            }
-
-        @Test
         fun `a stale focus during restoration resumes nothing`() =
             runTest(UnconfinedTestDispatcher()) {
                 // Simulates the focus surviving in the SavedStateHandle from the previous process
@@ -784,6 +766,21 @@ class WorkspaceSessionManagerTest : BaseTest() {
 
                 createAttempts shouldBe listOf(idB, idC)
                 pausedIds() shouldBe listOf(idA)
+            }
+
+        @Test
+        fun `a workspace that is paused while already focused is resumed again`() =
+            runTest(UnconfinedTestDispatcher()) {
+                savedSession(focusedId = idB)
+                createManager()
+                restoreScope.testScheduler.runCurrent()
+
+                // Focus never changes here, only idB's lifecycle state does
+                repo.execute(WorkspaceAction.Pause(idB))
+                restoreScope.testScheduler.runCurrent()
+
+                createAttempts shouldBe listOf(idB, idB)
+                pausedIds() shouldBe listOf(idA, idC)
             }
 
         @Test
