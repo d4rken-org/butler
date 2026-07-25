@@ -13,6 +13,7 @@ import eu.darken.butler.common.flow.setupCommonEventHandlers
 import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.upgrade.isPro
 import eu.darken.butler.workspace.core.operations.OperationsManager
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -360,6 +361,8 @@ class WorkspaceRepo @Inject constructor(
                 }
             }
 
+            is WorkspaceAction.Pause -> executePause(action.id)
+
             is WorkspaceAction.CreateBatch -> {
                 log(TAG, INFO) { "Creating batch of ${action.requests.size} workspaces" }
 
@@ -548,6 +551,102 @@ class WorkspaceRepo @Inject constructor(
                 WorkspaceAction.CloseAll.Result
             }
         }
+        }
+    }
+
+    /**
+     * Releases the live instance behind [id] and swaps a [PausedWorkspace] stand-in into its list
+     * slot. Must be called while holding [lock].
+     *
+     * Order matters: every guard is enforced here (so a manual pause can't bypass what auto-pause
+     * checks), the arguments are captured BEFORE any mutation, and the guards are re-checked
+     * afterwards because [Workspace.createArguments] suspends and a workspace can become busy
+     * meanwhile.
+     *
+     * Known limitation: [execute] holds one global mutex across [Workspace.createArguments] and
+     * [Workspace.release], so a slow engine release stalls unrelated create/close/resume actions.
+     * Auto-pause issues Pause actions strictly sequentially, one per evaluation pass, to bound this.
+     */
+    private suspend fun executePause(id: Workspace.Id): WorkspaceAction.Pause.Result {
+        val workspace = _workspaces.value.firstOrNull { it.id == id }
+        if (workspace == null || workspace is PausedWorkspace) {
+            log(TAG) { "Pause($id): unknown or already paused, nothing to do" }
+            return WorkspaceAction.Pause.Result.NoOp
+        }
+
+        pauseRefusal(workspace)?.let { reason ->
+            log(TAG, INFO) { "Pause($id) refused: $reason" }
+            return WorkspaceAction.Pause.Result.Refused(reason)
+        }
+
+        val heldArguments = try {
+            workspace.createArguments()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            log(TAG, ERROR) { "Pause($id): capturing arguments failed, keeping it live: ${e.asLog()}" }
+            return WorkspaceAction.Pause.Result.Failed(e)
+        }
+        val carriedInfo = workspace.info.value
+
+        pauseRefusal(workspace)?.let { reason ->
+            log(TAG, INFO) { "Pause($id) refused after capturing arguments: $reason" }
+            return WorkspaceAction.Pause.Result.Refused(reason)
+        }
+
+        val index = _workspaces.value.indexOfFirst { it.id == id }
+        if (index == -1) {
+            log(TAG, WARN) { "Pause($id): workspace vanished while capturing arguments" }
+            return WorkspaceAction.Pause.Result.NoOp
+        }
+
+        // Point of no return: the tab is reported as paused from here on, so a failing release()
+        // is logged but does not turn the result into a failure. Content claims are not cleared -
+        // pauseRefusal() guarantees this workspace holds none.
+        try {
+            // carriedInfo names the tab here; the derivation is only the fallback for the day a
+            // workspace publishes no identity of its own.
+            val display = deriveDisplay(workspace.type, heldArguments)
+            val wip = _workspaces.value.toMutableList()
+            wip[index] = PausedWorkspace(
+                id = id,
+                type = workspace.type,
+                heldArguments = heldArguments,
+                title = display?.title ?: workspace.type.label,
+                subtitle = display?.subtitle,
+                carriedInfo = carriedInfo,
+            )
+            _workspaces.value = wip
+        } finally {
+            try {
+                workspace.release()
+            } catch (e: Exception) {
+                log(TAG, ERROR) { "Pause($id): release() failed: ${e.asLog()}" }
+            }
+        }
+
+        log(TAG, INFO) { "Paused workspace $id (${workspace.type})" }
+        return WorkspaceAction.Pause.Result.Success(id)
+    }
+
+    /**
+     * The reason [id] must not be paused right now, or null when pausing is safe. Must be called
+     * while holding [lock].
+     */
+    private fun pauseRefusal(workspace: Workspace<*>): WorkspaceAction.Pause.Reason? {
+        val info = workspace.info.value
+        return when {
+            info.isSubWorkspace -> WorkspaceAction.Pause.Reason.SUB_WORKSPACE
+            _workspaces.value.any { it.info.value.callerWorkspaceId == workspace.id } ->
+                WorkspaceAction.Pause.Reason.HAS_CHILDREN
+            // An open-transition is in flight; dropping the claim could let a duplicate tab open
+            // on that path, so the claim is never cleared - the pause waits instead.
+            contentClaims.values.any { it == workspace.id } -> WorkspaceAction.Pause.Reason.CLAIM_HELD
+            info.operationCount > 0 || info.attentionCount > 0 -> WorkspaceAction.Pause.Reason.BUSY
+            info.hasUnsavedChanges -> WorkspaceAction.Pause.Reason.UNSAVED_CHANGES
+            !info.isPausable -> WorkspaceAction.Pause.Reason.NOT_PAUSABLE
+            info.lifecycleState !is Workspace.LifecycleState.Ready -> WorkspaceAction.Pause.Reason.NOT_READY
+            else -> null
         }
     }
 

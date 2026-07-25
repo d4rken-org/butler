@@ -68,6 +68,43 @@ sealed interface WorkspaceAction {
         }
     }
 
+    /**
+     * Releases a live workspace's instance to free memory and battery, replacing it in place with a
+     * paused stand-in that holds the arguments captured from its CURRENT state. Same [Workspace.Id],
+     * same list position, same focus and pane assignments — only the instance goes away, so no
+     * [WorkspaceEvent] is emitted. [Resume] brings it back.
+     *
+     * Refused whenever pausing would lose something: sub-workspaces and workspaces with children,
+     * a held content-path claim, running operations, unsaved changes, a workspace that isn't
+     * [Workspace.Info.isPausable], and anything not yet in [Workspace.LifecycleState.Ready].
+     */
+    data class Pause(
+        val id: Workspace.Id,
+    ) : WorkspaceAction {
+        sealed interface Result : WorkspaceAction.Result {
+            data class Success(val id: Workspace.Id) : Result
+
+            /** The id is unknown, or its workspace is already paused; nothing to do. */
+            data object NoOp : Result
+
+            data class Refused(val reason: Reason) : Result
+
+            /** Capturing the arguments failed before any state change; the workspace is still live. */
+            data class Failed(val error: Throwable) : Result
+        }
+
+        enum class Reason {
+            SUB_WORKSPACE,
+            HAS_CHILDREN,
+            BUSY,
+            UNSAVED_CHANGES,
+            NOT_PAUSABLE,
+            NOT_READY,
+            CLAIM_HELD,
+            ;
+        }
+    }
+
     data class CreateBatch(
         val requests: List<Create>,
         val sourceWorkspaceId: Workspace.Id? = null,
