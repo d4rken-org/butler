@@ -188,8 +188,11 @@ class EditorWorkspace @AssistedInject constructor(
             current.copy(
                 title = display.title ?: type.label,
                 subtitle = display.subtitle,
-                // Only file-backed content survives a pause: an in-memory buffer exists nowhere but here.
-                isPausable = contentSource is ContentSource.File,
+                // Only file-backed content survives a pause: an in-memory buffer exists nowhere but
+                // here. A file whose backing was lost (deleted, moved, unreadable) is in the same
+                // boat - the buffer is the only copy left and the resume would reopen an
+                // unavailable path.
+                isPausable = contentSource is ContentSource.File && !contentSource.isBackingLost,
             )
         }
         log(tag, DEBUG) { "Updated identity for: $contentSource" }
