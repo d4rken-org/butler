@@ -294,10 +294,14 @@
     <string name="workspace_settings_layout_mode_quad_grid">Quad grid</string>
     <string name="workspace_settings_layout_mode_quad_grid_desc">Four panes in a 2×2 grid.</string>
 
-    <!-- Session Restoration -->
-    <string name="workspace_settings_session_title">Session restoration</string>
+    <!-- Session -->
+    <string name="workspace_settings_session_title">Session</string>
     <string name="workspace_settings_session_restore_title">Restore tabs on startup</string>
     <string name="workspace_settings_session_restore_desc">Automatically restore previously open tabs when the app starts.</string>
+    <string name="workspace_settings_autopause_title">Pause idle tabs</string>
+    <string name="workspace_settings_autopause_desc">Tabs you haven\'t looked at for a while are paused to save memory and battery. Opening one resumes it.</string>
+    <string name="workspace_settings_autopause_delay_title">Pause after</string>
+    <string name="workspace_settings_autopause_delay_desc">How long a tab stays out of sight before it is paused.</string>
     <string name="workspace_settings_session_data_title">Session data</string>
     <plurals name="workspace_settings_session_data_desc">
         <item quantity="one">%1$d tab • %2$s</item>
