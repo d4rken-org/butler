@@ -409,6 +409,8 @@ class PaneLayerHostTest : ComposeTest() {
         }
 
         composeTestRule.runOnIdle { modalFocus.requestFocus() }
+        // Past the deadline for an answer that is never coming
+        composeTestRule.mainClock.advanceTimeBy(2_000)
         composeTestRule.waitForIdle()
 
         composeTestRule.runOnIdle { modalHasFocus shouldBe false }
@@ -450,6 +452,64 @@ class PaneLayerHostTest : ComposeTest() {
             paneFocused shouldBe true
             modalHasFocus shouldBe true
         }
+    }
+
+    /**
+     * The request travels through a screen action, the ViewModel and the page manager before it
+     * comes back as pane focus. Honouring it a few frames late must still count — a layer that gave
+     * up its focus by then would leave the pane with no focus at all, since nothing restores it.
+     */
+    @Test
+    fun `focus is kept when the pane focus request is honoured a few frames later`() {
+        var paneFocused by mutableStateOf(false)
+        var modalHasFocus = false
+        var paneFocusRequests = 0
+        val modalFocus = FocusRequester()
+
+        composeTestRule.mainClock.autoAdvance = false
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                CompositionLocalProvider(
+                    LocalWorkspaceFocusRequest provides { paneFocusRequests++ },
+                ) {
+                    PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = paneFocused) {
+                        PaneLayer(rank = PaneLayerRank.CONTENT, modal = false) {
+                            Box(modifier = Modifier.size(24.dp).focusable())
+                        }
+                        PaneLayer(rank = PaneLayerRank.OVERLAY) {
+                            Box(
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .focusRequester(modalFocus)
+                                    .onFocusChanged { modalHasFocus = it.isFocused }
+                                    .focusable(),
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        composeTestRule.mainClock.advanceTimeBy(100)
+        composeTestRule.runOnIdle { modalFocus.requestFocus() }
+        composeTestRule.mainClock.advanceTimeByFrame()
+        composeTestRule.runOnIdle {
+            modalHasFocus shouldBe true
+            (paneFocusRequests > 0) shouldBe true
+        }
+
+        // Several frames pass while the request is still travelling through the workspace plumbing
+        repeat(4) { composeTestRule.mainClock.advanceTimeByFrame() }
+        composeTestRule.runOnIdle { modalHasFocus shouldBe true }
+
+        // The answer finally arrives, well after any frame-count deadline would have expired
+        composeTestRule.mainClock.advanceTimeBy(200)
+        composeTestRule.runOnIdle { paneFocused = true }
+        composeTestRule.mainClock.autoAdvance = true
+        composeTestRule.waitForIdle()
+
+        composeTestRule.runOnIdle { modalHasFocus shouldBe true }
     }
 
     /** The clear-on-covered effect must also catch focus arriving after the layer was covered. */
