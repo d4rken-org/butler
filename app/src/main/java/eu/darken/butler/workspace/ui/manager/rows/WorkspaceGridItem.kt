@@ -117,8 +117,7 @@ fun WorkspaceGridItem(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onSelect() }
-                    .padding(6.dp),
+                    .clickable { onSelect() },
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 Row(
@@ -126,7 +125,7 @@ fun WorkspaceGridItem(
                         Modifier
                             .fillMaxWidth()
                             .testTag(TEST_TAG_WORKSPACE_CARD_HEADER)
-                            .padding(start = 4.dp)
+                            .padding(start = 10.dp, top = 6.dp, end = 6.dp)
                             .draggableHandle(
                                 onDragStarted = {
                                     onDragStarted()
