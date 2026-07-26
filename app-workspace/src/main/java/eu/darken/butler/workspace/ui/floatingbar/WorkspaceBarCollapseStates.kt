@@ -14,18 +14,18 @@ import javax.inject.Singleton
  * padding than an expanded one, so coming back with the bar in a different state shifts the restored
  * row by the difference and reads as "off by one row".
  *
- * One slot per [BarPosition], holding a single fraction for the whole stack - which is the
- * granularity the collapse system actually has, since the nested-scroll handler drives every
- * non-static bar of a stack to one shared target.
+ * One slot per [BarPosition], holding each non-static bar's fraction by its stable key. Per bar
+ * rather than per stack: bars in one stack diverge at rest, because a bar that becomes visible again
+ * snaps its own fraction to 0 while the others stay collapsed.
  */
 @Singleton
-class WorkspaceBarCollapseStates @Inject constructor() : WorkspaceSlotRegistry<Float>(
+class WorkspaceBarCollapseStates @Inject constructor() : WorkspaceSlotRegistry<Map<String, Float>>(
     maxSlotsPerWorkspace = MAX_SLOTS_PER_WORKSPACE,
 ) {
 
     override val tag: String = TAG
 
-    fun collapseFor(workspaceId: Workspace.Id, position: BarPosition): SlotLease<Float> =
+    fun collapseFor(workspaceId: Workspace.Id, position: BarPosition): SlotLease<Map<String, Float>> =
         leaseFor(workspaceId, position.name)
 
     companion object {

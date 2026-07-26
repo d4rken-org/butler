@@ -110,32 +110,34 @@ class FloatingBarStackState(
         get() = barStates.isNotEmpty()
 
     /**
-     * The stack's scroll-collapse state as a single fraction: 0 = expanded, 1 = collapsed.
+     * Each non-static bar's scroll-collapse state by bar key: 0 = expanded, 1 = collapsed.
      *
      * Reads the animation *target* rather than the current value, so it is the settled intent
      * (always 0 or 1) instead of an animation frame - persisting a half-collapsed 0.6 would restore
-     * a permanently half-collapsed bar. Non-static bars share one target by construction (see the
-     * nested scroll connection below), so the max is representative; it only differs transiently for
-     * a bar that was invisible while the others collapsed, and that one is snapped back to 0 when it
-     * becomes visible again.
+     * a permanently half-collapsed bar.
+     *
+     * Per bar rather than per stack: bars in one stack do diverge at rest. A bar that becomes
+     * visible again snaps its own fraction to 0 independently of the others (see FloatingBarStack),
+     * which is what makes the action bar appear when the user selects something while scrolled down.
      */
-    val collapseTarget: Float by derivedStateOf {
+    val collapseTargets: Map<String, Float> by derivedStateOf {
         barStates
             .filter { it.scrollBehavior !is BarScrollBehavior.Static }
-            .maxOfOrNull { it.scrollCollapseAnimatable.targetValue }
-            ?: 0f
+            .associate { it.id to it.scrollCollapseAnimatable.targetValue }
     }
 
     /**
-     * Applies a restored collapse [fraction] to every non-static bar without animating: the list has
-     * already drawn with the matching content padding, so an animation would visibly re-collapse the
-     * bar after the fact.
+     * Applies restored collapse fractions per bar key, without animating: the list has already drawn
+     * with the matching content padding, so an animation would visibly re-collapse the bar after the
+     * fact. Bars without a saved entry keep whatever they currently have - a missing key means "not
+     * known", never "expanded".
      */
-    suspend fun applyCollapse(fraction: Float) {
+    suspend fun applyCollapse(targets: Map<String, Float>) {
         // Copy first: snapTo suspends, and bars can register or unregister while it does
         barStates.toList().forEach { barState ->
             if (barState.scrollBehavior is BarScrollBehavior.Static) return@forEach
-            barState.scrollCollapseAnimatable.snapTo(fraction)
+            val target = targets[barState.id] ?: return@forEach
+            barState.scrollCollapseAnimatable.snapTo(target)
         }
     }
 

@@ -8,8 +8,9 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.ui.restore.Outcome
 import eu.darken.butler.workspace.ui.restore.restoreWhenReady
+import kotlinx.coroutines.flow.filter
+import kotlin.time.Duration
 
 private val TAG = logTag("Workspace", "BarCollapse")
 
@@ -40,21 +41,28 @@ internal fun PersistBarCollapse(
         // pass, so there is no multi-second window in which the user could act first. What can
         // change a fraction meanwhile - a scroll, resetScrollCollapse(), a revealOn change - cannot
         // be told apart from the restore by the fraction alone, so racing it would be guesswork.
+        //
+        // The wait is unbounded, unlike the scroll restore's deliberate 5s bound: a page can compose
+        // its stack states long before it renders any bar (Searcher builds them, then returns early
+        // until it is Ready), and a timeout there would permanently disarm both the restore and the
+        // recording for that composition. Waiting costs nothing - the effect dies with the page.
         val outcome = restoreWhenReady(
             saved = lease.saved,
-            isNoOp = { it == 0f },
+            isNoOp = { targets -> targets.isEmpty() || targets.values.all { it == 0f } },
             isReady = { state.hasRegisteredBars },
+            timeout = Duration.INFINITE,
             apply = { state.applyCollapse(it) },
         )
         log(TAG) { "restore(${lease.saved}) -> $outcome" }
 
-        // A timeout means no bar ever registered. Recording the resulting default would overwrite a
-        // good saved fraction with "expanded", so this stack simply stops persisting.
-        if (outcome == Outcome.TIMED_OUT) return@LaunchedEffect
-
         // Continuous while enabled, and deliberately no write on disposal: during a pane move both
         // call sites exist briefly and dispose/create ordering is not defined, so the registry has to
         // already hold the value as of the outgoing pane's last composed frame.
-        snapshotFlow { state.collapseTarget }.collect { registry.record(lease, it) }
+        //
+        // An empty map is "no bars registered", not "everything expanded" - recording it would let a
+        // page that is still initializing, or one that is being torn down, wipe a good saved value.
+        snapshotFlow { state.collapseTargets }
+            .filter { it.isNotEmpty() }
+            .collect { registry.record(lease, it) }
     }
 }
