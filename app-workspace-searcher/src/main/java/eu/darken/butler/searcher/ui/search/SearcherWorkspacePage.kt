@@ -121,6 +121,7 @@ fun SearcherWorkspacePage(
     // Setup and remember blocks at top level
     val topBarStackState = rememberPaneFloatingBarStackState(
         position = BarPosition.TOP,
+        workspaceId = workspaceId,
         defaultSpacing = 8.dp,
         edgePadding = 8.dp,
         contentPadding = 8.dp,
@@ -129,6 +130,7 @@ fun SearcherWorkspacePage(
     )
     val bottomBarStackState = rememberPaneFloatingBarStackState(
         position = BarPosition.BOTTOM,
+        workspaceId = workspaceId,
         defaultSpacing = 8.dp,
         edgePadding = 8.dp,
         contentPadding = 16.dp,
@@ -212,12 +214,15 @@ fun SearcherWorkspacePage(
     }
 
     // A new search means fresh content underneath the bars; reset scroll-collapse so bars don't
-    // stay hidden over content the user hasn't scrolled yet.
-    LaunchedEffect(searchStatus) {
-        if (searchStatus == SearcherWorkspace.State.SearchStatus.SEARCHING) {
-            topBarStackState.resetScrollCollapse()
-            bottomBarStackState.resetScrollCollapse()
+    // stay hidden over content the user hasn't scrolled yet. Guarded on the transition like the
+    // scroll reset above: unguarded it re-fires on every recomposition during a running search and
+    // would undo the collapse state this workspace just restored.
+    OnValueChange(searchStatus) { previous, current ->
+        if (previous == null || current != SearcherWorkspace.State.SearchStatus.SEARCHING) {
+            return@OnValueChange
         }
+        topBarStackState.resetScrollCollapse()
+        bottomBarStackState.resetScrollCollapse()
     }
 
     // Derived states for stable recomposition - at top level for immediate reactivity

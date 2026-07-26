@@ -102,6 +102,7 @@ fun ExplorerWorkspacePage(
 
     val topBarStackState = rememberPaneFloatingBarStackState(
         position = BarPosition.TOP,
+        workspaceId = workspaceId,
         defaultSpacing = 8.dp,
         edgePadding = 8.dp,
         contentPadding = 8.dp,
@@ -110,6 +111,7 @@ fun ExplorerWorkspacePage(
     )
     val bottomBarStackState = rememberPaneFloatingBarStackState(
         position = BarPosition.BOTTOM,
+        workspaceId = workspaceId,
         defaultSpacing = 8.dp,
         edgePadding = 8.dp,
         contentPadding = 16.dp,
@@ -137,8 +139,10 @@ fun ExplorerWorkspacePage(
     val listState = rememberWorkspaceLazyListState(workspaceId, slot = "list#${state.locationId}")
     val gridState = rememberWorkspaceLazyGridState(workspaceId, slot = "grid#${state.locationId}")
 
-    // Navigation resets floating-bar scroll-collapse so bars don't stay hidden over new content
-    LaunchedEffect(state.locationId) {
+    // Navigation resets floating-bar scroll-collapse so bars don't stay hidden over new content.
+    // Guarded: on initial composition there is no new content, and firing there would reset the
+    // collapse state this workspace just restored.
+    OnValueChange(state.locationId) { _, _ ->
         topBarStackState.resetScrollCollapse()
         bottomBarStackState.resetScrollCollapse()
     }

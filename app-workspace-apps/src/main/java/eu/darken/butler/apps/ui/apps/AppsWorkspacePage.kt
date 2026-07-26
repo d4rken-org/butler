@@ -78,6 +78,7 @@ fun AppsWorkspacePage(
 
     val topBarStackState = rememberPaneFloatingBarStackState(
         position = BarPosition.TOP,
+        workspaceId = workspaceId,
         defaultSpacing = 8.dp,
         edgePadding = 8.dp,
         contentPadding = 8.dp,
@@ -87,6 +88,7 @@ fun AppsWorkspacePage(
 
     val bottomBarStackState = rememberPaneFloatingBarStackState(
         position = BarPosition.BOTTOM,
+        workspaceId = workspaceId,
         defaultSpacing = 8.dp,
         edgePadding = 8.dp,
         contentPadding = 16.dp,

@@ -17,8 +17,10 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStackState
+import eu.darken.butler.workspace.ui.floatingbar.PersistBarCollapse
 import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign.PaneEdges
@@ -132,22 +134,31 @@ private fun horizontalWindowInsets(insets: WorkspacePaneInsets, density: Density
 /**
  * [rememberFloatingBarStackState] for a workspace pane: derives the system bar inset from the pane's
  * edges instead of taking a boolean, so a stack can't reserve room for a bar its pane doesn't touch.
+ *
+ * Pass [workspaceId] to have the stack's scroll-collapse state survive pane moves, swipes and
+ * restarts - without it a restored list lands one row off, because a collapsed bar reserves less
+ * content padding than an expanded one. Null keeps the stack ephemeral (previews, preview capture).
  */
 @Composable
 fun rememberPaneFloatingBarStackState(
     position: BarPosition,
     design: WorkspaceDesign,
+    workspaceId: Workspace.Id? = null,
     defaultSpacing: Dp = 8.dp,
     edgePadding: Dp = 8.dp,
     contentPadding: Dp = 0.dp,
     includeImeInset: Boolean = false,
     estimatedContentPadding: Dp = Dp.Unspecified,
-): FloatingBarStackState = rememberFloatingBarStackState(
-    position = position,
-    defaultSpacing = defaultSpacing,
-    edgePadding = edgePadding,
-    contentPadding = contentPadding,
-    includeSystemBarInset = design.paneEdges.includesSystemBarInset(position),
-    includeImeInset = includeImeInset,
-    estimatedContentPadding = estimatedContentPadding,
-)
+): FloatingBarStackState {
+    val state = rememberFloatingBarStackState(
+        position = position,
+        defaultSpacing = defaultSpacing,
+        edgePadding = edgePadding,
+        contentPadding = contentPadding,
+        includeSystemBarInset = design.paneEdges.includesSystemBarInset(position),
+        includeImeInset = includeImeInset,
+        estimatedContentPadding = estimatedContentPadding,
+    )
+    PersistBarCollapse(workspaceId = workspaceId, position = position, state = state)
+    return state
+}
