@@ -2,6 +2,7 @@ package eu.darken.butler.apps.ui.details
 
 import androidx.compose.runtime.Composable
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import eu.darken.butler.apps.core.details.AppDetailsWorkspaceViewModel
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.workspace.core.Workspace
 
