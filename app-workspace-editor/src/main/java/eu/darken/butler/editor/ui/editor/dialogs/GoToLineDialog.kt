@@ -1,6 +1,5 @@
 package eu.darken.butler.editor.ui.editor.dialogs
 
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -15,6 +14,7 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.editor.R
+import eu.darken.butler.workspace.ui.dialogs.PaneBoundAlertDialog
 
 @Composable
 fun GoToLineDialog(
@@ -24,8 +24,9 @@ fun GoToLineDialog(
 ) {
     var lineNumber by remember { mutableStateOf("") }
 
-    AlertDialog(
+    PaneBoundAlertDialog(
         onDismissRequest = onDismiss,
+        includeImePadding = true,
         title = { Text(stringResource(R.string.editor_dialog_go_to_line_title)) },
         text = {
             OutlinedTextField(

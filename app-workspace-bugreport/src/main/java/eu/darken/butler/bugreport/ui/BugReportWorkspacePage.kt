@@ -34,7 +34,6 @@ import androidx.compose.material.icons.twotone.DeleteSweep
 import androidx.compose.material.icons.twotone.FiberManualRecord
 import androidx.compose.material.icons.twotone.ReportProblem
 import androidx.compose.material.icons.twotone.Stop
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -73,6 +72,7 @@ import eu.darken.butler.workspace.core.icon
 import eu.darken.butler.workspace.ui.common.CutoutCard
 import eu.darken.butler.workspace.ui.common.CutoutCardDefaults
 import eu.darken.butler.workspace.ui.common.CutoutMode
+import eu.darken.butler.workspace.ui.dialogs.PaneBoundAlertDialog
 import eu.darken.butler.workspace.ui.floatingbar.BarAnimation
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior
@@ -529,7 +529,7 @@ internal fun ShareConsentDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    AlertDialog(
+    PaneBoundAlertDialog(
         onDismissRequest = onDismiss,
         icon = { Icon(Icons.TwoTone.ReportProblem, contentDescription = null) },
         title = { Text(stringResource(R.string.bugreport_share_consent_title)) },
@@ -548,7 +548,7 @@ internal fun ShortRecordingWarningDialog(
     onKeepRecording: () -> Unit,
     onStopAnyway: () -> Unit,
 ) {
-    AlertDialog(
+    PaneBoundAlertDialog(
         onDismissRequest = onKeepRecording,
         title = { Text(stringResource(R.string.bugreport_recording_short_title)) },
         text = { Text(stringResource(R.string.bugreport_recording_short_message)) },

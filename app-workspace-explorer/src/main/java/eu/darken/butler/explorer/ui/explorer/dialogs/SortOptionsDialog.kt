@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Switch
@@ -30,6 +29,7 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.SortSettings
+import eu.darken.butler.workspace.ui.dialogs.PaneBoundAlertDialog
 
 @Composable
 fun SortOptionsDialog(
@@ -40,7 +40,7 @@ fun SortOptionsDialog(
     var selectedMode by remember { mutableStateOf(currentSortSettings.mode) }
     var isReversed by remember { mutableStateOf(currentSortSettings.reversed) }
 
-    AlertDialog(
+    PaneBoundAlertDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(text = stringResource(R.string.explorer_action_sort))

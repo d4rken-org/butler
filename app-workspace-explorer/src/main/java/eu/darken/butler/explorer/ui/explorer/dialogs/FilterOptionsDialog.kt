@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
@@ -30,6 +29,7 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.FileTypeFilter
+import eu.darken.butler.workspace.ui.dialogs.PaneBoundAlertDialog
 
 @Composable
 fun FilterOptionsDialog(
@@ -44,8 +44,9 @@ fun FilterOptionsDialog(
     var currentExcludePattern by remember { mutableStateOf(excludePattern) }
     var currentFileTypeFilter by remember { mutableStateOf(fileTypeFilter) }
 
-    AlertDialog(
+    PaneBoundAlertDialog(
         onDismissRequest = onDismiss,
+        includeImePadding = true,
         title = {
             Text(text = stringResource(R.string.explorer_action_filter))
         },
