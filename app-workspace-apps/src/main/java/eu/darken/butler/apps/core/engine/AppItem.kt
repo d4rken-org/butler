@@ -38,10 +38,11 @@ data class AppItem(
 
     // Body properties, not constructor defaults: the generated copy() passes existing property
     // values instead of re-evaluating defaults, which would keep stale derived values around.
-    val isSideloaded: Boolean = when {
-        isSystemApp -> false
-        installerInfo == null -> true
-        else -> installerInfo.allInstallers.none { it.id == AKnownPkg.GooglePlay.id }
+    val isSideloaded: Boolean = if (isSystemApp) {
+        false
+    } else {
+        val installers = installerInfo?.allInstallers
+        installers == null || installers.none { it.id == AKnownPkg.GooglePlay.id }
     }
 
     val tags: List<AppTag> = buildList {
