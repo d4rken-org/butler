@@ -24,11 +24,11 @@ import androidx.compose.ui.zIndex
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
+import eu.darken.butler.common.compose.OnValueChange
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.NavigationEventHandler
-import eu.darken.butler.editor.core.engine.ContentSource
 import eu.darken.butler.editor.ui.editor.elements.EditorActionBar
 import eu.darken.butler.editor.ui.editor.elements.EditorActionBarItem
 import eu.darken.butler.editor.ui.editor.elements.EditorBannerGroup
@@ -139,14 +139,11 @@ fun EditorWorkspacePage(
         estimatedContentPadding = 80.dp,
     )
 
-    // Opening a new file is fresh content; reset scroll-collapse so bars don't stay hidden.
-    // Keyed on the source's IDENTITY: the contentSource value also refreshes after every save
-    // (size/mtime/line ending), which must not pop collapsed bars back in.
-    val contentIdentity = when (val source = state.contentSource) {
-        is ContentSource.File -> source.path
-        is ContentSource.Memory -> source.name
-    }
-    LaunchedEffect(contentIdentity) {
+    // Opening a different file is fresh content; reset scroll-collapse so bars don't stay hidden.
+    // Guarded on the transition, and keyed on the claimed path rather than the content source -
+    // see editorBarResetIdentity for why neither the initial composition nor the source settling
+    // may reset (both would undo the collapse state this workspace just restored).
+    OnValueChange(editorBarResetIdentity(state)) { _, _ ->
         topBarStackState.resetScrollCollapse()
         bottomBarStackState.resetScrollCollapse()
     }

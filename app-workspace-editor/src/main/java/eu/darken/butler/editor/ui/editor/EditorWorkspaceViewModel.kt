@@ -83,9 +83,28 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
 
     private var openFileJob: Job? = null
 
-    private val workspaceWithState: Flow<Pair<EditorWorkspace, EditorWorkspace.State>> = workspaceSource
+    /**
+     * The workspace, its state, and the path the tab CLAIMS to hold.
+     *
+     * The claimed path is carried separately from the content source: it is already correct while
+     * the file is still loading, which is what makes it usable as a content identity (see
+     * [editorBarResetIdentity]). Only the path is taken off the info flow, so the rest of that
+     * flow's churn (operation counts, titles) doesn't re-emit the editor state.
+     */
+    private data class WorkspaceSnapshot(
+        val workspace: EditorWorkspace,
+        val state: EditorWorkspace.State,
+        val contentPath: APath<*>?,
+    )
+
+    private val workspaceWithState: Flow<WorkspaceSnapshot> = workspaceSource
         .filterNotNull()
-        .flatMapLatest { ws -> ws.state.map { state -> ws to state } }
+        .flatMapLatest { ws ->
+            combine(
+                ws.state,
+                ws.info.map { it.contentPath }.distinctUntilChanged(),
+            ) { state, contentPath -> WorkspaceSnapshot(ws, state, contentPath) }
+        }
 
     // Bumped whenever a field-originated edit (typing/backspace) is gated behind the large-edit
     // confirm dialog. LazyTextEditor applies its edit to the hidden field optimistically before
@@ -100,7 +119,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         searchController.state,
         clipboardController.hasSystemClipboardContent,
         _editResyncSignal,
-    ) { (workspace, wsState), dialogs, search, hasClipboardContent, editResyncSignal ->
+    ) { (workspace, wsState, contentPath), dialogs, search, hasClipboardContent, editResyncSignal ->
         // Only emit Ready states - Init/Error are handled globally by WorkspaceMapper
         val readyState = wsState as? EditorWorkspace.State.Ready ?: return@combine null
 
@@ -114,6 +133,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         State(
             id = id,
             contentSource = editorState.contentSource,
+            contentPath = contentPath,
             title = title,
             subTitle = subTitle,
             totalLines = editorState.totalLines,
@@ -662,6 +682,12 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     data class State(
         val id: Workspace.Id,
         val contentSource: ContentSource = ContentSource.Memory(size = 0L),
+        /**
+         * The file this tab claims to hold - set from the moment the open starts, not when it
+         * completes, and null for a scratch buffer. Unlike [contentSource] it does not move while
+         * a file loads or after it is saved.
+         */
+        val contentPath: APath<*>? = null,
         val title: CaString,
         val subTitle: CaString,
         val totalLines: Long = 0,
