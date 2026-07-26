@@ -19,7 +19,7 @@ fun runTest2(
     timeout: Duration = 60.seconds,
     testBody: suspend TestScope.() -> Unit
 ) {
-    var bodyCompleted = false
+    var sawExpectedError = false
     try {
         val scope = TestScope(context = context)
         try {
@@ -27,13 +27,15 @@ fun runTest2(
                 timeout = timeout
             ) {
                 testBody()
-                bodyCompleted = true
                 if (autoCancel) scope.cancel("autoCancel")
             }
         } catch (e: Throwable) {
             // Only the expected error type is swallowed, anything else is a real failure.
             val isExpected = expectedError?.isInstance(e) ?: false
             if (!isExpected) throw e
+            // runTest also surfaces child coroutine failures during teardown, i.e. after the body
+            // already returned, so the observation has to be tracked here, not at the body.
+            sawExpectedError = true
         }
     } catch (e: CancellationException) {
         if (e.message == "autoCancel" && autoCancel) {
@@ -44,8 +46,8 @@ fun runTest2(
     }
 
     // A test that declares an expected error but never throws it is a silent pass, not a pass.
-    if (expectedError != null && bodyCompleted) {
-        throw AssertionError("Expected ${expectedError.qualifiedName} to be thrown, but the test body completed normally")
+    if (expectedError != null && !sawExpectedError) {
+        throw AssertionError("Expected ${expectedError.qualifiedName} to be thrown, but it never was")
     }
 }
 
