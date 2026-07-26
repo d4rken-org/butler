@@ -70,7 +70,9 @@ class AppDetailsToolbarCardTest : ComposeTest() {
 
         composeTestRule.onNodeWithContentDescription("Search components").performClick()
 
-        composeTestRule.onNodeWithText("Search components").assertIsDisplayed()
+        // The icon's description and the field's hint are deliberately different strings, so the
+        // open and closed states are distinguishable from the semantics tree alone.
+        composeTestRule.onNodeWithText("Search name or package").assertIsDisplayed()
         composeTestRule.onNodeWithText("Chrome").assertDoesNotExist()
         composeTestRule.onNodeWithContentDescription("Close").assertIsDisplayed()
     }
