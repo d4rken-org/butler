@@ -301,16 +301,18 @@ class MediaStoreSearchBackendTest : BaseTest() {
         // resolver is mocked directly: it blocks like a real provider stuck loading a cursor
         // window until OUR signal is cancelled, then aborts with OperationCanceledException.
         val queryStarted = java.util.concurrent.CountDownLatch(1)
+        val signalCancelled = java.util.concurrent.CountDownLatch(1)
         val blockingResolver = mockk<ContentResolver> {
             every { query(any(), any(), any(), any(), any(), any()) } answers {
                 val signal = arg<android.os.CancellationSignal?>(5)
+                // The answer is not a suspending function, so this is a plain blocking wait for
+                // an explicit signal. setOnCancelListener fires immediately if the signal was
+                // already cancelled, so the notification cannot be missed.
+                signal?.setOnCancelListener { signalCancelled.countDown() }
                 queryStarted.countDown()
-                // Deadline so a broken relay fails the join timeout below instead of hanging
-                val deadline = System.currentTimeMillis() + 5_000
-                while (System.currentTimeMillis() < deadline) {
-                    signal?.throwIfCanceled()
-                    Thread.sleep(5)
-                }
+                // Watchdog only: a broken relay fails the join timeout below instead of hanging
+                signalCancelled.await(30, java.util.concurrent.TimeUnit.SECONDS)
+                signal?.throwIfCanceled()
                 mediaCursor()
             }
         }
@@ -319,11 +321,12 @@ class MediaStoreSearchBackendTest : BaseTest() {
             val scanJob = this.launch(kotlinx.coroutines.Dispatchers.IO) {
                 backend(resolver = blockingResolver).scan(session(query(filename = "x"))).toList()
             }
-            queryStarted.await(5, java.util.concurrent.TimeUnit.SECONDS) shouldBe true
+            // Explicit signals, the timeouts are watchdogs against a hang
+            queryStarted.await(30, java.util.concurrent.TimeUnit.SECONDS) shouldBe true
             scanJob.cancel()
-            // The collecting side must unwind promptly: the relay coroutine cancels the signal,
-            // which aborts the blocked provider call
-            kotlinx.coroutines.withTimeout(2_000) { scanJob.join() }
+            // The relay coroutine must cancel the signal, which aborts the blocked provider call
+            signalCancelled.await(30, java.util.concurrent.TimeUnit.SECONDS) shouldBe true
+            kotlinx.coroutines.withTimeout(30_000) { scanJob.join() }
             scanJob.isCancelled shouldBe true
         }
     }
