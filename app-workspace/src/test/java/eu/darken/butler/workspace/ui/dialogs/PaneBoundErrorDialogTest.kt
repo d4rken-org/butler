@@ -170,12 +170,7 @@ class PaneBoundErrorDialogTest : ComposeTest() {
             Case(error = TestError(withInfo = true, withFix = true), paneWidth = NARROW_PANE)
         }
 
-        val surfaceBounds = composeTestRule.onNodeWithTag(surface).getUnclippedBoundsInRoot()
-        listOf(INFO, DISMISS, FIX).forEach { label ->
-            val action = composeTestRule.onNodeWithText(label).getUnclippedBoundsInRoot()
-            (action.left >= surfaceBounds.left) shouldBe true
-            (action.right <= surfaceBounds.right) shouldBe true
-        }
+        assertActionsWrapWithinSurface()
     }
 
     @Test
@@ -188,17 +183,31 @@ class PaneBoundErrorDialogTest : ComposeTest() {
             )
         }
 
-        val surfaceBounds = composeTestRule.onNodeWithTag(surface).getUnclippedBoundsInRoot()
-        listOf(INFO, DISMISS, FIX).forEach { label ->
-            val action = composeTestRule.onNodeWithText(label).getUnclippedBoundsInRoot()
-            (action.left >= surfaceBounds.left) shouldBe true
-            (action.right <= surfaceBounds.right) shouldBe true
-        }
+        assertActionsWrapWithinSurface()
 
         // Mirrored: the first action in reading order now sits furthest right
         val info = composeTestRule.onNodeWithText(INFO).getUnclippedBoundsInRoot()
         val fix = composeTestRule.onNodeWithText(FIX).getUnclippedBoundsInRoot()
         (fix.left < info.left) shouldBe true
+    }
+
+    /**
+     * [NARROW_PANE] is sized so three minimum-width text buttons cannot share a row. Asserting only
+     * that they stay inside the surface would pass vacuously if that sizing were wrong and they all
+     * fit on one line after all, so the wrap itself is pinned first — a bad threshold then shows up
+     * as a failure here instead of as a green test that checks nothing.
+     */
+    private fun assertActionsWrapWithinSurface() {
+        val labels = listOf(INFO, DISMISS, FIX)
+        val bounds = labels.map { composeTestRule.onNodeWithText(it).getUnclippedBoundsInRoot() }
+
+        bounds.map { it.top }.distinct().size shouldBe 2
+
+        val surfaceBounds = composeTestRule.onNodeWithTag(surface).getUnclippedBoundsInRoot()
+        bounds.forEach { action ->
+            (action.left >= surfaceBounds.left) shouldBe true
+            (action.right <= surfaceBounds.right) shouldBe true
+        }
     }
 
     companion object {

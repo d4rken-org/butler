@@ -99,6 +99,31 @@ class CancelOperationConfirmationHostTest : ComposeTest() {
         composeTestRule.runOnIdle { confirmed shouldBe listOf(op.id) }
     }
 
+    /**
+     * Every host collects its operations with a null initial value and substitutes an empty list,
+     * while the pending id comes straight out of durable ViewModel state. Reading that empty first
+     * frame as "the operation is gone" retired the request before the dialog was ever on screen.
+     */
+    @Test
+    fun `a pending id survives the frame before the operations list has loaded`() {
+        val op = operation()
+        var operations by mutableStateOf(emptyList<OperationDisplay>())
+        var dismissals = 0
+
+        composeTestRule.setContent {
+            Host(pendingId = op.id, operations = operations, onDismiss = { dismissals++ })
+        }
+
+        composeTestRule.onNodeWithTag(surface).assertExists()
+        composeTestRule.runOnIdle { dismissals shouldBe 0 }
+
+        composeTestRule.runOnIdle { operations = listOf(op) }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNodeWithTag(surface).assertExists()
+        composeTestRule.runOnIdle { dismissals shouldBe 0 }
+    }
+
     @Test
     fun `an operation that finishes first takes its own confirmation down`() {
         val id = Operation.Id()

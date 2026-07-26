@@ -85,7 +85,15 @@ class SearcherCancelConfirmationTest : ComposeTest() {
         composeTestRule.onNodeWithText(CANCEL_OPERATION_ACTION).performClick()
 
         composeTestRule.runOnIdle {
-            actions shouldBe listOf(
+            // Scoped to the cancel wire on purpose. The overlay slot also emits housekeeping this
+            // test says nothing about — the access-errors sheet retires itself whenever the error
+            // count is zero, which it is for the mock state. Narrowing to the two actions under
+            // test still fails if a spurious dismiss is dispatched for *this* request.
+            val cancelActions = actions.filter {
+                it is SearcherPageAction.Operations.Cancel ||
+                    it is SearcherPageAction.Overlays.DismissCancelOperation
+            }
+            cancelActions shouldBe listOf(
                 SearcherPageAction.Operations.Cancel(operation.id),
                 SearcherPageAction.Overlays.DismissCancelOperation,
             )

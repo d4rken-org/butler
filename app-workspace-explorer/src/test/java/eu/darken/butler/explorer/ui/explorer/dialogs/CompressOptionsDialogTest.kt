@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithTag
@@ -16,6 +17,7 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.height
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.common.files.archive.CompressionPreset
@@ -121,7 +123,7 @@ class CompressOptionsDialogTest : ComposeTest() {
     fun `it measures inside a pane far shorter than its content`() {
         composeTestRule.setContent {
             PreviewWrapper {
-                Box(modifier = Modifier.size(width = 320.dp, height = 260.dp)) {
+                Box(modifier = Modifier.size(width = 320.dp, height = SHORT_PANE_HEIGHT)) {
                     PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = true) {
                         CompressOptionsDialog(
                             suggestedName = "archive",
@@ -133,7 +135,20 @@ class CompressOptionsDialogTest : ComposeTest() {
             }
         }
 
-        composeTestRule.onNodeWithTag(PaneBoundAlertDialogDefaults.SURFACE_TEST_TAG).assertExists()
-        composeTestRule.onNodeWithText("Create").assertIsDisplayed()
+        val surfaceBounds = composeTestRule.onNodeWithTag(PaneBoundAlertDialogDefaults.SURFACE_TEST_TAG)
+            .getUnclippedBoundsInRoot()
+
+        // The nested scroller either threw during measurement or, where it did not, measured the
+        // surface straight past the pane it has to fit inside. Both show up here.
+        (surfaceBounds.height <= SHORT_PANE_HEIGHT) shouldBe true
+
+        // The action row sits outside the dialog's own scroll container, so it must have been
+        // measured too rather than pushed off the end of an unbounded column.
+        composeTestRule.onNodeWithText("Create").assertExists()
+    }
+
+    companion object {
+        /** Far shorter than the dialog's content, so the height cap is actually exercised. */
+        private val SHORT_PANE_HEIGHT = 260.dp
     }
 }

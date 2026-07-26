@@ -19,6 +19,8 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.height
+import androidx.compose.ui.unit.width
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.PathActionIssue
@@ -178,27 +180,44 @@ class PathIssueRenameStackingTest : ComposeTest() {
     }
 
     /**
-     * The saver runs as a pane-local child, whose overlays sit at the child rank. The dialog must
-     * inherit that rank from the sheet instead of hardcoding the parent's, or it would be ranked
-     * below the child's own content.
+     * The saver runs as a pane-local child, whose overlays sit at the child rank. The dialog has to
+     * inherit that rank from the sheet rather than hardcode the parent's [PaneLayerRank.OVERLAY].
+     *
+     * Bounds cannot show this: a layer renders in place at whatever rank it holds, so a hardcoded
+     * parent rank would still produce a full-pane scrim here. What changes is which layer is *on
+     * top* — ranked below the sheet, the dialog would not own back, and the first press would take
+     * the sheet down from underneath it. So back ordering is the assertion that discriminates.
      */
     @Test
     fun `the dialog inherits the ambient rank instead of the parent overlay rank`() {
+        var sheetDismissals = 0
+        var dispatcher: OnBackPressedDispatcher? = null
+
         composeTestRule.setContent {
-            Case(issue = conflict("report.pdf"), rank = PaneLayerRank.CHILD_OVERLAY)
+            dispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
+            Case(
+                issue = conflict("report.pdf"),
+                onSheetDismiss = { sheetDismissals++ },
+                rank = PaneLayerRank.CHILD_OVERLAY,
+            )
         }
 
         composeTestRule.onNodeWithText(RENAME_NEW_ACTION).performClick()
+        composeTestRule.onNodeWithTag(surface).assertExists()
 
-        // Still on top of its sheet, and its scrim still spans the full pane rather than the
-        // inset content area
+        composeTestRule.runOnIdle { dispatcher!!.onBackPressed() }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNodeWithTag(surface).assertDoesNotExist()
+        composeTestRule.runOnIdle { sheetDismissals shouldBe 0 }
+
+        // ...and the scrim still covers the whole pane, not just the inset content area
+        composeTestRule.onNodeWithText(RENAME_NEW_ACTION).performClick()
         val pane = composeTestRule.onNodeWithTag(PANE_TAG).getUnclippedBoundsInRoot()
         val scrim = composeTestRule.onNodeWithTag(PaneBoundAlertDialogDefaults.SCRIM_TEST_TAG)
             .getUnclippedBoundsInRoot()
         scrim.width shouldBe pane.width
         scrim.height shouldBe pane.height
-
-        composeTestRule.onNodeWithTag(surface).assertExists()
     }
 
     companion object {
