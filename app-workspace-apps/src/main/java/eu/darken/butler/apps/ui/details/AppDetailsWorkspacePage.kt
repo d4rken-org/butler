@@ -37,7 +37,6 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.navigation.NavigationEventHandler
@@ -81,7 +80,6 @@ fun AppDetailsWorkspacePageHost(
         }
     ),
 ) {
-    ErrorEventHandler(vm)
     NavigationEventHandler(vm)
 
     val state by vm.state.collectAsState(initial = null)

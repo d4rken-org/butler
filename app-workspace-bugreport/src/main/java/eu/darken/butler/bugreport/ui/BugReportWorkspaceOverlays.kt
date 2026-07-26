@@ -16,6 +16,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.launch
 
@@ -24,8 +25,9 @@ private val TAG = logTag("BugReport", "Workspace", "Overlays")
 /**
  * Overlay slot of the bug report page.
  *
- * Shares the ViewModel with [BugReportWorkspacePageHost]; the error handler and the event collector
- * that raises the short-recording warning stay there and must not be repeated here.
+ * Shares the ViewModel with [BugReportWorkspacePageHost]; the event collector that raises the
+ * short-recording warning stays there and must not be repeated here. The error handler lives here
+ * instead, because it renders a dialog that has to be pane-bound.
  */
 @Composable
 fun BugReportWorkspaceOverlaysHost(
@@ -35,6 +37,8 @@ fun BugReportWorkspaceOverlaysHost(
         creationCallback = { factory: BugReportWorkspaceViewModel.Factory -> factory.create(id = id) },
     ),
 ) {
+    ErrorEventHandler(vm)
+
     val overlayState by vm.overlayState.collectAsState()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()

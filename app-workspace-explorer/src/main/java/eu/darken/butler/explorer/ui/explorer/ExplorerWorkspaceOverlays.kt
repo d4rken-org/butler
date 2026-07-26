@@ -8,6 +8,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.explorer.ui.explorer.dialogs.AddDeviceStorageSheet
@@ -27,8 +28,10 @@ import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
  * Overlay slot of the explorer page.
  *
  * Shares the ViewModel with [ExplorerWorkspacePageHost] — the SAF picker launcher, the share and
- * toast event collectors and the error/navigation handlers all stay there and must not be repeated
- * here.
+ * toast event collectors and the navigation handler all stay there and must not be repeated here.
+ *
+ * The error handler is the exception: it renders a dialog, so it has to live in this slot to be
+ * pane-bound. It is collected here and nowhere else.
  */
 @Composable
 fun ExplorerWorkspaceOverlaysHost(
@@ -39,6 +42,8 @@ fun ExplorerWorkspaceOverlaysHost(
         creationCallback = { factory: ExplorerWorkspaceViewModel.Factory -> factory.create(id = id) }
     ),
 ) {
+    ErrorEventHandler(vm)
+
     val state by vm.state.collectAsState(initial = null)
     val operationsState by vm.operations.collectAsState(initial = null)
     val issueState by vm.issueState.collectAsState()

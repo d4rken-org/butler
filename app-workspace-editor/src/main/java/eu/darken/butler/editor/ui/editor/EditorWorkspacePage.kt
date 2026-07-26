@@ -27,7 +27,6 @@ import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.editor.core.engine.ContentSource
 import eu.darken.butler.editor.ui.editor.elements.EditorActionBar
@@ -68,7 +67,6 @@ fun EditorWorkspacePageHost(
         }
     ),
 ) {
-    ErrorEventHandler(vm)
     NavigationEventHandler(vm)
     LifecycleResumeEffect(Unit) {
         vm.refreshClipboardState()

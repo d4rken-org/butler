@@ -68,7 +68,6 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.debug.bugreport.BugReport
 import eu.darken.butler.common.debug.bugreport.BugReportInfo
-import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.icon
 import eu.darken.butler.workspace.ui.common.CutoutCard
@@ -97,8 +96,6 @@ fun BugReportWorkspacePageHost(
         creationCallback = { factory: BugReportWorkspaceViewModel.Factory -> factory.create(id = id) },
     ),
 ) {
-    ErrorEventHandler(vm)
-
     val state by vm.state.collectAsState(initial = null)
     val overlayState by vm.overlayState.collectAsState()
 

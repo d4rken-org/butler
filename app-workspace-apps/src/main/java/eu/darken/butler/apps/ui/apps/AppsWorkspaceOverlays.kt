@@ -11,6 +11,7 @@ import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.workspace.contracts.apps.SortSettings
 import eu.darken.butler.workspace.contracts.apps.TagFilterConfig
 import eu.darken.butler.workspace.core.Workspace
@@ -23,7 +24,8 @@ import kotlinx.coroutines.flow.flowOf
 /**
  * Overlay slot of the apps page.
  *
- * Shares the ViewModel with [AppsWorkspacePageHost]; the error and navigation handlers stay there.
+ * Shares the ViewModel with [AppsWorkspacePageHost]; the navigation handler stays there. The error
+ * handler lives here instead, because it renders a dialog that has to be pane-bound.
  */
 @Composable
 fun AppsWorkspaceOverlaysHost(
@@ -34,6 +36,8 @@ fun AppsWorkspaceOverlaysHost(
         creationCallback = { factory: AppsWorkspaceViewModel.Factory -> factory.create(id = id) }
     ),
 ) {
+    ErrorEventHandler(vm)
+
     AppsWorkspaceOverlays(
         design = design,
         stateSource = vm.state,

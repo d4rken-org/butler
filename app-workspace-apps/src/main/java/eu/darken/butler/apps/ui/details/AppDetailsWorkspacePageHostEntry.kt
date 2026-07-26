@@ -20,7 +20,7 @@ object AppDetailsWorkspacePageHostEntry : WorkspacePageHostEntry {
 
     @Composable
     override fun Overlays(id: Workspace.Id, design: WorkspaceDesign) {
-        // No pane-scoped overlays
+        AppDetailsWorkspaceOverlaysHost(id = id)
     }
 
     @Module

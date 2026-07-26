@@ -11,6 +11,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.searcher.ui.search.dialogs.SearchErrorDialog
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogHost
@@ -34,7 +35,8 @@ import kotlinx.coroutines.flow.flowOf
  * Overlay slot of the searcher page.
  *
  * Shares the ViewModel with [SearcherWorkspacePageHost] — the share-intent collector and the
- * error/navigation handlers stay there and must not be repeated here.
+ * navigation handler stay there and must not be repeated here. The error handler lives here
+ * instead, because it renders a dialog that has to be pane-bound.
  */
 @Composable
 fun SearcherWorkspaceOverlaysHost(
@@ -45,6 +47,8 @@ fun SearcherWorkspaceOverlaysHost(
         creationCallback = { factory: SearcherWorkspaceViewModel.Factory -> factory.create(id = id) }
     ),
 ) {
+    ErrorEventHandler(vm)
+
     val overlayState by vm.overlayState.collectAsState()
 
     SearcherWorkspaceOverlays(

@@ -6,6 +6,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import eu.darken.butler.common.ui.dialogs.LocalAlertDialogRenderer
+import eu.darken.butler.workspace.ui.dialogs.PaneBoundAlertDialogRenderer
 import eu.darken.butler.workspace.ui.insets.LocalPaneEdges
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign.PaneEdges
 
@@ -47,6 +49,8 @@ fun PaneLayerHost(
         LocalLayerActive provides paneFocused,
         LocalPaneLayerRank provides PaneLayerRank.CONTENT,
         LocalPaneEdges provides paneEdges,
+        // Shared dialogs from app-common (ErrorDialog above all) become pane-bound inside a pane
+        LocalAlertDialogRenderer provides PaneBoundAlertDialogRenderer,
     ) {
         Box(
             modifier = modifier.requestPaneFocusOnPress(),

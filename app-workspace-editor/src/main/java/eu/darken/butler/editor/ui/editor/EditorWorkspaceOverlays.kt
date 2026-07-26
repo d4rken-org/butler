@@ -9,6 +9,7 @@ import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.editor.ui.editor.dialogs.CloseConfirmDialog
 import eu.darken.butler.editor.ui.editor.dialogs.EncodingDialog
 import eu.darken.butler.editor.ui.editor.dialogs.GoToLineDialog
@@ -28,9 +29,9 @@ import kotlinx.coroutines.flow.flowOf
 /**
  * Overlay slot of the editor page.
  *
- * Shares the ViewModel with [EditorWorkspacePageHost] — every host-level side effect (error and
- * navigation handling, clipboard refresh, external-change polling) stays there and must not be
- * repeated here.
+ * Shares the ViewModel with [EditorWorkspacePageHost] — every host-level side effect (navigation
+ * handling, clipboard refresh, external-change polling) stays there and must not be repeated here.
+ * The error handler lives here instead, because it renders a dialog that has to be pane-bound.
  */
 @Composable
 fun EditorWorkspaceOverlaysHost(
@@ -43,6 +44,8 @@ fun EditorWorkspaceOverlaysHost(
         }
     ),
 ) {
+    ErrorEventHandler(vm)
+
     val clipboardInfoClip by vm.clipboardInfoClip.collectAsState(null)
 
     EditorWorkspaceOverlays(

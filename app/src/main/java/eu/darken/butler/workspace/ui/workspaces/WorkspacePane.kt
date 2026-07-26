@@ -161,10 +161,10 @@ private fun BoxScope.WorkspaceLayers(
     }
 
     // Overlays instantiate the page's ViewModel, so they must not be composed while the workspace
-    // is anything but Ready: a Dormant workspace has no instance behind its id yet and the typed
-    // page host would cast the stand-in. Pre-warming them (as the content layer does) is pointless
-    // — a non-Ready workspace has no dialogs to show.
-    if (info.lifecycleState is Workspace.LifecycleState.Ready) {
+    // is Dormant: there is no instance behind the id yet and the typed page host would cast the
+    // stand-in. Every other state composes them, matching the content layer — the error handler
+    // lives in this slot, so gating on Ready would swallow anything raised during initialization.
+    if (info.lifecycleState !is Workspace.LifecycleState.Dormant) {
         LocalWorkspacePageHosts.current[info.type]?.let { entry ->
             CompositionLocalProvider(LocalPaneLayerRank provides overlayRank) {
                 entry.Overlays(id = info.id, design = design)

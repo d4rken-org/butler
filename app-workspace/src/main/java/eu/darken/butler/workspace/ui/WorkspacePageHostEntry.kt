@@ -16,9 +16,13 @@ interface WorkspacePageHostEntry {
 
     /**
      * The page itself, plus every host-level side effect: activity-result launchers, event
-     * collectors, error/navigation handlers, polling and resume effects. These must stay
+     * collectors, the navigation handler, polling and resume effects. These must stay
      * single-instanced here — [Overlays] shares the same ViewModel, so registering them twice
      * would double-handle every event.
+     *
+     * The error handler is the one side effect that does *not* belong here: it renders a dialog,
+     * and a dialog composed from this slot is confined to the inset content bounds and ranked
+     * below any open sheet. It goes into [Overlays] instead.
      */
     @Composable
     fun Content(id: Workspace.Id, design: WorkspaceDesign)
@@ -28,10 +32,9 @@ interface WorkspacePageHostEntry {
      * so they can sit above the workspace content, above the manager dialog's peers and outside
      * the subtree that gets hidden from accessibility while covered.
      *
-     * Obtain the shared ViewModel and collect the state to render — nothing else. Pages without
-     * overlays implement this with an empty body; there is deliberately no default implementation,
-     * because a default would let a page silently keep its dialogs in [Content] and be non-modal
-     * without anything complaining.
+     * Obtain the shared ViewModel, collect the state to render, and register the error handler —
+     * nothing else. There is deliberately no default implementation, because a default would let a
+     * page silently keep its dialogs in [Content] and be non-modal without anything complaining.
      */
     @Composable
     fun Overlays(id: Workspace.Id, design: WorkspaceDesign)
