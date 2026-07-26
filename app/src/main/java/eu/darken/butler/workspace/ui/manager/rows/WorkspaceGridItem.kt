@@ -156,7 +156,7 @@ fun WorkspaceGridItem(
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
-                        overflow = TextOverflow.StartEllipsis,
+                        overflow = TextOverflow.Ellipsis,
                     )
 
                     when {
