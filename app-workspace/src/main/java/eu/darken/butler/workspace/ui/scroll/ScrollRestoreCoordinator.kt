@@ -21,6 +21,7 @@ import kotlin.time.Duration.Companion.seconds
 interface ScrollTarget {
     val totalItemsCount: Int
     val position: WorkspaceScrollPosition
+    val isScrollInProgress: Boolean
     val interactions: Flow<Interaction>
     suspend fun scrollTo(position: WorkspaceScrollPosition)
 }
@@ -43,9 +44,12 @@ private val DEFAULT_TIMEOUT = 5.seconds
  * single loading/empty placeholder item, against which a saved index of 100 would clamp to the top
  * and be recorded as the new truth.
  *
- * User intent is taken from interaction events, never from the position: a position that moved away
- * from the top may just be layout clamping, and reading that as intent would both suppress a
- * legitimate restore and license a bad write.
+ * User intent is taken from interaction events and from scroll activity, never from the position: a
+ * position that moved away from the top may just be layout clamping, and reading that as intent
+ * would both suppress a legitimate restore and license a bad write. Until the restore itself scrolls
+ * there is no scrolling of its own to confuse this with, so any scroll in progress belongs to
+ * someone else - a drag, or a programmatic scroll-to-top from a sort/search/view-style effect, which
+ * emits no drag interaction at all.
  */
 suspend fun ScrollTarget.restore(
     saved: WorkspaceScrollPosition?,
@@ -56,13 +60,16 @@ suspend fun ScrollTarget.restore(
     val outcome = withTimeoutOrNull(timeout) {
         coroutineScope {
             val dragged = async { interactions.first { it is DragInteraction.Start } }
+            val scrolled = async { snapshotFlow { isScrollInProgress }.first { it } }
             val filled = async { snapshotFlow { totalItemsCount }.first { it > saved.index } }
 
             val raced = select<Outcome> {
                 dragged.onAwait { Outcome.SUPERSEDED }
+                scrolled.onAwait { Outcome.SUPERSEDED }
                 filled.onAwait { Outcome.APPLIED }
             }
             dragged.cancel()
+            scrolled.cancel()
             filled.cancel()
 
             if (raced == Outcome.APPLIED) scrollTo(saved)

@@ -22,6 +22,7 @@ class ScrollRestoreCoordinatorTest : BaseTest() {
     private class FakeScrollTarget(itemCount: Int = 0) : ScrollTarget {
 
         private val itemCountState = mutableStateOf(itemCount)
+        private val scrollInProgressState = mutableStateOf(false)
         private val dragEvents = MutableStateFlow<Interaction?>(null)
 
         var scrolledTo: WorkspaceScrollPosition? = null
@@ -31,6 +32,9 @@ class ScrollRestoreCoordinatorTest : BaseTest() {
             get() = itemCountState.value
 
         override var position: WorkspaceScrollPosition = WorkspaceScrollPosition()
+
+        override val isScrollInProgress: Boolean
+            get() = scrollInProgressState.value
 
         override val interactions: Flow<Interaction> = dragEvents.filterNotNull()
 
@@ -46,6 +50,12 @@ class ScrollRestoreCoordinatorTest : BaseTest() {
 
         fun drag() {
             dragEvents.value = DragInteraction.Start()
+        }
+
+        /** A scroll nobody asked the coordinator for, e.g. a sort change scrolling back to top. */
+        fun scrollElsewhere() {
+            scrollInProgressState.value = true
+            Snapshot.sendApplyNotifications()
         }
     }
 
@@ -111,6 +121,25 @@ class ScrollRestoreCoordinatorTest : BaseTest() {
         runCurrent()
 
         target.drag()
+        advanceUntilIdle()
+
+        restore.await() shouldBe Outcome.SUPERSEDED
+        target.scrolledTo shouldBe null
+    }
+
+    /**
+     * A guarded scroll-to-top effect (sort change, new search, view-style transfer) scrolls without
+     * any drag interaction. Restoring over it afterwards would override what the user just asked for.
+     */
+    @Test
+    fun `a programmatic scroll while waiting supersedes the restore`() = runTest {
+        val target = FakeScrollTarget()
+        val restore = async { target.restore(WorkspaceScrollPosition(50), timeout = 5.seconds) }
+        runCurrent()
+
+        target.scrollElsewhere()
+        advanceUntilIdle()
+        target.fill(100)
         advanceUntilIdle()
 
         restore.await() shouldBe Outcome.SUPERSEDED

@@ -87,6 +87,8 @@ private fun LazyListState.asScrollTarget(): ScrollTarget = object : ScrollTarget
         get() = layoutInfo.totalItemsCount
     override val position: WorkspaceScrollPosition
         get() = WorkspaceScrollPosition(firstVisibleItemIndex, firstVisibleItemScrollOffset)
+    override val isScrollInProgress: Boolean
+        get() = this@asScrollTarget.isScrollInProgress
     override val interactions: Flow<Interaction>
         get() = interactionSource.interactions
 
@@ -99,6 +101,8 @@ private fun LazyGridState.asScrollTarget(): ScrollTarget = object : ScrollTarget
         get() = layoutInfo.totalItemsCount
     override val position: WorkspaceScrollPosition
         get() = WorkspaceScrollPosition(firstVisibleItemIndex, firstVisibleItemScrollOffset)
+    override val isScrollInProgress: Boolean
+        get() = this@asScrollTarget.isScrollInProgress
     override val interactions: Flow<Interaction>
         get() = interactionSource.interactions
 
