@@ -5,6 +5,7 @@ import android.os.Parcel
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.workspace.contracts.explorer.ExplorerArguments
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
@@ -82,6 +83,32 @@ class PausedWorkspaceTest : BaseTest() {
         workspace.info.value.callerWorkspaceId shouldBe callerId
         workspace.info.value.isSubWorkspace shouldBe true
         workspace.info.value.modalPresentation shouldBe Workspace.ModalPresentationMode.FULL_SCREEN
+    }
+
+    /**
+     * The repo hands BOTH a derivation of the held arguments and, when a live tab is paused, the
+     * info that tab was showing. The carried one wins, so pausing never renames the tab under the
+     * user - even where the derivation would produce a different (or more generic) name.
+     */
+    @Test
+    fun `a paused live instance keeps its carried identity over the derived one`() {
+        val id = Workspace.Id()
+        val workspace = PausedWorkspace(
+            id = id,
+            type = Workspace.Type.EXPLORER,
+            heldArguments = ExplorerArguments.Default(startPath = LocalPath.build("/storage/emulated/0/Music")),
+            title = "Music".toCaString(),
+            subtitle = "/storage/emulated/0".toCaString(),
+            carriedInfo = Workspace.Info(
+                id = id,
+                type = Workspace.Type.EXPLORER,
+                title = "Live title".toCaString(),
+                subtitle = "Live subtitle".toCaString(),
+            ),
+        )
+
+        workspace.info.value.title.get(context) shouldBe "Live title"
+        workspace.info.value.subtitle!!.get(context) shouldBe "Live subtitle"
     }
 
     @Test
