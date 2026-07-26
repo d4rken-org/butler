@@ -5,18 +5,16 @@ import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.runtime.snapshotFlow
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
+import eu.darken.butler.workspace.ui.restore.DEFAULT_RESTORE_TIMEOUT
+import eu.darken.butler.workspace.ui.restore.Outcome
+import eu.darken.butler.workspace.ui.restore.restoreWhenReady
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.selects.select
-import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.flow.filter
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 
 /**
  * A list/grid a scroll position can be restored into. A plain interface (not a composable) so the
- * restore state machine is unit-testable against a fake.
+ * restore is unit-testable against a fake.
  */
 interface ScrollTarget {
     val totalItemsCount: Int
@@ -26,16 +24,7 @@ interface ScrollTarget {
     suspend fun scrollTo(position: WorkspaceScrollPosition)
 }
 
-enum class Outcome {
-    NOT_NEEDED,
-    APPLIED,
-    SUPERSEDED,
-    TIMED_OUT,
-}
-
 private val TAG = logTag("Workspace", "ScrollRestore")
-
-private val DEFAULT_TIMEOUT = 5.seconds
 
 /**
  * Waits for the list to hold enough items for [saved] to be reachable, then scrolls there.
@@ -53,35 +42,21 @@ private val DEFAULT_TIMEOUT = 5.seconds
  */
 suspend fun ScrollTarget.restore(
     saved: WorkspaceScrollPosition?,
-    timeout: Duration = DEFAULT_TIMEOUT,
+    timeout: Duration = DEFAULT_RESTORE_TIMEOUT,
 ): Outcome {
-    if (saved == null || saved.isTop) {
-        // Logged like every other outcome: a silent early return makes "no line in logcat"
-        // ambiguous between "ran, nothing to do" and "never ran".
-        log(TAG) { "restore($saved) -> ${Outcome.NOT_NEEDED}" }
-        return Outcome.NOT_NEEDED
-    }
-
-    val outcome = withTimeoutOrNull(timeout) {
-        coroutineScope {
-            val dragged = async { interactions.first { it is DragInteraction.Start } }
-            val scrolled = async { snapshotFlow { isScrollInProgress }.first { it } }
-            val filled = async { snapshotFlow { totalItemsCount }.first { it > saved.index } }
-
-            val raced = select<Outcome> {
-                dragged.onAwait { Outcome.SUPERSEDED }
-                scrolled.onAwait { Outcome.SUPERSEDED }
-                filled.onAwait { Outcome.APPLIED }
-            }
-            dragged.cancel()
-            scrolled.cancel()
-            filled.cancel()
-
-            if (raced == Outcome.APPLIED) scrollTo(saved)
-            raced
-        }
-    } ?: Outcome.TIMED_OUT
-
+    val outcome = restoreWhenReady(
+        saved = saved,
+        isNoOp = { it.isTop },
+        isReady = { totalItemsCount > it.index },
+        supersededBy = listOf(
+            interactions.filter { it is DragInteraction.Start },
+            snapshotFlow { isScrollInProgress }.filter { it },
+        ),
+        timeout = timeout,
+        apply = { scrollTo(it) },
+    )
+    // Every invocation logs exactly one line, including the "nothing to do" case: a silent early
+    // return makes an absent line ambiguous between "ran, nothing to do" and "never ran".
     log(TAG) { "restore($saved) -> $outcome" }
     return outcome
 }

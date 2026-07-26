@@ -14,6 +14,8 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.restore.Outcome
+import eu.darken.butler.workspace.ui.restore.SlotLease
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 
@@ -82,7 +84,7 @@ fun rememberWorkspaceLazyGridState(
 @Composable
 private fun RestoreAndRecord(
     registry: WorkspaceScrollPositions,
-    lease: WorkspaceScrollPositions.Lease,
+    lease: SlotLease<WorkspaceScrollPosition>,
     target: ScrollTarget,
 ) {
     LaunchedEffect(target, lease) {
