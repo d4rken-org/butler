@@ -58,7 +58,7 @@ suspend fun ScrollTarget.restore(
             val dragged = async { interactions.first { it is DragInteraction.Start } }
             val filled = async { snapshotFlow { totalItemsCount }.first { it > saved.index } }
 
-            val raced = select {
+            val raced = select<Outcome> {
                 dragged.onAwait { Outcome.SUPERSEDED }
                 filled.onAwait { Outcome.APPLIED }
             }
