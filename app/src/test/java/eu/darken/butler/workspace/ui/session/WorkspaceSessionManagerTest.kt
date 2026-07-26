@@ -616,6 +616,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
                 workspaceSettings = workspaceSettings,
                 operationsManager = mockk(relaxed = true),
                 upgradeRepo = upgradeRepo,
+                usageRepo = mockk(relaxed = true),
             )
             pageManager = WorkspacePageManager(appScope = restoreScope, workspaceRemote = repo)
         }

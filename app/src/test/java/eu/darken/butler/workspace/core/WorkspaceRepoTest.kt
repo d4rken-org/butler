@@ -9,6 +9,7 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import eu.darken.butler.workspace.core.operations.OperationsManager
+import eu.darken.butler.workspace.core.usage.WorkspaceUsageRepo
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -149,6 +150,8 @@ class WorkspaceRepoTest : BaseTest() {
 
     private val operationsManager: OperationsManager = mockk(relaxed = true)
 
+    private val usageRepo: WorkspaceUsageRepo = mockk(relaxed = true)
+
     // Resource ids resolve to a stable stand-in so CaStrings can be compared by resolved value
     // (CaString has no structural equality)
     private val context: Context = mockk<Context>().apply {
@@ -174,6 +177,7 @@ class WorkspaceRepoTest : BaseTest() {
             workspaceSettings = workspaceSettings,
             operationsManager = operationsManager,
             upgradeRepo = upgradeRepo,
+            usageRepo = usageRepo,
         )
     }
 
@@ -1587,4 +1591,107 @@ class WorkspaceRepoTest : BaseTest() {
             values.count { it is WorkspaceAction.CreateBatch.CreationResult.Success } shouldBe 1
             values.count { it is WorkspaceAction.CreateBatch.CreationResult.Failure } shouldBe 1
         }
+
+    @Test
+    fun `creating a tab tracks its type as used`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+
+        repo.createTab(type = Workspace.Type.EXPLORER)
+
+        coVerify(exactly = 1) { usageRepo.track(Workspace.Type.EXPLORER, any()) }
+    }
+
+    @Test
+    fun `batch creation tracks every successfully created tab`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo(isPro = true)
+
+        repo.createBatch(
+            createReq(Workspace.Type.EXPLORER),
+            createReq(Workspace.Type.SEARCHER),
+        )
+
+        coVerify(exactly = 1) { usageRepo.track(Workspace.Type.EXPLORER, any()) }
+        coVerify(exactly = 1) { usageRepo.track(Workspace.Type.SEARCHER, any()) }
+    }
+
+    @Test
+    fun `batch creation does not track already-open entries`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo(isPro = true)
+        repo.createContentTab(pathA)
+
+        // pathA resolves to AlreadyOpen, only pathB is actually created
+        repo.createBatch(contentReq(pathA), contentReq(pathB))
+
+        // One for the initial tab, one for pathB — the AlreadyOpen entry adds nothing
+        coVerify(exactly = 2) { usageRepo.track(Workspace.Type.EDITOR, any()) }
+    }
+
+    @Test
+    fun `batch creation does not track limit-skipped requests`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo(isPro = false)
+        repeat(WorkspaceRepo.FREE_TIER_WORKSPACE_LIMIT) { repo.createTab(type = Workspace.Type.EXPLORER) }
+
+        repo.createBatch(createReq(Workspace.Type.SEARCHER))
+
+        coVerify(exactly = 0) { usageRepo.track(Workspace.Type.SEARCHER, any()) }
+    }
+
+    @Test
+    fun `session restore does not track usage`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+
+        repo.execute(
+            WorkspaceAction.Create(
+                type = Workspace.Type.EXPLORER,
+                arguments = FakeArguments(Workspace.Type.EXPLORER),
+                skipLimitCheck = true,
+            )
+        ).shouldBeInstanceOf<WorkspaceAction.Create.Result.Success>()
+
+        coVerify(exactly = 0) { usageRepo.track(any(), any()) }
+    }
+
+    @Test
+    fun `sub-workspaces do not track usage`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val parentId = repo.createTab(type = Workspace.Type.EXPLORER)
+
+        repo.createSubWorkspace(caller = parentId, type = Workspace.Type.SEARCHER)
+
+        coVerify(exactly = 0) { usageRepo.track(Workspace.Type.SEARCHER, any()) }
+    }
+
+    @Test
+    fun `quota-exempt types do not track usage`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+
+        repo.createTab(type = Workspace.Type.DEVELOPER)
+
+        coVerify(exactly = 0) { usageRepo.track(any(), any()) }
+    }
+
+    @Test
+    fun `the templates picker does not track usage`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+
+        repo.createTab(type = Workspace.Type.TEMPLATES)
+
+        coVerify(exactly = 0) { usageRepo.track(any(), any()) }
+    }
+
+    @Test
+    fun `morphing a tab tracks the new type`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val originalId = repo.createTab(type = Workspace.Type.EXPLORER)
+
+        repo.execute(
+            WorkspaceAction.Create(
+                type = Workspace.Type.SEARCHER,
+                arguments = FakeArguments(Workspace.Type.SEARCHER),
+                replace = originalId,
+            )
+        ).shouldBeInstanceOf<WorkspaceAction.Create.Result.Success>()
+
+        coVerify(exactly = 1) { usageRepo.track(Workspace.Type.SEARCHER, any()) }
+    }
 }

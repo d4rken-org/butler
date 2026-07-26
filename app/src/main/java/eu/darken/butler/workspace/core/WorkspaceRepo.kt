@@ -13,6 +13,7 @@ import eu.darken.butler.common.flow.setupCommonEventHandlers
 import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.upgrade.isPro
 import eu.darken.butler.workspace.core.operations.OperationsManager
+import eu.darken.butler.workspace.core.usage.WorkspaceUsageRepo
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -29,6 +30,8 @@ import kotlinx.coroutines.sync.withLock
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 @Singleton
@@ -38,6 +41,7 @@ class WorkspaceRepo @Inject constructor(
     private val workspaceSettings: WorkspaceSettings,
     private val operationsManager: OperationsManager,
     private val upgradeRepo: UpgradeRepo,
+    private val usageRepo: WorkspaceUsageRepo,
 ) : WorkspaceProvider, WorkspaceRemote {
 
     private val lock = Mutex()
@@ -283,6 +287,7 @@ class WorkspaceRepo @Inject constructor(
                     idToReplace = action.replace,
                     existingId = action.id,
                 )
+                trackUsage(action, Clock.System.now())
                 log(TAG) { "New workspace created with ID $newId, emitting event" }
                 _events.emit(
                     WorkspaceEvent.Created(
@@ -671,6 +676,29 @@ class WorkspaceRepo @Inject constructor(
         get() = type.isSingleton && !arguments.isForSubWorkspace && !skipLimitCheck && replace == null
 
     /**
+     * True when this create reflects a deliberate user choice of workspace type and should feed the
+     * "recently used" ranking: not a session restore ([WorkspaceAction.Create.skipLimitCheck]), not a
+     * system/utility type ([Workspace.Type.isQuotaExempt]), not a sub-workspace (picker, app details,
+     * saver) and not the templates picker itself (which is the entry point offering the ranking).
+     * A replace (tab morph) does count — the user picked that type.
+     */
+    private val WorkspaceAction.Create.isTrackableUsage: Boolean
+        get() = !skipLimitCheck &&
+            !type.isQuotaExempt &&
+            !arguments.isForSubWorkspace &&
+            type != Workspace.Type.TEMPLATES
+
+    /**
+     * Fire-and-forget on [appScope] so a DataStore write never stalls the repo's [lock]. [usedAt] is
+     * captured by the caller right after creation: computing it inside the coroutine would let
+     * scheduling reorder timestamps relative to actual creation order.
+     */
+    private fun trackUsage(request: WorkspaceAction.Create, usedAt: Instant) {
+        if (!request.isTrackableUsage) return
+        appScope.launch { usageRepo.track(request.type, usedAt) }
+    }
+
+    /**
      * Number of open tab workspaces that count toward [FREE_TIER_WORKSPACE_LIMIT]: excludes modal
      * sub-workspaces and quota-exempt types ([Workspace.Type.isQuotaExempt]).
      */
@@ -888,6 +916,7 @@ class WorkspaceRepo @Inject constructor(
                     )
                 )
                 results[createRequest] = WorkspaceAction.CreateBatch.CreationResult.Success(newId)
+                trackUsage(createRequest, Clock.System.now())
                 log(TAG) { "Batch creation succeeded for ${createRequest.type}: $newId" }
             } catch (e: Exception) {
                 log(TAG, ERROR) { "Batch creation failed for ${createRequest.type}: ${e.asLog()}" }
