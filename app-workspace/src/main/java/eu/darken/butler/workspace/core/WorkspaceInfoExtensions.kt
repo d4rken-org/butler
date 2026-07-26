@@ -22,7 +22,7 @@ import kotlinx.coroutines.flow.stateIn
  * per-path open dedup).
  *
  * [title] and [subtitle] should come from the same derivation the type's
- * [WorkspaceFactory.deriveDisplay] uses, so a dormant stand-in and the live workspace show the
+ * [WorkspaceFactory.deriveDisplay] uses, so a paused stand-in and the live workspace show the
  * same identity for the same arguments.
  */
 fun Workspace<*>.initialInfo(

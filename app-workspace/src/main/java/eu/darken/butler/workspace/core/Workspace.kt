@@ -70,15 +70,16 @@ interface Workspace<ArgT : Workspace.Arguments> {
         data object Ready : LifecycleState
 
         /**
-         * The workspace exists as a lightweight stand-in that holds its arguments but has not been
-         * instantiated yet (on-demand session restore). It performs no I/O until it is hydrated,
-         * either by gaining focus or via the placeholder's restore button.
+         * The workspace exists as a lightweight stand-in that holds its arguments but has no live
+         * instance: either it was never instantiated (session restore) or its instance was released
+         * to save memory and battery ([WorkspaceAction.Pause]). It performs no I/O until it is
+         * resumed, either by gaining focus or via the placeholder's resume button.
          *
-         * [error] carries the failure of the last hydration attempt, if any. A failed hydration
-         * stays [Dormant] and never becomes [Error]: [Error] composes the workspace's typed page
+         * [error] carries the failure of the last resume attempt, if any. A failed resume
+         * stays [Paused] and never becomes [Error]: [Error] composes the workspace's typed page
          * host, which would cast the stand-in to a concrete workspace type.
          */
-        data class Dormant(val error: Throwable? = null) : LifecycleState
+        data class Paused(val error: Throwable? = null) : LifecycleState
     }
 
     @Parcelize
@@ -243,6 +244,15 @@ interface Workspace<ArgT : Workspace.Arguments> {
          */
         val hasUnsavedChanges: Boolean = false,
         /**
+         * True when releasing this instance right now would not lose in-flight work or state that
+         * [createArguments] cannot reproduce — i.e. the workspace may be paused
+         * ([WorkspaceAction.Pause]). Workspaces whose arguments fully describe them leave this true.
+         *
+         * A fast reactive signal, not an atomic one: WorkspaceRepo re-checks it after capturing the
+         * arguments, right before the live instance is swapped for the stand-in.
+         */
+        val isPausable: Boolean = true,
+        /**
          * ID of the workspace that created this workspace, if this is a sub-workspace.
          * Null for normal workspaces.
          *
@@ -303,7 +313,7 @@ interface Workspace<ArgT : Workspace.Arguments> {
         val isReady: Boolean get() = lifecycleState is LifecycleState.Ready
         val isError: Boolean get() = lifecycleState is LifecycleState.Error
         val isInitializing: Boolean get() = lifecycleState is LifecycleState.Initializing
-        val isDormant: Boolean get() = lifecycleState is LifecycleState.Dormant
+        val isPaused: Boolean get() = lifecycleState is LifecycleState.Paused
     }
 }
 

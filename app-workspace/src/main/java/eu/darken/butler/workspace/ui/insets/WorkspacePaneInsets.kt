@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -103,10 +104,23 @@ fun PaneEdges.paneInsets(): WorkspacePaneInsets = resolve(rawPaneInsets(), Local
 fun WorkspaceDesign.paneInsets(): WorkspacePaneInsets = paneEdges.paneInsets()
 
 /**
- * Pads a pane subtree away from the horizontal system bars / cutouts it touches.
+ * Window edges the enclosing pane touches, so pane-scoped chrome composed outside a page — dialogs,
+ * sheets — can inset itself without every host threading the value through.
  *
- * Applied once around a whole pane (content plus its banners, sheets and dialogs) instead of per
- * page, so pane-scoped chrome emitted outside a page's root can't slip under a side navigation bar.
+ * Defaults to touching nothing, so the same components used outside a pane pad by nothing.
+ */
+val LocalPaneEdges = compositionLocalOf {
+    PaneEdges(touchesTop = false, touchesBottom = false, touchesStart = false, touchesEnd = false)
+}
+
+/**
+ * Pads content away from the horizontal system bars / cutouts its pane touches.
+ *
+ * Applied to what the user reads — page content, banners, the surface of a dialog or sheet — and
+ * deliberately NOT to a pane's scrims and pointer barriers, which have to keep covering the full
+ * pane. Inset those and the strip next to a side navigation bar stays undimmed, stays touchable and
+ * falls outside the pane's press observer.
+ *
  * Vertical insets stay page-controlled so lists keep scrolling under the status/navigation bar.
  *
  * Uses [windowInsetsPadding] with physical left/right values: [androidx.compose.foundation.layout.padding]

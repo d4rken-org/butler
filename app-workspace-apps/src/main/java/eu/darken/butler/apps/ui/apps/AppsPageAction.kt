@@ -53,6 +53,8 @@ sealed interface AppsPageAction {
      */
     sealed interface Selection : AppsPageAction {
         data object Clear : Selection
+        data object SelectUserApps : Selection
+        data object SelectSystemApps : Selection
     }
 
     /**

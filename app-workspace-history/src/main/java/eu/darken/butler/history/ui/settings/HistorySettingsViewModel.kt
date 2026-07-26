@@ -5,6 +5,7 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.workspace.core.operations.history.HistorySettings
 import eu.darken.butler.workspace.core.operations.history.OperationHistoryRepo
@@ -21,6 +22,8 @@ class HistorySettingsViewModel @Inject constructor(
     private val historyRepo: OperationHistoryRepo,
     private val historyDao: OperationHistoryDao,
 ) : ViewModel4(dispatcherProvider, logTag("History", "Settings")) {
+
+    val events = SingleEventFlow<Event>()
 
     val state = combine(
         historySettings.saveHistory.flow,
@@ -50,6 +53,11 @@ class HistorySettingsViewModel @Inject constructor(
     fun clearHistory() = launch {
         log(tag) { "clearHistory()" }
         historyRepo.clearAll()
+        events.emit(Event.HistoryCleared)
+    }
+
+    sealed interface Event {
+        data object HistoryCleared : Event
     }
 
     data class State(

@@ -41,6 +41,7 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.icon
 import eu.darken.butler.workspace.core.label
 import kotlinx.coroutines.delay
+import eu.darken.butler.workspace.R as WorkspaceR
 
 @Composable
 fun WorkspaceSwitchIndicator(
@@ -104,6 +105,13 @@ fun WorkspaceSwitchIndicator(
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSecondaryContainer,
                     )
+                    if (info.isPaused) {
+                        Text(
+                            text = stringResource(id = WorkspaceR.string.workspace_paused_label),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f),
+                        )
+                    }
                     Spacer(modifier = Modifier.weight(1f))
                     Text(
                         text = stringResource(
@@ -204,5 +212,22 @@ private fun WorkspaceSwitchIndicatorLongTitlePreview() {
         ),
         position = 5,
         totalWorkspaces = 8,
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspaceSwitchIndicatorPausedPreview() {
+    WorkspaceSwitchIndicator(
+        info = Workspace.Info(
+            id = Workspace.Id(),
+            type = Workspace.Type.EXPLORER,
+            title = "/storage/emulated/0/Music".toCaString(),
+            subtitle = "File browser".toCaString(),
+            lifecycleState = Workspace.LifecycleState.Paused(),
+        ),
+        position = 4,
+        totalWorkspaces = 6,
     )
 }

@@ -204,6 +204,25 @@ fun WorkspaceScreen(
     }
 }
 
+/**
+ * Dismisses the tab manager overlay on back.
+ *
+ * Registered above the workspace content, so it loses every LIFO race against a handler inside a
+ * pane — the panes going unfocused while the overlay is up is what disables those and leaves this
+ * one to win. Kept as its own composable so the regression test can drive the real registration
+ * instead of a stand-in.
+ *
+ * This registers an UNGATED raw back handler: composed anywhere inside the workspace tree it would
+ * outrank the pane handlers exactly like the bug it exists to prevent. Only [WorkspacesScreenHost]
+ * may compose it, which `RawBackHandlerBanTest` enforces; `internal` is as tight as the visibility
+ * can go while the test can still reach it.
+ */
+@Composable
+internal fun ManagerOverlayBackHandler(
+    isOverlayVisible: Boolean,
+    onDismiss: () -> Unit,
+) = BackHandler(enabled = isOverlayVisible, onBack = onDismiss)
+
 @Composable
 fun WorkspacesScreenHost(
     vm: WorkspacesViewModel = hiltViewModel(),
@@ -249,10 +268,10 @@ fun WorkspacesScreenHost(
         }
     }
 
-    // Handle back button when manager overlay is visible
-    BackHandler(enabled = pageManagerState.isManagerOverlayVisible) {
-        vm.workspacePageManager.hideManagerOverlay()
-    }
+    ManagerOverlayBackHandler(
+        isOverlayVisible = pageManagerState.isManagerOverlayVisible,
+        onDismiss = { vm.workspacePageManager.hideManagerOverlay() },
+    )
 
     val state by vm.state.collectAsState(initial = null)
 
@@ -288,6 +307,8 @@ fun WorkspacesScreenHost(
                     onCloseWorkspace = managerVm::closeWorkspace,
                     onReorderWorkspaces = managerVm::reorderWorkspaces,
                     onSelectWorkspace = managerVm::selectWorkspace,
+                    onPauseWorkspace = managerVm::pauseWorkspace,
+                    onResumeWorkspace = managerVm::resumeWorkspace,
                     onCreateWorkspace = managerVm::createWorkspace,
                     onQuickCreate = managerVm::createWorkspace,
                     onNavigateBack = managerVm::navigateBack,

@@ -19,9 +19,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
@@ -39,10 +42,19 @@ fun AppsSearchBar(
     modifier: Modifier = Modifier,
     query: TextFieldValue,
     onQueryChange: (TextFieldValue) -> Unit,
+    hint: String = stringResource(R.string.apps_search_hint),
+    autoFocus: Boolean = false,
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val colors = MaterialTheme.colorScheme
     val interactionSource = remember { MutableInteractionSource() }
+    val focusRequester = remember { FocusRequester() }
+
+    // Keyed on the flag rather than Unit, so a false -> true flip in a surviving composition (the
+    // toolbar swapping its title column for the search input) still opens the keyboard.
+    LaunchedEffect(autoFocus) {
+        if (autoFocus) runCatching { focusRequester.requestFocus() }
+    }
 
     Surface(
         modifier = modifier.fillMaxWidth(),
@@ -69,7 +81,9 @@ fun AppsSearchBar(
             BasicTextField(
                 value = query,
                 onValueChange = onQueryChange,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .focusRequester(focusRequester),
                 textStyle = MaterialTheme.typography.bodyMedium.copy(
                     color = colors.onSurface
                 ),
@@ -84,7 +98,7 @@ fun AppsSearchBar(
                     Box {
                         if (query.text.isEmpty()) {
                             Text(
-                                text = stringResource(R.string.apps_search_hint),
+                                text = hint,
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = colors.onSurfaceVariant.copy(alpha = 0.6f),
                             )

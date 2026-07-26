@@ -18,6 +18,11 @@ object SearcherWorkspacePageHostEntry : WorkspacePageHostEntry {
         SearcherWorkspacePageHost(id = id, design = design)
     }
 
+    @Composable
+    override fun Overlays(id: Workspace.Id, design: WorkspaceDesign) {
+        SearcherWorkspaceOverlaysHost(id = id, design = design)
+    }
+
     @Module
     @InstallIn(SingletonComponent::class)
     object PageHostModule {

@@ -134,10 +134,8 @@
     <string name="history_settings_max_history_label">Max history items</string>
     <string name="history_settings_max_history_subtitle">Older entries are removed once this limit is exceeded.</string>
     <string name="history_settings_max_history_input_label">Maximum entries</string>
-    <string name="history_settings_current_history_title">Current history</string>
-    <string name="history_settings_current_history_subtitle">Stored entries.</string>
     <string name="history_settings_clear_history_title">Clear history</string>
-    <string name="history_settings_clear_history_subtitle">Remove all stored entries.</string>
+    <string name="history_settings_clear_history_subtitle">Remove all stored entries (%1$d).</string>
     <string name="history_clear_dialog_title">Clear history?</string>
     <string name="history_clear_dialog_message">Removes all entries from the operation history database. This cannot be undone.</string>
     <string name="history_clear_confirm_action">Clear</string>

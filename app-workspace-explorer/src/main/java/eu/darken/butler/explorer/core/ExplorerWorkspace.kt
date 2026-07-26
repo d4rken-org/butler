@@ -139,7 +139,7 @@ class ExplorerWorkspace @AssistedInject constructor(
         _saveAsFilename.value = filename
     }
 
-    // Same derivation the factory hands the dormant stand-in, so both name this tab identically
+    // Same derivation the factory hands the paused stand-in, so both name this tab identically
     private val seedDisplay = deriveExplorerDisplay(creationArguments)
 
 

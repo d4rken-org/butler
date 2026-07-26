@@ -227,8 +227,7 @@ class OperationHistoryRepo @Inject constructor(
 
     suspend fun clearAll() {
         log(TAG, INFO) { "clearAll()" }
-        runCatching { dao.deleteAll() }
-            .onFailure { log(TAG, ERROR) { "clearAll() failed: ${it.asLog()}" } }
+        dao.deleteAll()
     }
 
     // ─── helpers ──────────────────────────────────────────────────────────────────

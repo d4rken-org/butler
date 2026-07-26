@@ -2,7 +2,6 @@ package eu.darken.butler.explorer.ui.explorer.dialogs
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -26,6 +25,8 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.explorer.R
+import eu.darken.butler.workspace.ui.dialogs.PaneBoundAlertDialog
+import eu.darken.butler.workspace.ui.modal.LocalLayerActive
 import eu.darken.butler.common.R as CommonR
 
 data class RenameResult(
@@ -63,12 +64,16 @@ fun RenameDialog(
     val validation = remember(textFieldValue.text) { onValidate(textFieldValue.text) }
     val isError = validation is FilenameValidator.ValidationResult.Invalid
 
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
+    // Only pull focus (and with it the keyboard) while this dialog is the layer the user is
+    // actually talking to — otherwise it steals input from whatever is on top of it.
+    val layerActive = LocalLayerActive.current
+    LaunchedEffect(layerActive) {
+        if (layerActive) focusRequester.requestFocus()
     }
 
-    AlertDialog(
+    PaneBoundAlertDialog(
         onDismissRequest = onDismiss,
+        includeImePadding = true,
         title = {
             Text(
                 text = stringResource(R.string.explorer_dialog_rename_title),

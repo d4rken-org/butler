@@ -15,7 +15,7 @@ private const val MAX_SUBTITLE_TARGETS = 3
 
 /**
  * Tab identity of a Searcher workspace derived from its arguments alone: the query it will run,
- * described by where it will look. Pure and synchronous — used for both the dormant stand-in and
+ * described by where it will look. Pure and synchronous — used for both the paused stand-in and
  * the live workspace's [eu.darken.butler.workspace.core.initialInfo] seed.
  */
 fun deriveSearcherDisplay(arguments: SearcherArguments): WorkspaceDisplay? {
@@ -28,7 +28,7 @@ fun deriveSearcherDisplay(arguments: SearcherArguments): WorkspaceDisplay? {
 }
 
 /**
- * The one identity derivation: the dormant stand-in feeds it the persisted arguments, the live
+ * The one identity derivation: the paused stand-in feeds it the persisted arguments, the live
  * workspace feeds it the current query and targets, so the two can never describe the tab
  * differently. Null when neither a query nor a target says anything about this tab.
  */

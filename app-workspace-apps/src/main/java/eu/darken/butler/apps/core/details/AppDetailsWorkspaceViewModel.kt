@@ -3,7 +3,6 @@ package eu.darken.butler.apps.core.details
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.content.pm.ActivityInfo
 import android.net.Uri
 import android.provider.Settings
 import androidx.core.net.toUri
@@ -13,6 +12,9 @@ import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.apps.R
+import eu.darken.butler.apps.core.details.components.AppComponentsController
+import eu.darken.butler.apps.core.details.components.AppComponentsLoader
+import eu.darken.butler.apps.core.details.components.ComponentEntry
 import eu.darken.butler.common.ElevatedAccessUnavailableException
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
@@ -35,7 +37,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 
 @HiltViewModel(assistedFactory = AppDetailsWorkspaceViewModel.Factory::class)
 class AppDetailsWorkspaceViewModel @AssistedInject constructor(
@@ -45,6 +49,7 @@ class AppDetailsWorkspaceViewModel @AssistedInject constructor(
     workspaceProvider: WorkspaceProvider,
     private val workspaceRemote: WorkspaceRemote,
     private val pkgOps: PkgOps,
+    componentsLoader: AppComponentsLoader,
 ) : ViewModel4(dispatchers, logTag("AppDetails", "Workspace", id.shortTag, "Page")) {
 
     private val workspaceSource: Flow<AppDetailsWorkspace?> =
@@ -56,6 +61,37 @@ class AppDetailsWorkspaceViewModel @AssistedInject constructor(
     val state: Flow<AppDetailsWorkspace.State> = workspaceSource
         .filterNotNull()
         .flatMapLatest { it.state }
+
+    private val componentsController = AppComponentsController(
+        scope = vmScope,
+        loader = componentsLoader,
+    )
+
+    val componentsState = componentsController.state
+    val selectedComponent = componentsController.selectedComponent
+
+    init {
+        // Driven from the nullable source, not from `state`: that one filters the absent workspace
+        // away and would never emit, leaving the controller holding data, a live selection and a
+        // running load in a ViewModel that outlives the pane.
+        workspaceSource
+            .flatMapLatest { workspace -> workspace?.state ?: flowOf<AppDetailsWorkspace.State?>(null) }
+            .onEach { workspaceState ->
+                componentsController.onAppChanged(workspaceState?.app)
+                componentsController.onComponentsRouteActive(workspaceState?.selectedTab == DetailTab.COMPONENTS)
+            }
+            .launchInViewModel()
+    }
+
+    fun onComponentSelected(entry: ComponentEntry) {
+        log(tag) { "onComponentSelected(${entry.key})" }
+        componentsController.select(entry)
+    }
+
+    fun onComponentSheetDismissed() {
+        log(tag) { "onComponentSheetDismissed()" }
+        componentsController.dismiss()
+    }
 
     fun onTabSelected(tab: DetailTab) = launch {
         log(tag) { "Tab selected: $tab" }
@@ -164,17 +200,17 @@ class AppDetailsWorkspaceViewModel @AssistedInject constructor(
         pkgOps.changePackageState(app.id, enabled = !app.isEnabled)
     }
 
-    fun onLaunchActivity(activityInfo: ActivityInfo) {
-        log(tag) { "Launching activity: ${activityInfo.name}" }
+    fun onLaunchComponent(packageName: String, className: String) {
+        log(tag) { "Launching activity: $className" }
         try {
             val intent = Intent().apply {
-                component = ComponentName(activityInfo.packageName, activityInfo.name)
+                component = ComponentName(packageName, className)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             context.startActivity(intent)
         } catch (e: Exception) {
             // Exported doesn't guarantee launchable (permission-protected/disabled) — surface it.
-            log(tag, WARN) { "Failed to launch activity ${activityInfo.name}: ${e.asLog()}" }
+            log(tag, WARN) { "Failed to launch activity $className: ${e.asLog()}" }
             errorEvents.emitBlocking(
                 IllegalStateException(context.getString(R.string.apps_components_launch_failed), e),
             )

@@ -63,7 +63,6 @@ class FolderPreviewResolverTest : BaseTest() {
         fileSystemHinter = hinter,
         appScope = scope,
         dispatcherProvider = TestDispatcherProvider(),
-        workspaceSettings = mockk(),
         storageEnvironment = storageEnvironment,
         routingPolicy = routingPolicy,
     )

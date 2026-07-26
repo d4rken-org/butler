@@ -207,7 +207,7 @@
     <string name="settings_support_debuglog_recording_desc">Currently recording debug information. Tap to stop recording.</string>
     <string name="settings_support_debuglog_path">Log path: %1$s</string>
     <string name="settings_support_bugreports_label">Bug reports</string>
-    <string name="settings_support_bugreports_desc">View crash reports, record debug logs, and share them with the developer.</string>
+    <string name="settings_support_bugreports_desc">View crash reports, record debug logs, and share them with me.</string>
     <string name="support_contact_report_type_crash">Crash report</string>
     <string name="support_contact_report_type_reported">Bug report</string>
     <string name="support_contact_report_type_recording">Recording</string>
@@ -342,6 +342,8 @@
     <!-- Workspace Manager Row -->
     <string name="workspace_row_close_content_desc">Close tab</string>
     <string name="workspace_row_more_options_content_desc">More options</string>
+    <string name="workspace_row_pause_content_desc">Pause tab</string>
+    <string name="workspace_row_resume_content_desc">Resume tab</string>
 
     <!-- Settings Index -->
     <string name="workspace_settings_subtitle">Configure tab behavior.</string>
@@ -368,7 +370,7 @@
 
     <!-- Support: Contact Form -->
     <string name="support_contact_label">Contact developer</string>
-    <string name="support_contact_description">Fill out a form to send the developer an email.</string>
+    <string name="support_contact_description">Fill out a form to send me an email.</string>
     <string name="support_contact_no_email_app">No email app found</string>
     <string name="support_contact_category_label">Category</string>
     <string name="support_contact_category_question">Question</string>
@@ -391,7 +393,7 @@
     <string name="support_contact_debuglog_picker_hint">Attach an existing debug log, or record a new one.</string>
     <string name="support_contact_send_action">Open email app</string>
     <string name="support_contact_welcome">I read every message myself and do my best to reply, but since I work on this alone, it can take a little time. Thanks for your patience.</string>
-    <string name="support_contact_footer">Your message will be sent via email. Device and setup information is attached automatically. You can attach screenshots or a video to the email.\n\nSome parts of the email will be in English so the developer can easily understand it.</string>
+    <string name="support_contact_footer">Your message will be sent via email. Device and setup information is attached automatically. You can attach screenshots or a video to the email.\n\nSome parts of the email will be in English so I can easily understand it.</string>
 
     <!-- Support: Debug Log Storage -->
     <string name="support_debuglog_storage_label">Debug log storage</string>

@@ -69,6 +69,7 @@ import eu.darken.butler.workspace.core.createAndFocus
 import eu.darken.butler.workspace.core.handleResult
 import eu.darken.butler.workspace.core.launchPicker
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
 import eu.darken.butler.workspace.ui.page.WorkspacePageChrome
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -115,7 +116,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private val itemSorter = itemSorterFactory.create(id)
     private val chrome = chromeFactory.create(id, vmScope)
 
-    val folderPreviewObserver: FolderPreviewObserver get() = folderPreviewResolver.settingsGatedObserver
+    val folderPreviewObserver: FolderPreviewObserver = folderPreviewResolver::observe
 
     private val workspaceSource: Flow<SearcherWorkspace?> =
         workspaceProvider.retrieve(id)
@@ -139,6 +140,13 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private val viewStyleFlow = MutableStateFlow(searcherSettings.defaultViewStyle.valueBlocking)
     private var lastAutoExecutedQuery: String? = null
     private var currentSearchId: String? = null
+
+    // Overlay visibility lives here rather than in the page: the page and its overlays are
+    // siblings, so a `remember` in the page would be a different instance from the one the
+    // overlays read. The retained throwable is never persisted — it is cleared on dismiss/share
+    // and the same instance is already held by the search engine's target progress state.
+    private val _overlayState = MutableStateFlow(OverlayState())
+    val overlayState: StateFlow<OverlayState> = _overlayState
 
     // Issue/conflict handling
     private val conflicts = SearcherOperationConflictController(
@@ -1369,11 +1377,48 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 chrome.shareWorkspaceError(action.error, "Search operation in workspace ${id.shortTag}")
             }
 
+            // Overlays
+            is SearcherPageAction.Overlays.ShowTemplates -> {
+                _overlayState.update { it.copy(showTemplatesSheet = true) }
+            }
+            is SearcherPageAction.Overlays.DismissTemplates -> {
+                _overlayState.update { it.copy(showTemplatesSheet = false) }
+            }
+            is SearcherPageAction.Overlays.ShowAccessErrors -> {
+                _overlayState.update { it.copy(showAccessErrorsSheet = true) }
+            }
+            is SearcherPageAction.Overlays.DismissAccessErrors -> {
+                _overlayState.update { it.copy(showAccessErrorsSheet = false) }
+            }
+            is SearcherPageAction.Overlays.ShowOperationDetails -> {
+                _overlayState.update {
+                    it.copy(operationDialogState = OperationDialogState.OperationDetails(action.id))
+                }
+            }
+            is SearcherPageAction.Overlays.DismissOperationDetails -> {
+                _overlayState.update { it.copy(operationDialogState = OperationDialogState.None) }
+            }
+            is SearcherPageAction.Overlays.ShowTargetError -> {
+                _overlayState.update { it.copy(targetError = TargetError(action.path, action.error)) }
+            }
+            is SearcherPageAction.Overlays.DismissTargetError -> {
+                _overlayState.update { it.copy(targetError = null) }
+            }
+
             // Workspace actions (delegate to existing handler)
             is SearcherPageAction.WorkspaceAction -> onAction(action.action)
             is SearcherPageAction.WorkspaceActionLongClick -> onActionLongClick(action.action)
         }
     }
+
+    data class TargetError(val path: String, val error: Throwable)
+
+    data class OverlayState(
+        val showTemplatesSheet: Boolean = false,
+        val showAccessErrorsSheet: Boolean = false,
+        val operationDialogState: OperationDialogState = OperationDialogState.None,
+        val targetError: TargetError? = null,
+    )
 
     @AssistedFactory
     interface Factory {

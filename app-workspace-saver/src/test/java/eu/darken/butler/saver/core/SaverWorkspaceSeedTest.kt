@@ -27,7 +27,7 @@ import org.robolectric.annotation.Config
 import testhelpers.coroutine.TestDispatcherProvider
 
 /**
- * The live workspace must seed its [Workspace.Info] from the same derivation the dormant stand-in
+ * The live workspace must seed its [Workspace.Info] from the same derivation the paused stand-in
  * uses; enriching it once the shared URIs resolve is expected.
  *
  * The workspace scope runs on an unadvanced [StandardTestDispatcher], so `info.value` is still the

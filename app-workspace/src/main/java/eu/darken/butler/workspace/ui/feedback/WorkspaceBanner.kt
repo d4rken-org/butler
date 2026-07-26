@@ -30,6 +30,7 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.R
+import eu.darken.butler.workspace.ui.modal.LocalLayerActive
 import kotlinx.coroutines.delay
 
 @Composable
@@ -45,8 +46,12 @@ fun WorkspaceBanner(
         modifier = modifier
     ) {
         state?.let { bannerState ->
-            // Auto-dismiss after 3 seconds
-            LaunchedEffect(bannerState) {
+            // Auto-dismiss after 3 seconds, but only while this layer is the active one. A banner
+            // arriving behind a dialog or a pane-local child modal would otherwise expire unseen;
+            // the countdown restarts once the content layer is back on top.
+            val layerActive = LocalLayerActive.current
+            LaunchedEffect(bannerState, layerActive) {
+                if (!layerActive) return@LaunchedEffect
                 delay(3000)
                 onDismiss()
             }

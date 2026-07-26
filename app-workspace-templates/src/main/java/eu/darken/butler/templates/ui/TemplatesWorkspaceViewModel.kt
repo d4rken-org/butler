@@ -17,6 +17,8 @@ import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.ui.template.WorkspaceTemplate
 import eu.darken.butler.workspace.ui.template.availableTemplates
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 
@@ -60,8 +62,23 @@ class TemplatesWorkspaceViewModel @AssistedInject constructor(
         )
     }.asStateFlow()
 
+    // Owned here rather than in the page: the rename dialog renders from the overlay slot, which is
+    // a sibling of the page, so a `remember` there would be a different instance from the one the
+    // overlay reads.
+    private val _renameDialogVisible = MutableStateFlow(false)
+    val renameDialogVisible: StateFlow<Boolean> = _renameDialogVisible
+
+    fun showRenameDialog() {
+        _renameDialogVisible.value = true
+    }
+
+    fun dismissRenameDialog() {
+        _renameDialogVisible.value = false
+    }
+
     fun renameWorkspace(customTitle: String?) = launch {
         log(tag) { "renameWorkspace($customTitle)" }
+        _renameDialogVisible.value = false
         workspaceRemote.execute(WorkspaceAction.Rename(id, customTitle))
     }
 

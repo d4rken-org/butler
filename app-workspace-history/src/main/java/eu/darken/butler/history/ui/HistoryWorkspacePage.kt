@@ -20,9 +20,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -68,14 +65,6 @@ fun HistoryWorkspacePageHost(
 
     val state by vm.state.collectAsState(initial = null)
 
-    var detailEntry by remember { mutableStateOf<HistoryEntry?>(null) }
-    var pathScopeOpen by remember { mutableStateOf(false) }
-    var addFilterOpen by remember { mutableStateOf(false) }
-
-    val paneInsets = design.paneInsets()
-    val navBarInset = paneInsets.bottom
-    val statusBarInset = paneInsets.top
-
     state?.let { s ->
         HistoryWorkspacePage(
             workspaceId = id,
@@ -84,43 +73,10 @@ fun HistoryWorkspacePageHost(
             onRemoveOutcome = { vm.toggleOutcome(it) },
             onRemoveKind = { vm.toggleKind(it) },
             onRemovePathScope = { vm.removePathScope(it) },
-            onAddFilter = { addFilterOpen = true },
+            onAddFilter = { vm.setAddFilterOpen(true) },
             onClearFilter = { vm.clearFilter() },
-            onEntryClick = { detailEntry = it },
+            onEntryClick = { vm.showEntryDetails(it) },
         )
-
-        HistoryAddFilterSheet(
-            visible = addFilterOpen,
-            filter = s.filter,
-            topInset = statusBarInset,
-            bottomInset = navBarInset,
-            onDismiss = { addFilterOpen = false },
-            onToggleOutcome = { vm.toggleOutcome(it) },
-            onToggleKind = { vm.toggleKind(it) },
-            onRemovePathScope = { vm.removePathScope(it) },
-            onAddPathScopeRequested = {
-                addFilterOpen = false
-                pathScopeOpen = true
-            },
-        )
-
-        HistoryEntryDetailsBottomSheet(
-            entry = detailEntry,
-            topInset = statusBarInset,
-            bottomInset = navBarInset,
-            onDismiss = { detailEntry = null },
-        )
-
-        if (pathScopeOpen) {
-            PathScopeDialog(
-                initialPath = null,
-                onDismiss = { pathScopeOpen = false },
-                onApply = { newScope ->
-                    if (newScope != null) vm.addPathScope(newScope)
-                    pathScopeOpen = false
-                },
-            )
-        }
     }
 }
 

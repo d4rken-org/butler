@@ -18,6 +18,11 @@ object EditorWorkspacePageHostEntry : WorkspacePageHostEntry {
         EditorWorkspacePageHost(id = id, design = design)
     }
 
+    @Composable
+    override fun Overlays(id: Workspace.Id, design: WorkspaceDesign) {
+        EditorWorkspaceOverlaysHost(id = id, design = design)
+    }
+
     @Module
     @InstallIn(SingletonComponent::class)
     object PageHostModule {
