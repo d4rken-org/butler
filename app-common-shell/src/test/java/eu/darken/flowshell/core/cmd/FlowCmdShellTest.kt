@@ -74,25 +74,30 @@ class FlowCmdShellTest : BaseTest() {
         val session = sharedSession.first()
         val gate = ShellGate(tempDir)
 
-        val cmd = async(Dispatchers.IO) {
-            FlowCmd(gate.instruction).execute(session)
+        try {
+            val cmd = async(Dispatchers.IO) {
+                FlowCmd(gate.instruction).execute(session)
+            }
+
+            // Explicit signal instead of a delay: the command is provably still running
+            withContext(Dispatchers.IO) { gate.awaitStarted() }
+
+            val closeEntered = CompletableDeferred<Unit>()
+            val closing = async(Dispatchers.IO) {
+                closeEntered.complete(Unit)
+                session.close()
+            }
+            closeEntered.await()
+            gate.release()
+
+            // close() is graceful: the already-submitted command is allowed to drain to
+            // completion and returns normally. Use cancel() to abort a running command.
+            cmd.await().exitCode shouldBe FlowProcess.ExitCode.OK
+            closing.await()
+        } finally {
+            // An unreleased gate spins forever if the shell outlives the test
+            gate.shutdown()
         }
-
-        // Explicit signal instead of a delay: the command is provably still running
-        withContext(Dispatchers.IO) { gate.awaitStarted() }
-
-        val closeEntered = CompletableDeferred<Unit>()
-        val closing = async(Dispatchers.IO) {
-            closeEntered.complete(Unit)
-            session.close()
-        }
-        closeEntered.await()
-        gate.release()
-
-        // close() is graceful: the already-submitted command is allowed to drain to
-        // completion and returns normally. Use cancel() to abort a running command.
-        cmd.await().exitCode shouldBe FlowProcess.ExitCode.OK
-        closing.await()
     }
 
     @Test fun `killing session aborts command`(@TempDir tempDir: File) = runTest2(autoCancel = true) {
@@ -102,18 +107,27 @@ class FlowCmdShellTest : BaseTest() {
         // Never released: the command can only end because the session was killed
         val gate = ShellGate(tempDir)
 
-        val cmdJob = launch(Dispatchers.IO) {
-            shouldThrow<Exception> {
-                FlowCmd(gate.instruction).execute(session)
+        try {
+            val cmdJob = launch(Dispatchers.IO) {
+                shouldThrow<Exception> {
+                    FlowCmd(gate.instruction).execute(session)
+                }
             }
-        }
 
-        // Explicit signal instead of a delay: the command is provably still running
-        withContext(Dispatchers.IO) { gate.awaitStarted() }
-        session.cancel()
-        // The gate is never released, so the command can only end via the kill, and the throw
-        // inside cmdJob is what proves it ended that way.
-        cmdJob.join()
+            // Explicit signal instead of a delay: the command is provably still running
+            withContext(Dispatchers.IO) { gate.awaitStarted() }
+            session.cancel()
+            // The gate is never released, so the command can only end via the kill, and the throw
+            // inside cmdJob is what proves it ended that way.
+            cmdJob.join()
+
+            // The coroutine unwinding is not the same as the shell dying, so check the process
+            // itself: the pid the gate recorded from inside the shell must be gone.
+            withContext(Dispatchers.IO) { gate.awaitDeath() }
+        } finally {
+            // An unreleased gate spins forever if the kill did not work
+            gate.shutdown()
+        }
     }
 
     @Test fun `queued commands`() = runTest2(autoCancel = true) {
@@ -163,26 +177,33 @@ class FlowCmdShellTest : BaseTest() {
         // The command blocks until released, and it never is: only cancellation can end this.
         val gate = ShellGate(tempDir)
 
-        val execution = async(Dispatchers.IO) {
-            FlowCmd(gate.instruction, "echo done").execute()
+        try {
+            val execution = async(Dispatchers.IO) {
+                FlowCmd(gate.instruction, "echo done").execute()
+            }
+
+            // Explicit signal instead of a delay: the command is provably running, so the timeout
+            // below can only expire on an execute() that is still waiting for it.
+            withContext(Dispatchers.IO) { gate.awaitStarted() }
+
+            // Throwing instead of returning a result proves execute() had not finished early.
+            shouldThrow<TimeoutCancellationException> {
+                withTimeout(1000) { execution.await() }
+            }
+
+            // The unwind must not wait for the command (which never ends): cancelling has to return
+            // promptly, the watchdog turns a hanging unwind into a failure instead of a hung suite.
+            execution.cancel()
+            withTimeout(ShellGate.WATCHDOG) { execution.join() }
+
+            // join() only proves the coroutine unwound. execute() does not expose its shell, so the
+            // gate reports the pid from inside the shell: if the cancellation hand-off ever stopped
+            // reaching the process, this catches the leaked subprocess instead of passing silently.
+            withContext(Dispatchers.IO) { gate.awaitDeath() }
+        } finally {
+            // An unreleased gate spins forever if the kill did not work
+            gate.shutdown()
         }
-
-        // Explicit signal instead of a delay: the command is provably running, so the timeout
-        // below can only expire on an execute() that is still waiting for it.
-        withContext(Dispatchers.IO) { gate.awaitStarted() }
-
-        // Throwing instead of returning a result proves execute() had not finished early.
-        shouldThrow<TimeoutCancellationException> {
-            withTimeout(1000) { execution.await() }
-        }
-
-        // The unwind must not wait for the command (which never ends): cancelling has to return
-        // promptly, the watchdog turns a hanging unwind into a failure instead of a hung suite.
-        execution.cancel()
-        withTimeout(ShellGate.WATCHDOG) { execution.join() }
-
-        // execute() does not expose the shell process it spawns, so that cancellation actually
-        // kills the process is covered by FlowProcessTest ("session is killed on scope cancel").
     }
 
     @Test fun `open session extension`() = runTest2(autoCancel = true) {
@@ -213,18 +234,23 @@ class FlowCmdShellTest : BaseTest() {
 
     @Test fun `direct execution waits for the command to finish`(@TempDir tempDir: File): Unit = runBlocking {
         val gate = ShellGate(tempDir)
-        val execution = async(Dispatchers.IO) {
-            FlowCmd(gate.instruction, "echo done").execute()
-        }
+        try {
+            val execution = async(Dispatchers.IO) {
+                FlowCmd(gate.instruction, "echo done").execute()
+            }
 
-        withContext(Dispatchers.IO) { gate.awaitStarted() }
-        // The command is provably still running, so a result now would be a premature return
-        execution.isCompleted shouldBe false
+            withContext(Dispatchers.IO) { gate.awaitStarted() }
+            // The command is provably still running, so a result now would be a premature return
+            execution.isCompleted shouldBe false
 
-        gate.release()
-        withTimeout(ShellGate.WATCHDOG) { execution.await() }.apply {
-            exitCode shouldBe FlowProcess.ExitCode.OK
-            output shouldBe listOf("done")
+            gate.release()
+            withTimeout(ShellGate.WATCHDOG) { execution.await() }.apply {
+                exitCode shouldBe FlowProcess.ExitCode.OK
+                output shouldBe listOf("done")
+            }
+        } finally {
+            // An unreleased gate spins forever if the test failed before releasing it
+            gate.shutdown()
         }
     }
 
@@ -235,17 +261,22 @@ class FlowCmdShellTest : BaseTest() {
         // so no idEnd marker is ever echoed. execute() must stay blocked until the replacement
         // exits (joinAll, woken by the death-watcher) and surface ExitCode(-1) instead of throwing.
         val gate = ShellGate(tempDir)
-        val execution = async(Dispatchers.IO) {
-            FlowCmd("exec sh -c \"${gate.instruction}\"").execute()
+        try {
+            val execution = async(Dispatchers.IO) {
+                FlowCmd("exec sh -c \"${gate.instruction}\"").execute()
+            }
+
+            withContext(Dispatchers.IO) { gate.awaitStarted() }
+            // The replacement process is provably still running
+            execution.isCompleted shouldBe false
+
+            gate.release()
+            withTimeout(ShellGate.WATCHDOG) { execution.await() }
+                .exitCode shouldBe FlowProcess.ExitCode(-1)
+        } finally {
+            // An unreleased gate spins forever if the test failed before releasing it
+            gate.shutdown()
         }
-
-        withContext(Dispatchers.IO) { gate.awaitStarted() }
-        // The replacement process is provably still running
-        execution.isCompleted shouldBe false
-
-        gate.release()
-        withTimeout(ShellGate.WATCHDOG) { execution.await() }
-            .exitCode shouldBe FlowProcess.ExitCode(-1)
     }
 
     @Test fun `quoted exec is not treated as shell replacement`(): Unit = runBlocking {
