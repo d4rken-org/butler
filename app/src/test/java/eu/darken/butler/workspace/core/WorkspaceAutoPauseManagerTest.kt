@@ -125,6 +125,7 @@ class WorkspaceAutoPauseManagerTest : BaseTest() {
             workspaceSettings = workspaceSettings,
             operationsManager = mockk(relaxed = true),
             upgradeRepo = upgradeRepo,
+            usageRepo = mockk(relaxed = true),
         )
         pageManager = WorkspacePageManager(appScope = scope, workspaceRemote = repo)
     }
