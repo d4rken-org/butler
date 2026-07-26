@@ -10,11 +10,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 
 const val DEFAULT_SCROLL_SLOT = "default"
+
+private val TAG = logTag("Workspace", "ScrollState")
 
 /**
  * A [LazyListState] whose position is remembered for [workspaceId]/[slot] across compositions.
@@ -30,7 +35,11 @@ fun rememberWorkspaceLazyListState(
     if (workspaceId == null) return rememberLazyListState()
 
     val registry = LocalWorkspaceScrollPositions.current
-    val lease = remember(registry, workspaceId, slot) { registry.positionFor(workspaceId, slot) }
+    val lease = remember(registry, workspaceId, slot) {
+        registry.positionFor(workspaceId, slot).also {
+            log(TAG, VERBOSE) { "List lease taken: workspace=$workspaceId, slot=$slot, saved=${it.saved}" }
+        }
+    }
     val state = remember(lease) { LazyListState(lease.saved?.index ?: 0, lease.saved?.offset ?: 0) }
 
     RestoreAndRecord(
@@ -49,7 +58,11 @@ fun rememberWorkspaceLazyGridState(
     if (workspaceId == null) return rememberLazyGridState()
 
     val registry = LocalWorkspaceScrollPositions.current
-    val lease = remember(registry, workspaceId, slot) { registry.positionFor(workspaceId, slot) }
+    val lease = remember(registry, workspaceId, slot) {
+        registry.positionFor(workspaceId, slot).also {
+            log(TAG, VERBOSE) { "Grid lease taken: workspace=$workspaceId, slot=$slot, saved=${it.saved}" }
+        }
+    }
     val state = remember(lease) { LazyGridState(lease.saved?.index ?: 0, lease.saved?.offset ?: 0) }
 
     RestoreAndRecord(

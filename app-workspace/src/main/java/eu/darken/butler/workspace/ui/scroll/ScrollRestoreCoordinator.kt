@@ -55,7 +55,12 @@ suspend fun ScrollTarget.restore(
     saved: WorkspaceScrollPosition?,
     timeout: Duration = DEFAULT_TIMEOUT,
 ): Outcome {
-    if (saved == null || saved.isTop) return Outcome.NOT_NEEDED
+    if (saved == null || saved.isTop) {
+        // Logged like every other outcome: a silent early return makes "no line in logcat"
+        // ambiguous between "ran, nothing to do" and "never ran".
+        log(TAG) { "restore($saved) -> ${Outcome.NOT_NEEDED}" }
+        return Outcome.NOT_NEEDED
+    }
 
     val outcome = withTimeoutOrNull(timeout) {
         coroutineScope {

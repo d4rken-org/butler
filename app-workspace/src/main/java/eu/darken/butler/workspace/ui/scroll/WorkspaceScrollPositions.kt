@@ -1,5 +1,6 @@
 package eu.darken.butler.workspace.ui.scroll
 
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.workspace.core.Workspace
@@ -72,7 +73,13 @@ class WorkspaceScrollPositions @Inject constructor() {
 
     fun record(lease: Lease, position: WorkspaceScrollPosition) {
         val accepted = synchronized(lock) {
-            if (lease.generation != generationOf(lease.workspaceId)) {
+            val currentGeneration = generationOf(lease.workspaceId)
+            if (lease.generation != currentGeneration) {
+                // Only the rejected path is logged; the accepted one runs once per scroll frame
+                log(TAG, VERBOSE) {
+                    "Dropping stale record for ${lease.workspaceId}/${lease.slot}" +
+                        " (lease=${lease.generation}, current=$currentGeneration): $position"
+                }
                 false
             } else {
                 val slots = slotsOf(lease.workspaceId)
