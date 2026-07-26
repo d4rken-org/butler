@@ -108,7 +108,7 @@ fun HistoryWorkspacePage(
         estimatedContentPadding = 192.dp,
     )
 
-    val listState = rememberWorkspaceLazyListState(workspaceId, slot = "history")
+    val listState = rememberWorkspaceLazyListState(workspaceId, slot = HistoryScrollSlots.LIST)
 
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
@@ -150,7 +150,7 @@ fun HistoryWorkspacePage(
             modifier = Modifier.align(Alignment.TopCenter),
             bars = {
                 FloatingBar(
-                    key = "toolbar",
+                    key = HistoryBarKeys.TOOLBAR,
                     visible = true,
                     scrollBehavior = BarScrollBehavior.CollapseOnScroll(),
                     animation = BarAnimation.Slide(),

@@ -125,12 +125,10 @@ fun SearcherWorkspacePage(
         design = design,
         estimatedContentPadding = 80.dp,
     )
-    val listState = rememberWorkspaceLazyListState(workspaceId, slot = "results#list")
+    val listState = rememberWorkspaceLazyListState(workspaceId, slot = SearcherScrollSlots.RESULTS_LIST)
     // Hoisted so the search-start reset covers list and grid in one guarded effect
-    val gridState = rememberWorkspaceLazyGridState(workspaceId, slot = "results#grid")
-    // The idle screen (templates + history) is a different list with different content, so it gets
-    // its own slot - a restored Searcher comes back idle and must not apply a results index here.
-    val idleListState = rememberWorkspaceLazyListState(workspaceId, slot = "idle#list")
+    val gridState = rememberWorkspaceLazyGridState(workspaceId, slot = SearcherScrollSlots.RESULTS_GRID)
+    val idleListState = rememberWorkspaceLazyListState(workspaceId, slot = SearcherScrollSlots.IDLE_LIST)
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val shortcutsFocusRequester = remember { FocusRequester() }
@@ -594,7 +592,7 @@ fun SearcherWorkspacePage(
             bars = {
                 // Toolbar - closest to top edge, collapses on scroll
                 FloatingBar(
-                    key = "toolbar",
+                    key = SearcherBarKeys.TOOLBAR,
                     visible = true,
                     scrollBehavior = BarScrollBehavior.CollapseOnScroll(),
                     animation = BarAnimation.Slide(),
@@ -610,7 +608,7 @@ fun SearcherWorkspacePage(
 
                 // Progress card - vanishes on scroll
                 FloatingBar(
-                    key = "progress",
+                    key = SearcherBarKeys.PROGRESS,
                     visible = showProgressCard,
                     scrollBehavior = BarScrollBehavior.VanishOnScroll,
                     animation = BarAnimation.Slide(),
@@ -632,7 +630,7 @@ fun SearcherWorkspacePage(
 
                 // Info bar - static (stays visible when results or selection)
                 FloatingBar(
-                    key = "infobar",
+                    key = SearcherBarKeys.INFOBAR,
                     visible = showInfoBar,
                     scrollBehavior = BarScrollBehavior.Static,
                     animation = BarAnimation.Slide(),
@@ -667,7 +665,7 @@ fun SearcherWorkspacePage(
                 // Operations bar - furthest from bottom edge
                 // Static when active operations, VanishOnScroll when only completed
                 FloatingBar(
-                    key = "operations",
+                    key = SearcherBarKeys.OPERATIONS,
                     visible = hasOperations,
                     scrollBehavior = if (hasActiveOperations) BarScrollBehavior.Static else BarScrollBehavior.VanishOnScroll,
                     animation = BarAnimation.Slide(),
@@ -692,7 +690,7 @@ fun SearcherWorkspacePage(
 
                 // Clipboard bar - middle, vanishes on scroll with bouncy animation
                 FloatingBar(
-                    key = "clipboard",
+                    key = SearcherBarKeys.CLIPBOARD,
                     visible = hasClipboard,
                     scrollBehavior = BarScrollBehavior.VanishOnScroll,
                     animation = BarAnimation.Bouncy,
@@ -709,7 +707,7 @@ fun SearcherWorkspacePage(
 
                 // Action bar - closest to bottom edge, hides on scroll
                 FloatingBar(
-                    key = "actions",
+                    key = SearcherBarKeys.ACTIONS,
                     visible = hasActions,
                     scrollBehavior = BarScrollBehavior.HideOnScroll,
                     animation = BarAnimation.Slide(),

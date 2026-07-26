@@ -17,6 +17,11 @@ import eu.darken.butler.workspace.ui.restore.Outcome
 import eu.darken.butler.workspace.ui.restore.SlotLease
 import kotlinx.coroutines.flow.Flow
 
+/**
+ * Slot keys land verbatim in the persisted session blob, so renaming one orphans the saved
+ * positions of everyone who already has state stored. Pages declare theirs as named constants
+ * next to their own page code rather than inline here.
+ */
 const val DEFAULT_SCROLL_SLOT = "default"
 
 private val TAG = logTag("Workspace", "ScrollState")

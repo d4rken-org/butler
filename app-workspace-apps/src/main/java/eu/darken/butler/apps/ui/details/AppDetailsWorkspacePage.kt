@@ -193,9 +193,8 @@ fun AppDetailsWorkspacePage(
     val paneInsets = design.paneInsets()
     val navBarInset = paneInsets.bottom
 
-    // Separate scroll states per route so Overview position survives the round-trip to Components.
-    val overviewListState = rememberWorkspaceLazyListState(workspaceId, slot = "overview")
-    val componentsListState = rememberWorkspaceLazyListState(workspaceId, slot = "components")
+    val overviewListState = rememberWorkspaceLazyListState(workspaceId, slot = AppDetailsScrollSlots.OVERVIEW)
+    val componentsListState = rememberWorkspaceLazyListState(workspaceId, slot = AppDetailsScrollSlots.COMPONENTS)
 
     Box(
         modifier = modifier
@@ -241,7 +240,7 @@ fun AppDetailsWorkspacePage(
             modifier = Modifier.align(Alignment.TopCenter),
             bars = {
                 FloatingBar(
-                    key = "toolbar",
+                    key = AppDetailsBarKeys.TOOLBAR,
                     visible = true,
                     scrollBehavior = BarScrollBehavior.CollapseOnScroll(),
                     animation = BarAnimation.Slide(),

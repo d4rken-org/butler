@@ -84,9 +84,8 @@ fun AppsWorkspacePage(
         derivedStateOf { state.apps.isNotEmpty() || state.selectionCount > 0 }
     }
 
-    // List and grid keep separate slots, their indices are not interchangeable
-    val listState = rememberWorkspaceLazyListState(workspaceId, slot = "apps#list")
-    val gridState = rememberWorkspaceLazyGridState(workspaceId, slot = "apps#grid")
+    val listState = rememberWorkspaceLazyListState(workspaceId, slot = AppsScrollSlots.LIST)
+    val gridState = rememberWorkspaceLazyGridState(workspaceId, slot = AppsScrollSlots.GRID)
 
     Box(modifier = Modifier.fillMaxSize()) {
         AppsReadyContent(
@@ -106,7 +105,7 @@ fun AppsWorkspacePage(
             bars = {
                 // Toolbar card - collapses on scroll
                 FloatingBar(
-                    key = "toolbar",
+                    key = AppsBarKeys.TOOLBAR,
                     visible = true,
                     scrollBehavior = BarScrollBehavior.CollapseOnScroll(),
                     animation = BarAnimation.Slide(),
@@ -127,7 +126,7 @@ fun AppsWorkspacePage(
 
                 // Info bar - vanishes on scroll
                 FloatingBar(
-                    key = "infobar",
+                    key = AppsBarKeys.INFOBAR,
                     visible = showInfoBar,
                     scrollBehavior = BarScrollBehavior.VanishOnScroll,
                     animation = BarAnimation.Slide(),
@@ -151,7 +150,7 @@ fun AppsWorkspacePage(
             modifier = Modifier.align(Alignment.BottomCenter),
             bars = {
                 FloatingBar(
-                    key = "actions",
+                    key = AppsBarKeys.ACTIONS,
                     visible = hasActions,
                     scrollBehavior = BarScrollBehavior.HideOnScroll,
                     animation = BarAnimation.Slide(),
