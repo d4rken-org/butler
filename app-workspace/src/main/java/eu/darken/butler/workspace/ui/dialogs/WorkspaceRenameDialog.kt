@@ -66,6 +66,10 @@ fun WorkspaceRenameDialog(
  * not dim the whole window and must take part in the pane's back, focus and accessibility
  * containment. The screen-level callers (the tab rail, the tab manager) keep the window variant:
  * those genuinely act on the whole screen.
+ *
+ * Only this variant offers "Clear" as a one-press way back to the automatic name: the neutral,
+ * start-aligned action it needs exists on [PaneBoundAlertDialog] but not on Material's
+ * `AlertDialog`, and rebuilding the window dialog's shell for it would risk visual drift there.
  */
 @Composable
 fun PaneBoundWorkspaceRenameDialog(
@@ -73,20 +77,35 @@ fun PaneBoundWorkspaceRenameDialog(
     autoTitle: String,
     onConfirm: (String?) -> Unit,
     onDismiss: () -> Unit,
-) = RenameDialogScaffold(
-    currentCustomTitle = currentCustomTitle,
-    autoTitle = autoTitle,
-    onConfirm = onConfirm,
-    onDismiss = onDismiss,
-) { title, text, confirmButton, dismissButton ->
-    PaneBoundAlertDialog(
-        onDismissRequest = onDismiss,
-        includeImePadding = true,
-        title = title,
-        text = text,
-        confirmButton = confirmButton,
-        dismissButton = dismissButton,
-    )
+) {
+    // Snapshotted at open time, exactly like the text field's own initial value: if the workspace is
+    // renamed from elsewhere while this is open, the button and the field can never disagree.
+    val canClear = remember { currentCustomTitle != null }
+
+    RenameDialogScaffold(
+        currentCustomTitle = currentCustomTitle,
+        autoTitle = autoTitle,
+        onConfirm = onConfirm,
+        onDismiss = onDismiss,
+    ) { title, text, confirmButton, dismissButton ->
+        PaneBoundAlertDialog(
+            onDismissRequest = onDismiss,
+            includeImePadding = true,
+            title = title,
+            text = text,
+            confirmButton = confirmButton,
+            dismissButton = dismissButton,
+            neutralButton = if (canClear) {
+                {
+                    TextButton(onClick = { onConfirm(null) }) {
+                        Text(stringResource(CommonR.string.general_clear_action))
+                    }
+                }
+            } else {
+                null
+            },
+        )
+    }
 }
 
 /**
@@ -197,6 +216,30 @@ private fun WorkspaceRenameDialogNamedPreview() {
 private fun PaneBoundWorkspaceRenameDialogPreview() {
     PaneBoundWorkspaceRenameDialog(
         currentCustomTitle = "Holiday photos",
+        autoTitle = "New tab",
+        onConfirm = {},
+        onDismiss = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun PaneBoundWorkspaceRenameDialogUnnamedPreview() {
+    PaneBoundWorkspaceRenameDialog(
+        currentCustomTitle = null,
+        autoTitle = "New tab",
+        onConfirm = {},
+        onDismiss = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun PaneBoundWorkspaceRenameDialogLongNamePreview() {
+    PaneBoundWorkspaceRenameDialog(
+        currentCustomTitle = "Holiday photos from the summer trip",
         autoTitle = "New tab",
         onConfirm = {},
         onDismiss = {},
