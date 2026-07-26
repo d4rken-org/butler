@@ -12,6 +12,7 @@ import eu.darken.butler.common.serialization.InstantSerializer
 import eu.darken.butler.workspace.core.Workspace
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
@@ -21,6 +22,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
@@ -162,15 +164,21 @@ class WorkspaceUsageRepoTest : BaseTest() {
     }
 
     @Test
-    fun `a write failure is swallowed`(@TempDir tempDir: File) = runTest {
+    fun `a write failure is swallowed`() = runTest {
         val usageValue = mockk<DataStoreValue<WorkspaceUsageData>>().apply {
+            every { flow } returns flowOf(WorkspaceUsageData())
             coEvery { update(any()) } throws IllegalStateException("Disk on fire")
         }
         val settings = mockk<WorkspaceUsageSettings>().apply {
             every { usageData } returns usageValue
         }
+        val repo = WorkspaceUsageRepo(settings)
 
-        WorkspaceUsageRepo(settings).track(Workspace.Type.EXPLORER, instant(100))
+        repo.track(Workspace.Type.EXPLORER, instant(100))
+
+        // The write was attempted and its failure did not escape
+        coVerify(exactly = 1) { usageValue.update(any()) }
+        repo.rankedTypes.first() shouldBe emptyList()
     }
 
     @Test
