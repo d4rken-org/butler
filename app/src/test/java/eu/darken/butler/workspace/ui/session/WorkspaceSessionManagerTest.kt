@@ -21,6 +21,7 @@ import eu.darken.butler.workspace.core.session.db.WorkspaceSessionDatabase
 import eu.darken.butler.workspace.core.session.db.WorkspaceSessionEntity
 import eu.darken.butler.workspace.core.session.db.WorkspaceUIState
 import eu.darken.butler.workspace.ui.WorkspacePageManager
+import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPosition
 import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPositions
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -576,6 +577,9 @@ class WorkspaceSessionManagerTest : BaseTest() {
         private val upsertedEntities = mutableListOf<WorkspaceInstanceEntity>()
         private val onDemandFlow = MutableStateFlow(true)
 
+        // What the registry held at the moment a workspace was instantiated
+        private val scrollAtCreate = mutableMapOf<Workspace.Id, WorkspaceScrollPosition?>()
+
         // Restoration and the repo need live coroutines; the outer setup's manager dies on its
         // fully-relaxed mocks and cancels the shared testScope.
         private lateinit var restoreScope: TestScope
@@ -589,6 +593,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
             createdIds.clear()
             failingIds.clear()
             upsertedEntities.clear()
+            scrollAtCreate.clear()
             onDemandFlow.value = true
 
             mockkStatic("androidx.room.RoomDatabaseKt")
@@ -618,6 +623,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
             factoryMap = Workspace.Type.entries.associateWith { type ->
                 FakeSessionFactory(type) { id ->
                     createAttempts += id
+                    scrollAtCreate[id] = scrollPositions.positionFor(id, "list").saved
                     if (id in failingIds) throw IllegalStateException("Cannot create $id")
                     createdIds += id
                 }
@@ -654,11 +660,16 @@ class WorkspaceSessionManagerTest : BaseTest() {
         private fun session(
             focusedId: Workspace.Id?,
             paneSelections: Map<Int, Workspace.Id> = emptyMap(),
+            scrollPositions: Map<Workspace.Id, Map<String, WorkspaceScrollPosition>> = emptyMap(),
         ) = WorkspaceSessionEntity(
             sessionId = DEFAULT_SESSION_ID,
             label = "Test Session",
             createdAt = Instant.DISTANT_PAST,
-            uiState = WorkspaceUIState(focusedWorkspaceId = focusedId, paneSelections = paneSelections),
+            uiState = WorkspaceUIState(
+                focusedWorkspaceId = focusedId,
+                paneSelections = paneSelections,
+                scrollPositions = scrollPositions,
+            ),
         )
 
         private fun entity(
@@ -681,13 +692,14 @@ class WorkspaceSessionManagerTest : BaseTest() {
         private fun savedSession(
             focusedId: Workspace.Id?,
             paneSelections: Map<Int, Workspace.Id> = emptyMap(),
+            savedScrollPositions: Map<Workspace.Id, Map<String, WorkspaceScrollPosition>> = emptyMap(),
             entities: List<WorkspaceInstanceEntity> = listOf(
                 entity(idA, 0, "a"),
                 entity(idB, 1, "b"),
                 entity(idC, 2, "c"),
             ),
         ) {
-            coEvery { storage.dao.getSession(any()) } returns session(focusedId, paneSelections)
+            coEvery { storage.dao.getSession(any()) } returns session(focusedId, paneSelections, savedScrollPositions)
             coEvery { storage.dao.getWorkspaces(any()) } returns entities
         }
 
@@ -832,6 +844,40 @@ class WorkspaceSessionManagerTest : BaseTest() {
                 manager.saveSession()
 
                 upsertedEntities shouldHaveSize 0
+            }
+
+        /**
+         * Registering a workspace makes it visible to the UI, which composes its page right away.
+         * If the registry were still empty then, the page would record a zero that the seed could
+         * no longer beat.
+         */
+        @Test
+        fun `restore seeds scroll positions before any workspace is instantiated`() =
+            runTest(UnconfinedTestDispatcher()) {
+                savedSession(
+                    focusedId = idB,
+                    savedScrollPositions = mapOf(idB to mapOf("list" to WorkspaceScrollPosition(30, 4))),
+                )
+
+                createManager()
+                restoreScope.testScheduler.runCurrent()
+
+                scrollAtCreate[idB] shouldBe WorkspaceScrollPosition(30, 4)
+            }
+
+        @Test
+        fun `scroll slots of a candidate that failed to restore are dropped`() =
+            runTest(UnconfinedTestDispatcher()) {
+                failingIds += idB
+                savedSession(
+                    focusedId = idB,
+                    savedScrollPositions = mapOf(idB to mapOf("list" to WorkspaceScrollPosition(30, 4))),
+                )
+
+                createManager()
+                restoreScope.testScheduler.runCurrent()
+
+                scrollPositions.snapshot() shouldBe emptyMap()
             }
 
         private suspend fun customTitles(): Map<Workspace.Id, String?> =
@@ -1065,6 +1111,140 @@ class WorkspaceSessionManagerTest : BaseTest() {
             coVerify(exactly = 0) { dao.upsertSession(any()) }
             coVerify(exactly = 0) { dao.deleteWorkspacesByIds(any()) }
             coVerify(exactly = 0) { dao.upsertWorkspace(any()) }
+        }
+    }
+
+    @Nested
+    inner class ScrollPersistence {
+
+        private val wsId = Workspace.Id()
+        private val repoStateFlow = MutableStateFlow(WorkspaceRemote.State())
+        private val upsertedEntities = mutableListOf<WorkspaceInstanceEntity>()
+        private val upsertedSessions = mutableListOf<WorkspaceSessionEntity>()
+
+        // Own scope, registry and lifecycle: the outer setup's manager observes the same lifecycle
+        // and would answer ON_STOP with a save of its own.
+        private lateinit var scrollScope: TestScope
+        private lateinit var registry: WorkspaceScrollPositions
+        private lateinit var lifecycleOwner: FakeLifecycleOwner
+
+        @BeforeEach
+        fun setupScrollPersistence() {
+            scrollScope = TestScope(UnconfinedTestDispatcher())
+            registry = WorkspaceScrollPositions()
+            lifecycleOwner = FakeLifecycleOwner()
+            upsertedEntities.clear()
+            upsertedSessions.clear()
+
+            mockkStatic("androidx.room.RoomDatabaseKt")
+            val mockDatabase = mockk<WorkspaceSessionDatabase>(relaxed = true)
+            every { storage.database } returns mockDatabase
+            coEvery { mockDatabase.withTransaction(any<suspend () -> Any?>()) } coAnswers {
+                @Suppress("UNCHECKED_CAST")
+                val block = args[1] as suspend () -> Any?
+                block()
+            }
+            coEvery { storage.dao.upsertWorkspace(any()) } coAnswers { upsertedEntities.add(firstArg()) }
+            coEvery { storage.dao.upsertSession(any()) } coAnswers { upsertedSessions.add(firstArg()) }
+            coEvery { storage.dao.getWorkspaceIds(any()) } returns emptyList()
+            coEvery { storage.dao.getSession(any()) } returns null
+
+            every { workspaceRepo.state } returns repoStateFlow
+            every { workspaceSettings.sessionRestoreEnabled } returns mockk {
+                every { flow } returns flowOf(true)
+            }
+
+            val mockFactory = mockk<WorkspaceFactory<Workspace.Arguments>>()
+            every { mockFactory.serialize(any(), any()) } returns JsonPrimitive("args")
+            factoryMap = mapOf(Workspace.Type.EXPLORER to mockFactory)
+
+            val args = mockk<Workspace.Arguments>().also {
+                every { it.type } returns Workspace.Type.EXPLORER
+            }
+            val ws = mockk<Workspace<Workspace.Arguments>>()
+            every { ws.id } returns wsId
+            coEvery { ws.createArguments() } returns args
+            every { workspaceRepo.peek(wsId) } returns ws
+        }
+
+        @AfterEach
+        fun teardownScrollPersistence() {
+            upsertedEntities.clear()
+            upsertedSessions.clear()
+        }
+
+        private fun createManager() = WorkspaceSessionManager(
+            appScope = scrollScope,
+            workspaceSettings = workspaceSettings,
+            workspaceRepo = workspaceRepo,
+            workspacePageManager = workspacePageManager,
+            storage = storage,
+            json = json,
+            factoryMap = factoryMap,
+            scrollPositions = registry,
+            processLifecycle = lifecycleOwner.registry,
+        )
+
+        private fun makeInfo(id: Workspace.Id) = Workspace.Info(
+            id = id,
+            type = Workspace.Type.EXPLORER,
+            title = "Workspace".toCaString(),
+        )
+
+        /** Settles restoration and the first ordinary auto-save, then clears what they wrote. */
+        private fun startWithOneWorkspace() {
+            repoStateFlow.value = WorkspaceRemote.State(infos = listOf(makeInfo(wsId)))
+            createManager()
+            scrollScope.testScheduler.runCurrent()
+            scrollScope.testScheduler.advanceTimeBy(1000)
+            scrollScope.testScheduler.runCurrent()
+
+            // Control: proves the ordinary auto-save pipeline is live in this setup
+            upsertedEntities.single().workspaceId shouldBe wsId
+            upsertedEntities.clear()
+            upsertedSessions.clear()
+        }
+
+        @Test
+        fun `a scroll change writes the session row without rewriting workspace rows`() = runTest {
+            startWithOneWorkspace()
+
+            registry.record(registry.positionFor(wsId, "list"), WorkspaceScrollPosition(42, 7))
+            scrollScope.testScheduler.advanceTimeBy(3000)
+            scrollScope.testScheduler.runCurrent()
+
+            upsertedEntities shouldHaveSize 0
+            upsertedSessions.last().uiState.scrollPositions shouldBe
+                mapOf(wsId to mapOf("list" to WorkspaceScrollPosition(42, 7)))
+        }
+
+        @Test
+        fun `slots of workspaces that are gone are not persisted`() = runTest {
+            startWithOneWorkspace()
+
+            val closedId = Workspace.Id()
+            registry.record(registry.positionFor(closedId, "list"), WorkspaceScrollPosition(3))
+            registry.record(registry.positionFor(wsId, "list"), WorkspaceScrollPosition(4))
+            scrollScope.testScheduler.advanceTimeBy(3000)
+            scrollScope.testScheduler.runCurrent()
+
+            upsertedSessions.last().uiState.scrollPositions.keys shouldBe setOf(wsId)
+        }
+
+        @Test
+        fun `stopping the app flushes before the debounce elapses`() = runTest {
+            startWithOneWorkspace()
+
+            registry.record(registry.positionFor(wsId, "list"), WorkspaceScrollPosition(9))
+            scrollScope.testScheduler.advanceTimeBy(500)
+            scrollScope.testScheduler.runCurrent()
+            upsertedSessions shouldHaveSize 0
+
+            lifecycleOwner.stop()
+            scrollScope.testScheduler.runCurrent()
+
+            upsertedSessions.single().uiState.scrollPositions shouldBe
+                mapOf(wsId to mapOf("list" to WorkspaceScrollPosition(9)))
         }
     }
 
