@@ -1,6 +1,5 @@
 package eu.darken.butler.workspace.ui.scroll
 
-import androidx.compose.foundation.interaction.DragInteraction
 import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
@@ -17,7 +16,6 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.restore.Outcome
 import eu.darken.butler.workspace.ui.restore.SlotLease
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 
 const val DEFAULT_SCROLL_SLOT = "default"
 
@@ -90,8 +88,11 @@ private fun RestoreAndRecord(
     LaunchedEffect(target, lease) {
         if (target.restore(lease.saved) == Outcome.TIMED_OUT) {
             // A timeout must never license writing a layout-clamped position over a good saved one.
-            // The safe failure mode is "not restored", never "destroyed".
-            target.interactions.first { it is DragInteraction.Start }
+            // The safe failure mode is "not restored", never "destroyed". Recording is armed by the
+            // same pair of signals the restore races against, so a programmatic scroll counts too:
+            // a hoisted-but-unattached state (Explorer's inactive view style) always times out, and
+            // waiting for a drag alone would drop the list/grid transfer's scroll for good.
+            target.awaitMovement()
         }
         snapshotFlow { target.position }.collect { registry.record(lease, it) }
     }

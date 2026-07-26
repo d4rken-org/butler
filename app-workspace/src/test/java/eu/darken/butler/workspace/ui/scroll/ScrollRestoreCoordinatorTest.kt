@@ -53,6 +53,13 @@ class ScrollRestoreCoordinatorTest : BaseTest() {
             dragEvents.value = DragInteraction.Start()
         }
 
+        /** What a caller's `scrollToItem` does: moves the position and reports a scroll. */
+        fun scrollProgrammaticallyTo(target: WorkspaceScrollPosition) {
+            position = target
+            scrollInProgressState.value = true
+            Snapshot.sendApplyNotifications()
+        }
+
         /** A scroll nobody asked the coordinator for, e.g. a sort change scrolling back to top. */
         fun scrollElsewhere() {
             scrollInProgressState.value = true
@@ -161,4 +168,59 @@ class ScrollRestoreCoordinatorTest : BaseTest() {
         restore.await() shouldBe Outcome.APPLIED
         target.scrolledTo shouldBe WorkspaceScrollPosition(50)
     }
+
+    // region Arming recording after a timeout
+
+    /**
+     * The regression this guards: a state that is hoisted but never attached to a lazy container
+     * (Explorer keeps a list and a grid state, only one of which is attached) can never satisfy the
+     * readiness predicate, so it always times out. Arming recording on a drag alone then drops the
+     * list/grid transfer's programmatic scroll for good, and re-entry restores the stale position.
+     */
+    @Test
+    fun `after a timeout a programmatic scroll arms recording`() = runTest {
+        val target = FakeScrollTarget()
+        target.restore(WorkspaceScrollPosition(50), timeout = 5.seconds) shouldBe Outcome.TIMED_OUT
+
+        val armed = async { target.awaitMovement() }
+        runCurrent()
+        armed.isCompleted shouldBe false
+
+        target.scrollProgrammaticallyTo(WorkspaceScrollPosition(12, 3))
+        advanceUntilIdle()
+
+        armed.isCompleted shouldBe true
+        // The position a recorder would now persist is the transferred one, not the stale saved one
+        target.position shouldBe WorkspaceScrollPosition(12, 3)
+    }
+
+    @Test
+    fun `after a timeout a drag still arms recording`() = runTest {
+        val target = FakeScrollTarget()
+        target.restore(WorkspaceScrollPosition(50), timeout = 5.seconds) shouldBe Outcome.TIMED_OUT
+
+        val armed = async { target.awaitMovement() }
+        runCurrent()
+        armed.isCompleted shouldBe false
+
+        target.drag()
+        advanceUntilIdle()
+
+        armed.isCompleted shouldBe true
+    }
+
+    @Test
+    fun `an untouched list never arms recording`() = runTest {
+        val target = FakeScrollTarget()
+        target.restore(WorkspaceScrollPosition(50), timeout = 5.seconds) shouldBe Outcome.TIMED_OUT
+
+        val armed = async { target.awaitMovement() }
+        advanceUntilIdle()
+
+        // Nothing moved it, so the saved position must stay untouched rather than be overwritten
+        armed.isCompleted shouldBe false
+        armed.cancel()
+    }
+
+    // endregion
 }

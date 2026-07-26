@@ -10,6 +10,8 @@ import eu.darken.butler.workspace.ui.restore.Outcome
 import eu.darken.butler.workspace.ui.restore.restoreWhenReady
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.merge
 import kotlin.time.Duration
 
 /**
@@ -48,10 +50,7 @@ suspend fun ScrollTarget.restore(
         saved = saved,
         isNoOp = { it.isTop },
         isReady = { totalItemsCount > it.index },
-        supersededBy = listOf(
-            interactions.filter { it is DragInteraction.Start },
-            snapshotFlow { isScrollInProgress }.filter { it },
-        ),
+        supersededBy = movementSignals(),
         timeout = timeout,
         apply = { scrollTo(it) },
     )
@@ -59,4 +58,31 @@ suspend fun ScrollTarget.restore(
     // return makes an absent line ambiguous between "ran, nothing to do" and "never ran".
     log(TAG) { "restore($saved) -> $outcome" }
     return outcome
+}
+
+/**
+ * The signals that mean "someone other than the restore moved this list": a drag, or any scroll in
+ * progress - which is what catches a programmatic `scrollToItem` from a sort, search or view-style
+ * effect, since those emit no drag interaction at all.
+ *
+ * One definition, used both to supersede a pending restore and to arm recording after a timeout, so
+ * the two can't drift apart.
+ */
+private fun ScrollTarget.movementSignals(): List<Flow<Any>> = listOf(
+    interactions.filter { it is DragInteraction.Start },
+    snapshotFlow { isScrollInProgress }.filter { it },
+)
+
+/**
+ * Suspends until this list is moved by someone other than the restore.
+ *
+ * Used to arm recording after a [Outcome.TIMED_OUT]: the position the un-restored list shows must
+ * not be written over a good saved one, but once something actually scrolls it - a drag *or* a
+ * programmatic scroll - the position it lands on is intent and has to be recorded. A state that is
+ * hoisted but not attached to any lazy container (Explorer keeps both a list and a grid state, only
+ * one of which is attached) always times out, so this is the only path by which the list/grid
+ * transfer's scroll ever gets persisted.
+ */
+suspend fun ScrollTarget.awaitMovement() {
+    movementSignals().merge().first()
 }
