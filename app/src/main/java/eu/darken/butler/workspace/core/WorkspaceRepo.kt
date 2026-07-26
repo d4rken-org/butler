@@ -219,9 +219,12 @@ class WorkspaceRepo @Inject constructor(
     }
 
     /**
-     * Current instance for [id] INCLUDING paused stand-ins. Only for session saving, which must
-     * serialize the held arguments of workspaces that were never resumed; everything else uses
-     * [retrieve], which hides paused entries.
+     * Current instance for [id] INCLUDING paused stand-ins, read straight off the backing state.
+     * For session saving, which must serialize the held arguments of workspaces that were never
+     * resumed, and for authoritative checks that must not observe a stale snapshot (e.g. preview
+     * capture re-validating that a workspace is still live before composing it) - [state] is an
+     * asynchronous share whose replay cache can still hold the value from before the last swap.
+     * Everything else uses [retrieve], which hides paused entries.
      */
     fun peek(id: Workspace.Id): Workspace<out Workspace.Arguments>? = _workspaces.value.singleOrNull { it.id == id }
 

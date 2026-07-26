@@ -52,6 +52,12 @@ class WorkspacePreviewCaptureServiceTest : BaseTest() {
         lifecycleState = lifecycleState,
     )
 
+    private fun workspace(id: Workspace.Id, lifecycleState: Workspace.LifecycleState): Workspace<Workspace.Arguments> {
+        val infoState = MutableStateFlow(info(id, lifecycleState))
+        return mockk<Workspace<Workspace.Arguments>>().apply { every { info } returns infoState }
+    }
+
+    // The exported state flow is an asynchronous share, so it can still replay a pre-pause snapshot
     private val repoState = MutableStateFlow(
         WorkspaceRemote.State(
             infos = listOf(
@@ -60,8 +66,13 @@ class WorkspacePreviewCaptureServiceTest : BaseTest() {
             ),
         )
     )
+    private val liveWorkspaces = mutableMapOf<Workspace.Id, Workspace<out Workspace.Arguments>>(
+        idA to workspace(idA, Workspace.LifecycleState.Ready),
+        idB to workspace(idB, Workspace.LifecycleState.Ready),
+    )
     private val workspaceRepo = mockk<WorkspaceRepo>().apply {
         every { state } returns repoState
+        every { peek(any()) } answers { liveWorkspaces[firstArg()] }
     }
 
     private val service = WorkspacePreviewCaptureService(
@@ -104,6 +115,7 @@ class WorkspacePreviewCaptureServiceTest : BaseTest() {
         val pause = launch {
             pauseGate.withLease(idA) {
                 pauseDone.await()
+                liveWorkspaces[idA] = workspace(idA, Workspace.LifecycleState.Paused())
                 repoState.value = WorkspaceRemote.State(
                     infos = listOf(
                         info(idA, Workspace.LifecycleState.Paused()),
@@ -122,11 +134,33 @@ class WorkspacePreviewCaptureServiceTest : BaseTest() {
     }
 
     @Test
+    fun `a capture trusts the authoritative snapshot over the shared state flow`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val pauseDone = CompletableDeferred<Unit>()
+            val pause = launch {
+                pauseGate.withLease(idA) {
+                    pauseDone.await()
+                    // Only the backing state is swapped, the share still replays the pre-pause snapshot
+                    liveWorkspaces[idA] = workspace(idA, Workspace.LifecycleState.Paused())
+                }
+            }
+
+            val capture = async { capture(idA) }
+            pauseDone.complete(Unit)
+            pause.join()
+
+            repoState.value.infos.single { it.id == idA }.lifecycleState shouldBe Workspace.LifecycleState.Ready
+            capture.await() shouldBe null
+            coVerify(exactly = 0) { renderer.renderToBitmap(any(), any(), any(), any(), any()) }
+        }
+
+    @Test
     fun `a capture bails out if the workspace vanished while it waited`() = runTest(UnconfinedTestDispatcher()) {
         val closeDone = CompletableDeferred<Unit>()
         val close = launch {
             pauseGate.withLease(idA) {
                 closeDone.await()
+                liveWorkspaces.remove(idA)
                 repoState.value = WorkspaceRemote.State(
                     infos = listOf(info(idB, Workspace.LifecycleState.Ready)),
                 )

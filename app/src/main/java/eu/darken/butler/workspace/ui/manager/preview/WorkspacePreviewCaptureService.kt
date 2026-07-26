@@ -23,7 +23,6 @@ import eu.darken.butler.workspace.ui.WorkspacePageHostEntry
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.workspaces.WorkspaceMapper
 import eu.darken.butler.workspace.ui.workspaces.WorkspacePaneInfo
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -66,7 +65,7 @@ class WorkspacePreviewCaptureService @Inject constructor(
         log(TAG, INFO) { "Capturing preview for workspace ${workspaceId.shortTag} (${workspaceType})" }
 
         workspacePauseGate.withLease(workspaceId) {
-            val currentInfo = workspaceRepo.state.first().infos.find { it.id == workspaceId }
+            val currentInfo = workspaceRepo.peek(workspaceId)?.info?.value
             val skipReason = when {
                 currentInfo == null -> "it is gone from the repo"
                 currentInfo.isPaused -> "it was paused while we waited for the lease"
