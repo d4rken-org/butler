@@ -4,6 +4,7 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceRemote
+import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPositions
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.every
@@ -39,6 +40,7 @@ class WorkspacePageManagerTest : BaseTest() {
         pageManager = WorkspacePageManager(
             appScope = testScope,
             workspaceRemote = workspaceRemote,
+            scrollPositions = WorkspaceScrollPositions(),
         )
     }
 

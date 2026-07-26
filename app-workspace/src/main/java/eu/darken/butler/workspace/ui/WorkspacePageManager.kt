@@ -9,6 +9,7 @@ import eu.darken.butler.common.parcel.InstantParceler
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceRemote
+import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPositions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,6 +31,7 @@ import kotlin.time.Instant
 class WorkspacePageManager @Inject constructor(
     @AppScope private val appScope: CoroutineScope,
     private val workspaceRemote: WorkspaceRemote,
+    private val scrollPositions: WorkspaceScrollPositions,
 ) {
     @Parcelize
     @TypeParceler<Instant, InstantParceler>
@@ -58,6 +60,7 @@ class WorkspacePageManager @Inject constructor(
                     }
 
                     is WorkspaceEvent.Closed -> {
+                        scrollPositions.forget(event.workspaceId)
                         handleWorkspaceClosed(event.workspaceId, event.callerWorkspaceId)
                     }
 
@@ -84,6 +87,7 @@ class WorkspacePageManager @Inject constructor(
 
                     WorkspaceEvent.AllClosed -> {
                         log(TAG) { "All workspaces closed" }
+                        scrollPositions.clear()
                         _state.update {
                             it.copy(
                                 focusedWorkspaceId = null,
