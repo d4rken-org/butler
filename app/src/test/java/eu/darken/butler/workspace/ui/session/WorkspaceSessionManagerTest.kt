@@ -312,6 +312,8 @@ class WorkspaceSessionManagerTest : BaseTest() {
                 storage = storage,
                 json = json,
                 factoryMap = factoryMap,
+                scrollPositions = scrollPositions,
+                processLifecycle = processLifecycle.registry,
             )
         }
 
