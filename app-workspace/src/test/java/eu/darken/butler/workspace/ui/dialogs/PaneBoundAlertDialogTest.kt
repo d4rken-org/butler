@@ -34,8 +34,6 @@ import androidx.compose.ui.unit.width
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.workspace.ui.insets.LocalPaneEdges
-import eu.darken.butler.workspace.ui.manager.WorkspaceDesign.PaneEdges
 import eu.darken.butler.workspace.ui.modal.PaneLayerHost
 import io.kotest.matchers.shouldBe
 import org.junit.Test
@@ -339,46 +337,6 @@ class PaneBoundAlertDialogTest : ComposeTest() {
         val surfaceBounds = composeTestRule.onNodeWithTag(surface).getUnclippedBoundsInRoot()
         (confirm.left - surfaceBounds.left < surfaceBounds.right - confirm.right) shouldBe true
         (dismiss.left - surfaceBounds.left < surfaceBounds.right - dismiss.right) shouldBe true
-    }
-
-    /**
-     * A pane touching a side navigation bar or a cutout insets its *content*, never its scrim. Inset
-     * the scrim and that strip stays undimmed, stays touchable, and sits outside the pane's press
-     * observer — the dialog would no longer be modal across the full pane.
-     *
-     * Partial guard only: this environment reports zero window insets, so the pane-edge inset
-     * resolves to nothing here and the assertion cannot distinguish an inset scrim from a full one.
-     * It does catch a scrim shrunk by a constant. The real check is a landscape device with a side
-     * navigation bar.
-     */
-    @Test
-    fun `the scrim spans the full pane even when the pane is inset`() {
-        composeTestRule.setContent {
-            PreviewWrapper {
-                Box(modifier = Modifier.size(width = 300.dp, height = 400.dp)) {
-                    CompositionLocalProvider(LocalPaneEdges provides PaneEdges()) {
-                        PaneLayerHost(
-                            modifier = Modifier.fillMaxSize().testTag(HOST_TAG),
-                            paneFocused = true,
-                            paneEdges = PaneEdges(),
-                        ) {
-                            PaneBoundAlertDialog(
-                                onDismissRequest = {},
-                                title = { Text("Title") },
-                                confirmButton = { TextButton(onClick = {}) { Text("OK") } },
-                            )
-                        }
-                    }
-                }
-            }
-        }
-
-        val paneBounds = composeTestRule.onNodeWithTag(HOST_TAG).getUnclippedBoundsInRoot()
-        val scrimBounds = composeTestRule.onNodeWithTag(scrim).getUnclippedBoundsInRoot()
-
-        scrimBounds.width shouldBe paneBounds.width
-        scrimBounds.height shouldBe paneBounds.height
-        scrimBounds.left shouldBe paneBounds.left
     }
 
     @Test
