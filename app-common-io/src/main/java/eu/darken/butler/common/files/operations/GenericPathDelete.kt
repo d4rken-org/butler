@@ -30,6 +30,7 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.isActive
+import kotlin.time.Clock
 
 /**
  * Generic delete operation that works with any path type.
@@ -63,14 +64,15 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>>(
     private val recursive: Boolean,
     private val ignoreMissing: Boolean,
     private val fileSystemOps: FileSystemOps<P, PL>,
-    private val onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?
+    private val onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?,
+    progressClock: Clock = Clock.System,
 ) {
 
     private val deleted = linkedSetOf<PL>()
     private val skipped = linkedSetOf<PL>()
 
     // Shared components
-    private val progressTracker = PathOperationProgressTracker()
+    private val progressTracker = PathOperationProgressTracker(clock = progressClock)
     private val issueResolver = PathOperationIssueResolver(onIssue)
     private val errorHandler = TransferErrorHandler()
 
@@ -519,18 +521,21 @@ fun <P : APath<P>, PL : APathLookup<P>> P.deleteGeneric(
     fileSystemOps: FileSystemOps<P, PL>,
     recursive: Boolean = true,
     ignoreMissing: Boolean = true,
-    onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
-) = setOf(this).deleteGeneric(fileSystemOps, recursive, ignoreMissing, onIssue)
+    progressClock: Clock = Clock.System,
+    onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null,
+) = setOf(this).deleteGeneric(fileSystemOps, recursive, ignoreMissing, progressClock, onIssue)
 
 fun <P : APath<P>, PL : APathLookup<P>> Collection<P>.deleteGeneric(
     fileSystemOps: FileSystemOps<P, PL>,
     recursive: Boolean = true,
     ignoreMissing: Boolean = true,
-    onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
+    progressClock: Clock = Clock.System,
+    onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null,
 ): Flow<DeleteAction.State<P, PL>> = GenericPathDelete(
     targets = this,
     recursive = recursive,
     ignoreMissing = ignoreMissing,
     fileSystemOps = fileSystemOps,
-    onIssue = onIssue
+    onIssue = onIssue,
+    progressClock = progressClock,
 ).execute()

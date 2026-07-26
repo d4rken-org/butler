@@ -4,6 +4,7 @@ import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
+import testhelpers.TestClock
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Instant
 
@@ -188,14 +189,28 @@ class PathOperationProgressTrackerTest : BaseTest() {
 
     @Test
     fun `shouldReportProgress throttles based on interval`() {
-        val tracker = PathOperationProgressTracker(progressReportInterval = 100.milliseconds)
+        val clock = TestClock()
+        val tracker = PathOperationProgressTracker(progressReportInterval = 100.milliseconds, clock = clock)
         tracker.totalItems = 100
 
         // First call should always report
         tracker.completeItem()
         tracker.shouldReportProgress() shouldBe true
 
-        // Immediate second call should be throttled (< 100ms elapsed)
+        // Everything within the window is dropped, right up to the last tick before it elapses
+        tracker.completeItem()
+        tracker.shouldReportProgress() shouldBe false
+        clock += 99.milliseconds
+        tracker.completeItem()
+        tracker.shouldReportProgress() shouldBe false
+
+        // Exactly at the interval it reports again ...
+        clock += 1.milliseconds
+        tracker.completeItem()
+        tracker.shouldReportProgress() shouldBe true
+
+        // ... and the window restarts from that report
+        clock += 99.milliseconds
         tracker.completeItem()
         tracker.shouldReportProgress() shouldBe false
 

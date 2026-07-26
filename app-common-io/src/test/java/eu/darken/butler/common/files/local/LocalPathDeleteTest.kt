@@ -23,10 +23,13 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import testhelpers.BaseTest
+import testhelpers.TestClock
 import java.io.File
 import java.nio.file.DirectoryNotEmptyException
 import java.nio.file.Files
 import java.nio.file.LinkOption
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
 
 class LocalPathDeleteTest : BaseTest() {
 
@@ -344,18 +347,11 @@ class LocalPathDeleteTest : BaseTest() {
             }
         }
 
-        val startTime = System.currentTimeMillis()
-
-        // When
+        // When - a hang is caught by runTest's own timeout, no wall-clock assertion needed here
         val result = files.map { LocalPath.build(it) }.delete(ops).last() as DeleteAction.State.Completed
-        val endTime = System.currentTimeMillis()
 
         // Then
         result.deleted shouldHaveSize files.size
-
-        // Basic performance check - should complete reasonably quickly
-        val duration = endTime - startTime
-        duration should { it < 5000 } // Should complete within 5 seconds
     }
 
     @Test
@@ -1170,36 +1166,36 @@ class LocalPathDeleteTest : BaseTest() {
 
     @Test
     fun `progress callbacks should be throttled to reduce UI spam`(@TempDir tempDir: File) = runTest {
-        // Given - 100 files that would normally trigger 200 callbacks (before + after each delete)
-        val files = (1..100).map { i ->
-            File(tempDir, "file$i.txt").apply {
-                writeText("content $i")
-            }
-        }
-
-        val progressTimestamps = mutableListOf<Long>()
-        val startTime = System.currentTimeMillis()
-
-        // When
-        files.map { LocalPath.build(it) }.delete(ops).collect { state ->
-            when (state) {
-                is DeleteAction.State.Active -> progressTimestamps.add(System.currentTimeMillis() - startTime)
-                is DeleteAction.State.Completed -> { /* final result */
+        // Given - 100 files that would trigger a progress tick per scanned and per deleted item
+        suspend fun deleteRun(name: String, clock: Clock): Int {
+            val dir = File(tempDir, name).apply { mkdirs() }
+            val files = (1..100).map { i -> File(dir, "file$i.txt").apply { writeText("content $i") } }
+            var actives = 0
+            files.map { LocalPath.build(it) }.delete(ops, progressClock = clock).collect { state ->
+                when (state) {
+                    is DeleteAction.State.Active -> actives++
+                    is DeleteAction.State.Completed -> { /* final result */
+                    }
                 }
             }
+            return actives
         }
 
-        // Then - Should have significantly fewer than 200 calls (2 per file without throttling)
-        // With 250ms throttling, expect roughly 40-60 calls depending on execution speed
-        progressTimestamps.size should { it < 80 }
+        // When - time never advances, so every tick inside the report interval is dropped ...
+        val throttled = deleteRun("throttled", TestClock())
+        // ... and when the interval elapses before every tick, nothing is dropped.
+        val unthrottled = deleteRun("unthrottled", TestClock(autoAdvance = 1.seconds))
+        // Real clock, default production wiring
+        val realClock = deleteRun("realclock", Clock.System)
 
-        // Verify some throttling occurred (if more than 2 callbacks)
-        if (progressTimestamps.size > 2) {
-            val intervals = progressTimestamps.zipWithNext { a, b -> b - a }
-            val throttledIntervals = intervals.dropLast(1).count { it >= 200 }
-            // At least some intervals should show throttling behavior
-            throttledIntervals should { it > 0 }
-        }
+        // Then - the exact retained set: throttling is what keeps these numbers apart. If the
+        // operation stopped routing progress through PathOperationProgressTracker both runs would
+        // report the same amount of progress states.
+        // 1 initial + 1 forced final report per deleted file, every throttleable tick dropped
+        throttled shouldBe 101
+        // ... plus the per-file scan and pre-delete ticks that the window now lets through
+        unthrottled shouldBe 300
+        realClock should { it in throttled..unthrottled }
     }
 
     @Test
