@@ -205,16 +205,16 @@ class WorkspaceManagerViewModel @Inject constructor(
     data class WorkspaceItem(
         val id: Workspace.Id,
         val type: Workspace.Type,
-        /** What the card renders: the custom name when set, otherwise the automatic title. */
+        /** The resolved display title: the custom name when set, otherwise the automatic title. */
         val title: CaString,
         val subtitle: CaString?,
+        /** The automatic title, shown in the card's info bar and as the rename dialog's placeholder. */
+        val autoTitle: CaString,
         val isFocused: Boolean = false,
         val isSelected: Boolean = false,
         val paneNumber: Int? = null,
         val operationCount: Int = 0,
         val attentionCount: Int = 0,
-        /** The automatic title, shown as the rename dialog's placeholder. Defaults to [title]. */
-        val autoTitle: CaString = title,
         val customTitle: String? = null,
         /**
          * Modal pickers show up as cards but are excluded from session persistence, so renaming one

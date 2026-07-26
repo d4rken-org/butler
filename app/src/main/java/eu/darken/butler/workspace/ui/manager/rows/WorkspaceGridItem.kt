@@ -35,6 +35,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
@@ -51,6 +52,8 @@ import eu.darken.butler.workspace.core.label
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerViewModel
 import eu.darken.butler.workspace.ui.manager.rows.preview.WorkspacePreview
 import eu.darken.butler.common.R as CommonR
+
+const val TEST_TAG_WORKSPACE_CARD_HEADER = "workspace_card_header"
 
 @Composable
 fun WorkspaceGridItem(
@@ -116,6 +119,7 @@ fun WorkspaceGridItem(
                     modifier = with(reorderableScope) {
                         Modifier
                             .fillMaxWidth()
+                            .testTag(TEST_TAG_WORKSPACE_CARD_HEADER)
                             .padding(start = 4.dp)
                             .draggableHandle(
                                 onDragStarted = {
@@ -138,9 +142,7 @@ fun WorkspaceGridItem(
                         tint = MaterialTheme.colorScheme.primary,
                     )
 
-                    // A blank title would leave the card with nothing to identify it by, so the
-                    // workspace type stands in - same rule the dormant placeholder applies
-                    val title = workspace.title.asComposable().takeIf { it.isNotBlank() }
+                    val title = workspace.customTitle?.takeIf { it.isNotBlank() }
                         ?: workspace.type.label.asComposable()
                     Text(
                         modifier = Modifier.weight(1f),
@@ -200,21 +202,6 @@ fun WorkspaceGridItem(
                     }
                 }
 
-                // Blank (not just null) is suppressed: workspaces can publish an empty subtitle
-                val subtitle = workspace.subtitle?.asComposable()
-                if (!subtitle.isNullOrBlank()) {
-                    Text(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 24.dp, end = 4.dp),
-                        text = subtitle,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.MiddleEllipsis,
-                    )
-                }
-
                 WorkspacePreview(
                     modifier = Modifier.fillMaxWidth(),
                     workspaceId = workspace.id,
@@ -222,7 +209,13 @@ fun WorkspaceGridItem(
                     livePreview = livePreview,
                     paneNumber = workspace.paneNumber,
                     shouldShowBadge = workspace.paneNumber != null && currentPaneCount > 1,
-                )
+                ) {
+                    WorkspacePreviewInfoBar(
+                        modifier = Modifier.align(Alignment.BottomStart),
+                        primary = workspace.autoTitle,
+                        secondary = workspace.subtitle,
+                    )
+                }
             }
         }
     }
@@ -256,28 +249,46 @@ private fun WorkspaceGridItemPreview() {
             id = Workspace.Id(),
             type = Workspace.Type.EXPLORER,
             title = "/storage/emulated/0/Download/MyFile/Somepath/that/is/very/long/tooLong".toCaString(),
-            subtitle = "File explorer for browsing and managing files".toCaString(),
+            autoTitle = "/storage/emulated/0/Download/MyFile/Somepath/that/is/very/long/tooLong".toCaString(),
+            subtitle = "Recover deleted files".toCaString(),
         ),
         onClose = {},
         onSelect = {},
-        isDragging = false
+        isDragging = false,
     )
 }
 
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
-private fun WorkspaceGridItemSubtitleSuppressedPreview() {
+private fun WorkspaceGridItemInfoBarVariantsPreview() {
     Column(
         modifier = Modifier.padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
+        // Both bar lines
+        WorkspaceGridItem(
+            reorderableScope = createMockReorderableScope(),
+            workspace = WorkspaceManagerViewModel.WorkspaceItem(
+                id = Workspace.Id(),
+                type = Workspace.Type.EDITOR,
+                title = "build.gradle.kts".toCaString(),
+                autoTitle = "build.gradle.kts".toCaString(),
+                subtitle = "/storage/emulated/0/Projects/butler".toCaString(),
+            ),
+            onClose = {},
+            onSelect = {},
+            livePreview = false,
+        )
+
+        // Primary only
         WorkspaceGridItem(
             reorderableScope = createMockReorderableScope(),
             workspace = WorkspaceManagerViewModel.WorkspaceItem(
                 id = Workspace.Id(),
                 type = Workspace.Type.EXPLORER,
                 title = "Home".toCaString(),
+                autoTitle = "Home".toCaString(),
                 subtitle = null,
             ),
             onClose = {},
@@ -285,12 +296,14 @@ private fun WorkspaceGridItemSubtitleSuppressedPreview() {
             livePreview = false,
         )
 
+        // Neither - no bar at all, card height is unchanged
         WorkspaceGridItem(
             reorderableScope = createMockReorderableScope(),
             workspace = WorkspaceManagerViewModel.WorkspaceItem(
                 id = Workspace.Id(),
                 type = Workspace.Type.SAVER,
-                title = "Save as".toCaString(),
+                title = "".toCaString(),
+                autoTitle = "".toCaString(),
                 subtitle = "   ".toCaString(),
             ),
             onClose = {},
@@ -311,8 +324,8 @@ private fun WorkspaceGridItemCustomNamePreview() {
             id = Workspace.Id(),
             type = Workspace.Type.EXPLORER,
             title = "Holiday photos".toCaString(),
-            subtitle = "File explorer for browsing and managing files".toCaString(),
             autoTitle = "/storage/emulated/0/DCIM/Camera".toCaString(),
+            subtitle = null,
             customTitle = "Holiday photos",
         ),
         onClose = {},
@@ -331,31 +344,13 @@ private fun WorkspaceGridItemSearcherPreview() {
         workspace = WorkspaceManagerViewModel.WorkspaceItem(
             id = Workspace.Id(),
             type = Workspace.Type.SEARCHER,
-            title = "Search".toCaString(),
-            subtitle = "Search for files and folders".toCaString(),
+            title = "*.log".toCaString(),
+            autoTitle = "*.log".toCaString(),
+            subtitle = "Device storage, SD card".toCaString(),
         ),
         onClose = {},
         onSelect = {},
-        isDragging = false
-    )
-}
-
-@Preview2
-@ComposePreviewWrapper(ButlerPreviewWrapper::class)
-@Composable
-private fun WorkspaceGridItemEditorPreview() {
-    WorkspaceGridItem(
-        modifier = Modifier.padding(16.dp),
-        reorderableScope = createMockReorderableScope(),
-        workspace = WorkspaceManagerViewModel.WorkspaceItem(
-            id = Workspace.Id(),
-            type = Workspace.Type.EDITOR,
-            title = "Editor".toCaString(),
-            subtitle = "Text editor".toCaString(),
-        ),
-        onClose = {},
-        onSelect = {},
-        isDragging = false
+        isDragging = false,
     )
 }
 
@@ -369,13 +364,14 @@ private fun WorkspaceGridItemDraggingPreview() {
         workspace = WorkspaceManagerViewModel.WorkspaceItem(
             id = Workspace.Id(),
             type = Workspace.Type.SEARCHER,
-            title = "Search".toCaString(),
-            subtitle = "Search for files and folders".toCaString(),
+            title = "*.log".toCaString(),
+            autoTitle = "*.log".toCaString(),
+            subtitle = "Device storage".toCaString(),
         ),
         onClose = {},
         onSelect = {},
         livePreview = false,
-        isDragging = true
+        isDragging = true,
     )
 }
 
@@ -385,7 +381,7 @@ private fun WorkspaceGridItemDraggingPreview() {
 private fun WorkspaceGridItemFocusStatesPreview() {
     Column(
         modifier = Modifier.padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         // Focused workspace in pane 1 - SHOWS BADGE (multi-pane mode)
         WorkspaceGridItem(
@@ -393,8 +389,9 @@ private fun WorkspaceGridItemFocusStatesPreview() {
             workspace = WorkspaceManagerViewModel.WorkspaceItem(
                 id = Workspace.Id(),
                 type = Workspace.Type.EXPLORER,
-                title = "Focused Workspace".toCaString(),
-                subtitle = "This workspace is focused".toCaString(),
+                title = "/storage/emulated/0/Download".toCaString(),
+                autoTitle = "/storage/emulated/0/Download".toCaString(),
+                subtitle = null,
                 isFocused = true,
                 isSelected = true,
                 paneNumber = 0,
@@ -413,8 +410,9 @@ private fun WorkspaceGridItemFocusStatesPreview() {
             workspace = WorkspaceManagerViewModel.WorkspaceItem(
                 id = Workspace.Id(),
                 type = Workspace.Type.SEARCHER,
-                title = "Selected Workspace".toCaString(),
-                subtitle = "Selected but not focused".toCaString(),
+                title = "report".toCaString(),
+                autoTitle = "report".toCaString(),
+                subtitle = "SD card".toCaString(),
                 isFocused = false,
                 isSelected = true,
                 paneNumber = 1,
@@ -433,8 +431,9 @@ private fun WorkspaceGridItemFocusStatesPreview() {
             workspace = WorkspaceManagerViewModel.WorkspaceItem(
                 id = Workspace.Id(),
                 type = Workspace.Type.EDITOR,
-                title = "Normal Workspace".toCaString(),
-                subtitle = "Not selected or focused".toCaString(),
+                title = "notes.md".toCaString(),
+                autoTitle = "notes.md".toCaString(),
+                subtitle = "/storage/emulated/0/Documents".toCaString(),
                 isFocused = false,
                 isSelected = false,
                 paneNumber = null,
@@ -455,7 +454,7 @@ private fun WorkspaceGridItemFocusStatesPreview() {
 private fun WorkspaceGridItemAttentionPreview() {
     Column(
         modifier = Modifier.padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         // Workspace needs attention
         WorkspaceGridItem(
@@ -463,7 +462,8 @@ private fun WorkspaceGridItemAttentionPreview() {
             workspace = WorkspaceManagerViewModel.WorkspaceItem(
                 id = Workspace.Id(),
                 type = Workspace.Type.EXPLORER,
-                title = "Needs Attention".toCaString(),
+                title = "/storage/emulated/0/Download".toCaString(),
+                autoTitle = "/storage/emulated/0/Download".toCaString(),
                 subtitle = "3 errors occurred".toCaString(),
                 attentionCount = 3,
             ),
@@ -478,8 +478,9 @@ private fun WorkspaceGridItemAttentionPreview() {
             workspace = WorkspaceManagerViewModel.WorkspaceItem(
                 id = Workspace.Id(),
                 type = Workspace.Type.EXPLORER,
-                title = "Normal Workspace".toCaString(),
-                subtitle = "No issues".toCaString(),
+                title = "Trash".toCaString(),
+                autoTitle = "Trash".toCaString(),
+                subtitle = "Recover deleted files".toCaString(),
                 attentionCount = 0,
             ),
             onClose = {},
