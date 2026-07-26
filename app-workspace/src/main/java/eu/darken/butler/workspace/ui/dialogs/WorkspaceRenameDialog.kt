@@ -28,6 +28,7 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.WorkspaceAction.Rename.Companion.MAX_CUSTOM_TITLE_LENGTH
+import eu.darken.butler.workspace.ui.modal.LocalLayerActive
 import eu.darken.butler.common.R as CommonR
 
 /**
@@ -43,6 +44,67 @@ fun WorkspaceRenameDialog(
     autoTitle: String,
     onConfirm: (String?) -> Unit,
     onDismiss: () -> Unit,
+) = RenameDialogScaffold(
+    currentCustomTitle = currentCustomTitle,
+    autoTitle = autoTitle,
+    onConfirm = onConfirm,
+    onDismiss = onDismiss,
+) { title, text, confirmButton, dismissButton ->
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = title,
+        text = text,
+        confirmButton = confirmButton,
+        dismissButton = dismissButton,
+    )
+}
+
+/**
+ * [WorkspaceRenameDialog] for use from inside a workspace pane.
+ *
+ * Renaming reached from a pane — the Templates tab's name row — belongs to that pane, so it must
+ * not dim the whole window and must take part in the pane's back, focus and accessibility
+ * containment. The screen-level callers (the tab rail, the tab manager) keep the window variant:
+ * those genuinely act on the whole screen.
+ */
+@Composable
+fun PaneBoundWorkspaceRenameDialog(
+    currentCustomTitle: String?,
+    autoTitle: String,
+    onConfirm: (String?) -> Unit,
+    onDismiss: () -> Unit,
+) = RenameDialogScaffold(
+    currentCustomTitle = currentCustomTitle,
+    autoTitle = autoTitle,
+    onConfirm = onConfirm,
+    onDismiss = onDismiss,
+) { title, text, confirmButton, dismissButton ->
+    PaneBoundAlertDialog(
+        onDismissRequest = onDismiss,
+        includeImePadding = true,
+        title = title,
+        text = text,
+        confirmButton = confirmButton,
+        dismissButton = dismissButton,
+    )
+}
+
+/**
+ * The shared body of both variants: input state, the length cap and the confirm semantics live here
+ * exactly once, and [shell] only decides whether it is drawn in a window or inside a pane.
+ */
+@Composable
+private fun RenameDialogScaffold(
+    currentCustomTitle: String?,
+    autoTitle: String,
+    onConfirm: (String?) -> Unit,
+    onDismiss: () -> Unit,
+    shell: @Composable (
+        title: @Composable () -> Unit,
+        text: @Composable () -> Unit,
+        confirmButton: @Composable () -> Unit,
+        dismissButton: @Composable () -> Unit,
+    ) -> Unit,
 ) {
     val focusRequester = remember { FocusRequester() }
 
@@ -55,19 +117,21 @@ fun WorkspaceRenameDialog(
         onConfirm(textFieldValue.text.trim().takeIf { it.isNotEmpty() })
     }
 
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
+    // Only pull focus while this is the layer the user is talking to. Outside a pane there is no
+    // layer stack and this is always true, so the window variant behaves as before.
+    val layerActive = LocalLayerActive.current
+    LaunchedEffect(layerActive) {
+        if (layerActive) focusRequester.requestFocus()
     }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
+    shell(
+        {
             Text(
                 text = stringResource(R.string.workspace_rename_dialog_title),
                 style = MaterialTheme.typography.headlineSmall,
             )
         },
-        text = {
+        {
             Column(modifier = Modifier.fillMaxWidth()) {
                 OutlinedTextField(
                     modifier = Modifier
@@ -90,12 +154,12 @@ fun WorkspaceRenameDialog(
                 )
             }
         },
-        confirmButton = {
+        {
             TextButton(onClick = handleConfirm) {
                 Text(stringResource(CommonR.string.general_rename_action))
             }
         },
-        dismissButton = {
+        {
             TextButton(onClick = onDismiss) {
                 Text(stringResource(CommonR.string.general_cancel_action))
             }
@@ -122,6 +186,18 @@ private fun WorkspaceRenameDialogNamedPreview() {
     WorkspaceRenameDialog(
         currentCustomTitle = "Holiday photos",
         autoTitle = "/storage/emulated/0/DCIM/Camera",
+        onConfirm = {},
+        onDismiss = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun PaneBoundWorkspaceRenameDialogPreview() {
+    PaneBoundWorkspaceRenameDialog(
+        currentCustomTitle = "Holiday photos",
+        autoTitle = "New tab",
         onConfirm = {},
         onDismiss = {},
     )

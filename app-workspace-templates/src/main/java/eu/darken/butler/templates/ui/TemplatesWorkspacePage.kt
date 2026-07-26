@@ -67,7 +67,6 @@ import eu.darken.butler.workspace.contracts.templates.TemplatesArguments
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.icon
-import eu.darken.butler.workspace.ui.dialogs.WorkspaceRenameDialog
 import eu.darken.butler.workspace.ui.insets.paneInsets
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
@@ -99,6 +98,7 @@ fun TemplatesWorkspacePageHost(
             onNavToSettings = { vm.navTo(Nav.Main.settings()) },
             onCreateWorkspace = { vm.createWorkspace(it) },
             onRename = { vm.renameWorkspace(it) },
+            onEditName = { vm.showRenameDialog() },
         )
     }
 }
@@ -111,9 +111,9 @@ fun TemplatesWorkspacePage(
     onNavToSettings: () -> Unit,
     onCreateWorkspace: (WorkspaceAction.Create) -> Unit = {},
     onRename: (String?) -> Unit = {},
+    onEditName: () -> Unit = {},
 ) {
     val randomSlogan = remember { Slogans.random }
-    var showRenameDialog by remember { mutableStateOf(false) }
 
     val density = LocalDensity.current
     val paneInsets = design.paneInsets()
@@ -156,7 +156,7 @@ fun TemplatesWorkspacePage(
                 TabNameRow(
                     modifier = Modifier.padding(horizontal = 8.dp),
                     customTitle = state.customTitle,
-                    onEdit = { showRenameDialog = true },
+                    onEdit = onEditName,
                     onClear = { onRename(null) },
                 )
             }
@@ -276,17 +276,7 @@ fun TemplatesWorkspacePage(
         }
     }
 
-    if (showRenameDialog) {
-        WorkspaceRenameDialog(
-            currentCustomTitle = state.customTitle,
-            autoTitle = stringResource(R.string.workspace_templates_tab_title),
-            onConfirm = {
-                showRenameDialog = false
-                onRename(it)
-            },
-            onDismiss = { showRenameDialog = false },
-        )
-    }
+    // The rename dialog lives in the page host's overlay slot, see TemplatesWorkspaceOverlays
 }
 
 /**
