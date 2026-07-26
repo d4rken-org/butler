@@ -23,7 +23,13 @@ fun Project.setupRoomSchemas() {
     }
 }
 
-fun LibraryExtension.setupLibraryDefaults(projectConfig: ProjectConfig) {
+/**
+ * @param ownsVersionFlavor set this for the module that DECLARES the `version` flavor dimension.
+ */
+fun LibraryExtension.setupLibraryDefaults(
+    projectConfig: ProjectConfig,
+    ownsVersionFlavor: Boolean = false,
+) {
     if (projectConfig.compileSdkPreview != null) {
         compileSdkPreview = projectConfig.compileSdkPreview
     } else {
@@ -34,8 +40,16 @@ fun LibraryExtension.setupLibraryDefaults(projectConfig: ProjectConfig) {
         minSdk = projectConfig.minSdk
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // For modules that depend on app-common which has flavors
-        missingDimensionStrategy("version", "foss")
+        // Modules without the `version` dimension need this fallback to resolve flavored
+        // dependencies (app-common) against foss.
+        // The module that OWNS the dimension must NOT apply it: the strategy also overrides that
+        // module's OWN requested flavor attribute, so its gplay variants would request
+        // version=foss and compile against the foss classes.jar. That jar is not the Kotlin
+        // friend-path jar of the gplay variant, so every `internal` member of the module becomes
+        // inaccessible to its own gplay unit tests ("it is internal in ...").
+        if (!ownsVersionFlavor) {
+            missingDimensionStrategy("version", "foss")
+        }
     }
 }
 

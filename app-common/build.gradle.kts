@@ -15,7 +15,7 @@ apply(plugin = "org.jetbrains.kotlinx.kover")
 android {
     namespace = "${projectConfig.packageName}.common"
 
-    setupLibraryDefaults(projectConfig)
+    setupLibraryDefaults(projectConfig, ownsVersionFlavor = true)
 
     flavorDimensions.add("version")
     productFlavors {
