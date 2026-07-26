@@ -27,6 +27,8 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 
@@ -135,13 +137,10 @@ class AppsEngine @AssistedInject constructor(
     }
 
     suspend fun selectApp(installId: InstallId, selected: Boolean) = withContext(dispatcherProvider.Default) {
-        val newSelection = if (selected) {
-            _selectedAppIds.value + installId
-        } else {
-            _selectedAppIds.value - installId
+        val newSelection = _selectedAppIds.updateAndGet {
+            if (selected) it + installId else it - installId
         }
         log(tag) { "App selection updated: ${newSelection.size} selected" }
-        _selectedAppIds.value = newSelection
     }
 
     suspend fun clearSelection() = withContext(dispatcherProvider.Default) {
@@ -149,10 +148,16 @@ class AppsEngine @AssistedInject constructor(
         _selectedAppIds.value = emptySet()
     }
 
+    // Additive: selections hidden by the current filter/search survive and reappear once it is cleared.
     suspend fun selectAll() = withContext(dispatcherProvider.Default) {
         val allIds = _state.value.filteredApps.map { it.pkg.installId }.toSet()
         log(tag) { "Selecting all ${allIds.size} visible apps" }
-        _selectedAppIds.value = allIds
+        _selectedAppIds.update { it + allIds }
+    }
+
+    suspend fun selectApps(installIds: Set<InstallId>) = withContext(dispatcherProvider.Default) {
+        log(tag) { "Selecting ${installIds.size} apps" }
+        _selectedAppIds.update { it + installIds }
     }
 
     suspend fun refresh(showIndicator: Boolean = false) = withContext(dispatcherProvider.IO) {

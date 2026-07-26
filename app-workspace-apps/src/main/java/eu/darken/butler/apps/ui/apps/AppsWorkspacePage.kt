@@ -231,7 +231,7 @@ fun AppsWorkspacePage(
                     visible = true,
                     scrollBehavior = BarScrollBehavior.CollapseOnScroll(),
                     animation = BarAnimation.Slide(),
-                    modifier = Modifier.padding(horizontal = 8.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
                     AppsToolbarCard(
                         workspaceId = workspaceId,
@@ -259,6 +259,8 @@ fun AppsWorkspacePage(
                         systemAppsCount = state.systemAppsCount,
                         selectedCount = state.selectionCount,
                         onClearSelection = { onPageAction(AppsPageAction.Selection.Clear) },
+                        onSelectUserApps = { onPageAction(AppsPageAction.Selection.SelectUserApps) },
+                        onSelectSystemApps = { onPageAction(AppsPageAction.Selection.SelectSystemApps) },
                     )
                 }
             },
@@ -274,7 +276,7 @@ fun AppsWorkspacePage(
                     visible = hasActions,
                     scrollBehavior = BarScrollBehavior.HideOnScroll,
                     animation = BarAnimation.Slide(),
-                    modifier = Modifier.padding(horizontal = 8.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp),
                     revealOn = state.selectedAppIds,
                 ) {
                     WorkspaceActionBar(
