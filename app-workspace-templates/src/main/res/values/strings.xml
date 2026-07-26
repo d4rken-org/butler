@@ -3,4 +3,6 @@
     <string name="workspace_templates_tab_title">New</string>
     <string name="workspace_templates_choose_title">New tab</string>
     <string name="workspace_templates_choose_subtitle">Select a tab type. How can I help?</string>
+    <string name="workspace_templates_name_tab_action">Name this tab</string>
+    <string name="workspace_templates_name_tab_clear_content_desc">Clear custom name</string>
 </resources>

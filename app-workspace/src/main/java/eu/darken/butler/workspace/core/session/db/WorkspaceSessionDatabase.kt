@@ -4,6 +4,7 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import eu.darken.butler.common.room.InstantConverter
 import eu.darken.butler.workspace.core.serialization.WorkspaceIdConverter
 import eu.darken.butler.workspace.core.serialization.WorkspaceTypeConverter
@@ -13,7 +14,7 @@ import eu.darken.butler.workspace.core.serialization.WorkspaceTypeConverter
         WorkspaceSessionEntity::class,
         WorkspaceInstanceEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = true
 )
 @TypeConverters(
@@ -26,6 +27,12 @@ abstract class WorkspaceSessionDatabase : RoomDatabase() {
     abstract fun sessionDao(): WorkspaceSessionDao
 
     companion object {
-        val MIGRATIONS: Array<Migration> = emptyArray()
+        val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE workspace_instances ADD COLUMN customTitle TEXT")
+            }
+        }
+
+        val MIGRATIONS: Array<Migration> = arrayOf(MIGRATION_1_2)
     }
 }

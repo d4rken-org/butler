@@ -22,6 +22,15 @@ sealed interface WorkspaceEvent {
         val workspaceId: Workspace.Id,
     ) : WorkspaceEvent
 
+    /**
+     * A workspace's user-set name changed; [customTitle] is the normalized value, null when cleared.
+     * Session saving subscribes to this for an immediate write instead of waiting for the debounce.
+     */
+    data class Renamed(
+        val workspaceId: Workspace.Id,
+        val customTitle: String?,
+    ) : WorkspaceEvent
+
     data object AllClosed : WorkspaceEvent
 
     /**

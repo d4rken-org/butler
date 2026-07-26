@@ -33,4 +33,5 @@ data class WorkspaceInstanceEntity(
     val createdAt: Instant,
     val lastModified: Instant,
     val arguments: String,
+    val customTitle: String? = null,
 )

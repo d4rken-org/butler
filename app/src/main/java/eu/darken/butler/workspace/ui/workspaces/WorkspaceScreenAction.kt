@@ -24,6 +24,12 @@ sealed interface WorkspaceScreenAction {
         val count: Int,
     ) : WorkspaceScreenAction
 
+    /** Sets or clears ([customTitle] == null) the user-set name of a workspace. */
+    data class Rename(
+        val id: Workspace.Id,
+        val customTitle: String?,
+    ) : WorkspaceScreenAction
+
     /** Loads a workspace that was restored on demand and is still dormant. Does not change focus. */
     data class RestoreDormant(
         val id: Workspace.Id,

@@ -11,13 +11,21 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Close
+import androidx.compose.material.icons.twotone.Edit
+import androidx.compose.material.icons.twotone.MoreVert
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -42,6 +50,7 @@ import eu.darken.butler.workspace.core.icon
 import eu.darken.butler.workspace.core.label
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerViewModel
 import eu.darken.butler.workspace.ui.manager.rows.preview.WorkspacePreview
+import eu.darken.butler.common.R as CommonR
 
 @Composable
 fun WorkspaceGridItem(
@@ -50,6 +59,7 @@ fun WorkspaceGridItem(
     workspace: WorkspaceManagerViewModel.WorkspaceItem,
     onClose: () -> Unit,
     onSelect: () -> Unit,
+    onRename: () -> Unit = {},
     livePreview: Boolean = true,
     isDragging: Boolean = false,
     onDragStarted: () -> Unit = {},
@@ -61,6 +71,7 @@ fun WorkspaceGridItem(
     val haptic = LocalHapticFeedback.current
     val needsAttention = workspace.attentionCount > 0
     val attentionColor = MaterialTheme.colorScheme.error
+    var showOverflowMenu by remember { mutableStateOf(false) }
 
     val glowModifier = if (needsAttention) {
         Modifier.drawBehind {
@@ -139,6 +150,42 @@ fun WorkspaceGridItem(
                         maxLines = 1,
                         overflow = TextOverflow.StartEllipsis,
                     )
+
+                    // Sub-workspaces are not persisted, so a rename on them would silently be lost
+                    if (!workspace.isSubWorkspace) {
+                        Box {
+                            IconButton(
+                                modifier = Modifier.size(24.dp),
+                                onClick = { showOverflowMenu = true },
+                            ) {
+                                Icon(
+                                    modifier = Modifier.size(18.dp),
+                                    imageVector = Icons.TwoTone.MoreVert,
+                                    contentDescription = stringResource(R.string.workspace_row_more_options_content_desc),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                )
+                            }
+
+                            DropdownMenu(
+                                expanded = showOverflowMenu,
+                                onDismissRequest = { showOverflowMenu = false },
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(CommonR.string.general_rename_action)) },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = Icons.TwoTone.Edit,
+                                            contentDescription = null,
+                                        )
+                                    },
+                                    onClick = {
+                                        showOverflowMenu = false
+                                        onRename()
+                                    },
+                                )
+                            }
+                        }
+                    }
 
                     IconButton(
                         modifier = Modifier.size(24.dp),
@@ -251,6 +298,27 @@ private fun WorkspaceGridItemSubtitleSuppressedPreview() {
             livePreview = false,
         )
     }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspaceGridItemCustomNamePreview() {
+    WorkspaceGridItem(
+        modifier = Modifier.padding(16.dp),
+        reorderableScope = createMockReorderableScope(),
+        workspace = WorkspaceManagerViewModel.WorkspaceItem(
+            id = Workspace.Id(),
+            type = Workspace.Type.EXPLORER,
+            title = "Holiday photos".toCaString(),
+            subtitle = "File explorer for browsing and managing files".toCaString(),
+            autoTitle = "/storage/emulated/0/DCIM/Camera".toCaString(),
+            customTitle = "Holiday photos",
+        ),
+        onClose = {},
+        onSelect = {},
+        livePreview = false,
+    )
 }
 
 @Preview2

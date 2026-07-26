@@ -119,7 +119,7 @@ fun WorkspaceSwitchIndicator(
                 Spacer(modifier = Modifier.padding(vertical = 2.dp))
                 // Row 2: Title
                 Text(
-                    text = info.title.asComposable(),
+                    text = info.displayTitle.asComposable(),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSecondaryContainer,

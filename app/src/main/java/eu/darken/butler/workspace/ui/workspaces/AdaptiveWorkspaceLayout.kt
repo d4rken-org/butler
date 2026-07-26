@@ -43,6 +43,7 @@ fun AdaptiveWorkspaceLayout(
     onConfirmManagerDialog: (ManagerDialog.WorkspaceTargeted) -> Unit,
     bannerStates: Map<Workspace.Id, eu.darken.butler.workspace.ui.feedback.BannerState>,
     onDismissBanner: (Workspace.Id) -> Unit,
+    onRenameWorkspace: (Workspace.Id) -> Unit = {},
     paneLocalModals: Map<Workspace.Id, Workspace.Info> = emptyMap(),
     isUpgraded: Boolean = false,
     isOverlayVisible: Boolean = false,
@@ -101,6 +102,7 @@ fun AdaptiveWorkspaceLayout(
 
                     onPaneMenuToggle(false)
                 },
+                onRename = onRenameWorkspace,
                 onPaneMenuToggle = onPaneMenuToggle,
             )
 

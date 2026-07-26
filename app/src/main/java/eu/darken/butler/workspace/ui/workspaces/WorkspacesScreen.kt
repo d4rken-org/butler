@@ -11,6 +11,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -37,6 +38,7 @@ import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import eu.darken.butler.workspace.ui.dialogs.ClearSessionConfirmationDialog
 import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
 import eu.darken.butler.workspace.ui.dialogs.WorkspaceLimitDialog
+import eu.darken.butler.workspace.ui.dialogs.WorkspaceRenameDialog
 import eu.darken.butler.workspace.ui.feedback.BannerState
 import eu.darken.butler.workspace.ui.manager.LocalWorkspaceButtonProvider
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
@@ -71,6 +73,10 @@ fun WorkspaceScreen(
 
     var showPaneNumbers by remember { mutableStateOf(false) }
     var showPaneOverlay by remember { mutableStateOf(false) }
+
+    // Held as an id, not a captured Info: the automatic title can change, another surface can
+    // rename it, or the tab can close while the dialog is open.
+    var renameTargetId by remember { mutableStateOf<Workspace.Id?>(null) }
 
     var dividerPositions by rememberSaveable {
         mutableStateOf(DividerPositions())
@@ -126,6 +132,7 @@ fun WorkspaceScreen(
                 onConfirmManagerDialog = onConfirmManagerDialog,
                 bannerStates = bannerStates,
                 onDismissBanner = onDismissBanner,
+                onRenameWorkspace = { renameTargetId = it },
                 paneLocalModals = state.paneLocalModals,
                 isUpgraded = state.isUpgraded,
                 isOverlayVisible = isOverlayVisible,
@@ -158,6 +165,25 @@ fun WorkspaceScreen(
                     .statusBarsPadding()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
             )
+        }
+    }
+
+    renameTargetId?.let { targetId ->
+        val target = state.tabWorkspaces.firstOrNull { it.id == targetId }
+        if (target == null) {
+            renameTargetId = null
+        } else {
+            key(targetId) {
+                WorkspaceRenameDialog(
+                    currentCustomTitle = target.customTitle,
+                    autoTitle = target.title.get(LocalContext.current),
+                    onConfirm = { newTitle ->
+                        renameTargetId = null
+                        onScreenAction(WorkspaceScreenAction.Rename(targetId, newTitle))
+                    },
+                    onDismiss = { renameTargetId = null },
+                )
+            }
         }
     }
 
@@ -264,6 +290,7 @@ fun WorkspacesScreenHost(
                     onDismissBadgeExplanation = managerVm::dismissBadgeExplanation,
                     onDismissLongPressHint = managerVm::dismissLongPressHint,
                     onCloseAllWorkspaces = managerVm::closeAllWorkspaces,
+                    onRenameWorkspace = managerVm::renameWorkspace,
                     onTabsClick = managerVm::clearFilters,
                     onOperationsFilterClick = managerVm::toggleOperationsFilter,
                     onAttentionFilterClick = managerVm::toggleAttentionFilter,

@@ -17,23 +17,23 @@ class WorkspaceSessionDatabaseSchemaTest : BaseTest() {
 
     @Test
     fun `schema file exists for current version`() {
-        val expectedVersion = 1
+        val expectedVersion = 2
         val schemaFile = File("$schemaDir/$expectedVersion.json")
         schemaFile.exists() shouldBe true
     }
 
     @Test
     fun `schema version matches database annotation`() {
-        val schemaFile = File("$schemaDir/1.json")
+        val schemaFile = File("$schemaDir/2.json")
         val schema = Json.parseToJsonElement(schemaFile.readText()).jsonObject
         val version = schema["database"]?.jsonObject?.get("version")?.jsonPrimitive?.int
 
-        version shouldBe 1
+        version shouldBe 2
     }
 
     @Test
     fun `workspace_sessions table has expected columns`() {
-        val schemaFile = File("$schemaDir/1.json")
+        val schemaFile = File("$schemaDir/2.json")
         val schema = Json.parseToJsonElement(schemaFile.readText()).jsonObject
         val entities = schema["database"]?.jsonObject?.get("entities")?.jsonArray
         val table = entities?.firstOrNull {
@@ -57,7 +57,7 @@ class WorkspaceSessionDatabaseSchemaTest : BaseTest() {
 
     @Test
     fun `workspace_instances table has expected columns`() {
-        val schemaFile = File("$schemaDir/1.json")
+        val schemaFile = File("$schemaDir/2.json")
         val schema = Json.parseToJsonElement(schemaFile.readText()).jsonObject
         val entities = schema["database"]?.jsonObject?.get("entities")?.jsonArray
         val table = entities?.firstOrNull {
@@ -77,12 +77,13 @@ class WorkspaceSessionDatabaseSchemaTest : BaseTest() {
             "createdAt",
             "lastModified",
             "arguments",
+            "customTitle",
         )
     }
 
     @Test
     fun `workspace_instances table has expected indices`() {
-        val schemaFile = File("$schemaDir/1.json")
+        val schemaFile = File("$schemaDir/2.json")
         val schema = Json.parseToJsonElement(schemaFile.readText()).jsonObject
         val entities = schema["database"]?.jsonObject?.get("entities")?.jsonArray
         val table = entities?.firstOrNull {

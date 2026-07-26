@@ -60,13 +60,16 @@ class WorkspaceManagerViewModel @Inject constructor(
                 WorkspaceItem(
                     id = info.id,
                     type = info.type,
-                    title = info.title,
+                    title = info.displayTitle,
                     subtitle = info.subtitle,
                     isFocused = pageManagerState.focusedWorkspaceId == info.id,
                     isSelected = pageManagerState.selectedWorkspaces.values.contains(info.id),
                     paneNumber = panePosition,
                     operationCount = info.operationCount,
                     attentionCount = info.attentionCount,
+                    autoTitle = info.title,
+                    customTitle = info.customTitle,
+                    isSubWorkspace = info.isSubWorkspace,
                 )
             },
             useLivePreview = livePreview,
@@ -88,6 +91,11 @@ class WorkspaceManagerViewModel @Inject constructor(
 
     fun reorderWorkspaces(workspaceIds: List<Workspace.Id>) = launch {
         workspaceRepo.execute(WorkspaceAction.Reorder(workspaceIds))
+    }
+
+    fun renameWorkspace(id: Workspace.Id, customTitle: String?) = launch {
+        log(tag) { "renameWorkspace($id, $customTitle)" }
+        workspaceRepo.execute(WorkspaceAction.Rename(id, customTitle))
     }
 
     fun selectWorkspace(id: Workspace.Id) = launch {
@@ -197,6 +205,7 @@ class WorkspaceManagerViewModel @Inject constructor(
     data class WorkspaceItem(
         val id: Workspace.Id,
         val type: Workspace.Type,
+        /** What the card renders: the custom name when set, otherwise the automatic title. */
         val title: CaString,
         val subtitle: CaString?,
         val isFocused: Boolean = false,
@@ -204,5 +213,13 @@ class WorkspaceManagerViewModel @Inject constructor(
         val paneNumber: Int? = null,
         val operationCount: Int = 0,
         val attentionCount: Int = 0,
+        /** The automatic title, shown as the rename dialog's placeholder. Defaults to [title]. */
+        val autoTitle: CaString = title,
+        val customTitle: String? = null,
+        /**
+         * Modal pickers show up as cards but are excluded from session persistence, so renaming one
+         * would silently not survive a restart - the card hides its rename affordance.
+         */
+        val isSubWorkspace: Boolean = false,
     )
 }
