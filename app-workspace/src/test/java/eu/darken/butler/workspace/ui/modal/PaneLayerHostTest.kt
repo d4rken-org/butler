@@ -1,5 +1,6 @@
 package eu.darken.butler.workspace.ui.modal
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -23,6 +24,7 @@ import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
@@ -357,6 +359,85 @@ class PaneLayerHostTest : ComposeTest() {
     }
 
     /**
+     * A modal arms its focus trap while its pane is the focused one, and only pane focus moving
+     * away disarms it. Nothing in ordinary pane content requests pane focus — a press on a text
+     * field or a list row is consumed long before it reaches a click handler — so without the
+     * host's own press observer the previously focused pane would stay focused forever and keyboard
+     * focus could never move to another pane at all.
+     */
+    @Test
+    fun `pressing another pane hands the focused pane over and frees the modal's focus`() {
+        var focusedPane by mutableStateOf(PANE_A)
+        var modalHasFocus = false
+        var otherFieldHasFocus = false
+        val modalFocus = FocusRequester()
+        val otherFieldFocus = FocusRequester()
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                Row {
+                    CompositionLocalProvider(
+                        LocalWorkspaceFocusRequest provides { focusedPane = PANE_A },
+                    ) {
+                        PaneLayerHost(paneFocused = focusedPane == PANE_A) {
+                            PaneLayer(rank = PaneLayerRank.CONTENT, modal = false) {
+                                Box(modifier = Modifier.size(24.dp).focusable())
+                            }
+                            PaneLayer(rank = PaneLayerRank.OVERLAY) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(24.dp)
+                                        .focusRequester(modalFocus)
+                                        .onFocusChanged { modalHasFocus = it.isFocused }
+                                        .focusable(),
+                                )
+                            }
+                        }
+                    }
+                    CompositionLocalProvider(
+                        LocalWorkspaceFocusRequest provides { focusedPane = PANE_B },
+                    ) {
+                        PaneLayerHost(paneFocused = focusedPane == PANE_B) {
+                            PaneLayer(rank = PaneLayerRank.CONTENT, modal = false) {
+                                // Consumes the press itself, like a text field or a list row
+                                Box(
+                                    modifier = Modifier
+                                        .size(48.dp)
+                                        .testTag(OTHER_PANE_FIELD_TAG)
+                                        .focusRequester(otherFieldFocus)
+                                        .onFocusChanged { otherFieldHasFocus = it.isFocused }
+                                        .focusable()
+                                        .clickable { otherFieldFocus.requestFocus() },
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        composeTestRule.runOnIdle { modalFocus.requestFocus() }
+        composeTestRule.runOnIdle { modalHasFocus shouldBe true }
+
+        composeTestRule.onNodeWithTag(OTHER_PANE_FIELD_TAG).performClick()
+        composeTestRule.waitForIdle()
+
+        composeTestRule.runOnIdle {
+            // The press handed the focused pane over...
+            focusedPane shouldBe PANE_B
+            // ...which disarmed the modal's trap and released its focus...
+            modalHasFocus shouldBe false
+        }
+
+        // ...so the other pane's field can hold keyboard focus
+        composeTestRule.runOnIdle { otherFieldFocus.requestFocus() }
+        composeTestRule.runOnIdle {
+            otherFieldHasFocus shouldBe true
+            modalHasFocus shouldBe false
+        }
+    }
+
+    /**
      * Focus can still arrive in an inactive pane after the fact — keyboard traversal into it, or a
      * child requesting focus asynchronously. That must pull pane focus along with it, otherwise
      * focus sits in one pane while back dispatch belongs to another.
@@ -642,5 +723,8 @@ class PaneLayerHostTest : ComposeTest() {
     companion object {
         private const val CONTENT_TAG = "layer.content"
         private const val OVERLAY_TAG = "layer.overlay"
+        private const val OTHER_PANE_FIELD_TAG = "pane.b.field"
+        private const val PANE_A = "A"
+        private const val PANE_B = "B"
     }
 }

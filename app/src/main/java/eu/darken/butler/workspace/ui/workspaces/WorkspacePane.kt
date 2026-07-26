@@ -55,51 +55,53 @@ fun WorkspacePane(
     childModal: WorkspacePaneInfo? = null,
     childWorkspaceFocused: Boolean = false,
 ) {
-    PaneLayerHost(modifier = modifier, paneFocused = paneFocused) {
-        CompositionLocalProvider(
-            LocalWorkspaceFocused provides workspaceFocused,
-            LocalWorkspaceFocusRequest provides onRequestPaneFocus,
-        ) {
-            WorkspaceLayers(
-                info = info,
-                design = design,
-                contentRank = PaneLayerRank.CONTENT,
-                overlayRank = PaneLayerRank.OVERLAY,
-                managerRank = PaneLayerRank.MANAGER,
-                contentIsModal = false,
-                managerDialogStates = managerDialogStates,
-                onDismissManagerDialog = onDismissManagerDialog,
-                onConfirmManagerDialog = onConfirmManagerDialog,
-                bannerStates = bannerStates,
-                onDismissBanner = onDismissBanner,
-                onShareError = onShareError,
-                onCloseWorkspace = onCloseWorkspace,
-                onRestoreWorkspace = onRestoreWorkspace,
-            )
-        }
+    // Provided above the host so the host's own press observer can reach it: any press in the pane
+    // must make it the focused pane, including presses that the content consumes.
+    CompositionLocalProvider(LocalWorkspaceFocusRequest provides onRequestPaneFocus) {
+        PaneLayerHost(modifier = modifier, paneFocused = paneFocused) {
+            CompositionLocalProvider(
+                LocalWorkspaceFocused provides workspaceFocused,
+            ) {
+                WorkspaceLayers(
+                    info = info,
+                    design = design,
+                    contentRank = PaneLayerRank.CONTENT,
+                    overlayRank = PaneLayerRank.OVERLAY,
+                    managerRank = PaneLayerRank.MANAGER,
+                    contentIsModal = false,
+                    managerDialogStates = managerDialogStates,
+                    onDismissManagerDialog = onDismissManagerDialog,
+                    onConfirmManagerDialog = onConfirmManagerDialog,
+                    bannerStates = bannerStates,
+                    onDismissBanner = onDismissBanner,
+                    onShareError = onShareError,
+                    onCloseWorkspace = onCloseWorkspace,
+                    onRestoreWorkspace = onRestoreWorkspace,
+                )
+            }
 
-        childModal?.let { child ->
-            key(child.id) {
-                CompositionLocalProvider(
-                    LocalWorkspaceFocused provides childWorkspaceFocused,
-                    LocalWorkspaceFocusRequest provides onRequestPaneFocus,
-                ) {
-                    WorkspaceLayers(
-                        info = child,
-                        design = design,
-                        contentRank = PaneLayerRank.CHILD_CONTENT,
-                        overlayRank = PaneLayerRank.CHILD_OVERLAY,
-                        managerRank = PaneLayerRank.CHILD_MANAGER,
-                        contentIsModal = true,
-                        managerDialogStates = managerDialogStates,
-                        onDismissManagerDialog = onDismissManagerDialog,
-                        onConfirmManagerDialog = onConfirmManagerDialog,
-                        bannerStates = bannerStates,
-                        onDismissBanner = onDismissBanner,
-                        onShareError = onShareError,
-                        onCloseWorkspace = onCloseWorkspace,
-                        onRestoreWorkspace = onRestoreWorkspace,
-                    )
+            childModal?.let { child ->
+                key(child.id) {
+                    CompositionLocalProvider(
+                        LocalWorkspaceFocused provides childWorkspaceFocused,
+                    ) {
+                        WorkspaceLayers(
+                            info = child,
+                            design = design,
+                            contentRank = PaneLayerRank.CHILD_CONTENT,
+                            overlayRank = PaneLayerRank.CHILD_OVERLAY,
+                            managerRank = PaneLayerRank.CHILD_MANAGER,
+                            contentIsModal = true,
+                            managerDialogStates = managerDialogStates,
+                            onDismissManagerDialog = onDismissManagerDialog,
+                            onConfirmManagerDialog = onConfirmManagerDialog,
+                            bannerStates = bannerStates,
+                            onDismissBanner = onDismissBanner,
+                            onShareError = onShareError,
+                            onCloseWorkspace = onCloseWorkspace,
+                            onRestoreWorkspace = onRestoreWorkspace,
+                        )
+                    }
                 }
             }
         }
