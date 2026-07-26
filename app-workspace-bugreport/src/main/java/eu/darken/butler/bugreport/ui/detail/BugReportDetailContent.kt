@@ -48,6 +48,7 @@ import eu.darken.butler.common.debug.bugreport.BugReport
 import eu.darken.butler.common.debug.bugreport.BugReportInfo
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.workspace.ui.floatingbar.BarAnimation
+import eu.darken.butler.workspace.ui.common.WorkspacePaddings
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
@@ -105,8 +106,8 @@ fun BugReportDetailContent(
             contentPadding = PaddingValues(
                 top = topBarStackState.contentPaddingDp(),
                 bottom = navBarInset + 16.dp,
-                start = 12.dp,
-                end = 12.dp,
+                start = WorkspacePaddings.ContentHorizontal,
+                end = WorkspacePaddings.ContentHorizontal,
             ),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
@@ -127,7 +128,6 @@ fun BugReportDetailContent(
                     visible = true,
                     scrollBehavior = BarScrollBehavior.Static,
                     animation = BarAnimation.Slide(),
-                    modifier = Modifier.padding(horizontal = 8.dp),
                 ) {
                     BugReportDetailToolbarCard(
                         title = title,

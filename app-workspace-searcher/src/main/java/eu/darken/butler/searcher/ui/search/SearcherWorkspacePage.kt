@@ -64,6 +64,7 @@ import eu.darken.butler.searcher.ui.search.util.SearcherPageAction
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.actions.WorkspaceActionBar
 import eu.darken.butler.workspace.ui.clipboard.bar.ClipboardBar
+import eu.darken.butler.workspace.ui.common.WorkspacePaddings
 import eu.darken.butler.workspace.ui.error.ErrorCard
 import eu.darken.butler.workspace.ui.floatingbar.BarAnimation
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
@@ -340,8 +341,8 @@ fun SearcherWorkspacePage(
 
         // Content padding - automatically calculated by FloatingBarStack
         val contentPaddingValues = PaddingValues(
-            start = 16.dp,
-            end = 16.dp,
+            start = WorkspacePaddings.ContentHorizontal,
+            end = WorkspacePaddings.ContentHorizontal,
             top = topBarStackState.contentPaddingDp(),
             bottom = bottomBarStackState.contentPaddingDp(),
         )
@@ -597,7 +598,6 @@ fun SearcherWorkspacePage(
                     visible = true,
                     scrollBehavior = BarScrollBehavior.CollapseOnScroll(),
                     animation = BarAnimation.Slide(),
-                    modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
                     SearchToolbarCard(
                         workspaceId = workspaceId,
@@ -614,7 +614,6 @@ fun SearcherWorkspacePage(
                     visible = showProgressCard,
                     scrollBehavior = BarScrollBehavior.VanishOnScroll,
                     animation = BarAnimation.Slide(),
-                    modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
                     SearchProgressCard(
                         targetProgress = currentState.workspaceState.targetProgress,
@@ -637,7 +636,6 @@ fun SearcherWorkspacePage(
                     visible = showInfoBar,
                     scrollBehavior = BarScrollBehavior.Static,
                     animation = BarAnimation.Slide(),
-                    modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
                     SearcherInfoBar(
                         foldersCount = foldersCount,
@@ -673,7 +671,6 @@ fun SearcherWorkspacePage(
                     visible = hasOperations,
                     scrollBehavior = if (hasActiveOperations) BarScrollBehavior.Static else BarScrollBehavior.VanishOnScroll,
                     animation = BarAnimation.Slide(),
-                    modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
                     OperationsBar(
                         operations = operationsState.operations,
@@ -699,7 +696,6 @@ fun SearcherWorkspacePage(
                     visible = hasClipboard,
                     scrollBehavior = BarScrollBehavior.VanishOnScroll,
                     animation = BarAnimation.Bouncy,
-                    modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
                     ClipboardBar(
                         workspaceType = Workspace.Type.SEARCHER,
@@ -717,7 +713,6 @@ fun SearcherWorkspacePage(
                     visible = hasActions,
                     scrollBehavior = BarScrollBehavior.HideOnScroll,
                     animation = BarAnimation.Slide(),
-                    modifier = Modifier.padding(horizontal = 16.dp),
                     revealOn = currentState.selectionState.selectedResultIds,
                 ) {
                     WorkspaceActionBar(

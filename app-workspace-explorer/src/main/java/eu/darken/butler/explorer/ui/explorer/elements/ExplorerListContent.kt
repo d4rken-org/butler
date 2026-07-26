@@ -22,6 +22,7 @@ import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
 import eu.darken.butler.explorer.ui.explorer.items.ExplorerItemRenderer
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
+import eu.darken.butler.workspace.ui.common.WorkspacePaddings
 
 /**
  * The list-style main content of the Explorer page.
@@ -120,7 +121,7 @@ private fun ExplorerListContentPreview() {
             vm = null,
             contentFocusedItem = null,
             listState = rememberLazyListState(),
-            contentPadding = PaddingValues(12.dp),
+            contentPadding = PaddingValues(WorkspacePaddings.ContentHorizontal),
         )
     }
 }

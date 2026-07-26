@@ -56,6 +56,7 @@ import androidx.compose.runtime.collectAsState
 import eu.darken.butler.workspace.contracts.apps.DetailTab
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.floatingbar.BarAnimation
+import eu.darken.butler.workspace.ui.common.WorkspacePaddings
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
@@ -209,8 +210,8 @@ fun AppDetailsWorkspacePage(
             contentPadding = PaddingValues(
                 top = topBarStackState.contentPaddingDp(),
                 bottom = navBarInset + 16.dp,
-                start = 12.dp,
-                end = 12.dp,
+                start = WorkspacePaddings.ContentHorizontal,
+                end = WorkspacePaddings.ContentHorizontal,
             ),
             // Cards on the overview are spaced apart; the flat component list stays dense.
             verticalArrangement = Arrangement.spacedBy(if (showComponents) 0.dp else 8.dp),
@@ -246,7 +247,6 @@ fun AppDetailsWorkspacePage(
                     animation = BarAnimation.Slide(),
                     // Re-reveal the toolbar when switching routes so it isn't stuck collapsed.
                     revealOn = showComponents,
-                    modifier = Modifier.padding(horizontal = 8.dp),
                 ) {
                     if (showComponents) {
                         AppDetailsToolbarCard(
