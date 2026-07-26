@@ -10,6 +10,8 @@ import eu.darken.butler.common.datastore.createValue
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.serialization.InstantSerializer
 import eu.darken.butler.workspace.core.Workspace
+import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -139,6 +141,32 @@ class WorkspaceUsageRepoTest : BaseTest() {
     }
 
     @Test
+    fun `the cap evicts the weakest entry, not the oldest position`(@TempDir tempDir: File) = runTest {
+        val repo = createRepo(tempDir)
+        // A heavily used entry sits at the very end of the list, a barely used one right at the front
+        val padding = (1..20).map {
+            WorkspaceTypeUsage(
+                type = "PADDING_$it",
+                useCount = if (it == 20) 99 else it,
+                lastUsed = instant(it.toLong()),
+            )
+        }
+        dataStore.edit { prefs ->
+            prefs[key] = json.encodeToString(WorkspaceUsageData(entries = padding))
+        }
+
+        repo.track(Workspace.Type.EXPLORER, instant(1000))
+
+        val stored = json.decodeFromString<WorkspaceUsageData>(dataStore.data.first()[key]!!)
+        val types = stored.entries.map { it.type }
+        stored.entries.size shouldBe 20
+        types.first() shouldBe Workspace.Type.EXPLORER.name
+        // The tail entry survives because it ranks highest, the weakest one is dropped
+        types shouldContain "PADDING_20"
+        types shouldNotContain "PADDING_1"
+    }
+
+    @Test
     fun `concurrent tracking keeps every increment`(@TempDir tempDir: File) = runTest {
         val repo = createRepo(tempDir)
 
@@ -150,12 +178,28 @@ class WorkspaceUsageRepoTest : BaseTest() {
 
         val stored = json.decodeFromString<WorkspaceUsageData>(dataStore.data.first()[key]!!)
         stored.entries.single().useCount shouldBe 50
+        // Out-of-order application must never walk the timestamp backwards
+        stored.entries.single().lastUsed shouldBe instant(50)
     }
 
     @Test
     fun `a malformed persisted blob degrades to an empty ranking`(@TempDir tempDir: File) = runTest {
         val repo = createRepo(tempDir)
         dataStore.edit { prefs -> prefs[key] = "{ not json }" }
+
+        repo.rankedTypes.first() shouldBe emptyList()
+
+        repo.track(Workspace.Type.EXPLORER, instant(100))
+        repo.rankedTypes.first() shouldBe listOf(Workspace.Type.EXPLORER)
+    }
+
+    @Test
+    fun `a valid blob with an invalid timestamp degrades to an empty ranking`(@TempDir tempDir: File) = runTest {
+        val repo = createRepo(tempDir)
+        // Syntactically valid JSON that only the contextual Instant serializer chokes on
+        dataStore.edit { prefs ->
+            prefs[key] = """{"entries":[{"type":"EXPLORER","useCount":5,"lastUsed":"not-a-timestamp"}]}"""
+        }
 
         repo.rankedTypes.first() shouldBe emptyList()
 

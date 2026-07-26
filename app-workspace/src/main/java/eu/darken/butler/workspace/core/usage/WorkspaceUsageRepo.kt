@@ -22,10 +22,7 @@ class WorkspaceUsageRepo @Inject constructor(
      */
     val rankedTypes: Flow<List<Workspace.Type>> = settings.usageData.flow.map { data ->
         data.entries
-            .sortedWith(
-                compareByDescending<WorkspaceTypeUsage> { it.useCount }
-                    .thenByDescending { it.lastUsed }
-            )
+            .sortedWith(usageRanking)
             .mapNotNull { entry -> Workspace.Type.entries.firstOrNull { it.name == entry.type } }
     }
 
@@ -34,8 +31,9 @@ class WorkspaceUsageRepo @Inject constructor(
      * timestamp reflects the moment of creation, not when this coroutine happened to run.
      *
      * Uses an atomic `update` because tracking is fired concurrently — a read-then-write would let
-     * two creations read the same count and overwrite each other. Failures are swallowed: usage
-     * bookkeeping must never break workspace creation.
+     * two creations read the same count and overwrite each other. Concurrent transformations can
+     * still apply out of order, so [WorkspaceTypeUsage.lastUsed] only ever moves forward. Failures
+     * are swallowed: usage bookkeeping must never break workspace creation.
      */
     suspend fun track(type: Workspace.Type, usedAt: Instant) {
         try {
@@ -43,13 +41,17 @@ class WorkspaceUsageRepo @Inject constructor(
                 val existing = current.entries.firstOrNull { it.type == type.name }
                 val updated = existing?.copy(
                     useCount = existing.useCount + 1,
-                    lastUsed = usedAt,
+                    lastUsed = maxOf(existing.lastUsed, usedAt),
                 ) ?: WorkspaceTypeUsage(
                     type = type.name,
                     lastUsed = usedAt,
                 )
-                val entries = (listOf(updated) + current.entries.filter { it.type != type.name })
-                    .take(TRACKING_LIMIT)
+                // The tracked type always survives; the rest compete on the same criteria the
+                // ranking uses, so the cap never evicts a stronger entry than it keeps.
+                val entries = listOf(updated) + current.entries
+                    .filter { it.type != type.name }
+                    .sortedWith(usageRanking)
+                    .take(TRACKING_LIMIT - 1)
                 current.copy(entries = entries)
             }
             log(TAG) { "Tracked usage of $type at $usedAt" }
@@ -61,5 +63,7 @@ class WorkspaceUsageRepo @Inject constructor(
     companion object {
         private val TAG = logTag("Workspace", "Usage", "Repo")
         private const val TRACKING_LIMIT = 20
+        private val usageRanking = compareByDescending<WorkspaceTypeUsage> { it.useCount }
+            .thenByDescending { it.lastUsed }
     }
 }
