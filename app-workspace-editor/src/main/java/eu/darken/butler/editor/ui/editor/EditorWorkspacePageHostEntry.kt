@@ -20,7 +20,7 @@ object EditorWorkspacePageHostEntry : WorkspacePageHostEntry {
 
     @Composable
     override fun Overlays(id: Workspace.Id, design: WorkspaceDesign) {
-        EditorWorkspaceOverlaysHost(id = id)
+        EditorWorkspaceOverlaysHost(id = id, design = design)
     }
 
     @Module

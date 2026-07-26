@@ -43,9 +43,15 @@ fun ExplorerInfoBar(
     onClearSelection: () -> Unit = {},
     onSelectFolders: () -> Unit = {},
     onSelectFiles: () -> Unit = {},
+    onSelectAll: () -> Unit = {},
+    canSelectMultiple: Boolean = true,
     isTrashDisabled: Boolean = false,
 ) {
     val context = LocalContext.current
+    // Single-select pickers cap the selection at one item, so bulk-select chips stay inert
+    val selectFolders = onSelectFolders.takeIf { canSelectMultiple }
+    val selectFiles = onSelectFiles.takeIf { canSelectMultiple }
+    val selectAll = onSelectAll.takeIf { canSelectMultiple }
     WorkspaceInfoBar(
         modifier = modifier,
         selectedCount = selectedCount,
@@ -88,7 +94,7 @@ fun ExplorerInfoBar(
                                     info.directoryCount,
                                     info.directoryCount
                                 ),
-                                onClick = onSelectFolders,
+                                onClick = selectFolders,
                             )
                         }
                         if (info.fileCount != null && info.fileCount > 0) {
@@ -99,7 +105,7 @@ fun ExplorerInfoBar(
                                     info.fileCount,
                                     info.fileCount
                                 ),
-                                onClick = onSelectFiles,
+                                onClick = selectFiles,
                             )
                         }
                         if (info.directoryCount == 0 && info.fileCount == 0) {
@@ -152,7 +158,7 @@ fun ExplorerInfoBar(
                                     info.directoryCount,
                                     info.directoryCount
                                 ),
-                                onClick = onSelectFolders,
+                                onClick = selectFolders,
                             )
                         }
                         if (info.fileCount != null && info.fileCount > 0) {
@@ -163,7 +169,7 @@ fun ExplorerInfoBar(
                                     info.fileCount,
                                     info.fileCount
                                 ),
-                                onClick = onSelectFiles,
+                                onClick = selectFiles,
                             )
                         }
                     }
@@ -189,6 +195,7 @@ fun ExplorerInfoBar(
                     icon = Icons.TwoTone.Scale,
                     label = formatFileSize(selectedSize),
                     isAccented = true,
+                    onClick = selectAll,
                 )
                 return@WorkspaceInfoBar
             }
@@ -201,6 +208,7 @@ fun ExplorerInfoBar(
                         InfoChip(
                             icon = Icons.TwoTone.Scale,
                             label = formatFileSize(info.totalSize),
+                            onClick = selectAll,
                         )
                     }
 
@@ -242,8 +250,9 @@ fun ExplorerInfoBar(
                     Spacer(modifier = Modifier.weight(1f))
                     if (info.totalSize > 0) {
                         InfoChip(
-                            icon = Icons.TwoTone.Storage,
+                            icon = Icons.TwoTone.Scale,
                             label = formatFileSize(info.totalSize),
+                            onClick = selectAll,
                         )
                     }
                     if (info.itemCount > 0) {
@@ -268,8 +277,9 @@ fun ExplorerInfoBar(
                     Spacer(modifier = Modifier.weight(1f))
                     if (info.totalSize != null && info.totalSize > 0) {
                         InfoChip(
-                            icon = Icons.TwoTone.Storage,
+                            icon = Icons.TwoTone.Scale,
                             label = formatFileSize(info.totalSize),
+                            onClick = selectAll,
                         )
                     }
                 }

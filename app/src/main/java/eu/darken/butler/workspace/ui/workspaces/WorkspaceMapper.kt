@@ -50,6 +50,8 @@ fun WorkspaceMapper(
                     modifier = Modifier.fillMaxSize(),
                     design = design,
                     type = info.type,
+                    title = info.title,
+                    subtitle = info.subtitle,
                     error = lifecycleState.error,
                     onRestore = onRestoreWorkspace,
                     currentWorkspaceId = info.id,

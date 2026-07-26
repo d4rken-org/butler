@@ -43,17 +43,27 @@ class TemplatesWorkspaceViewModel @AssistedInject constructor(
         available.filterNot { it.type in activeSingletons }
     }
 
+    private val customTitleFlow = workspaceRemote.state
+        .map { state -> state.infos.firstOrNull { it.id == id }?.customTitle }
+
     val state = combine(
         templates,
         upgradeRepo.upgradeInfo,
-    ) { temps, upgradeInfo ->
+        customTitleFlow,
+    ) { temps, upgradeInfo, currentCustomTitle ->
         State(
             id = id,
             templates = temps,
             isUpgraded = upgradeInfo.isUpgraded,
             versionDescription = BuildConfigWrap.VERSION_DESCRIPTION_SHORT,
+            customTitle = currentCustomTitle,
         )
     }.asStateFlow()
+
+    fun renameWorkspace(customTitle: String?) = launch {
+        log(tag) { "renameWorkspace($customTitle)" }
+        workspaceRemote.execute(WorkspaceAction.Rename(id, customTitle))
+    }
 
     fun createWorkspace(action: WorkspaceAction.Create) = launch {
         when (val result = workspaceRemote.execute(action)) {
@@ -75,6 +85,7 @@ class TemplatesWorkspaceViewModel @AssistedInject constructor(
         val isUpgraded: Boolean,
         val templates: List<WorkspaceTemplate>,
         val versionDescription: String,
+        val customTitle: String? = null,
     )
 
     @AssistedFactory

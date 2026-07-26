@@ -7,12 +7,16 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,6 +27,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Add
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.DragIndicator
+import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material.icons.twotone.Looks3
 import androidx.compose.material.icons.twotone.LooksOne
 import androidx.compose.material.icons.twotone.LooksTwo
@@ -66,6 +71,7 @@ import eu.darken.butler.workspace.ui.workspaces.WorkspacePaneInfo
 import eu.darken.butler.workspace.ui.workspaces.asPaneInfo
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
+import eu.darken.butler.common.R as CommonR
 
 
 @Composable
@@ -77,6 +83,7 @@ fun WorkspaceNavigationRail(
     design: WorkspaceDesign = WorkspaceDesign(),
     onTabAction: (WorkspaceAction) -> Unit,
     onPaneAssignment: (workspaceId: Workspace.Id, paneIndex: Int) -> Unit,
+    onRename: (Workspace.Id) -> Unit = {},
     onPaneMenuToggle: (Boolean) -> Unit = {},
 ) {
     // Local state for reordering
@@ -111,7 +118,13 @@ fun WorkspaceNavigationRail(
     Surface(
         modifier = modifier
             .fillMaxHeight()
-            .windowInsetsPadding(WindowInsets.systemBars),
+            // Only the start side: the rail doesn't touch the end edge, and padding for an end-side
+            // navigation bar here would widen the rail while the end pane pads for it as well.
+            .windowInsetsPadding(
+                WindowInsets.systemBars
+                    .union(WindowInsets.displayCutout)
+                    .only(WindowInsetsSides.Start + WindowInsetsSides.Vertical)
+            ),
         color = MaterialTheme.colorScheme.surface,
         tonalElevation = 1.dp,
     ) {
@@ -152,6 +165,7 @@ fun WorkspaceNavigationRail(
                             currentPaneIndex = paneIndex,
                             onTabAction = onTabAction,
                             onPaneAssignment = onPaneAssignment,
+                            onRename = onRename,
                             maxPanes = design.maxPanes,
                             onPaneMenuToggle = onPaneMenuToggle,
                             isDraggingItem = isDraggingItem,
@@ -202,6 +216,7 @@ private fun DraggableWorkspaceRailItem(
     currentPaneIndex: Int?,
     onTabAction: (WorkspaceAction) -> Unit,
     onPaneAssignment: (workspaceId: Workspace.Id, paneIndex: Int) -> Unit,
+    onRename: (Workspace.Id) -> Unit,
     maxPanes: Int,
     onPaneMenuToggle: (Boolean) -> Unit,
     isDraggingItem: Boolean,
@@ -274,7 +289,7 @@ private fun DraggableWorkspaceRailItem(
                             }
                             Icon(
                                 imageVector = workspace.type.icon,
-                                contentDescription = workspace.title.get(LocalContext.current),
+                                contentDescription = workspace.displayTitle.get(LocalContext.current),
                                 modifier = if (currentPaneIndex != null) {
                                     Modifier.padding(start = 2.dp)
                                 } else {
@@ -287,7 +302,7 @@ private fun DraggableWorkspaceRailItem(
             },
             label = {
                 Text(
-                    text = workspace.title.get(LocalContext.current),
+                    text = workspace.displayTitle.get(LocalContext.current),
                     style = MaterialTheme.typography.labelSmall.copy(
                         textDecoration = if (isFocused) TextDecoration.Underline else TextDecoration.None
                     ),
@@ -322,6 +337,20 @@ private fun DraggableWorkspaceRailItem(
                     },
                 )
             }
+            DropdownMenuItem(
+                text = { Text(stringResource(CommonR.string.general_rename_action)) },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.TwoTone.Edit,
+                        contentDescription = null,
+                    )
+                },
+                onClick = {
+                    showPaneMenu = false
+                    onPaneMenuToggle(false)
+                    onRename(workspace.id)
+                },
+            )
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
             DropdownMenuItem(
                 text = { Text(stringResource(R.string.workspace_pane_close_action)) },
@@ -349,6 +378,7 @@ private fun WorkspaceRailItem(
     currentPaneIndex: Int?,
     onTabAction: (WorkspaceAction) -> Unit,
     onPaneAssignment: (workspaceId: Workspace.Id, paneIndex: Int) -> Unit,
+    onRename: (Workspace.Id) -> Unit,
     maxPanes: Int,
     onPaneMenuToggle: (Boolean) -> Unit,
 ) {
@@ -387,7 +417,7 @@ private fun WorkspaceRailItem(
                     }
                     Icon(
                         imageVector = workspace.type.icon,
-                        contentDescription = workspace.title.get(LocalContext.current),
+                        contentDescription = workspace.displayTitle.get(LocalContext.current),
                         modifier = if (currentPaneIndex != null) {
                             Modifier.padding(start = 2.dp)
                         } else {
@@ -398,7 +428,7 @@ private fun WorkspaceRailItem(
             },
             label = {
                 Text(
-                    text = workspace.title.get(LocalContext.current),
+                    text = workspace.displayTitle.get(LocalContext.current),
                     style = MaterialTheme.typography.labelSmall.copy(
                         textDecoration = if (isFocused) TextDecoration.Underline else TextDecoration.None
                     ),
@@ -433,6 +463,20 @@ private fun WorkspaceRailItem(
                     },
                 )
             }
+            DropdownMenuItem(
+                text = { Text(stringResource(CommonR.string.general_rename_action)) },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.TwoTone.Edit,
+                        contentDescription = null,
+                    )
+                },
+                onClick = {
+                    showPaneMenu = false
+                    onPaneMenuToggle(false)
+                    onRename(workspace.id)
+                },
+            )
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
             DropdownMenuItem(
                 text = { Text(stringResource(R.string.workspace_pane_close_action)) },

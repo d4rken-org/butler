@@ -85,7 +85,7 @@ class ExplorerPickerHelper @Inject constructor() {
         config: PickerConfig?,
     ): List<ExplorerActionBarItem> {
         if (config == null) return actions
-        return actions.filter { isActionAllowedInPicker(it) }
+        return actions.filter { isActionAllowedInPicker(it, config) }
     }
 
     /**
@@ -160,18 +160,20 @@ class ExplorerPickerHelper @Inject constructor() {
         else -> null
     }
 
-    private fun isActionAllowedInPicker(action: ExplorerActionBarItem): Boolean {
+    private fun isActionAllowedInPicker(action: ExplorerActionBarItem, config: PickerConfig): Boolean {
         return when (action) {
+            // Bulk selection only makes sense when the picker accepts more than one item
+            is ExplorerActionBarItem.Directory.SelectAll,
+            is ExplorerActionBarItem.Trash.SelectAll,
+            is ExplorerActionBarItem.TrashNested.SelectAll -> config.selection.isMultiSelect
+
             // Allowed: browsing, creation, and selection actions
             is ExplorerActionBarItem.Common.Refresh,
             is ExplorerActionBarItem.Common.Sort,
             is ExplorerActionBarItem.Common.Filter,
             is ExplorerActionBarItem.Common.UpdateViewStyle,
             is ExplorerActionBarItem.Directory.Create,
-            is ExplorerActionBarItem.Directory.SelectAll,
-            is ExplorerActionBarItem.Directory.DeselectAll,
-            is ExplorerActionBarItem.Trash.SelectAll,
-            is ExplorerActionBarItem.TrashNested.SelectAll -> true
+            is ExplorerActionBarItem.Directory.DeselectAll -> true
 
             // Blocked: modification, clipboard, device, file, and recycle bin actions
             is ExplorerActionBarItem.Directory.Copy,

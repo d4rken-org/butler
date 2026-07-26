@@ -1,13 +1,9 @@
 package eu.darken.butler.apps.ui.apps
 
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import eu.darken.butler.apps.ui.apps.dialogs.AppsDialogHost
 import eu.darken.butler.apps.ui.apps.dialogs.AppsDialogState
@@ -18,6 +14,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.contracts.apps.SortSettings
 import eu.darken.butler.workspace.contracts.apps.TagFilterConfig
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.insets.paneInsets
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
@@ -56,10 +53,9 @@ fun AppsWorkspaceOverlays(
     )
     val state = mainState as? AppsWorkspaceViewModel.State.Ready ?: return
 
-    val density = LocalDensity.current
-    val navBarInset = if (design.paneEdges.touchesBottom) {
-        with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
-    } else 0.dp
+    val paneInsets = design.paneInsets()
+    val navBarInset = paneInsets.bottom
+    val statusBarInset = paneInsets.top
 
     AppsDialogHost(
         dialogState = state.dialogState,
@@ -73,6 +69,7 @@ fun AppsWorkspaceOverlays(
         onConfirmUninstall = { onPageAction(AppsPageAction.Dialog.ConfirmUninstall(it)) },
         onConfirmClearCache = { onPageAction(AppsPageAction.Dialog.ConfirmClearCache(it)) },
         onConfirmClearData = { onPageAction(AppsPageAction.Dialog.ConfirmClearData(it)) },
+        topInset = statusBarInset,
         bottomInset = navBarInset,
     )
 }

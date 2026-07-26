@@ -1,13 +1,9 @@
 package eu.darken.butler.explorer.ui.explorer
 
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
@@ -19,6 +15,7 @@ import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogHost
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.ui.insets.paneInsets
 import eu.darken.butler.workspace.ui.issues.IssuesBottomSheet
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
@@ -75,17 +72,15 @@ fun ExplorerWorkspaceOverlays(
     showAddStorageSheet: Boolean = false,
     vm: ExplorerWorkspaceViewModel? = null,
 ) {
-    val density = LocalDensity.current
-    val navBarInset = if (design.paneEdges.touchesBottom) {
-        with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
-    } else {
-        0.dp
-    }
+    val paneInsets = design.paneInsets()
+    val navBarInset = paneInsets.bottom
+    val statusBarInset = paneInsets.top
 
     ExplorerDialogHost(
         dialogState = dialogState,
         trashEnabled = trashEnabled,
         vm = vm,
+        topInset = statusBarInset,
         bottomInset = navBarInset,
     )
 
@@ -96,6 +91,7 @@ fun ExplorerWorkspaceOverlays(
         onCancelOperation = { operationId -> vm?.requestCancelOperation(operationId) },
         onShareError = { vm?.shareError(it) },
         onHandleIssue = { operationId -> vm?.showConflictSheet(operationId) },
+        topInset = statusBarInset,
         bottomInset = navBarInset,
     )
 
@@ -106,6 +102,7 @@ fun ExplorerWorkspaceOverlays(
             issue = it,
             onResolution = { resolution -> vm?.resolveConflict(resolution) },
             onDismiss = { vm?.dismissConflictSheet() },
+            topInset = statusBarInset,
             bottomInset = navBarInset,
         )
     }
@@ -114,6 +111,7 @@ fun ExplorerWorkspaceOverlays(
         AddDeviceStorageSheet(
             onDismiss = { vm?.dismissAddStorageSheet() },
             onContinue = { vm?.addSAFLocation() },
+            topInset = statusBarInset,
             bottomInset = navBarInset,
         )
     }

@@ -18,6 +18,7 @@ import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.editor.core.EditorWorkspace
+import eu.darken.butler.editor.core.editorLocationSubtitle
 import eu.darken.butler.editor.core.engine.ContentSource
 import eu.darken.butler.editor.core.engine.EditorEngine
 import eu.darken.butler.editor.core.engine.LineEnding
@@ -107,7 +108,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
 
         val displayPath = (editorState.contentSource as? ContentSource.File)?.path
         val title = displayPath?.userReadableName ?: editorState.contentSource.name.toCaString()
-        val subTitle = displayPath?.parent?.userReadablePath ?: "In-Memory-Buffer".toCaString()
+        // Shared with the tab identity, so this toolbar and the tab describe the same location
+        val subTitle = editorLocationSubtitle(displayPath) ?: "In-Memory-Buffer".toCaString()
 
         State(
             id = id,

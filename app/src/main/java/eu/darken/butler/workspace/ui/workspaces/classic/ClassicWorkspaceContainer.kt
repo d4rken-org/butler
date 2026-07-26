@@ -3,6 +3,8 @@ package eu.darken.butler.workspace.ui.workspaces.classic
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
@@ -18,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
+import eu.darken.butler.workspace.ui.insets.paneHorizontalInsetPadding
 import eu.darken.butler.workspace.ui.manager.LocalWorkspaceButtonProvider
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.workspaces.WorkspacePane
@@ -112,6 +115,9 @@ internal fun ClassicWorkspaceContainer(
                     // When overlay is visible, no workspace should be considered focused
                     val isFocused = state.focused == paneInfo.id && !isOverlayVisible
                     WorkspacePane(
+                        // Horizontal insets once around the whole pane subtree, incl. its sheets,
+                        // dialogs and banner — the layer host encloses the overlay layers too
+                        modifier = Modifier.paneHorizontalInsetPadding(design.paneEdges),
                         info = paneInfo,
                         design = design,
                         paneFocused = isFocused,
@@ -124,6 +130,7 @@ internal fun ClassicWorkspaceContainer(
                         onConfirmManagerDialog = onConfirmManagerDialog,
                         bannerStates = bannerStates,
                         onDismissBanner = onDismissBanner,
+                        paneEdges = design.paneEdges,
                         onShareError = onShareError,
                         onCloseWorkspace = { workspaceId ->
                             workspaceActionHandler?.executeWorkspaceAction(
@@ -138,7 +145,11 @@ internal fun ClassicWorkspaceContainer(
             }
         } else {
             EmptyClassicWorkspaceContent(
-                modifier = Modifier.windowInsetsPadding(WindowInsets.systemBars),
+                modifier = Modifier
+                    // Horizontal via the pane helper so cutouts are covered too, vertical from the
+                    // system bars as before.
+                    .paneHorizontalInsetPadding(design.paneEdges)
+                    .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Vertical)),
                 isUpgraded = state.isUpgraded,
             )
         }

@@ -10,10 +10,8 @@ import dagger.assisted.AssistedInject
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoMap
-import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
-import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
@@ -21,18 +19,18 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.flow.DynamicStateFlow
-import eu.darken.butler.common.getQuantityString2
 import eu.darken.butler.common.pkgs.Pkg
 import eu.darken.butler.common.pkgs.pkgops.PkgOps
 import eu.darken.butler.common.storage.StorageEnvironment
-import eu.darken.butler.saver.R
 import eu.darken.butler.saver.core.operations.SaveFilesOperation
 import eu.darken.butler.saver.core.operations.SaveFilesReport
 import eu.darken.butler.workspace.contracts.saver.SaverArguments
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.WorkspaceDisplay
 import eu.darken.butler.workspace.core.WorkspaceFactory
 import eu.darken.butler.workspace.core.WorkspaceTypeKey
 import eu.darken.butler.workspace.core.initialInfo
+import eu.darken.butler.workspace.core.label
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.Operation
@@ -166,11 +164,15 @@ class SaverWorkspace @AssistedInject constructor(
         val hasInaccessibleFiles: Boolean get() = sourceInfos.any { !it.isAccessible }
     }
 
+    // Same derivation the factory hands the dormant stand-in, so both name this tab identically
+    private val seedDisplay = deriveSaverDisplay(creationArguments)
+
     override val info: StateFlow<Workspace.Info> = combine(
         _sourceInfos,
         _filename,
         _saveState,
-    ) { sourceInfos, filename, saveState ->
+        _destination,
+    ) { sourceInfos, filename, saveState, destination ->
         val operationCount = when (saveState) {
             is SaveState.Saving -> 1
             else -> 0
@@ -184,21 +186,15 @@ class SaverWorkspace @AssistedInject constructor(
         Workspace.Info(
             id = id,
             type = type,
-            title = when {
-                Bugs.isDebug -> "Saver ${id.shortTag}".toCaString()
-                sourceInfos.size > 1 -> caString { cx ->
-                    cx.getQuantityString2(
-                        R.plurals.saver_workspace_title_count,
-                        sourceInfos.size,
-                        sourceInfos.size,
-                    )
-                }
-                else -> R.string.saver_workspace_title.toCaString()
-            },
+            // Sources are extracted asynchronously; until they land, the count from the arguments
+            // is the identity the dormant tab already showed - a debug label here would drop it
+            title = saverTitle(sourceInfos.size.takeIf { it > 0 } ?: sourceUris.size),
             subtitle = when {
-                sourceInfos.size > 1 -> sourceInfos.firstOrNull()?.displayName?.let { "$it, ..." }?.toCaString()
-                    ?: "".toCaString()
-                else -> filename.toCaString()
+                sourceInfos.size > 1 -> sourceInfos.firstOrNull()?.displayName?.let { "$it, …" }?.toCaString()
+                filename.isNotBlank() -> filename.toCaString()
+                // The CURRENT destination, not the one this tab was created with: it is what a
+                // session save persists, so a creation-time fallback would outlive its own truth
+                else -> saverLocationSubtitle(destination, creationArguments.callerPackage)
             },
             lifecycleState = Workspace.LifecycleState.Ready,
             operationCount = operationCount,
@@ -209,7 +205,8 @@ class SaverWorkspace @AssistedInject constructor(
     }.stateInWorkspace(
         scope = scope,
         initial = initialInfo(
-            title = R.string.saver_workspace_title.toCaString(),
+            title = seedDisplay?.title ?: type.label,
+            subtitle = seedDisplay?.subtitle,
             arguments = creationArguments,
         ),
     )
@@ -428,16 +425,14 @@ class SaverWorkspace @AssistedInject constructor(
         }
     }
 
-    private fun isUnknownCaller(pkgId: Pkg.Id): Boolean {
-        val name = pkgId.name.lowercase()
-        return name == "shell" || name == "com.android.shell" || name.isEmpty()
-    }
-
     @AssistedFactory
     interface Factory : WorkspaceFactory<SaverArguments> {
         override fun create(id: Workspace.Id, arguments: SaverArguments): SaverWorkspace
 
         override val argumentsSerializer: KSerializer<SaverArguments> get() = serializer()
+
+        override fun deriveDisplay(arguments: SaverArguments): WorkspaceDisplay? =
+            deriveSaverDisplay(arguments)
     }
 
     companion object {

@@ -2,6 +2,8 @@
 <resources>
     <string name="searcher_title">Search</string>
     <string name="searcher_subtitle">Find files and content</string>
+    <!-- Tab subtitle listing the search locations, e.g. "Downloads, Photos +3" -->
+    <string name="searcher_workspace_targets_overflow">%1$s +%2$d</string>
     <string name="searcher_settings_title">Search settings</string>
     <string name="searcher_settings_search_category">Search</string>
     <string name="searcher_settings_history">Search history</string>

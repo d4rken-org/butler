@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
+import eu.darken.butler.workspace.ui.insets.paneHorizontalInsetPadding
 import eu.darken.butler.workspace.ui.manager.LocalWorkspaceButtonProvider
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.workspaces.adaptive.AdaptiveWorkspaceContainer
@@ -38,6 +39,7 @@ fun AdaptiveWorkspaceLayout(
     onConfirmManagerDialog: (ManagerDialog.WorkspaceTargeted) -> Unit,
     bannerStates: Map<Workspace.Id, eu.darken.butler.workspace.ui.feedback.BannerState>,
     onDismissBanner: (Workspace.Id) -> Unit,
+    onRenameWorkspace: (Workspace.Id) -> Unit = {},
     paneLocalModals: Map<Workspace.Id, Workspace.Info> = emptyMap(),
     isUpgraded: Boolean = false,
     isOverlayVisible: Boolean = false,
@@ -96,6 +98,7 @@ fun AdaptiveWorkspaceLayout(
 
                     onPaneMenuToggle(false)
                 },
+                onRename = onRenameWorkspace,
                 onPaneMenuToggle = onPaneMenuToggle,
             )
 
@@ -113,13 +116,19 @@ fun AdaptiveWorkspaceLayout(
                 showPaneNumbers = showPaneNumbers,
                 showPaneOverlay = showPaneOverlay,
                 paneContent = { info, paneNumber ->
-                    val paneDesign = design.forPane(paneNumber)
+                    // The navigation rail occupies the start edge, so no pane reaches it.
+                    val paneDesign = design.forPane(paneNumber).withoutEdges(start = true)
                     if (info != null) {
                         key(info.id) {
                             // Check if this workspace has a pane-local modal child
                             val childModal = paneLocalModals[info.id]
 
+                            // Horizontal insets are applied once around the whole pane subtree so
+                            // banners, sheets and dialogs emitted outside a page's root are covered
+                            // too — the layer host encloses the overlay layers as well. Vertical
+                            // insets stay page-controlled (content padding).
                             WorkspacePane(
+                                modifier = Modifier.paneHorizontalInsetPadding(paneDesign.paneEdges),
                                 info = info,
                                 design = paneDesign,
                                 // Either occupant counts as focusing the pane, and every layer
@@ -139,6 +148,7 @@ fun AdaptiveWorkspaceLayout(
                                 onConfirmManagerDialog = onConfirmManagerDialog,
                                 bannerStates = bannerStates,
                                 onDismissBanner = onDismissBanner,
+                                paneEdges = paneDesign.paneEdges,
                                 onShareError = onShareError,
                                 onCloseWorkspace = { workspaceId ->
                                     workspaceActionHandler?.executeWorkspaceAction(
@@ -152,7 +162,9 @@ fun AdaptiveWorkspaceLayout(
                         }
                     } else {
                         EmptyAdaptiveWorkspaceContent(
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier
+                                .weight(1f)
+                                .paneHorizontalInsetPadding(paneDesign.paneEdges),
                             paneNumber = paneNumber,
                             paneEdges = paneDesign.paneEdges,
                             isUpgraded = isUpgraded,

@@ -80,6 +80,7 @@ fun SearcherDialogHost(
                 onPaste = null, // Not applicable for searcher
                 onRemove = { onRemoveClipboardEntry(dialogState.clip) },
                 onCopyPath = onCopyToClipboard,
+                topInset = topInset,
                 bottomInset = bottomInset,
             )
         }
@@ -93,6 +94,8 @@ fun SearcherDialogHost(
                 ),
                 onDismiss = onDismiss,
                 onCopyToClipboard = onCopyToClipboard,
+                topInset = topInset,
+                bottomInset = bottomInset,
             )
         }
         // Non-destructive dialogs handled by pane-scoped bottom sheets below

@@ -20,16 +20,22 @@ import kotlinx.coroutines.flow.stateIn
  * [arguments] so they are correct before the first real emission — WorkspaceRepo reads them
  * synchronously for lifecycle decisions (child cleanup, sub-workspace limit exclusion,
  * per-path open dedup).
+ *
+ * [title] and [subtitle] should come from the same derivation the type's
+ * [WorkspaceFactory.deriveDisplay] uses, so a dormant stand-in and the live workspace show the
+ * same identity for the same arguments.
  */
 fun Workspace<*>.initialInfo(
     title: CaString,
     arguments: Workspace.Arguments,
+    subtitle: CaString? = null,
 ): Workspace.Info {
     val withCaller = arguments as? Workspace.ArgumentsWithCaller
     return Workspace.Info(
         id = id,
         type = type,
         title = title,
+        subtitle = subtitle,
         callerWorkspaceId = withCaller?.callerWorkspaceId,
         modalPresentation = withCaller?.modalPresentation ?: Workspace.ModalPresentationMode.PANE_LOCAL,
         contentPath = (arguments as? Workspace.ArgumentsWithContentPath)?.contentPath,

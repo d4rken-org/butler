@@ -51,6 +51,7 @@ fun ItemInfoBottomSheet(
     onDismiss: () -> Unit,
     onCopyToClipboard: (String) -> Unit,
     modifier: Modifier = Modifier,
+    topInset: Dp = 0.dp,
     bottomInset: Dp = 0.dp,
 ) {
     val isInPreview = LocalInspectionMode.current
@@ -69,6 +70,7 @@ fun ItemInfoBottomSheet(
         PaneScopedBottomSheet(
             visible = true,
             onDismiss = onDismiss,
+            topInset = topInset,
             bottomInset = bottomInset,
             modifier = modifier,
         ) {

@@ -16,6 +16,7 @@ fun ExplorerDialogHost(
     dialogState: ExplorerDialogState,
     trashEnabled: Boolean,
     vm: ExplorerWorkspaceViewModel?,
+    topInset: Dp = 0.dp,
     bottomInset: Dp = 0.dp,
 ) {
     when (dialogState) {
@@ -86,6 +87,7 @@ fun ExplorerDialogHost(
                 trashEnabled = trashEnabled,
                 onDismiss = { vm?.dismissDialog() },
                 onAction = { action -> vm?.executeAction(action) },
+                topInset = topInset,
                 bottomInset = bottomInset,
             )
         }
@@ -124,6 +126,7 @@ fun ExplorerDialogHost(
                 onAction = { action -> vm?.executeAction(action) },
                 onCopyToClipboard = { text -> vm?.copyPathToSystemClipboard(text) },
                 onDismiss = { vm?.dismissDialog() },
+                topInset = topInset,
                 bottomInset = bottomInset,
             )
         }
@@ -134,6 +137,7 @@ fun ExplorerDialogHost(
                 onAction = { action -> vm?.executeAction(action) },
                 onCopyToClipboard = { text -> vm?.copyPathToSystemClipboard(text) },
                 onDismiss = { vm?.dismissDialog() },
+                topInset = topInset,
                 bottomInset = bottomInset,
             )
         }
@@ -153,6 +157,7 @@ fun ExplorerDialogHost(
                 onPaste = { vm?.pasteClipboard(dialogState.clip) },
                 onRemove = { vm?.removeClipboardEntry(dialogState.clip) },
                 onCopyPath = { path -> vm?.copyPathToSystemClipboard(path) },
+                topInset = topInset,
                 bottomInset = bottomInset,
             )
         }
@@ -177,7 +182,6 @@ fun ExplorerDialogHost(
         is ExplorerDialogState.ItemInfo -> {
             when (val context = dialogState.context) {
                 is ExplorerDialogState.ItemInfo.InfoContext.SingleFile -> {
-                    // Use shared component for single files (uses ModalBottomSheet - handles insets internally)
                     FileInfoBottomSheet(
                         fileInfo = FileInfo(
                             lookup = context.item.lookup,
@@ -188,10 +192,11 @@ fun ExplorerDialogHost(
                         ),
                         onDismiss = { vm?.dismissDialog() },
                         onCopyToClipboard = { text -> vm?.copyPathToSystemClipboard(text) },
+                        topInset = topInset,
+                        bottomInset = bottomInset,
                     )
                 }
                 is ExplorerDialogState.ItemInfo.InfoContext.SingleDirectory -> {
-                    // Use shared component for single directories (uses ModalBottomSheet - handles insets internally)
                     FileInfoBottomSheet(
                         fileInfo = FileInfo(
                             lookup = context.item.lookup,
@@ -202,16 +207,19 @@ fun ExplorerDialogHost(
                         ),
                         onDismiss = { vm?.dismissDialog() },
                         onCopyToClipboard = { text -> vm?.copyPathToSystemClipboard(text) },
+                        topInset = topInset,
+                        bottomInset = bottomInset,
                     )
                 }
                 is ExplorerDialogState.ItemInfo.InfoContext.MultipleItems -> {
-                    // Use shared component for multiple items (uses ModalBottomSheet - handles insets internally)
                     MultipleItemsInfoBottomSheet(
                         totalCount = context.selectedItems.size,
                         fileCount = context.fileCount,
                         directoryCount = context.directoryCount,
                         totalSize = context.totalSize,
                         onDismiss = { vm?.dismissDialog() },
+                        topInset = topInset,
+                        bottomInset = bottomInset,
                     )
                 }
                 // Keep Explorer-specific contexts with original ItemInfoBottomSheet
@@ -222,6 +230,7 @@ fun ExplorerDialogHost(
                         context = context,
                         onDismiss = { vm?.dismissDialog() },
                         onCopyToClipboard = { text -> vm?.copyPathToSystemClipboard(text) },
+                        topInset = topInset,
                         bottomInset = bottomInset,
                     )
                 }

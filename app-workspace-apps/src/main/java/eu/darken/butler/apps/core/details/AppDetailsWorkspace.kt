@@ -25,10 +25,12 @@ import eu.darken.butler.workspace.contracts.apps.AppDetailsArguments
 import eu.darken.butler.workspace.contracts.apps.DetailTab
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
+import eu.darken.butler.workspace.core.WorkspaceDisplay
 import eu.darken.butler.workspace.core.WorkspaceFactory
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.WorkspaceTypeKey
 import eu.darken.butler.workspace.core.initialInfo
+import eu.darken.butler.workspace.core.label
 import eu.darken.butler.workspace.core.stateInWorkspace
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -119,6 +121,10 @@ class AppDetailsWorkspace @AssistedInject constructor(
         )
     }
 
+    // Same derivation the factory hands the dormant stand-in, so both name this tab identically.
+    // The live tab enriches this to the app label once package data resolves.
+    private val seedDisplay = deriveAppDetailsDisplay(args)
+
     override val info: StateFlow<Workspace.Info> = combine(
         appInfoFlow,
         selectedTabFlow,
@@ -126,7 +132,7 @@ class AppDetailsWorkspace @AssistedInject constructor(
         Workspace.Info(
             id = id,
             type = type,
-            title = app?.label ?: args.packageName.toCaString(),
+            title = app?.label ?: seedDisplay.title ?: type.label,
             subtitle = app?.packageName?.toCaString(),
             lifecycleState = Workspace.LifecycleState.Ready,
             operationCount = 0,
@@ -137,7 +143,8 @@ class AppDetailsWorkspace @AssistedInject constructor(
     }.stateInWorkspace(
         scope = scope,
         initial = initialInfo(
-            title = args.packageName.toCaString(),
+            title = seedDisplay.title ?: type.label,
+            subtitle = seedDisplay.subtitle,
             arguments = args,
         ),
     )
@@ -194,6 +201,9 @@ class AppDetailsWorkspace @AssistedInject constructor(
         override fun create(id: Workspace.Id, arguments: AppDetailsArguments): AppDetailsWorkspace
 
         override val argumentsSerializer: KSerializer<AppDetailsArguments> get() = serializer()
+
+        override fun deriveDisplay(arguments: AppDetailsArguments): WorkspaceDisplay =
+            deriveAppDetailsDisplay(arguments)
     }
 
     @Module

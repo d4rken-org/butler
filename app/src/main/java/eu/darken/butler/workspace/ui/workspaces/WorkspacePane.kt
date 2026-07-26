@@ -52,6 +52,7 @@ fun WorkspacePane(
     onShareError: (Workspace.Id, Throwable) -> Unit,
     onCloseWorkspace: (Workspace.Id) -> Unit,
     onRestoreWorkspace: (Workspace.Id) -> Unit,
+    paneEdges: WorkspaceDesign.PaneEdges = WorkspaceDesign.PaneEdges.All,
     childModal: WorkspacePaneInfo? = null,
     childWorkspaceFocused: Boolean = false,
 ) {
@@ -77,6 +78,7 @@ fun WorkspacePane(
                     onShareError = onShareError,
                     onCloseWorkspace = onCloseWorkspace,
                     onRestoreWorkspace = onRestoreWorkspace,
+                    paneEdges = paneEdges,
                 )
             }
 
@@ -100,6 +102,7 @@ fun WorkspacePane(
                             onShareError = onShareError,
                             onCloseWorkspace = onCloseWorkspace,
                             onRestoreWorkspace = onRestoreWorkspace,
+                            paneEdges = paneEdges,
                         )
                     }
                 }
@@ -124,6 +127,7 @@ private fun BoxScope.WorkspaceLayers(
     onShareError: (Workspace.Id, Throwable) -> Unit,
     onCloseWorkspace: (Workspace.Id) -> Unit,
     onRestoreWorkspace: (Workspace.Id) -> Unit,
+    paneEdges: WorkspaceDesign.PaneEdges,
 ) {
     PaneLayer(
         modifier = Modifier.fillMaxSize(),
@@ -134,6 +138,7 @@ private fun BoxScope.WorkspaceLayers(
             workspaceId = info.id,
             bannerStates = bannerStates,
             onDismissBanner = onDismissBanner,
+            paneEdges = paneEdges,
         ) {
             WorkspaceMapper(
                 info = info,

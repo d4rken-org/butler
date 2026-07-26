@@ -130,6 +130,71 @@ class ExplorerSelectionControllerTest : BaseTest() {
     }
 
     @Test
+    fun `single-select pickers reject bulk selection`() = runTest {
+        val first = fileItem("a.txt")
+        val second = fileItem("b.txt")
+        val items = setOf(first, second)
+
+        listOf(
+            PickerConfig.Selection.FileSingle,
+            PickerConfig.Selection.DirectorySingle,
+            PickerConfig.Selection.SaveAs(suggestedFilename = ""),
+        ).forEach { selection ->
+            val controller = controller(config = pickerConfig(selection), selectableItems = items)
+
+            controller.selectAll()
+            runCurrent()
+            controller.selectedItems.value shouldBe emptySet()
+
+            controller.selectAllFiles()
+            runCurrent()
+            controller.selectedItems.value shouldBe emptySet()
+
+            controller.selectAllFolders()
+            runCurrent()
+            controller.selectedItems.value shouldBe emptySet()
+
+            controller.set(items)
+            controller.selectedItems.value shouldBe emptySet()
+
+            // A single item is still a valid selection
+            controller.set(setOf(first))
+            controller.selectedItems.value shouldBe setOf(first)
+        }
+    }
+
+    @Test
+    fun `single-select pickers replace instead of accumulate on toggle`() = runTest {
+        val controller = controller(config = pickerConfig(PickerConfig.Selection.FileSingle))
+        val first = fileItem("a.txt")
+        val second = fileItem("b.txt")
+
+        controller.toggle(first)
+        controller.selectedItems.value shouldBe setOf(first)
+
+        controller.toggle(second)
+        controller.selectedItems.value shouldBe setOf(second)
+
+        controller.toggle(second)
+        controller.selectedItems.value shouldBe emptySet()
+    }
+
+    @Test
+    fun `multi-select pickers still allow bulk selection`() = runTest {
+        val first = fileItem("a.txt")
+        val second = fileItem("b.txt")
+        val controller = controller(
+            config = pickerConfig(PickerConfig.Selection.FileMulti),
+            selectableItems = setOf(first, second),
+        )
+
+        controller.selectAll()
+        runCurrent()
+
+        controller.selectedItems.value shouldBe setOf(first, second)
+    }
+
+    @Test
     fun `file tap toggles selection in file-multi picker mode`() = runTest {
         val config = pickerConfig(PickerConfig.Selection.FileMulti)
         val controller = controller(config = config)

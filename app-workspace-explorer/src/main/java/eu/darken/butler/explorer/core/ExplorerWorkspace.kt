@@ -8,7 +8,6 @@ import dagger.assisted.AssistedInject
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoMap
-import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.Bugs
@@ -17,7 +16,6 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.actions.PathActionIssue
-import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.BrowsingEngine
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.workspace.core.filesystem.FileSystemHinter
@@ -35,9 +33,11 @@ import eu.darken.butler.explorer.core.operations.MoveOperation
 import eu.darken.butler.workspace.contracts.explorer.ExplorerArguments
 import eu.darken.butler.workspace.contracts.explorer.PickerConfig
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.WorkspaceDisplay
 import eu.darken.butler.workspace.core.WorkspaceFactory
 import eu.darken.butler.workspace.core.WorkspaceTypeKey
 import eu.darken.butler.workspace.core.initialInfo
+import eu.darken.butler.workspace.core.label
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
@@ -106,10 +106,15 @@ class ExplorerWorkspace @AssistedInject constructor(
 
 
     override suspend fun createArguments(): ExplorerArguments {
-        // Extract current path from state for session restoration
-        val currentState = _state.value as? State.Ready
-        val currentPath = (currentState?.currentLocation as? ExplorerLocation.Directory)?.path
-        return ExplorerArguments.Default(startPath = currentPath)
+        // Both fields describe ONE location: the target the tab is on. Taking the path from the
+        // loaded location instead would persist a half-updated pair whenever a save runs while a
+        // navigation is in flight, cancelled or failed - the tab would reopen somewhere else.
+        // Home/Device/Trash have no path, which is what startTarget captures.
+        val currentTarget = (_state.value as? State.Ready)?.currentTarget ?: return creationArguments
+        return ExplorerArguments.Default(
+            startPath = (currentTarget as? ExplorerNavigation.Target.Directory)?.path,
+            startTarget = currentTarget.asStartTarget,
+        )
     }
 
     private val browsingEngine = browsingEngineFactory.create(id, scope)
@@ -134,6 +139,9 @@ class ExplorerWorkspace @AssistedInject constructor(
         _saveAsFilename.value = filename
     }
 
+    // Same derivation the factory hands the dormant stand-in, so both name this tab identically
+    private val seedDisplay = deriveExplorerDisplay(creationArguments)
+
 
     override val info: StateFlow<Workspace.Info> = combine(
         _state,
@@ -148,15 +156,16 @@ class ExplorerWorkspace @AssistedInject constructor(
             return@count false
         }
         val readyState = state as? State.Ready
+        // The seed stands in only until the tab knows where it is. Once it does, the target
+        // describes itself completely: falling back per field would let a location that has no
+        // second line keep the previous one - a tab titled "Home" still reading "Recover deleted
+        // files" - and disagree with what a restore of it would show.
+        val identity = readyState?.currentTarget?.display ?: seedDisplay
         Workspace.Info(
             id = id,
             type = type,
-            title = when {
-                readyState?.currentTarget != null -> readyState.currentTarget.label
-                Bugs.isDebug -> "Explorer ${id.shortTag}".toCaString()
-                else -> R.string.explorer_title.toCaString()
-            },
-            subtitle = readyState?.currentTarget?.description,
+            title = identity?.title ?: type.label,
+            subtitle = identity?.subtitle,
             lifecycleState = when (state) {
                 is State.Initializing -> Workspace.LifecycleState.Initializing
                 is State.Error -> Workspace.LifecycleState.Error(state.error)
@@ -171,7 +180,8 @@ class ExplorerWorkspace @AssistedInject constructor(
     }.stateInWorkspace(
         scope = scope,
         initial = initialInfo(
-            title = R.string.explorer_title.toCaString(),
+            title = seedDisplay?.title ?: type.label,
+            subtitle = seedDisplay?.subtitle,
             arguments = creationArguments,
         ),
     )
@@ -259,24 +269,16 @@ class ExplorerWorkspace @AssistedInject constructor(
                     is ExplorerArguments.Picker -> creationArguments.startPath
                     is ExplorerArguments.Default -> creationArguments.startPath
                 }
-                when {
-                    startPath != null -> {
-                        navigationRequests.emit(ExplorerNavigation.Target.Directory(startPath))
-                    }
-                    else -> {
-                        val defaultLocation = explorerSettings.defaultStartLocation.value()
-                        log(tag, INFO) { "Using default start location from settings: $defaultLocation" }
-                        when (defaultLocation) {
-                            is DefaultStartLocation.Device -> navigationRequests.emit(ExplorerNavigation.Target.Device)
-                            is DefaultStartLocation.Directory -> navigationRequests.emit(
-                                ExplorerNavigation.Target.Directory(
-                                    defaultLocation.path
-                                )
-                            )
-                            is DefaultStartLocation.Home, null -> navigationRequests.emit(ExplorerNavigation.Target.Home)
-                        }
+                val startTarget = (creationArguments as? ExplorerArguments.Default)?.startTarget
+                // The setting only decides when the arguments carry no location of their own,
+                // so it is not read (a DataStore hit) in the restore cases
+                val defaultLocation = when {
+                    startPath != null || startTarget != null -> null
+                    else -> explorerSettings.defaultStartLocation.value().also {
+                        log(tag, INFO) { "Using default start location from settings: $it" }
                     }
                 }
+                navigationRequests.emit(explorerStartTarget(startPath, startTarget, defaultLocation))
             } catch (e: Exception) {
                 log(tag, ERROR) { "Failed to initialize: ${e.asLog()}" }
                 Bugs.report(e)
@@ -435,6 +437,9 @@ class ExplorerWorkspace @AssistedInject constructor(
         override fun create(id: Workspace.Id, arguments: ExplorerArguments): ExplorerWorkspace
 
         override val argumentsSerializer: KSerializer<ExplorerArguments> get() = serializer()
+
+        override fun deriveDisplay(arguments: ExplorerArguments): WorkspaceDisplay? =
+            deriveExplorerDisplay(arguments)
     }
 
     @Module

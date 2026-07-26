@@ -18,9 +18,11 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.history.R
 import eu.darken.butler.workspace.contracts.history.HistoryArguments
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.WorkspaceDisplay
 import eu.darken.butler.workspace.core.WorkspaceFactory
 import eu.darken.butler.workspace.core.WorkspaceTypeKey
 import eu.darken.butler.workspace.core.initialInfo
+import eu.darken.butler.workspace.core.label
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.history.HistoryFilter
 import eu.darken.butler.workspace.core.operations.history.HistoryOutcome
@@ -84,6 +86,9 @@ class HistoryWorkspace @AssistedInject constructor(
         filter = filterFlow.value,
     )
 
+    // Same derivation the factory hands the dormant stand-in, so both name this tab identically
+    private val seedDisplay = deriveHistoryDisplay(creationArguments)
+
     override val info: StateFlow<Workspace.Info> = filterFlow.map { current ->
         Workspace.Info(
             id = id,
@@ -95,7 +100,8 @@ class HistoryWorkspace @AssistedInject constructor(
     }.stateInWorkspace(
         scope = scope,
         initial = initialInfo(
-            title = derivedTitle(creationArguments.filter),
+            title = seedDisplay.title ?: type.label,
+            subtitle = seedDisplay.subtitle,
             arguments = creationArguments,
         ),
     )
@@ -114,10 +120,13 @@ class HistoryWorkspace @AssistedInject constructor(
         override fun create(id: Workspace.Id, arguments: HistoryArguments): HistoryWorkspace
 
         override val argumentsSerializer: KSerializer<HistoryArguments> get() = serializer()
+
+        override fun deriveDisplay(arguments: HistoryArguments): WorkspaceDisplay =
+            deriveHistoryDisplay(arguments)
     }
 
     companion object {
-        private fun derivedTitle(filter: HistoryFilter) = caString { ctx ->
+        internal fun derivedTitle(filter: HistoryFilter) = caString { ctx ->
             val onlyPath = filter.outcomes.isEmpty() && filter.kinds.isEmpty() && filter.pathScopes.isNotEmpty()
             when {
                 filter.isUnfiltered -> ctx.getString(R.string.history_workspace_title)

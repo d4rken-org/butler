@@ -11,13 +11,21 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Close
+import androidx.compose.material.icons.twotone.Edit
+import androidx.compose.material.icons.twotone.MoreVert
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -39,8 +47,10 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.icon
+import eu.darken.butler.workspace.core.label
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerViewModel
 import eu.darken.butler.workspace.ui.manager.rows.preview.WorkspacePreview
+import eu.darken.butler.common.R as CommonR
 
 @Composable
 fun WorkspaceGridItem(
@@ -49,6 +59,7 @@ fun WorkspaceGridItem(
     workspace: WorkspaceManagerViewModel.WorkspaceItem,
     onClose: () -> Unit,
     onSelect: () -> Unit,
+    onRename: () -> Unit = {},
     livePreview: Boolean = true,
     isDragging: Boolean = false,
     onDragStarted: () -> Unit = {},
@@ -60,6 +71,7 @@ fun WorkspaceGridItem(
     val haptic = LocalHapticFeedback.current
     val needsAttention = workspace.attentionCount > 0
     val attentionColor = MaterialTheme.colorScheme.error
+    var showOverflowMenu by remember { mutableStateOf(false) }
 
     val glowModifier = if (needsAttention) {
         Modifier.drawBehind {
@@ -126,14 +138,54 @@ fun WorkspaceGridItem(
                         tint = MaterialTheme.colorScheme.primary,
                     )
 
+                    // A blank title would leave the card with nothing to identify it by, so the
+                    // workspace type stands in - same rule the dormant placeholder applies
+                    val title = workspace.title.asComposable().takeIf { it.isNotBlank() }
+                        ?: workspace.type.label.asComposable()
                     Text(
                         modifier = Modifier.weight(1f),
-                        text = workspace.title.asComposable(),
-                    style = MaterialTheme.typography.labelMedium,
+                        text = title,
+                        style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
-                    overflow = TextOverflow.StartEllipsis,
+                        overflow = TextOverflow.StartEllipsis,
                     )
+
+                    // Sub-workspaces are not persisted, so a rename on them would silently be lost
+                    if (!workspace.isSubWorkspace) {
+                        Box {
+                            IconButton(
+                                modifier = Modifier.size(24.dp),
+                                onClick = { showOverflowMenu = true },
+                            ) {
+                                Icon(
+                                    modifier = Modifier.size(18.dp),
+                                    imageVector = Icons.TwoTone.MoreVert,
+                                    contentDescription = stringResource(R.string.workspace_row_more_options_content_desc),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                )
+                            }
+
+                            DropdownMenu(
+                                expanded = showOverflowMenu,
+                                onDismissRequest = { showOverflowMenu = false },
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(CommonR.string.general_rename_action)) },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = Icons.TwoTone.Edit,
+                                            contentDescription = null,
+                                        )
+                                    },
+                                    onClick = {
+                                        showOverflowMenu = false
+                                        onRename()
+                                    },
+                                )
+                            }
+                        }
+                    }
 
                     IconButton(
                         modifier = Modifier.size(24.dp),
@@ -146,6 +198,21 @@ fun WorkspaceGridItem(
                             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                         )
                     }
+                }
+
+                // Blank (not just null) is suppressed: workspaces can publish an empty subtitle
+                val subtitle = workspace.subtitle?.asComposable()
+                if (!subtitle.isNullOrBlank()) {
+                    Text(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 24.dp, end = 4.dp),
+                        text = subtitle,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.MiddleEllipsis,
+                    )
                 }
 
                 WorkspacePreview(
@@ -194,6 +261,63 @@ private fun WorkspaceGridItemPreview() {
         onClose = {},
         onSelect = {},
         isDragging = false
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspaceGridItemSubtitleSuppressedPreview() {
+    Column(
+        modifier = Modifier.padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        WorkspaceGridItem(
+            reorderableScope = createMockReorderableScope(),
+            workspace = WorkspaceManagerViewModel.WorkspaceItem(
+                id = Workspace.Id(),
+                type = Workspace.Type.EXPLORER,
+                title = "Home".toCaString(),
+                subtitle = null,
+            ),
+            onClose = {},
+            onSelect = {},
+            livePreview = false,
+        )
+
+        WorkspaceGridItem(
+            reorderableScope = createMockReorderableScope(),
+            workspace = WorkspaceManagerViewModel.WorkspaceItem(
+                id = Workspace.Id(),
+                type = Workspace.Type.SAVER,
+                title = "Save as".toCaString(),
+                subtitle = "   ".toCaString(),
+            ),
+            onClose = {},
+            onSelect = {},
+            livePreview = false,
+        )
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspaceGridItemCustomNamePreview() {
+    WorkspaceGridItem(
+        modifier = Modifier.padding(16.dp),
+        reorderableScope = createMockReorderableScope(),
+        workspace = WorkspaceManagerViewModel.WorkspaceItem(
+            id = Workspace.Id(),
+            type = Workspace.Type.EXPLORER,
+            title = "Holiday photos".toCaString(),
+            subtitle = "File explorer for browsing and managing files".toCaString(),
+            autoTitle = "/storage/emulated/0/DCIM/Camera".toCaString(),
+            customTitle = "Holiday photos",
+        ),
+        onClose = {},
+        onSelect = {},
+        livePreview = false,
     )
 }
 

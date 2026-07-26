@@ -313,6 +313,11 @@
     <string name="workspace_session_restoration_error_confirm_title">Clear Session?</string>
     <string name="workspace_session_restoration_error_confirm_description">This will permanently delete your saved tab session. This action cannot be undone.</string>
 
+    <!-- Rename tab -->
+    <string name="workspace_rename_dialog_title">Rename tab</string>
+    <string name="workspace_rename_name_label">Custom name</string>
+    <string name="workspace_rename_name_hint">Leave empty to use the automatic name</string>
+
     <!-- Workspace Limit -->
     <string name="workspace_limit_reached_title">Tab Limit Reached</string>
     <string name="workspace_limit_reached_message">Free users can have up to %1$d tabs open at a time. Upgrade to Butler Pro for unlimited tabs!</string>

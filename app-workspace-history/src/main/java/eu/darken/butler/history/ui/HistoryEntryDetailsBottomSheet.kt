@@ -41,12 +41,14 @@ import kotlin.time.Duration
 @Composable
 fun HistoryEntryDetailsBottomSheet(
     entry: HistoryEntry?,
+    topInset: Dp = 0.dp,
     bottomInset: Dp,
     onDismiss: () -> Unit,
 ) {
     PaneScopedBottomSheet(
         visible = entry != null,
         onDismiss = onDismiss,
+        topInset = topInset,
         bottomInset = bottomInset,
     ) {
         if (entry == null) return@PaneScopedBottomSheet

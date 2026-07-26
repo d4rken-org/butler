@@ -1,14 +1,20 @@
 package eu.darken.butler.workspace.core
 
+import android.content.Context
 import android.os.Parcel
+import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import io.kotest.matchers.shouldBe
+import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 
 class DormantWorkspaceTest : BaseTest() {
+
+    // Never touched: the titles under test are direct strings, not resource lookups
+    private val context: Context = mockk()
 
     private class FakeArguments(
         override val type: Workspace.Type,
@@ -40,6 +46,7 @@ class DormantWorkspaceTest : BaseTest() {
             id = id,
             type = Workspace.Type.EXPLORER,
             heldArguments = FakeArguments(Workspace.Type.EXPLORER),
+            title = "Home".toCaString(),
         )
 
         workspace.info.value.id shouldBe id
@@ -56,6 +63,7 @@ class DormantWorkspaceTest : BaseTest() {
             id = Workspace.Id(),
             type = Workspace.Type.EDITOR,
             heldArguments = FakeContentArguments(Workspace.Type.EDITOR, path),
+            title = "a.txt".toCaString(),
         )
 
         workspace.info.value.contentPath shouldBe path
@@ -68,6 +76,7 @@ class DormantWorkspaceTest : BaseTest() {
             id = Workspace.Id(),
             type = Workspace.Type.EXPLORER,
             heldArguments = FakePickerArguments(Workspace.Type.EXPLORER, callerId),
+            title = "Picker".toCaString(),
         )
 
         workspace.info.value.callerWorkspaceId shouldBe callerId
@@ -82,9 +91,53 @@ class DormantWorkspaceTest : BaseTest() {
             id = Workspace.Id(),
             type = Workspace.Type.SEARCHER,
             heldArguments = arguments,
+            title = "*.pdf".toCaString(),
         )
 
         workspace.createArguments() shouldBe arguments
+    }
+
+    @Test
+    fun `the derived identity lands in the info`() {
+        val workspace = DormantWorkspace(
+            id = Workspace.Id(),
+            type = Workspace.Type.SEARCHER,
+            heldArguments = FakeArguments(Workspace.Type.SEARCHER),
+            title = "*.pdf".toCaString(),
+            subtitle = "/sdcard/Download".toCaString(),
+        )
+
+        workspace.info.value.title.get(context) shouldBe "*.pdf"
+        workspace.info.value.subtitle!!.get(context) shouldBe "/sdcard/Download"
+    }
+
+    @Test
+    fun `an identity without a subtitle publishes none`() {
+        val workspace = DormantWorkspace(
+            id = Workspace.Id(),
+            type = Workspace.Type.EXPLORER,
+            heldArguments = FakeArguments(Workspace.Type.EXPLORER),
+            title = "Home".toCaString(),
+        )
+
+        workspace.info.value.title.get(context) shouldBe "Home"
+        workspace.info.value.subtitle shouldBe null
+    }
+
+    @Test
+    fun `a hydration error keeps the identity`() {
+        val workspace = DormantWorkspace(
+            id = Workspace.Id(),
+            type = Workspace.Type.EXPLORER,
+            heldArguments = FakeArguments(Workspace.Type.EXPLORER),
+            title = "Home".toCaString(),
+            subtitle = "Storage".toCaString(),
+        )
+
+        workspace.markHydrationError(IllegalStateException("Factory exploded"))
+
+        workspace.info.value.title.get(context) shouldBe "Home"
+        workspace.info.value.subtitle!!.get(context) shouldBe "Storage"
     }
 
     @Test
@@ -93,6 +146,7 @@ class DormantWorkspaceTest : BaseTest() {
             id = Workspace.Id(),
             type = Workspace.Type.EXPLORER,
             heldArguments = FakeArguments(Workspace.Type.EXPLORER),
+            title = "Home".toCaString(),
         )
         val error = IllegalStateException("Factory exploded")
 

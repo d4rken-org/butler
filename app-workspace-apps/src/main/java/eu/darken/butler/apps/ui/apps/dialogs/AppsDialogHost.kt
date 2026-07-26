@@ -23,6 +23,7 @@ fun AppsDialogHost(
     onConfirmUninstall: (List<AppItem>) -> Unit,
     onConfirmClearCache: (List<AppItem>) -> Unit,
     onConfirmClearData: (List<AppItem>) -> Unit,
+    topInset: Dp = 0.dp,
     bottomInset: Dp = 0.dp,
 ) {
     when (dialogState) {
@@ -37,6 +38,7 @@ fun AppsDialogHost(
                 availablePaths = dialogState.availablePaths,
                 onDismiss = onDismiss,
                 onAction = onAction,
+                topInset = topInset,
                 bottomInset = bottomInset,
             )
         }
@@ -48,6 +50,7 @@ fun AppsDialogHost(
                 availableTags = dialogState.availableTags,
                 onFilterChange = onFilterApply,
                 onDismiss = onDismiss,
+                topInset = topInset,
                 bottomInset = bottomInset,
             )
         }

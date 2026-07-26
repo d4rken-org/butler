@@ -71,7 +71,7 @@ import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
 import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
-import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
+import eu.darken.butler.workspace.ui.insets.rememberPaneFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
 import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
@@ -105,20 +105,20 @@ fun SearcherWorkspacePage(
     val operationsState = operationsStateRaw ?: OperationsDisplayState()
 
     // Setup and remember blocks at top level
-    val topBarStackState = rememberFloatingBarStackState(
+    val topBarStackState = rememberPaneFloatingBarStackState(
         position = BarPosition.TOP,
         defaultSpacing = 8.dp,
         edgePadding = 8.dp,
         contentPadding = 8.dp,
-        includeSystemBarInset = design.paneEdges.touchesTop,
+        design = design,
         estimatedContentPadding = 192.dp,
     )
-    val bottomBarStackState = rememberFloatingBarStackState(
+    val bottomBarStackState = rememberPaneFloatingBarStackState(
         position = BarPosition.BOTTOM,
         defaultSpacing = 8.dp,
         edgePadding = 8.dp,
         contentPadding = 16.dp,
-        includeSystemBarInset = design.paneEdges.touchesBottom,
+        design = design,
         estimatedContentPadding = 80.dp,
     )
     val listState = rememberLazyListState()
@@ -641,6 +641,9 @@ fun SearcherWorkspacePage(
                         },
                         onSelectAllFiles = {
                             onPageAction(SearcherPageAction.WorkspaceAction(SearcherActionBarItem.SelectAllFiles))
+                        },
+                        onSelectAll = {
+                            onPageAction(SearcherPageAction.WorkspaceAction(SearcherActionBarItem.SelectAll))
                         },
                         onClearSelection = { onPageAction(SearcherPageAction.Results.ExitSelectionMode) },
                     )

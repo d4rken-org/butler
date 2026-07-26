@@ -18,6 +18,8 @@ import eu.darken.butler.editor.ui.editor.dialogs.ReloadConfirmDialog
 import eu.darken.butler.editor.ui.editor.dialogs.SaveAsOverwriteDialog
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
+import eu.darken.butler.workspace.ui.insets.paneInsets
+import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.clipboard.details.ClipboardInfoBottomSheet
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
@@ -33,6 +35,7 @@ import kotlinx.coroutines.flow.flowOf
 @Composable
 fun EditorWorkspaceOverlaysHost(
     id: Workspace.Id,
+    design: WorkspaceDesign,
     vm: EditorWorkspaceViewModel = hiltViewModel(
         key = id.longTag,
         creationCallback = { factory: EditorWorkspaceViewModel.Factory ->
@@ -43,6 +46,7 @@ fun EditorWorkspaceOverlaysHost(
     val clipboardInfoClip by vm.clipboardInfoClip.collectAsState(null)
 
     EditorWorkspaceOverlays(
+        design = design,
         stateSource = vm.state,
         clipboardInfoClip = clipboardInfoClip,
         onPageAction = vm::onPageAction,
@@ -51,6 +55,7 @@ fun EditorWorkspaceOverlaysHost(
 
 @Composable
 fun EditorWorkspaceOverlays(
+    design: WorkspaceDesign = WorkspaceDesign(),
     stateSource: Flow<EditorWorkspaceViewModel.State>,
     clipboardInfoClip: ClipboardClip? = null,
     onPageAction: (EditorPageAction) -> Unit,
@@ -58,6 +63,7 @@ fun EditorWorkspaceOverlays(
     // StateFlow check: use current value as initial for single-frame renderers (screenshot tests, previews)
     val stateOrNull by stateSource.collectAsState(initial = (stateSource as? StateFlow)?.value)
     val state = stateOrNull ?: return
+    val paneInsets = design.paneInsets()
 
     if (state.showGoToLineDialog) {
         GoToLineDialog(
@@ -132,6 +138,8 @@ fun EditorWorkspaceOverlays(
             onNavigateToSource = null,
             onPaste = { onPageAction(EditorPageAction.Clipboard.Paste(clip)) },
             onRemove = { onPageAction(EditorPageAction.Clipboard.Remove(clip)) },
+            topInset = paneInsets.top,
+            bottomInset = paneInsets.bottom,
         )
     }
 }
