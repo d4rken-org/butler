@@ -29,6 +29,8 @@ val DEFAULT_RESTORE_TIMEOUT = 5.seconds
  * - **Never write a default over a good saved value.** A timeout reports [Outcome.TIMED_OUT] and
  *   applies nothing; the caller is expected to hold off recording rather than persist whatever the
  *   un-restored UI happens to show. The safe failure mode is "not restored", never "destroyed".
+ *   Callers whose readiness can legitimately arrive arbitrarily late pass an infinite [timeout] and
+ *   simply wait for as long as the composition lives.
  * - **Whoever got there first wins.** Any flow in [supersededBy] emitting before the UI is ready
  *   means someone else (the user, or an effect) already decided the state, and the restore stands
  *   down with [Outcome.SUPERSEDED].
@@ -47,20 +49,24 @@ suspend fun <T> restoreWhenReady(
 ): Outcome {
     if (saved == null || isNoOp(saved)) return Outcome.NOT_NEEDED
 
-    return withTimeoutOrNull(timeout) {
-        coroutineScope {
-            val intents = supersededBy.map { intent -> async { intent.first() } }
-            val ready = async { snapshotFlow { isReady(saved) }.first { it } }
+    suspend fun race(): Outcome = coroutineScope {
+        val intents = supersededBy.map { intent -> async { intent.first() } }
+        val ready = async { snapshotFlow { isReady(saved) }.first { it } }
 
-            val raced = select<Outcome> {
-                intents.forEach { intent -> intent.onAwait { Outcome.SUPERSEDED } }
-                ready.onAwait { Outcome.APPLIED }
-            }
-            intents.forEach { it.cancel() }
-            ready.cancel()
-
-            if (raced == Outcome.APPLIED) apply(saved)
-            raced
+        val raced = select<Outcome> {
+            intents.forEach { intent -> intent.onAwait { Outcome.SUPERSEDED } }
+            ready.onAwait { Outcome.APPLIED }
         }
-    } ?: Outcome.TIMED_OUT
+        intents.forEach { it.cancel() }
+        ready.cancel()
+
+        if (raced == Outcome.APPLIED) apply(saved)
+        raced
+    }
+
+    return if (timeout.isInfinite()) {
+        race()
+    } else {
+        withTimeoutOrNull(timeout) { race() } ?: Outcome.TIMED_OUT
+    }
 }
