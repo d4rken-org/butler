@@ -142,6 +142,9 @@ fun SearcherWorkspacePage(
     val listState = rememberWorkspaceLazyListState(workspaceId, slot = "results#list")
     // Hoisted so the search-start reset covers list and grid in one guarded effect
     val gridState = rememberWorkspaceLazyGridState(workspaceId, slot = "results#grid")
+    // The idle screen (templates + history) is a different list with different content, so it gets
+    // its own slot - a restored Searcher comes back idle and must not apply a results index here.
+    val idleListState = rememberWorkspaceLazyListState(workspaceId, slot = "idle#list")
     var showTemplatesSheet by remember { mutableStateOf(false) }
     var showAccessErrorsSheet by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
@@ -369,7 +372,7 @@ fun SearcherWorkspacePage(
         when {
             // Idle state - show templates card and optionally history
             showIdleState -> LazyColumn(
-                state = listState,
+                state = idleListState,
                 modifier = Modifier
                     .fillMaxSize()
                     .nestedScroll(topBarStackState.nestedScrollConnection)
