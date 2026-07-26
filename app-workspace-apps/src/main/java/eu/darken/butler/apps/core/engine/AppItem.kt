@@ -36,25 +36,25 @@ data class AppItem(
 ) {
     val id: Pkg.Id = pkg.id
 
-    val isSideloaded: Boolean
-        get() {
-            if (isSystemApp) return false
-            val installers = installerInfo?.allInstallers ?: return true
-            return installers.none { it.id == AKnownPkg.GooglePlay.id }
-        }
+    // Body properties, not constructor defaults: the generated copy() passes existing property
+    // values instead of re-evaluating defaults, which would keep stale derived values around.
+    val isSideloaded: Boolean = when {
+        isSystemApp -> false
+        installerInfo == null -> true
+        else -> installerInfo.allInstallers.none { it.id == AKnownPkg.GooglePlay.id }
+    }
 
-    val tags: List<AppTag>
-        get() = buildList {
-            if (userProfile.handle.handleId != 0) {
-                add(AppTag.User(userProfile.handle.handleId, userProfile.label))
-            }
-            if (!isEnabled) add(AppTag.Disabled)
-            if (isSystemApp) add(AppTag.System)
-            if (isSideloaded) add(AppTag.Sideloaded)
-            if (isUpdatedSystemApp) add(AppTag.UpdatedSystem)
-            if (isDebuggable) add(AppTag.Debug)
-            if (isSplitApk) add(AppTag.SplitApk)
-        }.sortedBy { it.priority }
+    val tags: List<AppTag> = buildList {
+        if (userProfile.handle.handleId != 0) {
+            add(AppTag.User(userProfile.handle.handleId, userProfile.label))
+        }
+        if (!isEnabled) add(AppTag.Disabled)
+        if (isSystemApp) add(AppTag.System)
+        if (isSideloaded) add(AppTag.Sideloaded)
+        if (isUpdatedSystemApp) add(AppTag.UpdatedSystem)
+        if (isDebuggable) add(AppTag.Debug)
+        if (isSplitApk) add(AppTag.SplitApk)
+    }.sortedBy { it.priority }
 
     companion object {
         fun from(pkg: Installed, userProfile: UserProfile2, appSize: Long? = null): AppItem {
