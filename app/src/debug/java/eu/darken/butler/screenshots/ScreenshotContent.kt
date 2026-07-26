@@ -2,6 +2,7 @@ package eu.darken.butler.screenshots
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
+import eu.darken.butler.apps.R as AppsR
 import eu.darken.butler.apps.ui.apps.AppsWorkspacePage
 import eu.darken.butler.apps.ui.apps.AppsWorkspaceViewModel
 import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
@@ -176,7 +177,7 @@ internal fun WorkspaceManagerContent() = PreviewWrapper {
                     type = Workspace.Type.APPS,
                     title = WorkspaceR.string.workspace_apps_label.toCaString(),
                     autoTitle = WorkspaceR.string.workspace_apps_label.toCaString(),
-                    subtitle = null,
+                    subtitle = AppsR.string.apps_subtitle.toCaString(),
                 ),
             ),
             showBadgeExplanation = false,

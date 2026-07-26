@@ -194,9 +194,9 @@ private fun WorkspaceManagerScreenPreview() {
                 WorkspaceManagerViewModel.WorkspaceItem(
                     id = Workspace.Id(),
                     type = Workspace.Type.TEMPLATES,
-                    title = "Templates".toCaString(),
-                    autoTitle = "Templates".toCaString(),
-                    subtitle = "Workspace templates".toCaString(),
+                    title = "New".toCaString(),
+                    autoTitle = "New".toCaString(),
+                    subtitle = null,
                     isFocused = true,
                     isSelected = true,
                     paneNumber = 0,
