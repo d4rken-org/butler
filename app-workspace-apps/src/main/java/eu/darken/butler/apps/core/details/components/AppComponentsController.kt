@@ -54,9 +54,11 @@ class AppComponentsController(
     val state: StateFlow<ComponentsUiState> = identity
         .flatMapLatest { id ->
             if (id == null) {
-                flowOf(ComponentsUiState.Loading)
+                flowOf<ComponentsUiState>(ComponentsUiState.Loading)
             } else {
-                flow {
+                // Pinned: inferred from the first emit, the builder's element type would narrow to
+                // ComponentsUiState.Loading and reject every later emission.
+                flow<ComponentsUiState> {
                     emit(ComponentsUiState.Loading)
                     val data = try {
                         loader.load(id.packageName)
