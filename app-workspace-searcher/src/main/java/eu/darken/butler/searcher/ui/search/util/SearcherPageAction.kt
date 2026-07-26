@@ -343,6 +343,10 @@ sealed interface SearcherPageAction {
         data class ShowOperationDetails(val id: Operation.Id) : Overlays
         data object DismissOperationDetails : Overlays
 
+        /** Cancel confirmation, raised from the operations bar and rendered at pane level. */
+        data class RequestCancelOperation(val id: Operation.Id) : Overlays
+        data object DismissCancelOperation : Overlays
+
         /** Failure of a single search target, surfaced from the progress card. */
         data class ShowTargetError(val path: String, val error: Throwable) : Overlays
         data object DismissTargetError : Overlays

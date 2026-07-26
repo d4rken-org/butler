@@ -14,13 +14,14 @@ import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.explorer.ui.explorer.dialogs.AddDeviceStorageSheet
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogHost
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
+import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.ui.insets.paneInsets
 import eu.darken.butler.workspace.ui.issues.IssuesBottomSheet
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
-import eu.darken.butler.workspace.ui.operations.details.CancelOperationConfirmationDialog
+import eu.darken.butler.workspace.ui.operations.details.CancelOperationConfirmationHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
 
@@ -121,15 +122,15 @@ fun ExplorerWorkspaceOverlays(
         )
     }
 
-    cancelConfirmationFor?.let { operationId ->
-        CancelOperationConfirmationDialog(
-            onDismiss = { vm?.dismissCancelOperationConfirmation() },
-            onConfirm = {
-                vm?.cancelOperation(operationId)
-                vm?.dismissCancelOperationConfirmation()
-            },
-        )
-    }
+    CancelOperationConfirmationHost(
+        pendingId = cancelConfirmationFor,
+        operations = operationsState.operations,
+        onDismiss = { vm?.dismissCancelOperationConfirmation() },
+        onConfirm = { operationId ->
+            vm?.cancelOperation(operationId)
+            vm?.dismissCancelOperationConfirmation()
+        },
+    )
 }
 
 @Preview2
@@ -152,5 +153,9 @@ private fun ExplorerWorkspaceOverlaysRenamePreview() {
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ExplorerWorkspaceOverlaysCancelOperationPreview() {
-    ExplorerWorkspaceOverlays(cancelConfirmationFor = Operation.Id())
+    val operation = MockDataProvider.createMockRunningOperation()
+    ExplorerWorkspaceOverlays(
+        operationsState = OperationsDisplayState(operations = listOf(operation)),
+        cancelConfirmationFor = operation.id,
+    )
 }

@@ -101,7 +101,7 @@ fun DeveloperWorkspacePageHost(
             onTestRoot = { vm.testRoot() },
             onTestShizuku = { vm.testShizuku() },
             onHideDeveloperMode = { vm.hideDeveloperMode() },
-            onCancelOperation = { vm.cancelOperation(it) },
+            onRequestCancelOperation = { vm.requestCancelOperation(it) },
             onDismissOperation = { vm.dismissOperation(it) },
             onClearCompletedOperations = { vm.clearCompletedOperations() },
             onShowOperationDetails = { operationId ->
@@ -147,7 +147,7 @@ fun DeveloperWorkspacePage(
     onTestRoot: () -> Unit = {},
     onTestShizuku: () -> Unit = {},
     onHideDeveloperMode: () -> Unit = {},
-    onCancelOperation: (Operation.Id) -> Unit = {},
+    onRequestCancelOperation: (Operation.Id) -> Unit = {},
     onDismissOperation: (Operation.Id) -> Unit = {},
     onClearCompletedOperations: () -> Unit = {},
     onShowOperationDetails: (Operation.Id) -> Unit = {},
@@ -254,7 +254,7 @@ fun DeveloperWorkspacePage(
                     .padding(horizontal = 16.dp)
                     .padding(bottom = navBarInset + 16.dp),
                 operations = operationsState.operations,
-                onCancelOperation = onCancelOperation,
+                onRequestCancelOperation = onRequestCancelOperation,
                 onDismissOperation = onDismissOperation,
                 onOperationClick = { onShowOperationDetails(it.id) },
                 onClearCompleted = onClearCompletedOperations,

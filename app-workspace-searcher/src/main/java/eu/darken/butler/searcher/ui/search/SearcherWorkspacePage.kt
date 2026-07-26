@@ -666,7 +666,9 @@ fun SearcherWorkspacePage(
                 ) {
                     OperationsBar(
                         operations = operationsState.operations,
-                        onCancelOperation = { onPageAction(SearcherPageAction.Operations.Cancel(it)) },
+                        onRequestCancelOperation = {
+                            onPageAction(SearcherPageAction.Overlays.RequestCancelOperation(it))
+                        },
                         onDismissOperation = { onPageAction(SearcherPageAction.Operations.Dismiss(it)) },
                         onOperationClick = { operation ->
                             when (operation.state) {

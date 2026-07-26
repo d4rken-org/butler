@@ -1,8 +1,12 @@
 package eu.darken.butler.searcher.ui.search.preview
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.Delete
+import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchQuery
 import eu.darken.butler.searcher.core.SearcherWorkspace
@@ -13,6 +17,8 @@ import eu.darken.butler.searcher.ui.search.util.SearcherActionBarItem
 import eu.darken.butler.searcher.ui.search.util.SearcherSelectionState
 import eu.darken.butler.workspace.contracts.searcher.FilenameQuery
 import eu.darken.butler.workspace.contracts.searcher.SearchTarget
+import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.seconds
@@ -38,6 +44,25 @@ object SearcherMockDataProvider {
         fun kb(value: Long) = value * KB
         fun mb(value: Long) = value * MB
     }
+
+    /** A running, cancelable operation for the operations bar and its confirmations. */
+    fun createMockRunningOperation(
+        title: String = "Deleting files",
+        secondsAgo: Long = 20,
+    ): OperationDisplay = OperationDisplay(
+        id = Operation.Id(),
+        title = title.toCaString(),
+        description = "3 of 10 files".toCaString(),
+        icon = Icons.TwoTone.Delete,
+        state = OperationDisplay.State.Running(
+            primaryProgress = Progress.Data(
+                primary = title.toCaString(),
+                count = Progress.Count.Counter(3, 10),
+            ),
+        ),
+        canCancel = true,
+        startedAt = MockTimes.secondsAgo(secondsAgo),
+    )
 
     /**
      * Create a mock SearchResult with customizable properties.

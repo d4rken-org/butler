@@ -26,6 +26,7 @@ import eu.darken.butler.workspace.ui.insets.paneInsets
 import eu.darken.butler.workspace.ui.issues.IssuesBottomSheet
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
+import eu.darken.butler.workspace.ui.operations.details.CancelOperationConfirmationHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
@@ -211,6 +212,16 @@ fun SearcherWorkspaceOverlays(
         topInset = statusBarInset,
         bottomInset = navBarInset,
     )
+
+    CancelOperationConfirmationHost(
+        pendingId = overlayState.cancelOperationConfirmationFor,
+        operations = operationsState.operations,
+        onDismiss = { onPageAction(SearcherPageAction.Overlays.DismissCancelOperation) },
+        onConfirm = { operationId ->
+            onPageAction(SearcherPageAction.Operations.Cancel(operationId))
+            onPageAction(SearcherPageAction.Overlays.DismissCancelOperation)
+        },
+    )
 }
 
 @Preview2
@@ -220,6 +231,18 @@ private fun SearcherWorkspaceOverlaysTemplatesPreview() {
     SearcherWorkspaceOverlays(
         stateSource = flowOf(SearcherMockDataProvider.createMockEmptyState()),
         overlayState = SearcherWorkspaceViewModel.OverlayState(showTemplatesSheet = true),
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun SearcherWorkspaceOverlaysCancelOperationPreview() {
+    val operation = SearcherMockDataProvider.createMockRunningOperation()
+    SearcherWorkspaceOverlays(
+        stateSource = flowOf(SearcherMockDataProvider.createMockEmptyState()),
+        operationsStateSource = flowOf(OperationsDisplayState(operations = listOf(operation))),
+        overlayState = SearcherWorkspaceViewModel.OverlayState(cancelOperationConfirmationFor = operation.id),
     )
 }
 

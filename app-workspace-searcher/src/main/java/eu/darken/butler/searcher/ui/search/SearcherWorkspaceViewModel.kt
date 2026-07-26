@@ -1398,6 +1398,17 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             is SearcherPageAction.Overlays.DismissOperationDetails -> {
                 _overlayState.update { it.copy(operationDialogState = OperationDialogState.None) }
             }
+            is SearcherPageAction.Overlays.RequestCancelOperation -> {
+                _overlayState.update {
+                    it.copy(
+                        operationDialogState = OperationDialogState.None,
+                        cancelOperationConfirmationFor = action.id,
+                    )
+                }
+            }
+            is SearcherPageAction.Overlays.DismissCancelOperation -> {
+                _overlayState.update { it.copy(cancelOperationConfirmationFor = null) }
+            }
             is SearcherPageAction.Overlays.ShowTargetError -> {
                 _overlayState.update { it.copy(targetError = TargetError(action.path, action.error)) }
             }
@@ -1417,6 +1428,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         val showTemplatesSheet: Boolean = false,
         val showAccessErrorsSheet: Boolean = false,
         val operationDialogState: OperationDialogState = OperationDialogState.None,
+        val cancelOperationConfirmationFor: Operation.Id? = null,
         val targetError: TargetError? = null,
     )
 
