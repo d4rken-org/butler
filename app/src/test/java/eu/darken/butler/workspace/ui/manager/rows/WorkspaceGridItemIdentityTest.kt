@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasTestTag
@@ -17,6 +19,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.label
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerViewModel
+import io.kotest.matchers.shouldBe
 import org.junit.Test
 import sh.calvin.reorderable.DragGestureDetector
 import sh.calvin.reorderable.ReorderableCollectionItemScope
@@ -25,7 +28,8 @@ import testhelpers.ComposeTest
 /**
  * The manager grid is the screen used to pick which paused tab to restore, so it must show the
  * identity — the header naming the tab, the info bar describing what it holds — and must not draw
- * an empty line for a workspace that publishes a blank automatic title or subtitle.
+ * text for a workspace that publishes a blank automatic title or subtitle. The row of a blank line
+ * is still reserved, so that every card's bar covers the same slice of its preview.
  *
  * Assertions are anchored to the header and info bar test tags: text alone cannot tell the two
  * apart, so a regression swapping them would still pass. The card's Column is clickable and merges
@@ -76,6 +80,12 @@ class WorkspaceGridItemIdentityTest : ComposeTest() {
         )
         .assertIsDisplayed()
 
+    private fun infoBarTexts(): List<String> = composeTestRule
+        .onAllNodes(hasAnyAncestor(hasTestTag(TEST_TAG_WORKSPACE_CARD_INFOBAR)), useUnmergedTree = true)
+        .fetchSemanticsNodes()
+        .flatMap { it.config.getOrNull(SemanticsProperties.Text).orEmpty() }
+        .map { it.text }
+
     @Test
     fun `the header names the workspace type when there is no custom name`() {
         setContent(subtitle = "Storage".toCaString())
@@ -100,27 +110,29 @@ class WorkspaceGridItemIdentityTest : ComposeTest() {
     }
 
     @Test
-    fun `a blank automatic title leaves the subtitle as the only info bar line`() {
+    fun `a blank automatic title leaves the subtitle as the only info bar text`() {
         setContent(subtitle = "Storage".toCaString(), autoTitle = "  ".toCaString())
 
         assertInInfoBar("Storage")
         composeTestRule.onNodeWithText("  ").assertDoesNotExist()
+        infoBarTexts() shouldBe listOf("", "Storage")
     }
 
     @Test
-    fun `an empty subtitle draws no second info bar line`() {
+    fun `an empty subtitle draws no second info bar text but keeps its row`() {
         setContent(subtitle = "".toCaString())
 
         assertInInfoBar("/sdcard/Download")
-        composeTestRule.onNodeWithText("").assertDoesNotExist()
+        infoBarTexts() shouldBe listOf("/sdcard/Download", "")
     }
 
     @Test
-    fun `a whitespace-only subtitle draws no second info bar line`() {
+    fun `a whitespace-only subtitle draws no second info bar text but keeps its row`() {
         setContent(subtitle = "   ".toCaString())
 
         assertInInfoBar("/sdcard/Download")
         composeTestRule.onNodeWithText("   ").assertDoesNotExist()
+        infoBarTexts() shouldBe listOf("/sdcard/Download", "")
     }
 
     @Test
