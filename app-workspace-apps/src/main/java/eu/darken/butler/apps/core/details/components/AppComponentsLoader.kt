@@ -65,11 +65,11 @@ class AppComponentsLoader @Inject constructor(
         val pm = context.packageManager
         val started = TimeSource.Monotonic.markNow()
 
-        val appEnabled = resolveEnabled(
-            componentSetting = pm.getApplicationEnabledSetting(packageName),
-            appEnabled = true,
-            manifestEnabled = true,
-        )
+        // Read fresh, and effective: ApplicationInfo.enabled already folds the manifest flag and any
+        // runtime override into one answer, so enabling a previously disabled app is picked up on the
+        // next route entry without re-running phase 1. MATCH_DISABLED_COMPONENTS so a disabled app
+        // resolves at all. A package removed mid-pass propagates — the workspace auto-closes on that.
+        val appEnabled = pm.getApplicationInfo(packageName, PackageManager.MATCH_DISABLED_COMPONENTS).enabled
 
         var vanished = 0
         val states = HashMap<String, Boolean>(entries.size)
@@ -103,7 +103,7 @@ class AppComponentsLoader @Inject constructor(
         packageName = pkg,
         className = name,
         isExported = exported,
-        manifestEnabled = isEnabled,
+        manifestEnabled = enabled,
         permission = permission,
         processName = processName?.takeIf { it != pkg },
         launchMode = launchMode.takeIf { kind == ComponentKind.ACTIVITY },
@@ -114,7 +114,7 @@ class AppComponentsLoader @Inject constructor(
         packageName = pkg,
         className = name,
         isExported = exported,
-        manifestEnabled = isEnabled,
+        manifestEnabled = enabled,
         permission = permission,
         processName = processName?.takeIf { it != pkg },
     )
@@ -124,7 +124,7 @@ class AppComponentsLoader @Inject constructor(
         packageName = pkg,
         className = name,
         isExported = exported,
-        manifestEnabled = isEnabled,
+        manifestEnabled = enabled,
         permission = readPermission,
         writePermission = writePermission,
         authority = authority,

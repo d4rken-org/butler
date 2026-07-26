@@ -12,12 +12,11 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.transformLatest
 import kotlin.time.Instant
 
 /**
@@ -75,9 +74,16 @@ class AppComponentsController(
                     // re-entry, which is the refresh path. List membership is never reloaded: with
                     // MATCH_DISABLED_COMPONENTS a component is listed regardless of its state, so
                     // only the state can change under us.
+                    //
+                    // transformLatest, not filter + mapLatest: the inactive edge has to reach the
+                    // operator so it cancels an in-flight pass. Filtering it away would let the N
+                    // binder calls run to completion after the user left the route and then emit —
+                    // into a state the Overview summary card renders from too. The `false` edge
+                    // emits nothing, so the last good result persists while the route is inactive.
                     emitAll(
-                        routeActive.filter { it }.mapLatest {
-                            try {
+                        routeActive.transformLatest { active ->
+                            if (!active) return@transformLatest
+                            val resolved: ComponentsUiState = try {
                                 ComponentsUiState.Ready(data.withEnabledStates(loader.resolveEnabledStates(data)))
                             } catch (e: CancellationException) {
                                 throw e
@@ -85,6 +91,7 @@ class AppComponentsController(
                                 log(tag, WARN) { "Failed to resolve enabled states: ${e.asLog()}" }
                                 ComponentsUiState.Error
                             }
+                            emit(resolved)
                         }
                     )
                 }

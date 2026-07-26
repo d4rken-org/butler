@@ -17,8 +17,11 @@ data class ComponentEntry(
     val packageName: String,
     val className: String,
     val isExported: Boolean,
-    // Manifest baseline (ComponentInfo.isEnabled), kept so the enrichment pass can resolve
-    // COMPONENT_ENABLED_STATE_DEFAULT without re-reading the package.
+    // The component's own manifest flag (ComponentInfo.enabled), kept so the enrichment pass can
+    // resolve COMPONENT_ENABLED_STATE_DEFAULT without re-reading the package. Deliberately not
+    // ComponentInfo.isEnabled, which ANDs in the application flag: that would snapshot false for
+    // every component of a disabled app and stay stale after the app is enabled, because enabling
+    // changes neither the version code nor the update time and so never re-runs phase 1.
     val manifestEnabled: Boolean = true,
     val enabledState: ComponentEnabledState = ComponentEnabledState.UNRESOLVED,
     val permission: String? = null,

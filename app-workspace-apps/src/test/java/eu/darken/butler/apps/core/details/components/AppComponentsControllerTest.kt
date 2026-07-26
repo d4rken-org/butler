@@ -48,6 +48,11 @@ class AppComponentsControllerTest : BaseTest() {
         loader = loader,
     )
 
+    private fun AppComponentsController.enabledStates(): List<ComponentEnabledState> = state.value
+        .shouldBeInstanceOf<ComponentsUiState.Ready>()
+        .data.all
+        .map { it.enabledState }
+
     @Test
     fun `phase one runs on app change, enrichment waits for the route`() = runTest {
         val loader = mockk<AppComponentsLoader>()
@@ -108,6 +113,88 @@ class AppComponentsControllerTest : BaseTest() {
 
         coVerify(exactly = 1) { loader.load(any()) }
         coVerify(exactly = 2) { loader.resolveEnabledStates(data) }
+    }
+
+    @Test
+    fun `leaving the route cancels an in-flight enrichment`() = runTest {
+        val gate = CompletableDeferred<Unit>()
+        var started = 0
+        var completed = 0
+        val loader = mockk<AppComponentsLoader>()
+        coEvery { loader.load(any()) } returns data
+        coEvery { loader.resolveEnabledStates(data) } coAnswers {
+            started++
+            gate.await()
+            completed++
+            mapOf(activity.key to false, service.key to false)
+        }
+        val controller = backgroundScope.controller(loader)
+
+        controller.onAppChanged(appInfo())
+        controller.onComponentsRouteActive(true)
+        runCurrent()
+
+        started shouldBe 1
+        controller.state.value shouldBe ComponentsUiState.Ready(data)
+
+        controller.onComponentsRouteActive(false)
+        runCurrent()
+
+        // The pass was cancelled mid-flight and the last good state persists.
+        completed shouldBe 0
+        controller.state.value shouldBe ComponentsUiState.Ready(data)
+
+        // A late completion of the cancelled call must not reach the state either.
+        gate.complete(Unit)
+        runCurrent()
+        completed shouldBe 0
+        controller.state.value shouldBe ComponentsUiState.Ready(data)
+
+        // Re-entry starts a fresh pass, which now runs through.
+        controller.onComponentsRouteActive(true)
+        runCurrent()
+
+        started shouldBe 2
+        completed shouldBe 1
+        controller.enabledStates() shouldBe listOf(
+            ComponentEnabledState.DISABLED,
+            ComponentEnabledState.DISABLED,
+        )
+    }
+
+    /**
+     * Enabling a disabled app changes neither its version code nor its update time, so the identity
+     * is unchanged and phase 1 never re-runs. Only the route-entry re-resolve can correct the chips.
+     */
+    @Test
+    fun `enabling the application clears the disabled state on route re-entry`() = runTest {
+        val loader = mockk<AppComponentsLoader>()
+        coEvery { loader.load(any()) } returns data
+        coEvery { loader.resolveEnabledStates(data) } returnsMany listOf(
+            mapOf(activity.key to false, service.key to false),
+            mapOf(activity.key to true, service.key to true),
+        )
+        val controller = backgroundScope.controller(loader)
+
+        controller.onAppChanged(appInfo())
+        controller.onComponentsRouteActive(true)
+        runCurrent()
+
+        controller.enabledStates() shouldBe listOf(
+            ComponentEnabledState.DISABLED,
+            ComponentEnabledState.DISABLED,
+        )
+
+        controller.onComponentsRouteActive(false)
+        runCurrent()
+        controller.onComponentsRouteActive(true)
+        runCurrent()
+
+        coVerify(exactly = 1) { loader.load(any()) }
+        controller.enabledStates() shouldBe listOf(
+            ComponentEnabledState.ENABLED,
+            ComponentEnabledState.ENABLED,
+        )
     }
 
     @Test
