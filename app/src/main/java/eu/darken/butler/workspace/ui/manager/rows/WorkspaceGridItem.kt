@@ -159,33 +159,14 @@ fun WorkspaceGridItem(
                         overflow = TextOverflow.Ellipsis,
                     )
 
-                    when {
-                        workspace.isPaused -> IconButton(
-                            modifier = Modifier.size(24.dp),
-                            onClick = onResume,
-                        ) {
-                            Icon(
-                                modifier = Modifier.size(18.dp),
-                                imageVector = Icons.TwoTone.PlayCircle,
-                                contentDescription = stringResource(R.string.workspace_row_resume_content_desc),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                            )
-                        }
-                        workspace.canPause -> IconButton(
-                            modifier = Modifier.size(24.dp),
-                            onClick = onPause,
-                        ) {
-                            Icon(
-                                modifier = Modifier.size(18.dp),
-                                imageVector = Icons.TwoTone.PauseCircle,
-                                contentDescription = stringResource(R.string.workspace_row_pause_content_desc),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                            )
-                        }
-                    }
-
-                    // Sub-workspaces are not persisted, so a rename on them would silently be lost
-                    if (!workspace.isSubWorkspace) {
+                    // Sub-workspaces are not persisted, so a rename on them would silently be lost.
+                    // Resume stays available even for them: manual and auto pause both skip
+                    // sub-workspaces, but a stale session row can still restore one as paused, and
+                    // hiding the whole menu there would leave no way to wake it from the manager.
+                    val offersRename = !workspace.isSubWorkspace
+                    val offersResume = workspace.isPaused
+                    val offersPause = !workspace.isPaused && workspace.canPause
+                    if (offersRename || offersResume || offersPause) {
                         Box {
                             IconButton(
                                 modifier = Modifier.size(24.dp),
@@ -203,19 +184,50 @@ fun WorkspaceGridItem(
                                 expanded = showOverflowMenu,
                                 onDismissRequest = { showOverflowMenu = false },
                             ) {
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(CommonR.string.general_rename_action)) },
-                                    leadingIcon = {
-                                        Icon(
-                                            imageVector = Icons.TwoTone.Edit,
-                                            contentDescription = null,
-                                        )
-                                    },
-                                    onClick = {
-                                        showOverflowMenu = false
-                                        onRename()
-                                    },
-                                )
+                                when {
+                                    offersResume -> DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.workspace_row_resume_action)) },
+                                        leadingIcon = {
+                                            Icon(
+                                                imageVector = Icons.TwoTone.PlayCircle,
+                                                contentDescription = null,
+                                            )
+                                        },
+                                        onClick = {
+                                            showOverflowMenu = false
+                                            onResume()
+                                        },
+                                    )
+                                    offersPause -> DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.workspace_row_pause_action)) },
+                                        leadingIcon = {
+                                            Icon(
+                                                imageVector = Icons.TwoTone.PauseCircle,
+                                                contentDescription = null,
+                                            )
+                                        },
+                                        onClick = {
+                                            showOverflowMenu = false
+                                            onPause()
+                                        },
+                                    )
+                                }
+
+                                if (offersRename) {
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(CommonR.string.general_rename_action)) },
+                                        leadingIcon = {
+                                            Icon(
+                                                imageVector = Icons.TwoTone.Edit,
+                                                contentDescription = null,
+                                            )
+                                        },
+                                        onClick = {
+                                            showOverflowMenu = false
+                                            onRename()
+                                        },
+                                    )
+                                }
                             }
                         }
                     }
@@ -547,7 +559,7 @@ private fun WorkspaceGridItemPauseStatesPreview() {
         modifier = Modifier.padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        // Live and pausable - offers the pause button
+        // Live and pausable - the pause action sits in the overflow menu, so the header looks idle
         WorkspaceGridItem(
             reorderableScope = createMockReorderableScope(),
             workspace = WorkspaceManagerViewModel.WorkspaceItem(
@@ -579,7 +591,7 @@ private fun WorkspaceGridItemPauseStatesPreview() {
             livePreview = false,
         )
 
-        // Busy - neither pausable nor paused, so no extra button
+        // Busy - neither pausable nor paused, so the overflow menu only offers rename
         WorkspaceGridItem(
             reorderableScope = createMockReorderableScope(),
             workspace = WorkspaceManagerViewModel.WorkspaceItem(
