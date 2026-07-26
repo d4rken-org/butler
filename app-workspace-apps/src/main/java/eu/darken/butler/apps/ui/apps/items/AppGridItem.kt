@@ -85,10 +85,13 @@ fun AppGridItem(
                 contentAlignment = Alignment.Center,
             ) {
                 if (item.icon != null) {
+                    val fallbackPainter = rememberAppIconFallbackPainter()
                     AsyncImage(
-                        model = item.icon.get(context),
+                        model = item.pkg,
                         contentDescription = null,
                         modifier = Modifier.size(56.dp),
+                        placeholder = fallbackPainter,
+                        error = fallbackPainter,
                     )
                 } else {
                     Icon(
