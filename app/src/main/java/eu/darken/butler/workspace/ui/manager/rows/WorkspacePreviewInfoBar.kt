@@ -75,8 +75,8 @@ fun WorkspacePreviewInfoBar(
 @Composable
 private fun WorkspacePreviewInfoBarPreview() {
     WorkspacePreviewInfoBar(
-        primary = "/storage/emulated/0/Download".toCaString(),
-        secondary = "42 items".toCaString(),
+        primary = "Trash".toCaString(),
+        secondary = "Recover deleted files".toCaString(),
     )
 }
 
@@ -103,9 +103,9 @@ private fun WorkspacePreviewInfoBarSecondaryOnlyPreview() {
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
-private fun WorkspacePreviewInfoBarLongPathPreview() {
+private fun WorkspacePreviewInfoBarLongTextPreview() {
     WorkspacePreviewInfoBar(
-        primary = "/storage/emulated/0/Android/data/eu.darken.butler/files/cache/previews/nested".toCaString(),
-        secondary = "Last modified 3 minutes ago by a very chatty background operation".toCaString(),
+        primary = "*-2024-11-02-integration-test-run-logcat.txt".toCaString(),
+        secondary = "/storage/emulated/0/DCIM/Camera, /storage/emulated/0/Documents, Downloads +2".toCaString(),
     )
 }

@@ -173,8 +173,8 @@ private fun WorkspacePreviewWithInfoBarPreview() {
     ) {
         WorkspacePreviewInfoBar(
             modifier = Modifier.align(Alignment.BottomStart),
-            primary = "/storage/emulated/0/Download".toCaString(),
-            secondary = "42 items".toCaString(),
+            primary = "Trash".toCaString(),
+            secondary = "Recover deleted files".toCaString(),
         )
     }
 }
