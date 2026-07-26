@@ -50,10 +50,9 @@ fun PathAlreadyExistsIssueSheet(
     issue: PathActionIssue.PathAlreadyExists,
     onResolution: (PathActionIssue.PathAlreadyExists.Resolution) -> Unit,
     modifier: Modifier = Modifier,
+    onRenameRequest: (PathIssueRenameRequest) -> Unit = {},
 ) {
     var applyToAll by remember { mutableStateOf(false) }
-    var showRenameNewDialog by remember { mutableStateOf(false) }
-    var showRenameExistingDialog by remember { mutableStateOf(false) }
     val isDirectory = issue.destination.fileType == FileType.DIRECTORY
 
     Column(
@@ -226,7 +225,14 @@ fun PathAlreadyExistsIssueSheet(
                                         )
                                     )
                                 } else {
-                                    showRenameNewDialog = true
+                                    onRenameRequest(
+                                        PathIssueRenameRequest(
+                                            issueId = issue.id,
+                                            target = PathIssueRenameRequest.Target.SOURCE,
+                                            currentName = issue.source?.name ?: issue.destination.name,
+                                            suggestedName = issue.suggestedName,
+                                        )
+                                    )
                                 }
                             },
                             modifier = Modifier.weight(1f),
@@ -260,7 +266,13 @@ fun PathAlreadyExistsIssueSheet(
                                         )
                                     )
                                 } else {
-                                    showRenameExistingDialog = true
+                                    onRenameRequest(
+                                        PathIssueRenameRequest(
+                                            issueId = issue.id,
+                                            target = PathIssueRenameRequest.Target.DESTINATION,
+                                            currentName = issue.destination.name,
+                                        )
+                                    )
                                 }
                             },
                             modifier = Modifier.weight(1f),
@@ -309,39 +321,6 @@ fun PathAlreadyExistsIssueSheet(
                 }
             }
         }
-    }
-
-    // Rename new file dialog
-    if (showRenameNewDialog) {
-        val originalName = issue.source?.name ?: issue.destination.name
-        PathIssueRenameDialog(
-            currentName = originalName,
-            initialValue = issue.suggestedName,
-            dialogTitle = stringResource(R.string.workspace_issue_rename_dialog_title_new),
-            onConfirm = { newName ->
-                onResolution(PathActionIssue.PathAlreadyExists.Resolution.RenameSource(newName, applyToAll = false))
-                showRenameNewDialog = false
-            },
-            onDismiss = { showRenameNewDialog = false },
-        )
-    }
-
-    // Rename existing file dialog
-    if (showRenameExistingDialog) {
-        PathIssueRenameDialog(
-            currentName = issue.destination.name,
-            dialogTitle = stringResource(R.string.workspace_issue_rename_dialog_title_existing),
-            onConfirm = { newName ->
-                onResolution(
-                    PathActionIssue.PathAlreadyExists.Resolution.RenameDestination(
-                        newName,
-                        applyToAll = false
-                    )
-                )
-                showRenameExistingDialog = false
-            },
-            onDismiss = { showRenameExistingDialog = false },
-        )
     }
 }
 

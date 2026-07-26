@@ -1,7 +1,12 @@
 package eu.darken.butler.workspace.ui.issues
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -13,6 +18,7 @@ import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.issue.Issue
+import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 import kotlin.time.Instant
 
@@ -24,6 +30,10 @@ fun IssuesBottomSheet(
     topInset: Dp = 0.dp,
     bottomInset: Dp = 0.dp,
 ) {
+    // Keyed on the issue, so a conflict that gets replaced while the rename dialog is open cannot
+    // be confirmed with the previous one's name.
+    var renameRequest by remember(issue.id) { mutableStateOf<PathIssueRenameRequest?>(null) }
+
     PaneScopedBottomSheet(
         visible = true,
         onDismiss = onDismiss,
@@ -35,6 +45,7 @@ fun IssuesBottomSheet(
                 is PathActionIssue.PathAlreadyExists -> PathAlreadyExistsIssueSheet(
                     issue = issue,
                     onResolution = onResolution,
+                    onRenameRequest = { renameRequest = it },
                 )
                 is PathActionIssue.InsufficientPermission -> InsufficientPermissionIssueSheet(
                     issue = issue,
@@ -63,6 +74,29 @@ fun IssuesBottomSheet(
                 else -> throw IllegalArgumentException("Unknown issue type: $issue")
             }
         }
+    }
+
+    // Emitted after the sheet, never inside it: a dialog composed inside would be confined to the
+    // sheet's bounds and ranked below it. As a sibling it inherits the same ambient rank — never a
+    // hardcoded one, because a pane-local child (the saver) needs the child overlay rank instead —
+    // and PaneLayerState stacks a later same-rank layer on top, so the sheet returns to the top
+    // when the dialog is dismissed.
+    renameRequest?.let { request ->
+        PathIssueRenameDialog(
+            currentName = request.currentName,
+            initialValue = request.suggestedName,
+            dialogTitle = stringResource(
+                when (request.target) {
+                    PathIssueRenameRequest.Target.SOURCE -> R.string.workspace_issue_rename_dialog_title_new
+                    PathIssueRenameRequest.Target.DESTINATION -> R.string.workspace_issue_rename_dialog_title_existing
+                }
+            ),
+            onConfirm = { newName ->
+                onResolution(request.toResolution(newName))
+                renameRequest = null
+            },
+            onDismiss = { renameRequest = null },
+        )
     }
 }
 

@@ -37,7 +37,6 @@ import eu.darken.butler.saver.core.SaverWorkspace
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.insets.paneInsets
-import eu.darken.butler.workspace.ui.issues.IssuesBottomSheet
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
@@ -98,8 +97,8 @@ internal fun SaverWorkspacePage(
     // Operation dialog state
     var operationDialogState by remember { mutableStateOf<OperationDialogState>(OperationDialogState.None) }
 
-    // Conflict sheet state. Durable VM state so a notification-driven / auto open survives
-    // recomposition / late collector subscription.
+    // The conflict sheet itself is rendered by the overlay slot; this only observes it, to keep the
+    // operation-details sheet from sitting under it.
     val conflictUiState by (vm?.conflictUiState?.collectAsState()
         ?: remember { mutableStateOf(SaverWorkspaceViewModel.ConflictUiState()) })
 
@@ -166,20 +165,6 @@ internal fun SaverWorkspacePage(
             topInset = statusBarInset,
             bottomInset = navBarInset,
         )
-
-        // Show issue bottom sheet when needed
-        val conflictIssue = conflictUiState.issue
-        if (conflictIssue != null && conflictUiState.visible) {
-            IssuesBottomSheet(
-                issue = conflictIssue,
-                onResolution = { resolution ->
-                    vm?.resolveConflict(resolution)
-                },
-                onDismiss = { vm?.dismissConflictSheet() },
-                topInset = statusBarInset,
-                bottomInset = navBarInset,
-            )
-        }
     }
 }
 
