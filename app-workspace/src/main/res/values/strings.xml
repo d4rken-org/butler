@@ -76,7 +76,10 @@
 
     <!-- Workspace Button Menu -->
     <string name="workspace_button_menu_new_workspace_format">New %1$s</string>
-    <string name="workspace_button_menu_more_workspaces_action">More…</string>
+    <string name="workspace_button_menu_new_tab_action">New tab</string>
+    <string name="workspace_button_menu_category_recent">Recently</string>
+    <string name="workspace_button_menu_category_other">Other</string>
+    <string name="workspace_button_menu_category_current_tab">This tab</string>
     <string name="workspace_button_menu_manager_action">Tab manager</string>
     <string name="workspace_button_menu_close_current_action">Close current tab</string>
     <string name="workspace_button_menu_settings_action">Settings</string>
