@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -15,7 +14,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
@@ -44,9 +42,10 @@ private val INFOBAR_LINE_HEIGHT = 13.sp
  *
  * Whenever the bar is drawn it always reserves two rows, even if only one of them carries text, so
  * the scrim reads as one consistent band across the grid instead of a short bar next to a tall one.
- * The reserved height is derived from [INFOBAR_LINE_HEIGHT] and therefore follows the user's
- * font-size setting. A line without text stays empty, it is not drawn as blank text, and a bar with
- * nothing to say at all is not drawn.
+ * An absent row is reserved by laying out an empty [Text] rather than by constraining the column
+ * to a computed height: a text line's box is decided by font metrics, so a height we calculate
+ * ourselves could disagree with the renderer and clip real content. Two single-line texts are two
+ * line boxes tall by construction, at any font scale. A bar with nothing to say is not drawn.
  */
 @Composable
 fun WorkspacePreviewInfoBar(
@@ -58,38 +57,28 @@ fun WorkspacePreviewInfoBar(
     val secondaryText = secondary?.asComposable()?.takeIf { it.isNotBlank() }
     if (primaryText == null && secondaryText == null) return
 
-    val lineDp = with(LocalDensity.current) { INFOBAR_LINE_HEIGHT.toDp() }
-
     Column(
         modifier = modifier
             .fillMaxWidth()
             .testTag(TEST_TAG_WORKSPACE_CARD_INFOBAR)
             .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f))
-            .padding(horizontal = 6.dp, vertical = 4.dp)
-            .height(lineDp * 2),
+            .padding(horizontal = 6.dp, vertical = 4.dp),
         verticalArrangement = Arrangement.spacedBy(0.dp),
     ) {
-        if (primaryText != null) {
-            Text(
-                text = primaryText,
-                style = MaterialTheme.typography.labelSmall.copy(lineHeight = INFOBAR_LINE_HEIGHT),
-                color = MaterialTheme.colorScheme.onScrim,
-                maxLines = 1,
-                overflow = TextOverflow.StartEllipsis,
-            )
-        } else {
-            Spacer(modifier = Modifier.height(lineDp))
-        }
-
-        if (secondaryText != null) {
-            Text(
-                text = secondaryText,
-                style = MaterialTheme.typography.labelSmall.copy(lineHeight = INFOBAR_LINE_HEIGHT),
-                color = MaterialTheme.colorScheme.onScrim.copy(alpha = 0.7f),
-                maxLines = 1,
-                overflow = TextOverflow.MiddleEllipsis,
-            )
-        }
+        Text(
+            text = primaryText ?: "",
+            style = MaterialTheme.typography.labelSmall.copy(lineHeight = INFOBAR_LINE_HEIGHT),
+            color = MaterialTheme.colorScheme.onScrim,
+            maxLines = 1,
+            overflow = TextOverflow.StartEllipsis,
+        )
+        Text(
+            text = secondaryText ?: "",
+            style = MaterialTheme.typography.labelSmall.copy(lineHeight = INFOBAR_LINE_HEIGHT),
+            color = MaterialTheme.colorScheme.onScrim.copy(alpha = 0.7f),
+            maxLines = 1,
+            overflow = TextOverflow.MiddleEllipsis,
+        )
     }
 }
 
