@@ -41,6 +41,7 @@ import eu.darken.butler.workspace.core.operations.history.HistoryEntry
 import eu.darken.butler.workspace.core.operations.history.HistoryFilter
 import eu.darken.butler.workspace.core.operations.history.HistoryOutcome
 import eu.darken.butler.workspace.ui.floatingbar.BarAnimation
+import eu.darken.butler.workspace.ui.common.WorkspacePaddings
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
@@ -115,8 +116,8 @@ fun HistoryWorkspacePage(
                 .fillMaxSize()
                 .nestedScroll(topBarStackState.nestedScrollConnection),
             contentPadding = PaddingValues(
-                start = 12.dp,
-                end = 12.dp,
+                start = WorkspacePaddings.ContentHorizontal,
+                end = WorkspacePaddings.ContentHorizontal,
                 top = topBarStackState.contentPaddingDp(),
                 bottom = navBarInset + 16.dp,
             ),
@@ -151,7 +152,6 @@ fun HistoryWorkspacePage(
                     visible = true,
                     scrollBehavior = BarScrollBehavior.CollapseOnScroll(),
                     animation = BarAnimation.Slide(),
-                    modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
                     HistoryToolbarCard(
                         workspaceId = workspaceId,

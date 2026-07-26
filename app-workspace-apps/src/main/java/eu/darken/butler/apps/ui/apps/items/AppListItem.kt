@@ -50,7 +50,6 @@ fun AppListItem(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp)
             .clip(RoundedCornerShape(8.dp))
             .background(
                 if (isSelected) {

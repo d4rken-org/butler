@@ -27,6 +27,7 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.contracts.apps.AppsViewStyle
+import eu.darken.butler.workspace.ui.common.WorkspacePaddings
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStackState
 import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarContentPadding
@@ -52,6 +53,8 @@ internal fun AppsReadyContent(
     val listContentPadding = rememberFloatingBarContentPadding(
         topStackState = topBarStackState,
         bottomStackState = bottomBarStackState,
+        start = WorkspacePaddings.ContentHorizontal,
+        end = WorkspacePaddings.ContentHorizontal,
     )
     val gridContentPadding = rememberFloatingBarContentPadding(
         topStackState = topBarStackState,
