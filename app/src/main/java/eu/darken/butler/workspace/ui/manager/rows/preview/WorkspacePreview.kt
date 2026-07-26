@@ -3,6 +3,7 @@ package eu.darken.butler.workspace.ui.manager.rows.preview
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -15,16 +16,19 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import coil3.compose.SubcomposeAsyncImage
+import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.preview.WorkspacePreviewModel
 import eu.darken.butler.workspace.ui.manager.rows.PaneBadge
+import eu.darken.butler.workspace.ui.manager.rows.WorkspacePreviewInfoBar
 
 @Composable
 fun WorkspacePreview(
@@ -34,6 +38,8 @@ fun WorkspacePreview(
     livePreview: Boolean = true,
     paneNumber: Int? = null,
     shouldShowBadge: Boolean = false,
+    contentAlpha: Float = 1f,
+    overlay: @Composable BoxScope.() -> Unit = {},
 ) {
     Box(modifier = modifier) {
         Card(
@@ -47,59 +53,68 @@ fun WorkspacePreview(
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
-                if (livePreview) {
-
-                    SubcomposeAsyncImage(
-                        model = WorkspacePreviewModel(workspaceId),
-                        contentDescription = "Workspace preview",
-                        modifier = Modifier.fillMaxSize(),
-                        alignment = Alignment.TopCenter,
-                        contentScale = ContentScale.FillWidth,
-                        loading = {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                            ) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.align(Alignment.Center)
-                                )
-                            }
-                        },
-                        error = {
-                            Crossfade(
-                                targetState = type,
-                                label = "WorkspacePreview"
-                            ) { workspaceType ->
-                                when (workspaceType) {
-                                    Workspace.Type.EXPLORER -> ExplorerMockPreview()
-                                    Workspace.Type.SEARCHER -> SearcherMockPreview()
-                                    Workspace.Type.EDITOR -> EditorMockPreview()
-                                    Workspace.Type.TEMPLATES -> TemplatesMockPreview()
-                                    Workspace.Type.APPS -> AppsMockPreview()
-                                    Workspace.Type.APP_DETAILS -> AppsMockPreview()
-                                    Workspace.Type.SAVER -> EditorMockPreview()
-                                    Workspace.Type.DEVELOPER -> DeveloperMockPreview()
-                                    Workspace.Type.HISTORY -> DeveloperMockPreview()
-                                    Workspace.Type.BUG_REPORT -> DeveloperMockPreview()
+                // Only the thumbnail dims - the overlay below stays at full opacity so a paused
+                // card keeps its identity text legible
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .alpha(contentAlpha),
+                ) {
+                    if (livePreview) {
+                        SubcomposeAsyncImage(
+                            model = WorkspacePreviewModel(workspaceId),
+                            contentDescription = "Workspace preview",
+                            modifier = Modifier.fillMaxSize(),
+                            alignment = Alignment.TopCenter,
+                            contentScale = ContentScale.FillWidth,
+                            loading = {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                                ) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.align(Alignment.Center)
+                                    )
+                                }
+                            },
+                            error = {
+                                Crossfade(
+                                    targetState = type,
+                                    label = "WorkspacePreview"
+                                ) { workspaceType ->
+                                    when (workspaceType) {
+                                        Workspace.Type.EXPLORER -> ExplorerMockPreview()
+                                        Workspace.Type.SEARCHER -> SearcherMockPreview()
+                                        Workspace.Type.EDITOR -> EditorMockPreview()
+                                        Workspace.Type.TEMPLATES -> TemplatesMockPreview()
+                                        Workspace.Type.APPS -> AppsMockPreview()
+                                        Workspace.Type.APP_DETAILS -> AppsMockPreview()
+                                        Workspace.Type.SAVER -> EditorMockPreview()
+                                        Workspace.Type.DEVELOPER -> DeveloperMockPreview()
+                                        Workspace.Type.HISTORY -> DeveloperMockPreview()
+                                        Workspace.Type.BUG_REPORT -> DeveloperMockPreview()
+                                    }
                                 }
                             }
+                        )
+                    } else {
+                        when (type) {
+                            Workspace.Type.EXPLORER -> ExplorerMockPreview()
+                            Workspace.Type.SEARCHER -> SearcherMockPreview()
+                            Workspace.Type.EDITOR -> EditorMockPreview()
+                            Workspace.Type.TEMPLATES -> TemplatesMockPreview()
+                            Workspace.Type.APPS -> AppsMockPreview()
+                            Workspace.Type.APP_DETAILS -> AppsMockPreview()
+                            Workspace.Type.SAVER -> EditorMockPreview()
+                            Workspace.Type.DEVELOPER -> DeveloperMockPreview()
+                            Workspace.Type.HISTORY -> DeveloperMockPreview()
+                            Workspace.Type.BUG_REPORT -> DeveloperMockPreview()
                         }
-                    )
-                } else {
-                    when (type) {
-                        Workspace.Type.EXPLORER -> ExplorerMockPreview()
-                        Workspace.Type.SEARCHER -> SearcherMockPreview()
-                        Workspace.Type.EDITOR -> EditorMockPreview()
-                        Workspace.Type.TEMPLATES -> TemplatesMockPreview()
-                        Workspace.Type.APPS -> AppsMockPreview()
-                        Workspace.Type.APP_DETAILS -> AppsMockPreview()
-                        Workspace.Type.SAVER -> EditorMockPreview()
-                        Workspace.Type.DEVELOPER -> DeveloperMockPreview()
-                        Workspace.Type.HISTORY -> DeveloperMockPreview()
-                        Workspace.Type.BUG_REPORT -> DeveloperMockPreview()
                     }
                 }
+
+                overlay()
             }
         }
 
@@ -154,4 +169,39 @@ private fun WorkspacePreviewTemplatesPreview() {
         workspaceId = Workspace.Id(),
         type = Workspace.Type.TEMPLATES,
     )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspacePreviewWithInfoBarPreview() {
+    WorkspacePreview(
+        workspaceId = Workspace.Id(),
+        type = Workspace.Type.EXPLORER,
+        livePreview = false,
+    ) {
+        WorkspacePreviewInfoBar(
+            modifier = Modifier.align(Alignment.BottomStart),
+            primary = "Trash".toCaString(),
+            secondary = "Recover deleted files".toCaString(),
+        )
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspacePreviewDimmedContentPreview() {
+    WorkspacePreview(
+        workspaceId = Workspace.Id(),
+        type = Workspace.Type.SEARCHER,
+        livePreview = false,
+        contentAlpha = 0.4f,
+    ) {
+        WorkspacePreviewInfoBar(
+            modifier = Modifier.align(Alignment.BottomStart),
+            primary = "*.log".toCaString(),
+            secondary = "Device storage, SD card".toCaString(),
+        )
+    }
 }

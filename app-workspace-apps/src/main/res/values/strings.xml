@@ -178,7 +178,7 @@
     <string name="apps_components_kind_receiver">Broadcast receiver</string>
     <string name="apps_components_kind_provider">Content provider</string>
     <string name="apps_components_search_action">Search components</string>
-    <string name="apps_components_search_hint">Search components</string>
+    <string name="apps_components_search_hint">Search name or package</string>
     <string name="apps_components_state_label">State</string>
     <string name="apps_components_state_enabled">Enabled</string>
     <string name="apps_components_state_disabled">Disabled</string>

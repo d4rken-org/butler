@@ -2,6 +2,7 @@ package eu.darken.butler.screenshots
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
+import eu.darken.butler.apps.R as AppsR
 import eu.darken.butler.apps.ui.apps.AppsWorkspacePage
 import eu.darken.butler.apps.ui.apps.AppsWorkspaceViewModel
 import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
@@ -150,8 +151,9 @@ internal fun WorkspaceManagerContent() = PreviewWrapper {
                 WorkspaceManagerViewModel.WorkspaceItem(
                     id = Workspace.Id(),
                     type = Workspace.Type.EXPLORER,
-                    title = WorkspaceR.string.workspace_explorer_label.toCaString(),
-                    subtitle = "/storage/emulated/0".toCaString(),
+                    title = "/storage/emulated/0/Download".toCaString(),
+                    autoTitle = "/storage/emulated/0/Download".toCaString(),
+                    subtitle = null,
                     isFocused = true,
                     isSelected = true,
                     paneNumber = 1,
@@ -159,20 +161,23 @@ internal fun WorkspaceManagerContent() = PreviewWrapper {
                 WorkspaceManagerViewModel.WorkspaceItem(
                     id = Workspace.Id(),
                     type = Workspace.Type.SEARCHER,
-                    title = WorkspaceR.string.workspace_searcher_label.toCaString(),
-                    subtitle = "config".toCaString(),
+                    title = "*.log".toCaString(),
+                    autoTitle = "*.log".toCaString(),
+                    subtitle = "Device storage".toCaString(),
                 ),
                 WorkspaceManagerViewModel.WorkspaceItem(
                     id = Workspace.Id(),
                     type = Workspace.Type.EDITOR,
-                    title = WorkspaceR.string.workspace_editor_label.toCaString(),
-                    subtitle = "build.gradle.kts".toCaString(),
+                    title = "build.gradle.kts".toCaString(),
+                    autoTitle = "build.gradle.kts".toCaString(),
+                    subtitle = "/storage/emulated/0/Projects/butler".toCaString(),
                 ),
                 WorkspaceManagerViewModel.WorkspaceItem(
                     id = Workspace.Id(),
                     type = Workspace.Type.APPS,
                     title = WorkspaceR.string.workspace_apps_label.toCaString(),
-                    subtitle = null,
+                    autoTitle = WorkspaceR.string.workspace_apps_label.toCaString(),
+                    subtitle = AppsR.string.apps_subtitle.toCaString(),
                 ),
             ),
             showBadgeExplanation = false,

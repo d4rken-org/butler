@@ -40,7 +40,8 @@ class WorkspaceGridItemTest : ComposeTest() {
     private fun item(isSubWorkspace: Boolean = false) = WorkspaceManagerViewModel.WorkspaceItem(
         id = Workspace.Id(),
         type = Workspace.Type.EXPLORER,
-        title = "Explorer".toCaString(),
+        title = "/sdcard/Download".toCaString(),
+        autoTitle = "/sdcard/Download".toCaString(),
         subtitle = null,
         isSubWorkspace = isSubWorkspace,
     )
