@@ -49,6 +49,8 @@ import androidx.compose.ui.window.SecureFlagPolicy
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.workspace.ui.insets.LocalPaneEdges
+import eu.darken.butler.workspace.ui.insets.paneHorizontalInsetPadding
 import eu.darken.butler.workspace.ui.modal.LocalLayerActive
 import eu.darken.butler.workspace.ui.modal.PaneLayer
 import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
@@ -158,9 +160,12 @@ fun PaneBoundAlertDialog(
                 },
         )
 
+        // Only the centering container is inset — the scrim above stays full-pane, so it keeps
+        // covering and blocking the strip next to a side navigation bar or a cutout.
         BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
+                .paneHorizontalInsetPadding(LocalPaneEdges.current)
                 .then(if (includeImePadding) Modifier.imePadding() else Modifier)
                 .padding(24.dp),
             contentAlignment = Alignment.Center,

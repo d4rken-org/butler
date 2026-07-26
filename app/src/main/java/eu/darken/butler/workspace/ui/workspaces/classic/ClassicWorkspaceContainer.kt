@@ -115,9 +115,6 @@ internal fun ClassicWorkspaceContainer(
                     // When overlay is visible, no workspace should be considered focused
                     val isFocused = state.focused == paneInfo.id && !isOverlayVisible
                     WorkspacePane(
-                        // Horizontal insets once around the whole pane subtree, incl. its sheets,
-                        // dialogs and banner — the layer host encloses the overlay layers too
-                        modifier = Modifier.paneHorizontalInsetPadding(design.paneEdges),
                         info = paneInfo,
                         design = design,
                         paneFocused = isFocused,

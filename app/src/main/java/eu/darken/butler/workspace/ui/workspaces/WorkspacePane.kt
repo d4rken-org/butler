@@ -14,6 +14,7 @@ import eu.darken.butler.workspace.ui.WorkspaceOverlayContainer
 import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
 import eu.darken.butler.workspace.ui.dialogs.ManagerDialogHost
 import eu.darken.butler.workspace.ui.feedback.BannerState
+import eu.darken.butler.workspace.ui.insets.paneHorizontalInsetPadding
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.modal.LocalPaneLayerRank
 import eu.darken.butler.workspace.ui.modal.PaneLayer
@@ -59,7 +60,14 @@ fun WorkspacePane(
     // Provided above the host so the host's own press observer can reach it: any press in the pane
     // must make it the focused pane, including presses that the content consumes.
     CompositionLocalProvider(LocalWorkspaceFocusRequest provides onRequestPaneFocus) {
-        PaneLayerHost(modifier = modifier, paneFocused = paneFocused) {
+        PaneLayerHost(
+            // Full pane on purpose: its layers carry the scrims and pointer barriers, which must
+            // keep covering the inset strip next to a side navigation bar or a cutout. The insets
+            // are applied to the content and the modal surfaces inside instead.
+            modifier = modifier,
+            paneFocused = paneFocused,
+            paneEdges = paneEdges,
+        ) {
             CompositionLocalProvider(
                 LocalWorkspaceFocused provides workspaceFocused,
             ) {
@@ -135,6 +143,8 @@ private fun BoxScope.WorkspaceLayers(
         modal = contentIsModal,
     ) {
         WorkspaceOverlayContainer(
+            // Page content and banner are what the user reads, so they get the horizontal insets
+            modifier = Modifier.paneHorizontalInsetPadding(paneEdges),
             workspaceId = info.id,
             bannerStates = bannerStates,
             onDismissBanner = onDismissBanner,

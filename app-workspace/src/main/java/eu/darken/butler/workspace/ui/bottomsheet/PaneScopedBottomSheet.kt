@@ -47,6 +47,8 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapp
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.workspace.ui.insets.LocalPaneEdges
+import eu.darken.butler.workspace.ui.insets.paneHorizontalInsetPadding
 import eu.darken.butler.workspace.ui.modal.PaneLayer
 import eu.darken.butler.workspace.ui.modal.requestPaneFocusOnPress
 import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
@@ -173,10 +175,12 @@ fun PaneScopedBottomSheet(
             )
         }
 
-        // Bottom sheet content
+        // Bottom sheet content. Inset here, not on the scrim above: the scrim has to keep covering
+        // the strip next to a side navigation bar or a cutout.
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .paneHorizontalInsetPadding(LocalPaneEdges.current)
                 .padding(top = topInset),
             contentAlignment = Alignment.BottomCenter
         ) {

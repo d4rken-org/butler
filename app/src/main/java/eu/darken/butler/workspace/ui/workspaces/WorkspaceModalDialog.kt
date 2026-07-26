@@ -96,22 +96,17 @@ fun WorkspaceModalDialog(
             LocalWorkspaceFocused provides true,
         ) {
             // The dialog window is transparent (see above), so the surface has to be painted across
-            // the FULL area - the horizontal inset padding is applied inside it, otherwise the
-            // inset-width strip next to a side navigation bar would show the workspace underneath.
+            // the FULL area - the horizontal inset padding is applied to the content inside,
+            // otherwise the inset-width strip next to a side navigation bar would show the
+            // workspace underneath.
             Surface(
                 modifier = Modifier.fillMaxSize(),
                 color = MaterialTheme.colorScheme.surface,
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .paneHorizontalInsetPadding(design.paneEdges),
-                ) {
-                    WorkspaceModalContent(
-                        workspace = workspace,
-                        design = design,
-                    )
-                }
+                WorkspaceModalContent(
+                    workspace = workspace,
+                    design = design,
+                )
             }
         }
     }
@@ -129,9 +124,17 @@ fun WorkspaceModalContent(
     workspace: Workspace.Info,
     design: WorkspaceDesign = WorkspaceDesign(),
 ) {
-    PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = true) {
+    // Full size, like a pane host anywhere else: its layers carry the scrims of any dialog inside,
+    // and those have to cover the whole window. Only the page content is inset.
+    PaneLayerHost(
+        modifier = Modifier.fillMaxSize(),
+        paneFocused = true,
+        paneEdges = design.paneEdges,
+    ) {
         PaneLayer(modifier = Modifier.fillMaxSize(), modal = false) {
-            WorkspacePageHostDispatcher(id = workspace.id, type = workspace.type, design = design)
+            Box(modifier = Modifier.paneHorizontalInsetPadding(design.paneEdges)) {
+                WorkspacePageHostDispatcher(id = workspace.id, type = workspace.type, design = design)
+            }
         }
 
         if (workspace.lifecycleState is Workspace.LifecycleState.Ready) {

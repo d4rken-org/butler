@@ -123,12 +123,7 @@ fun AdaptiveWorkspaceLayout(
                             // Check if this workspace has a pane-local modal child
                             val childModal = paneLocalModals[info.id]
 
-                            // Horizontal insets are applied once around the whole pane subtree so
-                            // banners, sheets and dialogs emitted outside a page's root are covered
-                            // too — the layer host encloses the overlay layers as well. Vertical
-                            // insets stay page-controlled (content padding).
                             WorkspacePane(
-                                modifier = Modifier.paneHorizontalInsetPadding(paneDesign.paneEdges),
                                 info = info,
                                 design = paneDesign,
                                 // Either occupant counts as focusing the pane, and every layer

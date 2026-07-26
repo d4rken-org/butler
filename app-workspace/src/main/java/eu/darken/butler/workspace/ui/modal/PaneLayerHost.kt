@@ -6,6 +6,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import eu.darken.butler.workspace.ui.insets.LocalPaneEdges
+import eu.darken.butler.workspace.ui.manager.WorkspaceDesign.PaneEdges
 
 /**
  * Owns the modal layer stack of a single workspace pane.
@@ -19,7 +21,12 @@ import androidx.compose.ui.Modifier
  * a modal in the previously focused pane would keep its focus trap armed forever, leaving keyboard
  * focus unable to move between panes at all.
  *
- * Callers must provide [LocalWorkspaceFocusRequest] *above* this composable for that to work.
+ * Callers must provide [eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest] *above* this
+ * composable for that to work.
+ *
+ * The host itself always spans the full pane and must never be inset — its layers carry the pane's
+ * scrims and pointer barriers. [paneEdges] is published to the subtree instead, so the content and
+ * the modal surfaces inside can pad themselves.
  *
  * @param paneFocused whether this pane is the focused one. Accepts either occupant of the pane —
  *        the parent workspace or its pane-local child modal — because a child modal's id can never
@@ -29,6 +36,7 @@ import androidx.compose.ui.Modifier
 fun PaneLayerHost(
     modifier: Modifier = Modifier,
     paneFocused: Boolean,
+    paneEdges: PaneEdges = LocalPaneEdges.current,
     content: @Composable BoxScope.() -> Unit,
 ) {
     val layerState = remember { PaneLayerState() }
@@ -38,6 +46,7 @@ fun PaneLayerHost(
         LocalPaneFocused provides paneFocused,
         LocalLayerActive provides paneFocused,
         LocalPaneLayerRank provides PaneLayerRank.CONTENT,
+        LocalPaneEdges provides paneEdges,
     ) {
         Box(
             modifier = modifier.requestPaneFocusOnPress(),
