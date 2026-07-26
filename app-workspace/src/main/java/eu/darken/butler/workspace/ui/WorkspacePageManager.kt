@@ -408,6 +408,10 @@ class WorkspacePageManager @Inject constructor(
     private suspend fun handleWorkspaceCreated(workspaceId: Workspace.Id, replacedId: Workspace.Id?, autoFocus: Boolean) {
         log(TAG) { "handleWorkspaceCreated: workspaceId=$workspaceId, replacedId=$replacedId, autoFocus=$autoFocus" }
 
+        // A replace (e.g. the Templates tile morphing a tab into an Explorer) retires the old
+        // workspace without ever emitting Closed, so its scroll slots have to be dropped here.
+        if (replacedId != null && replacedId != workspaceId) scrollPositions.forget(replacedId)
+
         // Wait until workspace is reflected in state for accurate isSubWorkspace check.
         // Sub-workspaces render as modal overlays and must never be assigned to a pane.
         val workspaceInfo = workspaceRemote.state

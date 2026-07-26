@@ -4,6 +4,7 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceRemote
+import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPosition
 import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPositions
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -25,6 +26,7 @@ class WorkspacePageManagerTest : BaseTest() {
     private lateinit var stateFlow: MutableStateFlow<WorkspaceRemote.State>
     private lateinit var testScope: TestScope
     private lateinit var pageManager: WorkspacePageManager
+    private lateinit var scrollPositions: WorkspaceScrollPositions
 
     @BeforeEach
     fun setup() {
@@ -37,10 +39,11 @@ class WorkspacePageManagerTest : BaseTest() {
         }
 
         testScope = TestScope(UnconfinedTestDispatcher())
+        scrollPositions = WorkspaceScrollPositions()
         pageManager = WorkspacePageManager(
             appScope = testScope,
             workspaceRemote = workspaceRemote,
-            scrollPositions = WorkspaceScrollPositions(),
+            scrollPositions = scrollPositions,
         )
     }
 
@@ -564,6 +567,64 @@ class WorkspacePageManagerTest : BaseTest() {
         testScope.testScheduler.advanceUntilIdle()
 
         pageManager.state.value.focusedWorkspaceId shouldBe ws1
+    }
+
+    private fun recordScroll(id: Workspace.Id, slot: String = "list") {
+        scrollPositions.record(scrollPositions.positionFor(id, slot), WorkspaceScrollPosition(7, 3))
+    }
+
+    @Test
+    fun `closing a workspace forgets its scroll positions`() = runTest {
+        val kept = Workspace.Id()
+        val closed = Workspace.Id()
+        recordScroll(kept)
+        recordScroll(closed)
+
+        eventsFlow.emit(WorkspaceEvent.Closed(workspaceId = closed))
+        testScope.testScheduler.advanceUntilIdle()
+
+        scrollPositions.snapshot().keys shouldBe setOf(kept)
+    }
+
+    @Test
+    fun `closing all workspaces clears every scroll position`() = runTest {
+        recordScroll(Workspace.Id())
+        recordScroll(Workspace.Id())
+
+        eventsFlow.emit(WorkspaceEvent.AllClosed)
+        testScope.testScheduler.advanceUntilIdle()
+
+        scrollPositions.snapshot() shouldBe emptyMap()
+    }
+
+    /**
+     * A replace (Templates morphing a tab into another type) retires the old workspace without ever
+     * emitting Closed, so this is the only place its slots can be dropped.
+     */
+    @Test
+    fun `replacing a workspace forgets the replaced scroll positions`() = runTest {
+        val replaced = Workspace.Id()
+        val replacement = Workspace.Id()
+        recordScroll(replaced)
+        recordScroll(replacement)
+
+        stateFlow.value = WorkspaceRemote.State(infos = listOf(createWorkspaceInfo(id = replacement)))
+        eventsFlow.emit(WorkspaceEvent.Created(workspaceId = replacement, replacedId = replaced))
+        testScope.testScheduler.advanceUntilIdle()
+
+        scrollPositions.snapshot().keys shouldBe setOf(replacement)
+    }
+
+    @Test
+    fun `a plain creation keeps the new workspace's scroll positions`() = runTest {
+        val created = Workspace.Id()
+        recordScroll(created)
+
+        stateFlow.value = WorkspaceRemote.State(infos = listOf(createWorkspaceInfo(id = created)))
+        eventsFlow.emit(WorkspaceEvent.Created(workspaceId = created))
+        testScope.testScheduler.advanceUntilIdle()
+
+        scrollPositions.snapshot().keys shouldBe setOf(created)
     }
 
     @Test

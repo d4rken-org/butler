@@ -1220,17 +1220,22 @@ class WorkspaceSessionManagerTest : BaseTest() {
                 mapOf(wsId to mapOf("list" to WorkspaceScrollPosition(42, 7)))
         }
 
+        /**
+         * The repo state flow is a replaying share whose cached value lags the repo's actual
+         * workspace list, so slots must not be filtered against it - that would drop the slots of
+         * workspaces that do exist. Pruning is event-driven (close/replace) and restore-time instead.
+         */
         @Test
-        fun `slots of workspaces that are gone are not persisted`() = runTest {
+        fun `slots are persisted without filtering against the repo snapshot`() = runTest {
             startWithOneWorkspace()
 
-            val closedId = Workspace.Id()
-            registry.record(registry.positionFor(closedId, "list"), WorkspaceScrollPosition(3))
+            val notInSnapshot = Workspace.Id()
+            registry.record(registry.positionFor(notInSnapshot, "list"), WorkspaceScrollPosition(3))
             registry.record(registry.positionFor(wsId, "list"), WorkspaceScrollPosition(4))
             scrollScope.testScheduler.advanceTimeBy(3000)
             scrollScope.testScheduler.runCurrent()
 
-            upsertedSessions.last().uiState.scrollPositions.keys shouldBe setOf(wsId)
+            upsertedSessions.last().uiState.scrollPositions.keys shouldBe setOf(wsId, notInSnapshot)
         }
 
         @Test
@@ -1249,8 +1254,6 @@ class WorkspaceSessionManagerTest : BaseTest() {
                 mapOf(wsId to mapOf("list" to WorkspaceScrollPosition(9)))
         }
     }
-
-
 }
 
 /** createUnsafe() drops the main-thread enforcement, so the registry works in a plain unit test. */

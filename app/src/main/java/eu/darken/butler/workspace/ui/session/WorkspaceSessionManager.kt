@@ -227,8 +227,12 @@ class WorkspaceSessionManager @Inject constructor(
      *
      * Sub-workspaces (modal pickers/exports) are transient and not persisted, so a focus that
      * currently points at one must be resolved up to its owning tab — otherwise restore falls back
-     * to an arbitrary tab and clobbers the wrong pane. Scroll slots are pruned to the workspaces
-     * being saved so closed tabs never linger.
+     * to an arbitrary tab and clobbers the wrong pane.
+     *
+     * Scroll slots are written as-is: [repoState] comes from a `replayingShare` cache that lags the
+     * repo's actual workspace list, so filtering the snapshot against it would drop slots of
+     * workspaces that do exist. Pruning happens authoritatively instead — on close/replace events
+     * and at restore for candidates that did not come back.
      */
     private suspend fun buildUiState(repoState: WorkspaceRemote.State): WorkspaceUIState {
         val pageState = workspacePageManager.state.first()
@@ -245,12 +249,10 @@ class WorkspaceSessionManager @Inject constructor(
             current.id
         }
 
-        val savedIds = repoState.infos.filter { !it.isSubWorkspace }.map { it.id }.toSet()
-
         return WorkspaceUIState(
             focusedWorkspaceId = focusToPersist,
             paneSelections = pageState.selectedWorkspaces,
-            scrollPositions = scrollPositions.snapshot().filterKeys { it in savedIds },
+            scrollPositions = scrollPositions.snapshot(),
         )
     }
 
