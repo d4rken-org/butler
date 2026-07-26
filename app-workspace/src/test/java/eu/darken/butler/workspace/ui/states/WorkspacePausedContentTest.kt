@@ -12,10 +12,9 @@ import org.junit.Test
 import testhelpers.ComposeTest
 
 /**
- * The placeholder is what the user sees for a tab that has not been restored yet: it must name the
- * tab, not just its type.
+ * The placeholder is what the user sees for a paused tab: it must name the tab, not just its type.
  */
-class WorkspaceDormantContentTest : ComposeTest() {
+class WorkspacePausedContentTest : ComposeTest() {
 
     private val context = ApplicationProvider.getApplicationContext<Context>()
 
@@ -23,11 +22,11 @@ class WorkspaceDormantContentTest : ComposeTest() {
     fun `renders the derived title and subtitle`() {
         composeTestRule.setContent {
             PreviewWrapper {
-                WorkspaceDormantContent(
+                WorkspacePausedContent(
                     type = Workspace.Type.SEARCHER,
                     title = "*.pdf".toCaString(),
                     subtitle = "/sdcard/Download".toCaString(),
-                    onRestore = {},
+                    onResume = {},
                 )
             }
         }
@@ -40,9 +39,9 @@ class WorkspaceDormantContentTest : ComposeTest() {
     fun `falls back to the type label without a title`() {
         composeTestRule.setContent {
             PreviewWrapper {
-                WorkspaceDormantContent(
+                WorkspacePausedContent(
                     type = Workspace.Type.EXPLORER,
-                    onRestore = {},
+                    onResume = {},
                 )
             }
         }
@@ -56,10 +55,10 @@ class WorkspaceDormantContentTest : ComposeTest() {
     fun `falls back to the type label for a blank title`() {
         composeTestRule.setContent {
             PreviewWrapper {
-                WorkspaceDormantContent(
+                WorkspacePausedContent(
                     type = Workspace.Type.EXPLORER,
                     title = "   ".toCaString(),
-                    onRestore = {},
+                    onResume = {},
                 )
             }
         }
@@ -74,11 +73,11 @@ class WorkspaceDormantContentTest : ComposeTest() {
     fun `a blank subtitle draws no second line`() {
         composeTestRule.setContent {
             PreviewWrapper {
-                WorkspaceDormantContent(
+                WorkspacePausedContent(
                     type = Workspace.Type.EDITOR,
                     title = "notes.txt".toCaString(),
                     subtitle = "".toCaString(),
-                    onRestore = {},
+                    onResume = {},
                 )
             }
         }

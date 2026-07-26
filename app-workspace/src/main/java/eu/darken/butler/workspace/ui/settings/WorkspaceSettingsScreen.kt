@@ -12,12 +12,13 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.twotone.AutoAwesome
-import androidx.compose.material.icons.twotone.HourglassTop
+import androidx.compose.material.icons.twotone.PauseCircle
 import androidx.compose.material.icons.twotone.RestorePage
 import androidx.compose.material.icons.twotone.StayPrimaryLandscape
 import androidx.compose.material.icons.twotone.StayPrimaryPortrait
 import androidx.compose.material.icons.twotone.Storage
 import androidx.compose.material.icons.twotone.SwipeLeft
+import androidx.compose.material.icons.twotone.Timer
 import androidx.compose.material.icons.twotone.Visibility
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
@@ -47,12 +48,16 @@ import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.settings.SettingsCategoryHeader
 import eu.darken.butler.common.settings.SettingsPreferenceItem
 import eu.darken.butler.common.settings.SettingsSwitchItem
+import eu.darken.butler.common.ui.MinutesDurationInputDialog
 import androidx.compose.runtime.collectAsState
 import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import eu.darken.butler.workspace.ui.layout.description
 import eu.darken.butler.workspace.ui.layout.icon
 import eu.darken.butler.workspace.ui.layout.label
+import eu.darken.butler.workspace.core.WorkspaceSettings
+import kotlin.time.Duration
+import eu.darken.butler.common.R as CommonR
 
 @Composable
 fun WorkspaceSettingsScreen(
@@ -64,10 +69,12 @@ fun WorkspaceSettingsScreen(
     onSetLayoutModePortrait: (WorkspacePanelMode) -> Unit,
     onSetLayoutModeLandscape: (WorkspacePanelMode) -> Unit,
     onToggleSessionRestore: () -> Unit,
-    onToggleRestoreWorkspacesOnDemand: () -> Unit,
+    onToggleAutoPause: () -> Unit,
+    onSetAutoPauseIdleTimeout: (Duration) -> Unit,
 ) {
     var showPortraitDialog by remember { mutableStateOf(false) }
     var showLandscapeDialog by remember { mutableStateOf(false) }
+    var showAutoPauseTimeoutDialog by remember { mutableStateOf(false) }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -156,16 +163,6 @@ fun WorkspaceSettingsScreen(
 
             if (state.sessionRestoreEnabled) {
                 item {
-                    SettingsSwitchItem(
-                        icon = Icons.TwoTone.HourglassTop,
-                        title = stringResource(R.string.workspace_settings_restore_ondemand_label),
-                        subtitle = stringResource(R.string.workspace_settings_restore_ondemand_description),
-                        checked = state.restoreWorkspacesOnDemand,
-                        onCheckedChange = { onToggleRestoreWorkspacesOnDemand() },
-                    )
-                }
-
-                item {
                     SettingsPreferenceItem(
                         icon = Icons.TwoTone.Storage,
                         title = stringResource(R.string.workspace_settings_session_data_title),
@@ -179,6 +176,27 @@ fun WorkspaceSettingsScreen(
                         onClick = {},
                     )
                 }
+            }
+
+            item {
+                SettingsSwitchItem(
+                    icon = Icons.TwoTone.PauseCircle,
+                    title = stringResource(R.string.workspace_settings_autopause_title),
+                    subtitle = stringResource(R.string.workspace_settings_autopause_desc),
+                    checked = state.autoPauseEnabled,
+                    onCheckedChange = { onToggleAutoPause() },
+                )
+            }
+
+            item {
+                SettingsPreferenceItem(
+                    icon = Icons.TwoTone.Timer,
+                    title = stringResource(R.string.workspace_settings_autopause_delay_title),
+                    subtitle = stringResource(R.string.workspace_settings_autopause_delay_desc),
+                    value = state.autoPauseIdleTimeout.formatCoarse(),
+                    onClick = { showAutoPauseTimeoutDialog = true },
+                    enabled = state.autoPauseEnabled,
+                )
             }
 
             item {
@@ -234,6 +252,35 @@ fun WorkspaceSettingsScreen(
                 showLandscapeDialog = false
             }
         )
+    }
+
+    if (showAutoPauseTimeoutDialog) {
+        MinutesDurationInputDialog(
+            title = stringResource(R.string.workspace_settings_autopause_delay_title),
+            currentDuration = state.autoPauseIdleTimeout,
+            minimumDuration = WorkspaceSettings.AUTO_PAUSE_IDLE_TIMEOUT_MIN,
+            maximumDuration = WorkspaceSettings.AUTO_PAUSE_IDLE_TIMEOUT_MAX,
+            defaultDuration = WorkspaceSettings.AUTO_PAUSE_IDLE_TIMEOUT_DEFAULT,
+            onDismiss = { showAutoPauseTimeoutDialog = false },
+            onConfirm = { duration ->
+                onSetAutoPauseIdleTimeout(duration)
+                showAutoPauseTimeoutDialog = false
+            },
+        )
+    }
+}
+
+/** "2 hours", "45 minutes", "1 hour 30 minutes" - hours are dropped when zero, and vice versa. */
+@Composable
+private fun Duration.formatCoarse(): String {
+    val hours = inWholeHours.toInt()
+    val minutes = (inWholeMinutes - hours * 60L).toInt()
+    val hoursText = pluralStringResource(CommonR.plurals.common_duration_hours_full, hours, hours)
+    val minutesText = pluralStringResource(CommonR.plurals.common_duration_minutes_full, minutes, minutes)
+    return when {
+        hours > 0 && minutes > 0 -> "$hoursText $minutesText"
+        hours > 0 -> hoursText
+        else -> minutesText
     }
 }
 
@@ -303,7 +350,6 @@ private fun WorkspaceSettingsScreenPreview() {
             layoutModePortrait = WorkspacePanelMode.AUTO,
             layoutModeLandscape = WorkspacePanelMode.AUTO,
             sessionRestoreEnabled = true,
-            restoreWorkspacesOnDemand = true,
             sessionWorkspaceCount = 3,
             sessionDatabaseSizeBytes = 131072,
         ),
@@ -314,7 +360,8 @@ private fun WorkspaceSettingsScreenPreview() {
         onSetLayoutModePortrait = {},
         onSetLayoutModeLandscape = {},
         onToggleSessionRestore = {},
-        onToggleRestoreWorkspacesOnDemand = {},
+        onToggleAutoPause = {},
+        onSetAutoPauseIdleTimeout = {},
     )
 }
 
@@ -335,7 +382,8 @@ fun WorkspaceSettingsScreenHost(vm: WorkspaceSettingsViewModel = hiltViewModel()
             onSetLayoutModePortrait = { mode -> vm.setLayoutModePortrait(mode) },
             onSetLayoutModeLandscape = { mode -> vm.setLayoutModeLandscape(mode) },
             onToggleSessionRestore = { vm.toggleSessionRestore() },
-            onToggleRestoreWorkspacesOnDemand = { vm.toggleRestoreWorkspacesOnDemand() },
+            onToggleAutoPause = { vm.toggleAutoPause() },
+            onSetAutoPauseIdleTimeout = { timeout -> vm.setAutoPauseIdleTimeout(timeout) },
         )
     }
 }

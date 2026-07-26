@@ -19,7 +19,6 @@ import eu.darken.butler.common.files.extensions.isFile
 import eu.darken.butler.common.files.local.routing.LocalPathRoutingPolicy
 import eu.darken.butler.common.hasApiLevel
 import eu.darken.butler.common.storage.StorageEnvironment
-import eu.darken.butler.workspace.core.WorkspaceSettings
 import eu.darken.butler.workspace.core.filesystem.FileSystemEvent
 import eu.darken.butler.workspace.core.filesystem.FileSystemHinter
 import kotlinx.coroutines.CancellationException
@@ -29,8 +28,6 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -62,7 +59,6 @@ class FolderPreviewResolver @Inject constructor(
     fileSystemHinter: FileSystemHinter,
     @AppScope appScope: CoroutineScope,
     private val dispatcherProvider: DispatcherProvider,
-    workspaceSettings: WorkspaceSettings,
     private val storageEnvironment: StorageEnvironment,
     private val routingPolicy: LocalPathRoutingPolicy,
 ) {
@@ -89,13 +85,6 @@ class FolderPreviewResolver @Inject constructor(
         if (dir !is LocalPath) return false
         if (restrictedPreviewRoots.none { dir.isDescendantOfOrSelf(it) }) return false
         return ownPreviewRoots.none { dir.isDescendantOfOrSelf(it) }
-    }
-
-    /** [observe] gated by the global folder-preview setting; what workspace pages should use. */
-    val settingsGatedObserver: FolderPreviewObserver = { dir ->
-        workspaceSettings.showFolderMediaPreviews.flow.flatMapLatest { enabled ->
-            if (enabled) observe(dir) else flowOf(emptyList())
-        }
     }
 
     private data class Entry(

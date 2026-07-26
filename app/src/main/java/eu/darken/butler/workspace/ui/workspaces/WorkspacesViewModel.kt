@@ -32,6 +32,8 @@ import eu.darken.butler.workspace.core.session.SessionRestorationException
 import eu.darken.butler.workspace.ui.WorkspacePageManager
 import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
 import eu.darken.butler.workspace.ui.feedback.BannerState
+import eu.darken.butler.workspace.ui.floatingbar.WorkspaceBarCollapseStates
+import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPositions
 import eu.darken.butler.workspace.ui.session.WorkspaceSessionManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -58,6 +60,8 @@ class WorkspacesViewModel @Inject constructor(
     private val errorReportTool: ErrorReportTool,
     private val bugReportRepo: BugReportRepo,
     val pageHosts: Map<Workspace.Type, @JvmSuppressWildcards WorkspacePageHostEntry>,
+    val scrollPositions: WorkspaceScrollPositions,
+    val barCollapseStates: WorkspaceBarCollapseStates,
 ) : ViewModel4(dispatchers, logTag("Workspace", "Screen", "VM")) {
 
     private val hiddenMotdIds = MutableStateFlow<Set<Uuid>>(emptySet())
@@ -262,9 +266,9 @@ class WorkspacesViewModel @Inject constructor(
                 log(tag, INFO) { "Renaming workspace ${action.id} to ${action.customTitle}" }
                 workspaceRepo.execute(WorkspaceAction.Rename(action.id, action.customTitle))
             }
-            is WorkspaceScreenAction.RestoreDormant -> {
-                log(tag, INFO) { "Restoring dormant workspace ${action.id}" }
-                workspaceRepo.execute(WorkspaceAction.Hydrate(action.id))
+            is WorkspaceScreenAction.ResumeWorkspace -> {
+                log(tag, INFO) { "Resuming paused workspace ${action.id}" }
+                workspaceRepo.execute(WorkspaceAction.Resume(action.id))
             }
             is WorkspaceScreenAction.CreateOnDemand -> {
                 log(tag) { "Creating workspace on-demand" }

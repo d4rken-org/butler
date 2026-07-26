@@ -36,6 +36,7 @@ import eu.darken.butler.saver.core.ContentUriHelper
 import eu.darken.butler.saver.core.SaverWorkspace
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
+import eu.darken.butler.workspace.ui.common.WorkspacePaddings
 import eu.darken.butler.workspace.ui.insets.paneInsets
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
@@ -183,7 +184,7 @@ private fun SingleFileModeContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = WorkspacePaddings.ContentHorizontal)
             .padding(top = statusBarInset + 16.dp, bottom = navBarInset + 16.dp),
     ) {
         SaverHeader(
@@ -264,7 +265,7 @@ private fun BatchModeContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = WorkspacePaddings.ContentHorizontal)
             .padding(top = statusBarInset + 16.dp, bottom = navBarInset + 16.dp),
     ) {
         SaverHeader(

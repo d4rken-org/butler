@@ -42,6 +42,7 @@ import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.ui.common.CutoutAwareFlowRow
 import eu.darken.butler.workspace.ui.common.CutoutCard
 import eu.darken.butler.workspace.ui.common.CutoutCardDefaults
+import eu.darken.butler.workspace.ui.common.WorkspacePaddings
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonDefaults
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
@@ -207,7 +208,7 @@ fun DeveloperWorkspacePage(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = WorkspacePaddings.ContentHorizontal)
         ) {
             when (state.selectedTab) {
                 DeveloperTab.SYSTEM -> SystemInfoSection(

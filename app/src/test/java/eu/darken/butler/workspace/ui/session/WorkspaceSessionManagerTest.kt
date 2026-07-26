@@ -1,6 +1,9 @@
 package eu.darken.butler.workspace.ui.session
 
 import android.os.Parcel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LifecycleRegistry
 import androidx.room.withTransaction
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.upgrade.UpgradeRepo
@@ -18,6 +21,9 @@ import eu.darken.butler.workspace.core.session.db.WorkspaceSessionDatabase
 import eu.darken.butler.workspace.core.session.db.WorkspaceSessionEntity
 import eu.darken.butler.workspace.core.session.db.WorkspaceUIState
 import eu.darken.butler.workspace.ui.WorkspacePageManager
+import eu.darken.butler.workspace.ui.floatingbar.WorkspaceBarCollapseStates
+import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPosition
+import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPositions
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -55,6 +61,9 @@ class WorkspaceSessionManagerTest : BaseTest() {
     private lateinit var factoryMap: Map<Workspace.Type, WorkspaceFactory<*>>
     private lateinit var testScope: TestScope
     private lateinit var sessionManager: WorkspaceSessionManager
+    private lateinit var scrollPositions: WorkspaceScrollPositions
+    private lateinit var barCollapseStates: WorkspaceBarCollapseStates
+    private lateinit var processLifecycle: FakeLifecycleOwner
 
     // Captured arguments from mock
     private var capturedFocusedId: Workspace.Id? = null
@@ -72,6 +81,9 @@ class WorkspaceSessionManagerTest : BaseTest() {
         json = Json
         factoryMap = emptyMap()
         testScope = TestScope(UnconfinedTestDispatcher())
+        scrollPositions = WorkspaceScrollPositions()
+        barCollapseStates = WorkspaceBarCollapseStates()
+        processLifecycle = FakeLifecycleOwner()
 
         // Provide a valid state flow for findReplacementWorkspace
         every { workspacePageManager.state } returns MutableStateFlow(WorkspacePageManager.State())
@@ -92,6 +104,9 @@ class WorkspaceSessionManagerTest : BaseTest() {
             storage = storage,
             json = json,
             factoryMap = factoryMap,
+            scrollPositions = scrollPositions,
+            barCollapseStates = barCollapseStates,
+            processLifecycle = processLifecycle.registry,
         )
     }
 
@@ -301,6 +316,9 @@ class WorkspaceSessionManagerTest : BaseTest() {
                 storage = storage,
                 json = json,
                 factoryMap = factoryMap,
+                scrollPositions = scrollPositions,
+                barCollapseStates = barCollapseStates,
+                processLifecycle = processLifecycle.registry,
             )
         }
 
@@ -554,7 +572,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
     }
 
     @Nested
-    inner class OnDemandRestore {
+    inner class PausedRestore {
 
         private val idA = Workspace.Id()
         private val idB = Workspace.Id()
@@ -564,7 +582,9 @@ class WorkspaceSessionManagerTest : BaseTest() {
         private val createdIds = mutableListOf<Workspace.Id>()
         private val failingIds = mutableSetOf<Workspace.Id>()
         private val upsertedEntities = mutableListOf<WorkspaceInstanceEntity>()
-        private val onDemandFlow = MutableStateFlow(true)
+
+        // What the registry held at the moment a workspace was instantiated
+        private val scrollAtCreate = mutableMapOf<Workspace.Id, WorkspaceScrollPosition?>()
 
         // Restoration and the repo need live coroutines; the outer setup's manager dies on its
         // fully-relaxed mocks and cancels the shared testScope.
@@ -573,13 +593,13 @@ class WorkspaceSessionManagerTest : BaseTest() {
         private lateinit var pageManager: WorkspacePageManager
 
         @BeforeEach
-        fun setupOnDemand() {
+        fun setupPausedRestore() {
             restoreScope = TestScope(UnconfinedTestDispatcher())
             createAttempts.clear()
             createdIds.clear()
             failingIds.clear()
             upsertedEntities.clear()
-            onDemandFlow.value = true
+            scrollAtCreate.clear()
 
             mockkStatic("androidx.room.RoomDatabaseKt")
             val mockDatabase = mockk<WorkspaceSessionDatabase>(relaxed = true)
@@ -595,9 +615,6 @@ class WorkspaceSessionManagerTest : BaseTest() {
             every { workspaceSettings.sessionRestoreEnabled } returns mockk {
                 every { flow } returns flowOf(true)
             }
-            every { workspaceSettings.restoreWorkspacesOnDemand } returns mockk {
-                every { flow } returns onDemandFlow
-            }
             every { workspaceSettings.layoutModePortrait } returns mockk {
                 every { flow } returns flowOf(WorkspacePanelMode.AUTO)
             }
@@ -608,6 +625,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
             factoryMap = Workspace.Type.entries.associateWith { type ->
                 FakeSessionFactory(type) { id ->
                     createAttempts += id
+                    scrollAtCreate[id] = scrollPositions.positionFor(id, "list").saved
                     if (id in failingIds) throw IllegalStateException("Cannot create $id")
                     createdIds += id
                 }
@@ -621,8 +639,14 @@ class WorkspaceSessionManagerTest : BaseTest() {
                 workspaceSettings = workspaceSettings,
                 operationsManager = mockk(relaxed = true),
                 upgradeRepo = upgradeRepo,
+                usageRepo = mockk(relaxed = true),
             )
-            pageManager = WorkspacePageManager(appScope = restoreScope, workspaceRemote = repo)
+            pageManager = WorkspacePageManager(
+                appScope = restoreScope,
+                workspaceRemote = repo,
+                scrollPositions = scrollPositions,
+                barCollapseStates = barCollapseStates,
+            )
         }
 
         private fun createManager() = WorkspaceSessionManager(
@@ -633,16 +657,24 @@ class WorkspaceSessionManagerTest : BaseTest() {
             storage = storage,
             json = json,
             factoryMap = factoryMap,
+            scrollPositions = scrollPositions,
+            barCollapseStates = barCollapseStates,
+            processLifecycle = processLifecycle.registry,
         )
 
         private fun session(
             focusedId: Workspace.Id?,
             paneSelections: Map<Int, Workspace.Id> = emptyMap(),
+            scrollPositions: Map<Workspace.Id, Map<String, WorkspaceScrollPosition>> = emptyMap(),
         ) = WorkspaceSessionEntity(
             sessionId = DEFAULT_SESSION_ID,
             label = "Test Session",
             createdAt = Instant.DISTANT_PAST,
-            uiState = WorkspaceUIState(focusedWorkspaceId = focusedId, paneSelections = paneSelections),
+            uiState = WorkspaceUIState(
+                focusedWorkspaceId = focusedId,
+                paneSelections = paneSelections,
+                scrollPositions = scrollPositions,
+            ),
         )
 
         private fun entity(
@@ -665,23 +697,24 @@ class WorkspaceSessionManagerTest : BaseTest() {
         private fun savedSession(
             focusedId: Workspace.Id?,
             paneSelections: Map<Int, Workspace.Id> = emptyMap(),
+            savedScrollPositions: Map<Workspace.Id, Map<String, WorkspaceScrollPosition>> = emptyMap(),
             entities: List<WorkspaceInstanceEntity> = listOf(
                 entity(idA, 0, "a"),
                 entity(idB, 1, "b"),
                 entity(idC, 2, "c"),
             ),
         ) {
-            coEvery { storage.dao.getSession(any()) } returns session(focusedId, paneSelections)
+            coEvery { storage.dao.getSession(any()) } returns session(focusedId, paneSelections, savedScrollPositions)
             coEvery { storage.dao.getWorkspaces(any()) } returns entities
         }
 
         private suspend fun workspaceIds(): List<Workspace.Id> = repo.state.first().infos.map { it.id }
 
-        private suspend fun dormantIds(): List<Workspace.Id> =
-            repo.state.first().infos.filter { it.isDormant }.map { it.id }
+        private suspend fun pausedIds(): List<Workspace.Id> =
+            repo.state.first().infos.filter { it.isPaused }.map { it.id }
 
         @Test
-        fun `only the focused workspace is created, the rest stay dormant`() =
+        fun `only the focused workspace is created, the rest stay paused`() =
             runTest(UnconfinedTestDispatcher()) {
                 savedSession(focusedId = idB)
 
@@ -691,7 +724,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
                 manager.state.value shouldBe WorkspaceSessionManager.State.Restored(listOf(idA, idB, idC))
                 createAttempts shouldBe listOf(idB)
                 workspaceIds() shouldBe listOf(idA, idB, idC)
-                dormantIds() shouldBe listOf(idA, idC)
+                pausedIds() shouldBe listOf(idA, idC)
             }
 
         @Test
@@ -703,7 +736,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
                 restoreScope.testScheduler.runCurrent()
 
                 createAttempts shouldBe listOf(idA)
-                dormantIds() shouldBe listOf(idB, idC)
+                pausedIds() shouldBe listOf(idB, idC)
                 pageManager.state.value.focusedWorkspaceId shouldBe idA
             }
 
@@ -729,7 +762,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
             }
 
         @Test
-        fun `a dormant workspace is promoted when the focused one cannot be created`() =
+        fun `a paused workspace is promoted when the focused one cannot be created`() =
             runTest(UnconfinedTestDispatcher()) {
                 failingIds += idB
                 savedSession(focusedId = idB)
@@ -737,29 +770,16 @@ class WorkspaceSessionManagerTest : BaseTest() {
                 createManager()
                 restoreScope.testScheduler.runCurrent()
 
-                // idB failed, so the first dormant one takes the focused slot
+                // idB failed, so the first paused one takes the focused slot
                 createAttempts shouldBe listOf(idB, idA)
                 createdIds shouldBe listOf(idA)
                 workspaceIds() shouldBe listOf(idA, idC)
-                dormantIds() shouldBe listOf(idC)
+                pausedIds() shouldBe listOf(idC)
                 pageManager.state.value.focusedWorkspaceId shouldBe idA
             }
 
         @Test
-        fun `with on-demand restore disabled every workspace is created`() =
-            runTest(UnconfinedTestDispatcher()) {
-                onDemandFlow.value = false
-                savedSession(focusedId = idB)
-
-                createManager()
-                restoreScope.testScheduler.runCurrent()
-
-                createAttempts shouldBe listOf(idA, idB, idC)
-                dormantIds() shouldHaveSize 0
-            }
-
-        @Test
-        fun `a stale focus during restoration hydrates nothing`() =
+        fun `a stale focus during restoration resumes nothing`() =
             runTest(UnconfinedTestDispatcher()) {
                 // Simulates the focus surviving in the SavedStateHandle from the previous process
                 pageManager.applyRestoredUIState(idA, mapOf(0 to idA))
@@ -769,11 +789,11 @@ class WorkspaceSessionManagerTest : BaseTest() {
                 restoreScope.testScheduler.runCurrent()
 
                 createAttempts shouldBe listOf(idB)
-                dormantIds() shouldBe listOf(idA, idC)
+                pausedIds() shouldBe listOf(idA, idC)
             }
 
         @Test
-        fun `focusing a dormant workspace after restoration hydrates it`() =
+        fun `focusing a paused workspace after restoration resumes it`() =
             runTest(UnconfinedTestDispatcher()) {
                 savedSession(focusedId = idB)
                 createManager()
@@ -783,11 +803,26 @@ class WorkspaceSessionManagerTest : BaseTest() {
                 restoreScope.testScheduler.runCurrent()
 
                 createAttempts shouldBe listOf(idB, idC)
-                dormantIds() shouldBe listOf(idA)
+                pausedIds() shouldBe listOf(idA)
             }
 
         @Test
-        fun `a workspace that failed to hydrate is not retried on focus`() =
+        fun `a workspace that is paused while already focused is resumed again`() =
+            runTest(UnconfinedTestDispatcher()) {
+                savedSession(focusedId = idB)
+                createManager()
+                restoreScope.testScheduler.runCurrent()
+
+                // Focus never changes here, only idB's lifecycle state does
+                repo.execute(WorkspaceAction.Pause(idB))
+                restoreScope.testScheduler.runCurrent()
+
+                createAttempts shouldBe listOf(idB, idB)
+                pausedIds() shouldBe listOf(idA, idC)
+            }
+
+        @Test
+        fun `a workspace that failed to resume is not retried on focus`() =
             runTest(UnconfinedTestDispatcher()) {
                 failingIds += idC
                 savedSession(focusedId = idB)
@@ -803,7 +838,57 @@ class WorkspaceSessionManagerTest : BaseTest() {
 
                 createAttempts.count { it == idC } shouldBe 1
                 repo.state.first().infos.single { it.id == idC }.lifecycleState
-                    .shouldBeInstanceOf<Workspace.LifecycleState.Dormant>()
+                    .shouldBeInstanceOf<Workspace.LifecycleState.Paused>()
+            }
+
+        @Test
+        fun `focusing a paused workspace resumes it while session restore is disabled`() =
+            runTest(UnconfinedTestDispatcher()) {
+                every { workspaceSettings.sessionRestoreEnabled } returns mockk {
+                    every { flow } returns flowOf(false)
+                }
+
+                val manager = createManager()
+                restoreScope.testScheduler.runCurrent()
+                manager.state.value shouldBe WorkspaceSessionManager.State.Disabled
+
+                // Auto-paused tabs exist without session restore, so they must still be resumable
+                repo.execute(
+                    WorkspaceAction.RegisterPaused(
+                        id = idA,
+                        type = Workspace.Type.EXPLORER,
+                        arguments = FakeSessionArguments(Workspace.Type.EXPLORER, "a"),
+                    )
+                )
+                pageManager.setLayout(mapOf(0 to idA), focusedId = idA)
+                restoreScope.testScheduler.runCurrent()
+
+                createAttempts shouldBe listOf(idA)
+                pausedIds() shouldBe emptyList()
+            }
+
+        @Test
+        fun `focusing a paused workspace resumes it after a failed restoration`() =
+            runTest(UnconfinedTestDispatcher()) {
+                coEvery { storage.dao.getSession(any()) } returns mockk(relaxed = true)
+                coEvery { storage.dao.getWorkspaces(any()) } throws RuntimeException("row mapping failed")
+
+                val manager = createManager()
+                restoreScope.testScheduler.runCurrent()
+                manager.state.value.shouldBeInstanceOf<WorkspaceSessionManager.State.Error>()
+
+                repo.execute(
+                    WorkspaceAction.RegisterPaused(
+                        id = idA,
+                        type = Workspace.Type.EXPLORER,
+                        arguments = FakeSessionArguments(Workspace.Type.EXPLORER, "a"),
+                    )
+                )
+                pageManager.setLayout(mapOf(0 to idA), focusedId = idA)
+                restoreScope.testScheduler.runCurrent()
+
+                createAttempts shouldBe listOf(idA)
+                pausedIds() shouldBe emptyList()
             }
 
         @Test
@@ -818,6 +903,40 @@ class WorkspaceSessionManagerTest : BaseTest() {
                 upsertedEntities shouldHaveSize 0
             }
 
+        /**
+         * Registering a workspace makes it visible to the UI, which composes its page right away.
+         * If the registry were still empty then, the page would record a zero that the seed could
+         * no longer beat.
+         */
+        @Test
+        fun `restore seeds scroll positions before any workspace is instantiated`() =
+            runTest(UnconfinedTestDispatcher()) {
+                savedSession(
+                    focusedId = idB,
+                    savedScrollPositions = mapOf(idB to mapOf("list" to WorkspaceScrollPosition(30, 4))),
+                )
+
+                createManager()
+                restoreScope.testScheduler.runCurrent()
+
+                scrollAtCreate[idB] shouldBe WorkspaceScrollPosition(30, 4)
+            }
+
+        @Test
+        fun `scroll slots of a candidate that failed to restore are dropped`() =
+            runTest(UnconfinedTestDispatcher()) {
+                failingIds += idB
+                savedSession(
+                    focusedId = idB,
+                    savedScrollPositions = mapOf(idB to mapOf("list" to WorkspaceScrollPosition(30, 4))),
+                )
+
+                createManager()
+                restoreScope.testScheduler.runCurrent()
+
+                scrollPositions.snapshot() shouldBe emptyMap()
+            }
+
         private suspend fun customTitles(): Map<Workspace.Id, String?> =
             repo.state.first().infos.associate { it.id to it.customTitle }
 
@@ -828,20 +947,20 @@ class WorkspaceSessionManagerTest : BaseTest() {
         )
 
         @Test
-        fun `restore re-applies custom titles to eager and dormant workspaces`() =
+        fun `restore re-applies custom titles to eager and paused workspaces`() =
             runTest(UnconfinedTestDispatcher()) {
-                // idB restores eagerly (it is the saved focus), idA and idC stay dormant
+                // idB restores eagerly (it is the saved focus), idA and idC stay paused
                 savedSession(focusedId = idB, entities = namedEntities)
 
                 createManager()
                 restoreScope.testScheduler.runCurrent()
 
-                dormantIds() shouldBe listOf(idA, idC)
+                pausedIds() shouldBe listOf(idA, idC)
                 customTitles() shouldBe mapOf(idA to "Alpha", idB to "Bravo", idC to null)
             }
 
         @Test
-        fun `hydrating a dormant workspace keeps its custom title`() =
+        fun `resuming a paused workspace keeps its custom title`() =
             runTest(UnconfinedTestDispatcher()) {
                 savedSession(focusedId = idB, entities = namedEntities)
                 createManager()
@@ -850,12 +969,12 @@ class WorkspaceSessionManagerTest : BaseTest() {
                 pageManager.setLayout(mapOf(0 to idA), focusedId = idA)
                 restoreScope.testScheduler.runCurrent()
 
-                dormantIds() shouldBe listOf(idC)
+                pausedIds() shouldBe listOf(idC)
                 repo.state.first().infos.single { it.id == idA }.customTitle shouldBe "Alpha"
             }
 
         @Test
-        fun `a failed focused candidate does not hand its title to the promoted dormant one`() =
+        fun `a failed focused candidate does not hand its title to the promoted paused one`() =
             runTest(UnconfinedTestDispatcher()) {
                 failingIds += idB
                 savedSession(focusedId = idB, entities = namedEntities)
@@ -906,7 +1025,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
             }
 
         @Test
-        fun `saving keeps the arguments of dormant and live workspaces`() =
+        fun `saving keeps the arguments of paused and live workspaces`() =
             runTest(UnconfinedTestDispatcher()) {
                 savedSession(focusedId = idB)
                 val manager = createManager()
@@ -917,7 +1036,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
                 manager.saveSession()
 
                 upsertedEntities shouldHaveSize 3
-                // idB was created during restore, idA and idC are still dormant stand-ins
+                // idB was created during restore, idA and idC are still paused stand-ins
                 upsertedEntities.single { it.workspaceId == idB }.let {
                     it.arguments shouldBe JsonPrimitive("b").toString()
                     it.orderIndex shouldBe 0
@@ -995,6 +1114,9 @@ class WorkspaceSessionManagerTest : BaseTest() {
             storage = storage,
             json = json,
             factoryMap = factoryMap,
+            scrollPositions = scrollPositions,
+            barCollapseStates = barCollapseStates,
+            processLifecycle = processLifecycle.registry,
         )
 
         private fun makeInfo(id: Workspace.Id) = Workspace.Info(
@@ -1050,7 +1172,160 @@ class WorkspaceSessionManagerTest : BaseTest() {
         }
     }
 
+    @Nested
+    inner class ScrollPersistence {
 
+        private val wsId = Workspace.Id()
+        private val repoStateFlow = MutableStateFlow(WorkspaceRemote.State())
+        private val upsertedEntities = mutableListOf<WorkspaceInstanceEntity>()
+        private val upsertedSessions = mutableListOf<WorkspaceSessionEntity>()
+
+        // Own scope, registry and lifecycle: the outer setup's manager observes the same lifecycle
+        // and would answer ON_STOP with a save of its own.
+        private lateinit var scrollScope: TestScope
+        private lateinit var registry: WorkspaceScrollPositions
+        private lateinit var barRegistry: WorkspaceBarCollapseStates
+        private lateinit var lifecycleOwner: FakeLifecycleOwner
+
+        @BeforeEach
+        fun setupScrollPersistence() {
+            scrollScope = TestScope(UnconfinedTestDispatcher())
+            registry = WorkspaceScrollPositions()
+            barRegistry = WorkspaceBarCollapseStates()
+            lifecycleOwner = FakeLifecycleOwner()
+            upsertedEntities.clear()
+            upsertedSessions.clear()
+
+            mockkStatic("androidx.room.RoomDatabaseKt")
+            val mockDatabase = mockk<WorkspaceSessionDatabase>(relaxed = true)
+            every { storage.database } returns mockDatabase
+            coEvery { mockDatabase.withTransaction(any<suspend () -> Any?>()) } coAnswers {
+                @Suppress("UNCHECKED_CAST")
+                val block = args[1] as suspend () -> Any?
+                block()
+            }
+            coEvery { storage.dao.upsertWorkspace(any()) } coAnswers { upsertedEntities.add(firstArg()) }
+            coEvery { storage.dao.upsertSession(any()) } coAnswers { upsertedSessions.add(firstArg()) }
+            coEvery { storage.dao.getWorkspaceIds(any()) } returns emptyList()
+            coEvery { storage.dao.getSession(any()) } returns null
+
+            every { workspaceRepo.state } returns repoStateFlow
+            every { workspaceSettings.sessionRestoreEnabled } returns mockk {
+                every { flow } returns flowOf(true)
+            }
+
+            val mockFactory = mockk<WorkspaceFactory<Workspace.Arguments>>()
+            every { mockFactory.serialize(any(), any()) } returns JsonPrimitive("args")
+            factoryMap = mapOf(Workspace.Type.EXPLORER to mockFactory)
+
+            val args = mockk<Workspace.Arguments>().also {
+                every { it.type } returns Workspace.Type.EXPLORER
+            }
+            val ws = mockk<Workspace<Workspace.Arguments>>()
+            every { ws.id } returns wsId
+            coEvery { ws.createArguments() } returns args
+            every { workspaceRepo.peek(wsId) } returns ws
+        }
+
+        @AfterEach
+        fun teardownScrollPersistence() {
+            upsertedEntities.clear()
+            upsertedSessions.clear()
+        }
+
+        private fun createManager() = WorkspaceSessionManager(
+            appScope = scrollScope,
+            workspaceSettings = workspaceSettings,
+            workspaceRepo = workspaceRepo,
+            workspacePageManager = workspacePageManager,
+            storage = storage,
+            json = json,
+            factoryMap = factoryMap,
+            scrollPositions = registry,
+            barCollapseStates = barRegistry,
+            processLifecycle = lifecycleOwner.registry,
+        )
+
+        private fun makeInfo(id: Workspace.Id) = Workspace.Info(
+            id = id,
+            type = Workspace.Type.EXPLORER,
+            title = "Workspace".toCaString(),
+        )
+
+        /** Settles restoration and the first ordinary auto-save, then clears what they wrote. */
+        private fun startWithOneWorkspace() {
+            repoStateFlow.value = WorkspaceRemote.State(infos = listOf(makeInfo(wsId)))
+            createManager()
+            scrollScope.testScheduler.runCurrent()
+            scrollScope.testScheduler.advanceTimeBy(1000)
+            scrollScope.testScheduler.runCurrent()
+
+            // Control: proves the ordinary auto-save pipeline is live in this setup
+            upsertedEntities.single().workspaceId shouldBe wsId
+            upsertedEntities.clear()
+            upsertedSessions.clear()
+        }
+
+        @Test
+        fun `a scroll change writes the session row without rewriting workspace rows`() = runTest {
+            startWithOneWorkspace()
+
+            registry.record(registry.positionFor(wsId, "list"), WorkspaceScrollPosition(42, 7))
+            scrollScope.testScheduler.advanceTimeBy(3000)
+            scrollScope.testScheduler.runCurrent()
+
+            upsertedEntities shouldHaveSize 0
+            upsertedSessions.last().uiState.scrollPositions shouldBe
+                mapOf(wsId to mapOf("list" to WorkspaceScrollPosition(42, 7)))
+        }
+
+        /**
+         * The repo state flow is a replaying share whose cached value lags the repo's actual
+         * workspace list, so slots must not be filtered against it - that would drop the slots of
+         * workspaces that do exist. Pruning is event-driven (close/replace) and restore-time instead.
+         */
+        @Test
+        fun `slots are persisted without filtering against the repo snapshot`() = runTest {
+            startWithOneWorkspace()
+
+            val notInSnapshot = Workspace.Id()
+            registry.record(registry.positionFor(notInSnapshot, "list"), WorkspaceScrollPosition(3))
+            registry.record(registry.positionFor(wsId, "list"), WorkspaceScrollPosition(4))
+            scrollScope.testScheduler.advanceTimeBy(3000)
+            scrollScope.testScheduler.runCurrent()
+
+            upsertedSessions.last().uiState.scrollPositions.keys shouldBe setOf(wsId, notInSnapshot)
+        }
+
+        @Test
+        fun `stopping the app flushes before the debounce elapses`() = runTest {
+            startWithOneWorkspace()
+
+            registry.record(registry.positionFor(wsId, "list"), WorkspaceScrollPosition(9))
+            scrollScope.testScheduler.advanceTimeBy(500)
+            scrollScope.testScheduler.runCurrent()
+            upsertedSessions shouldHaveSize 0
+
+            lifecycleOwner.stop()
+            scrollScope.testScheduler.runCurrent()
+
+            upsertedSessions.single().uiState.scrollPositions shouldBe
+                mapOf(wsId to mapOf("list" to WorkspaceScrollPosition(9)))
+        }
+    }
+}
+
+/** createUnsafe() drops the main-thread enforcement, so the registry works in a plain unit test. */
+private class FakeLifecycleOwner : LifecycleOwner {
+    val registry: LifecycleRegistry = LifecycleRegistry.createUnsafe(this)
+
+    override val lifecycle: Lifecycle
+        get() = registry
+
+    fun stop() {
+        registry.handleLifecycleEvent(Lifecycle.Event.ON_START)
+        registry.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
+    }
 }
 
 private data class FakeSessionArguments(

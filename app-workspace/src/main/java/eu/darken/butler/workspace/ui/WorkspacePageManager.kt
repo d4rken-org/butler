@@ -9,6 +9,8 @@ import eu.darken.butler.common.parcel.InstantParceler
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceRemote
+import eu.darken.butler.workspace.ui.floatingbar.WorkspaceBarCollapseStates
+import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPositions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,6 +32,8 @@ import kotlin.time.Instant
 class WorkspacePageManager @Inject constructor(
     @AppScope private val appScope: CoroutineScope,
     private val workspaceRemote: WorkspaceRemote,
+    private val scrollPositions: WorkspaceScrollPositions,
+    private val barCollapseStates: WorkspaceBarCollapseStates,
 ) {
     @Parcelize
     @TypeParceler<Instant, InstantParceler>
@@ -58,6 +62,8 @@ class WorkspacePageManager @Inject constructor(
                     }
 
                     is WorkspaceEvent.Closed -> {
+                        scrollPositions.forget(event.workspaceId)
+                        barCollapseStates.forget(event.workspaceId)
                         handleWorkspaceClosed(event.workspaceId, event.callerWorkspaceId)
                     }
 
@@ -84,6 +90,8 @@ class WorkspacePageManager @Inject constructor(
 
                     WorkspaceEvent.AllClosed -> {
                         log(TAG) { "All workspaces closed" }
+                        scrollPositions.clear()
+                        barCollapseStates.clear()
                         _state.update {
                             it.copy(
                                 focusedWorkspaceId = null,
@@ -403,6 +411,13 @@ class WorkspacePageManager @Inject constructor(
 
     private suspend fun handleWorkspaceCreated(workspaceId: Workspace.Id, replacedId: Workspace.Id?, autoFocus: Boolean) {
         log(TAG) { "handleWorkspaceCreated: workspaceId=$workspaceId, replacedId=$replacedId, autoFocus=$autoFocus" }
+
+        // A replace (e.g. the Templates tile morphing a tab into an Explorer) retires the old
+        // workspace without ever emitting Closed, so its view state has to be dropped here.
+        if (replacedId != null && replacedId != workspaceId) {
+            scrollPositions.forget(replacedId)
+            barCollapseStates.forget(replacedId)
+        }
 
         // Wait until workspace is reflected in state for accurate isSubWorkspace check.
         // Sub-workspaces render as modal overlays and must never be assigned to a pane.

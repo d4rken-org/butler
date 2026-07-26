@@ -1,10 +1,16 @@
 package eu.darken.butler.workspace.ui.manager.rows
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Column
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.semantics.SemanticsNode
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -12,6 +18,7 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerViewModel
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import org.junit.Test
 import sh.calvin.reorderable.DragGestureDetector
@@ -37,12 +44,19 @@ class WorkspaceGridItemTest : ComposeTest() {
         ): Modifier = this
     }
 
-    private fun item(isSubWorkspace: Boolean = false) = WorkspaceManagerViewModel.WorkspaceItem(
+    private fun item(
+        isSubWorkspace: Boolean = false,
+        isPaused: Boolean = false,
+        canPause: Boolean = false,
+    ) = WorkspaceManagerViewModel.WorkspaceItem(
         id = Workspace.Id(),
         type = Workspace.Type.EXPLORER,
-        title = "Explorer".toCaString(),
+        title = "/sdcard/Download".toCaString(),
+        autoTitle = "/sdcard/Download".toCaString(),
         subtitle = null,
         isSubWorkspace = isSubWorkspace,
+        isPaused = isPaused,
+        canPause = canPause,
     )
 
     @Test
@@ -90,4 +104,175 @@ class WorkspaceGridItemTest : ComposeTest() {
         composeTestRule.onAllNodesWithContentDescription("More options").assertCountEquals(0)
         composeTestRule.onNodeWithContentDescription("Close tab").assertExists()
     }
+
+    /**
+     * The header affordances must not vary with pause state - that is what moving pause/resume into
+     * the overflow menu means. Comparing content descriptions catches a reintroduced icon button,
+     * which a text-only assertion would miss since the old icons were labelled by description.
+     */
+    @Test
+    fun `pause state adds no affordance to the card header`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                Column {
+                    WorkspaceGridItem(
+                        reorderableScope = noopReorderableScope,
+                        workspace = item(),
+                        onClose = {},
+                        onSelect = {},
+                        livePreview = false,
+                    )
+                    WorkspaceGridItem(
+                        reorderableScope = noopReorderableScope,
+                        workspace = item(canPause = true),
+                        onClose = {},
+                        onSelect = {},
+                        livePreview = false,
+                    )
+                    WorkspaceGridItem(
+                        reorderableScope = noopReorderableScope,
+                        workspace = item(isPaused = true),
+                        onClose = {},
+                        onSelect = {},
+                        livePreview = false,
+                    )
+                }
+            }
+        }
+
+        val headers = composeTestRule
+            .onAllNodesWithTag(TEST_TAG_WORKSPACE_CARD_HEADER, useUnmergedTree = true)
+            .fetchSemanticsNodes()
+
+        headers shouldHaveSize 3
+        headers.map { it.contentDescriptions() }.distinct() shouldHaveSize 1
+    }
+
+    @Test
+    fun `the overflow menu triggers pause without selecting the card`() {
+        var paused = 0
+        var selected = 0
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                WorkspaceGridItem(
+                    reorderableScope = noopReorderableScope,
+                    workspace = item(canPause = true),
+                    onClose = {},
+                    onSelect = { selected++ },
+                    onPause = { paused++ },
+                    livePreview = false,
+                )
+            }
+        }
+
+        composeTestRule.onAllNodesWithText("Pause").assertCountEquals(0)
+
+        composeTestRule.onNodeWithContentDescription("More options").performClick()
+        composeTestRule.onNodeWithText("Pause").performClick()
+
+        paused shouldBe 1
+        selected shouldBe 0
+    }
+
+    @Test
+    fun `the overflow menu triggers resume without selecting the card`() {
+        var resumed = 0
+        var selected = 0
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                WorkspaceGridItem(
+                    reorderableScope = noopReorderableScope,
+                    workspace = item(isPaused = true),
+                    onClose = {},
+                    onSelect = { selected++ },
+                    onResume = { resumed++ },
+                    livePreview = false,
+                )
+            }
+        }
+
+        composeTestRule.onAllNodesWithText("Resume").assertCountEquals(0)
+
+        composeTestRule.onNodeWithContentDescription("More options").performClick()
+        composeTestRule.onNodeWithText("Resume").performClick()
+
+        resumed shouldBe 1
+        selected shouldBe 0
+    }
+
+    @Test
+    fun `a workspace that cannot pause only offers rename`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                WorkspaceGridItem(
+                    reorderableScope = noopReorderableScope,
+                    workspace = item(),
+                    onClose = {},
+                    onSelect = {},
+                    livePreview = false,
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithContentDescription("More options").performClick()
+
+        composeTestRule.onNodeWithText("Rename").assertExists()
+        composeTestRule.onAllNodesWithText("Pause").assertCountEquals(0)
+        composeTestRule.onAllNodesWithText("Resume").assertCountEquals(0)
+    }
+
+    @Test
+    fun `a paused workspace offers resume instead of pause`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                WorkspaceGridItem(
+                    reorderableScope = noopReorderableScope,
+                    workspace = item(isPaused = true, canPause = true),
+                    onClose = {},
+                    onSelect = {},
+                    livePreview = false,
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithContentDescription("More options").performClick()
+
+        composeTestRule.onNodeWithText("Resume").assertExists()
+        composeTestRule.onAllNodesWithText("Pause").assertCountEquals(0)
+    }
+
+    /**
+     * Pausing skips sub-workspaces, but a stale session row can restore one as paused, so the menu
+     * has to appear for resume alone - otherwise the tab could not be woken from the manager.
+     */
+    @Test
+    fun `a paused sub-workspace offers resume but not rename`() {
+        var resumed = 0
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                WorkspaceGridItem(
+                    reorderableScope = noopReorderableScope,
+                    workspace = item(isSubWorkspace = true, isPaused = true),
+                    onClose = {},
+                    onSelect = {},
+                    onRename = { throw AssertionError("Renaming a sub-workspace would not persist") },
+                    onResume = { resumed++ },
+                    livePreview = false,
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithContentDescription("More options").performClick()
+        composeTestRule.onAllNodesWithText("Rename").assertCountEquals(0)
+        composeTestRule.onNodeWithText("Resume").performClick()
+
+        resumed shouldBe 1
+    }
+
+    private fun SemanticsNode.contentDescriptions(): List<String> =
+        config.getOrNull(SemanticsProperties.ContentDescription).orEmpty() +
+            children.flatMap { it.contentDescriptions() }
 }

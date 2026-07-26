@@ -9,14 +9,18 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import eu.darken.butler.workspace.core.operations.OperationsManager
+import eu.darken.butler.workspace.core.usage.WorkspaceUsageRepo
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.matchers.types.shouldBeSameInstanceAs
+import io.mockk.clearMocks
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,6 +28,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -67,6 +72,18 @@ class WorkspaceRepoTest : BaseTest() {
         var released = false
             private set
 
+        /** What [createArguments] returns; set to simulate state drifting away from creation args. */
+        var currentArguments: Workspace.Arguments = arguments
+
+        /** When set, [createArguments] throws it. */
+        var argumentsError: Throwable? = null
+
+        /** When set, [release] throws it after marking the workspace released. */
+        var releaseError: Throwable? = null
+
+        /** Runs inside [createArguments], for exercising state changes while it suspends. */
+        var whileCapturingArguments: (suspend () -> Unit)? = null
+
         override val info = MutableStateFlow(
             Workspace.Info(
                 id = id,
@@ -79,10 +96,19 @@ class WorkspaceRepoTest : BaseTest() {
             )
         )
 
-        override suspend fun createArguments(): Workspace.Arguments = arguments
+        override suspend fun createArguments(): Workspace.Arguments {
+            whileCapturingArguments?.invoke()
+            argumentsError?.let { throw it }
+            return currentArguments
+        }
 
         override suspend fun release() {
             released = true
+            releaseError?.let { throw it }
+        }
+
+        fun markReady() {
+            info.value = info.value.copy(lifecycleState = Workspace.LifecycleState.Ready)
         }
     }
 
@@ -125,6 +151,8 @@ class WorkspaceRepoTest : BaseTest() {
 
     private val operationsManager: OperationsManager = mockk(relaxed = true)
 
+    private val usageRepo: WorkspaceUsageRepo = mockk(relaxed = true)
+
     // Resource ids resolve to a stable stand-in so CaStrings can be compared by resolved value
     // (CaString has no structural equality)
     private val context: Context = mockk<Context>().apply {
@@ -150,6 +178,7 @@ class WorkspaceRepoTest : BaseTest() {
             workspaceSettings = workspaceSettings,
             operationsManager = operationsManager,
             upgradeRepo = upgradeRepo,
+            usageRepo = usageRepo,
         )
     }
 
@@ -829,41 +858,41 @@ class WorkspaceRepoTest : BaseTest() {
         values.count { it is WorkspaceAction.CreateBatch.CreationResult.AlreadyOpen } shouldBe 1
     }
 
-    // ==================== Dormant workspaces ====================
+    // ==================== Paused workspaces ====================
 
-    private suspend fun WorkspaceRepo.registerDormant(
+    private suspend fun WorkspaceRepo.registerPaused(
         type: Workspace.Type = Workspace.Type.EXPLORER,
         id: Workspace.Id = Workspace.Id(),
         arguments: Workspace.Arguments = FakeArguments(type),
     ): Workspace.Id {
-        val result = execute(WorkspaceAction.RegisterDormant(id = id, type = type, arguments = arguments))
-        return (result as WorkspaceAction.RegisterDormant.Result.Success).newId
+        val result = execute(WorkspaceAction.RegisterPaused(id = id, type = type, arguments = arguments))
+        return (result as WorkspaceAction.RegisterPaused.Result.Success).newId
     }
 
     @Test
-    fun `registering a dormant workspace never instantiates it`() = runTest(UnconfinedTestDispatcher()) {
+    fun `registering a paused workspace never invokes a factory`() = runTest(UnconfinedTestDispatcher()) {
         val repo = createRepo()
 
-        val dormantId = repo.registerDormant()
+        val pausedId = repo.registerPaused()
 
         // Registration derives an identity from the factory, but must never build the workspace
         createdWorkspaces shouldHaveSize 0
-        repo.infoFor(dormantId).lifecycleState shouldBe Workspace.LifecycleState.Dormant()
-        // Typed consumers must see a dormant id exactly like an id that doesn't exist yet
-        repo.retrieve(dormantId).first() shouldBe null
+        repo.infoFor(pausedId).lifecycleState shouldBe Workspace.LifecycleState.Paused()
+        // Typed consumers must see a paused id exactly like an id that doesn't exist yet
+        repo.retrieve(pausedId).first() shouldBe null
     }
 
     @Test
-    fun `a dormant workspace shows the factory-derived identity`() = runTest(UnconfinedTestDispatcher()) {
+    fun `a paused workspace shows the factory-derived identity`() = runTest(UnconfinedTestDispatcher()) {
         val repo = createRepo()
         derivedDisplay = WorkspaceDisplay(
             title = "/sdcard/Download".toCaString(),
             subtitle = "Storage".toCaString(),
         )
 
-        val dormantId = repo.registerDormant()
+        val pausedId = repo.registerPaused()
 
-        val info = repo.infoFor(dormantId)
+        val info = repo.infoFor(pausedId)
         info.title.get(context) shouldBe "/sdcard/Download"
         info.subtitle!!.get(context) shouldBe "Storage"
     }
@@ -873,10 +902,10 @@ class WorkspaceRepoTest : BaseTest() {
         val repo = createRepo()
         derivedDisplay = null
 
-        val dormantId = repo.registerDormant(type = Workspace.Type.APPS)
+        val pausedId = repo.registerPaused(type = Workspace.Type.APPS)
 
-        repo.infoFor(dormantId).title.get(context) shouldBe Workspace.Type.APPS.label.get(context)
-        repo.infoFor(dormantId).subtitle shouldBe null
+        repo.infoFor(pausedId).title.get(context) shouldBe Workspace.Type.APPS.label.get(context)
+        repo.infoFor(pausedId).subtitle shouldBe null
     }
 
     @Test
@@ -884,111 +913,111 @@ class WorkspaceRepoTest : BaseTest() {
         val repo = createRepo()
         nextDeriveFailure = IllegalStateException("Derivation exploded")
 
-        val dormantId = repo.registerDormant(type = Workspace.Type.EXPLORER)
+        val pausedId = repo.registerPaused(type = Workspace.Type.EXPLORER)
 
         // A broken derivation must never fail session restore
-        repo.infoFor(dormantId).title.get(context) shouldBe Workspace.Type.EXPLORER.label.get(context)
-        repo.infoFor(dormantId).lifecycleState shouldBe Workspace.LifecycleState.Dormant()
+        repo.infoFor(pausedId).title.get(context) shouldBe Workspace.Type.EXPLORER.label.get(context)
+        repo.infoFor(pausedId).lifecycleState shouldBe Workspace.LifecycleState.Paused()
     }
 
     @Test
-    fun `registering a dormant workspace whose arguments are of another type is rejected`() =
+    fun `registering a paused workspace whose arguments are of another type is rejected`() =
         runTest(UnconfinedTestDispatcher()) {
             val repo = createRepo()
 
             val result = repo.execute(
-                WorkspaceAction.RegisterDormant(
+                WorkspaceAction.RegisterPaused(
                     id = Workspace.Id(),
                     type = Workspace.Type.EXPLORER,
                     arguments = FakeArguments(Workspace.Type.SEARCHER),
                 )
             )
 
-            result.shouldBeInstanceOf<WorkspaceAction.RegisterDormant.Result.Failed>()
+            result.shouldBeInstanceOf<WorkspaceAction.RegisterPaused.Result.Failed>()
             repo.workspaceIds() shouldBe emptyList()
         }
 
     @Test
-    fun `registering a dormant workspace emits a Created event without auto focus`() =
+    fun `registering a paused workspace emits a Created event without auto focus`() =
         runTest(UnconfinedTestDispatcher()) {
             val repo = createRepo()
             val events = mutableListOf<WorkspaceEvent>()
             repo.events.onEach { events += it }.launchIn(backgroundScope)
 
-            val dormantId = repo.registerDormant()
+            val pausedId = repo.registerPaused()
 
             val created = events.filterIsInstance<WorkspaceEvent.Created>().single()
-            created.workspaceId shouldBe dormantId
+            created.workspaceId shouldBe pausedId
             created.replacedId shouldBe null
             created.autoFocus shouldBe false
         }
 
     @Test
-    fun `hydrating replaces the stand-in at the same position`() = runTest(UnconfinedTestDispatcher()) {
+    fun `resuming replaces the stand-in at the same position`() = runTest(UnconfinedTestDispatcher()) {
         val repo = createRepo()
         val firstId = repo.createTab()
-        val dormantId = repo.registerDormant()
+        val pausedId = repo.registerPaused()
         val lastId = repo.createTab()
 
-        repo.execute(WorkspaceAction.Hydrate(dormantId))
-            .shouldBeInstanceOf<WorkspaceAction.Hydrate.Result.Success>()
+        repo.execute(WorkspaceAction.Resume(pausedId))
+            .shouldBeInstanceOf<WorkspaceAction.Resume.Result.Success>()
 
-        repo.workspaceIds() shouldBe listOf(firstId, dormantId, lastId)
-        repo.retrieve(dormantId).first() shouldNotBe null
-        createdWorkspaces.count { it.id == dormantId } shouldBe 1
+        repo.workspaceIds() shouldBe listOf(firstId, pausedId, lastId)
+        repo.retrieve(pausedId).first() shouldNotBe null
+        createdWorkspaces.count { it.id == pausedId } shouldBe 1
     }
 
     @Test
-    fun `hydrating an unknown or already live workspace is a no-op`() = runTest(UnconfinedTestDispatcher()) {
+    fun `resuming an unknown or already live workspace is a no-op`() = runTest(UnconfinedTestDispatcher()) {
         val repo = createRepo()
         val liveId = repo.createTab()
 
-        repo.execute(WorkspaceAction.Hydrate(Workspace.Id())) shouldBe WorkspaceAction.Hydrate.Result.NoOp
-        repo.execute(WorkspaceAction.Hydrate(liveId)) shouldBe WorkspaceAction.Hydrate.Result.NoOp
+        repo.execute(WorkspaceAction.Resume(Workspace.Id())) shouldBe WorkspaceAction.Resume.Result.NoOp
+        repo.execute(WorkspaceAction.Resume(liveId)) shouldBe WorkspaceAction.Resume.Result.NoOp
         createdWorkspaces shouldHaveSize 1
     }
 
     @Test
-    fun `concurrent hydration invokes the factory exactly once`() = runTest(UnconfinedTestDispatcher()) {
+    fun `concurrent resume invokes the factory exactly once`() = runTest(UnconfinedTestDispatcher()) {
         val repo = createRepo()
-        val dormantId = repo.registerDormant()
+        val pausedId = repo.registerPaused()
 
         val results = listOf(
-            async { repo.execute(WorkspaceAction.Hydrate(dormantId)) },
-            async { repo.execute(WorkspaceAction.Hydrate(dormantId)) },
+            async { repo.execute(WorkspaceAction.Resume(pausedId)) },
+            async { repo.execute(WorkspaceAction.Resume(pausedId)) },
         ).awaitAll()
 
-        createdWorkspaces.count { it.id == dormantId } shouldBe 1
-        results.count { it is WorkspaceAction.Hydrate.Result.Success } shouldBe 1
-        results.count { it is WorkspaceAction.Hydrate.Result.NoOp } shouldBe 1
+        createdWorkspaces.count { it.id == pausedId } shouldBe 1
+        results.count { it is WorkspaceAction.Resume.Result.Success } shouldBe 1
+        results.count { it is WorkspaceAction.Resume.Result.NoOp } shouldBe 1
     }
 
     @Test
-    fun `a failed hydration keeps the stand-in and can be retried`() = runTest(UnconfinedTestDispatcher()) {
+    fun `a failed resume keeps the stand-in and can be retried`() = runTest(UnconfinedTestDispatcher()) {
         val repo = createRepo()
-        val dormantId = repo.registerDormant()
+        val pausedId = repo.registerPaused()
         val boom = IllegalStateException("Factory exploded")
         nextCreateFailure = boom
 
-        val failed = repo.execute(WorkspaceAction.Hydrate(dormantId))
+        val failed = repo.execute(WorkspaceAction.Resume(pausedId))
 
-        failed.shouldBeInstanceOf<WorkspaceAction.Hydrate.Result.Failed>()
+        failed.shouldBeInstanceOf<WorkspaceAction.Resume.Result.Failed>()
         failed.error shouldBe boom
         // Never LifecycleState.Error - that state would compose the typed page host for a stand-in
-        repo.infoFor(dormantId).lifecycleState shouldBe Workspace.LifecycleState.Dormant(boom)
-        repo.retrieve(dormantId).first() shouldBe null
+        repo.infoFor(pausedId).lifecycleState shouldBe Workspace.LifecycleState.Paused(boom)
+        repo.retrieve(pausedId).first() shouldBe null
 
-        repo.execute(WorkspaceAction.Hydrate(dormantId))
-            .shouldBeInstanceOf<WorkspaceAction.Hydrate.Result.Success>()
-        repo.retrieve(dormantId).first() shouldNotBe null
-        repo.infoFor(dormantId).lifecycleState shouldBe Workspace.LifecycleState.Initializing
+        repo.execute(WorkspaceAction.Resume(pausedId))
+            .shouldBeInstanceOf<WorkspaceAction.Resume.Result.Success>()
+        repo.retrieve(pausedId).first() shouldNotBe null
+        repo.infoFor(pausedId).lifecycleState shouldBe Workspace.LifecycleState.Initializing
     }
 
     @Test
-    fun `a create for a content path held by a dormant workspace resolves to it`() =
+    fun `a create for a content path held by a paused workspace resolves to it`() =
         runTest(UnconfinedTestDispatcher()) {
             val repo = createRepo()
-            val dormantId = repo.registerDormant(
+            val pausedId = repo.registerPaused(
                 type = Workspace.Type.EDITOR,
                 arguments = FakeContentArguments(Workspace.Type.EDITOR, pathA),
             )
@@ -996,23 +1025,23 @@ class WorkspaceRepoTest : BaseTest() {
             val result = repo.execute(contentReq(pathA))
 
             result.shouldBeInstanceOf<WorkspaceAction.Create.Result.AlreadyOpen>()
-            result.existingId shouldBe dormantId
+            result.existingId shouldBe pausedId
             createdWorkspaces shouldHaveSize 0
         }
 
     @Test
-    fun `dormant workspaces count toward the free tier limit`() = runTest(UnconfinedTestDispatcher()) {
+    fun `paused workspaces count toward the free tier limit`() = runTest(UnconfinedTestDispatcher()) {
         val repo = createRepo(isPro = false)
-        repeat(WorkspaceRepo.FREE_TIER_WORKSPACE_LIMIT) { repo.registerDormant() }
+        repeat(WorkspaceRepo.FREE_TIER_WORKSPACE_LIMIT) { repo.registerPaused() }
 
         repo.execute(createReq(Workspace.Type.EXPLORER))
             .shouldBeInstanceOf<WorkspaceAction.Create.Result.LimitReached>()
     }
 
     @Test
-    fun `a dormant singleton blocks creating a second instance`() = runTest(UnconfinedTestDispatcher()) {
+    fun `a paused singleton blocks creating a second instance`() = runTest(UnconfinedTestDispatcher()) {
         val repo = createRepo()
-        val dormantId = repo.registerDormant(type = Workspace.Type.DEVELOPER)
+        val pausedId = repo.registerPaused(type = Workspace.Type.DEVELOPER)
 
         val second = repo.execute(
             WorkspaceAction.Create(
@@ -1022,24 +1051,24 @@ class WorkspaceRepoTest : BaseTest() {
         )
 
         second.shouldBeInstanceOf<WorkspaceAction.Create.Result.AlreadyOpen>()
-        second.existingId shouldBe dormantId
+        second.existingId shouldBe pausedId
     }
 
     @Test
-    fun `registering a dormant workspace with a used id fails instead of duplicating`() =
+    fun `registering a paused workspace with a used id fails instead of duplicating`() =
         runTest(UnconfinedTestDispatcher()) {
             val repo = createRepo()
             val existingId = repo.createTab()
 
             val result = repo.execute(
-                WorkspaceAction.RegisterDormant(
+                WorkspaceAction.RegisterPaused(
                     id = existingId,
                     type = Workspace.Type.EXPLORER,
                     arguments = FakeArguments(Workspace.Type.EXPLORER),
                 )
             )
 
-            result.shouldBeInstanceOf<WorkspaceAction.RegisterDormant.Result.Failed>()
+            result.shouldBeInstanceOf<WorkspaceAction.RegisterPaused.Result.Failed>()
             repo.workspaceIds() shouldBe listOf(existingId)
         }
 
@@ -1076,33 +1105,33 @@ class WorkspaceRepoTest : BaseTest() {
         }
 
     /**
-     * Dormant stand-ins now show a factory-derived identity rather than a bare type label, so this
+     * Paused stand-ins now show a factory-derived identity rather than a bare type label, so this
      * is where the two naming mechanisms meet: a name the user set must still win, and the derived
      * one must stay intact underneath so clearing the custom name reveals it again.
      */
     @Test
-    fun `a custom name wins over the derived identity of a dormant workspace`() =
+    fun `a custom name wins over the derived identity of a paused workspace`() =
         runTest(UnconfinedTestDispatcher()) {
             val repo = createRepo()
             derivedDisplay = WorkspaceDisplay(
                 title = "/sdcard/Download".toCaString(),
                 subtitle = "Storage".toCaString(),
             )
-            val dormantId = repo.registerDormant()
+            val pausedId = repo.registerPaused()
 
-            repo.rename(dormantId, "Holiday photos") shouldBe true
+            repo.rename(pausedId, "Holiday photos") shouldBe true
 
-            val info = repo.infoFor(dormantId)
+            val info = repo.infoFor(pausedId)
             info.displayTitle.get(context) shouldBe "Holiday photos"
             info.title.get(context) shouldBe "/sdcard/Download"
             // The derived subtitle is untouched by renaming
             info.subtitle!!.get(context) shouldBe "Storage"
-            info.lifecycleState shouldBe Workspace.LifecycleState.Dormant()
+            info.lifecycleState shouldBe Workspace.LifecycleState.Paused()
 
-            repo.rename(dormantId, null) shouldBe true
+            repo.rename(pausedId, null) shouldBe true
 
-            repo.showsAutomaticTitle(dormantId)
-            repo.infoFor(dormantId).displayTitle.get(context) shouldBe "/sdcard/Download"
+            repo.showsAutomaticTitle(pausedId)
+            repo.infoFor(pausedId).displayTitle.get(context) shouldBe "/sdcard/Download"
         }
 
     @Test
@@ -1312,6 +1341,240 @@ class WorkspaceRepoTest : BaseTest() {
         repo.infoFor(idB).customTitle shouldBe "B"
     }
 
+    // ==================== Pausing ====================
+
+    private suspend fun WorkspaceRepo.createReadyTab(
+        type: Workspace.Type = Workspace.Type.EXPLORER,
+    ): Workspace.Id = createTab(type).also { fake(it).markReady() }
+
+    private suspend fun WorkspaceRepo.pause(id: Workspace.Id): WorkspaceAction.Result =
+        execute(WorkspaceAction.Pause(id))
+
+    @Test
+    fun `pausing swaps in a stand-in at the same position and keeps the identity`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val firstId = repo.createReadyTab()
+            val pausedId = repo.createReadyTab()
+            val lastId = repo.createReadyTab()
+            val title = "Downloads".toCaString()
+            val subtitle = "/storage/emulated/0/Download".toCaString()
+            fake(pausedId).info.update { it.copy(title = title, subtitle = subtitle, contentPath = pathA) }
+
+            repo.pause(pausedId).shouldBeInstanceOf<WorkspaceAction.Pause.Result.Success>().id shouldBe pausedId
+
+            repo.workspaceIds() shouldBe listOf(firstId, pausedId, lastId)
+            val info = repo.infoFor(pausedId)
+            info.isPaused shouldBe true
+            info.title shouldBe title
+            info.subtitle shouldBe subtitle
+            info.contentPath shouldBe pathA
+            // Typed consumers must see it exactly like a workspace that was never instantiated
+            repo.retrieve(pausedId).first() shouldBe null
+            fake(pausedId).released shouldBe true
+        }
+
+    @Test
+    fun `pausing captures the current arguments, not the creation arguments`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val id = repo.createReadyTab(Workspace.Type.EDITOR)
+            fake(id).currentArguments = FakeContentArguments(Workspace.Type.EDITOR, pathB)
+
+            repo.pause(id)
+
+            // The stand-in holds the state as it was at pause time, not what the tab opened with
+            repo.peek(id)!!.createArguments() shouldBe FakeContentArguments(Workspace.Type.EDITOR, pathB)
+        }
+
+    @Test
+    fun `resuming a paused workspace rebuilds it from the captured arguments`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val id = repo.createReadyTab(Workspace.Type.EDITOR)
+            fake(id).currentArguments = FakeContentArguments(Workspace.Type.EDITOR, pathB)
+            repo.pause(id)
+
+            repo.execute(WorkspaceAction.Resume(id))
+                .shouldBeInstanceOf<WorkspaceAction.Resume.Result.Success>()
+
+            repo.retrieve(id).first() shouldNotBe null
+            createdWorkspaces.count { it.id == id } shouldBe 2
+            repo.infoFor(id).contentPath shouldBe pathB
+        }
+
+    @Test
+    fun `a failing release still leaves the workspace paused`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val id = repo.createReadyTab()
+        fake(id).releaseError = IllegalStateException("Engine stuck")
+
+        repo.pause(id).shouldBeInstanceOf<WorkspaceAction.Pause.Result.Success>()
+
+        repo.infoFor(id).isPaused shouldBe true
+    }
+
+    @Test
+    fun `a failing createArguments keeps the workspace live and untouched`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val id = repo.createReadyTab()
+            val boom = IllegalStateException("Cannot serialize state")
+            fake(id).argumentsError = boom
+
+            val result = repo.pause(id)
+
+            result.shouldBeInstanceOf<WorkspaceAction.Pause.Result.Failed>()
+            result.error shouldBe boom
+            repo.infoFor(id).isPaused shouldBe false
+            repo.retrieve(id).first() shouldNotBe null
+            fake(id).released shouldBe false
+        }
+
+    @Test
+    fun `a cancellation while capturing arguments propagates instead of becoming a failure`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val id = repo.createReadyTab()
+            fake(id).argumentsError = CancellationException("Scope died")
+
+            shouldThrow<CancellationException> { repo.pause(id) }
+
+            repo.infoFor(id).isPaused shouldBe false
+            fake(id).released shouldBe false
+        }
+
+    @Test
+    fun `pausing an unknown or already paused workspace is a no-op`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val id = repo.createReadyTab()
+        repo.pause(id)
+
+        repo.pause(Workspace.Id()) shouldBe WorkspaceAction.Pause.Result.NoOp
+        repo.pause(id) shouldBe WorkspaceAction.Pause.Result.NoOp
+    }
+
+    @Test
+    fun `pausing a sub-workspace is refused`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val parentId = repo.createReadyTab()
+        val childId = repo.createSubWorkspace(caller = parentId)
+        fake(childId).markReady()
+
+        val result = repo.pause(childId)
+
+        result.shouldBeInstanceOf<WorkspaceAction.Pause.Result.Refused>()
+        result.reason shouldBe WorkspaceAction.Pause.Reason.SUB_WORKSPACE
+    }
+
+    @Test
+    fun `pausing a workspace with children is refused`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val parentId = repo.createReadyTab()
+        repo.createSubWorkspace(caller = parentId)
+
+        val result = repo.pause(parentId)
+
+        result.shouldBeInstanceOf<WorkspaceAction.Pause.Result.Refused>()
+        result.reason shouldBe WorkspaceAction.Pause.Reason.HAS_CHILDREN
+    }
+
+    @Test
+    fun `pausing a workspace holding a content claim is refused and keeps the claim`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val id = repo.createReadyTab(Workspace.Type.EDITOR)
+            repo.execute(
+                WorkspaceAction.ClaimContentPath(Workspace.Type.EDITOR, pathA, id)
+            ) shouldBe WorkspaceAction.ClaimContentPath.Result.Granted
+
+            val result = repo.pause(id)
+
+            result.shouldBeInstanceOf<WorkspaceAction.Pause.Result.Refused>()
+            result.reason shouldBe WorkspaceAction.Pause.Reason.CLAIM_HELD
+            // Dropping the claim could let a duplicate tab open on that path mid-transition
+            val create = repo.execute(contentReq(pathA))
+            create.shouldBeInstanceOf<WorkspaceAction.Create.Result.AlreadyOpen>()
+            create.existingId shouldBe id
+        }
+
+    @Test
+    fun `pausing a busy workspace is refused`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val id = repo.createReadyTab()
+        fake(id).info.update { it.copy(operationCount = 1) }
+
+        val result = repo.pause(id)
+
+        result.shouldBeInstanceOf<WorkspaceAction.Pause.Result.Refused>()
+        result.reason shouldBe WorkspaceAction.Pause.Reason.BUSY
+    }
+
+    @Test
+    fun `pausing a workspace needing attention is refused`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val id = repo.createReadyTab()
+        fake(id).info.update { it.copy(attentionCount = 1) }
+
+        val result = repo.pause(id)
+
+        result.shouldBeInstanceOf<WorkspaceAction.Pause.Result.Refused>()
+        result.reason shouldBe WorkspaceAction.Pause.Reason.BUSY
+    }
+
+    @Test
+    fun `pausing a workspace with unsaved changes is refused`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val id = repo.createReadyTab()
+        fake(id).info.update { it.copy(hasUnsavedChanges = true) }
+
+        val result = repo.pause(id)
+
+        result.shouldBeInstanceOf<WorkspaceAction.Pause.Result.Refused>()
+        result.reason shouldBe WorkspaceAction.Pause.Reason.UNSAVED_CHANGES
+    }
+
+    @Test
+    fun `pausing a workspace that opted out is refused`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val id = repo.createReadyTab()
+        fake(id).info.update { it.copy(isPausable = false) }
+
+        val result = repo.pause(id)
+
+        result.shouldBeInstanceOf<WorkspaceAction.Pause.Result.Refused>()
+        result.reason shouldBe WorkspaceAction.Pause.Reason.NOT_PAUSABLE
+    }
+
+    @Test
+    fun `pausing a workspace that is not ready is refused`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val id = repo.createTab()
+
+        val result = repo.pause(id)
+
+        result.shouldBeInstanceOf<WorkspaceAction.Pause.Result.Refused>()
+        result.reason shouldBe WorkspaceAction.Pause.Reason.NOT_READY
+    }
+
+    @Test
+    fun `a guard flipping while arguments are captured refuses without mutating`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val id = repo.createReadyTab()
+            val workspace = fake(id)
+            workspace.whileCapturingArguments = {
+                workspace.info.update { it.copy(hasUnsavedChanges = true) }
+            }
+
+            val result = repo.pause(id)
+
+            result.shouldBeInstanceOf<WorkspaceAction.Pause.Result.Refused>()
+            result.reason shouldBe WorkspaceAction.Pause.Reason.UNSAVED_CHANGES
+            repo.infoFor(id).isPaused shouldBe false
+            workspace.released shouldBe false
+        }
+
     @Test
     fun `batch rejects a colliding explicit id without dropping the first create`() =
         runTest(UnconfinedTestDispatcher()) {
@@ -1329,4 +1592,144 @@ class WorkspaceRepoTest : BaseTest() {
             values.count { it is WorkspaceAction.CreateBatch.CreationResult.Success } shouldBe 1
             values.count { it is WorkspaceAction.CreateBatch.CreationResult.Failure } shouldBe 1
         }
+
+    @Test
+    fun `creating a tab tracks its type as used`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+
+        repo.createTab(type = Workspace.Type.EXPLORER)
+
+        coVerify(exactly = 1) { usageRepo.track(Workspace.Type.EXPLORER, any()) }
+    }
+
+    @Test
+    fun `batch creation tracks every successfully created tab`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo(isPro = true)
+
+        repo.createBatch(
+            createReq(Workspace.Type.EXPLORER),
+            createReq(Workspace.Type.SEARCHER),
+        )
+
+        coVerify(exactly = 1) { usageRepo.track(Workspace.Type.EXPLORER, any()) }
+        coVerify(exactly = 1) { usageRepo.track(Workspace.Type.SEARCHER, any()) }
+    }
+
+    @Test
+    fun `batch creation does not track already-open entries`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo(isPro = true)
+        repo.createContentTab(pathA)
+
+        // pathA resolves to AlreadyOpen, only pathB is actually created
+        repo.createBatch(contentReq(pathA), contentReq(pathB))
+
+        // One for the initial tab, one for pathB — the AlreadyOpen entry adds nothing
+        coVerify(exactly = 2) { usageRepo.track(Workspace.Type.EDITOR, any()) }
+    }
+
+    @Test
+    fun `a batch of only already-open entries tracks nothing`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo(isPro = true)
+        repo.createContentTab(pathA)
+        repo.createContentTab(pathB)
+        clearMocks(usageRepo, answers = false)
+
+        repo.createBatch(contentReq(pathA), contentReq(pathB))
+
+        coVerify(exactly = 0) { usageRepo.track(any(), any()) }
+    }
+
+    @Test
+    fun `batch creation does not track failed creates`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val sharedId = Workspace.Id()
+
+        repo.createBatch(
+            createReq(Workspace.Type.EXPLORER, id = sharedId),
+            createReq(Workspace.Type.SEARCHER, id = sharedId),
+        )
+
+        // The colliding SEARCHER create fails, so only the successful EXPLORER counts
+        coVerify(exactly = 1) { usageRepo.track(Workspace.Type.EXPLORER, any()) }
+        coVerify(exactly = 0) { usageRepo.track(Workspace.Type.SEARCHER, any()) }
+    }
+
+    @Test
+    fun `deferred duplicates in a batch track exactly one use`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo(isPro = true)
+
+        // Both requests target the same content path, so the second is deferred to AlreadyOpen
+        repo.createBatch(contentReq(pathA), contentReq(pathA))
+
+        coVerify(exactly = 1) { usageRepo.track(Workspace.Type.EDITOR, any()) }
+    }
+
+    @Test
+    fun `batch creation does not track limit-skipped requests`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo(isPro = false)
+        repeat(WorkspaceRepo.FREE_TIER_WORKSPACE_LIMIT) { repo.createTab(type = Workspace.Type.EXPLORER) }
+
+        repo.createBatch(createReq(Workspace.Type.SEARCHER))
+
+        coVerify(exactly = 0) { usageRepo.track(Workspace.Type.SEARCHER, any()) }
+    }
+
+    @Test
+    fun `session restore does not track usage`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+
+        repo.execute(
+            WorkspaceAction.Create(
+                type = Workspace.Type.EXPLORER,
+                arguments = FakeArguments(Workspace.Type.EXPLORER),
+                skipLimitCheck = true,
+            )
+        ).shouldBeInstanceOf<WorkspaceAction.Create.Result.Success>()
+
+        coVerify(exactly = 0) { usageRepo.track(any(), any()) }
+    }
+
+    @Test
+    fun `sub-workspaces do not track usage`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val parentId = repo.createTab(type = Workspace.Type.EXPLORER)
+
+        repo.createSubWorkspace(caller = parentId, type = Workspace.Type.SEARCHER)
+
+        coVerify(exactly = 0) { usageRepo.track(Workspace.Type.SEARCHER, any()) }
+    }
+
+    @Test
+    fun `quota-exempt types do not track usage`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+
+        repo.createTab(type = Workspace.Type.DEVELOPER)
+
+        coVerify(exactly = 0) { usageRepo.track(any(), any()) }
+    }
+
+    @Test
+    fun `the templates picker does not track usage`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+
+        repo.createTab(type = Workspace.Type.TEMPLATES)
+
+        coVerify(exactly = 0) { usageRepo.track(any(), any()) }
+    }
+
+    @Test
+    fun `morphing a tab tracks the new type`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val originalId = repo.createTab(type = Workspace.Type.EXPLORER)
+
+        repo.execute(
+            WorkspaceAction.Create(
+                type = Workspace.Type.SEARCHER,
+                arguments = FakeArguments(Workspace.Type.SEARCHER),
+                replace = originalId,
+            )
+        ).shouldBeInstanceOf<WorkspaceAction.Create.Result.Success>()
+
+        coVerify(exactly = 1) { usageRepo.track(Workspace.Type.SEARCHER, any()) }
+    }
 }

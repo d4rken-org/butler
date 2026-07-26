@@ -72,6 +72,7 @@ import eu.darken.butler.workspace.core.icon
 import eu.darken.butler.workspace.ui.common.CutoutCard
 import eu.darken.butler.workspace.ui.common.CutoutCardDefaults
 import eu.darken.butler.workspace.ui.common.CutoutMode
+import eu.darken.butler.workspace.ui.common.WorkspacePaddings
 import eu.darken.butler.workspace.ui.dialogs.PaneBoundAlertDialog
 import eu.darken.butler.workspace.ui.floatingbar.BarAnimation
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
@@ -187,8 +188,8 @@ fun BugReportWorkspacePage(
                     .fillMaxSize()
                     .nestedScroll(topBarStackState.nestedScrollConnection),
                 contentPadding = PaddingValues(
-                    start = 16.dp,
-                    end = 16.dp,
+                    start = WorkspacePaddings.ContentHorizontal,
+                    end = WorkspacePaddings.ContentHorizontal,
                     top = topBarStackState.contentPaddingDp(),
                     bottom = navBarInset + 16.dp,
                 ),
@@ -209,12 +210,12 @@ fun BugReportWorkspacePage(
                 // controls) — like the Searcher toolbar grows to hold its filters — and shrinks back
                 // when stopped or scroll-collapsed.
                 FloatingBar(
+                    key = "toolbar",
                     visible = true,
                     scrollBehavior = BarScrollBehavior.CollapseOnScroll(),
                     animation = BarAnimation.Slide(),
                     estimatedHeight = 64.dp,
                     revealOn = state.isRecording,
-                    modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
                     // Derive the boolean here so the card only recomposes at the collapse threshold,
                     // not on every scroll frame (collapsedFraction changes continuously while scrolling

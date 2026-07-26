@@ -100,8 +100,11 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
             val selectedApps: List<AppItem> get() = apps.filter { it.pkg.installId in selectedAppIds }
             val isMultiSelectMode: Boolean get() = selectedApps.isNotEmpty()
             val selectionCount: Int get() = selectedApps.size
-            val userAppsCount: Int get() = apps.count { !it.isSystemApp }
-            val systemAppsCount: Int get() = apps.count { it.isSystemApp }
+
+            // Body properties, not constructor defaults: the generated copy() passes existing
+            // property values instead of re-evaluating defaults, which would keep stale counts.
+            val systemAppsCount: Int = apps.count { it.isSystemApp }
+            val userAppsCount: Int = apps.size - systemAppsCount
         }
     }
 

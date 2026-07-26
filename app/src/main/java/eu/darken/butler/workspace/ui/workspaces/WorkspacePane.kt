@@ -52,7 +52,7 @@ fun WorkspacePane(
     onDismissBanner: (Workspace.Id) -> Unit,
     onShareError: (Workspace.Id, Throwable) -> Unit,
     onCloseWorkspace: (Workspace.Id) -> Unit,
-    onRestoreWorkspace: (Workspace.Id) -> Unit,
+    onResumeWorkspace: (Workspace.Id) -> Unit,
     paneEdges: WorkspaceDesign.PaneEdges = WorkspaceDesign.PaneEdges.All,
     childModal: WorkspacePaneInfo? = null,
     childWorkspaceFocused: Boolean = false,
@@ -85,7 +85,7 @@ fun WorkspacePane(
                     onDismissBanner = onDismissBanner,
                     onShareError = onShareError,
                     onCloseWorkspace = onCloseWorkspace,
-                    onRestoreWorkspace = onRestoreWorkspace,
+                    onResumeWorkspace = onResumeWorkspace,
                     paneEdges = paneEdges,
                 )
             }
@@ -109,7 +109,7 @@ fun WorkspacePane(
                             onDismissBanner = onDismissBanner,
                             onShareError = onShareError,
                             onCloseWorkspace = onCloseWorkspace,
-                            onRestoreWorkspace = onRestoreWorkspace,
+                            onResumeWorkspace = onResumeWorkspace,
                             paneEdges = paneEdges,
                         )
                     }
@@ -134,7 +134,7 @@ private fun BoxScope.WorkspaceLayers(
     onDismissBanner: (Workspace.Id) -> Unit,
     onShareError: (Workspace.Id, Throwable) -> Unit,
     onCloseWorkspace: (Workspace.Id) -> Unit,
-    onRestoreWorkspace: (Workspace.Id) -> Unit,
+    onResumeWorkspace: (Workspace.Id) -> Unit,
     paneEdges: WorkspaceDesign.PaneEdges,
 ) {
     PaneLayer(
@@ -155,16 +155,16 @@ private fun BoxScope.WorkspaceLayers(
                 design = design,
                 onShareError = { error -> onShareError(info.id, error) },
                 onCloseWorkspace = { onCloseWorkspace(info.id) },
-                onRestoreWorkspace = { onRestoreWorkspace(info.id) },
+                onResumeWorkspace = { onResumeWorkspace(info.id) },
             )
         }
     }
 
     // Overlays instantiate the page's ViewModel, so they must not be composed while the workspace
-    // is Dormant: there is no instance behind the id yet and the typed page host would cast the
+    // is Paused: there is no live instance behind the id and the typed page host would cast the
     // stand-in. Every other state composes them, matching the content layer — the error handler
     // lives in this slot, so gating on Ready would swallow anything raised during initialization.
-    if (info.lifecycleState !is Workspace.LifecycleState.Dormant) {
+    if (info.lifecycleState !is Workspace.LifecycleState.Paused) {
         LocalWorkspacePageHosts.current[info.type]?.let { entry ->
             CompositionLocalProvider(LocalPaneLayerRank provides overlayRank) {
                 entry.Overlays(id = info.id, design = design)
@@ -172,7 +172,7 @@ private fun BoxScope.WorkspaceLayers(
         }
     }
 
-    // Deliberately outside the lifecycle gate: a close confirmation for a dormant workspace must
+    // Deliberately outside the lifecycle gate: a close confirmation for a paused workspace must
     // still appear.
     managerDialogStates[info.id]?.let { dialog ->
         PaneLayer(modifier = Modifier.fillMaxSize(), rank = managerRank) {

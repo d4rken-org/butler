@@ -30,8 +30,8 @@ sealed interface WorkspaceScreenAction {
         val customTitle: String?,
     ) : WorkspaceScreenAction
 
-    /** Loads a workspace that was restored on demand and is still dormant. Does not change focus. */
-    data class RestoreDormant(
+    /** Resumes a paused workspace, bringing back its live instance. Does not change focus. */
+    data class ResumeWorkspace(
         val id: Workspace.Id,
     ) : WorkspaceScreenAction
 

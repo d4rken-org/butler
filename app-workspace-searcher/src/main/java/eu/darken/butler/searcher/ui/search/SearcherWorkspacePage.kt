@@ -10,9 +10,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,6 +36,7 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
+import eu.darken.butler.common.compose.OnValueChange
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.keyboard.KeyboardShortcut
@@ -64,6 +63,7 @@ import eu.darken.butler.searcher.ui.search.util.SearcherPageAction
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.actions.WorkspaceActionBar
 import eu.darken.butler.workspace.ui.clipboard.bar.ClipboardBar
+import eu.darken.butler.workspace.ui.common.WorkspacePaddings
 import eu.darken.butler.workspace.ui.error.ErrorCard
 import eu.darken.butler.workspace.ui.floatingbar.BarAnimation
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
@@ -79,6 +79,8 @@ import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
 import eu.darken.butler.workspace.ui.operations.bar.OperationsBar
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.preview.ProvideFolderPreviews
+import eu.darken.butler.workspace.ui.scroll.rememberWorkspaceLazyGridState
+import eu.darken.butler.workspace.ui.scroll.rememberWorkspaceLazyListState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.Flow
@@ -106,6 +108,7 @@ fun SearcherWorkspacePage(
     // Setup and remember blocks at top level
     val topBarStackState = rememberPaneFloatingBarStackState(
         position = BarPosition.TOP,
+        workspaceId = workspaceId,
         defaultSpacing = 8.dp,
         edgePadding = 8.dp,
         contentPadding = 8.dp,
@@ -114,13 +117,17 @@ fun SearcherWorkspacePage(
     )
     val bottomBarStackState = rememberPaneFloatingBarStackState(
         position = BarPosition.BOTTOM,
+        workspaceId = workspaceId,
         defaultSpacing = 8.dp,
         edgePadding = 8.dp,
         contentPadding = 16.dp,
         design = design,
         estimatedContentPadding = 80.dp,
     )
-    val listState = rememberLazyListState()
+    val listState = rememberWorkspaceLazyListState(workspaceId, slot = SearcherScrollSlots.RESULTS_LIST)
+    // Hoisted so the search-start reset covers list and grid in one guarded effect
+    val gridState = rememberWorkspaceLazyGridState(workspaceId, slot = SearcherScrollSlots.RESULTS_GRID)
+    val idleListState = rememberWorkspaceLazyListState(workspaceId, slot = SearcherScrollSlots.IDLE_LIST)
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val shortcutsFocusRequester = remember { FocusRequester() }
@@ -162,29 +169,36 @@ fun SearcherWorkspacePage(
         }
     }
 
-    // Auto-scroll to top when sort settings change
+    // Auto-scroll to top when sort settings change. Only a change between two known sort settings
+    // counts - the first Ready state merely reveals them.
     val sortSettings = (mainState as? SearcherWorkspaceViewModel.State.Ready)?.sortSettings
-    LaunchedEffect(sortSettings) {
-        if (sortSettings != null) {
-            listState.animateScrollToItem(0)
-        }
+    OnValueChange(sortSettings) { previous, current ->
+        if (previous == null || current == null) return@OnValueChange
+        listState.animateScrollToItem(0)
     }
 
-    // Auto-scroll to top when a new search starts
+    // Auto-scroll to top when a new search starts. Guarded on the transition, not on the value:
+    // an unguarded effect resets to top on every recomposition that happens while a search runs,
+    // which is exactly what a pane move or a rotation does.
     val searchStatus = (mainState as? SearcherWorkspaceViewModel.State.Ready)?.workspaceState?.searchStatus
-    LaunchedEffect(searchStatus) {
-        if (searchStatus == SearcherWorkspace.State.SearchStatus.SEARCHING) {
-            listState.scrollToItem(0)
+    OnValueChange(searchStatus) { previous, current ->
+        if (previous == null || current != SearcherWorkspace.State.SearchStatus.SEARCHING) {
+            return@OnValueChange
         }
+        listState.scrollToItem(0)
+        gridState.scrollToItem(0)
     }
 
     // A new search means fresh content underneath the bars; reset scroll-collapse so bars don't
-    // stay hidden over content the user hasn't scrolled yet.
-    LaunchedEffect(searchStatus) {
-        if (searchStatus == SearcherWorkspace.State.SearchStatus.SEARCHING) {
-            topBarStackState.resetScrollCollapse()
-            bottomBarStackState.resetScrollCollapse()
+    // stay hidden over content the user hasn't scrolled yet. Guarded on the transition like the
+    // scroll reset above: unguarded it re-fires on every recomposition during a running search and
+    // would undo the collapse state this workspace just restored.
+    OnValueChange(searchStatus) { previous, current ->
+        if (previous == null || current != SearcherWorkspace.State.SearchStatus.SEARCHING) {
+            return@OnValueChange
         }
+        topBarStackState.resetScrollCollapse()
+        bottomBarStackState.resetScrollCollapse()
     }
 
     // Derived states for stable recomposition - at top level for immediate reactivity
@@ -308,8 +322,6 @@ fun SearcherWorkspacePage(
                 }
             }
     ) {
-        val gridState = rememberLazyGridState()
-
         // Folder previews load only once scrolling has settled ~120ms. Asymmetric on purpose —
         // false immediately on scroll start, so no new preview work begins during the gesture.
         val previewsSettled = remember { mutableStateOf(true) }
@@ -324,17 +336,10 @@ fun SearcherWorkspacePage(
             }
         }
 
-        // Auto-scroll grid to top when a new search starts
-        LaunchedEffect(currentState.workspaceState.searchStatus) {
-            if (currentState.workspaceState.searchStatus == SearcherWorkspace.State.SearchStatus.SEARCHING) {
-                gridState.scrollToItem(0)
-            }
-        }
-
         // Content padding - automatically calculated by FloatingBarStack
         val contentPaddingValues = PaddingValues(
-            start = 16.dp,
-            end = 16.dp,
+            start = WorkspacePaddings.ContentHorizontal,
+            end = WorkspacePaddings.ContentHorizontal,
             top = topBarStackState.contentPaddingDp(),
             bottom = bottomBarStackState.contentPaddingDp(),
         )
@@ -348,7 +353,7 @@ fun SearcherWorkspacePage(
         when {
             // Idle state - show templates card and optionally history
             showIdleState -> LazyColumn(
-                state = listState,
+                state = idleListState,
                 modifier = Modifier
                     .fillMaxSize()
                     .nestedScroll(topBarStackState.nestedScrollConnection)
@@ -586,10 +591,10 @@ fun SearcherWorkspacePage(
             bars = {
                 // Toolbar - closest to top edge, collapses on scroll
                 FloatingBar(
+                    key = SearcherBarKeys.TOOLBAR,
                     visible = true,
                     scrollBehavior = BarScrollBehavior.CollapseOnScroll(),
                     animation = BarAnimation.Slide(),
-                    modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
                     SearchToolbarCard(
                         workspaceId = workspaceId,
@@ -602,10 +607,10 @@ fun SearcherWorkspacePage(
 
                 // Progress card - vanishes on scroll
                 FloatingBar(
+                    key = SearcherBarKeys.PROGRESS,
                     visible = showProgressCard,
                     scrollBehavior = BarScrollBehavior.VanishOnScroll,
                     animation = BarAnimation.Slide(),
-                    modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
                     SearchProgressCard(
                         targetProgress = currentState.workspaceState.targetProgress,
@@ -624,10 +629,10 @@ fun SearcherWorkspacePage(
 
                 // Info bar - static (stays visible when results or selection)
                 FloatingBar(
+                    key = SearcherBarKeys.INFOBAR,
                     visible = showInfoBar,
                     scrollBehavior = BarScrollBehavior.Static,
                     animation = BarAnimation.Slide(),
-                    modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
                     SearcherInfoBar(
                         foldersCount = foldersCount,
@@ -659,10 +664,10 @@ fun SearcherWorkspacePage(
                 // Operations bar - furthest from bottom edge
                 // Static when active operations, VanishOnScroll when only completed
                 FloatingBar(
+                    key = SearcherBarKeys.OPERATIONS,
                     visible = hasOperations,
                     scrollBehavior = if (hasActiveOperations) BarScrollBehavior.Static else BarScrollBehavior.VanishOnScroll,
                     animation = BarAnimation.Slide(),
-                    modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
                     OperationsBar(
                         operations = operationsState.operations,
@@ -686,10 +691,10 @@ fun SearcherWorkspacePage(
 
                 // Clipboard bar - middle, vanishes on scroll with bouncy animation
                 FloatingBar(
+                    key = SearcherBarKeys.CLIPBOARD,
                     visible = hasClipboard,
                     scrollBehavior = BarScrollBehavior.VanishOnScroll,
                     animation = BarAnimation.Bouncy,
-                    modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
                     ClipboardBar(
                         workspaceType = Workspace.Type.SEARCHER,
@@ -703,10 +708,10 @@ fun SearcherWorkspacePage(
 
                 // Action bar - closest to bottom edge, hides on scroll
                 FloatingBar(
+                    key = SearcherBarKeys.ACTIONS,
                     visible = hasActions,
                     scrollBehavior = BarScrollBehavior.HideOnScroll,
                     animation = BarAnimation.Slide(),
-                    modifier = Modifier.padding(horizontal = 16.dp),
                     revealOn = currentState.selectionState.selectedResultIds,
                 ) {
                     WorkspaceActionBar(

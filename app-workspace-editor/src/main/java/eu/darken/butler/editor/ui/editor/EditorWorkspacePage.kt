@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -165,10 +164,10 @@ fun EditorWorkspacePage(
             state = topBarStackState,
             bars = {
                 FloatingBar(
+                    key = "toolbar",
                     scrollBehavior = BarScrollBehavior.CollapseOnScroll(),
                     estimatedHeight = 80.dp,
                     animation = BarAnimation.Slide(),
-                    modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
                     EditorToolbarCard(
                         workspaceId = workspaceId,
@@ -187,10 +186,10 @@ fun EditorWorkspacePage(
                     )
                 }
                 FloatingBar(
+                    key = "infobar",
                     scrollBehavior = BarScrollBehavior.VanishOnScroll,
                     estimatedHeight = 24.dp,
                     animation = BarAnimation.Slide(),
-                    modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
                     EditorInfoBar(
                         fileSize = state.fileSize,
@@ -213,12 +212,12 @@ fun EditorWorkspacePage(
                 }
                 // Notices persist during scroll (Static) until dismissed; single stable bar, see EditorBannerGroup
                 FloatingBar(
+                    key = "banners",
                     visible = state.isBackingLost || state.error != null || state.showExternalChangeBanner ||
                         state.showBackupNotice || state.isBinary || state.showLongLinesNotice,
                     scrollBehavior = BarScrollBehavior.Static,
                     estimatedHeight = 56.dp,
                     animation = BarAnimation.Slide(),
-                    modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
                     EditorBannerGroup(
                         modifier = Modifier.heightIn(max = bannerMaxHeight),
@@ -251,10 +250,10 @@ fun EditorWorkspacePage(
             state = bottomBarStackState,
             bars = {
                 FloatingBar(
+                    key = "search",
                     visible = state.isSearchBarVisible,
                     scrollBehavior = BarScrollBehavior.HideOnScroll,
                     animation = BarAnimation.Slide(),
-                    modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
                     EditorSearchBar(
                         searchQuery = state.searchQueryInput,
@@ -282,10 +281,10 @@ fun EditorWorkspacePage(
                     )
                 }
                 FloatingBar(
+                    key = "clipboard",
                     visible = hasClipboard,
                     scrollBehavior = BarScrollBehavior.VanishOnScroll,
                     animation = BarAnimation.Bouncy,
-                    modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
                     ClipboardBar(
                         workspaceType = Workspace.Type.EDITOR,
@@ -297,10 +296,10 @@ fun EditorWorkspacePage(
                     )
                 }
                 FloatingBar(
+                    key = "actions",
                     visible = hasActions,
                     scrollBehavior = BarScrollBehavior.HideOnScroll,
                     animation = BarAnimation.Slide(),
-                    modifier = Modifier.padding(horizontal = 16.dp),
                     revealOn = state.selectionRange,
                 ) {
                     EditorActionBar(

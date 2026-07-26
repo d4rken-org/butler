@@ -9,13 +9,11 @@
     <string name="searcher_settings_history">Search history</string>
     <string name="searcher_settings_save_history_title">Save search history</string>
     <string name="searcher_settings_save_history_subtitle">Remember previous searches</string>
-    <string name="searcher_settings_current_history_title">Current history entries</string>
-    <string name="searcher_settings_current_history_subtitle">Number of searches currently saved</string>
     <string name="searcher_settings_max_history_label">Maximum history entries</string>
     <string name="searcher_settings_max_history_subtitle">Maximum number of saved searches</string>
     <string name="searcher_settings_max_history_input_label">Number of entries (1–500)</string>
     <string name="searcher_settings_clear_history_title">Clear search history</string>
-    <string name="searcher_settings_clear_history_subtitle">Remove all saved searches</string>
+    <string name="searcher_settings_clear_history_subtitle">Remove all saved searches (%1$d)</string>
     <string name="searcher_settings_search_performance">Performance</string>
     <string name="searcher_settings_max_results_title">Maximum search results</string>
     <string name="searcher_settings_max_results_subtitle">Limit the number of results returned per search.</string>

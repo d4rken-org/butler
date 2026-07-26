@@ -1,6 +1,5 @@
 package eu.darken.butler.apps.ui.details
 
-import android.content.pm.ActivityInfo
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,17 +11,22 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -32,7 +36,14 @@ import eu.darken.butler.apps.core.AppPath
 import eu.darken.butler.apps.core.details.AppDetailsWorkspace
 import eu.darken.butler.apps.core.details.AppDetailsWorkspaceViewModel
 import eu.darken.butler.apps.core.details.AppInfo
+import eu.darken.butler.apps.core.details.components.ComponentEntry
+import eu.darken.butler.apps.core.details.components.ComponentsData
+import eu.darken.butler.apps.core.details.components.ComponentsUiState
+import eu.darken.butler.apps.core.details.components.filter
 import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
+import eu.darken.butler.apps.ui.details.components.ComponentsSummary
+import eu.darken.butler.apps.ui.details.components.appComponentsItems
+import eu.darken.butler.apps.ui.details.components.previewComponentsData
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
@@ -44,6 +55,7 @@ import androidx.compose.runtime.collectAsState
 import eu.darken.butler.workspace.contracts.apps.DetailTab
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.floatingbar.BarAnimation
+import eu.darken.butler.workspace.ui.common.WorkspacePaddings
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
@@ -52,6 +64,7 @@ import eu.darken.butler.workspace.ui.insets.paneInsets
 import eu.darken.butler.workspace.ui.insets.rememberPaneFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
+import eu.darken.butler.workspace.ui.scroll.rememberWorkspaceLazyListState
 
 sealed interface AppDetailsPageAction {
     data object Close : AppDetailsPageAction
@@ -63,7 +76,7 @@ sealed interface AppDetailsPageAction {
     data class Uninstall(val app: AppInfo) : AppDetailsPageAction
     data class ExportApk(val app: AppInfo) : AppDetailsPageAction
     data class ShareApk(val app: AppInfo) : AppDetailsPageAction
-    data class LaunchActivity(val activity: ActivityInfo) : AppDetailsPageAction
+    data class SelectComponent(val entry: ComponentEntry) : AppDetailsPageAction
     data class ForceStop(val app: AppInfo) : AppDetailsPageAction
     data class ClearCache(val app: AppInfo) : AppDetailsPageAction
     data class ClearData(val app: AppInfo) : AppDetailsPageAction
@@ -83,11 +96,13 @@ fun AppDetailsWorkspacePageHost(
     NavigationEventHandler(vm)
 
     val state by vm.state.collectAsState(initial = null)
+    val componentsState by vm.componentsState.collectAsState(initial = ComponentsUiState.Loading)
 
     state?.let { currentState ->
         AppDetailsWorkspacePage(
             design = design,
             state = currentState,
+            componentsState = componentsState,
             workspaceId = id,
             onPageAction = { action ->
                 when (action) {
@@ -100,7 +115,7 @@ fun AppDetailsWorkspacePageHost(
                     is AppDetailsPageAction.Uninstall -> vm.onUninstall(action.app)
                     is AppDetailsPageAction.ExportApk -> vm.onExportApk(action.app)
                     is AppDetailsPageAction.ShareApk -> vm.onShareApk(action.app)
-                    is AppDetailsPageAction.LaunchActivity -> vm.onLaunchActivity(action.activity)
+                    is AppDetailsPageAction.SelectComponent -> vm.onComponentSelected(action.entry)
                     is AppDetailsPageAction.ForceStop -> vm.onForceStop(action.app)
                     is AppDetailsPageAction.ClearCache -> vm.onClearCache(action.app)
                     is AppDetailsPageAction.ClearData -> vm.onClearData(action.app)
@@ -115,6 +130,7 @@ fun AppDetailsWorkspacePage(
     modifier: Modifier = Modifier,
     design: WorkspaceDesign,
     state: AppDetailsWorkspace.State,
+    componentsState: ComponentsUiState = ComponentsUiState.Loading,
     workspaceId: Workspace.Id? = null,
     onPageAction: (AppDetailsPageAction) -> Unit = {},
 ) {
@@ -129,22 +145,43 @@ fun AppDetailsWorkspacePage(
         DetailTab.PACKAGE_INFO -> false
     }
 
-    // Single back handler: the Components sub-screen returns to Overview; an Overview shown as a
-    // modal closes the workspace. Sub-screen selection is transient and not persisted across restore.
-    WorkspaceBackHandler(enabled = showComponents || isModal) {
-        if (showComponents) {
-            onPageAction(AppDetailsPageAction.NavigateToTab(DetailTab.OVERVIEW))
-        } else {
-            onPageAction(AppDetailsPageAction.Close)
+    // Search is page-local: the toolbar lives in this slot, and the query is transient state that
+    // must not survive leaving the route.
+    var searchActive by rememberSaveable { mutableStateOf(false) }
+    var searchQuery by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue()) }
+
+    LaunchedEffect(showComponents) {
+        if (!showComponents) {
+            searchActive = false
+            searchQuery = TextFieldValue()
         }
     }
 
-    // Component data loaded off the main thread, keyed by package + version; shared by the summary
-    // card and the dedicated screen so the query runs at most once per (package, version).
-    val componentsState = appInfo?.let { rememberComponentsUiState(it) } ?: ComponentsUiState.Loading
+    // One normalized query drives filtering, highlighting and the no-matches message, so they can
+    // never disagree.
+    val query = searchQuery.text.trim()
+    val filteredComponents = remember(componentsState, query) {
+        (componentsState as? ComponentsUiState.Ready)?.data?.filter(query) ?: ComponentsData()
+    }
+
+    // Single back handler: search closes first, then the Components sub-screen returns to Overview,
+    // then an Overview shown as a modal closes the workspace. Deliberately unaware of the component
+    // sheet — that sheet owns a pane layer of its own, which disables this handler while it is up.
+    WorkspaceBackHandler(enabled = showComponents || isModal) {
+        when {
+            searchActive -> {
+                searchActive = false
+                searchQuery = TextFieldValue()
+            }
+
+            showComponents -> onPageAction(AppDetailsPageAction.NavigateToTab(DetailTab.OVERVIEW))
+            else -> onPageAction(AppDetailsPageAction.Close)
+        }
+    }
 
     val topBarStackState = rememberPaneFloatingBarStackState(
         position = BarPosition.TOP,
+        workspaceId = workspaceId,
         defaultSpacing = 8.dp,
         edgePadding = 8.dp,
         contentPadding = 8.dp,
@@ -154,9 +191,8 @@ fun AppDetailsWorkspacePage(
     val paneInsets = design.paneInsets()
     val navBarInset = paneInsets.bottom
 
-    // Separate scroll states per route so Overview position survives the round-trip to Components.
-    val overviewListState = rememberLazyListState()
-    val componentsListState = rememberLazyListState()
+    val overviewListState = rememberWorkspaceLazyListState(workspaceId, slot = AppDetailsScrollSlots.OVERVIEW)
+    val componentsListState = rememberWorkspaceLazyListState(workspaceId, slot = AppDetailsScrollSlots.COMPONENTS)
 
     Box(
         modifier = modifier
@@ -171,8 +207,8 @@ fun AppDetailsWorkspacePage(
             contentPadding = PaddingValues(
                 top = topBarStackState.contentPaddingDp(),
                 bottom = navBarInset + 16.dp,
-                start = 12.dp,
-                end = 12.dp,
+                start = WorkspacePaddings.ContentHorizontal,
+                end = WorkspacePaddings.ContentHorizontal,
             ),
             // Cards on the overview are spaced apart; the flat component list stays dense.
             verticalArrangement = Arrangement.spacedBy(if (showComponents) 0.dp else 8.dp),
@@ -181,7 +217,9 @@ fun AppDetailsWorkspacePage(
                 if (showComponents) {
                     appComponentsItems(
                         state = componentsState,
-                        onLaunchActivity = { onPageAction(AppDetailsPageAction.LaunchActivity(it)) },
+                        filtered = filteredComponents,
+                        query = query,
+                        onComponentClick = { onPageAction(AppDetailsPageAction.SelectComponent(it)) },
                     )
                 } else {
                     overviewItems(
@@ -200,22 +238,32 @@ fun AppDetailsWorkspacePage(
             modifier = Modifier.align(Alignment.TopCenter),
             bars = {
                 FloatingBar(
+                    key = AppDetailsBarKeys.TOOLBAR,
                     visible = true,
                     scrollBehavior = BarScrollBehavior.CollapseOnScroll(),
                     animation = BarAnimation.Slide(),
                     // Re-reveal the toolbar when switching routes so it isn't stuck collapsed.
                     revealOn = showComponents,
-                    modifier = Modifier.padding(horizontal = 8.dp),
                 ) {
                     if (showComponents) {
                         AppDetailsToolbarCard(
                             app = state.app,
                             design = design,
                             collapsedFraction = collapsedFraction,
-                            title = stringResource(R.string.apps_details_section_components),
+                            subtitle = stringResource(R.string.apps_details_section_components),
                             onBackClick = { onPageAction(AppDetailsPageAction.NavigateToTab(DetailTab.OVERVIEW)) },
                             backContentDescription = stringResource(R.string.appdetails_back_generic_action),
                             currentWorkspaceId = workspaceId,
+                            searchActive = searchActive,
+                            searchQuery = searchQuery,
+                            searchHint = stringResource(R.string.apps_components_search_hint),
+                            onSearchQueryChange = { searchQuery = it },
+                            onSearchToggle = {
+                                searchActive = !searchActive
+                                if (!searchActive) {
+                                    searchQuery = TextFieldValue()
+                                }
+                            },
                         )
                     } else {
                         AppDetailsToolbarCard(
@@ -328,6 +376,22 @@ private fun DetailSectionCard(
             }
         }
     }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun AppDetailsWorkspacePageComponentsPreview() {
+    AppDetailsWorkspacePage(
+        design = WorkspaceDesign(),
+        state = AppDetailsWorkspace.State(
+            app = AppsMockDataProvider.Presets.chrome,
+            selectedTab = DetailTab.COMPONENTS,
+        ),
+        componentsState = ComponentsUiState.Ready(previewComponentsData),
+        workspaceId = Workspace.Id(),
+        onPageAction = {},
+    )
 }
 
 @Preview2

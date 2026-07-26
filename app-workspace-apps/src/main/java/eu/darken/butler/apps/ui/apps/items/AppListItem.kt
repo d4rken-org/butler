@@ -50,7 +50,6 @@ fun AppListItem(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp)
             .clip(RoundedCornerShape(8.dp))
             .background(
                 if (isSelected) {
@@ -78,10 +77,13 @@ fun AppListItem(
                 )
             } else {
                 if (item.icon != null) {
+                    val fallbackPainter = rememberAppIconFallbackPainter()
                     AsyncImage(
-                        model = item.icon.get(context),
+                        model = item.pkg,
                         contentDescription = null,
                         modifier = Modifier.size(40.dp),
+                        placeholder = fallbackPainter,
+                        error = fallbackPainter,
                     )
                 } else {
                     Icon(

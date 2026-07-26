@@ -12,7 +12,6 @@ import androidx.compose.runtime.setValue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlin.uuid.Uuid
 
 /**
  * State holder for an individual floating bar within a [FloatingBarStack].
@@ -21,7 +20,8 @@ import kotlin.uuid.Uuid
  */
 @Stable
 class FloatingBarState(
-    val id: String = Uuid.random().toString(),
+    /** Stable within its stack and across compositions, so collapse state can be carried over. */
+    val id: String,
     scrollBehavior: BarScrollBehavior = BarScrollBehavior.Static,
     val animation: BarAnimation = BarAnimation.Slide(),
     initialVisible: Boolean = true,
@@ -172,8 +172,16 @@ class FloatingBarState(
 
     /**
      * Triggers animated scroll collapse in the given scope.
+     *
+     * Idempotent: a continuous gesture emits a scroll event per frame, and re-launching the
+     * animation for a target it is already heading to allocates a coroutine and cancels/restarts
+     * the in-flight spring, so it could never settle. Targets are always exactly 0f or 1f, and an
+     * idle animatable reports `targetValue == value`, so an already-collapsed bar is skipped while
+     * a direction reversal still starts a new animation.
      */
     fun triggerScrollCollapse(scope: CoroutineScope, targetFraction: Float) {
+        if (scrollCollapseAnimatable.targetValue == targetFraction) return
+
         scope.launch {
             scrollCollapseAnimatable.animateTo(
                 targetValue = targetFraction,

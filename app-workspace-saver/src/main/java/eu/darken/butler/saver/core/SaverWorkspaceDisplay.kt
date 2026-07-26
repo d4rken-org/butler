@@ -27,7 +27,7 @@ fun deriveSaverDisplay(arguments: SaverArguments): WorkspaceDisplay? {
  * Where the files are going, else who sent them.
  *
  * The ONE rule for that line, fed the CURRENT destination by the live tab and the persisted one by
- * the dormant stand-in - the destination changes while the tab is open, so a live tab that fell
+ * the paused stand-in - the destination changes while the tab is open, so a live tab that fell
  * back to its creation-time destination would disagree with its own session save.
  */
 fun saverLocationSubtitle(destinationPath: APath<*>?, callerPackage: Pkg.Id?): CaString? =

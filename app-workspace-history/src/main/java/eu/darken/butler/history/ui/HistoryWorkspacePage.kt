@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -40,6 +39,7 @@ import eu.darken.butler.workspace.core.operations.history.HistoryEntry
 import eu.darken.butler.workspace.core.operations.history.HistoryFilter
 import eu.darken.butler.workspace.core.operations.history.HistoryOutcome
 import eu.darken.butler.workspace.ui.floatingbar.BarAnimation
+import eu.darken.butler.workspace.ui.common.WorkspacePaddings
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
@@ -47,6 +47,7 @@ import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
 import eu.darken.butler.workspace.ui.insets.paneInsets
 import eu.darken.butler.workspace.ui.insets.rememberPaneFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.scroll.rememberWorkspaceLazyListState
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
@@ -96,6 +97,7 @@ fun HistoryWorkspacePage(
 
     val topBarStackState = rememberPaneFloatingBarStackState(
         position = BarPosition.TOP,
+        workspaceId = workspaceId,
         defaultSpacing = 8.dp,
         edgePadding = 8.dp,
         contentPadding = 8.dp,
@@ -103,7 +105,7 @@ fun HistoryWorkspacePage(
         estimatedContentPadding = 192.dp,
     )
 
-    val listState = rememberLazyListState()
+    val listState = rememberWorkspaceLazyListState(workspaceId, slot = HistoryScrollSlots.LIST)
 
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
@@ -112,8 +114,8 @@ fun HistoryWorkspacePage(
                 .fillMaxSize()
                 .nestedScroll(topBarStackState.nestedScrollConnection),
             contentPadding = PaddingValues(
-                start = 12.dp,
-                end = 12.dp,
+                start = WorkspacePaddings.ContentHorizontal,
+                end = WorkspacePaddings.ContentHorizontal,
                 top = topBarStackState.contentPaddingDp(),
                 bottom = navBarInset + 16.dp,
             ),
@@ -145,10 +147,10 @@ fun HistoryWorkspacePage(
             modifier = Modifier.align(Alignment.TopCenter),
             bars = {
                 FloatingBar(
+                    key = HistoryBarKeys.TOOLBAR,
                     visible = true,
                     scrollBehavior = BarScrollBehavior.CollapseOnScroll(),
                     animation = BarAnimation.Slide(),
-                    modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
                     HistoryToolbarCard(
                         workspaceId = workspaceId,

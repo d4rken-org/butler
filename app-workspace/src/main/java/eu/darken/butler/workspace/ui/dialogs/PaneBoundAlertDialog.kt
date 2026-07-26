@@ -85,6 +85,9 @@ object PaneBoundAlertDialogDefaults {
  *
  * @param includeImePadding pad the dialog above the soft keyboard. Enable for dialogs containing an
  *        editable text field; when `false` the dialog dismisses the keyboard as it appears.
+ * @param neutralButton action placed at the *start* of the action row, away from confirm/dismiss.
+ *        Material's `AlertDialog` has no equivalent slot — this is a deliberate divergence, not an
+ *        oversight, and the reason a caller that needs a third action has to be pane-bound.
  */
 @Composable
 fun PaneBoundAlertDialog(
@@ -92,6 +95,7 @@ fun PaneBoundAlertDialog(
     confirmButton: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     dismissButton: @Composable (() -> Unit)? = null,
+    neutralButton: @Composable (() -> Unit)? = null,
     icon: @Composable (() -> Unit)? = null,
     title: @Composable (() -> Unit)? = null,
     text: @Composable (() -> Unit)? = null,
@@ -227,6 +231,7 @@ fun PaneBoundAlertDialog(
                                 .padding(top = 16.dp),
                             dismissButton = dismissButton,
                             confirmButton = confirmButton,
+                            neutralButton = neutralButton,
                         )
                     }
                 }
@@ -241,18 +246,31 @@ fun PaneBoundAlertDialog(
  * in a right-to-left layout direction.
  *
  * `FlowRow` cannot express that — it fills rows in declaration order, so the wrapped order is
- * always the reverse of what Material does. With at most two actions the layout is trivial enough
- * to do directly.
+ * always the reverse of what Material does. With this few actions the layout is trivial enough to
+ * do directly.
  *
- * Either slot may emit nothing — a caller can pass an empty `confirmButton` lambda for a dialog
- * whose only action is dismissal, or a selection dialog that dismisses on pick and has no actions
- * at all. A slot that emits no measurable is treated exactly like a missing one.
+ * An optional neutral action hugs the *start* edge while confirm and dismiss stay at the end. That
+ * shape has no Material counterpart, so the two-action case below is kept as its own branch: the
+ * four existing callers keep their own measure and placement arithmetic instead of relying on a
+ * more general algorithm happening to collapse back onto the same numbers.
+ *
+ * Any slot may emit nothing — a caller can pass an empty `confirmButton` lambda for a dialog whose
+ * only action is dismissal, or a selection dialog that dismisses on pick and has no actions at all.
+ * A slot that emits no measurable is treated exactly like a missing one.
+ *
+ * ### Placement order is focus order
+ * One-dimensional focus traversal sorts siblings by `LayoutNode.placeOrder`, not by composition
+ * order, so the `placeRelative` calls in every branch below are written in the order the row reads
+ * on screen and must not be reshuffled for readability — that is what keyboard Tab follows.
+ * Placement order is also draw order, which is harmless here: two actions share a row only when
+ * they fit into it, so they never overlap.
  */
 @Composable
 private fun DialogActionRow(
     dismissButton: (@Composable () -> Unit)?,
     confirmButton: @Composable () -> Unit,
     modifier: Modifier = Modifier,
+    neutralButton: (@Composable () -> Unit)? = null,
     spacing: Dp = 8.dp,
 ) {
     Layout(
@@ -260,47 +278,125 @@ private fun DialogActionRow(
         contents = listOf(
             { if (dismissButton != null) dismissButton() },
             confirmButton,
+            { if (neutralButton != null) neutralButton() },
         ),
-    ) { (dismissMeasurables, confirmMeasurables), constraints ->
+    ) { (dismissMeasurables, confirmMeasurables, neutralMeasurables), constraints ->
         val spacingPx = spacing.roundToPx()
         val childConstraints = constraints.copy(minWidth = 0, minHeight = 0)
         val dismiss = dismissMeasurables.firstOrNull()?.measure(childConstraints)
         val confirm = confirmMeasurables.firstOrNull()?.measure(childConstraints)
+        val neutral = neutralMeasurables.firstOrNull()?.measure(childConstraints)
 
         val width = constraints.maxWidth
-        val sideBySide = dismiss == null || confirm == null ||
-            dismiss.width + spacingPx + confirm.width <= width
-        val height = when {
-            dismiss == null && confirm == null -> 0
-            dismiss == null -> confirm!!.height
-            confirm == null -> dismiss.height
-            sideBySide -> maxOf(dismiss.height, confirm.height)
-            else -> confirm.height + spacingPx + dismiss.height
-        }
 
         // placeRelative, never place: x is measured from the layout's *start* edge, so the actions
         // mirror to the left in a right-to-left locale instead of being pinned to the physical
         // right. Arabic ships as a supported locale, so this is a real configuration.
-        layout(width, height) {
-            when {
-                // A lone action keeps the same logical-end alignment it would have had beside a
-                // sibling, so a one-action dialog does not suddenly look centered or start-aligned.
-                confirm == null -> dismiss?.placeRelative(
-                    x = width - dismiss.width,
-                    y = (height - dismiss.height) / 2,
-                )
+        if (confirm == null) {
+            // Whatever is left keeps the alignment it would have had beside a confirm action, so a
+            // dismiss-only dialog does not suddenly look centered or start-aligned.
+            val singleRow = neutral == null || dismiss == null ||
+                neutral.width + spacingPx + dismiss.width <= width
+            val height = when {
+                neutral == null && dismiss == null -> 0
+                neutral == null -> dismiss!!.height
+                dismiss == null -> neutral.height
+                singleRow -> maxOf(neutral.height, dismiss.height)
+                else -> dismiss.height + spacingPx + neutral.height
+            }
 
-                sideBySide -> {
-                    confirm.placeRelative(x = width - confirm.width, y = (height - confirm.height) / 2)
+            layout(width, height) {
+                if (singleRow) {
+                    if (neutral != null) {
+                        neutral.placeRelative(x = 0, y = (height - neutral.height) / 2)
+                    }
+                    if (dismiss != null) {
+                        dismiss.placeRelative(x = width - dismiss.width, y = (height - dismiss.height) / 2)
+                    }
+                } else {
+                    dismiss!!.placeRelative(x = width - dismiss.width, y = 0)
+                    neutral!!.placeRelative(x = 0, y = dismiss.height + spacingPx)
+                }
+            }
+        } else if (neutral == null) {
+            val sideBySide = dismiss == null || dismiss.width + spacingPx + confirm.width <= width
+            val height = when {
+                dismiss == null -> confirm.height
+                sideBySide -> maxOf(dismiss.height, confirm.height)
+                else -> confirm.height + spacingPx + dismiss.height
+            }
+
+            layout(width, height) {
+                if (sideBySide) {
                     dismiss?.placeRelative(
                         x = width - confirm.width - spacingPx - dismiss.width,
                         y = (height - dismiss.height) / 2,
                     )
-                }
-
-                else -> {
+                    confirm.placeRelative(x = width - confirm.width, y = (height - confirm.height) / 2)
+                } else {
                     confirm.placeRelative(x = width - confirm.width, y = 0)
                     dismiss!!.placeRelative(x = width - dismiss.width, y = confirm.height + spacingPx)
+                }
+            }
+        } else if (dismiss == null) {
+            val singleRow = neutral.width + spacingPx + confirm.width <= width
+            val height = when {
+                singleRow -> maxOf(neutral.height, confirm.height)
+                else -> confirm.height + spacingPx + neutral.height
+            }
+
+            layout(width, height) {
+                if (singleRow) {
+                    neutral.placeRelative(x = 0, y = (height - neutral.height) / 2)
+                    confirm.placeRelative(x = width - confirm.width, y = (height - confirm.height) / 2)
+                } else {
+                    confirm.placeRelative(x = width - confirm.width, y = 0)
+                    neutral.placeRelative(x = 0, y = confirm.height + spacingPx)
+                }
+            }
+        } else {
+            val endRowWidth = dismiss.width + spacingPx + confirm.width
+            val singleRow = neutral.width + spacingPx + endRowWidth <= width
+            val endRowFits = endRowWidth <= width
+            val height = when {
+                singleRow -> maxOf(neutral.height, maxOf(dismiss.height, confirm.height))
+                // Dismiss and confirm still share a row, the neutral action drops below them
+                endRowFits -> maxOf(dismiss.height, confirm.height) + spacingPx + neutral.height
+                else -> confirm.height + spacingPx + dismiss.height + spacingPx + neutral.height
+            }
+
+            layout(width, height) {
+                when {
+                    singleRow -> {
+                        neutral.placeRelative(x = 0, y = (height - neutral.height) / 2)
+                        dismiss.placeRelative(
+                            x = width - confirm.width - spacingPx - dismiss.width,
+                            y = (height - dismiss.height) / 2,
+                        )
+                        confirm.placeRelative(x = width - confirm.width, y = (height - confirm.height) / 2)
+                    }
+
+                    endRowFits -> {
+                        val endRowHeight = maxOf(dismiss.height, confirm.height)
+                        dismiss.placeRelative(
+                            x = width - confirm.width - spacingPx - dismiss.width,
+                            y = (endRowHeight - dismiss.height) / 2,
+                        )
+                        confirm.placeRelative(
+                            x = width - confirm.width,
+                            y = (endRowHeight - confirm.height) / 2,
+                        )
+                        neutral.placeRelative(x = 0, y = endRowHeight + spacingPx)
+                    }
+
+                    else -> {
+                        confirm.placeRelative(x = width - confirm.width, y = 0)
+                        dismiss.placeRelative(x = width - dismiss.width, y = confirm.height + spacingPx)
+                        neutral.placeRelative(
+                            x = 0,
+                            y = confirm.height + spacingPx + dismiss.height + spacingPx,
+                        )
+                    }
                 }
             }
         }

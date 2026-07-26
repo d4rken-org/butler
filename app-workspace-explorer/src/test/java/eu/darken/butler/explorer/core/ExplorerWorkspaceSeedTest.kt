@@ -19,8 +19,8 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * The live workspace must seed its [Workspace.Info] from the same derivation the dormant stand-in
- * uses, otherwise a restored tab renames itself the moment it is hydrated.
+ * The live workspace must seed its [Workspace.Info] from the same derivation the paused stand-in
+ * uses, otherwise a restored tab renames itself the moment it is resumed.
  *
  * For the seed assertions the workspace scope runs on an unadvanced [StandardTestDispatcher], so
  * `info.value` is still the explicit seed and not the first emission of the eagerly shared upstream.
@@ -55,10 +55,10 @@ class ExplorerWorkspaceSeedTest {
     }
 
     /**
-     * Hydration must not rename the tab: the restored navigation target is the one the dormant
+     * Resuming must not rename the tab: the restored navigation target is the one the paused
      * title was derived from, so the live title lands on the same label.
      */
-    private suspend fun TestScope.assertHydrationKeepsTheIdentity(arguments: ExplorerArguments) {
+    private suspend fun TestScope.assertResumingKeepsTheIdentity(arguments: ExplorerArguments) {
         val derived = deriveExplorerDisplay(arguments)
         // Unconfined: the initial navigation request has been processed by the time this returns
         val workspace = testExplorerWorkspace(arguments, UnconfinedTestDispatcher(testScheduler))
@@ -72,18 +72,18 @@ class ExplorerWorkspaceSeedTest {
     }
 
     @Test
-    fun `a parked tab keeps its name after hydration`() = runTest {
-        assertHydrationKeepsTheIdentity(ExplorerArguments.Default(startTarget = ExplorerStartTarget.TRASH))
+    fun `a parked tab keeps its name after resuming`() = runTest {
+        assertResumingKeepsTheIdentity(ExplorerArguments.Default(startTarget = ExplorerStartTarget.TRASH))
     }
 
     @Test
-    fun `a parked device tab keeps its name after hydration`() = runTest {
-        assertHydrationKeepsTheIdentity(ExplorerArguments.Default(startTarget = ExplorerStartTarget.DEVICE))
+    fun `a parked device tab keeps its name after resuming`() = runTest {
+        assertResumingKeepsTheIdentity(ExplorerArguments.Default(startTarget = ExplorerStartTarget.DEVICE))
     }
 
     @Test
-    fun `a directory tab keeps its path after hydration`() = runTest {
-        assertHydrationKeepsTheIdentity(
+    fun `a directory tab keeps its path after resuming`() = runTest {
+        assertResumingKeepsTheIdentity(
             ExplorerArguments.Default(startPath = LocalPath.build("/sdcard/Download")),
         )
     }

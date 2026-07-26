@@ -29,12 +29,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -44,10 +40,12 @@ import eu.darken.butler.bugreport.ui.BugReportWorkspaceViewModel
 import eu.darken.butler.bugreport.ui.label
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.rememberClipboardCopy
 import eu.darken.butler.common.debug.bugreport.BugReport
 import eu.darken.butler.common.debug.bugreport.BugReportInfo
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.workspace.ui.floatingbar.BarAnimation
+import eu.darken.butler.workspace.ui.common.WorkspacePaddings
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
@@ -105,8 +103,8 @@ fun BugReportDetailContent(
             contentPadding = PaddingValues(
                 top = topBarStackState.contentPaddingDp(),
                 bottom = navBarInset + 16.dp,
-                start = 12.dp,
-                end = 12.dp,
+                start = WorkspacePaddings.ContentHorizontal,
+                end = WorkspacePaddings.ContentHorizontal,
             ),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
@@ -123,10 +121,10 @@ fun BugReportDetailContent(
             modifier = Modifier.align(Alignment.TopCenter),
             bars = {
                 FloatingBar(
+                    key = "toolbar",
                     visible = true,
                     scrollBehavior = BarScrollBehavior.Static,
                     animation = BarAnimation.Slide(),
-                    modifier = Modifier.padding(horizontal = 8.dp),
                 ) {
                     BugReportDetailToolbarCard(
                         title = title,
@@ -322,17 +320,13 @@ private fun MetaField(
     value: String,
     modifier: Modifier = Modifier,
 ) {
-    val clipboardManager = LocalClipboardManager.current
-    val hapticFeedback = LocalHapticFeedback.current
+    val copy = rememberClipboardCopy()
     Column(
         modifier = modifier
             .fillMaxWidth()
             .combinedClickable(
                 onClick = {},
-                onLongClick = {
-                    clipboardManager.setText(AnnotatedString(value))
-                    hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                },
+                onLongClick = { copy(value) },
             ),
         verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {

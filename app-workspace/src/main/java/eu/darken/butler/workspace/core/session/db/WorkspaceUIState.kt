@@ -2,6 +2,7 @@ package eu.darken.butler.workspace.core.session.db
 
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.serialization.WorkspaceIdSerializer
+import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPosition
 import kotlinx.serialization.Serializable
 
 /**
@@ -13,4 +14,8 @@ data class WorkspaceUIState(
     @Serializable(with = WorkspaceIdSerializer::class)
     val focusedWorkspaceId: Workspace.Id? = null,
     val paneSelections: Map<Int, @Serializable(with = WorkspaceIdSerializer::class) Workspace.Id> = emptyMap(),
+    /** Scroll slots per workspace, e.g. Explorer's per-directory list/grid positions. */
+    val scrollPositions: Map<@Serializable(with = WorkspaceIdSerializer::class) Workspace.Id, Map<String, WorkspaceScrollPosition>> = emptyMap(),
+    /** Floating bar collapse fractions per workspace: bar position (TOP/BOTTOM) -> bar key -> fraction. */
+    val barCollapse: Map<@Serializable(with = WorkspaceIdSerializer::class) Workspace.Id, Map<String, Map<String, Float>>> = emptyMap(),
 )

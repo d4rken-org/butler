@@ -31,6 +31,11 @@ abstract class FloatingBarScope {
      * - For [BarPosition.BOTTOM]: first bar is closest to bottom edge
      *
      * @param modifier Modifier for the bar container.
+     * @param key Stable identity of this bar within its stack, e.g. "toolbar". Required rather than
+     *        defaulted: it is what lets a bar's collapse state be carried across compositions, and a
+     *        forgotten key would silently degrade to "persistence quietly doesn't work here".
+     *        Must be unique within its own stack (TOP and BOTTOM are separate, so both can hold a
+     *        "toolbar"); a duplicate drops the second bar and fails loudly in debug builds.
      * @param visible Whether the bar should be visible. Animated transitions when changing.
      * @param scrollBehavior How the bar responds to scroll events.
      * @param animation Animation style for visibility changes.
@@ -43,6 +48,7 @@ abstract class FloatingBarScope {
     @Composable
     fun FloatingBar(
         modifier: Modifier = Modifier,
+        key: String,
         visible: Boolean = true,
         scrollBehavior: BarScrollBehavior = BarScrollBehavior.Static,
         animation: BarAnimation = BarAnimation.Slide(),
@@ -50,12 +56,13 @@ abstract class FloatingBarScope {
         revealOn: Any? = null,
         content: @Composable FloatingBarContentScope.() -> Unit,
     ) {
-        FloatingBarImpl(modifier, visible, scrollBehavior, animation, estimatedHeight, revealOn, content)
+        FloatingBarImpl(modifier, key, visible, scrollBehavior, animation, estimatedHeight, revealOn, content)
     }
 
     @Composable
     protected abstract fun FloatingBarImpl(
         modifier: Modifier,
+        key: String,
         visible: Boolean,
         scrollBehavior: BarScrollBehavior,
         animation: BarAnimation,

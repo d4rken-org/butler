@@ -11,6 +11,7 @@ import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
+import eu.darken.butler.workspace.core.WorkspacePauseGate
 import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.WorkspaceSettings
 import eu.darken.butler.workspace.core.defaultArguments
@@ -33,6 +34,7 @@ class WorkspaceManagerViewModel @Inject constructor(
     private val workspaceRepo: WorkspaceRepo,
     private val workspaceSettings: WorkspaceSettings,
     private val workspacePageManager: WorkspacePageManager,
+    private val workspacePauseGate: WorkspacePauseGate,
     private val workspacePreviewManager: WorkspacePreviewManager,
     workspaceTemplates: Set<@JvmSuppressWildcards WorkspaceTemplate>,
 ) : ViewModel4(dispatchers, logTag("Workspace", "Manager", "VM")) {
@@ -53,16 +55,18 @@ class WorkspaceManagerViewModel @Inject constructor(
         filterAttentionFlow,
         quickCreateItems,
     ) { repoState, showBadge, showFabLongPressHint, livePreview, pageManagerState, filterOps, filterAtt, quickCreate ->
+        val parentIds = repoState.infos.mapNotNull { it.callerWorkspaceId }.toSet()
         State(
             workspaces = repoState.infos.map { info ->
                 val panePosition = pageManagerState.selectedWorkspaces.entries
                     .find { it.value == info.id }?.key
+                val isFocused = pageManagerState.focusedWorkspaceId == info.id
                 WorkspaceItem(
                     id = info.id,
                     type = info.type,
                     title = info.displayTitle,
                     subtitle = info.subtitle,
-                    isFocused = pageManagerState.focusedWorkspaceId == info.id,
+                    isFocused = isFocused,
                     isSelected = pageManagerState.selectedWorkspaces.values.contains(info.id),
                     paneNumber = panePosition,
                     operationCount = info.operationCount,
@@ -70,6 +74,8 @@ class WorkspaceManagerViewModel @Inject constructor(
                     autoTitle = info.title,
                     customTitle = info.customTitle,
                     isSubWorkspace = info.isSubWorkspace,
+                    isPaused = info.isPaused,
+                    canPause = info.canBePausedManually(parentIds, isFocused),
                 )
             },
             useLivePreview = livePreview,
@@ -85,8 +91,44 @@ class WorkspaceManagerViewModel @Inject constructor(
         )
     }.asStateFlow()
 
+    /**
+     * Mirrors WorkspaceRepo's pause guards, relaxed for visible-but-unfocused panes: manually
+     * pausing one of those is explicit user intent, while auto-pause may not touch it. The focused
+     * workspace stays excluded - resume-on-focus would immediately undo the pause. Content-path
+     * claims are invisible here, so this stays eventually consistent - the repo can still refuse.
+     */
+    private fun Workspace.Info.canBePausedManually(
+        parentIds: Set<Workspace.Id>,
+        isFocused: Boolean,
+    ): Boolean = when {
+        isFocused -> false
+        isPaused || !isReady -> false
+        isSubWorkspace || id in parentIds -> false
+        operationCount > 0 || attentionCount > 0 -> false
+        hasUnsavedChanges || !isPausable -> false
+        else -> true
+    }
+
     fun closeWorkspace(id: Workspace.Id) = launch {
         workspaceRepo.execute(WorkspaceAction.Close(id))
+    }
+
+    /**
+     * The lease keeps the pause from swapping the instance out from under a preview capture of the
+     * same workspace - the manager being open is exactly when captures run.
+     */
+    fun pauseWorkspace(id: Workspace.Id) = launch {
+        log(tag) { "pauseWorkspace($id)" }
+        val result = workspacePauseGate.withLease(id) { workspaceRepo.execute(WorkspaceAction.Pause(id)) }
+        // canPause is eventually consistent, so a benign refusal is expected; the card just stays.
+        if (result !is WorkspaceAction.Pause.Result.Success) {
+            log(tag, WARN) { "Pausing $id did not succeed: $result" }
+        }
+    }
+
+    fun resumeWorkspace(id: Workspace.Id) = launch {
+        log(tag) { "resumeWorkspace($id)" }
+        workspaceRepo.execute(WorkspaceAction.Resume(id))
     }
 
     fun reorderWorkspaces(workspaceIds: List<Workspace.Id>) = launch {
@@ -205,21 +247,23 @@ class WorkspaceManagerViewModel @Inject constructor(
     data class WorkspaceItem(
         val id: Workspace.Id,
         val type: Workspace.Type,
-        /** What the card renders: the custom name when set, otherwise the automatic title. */
+        /** The resolved display title: the custom name when set, otherwise the automatic title. */
         val title: CaString,
         val subtitle: CaString?,
+        /** The automatic title, shown in the card's info bar and as the rename dialog's placeholder. */
+        val autoTitle: CaString,
         val isFocused: Boolean = false,
         val isSelected: Boolean = false,
         val paneNumber: Int? = null,
         val operationCount: Int = 0,
         val attentionCount: Int = 0,
-        /** The automatic title, shown as the rename dialog's placeholder. Defaults to [title]. */
-        val autoTitle: CaString = title,
         val customTitle: String? = null,
         /**
          * Modal pickers show up as cards but are excluded from session persistence, so renaming one
          * would silently not survive a restart - the card hides its rename affordance.
          */
         val isSubWorkspace: Boolean = false,
+        val isPaused: Boolean = false,
+        val canPause: Boolean = false,
     )
 }

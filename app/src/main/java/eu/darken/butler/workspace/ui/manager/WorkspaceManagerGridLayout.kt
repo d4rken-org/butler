@@ -40,6 +40,8 @@ fun WorkspaceManagerGridLayout(
     onCloseWorkspace: (Workspace.Id) -> Unit,
     onReorderWorkspaces: (List<Workspace.Id>) -> Unit,
     onSelectWorkspace: (Workspace.Id) -> Unit,
+    onPauseWorkspace: (Workspace.Id) -> Unit,
+    onResumeWorkspace: (Workspace.Id) -> Unit,
     onDismissBadgeExplanation: () -> Unit,
     onRenameWorkspace: (Workspace.Id) -> Unit = {},
     onTabsClick: () -> Unit = {},
@@ -144,6 +146,8 @@ fun WorkspaceManagerGridLayout(
                         onClose = { onCloseWorkspace(workspace.id) },
                         onSelect = { onSelectWorkspace(workspace.id) },
                         onRename = { onRenameWorkspace(workspace.id) },
+                        onPause = { onPauseWorkspace(workspace.id) },
+                        onResume = { onResumeWorkspace(workspace.id) },
                         isDragging = itemIsDragging,
                         livePreview = state.useLivePreview,
                         onDragStarted = { isDragging = true },
@@ -184,16 +188,18 @@ private fun WorkspaceManagerGridLayoutPreview() {
                     WorkspaceManagerViewModel.WorkspaceItem(
                         id = Workspace.Id(),
                         type = Workspace.Type.TEMPLATES,
-                        title = "Templates".toCaString(),
-                        subtitle = "Workspace templates".toCaString(),
+                        title = "New".toCaString(),
+                        autoTitle = "New".toCaString(),
+                        subtitle = null,
                         isFocused = true,
                         isSelected = true,
                     ),
                     WorkspaceManagerViewModel.WorkspaceItem(
                         id = Workspace.Id(),
                         type = Workspace.Type.EXPLORER,
-                        title = "Explorer".toCaString(),
-                        subtitle = "File explorer".toCaString(),
+                        title = "/storage/emulated/0/Download".toCaString(),
+                        autoTitle = "/storage/emulated/0/Download".toCaString(),
+                        subtitle = null,
                     )
                 ),
                 operationsCount = 2,
@@ -205,6 +211,8 @@ private fun WorkspaceManagerGridLayoutPreview() {
             onCloseWorkspace = {},
             onReorderWorkspaces = {},
             onSelectWorkspace = {},
+            onPauseWorkspace = {},
+            onResumeWorkspace = {},
             onDismissBadgeExplanation = {}
         )
     }
@@ -221,8 +229,9 @@ private fun WorkspaceManagerGridLayoutTabletPreview() {
                     WorkspaceManagerViewModel.WorkspaceItem(
                         id = Workspace.Id(),
                         type = Workspace.Type.TEMPLATES,
-                        title = "Templates".toCaString(),
-                        subtitle = "Workspace templates".toCaString(),
+                        title = "New".toCaString(),
+                        autoTitle = "New".toCaString(),
+                        subtitle = null,
                         isFocused = true,
                         isSelected = true,
                         paneNumber = 0,
@@ -230,23 +239,26 @@ private fun WorkspaceManagerGridLayoutTabletPreview() {
                     WorkspaceManagerViewModel.WorkspaceItem(
                         id = Workspace.Id(),
                         type = Workspace.Type.EXPLORER,
-                        title = "Explorer".toCaString(),
-                        subtitle = "File explorer for browsing".toCaString(),
+                        title = "Trash".toCaString(),
+                        autoTitle = "Trash".toCaString(),
+                        subtitle = "Recover deleted files".toCaString(),
                         isSelected = true,
                         paneNumber = 1,
                     ),
                     WorkspaceManagerViewModel.WorkspaceItem(
                         id = Workspace.Id(),
                         type = Workspace.Type.SEARCHER,
-                        title = "Search".toCaString(),
-                        subtitle = "Search for files and folders".toCaString(),
+                        title = "*.log".toCaString(),
+                        autoTitle = "*.log".toCaString(),
+                        subtitle = "Device storage".toCaString(),
                         paneNumber = null,
                     ),
                     WorkspaceManagerViewModel.WorkspaceItem(
                         id = Workspace.Id(),
                         type = Workspace.Type.EDITOR,
-                        title = "Editor".toCaString(),
-                        subtitle = "Text editor".toCaString(),
+                        title = "build.gradle.kts".toCaString(),
+                        autoTitle = "build.gradle.kts".toCaString(),
+                        subtitle = "/storage/emulated/0/Projects/butler".toCaString(),
                         paneNumber = null,
                     )
                 ),
@@ -259,6 +271,8 @@ private fun WorkspaceManagerGridLayoutTabletPreview() {
             onCloseWorkspace = {},
             onReorderWorkspaces = {},
             onSelectWorkspace = {},
+            onPauseWorkspace = {},
+            onResumeWorkspace = {},
             onDismissBadgeExplanation = {}
         )
     }
@@ -280,6 +294,8 @@ private fun WorkspaceManagerGridLayoutEmptyPreview() {
             onCloseWorkspace = {},
             onReorderWorkspaces = {},
             onSelectWorkspace = {},
+            onPauseWorkspace = {},
+            onResumeWorkspace = {},
             onDismissBadgeExplanation = {}
         )
     }
@@ -296,14 +312,16 @@ private fun WorkspaceManagerGridLayoutWithExplanationsPreview() {
                     WorkspaceManagerViewModel.WorkspaceItem(
                         id = Workspace.Id(),
                         type = Workspace.Type.EXPLORER,
-                        title = "Explorer".toCaString(),
-                        subtitle = "File explorer".toCaString(),
+                        title = "/storage/emulated/0/Download".toCaString(),
+                        autoTitle = "/storage/emulated/0/Download".toCaString(),
+                        subtitle = null,
                     ),
                     WorkspaceManagerViewModel.WorkspaceItem(
                         id = Workspace.Id(),
                         type = Workspace.Type.SEARCHER,
-                        title = "Search".toCaString(),
-                        subtitle = "File search".toCaString(),
+                        title = "report".toCaString(),
+                        autoTitle = "report".toCaString(),
+                        subtitle = "SD card".toCaString(),
                     )
                 ),
                 operationsCount = 2,
@@ -315,6 +333,8 @@ private fun WorkspaceManagerGridLayoutWithExplanationsPreview() {
             onCloseWorkspace = {},
             onReorderWorkspaces = {},
             onSelectWorkspace = {},
+            onPauseWorkspace = {},
+            onResumeWorkspace = {},
             onDismissBadgeExplanation = {}
         )
     }

@@ -5,11 +5,11 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.searcher.core.SearcherSettings
 import eu.darken.butler.searcher.core.history.SearchHistory
-import eu.darken.butler.workspace.core.WorkspaceSettings
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -20,9 +20,10 @@ class SearcherSettingsViewModel
 constructor(
     dispatcherProvider: DispatcherProvider,
     private val searcherSettings: SearcherSettings,
-    private val workspaceSettings: WorkspaceSettings,
     private val searchHistory: SearchHistory,
 ) : ViewModel4(dispatcherProvider, logTag("Searcher", "Settings")) {
+
+    val events = SingleEventFlow<Event>()
 
     // Combine all settings into the final state
     val state = combine(
@@ -30,15 +31,13 @@ constructor(
         searcherSettings.maxHistoryItems.flow,
         searcherSettings.saveHistory.flow,
         searcherSettings.contentSearchBinaries.flow,
-        workspaceSettings.showFolderMediaPreviews.flow,
         searchHistory.observeHistoryCount(),
-    ) { maxSearchResults, maxHistoryItems, saveHistory, contentSearchBinaries, showFolderMediaPreviews, historyCount ->
+    ) { maxSearchResults, maxHistoryItems, saveHistory, contentSearchBinaries, historyCount ->
         State(
             maxSearchResults = maxSearchResults,
             maxHistoryItems = maxHistoryItems,
             saveHistory = saveHistory,
             contentSearchBinaries = contentSearchBinaries,
-            showFolderMediaPreviews = showFolderMediaPreviews,
             currentHistoryCount = historyCount,
         )
     }.asStateFlow()
@@ -64,6 +63,7 @@ constructor(
     fun clearSearchHistory() = launch {
         log(tag) { "clearSearchHistory()" }
         searchHistory.clearHistory()
+        events.emit(Event.HistoryCleared)
     }
 
     fun updateContentSearchBinaries(enabled: Boolean) = launch {
@@ -71,9 +71,8 @@ constructor(
         searcherSettings.contentSearchBinaries.value(enabled)
     }
 
-    fun toggleFolderMediaPreviews(enabled: Boolean) = launch {
-        log(tag) { "toggleFolderMediaPreviews($enabled)" }
-        workspaceSettings.showFolderMediaPreviews.value(enabled)
+    sealed interface Event {
+        data object HistoryCleared : Event
     }
 
     data class State(
@@ -81,7 +80,6 @@ constructor(
         val maxHistoryItems: Int = 10,
         val saveHistory: Boolean = true,
         val contentSearchBinaries: Boolean = false,
-        val showFolderMediaPreviews: Boolean = true,
         val currentHistoryCount: Int = 0,
     )
 }

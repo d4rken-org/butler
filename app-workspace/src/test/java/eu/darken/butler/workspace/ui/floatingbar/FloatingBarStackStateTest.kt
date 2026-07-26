@@ -1,6 +1,7 @@
 package eu.darken.butler.workspace.ui.floatingbar
 
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import testhelpers.BaseTest
 
@@ -104,6 +105,80 @@ class FloatingBarStackStateTest : BaseTest() {
         state.registerBar(FloatingBarState(id = "info", initialVisible = true).apply { measuredHeight = 24f })
 
         state.contentPaddingPx shouldBe 132f
+    }
+
+    // endregion
+
+    // region Collapse state carried across compositions
+
+    private fun collapsibleStack() = FloatingBarStackState(position = BarPosition.TOP).apply {
+        registerBar(FloatingBarState(id = "toolbar", scrollBehavior = BarScrollBehavior.HideOnScroll))
+        registerBar(FloatingBarState(id = "infobar", scrollBehavior = BarScrollBehavior.HideOnScroll))
+        registerBar(FloatingBarState(id = "static", scrollBehavior = BarScrollBehavior.Static))
+    }
+
+    @Test
+    fun `collapse targets are reported per bar, excluding static ones`() = runTest {
+        val state = collapsibleStack()
+
+        state.collapseTargets shouldBe mapOf("toolbar" to 0f, "infobar" to 0f)
+
+        state.applyCollapse(mapOf("toolbar" to 1f, "infobar" to 1f))
+
+        state.collapseTargets shouldBe mapOf("toolbar" to 1f, "infobar" to 1f)
+    }
+
+    /**
+     * Bars in one stack diverge at rest - a reappearing bar snaps its own fraction to 0 while the
+     * others stay collapsed - which is why the state is kept per bar rather than per stack.
+     */
+    @Test
+    fun `bars keep their own fraction`() = runTest {
+        val state = collapsibleStack()
+
+        state.applyCollapse(mapOf("toolbar" to 1f, "infobar" to 0f))
+
+        state.collapseTargets shouldBe mapOf("toolbar" to 1f, "infobar" to 0f)
+    }
+
+    @Test
+    fun `a bar without a saved entry keeps its current fraction`() = runTest {
+        val state = collapsibleStack()
+        state.applyCollapse(mapOf("toolbar" to 1f, "infobar" to 1f))
+
+        // A saved blob from a build that did not know "infobar" must not expand it
+        state.applyCollapse(mapOf("toolbar" to 0f))
+
+        state.collapseTargets shouldBe mapOf("toolbar" to 0f, "infobar" to 1f)
+    }
+
+    /**
+     * The duplicate-key path itself has no unit test on purpose: it reads BuildConfigWrap, whose
+     * reflection fallback cannot resolve the app's BuildConfig from a library module's unit test.
+     * This pins the neighbouring case, that a repeat registration of the *same* bar is benign and
+     * never mistaken for a wiring error.
+     */
+    @Test
+    fun `re-registering the same bar instance is a no-op`() {
+        val state = FloatingBarStackState(position = BarPosition.TOP)
+        val bar = FloatingBarState(id = "toolbar")
+
+        state.registerBar(bar)
+        state.registerBar(bar)
+
+        state.barStates.single() shouldBe bar
+    }
+
+    @Test
+    fun `bars have to register before anything can be applied`() = runTest {
+        val state = FloatingBarStackState(position = BarPosition.TOP)
+
+        state.hasRegisteredBars shouldBe false
+        state.collapseTargets shouldBe emptyMap()
+
+        state.registerBar(FloatingBarState(id = "toolbar", scrollBehavior = BarScrollBehavior.HideOnScroll))
+
+        state.hasRegisteredBars shouldBe true
     }
 
     // endregion

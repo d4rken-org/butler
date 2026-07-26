@@ -7,15 +7,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -27,6 +24,7 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
+import eu.darken.butler.common.compose.OnValueChange
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.rememberDelayedState
@@ -57,6 +55,8 @@ import eu.darken.butler.workspace.ui.insets.rememberPaneFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
 import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
+import eu.darken.butler.workspace.ui.scroll.rememberWorkspaceLazyGridState
+import eu.darken.butler.workspace.ui.scroll.rememberWorkspaceLazyListState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
@@ -94,6 +94,7 @@ fun ExplorerWorkspacePage(
 
     val topBarStackState = rememberPaneFloatingBarStackState(
         position = BarPosition.TOP,
+        workspaceId = workspaceId,
         defaultSpacing = 8.dp,
         edgePadding = 8.dp,
         contentPadding = 8.dp,
@@ -102,6 +103,7 @@ fun ExplorerWorkspacePage(
     )
     val bottomBarStackState = rememberPaneFloatingBarStackState(
         position = BarPosition.BOTTOM,
+        workspaceId = workspaceId,
         defaultSpacing = 8.dp,
         edgePadding = 8.dp,
         contentPadding = 16.dp,
@@ -111,12 +113,13 @@ fun ExplorerWorkspacePage(
     // Progress indicator delay state - shows after 200ms to avoid flickering
     val showProgress = rememberDelayedState(state.progress, delayMs = 200)
 
-    // List and grid scroll states - keyed on locationId for clean slate each navigation
-    val listState = key(state.locationId) { rememberLazyListState() }
-    val gridState = key(state.locationId) { rememberLazyGridState() }
+    val listState = rememberWorkspaceLazyListState(workspaceId, slot = ExplorerScrollSlots.list(state.locationId))
+    val gridState = rememberWorkspaceLazyGridState(workspaceId, slot = ExplorerScrollSlots.grid(state.locationId))
 
-    // Navigation resets floating-bar scroll-collapse so bars don't stay hidden over new content
-    LaunchedEffect(state.locationId) {
+    // Navigation resets floating-bar scroll-collapse so bars don't stay hidden over new content.
+    // Guarded: on initial composition there is no new content, and firing there would reset the
+    // collapse state this workspace just restored.
+    OnValueChange(state.locationId) { _, _ ->
         topBarStackState.resetScrollCollapse()
         bottomBarStackState.resetScrollCollapse()
     }
@@ -270,7 +273,9 @@ fun ExplorerWorkspacePage(
     }
 }
 
-// Synchronize scroll position when view mode changes
+// Carry the scroll position over when the user switches between list and grid, so the file they
+// were looking at stays in view. List and grid keep their own remembered positions; an explicit
+// switch overrides the incoming one.
 @Composable
 private fun SyncScrollPositionOnViewStyleChange(
     viewStyle: ExplorerViewStyle,
@@ -278,16 +283,16 @@ private fun SyncScrollPositionOnViewStyleChange(
     listState: LazyListState,
     gridState: LazyGridState,
 ) {
-    LaunchedEffect(viewStyle) {
-        if (!items.isNullOrEmpty()) {
-            val currentIndex = when (viewStyle) {
-                is ExplorerViewStyle.Grid -> gridState.firstVisibleItemIndex
-                is ExplorerViewStyle.List -> listState.firstVisibleItemIndex
-            }
-            when (viewStyle) {
-                is ExplorerViewStyle.Grid -> gridState.scrollToItem(currentIndex, 0)
-                is ExplorerViewStyle.List -> listState.scrollToItem(currentIndex, 0)
-            }
+    val hasItems = !items.isNullOrEmpty()
+    OnValueChange(viewStyle) { previous, current ->
+        if (!hasItems) return@OnValueChange
+        val outgoingIndex = when (previous) {
+            is ExplorerViewStyle.Grid -> gridState.firstVisibleItemIndex
+            is ExplorerViewStyle.List -> listState.firstVisibleItemIndex
+        }
+        when (current) {
+            is ExplorerViewStyle.Grid -> gridState.scrollToItem(outgoingIndex)
+            is ExplorerViewStyle.List -> listState.scrollToItem(outgoingIndex)
         }
     }
 }
@@ -300,7 +305,7 @@ private fun ScrollToTopOnSortChange(
     listState: LazyListState,
     gridState: LazyGridState,
 ) {
-    LaunchedEffect(sortSettings) {
+    OnValueChange(sortSettings) { _, _ ->
         when (viewStyle) {
             is ExplorerViewStyle.Grid -> gridState.animateScrollToItem(0)
             is ExplorerViewStyle.List -> listState.animateScrollToItem(0)

@@ -6,7 +6,7 @@ import androidx.compose.runtime.Composable
  * Renders the manager-controlled dialog for one workspace, if there is one.
  *
  * Composed by the pane layer host as its own layer above the workspace content, and deliberately
- * not gated on the workspace's lifecycle state — a close confirmation for a dormant workspace must
+ * not gated on the workspace's lifecycle state — a close confirmation for a paused workspace must
  * still be reachable.
  */
 @Composable

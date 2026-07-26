@@ -69,6 +69,7 @@ import eu.darken.butler.workspace.core.icon
 import eu.darken.butler.workspace.ui.insets.paneInsets
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.scroll.rememberWorkspaceLazyListState
 import eu.darken.butler.workspace.ui.template.WorkspaceTemplate
 
 object TemplatesWorkspacePageDefaults {
@@ -121,9 +122,12 @@ fun TemplatesWorkspacePage(
     // Dynamically measured settings card height for content padding
     var settingsCardHeight by remember { mutableStateOf(96.dp) } // Initial estimate
 
+    val listState = rememberWorkspaceLazyListState(workspaceId, slot = TemplatesScrollSlots.LIST)
+
     Box(modifier = Modifier.fillMaxSize()) {
         // Scrollable content
         LazyColumn(
+            state = listState,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 24.dp),

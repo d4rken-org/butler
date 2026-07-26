@@ -1,5 +1,6 @@
 package eu.darken.butler.workspace.ui.manager.rows
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,6 +14,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material.icons.twotone.MoreVert
+import androidx.compose.material.icons.twotone.PauseCircle
+import androidx.compose.material.icons.twotone.PlayCircle
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -35,6 +38,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
@@ -51,6 +55,9 @@ import eu.darken.butler.workspace.core.label
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerViewModel
 import eu.darken.butler.workspace.ui.manager.rows.preview.WorkspacePreview
 import eu.darken.butler.common.R as CommonR
+import eu.darken.butler.workspace.R as WorkspaceR
+
+const val TEST_TAG_WORKSPACE_CARD_HEADER = "workspace_card_header"
 
 @Composable
 fun WorkspaceGridItem(
@@ -60,6 +67,8 @@ fun WorkspaceGridItem(
     onClose: () -> Unit,
     onSelect: () -> Unit,
     onRename: () -> Unit = {},
+    onPause: () -> Unit = {},
+    onResume: () -> Unit = {},
     livePreview: Boolean = true,
     isDragging: Boolean = false,
     onDragStarted: () -> Unit = {},
@@ -116,6 +125,7 @@ fun WorkspaceGridItem(
                     modifier = with(reorderableScope) {
                         Modifier
                             .fillMaxWidth()
+                            .testTag(TEST_TAG_WORKSPACE_CARD_HEADER)
                             .padding(start = 4.dp)
                             .draggableHandle(
                                 onDragStarted = {
@@ -138,9 +148,7 @@ fun WorkspaceGridItem(
                         tint = MaterialTheme.colorScheme.primary,
                     )
 
-                    // A blank title would leave the card with nothing to identify it by, so the
-                    // workspace type stands in - same rule the dormant placeholder applies
-                    val title = workspace.title.asComposable().takeIf { it.isNotBlank() }
+                    val title = workspace.customTitle?.takeIf { it.isNotBlank() }
                         ?: workspace.type.label.asComposable()
                     Text(
                         modifier = Modifier.weight(1f),
@@ -148,11 +156,17 @@ fun WorkspaceGridItem(
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
-                        overflow = TextOverflow.StartEllipsis,
+                        overflow = TextOverflow.Ellipsis,
                     )
 
-                    // Sub-workspaces are not persisted, so a rename on them would silently be lost
-                    if (!workspace.isSubWorkspace) {
+                    // Sub-workspaces are not persisted, so a rename on them would silently be lost.
+                    // Resume stays available even for them: manual and auto pause both skip
+                    // sub-workspaces, but a stale session row can still restore one as paused, and
+                    // hiding the whole menu there would leave no way to wake it from the manager.
+                    val offersRename = !workspace.isSubWorkspace
+                    val offersResume = workspace.isPaused
+                    val offersPause = !workspace.isPaused && workspace.canPause
+                    if (offersRename || offersResume || offersPause) {
                         Box {
                             IconButton(
                                 modifier = Modifier.size(24.dp),
@@ -170,19 +184,50 @@ fun WorkspaceGridItem(
                                 expanded = showOverflowMenu,
                                 onDismissRequest = { showOverflowMenu = false },
                             ) {
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(CommonR.string.general_rename_action)) },
-                                    leadingIcon = {
-                                        Icon(
-                                            imageVector = Icons.TwoTone.Edit,
-                                            contentDescription = null,
-                                        )
-                                    },
-                                    onClick = {
-                                        showOverflowMenu = false
-                                        onRename()
-                                    },
-                                )
+                                when {
+                                    offersResume -> DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.workspace_row_resume_action)) },
+                                        leadingIcon = {
+                                            Icon(
+                                                imageVector = Icons.TwoTone.PlayCircle,
+                                                contentDescription = null,
+                                            )
+                                        },
+                                        onClick = {
+                                            showOverflowMenu = false
+                                            onResume()
+                                        },
+                                    )
+                                    offersPause -> DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.workspace_row_pause_action)) },
+                                        leadingIcon = {
+                                            Icon(
+                                                imageVector = Icons.TwoTone.PauseCircle,
+                                                contentDescription = null,
+                                            )
+                                        },
+                                        onClick = {
+                                            showOverflowMenu = false
+                                            onPause()
+                                        },
+                                    )
+                                }
+
+                                if (offersRename) {
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(CommonR.string.general_rename_action)) },
+                                        leadingIcon = {
+                                            Icon(
+                                                imageVector = Icons.TwoTone.Edit,
+                                                contentDescription = null,
+                                            )
+                                        },
+                                        onClick = {
+                                            showOverflowMenu = false
+                                            onRename()
+                                        },
+                                    )
+                                }
                             }
                         }
                     }
@@ -200,29 +245,38 @@ fun WorkspaceGridItem(
                     }
                 }
 
-                // Blank (not just null) is suppressed: workspaces can publish an empty subtitle
-                val subtitle = workspace.subtitle?.asComposable()
-                if (!subtitle.isNullOrBlank()) {
-                    Text(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 24.dp, end = 4.dp),
-                        text = subtitle,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.MiddleEllipsis,
-                    )
-                }
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    WorkspacePreview(
+                        modifier = Modifier.fillMaxWidth(),
+                        workspaceId = workspace.id,
+                        type = workspace.type,
+                        livePreview = livePreview,
+                        paneNumber = workspace.paneNumber,
+                        shouldShowBadge = workspace.paneNumber != null && currentPaneCount > 1,
+                        contentAlpha = if (workspace.isPaused) 0.4f else 1f,
+                    ) {
+                        WorkspacePreviewInfoBar(
+                            modifier = Modifier.align(Alignment.BottomStart),
+                            primary = workspace.autoTitle,
+                            secondary = workspace.subtitle,
+                        )
+                    }
 
-                WorkspacePreview(
-                    modifier = Modifier.fillMaxWidth(),
-                    workspaceId = workspace.id,
-                    type = workspace.type,
-                    livePreview = livePreview,
-                    paneNumber = workspace.paneNumber,
-                    shouldShowBadge = workspace.paneNumber != null && currentPaneCount > 1,
-                )
+                    if (workspace.isPaused) {
+                        Text(
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .background(
+                                    color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                                    shape = RoundedCornerShape(8.dp),
+                                )
+                                .padding(horizontal = 8.dp, vertical = 4.dp),
+                            text = stringResource(WorkspaceR.string.workspace_paused_label),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
             }
         }
     }
@@ -256,28 +310,46 @@ private fun WorkspaceGridItemPreview() {
             id = Workspace.Id(),
             type = Workspace.Type.EXPLORER,
             title = "/storage/emulated/0/Download/MyFile/Somepath/that/is/very/long/tooLong".toCaString(),
-            subtitle = "File explorer for browsing and managing files".toCaString(),
+            autoTitle = "/storage/emulated/0/Download/MyFile/Somepath/that/is/very/long/tooLong".toCaString(),
+            subtitle = "Recover deleted files".toCaString(),
         ),
         onClose = {},
         onSelect = {},
-        isDragging = false
+        isDragging = false,
     )
 }
 
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
-private fun WorkspaceGridItemSubtitleSuppressedPreview() {
+private fun WorkspaceGridItemInfoBarVariantsPreview() {
     Column(
         modifier = Modifier.padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
+        // Both bar lines
+        WorkspaceGridItem(
+            reorderableScope = createMockReorderableScope(),
+            workspace = WorkspaceManagerViewModel.WorkspaceItem(
+                id = Workspace.Id(),
+                type = Workspace.Type.EDITOR,
+                title = "build.gradle.kts".toCaString(),
+                autoTitle = "build.gradle.kts".toCaString(),
+                subtitle = "/storage/emulated/0/Projects/butler".toCaString(),
+            ),
+            onClose = {},
+            onSelect = {},
+            livePreview = false,
+        )
+
+        // Primary only
         WorkspaceGridItem(
             reorderableScope = createMockReorderableScope(),
             workspace = WorkspaceManagerViewModel.WorkspaceItem(
                 id = Workspace.Id(),
                 type = Workspace.Type.EXPLORER,
                 title = "Home".toCaString(),
+                autoTitle = "Home".toCaString(),
                 subtitle = null,
             ),
             onClose = {},
@@ -285,12 +357,14 @@ private fun WorkspaceGridItemSubtitleSuppressedPreview() {
             livePreview = false,
         )
 
+        // Neither - no bar at all, card height is unchanged
         WorkspaceGridItem(
             reorderableScope = createMockReorderableScope(),
             workspace = WorkspaceManagerViewModel.WorkspaceItem(
                 id = Workspace.Id(),
                 type = Workspace.Type.SAVER,
-                title = "Save as".toCaString(),
+                title = "".toCaString(),
+                autoTitle = "".toCaString(),
                 subtitle = "   ".toCaString(),
             ),
             onClose = {},
@@ -311,8 +385,8 @@ private fun WorkspaceGridItemCustomNamePreview() {
             id = Workspace.Id(),
             type = Workspace.Type.EXPLORER,
             title = "Holiday photos".toCaString(),
-            subtitle = "File explorer for browsing and managing files".toCaString(),
             autoTitle = "/storage/emulated/0/DCIM/Camera".toCaString(),
+            subtitle = null,
             customTitle = "Holiday photos",
         ),
         onClose = {},
@@ -331,31 +405,13 @@ private fun WorkspaceGridItemSearcherPreview() {
         workspace = WorkspaceManagerViewModel.WorkspaceItem(
             id = Workspace.Id(),
             type = Workspace.Type.SEARCHER,
-            title = "Search".toCaString(),
-            subtitle = "Search for files and folders".toCaString(),
+            title = "*.log".toCaString(),
+            autoTitle = "*.log".toCaString(),
+            subtitle = "Device storage, SD card".toCaString(),
         ),
         onClose = {},
         onSelect = {},
-        isDragging = false
-    )
-}
-
-@Preview2
-@ComposePreviewWrapper(ButlerPreviewWrapper::class)
-@Composable
-private fun WorkspaceGridItemEditorPreview() {
-    WorkspaceGridItem(
-        modifier = Modifier.padding(16.dp),
-        reorderableScope = createMockReorderableScope(),
-        workspace = WorkspaceManagerViewModel.WorkspaceItem(
-            id = Workspace.Id(),
-            type = Workspace.Type.EDITOR,
-            title = "Editor".toCaString(),
-            subtitle = "Text editor".toCaString(),
-        ),
-        onClose = {},
-        onSelect = {},
-        isDragging = false
+        isDragging = false,
     )
 }
 
@@ -369,13 +425,14 @@ private fun WorkspaceGridItemDraggingPreview() {
         workspace = WorkspaceManagerViewModel.WorkspaceItem(
             id = Workspace.Id(),
             type = Workspace.Type.SEARCHER,
-            title = "Search".toCaString(),
-            subtitle = "Search for files and folders".toCaString(),
+            title = "*.log".toCaString(),
+            autoTitle = "*.log".toCaString(),
+            subtitle = "Device storage".toCaString(),
         ),
         onClose = {},
         onSelect = {},
         livePreview = false,
-        isDragging = true
+        isDragging = true,
     )
 }
 
@@ -385,7 +442,7 @@ private fun WorkspaceGridItemDraggingPreview() {
 private fun WorkspaceGridItemFocusStatesPreview() {
     Column(
         modifier = Modifier.padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         // Focused workspace in pane 1 - SHOWS BADGE (multi-pane mode)
         WorkspaceGridItem(
@@ -393,8 +450,9 @@ private fun WorkspaceGridItemFocusStatesPreview() {
             workspace = WorkspaceManagerViewModel.WorkspaceItem(
                 id = Workspace.Id(),
                 type = Workspace.Type.EXPLORER,
-                title = "Focused Workspace".toCaString(),
-                subtitle = "This workspace is focused".toCaString(),
+                title = "/storage/emulated/0/Download".toCaString(),
+                autoTitle = "/storage/emulated/0/Download".toCaString(),
+                subtitle = null,
                 isFocused = true,
                 isSelected = true,
                 paneNumber = 0,
@@ -413,8 +471,9 @@ private fun WorkspaceGridItemFocusStatesPreview() {
             workspace = WorkspaceManagerViewModel.WorkspaceItem(
                 id = Workspace.Id(),
                 type = Workspace.Type.SEARCHER,
-                title = "Selected Workspace".toCaString(),
-                subtitle = "Selected but not focused".toCaString(),
+                title = "report".toCaString(),
+                autoTitle = "report".toCaString(),
+                subtitle = "SD card".toCaString(),
                 isFocused = false,
                 isSelected = true,
                 paneNumber = 1,
@@ -433,8 +492,9 @@ private fun WorkspaceGridItemFocusStatesPreview() {
             workspace = WorkspaceManagerViewModel.WorkspaceItem(
                 id = Workspace.Id(),
                 type = Workspace.Type.EDITOR,
-                title = "Normal Workspace".toCaString(),
-                subtitle = "Not selected or focused".toCaString(),
+                title = "notes.md".toCaString(),
+                autoTitle = "notes.md".toCaString(),
+                subtitle = "/storage/emulated/0/Documents".toCaString(),
                 isFocused = false,
                 isSelected = false,
                 paneNumber = null,
@@ -455,7 +515,7 @@ private fun WorkspaceGridItemFocusStatesPreview() {
 private fun WorkspaceGridItemAttentionPreview() {
     Column(
         modifier = Modifier.padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         // Workspace needs attention
         WorkspaceGridItem(
@@ -463,7 +523,8 @@ private fun WorkspaceGridItemAttentionPreview() {
             workspace = WorkspaceManagerViewModel.WorkspaceItem(
                 id = Workspace.Id(),
                 type = Workspace.Type.EXPLORER,
-                title = "Needs Attention".toCaString(),
+                title = "/storage/emulated/0/Download".toCaString(),
+                autoTitle = "/storage/emulated/0/Download".toCaString(),
                 subtitle = "3 errors occurred".toCaString(),
                 attentionCount = 3,
             ),
@@ -478,9 +539,68 @@ private fun WorkspaceGridItemAttentionPreview() {
             workspace = WorkspaceManagerViewModel.WorkspaceItem(
                 id = Workspace.Id(),
                 type = Workspace.Type.EXPLORER,
-                title = "Normal Workspace".toCaString(),
-                subtitle = "No issues".toCaString(),
+                title = "Trash".toCaString(),
+                autoTitle = "Trash".toCaString(),
+                subtitle = "Recover deleted files".toCaString(),
                 attentionCount = 0,
+            ),
+            onClose = {},
+            onSelect = {},
+            livePreview = false,
+        )
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspaceGridItemPauseStatesPreview() {
+    Column(
+        modifier = Modifier.padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        // Live and pausable - the pause action sits in the overflow menu, so the header looks idle
+        WorkspaceGridItem(
+            reorderableScope = createMockReorderableScope(),
+            workspace = WorkspaceManagerViewModel.WorkspaceItem(
+                id = Workspace.Id(),
+                type = Workspace.Type.EXPLORER,
+                title = "/storage/emulated/0/Download".toCaString(),
+                autoTitle = "/storage/emulated/0/Download".toCaString(),
+                subtitle = null,
+                canPause = true,
+            ),
+            onClose = {},
+            onSelect = {},
+            livePreview = false,
+        )
+
+        // Paused - dimmed thumbnail and chip, but the info bar stays fully legible
+        WorkspaceGridItem(
+            reorderableScope = createMockReorderableScope(),
+            workspace = WorkspaceManagerViewModel.WorkspaceItem(
+                id = Workspace.Id(),
+                type = Workspace.Type.SEARCHER,
+                title = "*.log".toCaString(),
+                autoTitle = "*.log".toCaString(),
+                subtitle = "Device storage, SD card".toCaString(),
+                isPaused = true,
+            ),
+            onClose = {},
+            onSelect = {},
+            livePreview = false,
+        )
+
+        // Busy - neither pausable nor paused, so the overflow menu only offers rename
+        WorkspaceGridItem(
+            reorderableScope = createMockReorderableScope(),
+            workspace = WorkspaceManagerViewModel.WorkspaceItem(
+                id = Workspace.Id(),
+                type = Workspace.Type.EDITOR,
+                title = "notes.md".toCaString(),
+                autoTitle = "notes.md".toCaString(),
+                subtitle = "/storage/emulated/0/Documents".toCaString(),
+                canPause = false,
             ),
             onClose = {},
             onSelect = {},

@@ -23,6 +23,10 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.BuildConfigWrap
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlin.math.abs
@@ -100,6 +104,45 @@ class FloatingBarStackState(
             totalHeight += contentGapPx
         }
         totalHeight.coerceAtLeast(0f)
+    }
+
+    /**
+     * Whether any bar has registered yet. Bars register during composition, so a stack is briefly
+     * empty and its [contentPaddingPx] is an estimate until they do.
+     */
+    val hasRegisteredBars: Boolean
+        get() = barStates.isNotEmpty()
+
+    /**
+     * Each non-static bar's scroll-collapse state by bar key: 0 = expanded, 1 = collapsed.
+     *
+     * Reads the animation *target* rather than the current value, so it is the settled intent
+     * (always 0 or 1) instead of an animation frame - persisting a half-collapsed 0.6 would restore
+     * a permanently half-collapsed bar.
+     *
+     * Per bar rather than per stack: bars in one stack do diverge at rest. A bar that becomes
+     * visible again snaps its own fraction to 0 independently of the others (see FloatingBarStack),
+     * which is what makes the action bar appear when the user selects something while scrolled down.
+     */
+    val collapseTargets: Map<String, Float> by derivedStateOf {
+        barStates
+            .filter { it.scrollBehavior !is BarScrollBehavior.Static }
+            .associate { it.id to it.scrollCollapseAnimatable.targetValue }
+    }
+
+    /**
+     * Applies restored collapse fractions per bar key, without animating: the list has already drawn
+     * with the matching content padding, so an animation would visibly re-collapse the bar after the
+     * fact. Bars without a saved entry keep whatever they currently have - a missing key means "not
+     * known", never "expanded".
+     */
+    suspend fun applyCollapse(targets: Map<String, Float>) {
+        // Copy first: snapTo suspends, and bars can register or unregister while it does
+        barStates.toList().forEach { barState ->
+            if (barState.scrollBehavior is BarScrollBehavior.Static) return@forEach
+            val target = targets[barState.id] ?: return@forEach
+            barState.scrollCollapseAnimatable.snapTo(target)
+        }
     }
 
     /**
@@ -193,10 +236,24 @@ class FloatingBarStackState(
 
     /**
      * Registers a bar with this stack.
+     *
+     * Bar keys have to be unique within a stack. A duplicate used to be impossible (ids were random)
+     * and is now a copy-paste away, so it fails loudly in debug builds instead of silently dropping
+     * the second bar - "a bar that just isn't there" is a long way from its cause. Release keeps the
+     * old keep-the-first behaviour rather than crashing users over a wiring mistake.
      */
     internal fun registerBar(bar: FloatingBarState) {
-        if (barStates.none { it.id == bar.id }) {
-            barStates.add(bar)
+        val existing = barStates.firstOrNull { it.id == bar.id }
+        when {
+            // Re-registering the same instance is a no-op, not a wiring error
+            existing === bar -> return
+            existing != null -> {
+                val message = "Duplicate floating bar key '${bar.id}' in the $position stack"
+                if (BuildConfigWrap.DEBUG) throw IllegalStateException(message)
+                log(TAG, ERROR) { message }
+                return
+            }
+            else -> barStates.add(bar)
         }
     }
 
@@ -259,6 +316,7 @@ class FloatingBarStackState(
 
     companion object {
         private const val SCROLL_THRESHOLD = 5f
+        private val TAG = logTag("Workspace", "FloatingBarStack")
 
         val Saver: Saver<FloatingBarStackState, *> = listSaver(
             save = { state ->

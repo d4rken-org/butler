@@ -1,0 +1,132 @@
+package eu.darken.butler.workspace.ui.scroll
+
+import androidx.compose.foundation.interaction.Interaction
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.grid.LazyGridState
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.restore.Outcome
+import eu.darken.butler.workspace.ui.restore.SlotLease
+import kotlinx.coroutines.flow.Flow
+
+/**
+ * Slot keys land verbatim in the persisted session blob, so renaming one orphans the saved
+ * positions of everyone who already has state stored. Pages declare theirs as named constants
+ * next to their own page code rather than inline here.
+ */
+const val DEFAULT_SCROLL_SLOT = "default"
+
+private val TAG = logTag("Workspace", "ScrollState")
+
+/**
+ * A [LazyListState] whose position is remembered for [workspaceId]/[slot] across compositions.
+ *
+ * A new [slot] yields a fresh state, so per-directory slots keep Explorer's "clean slate on
+ * navigation" behaviour while making the previous directory restorable.
+ */
+@Composable
+fun rememberWorkspaceLazyListState(
+    workspaceId: Workspace.Id?,
+    slot: String = DEFAULT_SCROLL_SLOT,
+): LazyListState {
+    if (workspaceId == null) return rememberLazyListState()
+
+    val registry = LocalWorkspaceScrollPositions.current
+    val lease = remember(registry, workspaceId, slot) {
+        registry.positionFor(workspaceId, slot).also {
+            log(TAG, VERBOSE) { "List lease taken: workspace=$workspaceId, slot=$slot, saved=${it.saved}" }
+        }
+    }
+    val state = remember(lease) { LazyListState(lease.saved?.index ?: 0, lease.saved?.offset ?: 0) }
+
+    RestoreAndRecord(
+        registry = registry,
+        lease = lease,
+        target = remember(state) { state.asScrollTarget() },
+    )
+    return state
+}
+
+@Composable
+fun rememberWorkspaceLazyGridState(
+    workspaceId: Workspace.Id?,
+    slot: String = DEFAULT_SCROLL_SLOT,
+): LazyGridState {
+    if (workspaceId == null) return rememberLazyGridState()
+
+    val registry = LocalWorkspaceScrollPositions.current
+    val lease = remember(registry, workspaceId, slot) {
+        registry.positionFor(workspaceId, slot).also {
+            log(TAG, VERBOSE) { "Grid lease taken: workspace=$workspaceId, slot=$slot, saved=${it.saved}" }
+        }
+    }
+    val state = remember(lease) { LazyGridState(lease.saved?.index ?: 0, lease.saved?.offset ?: 0) }
+
+    RestoreAndRecord(
+        registry = registry,
+        lease = lease,
+        target = remember(state) { state.asScrollTarget() },
+    )
+    return state
+}
+
+/**
+ * Recording is continuous while enabled - every position change, and deliberately no write on
+ * disposal. During a pane move both call sites exist briefly and dispose/create ordering is not
+ * defined, so the registry has to already hold the position as of the outgoing pane's last composed
+ * frame. The only thing lost is a fling's remaining momentum, which disposal cancels anyway.
+ */
+@Composable
+private fun RestoreAndRecord(
+    registry: WorkspaceScrollPositions,
+    lease: SlotLease<WorkspaceScrollPosition>,
+    target: ScrollTarget,
+) {
+    LaunchedEffect(target, lease) {
+        if (target.restore(lease.saved) == Outcome.TIMED_OUT) {
+            // A timeout must never license writing a layout-clamped position over a good saved one.
+            // The safe failure mode is "not restored", never "destroyed". Recording is armed by the
+            // same pair of signals the restore races against, so a programmatic scroll counts too:
+            // a hoisted-but-unattached state (Explorer's inactive view style) always times out, and
+            // waiting for a drag alone would drop the list/grid transfer's scroll for good.
+            target.awaitMovement()
+        }
+        snapshotFlow { target.position }.collect { registry.record(lease, it) }
+    }
+}
+
+private fun LazyListState.asScrollTarget(): ScrollTarget = object : ScrollTarget {
+    override val totalItemsCount: Int
+        get() = layoutInfo.totalItemsCount
+    override val position: WorkspaceScrollPosition
+        get() = WorkspaceScrollPosition(firstVisibleItemIndex, firstVisibleItemScrollOffset)
+    override val isScrollInProgress: Boolean
+        get() = this@asScrollTarget.isScrollInProgress
+    override val interactions: Flow<Interaction>
+        get() = interactionSource.interactions
+
+    override suspend fun scrollTo(position: WorkspaceScrollPosition) =
+        scrollToItem(position.index, position.offset)
+}
+
+private fun LazyGridState.asScrollTarget(): ScrollTarget = object : ScrollTarget {
+    override val totalItemsCount: Int
+        get() = layoutInfo.totalItemsCount
+    override val position: WorkspaceScrollPosition
+        get() = WorkspaceScrollPosition(firstVisibleItemIndex, firstVisibleItemScrollOffset)
+    override val isScrollInProgress: Boolean
+        get() = this@asScrollTarget.isScrollInProgress
+    override val interactions: Flow<Interaction>
+        get() = interactionSource.interactions
+
+    override suspend fun scrollTo(position: WorkspaceScrollPosition) =
+        scrollToItem(position.index, position.offset)
+}

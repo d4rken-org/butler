@@ -86,7 +86,7 @@ class HistoryWorkspace @AssistedInject constructor(
         filter = filterFlow.value,
     )
 
-    // Same derivation the factory hands the dormant stand-in, so both name this tab identically
+    // Same derivation the factory hands the paused stand-in, so both name this tab identically
     private val seedDisplay = deriveHistoryDisplay(creationArguments)
 
     override val info: StateFlow<Workspace.Info> = filterFlow.map { current ->

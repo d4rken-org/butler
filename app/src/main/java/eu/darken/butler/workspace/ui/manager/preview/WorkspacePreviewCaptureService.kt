@@ -3,6 +3,7 @@ package eu.darken.butler.workspace.ui.manager.preview
 import android.content.Context
 import android.graphics.Bitmap
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.ui.unit.DpSize
 import androidx.lifecycle.ViewModelStoreOwner
 import eu.darken.butler.common.coroutine.DispatcherProvider
@@ -14,11 +15,17 @@ import eu.darken.butler.common.theming.ButlerTheme
 import eu.darken.butler.main.core.GeneralSettings
 import eu.darken.butler.main.core.themeStateBlocking
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.WorkspacePauseGate
+import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.label
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.LocalWorkspacePageHosts
 import eu.darken.butler.workspace.ui.WorkspacePageHostEntry
+import eu.darken.butler.workspace.ui.floatingbar.LocalWorkspaceBarCollapseStates
+import eu.darken.butler.workspace.ui.floatingbar.WorkspaceBarCollapseStates
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.scroll.LocalWorkspaceScrollPositions
+import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPositions
 import eu.darken.butler.workspace.ui.workspaces.WorkspaceMapper
 import eu.darken.butler.workspace.ui.workspaces.WorkspacePaneInfo
 import kotlinx.coroutines.withContext
@@ -35,13 +42,23 @@ class WorkspacePreviewCaptureService @Inject constructor(
     private val composableBitmapRenderer: ComposableBitmapRenderer,
     private val dispatcherProvider: DispatcherProvider,
     private val generalSettings: GeneralSettings,
+    private val workspacePauseGate: WorkspacePauseGate,
+    private val workspaceRepo: WorkspaceRepo,
     private val pageHosts: Map<Workspace.Type, @JvmSuppressWildcards WorkspacePageHostEntry>,
 ) {
 
     /**
-     * Callers must not pass a dormant workspace: the capture composes the type's page host by
-     * synthesizing [Workspace.LifecycleState.Ready], which has no instance to bind to while dormant
-     * (and would eagerly load exactly what on-demand restore avoids).
+     * Callers must not pass a paused workspace: the capture composes the type's page host by
+     * synthesizing [Workspace.LifecycleState.Ready], which has no instance to bind to while paused
+     * (and resuming it here would defeat the pause). The precondition is enforced defensively below
+     * and a violation yields null, so callers still need their own fallback.
+     *
+     * The whole capture runs under [WorkspacePauseGate], so a pause of this workspace can neither
+     * start nor finish while we compose it. We wait for a pause in flight rather than bail out: a
+     * skipped capture would leave a stale thumbnail behind until something else invalidates it,
+     * while waiting only delays a preview by one pause. Waiting means the caller's "is it live?"
+     * check can have gone stale by the time we get the lease - a manual pause sticks instead of
+     * resuming - so the workspace is re-read inside the lease before anything is composed.
      */
     suspend fun captureWorkspace(
         workspaceId: Workspace.Id,
@@ -52,40 +69,60 @@ class WorkspacePreviewCaptureService @Inject constructor(
     ): Bitmap? = try {
         log(TAG, INFO) { "Capturing preview for workspace ${workspaceId.shortTag} (${workspaceType})" }
 
-        val themeState = generalSettings.themeStateBlocking
+        workspacePauseGate.withLease(workspaceId) {
+            val currentInfo = workspaceRepo.peek(workspaceId)?.info?.value
+            val skipReason = when {
+                currentInfo == null -> "it is gone from the repo"
+                currentInfo.isPaused -> "it was paused while we waited for the lease"
+                else -> null
+            }
+            if (skipReason != null) {
+                log(TAG, INFO) { "Skipping capture for ${workspaceId.shortTag}: $skipReason" }
+                return@withLease null
+            }
 
-        withContext(dispatcherProvider.Main) {
-            composableBitmapRenderer.renderToBitmap(
-                canvasSize = size,
-                captureContext = captureContext,
-                viewModelStoreOwner = viewmodelStoreOwner,
-            ) {
-                // Offscreen capture renders in a detached composition that doesn't inherit the
-                // app's locals, so the page host map must be re-provided here or every preview
-                // falls back to "no page host registered" error content.
-                // Only the page host's Content is rendered (via WorkspaceMapper) — a preview
-                // thumbnail must never compose a workspace's dialogs or sheets.
-                // Disable focus during preview capture to prevent keyboard from showing
-                CompositionLocalProvider(
-                    LocalWorkspaceFocused provides false,
-                    LocalWorkspacePageHosts provides pageHosts,
+            val themeState = generalSettings.themeStateBlocking
+
+            withContext(dispatcherProvider.Main) {
+                composableBitmapRenderer.renderToBitmap(
+                    canvasSize = size,
+                    captureContext = captureContext,
+                    viewModelStoreOwner = viewmodelStoreOwner,
                 ) {
-                    ButlerTheme(state = themeState) {
-                        WorkspaceMapper(
-                            info = WorkspacePaneInfo(
-                                id = workspaceId,
-                                type = workspaceType,
-                                lifecycleState = Workspace.LifecycleState.Ready,
-                                // Only Ready is composed here, which draws the page, not a title
-                                title = workspaceType.label,
-                            ),
-                            design = WorkspaceDesign(
-                                layout = WorkspaceDesign.Layout.SINGLE
-                            ),
-                            onShareError = { /* No-op for preview */ },
-                            onCloseWorkspace = { /* No-op for preview */ },
-                            onRestoreWorkspace = { /* No-op for preview */ },
-                        )
+                    // Offscreen capture renders in a detached composition that doesn't inherit the
+                    // app's locals, so the page host map must be re-provided here or every preview
+                    // falls back to "no page host registered" error content.
+                    // Only the page host's Content is rendered (via WorkspaceMapper) — a preview
+                    // thumbnail must never compose a workspace's dialogs or sheets.
+                    // Disable focus during preview capture to prevent keyboard from showing.
+                    // The view-state registries are deliberately fresh detached ones: this composes
+                    // real pages, which would otherwise read and clobber the live scroll positions
+                    // and bar collapse state.
+                    val previewScrollPositions = remember { WorkspaceScrollPositions() }
+                    val previewBarCollapse = remember { WorkspaceBarCollapseStates() }
+                    CompositionLocalProvider(
+                        LocalWorkspaceFocused provides false,
+                        LocalWorkspacePageHosts provides pageHosts,
+                        LocalWorkspaceScrollPositions provides previewScrollPositions,
+                        LocalWorkspaceBarCollapseStates provides previewBarCollapse,
+                    ) {
+                        ButlerTheme(state = themeState) {
+                            WorkspaceMapper(
+                                info = WorkspacePaneInfo(
+                                    id = workspaceId,
+                                    type = workspaceType,
+                                    lifecycleState = Workspace.LifecycleState.Ready,
+                                    // Only Ready is composed here, which draws the page, not a title
+                                    title = workspaceType.label,
+                                ),
+                                design = WorkspaceDesign(
+                                    layout = WorkspaceDesign.Layout.SINGLE
+                                ),
+                                onShareError = { /* No-op for preview */ },
+                                onCloseWorkspace = { /* No-op for preview */ },
+                                onResumeWorkspace = { /* No-op for preview */ },
+                            )
+                        }
                     }
                 }
             }

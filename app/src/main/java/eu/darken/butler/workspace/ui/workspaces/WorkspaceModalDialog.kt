@@ -137,9 +137,9 @@ fun WorkspaceModalContent(
             }
         }
 
-        // Same gate as a pane: everything but Dormant, so an error raised while the workspace is
+        // Same gate as a pane: everything but Paused, so an error raised while the workspace is
         // still initializing still reaches the user through the handler in the overlay slot.
-        if (workspace.lifecycleState !is Workspace.LifecycleState.Dormant) {
+        if (workspace.lifecycleState !is Workspace.LifecycleState.Paused) {
             LocalWorkspacePageHosts.current[workspace.type]?.let { entry ->
                 CompositionLocalProvider(LocalPaneLayerRank provides PaneLayerRank.OVERLAY) {
                     entry.Overlays(id = workspace.id, design = design)

@@ -1,19 +1,7 @@
 package eu.darken.butler.apps.ui.apps
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -21,34 +9,29 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import eu.darken.butler.apps.ui.apps.elements.AppsActionBarItem
-import eu.darken.butler.apps.ui.apps.elements.AppsEmptyContent
 import eu.darken.butler.apps.ui.apps.elements.AppsInfoBar
-import eu.darken.butler.apps.ui.apps.elements.AppsLoadingContent
+import eu.darken.butler.apps.ui.apps.elements.AppsReadyContent
 import eu.darken.butler.apps.ui.apps.elements.AppsToolbarCard
-import eu.darken.butler.apps.ui.apps.items.AppGridItem
-import eu.darken.butler.apps.ui.apps.items.AppListItem
 import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.navigation.NavigationEventHandler
-import eu.darken.butler.workspace.contracts.apps.AppsViewStyle
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.actions.WorkspaceActionBar
 import eu.darken.butler.workspace.ui.floatingbar.BarAnimation
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
-import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
-import eu.darken.butler.workspace.ui.insets.paneInsets
 import eu.darken.butler.workspace.ui.insets.rememberPaneFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
+import eu.darken.butler.workspace.ui.scroll.rememberWorkspaceLazyGridState
+import eu.darken.butler.workspace.ui.scroll.rememberWorkspaceLazyListState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
@@ -74,6 +57,7 @@ fun AppsWorkspacePage(
 
     val topBarStackState = rememberPaneFloatingBarStackState(
         position = BarPosition.TOP,
+        workspaceId = workspaceId,
         defaultSpacing = 8.dp,
         edgePadding = 8.dp,
         contentPadding = 8.dp,
@@ -83,16 +67,13 @@ fun AppsWorkspacePage(
 
     val bottomBarStackState = rememberPaneFloatingBarStackState(
         position = BarPosition.BOTTOM,
+        workspaceId = workspaceId,
         defaultSpacing = 8.dp,
         edgePadding = 8.dp,
         contentPadding = 16.dp,
         design = design,
         estimatedContentPadding = 80.dp,
     )
-
-    // Offset the pull-to-refresh indicator below the floating toolbar/chips (top of the list content).
-    val topContentPadding = topBarStackState.contentPaddingDp()
-    val pullToRefreshState = rememberPullToRefreshState()
 
     val hasActions by remember(state.availableActions) {
         derivedStateOf { state.availableActions.isNotEmpty() }
@@ -102,122 +83,18 @@ fun AppsWorkspacePage(
         derivedStateOf { state.apps.isNotEmpty() || state.selectionCount > 0 }
     }
 
+    val listState = rememberWorkspaceLazyListState(workspaceId, slot = AppsScrollSlots.LIST)
+    val gridState = rememberWorkspaceLazyGridState(workspaceId, slot = AppsScrollSlots.GRID)
+
     Box(modifier = Modifier.fillMaxSize()) {
-        PullToRefreshBox(
-            isRefreshing = state.isRefreshing,
-            onRefresh = {
-                // Ignore pulls during the initial load — that scan is already running.
-                if (!state.isLoading) onPageAction(AppsPageAction.Apps.Refresh)
-            },
-            state = pullToRefreshState,
-            indicator = {
-                PullToRefreshDefaults.Indicator(
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .offset(y = topContentPadding),
-                    state = pullToRefreshState,
-                    isRefreshing = state.isRefreshing,
-                )
-            },
-        ) {
-            when (state.viewStyle) {
-                is AppsViewStyle.List -> {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .nestedScroll(topBarStackState.nestedScrollConnection)
-                            .nestedScroll(bottomBarStackState.nestedScrollConnection),
-                        contentPadding = PaddingValues(
-                            top = topContentPadding,
-                            bottom = bottomBarStackState.contentPaddingDp(),
-                        ),
-                    ) {
-                        when {
-                            state.isLoading && state.apps.isEmpty() -> {
-                                item {
-                                    AppsLoadingContent()
-                                }
-                            }
-
-                            state.apps.isEmpty() -> {
-                                item {
-                                    AppsEmptyContent()
-                                }
-                            }
-
-                            else -> {
-                                items(
-                                    items = state.apps,
-                                    key = { it.pkg.installId }
-                                ) { appItem ->
-                                    AppListItem(
-                                        item = appItem,
-                                        isSelected = appItem.pkg.installId in state.selectedAppIds,
-                                        onClick = { onPageAction(AppsPageAction.Apps.Click(appItem)) },
-                                        onLongClick = { onPageAction(AppsPageAction.Apps.LongClick(appItem)) },
-                                        showSelection = state.isMultiSelectMode,
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-
-                is AppsViewStyle.Grid -> {
-                    val gridSize = (state.viewStyle as AppsViewStyle.Grid).size
-                    val minSize = when (gridSize) {
-                        AppsViewStyle.Grid.GridSize.SMALL -> 90.dp
-                        AppsViewStyle.Grid.GridSize.MEDIUM -> 120.dp
-                        AppsViewStyle.Grid.GridSize.LARGE -> 160.dp
-                    }
-
-                    LazyVerticalGrid(
-                        columns = GridCells.Adaptive(minSize = minSize),
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .nestedScroll(topBarStackState.nestedScrollConnection)
-                            .nestedScroll(bottomBarStackState.nestedScrollConnection),
-                        contentPadding = PaddingValues(
-                            top = topContentPadding,
-                            bottom = bottomBarStackState.contentPaddingDp(),
-                            start = 8.dp,
-                            end = 8.dp,
-                        ),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp),
-                    ) {
-                        when {
-                            state.isLoading && state.apps.isEmpty() -> {
-                                item {
-                                    AppsLoadingContent()
-                                }
-                            }
-
-                            state.apps.isEmpty() -> {
-                                item {
-                                    AppsEmptyContent()
-                                }
-                            }
-
-                            else -> {
-                                items(
-                                    items = state.apps,
-                                    key = { it.pkg.installId }
-                                ) { appItem ->
-                                    AppGridItem(
-                                        item = appItem,
-                                        isSelected = appItem.pkg.installId in state.selectedAppIds,
-                                        onClick = { onPageAction(AppsPageAction.Apps.Click(appItem)) },
-                                        onLongClick = { onPageAction(AppsPageAction.Apps.LongClick(appItem)) },
-                                        showSelection = state.isMultiSelectMode,
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        AppsReadyContent(
+            state = state,
+            listState = listState,
+            gridState = gridState,
+            topBarStackState = topBarStackState,
+            bottomBarStackState = bottomBarStackState,
+            onPageAction = onPageAction,
+        )
 
         // Top floating bars
         FloatingBarStack(
@@ -227,10 +104,10 @@ fun AppsWorkspacePage(
             bars = {
                 // Toolbar card - collapses on scroll
                 FloatingBar(
+                    key = AppsBarKeys.TOOLBAR,
                     visible = true,
                     scrollBehavior = BarScrollBehavior.CollapseOnScroll(),
                     animation = BarAnimation.Slide(),
-                    modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
                     AppsToolbarCard(
                         workspaceId = workspaceId,
@@ -248,10 +125,10 @@ fun AppsWorkspacePage(
 
                 // Info bar - vanishes on scroll
                 FloatingBar(
+                    key = AppsBarKeys.INFOBAR,
                     visible = showInfoBar,
                     scrollBehavior = BarScrollBehavior.VanishOnScroll,
                     animation = BarAnimation.Slide(),
-                    modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
                     AppsInfoBar(
                         userAppsCount = state.userAppsCount,
@@ -272,10 +149,10 @@ fun AppsWorkspacePage(
             modifier = Modifier.align(Alignment.BottomCenter),
             bars = {
                 FloatingBar(
+                    key = AppsBarKeys.ACTIONS,
                     visible = hasActions,
                     scrollBehavior = BarScrollBehavior.HideOnScroll,
                     animation = BarAnimation.Slide(),
-                    modifier = Modifier.padding(horizontal = 16.dp),
                     revealOn = state.selectedAppIds,
                 ) {
                     WorkspaceActionBar(

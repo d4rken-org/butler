@@ -1,13 +1,11 @@
 package eu.darken.butler.explorer.ui.explorer.elements
 
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
@@ -15,6 +13,7 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.favorites.PendingFavoriteRemoval
+import eu.darken.butler.explorer.ui.explorer.ExplorerBarKeys
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionBarItem
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
@@ -57,11 +56,11 @@ internal fun FloatingBarScope.ExplorerTopBars(
         showProgress
 
     FloatingBar(
+        key = ExplorerBarKeys.TOOLBAR,
         visible = true,
         scrollBehavior = BarScrollBehavior.CollapseOnScroll(collapsedHeight = 44.dp),
         animation = BarAnimation.Slide(),
         estimatedHeight = 64.dp,
-        modifier = Modifier.padding(horizontal = 16.dp),
     ) {
         ExplorerToolbarCard(
             workspaceId = workspaceId,
@@ -86,11 +85,11 @@ internal fun FloatingBarScope.ExplorerTopBars(
 
     // InfoBar - only shown when NOT on permission screen
     FloatingBar(
+        key = ExplorerBarKeys.INFOBAR,
         visible = showInfoBar && !state.setupRequirements.needsAction,
         scrollBehavior = BarScrollBehavior.Static,
         animation = BarAnimation.Slide(),
         estimatedHeight = 32.dp,
-        modifier = Modifier.padding(horizontal = 16.dp),
     ) {
         ExplorerInfoBar(
             info = state.info,
@@ -142,10 +141,10 @@ internal fun FloatingBarScope.ExplorerBottomBars(
     val showFavoritesUndoBar = state.pendingFavoriteRemoval != null && state.pickerConfig == null
 
     FloatingBar(
+        key = ExplorerBarKeys.OPERATIONS,
         visible = hasOperations,
         scrollBehavior = if (hasActiveOperations) BarScrollBehavior.Static else BarScrollBehavior.VanishOnScroll,
         animation = BarAnimation.Slide(),
-        modifier = Modifier.padding(horizontal = 16.dp),
     ) {
         OperationsBar(
             operations = operationsState.operations,
@@ -163,10 +162,10 @@ internal fun FloatingBarScope.ExplorerBottomBars(
     }
 
     FloatingBar(
+        key = ExplorerBarKeys.CLIPBOARD,
         visible = hasClipboard,
         scrollBehavior = BarScrollBehavior.VanishOnScroll,
         animation = BarAnimation.Bouncy,
-        modifier = Modifier.padding(horizontal = 16.dp),
     ) {
         ClipboardBar(
             workspaceType = Workspace.Type.EXPLORER,
@@ -180,10 +179,10 @@ internal fun FloatingBarScope.ExplorerBottomBars(
     }
 
     FloatingBar(
+        key = ExplorerBarKeys.FAVORITES_UNDO,
         visible = showFavoritesUndoBar,
         scrollBehavior = BarScrollBehavior.Static,
         animation = BarAnimation.Slide(),
-        modifier = Modifier.padding(horizontal = 16.dp),
     ) {
         lastPendingRemoval?.let { pending ->
             FavoritesUndoBar(
@@ -194,10 +193,10 @@ internal fun FloatingBarScope.ExplorerBottomBars(
     }
 
     FloatingBar(
+        key = ExplorerBarKeys.ACTIONS,
         visible = hasActions,
         scrollBehavior = BarScrollBehavior.HideOnScroll,
         animation = BarAnimation.Slide(),
-        modifier = Modifier.padding(horizontal = 16.dp),
         revealOn = state.selectionState.selectedItems,
     ) {
         WorkspaceActionBar(
