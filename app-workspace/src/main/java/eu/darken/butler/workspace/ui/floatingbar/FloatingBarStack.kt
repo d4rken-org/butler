@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.workspace.ui.common.WorkspacePaddings
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 import kotlin.uuid.Uuid
@@ -55,6 +56,7 @@ import kotlin.uuid.Uuid
  * @param position Whether bars are positioned at TOP or BOTTOM of the screen.
  * @param defaultSpacing Default spacing between bars.
  * @param edgePadding Padding from the screen edge to the first bar.
+ * @param horizontalPadding Inset from the pane edges applied to every bar in this stack.
  * @param state State holder managing bar coordination. Use [rememberFloatingBarStackState].
  * @param bars Lambda to declare bars using [FloatingBarScope.FloatingBar].
  */
@@ -64,11 +66,12 @@ fun FloatingBarStack(
     position: BarPosition,
     defaultSpacing: Dp = 8.dp,
     edgePadding: Dp = 8.dp,
+    horizontalPadding: Dp = WorkspacePaddings.BarHorizontal,
     state: FloatingBarStackState = rememberFloatingBarStackState(position, defaultSpacing, edgePadding),
     bars: @Composable FloatingBarScope.() -> Unit,
 ) {
     val density = LocalDensity.current
-    val scope = remember(state) { FloatingBarScopeImpl(state) }
+    val scope = remember(state, horizontalPadding) { FloatingBarScopeImpl(state, horizontalPadding) }
 
     SubcomposeLayout(
         modifier = modifier
@@ -199,6 +202,7 @@ internal data class BarEntry(
 @Stable
 internal class FloatingBarScopeImpl(
     private val stackState: FloatingBarStackState,
+    private val horizontalPadding: Dp,
 ) : FloatingBarScope() {
 
     internal val barEntries = mutableStateListOf<BarEntry>()
@@ -299,9 +303,12 @@ internal class FloatingBarScopeImpl(
 
         // Render bar content wrapped in measurement container
         Box(
-            modifier = modifier.onGloballyPositioned { coords ->
-                barState.measuredHeight = coords.size.height.toFloat()
-            },
+            modifier = Modifier
+                .padding(horizontal = horizontalPadding)
+                .then(modifier)
+                .onGloballyPositioned { coords ->
+                    barState.measuredHeight = coords.size.height.toFloat()
+                },
             contentAlignment = when (stackState.position) {
                 BarPosition.TOP -> Alignment.TopCenter
                 BarPosition.BOTTOM -> Alignment.BottomCenter
@@ -367,19 +374,16 @@ private fun FloatingBarStackBottomPreview() {
             bars = {
                 FloatingBar(
                     scrollBehavior = BarScrollBehavior.VanishOnScroll,
-                    modifier = Modifier.padding(horizontal = 8.dp),
                 ) {
                     PreviewBar("VanishOnScroll", MaterialTheme.colorScheme.tertiaryContainer)
                 }
                 FloatingBar(
                     scrollBehavior = BarScrollBehavior.VanishOnScroll,
-                    modifier = Modifier.padding(horizontal = 8.dp),
                 ) {
                     PreviewBar("VanishOnScroll", MaterialTheme.colorScheme.secondaryContainer)
                 }
                 FloatingBar(
                     scrollBehavior = BarScrollBehavior.HideOnScroll,
-                    modifier = Modifier.padding(horizontal = 8.dp),
                 ) {
                     PreviewBar("HideOnScroll (edge)", MaterialTheme.colorScheme.primaryContainer)
                 }
@@ -418,13 +422,11 @@ private fun FloatingBarStackTopPreview() {
             bars = {
                 FloatingBar(
                     scrollBehavior = BarScrollBehavior.VanishOnScroll,
-                    modifier = Modifier.padding(horizontal = 8.dp),
                 ) {
                     PreviewBar("Toolbar (edge)", MaterialTheme.colorScheme.primaryContainer)
                 }
                 FloatingBar(
                     scrollBehavior = BarScrollBehavior.Static,
-                    modifier = Modifier.padding(horizontal = 8.dp),
                 ) {
                     PreviewBar("Static bar", MaterialTheme.colorScheme.surfaceVariant)
                 }
@@ -463,19 +465,16 @@ private fun FloatingBarStackMixedVisibilityPreview() {
             bars = {
                 FloatingBar(
                     visible = true,
-                    modifier = Modifier.padding(horizontal = 8.dp),
                 ) {
                     PreviewBar("Visible bar 1", MaterialTheme.colorScheme.tertiaryContainer)
                 }
                 FloatingBar(
                     visible = false, // Hidden - gap should be filled
-                    modifier = Modifier.padding(horizontal = 8.dp),
                 ) {
                     PreviewBar("Hidden bar", MaterialTheme.colorScheme.errorContainer)
                 }
                 FloatingBar(
                     visible = true,
-                    modifier = Modifier.padding(horizontal = 8.dp),
                 ) {
                     PreviewBar("Visible bar 2", MaterialTheme.colorScheme.primaryContainer)
                 }
