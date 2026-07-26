@@ -5,7 +5,9 @@ import eu.darken.butler.common.serialization.SerializationIOModule
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPosition
 import io.kotest.matchers.shouldBe
+import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -52,6 +54,7 @@ class WorkspaceUIStateConverterTest : BaseTest() {
     fun `a stored blob decodes into the expected state`() {
         val stored = """
             {
+              "version": 1,
               "focusedWorkspaceId": "${idA.id}",
               "paneSelections": {"0": "${idA.id}", "1": "${idB.id}"},
               "scrollPositions": {"${idA.id}": {"list#location://home": {"index": 12, "offset": 34}}},
@@ -171,6 +174,61 @@ class WorkspaceUIStateConverterTest : BaseTest() {
 
         decoded.focusedWorkspaceId shouldBe idA
         decoded.paneSelections shouldBe mapOf(0 to idA)
+    }
+
+    /**
+     * "User ran a newer build and went back" produces the same visible symptom as a corrupt row -
+     * state that quietly went missing - so the version marker has to make the two tellable apart in
+     * the log.
+     */
+    @Test
+    fun `a blob from a newer format version is reported as such`() {
+        val stored = """
+            {
+              "version": 999,
+              "focusedWorkspaceId": "${idA.id}",
+              "paneSelections": {"0": "${idA.id}"},
+              "somethingFromTheFuture": true
+            }
+        """.trimIndent()
+
+        val decoded = converter.toUIState(stored)
+
+        decoded.focusedWorkspaceId shouldBe idA
+        decoded.paneSelections shouldBe mapOf(0 to idA)
+        // What this build decoded is v1, no matter what the row claimed
+        decoded.version shouldBe WorkspaceUIState.CURRENT_VERSION
+
+        warnings().single().contains("NEWER build") shouldBe true
+        warnings().single().contains("999") shouldBe true
+    }
+
+    @Test
+    fun `the current version is not reported`() {
+        converter.toUIState("""{"version": ${WorkspaceUIState.CURRENT_VERSION}}""") shouldBe WorkspaceUIState()
+        converter.toUIState("{}") shouldBe WorkspaceUIState()
+
+        warnings() shouldBe emptyList()
+    }
+
+    @Test
+    fun `an unreadable version is treated as unversioned`() {
+        val stored = """
+            {"version": "beta", "focusedWorkspaceId": "${idA.id}"}
+        """.trimIndent()
+
+        converter.toUIState(stored).focusedWorkspaceId shouldBe idA
+
+        warnings().single().contains("version") shouldBe true
+    }
+
+    @Test
+    fun `the version marker is written on every save`() {
+        val encoded = json.parseToJsonElement(converter.fromUIState(state)).jsonObject
+        encoded.getValue("version").jsonPrimitive.int shouldBe WorkspaceUIState.CURRENT_VERSION
+
+        val fromNull = json.parseToJsonElement(converter.fromUIState(null)).jsonObject
+        fromNull.getValue("version").jsonPrimitive.int shouldBe WorkspaceUIState.CURRENT_VERSION
     }
 
     @Test
