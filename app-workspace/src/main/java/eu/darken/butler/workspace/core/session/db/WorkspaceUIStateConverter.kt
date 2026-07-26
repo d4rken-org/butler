@@ -22,12 +22,20 @@ class WorkspaceUIStateConverter @Inject constructor(
         return json.encodeToString(WorkspaceUIState.serializer(), value ?: WorkspaceUIState())
     }
 
+    /**
+     * A blob that can't be read is dropped, never rethrown: stale UI state must not keep the app
+     * from starting. The trade-off is that a format change looks like "everything was just
+     * expanded/scrolled to the top", so it has to be loud in the log to be recognizable.
+     */
     @TypeConverter
     fun toUIState(value: String): WorkspaceUIState {
         return try {
             json.decodeFromString(WorkspaceUIState.serializer(), value)
         } catch (e: Exception) {
-            log(TAG, ERROR) { "Failed to deserialize workspace UI state: ${e.asLog()}" }
+            log(TAG, WARN) {
+                "Persisted UI state DISCARDED (scroll positions and bar collapse are lost), " +
+                    "most likely a change to the stored JSON format: ${e.asLog()}"
+            }
             WorkspaceUIState()
         }
     }
