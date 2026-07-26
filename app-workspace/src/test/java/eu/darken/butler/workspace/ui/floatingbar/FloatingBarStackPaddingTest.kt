@@ -49,7 +49,7 @@ class FloatingBarStackPaddingTest : ComposeTest() {
                         .testTag(containerTag),
                 ) {
                     FloatingBarStack(position = BarPosition.BOTTOM) {
-                        FloatingBar {
+                        FloatingBar(key = "bar") {
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -81,7 +81,7 @@ class FloatingBarStackPaddingTest : ComposeTest() {
                         position = BarPosition.BOTTOM,
                         horizontalPadding = padding,
                     ) {
-                        FloatingBar {
+                        FloatingBar(key = "bar") {
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -114,7 +114,7 @@ class FloatingBarStackPaddingTest : ComposeTest() {
                             .testTag(containerTag),
                     ) {
                         FloatingBarStack(position = BarPosition.BOTTOM) {
-                            FloatingBar {
+                            FloatingBar(key = "bar") {
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -146,7 +146,7 @@ class FloatingBarStackPaddingTest : ComposeTest() {
                         horizontalPadding = 24.dp,
                         state = rememberFloatingBarStackState(position = BarPosition.BOTTOM),
                     ) {
-                        FloatingBar {
+                        FloatingBar(key = "bar") {
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
