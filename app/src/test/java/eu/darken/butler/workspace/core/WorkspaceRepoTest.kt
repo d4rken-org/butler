@@ -2,6 +2,7 @@ package eu.darken.butler.workspace.core
 
 import android.content.Context
 import android.os.Parcel
+import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
@@ -12,6 +13,7 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import io.kotest.matchers.types.shouldBeSameInstanceAs
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -1040,6 +1042,275 @@ class WorkspaceRepoTest : BaseTest() {
             result.shouldBeInstanceOf<WorkspaceAction.RegisterDormant.Result.Failed>()
             repo.workspaceIds() shouldBe listOf(existingId)
         }
+
+    // ==================== Custom titles ====================
+
+    private suspend fun WorkspaceRepo.rename(id: Workspace.Id, title: String?): Boolean =
+        (execute(WorkspaceAction.Rename(id, title)) as WorkspaceAction.Rename.Result).success
+
+    /**
+     * [Workspace.Info.displayTitle] falls back to [Workspace.Info.title] by returning that very
+     * instance, so the fallback is asserted by identity rather than by resolved content.
+     */
+    private suspend fun WorkspaceRepo.showsAutomaticTitle(id: Workspace.Id) {
+        val info = infoFor(id)
+        info.customTitle shouldBe null
+        info.displayTitle shouldBeSameInstanceAs info.title
+    }
+
+    @Test
+    fun `renaming sets customTitle and displayTitle without touching the automatic title`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val id = repo.createTab()
+            val automaticTitle = repo.infoFor(id).title
+
+            repo.rename(id, "Holiday photos") shouldBe true
+
+            val info = repo.infoFor(id)
+            info.customTitle shouldBe "Holiday photos"
+            info.displayTitle.get(context) shouldBe "Holiday photos"
+            // The automatic title is untouched, it is merely overlaid
+            info.title shouldBeSameInstanceAs automaticTitle
+            info.title.get(context) shouldBe "Fake ${Workspace.Type.EXPLORER}"
+        }
+
+    /**
+     * Dormant stand-ins now show a factory-derived identity rather than a bare type label, so this
+     * is where the two naming mechanisms meet: a name the user set must still win, and the derived
+     * one must stay intact underneath so clearing the custom name reveals it again.
+     */
+    @Test
+    fun `a custom name wins over the derived identity of a dormant workspace`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            derivedDisplay = WorkspaceDisplay(
+                title = "/sdcard/Download".toCaString(),
+                subtitle = "Storage".toCaString(),
+            )
+            val dormantId = repo.registerDormant()
+
+            repo.rename(dormantId, "Holiday photos") shouldBe true
+
+            val info = repo.infoFor(dormantId)
+            info.displayTitle.get(context) shouldBe "Holiday photos"
+            info.title.get(context) shouldBe "/sdcard/Download"
+            // The derived subtitle is untouched by renaming
+            info.subtitle!!.get(context) shouldBe "Storage"
+            info.lifecycleState shouldBe Workspace.LifecycleState.Dormant()
+
+            repo.rename(dormantId, null) shouldBe true
+
+            repo.showsAutomaticTitle(dormantId)
+            repo.infoFor(dormantId).displayTitle.get(context) shouldBe "/sdcard/Download"
+        }
+
+    @Test
+    fun `renaming emits a Renamed event with the normalized title`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val events = mutableListOf<WorkspaceEvent>()
+        repo.events.onEach { events += it }.launchIn(backgroundScope)
+        val id = repo.createTab()
+
+        repo.rename(id, "  Named  ")
+
+        events.filterIsInstance<WorkspaceEvent.Renamed>().single().let {
+            it.workspaceId shouldBe id
+            it.customTitle shouldBe "Named"
+        }
+    }
+
+    @Test
+    fun `blank names clear the custom title and restore the automatic one`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+
+            listOf("", "   ", null).forEach { blank ->
+                val id = repo.createTab()
+                repo.rename(id, "Named") shouldBe true
+                repo.infoFor(id).customTitle shouldBe "Named"
+
+                repo.rename(id, blank) shouldBe true
+
+                repo.showsAutomaticTitle(id)
+                repo.execute(WorkspaceAction.Close(id))
+            }
+        }
+
+    @Test
+    fun `control characters and newlines are stripped from a custom title`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val id = repo.createTab()
+
+            repo.rename(id, "Line\none\ttwo\u0000")
+
+            repo.infoFor(id).customTitle shouldBe "Lineonetwo"
+        }
+
+    @Test
+    fun `a control-character-only name clears the custom title`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val id = repo.createTab()
+        repo.rename(id, "Named")
+
+        repo.rename(id, "\n\t\u0000") shouldBe true
+
+        repo.infoFor(id).customTitle shouldBe null
+    }
+
+    @Test
+    fun `an over-long custom title is truncated`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val id = repo.createTab()
+
+        repo.rename(id, "x".repeat(WorkspaceAction.Rename.MAX_CUSTOM_TITLE_LENGTH + 50))
+
+        repo.infoFor(id).customTitle shouldBe "x".repeat(WorkspaceAction.Rename.MAX_CUSTOM_TITLE_LENGTH)
+    }
+
+    @Test
+    fun `renaming an unknown id fails and mutates nothing`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val id = repo.createTab()
+        repo.rename(id, "Named")
+
+        repo.rename(Workspace.Id(), "Ghost") shouldBe false
+
+        repo.infoFor(id).customTitle shouldBe "Named"
+        repo.state.first().infos.count { it.customTitle != null } shouldBe 1
+    }
+
+    @Test
+    fun `closing a workspace drops its custom title`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val id = repo.createTab()
+        repo.rename(id, "Named")
+
+        repo.execute(WorkspaceAction.Close(id))
+
+        // A fresh random id could not detect a stale entry, so recreate with the SAME id
+        repo.execute(
+            WorkspaceAction.Create(
+                type = Workspace.Type.EXPLORER,
+                arguments = FakeArguments(Workspace.Type.EXPLORER),
+                id = id,
+            )
+        ).shouldBeInstanceOf<WorkspaceAction.Create.Result.Success>()
+
+        repo.showsAutomaticTitle(id)
+    }
+
+    @Test
+    fun `CloseAll clears all custom titles`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val idA = repo.createTab()
+        val idB = repo.createTab()
+        repo.rename(idA, "A")
+        repo.rename(idB, "B")
+
+        repo.execute(WorkspaceAction.CloseAll)
+
+        val revivedId = repo.execute(
+            WorkspaceAction.Create(
+                type = Workspace.Type.EXPLORER,
+                arguments = FakeArguments(Workspace.Type.EXPLORER),
+                id = idA,
+            )
+        ).let { (it as WorkspaceAction.Create.Result.Success).newId }
+
+        repo.infoFor(revivedId).customTitle shouldBe null
+    }
+
+    @Test
+    fun `a same-id replacement keeps the custom title`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val id = repo.createTab()
+        repo.rename(id, "Named")
+
+        repo.execute(
+            WorkspaceAction.Create(
+                type = Workspace.Type.SEARCHER,
+                arguments = FakeArguments(Workspace.Type.SEARCHER),
+                replace = id,
+                id = id,
+            )
+        ).shouldBeInstanceOf<WorkspaceAction.Create.Result.Success>()
+
+        repo.infoFor(id).customTitle shouldBe "Named"
+    }
+
+    @Test
+    fun `a replacement with a new id carries the custom title over`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val originalId = repo.createTab()
+        repo.rename(originalId, "Named")
+
+        val result = repo.execute(
+            WorkspaceAction.Create(
+                type = Workspace.Type.SEARCHER,
+                arguments = FakeArguments(Workspace.Type.SEARCHER),
+                replace = originalId,
+            )
+        ) as WorkspaceAction.Create.Result.Success
+
+        result.newId shouldNotBe originalId
+        repo.infoFor(result.newId).customTitle shouldBe "Named"
+        repo.state.first().infos.count { it.customTitle != null } shouldBe 1
+    }
+
+    @Test
+    fun `a failed replacement leaves the custom title on the original`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val originalId = repo.createTab()
+        repo.rename(originalId, "Named")
+        nextCreateFailure = IllegalStateException("Factory exploded")
+
+        runCatching {
+            repo.execute(
+                WorkspaceAction.Create(
+                    type = Workspace.Type.SEARCHER,
+                    arguments = FakeArguments(Workspace.Type.SEARCHER),
+                    replace = originalId,
+                )
+            )
+        }
+
+        repo.infoFor(originalId).customTitle shouldBe "Named"
+    }
+
+    @Test
+    fun `clearing a custom title reveals the latest automatic title`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val id = repo.createTab()
+        repo.rename(id, "Named")
+
+        // The automatic title keeps updating underneath while the custom one is shown
+        val ws = fake(id)
+        val latestAutomaticTitle = "/new/path".toCaString()
+        ws.info.value = ws.info.value.copy(title = latestAutomaticTitle)
+        repo.infoFor(id).customTitle shouldBe "Named"
+
+        repo.rename(id, null)
+
+        // Not merely "some automatic title" - the newest one
+        repo.infoFor(id).displayTitle shouldBeSameInstanceAs latestAutomaticTitle
+    }
+
+    @Test
+    fun `concurrently renamed workspaces never exchange titles`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val idA = repo.createTab()
+        val idB = repo.createTab()
+
+        listOf(
+            async { repo.rename(idA, "A") },
+            async { repo.rename(idB, "B") },
+        ).awaitAll()
+
+        repo.infoFor(idA).customTitle shouldBe "A"
+        repo.infoFor(idB).customTitle shouldBe "B"
+    }
 
     @Test
     fun `batch rejects a colliding explicit id without dropping the first create`() =

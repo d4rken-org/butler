@@ -16,13 +16,18 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Add
+import androidx.compose.material.icons.twotone.Close
+import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material.icons.twotone.Settings
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,6 +42,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -91,6 +97,8 @@ fun TemplatesWorkspacePageHost(
             state = state,
             onNavToSettings = { vm.navTo(Nav.Main.settings()) },
             onCreateWorkspace = { vm.createWorkspace(it) },
+            onRename = { vm.renameWorkspace(it) },
+            onEditName = { vm.showRenameDialog() },
         )
     }
 }
@@ -102,6 +110,8 @@ fun TemplatesWorkspacePage(
     state: TemplatesWorkspaceViewModel.State,
     onNavToSettings: () -> Unit,
     onCreateWorkspace: (WorkspaceAction.Create) -> Unit = {},
+    onRename: (String?) -> Unit = {},
+    onEditName: () -> Unit = {},
 ) {
     val randomSlogan = remember { Slogans.random }
 
@@ -141,6 +151,14 @@ fun TemplatesWorkspacePage(
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                     )
                 }
+            }
+            item {
+                TabNameRow(
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                    customTitle = state.customTitle,
+                    onEdit = onEditName,
+                    onClear = { onRename(null) },
+                )
             }
             items(state.templates.size) { index ->
                 val template = state.templates[index]
@@ -257,6 +275,68 @@ fun TemplatesWorkspacePage(
             )
         }
     }
+
+    // The rename dialog lives in the page host's overlay slot, see TemplatesWorkspaceOverlays
+}
+
+/**
+ * Lets the user name the tab before it becomes something: the name survives the template morph,
+ * so it carries onto the resulting Explorer/Searcher/… tab.
+ */
+@Composable
+private fun TabNameRow(
+    modifier: Modifier = Modifier,
+    customTitle: String?,
+    onEdit: () -> Unit,
+    onClear: () -> Unit,
+) {
+    if (customTitle == null) {
+        TextButton(
+            modifier = modifier,
+            onClick = onEdit,
+        ) {
+            Icon(
+                modifier = Modifier.size(18.dp),
+                imageVector = Icons.TwoTone.Edit,
+                contentDescription = null,
+            )
+            Text(
+                modifier = Modifier.padding(start = 8.dp),
+                text = stringResource(R.string.workspace_templates_name_tab_action),
+            )
+        }
+    } else {
+        AssistChip(
+            modifier = modifier,
+            onClick = onEdit,
+            label = {
+                Text(
+                    text = customTitle,
+                    maxLines = 1,
+                    overflow = TextOverflow.MiddleEllipsis,
+                )
+            },
+            leadingIcon = {
+                Icon(
+                    modifier = Modifier.size(18.dp),
+                    imageVector = Icons.TwoTone.Edit,
+                    contentDescription = null,
+                )
+            },
+            trailingIcon = {
+                IconButton(
+                    modifier = Modifier.size(24.dp),
+                    onClick = onClear,
+                ) {
+                    Icon(
+                        modifier = Modifier.size(18.dp),
+                        imageVector = Icons.TwoTone.Close,
+                        contentDescription = stringResource(R.string.workspace_templates_name_tab_clear_content_desc),
+                    )
+                }
+            },
+        )
+    }
 }
 
 @Composable
@@ -372,8 +452,12 @@ private fun GradientFade(
     )
 }
 
-private fun previewState(workspaceId: Workspace.Id) = TemplatesWorkspaceViewModel.State(
+private fun previewState(
+    workspaceId: Workspace.Id,
+    customTitle: String? = null,
+) = TemplatesWorkspaceViewModel.State(
     id = workspaceId,
+    customTitle = customTitle,
     templates = listOf(
         previewTemplate(Workspace.Type.EXPLORER, "Explorer", "Browse and manage files", 10),
         previewTemplate(Workspace.Type.SEARCHER, "Searcher", "Find files and folders", 20),
@@ -392,6 +476,18 @@ private fun TemplatesWorkspacePagePreview() {
     TemplatesWorkspacePage(
         workspaceId = workspaceId,
         state = previewState(workspaceId),
+        onNavToSettings = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun TemplatesWorkspacePageNamedPreview() {
+    val workspaceId = Workspace.Id()
+    TemplatesWorkspacePage(
+        workspaceId = workspaceId,
+        state = previewState(workspaceId, customTitle = "Holiday photos"),
         onNavToSettings = {},
     )
 }

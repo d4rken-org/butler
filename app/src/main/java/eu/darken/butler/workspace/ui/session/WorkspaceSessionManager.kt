@@ -35,6 +35,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -55,8 +57,24 @@ class WorkspaceSessionManager @Inject constructor(
     private val _state = MutableStateFlow<State>(State.Restoring)
     val state: StateFlow<State> = _state.asStateFlow()
 
+    /**
+     * Everything a saved row is derived from. Compared as a whole for incremental saves: a hash of
+     * the arguments alone missed title-only changes and, being a hash, could collide; [type] matters
+     * because a same-id replace changes the type in place.
+     */
+    private data class SaveKey(
+        val type: Workspace.Type,
+        val serializedArguments: String,
+        val orderIndex: Int,
+        val customTitle: String?,
+    )
+
     // Track last saved workspace state for incremental updates
-    private val lastSavedWorkspaces = mutableMapOf<Workspace.Id, Pair<Int, Int>>() // ID -> (argsHash, orderIndex)
+    private val lastSavedWorkspaces = mutableMapOf<Workspace.Id, SaveKey>()
+
+    // The debounced auto-save is the only caller today; kept deliberately so that a second one
+    // could not race lastSavedWorkspaces and the Room transaction.
+    private val saveLock = Mutex()
 
     init {
         appScope.launch {
@@ -148,7 +166,9 @@ class WorkspaceSessionManager @Inject constructor(
     /**
      * Save the current workspace and UI state as a session with incremental updates
      */
-    suspend fun saveSession() {
+    suspend fun saveSession() = saveLock.withLock { doSaveSession() }
+
+    private suspend fun doSaveSession() {
         log(TAG, INFO) { "Saving session" }
 
         var defaultSession = storage.dao.getSession(DEFAULT_SESSION_ID)
@@ -198,12 +218,21 @@ class WorkspaceSessionManager @Inject constructor(
                 )
             )
 
-            // 2. Detect removed workspaces
+            // 2. Detect removed workspaces.
+            // Absence from [workspacesToSave] is NOT proof a workspace is gone: it comes from the
+            // asynchronously replayed state flow, which during a slow restore can still hold a
+            // partial (or empty) snapshot. Deleting on that basis wipes the saved rows of
+            // workspaces that still exist, and a process death before the next settled save makes
+            // that permanent. So each candidate is confirmed against the repo's authoritative
+            // in-memory list, read synchronously via peek(), which also reports dormant instances
+            // and so protects their rows too.
+            // Only the delete pass needs this: a partial snapshot that merely upserts fewer rows
+            // loses nothing and the next save catches up.
             val existingIds = storage.dao.getWorkspaceIds(defaultSession.sessionId).toSet()
             val currentIds = workspacesToSave.map { it.id }.toSet()
-            val removedIds = existingIds - currentIds
+            val removedIds = (existingIds - currentIds).filter { workspaceRepo.peek(it) == null }
             if (removedIds.isNotEmpty()) {
-                storage.dao.deleteWorkspacesByIds(removedIds.toList())
+                storage.dao.deleteWorkspacesByIds(removedIds)
                 removedIds.forEach { lastSavedWorkspaces.remove(it) }
                 log(TAG) { "Removed ${removedIds.size} deleted workspaces from session" }
             }
@@ -224,12 +253,16 @@ class WorkspaceSessionManager @Inject constructor(
 
                     @Suppress("UNCHECKED_CAST")
                     val factory = factoryMap.getValue(info.type) as WorkspaceFactory<Workspace.Arguments>
-                    val serializedArgs = factory.serialize(json, currentArgs)
-                    val argsHash = serializedArgs.hashCode()
+                    val serializedArgs = factory.serialize(json, currentArgs).toString()
 
-                    // Check if changed (arguments or position)
-                    val lastSaved = lastSavedWorkspaces[info.id]
-                    if (lastSaved == null || lastSaved.first != argsHash || lastSaved.second != index) {
+                    val saveKey = SaveKey(
+                        type = info.type,
+                        serializedArguments = serializedArgs,
+                        orderIndex = index,
+                        customTitle = info.customTitle,
+                    )
+
+                    if (lastSavedWorkspaces[info.id] != saveKey) {
                         // Preserve original createdAt for existing workspaces
                         val existingEntity = storage.dao.getWorkspaceById(info.id)
                         val createdAt = existingEntity?.createdAt ?: now
@@ -242,10 +275,11 @@ class WorkspaceSessionManager @Inject constructor(
                                 orderIndex = index,
                                 createdAt = createdAt,
                                 lastModified = now,
-                                arguments = serializedArgs.toString(),
+                                arguments = serializedArgs,
+                                customTitle = info.customTitle,
                             )
                         )
-                        lastSavedWorkspaces[info.id] = argsHash to index
+                        lastSavedWorkspaces[info.id] = saveKey
                         changedCount++
                     }
                 } catch (e: Exception) {
@@ -265,6 +299,7 @@ class WorkspaceSessionManager @Inject constructor(
         val id: Workspace.Id,
         val type: Workspace.Type,
         val arguments: Workspace.Arguments,
+        val customTitle: String?,
     )
 
     private suspend fun restoreSession(): List<Workspace.Id> {
@@ -302,6 +337,12 @@ class WorkspaceSessionManager @Inject constructor(
                 registerDormant(candidate)
             }
             if (!restored) return@forEach
+
+            // Before dormant promotion, cache seeding and applyUIState: a candidate whose creation
+            // failed must never have its name applied to whatever takes its slot.
+            candidate.customTitle?.let { customTitle ->
+                workspaceRepo.execute(WorkspaceAction.Rename(candidate.id, customTitle))
+            }
 
             restoredWorkspaceIds.add(candidate.id)
             if (restoreEagerly) {
@@ -369,7 +410,14 @@ class WorkspaceSessionManager @Inject constructor(
                     }
                 }
 
-                candidates.add(RestoreCandidate(id = entity.workspaceId, type = type, arguments = arguments))
+                candidates.add(
+                    RestoreCandidate(
+                        id = entity.workspaceId,
+                        type = type,
+                        arguments = arguments,
+                        customTitle = entity.customTitle,
+                    )
+                )
                 if (type.isSingleton) seenSingletonTypes.add(type)
             } catch (e: Exception) {
                 log(TAG, ERROR) { "Failed to prepare workspace ${entity.type}: ${e.asLog()}" }
@@ -426,8 +474,12 @@ class WorkspaceSessionManager @Inject constructor(
             try {
                 @Suppress("UNCHECKED_CAST")
                 val factory = factoryMap.getValue(candidate.type) as WorkspaceFactory<Workspace.Arguments>
-                val argsHash = factory.serialize(json, candidate.arguments).hashCode()
-                lastSavedWorkspaces[id] = argsHash to index
+                lastSavedWorkspaces[id] = SaveKey(
+                    type = candidate.type,
+                    serializedArguments = factory.serialize(json, candidate.arguments).toString(),
+                    orderIndex = index,
+                    customTitle = candidate.customTitle,
+                )
             } catch (e: Exception) {
                 log(TAG, WARN) { "Failed to seed save cache for $id: ${e.asLog()}" }
             }

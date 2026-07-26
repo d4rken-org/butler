@@ -52,4 +52,8 @@ dependencies {
     addSerialization()
     addIO()
     addTesting()
+
+    // Compose UI testing with Robolectric
+    testImplementation(platform(libs.androidx.compose.bom))
+    testImplementation(libs.compose.ui.test.junit4)
 }

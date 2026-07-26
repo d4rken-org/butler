@@ -63,6 +63,8 @@ class WorkspacePreviewCaptureService @Inject constructor(
                 // Offscreen capture renders in a detached composition that doesn't inherit the
                 // app's locals, so the page host map must be re-provided here or every preview
                 // falls back to "no page host registered" error content.
+                // Only the page host's Content is rendered (via WorkspaceMapper) — a preview
+                // thumbnail must never compose a workspace's dialogs or sheets.
                 // Disable focus during preview capture to prevent keyboard from showing
                 CompositionLocalProvider(
                     LocalWorkspaceFocused provides false,

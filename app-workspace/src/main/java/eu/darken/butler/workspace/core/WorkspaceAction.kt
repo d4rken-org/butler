@@ -149,6 +149,27 @@ sealed interface WorkspaceAction {
         ) : WorkspaceAction.Result
     }
 
+    /**
+     * Sets or clears the user-set name of a workspace ([Workspace.Info.customTitle]). A null, blank
+     * or control-character-only [customTitle] clears it and restores the automatic naming.
+     */
+    data class Rename(
+        val id: Workspace.Id,
+        val customTitle: String?,
+    ) : WorkspaceAction {
+        data class Result(val success: Boolean) : WorkspaceAction.Result
+
+        companion object {
+            /**
+             * Longest custom title that survives normalization. Declared here so the UI cap (which
+             * only exists to give immediate feedback while typing) can never drift past the limit
+             * the repo actually enforces, which would silently drop characters on confirm.
+             * The repo's normalization stays authoritative.
+             */
+            const val MAX_CUSTOM_TITLE_LENGTH = 128
+        }
+    }
+
     data object CloseAll : WorkspaceAction {
         data object Result : WorkspaceAction.Result
     }

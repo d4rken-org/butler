@@ -330,6 +330,25 @@ sealed interface SearcherPageAction {
     }
 
     /**
+     * Visibility of the page's overlays.
+     *
+     * Overlays are composed as a sibling of the page, so their visibility has to live in the
+     * ViewModel — a `remember` in the page would be a different instance from the one they read.
+     */
+    sealed interface Overlays : SearcherPageAction {
+        data object ShowTemplates : Overlays
+        data object DismissTemplates : Overlays
+        data object ShowAccessErrors : Overlays
+        data object DismissAccessErrors : Overlays
+        data class ShowOperationDetails(val id: Operation.Id) : Overlays
+        data object DismissOperationDetails : Overlays
+
+        /** Failure of a single search target, surfaced from the progress card. */
+        data class ShowTargetError(val path: String, val error: Throwable) : Overlays
+        data object DismissTargetError : Overlays
+    }
+
+    /**
      * Wrapper for workspace-level actions
      * Delegates to existing [SearcherActionBarItem] for domain operations
      */

@@ -1,8 +1,6 @@
 package eu.darken.butler.bugreport.ui
 
-import android.content.Intent
 import android.text.format.Formatter
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateDpAsState
@@ -52,7 +50,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -71,10 +68,6 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.debug.bugreport.BugReport
 import eu.darken.butler.common.debug.bugreport.BugReportInfo
-import eu.darken.butler.common.debug.logging.Logging.Priority.*
-import eu.darken.butler.common.debug.logging.asLog
-import eu.darken.butler.common.debug.logging.log
-import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.icon
@@ -91,11 +84,9 @@ import eu.darken.butler.workspace.ui.insets.rememberPaneFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonDefaults
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlin.time.Instant
-
-private val TAG = logTag("BugReport", "Workspace", "Page")
 
 @Composable
 fun BugReportWorkspacePageHost(
@@ -109,16 +100,12 @@ fun BugReportWorkspacePageHost(
     ErrorEventHandler(vm)
 
     val state by vm.state.collectAsState(initial = null)
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-
-    var consentFor by remember { mutableStateOf<BugReport?>(null) }
-    var showShortRecordingWarning by remember { mutableStateOf(false) }
+    val overlayState by vm.overlayState.collectAsState()
 
     LaunchedEffect(Unit) {
         vm.events.collect { event ->
             when (event) {
-                BugReportWorkspaceViewModel.Event.ShowShortRecordingWarning -> showShortRecordingWarning = true
+                BugReportWorkspaceViewModel.Event.ShowShortRecordingWarning -> vm.showShortRecordingWarning()
             }
         }
     }
@@ -126,7 +113,11 @@ fun BugReportWorkspacePageHost(
     state?.let { s ->
         // While the detail view is open, back returns to the list — but let an open dialog consume
         // back first so it isn't dismissed together with the detail.
-        BackHandler(enabled = s.detail != null && consentFor == null && !showShortRecordingWarning) {
+        WorkspaceBackHandler(
+            enabled = s.detail != null &&
+                overlayState.shareConsentReportId == null &&
+                !overlayState.showShortRecordingWarning,
+        ) {
             vm.closeReport()
         }
 
@@ -135,40 +126,11 @@ fun BugReportWorkspacePageHost(
             state = s,
             onReportClick = { info -> vm.openReport(info.id) },
             onBack = { vm.closeReport() },
-            onShareReport = { report -> consentFor = report },
+            onShareReport = { report -> vm.requestShareConsent(report.id) },
             onDeleteReport = { id -> vm.delete(id) },
             onDeleteAll = { vm.deleteAll() },
             onStartRecording = { vm.startRecording() },
             onStopRecording = { vm.stopRecording() },
-        )
-    }
-
-    consentFor?.let { report ->
-        ShareConsentDialog(
-            onConfirm = {
-                consentFor = null
-                scope.launch {
-                    try {
-                        val intent = vm.buildShareIntent(report.id)
-                        context.startActivity(
-                            Intent.createChooser(intent, context.getString(R.string.bugreport_share_chooser_title))
-                        )
-                    } catch (e: Exception) {
-                        log(TAG, ERROR) { "Share failed: ${e.asLog()}" }
-                    }
-                }
-            },
-            onDismiss = { consentFor = null },
-        )
-    }
-
-    if (showShortRecordingWarning) {
-        ShortRecordingWarningDialog(
-            onKeepRecording = { showShortRecordingWarning = false },
-            onStopAnyway = {
-                showShortRecordingWarning = false
-                vm.forceStopRecording()
-            },
         )
     }
 }
@@ -566,7 +528,7 @@ private fun EmptyState(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun ShareConsentDialog(
+internal fun ShareConsentDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -585,7 +547,7 @@ private fun ShareConsentDialog(
 }
 
 @Composable
-private fun ShortRecordingWarningDialog(
+internal fun ShortRecordingWarningDialog(
     onKeepRecording: () -> Unit,
     onStopAnyway: () -> Unit,
 ) {

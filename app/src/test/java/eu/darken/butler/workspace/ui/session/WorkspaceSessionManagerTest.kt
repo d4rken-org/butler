@@ -312,6 +312,11 @@ class WorkspaceSessionManagerTest : BaseTest() {
             every { workspaceRepo.peek(id) } returns ws
         }
 
+        /** A closed workspace is gone from the repo, not merely absent from a state snapshot. */
+        private fun closeWorkspace(id: Workspace.Id) {
+            every { workspaceRepo.peek(id) } returns null
+        }
+
         @AfterEach
         fun teardownSave() {
             upsertedEntities.clear()
@@ -321,12 +326,62 @@ class WorkspaceSessionManagerTest : BaseTest() {
         private fun makeInfo(
             id: Workspace.Id,
             callerWorkspaceId: Workspace.Id? = null,
+            customTitle: String? = null,
         ) = Workspace.Info(
             id = id,
             type = Workspace.Type.EXPLORER,
             title = "Workspace".toCaString(),
             callerWorkspaceId = callerWorkspaceId,
+            customTitle = customTitle,
         )
+
+        @Test
+        fun `custom title is written to the workspace row`() = runTest {
+            repoStateFlow.value = WorkspaceRemote.State(
+                infos = listOf(makeInfo(wsIdA, customTitle = "Holiday photos")),
+            )
+            sessionManager.saveSession()
+
+            upsertedEntities.single().let {
+                it.workspaceId shouldBe wsIdA
+                it.customTitle shouldBe "Holiday photos"
+            }
+        }
+
+        @Test
+        fun `a title-only change triggers an upsert`() = runTest {
+            repoStateFlow.value = WorkspaceRemote.State(infos = listOf(makeInfo(wsIdA)))
+            sessionManager.saveSession()
+            upsertedEntities.clear()
+
+            // Same arguments, same order, same type - only the custom title differs
+            repoStateFlow.value = WorkspaceRemote.State(
+                infos = listOf(makeInfo(wsIdA, customTitle = "Named")),
+            )
+            sessionManager.saveSession()
+
+            upsertedEntities.single().let {
+                it.workspaceId shouldBe wsIdA
+                it.customTitle shouldBe "Named"
+            }
+        }
+
+        @Test
+        fun `clearing a title back to null triggers an upsert`() = runTest {
+            repoStateFlow.value = WorkspaceRemote.State(
+                infos = listOf(makeInfo(wsIdA, customTitle = "Named")),
+            )
+            sessionManager.saveSession()
+            upsertedEntities.clear()
+
+            repoStateFlow.value = WorkspaceRemote.State(infos = listOf(makeInfo(wsIdA)))
+            sessionManager.saveSession()
+
+            upsertedEntities.single().let {
+                it.workspaceId shouldBe wsIdA
+                it.customTitle shouldBe null
+            }
+        }
 
         @Test
         fun `reorder updates orderIndex even when arguments unchanged`() = runTest {
@@ -422,8 +477,10 @@ class WorkspaceSessionManagerTest : BaseTest() {
 
             upsertedEntities.clear()
 
-            // Simulate: DAO reports A, B, C exist, but current state only has A, C
+            // Simulate: DAO reports A, B, C exist, but B was closed so it is gone from both the
+            // state snapshot and the repo
             existingDaoIds = listOf(wsIdA, wsIdB, wsIdC)
+            closeWorkspace(wsIdB)
             repoStateFlow.value = WorkspaceRemote.State(
                 infos = listOf(makeInfo(wsIdA), makeInfo(wsIdC)),
             )
@@ -436,6 +493,47 @@ class WorkspaceSessionManagerTest : BaseTest() {
             // A unchanged (same args, same index), C re-saved (index changed from 2 to 1)
             upsertedEntities.size shouldBe 1
             upsertedEntities.single { it.workspaceId == wsIdC }.orderIndex shouldBe 1
+        }
+
+        /**
+         * The save reads workspaceRepo.state, an asynchronously replayed shared flow that during a
+         * slow restore can still hold a partial snapshot. Absence from it must not be taken as
+         * proof a workspace is gone, or the row of a workspace that still exists is deleted - and a
+         * process death before the next settled save makes that permanent.
+         */
+        @Test
+        fun `a workspace missing from a partial snapshot keeps its saved row`() = runTest {
+            repoStateFlow.value = WorkspaceRemote.State(
+                infos = listOf(makeInfo(wsIdA), makeInfo(wsIdB), makeInfo(wsIdC)),
+            )
+            sessionManager.saveSession()
+            upsertedEntities.clear()
+
+            // B is still open - peek() reports it - but the replayed snapshot has not caught up
+            existingDaoIds = listOf(wsIdA, wsIdB, wsIdC)
+            repoStateFlow.value = WorkspaceRemote.State(
+                infos = listOf(makeInfo(wsIdA), makeInfo(wsIdC)),
+            )
+            sessionManager.saveSession()
+
+            deletedIds shouldHaveSize 0
+        }
+
+        /** The converse guard: the fix must not degrade into never deleting anything. */
+        @Test
+        fun `a workspace absent from both the snapshot and the repo is deleted`() = runTest {
+            repoStateFlow.value = WorkspaceRemote.State(
+                infos = listOf(makeInfo(wsIdA), makeInfo(wsIdB)),
+            )
+            sessionManager.saveSession()
+            upsertedEntities.clear()
+
+            existingDaoIds = listOf(wsIdA, wsIdB)
+            closeWorkspace(wsIdB)
+            repoStateFlow.value = WorkspaceRemote.State(infos = listOf(makeInfo(wsIdA)))
+            sessionManager.saveSession()
+
+            deletedIds.single() shouldBe listOf(wsIdB)
         }
 
         @Test
@@ -552,6 +650,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
             orderIndex: Int,
             tag: String,
             type: Workspace.Type = Workspace.Type.EXPLORER,
+            customTitle: String? = null,
         ) = WorkspaceInstanceEntity(
             workspaceId = id,
             sessionId = DEFAULT_SESSION_ID,
@@ -560,6 +659,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
             createdAt = Instant.DISTANT_PAST,
             lastModified = Instant.DISTANT_PAST,
             arguments = JsonPrimitive(tag).toString(),
+            customTitle = customTitle,
         )
 
         private fun savedSession(
@@ -718,6 +818,93 @@ class WorkspaceSessionManagerTest : BaseTest() {
                 upsertedEntities shouldHaveSize 0
             }
 
+        private suspend fun customTitles(): Map<Workspace.Id, String?> =
+            repo.state.first().infos.associate { it.id to it.customTitle }
+
+        private val namedEntities = listOf(
+            entity(idA, 0, "a", customTitle = "Alpha"),
+            entity(idB, 1, "b", customTitle = "Bravo"),
+            entity(idC, 2, "c"),
+        )
+
+        @Test
+        fun `restore re-applies custom titles to eager and dormant workspaces`() =
+            runTest(UnconfinedTestDispatcher()) {
+                // idB restores eagerly (it is the saved focus), idA and idC stay dormant
+                savedSession(focusedId = idB, entities = namedEntities)
+
+                createManager()
+                restoreScope.testScheduler.runCurrent()
+
+                dormantIds() shouldBe listOf(idA, idC)
+                customTitles() shouldBe mapOf(idA to "Alpha", idB to "Bravo", idC to null)
+            }
+
+        @Test
+        fun `hydrating a dormant workspace keeps its custom title`() =
+            runTest(UnconfinedTestDispatcher()) {
+                savedSession(focusedId = idB, entities = namedEntities)
+                createManager()
+                restoreScope.testScheduler.runCurrent()
+
+                pageManager.setLayout(mapOf(0 to idA), focusedId = idA)
+                restoreScope.testScheduler.runCurrent()
+
+                dormantIds() shouldBe listOf(idC)
+                repo.state.first().infos.single { it.id == idA }.customTitle shouldBe "Alpha"
+            }
+
+        @Test
+        fun `a failed focused candidate does not hand its title to the promoted dormant one`() =
+            runTest(UnconfinedTestDispatcher()) {
+                failingIds += idB
+                savedSession(focusedId = idB, entities = namedEntities)
+
+                createManager()
+                restoreScope.testScheduler.runCurrent()
+
+                // idB never came into existence, idA was promoted into the focused slot
+                workspaceIds() shouldBe listOf(idA, idC)
+                pageManager.state.value.focusedWorkspaceId shouldBe idA
+                customTitles() shouldBe mapOf(idA to "Alpha", idC to null)
+            }
+
+        @Test
+        fun `the seeded save cache covers restored custom titles`() =
+            runTest(UnconfinedTestDispatcher()) {
+                savedSession(focusedId = idB, entities = namedEntities)
+                val manager = createManager()
+                restoreScope.testScheduler.runCurrent()
+
+                manager.saveSession()
+
+                upsertedEntities shouldHaveSize 0
+            }
+
+        /**
+         * Renaming has no dedicated save path: it is persisted by the ordinary debounced auto-save,
+         * because a rename mutates Info.customTitle and SaveKey includes it.
+         */
+        @Test
+        fun `a rename is persisted by the debounced auto-save`() =
+            runTest(UnconfinedTestDispatcher()) {
+                savedSession(focusedId = idB)
+                createManager()
+                restoreScope.testScheduler.runCurrent()
+                upsertedEntities.clear()
+
+                repo.execute(WorkspaceAction.Rename(idB, "Bravo"))
+                restoreScope.testScheduler.runCurrent()
+
+                // Nothing is written before the debounce elapses - there is no immediate save
+                upsertedEntities shouldHaveSize 0
+
+                restoreScope.testScheduler.advanceTimeBy(1000)
+                restoreScope.testScheduler.runCurrent()
+
+                upsertedEntities.single { it.workspaceId == idB }.customTitle shouldBe "Bravo"
+            }
+
         @Test
         fun `saving keeps the arguments of dormant and live workspaces`() =
             runTest(UnconfinedTestDispatcher()) {
@@ -862,6 +1049,8 @@ class WorkspaceSessionManagerTest : BaseTest() {
             coVerify(exactly = 0) { dao.upsertWorkspace(any()) }
         }
     }
+
+
 }
 
 private data class FakeSessionArguments(

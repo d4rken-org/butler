@@ -28,6 +28,10 @@ import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.LocalWorkspacePageHosts
 import eu.darken.butler.workspace.ui.insets.paneHorizontalInsetPadding
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.modal.LocalPaneLayerRank
+import eu.darken.butler.workspace.ui.modal.PaneLayer
+import eu.darken.butler.workspace.ui.modal.PaneLayerHost
+import eu.darken.butler.workspace.ui.modal.PaneLayerRank
 
 /**
  * Full-screen Dialog overlay for displaying sub-workspaces that require full-screen presentation.
@@ -92,22 +96,17 @@ fun WorkspaceModalDialog(
             LocalWorkspaceFocused provides true,
         ) {
             // The dialog window is transparent (see above), so the surface has to be painted across
-            // the FULL area - the horizontal inset padding is applied inside it, otherwise the
-            // inset-width strip next to a side navigation bar would show the workspace underneath.
+            // the FULL area - the horizontal inset padding is applied to the content inside,
+            // otherwise the inset-width strip next to a side navigation bar would show the
+            // workspace underneath.
             Surface(
                 modifier = Modifier.fillMaxSize(),
                 color = MaterialTheme.colorScheme.surface,
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .paneHorizontalInsetPadding(design.paneEdges),
-                ) {
-                    WorkspaceModalContent(
-                        workspace = workspace,
-                        design = design,
-                    )
-                }
+                WorkspaceModalContent(
+                    workspace = workspace,
+                    design = design,
+                )
             }
         }
     }
@@ -115,13 +114,37 @@ fun WorkspaceModalDialog(
 
 /**
  * Content for modal workspace - extracted for previewability
+ *
+ * A full-screen sub-workspace occupies its own window, so it needs its own layer stack: without one
+ * its page host's [eu.darken.butler.workspace.ui.WorkspacePageHostEntry.Overlays] slot would never
+ * be composed and the workspace would render without any of its dialogs.
  */
 @Composable
 fun WorkspaceModalContent(
     workspace: Workspace.Info,
     design: WorkspaceDesign = WorkspaceDesign(),
 ) {
-    WorkspacePageHostDispatcher(id = workspace.id, type = workspace.type, design = design)
+    // Full size, like a pane host anywhere else: its layers carry the scrims of any dialog inside,
+    // and those have to cover the whole window. Only the page content is inset.
+    PaneLayerHost(
+        modifier = Modifier.fillMaxSize(),
+        paneFocused = true,
+        paneEdges = design.paneEdges,
+    ) {
+        PaneLayer(modifier = Modifier.fillMaxSize(), modal = false) {
+            Box(modifier = Modifier.paneHorizontalInsetPadding(design.paneEdges)) {
+                WorkspacePageHostDispatcher(id = workspace.id, type = workspace.type, design = design)
+            }
+        }
+
+        if (workspace.lifecycleState is Workspace.LifecycleState.Ready) {
+            LocalWorkspacePageHosts.current[workspace.type]?.let { entry ->
+                CompositionLocalProvider(LocalPaneLayerRank provides PaneLayerRank.OVERLAY) {
+                    entry.Overlays(id = workspace.id, design = design)
+                }
+            }
+        }
+    }
 }
 
 @Preview2

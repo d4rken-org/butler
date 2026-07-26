@@ -12,6 +12,14 @@ import eu.darken.butler.workspace.ui.states.WorkspaceErrorContent
 
 private val TAG = logTag("Workspace", "PageHostDispatcher")
 
+/**
+ * Dispatches to a type's [eu.darken.butler.workspace.ui.WorkspacePageHostEntry.Content] only.
+ *
+ * Overlays are deliberately not dispatched here: they are composed by the pane layer host, which
+ * sits above this subtree. Routing them through here would nest them inside the workspace content
+ * container again — below the manager dialog and inside the subtree that gets hidden from
+ * accessibility while covered.
+ */
 @Composable
 fun WorkspacePageHostDispatcher(
     id: Workspace.Id,

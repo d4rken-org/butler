@@ -48,12 +48,33 @@ class WorkspaceRepo @Inject constructor(
     // editor tab switching files) so concurrent Creates/claims dedup to the claimant meanwhile.
     private val contentClaims = mutableMapOf<Pair<Workspace.Type, APath<*>>, Workspace.Id>()
 
+    // User-set workspace names, overlaid onto every published Workspace.Info. Owned here instead of
+    // by the workspace implementations: most derive their title reactively and would overwrite it on
+    // the next upstream emission. Mutated only while holding [lock].
+    private val _customTitles = MutableStateFlow<Map<Workspace.Id, String>>(emptyMap())
+
     private val _pendingConfirmations = MutableStateFlow<Map<String, PendingWorkspaceConfirmation>>(emptyMap())
     val pendingConfirmations: Flow<Map<String, PendingWorkspaceConfirmation>> = _pendingConfirmations
         .setupCommonEventHandlers(TAG, enabled = Bugs.isDebug) { "PendingConfirmations" }
         .replayingShare(appScope)
 
     private val pendingActions = ConcurrentHashMap<String, suspend () -> Unit>()
+
+    /**
+     * Normalized user-set name, or null when the input clears it. Single source of truth for what a
+     * custom title may be: no control characters (they must never reach the DB or the tab strip),
+     * trimmed, capped at [WorkspaceAction.Rename.MAX_CUSTOM_TITLE_LENGTH], blank == clear.
+     */
+    private fun normalizeCustomTitle(raw: String?): String? = raw
+        ?.filterNot { it.isISOControl() }
+        ?.trim()
+        ?.take(WorkspaceAction.Rename.MAX_CUSTOM_TITLE_LENGTH)
+        ?.trim()
+        ?.takeIf { it.isNotEmpty() }
+
+    private fun Workspace.Info.withCustomTitle(titles: Map<Workspace.Id, String>) =
+        copy(customTitle = titles[id])
+
     private val infos: Flow<List<Workspace.Info>> = _workspaces.flatMapLatest { workspaces ->
         if (workspaces.isEmpty()) {
             flowOf(emptyList())
@@ -63,13 +84,23 @@ class WorkspaceRepo @Inject constructor(
         }
     }
 
+    /**
+     * The custom-title overlay is folded into THIS combine instead of sitting in its own stage
+     * between [infos] and here. [kotlinx.coroutines.flow.combine] collects each upstream in its own
+     * child coroutine, so an extra stage adds a dispatch boundary and delays every [state] emission
+     * by one more hop. On-demand session restore is sensitive to that: WorkspacePageManager awaits
+     * `state.first { … }` per Created event and assigns focus from what it sees, so the added
+     * latency let focus land on a dormant stand-in after restore had finished, which then hydrated
+     * a tab that was supposed to stay dormant.
+     */
     override val state: Flow<WorkspaceRemote.State> = combine(
         infos,
+        _customTitles,
         workspaceSettings.layoutModePortrait.flow,
         workspaceSettings.layoutModeLandscape.flow,
-    ) { workspaceInfos, layoutModePortrait, layoutModeLandscape ->
+    ) { workspaceInfos, customTitles, layoutModePortrait, layoutModeLandscape ->
         WorkspaceRemote.State(
-            infos = workspaceInfos,
+            infos = workspaceInfos.map { it.withCustomTitle(customTitles) },
             portraitPanelMode = layoutModePortrait,
             landscapePanelMode = layoutModeLandscape,
         )
@@ -120,6 +151,16 @@ class WorkspaceRepo @Inject constructor(
             operationsManager.removeWorkspace(replaced.id)
             // Same leak guard as executeClose: the replaced instance's claims die with it
             contentClaims.entries.removeAll { (_, owner) -> owner == replaced.id }
+            // A custom name belongs to the tab slot, not the instance: the Templates->X morph keeps
+            // the name the user gave the tab. Migrated before publishing the new list so the infos
+            // combine can never pair the new workspace with a stale title.
+            if (newWorkspace.id != idToReplace) {
+                _customTitles.update { titles ->
+                    val carried = titles[idToReplace]
+                    val without = titles - idToReplace
+                    if (carried != null) without + (newWorkspace.id to carried) else without
+                }
+            }
         } else {
             wip.add(newWorkspace)
         }
@@ -429,10 +470,10 @@ class WorkspaceRepo @Inject constructor(
                         return@withLock WorkspaceAction.Close.Result
                     }
 
-                    val workspaceInfo = workspace.info.value
+                    val workspaceInfo = workspace.info.value.withCustomTitle(_customTitles.value)
                     val confirmationId = Uuid.random().toString()
 
-                    log(TAG, INFO) { "Requesting confirmation to close workspace: ${workspaceInfo.title}" }
+                    log(TAG, INFO) { "Requesting confirmation to close workspace: ${workspaceInfo.displayTitle}" }
 
                     pendingActions[confirmationId] = {
                         executeClose(action.id)
@@ -444,7 +485,7 @@ class WorkspaceRepo @Inject constructor(
                             sourceWorkspaceId = action.id,
                             data = PendingWorkspaceConfirmation.ConfirmationData.WorkspaceCloseConfirmation(
                                 workspaceId = action.id,
-                                workspaceTitle = workspaceInfo.title,
+                                workspaceTitle = workspaceInfo.displayTitle,
                                 hasUnsavedChanges = workspaceInfo.hasUnsavedChanges,
                             ),
                         ))
@@ -477,6 +518,22 @@ class WorkspaceRepo @Inject constructor(
 
                 WorkspaceAction.Reorder.Result(true)
             }
+            is WorkspaceAction.Rename -> {
+                val normalized = normalizeCustomTitle(action.customTitle)
+                log(TAG, INFO) { "Renaming workspace ${action.id} to $normalized" }
+
+                if (_workspaces.value.none { it.id == action.id }) {
+                    log(TAG, WARN) { "Cannot rename ${action.id}: no such workspace" }
+                    return@withLock WorkspaceAction.Rename.Result(false)
+                }
+
+                _customTitles.update {
+                    if (normalized == null) it - action.id else it + (action.id to normalized)
+                }
+                _events.emit(WorkspaceEvent.Renamed(workspaceId = action.id, customTitle = normalized))
+
+                WorkspaceAction.Rename.Result(true)
+            }
             WorkspaceAction.CloseAll -> {
                 log(TAG, INFO) { "Closing all workspaces" }
                 _workspaces.value.forEach {
@@ -485,6 +542,7 @@ class WorkspaceRepo @Inject constructor(
                 }
                 _workspaces.value = emptyList()
                 contentClaims.clear()
+                _customTitles.value = emptyMap()
                 _events.emit(WorkspaceEvent.AllClosed)
 
                 WorkspaceAction.CloseAll.Result
@@ -804,6 +862,8 @@ class WorkspaceRepo @Inject constructor(
         closingWorkspace?.let { operationsManager.removeWorkspace(it.id) }
         // Leak guard: a claimant that closes mid-open must not block its path forever
         contentClaims.entries.removeAll { (_, owner) -> owner == workspaceId }
+        // A custom name must never outlive its tab and leak onto a workspace reusing the id
+        _customTitles.update { it - workspaceId }
         _workspaces.value = _workspaces.value.filter { it.id != workspaceId }
         _events.emit(WorkspaceEvent.Closed(workspaceId = workspaceId, callerWorkspaceId = callerWorkspaceId))
     }

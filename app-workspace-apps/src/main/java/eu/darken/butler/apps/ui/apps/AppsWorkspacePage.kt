@@ -1,6 +1,5 @@
 package eu.darken.butler.apps.ui.apps
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -14,7 +13,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import eu.darken.butler.apps.ui.apps.dialogs.AppsDialogHost
 import eu.darken.butler.apps.ui.apps.elements.AppsActionBarItem
 import eu.darken.butler.apps.ui.apps.elements.AppsInfoBar
 import eu.darken.butler.apps.ui.apps.elements.AppsReadyContent
@@ -31,9 +29,9 @@ import eu.darken.butler.workspace.ui.floatingbar.BarAnimation
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
-import eu.darken.butler.workspace.ui.insets.paneInsets
 import eu.darken.butler.workspace.ui.insets.rememberPaneFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
@@ -53,7 +51,7 @@ fun AppsWorkspacePage(
     // Only render when Ready - WorkspaceMapper handles Init/Error overlays
     val state = mainStateRaw as? AppsWorkspaceViewModel.State.Ready ?: return
 
-    BackHandler(enabled = state.isMultiSelectMode) {
+    WorkspaceBackHandler(enabled = state.isMultiSelectMode) {
         onPageAction(AppsPageAction.Selection.Clear)
     }
 
@@ -74,10 +72,6 @@ fun AppsWorkspacePage(
         design = design,
         estimatedContentPadding = 80.dp,
     )
-
-    val paneInsets = design.paneInsets()
-    val navBarInset = paneInsets.bottom
-    val statusBarInset = paneInsets.top
 
     val hasActions by remember(state.availableActions) {
         derivedStateOf { state.availableActions.isNotEmpty() }
@@ -106,7 +100,7 @@ fun AppsWorkspacePage(
                     visible = true,
                     scrollBehavior = BarScrollBehavior.CollapseOnScroll(),
                     animation = BarAnimation.Slide(),
-                    modifier = Modifier.padding(horizontal = 8.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
                     AppsToolbarCard(
                         workspaceId = workspaceId,
@@ -134,6 +128,8 @@ fun AppsWorkspacePage(
                         systemAppsCount = state.systemAppsCount,
                         selectedCount = state.selectionCount,
                         onClearSelection = { onPageAction(AppsPageAction.Selection.Clear) },
+                        onSelectUserApps = { onPageAction(AppsPageAction.Selection.SelectUserApps) },
+                        onSelectSystemApps = { onPageAction(AppsPageAction.Selection.SelectSystemApps) },
                     )
                 }
             },
@@ -149,7 +145,7 @@ fun AppsWorkspacePage(
                     visible = hasActions,
                     scrollBehavior = BarScrollBehavior.HideOnScroll,
                     animation = BarAnimation.Slide(),
-                    modifier = Modifier.padding(horizontal = 8.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp),
                     revealOn = state.selectedAppIds,
                 ) {
                     WorkspaceActionBar(
@@ -163,22 +159,7 @@ fun AppsWorkspacePage(
         )
     }
 
-    // Dialog Host
-    AppsDialogHost(
-        dialogState = state.dialogState,
-        filterConfig = state.filterConfig,
-        onDismiss = { onPageAction(AppsPageAction.Dialog.Dismiss) },
-        onAction = { onPageAction(AppsPageAction.ActionBarClick(it)) },
-        onFilterApply = { onPageAction(AppsPageAction.Dialog.ApplyFilter(it)) },
-        onSortApply = { onPageAction(AppsPageAction.Dialog.ApplySort(it)) },
-        onConfirmEnable = { onPageAction(AppsPageAction.Dialog.ConfirmEnable(it)) },
-        onConfirmDisable = { onPageAction(AppsPageAction.Dialog.ConfirmDisable(it)) },
-        onConfirmUninstall = { onPageAction(AppsPageAction.Dialog.ConfirmUninstall(it)) },
-        onConfirmClearCache = { onPageAction(AppsPageAction.Dialog.ConfirmClearCache(it)) },
-        onConfirmClearData = { onPageAction(AppsPageAction.Dialog.ConfirmClearData(it)) },
-        topInset = statusBarInset,
-        bottomInset = navBarInset,
-    )
+    // Dialogs and sheets live in the page host's overlay slot, see AppsWorkspaceOverlays
 }
 
 

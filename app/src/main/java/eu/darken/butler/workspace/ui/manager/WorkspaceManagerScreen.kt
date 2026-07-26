@@ -19,6 +19,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -28,6 +29,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
@@ -38,6 +40,7 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.ScrollPop
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.dialogs.WorkspaceRenameDialog
 import eu.darken.butler.workspace.ui.template.QuickCreateItem
 
 @Composable
@@ -52,12 +55,17 @@ fun WorkspaceManagerScreen(
     onDismissBadgeExplanation: () -> Unit,
     onDismissLongPressHint: () -> Unit,
     onCloseAllWorkspaces: () -> Unit,
+    onRenameWorkspace: (Workspace.Id, String?) -> Unit = { _, _ -> },
     onTabsClick: () -> Unit = {},
     onOperationsFilterClick: () -> Unit = {},
     onAttentionFilterClick: () -> Unit = {},
 ) {
     var showCloseAllDialog by remember { mutableStateOf(false) }
     var isFabVisible by remember { mutableStateOf(true) }
+
+    // Held as an id, not a captured item: the item is a snapshot whose automatic title can change,
+    // that another surface can rename, or whose tab can close while the dialog is open.
+    var renameTargetId by remember { mutableStateOf<Workspace.Id?>(null) }
 
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
@@ -136,10 +144,30 @@ fun WorkspaceManagerScreen(
             onReorderWorkspaces = onReorderWorkspaces,
             onSelectWorkspace = onSelectWorkspace,
             onDismissBadgeExplanation = onDismissBadgeExplanation,
+            onRenameWorkspace = { renameTargetId = it },
             onTabsClick = onTabsClick,
             onOperationsFilterClick = onOperationsFilterClick,
             onAttentionFilterClick = onAttentionFilterClick,
         )
+    }
+
+    renameTargetId?.let { targetId ->
+        val target = state.workspaces.firstOrNull { it.id == targetId }
+        if (target == null) {
+            renameTargetId = null
+        } else {
+            key(targetId) {
+                WorkspaceRenameDialog(
+                    currentCustomTitle = target.customTitle,
+                    autoTitle = target.autoTitle.get(LocalContext.current),
+                    onConfirm = { newTitle ->
+                        renameTargetId = null
+                        onRenameWorkspace(targetId, newTitle)
+                    },
+                    onDismiss = { renameTargetId = null },
+                )
+            }
+        }
     }
 
     // Close all confirmation dialog

@@ -78,6 +78,10 @@ class WorkspacePageManager @Inject constructor(
                         log(TAG) { "Workspaces reordered: ${event.workspaceIds}" }
                     }
 
+                    is WorkspaceEvent.Renamed -> {
+                        log(TAG) { "Workspace ${event.workspaceId} renamed to ${event.customTitle}" }
+                    }
+
                     WorkspaceEvent.AllClosed -> {
                         log(TAG) { "All workspaces closed" }
                         _state.update {

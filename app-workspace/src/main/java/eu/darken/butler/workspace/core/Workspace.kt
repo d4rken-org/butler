@@ -2,6 +2,7 @@ package eu.darken.butler.workspace.core
 
 import android.os.Parcelable
 import eu.darken.butler.common.ca.CaString
+import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.parcel.UuidParceler
 import kotlinx.coroutines.flow.StateFlow
@@ -272,7 +273,18 @@ interface Workspace<ArgT : Workspace.Arguments> {
          * equality (no canonicalization of symlinks, mount aliases, case, or URI encoding).
          */
         val contentPath: APath<*>? = null,
+        /**
+         * User-set name that replaces the automatic [title] in the tab chrome. Null when the user
+         * has not named this workspace, which is also what an empty/blank rename resets it to.
+         *
+         * Owned and overlaid by the repo, not by the workspace implementation: [title] keeps
+         * meaning "automatic title" and stays live while a custom name is set.
+         */
+        val customTitle: String? = null,
     ) {
+        /** What the tab chrome renders: the custom name when set, otherwise the automatic [title]. */
+        val displayTitle: CaString get() = customTitle?.toCaString() ?: title
+
         /**
          * True if this workspace is a sub-workspace created by another workspace
          * (e.g., picker workspaces, detail views). Sub-workspaces are typically rendered as modals.

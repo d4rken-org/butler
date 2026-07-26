@@ -96,9 +96,10 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
             val dialogState: AppsDialogState = AppsDialogState.None,
             val availableActions: List<AppsActionBarItem> = emptyList(),
         ) : State {
-            val isMultiSelectMode: Boolean get() = selectedAppIds.isNotEmpty()
-            val selectionCount: Int get() = selectedAppIds.size
+            // Selection state counts only visible apps, so it always matches what actions operate on.
             val selectedApps: List<AppItem> get() = apps.filter { it.pkg.installId in selectedAppIds }
+            val isMultiSelectMode: Boolean get() = selectedApps.isNotEmpty()
+            val selectionCount: Int get() = selectedApps.size
 
             // Body properties, not constructor defaults: the generated copy() passes existing
             // property values instead of re-evaluating defaults, which would keep stale counts.
@@ -143,7 +144,7 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
     }
 
     private fun buildAvailableActions(wsState: AppsWorkspace.State.Ready): List<AppsActionBarItem> {
-        return if (wsState.selectedAppIds.isNotEmpty()) {
+        return if (wsState.selectedApps.isNotEmpty()) {
             buildSelectionActions(wsState)
         } else {
             buildDefaultActions(wsState)
@@ -151,11 +152,11 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
     }
 
     private fun buildSelectionActions(wsState: AppsWorkspace.State.Ready): List<AppsActionBarItem> {
-        val selectedApps = wsState.filteredApps.filter { it.pkg.installId in wsState.selectedAppIds }
+        val selectedApps = wsState.selectedApps
         return buildList {
             add(AppsActionBarItem.OpenInTab(selectedApps))
 
-            if (wsState.selectedAppIds.size != wsState.filteredApps.size && wsState.filteredApps.isNotEmpty()) {
+            if (selectedApps.size != wsState.filteredApps.size && wsState.filteredApps.isNotEmpty()) {
                 add(AppsActionBarItem.SelectAll)
             }
 
@@ -246,6 +247,18 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
     fun onSelectAll() = launch {
         log(tag) { "Selecting all" }
         getWorkspace().selectAll()
+    }
+
+    fun onSelectUserApps() = launch {
+        val ids = getReadyState().apps.filter { !it.isSystemApp }.map { it.pkg.installId }.toSet()
+        log(tag) { "Selecting ${ids.size} user apps" }
+        getWorkspace().selectApps(ids)
+    }
+
+    fun onSelectSystemApps() = launch {
+        val ids = getReadyState().apps.filter { it.isSystemApp }.map { it.pkg.installId }.toSet()
+        log(tag) { "Selecting ${ids.size} system apps" }
+        getWorkspace().selectApps(ids)
     }
 
     fun onRefresh() = launch {
@@ -393,6 +406,8 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
 
             // Selection
             is AppsPageAction.Selection.Clear -> onClearSelection()
+            is AppsPageAction.Selection.SelectUserApps -> onSelectUserApps()
+            is AppsPageAction.Selection.SelectSystemApps -> onSelectSystemApps()
 
             // Dialog
             is AppsPageAction.Dialog.Dismiss -> dismissDialog()
