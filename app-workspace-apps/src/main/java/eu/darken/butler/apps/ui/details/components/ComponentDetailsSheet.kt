@@ -25,11 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
@@ -45,6 +41,7 @@ import eu.darken.butler.common.compose.ButlerChipSize
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.rememberClipboardCopy
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 
 /**
@@ -95,13 +92,7 @@ private fun ComponentDetailsContent(
     onDismiss: () -> Unit,
     onLaunch: (() -> Unit)?,
 ) {
-    val clipboardManager = LocalClipboardManager.current
-    val hapticFeedback = LocalHapticFeedback.current
-
-    val copy: (String) -> Unit = { value ->
-        clipboardManager.setText(AnnotatedString(value))
-        hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-    }
+    val copy = rememberClipboardCopy()
 
     Column(
         modifier = modifier

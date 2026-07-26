@@ -10,12 +10,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
@@ -26,6 +22,7 @@ import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.rememberClipboardCopy
 import eu.darken.butler.common.formatFileSize
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -41,8 +38,7 @@ fun AppInformationFields(
     if (app == null) return
 
     val context = LocalContext.current
-    val clipboardManager = LocalClipboardManager.current
-    val hapticFeedback = LocalHapticFeedback.current
+    val copy = rememberClipboardCopy()
     val dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)
         .withZone(ZoneId.systemDefault())
 
@@ -55,8 +51,7 @@ fun AppInformationFields(
             label = stringResource(R.string.apps_package_name_label),
             value = app.packageName,
             onLongClick = {
-                clipboardManager.setText(AnnotatedString(app.packageName))
-                hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                copy(app.packageName)
             }
         )
 
@@ -72,8 +67,7 @@ fun AppInformationFields(
                     label = stringResource(R.string.apps_version_label),
                     value = "${app.versionName} (${app.versionCode})",
                     onLongClick = {
-                        clipboardManager.setText(AnnotatedString("${app.versionName} (${app.versionCode})"))
-                        hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                        copy("${app.versionName} (${app.versionCode})")
                     }
                 )
             }
