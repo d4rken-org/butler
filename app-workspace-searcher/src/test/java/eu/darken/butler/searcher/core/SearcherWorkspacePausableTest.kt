@@ -1,5 +1,6 @@
 package eu.darken.butler.searcher.core
 
+import android.content.Context
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
@@ -18,7 +19,6 @@ import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.preview.FolderPreviewResolver
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.every
@@ -41,6 +41,9 @@ import kotlin.time.Clock
  * result set survives being paused.
  */
 class SearcherWorkspacePausableTest : BaseTest() {
+
+    // Never touched: the tab identity under test is a direct string, not a resource lookup
+    private val context: Context = mockk()
 
     private fun item(path: String): SearchItem = SearchItem.fromLookup(
         lookup = LocalPathLookup(
@@ -140,7 +143,7 @@ class SearcherWorkspacePausableTest : BaseTest() {
         val operations = MutableStateFlow<List<ManagedOperation>>(emptyList())
         val workspace = createWorkspace(listOf(item("/sdcard/a.txt")), operations = operations)
 
-        // Drives the subtitle writer: processSearchRequest() publishes the query as subtitle
+        // Drives the identity writer: publishIdentity() republishes the query as the tab title
         workspace.execute(searchCommand())
         awaitStatus(workspace, SearcherWorkspace.State.SearchStatus.COMPLETED)
         workspace.info.value.isPausable shouldBe false
@@ -150,7 +153,7 @@ class SearcherWorkspacePausableTest : BaseTest() {
         runBlocking { withTimeout(10_000) { workspace.info.first { it.operationCount == 1 } } }
 
         workspace.info.value.isPausable shouldBe false
-        workspace.info.value.subtitle shouldNotBe null
+        workspace.info.value.title.get(context) shouldBe "test"
     }
 
     @Test
