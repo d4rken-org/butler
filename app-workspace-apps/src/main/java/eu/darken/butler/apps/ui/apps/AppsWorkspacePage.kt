@@ -264,6 +264,8 @@ fun AppsWorkspacePage(
                         systemAppsCount = state.systemAppsCount,
                         selectedCount = state.selectionCount,
                         onClearSelection = { onPageAction(AppsPageAction.Selection.Clear) },
+                        onSelectUserApps = { onPageAction(AppsPageAction.Selection.SelectUserApps) },
+                        onSelectSystemApps = { onPageAction(AppsPageAction.Selection.SelectSystemApps) },
                     )
                 }
             },

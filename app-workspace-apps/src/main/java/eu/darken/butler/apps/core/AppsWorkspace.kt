@@ -97,9 +97,10 @@ class AppsWorkspace @AssistedInject constructor(
             val isRefreshing: Boolean = false,
             val error: Throwable? = null,
         ) : State {
-            val isMultiSelectMode: Boolean get() = selectedAppIds.isNotEmpty()
-            val selectionCount: Int get() = selectedAppIds.size
+            // Selection state counts only visible apps, so it always matches what actions operate on.
             val selectedApps: List<AppItem> get() = filteredApps.filter { it.pkg.installId in selectedAppIds }
+            val isMultiSelectMode: Boolean get() = selectedApps.isNotEmpty()
+            val selectionCount: Int get() = selectedApps.size
 
             val canEnableDisable: Boolean get() = hasRoot || hasAdb
             val canClearCache: Boolean get() = hasRoot
@@ -239,6 +240,10 @@ class AppsWorkspace @AssistedInject constructor(
 
     suspend fun selectAll() {
         appsEngine.selectAll()
+    }
+
+    suspend fun selectApps(installIds: Set<InstallId>) {
+        appsEngine.selectApps(installIds)
     }
 
     suspend fun refresh() {
