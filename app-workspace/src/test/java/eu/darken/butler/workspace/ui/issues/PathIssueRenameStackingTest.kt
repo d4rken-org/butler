@@ -2,9 +2,7 @@ package eu.darken.butler.workspace.ui.issues
 
 import androidx.activity.OnBackPressedDispatcher
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -18,7 +16,6 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextReplacement
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.height
 import androidx.compose.ui.unit.width
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -35,7 +32,9 @@ import eu.darken.butler.workspace.ui.modal.PaneLayerHost
 import eu.darken.butler.workspace.ui.modal.PaneLayerRank
 import io.kotest.matchers.shouldBe
 import org.junit.Test
+import org.robolectric.annotation.Config
 import testhelpers.ComposeTest
+import testhelpers.TestApplication
 import kotlin.time.Instant
 
 /**
@@ -43,7 +42,13 @@ import kotlin.time.Instant
  * inside it would be clipped to the sheet's bounds and stacked below it. As a sibling it must end
  * up on top, hand the sheet back on dismissal, and never let the pane content underneath become
  * reachable in between.
+ *
+ * The screen qualifiers are load-bearing, not decoration. The issue sheet is taller than the
+ * default test root, and it anchors to the bottom of its pane — on a short root its action buttons
+ * end up past the bottom edge, where an injected touch hits nothing while the click call still
+ * reports success. Every failure then looks like "the dialog never opened".
  */
+@Config(application = TestApplication::class, sdk = [34], qualifiers = "w400dp-h800dp")
 class PathIssueRenameStackingTest : ComposeTest() {
 
     private val surface = PaneBoundAlertDialogDefaults.SURFACE_TEST_TAG
@@ -74,25 +79,68 @@ class PathIssueRenameStackingTest : ComposeTest() {
         onContentActive: (Boolean) -> Unit = {},
     ) {
         PreviewWrapper {
-            Box(modifier = Modifier.size(width = 400.dp, height = 700.dp)) {
-                PaneLayerHost(
-                    modifier = Modifier.fillMaxSize().testTag(PANE_TAG),
-                    paneFocused = true,
-                    paneEdges = PANE_EDGES,
-                ) {
-                    PaneLayer(rank = PaneLayerRank.CONTENT, modal = false) {
-                        onContentActive(LocalLayerActive.current)
-                    }
-                    CompositionLocalProvider(LocalPaneLayerRank provides rank) {
-                        IssuesBottomSheet(
-                            issue = issue,
-                            onResolution = onResolution,
-                            onDismiss = onSheetDismiss,
-                        )
-                    }
+            // The pane deliberately *is* the test root rather than a fixed-size box inside it. A
+            // box larger than the root would hang the sheet's bottom edge off the end of the root,
+            // and an injected touch aimed at a button down there lands on nothing while
+            // performClick still reports success — the failure then surfaces as a missing dialog.
+            PaneLayerHost(
+                modifier = Modifier.fillMaxSize().testTag(PANE_TAG),
+                paneFocused = true,
+                paneEdges = PANE_EDGES,
+            ) {
+                PaneLayer(rank = PaneLayerRank.CONTENT, modal = false) {
+                    onContentActive(LocalLayerActive.current)
+                }
+                CompositionLocalProvider(LocalPaneLayerRank provides rank) {
+                    IssuesBottomSheet(
+                        issue = issue,
+                        onResolution = onResolution,
+                        onDismiss = onSheetDismiss,
+                    )
                 }
             }
         }
+    }
+
+    /**
+     * Splits the two failure modes the integration cases below cannot tell apart: if this passes
+     * while they fail, the hoist or the dialog's rendering is at fault; if this fails too, the
+     * sheet's own button wiring is. It also pins the other half of the hoist — the sheet must no
+     * longer own a dialog of its own.
+     */
+    @Test
+    fun `the sheet emits a rename request instead of opening its own dialog`() {
+        val issue = conflict("report.pdf")
+        val requests = mutableListOf<PathIssueRenameRequest>()
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                PathAlreadyExistsIssueSheet(
+                    issue = issue,
+                    onResolution = {},
+                    onRenameRequest = { requests.add(it) },
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText(RENAME_NEW_ACTION).performClick()
+        composeTestRule.onNodeWithText(RENAME_EXISTING_ACTION).performClick()
+
+        composeTestRule.runOnIdle {
+            requests shouldBe listOf(
+                PathIssueRenameRequest(
+                    issueId = issue.id,
+                    target = PathIssueRenameRequest.Target.SOURCE,
+                    currentName = "report.pdf",
+                ),
+                PathIssueRenameRequest(
+                    issueId = issue.id,
+                    target = PathIssueRenameRequest.Target.DESTINATION,
+                    currentName = "report.pdf",
+                ),
+            )
+        }
+        composeTestRule.onNodeWithTag(surface).assertDoesNotExist()
     }
 
     @Test
@@ -108,6 +156,11 @@ class PathIssueRenameStackingTest : ComposeTest() {
         composeTestRule.onNodeWithText(RENAME_NEW_ACTION).performClick()
         composeTestRule.onNodeWithTag(surface).assertExists()
 
+        // Composed after the sheet rather than inside it, so its scrim covers the whole pane. Moved
+        // inside, the scrim would be clamped to the sheet card's bounds — this is the assertion that
+        // actually distinguishes the hoist from the arrangement it replaced.
+        assertScrimSpansPane()
+
         composeTestRule.runOnIdle { dispatcher!!.onBackPressed() }
         composeTestRule.waitForIdle()
 
@@ -117,6 +170,14 @@ class PathIssueRenameStackingTest : ComposeTest() {
 
         composeTestRule.runOnIdle { dispatcher!!.onBackPressed() }
         composeTestRule.runOnIdle { sheetDismissals shouldBe 1 }
+    }
+
+    private fun assertScrimSpansPane() {
+        val pane = composeTestRule.onNodeWithTag(PANE_TAG).getUnclippedBoundsInRoot()
+        val scrim = composeTestRule.onNodeWithTag(PaneBoundAlertDialogDefaults.SCRIM_TEST_TAG)
+            .getUnclippedBoundsInRoot()
+        scrim.width shouldBe pane.width
+        scrim.height shouldBe pane.height
     }
 
     /**
@@ -213,11 +274,7 @@ class PathIssueRenameStackingTest : ComposeTest() {
 
         // ...and the scrim still covers the whole pane, not just the inset content area
         composeTestRule.onNodeWithText(RENAME_NEW_ACTION).performClick()
-        val pane = composeTestRule.onNodeWithTag(PANE_TAG).getUnclippedBoundsInRoot()
-        val scrim = composeTestRule.onNodeWithTag(PaneBoundAlertDialogDefaults.SCRIM_TEST_TAG)
-            .getUnclippedBoundsInRoot()
-        scrim.width shouldBe pane.width
-        scrim.height shouldBe pane.height
+        assertScrimSpansPane()
     }
 
     companion object {
