@@ -116,7 +116,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private val itemSorter = itemSorterFactory.create(id)
     private val chrome = chromeFactory.create(id, vmScope)
 
-    val folderPreviewObserver: FolderPreviewObserver get() = folderPreviewResolver.settingsGatedObserver
+    val folderPreviewObserver: FolderPreviewObserver = folderPreviewResolver::observe
 
     private val workspaceSource: Flow<SearcherWorkspace?> =
         workspaceProvider.retrieve(id)

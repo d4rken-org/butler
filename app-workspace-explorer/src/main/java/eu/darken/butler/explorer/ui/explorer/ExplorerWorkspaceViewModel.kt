@@ -145,7 +145,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     private val chrome = chromeFactory.create(id, vmScope)
 
-    val folderPreviewObserver: FolderPreviewObserver get() = folderPreviewResolver.settingsGatedObserver
+    val folderPreviewObserver: FolderPreviewObserver = folderPreviewResolver::observe
 
     private val doLaunch: (suspend CoroutineScope.() -> Unit) -> Unit = { block -> launch(block = block) }
 

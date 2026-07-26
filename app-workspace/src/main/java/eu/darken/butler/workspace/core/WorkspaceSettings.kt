@@ -45,8 +45,6 @@ class WorkspaceSettings @Inject constructor(
 
     val restoreWorkspacesOnDemand = dataStore.createValue("workspace.session.restore.ondemand", true)
 
-    val showFolderMediaPreviews = dataStore.createValue("workspace.grid.folder_media_previews.enabled", true)
-
     override val mapper = PreferenceStoreMapper(
         debugSettings.isDebugMode,
         showTipBadgeExplanation,
@@ -58,7 +56,6 @@ class WorkspaceSettings @Inject constructor(
         layoutModeLandscape,
         sessionRestoreEnabled,
         restoreWorkspacesOnDemand,
-        showFolderMediaPreviews,
     )
 
     companion object {

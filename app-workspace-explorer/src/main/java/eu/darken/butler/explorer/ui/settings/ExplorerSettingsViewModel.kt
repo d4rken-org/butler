@@ -10,7 +10,6 @@ import eu.darken.butler.common.trash.TrashSettings
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.explorer.core.ExplorerSettings
 import eu.darken.butler.explorer.core.SortSettings
-import eu.darken.butler.workspace.core.WorkspaceSettings
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.days
 
@@ -18,23 +17,20 @@ import kotlin.time.Duration.Companion.days
 class ExplorerSettingsViewModel @Inject constructor(
     dispatcherProvider: DispatcherProvider,
     private val explorerSettings: ExplorerSettings,
-    private val workspaceSettings: WorkspaceSettings,
     private val trashSettings: TrashSettings,
 ) : ViewModel4(dispatcherProvider, logTag("Explorer", "Settings", "Screen", "VM")) {
 
     val state = combine(
         explorerSettings.sortSettings.flow,
         explorerSettings.useRegexPatterns.flow,
-        workspaceSettings.showFolderMediaPreviews.flow,
         explorerSettings.useBackButtonForNavigation.flow,
         trashSettings.enabled.flow,
         trashSettings.expiresAfter.flow,
         trashSettings.maxTrashSize.flow,
-    ) { sortSettings, useRegexPatterns, showFolderMediaPreviews, useBackButtonForNavigation, recycleBinEnabled, expiresAfter, maxSize ->
+    ) { sortSettings, useRegexPatterns, useBackButtonForNavigation, recycleBinEnabled, expiresAfter, maxSize ->
         State(
             sortSettings = sortSettings,
             useRegexPatterns = useRegexPatterns,
-            showFolderMediaPreviews = showFolderMediaPreviews,
             useBackButtonForNavigation = useBackButtonForNavigation,
             trashEnabled = recycleBinEnabled,
             trashAutoDeleteDays = expiresAfter.inWholeDays.toInt(),
@@ -44,10 +40,6 @@ class ExplorerSettingsViewModel @Inject constructor(
 
     fun toggleRegexPatterns(enabled: Boolean) = launch {
         explorerSettings.useRegexPatterns.value(enabled)
-    }
-
-    fun toggleFolderMediaPreviews(enabled: Boolean) = launch {
-        workspaceSettings.showFolderMediaPreviews.value(enabled)
     }
 
     fun toggleBackButtonNavigation(enabled: Boolean) = launch {
@@ -72,7 +64,6 @@ class ExplorerSettingsViewModel @Inject constructor(
     data class State(
         val sortSettings: SortSettings,
         val useRegexPatterns: Boolean,
-        val showFolderMediaPreviews: Boolean,
         val useBackButtonForNavigation: Boolean,
         val trashEnabled: Boolean = true,
         val trashAutoDeleteDays: Int = 30,
