@@ -2,7 +2,6 @@ package eu.darken.butler.apps.ui.apps
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -100,7 +99,6 @@ fun AppsWorkspacePage(
                     visible = true,
                     scrollBehavior = BarScrollBehavior.CollapseOnScroll(),
                     animation = BarAnimation.Slide(),
-                    modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
                     AppsToolbarCard(
                         workspaceId = workspaceId,
@@ -121,7 +119,6 @@ fun AppsWorkspacePage(
                     visible = showInfoBar,
                     scrollBehavior = BarScrollBehavior.VanishOnScroll,
                     animation = BarAnimation.Slide(),
-                    modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
                     AppsInfoBar(
                         userAppsCount = state.userAppsCount,
@@ -145,7 +142,6 @@ fun AppsWorkspacePage(
                     visible = hasActions,
                     scrollBehavior = BarScrollBehavior.HideOnScroll,
                     animation = BarAnimation.Slide(),
-                    modifier = Modifier.padding(horizontal = 16.dp),
                     revealOn = state.selectedAppIds,
                 ) {
                     WorkspaceActionBar(

@@ -63,7 +63,7 @@ class DocumentQueryHandlerTest {
         }
         pathPermissionCheck = mockk {
             // Default: all paths are accessible (no permission requirements)
-            coEvery { monitor(any()) } returns flowOf(PathRequirements())
+            coEvery { monitor(any<APath<*>>()) } returns flowOf(PathRequirements())
         }
 
         // Mock ButlerDocumentsProvider.AUTHORITY to avoid BuildConfig initialization issues

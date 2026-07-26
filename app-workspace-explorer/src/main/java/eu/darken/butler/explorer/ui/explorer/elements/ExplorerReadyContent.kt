@@ -33,6 +33,7 @@ import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
+import eu.darken.butler.workspace.ui.common.WorkspacePaddings
 import eu.darken.butler.workspace.ui.error.ErrorCard
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
@@ -97,8 +98,8 @@ internal fun ExplorerReadyContent(
                     contentFocusedItem = contentFocusedItem,
                     listState = listState,
                     contentPadding = PaddingValues(
-                        start = 12.dp,
-                        end = 12.dp,
+                        start = WorkspacePaddings.ContentHorizontal,
+                        end = WorkspacePaddings.ContentHorizontal,
                         top = topContentPadding,
                         bottom = bottomBarStackState.contentPaddingDp(),
                     ),
