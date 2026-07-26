@@ -25,6 +25,8 @@ fun AdaptiveWorkspaceManagerContent(
     onCloseWorkspace: (Workspace.Id) -> Unit,
     onReorderWorkspaces: (List<Workspace.Id>) -> Unit,
     onSelectWorkspace: (Workspace.Id) -> Unit,
+    onPauseWorkspace: (Workspace.Id) -> Unit,
+    onResumeWorkspace: (Workspace.Id) -> Unit,
     onDismissBadgeExplanation: () -> Unit,
     onRenameWorkspace: (Workspace.Id) -> Unit = {},
     onTabsClick: () -> Unit = {},
@@ -54,6 +56,8 @@ fun AdaptiveWorkspaceManagerContent(
             onCloseWorkspace = onCloseWorkspace,
             onReorderWorkspaces = onReorderWorkspaces,
             onSelectWorkspace = onSelectWorkspace,
+            onPauseWorkspace = onPauseWorkspace,
+            onResumeWorkspace = onResumeWorkspace,
             onDismissBadgeExplanation = onDismissBadgeExplanation,
             onRenameWorkspace = onRenameWorkspace,
             onTabsClick = onTabsClick,
@@ -105,6 +109,8 @@ private fun AdaptiveWorkspaceManagerContentListPreview() {
             onCloseWorkspace = {},
             onReorderWorkspaces = {},
             onSelectWorkspace = {},
+            onPauseWorkspace = {},
+            onResumeWorkspace = {},
             onDismissBadgeExplanation = {}
         )
     }
@@ -161,6 +167,8 @@ private fun AdaptiveWorkspaceManagerContentGridPreview() {
             onCloseWorkspace = {},
             onReorderWorkspaces = {},
             onSelectWorkspace = {},
+            onPauseWorkspace = {},
+            onResumeWorkspace = {},
             onDismissBadgeExplanation = {}
         )
     }

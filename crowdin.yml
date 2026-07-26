@@ -109,6 +109,66 @@
     #    "update_option" : "update_without_changes",
     "languages_mapping": *stringmapping
   }, {
+    "source": "/app-workspace/src/main/res/values/strings.xml",
+    "dest": "/strings-app-workspace.xml",
+    "translation": "/app-workspace/src/main/res/values-%android_code%/strings.xml",
+    #    "update_option" : "update_without_changes",
+    "languages_mapping": *stringmapping
+  }, {
+    "source": "/app-workspace-apps/src/main/res/values/strings.xml",
+    "dest": "/strings-app-workspace-apps.xml",
+    "translation": "/app-workspace-apps/src/main/res/values-%android_code%/strings.xml",
+    #    "update_option" : "update_without_changes",
+    "languages_mapping": *stringmapping
+  }, {
+    "source": "/app-workspace-bugreport/src/main/res/values/strings.xml",
+    "dest": "/strings-app-workspace-bugreport.xml",
+    "translation": "/app-workspace-bugreport/src/main/res/values-%android_code%/strings.xml",
+    #    "update_option" : "update_without_changes",
+    "languages_mapping": *stringmapping
+  }, {
+    "source": "/app-workspace-developer/src/main/res/values/strings.xml",
+    "dest": "/strings-app-workspace-developer.xml",
+    "translation": "/app-workspace-developer/src/main/res/values-%android_code%/strings.xml",
+    #    "update_option" : "update_without_changes",
+    "languages_mapping": *stringmapping
+  }, {
+    "source": "/app-workspace-editor/src/main/res/values/strings.xml",
+    "dest": "/strings-app-workspace-editor.xml",
+    "translation": "/app-workspace-editor/src/main/res/values-%android_code%/strings.xml",
+    #    "update_option" : "update_without_changes",
+    "languages_mapping": *stringmapping
+  }, {
+    "source": "/app-workspace-explorer/src/main/res/values/strings.xml",
+    "dest": "/strings-app-workspace-explorer.xml",
+    "translation": "/app-workspace-explorer/src/main/res/values-%android_code%/strings.xml",
+    #    "update_option" : "update_without_changes",
+    "languages_mapping": *stringmapping
+  }, {
+    "source": "/app-workspace-history/src/main/res/values/strings.xml",
+    "dest": "/strings-app-workspace-history.xml",
+    "translation": "/app-workspace-history/src/main/res/values-%android_code%/strings.xml",
+    #    "update_option" : "update_without_changes",
+    "languages_mapping": *stringmapping
+  }, {
+    "source": "/app-workspace-saver/src/main/res/values/strings.xml",
+    "dest": "/strings-app-workspace-saver.xml",
+    "translation": "/app-workspace-saver/src/main/res/values-%android_code%/strings.xml",
+    #    "update_option" : "update_without_changes",
+    "languages_mapping": *stringmapping
+  }, {
+    "source": "/app-workspace-searcher/src/main/res/values/strings.xml",
+    "dest": "/strings-app-workspace-searcher.xml",
+    "translation": "/app-workspace-searcher/src/main/res/values-%android_code%/strings.xml",
+    #    "update_option" : "update_without_changes",
+    "languages_mapping": *stringmapping
+  }, {
+    "source": "/app-workspace-templates/src/main/res/values/strings.xml",
+    "dest": "/strings-app-workspace-templates.xml",
+    "translation": "/app-workspace-templates/src/main/res/values-%android_code%/strings.xml",
+    #    "update_option" : "update_without_changes",
+    "languages_mapping": *stringmapping
+  }, {
     "source": "/fastlane/metadata/android/en-US/full_description.txt",
     "dest": "/store-description.txt",
     "translation": "/fastlane/metadata/android/%locale%/full_description.txt",

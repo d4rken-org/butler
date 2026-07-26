@@ -23,7 +23,7 @@ import sh.calvin.reorderable.ReorderableCollectionItemScope
 import testhelpers.ComposeTest
 
 /**
- * The manager grid is the screen used to pick which dormant tab to restore, so it must show the
+ * The manager grid is the screen used to pick which paused tab to restore, so it must show the
  * identity — the header naming the tab, the info bar describing what it holds — and must not draw
  * an empty line for a workspace that publishes a blank automatic title or subtitle.
  *
@@ -39,6 +39,7 @@ class WorkspaceGridItemIdentityTest : ComposeTest() {
         subtitle: CaString?,
         autoTitle: CaString = "/sdcard/Download".toCaString(),
         customTitle: String? = null,
+        isPaused: Boolean = false,
     ) {
         composeTestRule.setContent {
             PreviewWrapper {
@@ -51,6 +52,7 @@ class WorkspaceGridItemIdentityTest : ComposeTest() {
                         autoTitle = autoTitle,
                         subtitle = subtitle,
                         customTitle = customTitle,
+                        isPaused = isPaused,
                     ),
                     onClose = {},
                     onSelect = {},
@@ -119,6 +121,14 @@ class WorkspaceGridItemIdentityTest : ComposeTest() {
 
         assertInInfoBar("/sdcard/Download")
         composeTestRule.onNodeWithText("   ").assertDoesNotExist()
+    }
+
+    @Test
+    fun `a paused workspace keeps its info bar - that is what tells you whether to resume it`() {
+        setContent(subtitle = "Storage".toCaString(), isPaused = true)
+
+        assertInInfoBar("/sdcard/Download")
+        assertInInfoBar("Storage")
     }
 
     @Test

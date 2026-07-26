@@ -8,7 +8,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.twotone.ClearAll
 import androidx.compose.material.icons.twotone.History
-import androidx.compose.material.icons.twotone.QueryStats
 import androidx.compose.material.icons.twotone.Storage
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
@@ -21,10 +20,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -37,7 +36,7 @@ import eu.darken.butler.common.settings.SettingsDivider
 import eu.darken.butler.common.settings.SettingsPreferenceItem
 import eu.darken.butler.common.settings.SettingsSwitchItem
 import eu.darken.butler.history.R
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.Flow
 
 @Composable
 fun HistorySettingsScreen(
@@ -46,12 +45,22 @@ fun HistorySettingsScreen(
     onSaveHistoryChange: (Boolean) -> Unit,
     onMaxHistoryItemsChange: (Int) -> Unit,
     onClearHistory: () -> Unit,
+    eventSource: Flow<HistorySettingsViewModel.Event>? = null,
 ) {
     var showClearDialog by remember { mutableStateOf(false) }
     var showMaxDialog by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
+
+    LaunchedEffect(eventSource) {
+        eventSource?.collect { event ->
+            when (event) {
+                HistorySettingsViewModel.Event.HistoryCleared -> snackbarHostState.showSnackbar(
+                    message = context.getString(R.string.history_cleared_success),
+                )
+            }
+        }
+    }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -97,20 +106,14 @@ fun HistorySettingsScreen(
             }
             item {
                 SettingsPreferenceItem(
-                    icon = Icons.TwoTone.QueryStats,
-                    title = stringResource(R.string.history_settings_current_history_title),
-                    subtitle = stringResource(R.string.history_settings_current_history_subtitle),
-                    value = state.currentHistoryCount.toString(),
-                    onClick = { /* read-only */ },
-                )
-                SettingsDivider()
-            }
-            item {
-                SettingsPreferenceItem(
                     icon = Icons.TwoTone.ClearAll,
                     title = stringResource(R.string.history_settings_clear_history_title),
-                    subtitle = stringResource(R.string.history_settings_clear_history_subtitle),
+                    subtitle = stringResource(
+                        R.string.history_settings_clear_history_subtitle,
+                        state.currentHistoryCount,
+                    ),
                     onClick = { showClearDialog = true },
+                    enabled = state.currentHistoryCount > 0,
                 )
             }
         }
@@ -125,9 +128,6 @@ fun HistorySettingsScreen(
                 TextButton(onClick = {
                     onClearHistory()
                     showClearDialog = false
-                    scope.launch {
-                        snackbarHostState.showSnackbar(context.getString(R.string.history_cleared_success))
-                    }
                 }) {
                     Text(
                         stringResource(R.string.history_clear_confirm_action),
@@ -167,6 +167,7 @@ fun HistorySettingsScreenHost(vm: HistorySettingsViewModel = hiltViewModel()) {
             onSaveHistoryChange = { vm.updateSaveHistory(it) },
             onMaxHistoryItemsChange = { vm.updateMaxHistoryItems(it) },
             onClearHistory = { vm.clearHistory() },
+            eventSource = vm.events,
         )
     }
 }

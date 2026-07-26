@@ -40,6 +40,8 @@ fun WorkspaceManagerGridLayout(
     onCloseWorkspace: (Workspace.Id) -> Unit,
     onReorderWorkspaces: (List<Workspace.Id>) -> Unit,
     onSelectWorkspace: (Workspace.Id) -> Unit,
+    onPauseWorkspace: (Workspace.Id) -> Unit,
+    onResumeWorkspace: (Workspace.Id) -> Unit,
     onDismissBadgeExplanation: () -> Unit,
     onRenameWorkspace: (Workspace.Id) -> Unit = {},
     onTabsClick: () -> Unit = {},
@@ -144,6 +146,8 @@ fun WorkspaceManagerGridLayout(
                         onClose = { onCloseWorkspace(workspace.id) },
                         onSelect = { onSelectWorkspace(workspace.id) },
                         onRename = { onRenameWorkspace(workspace.id) },
+                        onPause = { onPauseWorkspace(workspace.id) },
+                        onResume = { onResumeWorkspace(workspace.id) },
                         isDragging = itemIsDragging,
                         livePreview = state.useLivePreview,
                         onDragStarted = { isDragging = true },
@@ -207,6 +211,8 @@ private fun WorkspaceManagerGridLayoutPreview() {
             onCloseWorkspace = {},
             onReorderWorkspaces = {},
             onSelectWorkspace = {},
+            onPauseWorkspace = {},
+            onResumeWorkspace = {},
             onDismissBadgeExplanation = {}
         )
     }
@@ -265,6 +271,8 @@ private fun WorkspaceManagerGridLayoutTabletPreview() {
             onCloseWorkspace = {},
             onReorderWorkspaces = {},
             onSelectWorkspace = {},
+            onPauseWorkspace = {},
+            onResumeWorkspace = {},
             onDismissBadgeExplanation = {}
         )
     }
@@ -286,6 +294,8 @@ private fun WorkspaceManagerGridLayoutEmptyPreview() {
             onCloseWorkspace = {},
             onReorderWorkspaces = {},
             onSelectWorkspace = {},
+            onPauseWorkspace = {},
+            onResumeWorkspace = {},
             onDismissBadgeExplanation = {}
         )
     }
@@ -323,6 +333,8 @@ private fun WorkspaceManagerGridLayoutWithExplanationsPreview() {
             onCloseWorkspace = {},
             onReorderWorkspaces = {},
             onSelectWorkspace = {},
+            onPauseWorkspace = {},
+            onResumeWorkspace = {},
             onDismissBadgeExplanation = {}
         )
     }

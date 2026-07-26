@@ -22,6 +22,8 @@ fun AppsInfoBar(
     systemAppsCount: Int = 0,
     selectedCount: Int = 0,
     onClearSelection: () -> Unit = {},
+    onSelectUserApps: (() -> Unit)? = null,
+    onSelectSystemApps: (() -> Unit)? = null,
 ) {
     WorkspaceInfoBar(
         modifier = modifier,
@@ -32,6 +34,7 @@ fun AppsInfoBar(
                 InfoChip(
                     icon = Icons.TwoTone.Person,
                     label = pluralStringResource(R.plurals.apps_infobar_user_apps_count, userAppsCount, userAppsCount),
+                    onClick = onSelectUserApps,
                 )
             }
 
@@ -43,6 +46,7 @@ fun AppsInfoBar(
                         systemAppsCount,
                         systemAppsCount
                     ),
+                    onClick = onSelectSystemApps,
                 )
             }
         },
@@ -60,6 +64,8 @@ private fun AppsInfoBarPreview() {
         userAppsCount = 25,
         systemAppsCount = 142,
         selectedCount = 0,
+        onSelectUserApps = {},
+        onSelectSystemApps = {},
     )
 }
 

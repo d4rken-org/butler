@@ -1,6 +1,5 @@
 package eu.darken.butler.searcher.ui.search
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -31,7 +30,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
@@ -43,7 +41,6 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
-import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.common.keyboard.KeyboardShortcut
 import eu.darken.butler.common.keyboard.keyboardShortcuts
 import eu.darken.butler.common.navigation.NavigationEventHandler
@@ -52,16 +49,11 @@ import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearcherViewStyle
 import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.searcher.core.resultKey
-import eu.darken.butler.searcher.ui.search.dialogs.SearchErrorDialog
-import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogHost
-import eu.darken.butler.searcher.ui.search.elements.AccessErrorsSheetContent
 import eu.darken.butler.searcher.ui.search.elements.PermissionSetupCard
 import eu.darken.butler.searcher.ui.search.elements.SearchProgressCard
-import eu.darken.butler.searcher.ui.search.elements.SearchResultItemDetails
 import eu.darken.butler.searcher.ui.search.elements.SearchTargetsEmptyStateCard
 import eu.darken.butler.searcher.ui.search.elements.SearchToolbarCard
 import eu.darken.butler.searcher.ui.search.elements.SearcherInfoBar
-import eu.darken.butler.searcher.ui.search.elements.TemplatesBottomSheetContent
 import eu.darken.butler.searcher.ui.search.elements.TemplatesCard
 import eu.darken.butler.searcher.ui.search.elements.searchHistorySection
 import eu.darken.butler.searcher.ui.search.items.SelectableFileGrid
@@ -72,7 +64,6 @@ import eu.darken.butler.searcher.ui.search.util.SearcherActionBarItem
 import eu.darken.butler.searcher.ui.search.util.SearcherPageAction
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.actions.WorkspaceActionBar
-import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 import eu.darken.butler.workspace.ui.clipboard.bar.ClipboardBar
 import eu.darken.butler.workspace.ui.error.ErrorCard
 import eu.darken.butler.workspace.ui.floatingbar.BarAnimation
@@ -80,17 +71,14 @@ import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
 import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
-import eu.darken.butler.workspace.ui.insets.paneInsets
 import eu.darken.butler.workspace.ui.insets.rememberPaneFloatingBarStackState
-import eu.darken.butler.workspace.ui.issues.IssuesBottomSheet
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
 import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
 import eu.darken.butler.workspace.ui.operations.bar.OperationsBar
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
-import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
-import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
 import eu.darken.butler.workspace.ui.preview.ProvideFolderPreviews
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -105,7 +93,6 @@ fun SearcherWorkspacePage(
     stateSource: Flow<SearcherWorkspaceViewModel.State>,
     clipboardStateSource: Flow<ClipboardDisplayState?>,
     operationsStateSource: Flow<OperationsDisplayState?>,
-    issueStateSource: Flow<Issue?> = flowOf(null),
     onPageAction: (SearcherPageAction) -> Unit = {},
 ) {
     // StateFlow check: use current value as initial for single-frame renderers (screenshot tests, previews)
@@ -134,20 +121,11 @@ fun SearcherWorkspacePage(
         design = design,
         estimatedContentPadding = 80.dp,
     )
-    val density = LocalDensity.current
-    val paneInsets = design.paneInsets()
-    val navBarInset = paneInsets.bottom
-    val statusBarInset = paneInsets.top
     val listState = rememberLazyListState()
-    var showTemplatesSheet by remember { mutableStateOf(false) }
-    var showAccessErrorsSheet by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val shortcutsFocusRequester = remember { FocusRequester() }
     val isWorkspaceFocused = LocalWorkspaceFocused.current
-
-    // Operation dialog state
-    var operationDialogState by remember { mutableStateOf<OperationDialogState>(OperationDialogState.None) }
 
     // Use rememberUpdatedState for callback to avoid lambda recreation
     val currentOnPageAction by rememberUpdatedState(onPageAction)
@@ -293,7 +271,7 @@ fun SearcherWorkspacePage(
     val currentState = mainState as? SearcherWorkspaceViewModel.State.Ready ?: return
 
     // Handle back button for selection mode - clear selection first
-    BackHandler(enabled = currentState.selectionState.isSelectionMode) {
+    WorkspaceBackHandler(enabled = currentState.selectionState.isSelectionMode) {
         onPageAction(SearcherPageAction.Results.ExitSelectionMode)
     }
 
@@ -383,7 +361,7 @@ fun SearcherWorkspacePage(
                 if (!currentState.isSearching && currentState.workspaceState.searchTargets.isNotEmpty()) {
                     item {
                         TemplatesCard(
-                            onClick = { showTemplatesSheet = true },
+                            onClick = { onPageAction(SearcherPageAction.Overlays.ShowTemplates) },
                         )
                     }
                 }
@@ -601,9 +579,6 @@ fun SearcherWorkspacePage(
             }
         }
 
-        // Error dialog state (declared before FloatingBarStack that uses it)
-        var errorDialogState by remember { mutableStateOf<Pair<String, Throwable>?>(null) }
-
         // Top FloatingBarStack - toolbar, progress card, info bar
         FloatingBarStack(
             state = topBarStackState,
@@ -639,11 +614,11 @@ fun SearcherWorkspacePage(
                         searchStatus = currentState.workspaceState.searchStatus,
                         resultCount = currentState.workspaceState.results.size,
                         limitReached = currentState.workspaceState.limitReached,
-                        onAccessErrorsClick = { showAccessErrorsSheet = true },
+                        onAccessErrorsClick = { onPageAction(SearcherPageAction.Overlays.ShowAccessErrors) },
                         onCancel = { onPageAction(SearcherPageAction.Search.Cancel) },
                         onClear = { onPageAction(SearcherPageAction.Search.ClearResults) },
                         onErrorClick = { path, exception ->
-                            errorDialogState = path to exception
+                            onPageAction(SearcherPageAction.Overlays.ShowTargetError(path, exception))
                         },
                     )
                 }
@@ -700,7 +675,7 @@ fun SearcherWorkspacePage(
                                     onPageAction(SearcherPageAction.Operations.ShowConflict(operation.id))
                                 }
                                 else -> {
-                                    operationDialogState = OperationDialogState.OperationDetails(operation.id)
+                                    onPageAction(SearcherPageAction.Overlays.ShowOperationDetails(operation.id))
                                 }
                             }
                         },
@@ -749,128 +724,9 @@ fun SearcherWorkspacePage(
             },
         )
 
-        // Error dialog for individual search target failures
-        errorDialogState?.let { (path, exception) ->
-            SearchErrorDialog(
-                path = path,
-                exception = exception,
-                onShareError = {
-                    onPageAction(SearcherPageAction.Error.Share(exception))
-                    errorDialogState = null
-                },
-                onDismiss = { errorDialogState = null }
-            )
-        }
-
-        // Templates bottom sheet
-        PaneScopedBottomSheet(
-            visible = showTemplatesSheet,
-            onDismiss = { showTemplatesSheet = false },
-            topInset = statusBarInset,
-        ) {
-            TemplatesBottomSheetContent(
-                bottomPadding = navBarInset,
-                onTemplateClick = { template ->
-                    showTemplatesSheet = false
-                    onPageAction(SearcherPageAction.Templates.Apply(template))
-                },
-            )
-        }
-
-        // Access-errors detail sheet, opened from the progress card's inaccessible-items line.
-        // Auto-dismiss when the errors clear (e.g. the post-setup rerun succeeded) so it never
-        // shows a stale empty list.
-        val accessErrorCount = currentState.workspaceState.targetProgress.sumOf { it.accessErrorCount }
-        LaunchedEffect(accessErrorCount) {
-            if (accessErrorCount == 0) showAccessErrorsSheet = false
-        }
-        PaneScopedBottomSheet(
-            visible = showAccessErrorsSheet,
-            onDismiss = { showAccessErrorsSheet = false },
-            topInset = statusBarInset,
-        ) {
-            AccessErrorsSheetContent(
-                targetProgress = currentState.workspaceState.targetProgress,
-                accessErrorRequirements = currentState.workspaceState.accessErrorRequirements,
-                bottomPadding = navBarInset,
-                onUnlockAccess = {
-                    showAccessErrorsSheet = false
-                    onPageAction(SearcherPageAction.Setup.Open(currentState.workspaceState.accessErrorRequirements))
-                },
-            )
-        }
     }
 
-    // Item details bottom sheet
-    currentState.quickActionsResult?.let { result ->
-        SearchResultItemDetails(
-            result = result,
-            trashEnabled = currentState.trashEnabled,
-            onAction = { action ->
-                onPageAction(SearcherPageAction.WorkspaceAction(action))
-                onPageAction(SearcherPageAction.Results.HideQuickActions)
-            },
-            onLongPress = {
-                wrappedOnEnterSelectionMode(it)
-                onPageAction(SearcherPageAction.Results.HideQuickActions)
-            },
-            onDismiss = { onPageAction(SearcherPageAction.Results.HideQuickActions) },
-            topInset = statusBarInset,
-            bottomInset = navBarInset,
-        )
-    }
-
-    // Issue/conflict resolution bottom sheet
-    val issueState by issueStateSource.collectAsState(
-        initial = (issueStateSource as? StateFlow)?.value
-    )
-    if (issueState != null) {
-        IssuesBottomSheet(
-            issue = issueState!!,
-            onResolution = { resolution -> onPageAction(SearcherPageAction.Issues.Resolve(resolution)) },
-            onDismiss = { /* Issue will auto-clear when resolved or cancelled */ },
-            topInset = statusBarInset,
-            bottomInset = navBarInset,
-        )
-    }
-
-    // Dialog host (handles all dialogs and bottom sheets)
-    SearcherDialogHost(
-        dialogState = currentState.dialogState,
-        trashEnabled = currentState.trashEnabled,
-        onDismiss = { onPageAction(SearcherPageAction.Dialogs.Dismiss) },
-        onDeleteConfirmed = { items, forcePermDelete ->
-            onPageAction(SearcherPageAction.Dialogs.DeleteConfirmed(items, forcePermDelete))
-        },
-        onCopyToClipboard = { text -> onPageAction(SearcherPageAction.Clipboard.CopyText(text)) },
-        onNavigateToClipboardSource = { clip -> onPageAction(SearcherPageAction.Clipboard.NavigateToSource(clip)) },
-        onRemoveClipboardEntry = { clip -> onPageAction(SearcherPageAction.Clipboard.RemoveEntry(clip)) },
-        onSortOptionsConfirmed = { onPageAction(SearcherPageAction.Dialogs.SortOptionsConfirmed(it)) },
-        onClearHistoryConfirmed = { onPageAction(SearcherPageAction.Dialogs.ClearHistoryConfirmed) },
-        onConditionApply = { existing, new ->
-            existing?.let { onPageAction(SearcherPageAction.Filter.RemoveCondition(it)) }
-            onPageAction(SearcherPageAction.Filter.AddCondition(new))
-        },
-        topInset = statusBarInset,
-        bottomInset = navBarInset,
-    )
-
-    // Operation dialog host
-    OperationDialogHost(
-        dialogState = operationDialogState,
-        operations = operationsState.operations,
-        onDismissDialog = { operationDialogState = OperationDialogState.None },
-        onCancelOperation = { operationId ->
-            operationDialogState = OperationDialogState.None
-            onPageAction(SearcherPageAction.Operations.Cancel(operationId))
-        },
-        onShareError = { onPageAction(SearcherPageAction.Operations.ShareError(it)) },
-        onHandleIssue = { operationId ->
-            onPageAction(SearcherPageAction.Operations.ShowConflict(operationId))
-        },
-        topInset = statusBarInset,
-        bottomInset = navBarInset,
-    )
+    // Dialogs and sheets live in the page host's overlay slot, see SearcherWorkspaceOverlays
 }
 
 @Composable
@@ -900,7 +756,6 @@ fun SearcherWorkspacePageHost(
             stateSource = vm.state,
             clipboardStateSource = vm.clipboard,
             operationsStateSource = vm.operations,
-            issueStateSource = vm.issueState,
             onPageAction = vm::onPageAction,
         )
     }

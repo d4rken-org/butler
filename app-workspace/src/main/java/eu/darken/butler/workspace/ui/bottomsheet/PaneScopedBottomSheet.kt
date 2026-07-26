@@ -1,8 +1,8 @@
 package eu.darken.butler.workspace.ui.bottomsheet
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.updateTransition
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -47,6 +47,11 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapp
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.workspace.ui.insets.LocalPaneEdges
+import eu.darken.butler.workspace.ui.insets.paneHorizontalInsetPadding
+import eu.darken.butler.workspace.ui.modal.PaneLayer
+import eu.darken.butler.workspace.ui.modal.requestPaneFocusOnPress
+import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -132,12 +137,28 @@ fun PaneScopedBottomSheet(
         }
     }
 
-    BackHandler(enabled = visible, onBack = onDismiss)
+    // The sheet stays on screen for the ~200ms exit transition after `visible` goes false, so layer
+    // registration follows the transition rather than `visible` — otherwise the content behind
+    // would become interactive again while the sheet is still covering it.
+    val transition = updateTransition(targetState = visible, label = "PaneScopedBottomSheet")
+    val layerPresent = transition.currentState || transition.targetState
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    // Same reasoning as the dialog: a sheet without a text field hides the keyboard on show, so it
+    // must not have focus pushed into it either.
+    PaneLayer(
+        modifier = Modifier.fillMaxSize(),
+        takeFocus = includeImePadding,
+        enabled = layerPresent,
+    ) {
+        // Must live inside the layer and follow the same lifetime: composed outside it, this would
+        // read the layer *below* the sheet, and gating it on `visible` would disable it during the
+        // exit transition while the page handlers underneath are still deactivated — leaving back
+        // to fall through to the activity's exit handler.
+        WorkspaceBackHandler(enabled = layerPresent, onBack = onDismiss)
+
         // Scrim overlay (pane-local, not full-screen)
-        AnimatedVisibility(
-            visible = visible,
+        transition.AnimatedVisibility(
+            visible = { it },
             enter = fadeIn(tween(300)),
             exit = fadeOut(tween(200)),
         ) {
@@ -145,6 +166,7 @@ fun PaneScopedBottomSheet(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(Color.Black.copy(alpha = 0.4f))
+                    .requestPaneFocusOnPress()
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null,
@@ -153,15 +175,17 @@ fun PaneScopedBottomSheet(
             )
         }
 
-        // Bottom sheet content
+        // Bottom sheet content. Inset here, not on the scrim above: the scrim has to keep covering
+        // the strip next to a side navigation bar or a cutout.
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .paneHorizontalInsetPadding(LocalPaneEdges.current)
                 .padding(top = topInset),
             contentAlignment = Alignment.BottomCenter
         ) {
-            AnimatedVisibility(
-                visible = visible,
+            transition.AnimatedVisibility(
+                visible = { it },
                 enter = slideInVertically(
                     initialOffsetY = { it },
                     animationSpec = spring(
@@ -177,6 +201,7 @@ fun PaneScopedBottomSheet(
                 Card(
                     modifier = modifier
                         .fillMaxWidth()
+                        .requestPaneFocusOnPress()
                         .offset { IntOffset(0, dragOffset.value.roundToInt()) }
                         .draggable(
                             state = rememberDraggableState { delta ->

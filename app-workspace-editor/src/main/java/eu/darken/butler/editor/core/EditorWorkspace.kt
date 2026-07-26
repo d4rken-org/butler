@@ -113,7 +113,7 @@ class EditorWorkspace @AssistedInject constructor(
 
     override val type: Workspace.Type = Workspace.Type.EDITOR
 
-    // Same derivation the factory hands the dormant stand-in, so both name this tab identically
+    // Same derivation the factory hands the paused stand-in, so both name this tab identically
     private val seedDisplay = deriveEditorDisplay(creationArguments)
     private val scratchTitle = editorScratchTitle(creationArguments)
 
@@ -124,7 +124,9 @@ class EditorWorkspace @AssistedInject constructor(
             title = seedDisplay.title ?: type.label,
             subtitle = seedDisplay.subtitle,
             arguments = creationArguments,
-        )
+            // Stays false until the engine reports file-backed content: createArguments() drops
+            // initialContent, so pausing a scratch buffer would throw away its text.
+        ).copy(isPausable = false)
     )
     override val info: MutableStateFlow<Workspace.Info> = _info
 
@@ -183,7 +185,15 @@ class EditorWorkspace @AssistedInject constructor(
         reportedSource = ReportedSource(engine, contentSource)
         _info.update { current ->
             val display = editorContentDisplay(contentSource, current.contentPath, scratchTitle)
-            current.copy(title = display.title ?: type.label, subtitle = display.subtitle)
+            current.copy(
+                title = display.title ?: type.label,
+                subtitle = display.subtitle,
+                // Only file-backed content survives a pause: an in-memory buffer exists nowhere but
+                // here. A file whose backing was lost (deleted, moved, unreadable) is in the same
+                // boat - the buffer is the only copy left and the resume would reopen an
+                // unavailable path.
+                isPausable = contentSource is ContentSource.File && !contentSource.isBackingLost,
+            )
         }
         log(tag, DEBUG) { "Updated identity for: $contentSource" }
     }

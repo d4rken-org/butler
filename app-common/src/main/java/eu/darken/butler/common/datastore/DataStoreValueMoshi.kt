@@ -6,7 +6,6 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 
@@ -24,11 +23,14 @@ internal inline fun <reified T> kotlinxSerializationReader(
         } else {
             val decoder = { json.decodeFromString(serializer, rawValue) }
             if (onErrorFallbackToDefault) {
+                // Catches Exception, not just SerializationException: contextual serializers can fail
+                // on syntactically valid JSON (e.g. Instant.parse throws IllegalArgumentException on
+                // a bad timestamp), and such a value would otherwise terminate the flow permanently.
                 try {
                     decoder()
-                } catch (e: SerializationException) {
+                } catch (e: Exception) {
                     log(logTag("DataStore", "Value", "Serialization"), WARN) {
-                        "Deserialization failed, using default: ${e.message}"
+                        "Decoding failed, using default: ${e.message}"
                     }
                     defaultValue
                 }

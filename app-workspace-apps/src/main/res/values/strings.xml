@@ -164,13 +164,34 @@
     <string name="apps_components_receivers_label">Broadcast Receivers</string>
     <string name="apps_components_providers_label">Content Providers</string>
     <string name="apps_components_exported">Exported</string>
+    <string name="apps_components_disabled">Disabled</string>
     <string name="apps_components_empty">No components found</string>
+    <string name="apps_components_no_matches">No components match “%1$s”</string>
     <string name="apps_components_and_more">…and %d more</string>
     <string name="apps_components_view_all_action">View all</string>
     <string name="apps_components_total_label">%1$d components</string>
     <string name="apps_components_loading">Loading components…</string>
     <string name="apps_components_error">Could not load components</string>
     <string name="apps_components_launch_failed">Could not launch activity</string>
+    <string name="apps_components_kind_activity">Activity</string>
+    <string name="apps_components_kind_service">Service</string>
+    <string name="apps_components_kind_receiver">Broadcast receiver</string>
+    <string name="apps_components_kind_provider">Content provider</string>
+    <string name="apps_components_search_action">Search components</string>
+    <string name="apps_components_search_hint">Search components</string>
+    <string name="apps_components_state_label">State</string>
+    <string name="apps_components_state_enabled">Enabled</string>
+    <string name="apps_components_state_disabled">Disabled</string>
+    <string name="apps_components_field_type">Type</string>
+    <string name="apps_components_field_package">Package</string>
+    <string name="apps_components_field_permission">Permission</string>
+    <string name="apps_components_field_write_permission">Write permission</string>
+    <string name="apps_components_field_authority">Authority</string>
+    <string name="apps_components_field_process">Process</string>
+    <string name="apps_components_field_launch_mode">Launch mode</string>
+    <string name="apps_components_launch_action">Launch</string>
+    <string name="apps_components_copy_name_action">Copy component name</string>
+    <string name="apps_components_copy_package_action">Copy package name</string>
 
     <!-- Generic navigation -->
     <string name="appdetails_back_generic_action">Back</string>

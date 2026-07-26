@@ -18,6 +18,11 @@ object HistoryWorkspacePageHostEntry : WorkspacePageHostEntry {
         HistoryWorkspacePageHost(id = id, design = design)
     }
 
+    @Composable
+    override fun Overlays(id: Workspace.Id, design: WorkspaceDesign) {
+        HistoryWorkspaceOverlaysHost(id = id, design = design)
+    }
+
     @Module
     @InstallIn(SingletonComponent::class)
     object PageHostModule {

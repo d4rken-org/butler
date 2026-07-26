@@ -44,7 +44,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -97,9 +96,10 @@ class AppsWorkspace @AssistedInject constructor(
             val isRefreshing: Boolean = false,
             val error: Throwable? = null,
         ) : State {
-            val isMultiSelectMode: Boolean get() = selectedAppIds.isNotEmpty()
-            val selectionCount: Int get() = selectedAppIds.size
+            // Selection state counts only visible apps, so it always matches what actions operate on.
             val selectedApps: List<AppItem> get() = filteredApps.filter { it.pkg.installId in selectedAppIds }
+            val isMultiSelectMode: Boolean get() = selectedApps.isNotEmpty()
+            val selectionCount: Int get() = selectedApps.size
 
             val canEnableDisable: Boolean get() = hasRoot || hasAdb
             val canClearCache: Boolean get() = hasRoot
@@ -128,7 +128,26 @@ class AppsWorkspace @AssistedInject constructor(
         )
     }
 
-    override val info: StateFlow<Workspace.Info> = _state.map { state ->
+    /**
+     * Number of package operations (enable/disable/uninstall/clear) currently running. Package
+     * operations don't go through OperationsManager, so this is the only signal that keeps a pause
+     * from releasing the workspace mid-operation.
+     */
+    private val pkgOpsInFlight = MutableStateFlow(0)
+
+    private suspend fun <T> trackPkgOp(block: suspend () -> T): T {
+        pkgOpsInFlight.update { it + 1 }
+        try {
+            return block()
+        } finally {
+            pkgOpsInFlight.update { it - 1 }
+        }
+    }
+
+    override val info: StateFlow<Workspace.Info> = combine(
+        _state,
+        pkgOpsInFlight,
+    ) { state, opsInFlight ->
         Workspace.Info(
             id = id,
             type = type,
@@ -144,6 +163,7 @@ class AppsWorkspace @AssistedInject constructor(
             },
             operationCount = 0,
             attentionCount = 0,
+            isPausable = opsInFlight == 0,
             callerWorkspaceId = null,
         )
     }.stateInWorkspace(
@@ -241,11 +261,15 @@ class AppsWorkspace @AssistedInject constructor(
         appsEngine.selectAll()
     }
 
+    suspend fun selectApps(installIds: Set<InstallId>) {
+        appsEngine.selectApps(installIds)
+    }
+
     suspend fun refresh() {
         appsEngine.refresh(showIndicator = true)
     }
 
-    suspend fun enableApps(apps: List<AppItem>) {
+    suspend fun enableApps(apps: List<AppItem>) = trackPkgOp {
         log(tag) { "Enabling ${apps.size} apps" }
         val failures = mutableListOf<Pair<AppItem, Exception>>()
         try {
@@ -266,7 +290,7 @@ class AppsWorkspace @AssistedInject constructor(
         }
     }
 
-    suspend fun disableApps(apps: List<AppItem>) {
+    suspend fun disableApps(apps: List<AppItem>) = trackPkgOp {
         log(tag) { "Disabling ${apps.size} apps" }
         val failures = mutableListOf<Pair<AppItem, Exception>>()
         try {
@@ -287,7 +311,7 @@ class AppsWorkspace @AssistedInject constructor(
         }
     }
 
-    suspend fun uninstallApps(apps: List<AppItem>) {
+    suspend fun uninstallApps(apps: List<AppItem>) = trackPkgOp {
         log(tag) { "Uninstalling ${apps.size} apps" }
         val failures = mutableListOf<Pair<AppItem, Exception>>()
         try {
@@ -308,7 +332,7 @@ class AppsWorkspace @AssistedInject constructor(
         }
     }
 
-    suspend fun clearCacheApps(apps: List<AppItem>) {
+    suspend fun clearCacheApps(apps: List<AppItem>) = trackPkgOp {
         log(tag) { "Clearing cache for ${apps.size} apps" }
         val failures = mutableListOf<Pair<AppItem, Exception>>()
         try {
@@ -329,7 +353,7 @@ class AppsWorkspace @AssistedInject constructor(
         }
     }
 
-    suspend fun clearDataApps(apps: List<AppItem>) {
+    suspend fun clearDataApps(apps: List<AppItem>) = trackPkgOp {
         log(tag) { "Clearing data for ${apps.size} apps" }
         val failures = mutableListOf<Pair<AppItem, Exception>>()
         try {

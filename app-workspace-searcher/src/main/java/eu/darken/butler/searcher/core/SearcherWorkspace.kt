@@ -111,7 +111,7 @@ class SearcherWorkspace @AssistedInject constructor(
         )
     }
 
-    // Same derivation the factory hands the dormant stand-in, so both name this tab identically
+    // Same derivation the factory hands the paused stand-in, so both name this tab identically
     private val seedDisplay = deriveSearcherDisplay(creationArguments)
 
     override val info: MutableStateFlow<Workspace.Info> = MutableStateFlow(
@@ -154,7 +154,7 @@ class SearcherWorkspace @AssistedInject constructor(
     }
 
     /**
-     * Republishes the tab identity through the same derivation the dormant stand-in uses, so the
+     * Republishes the tab identity through the same derivation the paused stand-in uses, so the
      * two can never disagree. Skipped by VALUE when nothing identifying changed - never by emission
      * position, which would silently drop targets that arrived before the observer subscribed.
      */
@@ -166,10 +166,14 @@ class SearcherWorkspace @AssistedInject constructor(
             contentQuery = source.contentQuery,
             targets = source.targets,
         )
-        info.value = info.value.copy(
-            title = display?.title ?: type.label,
-            subtitle = display?.subtitle,
-        )
+        // update(), not value =: the operation-count and pausability collectors write the same
+        // flow concurrently, and a copy() off a stale snapshot would revert their field.
+        info.update {
+            it.copy(
+                title = display?.title ?: type.label,
+                subtitle = display?.subtitle,
+            )
+        }
         log(tag, VERBOSE) { "Republished identity: $display" }
     }
 
@@ -410,12 +414,24 @@ class SearcherWorkspace @AssistedInject constructor(
                     }
                 }
 
-                info.value = info.value.copy(
-                    operationCount = operationCount,
-                    attentionCount = attentionCount
-                )
+                // update(), not value =: the pausability and subtitle collectors write the same
+                // flow concurrently, and a copy() off a stale snapshot would revert their field.
+                info.update {
+                    it.copy(
+                        operationCount = operationCount,
+                        attentionCount = attentionCount,
+                    )
+                }
                 log(tag, VERBOSE) { "Updated operation counts: active=$operationCount, attention=$attentionCount" }
             }
+            .launchIn(scope)
+
+        // A running search or a populated result set cannot survive a pause: createArguments()
+        // always persists startSearch=false and never carries results.
+        _searchState
+            .map { it.searchStatus == State.SearchStatus.SEARCHING || it.results.isNotEmpty() }
+            .distinctUntilChanged()
+            .onEach { busy -> info.update { it.copy(isPausable = !busy) } }
             .launchIn(scope)
 
         // Live-prune results when files are removed by operations from any workspace

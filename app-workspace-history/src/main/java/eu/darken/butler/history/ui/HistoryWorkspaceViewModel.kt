@@ -18,11 +18,14 @@ import eu.darken.butler.workspace.core.operations.history.HistoryFilter
 import eu.darken.butler.workspace.core.operations.history.HistoryOutcome
 import eu.darken.butler.workspace.core.operations.history.HistorySettings
 import eu.darken.butler.workspace.core.operations.history.OperationHistoryRepo
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Instant
@@ -61,8 +64,30 @@ class HistoryWorkspaceViewModel @AssistedInject constructor(
         )
     }.asStateFlow()
 
+    // Overlay visibility lives here rather than in the page: the overlays are composed as a sibling
+    // of the page, so a `remember` in the page would be a different instance from the one the
+    // overlays read.
+    private val _overlayState = MutableStateFlow(OverlayState())
+    val overlayState: StateFlow<OverlayState> = _overlayState
+
     init {
         log(tag) { "Initialized for workspace $id" }
+    }
+
+    fun showEntryDetails(entry: HistoryEntry?) {
+        _overlayState.update { it.copy(detailEntry = entry) }
+    }
+
+    fun setAddFilterOpen(open: Boolean) {
+        _overlayState.update { it.copy(addFilterOpen = open) }
+    }
+
+    fun openPathScopePicker() {
+        _overlayState.update { it.copy(addFilterOpen = false, pathScopeOpen = true) }
+    }
+
+    fun closePathScopePicker() {
+        _overlayState.update { it.copy(pathScopeOpen = false) }
     }
 
     fun toggleOutcome(outcome: HistoryOutcome) = launch {
@@ -111,6 +136,12 @@ class HistoryWorkspaceViewModel @AssistedInject constructor(
         val entryCount: Int,
         val totalCount: Int,
         val hasAnyHistory: Boolean,
+    )
+
+    data class OverlayState(
+        val detailEntry: HistoryEntry? = null,
+        val addFilterOpen: Boolean = false,
+        val pathScopeOpen: Boolean = false,
     )
 
     data class DateGroup(

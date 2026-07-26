@@ -1,0 +1,105 @@
+package eu.darken.butler.bugreport.ui
+
+import android.content.Intent
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import eu.darken.butler.bugreport.R
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
+import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.asLog
+import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.workspace.core.Workspace
+import kotlinx.coroutines.launch
+
+private val TAG = logTag("BugReport", "Workspace", "Overlays")
+
+/**
+ * Overlay slot of the bug report page.
+ *
+ * Shares the ViewModel with [BugReportWorkspacePageHost]; the error handler and the event collector
+ * that raises the short-recording warning stay there and must not be repeated here.
+ */
+@Composable
+fun BugReportWorkspaceOverlaysHost(
+    id: Workspace.Id,
+    vm: BugReportWorkspaceViewModel = hiltViewModel(
+        key = id.longTag,
+        creationCallback = { factory: BugReportWorkspaceViewModel.Factory -> factory.create(id = id) },
+    ),
+) {
+    val overlayState by vm.overlayState.collectAsState()
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    BugReportWorkspaceOverlays(
+        overlayState = overlayState,
+        onShareConsent = { reportId ->
+            vm.dismissShareConsent()
+            scope.launch {
+                try {
+                    val intent = vm.buildShareIntent(reportId)
+                    context.startActivity(
+                        Intent.createChooser(intent, context.getString(R.string.bugreport_share_chooser_title))
+                    )
+                } catch (e: Exception) {
+                    log(TAG, ERROR) { "Share failed: ${e.asLog()}" }
+                }
+            }
+        },
+        onDismissShareConsent = { vm.dismissShareConsent() },
+        onKeepRecording = { vm.dismissShortRecordingWarning() },
+        onStopRecordingAnyway = {
+            vm.dismissShortRecordingWarning()
+            vm.forceStopRecording()
+        },
+    )
+}
+
+@Composable
+fun BugReportWorkspaceOverlays(
+    overlayState: BugReportWorkspaceViewModel.OverlayState,
+    onShareConsent: (String) -> Unit = {},
+    onDismissShareConsent: () -> Unit = {},
+    onKeepRecording: () -> Unit = {},
+    onStopRecordingAnyway: () -> Unit = {},
+) {
+    overlayState.shareConsentReportId?.let { reportId ->
+        ShareConsentDialog(
+            onConfirm = { onShareConsent(reportId) },
+            onDismiss = onDismissShareConsent,
+        )
+    }
+
+    if (overlayState.showShortRecordingWarning) {
+        ShortRecordingWarningDialog(
+            onKeepRecording = onKeepRecording,
+            onStopAnyway = onStopRecordingAnyway,
+        )
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun BugReportWorkspaceOverlaysShareConsentPreview() {
+    BugReportWorkspaceOverlays(
+        overlayState = BugReportWorkspaceViewModel.OverlayState(shareConsentReportId = "report-1"),
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun BugReportWorkspaceOverlaysShortRecordingPreview() {
+    BugReportWorkspaceOverlays(
+        overlayState = BugReportWorkspaceViewModel.OverlayState(showShortRecordingWarning = true),
+    )
+}

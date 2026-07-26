@@ -39,8 +39,8 @@ import org.robolectric.annotation.Config
 import java.io.IOException
 
 /**
- * The live workspace must seed its [Workspace.Info] from the same derivation the dormant stand-in
- * uses, otherwise a restored tab renames itself the moment it is hydrated.
+ * The live workspace must seed its [Workspace.Info] from the same derivation the paused stand-in
+ * uses, otherwise a restored tab renames itself the moment it is resumed.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])

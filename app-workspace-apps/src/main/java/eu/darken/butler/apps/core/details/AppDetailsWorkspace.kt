@@ -121,7 +121,7 @@ class AppDetailsWorkspace @AssistedInject constructor(
         )
     }
 
-    // Same derivation the factory hands the dormant stand-in, so both name this tab identically.
+    // Same derivation the factory hands the paused stand-in, so both name this tab identically.
     // The live tab enriches this to the app label once package data resolves.
     private val seedDisplay = deriveAppDetailsDisplay(args)
 

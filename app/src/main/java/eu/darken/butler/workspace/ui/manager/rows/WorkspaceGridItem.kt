@@ -1,5 +1,6 @@
 package eu.darken.butler.workspace.ui.manager.rows
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,6 +14,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material.icons.twotone.MoreVert
+import androidx.compose.material.icons.twotone.PauseCircle
+import androidx.compose.material.icons.twotone.PlayCircle
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -52,6 +55,7 @@ import eu.darken.butler.workspace.core.label
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerViewModel
 import eu.darken.butler.workspace.ui.manager.rows.preview.WorkspacePreview
 import eu.darken.butler.common.R as CommonR
+import eu.darken.butler.workspace.R as WorkspaceR
 
 const val TEST_TAG_WORKSPACE_CARD_HEADER = "workspace_card_header"
 
@@ -63,6 +67,8 @@ fun WorkspaceGridItem(
     onClose: () -> Unit,
     onSelect: () -> Unit,
     onRename: () -> Unit = {},
+    onPause: () -> Unit = {},
+    onResume: () -> Unit = {},
     livePreview: Boolean = true,
     isDragging: Boolean = false,
     onDragStarted: () -> Unit = {},
@@ -153,6 +159,31 @@ fun WorkspaceGridItem(
                         overflow = TextOverflow.StartEllipsis,
                     )
 
+                    when {
+                        workspace.isPaused -> IconButton(
+                            modifier = Modifier.size(24.dp),
+                            onClick = onResume,
+                        ) {
+                            Icon(
+                                modifier = Modifier.size(18.dp),
+                                imageVector = Icons.TwoTone.PlayCircle,
+                                contentDescription = stringResource(R.string.workspace_row_resume_content_desc),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                            )
+                        }
+                        workspace.canPause -> IconButton(
+                            modifier = Modifier.size(24.dp),
+                            onClick = onPause,
+                        ) {
+                            Icon(
+                                modifier = Modifier.size(18.dp),
+                                imageVector = Icons.TwoTone.PauseCircle,
+                                contentDescription = stringResource(R.string.workspace_row_pause_content_desc),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                            )
+                        }
+                    }
+
                     // Sub-workspaces are not persisted, so a rename on them would silently be lost
                     if (!workspace.isSubWorkspace) {
                         Box {
@@ -202,19 +233,37 @@ fun WorkspaceGridItem(
                     }
                 }
 
-                WorkspacePreview(
-                    modifier = Modifier.fillMaxWidth(),
-                    workspaceId = workspace.id,
-                    type = workspace.type,
-                    livePreview = livePreview,
-                    paneNumber = workspace.paneNumber,
-                    shouldShowBadge = workspace.paneNumber != null && currentPaneCount > 1,
-                ) {
-                    WorkspacePreviewInfoBar(
-                        modifier = Modifier.align(Alignment.BottomStart),
-                        primary = workspace.autoTitle,
-                        secondary = workspace.subtitle,
-                    )
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    WorkspacePreview(
+                        modifier = Modifier.fillMaxWidth(),
+                        workspaceId = workspace.id,
+                        type = workspace.type,
+                        livePreview = livePreview,
+                        paneNumber = workspace.paneNumber,
+                        shouldShowBadge = workspace.paneNumber != null && currentPaneCount > 1,
+                        contentAlpha = if (workspace.isPaused) 0.4f else 1f,
+                    ) {
+                        WorkspacePreviewInfoBar(
+                            modifier = Modifier.align(Alignment.BottomStart),
+                            primary = workspace.autoTitle,
+                            secondary = workspace.subtitle,
+                        )
+                    }
+
+                    if (workspace.isPaused) {
+                        Text(
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .background(
+                                    color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                                    shape = RoundedCornerShape(8.dp),
+                                )
+                                .padding(horizontal = 8.dp, vertical = 4.dp),
+                            text = stringResource(WorkspaceR.string.workspace_paused_label),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
             }
         }
@@ -482,6 +531,64 @@ private fun WorkspaceGridItemAttentionPreview() {
                 autoTitle = "Trash".toCaString(),
                 subtitle = "Recover deleted files".toCaString(),
                 attentionCount = 0,
+            ),
+            onClose = {},
+            onSelect = {},
+            livePreview = false,
+        )
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspaceGridItemPauseStatesPreview() {
+    Column(
+        modifier = Modifier.padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        // Live and pausable - offers the pause button
+        WorkspaceGridItem(
+            reorderableScope = createMockReorderableScope(),
+            workspace = WorkspaceManagerViewModel.WorkspaceItem(
+                id = Workspace.Id(),
+                type = Workspace.Type.EXPLORER,
+                title = "/storage/emulated/0/Download".toCaString(),
+                autoTitle = "/storage/emulated/0/Download".toCaString(),
+                subtitle = null,
+                canPause = true,
+            ),
+            onClose = {},
+            onSelect = {},
+            livePreview = false,
+        )
+
+        // Paused - dimmed thumbnail and chip, but the info bar stays fully legible
+        WorkspaceGridItem(
+            reorderableScope = createMockReorderableScope(),
+            workspace = WorkspaceManagerViewModel.WorkspaceItem(
+                id = Workspace.Id(),
+                type = Workspace.Type.SEARCHER,
+                title = "*.log".toCaString(),
+                autoTitle = "*.log".toCaString(),
+                subtitle = "Device storage, SD card".toCaString(),
+                isPaused = true,
+            ),
+            onClose = {},
+            onSelect = {},
+            livePreview = false,
+        )
+
+        // Busy - neither pausable nor paused, so no extra button
+        WorkspaceGridItem(
+            reorderableScope = createMockReorderableScope(),
+            workspace = WorkspaceManagerViewModel.WorkspaceItem(
+                id = Workspace.Id(),
+                type = Workspace.Type.EDITOR,
+                title = "notes.md".toCaString(),
+                autoTitle = "notes.md".toCaString(),
+                subtitle = "/storage/emulated/0/Documents".toCaString(),
+                canPause = false,
             ),
             onClose = {},
             onSelect = {},

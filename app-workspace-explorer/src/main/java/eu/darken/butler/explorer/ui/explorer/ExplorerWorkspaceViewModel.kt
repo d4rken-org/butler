@@ -93,6 +93,7 @@ import eu.darken.butler.workspace.core.operations.OperationFocusRequest
 import eu.darken.butler.workspace.ui.page.WorkspacePageChrome
 import eu.darken.butler.workspace.core.returnResult
 import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
+import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -144,7 +145,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     private val chrome = chromeFactory.create(id, vmScope)
 
-    val folderPreviewObserver: FolderPreviewObserver get() = folderPreviewResolver.settingsGatedObserver
+    val folderPreviewObserver: FolderPreviewObserver = folderPreviewResolver::observe
 
     private val doLaunch: (suspend CoroutineScope.() -> Unit) -> Unit = { block -> launch(block = block) }
 
@@ -535,6 +536,31 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     // busy indication while extract/download is starting or running.
     private val _archiveActionBusy = MutableStateFlow(false)
     val archiveActionBusy: StateFlow<Boolean> get() = _archiveActionBusy
+
+    // Operation dialogs live here rather than in the page: the page and its overlays are siblings,
+    // so a `remember` in the page would be a different instance from the one the overlays read.
+    private val _operationDialogState = MutableStateFlow<OperationDialogState>(OperationDialogState.None)
+    val operationDialogState: StateFlow<OperationDialogState> = _operationDialogState
+
+    private val _cancelOperationConfirmation = MutableStateFlow<Operation.Id?>(null)
+    val cancelOperationConfirmation: StateFlow<Operation.Id?> = _cancelOperationConfirmation
+
+    fun showOperationDetails(operationId: Operation.Id) {
+        _operationDialogState.value = OperationDialogState.OperationDetails(operationId)
+    }
+
+    fun dismissOperationDialog() {
+        _operationDialogState.value = OperationDialogState.None
+    }
+
+    fun requestCancelOperation(operationId: Operation.Id) {
+        _operationDialogState.value = OperationDialogState.None
+        _cancelOperationConfirmation.value = operationId
+    }
+
+    fun dismissCancelOperationConfirmation() {
+        _cancelOperationConfirmation.value = null
+    }
 
     fun navigate(item: ExplorerItem) = navigation.navigate(item)
 

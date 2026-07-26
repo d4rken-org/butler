@@ -13,6 +13,8 @@ import eu.darken.butler.common.flow.setupCommonEventHandlers
 import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.upgrade.isPro
 import eu.darken.butler.workspace.core.operations.OperationsManager
+import eu.darken.butler.workspace.core.usage.WorkspaceUsageRepo
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -28,6 +30,8 @@ import kotlinx.coroutines.sync.withLock
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 @Singleton
@@ -37,6 +41,7 @@ class WorkspaceRepo @Inject constructor(
     private val workspaceSettings: WorkspaceSettings,
     private val operationsManager: OperationsManager,
     private val upgradeRepo: UpgradeRepo,
+    private val usageRepo: WorkspaceUsageRepo,
 ) : WorkspaceProvider, WorkspaceRemote {
 
     private val lock = Mutex()
@@ -90,8 +95,8 @@ class WorkspaceRepo @Inject constructor(
      * child coroutine, so an extra stage adds a dispatch boundary and delays every [state] emission
      * by one more hop. On-demand session restore is sensitive to that: WorkspacePageManager awaits
      * `state.first { … }` per Created event and assigns focus from what it sees, so the added
-     * latency let focus land on a dormant stand-in after restore had finished, which then hydrated
-     * a tab that was supposed to stay dormant.
+     * latency let focus land on a paused stand-in after restore had finished, which then resumed
+     * a tab that was supposed to stay paused.
      */
     override val state: Flow<WorkspaceRemote.State> = combine(
         infos,
@@ -192,7 +197,7 @@ class WorkspaceRepo @Inject constructor(
     }
 
     /**
-     * Identity a dormant stand-in shows, from the type's own [WorkspaceFactory.deriveDisplay].
+     * Identity a paused stand-in shows, from the type's own [WorkspaceFactory.deriveDisplay].
      * A broken derivation must never fail session restore, so any failure degrades to the type
      * label. Note the returned [CaString]s can still be lazy: a resolution failure surfaces later,
      * during composition, not here.
@@ -207,20 +212,23 @@ class WorkspaceRepo @Inject constructor(
     }
 
     /**
-     * Dormant stand-ins are reported as absent: typed consumers cast the result to their concrete
-     * workspace type, so a dormant id must behave exactly like an id that doesn't exist yet — the
-     * flow emits the instance once [WorkspaceAction.Hydrate] has swapped it in.
+     * Paused stand-ins are reported as absent: typed consumers cast the result to their concrete
+     * workspace type, so a paused id must behave exactly like an id that doesn't exist yet — the
+     * flow emits the instance once [WorkspaceAction.Resume] has swapped it in.
      */
     override fun retrieve(id: Workspace.Id): Flow<Workspace<out Workspace.Arguments>?> {
         return _workspaces.flatMapLatest { wss ->
-            flowOf(wss.singleOrNull { it.id == id }?.takeIf { it !is DormantWorkspace })
+            flowOf(wss.singleOrNull { it.id == id }?.takeIf { it !is PausedWorkspace })
         }
     }
 
     /**
-     * Current instance for [id] INCLUDING dormant stand-ins. Only for session saving, which must
-     * serialize the held arguments of workspaces that were never hydrated; everything else uses
-     * [retrieve], which hides dormant entries.
+     * Current instance for [id] INCLUDING paused stand-ins, read straight off the backing state.
+     * For session saving, which must serialize the held arguments of workspaces that were never
+     * resumed, and for authoritative checks that must not observe a stale snapshot (e.g. preview
+     * capture re-validating that a workspace is still live before composing it) - [state] is an
+     * asynchronous share whose replay cache can still hold the value from before the last swap.
+     * Everything else uses [retrieve], which hides paused entries.
      */
     fun peek(id: Workspace.Id): Workspace<out Workspace.Arguments>? = _workspaces.value.singleOrNull { it.id == id }
 
@@ -279,6 +287,7 @@ class WorkspaceRepo @Inject constructor(
                     idToReplace = action.replace,
                     existingId = action.id,
                 )
+                trackUsage(action, Clock.System.now())
                 log(TAG) { "New workspace created with ID $newId, emitting event" }
                 _events.emit(
                     WorkspaceEvent.Created(
@@ -291,74 +300,76 @@ class WorkspaceRepo @Inject constructor(
                 WorkspaceAction.Create.Result.Success(newId)
             }
 
-            is WorkspaceAction.RegisterDormant -> {
-                log(TAG, INFO) { "Registering dormant workspace ${action.id} (${action.type})" }
+            is WorkspaceAction.RegisterPaused -> {
+                log(TAG, INFO) { "Registering paused workspace ${action.id} (${action.type})" }
                 try {
                     if (_workspaces.value.any { it.id == action.id }) {
-                        throw IllegalStateException("Cannot register dormant workspace ${action.id}: id already in use")
+                        throw IllegalStateException("Cannot register paused workspace ${action.id}: id already in use")
                     }
                     // A stand-in displaying one type while holding another's arguments would also
-                    // fail hydration permanently: the factory picked by type gets the wrong arguments
+                    // fail resuming permanently: the factory picked by type gets the wrong arguments
                     if (action.type != action.arguments.type) {
                         throw IllegalArgumentException(
-                            "Cannot register dormant workspace ${action.id}: type ${action.type} " +
+                            "Cannot register paused workspace ${action.id}: type ${action.type} " +
                                 "does not match arguments type ${action.arguments.type}"
                         )
                     }
                     val display = deriveDisplay(action.type, action.arguments)
-                    val dormant = DormantWorkspace(
+                    val paused = PausedWorkspace(
                         id = action.id,
                         type = action.type,
                         heldArguments = action.arguments,
                         title = display?.title ?: action.type.label,
                         subtitle = display?.subtitle,
                     )
-                    _workspaces.value = _workspaces.value + dormant
+                    _workspaces.value = _workspaces.value + paused
                     _events.emit(
                         WorkspaceEvent.Created(
-                            workspaceId = dormant.id,
+                            workspaceId = paused.id,
                             replacedId = null,
                             autoFocus = false,
                         )
                     )
-                    WorkspaceAction.RegisterDormant.Result.Success(dormant.id)
+                    WorkspaceAction.RegisterPaused.Result.Success(paused.id)
                 } catch (e: Exception) {
-                    log(TAG, ERROR) { "Failed to register dormant workspace ${action.id}: ${e.asLog()}" }
-                    WorkspaceAction.RegisterDormant.Result.Failed(e)
+                    log(TAG, ERROR) { "Failed to register paused workspace ${action.id}: ${e.asLog()}" }
+                    WorkspaceAction.RegisterPaused.Result.Failed(e)
                 }
             }
 
-            is WorkspaceAction.Hydrate -> {
-                // Not dormant (already hydrated by a concurrent call, or never dormant) is a no-op,
-                // which is what keeps double hydration from running the factory twice.
-                val dormant = _workspaces.value.firstOrNull { it.id == action.id } as? DormantWorkspace
-                if (dormant == null) {
-                    log(TAG) { "Hydrate(${action.id}): unknown or not dormant, nothing to do" }
-                    WorkspaceAction.Hydrate.Result.NoOp
+            is WorkspaceAction.Resume -> {
+                // Not paused (already resumed by a concurrent call, or never paused) is a no-op,
+                // which is what keeps double resume from running the factory twice.
+                val paused = _workspaces.value.firstOrNull { it.id == action.id } as? PausedWorkspace
+                if (paused == null) {
+                    log(TAG) { "Resume(${action.id}): unknown or not paused, nothing to do" }
+                    WorkspaceAction.Resume.Result.NoOp
                 } else {
                     try {
                         @Suppress("UNCHECKED_CAST")
-                        val factory = factoryMap[dormant.type] as? WorkspaceFactory<Workspace.Arguments>
-                            ?: throw IllegalArgumentException("No factory found for workspace type: ${dormant.type}")
-                        val hydrated = factory.create(
-                            id = dormant.id,
-                            arguments = dormant.heldArguments,
+                        val factory = factoryMap[paused.type] as? WorkspaceFactory<Workspace.Arguments>
+                            ?: throw IllegalArgumentException("No factory found for workspace type: ${paused.type}")
+                        val resumed = factory.create(
+                            id = paused.id,
+                            arguments = paused.heldArguments,
                         ) as Workspace<out Workspace.Arguments>
 
                         val wip = _workspaces.value.toMutableList()
                         val index = wip.indexOfFirst { it.id == action.id }
-                        wip[index] = hydrated
+                        wip[index] = resumed
                         _workspaces.value = wip
 
-                        log(TAG, INFO) { "Hydrated workspace ${action.id} (${dormant.type})" }
-                        WorkspaceAction.Hydrate.Result.Success(action.id)
+                        log(TAG, INFO) { "Resumed workspace ${action.id} (${paused.type})" }
+                        WorkspaceAction.Resume.Result.Success(action.id)
                     } catch (e: Exception) {
-                        log(TAG, ERROR) { "Failed to hydrate workspace ${action.id}: ${e.asLog()}" }
-                        dormant.markHydrationError(e)
-                        WorkspaceAction.Hydrate.Result.Failed(e)
+                        log(TAG, ERROR) { "Failed to resume workspace ${action.id}: ${e.asLog()}" }
+                        paused.markResumeError(e)
+                        WorkspaceAction.Resume.Result.Failed(e)
                     }
                 }
             }
+
+            is WorkspaceAction.Pause -> executePause(action.id)
 
             is WorkspaceAction.CreateBatch -> {
                 log(TAG, INFO) { "Creating batch of ${action.requests.size} workspaces" }
@@ -552,6 +563,102 @@ class WorkspaceRepo @Inject constructor(
     }
 
     /**
+     * Releases the live instance behind [id] and swaps a [PausedWorkspace] stand-in into its list
+     * slot. Must be called while holding [lock].
+     *
+     * Order matters: every guard is enforced here (so a manual pause can't bypass what auto-pause
+     * checks), the arguments are captured BEFORE any mutation, and the guards are re-checked
+     * afterwards because [Workspace.createArguments] suspends and a workspace can become busy
+     * meanwhile.
+     *
+     * Known limitation: [execute] holds one global mutex across [Workspace.createArguments] and
+     * [Workspace.release], so a slow engine release stalls unrelated create/close/resume actions.
+     * Auto-pause issues Pause actions strictly sequentially, one per evaluation pass, to bound this.
+     */
+    private suspend fun executePause(id: Workspace.Id): WorkspaceAction.Pause.Result {
+        val workspace = _workspaces.value.firstOrNull { it.id == id }
+        if (workspace == null || workspace is PausedWorkspace) {
+            log(TAG) { "Pause($id): unknown or already paused, nothing to do" }
+            return WorkspaceAction.Pause.Result.NoOp
+        }
+
+        pauseRefusal(workspace)?.let { reason ->
+            log(TAG, INFO) { "Pause($id) refused: $reason" }
+            return WorkspaceAction.Pause.Result.Refused(reason)
+        }
+
+        val heldArguments = try {
+            workspace.createArguments()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            log(TAG, ERROR) { "Pause($id): capturing arguments failed, keeping it live: ${e.asLog()}" }
+            return WorkspaceAction.Pause.Result.Failed(e)
+        }
+        val carriedInfo = workspace.info.value
+
+        pauseRefusal(workspace)?.let { reason ->
+            log(TAG, INFO) { "Pause($id) refused after capturing arguments: $reason" }
+            return WorkspaceAction.Pause.Result.Refused(reason)
+        }
+
+        val index = _workspaces.value.indexOfFirst { it.id == id }
+        if (index == -1) {
+            log(TAG, WARN) { "Pause($id): workspace vanished while capturing arguments" }
+            return WorkspaceAction.Pause.Result.NoOp
+        }
+
+        // Point of no return: the tab is reported as paused from here on, so a failing release()
+        // is logged but does not turn the result into a failure. Content claims are not cleared -
+        // pauseRefusal() guarantees this workspace holds none.
+        try {
+            // carriedInfo names the tab here; the derivation is only the fallback for the day a
+            // workspace publishes no identity of its own.
+            val display = deriveDisplay(workspace.type, heldArguments)
+            val wip = _workspaces.value.toMutableList()
+            wip[index] = PausedWorkspace(
+                id = id,
+                type = workspace.type,
+                heldArguments = heldArguments,
+                title = display?.title ?: workspace.type.label,
+                subtitle = display?.subtitle,
+                carriedInfo = carriedInfo,
+            )
+            _workspaces.value = wip
+        } finally {
+            try {
+                workspace.release()
+            } catch (e: Exception) {
+                log(TAG, ERROR) { "Pause($id): release() failed: ${e.asLog()}" }
+            }
+        }
+
+        log(TAG, INFO) { "Paused workspace $id (${workspace.type})" }
+        return WorkspaceAction.Pause.Result.Success(id)
+    }
+
+    /**
+     * The reason [id] must not be paused right now, or null when pausing is safe. Must be called
+     * while holding [lock].
+     */
+    private fun pauseRefusal(workspace: Workspace<*>): WorkspaceAction.Pause.Reason? {
+        val info = workspace.info.value
+        return when {
+            info.isSubWorkspace -> WorkspaceAction.Pause.Reason.SUB_WORKSPACE
+            _workspaces.value.any { it.info.value.callerWorkspaceId == workspace.id } ->
+                WorkspaceAction.Pause.Reason.HAS_CHILDREN
+            // An open-transition is in flight; dropping the claim could let a duplicate tab open
+            // on that path, so the claim is never cleared - the pause waits instead.
+            contentClaims.values.any { it == workspace.id } -> WorkspaceAction.Pause.Reason.CLAIM_HELD
+            info.operationCount > 0 || info.attentionCount > 0 -> WorkspaceAction.Pause.Reason.BUSY
+            info.hasUnsavedChanges -> WorkspaceAction.Pause.Reason.UNSAVED_CHANGES
+            !info.isPausable -> WorkspaceAction.Pause.Reason.NOT_PAUSABLE
+            info.lifecycleState !is Workspace.LifecycleState.Ready -> WorkspaceAction.Pause.Reason.NOT_READY
+            else -> null
+        }
+    }
+
+    /**
      * True when this create counts against [FREE_TIER_WORKSPACE_LIMIT]: not a session restore
      * ([WorkspaceAction.Create.skipLimitCheck]), not a quota-exempt type ([Workspace.Type.isQuotaExempt]),
      * not a sub-workspace (modal/picker), not a replace.
@@ -567,6 +674,29 @@ class WorkspaceRepo @Inject constructor(
      */
     private val WorkspaceAction.Create.createsSingletonTab: Boolean
         get() = type.isSingleton && !arguments.isForSubWorkspace && !skipLimitCheck && replace == null
+
+    /**
+     * True when this create reflects a deliberate user choice of workspace type and should feed the
+     * "recently used" ranking: not a session restore ([WorkspaceAction.Create.skipLimitCheck]), not a
+     * system/utility type ([Workspace.Type.isQuotaExempt]), not a sub-workspace (picker, app details,
+     * saver) and not the templates picker itself (which is the entry point offering the ranking).
+     * A replace (tab morph) does count — the user picked that type.
+     */
+    private val WorkspaceAction.Create.isTrackableUsage: Boolean
+        get() = !skipLimitCheck &&
+            !type.isQuotaExempt &&
+            !arguments.isForSubWorkspace &&
+            type != Workspace.Type.TEMPLATES
+
+    /**
+     * Fire-and-forget on [appScope] so a DataStore write never stalls the repo's [lock]. [usedAt] is
+     * captured by the caller right after creation: computing it inside the coroutine would let
+     * scheduling reorder timestamps relative to actual creation order.
+     */
+    private fun trackUsage(request: WorkspaceAction.Create, usedAt: Instant) {
+        if (!request.isTrackableUsage) return
+        appScope.launch { usageRepo.track(request.type, usedAt) }
+    }
 
     /**
      * Number of open tab workspaces that count toward [FREE_TIER_WORKSPACE_LIMIT]: excludes modal
@@ -779,6 +909,8 @@ class WorkspaceRepo @Inject constructor(
                     idToReplace = createRequest.replace,
                     existingId = createRequest.id,
                 )
+                // Captured before the emit below can suspend, matching the single-create path
+                val usedAt = Clock.System.now()
                 _events.emit(
                     WorkspaceEvent.Created(
                         workspaceId = newId,
@@ -786,6 +918,7 @@ class WorkspaceRepo @Inject constructor(
                     )
                 )
                 results[createRequest] = WorkspaceAction.CreateBatch.CreationResult.Success(newId)
+                trackUsage(createRequest, usedAt)
                 log(TAG) { "Batch creation succeeded for ${createRequest.type}: $newId" }
             } catch (e: Exception) {
                 log(TAG, ERROR) { "Batch creation failed for ${createRequest.type}: ${e.asLog()}" }

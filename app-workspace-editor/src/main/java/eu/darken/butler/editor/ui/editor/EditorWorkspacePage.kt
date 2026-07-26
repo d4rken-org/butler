@@ -1,6 +1,5 @@
 package eu.darken.butler.editor.ui.editor
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
@@ -31,13 +30,6 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.editor.core.engine.ContentSource
-import eu.darken.butler.editor.ui.editor.dialogs.CloseConfirmDialog
-import eu.darken.butler.editor.ui.editor.dialogs.EncodingDialog
-import eu.darken.butler.editor.ui.editor.dialogs.LineEndingDialog
-import eu.darken.butler.editor.ui.editor.dialogs.ReloadConfirmDialog
-import eu.darken.butler.editor.ui.editor.dialogs.SaveAsOverwriteDialog
-import eu.darken.butler.editor.ui.editor.dialogs.GoToLineDialog
-import eu.darken.butler.editor.ui.editor.dialogs.LargeDeleteConfirmDialog
 import eu.darken.butler.editor.ui.editor.elements.EditorActionBar
 import eu.darken.butler.editor.ui.editor.elements.EditorActionBarItem
 import eu.darken.butler.editor.ui.editor.elements.EditorBannerGroup
@@ -47,18 +39,16 @@ import eu.darken.butler.editor.ui.editor.elements.EditorSearchBar
 import eu.darken.butler.editor.ui.editor.elements.EditorToolbarCard
 import eu.darken.butler.editor.ui.editor.text.LazyTextEditor
 import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
 import eu.darken.butler.workspace.ui.clipboard.bar.ClipboardBar
-import eu.darken.butler.workspace.ui.clipboard.details.ClipboardInfoBottomSheet
 import eu.darken.butler.workspace.ui.floatingbar.BarAnimation
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
 import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
-import eu.darken.butler.workspace.ui.insets.paneInsets
 import eu.darken.butler.workspace.ui.insets.rememberPaneFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
@@ -95,14 +85,11 @@ fun EditorWorkspacePageHost(
         }
     }
 
-    val clipboardInfoClip by vm.clipboardInfoClip.collectAsState(null)
-
     EditorWorkspacePage(
         workspaceId = id,
         design = design,
         mainStateSource = vm.state,
         clipboardStateSource = vm.clipboard,
-        clipboardInfoClip = clipboardInfoClip,
         onPageAction = vm::onPageAction,
         onActionExecute = vm::executeAction,
         onActionLongClick = vm::executeActionLongClick,
@@ -115,7 +102,6 @@ fun EditorWorkspacePage(
     design: WorkspaceDesign,
     mainStateSource: Flow<EditorWorkspaceViewModel.State>,
     clipboardStateSource: Flow<ClipboardDisplayState> = flowOf(ClipboardDisplayState()),
-    clipboardInfoClip: ClipboardClip? = null,
     onPageAction: (EditorPageAction) -> Unit,
     onActionExecute: (EditorActionBarItem) -> Unit = {},
     onActionLongClick: (EditorActionBarItem) -> Unit = {},
@@ -128,7 +114,7 @@ fun EditorWorkspacePage(
     val state = stateOrNull ?: return
 
     // Handle back button for selection mode - clear selection first
-    BackHandler(enabled = state.selectionRange != null) {
+    WorkspaceBackHandler(enabled = state.selectionRange != null) {
         onPageAction(EditorPageAction.Navigation.ClearSelection(state.cursorPosition))
     }
 
@@ -153,7 +139,6 @@ fun EditorWorkspacePage(
         includeImeInset = true,
         estimatedContentPadding = 80.dp,
     )
-    val paneInsets = design.paneInsets()
 
     // Opening a new file is fresh content; reset scroll-collapse so bars don't stay hidden.
     // Keyed on the source's IDENTITY: the contentSource value also refreshes after every save
@@ -391,84 +376,7 @@ fun EditorWorkspacePage(
         }
     }
 
-    // Dialogs
-    if (state.showGoToLineDialog) {
-        GoToLineDialog(
-            totalLines = state.totalLines,
-            onGoToLine = { line ->
-                onPageAction(EditorPageAction.Navigation.GoToLine(line))
-                onPageAction(EditorPageAction.Dialog.DismissGoToLine)
-            },
-            onDismiss = { onPageAction(EditorPageAction.Dialog.DismissGoToLine) },
-        )
-    }
-
-    if (state.showCloseConfirmDialog) {
-        CloseConfirmDialog(
-            onConfirm = { onPageAction(EditorPageAction.Dialog.ConfirmClose) },
-            onDismiss = { onPageAction(EditorPageAction.Dialog.DismissCloseConfirm) },
-        )
-    }
-
-    if (state.showReloadConfirmDialog) {
-        ReloadConfirmDialog(
-            onConfirm = { onPageAction(EditorPageAction.Dialog.ConfirmReload) },
-            onDismiss = { onPageAction(EditorPageAction.Dialog.DismissReloadConfirm) },
-        )
-    }
-
-    if (state.showLargeDeleteConfirmDialog) {
-        LargeDeleteConfirmDialog(
-            onConfirm = { onPageAction(EditorPageAction.Dialog.ConfirmLargeDelete) },
-            onDismiss = { onPageAction(EditorPageAction.Dialog.DismissLargeDeleteConfirm) },
-        )
-    }
-
-    if (state.showEncodingDialog) {
-        EncodingDialog(
-            currentEncoding = state.fileEncoding,
-            onSelect = { charsetName -> onPageAction(EditorPageAction.File.ReopenWithEncoding(charsetName)) },
-            onDismiss = { onPageAction(EditorPageAction.Dialog.DismissEncoding) },
-        )
-    }
-
-    if (state.showLineEndingDialog) {
-        state.lineEnding?.let { current ->
-            LineEndingDialog(
-                currentLineEnding = current,
-                onSelect = { target -> onPageAction(EditorPageAction.File.ConvertLineEndings(target)) },
-                onDismiss = { onPageAction(EditorPageAction.Dialog.DismissLineEnding) },
-            )
-        }
-    }
-
-    if (state.pendingEncoding != null) {
-        // Reopening with a different encoding rescans from disk and discards unsaved changes
-        CloseConfirmDialog(
-            onConfirm = { onPageAction(EditorPageAction.Dialog.ConfirmEncodingDiscard) },
-            onDismiss = { onPageAction(EditorPageAction.Dialog.DismissEncodingDiscard) },
-        )
-    }
-
-    state.pendingSaveAsOverwrite?.let { destination ->
-        SaveAsOverwriteDialog(
-            fileName = destination.name,
-            onConfirm = { onPageAction(EditorPageAction.Dialog.ConfirmSaveAsOverwrite) },
-            onDismiss = { onPageAction(EditorPageAction.Dialog.DismissSaveAsOverwrite) },
-        )
-    }
-
-    clipboardInfoClip?.let { clip ->
-        ClipboardInfoBottomSheet(
-            clip = clip,
-            onDismiss = { onPageAction(EditorPageAction.Clipboard.DismissInfo) },
-            onNavigateToSource = null,
-            onPaste = { onPageAction(EditorPageAction.Clipboard.Paste(clip)) },
-            onRemove = { onPageAction(EditorPageAction.Clipboard.Remove(clip)) },
-            topInset = paneInsets.top,
-            bottomInset = paneInsets.bottom,
-        )
-    }
+    // Dialogs and sheets live in the page host's overlay slot, see EditorWorkspaceOverlays
 }
 
 @Preview2

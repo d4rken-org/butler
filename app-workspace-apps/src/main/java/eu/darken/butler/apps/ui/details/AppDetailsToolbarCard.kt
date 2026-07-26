@@ -13,6 +13,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.ArrowBack
 import androidx.compose.material.icons.twotone.Android
+import androidx.compose.material.icons.twotone.Close
+import androidx.compose.material.icons.twotone.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -26,11 +28,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.apps.R
 import eu.darken.butler.apps.core.details.AppInfo
+import eu.darken.butler.apps.ui.apps.elements.AppsSearchBar
 import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
@@ -47,10 +51,15 @@ fun AppDetailsToolbarCard(
     app: AppInfo?,
     design: WorkspaceDesign,
     collapsedFraction: Float = 0f,
-    title: String? = null,
+    subtitle: String? = null,
     onBackClick: (() -> Unit)? = null,
     backContentDescription: String? = null,
     currentWorkspaceId: Workspace.Id? = null,
+    searchActive: Boolean = false,
+    searchQuery: TextFieldValue = TextFieldValue(),
+    searchHint: String? = null,
+    onSearchQueryChange: (TextFieldValue) -> Unit = {},
+    onSearchToggle: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val isCollapsed = collapsedFraction > 0.5f
@@ -115,18 +124,56 @@ fun AppDetailsToolbarCard(
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            // App name
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = title ?: app?.label?.get(context) ?: "",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = if (isCollapsed) 1 else 2,
-                    overflow = TextOverflow.Ellipsis,
+            // App name plus optional sub-screen subtitle, replaced by the search input while active.
+            // Collapsing only affects padding, icon size and title lines — it must never drop the
+            // search field, because CollapseOnScroll never hides the bar itself.
+            if (searchActive) {
+                AppsSearchBar(
+                    modifier = Modifier.weight(1f),
+                    query = searchQuery,
+                    onQueryChange = onSearchQueryChange,
+                    hint = searchHint ?: stringResource(R.string.apps_components_search_hint),
+                    autoFocus = true,
                 )
+            } else {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = app?.label?.get(context) ?: "",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = if (isCollapsed) 1 else 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    subtitle?.let {
+                        Text(
+                            text = it,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
+            }
+
+            if (onSearchToggle != null) {
+                IconButton(
+                    onClick = onSearchToggle,
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Icon(
+                        imageVector = if (searchActive) Icons.TwoTone.Close else Icons.TwoTone.Search,
+                        contentDescription = if (searchActive) {
+                            stringResource(eu.darken.butler.common.R.string.general_close_action)
+                        } else {
+                            stringResource(R.string.apps_components_search_action)
+                        },
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
 
             // Workspace button (no back button shown, single pane)
@@ -161,6 +208,38 @@ private fun AppDetailsToolbarCardCollapsedPreview() {
         app = AppsMockDataProvider.Presets.largeApp,
         design = WorkspaceDesign(),
         collapsedFraction = 1f,
+        modifier = Modifier.padding(16.dp)
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun AppDetailsToolbarCardSubtitlePreview() {
+    AppDetailsToolbarCard(
+        app = AppsMockDataProvider.Presets.chrome,
+        design = WorkspaceDesign(),
+        collapsedFraction = 0f,
+        subtitle = stringResource(R.string.apps_details_section_components),
+        onBackClick = {},
+        onSearchToggle = {},
+        modifier = Modifier.padding(16.dp)
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun AppDetailsToolbarCardSearchActivePreview() {
+    AppDetailsToolbarCard(
+        app = AppsMockDataProvider.Presets.chrome,
+        design = WorkspaceDesign(),
+        collapsedFraction = 0f,
+        subtitle = stringResource(R.string.apps_details_section_components),
+        onBackClick = {},
+        searchActive = true,
+        searchQuery = TextFieldValue("Main"),
+        onSearchToggle = {},
         modifier = Modifier.padding(16.dp)
     )
 }

@@ -5,20 +5,25 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import eu.darken.butler.common.serialization.InstantSerializer
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.contextual
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import testhelpers.BaseTest
 import testhelpers.json.toComparableJson
 import java.io.File
+import kotlin.time.Instant
 
 class DataStoreValueSerializationTest : BaseTest() {
 
@@ -334,6 +339,60 @@ class DataStoreValueSerializationTest : BaseTest() {
             key = "testKey",
             defaultValue = defaultValue,
             json = json,
+            onErrorFallbackToDefault = true,
+        )
+
+        dataStoreValue.flow.first() shouldBe defaultValue
+    }
+
+    @Serializable
+    data class TestInstant(
+        @Contextual val timestamp: Instant,
+    )
+
+    private val instantJson = Json {
+        serializersModule = SerializersModule { contextual(InstantSerializer) }
+    }
+
+    @Test
+    fun `valid JSON a contextual serializer cannot decode throws by default`(@TempDir tempDir: File) = runTest {
+        val testStore = createDataStore(this, tempDir)
+        val defaultValue = TestInstant(Instant.fromEpochSeconds(0))
+
+        // Valid JSON — only Instant.parse rejects it, with an IllegalArgumentException
+        testStore.edit { prefs ->
+            prefs[stringPreferencesKey("instantKey")] = """{"timestamp":"not-a-timestamp"}"""
+        }
+
+        val dataStoreValue = testStore.createValue<TestInstant?>(
+            key = "instantKey",
+            defaultValue = defaultValue,
+            json = instantJson,
+            onErrorFallbackToDefault = false,
+        )
+
+        val thrown = shouldThrow<IllegalArgumentException> {
+            dataStoreValue.flow.first()
+        }
+        // Not a SerializationException — this is exactly why the fallback cannot catch narrowly
+        (thrown is SerializationException) shouldBe false
+    }
+
+    @Test
+    fun `valid JSON a contextual serializer cannot decode returns default when falling back`(
+        @TempDir tempDir: File,
+    ) = runTest {
+        val testStore = createDataStore(this, tempDir)
+        val defaultValue = TestInstant(Instant.fromEpochSeconds(0))
+
+        testStore.edit { prefs ->
+            prefs[stringPreferencesKey("instantKey")] = """{"timestamp":"not-a-timestamp"}"""
+        }
+
+        val dataStoreValue = testStore.createValue<TestInstant?>(
+            key = "instantKey",
+            defaultValue = defaultValue,
+            json = instantJson,
             onErrorFallbackToDefault = true,
         )
 

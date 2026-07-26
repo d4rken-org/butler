@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Android
@@ -23,9 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
@@ -53,7 +52,6 @@ fun AppGridItem(
         modifier = modifier
             .fillMaxWidth()
             .aspectRatio(1f)
-            .alpha(if (item.isEnabled) 1f else 0.5f)
             .border(
                 width = if (isSelected) 2.dp else 0.5.dp,
                 color = if (isSelected) {
@@ -85,10 +83,13 @@ fun AppGridItem(
                 contentAlignment = Alignment.Center,
             ) {
                 if (item.icon != null) {
+                    val fallbackPainter = rememberAppIconFallbackPainter()
                     AsyncImage(
-                        model = item.icon.get(context),
+                        model = item.pkg,
                         contentDescription = null,
                         modifier = Modifier.size(56.dp),
+                        placeholder = fallbackPainter,
+                        error = fallbackPainter,
                     )
                 } else {
                     Icon(
@@ -139,7 +140,7 @@ fun AppGridItem(
             ) {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
+                    horizontalAlignment = Alignment.Start,
                     verticalArrangement = Arrangement.spacedBy(1.dp),
                 ) {
                     Text(
@@ -148,18 +149,14 @@ fun AppGridItem(
                         color = MaterialTheme.colorScheme.onScrim,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        textAlign = TextAlign.Center,
                     )
-                    if (item.versionName != null) {
-                        Text(
-                            text = "v${item.versionName}",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onScrim.copy(alpha = 0.7f),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            textAlign = TextAlign.Center,
-                        )
-                    }
+                    Text(
+                        text = item.packageName,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onScrim.copy(alpha = 0.7f),
+                        maxLines = 1,
+                        overflow = TextOverflow.MiddleEllipsis,
+                    )
                 }
             }
         }
@@ -229,4 +226,42 @@ private fun AppGridItemSplitApkPreview() {
         onLongClick = {},
         showSelection = false,
     )
+}
+
+// Smallest real tile (GridSize.SMALL uses a 90dp minimum) with overlong label and package name.
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun AppGridItemSmallTileLongNamesPreview() {
+    Box(modifier = Modifier.width(90.dp)) {
+        AppGridItem(
+            item = AppsMockDataProvider.createMockAppItem(
+                packageName = "com.superlongvendor.some.deeply.nested.application.identifier",
+                label = "Very Long Application Name",
+            ),
+            isSelected = false,
+            onClick = {},
+            onLongClick = {},
+            showSelection = true,
+        )
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun AppGridItemLargeTileLongNamesPreview() {
+    Box(modifier = Modifier.width(160.dp)) {
+        AppGridItem(
+            item = AppsMockDataProvider.createMockAppItem(
+                packageName = "com.superlongvendor.some.deeply.nested.application.identifier",
+                label = "Very Long Application Name",
+                isEnabled = false,
+            ),
+            isSelected = false,
+            onClick = {},
+            onLongClick = {},
+            showSelection = false,
+        )
+    }
 }

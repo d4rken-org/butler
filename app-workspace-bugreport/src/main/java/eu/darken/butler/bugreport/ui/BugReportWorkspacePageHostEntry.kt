@@ -18,6 +18,11 @@ object BugReportWorkspacePageHostEntry : WorkspacePageHostEntry {
         BugReportWorkspacePageHost(id = id, design = design)
     }
 
+    @Composable
+    override fun Overlays(id: Workspace.Id, design: WorkspaceDesign) {
+        BugReportWorkspaceOverlaysHost(id = id)
+    }
+
     @Module
     @InstallIn(SingletonComponent::class)
     object PageHostModule {
