@@ -122,6 +122,7 @@ fun EditorWorkspacePage(
 
     val topBarStackState = rememberPaneFloatingBarStackState(
         position = BarPosition.TOP,
+        workspaceId = workspaceId,
         defaultSpacing = 8.dp,
         edgePadding = 8.dp,
         contentPadding = 8.dp,
@@ -130,6 +131,7 @@ fun EditorWorkspacePage(
     )
     val bottomBarStackState = rememberPaneFloatingBarStackState(
         position = BarPosition.BOTTOM,
+        workspaceId = workspaceId,
         defaultSpacing = 8.dp,
         edgePadding = 8.dp,
         contentPadding = 16.dp,
@@ -163,7 +165,7 @@ fun EditorWorkspacePage(
             state = topBarStackState,
             bars = {
                 FloatingBar(
-                    key = "toolbar",
+                    key = EditorBarKeys.TOOLBAR,
                     scrollBehavior = BarScrollBehavior.CollapseOnScroll(),
                     estimatedHeight = 80.dp,
                     animation = BarAnimation.Slide(),
@@ -185,7 +187,7 @@ fun EditorWorkspacePage(
                     )
                 }
                 FloatingBar(
-                    key = "infobar",
+                    key = EditorBarKeys.INFOBAR,
                     scrollBehavior = BarScrollBehavior.VanishOnScroll,
                     estimatedHeight = 24.dp,
                     animation = BarAnimation.Slide(),
@@ -211,7 +213,7 @@ fun EditorWorkspacePage(
                 }
                 // Notices persist during scroll (Static) until dismissed; single stable bar, see EditorBannerGroup
                 FloatingBar(
-                    key = "banners",
+                    key = EditorBarKeys.BANNERS,
                     visible = state.isBackingLost || state.error != null || state.showExternalChangeBanner ||
                         state.showBackupNotice || state.isBinary || state.showLongLinesNotice,
                     scrollBehavior = BarScrollBehavior.Static,
@@ -249,7 +251,7 @@ fun EditorWorkspacePage(
             state = bottomBarStackState,
             bars = {
                 FloatingBar(
-                    key = "search",
+                    key = EditorBarKeys.SEARCH,
                     visible = state.isSearchBarVisible,
                     scrollBehavior = BarScrollBehavior.HideOnScroll,
                     animation = BarAnimation.Slide(),
@@ -280,7 +282,7 @@ fun EditorWorkspacePage(
                     )
                 }
                 FloatingBar(
-                    key = "clipboard",
+                    key = EditorBarKeys.CLIPBOARD,
                     visible = hasClipboard,
                     scrollBehavior = BarScrollBehavior.VanishOnScroll,
                     animation = BarAnimation.Bouncy,
@@ -295,7 +297,7 @@ fun EditorWorkspacePage(
                     )
                 }
                 FloatingBar(
-                    key = "actions",
+                    key = EditorBarKeys.ACTIONS,
                     visible = hasActions,
                     scrollBehavior = BarScrollBehavior.HideOnScroll,
                     animation = BarAnimation.Slide(),
