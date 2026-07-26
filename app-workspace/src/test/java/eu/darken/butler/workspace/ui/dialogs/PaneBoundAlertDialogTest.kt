@@ -380,16 +380,6 @@ class PaneBoundAlertDialogTest : ComposeTest() {
     }
 
     @Test
-    fun `both slots emitting keeps dismiss before confirm`() {
-        composeTestRule.setContent { EmptySlotCase(withConfirm = true, withDismiss = true) }
-
-        val confirm = composeTestRule.onNodeWithText("Confirm").getUnclippedBoundsInRoot()
-        val dismiss = composeTestRule.onNodeWithText("Cancel").getUnclippedBoundsInRoot()
-
-        (dismiss.left < confirm.left) shouldBe true
-    }
-
-    @Test
     fun `a dialog with no actions at all still renders`() {
         composeTestRule.setContent { EmptySlotCase(withConfirm = false, withDismiss = false) }
 

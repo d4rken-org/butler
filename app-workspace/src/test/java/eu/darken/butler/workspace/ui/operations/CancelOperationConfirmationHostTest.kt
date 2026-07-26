@@ -53,7 +53,7 @@ class CancelOperationConfirmationHostTest : ComposeTest() {
     @Composable
     private fun Host(
         pendingId: Operation.Id?,
-        operations: List<OperationDisplay>,
+        operations: List<OperationDisplay>?,
         onDismiss: () -> Unit = {},
         onConfirm: (Operation.Id) -> Unit = {},
     ) {
@@ -100,14 +100,14 @@ class CancelOperationConfirmationHostTest : ComposeTest() {
     }
 
     /**
-     * Every host collects its operations with a null initial value and substitutes an empty list,
-     * while the pending id comes straight out of durable ViewModel state. Reading that empty first
-     * frame as "the operation is gone" retired the request before the dialog was ever on screen.
+     * The pending id comes straight out of durable ViewModel state, so it is already set on the
+     * first frame — before the operations flow has emitted anything. Reading that as "the operation
+     * is gone" retired the request before the dialog was ever on screen.
      */
     @Test
     fun `a pending id survives the frame before the operations list has loaded`() {
         val op = operation()
-        var operations by mutableStateOf(emptyList<OperationDisplay>())
+        var operations by mutableStateOf<List<OperationDisplay>?>(null)
         var dismissals = 0
 
         composeTestRule.setContent {
@@ -122,6 +122,52 @@ class CancelOperationConfirmationHostTest : ComposeTest() {
 
         composeTestRule.onNodeWithTag(surface).assertExists()
         composeTestRule.runOnIdle { dismissals shouldBe 0 }
+    }
+
+    /**
+     * The opposite direction, and the one "was it ever seen cancelable" got wrong: a cancel
+     * requested just as the operation completes never observes it running, so that question has no
+     * useful answer. Once the list has arrived it is the only authority — an id that is not
+     * cancelable in it is gone, however briefly it was pending.
+     */
+    @Test
+    fun `a pending id never seen cancelable is retired once the list arrives`() {
+        val op = operation(finished = true)
+        var operations by mutableStateOf<List<OperationDisplay>?>(null)
+        var dismissals = 0
+
+        composeTestRule.setContent {
+            Host(pendingId = op.id, operations = operations, onDismiss = { dismissals++ })
+        }
+
+        // Still loading, so the request is held rather than retired
+        composeTestRule.onNodeWithTag(surface).assertExists()
+        composeTestRule.runOnIdle { dismissals shouldBe 0 }
+
+        composeTestRule.runOnIdle { operations = listOf(op) }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNodeWithTag(surface).assertDoesNotExist()
+        composeTestRule.runOnIdle { (dismissals > 0) shouldBe true }
+    }
+
+    @Test
+    fun `a pending id absent from the loaded list is retired`() {
+        val op = operation()
+        var operations by mutableStateOf<List<OperationDisplay>?>(null)
+        var dismissals = 0
+
+        composeTestRule.setContent {
+            Host(pendingId = op.id, operations = operations, onDismiss = { dismissals++ })
+        }
+
+        composeTestRule.onNodeWithTag(surface).assertExists()
+
+        composeTestRule.runOnIdle { operations = emptyList() }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNodeWithTag(surface).assertDoesNotExist()
+        composeTestRule.runOnIdle { (dismissals > 0) shouldBe true }
     }
 
     @Test

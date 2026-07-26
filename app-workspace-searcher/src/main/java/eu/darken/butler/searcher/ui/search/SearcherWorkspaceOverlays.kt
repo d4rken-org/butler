@@ -217,7 +217,9 @@ fun SearcherWorkspaceOverlays(
 
     CancelOperationConfirmationHost(
         pendingId = overlayState.cancelOperationConfirmationFor,
-        operations = operationsState.operations,
+        // Deliberately the raw value: null here means "not loaded yet", which the confirmation has
+        // to tell apart from an operation that is genuinely gone.
+        operations = operationsStateRaw?.operations,
         onDismiss = { onPageAction(SearcherPageAction.Overlays.DismissCancelOperation) },
         onConfirm = { operationId ->
             onPageAction(SearcherPageAction.Operations.Cancel(operationId))

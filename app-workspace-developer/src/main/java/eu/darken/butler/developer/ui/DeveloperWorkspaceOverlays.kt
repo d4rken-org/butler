@@ -30,7 +30,7 @@ fun DeveloperWorkspaceOverlaysHost(
     val cancelConfirmation by vm.cancelOperationConfirmation.collectAsState()
 
     DeveloperWorkspaceOverlays(
-        operations = operationsState?.operations.orEmpty(),
+        operations = operationsState?.operations,
         cancelConfirmationFor = cancelConfirmation,
         onDismissCancelConfirmation = { vm.dismissCancelOperationConfirmation() },
         onCancelOperation = { vm.cancelOperation(it) },
@@ -43,7 +43,8 @@ fun DeveloperWorkspaceOverlaysHost(
 
 @Composable
 fun DeveloperWorkspaceOverlays(
-    operations: List<OperationDisplay> = emptyList(),
+    // Null while the operations flow has not emitted; see CancelOperationConfirmationHost.
+    operations: List<OperationDisplay>? = emptyList(),
     cancelConfirmationFor: Operation.Id? = null,
     onDismissCancelConfirmation: () -> Unit = {},
     onCancelOperation: (Operation.Id) -> Unit = {},

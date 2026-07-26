@@ -55,7 +55,7 @@ fun ExplorerWorkspaceOverlaysHost(
         design = design,
         dialogState = state?.dialogState ?: ExplorerDialogState.None,
         trashEnabled = state?.trashEnabled == true,
-        operationsState = operationsState ?: OperationsDisplayState(),
+        operationsState = operationsState,
         operationDialogState = operationDialogState,
         cancelConfirmationFor = cancelConfirmation,
         issue = issueState.takeIf { showIssueSheet },
@@ -73,7 +73,9 @@ fun ExplorerWorkspaceOverlays(
     design: WorkspaceDesign = WorkspaceDesign(),
     dialogState: ExplorerDialogState = ExplorerDialogState.None,
     trashEnabled: Boolean = false,
-    operationsState: OperationsDisplayState = OperationsDisplayState(),
+    // Null while the operations flow has not emitted; the cancel confirmation needs to tell that
+    // apart from an empty list.
+    operationsState: OperationsDisplayState? = OperationsDisplayState(),
     operationDialogState: OperationDialogState = OperationDialogState.None,
     cancelConfirmationFor: Operation.Id? = null,
     issue: Issue? = null,
@@ -94,7 +96,7 @@ fun ExplorerWorkspaceOverlays(
 
     OperationDialogHost(
         dialogState = operationDialogState,
-        operations = operationsState.operations,
+        operations = operationsState?.operations.orEmpty(),
         onDismissDialog = { vm?.dismissOperationDialog() },
         onCancelOperation = { operationId -> vm?.requestCancelOperation(operationId) },
         onShareError = { vm?.shareError(it) },
@@ -126,7 +128,7 @@ fun ExplorerWorkspaceOverlays(
 
     CancelOperationConfirmationHost(
         pendingId = cancelConfirmationFor,
-        operations = operationsState.operations,
+        operations = operationsState?.operations,
         onDismiss = { vm?.dismissCancelOperationConfirmation() },
         onConfirm = { operationId ->
             vm?.cancelOperation(operationId)

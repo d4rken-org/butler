@@ -9,10 +9,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -35,33 +31,31 @@ import eu.darken.butler.common.R as CommonR
  * up would otherwise leave a dialog that cancels nothing, so an operation that stops being
  * cancelable takes its own confirmation down.
  *
- * "Not in [operations]" is deliberately *not* read as "gone". Every host collects its operations
- * with a null initial value and substitutes an empty list, so the list is empty for the first frame
- * after this slot is composed while [pendingId] is already restored from durable ViewModel state.
- * Retiring the request on that frame would throw it away before the dialog was ever on screen.
+ * @param operations `null` while the host's operations flow has not emitted yet, which is a
+ *        different thing from an empty list and must stay distinguishable here. The pending id
+ *        comes from durable ViewModel state and is already set on the first frame this slot is
+ *        composed; judging it against a list that has not arrived would retire the request before
+ *        the dialog was ever on screen. Once the list *has* arrived, an id that is absent, finished
+ *        or not cancelable is retired at once — whether it was ever observed running is irrelevant,
+ *        because a cancel requested just as the operation completed never is.
  */
 @Composable
 fun CancelOperationConfirmationHost(
     pendingId: Operation.Id?,
-    operations: List<OperationDisplay>,
+    operations: List<OperationDisplay>?,
     onDismiss: () -> Unit,
     onConfirm: (Operation.Id) -> Unit,
 ) {
     val pending = pendingId ?: return
-    val cancelable = operations.any { it.id == pending && it.canCancel && !it.state.isFinished }
+    val loaded = operations != null
+    val cancelable = operations?.any { it.id == pending && it.canCancel && !it.state.isFinished } == true
+    val gone = loaded && !cancelable
 
-    // Reset per pending id, so the previous request's history cannot retire the next one.
-    var wasCancelable by remember(pending) { mutableStateOf(false) }
-
-    LaunchedEffect(pending, cancelable) {
-        when {
-            cancelable -> wasCancelable = true
-            // Only an operation we actually saw running can have finished or been cleared
-            wasCancelable -> onDismiss()
-        }
+    LaunchedEffect(pending, gone) {
+        if (gone) onDismiss()
     }
 
-    if (wasCancelable && !cancelable) return
+    if (gone) return
 
     CancelOperationConfirmationDialog(
         onDismiss = onDismiss,
