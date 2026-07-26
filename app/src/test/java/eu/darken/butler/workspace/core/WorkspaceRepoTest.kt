@@ -16,6 +16,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.matchers.types.shouldBeSameInstanceAs
+import io.mockk.clearMocks
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -1624,6 +1625,43 @@ class WorkspaceRepoTest : BaseTest() {
 
         // One for the initial tab, one for pathB — the AlreadyOpen entry adds nothing
         coVerify(exactly = 2) { usageRepo.track(Workspace.Type.EDITOR, any()) }
+    }
+
+    @Test
+    fun `a batch of only already-open entries tracks nothing`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo(isPro = true)
+        repo.createContentTab(pathA)
+        repo.createContentTab(pathB)
+        clearMocks(usageRepo, answers = false)
+
+        repo.createBatch(contentReq(pathA), contentReq(pathB))
+
+        coVerify(exactly = 0) { usageRepo.track(any(), any()) }
+    }
+
+    @Test
+    fun `batch creation does not track failed creates`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val sharedId = Workspace.Id()
+
+        repo.createBatch(
+            createReq(Workspace.Type.EXPLORER, id = sharedId),
+            createReq(Workspace.Type.SEARCHER, id = sharedId),
+        )
+
+        // The colliding SEARCHER create fails, so only the successful EXPLORER counts
+        coVerify(exactly = 1) { usageRepo.track(Workspace.Type.EXPLORER, any()) }
+        coVerify(exactly = 0) { usageRepo.track(Workspace.Type.SEARCHER, any()) }
+    }
+
+    @Test
+    fun `deferred duplicates in a batch track exactly one use`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo(isPro = true)
+
+        // Both requests target the same content path, so the second is deferred to AlreadyOpen
+        repo.createBatch(contentReq(pathA), contentReq(pathA))
+
+        coVerify(exactly = 1) { usageRepo.track(Workspace.Type.EDITOR, any()) }
     }
 
     @Test

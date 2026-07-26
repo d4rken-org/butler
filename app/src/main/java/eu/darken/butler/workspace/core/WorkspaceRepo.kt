@@ -909,6 +909,8 @@ class WorkspaceRepo @Inject constructor(
                     idToReplace = createRequest.replace,
                     existingId = createRequest.id,
                 )
+                // Captured before the emit below can suspend, matching the single-create path
+                val usedAt = Clock.System.now()
                 _events.emit(
                     WorkspaceEvent.Created(
                         workspaceId = newId,
@@ -916,7 +918,7 @@ class WorkspaceRepo @Inject constructor(
                     )
                 )
                 results[createRequest] = WorkspaceAction.CreateBatch.CreationResult.Success(newId)
-                trackUsage(createRequest, Clock.System.now())
+                trackUsage(createRequest, usedAt)
                 log(TAG) { "Batch creation succeeded for ${createRequest.type}: $newId" }
             } catch (e: Exception) {
                 log(TAG, ERROR) { "Batch creation failed for ${createRequest.type}: ${e.asLog()}" }
