@@ -16,4 +16,6 @@ data class WorkspaceUIState(
     val paneSelections: Map<Int, @Serializable(with = WorkspaceIdSerializer::class) Workspace.Id> = emptyMap(),
     /** Scroll slots per workspace, e.g. Explorer's per-directory list/grid positions. */
     val scrollPositions: Map<@Serializable(with = WorkspaceIdSerializer::class) Workspace.Id, Map<String, WorkspaceScrollPosition>> = emptyMap(),
+    /** Floating bar collapse fraction per workspace, keyed by bar position (TOP/BOTTOM). */
+    val barCollapse: Map<@Serializable(with = WorkspaceIdSerializer::class) Workspace.Id, Map<String, Float>> = emptyMap(),
 )

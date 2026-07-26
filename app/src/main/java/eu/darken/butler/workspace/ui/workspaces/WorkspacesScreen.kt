@@ -45,6 +45,7 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerScreen
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerViewModel
+import eu.darken.butler.workspace.ui.floatingbar.LocalWorkspaceBarCollapseStates
 import eu.darken.butler.workspace.ui.manager.rememberWindowSizeInfo
 import eu.darken.butler.workspace.ui.scroll.LocalWorkspaceScrollPositions
 import eu.darken.butler.workspace.ui.workspaces.adaptive.DividerPositions
@@ -259,6 +260,7 @@ fun WorkspacesScreenHost(
         LocalWorkspaceButtonProvider provides workspaceButtonVm,
         LocalWorkspacePageHosts provides vm.pageHosts,
         LocalWorkspaceScrollPositions provides vm.scrollPositions,
+        LocalWorkspaceBarCollapseStates provides vm.barCollapseStates,
     ) {
         state?.let { state ->
             WorkspaceScreen(

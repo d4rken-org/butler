@@ -21,7 +21,9 @@ import eu.darken.butler.workspace.core.session.db.WorkspaceSessionDatabase
 import eu.darken.butler.workspace.core.session.db.WorkspaceSessionEntity
 import eu.darken.butler.workspace.core.session.db.WorkspaceUIState
 import eu.darken.butler.workspace.ui.WorkspacePageManager
+import eu.darken.butler.workspace.ui.floatingbar.WorkspaceBarCollapseStates
 import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPosition
+import eu.darken.butler.workspace.ui.floatingbar.WorkspaceBarCollapseStates
 import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPositions
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -61,6 +63,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
     private lateinit var testScope: TestScope
     private lateinit var sessionManager: WorkspaceSessionManager
     private lateinit var scrollPositions: WorkspaceScrollPositions
+    private lateinit var barCollapseStates: WorkspaceBarCollapseStates
     private lateinit var processLifecycle: FakeLifecycleOwner
 
     // Captured arguments from mock
@@ -80,6 +83,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
         factoryMap = emptyMap()
         testScope = TestScope(UnconfinedTestDispatcher())
         scrollPositions = WorkspaceScrollPositions()
+        barCollapseStates = WorkspaceBarCollapseStates()
         processLifecycle = FakeLifecycleOwner()
 
         // Provide a valid state flow for findReplacementWorkspace
@@ -102,6 +106,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
             json = json,
             factoryMap = factoryMap,
             scrollPositions = scrollPositions,
+            barCollapseStates = barCollapseStates,
             processLifecycle = processLifecycle.registry,
         )
     }
@@ -313,6 +318,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
                 json = json,
                 factoryMap = factoryMap,
                 scrollPositions = scrollPositions,
+                barCollapseStates = barCollapseStates,
                 processLifecycle = processLifecycle.registry,
             )
         }
@@ -644,6 +650,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
                 appScope = restoreScope,
                 workspaceRemote = repo,
                 scrollPositions = scrollPositions,
+                barCollapseStates = barCollapseStates,
             )
         }
 
@@ -656,6 +663,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
             json = json,
             factoryMap = factoryMap,
             scrollPositions = scrollPositions,
+            barCollapseStates = barCollapseStates,
             processLifecycle = processLifecycle.registry,
         )
 
@@ -1060,6 +1068,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
             json = json,
             factoryMap = factoryMap,
             scrollPositions = scrollPositions,
+            barCollapseStates = barCollapseStates,
             processLifecycle = processLifecycle.registry,
         )
 
@@ -1128,12 +1137,14 @@ class WorkspaceSessionManagerTest : BaseTest() {
         // and would answer ON_STOP with a save of its own.
         private lateinit var scrollScope: TestScope
         private lateinit var registry: WorkspaceScrollPositions
+        private lateinit var barRegistry: WorkspaceBarCollapseStates
         private lateinit var lifecycleOwner: FakeLifecycleOwner
 
         @BeforeEach
         fun setupScrollPersistence() {
             scrollScope = TestScope(UnconfinedTestDispatcher())
             registry = WorkspaceScrollPositions()
+            barRegistry = WorkspaceBarCollapseStates()
             lifecycleOwner = FakeLifecycleOwner()
             upsertedEntities.clear()
             upsertedSessions.clear()
@@ -1184,6 +1195,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
             json = json,
             factoryMap = factoryMap,
             scrollPositions = registry,
+            barCollapseStates = barRegistry,
             processLifecycle = lifecycleOwner.registry,
         )
 

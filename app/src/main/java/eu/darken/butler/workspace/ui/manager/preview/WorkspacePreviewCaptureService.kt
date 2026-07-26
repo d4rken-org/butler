@@ -19,6 +19,8 @@ import eu.darken.butler.workspace.core.label
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.LocalWorkspacePageHosts
 import eu.darken.butler.workspace.ui.WorkspacePageHostEntry
+import eu.darken.butler.workspace.ui.floatingbar.LocalWorkspaceBarCollapseStates
+import eu.darken.butler.workspace.ui.floatingbar.WorkspaceBarCollapseStates
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.scroll.LocalWorkspaceScrollPositions
 import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPositions
@@ -67,13 +69,16 @@ class WorkspacePreviewCaptureService @Inject constructor(
                 // app's locals, so the page host map must be re-provided here or every preview
                 // falls back to "no page host registered" error content.
                 // Disable focus during preview capture to prevent keyboard from showing.
-                // The scroll registry is deliberately a fresh detached one: this composes real
-                // pages, which would otherwise read and clobber the live scroll positions.
+                // The view-state registries are deliberately fresh detached ones: this composes
+                // real pages, which would otherwise read and clobber the live scroll positions and
+                // bar collapse state.
                 val previewScrollPositions = remember { WorkspaceScrollPositions() }
+                val previewBarCollapse = remember { WorkspaceBarCollapseStates() }
                 CompositionLocalProvider(
                     LocalWorkspaceFocused provides false,
                     LocalWorkspacePageHosts provides pageHosts,
                     LocalWorkspaceScrollPositions provides previewScrollPositions,
+                    LocalWorkspaceBarCollapseStates provides previewBarCollapse,
                 ) {
                     ButlerTheme(state = themeState) {
                         WorkspaceMapper(

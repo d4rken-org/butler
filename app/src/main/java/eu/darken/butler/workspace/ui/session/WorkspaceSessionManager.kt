@@ -22,6 +22,7 @@ import eu.darken.butler.workspace.core.session.db.WorkspaceInstanceEntity
 import eu.darken.butler.workspace.core.session.db.WorkspaceSessionEntity
 import eu.darken.butler.workspace.core.session.db.WorkspaceUIState
 import eu.darken.butler.workspace.ui.WorkspacePageManager
+import eu.darken.butler.workspace.ui.floatingbar.WorkspaceBarCollapseStates
 import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPositions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,6 +38,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
@@ -58,6 +60,7 @@ class WorkspaceSessionManager @Inject constructor(
     private val json: Json,
     private val factoryMap: Map<Workspace.Type, @JvmSuppressWildcards WorkspaceFactory<*>>,
     private val scrollPositions: WorkspaceScrollPositions,
+    private val barCollapseStates: WorkspaceBarCollapseStates,
     @ProcessLifecycle private val processLifecycle: Lifecycle,
 ) {
 
@@ -132,19 +135,21 @@ class WorkspaceSessionManager @Inject constructor(
             saveSession()
         }.launchIn(appScope)
 
-        // Scrolling gets its own lightweight writer instead of a fourth source in the combine above:
-        // a scroll must not re-run createArguments() + serialize() for every workspace only to
-        // discover that no workspace row changed. The initial counter value is dropped, it only
-        // reflects "nothing recorded yet".
-        scrollPositions.changes
-            .drop(1)
-            .debounce(SCROLL_SAVE_DEBOUNCE_MS)
+        // Scroll and bar-collapse changes get their own lightweight writer instead of a fourth
+        // source in the combine above: they must not re-run createArguments() + serialize() for
+        // every workspace only to discover that no workspace row changed. The initial counter values
+        // are dropped, they only reflect "nothing recorded yet".
+        merge(
+            scrollPositions.changes.drop(1),
+            barCollapseStates.changes.drop(1),
+        )
+            .debounce(UI_STATE_SAVE_DEBOUNCE_MS)
             .onEach {
                 if (!isSavingAllowed()) return@onEach
-                log(TAG) { "Scroll positions changed, saving UI state" }
+                log(TAG) { "View state changed, saving UI state" }
                 saveUiState()
             }
-            .catch { log(TAG, ERROR) { "Scroll position save observer failed: ${it.asLog()}" } }
+            .catch { log(TAG, ERROR) { "View state save observer failed: ${it.asLog()}" } }
             .launchIn(appScope)
 
         // The debounce alone loses the last scroll when the app is stopped inside its window. A hard
@@ -213,7 +218,10 @@ class WorkspaceSessionManager @Inject constructor(
         val session = storage.dao.getSession(DEFAULT_SESSION_ID) ?: newDefaultSession()
         val uiState = buildUiState(workspaceRepo.state.first())
         storage.dao.upsertSession(session.copy(updatedAt = Clock.System.now(), uiState = uiState))
-        log(TAG) { "Saved UI state: focused=${uiState.focusedWorkspaceId}, scroll=${uiState.scrollPositions.size}" }
+        log(TAG) {
+            "Saved UI state: focused=${uiState.focusedWorkspaceId}," +
+                " scroll=${uiState.scrollPositions.size}, bars=${uiState.barCollapse.size}"
+        }
     }
 
     private fun newDefaultSession() = WorkspaceSessionEntity(
@@ -253,6 +261,7 @@ class WorkspaceSessionManager @Inject constructor(
             focusedWorkspaceId = focusToPersist,
             paneSelections = pageState.selectedWorkspaces,
             scrollPositions = scrollPositions.snapshot(),
+            barCollapse = barCollapseStates.snapshot(),
         )
     }
 
@@ -395,11 +404,12 @@ class WorkspaceSessionManager @Inject constructor(
 
         val candidates = buildRestoreCandidates(workspaceEntities)
 
-        // Seed scroll positions BEFORE any workspace is registered: registering makes it visible to
+        // Seed view state BEFORE any workspace is registered: registering makes it visible to
         // WorkspacesViewModel and the pager composes its page right away. With an empty registry the
         // page would resolve "nothing saved", record a zero, and restore() - which refuses to
         // clobber live slots - would lose to it permanently.
         scrollPositions.restore(sessionEntity.uiState.scrollPositions)
+        barCollapseStates.restore(sessionEntity.uiState.barCollapse)
 
         // Which candidate becomes a real instance: the saved focus if it survived validation,
         // otherwise the first candidate - the same tab applyUIState() would fall back to.
@@ -449,9 +459,12 @@ class WorkspaceSessionManager @Inject constructor(
 
         // Prune the seed for anything that did not make it back, so the next save doesn't carry
         // slots of workspaces that no longer exist.
-        sessionEntity.uiState.scrollPositions.keys
+        (sessionEntity.uiState.scrollPositions.keys + sessionEntity.uiState.barCollapse.keys)
             .filter { it !in restoredWorkspaceIds }
-            .forEach { scrollPositions.forget(it) }
+            .forEach {
+                scrollPositions.forget(it)
+                barCollapseStates.forget(it)
+            }
 
         // Apply saved UI state directly (IDs are preserved)
         applyUIState(
@@ -677,7 +690,7 @@ class WorkspaceSessionManager @Inject constructor(
     }
 
     companion object {
-        private const val SCROLL_SAVE_DEBOUNCE_MS = 2_000L
+        private const val UI_STATE_SAVE_DEBOUNCE_MS = 2_000L
         private val TAG = logTag("Workspace", "Session", "Manager")
     }
 }
