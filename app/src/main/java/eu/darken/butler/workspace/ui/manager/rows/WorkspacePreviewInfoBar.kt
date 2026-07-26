@@ -16,16 +16,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
-import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.theming.onScrim
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 
 const val TEST_TAG_WORKSPACE_CARD_INFOBAR = "workspace_card_infobar"
 
@@ -62,7 +61,7 @@ fun WorkspacePreviewInfoBar(
             .fillMaxWidth()
             .testTag(TEST_TAG_WORKSPACE_CARD_INFOBAR)
             .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f))
-            .padding(horizontal = 6.dp, vertical = 4.dp),
+            .padding(horizontal = 12.dp, vertical = 4.dp),
         verticalArrangement = Arrangement.spacedBy(0.dp),
     ) {
         Text(
