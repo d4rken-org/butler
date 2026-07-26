@@ -13,6 +13,7 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.favorites.PendingFavoriteRemoval
+import eu.darken.butler.explorer.ui.explorer.ExplorerBarKeys
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionBarItem
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
@@ -55,7 +56,7 @@ internal fun FloatingBarScope.ExplorerTopBars(
         showProgress
 
     FloatingBar(
-        key = "toolbar",
+        key = ExplorerBarKeys.TOOLBAR,
         visible = true,
         scrollBehavior = BarScrollBehavior.CollapseOnScroll(collapsedHeight = 44.dp),
         animation = BarAnimation.Slide(),
@@ -84,7 +85,7 @@ internal fun FloatingBarScope.ExplorerTopBars(
 
     // InfoBar - only shown when NOT on permission screen
     FloatingBar(
-        key = "infobar",
+        key = ExplorerBarKeys.INFOBAR,
         visible = showInfoBar && !state.setupRequirements.needsAction,
         scrollBehavior = BarScrollBehavior.Static,
         animation = BarAnimation.Slide(),
@@ -140,7 +141,7 @@ internal fun FloatingBarScope.ExplorerBottomBars(
     val showFavoritesUndoBar = state.pendingFavoriteRemoval != null && state.pickerConfig == null
 
     FloatingBar(
-        key = "operations",
+        key = ExplorerBarKeys.OPERATIONS,
         visible = hasOperations,
         scrollBehavior = if (hasActiveOperations) BarScrollBehavior.Static else BarScrollBehavior.VanishOnScroll,
         animation = BarAnimation.Slide(),
@@ -161,7 +162,7 @@ internal fun FloatingBarScope.ExplorerBottomBars(
     }
 
     FloatingBar(
-        key = "clipboard",
+        key = ExplorerBarKeys.CLIPBOARD,
         visible = hasClipboard,
         scrollBehavior = BarScrollBehavior.VanishOnScroll,
         animation = BarAnimation.Bouncy,
@@ -178,7 +179,7 @@ internal fun FloatingBarScope.ExplorerBottomBars(
     }
 
     FloatingBar(
-        key = "favorites-undo",
+        key = ExplorerBarKeys.FAVORITES_UNDO,
         visible = showFavoritesUndoBar,
         scrollBehavior = BarScrollBehavior.Static,
         animation = BarAnimation.Slide(),
@@ -192,7 +193,7 @@ internal fun FloatingBarScope.ExplorerBottomBars(
     }
 
     FloatingBar(
-        key = "actions",
+        key = ExplorerBarKeys.ACTIONS,
         visible = hasActions,
         scrollBehavior = BarScrollBehavior.HideOnScroll,
         animation = BarAnimation.Slide(),

@@ -25,6 +25,10 @@ class WorkspaceBarCollapseStates @Inject constructor() : WorkspaceSlotRegistry<M
 
     override val tag: String = TAG
 
+    /**
+     * The slot key is [BarPosition.name] and the map keys are the bars' own keys - both end up
+     * verbatim in the persisted session blob, so renaming either orphans stored user state.
+     */
     fun collapseFor(workspaceId: Workspace.Id, position: BarPosition): SlotLease<Map<String, Float>> =
         leaseFor(workspaceId, position.name)
 

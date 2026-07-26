@@ -342,8 +342,8 @@
     <!-- Workspace Manager Row -->
     <string name="workspace_row_close_content_desc">Close tab</string>
     <string name="workspace_row_more_options_content_desc">More options</string>
-    <string name="workspace_row_pause_content_desc">Pause tab</string>
-    <string name="workspace_row_resume_content_desc">Resume tab</string>
+    <string name="workspace_row_pause_action">Pause</string>
+    <string name="workspace_row_resume_action">Resume</string>
 
     <!-- Settings Index -->
     <string name="workspace_settings_subtitle">Configure tab behavior.</string>

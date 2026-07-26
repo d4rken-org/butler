@@ -114,10 +114,8 @@ fun ExplorerWorkspacePage(
     // Progress indicator delay state - shows after 200ms to avoid flickering
     val showProgress = rememberDelayedState(state.progress, delayMs = 200)
 
-    // One slot per directory and view kind: navigating gives a clean slate, going back restores.
-    // List and grid never share a slot, their indices are not interchangeable.
-    val listState = rememberWorkspaceLazyListState(workspaceId, slot = "list#${state.locationId}")
-    val gridState = rememberWorkspaceLazyGridState(workspaceId, slot = "grid#${state.locationId}")
+    val listState = rememberWorkspaceLazyListState(workspaceId, slot = ExplorerScrollSlots.list(state.locationId))
+    val gridState = rememberWorkspaceLazyGridState(workspaceId, slot = ExplorerScrollSlots.grid(state.locationId))
 
     // Navigation resets floating-bar scroll-collapse so bars don't stay hidden over new content.
     // Guarded: on initial composition there is no new content, and firing there would reset the

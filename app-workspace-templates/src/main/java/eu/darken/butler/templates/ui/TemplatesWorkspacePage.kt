@@ -124,7 +124,7 @@ fun TemplatesWorkspacePage(
     // Dynamically measured settings card height for content padding
     var settingsCardHeight by remember { mutableStateOf(96.dp) } // Initial estimate
 
-    val listState = rememberWorkspaceLazyListState(workspaceId, slot = "templates")
+    val listState = rememberWorkspaceLazyListState(workspaceId, slot = TemplatesScrollSlots.LIST)
 
     Box(modifier = Modifier.fillMaxSize()) {
         // Scrollable content

@@ -6,6 +6,7 @@ import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPosition
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import kotlin.uuid.Uuid
@@ -25,6 +26,93 @@ class WorkspaceUIStateSerializationTest : BaseTest() {
 
     private val idA = Workspace.Id(Uuid.parse("00000000-0000-4000-8000-00000000000a"))
     private val idB = Workspace.Id(Uuid.parse("00000000-0000-4000-8000-00000000000b"))
+
+    /**
+     * The complete current format, written out by hand.
+     *
+     * Do NOT replace this with JSON produced by encoding a model: a fixture generated from the code
+     * under test moves along with every rename and would happily agree with a format break that
+     * orphans every existing user's saved state. Every character here is the wire contract - field
+     * names, nesting depth, the "TOP"/"BOTTOM" literals, "index"/"offset", and Workspace.Id used as
+     * a bare UUID string map key.
+     */
+    private val goldenBlob = """
+        {
+          "focusedWorkspaceId": "${idA.id}",
+          "paneSelections": {
+            "0": "${idA.id}",
+            "1": "${idB.id}"
+          },
+          "scrollPositions": {
+            "${idA.id}": {
+              "list#location://home": {"index": 12, "offset": 34},
+              "grid#location://home": {"index": 3, "offset": 0}
+            },
+            "${idB.id}": {
+              "apps#list": {"index": 7, "offset": 8}
+            }
+          },
+          "barCollapse": {
+            "${idA.id}": {
+              "TOP": {"toolbar": 1.0, "infobar": 0.0},
+              "BOTTOM": {"actions": 0.0, "clipboard": 1.0}
+            },
+            "${idB.id}": {
+              "TOP": {"toolbar": 1.0}
+            }
+          }
+        }
+    """.trimIndent()
+
+    /** The model [goldenBlob] describes, also written out by hand. */
+    private val goldenState = WorkspaceUIState(
+        focusedWorkspaceId = idA,
+        paneSelections = mapOf(0 to idA, 1 to idB),
+        scrollPositions = mapOf(
+            idA to mapOf(
+                "list#location://home" to WorkspaceScrollPosition(12, 34),
+                "grid#location://home" to WorkspaceScrollPosition(3, 0),
+            ),
+            idB to mapOf("apps#list" to WorkspaceScrollPosition(7, 8)),
+        ),
+        barCollapse = mapOf(
+            idA to mapOf(
+                "TOP" to mapOf("toolbar" to 1f, "infobar" to 0f),
+                "BOTTOM" to mapOf("actions" to 0f, "clipboard" to 1f),
+            ),
+            idB to mapOf("TOP" to mapOf("toolbar" to 1f)),
+        ),
+    )
+
+    @Test
+    fun `the current format decodes field by field`() {
+        val decoded = json.decodeFromString(WorkspaceUIState.serializer(), goldenBlob)
+
+        decoded.focusedWorkspaceId shouldBe idA
+        decoded.paneSelections shouldBe mapOf(0 to idA, 1 to idB)
+
+        decoded.scrollPositions.keys shouldBe setOf(idA, idB)
+        decoded.scrollPositions[idA] shouldBe mapOf(
+            "list#location://home" to WorkspaceScrollPosition(12, 34),
+            "grid#location://home" to WorkspaceScrollPosition(3, 0),
+        )
+        decoded.scrollPositions[idB] shouldBe mapOf("apps#list" to WorkspaceScrollPosition(7, 8))
+
+        decoded.barCollapse.keys shouldBe setOf(idA, idB)
+        decoded.barCollapse[idA]?.keys shouldBe setOf("TOP", "BOTTOM")
+        decoded.barCollapse[idA]?.get("TOP") shouldBe mapOf("toolbar" to 1f, "infobar" to 0f)
+        decoded.barCollapse[idA]?.get("BOTTOM") shouldBe mapOf("actions" to 0f, "clipboard" to 1f)
+        decoded.barCollapse[idB] shouldBe mapOf("TOP" to mapOf("toolbar" to 1f))
+
+        decoded shouldBe goldenState
+    }
+
+    @Test
+    fun `the current format is written back the same way`() {
+        val encoded = json.encodeToString(WorkspaceUIState.serializer(), goldenState)
+
+        json.parseToJsonElement(encoded).jsonObject shouldBe json.parseToJsonElement(goldenBlob).jsonObject
+    }
 
     @Test
     fun `legacy rows without scroll positions decode`() {
