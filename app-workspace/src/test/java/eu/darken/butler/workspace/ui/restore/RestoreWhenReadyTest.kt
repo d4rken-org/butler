@@ -10,6 +10,7 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -19,7 +20,7 @@ import kotlin.time.Duration.Companion.seconds
 class RestoreWhenReadyTest : BaseTest() {
 
     private val ready = mutableStateOf(false)
-    private val applied = mutableListOf<Float>()
+    private val applied = mutableListOf<Map<String, Float>>()
 
     private fun setReady() {
         ready.value = true
@@ -27,16 +28,19 @@ class RestoreWhenReadyTest : BaseTest() {
     }
 
     private suspend fun restore(
-        saved: Float?,
+        saved: Map<String, Float>?,
         supersededBy: List<MutableSharedFlow<Unit>> = emptyList(),
+        timeout: Duration = 5.seconds,
     ) = restoreWhenReady(
         saved = saved,
-        isNoOp = { it == 0f },
+        isNoOp = { targets -> targets.isEmpty() || targets.values.all { it == 0f } },
         isReady = { ready.value },
         supersededBy = supersededBy,
-        timeout = 5.seconds,
+        timeout = timeout,
         apply = { applied += it },
     )
+
+    private val collapsed = mapOf("toolbar" to 1f)
 
     @Test
     fun `an absent value needs no restore`() = runTest {
@@ -45,14 +49,14 @@ class RestoreWhenReadyTest : BaseTest() {
     }
 
     @Test
-    fun `a default value needs no restore`() = runTest {
-        restore(0f) shouldBe Outcome.NOT_NEEDED
+    fun `an all-default value needs no restore`() = runTest {
+        restore(mapOf("toolbar" to 0f)) shouldBe Outcome.NOT_NEEDED
         applied shouldBe emptyList()
     }
 
     @Test
     fun `waits for readiness before applying`() = runTest {
-        val outcome = async { restore(1f) }
+        val outcome = async { restore(collapsed) }
         runCurrent()
         applied shouldBe emptyList()
 
@@ -60,23 +64,40 @@ class RestoreWhenReadyTest : BaseTest() {
         advanceUntilIdle()
 
         outcome.await() shouldBe Outcome.APPLIED
-        applied shouldBe listOf(1f)
+        applied shouldBe listOf(collapsed)
     }
 
     /** If the UI never materializes, the saved value must survive rather than be overwritten. */
     @Test
     fun `never becoming ready times out without applying`() = runTest {
-        val outcome = async { restore(1f) }
+        val outcome = async { restore(collapsed) }
         advanceUntilIdle()
 
         outcome.await() shouldBe Outcome.TIMED_OUT
         applied shouldBe emptyList()
     }
 
+    /**
+     * The floating bar restore waits without a bound: a page can build its stack states long before
+     * it renders a bar, and giving up would permanently disarm both restore and recording.
+     */
+    @Test
+    fun `an infinite timeout keeps waiting and still applies`() = runTest {
+        val outcome = async { restore(collapsed, timeout = Duration.INFINITE) }
+        advanceUntilIdle()
+        applied shouldBe emptyList()
+
+        setReady()
+        advanceUntilIdle()
+
+        outcome.await() shouldBe Outcome.APPLIED
+        applied shouldBe listOf(collapsed)
+    }
+
     @Test
     fun `an intent flow supersedes the restore`() = runTest {
         val intent = MutableSharedFlow<Unit>()
-        val outcome = async { restore(1f, supersededBy = listOf(intent)) }
+        val outcome = async { restore(collapsed, supersededBy = listOf(intent)) }
         runCurrent()
 
         intent.emit(Unit)

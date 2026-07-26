@@ -66,8 +66,11 @@ class WorkspaceUIStateSerializationTest : BaseTest() {
                 idB to mapOf("apps#list" to WorkspaceScrollPosition(7, 8)),
             ),
             barCollapse = mapOf(
-                idA to mapOf("TOP" to 1f, "BOTTOM" to 0f),
-                idB to mapOf("TOP" to 0f),
+                idA to mapOf(
+                    "TOP" to mapOf("toolbar" to 1f, "infobar" to 0f),
+                    "BOTTOM" to mapOf("actions" to 0f),
+                ),
+                idB to mapOf("TOP" to mapOf("toolbar" to 0f)),
             ),
         )
 
@@ -82,7 +85,7 @@ class WorkspaceUIStateSerializationTest : BaseTest() {
             focusedWorkspaceId = idB,
             paneSelections = mapOf(0 to idB),
             scrollPositions = mapOf(idB to mapOf("history" to WorkspaceScrollPosition(5))),
-            barCollapse = mapOf(idB to mapOf("TOP" to 1f)),
+            barCollapse = mapOf(idB to mapOf("TOP" to mapOf("toolbar" to 1f))),
         )
 
         val encoded = json.encodeToString(WorkspaceUIState.serializer(), state)
