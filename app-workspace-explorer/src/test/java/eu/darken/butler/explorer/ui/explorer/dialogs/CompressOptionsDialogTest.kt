@@ -1,17 +1,26 @@
 package eu.darken.butler.explorer.ui.explorer.dialogs
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextReplacement
+import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.common.files.archive.CompressionPreset
+import eu.darken.butler.workspace.ui.dialogs.PaneBoundAlertDialogDefaults
+import eu.darken.butler.workspace.ui.modal.PaneLayerHost
 import io.kotest.matchers.shouldBe
 import org.junit.Test
 import testhelpers.ComposeTest
@@ -100,5 +109,31 @@ class CompressOptionsDialogTest : ComposeTest() {
         setDialogContent(defaultFormat = ArchiveFormat.TAR_BZ2)
         composeTestRule.onNodeWithText("Create").performClick()
         confirmed shouldBe listOf("archive", ArchiveFormat.ZIP, CompressionPreset.NORMAL, null)
+    }
+
+    /**
+     * The pane-bound dialog scrolls its own title/text block, so it measures the text slot with an
+     * unbounded height. A nested scroller in there rejects an infinite vertical constraint and the
+     * whole dialog fails to measure — which is why this is the tallest migrated dialog and gets its
+     * own measurement case in a pane far too short for its content.
+     */
+    @Test
+    fun `it measures inside a pane far shorter than its content`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                Box(modifier = Modifier.size(width = 320.dp, height = 260.dp)) {
+                    PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = true) {
+                        CompressOptionsDialog(
+                            suggestedName = "archive",
+                            onDismiss = {},
+                            onConfirm = { _, _, _, _ -> },
+                        )
+                    }
+                }
+            }
+        }
+
+        composeTestRule.onNodeWithTag(PaneBoundAlertDialogDefaults.SURFACE_TEST_TAG).assertExists()
+        composeTestRule.onNodeWithText("Create").assertIsDisplayed()
     }
 }

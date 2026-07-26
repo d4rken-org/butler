@@ -7,6 +7,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.Factory
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.details.CancelOperationConfirmationHost
 
 /**
@@ -24,18 +26,35 @@ fun DeveloperWorkspaceOverlaysHost(
         creationCallback = { factory: Factory -> factory.create(id = id) }
     ),
 ) {
-    ErrorEventHandler(vm)
-
     val operationsState by vm.operations.collectAsState(initial = null)
     val cancelConfirmation by vm.cancelOperationConfirmation.collectAsState()
 
-    CancelOperationConfirmationHost(
-        pendingId = cancelConfirmation,
+    DeveloperWorkspaceOverlays(
         operations = operationsState?.operations.orEmpty(),
-        onDismiss = { vm.dismissCancelOperationConfirmation() },
+        cancelConfirmationFor = cancelConfirmation,
+        onDismissCancelConfirmation = { vm.dismissCancelOperationConfirmation() },
+        onCancelOperation = { vm.cancelOperation(it) },
+    )
+
+    // Last on purpose: layers stack in composition order, so an error raised while one of
+    // this page's own dialogs is up lands on top of it instead of underneath.
+    ErrorEventHandler(vm)
+}
+
+@Composable
+fun DeveloperWorkspaceOverlays(
+    operations: List<OperationDisplay> = emptyList(),
+    cancelConfirmationFor: Operation.Id? = null,
+    onDismissCancelConfirmation: () -> Unit = {},
+    onCancelOperation: (Operation.Id) -> Unit = {},
+) {
+    CancelOperationConfirmationHost(
+        pendingId = cancelConfirmationFor,
+        operations = operations,
+        onDismiss = onDismissCancelConfirmation,
         onConfirm = { operationId ->
-            vm.cancelOperation(operationId)
-            vm.dismissCancelOperationConfirmation()
+            onCancelOperation(operationId)
+            onDismissCancelConfirmation()
         },
     )
 }

@@ -21,5 +21,7 @@ fun AppDetailsWorkspaceOverlaysHost(
         }
     ),
 ) {
+    // Last on purpose: layers stack in composition order, so an error raised while one of
+    // this page's own dialogs is up lands on top of it instead of underneath.
     ErrorEventHandler(vm)
 }

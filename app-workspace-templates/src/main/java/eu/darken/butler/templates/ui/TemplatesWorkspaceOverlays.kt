@@ -28,8 +28,6 @@ fun TemplatesWorkspaceOverlaysHost(
         creationCallback = { factory: TemplatesWorkspaceViewModel.Factory -> factory.create(id = id) }
     ),
 ) {
-    ErrorEventHandler(vm)
-
     val state by vm.state.collectAsState(initial = null)
     val renameVisible by vm.renameDialogVisible.collectAsState()
 
@@ -39,6 +37,10 @@ fun TemplatesWorkspaceOverlaysHost(
         onRename = { vm.renameWorkspace(it) },
         onDismissRename = { vm.dismissRenameDialog() },
     )
+
+    // Last on purpose: layers stack in composition order, so an error raised while one of
+    // this page's own dialogs is up lands on top of it instead of underneath.
+    ErrorEventHandler(vm)
 }
 
 @Composable
