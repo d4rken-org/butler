@@ -12,7 +12,8 @@ import coil3.fetch.FetchResult
 import coil3.fetch.Fetcher
 import coil3.fetch.ImageFetchResult
 import coil3.request.Options
-import coil3.size.pxOrElse
+import eu.darken.butler.common.coil.iconRasterSize
+import eu.darken.butler.common.coil.sanitizeIconSize
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.funnel.IPCFunnel
@@ -55,17 +56,12 @@ class AppIconFetcher @Inject constructor(
     private fun Drawable.toShareableImage(): Image {
         if (this is BitmapDrawable) return asImage()
 
-        val requestedWidth = options.size.width.pxOrElse { -1 }
-        val requestedHeight = options.size.height.pxOrElse { -1 }
-        val useRequested = requestedWidth > 0 && requestedHeight > 0
-
-        val width = (if (useRequested) requestedWidth else intrinsicWidth).sanitizeIconSize()
-        val height = (if (useRequested) requestedHeight else intrinsicHeight).sanitizeIconSize()
+        val rasterSize = options.iconRasterSize()
+        val width = rasterSize?.width ?: intrinsicWidth.sanitizeIconSize()
+        val height = rasterSize?.height ?: intrinsicHeight.sanitizeIconSize()
 
         return toBitmap(width = width, height = height).asImage()
     }
-
-    private fun Int.sanitizeIconSize(): Int = if (this <= 0) MAX_ICON_PX else coerceAtMost(MAX_ICON_PX)
 
     class Factory @Inject constructor(
         private val ipcFunnel: IPCFunnel,
@@ -80,9 +76,6 @@ class AppIconFetcher @Inject constructor(
 
     companion object {
         private val TAG = logTag("Coil", "Fetcher", "Pkg")
-
-        /** Upper bound so a 56dp grid cell never allocates a huge bitmap. */
-        private const val MAX_ICON_PX = 192
     }
 }
 

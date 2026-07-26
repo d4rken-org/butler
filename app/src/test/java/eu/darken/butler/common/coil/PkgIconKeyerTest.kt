@@ -2,12 +2,14 @@ package eu.darken.butler.common.coil
 
 import android.content.pm.PackageInfo
 import coil3.request.Options
+import coil3.size.Size
 import eu.darken.butler.common.ca.CaDrawable
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.pkgs.features.Installed
 import eu.darken.butler.common.user.UserHandle2
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.mockk.every
 import io.mockk.mockk
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -19,8 +21,14 @@ import testhelpers.BaseTest
 @Config(sdk = [33])
 class PkgIconKeyerTest : BaseTest() {
 
-    private val options: Options = mockk()
     private val keyer = PkgIconKeyer()
+
+    /** 40dp list icon at 3x density. */
+    private val options: Options = options(120)
+
+    private fun options(sizePx: Int): Options = mockk<Options>().apply {
+        every { size } returns Size(sizePx, sizePx)
+    }
 
     private open class TestPkg(
         override val packageInfo: PackageInfo,
@@ -91,5 +99,23 @@ class PkgIconKeyerTest : BaseTest() {
         val other = OtherTestPkg(packageInfo(), UserHandle2(0))
 
         keyer.key(normal, options) shouldNotBe keyer.key(other, options)
+    }
+
+    @Test
+    fun `key differs across requested icon sizes`() {
+        val pkg = TestPkg(packageInfo(), UserHandle2(0))
+
+        val listIcon = keyer.key(pkg, options(120))
+        val gridIcon = keyer.key(pkg, options(168))
+
+        listIcon shouldNotBe gridIcon
+    }
+
+    @Test
+    fun `key is stable across requests at the same size`() {
+        val first = TestPkg(packageInfo(), UserHandle2(0))
+        val second = TestPkg(packageInfo(), UserHandle2(0))
+
+        keyer.key(first, options(168)) shouldBe keyer.key(second, options(168))
     }
 }
