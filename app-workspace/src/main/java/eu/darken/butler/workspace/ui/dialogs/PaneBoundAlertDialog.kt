@@ -243,6 +243,10 @@ fun PaneBoundAlertDialog(
  * `FlowRow` cannot express that — it fills rows in declaration order, so the wrapped order is
  * always the reverse of what Material does. With at most two actions the layout is trivial enough
  * to do directly.
+ *
+ * Either slot may emit nothing — a caller can pass an empty `confirmButton` lambda for a dialog
+ * whose only action is dismissal, or a selection dialog that dismisses on pick and has no actions
+ * at all. A slot that emits no measurable is treated exactly like a missing one.
  */
 @Composable
 private fun DialogActionRow(
@@ -261,12 +265,15 @@ private fun DialogActionRow(
         val spacingPx = spacing.roundToPx()
         val childConstraints = constraints.copy(minWidth = 0, minHeight = 0)
         val dismiss = dismissMeasurables.firstOrNull()?.measure(childConstraints)
-        val confirm = confirmMeasurables.first().measure(childConstraints)
+        val confirm = confirmMeasurables.firstOrNull()?.measure(childConstraints)
 
         val width = constraints.maxWidth
-        val sideBySide = dismiss == null || dismiss.width + spacingPx + confirm.width <= width
+        val sideBySide = dismiss == null || confirm == null ||
+            dismiss.width + spacingPx + confirm.width <= width
         val height = when {
-            dismiss == null -> confirm.height
+            dismiss == null && confirm == null -> 0
+            dismiss == null -> confirm!!.height
+            confirm == null -> dismiss.height
             sideBySide -> maxOf(dismiss.height, confirm.height)
             else -> confirm.height + spacingPx + dismiss.height
         }
@@ -275,15 +282,26 @@ private fun DialogActionRow(
         // mirror to the left in a right-to-left locale instead of being pinned to the physical
         // right. Arabic ships as a supported locale, so this is a real configuration.
         layout(width, height) {
-            if (sideBySide) {
-                confirm.placeRelative(x = width - confirm.width, y = (height - confirm.height) / 2)
-                dismiss?.placeRelative(
-                    x = width - confirm.width - spacingPx - dismiss.width,
+            when {
+                // A lone action keeps the same logical-end alignment it would have had beside a
+                // sibling, so a one-action dialog does not suddenly look centered or start-aligned.
+                confirm == null -> dismiss?.placeRelative(
+                    x = width - dismiss.width,
                     y = (height - dismiss.height) / 2,
                 )
-            } else {
-                confirm.placeRelative(x = width - confirm.width, y = 0)
-                dismiss!!.placeRelative(x = width - dismiss.width, y = confirm.height + spacingPx)
+
+                sideBySide -> {
+                    confirm.placeRelative(x = width - confirm.width, y = (height - confirm.height) / 2)
+                    dismiss?.placeRelative(
+                        x = width - confirm.width - spacingPx - dismiss.width,
+                        y = (height - dismiss.height) / 2,
+                    )
+                }
+
+                else -> {
+                    confirm.placeRelative(x = width - confirm.width, y = 0)
+                    dismiss!!.placeRelative(x = width - dismiss.width, y = confirm.height + spacingPx)
+                }
             }
         }
     }
@@ -333,6 +351,21 @@ private fun PaneBoundAlertDialogLongLabelsPreview() {
             text = { Text("A file with the same name already exists at the destination.") },
             confirmButton = { TextButton(onClick = {}) { Text("Overwrite everything") } },
             dismissButton = { TextButton(onClick = {}) { Text("Keep both copies instead") } },
+        )
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun PaneBoundAlertDialogWithoutConfirmActionPreview() {
+    PaneBoundDialogPreviewFrame {
+        PaneBoundAlertDialog(
+            onDismissRequest = {},
+            title = { Text("Text encoding") },
+            text = { Text("Pick an encoding to reopen this file with.") },
+            confirmButton = {},
+            dismissButton = { TextButton(onClick = {}) { Text("Cancel") } },
         )
     }
 }
