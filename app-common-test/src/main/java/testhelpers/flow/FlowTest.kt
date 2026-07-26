@@ -7,8 +7,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
@@ -27,6 +29,20 @@ fun <T> Flow<T>.test(
 fun <T> Flow<T>.createTest(
     tag: String? = null
 ): TestCollector<T> = TestCollector(this, tag ?: "FlowTest")
+
+/**
+ * Blocks until a shared flow that lost its last subscriber has cleared its replay cache.
+ *
+ * The sharing coroutine resets the cache asynchronously, so tests that re-subscribe must wait for
+ * that exact postcondition instead of guessing a delay. The timeout is a watchdog.
+ */
+fun Flow<*>.awaitSharingStopped(timeout: Long = 10_000) = runBlocking {
+    val shared = this@awaitSharingStopped as? SharedFlow<*>
+        ?: throw IllegalArgumentException("Not a shared flow: ${this@awaitSharingStopped}")
+    withTimeout(timeMillis = timeout) {
+        while (shared.replayCache.isNotEmpty()) delay(1)
+    }
+}
 
 class TestCollector<T>(
     private val flow: Flow<T>,

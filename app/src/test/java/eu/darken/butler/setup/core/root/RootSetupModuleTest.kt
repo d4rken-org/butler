@@ -15,7 +15,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
@@ -23,6 +22,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
+import testhelpers.flow.awaitSharingStopped
 import testhelpers.flow.test
 
 class RootSetupModuleTest : BaseTest() {
@@ -78,7 +78,7 @@ class RootSetupModuleTest : BaseTest() {
         val first = mod.state.test(tag = "first", scope = scope)
         first.await { values, _ -> values.any { it is RootSetupModule.Result } }
         runBlocking { first.cancelAndJoin() }
-        runBlocking { delay(50) }
+        mod.state.awaitSharingStopped()
 
         val second = mod.state.test(tag = "second", scope = scope)
         second.await { values, _ -> values.isNotEmpty() }
@@ -94,7 +94,7 @@ class RootSetupModuleTest : BaseTest() {
         val first = mod.state.test(tag = "first", scope = scope)
         first.await { values, _ -> values.any { it is RootSetupModule.Result } }
         runBlocking { first.cancelAndJoin() }
-        runBlocking { delay(50) }
+        mod.state.awaitSharingStopped()
 
         // User turns root off while nothing observes the module.
         useRootFlow.value = false
