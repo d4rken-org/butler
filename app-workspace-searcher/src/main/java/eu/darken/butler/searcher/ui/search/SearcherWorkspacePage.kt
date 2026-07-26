@@ -40,6 +40,7 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
+import eu.darken.butler.common.compose.OnValueChange
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
@@ -139,6 +140,8 @@ fun SearcherWorkspacePage(
     val navBarInset = paneInsets.bottom
     val statusBarInset = paneInsets.top
     val listState = rememberLazyListState()
+    // Hoisted so the search-start reset covers list and grid in one guarded effect
+    val gridState = rememberLazyGridState()
     var showTemplatesSheet by remember { mutableStateOf(false) }
     var showAccessErrorsSheet by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
@@ -185,20 +188,24 @@ fun SearcherWorkspacePage(
         }
     }
 
-    // Auto-scroll to top when sort settings change
+    // Auto-scroll to top when sort settings change. Only a change between two known sort settings
+    // counts - the first Ready state merely reveals them.
     val sortSettings = (mainState as? SearcherWorkspaceViewModel.State.Ready)?.sortSettings
-    LaunchedEffect(sortSettings) {
-        if (sortSettings != null) {
-            listState.animateScrollToItem(0)
-        }
+    OnValueChange(sortSettings) { previous, current ->
+        if (previous == null || current == null) return@OnValueChange
+        listState.animateScrollToItem(0)
     }
 
-    // Auto-scroll to top when a new search starts
+    // Auto-scroll to top when a new search starts. Guarded on the transition, not on the value:
+    // an unguarded effect resets to top on every recomposition that happens while a search runs,
+    // which is exactly what a pane move or a rotation does.
     val searchStatus = (mainState as? SearcherWorkspaceViewModel.State.Ready)?.workspaceState?.searchStatus
-    LaunchedEffect(searchStatus) {
-        if (searchStatus == SearcherWorkspace.State.SearchStatus.SEARCHING) {
-            listState.scrollToItem(0)
+    OnValueChange(searchStatus) { previous, current ->
+        if (previous == null || current != SearcherWorkspace.State.SearchStatus.SEARCHING) {
+            return@OnValueChange
         }
+        listState.scrollToItem(0)
+        gridState.scrollToItem(0)
     }
 
     // A new search means fresh content underneath the bars; reset scroll-collapse so bars don't
@@ -331,8 +338,6 @@ fun SearcherWorkspacePage(
                 }
             }
     ) {
-        val gridState = rememberLazyGridState()
-
         // Folder previews load only once scrolling has settled ~120ms. Asymmetric on purpose —
         // false immediately on scroll start, so no new preview work begins during the gesture.
         val previewsSettled = remember { mutableStateOf(true) }
@@ -344,13 +349,6 @@ fun SearcherWorkspacePage(
                     delay(120)
                     previewsSettled.value = true
                 }
-            }
-        }
-
-        // Auto-scroll grid to top when a new search starts
-        LaunchedEffect(currentState.workspaceState.searchStatus) {
-            if (currentState.workspaceState.searchStatus == SearcherWorkspace.State.SearchStatus.SEARCHING) {
-                gridState.scrollToItem(0)
             }
         }
 

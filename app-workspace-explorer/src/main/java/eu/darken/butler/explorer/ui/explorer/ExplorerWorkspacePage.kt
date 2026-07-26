@@ -28,6 +28,7 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
+import eu.darken.butler.common.compose.OnValueChange
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.rememberDelayedState
@@ -347,7 +348,9 @@ fun ExplorerWorkspacePage(
     }
 }
 
-// Synchronize scroll position when view mode changes
+// Carry the scroll position over when the user switches between list and grid, so the file they
+// were looking at stays in view. List and grid keep their own remembered positions; an explicit
+// switch overrides the incoming one.
 @Composable
 private fun SyncScrollPositionOnViewStyleChange(
     viewStyle: ExplorerViewStyle,
@@ -355,16 +358,16 @@ private fun SyncScrollPositionOnViewStyleChange(
     listState: LazyListState,
     gridState: LazyGridState,
 ) {
-    LaunchedEffect(viewStyle) {
-        if (!items.isNullOrEmpty()) {
-            val currentIndex = when (viewStyle) {
-                is ExplorerViewStyle.Grid -> gridState.firstVisibleItemIndex
-                is ExplorerViewStyle.List -> listState.firstVisibleItemIndex
-            }
-            when (viewStyle) {
-                is ExplorerViewStyle.Grid -> gridState.scrollToItem(currentIndex, 0)
-                is ExplorerViewStyle.List -> listState.scrollToItem(currentIndex, 0)
-            }
+    val hasItems = !items.isNullOrEmpty()
+    OnValueChange(viewStyle) { previous, current ->
+        if (!hasItems) return@OnValueChange
+        val outgoingIndex = when (previous) {
+            is ExplorerViewStyle.Grid -> gridState.firstVisibleItemIndex
+            is ExplorerViewStyle.List -> listState.firstVisibleItemIndex
+        }
+        when (current) {
+            is ExplorerViewStyle.Grid -> gridState.scrollToItem(outgoingIndex)
+            is ExplorerViewStyle.List -> listState.scrollToItem(outgoingIndex)
         }
     }
 }
@@ -377,7 +380,7 @@ private fun ScrollToTopOnSortChange(
     listState: LazyListState,
     gridState: LazyGridState,
 ) {
-    LaunchedEffect(sortSettings) {
+    OnValueChange(sortSettings) { _, _ ->
         when (viewStyle) {
             is ExplorerViewStyle.Grid -> gridState.animateScrollToItem(0)
             is ExplorerViewStyle.List -> listState.animateScrollToItem(0)
