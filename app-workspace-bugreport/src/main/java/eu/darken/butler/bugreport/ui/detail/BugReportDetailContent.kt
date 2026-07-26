@@ -123,6 +123,7 @@ fun BugReportDetailContent(
             modifier = Modifier.align(Alignment.TopCenter),
             bars = {
                 FloatingBar(
+                    key = "toolbar",
                     visible = true,
                     scrollBehavior = BarScrollBehavior.Static,
                     animation = BarAnimation.Slide(),

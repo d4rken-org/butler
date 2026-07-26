@@ -57,6 +57,7 @@ internal fun FloatingBarScope.ExplorerTopBars(
         showProgress
 
     FloatingBar(
+        key = "toolbar",
         visible = true,
         scrollBehavior = BarScrollBehavior.CollapseOnScroll(collapsedHeight = 44.dp),
         animation = BarAnimation.Slide(),
@@ -86,6 +87,7 @@ internal fun FloatingBarScope.ExplorerTopBars(
 
     // InfoBar - only shown when NOT on permission screen
     FloatingBar(
+        key = "infobar",
         visible = showInfoBar && !state.setupRequirements.needsAction,
         scrollBehavior = BarScrollBehavior.Static,
         animation = BarAnimation.Slide(),
@@ -142,6 +144,7 @@ internal fun FloatingBarScope.ExplorerBottomBars(
     val showFavoritesUndoBar = state.pendingFavoriteRemoval != null && state.pickerConfig == null
 
     FloatingBar(
+        key = "operations",
         visible = hasOperations,
         scrollBehavior = if (hasActiveOperations) BarScrollBehavior.Static else BarScrollBehavior.VanishOnScroll,
         animation = BarAnimation.Slide(),
@@ -163,6 +166,7 @@ internal fun FloatingBarScope.ExplorerBottomBars(
     }
 
     FloatingBar(
+        key = "clipboard",
         visible = hasClipboard,
         scrollBehavior = BarScrollBehavior.VanishOnScroll,
         animation = BarAnimation.Bouncy,
@@ -180,6 +184,7 @@ internal fun FloatingBarScope.ExplorerBottomBars(
     }
 
     FloatingBar(
+        key = "favorites-undo",
         visible = showFavoritesUndoBar,
         scrollBehavior = BarScrollBehavior.Static,
         animation = BarAnimation.Slide(),
@@ -194,6 +199,7 @@ internal fun FloatingBarScope.ExplorerBottomBars(
     }
 
     FloatingBar(
+        key = "actions",
         visible = hasActions,
         scrollBehavior = BarScrollBehavior.HideOnScroll,
         animation = BarAnimation.Slide(),

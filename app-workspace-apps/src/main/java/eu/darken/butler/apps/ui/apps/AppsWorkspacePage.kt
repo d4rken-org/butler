@@ -243,6 +243,7 @@ fun AppsWorkspacePage(
             bars = {
                 // Toolbar card - collapses on scroll
                 FloatingBar(
+                    key = "toolbar",
                     visible = true,
                     scrollBehavior = BarScrollBehavior.CollapseOnScroll(),
                     animation = BarAnimation.Slide(),
@@ -264,6 +265,7 @@ fun AppsWorkspacePage(
 
                 // Info bar - vanishes on scroll
                 FloatingBar(
+                    key = "infobar",
                     visible = showInfoBar,
                     scrollBehavior = BarScrollBehavior.VanishOnScroll,
                     animation = BarAnimation.Slide(),
@@ -286,6 +288,7 @@ fun AppsWorkspacePage(
             modifier = Modifier.align(Alignment.BottomCenter),
             bars = {
                 FloatingBar(
+                    key = "actions",
                     visible = hasActions,
                     scrollBehavior = BarScrollBehavior.HideOnScroll,
                     animation = BarAnimation.Slide(),

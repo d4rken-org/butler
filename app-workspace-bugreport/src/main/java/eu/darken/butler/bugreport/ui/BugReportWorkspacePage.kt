@@ -250,6 +250,7 @@ fun BugReportWorkspacePage(
                 // controls) — like the Searcher toolbar grows to hold its filters — and shrinks back
                 // when stopped or scroll-collapsed.
                 FloatingBar(
+                    key = "toolbar",
                     visible = true,
                     scrollBehavior = BarScrollBehavior.CollapseOnScroll(),
                     animation = BarAnimation.Slide(),

@@ -182,6 +182,7 @@ fun EditorWorkspacePage(
             state = topBarStackState,
             bars = {
                 FloatingBar(
+                    key = "toolbar",
                     scrollBehavior = BarScrollBehavior.CollapseOnScroll(),
                     estimatedHeight = 80.dp,
                     animation = BarAnimation.Slide(),
@@ -204,6 +205,7 @@ fun EditorWorkspacePage(
                     )
                 }
                 FloatingBar(
+                    key = "infobar",
                     scrollBehavior = BarScrollBehavior.VanishOnScroll,
                     estimatedHeight = 24.dp,
                     animation = BarAnimation.Slide(),
@@ -230,6 +232,7 @@ fun EditorWorkspacePage(
                 }
                 // Notices persist during scroll (Static) until dismissed; single stable bar, see EditorBannerGroup
                 FloatingBar(
+                    key = "banners",
                     visible = state.isBackingLost || state.error != null || state.showExternalChangeBanner ||
                         state.showBackupNotice || state.isBinary || state.showLongLinesNotice,
                     scrollBehavior = BarScrollBehavior.Static,
@@ -268,6 +271,7 @@ fun EditorWorkspacePage(
             state = bottomBarStackState,
             bars = {
                 FloatingBar(
+                    key = "search",
                     visible = state.isSearchBarVisible,
                     scrollBehavior = BarScrollBehavior.HideOnScroll,
                     animation = BarAnimation.Slide(),
@@ -299,6 +303,7 @@ fun EditorWorkspacePage(
                     )
                 }
                 FloatingBar(
+                    key = "clipboard",
                     visible = hasClipboard,
                     scrollBehavior = BarScrollBehavior.VanishOnScroll,
                     animation = BarAnimation.Bouncy,
@@ -314,6 +319,7 @@ fun EditorWorkspacePage(
                     )
                 }
                 FloatingBar(
+                    key = "actions",
                     visible = hasActions,
                     scrollBehavior = BarScrollBehavior.HideOnScroll,
                     animation = BarAnimation.Slide(),

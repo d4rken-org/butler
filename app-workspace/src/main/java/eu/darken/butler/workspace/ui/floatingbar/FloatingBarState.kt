@@ -12,7 +12,6 @@ import androidx.compose.runtime.setValue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlin.uuid.Uuid
 
 /**
  * State holder for an individual floating bar within a [FloatingBarStack].
@@ -21,7 +20,8 @@ import kotlin.uuid.Uuid
  */
 @Stable
 class FloatingBarState(
-    val id: String = Uuid.random().toString(),
+    /** Stable within its stack and across compositions, so collapse state can be carried over. */
+    val id: String,
     scrollBehavior: BarScrollBehavior = BarScrollBehavior.Static,
     val animation: BarAnimation = BarAnimation.Slide(),
     initialVisible: Boolean = true,

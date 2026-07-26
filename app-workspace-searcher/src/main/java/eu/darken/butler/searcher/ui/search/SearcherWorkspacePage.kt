@@ -618,6 +618,7 @@ fun SearcherWorkspacePage(
             bars = {
                 // Toolbar - closest to top edge, collapses on scroll
                 FloatingBar(
+                    key = "toolbar",
                     visible = true,
                     scrollBehavior = BarScrollBehavior.CollapseOnScroll(),
                     animation = BarAnimation.Slide(),
@@ -634,6 +635,7 @@ fun SearcherWorkspacePage(
 
                 // Progress card - vanishes on scroll
                 FloatingBar(
+                    key = "progress",
                     visible = showProgressCard,
                     scrollBehavior = BarScrollBehavior.VanishOnScroll,
                     animation = BarAnimation.Slide(),
@@ -656,6 +658,7 @@ fun SearcherWorkspacePage(
 
                 // Info bar - static (stays visible when results or selection)
                 FloatingBar(
+                    key = "infobar",
                     visible = showInfoBar,
                     scrollBehavior = BarScrollBehavior.Static,
                     animation = BarAnimation.Slide(),
@@ -691,6 +694,7 @@ fun SearcherWorkspacePage(
                 // Operations bar - furthest from bottom edge
                 // Static when active operations, VanishOnScroll when only completed
                 FloatingBar(
+                    key = "operations",
                     visible = hasOperations,
                     scrollBehavior = if (hasActiveOperations) BarScrollBehavior.Static else BarScrollBehavior.VanishOnScroll,
                     animation = BarAnimation.Slide(),
@@ -716,6 +720,7 @@ fun SearcherWorkspacePage(
 
                 // Clipboard bar - middle, vanishes on scroll with bouncy animation
                 FloatingBar(
+                    key = "clipboard",
                     visible = hasClipboard,
                     scrollBehavior = BarScrollBehavior.VanishOnScroll,
                     animation = BarAnimation.Bouncy,
@@ -733,6 +738,7 @@ fun SearcherWorkspacePage(
 
                 // Action bar - closest to bottom edge, hides on scroll
                 FloatingBar(
+                    key = "actions",
                     visible = hasActions,
                     scrollBehavior = BarScrollBehavior.HideOnScroll,
                     animation = BarAnimation.Slide(),

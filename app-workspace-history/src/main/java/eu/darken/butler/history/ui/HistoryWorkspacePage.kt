@@ -193,6 +193,7 @@ fun HistoryWorkspacePage(
             modifier = Modifier.align(Alignment.TopCenter),
             bars = {
                 FloatingBar(
+                    key = "toolbar",
                     visible = true,
                     scrollBehavior = BarScrollBehavior.CollapseOnScroll(),
                     animation = BarAnimation.Slide(),
