@@ -132,7 +132,8 @@ class FloatingBarStackState(
      * bar after the fact.
      */
     suspend fun applyCollapse(fraction: Float) {
-        barStates.forEach { barState ->
+        // Copy first: snapTo suspends, and bars can register or unregister while it does
+        barStates.toList().forEach { barState ->
             if (barState.scrollBehavior is BarScrollBehavior.Static) return@forEach
             barState.scrollCollapseAnimatable.snapTo(fraction)
         }

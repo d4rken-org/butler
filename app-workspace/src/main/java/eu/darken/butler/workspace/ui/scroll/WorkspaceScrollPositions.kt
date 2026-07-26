@@ -13,9 +13,10 @@ import javax.inject.Singleton
  */
 @Singleton
 class WorkspaceScrollPositions @Inject constructor() : WorkspaceSlotRegistry<WorkspaceScrollPosition>(
-    tag = TAG,
     maxSlotsPerWorkspace = MAX_SLOTS_PER_WORKSPACE,
 ) {
+
+    override val tag: String = TAG
 
     fun positionFor(workspaceId: Workspace.Id, slot: String): SlotLease<WorkspaceScrollPosition> =
         leaseFor(workspaceId, slot)

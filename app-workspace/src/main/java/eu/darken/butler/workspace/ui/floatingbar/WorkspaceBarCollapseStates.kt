@@ -20,9 +20,10 @@ import javax.inject.Singleton
  */
 @Singleton
 class WorkspaceBarCollapseStates @Inject constructor() : WorkspaceSlotRegistry<Float>(
-    tag = TAG,
     maxSlotsPerWorkspace = MAX_SLOTS_PER_WORKSPACE,
 ) {
+
+    override val tag: String = TAG
 
     fun collapseFor(workspaceId: Workspace.Id, position: BarPosition): SlotLease<Float> =
         leaseFor(workspaceId, position.name)

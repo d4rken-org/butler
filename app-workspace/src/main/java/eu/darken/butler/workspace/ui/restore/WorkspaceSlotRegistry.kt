@@ -32,9 +32,11 @@ data class SlotLease<T>(
  * copy of them to reason about.
  */
 abstract class WorkspaceSlotRegistry<T : Any>(
-    private val tag: String,
     private val maxSlotsPerWorkspace: Int = DEFAULT_MAX_SLOTS,
 ) {
+
+    /** Log tag of the concrete registry, so its lines stay greppable as one family. */
+    protected abstract val tag: String
 
     private val lock = Any()
     private val entries = mutableMapOf<Workspace.Id, LinkedHashMap<String, T>>()
