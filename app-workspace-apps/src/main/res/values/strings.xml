@@ -179,6 +179,19 @@
     <string name="apps_components_kind_provider">Content provider</string>
     <string name="apps_components_search_action">Search components</string>
     <string name="apps_components_search_hint">Search components</string>
+    <string name="apps_components_state_label">State</string>
+    <string name="apps_components_state_enabled">Enabled</string>
+    <string name="apps_components_state_disabled">Disabled</string>
+    <string name="apps_components_field_type">Type</string>
+    <string name="apps_components_field_package">Package</string>
+    <string name="apps_components_field_permission">Permission</string>
+    <string name="apps_components_field_write_permission">Write permission</string>
+    <string name="apps_components_field_authority">Authority</string>
+    <string name="apps_components_field_process">Process</string>
+    <string name="apps_components_field_launch_mode">Launch mode</string>
+    <string name="apps_components_launch_action">Launch</string>
+    <string name="apps_components_copy_name_action">Copy component name</string>
+    <string name="apps_components_copy_package_action">Copy package name</string>
 
     <!-- Generic navigation -->
     <string name="appdetails_back_generic_action">Back</string>
