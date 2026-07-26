@@ -111,9 +111,9 @@ class FlowCmdShellTest : BaseTest() {
         // Explicit signal instead of a delay: the command is provably still running
         withContext(Dispatchers.IO) { gate.awaitStarted() }
         session.cancel()
+        // The gate is never released, so the command can only end via the kill, and the throw
+        // inside cmdJob is what proves it ended that way.
         cmdJob.join()
-
-        gate.wasReleased shouldBe false
     }
 
     @Test fun `queued commands`() = runTest2(autoCancel = true) {
@@ -160,21 +160,29 @@ class FlowCmdShellTest : BaseTest() {
     }
 
     @Test fun `commands can be timeoutted`(@TempDir tempDir: File): Unit = runBlocking {
-        // The command blocks until released, and it never is: only the timeout can end this.
+        // The command blocks until released, and it never is: only cancellation can end this.
         val gate = ShellGate(tempDir)
 
-        // Throwing instead of returning a result proves execute() was still waiting on the
-        // command, and returning at all proves the unwind did not wait for it to finish.
-        shouldThrow<TimeoutCancellationException> {
-            withTimeout(1000) {
-                FlowCmd(gate.instruction, "echo done").execute().apply {
-                    exitCode shouldBe FlowProcess.ExitCode.OK
-                    output shouldBe listOf("done")
-                }
-            }
+        val execution = async(Dispatchers.IO) {
+            FlowCmd(gate.instruction, "echo done").execute()
         }
 
-        gate.wasReleased shouldBe false
+        // Explicit signal instead of a delay: the command is provably running, so the timeout
+        // below can only expire on an execute() that is still waiting for it.
+        withContext(Dispatchers.IO) { gate.awaitStarted() }
+
+        // Throwing instead of returning a result proves execute() had not finished early.
+        shouldThrow<TimeoutCancellationException> {
+            withTimeout(1000) { execution.await() }
+        }
+
+        // The unwind must not wait for the command (which never ends): cancelling has to return
+        // promptly, the watchdog turns a hanging unwind into a failure instead of a hung suite.
+        execution.cancel()
+        withTimeout(ShellGate.WATCHDOG) { execution.join() }
+
+        // execute() does not expose the shell process it spawns, so that cancellation actually
+        // kills the process is covered by FlowProcessTest ("session is killed on scope cancel").
     }
 
     @Test fun `open session extension`() = runTest2(autoCancel = true) {
