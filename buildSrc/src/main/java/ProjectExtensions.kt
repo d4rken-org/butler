@@ -108,6 +108,30 @@ fun com.android.build.api.dsl.SigningConfig.setupCredentials(
     }
 }
 
+/**
+ * Explicit test worker JVM configuration.
+ *
+ * Sized for CI (2-core runner, 4g Gradle daemon, org.gradle.workers.max=4), not for beefy dev
+ * machines. Without this, workers run on Gradle's default -Xmx512m with no crash diagnostics.
+ *
+ * No MaxMetaspaceSize cap on purpose: Robolectric creates many classloaders and an arbitrary cap
+ * would just trade one failure mode for another.
+ */
+fun Test.setupTestJvm() {
+    maxHeapSize = "1g"
+    maxParallelForks = 1
+
+    // Unique per task so parallel test tasks cannot overwrite each other's diagnostics
+    val crashDir = File(project.layout.buildDirectory.get().asFile, "test-jvm-crash/$name")
+    doFirst { crashDir.mkdirs() }
+
+    jvmArgs(
+        "-XX:+HeapDumpOnOutOfMemoryError",
+        "-XX:HeapDumpPath=${crashDir.absolutePath}",
+        "-XX:ErrorFile=${crashDir.absolutePath}/hs_err_pid%p.log",
+    )
+}
+
 fun Test.setupTestLogging() {
     testLogging {
         events(
@@ -126,14 +150,31 @@ fun Test.setupTestLogging() {
             override fun beforeTest(testDescriptor: TestDescriptor) {}
             override fun afterTest(testDescriptor: TestDescriptor, result: TestResult) {}
             override fun afterSuite(suite: TestDescriptor, result: TestResult) {
-                if (suite.parent != null) {
-                    val messages = """
-                        ------------------------------------------------------------------------------------------------
-                        | ${result.resultType} ${result.testCount} tests: ${result.successfulTestCount} passed, ${result.failedTestCount} failed, ${result.skippedTestCount} skipped)
-                        ------------------------------------------------------------------------------------------------
-                        
-                    """.trimIndent()
-                    println(messages)
+                // The root descriptor (parent == null) is the task-level result. It must be
+                // reported too: a worker that dies abruptly may never fire afterSuite for its
+                // children, so child-only reporting can print nothing at all for a crashed run.
+                val label = if (suite.parent == null) "TASK RESULT" else "SUITE RESULT"
+                val messages = """
+                    ------------------------------------------------------------------------------------------------
+                    | $label: ${result.resultType} ${result.testCount} tests: ${result.successfulTestCount} passed, ${result.failedTestCount} failed, ${result.skippedTestCount} skipped)
+                    ------------------------------------------------------------------------------------------------
+
+                """.trimIndent()
+                println(messages)
+
+                // Worker-death fingerprint: the task failed, yet not a single test case failed.
+                if (suite.parent == null && result.resultType == TestResult.ResultType.FAILURE && result.failedTestCount == 0L) {
+                    println(
+                        """
+                        ################################################################################################
+                        # TEST JVM WORKER DEATH SUSPECTED
+                        # The test task failed but zero test cases reported a failure (${result.skippedTestCount} skipped).
+                        # That combination means the worker JVM died instead of the tests failing.
+                        # Check the raw Gradle worker output above and build/test-jvm-crash/ for hs_err/heap dumps.
+                        ################################################################################################
+
+                        """.trimIndent()
+                    )
                 }
             }
         })

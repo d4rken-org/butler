@@ -33,6 +33,7 @@ android {
         tasks.withType<Test> {
             useJUnitPlatform()
             setupTestLogging()
+            setupTestJvm()
         }
     }
 }
