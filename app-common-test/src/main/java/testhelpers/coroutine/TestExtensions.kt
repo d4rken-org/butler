@@ -19,6 +19,7 @@ fun runTest2(
     timeout: Duration = 60.seconds,
     testBody: suspend TestScope.() -> Unit
 ) {
+    var bodyCompleted = false
     try {
         val scope = TestScope(context = context)
         try {
@@ -26,9 +27,11 @@ fun runTest2(
                 timeout = timeout
             ) {
                 testBody()
+                bodyCompleted = true
                 if (autoCancel) scope.cancel("autoCancel")
             }
         } catch (e: Throwable) {
+            // Only the expected error type is swallowed, anything else is a real failure.
             val isExpected = expectedError?.isInstance(e) ?: false
             if (!isExpected) throw e
         }
@@ -38,6 +41,11 @@ fun runTest2(
         } else {
             throw e
         }
+    }
+
+    // A test that declares an expected error but never throws it is a silent pass, not a pass.
+    if (expectedError != null && bodyCompleted) {
+        throw AssertionError("Expected ${expectedError.qualifiedName} to be thrown, but the test body completed normally")
     }
 }
 
