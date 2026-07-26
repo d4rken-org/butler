@@ -6,6 +6,7 @@ import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -83,7 +84,7 @@ class WorkspaceScrollPositions @Inject constructor() {
                 }
             }
         }
-        if (accepted) _changes.value = _changes.value + 1
+        if (accepted) _changes.update { it + 1 }
     }
 
     fun forget(workspaceId: Workspace.Id) = synchronized(lock) {
