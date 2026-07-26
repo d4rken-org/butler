@@ -3,6 +3,7 @@ package eu.darken.butler.workspace.ui.manager.rows.preview
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -19,12 +20,14 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import coil3.compose.SubcomposeAsyncImage
+import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.preview.WorkspacePreviewModel
 import eu.darken.butler.workspace.ui.manager.rows.PaneBadge
+import eu.darken.butler.workspace.ui.manager.rows.WorkspacePreviewInfoBar
 
 @Composable
 fun WorkspacePreview(
@@ -34,6 +37,7 @@ fun WorkspacePreview(
     livePreview: Boolean = true,
     paneNumber: Int? = null,
     shouldShowBadge: Boolean = false,
+    overlay: @Composable BoxScope.() -> Unit = {},
 ) {
     Box(modifier = modifier) {
         Card(
@@ -100,6 +104,8 @@ fun WorkspacePreview(
                         Workspace.Type.BUG_REPORT -> DeveloperMockPreview()
                     }
                 }
+
+                overlay()
             }
         }
 
@@ -154,4 +160,21 @@ private fun WorkspacePreviewTemplatesPreview() {
         workspaceId = Workspace.Id(),
         type = Workspace.Type.TEMPLATES,
     )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspacePreviewWithInfoBarPreview() {
+    WorkspacePreview(
+        workspaceId = Workspace.Id(),
+        type = Workspace.Type.EXPLORER,
+        livePreview = false,
+    ) {
+        WorkspacePreviewInfoBar(
+            modifier = Modifier.align(Alignment.BottomStart),
+            primary = "/storage/emulated/0/Download".toCaString(),
+            secondary = "42 items".toCaString(),
+        )
+    }
 }
