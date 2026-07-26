@@ -159,13 +159,9 @@ fun WorkspaceGridItem(
                     )
 
                     // Sub-workspaces are not persisted, so a rename on them would silently be lost.
-                    // Resume stays available even for them: manual and auto pause both skip
-                    // sub-workspaces, but a stale session row can still restore one as paused, and
-                    // hiding the whole menu there would leave no way to wake it from the manager.
-                    val offersRename = !workspace.isSubWorkspace
-                    val offersResume = workspace.isPaused
-                    val offersPause = !workspace.isPaused && workspace.canPause
-                    if (offersRename || offersResume || offersPause) {
+                    // Hiding the menu also hides resume, which is fine: WorkspaceRepo refuses to
+                    // pause them on every path it exposes, so no card here can be both.
+                    if (!workspace.isSubWorkspace) {
                         Box {
                             IconButton(
                                 modifier = Modifier.size(24.dp),
@@ -184,7 +180,7 @@ fun WorkspaceGridItem(
                                 onDismissRequest = { showOverflowMenu = false },
                             ) {
                                 when {
-                                    offersResume -> DropdownMenuItem(
+                                    workspace.isPaused -> DropdownMenuItem(
                                         text = { Text(stringResource(R.string.workspace_row_resume_action)) },
                                         leadingIcon = {
                                             Icon(
@@ -197,7 +193,7 @@ fun WorkspaceGridItem(
                                             onResume()
                                         },
                                     )
-                                    offersPause -> DropdownMenuItem(
+                                    workspace.canPause -> DropdownMenuItem(
                                         text = { Text(stringResource(R.string.workspace_row_pause_action)) },
                                         leadingIcon = {
                                             Icon(
@@ -212,21 +208,19 @@ fun WorkspaceGridItem(
                                     )
                                 }
 
-                                if (offersRename) {
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(CommonR.string.general_rename_action)) },
-                                        leadingIcon = {
-                                            Icon(
-                                                imageVector = Icons.TwoTone.Edit,
-                                                contentDescription = null,
-                                            )
-                                        },
-                                        onClick = {
-                                            showOverflowMenu = false
-                                            onRename()
-                                        },
-                                    )
-                                }
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(CommonR.string.general_rename_action)) },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = Icons.TwoTone.Edit,
+                                            contentDescription = null,
+                                        )
+                                    },
+                                    onClick = {
+                                        showOverflowMenu = false
+                                        onRename()
+                                    },
+                                )
                             }
                         }
                     }

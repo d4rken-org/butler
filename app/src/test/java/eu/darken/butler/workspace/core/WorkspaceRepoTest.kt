@@ -1072,6 +1072,28 @@ class WorkspaceRepoTest : BaseTest() {
             repo.workspaceIds() shouldBe listOf(existingId)
         }
 
+    /**
+     * Pause refuses sub-workspaces, so registration does too - a paused modal is not a state the
+     * repo should hand out, however the arguments reached it.
+     */
+    @Test
+    fun `registering a paused sub-workspace fails instead of resurrecting a modal`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val callerId = repo.createTab()
+
+            val result = repo.execute(
+                WorkspaceAction.RegisterPaused(
+                    id = Workspace.Id(),
+                    type = Workspace.Type.EXPLORER,
+                    arguments = FakePickerArguments(Workspace.Type.EXPLORER, callerId),
+                )
+            )
+
+            result.shouldBeInstanceOf<WorkspaceAction.RegisterPaused.Result.Failed>()
+            repo.workspaceIds() shouldBe listOf(callerId)
+        }
+
     // ==================== Custom titles ====================
 
     private suspend fun WorkspaceRepo.rename(id: Workspace.Id, title: String?): Boolean =
