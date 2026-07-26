@@ -8,15 +8,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -66,6 +63,8 @@ import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
 import eu.darken.butler.workspace.ui.operations.details.CancelOperationConfirmationDialog
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
+import eu.darken.butler.workspace.ui.scroll.rememberWorkspaceLazyGridState
+import eu.darken.butler.workspace.ui.scroll.rememberWorkspaceLazyListState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
@@ -133,9 +132,10 @@ fun ExplorerWorkspacePage(
     // Progress indicator delay state - shows after 200ms to avoid flickering
     val showProgress = rememberDelayedState(state.progress, delayMs = 200)
 
-    // List and grid scroll states - keyed on locationId for clean slate each navigation
-    val listState = key(state.locationId) { rememberLazyListState() }
-    val gridState = key(state.locationId) { rememberLazyGridState() }
+    // One slot per directory and view kind: navigating gives a clean slate, going back restores.
+    // List and grid never share a slot, their indices are not interchangeable.
+    val listState = rememberWorkspaceLazyListState(workspaceId, slot = "list#${state.locationId}")
+    val gridState = rememberWorkspaceLazyGridState(workspaceId, slot = "grid#${state.locationId}")
 
     // Navigation resets floating-bar scroll-collapse so bars don't stay hidden over new content
     LaunchedEffect(state.locationId) {

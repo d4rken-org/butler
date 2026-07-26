@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -53,6 +52,7 @@ import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
 import eu.darken.butler.workspace.ui.insets.paneInsets
 import eu.darken.butler.workspace.ui.insets.rememberPaneFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.scroll.rememberWorkspaceLazyListState
 
 sealed interface AppDetailsPageAction {
     data object Close : AppDetailsPageAction
@@ -157,8 +157,8 @@ fun AppDetailsWorkspacePage(
     val navBarInset = paneInsets.bottom
 
     // Separate scroll states per route so Overview position survives the round-trip to Components.
-    val overviewListState = rememberLazyListState()
-    val componentsListState = rememberLazyListState()
+    val overviewListState = rememberWorkspaceLazyListState(workspaceId, slot = "overview")
+    val componentsListState = rememberWorkspaceLazyListState(workspaceId, slot = "components")
 
     Box(
         modifier = modifier

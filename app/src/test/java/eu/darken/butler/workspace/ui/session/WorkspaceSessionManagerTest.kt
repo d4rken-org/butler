@@ -632,7 +632,11 @@ class WorkspaceSessionManagerTest : BaseTest() {
                 operationsManager = mockk(relaxed = true),
                 upgradeRepo = upgradeRepo,
             )
-            pageManager = WorkspacePageManager(appScope = restoreScope, workspaceRemote = repo)
+            pageManager = WorkspacePageManager(
+                appScope = restoreScope,
+                workspaceRemote = repo,
+                scrollPositions = scrollPositions,
+            )
         }
 
         private fun createManager() = WorkspaceSessionManager(

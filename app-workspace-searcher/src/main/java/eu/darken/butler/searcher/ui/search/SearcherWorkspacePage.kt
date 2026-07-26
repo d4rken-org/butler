@@ -11,9 +11,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -93,6 +91,8 @@ import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
 import eu.darken.butler.workspace.ui.preview.ProvideFolderPreviews
+import eu.darken.butler.workspace.ui.scroll.rememberWorkspaceLazyGridState
+import eu.darken.butler.workspace.ui.scroll.rememberWorkspaceLazyListState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.Flow
@@ -139,9 +139,9 @@ fun SearcherWorkspacePage(
     val paneInsets = design.paneInsets()
     val navBarInset = paneInsets.bottom
     val statusBarInset = paneInsets.top
-    val listState = rememberLazyListState()
+    val listState = rememberWorkspaceLazyListState(workspaceId, slot = "results#list")
     // Hoisted so the search-start reset covers list and grid in one guarded effect
-    val gridState = rememberLazyGridState()
+    val gridState = rememberWorkspaceLazyGridState(workspaceId, slot = "results#grid")
     var showTemplatesSheet by remember { mutableStateOf(false) }
     var showAccessErrorsSheet by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current

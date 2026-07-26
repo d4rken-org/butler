@@ -51,6 +51,8 @@ import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
 import eu.darken.butler.workspace.ui.insets.paneInsets
 import eu.darken.butler.workspace.ui.insets.rememberPaneFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.scroll.rememberWorkspaceLazyGridState
+import eu.darken.butler.workspace.ui.scroll.rememberWorkspaceLazyListState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
@@ -108,6 +110,10 @@ fun AppsWorkspacePage(
         derivedStateOf { state.apps.isNotEmpty() || state.selectionCount > 0 }
     }
 
+    // List and grid keep separate slots, their indices are not interchangeable
+    val listState = rememberWorkspaceLazyListState(workspaceId, slot = "apps#list")
+    val gridState = rememberWorkspaceLazyGridState(workspaceId, slot = "apps#grid")
+
     Box(modifier = Modifier.fillMaxSize()) {
         PullToRefreshBox(
             isRefreshing = state.isRefreshing,
@@ -129,6 +135,7 @@ fun AppsWorkspacePage(
             when (state.viewStyle) {
                 is AppsViewStyle.List -> {
                     LazyColumn(
+                        state = listState,
                         modifier = Modifier
                             .fillMaxSize()
                             .nestedScroll(topBarStackState.nestedScrollConnection)
@@ -179,6 +186,7 @@ fun AppsWorkspacePage(
 
                     LazyVerticalGrid(
                         columns = GridCells.Adaptive(minSize = minSize),
+                        state = gridState,
                         modifier = Modifier
                             .fillMaxSize()
                             .nestedScroll(topBarStackState.nestedScrollConnection)
