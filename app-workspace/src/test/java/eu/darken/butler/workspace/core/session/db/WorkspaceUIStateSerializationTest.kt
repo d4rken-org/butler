@@ -37,6 +37,20 @@ class WorkspaceUIStateSerializationTest : BaseTest() {
         decoded.focusedWorkspaceId shouldBe idA
         decoded.paneSelections shouldBe mapOf(0 to idA, 1 to idB)
         decoded.scrollPositions shouldBe emptyMap()
+        decoded.barCollapse shouldBe emptyMap()
+    }
+
+    /** A row written by the build that had scroll positions but not yet bar collapse state. */
+    @Test
+    fun `rows without bar collapse state decode`() {
+        val previous = """
+            {"focusedWorkspaceId":"${idA.id}","paneSelections":{},"scrollPositions":{"${idA.id}":{"history":{"index":4,"offset":9}}}}
+        """.trimIndent()
+
+        val decoded = json.decodeFromString(WorkspaceUIState.serializer(), previous)
+
+        decoded.scrollPositions shouldBe mapOf(idA to mapOf("history" to WorkspaceScrollPosition(4, 9)))
+        decoded.barCollapse shouldBe emptyMap()
     }
 
     @Test
@@ -51,6 +65,10 @@ class WorkspaceUIStateSerializationTest : BaseTest() {
                 ),
                 idB to mapOf("apps#list" to WorkspaceScrollPosition(7, 8)),
             ),
+            barCollapse = mapOf(
+                idA to mapOf("TOP" to 1f, "BOTTOM" to 0f),
+                idB to mapOf("TOP" to 0f),
+            ),
         )
 
         val encoded = json.encodeToString(WorkspaceUIState.serializer(), state)
@@ -64,6 +82,7 @@ class WorkspaceUIStateSerializationTest : BaseTest() {
             focusedWorkspaceId = idB,
             paneSelections = mapOf(0 to idB),
             scrollPositions = mapOf(idB to mapOf("history" to WorkspaceScrollPosition(5))),
+            barCollapse = mapOf(idB to mapOf("TOP" to 1f)),
         )
 
         val encoded = json.encodeToString(WorkspaceUIState.serializer(), state)
