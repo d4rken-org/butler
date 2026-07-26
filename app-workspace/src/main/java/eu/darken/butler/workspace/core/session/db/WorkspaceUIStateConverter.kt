@@ -6,7 +6,15 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.workspace.core.serialization.WorkspaceIdSerializer
+import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPosition
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.builtins.MapSerializer
+import kotlinx.serialization.builtins.nullable
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonObject
 import javax.inject.Inject
 
 /**
@@ -26,21 +34,62 @@ class WorkspaceUIStateConverter @Inject constructor(
      * A blob that can't be read is dropped, never rethrown: stale UI state must not keep the app
      * from starting. The trade-off is that a format change looks like "everything was just
      * expanded/scrolled to the top", so it has to be loud in the log to be recognizable.
+     *
+     * Each field is decoded on its own rather than the object in one go, because the fields are not
+     * worth the same: focus and pane selection are one id each and are what the user actually
+     * notices, while the scroll and bar maps are large, nested and by far the likeliest to break.
+     * Decoding the whole blob at once let one bad scroll entry take the focus down with it.
      */
     @TypeConverter
     fun toUIState(value: String): WorkspaceUIState {
-        return try {
-            json.decodeFromString(WorkspaceUIState.serializer(), value)
+        val root = try {
+            json.parseToJsonElement(value).jsonObject
         } catch (e: Exception) {
             log(TAG, WARN) {
-                "Persisted UI state DISCARDED (scroll positions and bar collapse are lost), " +
-                    "most likely a change to the stored JSON format: ${e.asLog()}"
+                "Persisted UI state is not a readable JSON object, ALL of it is DISCARDED " +
+                    "(focus, panes, scroll positions and bar collapse): ${e.asLog()}"
             }
-            WorkspaceUIState()
+            return WorkspaceUIState()
+        }
+
+        return WorkspaceUIState(
+            focusedWorkspaceId = root.decodeField(FIELD_FOCUSED, WorkspaceIdSerializer.nullable, null),
+            paneSelections = root.decodeField(FIELD_PANES, PANE_SELECTIONS, emptyMap()),
+            scrollPositions = root.decodeField(FIELD_SCROLL, SCROLL_POSITIONS, emptyMap()),
+            barCollapse = root.decodeField(FIELD_BARS, BAR_COLLAPSE, emptyMap()),
+        )
+    }
+
+    private fun <T> JsonObject.decodeField(name: String, serializer: KSerializer<T>, fallback: T): T {
+        val element = this[name] ?: return fallback
+        return try {
+            json.decodeFromJsonElement(serializer, element)
+        } catch (e: Exception) {
+            log(TAG, WARN) {
+                "Persisted UI state field '$name' DISCARDED, the other fields are kept: ${e.asLog()}"
+            }
+            fallback
         }
     }
 
     companion object {
         private val TAG = logTag("Workspace", "Session", "Storage", "UIStateConverter")
+
+        private const val FIELD_FOCUSED = "focusedWorkspaceId"
+        private const val FIELD_PANES = "paneSelections"
+        private const val FIELD_SCROLL = "scrollPositions"
+        private const val FIELD_BARS = "barCollapse"
+
+        // Mirrors of the field types in WorkspaceUIState - they are handed straight to its
+        // constructor, so a type change there is a compile error here rather than a silent drift.
+        private val PANE_SELECTIONS = MapSerializer(Int.serializer(), WorkspaceIdSerializer)
+        private val SCROLL_POSITIONS = MapSerializer(
+            WorkspaceIdSerializer,
+            MapSerializer(String.serializer(), WorkspaceScrollPosition.serializer()),
+        )
+        private val BAR_COLLAPSE = MapSerializer(
+            WorkspaceIdSerializer,
+            MapSerializer(String.serializer(), MapSerializer(String.serializer(), Float.serializer())),
+        )
     }
 }
