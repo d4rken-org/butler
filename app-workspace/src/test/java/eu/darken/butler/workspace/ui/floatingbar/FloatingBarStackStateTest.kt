@@ -152,6 +152,23 @@ class FloatingBarStackStateTest : BaseTest() {
         state.collapseTargets shouldBe mapOf("toolbar" to 0f, "infobar" to 1f)
     }
 
+    /**
+     * The duplicate-key path itself has no unit test on purpose: it reads BuildConfigWrap, whose
+     * reflection fallback cannot resolve the app's BuildConfig from a library module's unit test.
+     * This pins the neighbouring case, that a repeat registration of the *same* bar is benign and
+     * never mistaken for a wiring error.
+     */
+    @Test
+    fun `re-registering the same bar instance is a no-op`() {
+        val state = FloatingBarStackState(position = BarPosition.TOP)
+        val bar = FloatingBarState(id = "toolbar")
+
+        state.registerBar(bar)
+        state.registerBar(bar)
+
+        state.barStates.single() shouldBe bar
+    }
+
     @Test
     fun `bars have to register before anything can be applied`() = runTest {
         val state = FloatingBarStackState(position = BarPosition.TOP)

@@ -23,6 +23,10 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.BuildConfigWrap
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlin.math.abs
@@ -232,10 +236,24 @@ class FloatingBarStackState(
 
     /**
      * Registers a bar with this stack.
+     *
+     * Bar keys have to be unique within a stack. A duplicate used to be impossible (ids were random)
+     * and is now a copy-paste away, so it fails loudly in debug builds instead of silently dropping
+     * the second bar - "a bar that just isn't there" is a long way from its cause. Release keeps the
+     * old keep-the-first behaviour rather than crashing users over a wiring mistake.
      */
     internal fun registerBar(bar: FloatingBarState) {
-        if (barStates.none { it.id == bar.id }) {
-            barStates.add(bar)
+        val existing = barStates.firstOrNull { it.id == bar.id }
+        when {
+            // Re-registering the same instance is a no-op, not a wiring error
+            existing === bar -> return
+            existing != null -> {
+                val message = "Duplicate floating bar key '${bar.id}' in the $position stack"
+                if (BuildConfigWrap.DEBUG) throw IllegalStateException(message)
+                log(TAG, ERROR) { message }
+                return
+            }
+            else -> barStates.add(bar)
         }
     }
 
@@ -298,6 +316,7 @@ class FloatingBarStackState(
 
     companion object {
         private const val SCROLL_THRESHOLD = 5f
+        private val TAG = logTag("Workspace", "FloatingBarStack")
 
         val Saver: Saver<FloatingBarStackState, *> = listSaver(
             save = { state ->
