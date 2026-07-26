@@ -1,6 +1,9 @@
 package eu.darken.butler.workspace.ui.session
 
 import android.os.Parcel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LifecycleRegistry
 import androidx.room.withTransaction
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.upgrade.UpgradeRepo
@@ -18,6 +21,7 @@ import eu.darken.butler.workspace.core.session.db.WorkspaceSessionDatabase
 import eu.darken.butler.workspace.core.session.db.WorkspaceSessionEntity
 import eu.darken.butler.workspace.core.session.db.WorkspaceUIState
 import eu.darken.butler.workspace.ui.WorkspacePageManager
+import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPositions
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -55,6 +59,8 @@ class WorkspaceSessionManagerTest : BaseTest() {
     private lateinit var factoryMap: Map<Workspace.Type, WorkspaceFactory<*>>
     private lateinit var testScope: TestScope
     private lateinit var sessionManager: WorkspaceSessionManager
+    private lateinit var scrollPositions: WorkspaceScrollPositions
+    private lateinit var processLifecycle: FakeLifecycleOwner
 
     // Captured arguments from mock
     private var capturedFocusedId: Workspace.Id? = null
@@ -72,6 +78,8 @@ class WorkspaceSessionManagerTest : BaseTest() {
         json = Json
         factoryMap = emptyMap()
         testScope = TestScope(UnconfinedTestDispatcher())
+        scrollPositions = WorkspaceScrollPositions()
+        processLifecycle = FakeLifecycleOwner()
 
         // Provide a valid state flow for findReplacementWorkspace
         every { workspacePageManager.state } returns MutableStateFlow(WorkspacePageManager.State())
@@ -92,6 +100,8 @@ class WorkspaceSessionManagerTest : BaseTest() {
             storage = storage,
             json = json,
             factoryMap = factoryMap,
+            scrollPositions = scrollPositions,
+            processLifecycle = processLifecycle.registry,
         )
     }
 
@@ -633,6 +643,8 @@ class WorkspaceSessionManagerTest : BaseTest() {
             storage = storage,
             json = json,
             factoryMap = factoryMap,
+            scrollPositions = scrollPositions,
+            processLifecycle = processLifecycle.registry,
         )
 
         private fun session(
@@ -995,6 +1007,8 @@ class WorkspaceSessionManagerTest : BaseTest() {
             storage = storage,
             json = json,
             factoryMap = factoryMap,
+            scrollPositions = scrollPositions,
+            processLifecycle = processLifecycle.registry,
         )
 
         private fun makeInfo(id: Workspace.Id) = Workspace.Info(
@@ -1051,6 +1065,19 @@ class WorkspaceSessionManagerTest : BaseTest() {
     }
 
 
+}
+
+/** createUnsafe() drops the main-thread enforcement, so the registry works in a plain unit test. */
+private class FakeLifecycleOwner : LifecycleOwner {
+    val registry: LifecycleRegistry = LifecycleRegistry.createUnsafe(this)
+
+    override val lifecycle: Lifecycle
+        get() = registry
+
+    fun stop() {
+        registry.handleLifecycleEvent(Lifecycle.Event.ON_START)
+        registry.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
+    }
 }
 
 private data class FakeSessionArguments(

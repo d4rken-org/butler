@@ -32,6 +32,7 @@ import eu.darken.butler.workspace.core.session.SessionRestorationException
 import eu.darken.butler.workspace.ui.WorkspacePageManager
 import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
 import eu.darken.butler.workspace.ui.feedback.BannerState
+import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPositions
 import eu.darken.butler.workspace.ui.session.WorkspaceSessionManager
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -59,6 +60,7 @@ class WorkspacesViewModel @Inject constructor(
     private val errorReportTool: ErrorReportTool,
     private val bugReportRepo: BugReportRepo,
     val pageHosts: Map<Workspace.Type, @JvmSuppressWildcards WorkspacePageHostEntry>,
+    val scrollPositions: WorkspaceScrollPositions,
 ) : ViewModel4(dispatchers, logTag("Workspace", "Screen", "VM")) {
 
     private val hiddenMotdIds = MutableStateFlow<Set<Uuid>>(emptySet())

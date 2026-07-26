@@ -46,6 +46,7 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerScreen
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerViewModel
 import eu.darken.butler.workspace.ui.manager.rememberWindowSizeInfo
+import eu.darken.butler.workspace.ui.scroll.LocalWorkspaceScrollPositions
 import eu.darken.butler.workspace.ui.workspaces.adaptive.DividerPositions
 import eu.darken.butler.workspace.ui.workspaces.classic.ClassicWorkspaceContainer
 import kotlin.uuid.Uuid
@@ -257,6 +258,7 @@ fun WorkspacesScreenHost(
     CompositionLocalProvider(
         LocalWorkspaceButtonProvider provides workspaceButtonVm,
         LocalWorkspacePageHosts provides vm.pageHosts,
+        LocalWorkspaceScrollPositions provides vm.scrollPositions,
     ) {
         state?.let { state ->
             WorkspaceScreen(

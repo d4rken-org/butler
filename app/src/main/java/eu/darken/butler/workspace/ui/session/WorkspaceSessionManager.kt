@@ -1,5 +1,7 @@
 package eu.darken.butler.workspace.ui.session
 
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.room.withTransaction
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.datastore.value
@@ -10,6 +12,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceFactory
+import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.WorkspaceSettings
 import eu.darken.butler.workspace.core.defaultArguments
@@ -19,6 +22,7 @@ import eu.darken.butler.workspace.core.session.db.WorkspaceInstanceEntity
 import eu.darken.butler.workspace.core.session.db.WorkspaceSessionEntity
 import eu.darken.butler.workspace.core.session.db.WorkspaceUIState
 import eu.darken.butler.workspace.ui.WorkspacePageManager
+import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPositions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -27,6 +31,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -52,6 +57,8 @@ class WorkspaceSessionManager @Inject constructor(
     private val storage: WorkspaceSessionStorage,
     private val json: Json,
     private val factoryMap: Map<Workspace.Type, @JvmSuppressWildcards WorkspaceFactory<*>>,
+    private val scrollPositions: WorkspaceScrollPositions,
+    @ProcessLifecycle private val processLifecycle: Lifecycle,
 ) {
 
     private val _state = MutableStateFlow<State>(State.Restoring)
@@ -72,8 +79,8 @@ class WorkspaceSessionManager @Inject constructor(
     // Track last saved workspace state for incremental updates
     private val lastSavedWorkspaces = mutableMapOf<Workspace.Id, SaveKey>()
 
-    // The debounced auto-save is the only caller today; kept deliberately so that a second one
-    // could not race lastSavedWorkspaces and the Room transaction.
+    // Serializes the two writers: the full save and the lightweight UI-state save both touch the
+    // session row, and the full save additionally races lastSavedWorkspaces and the transaction.
     private val saveLock = Mutex()
 
     init {
@@ -125,6 +132,34 @@ class WorkspaceSessionManager @Inject constructor(
             saveSession()
         }.launchIn(appScope)
 
+        // Scrolling gets its own lightweight writer instead of a fourth source in the combine above:
+        // a scroll must not re-run createArguments() + serialize() for every workspace only to
+        // discover that no workspace row changed. The initial counter value is dropped, it only
+        // reflects "nothing recorded yet".
+        scrollPositions.changes
+            .drop(1)
+            .debounce(SCROLL_SAVE_DEBOUNCE_MS)
+            .onEach {
+                if (!isSavingAllowed()) return@onEach
+                log(TAG) { "Scroll positions changed, saving UI state" }
+                saveUiState()
+            }
+            .catch { log(TAG, ERROR) { "Scroll position save observer failed: ${it.asLog()}" } }
+            .launchIn(appScope)
+
+        // The debounce alone loses the last scroll when the app is stopped inside its window. A hard
+        // kill without ON_STOP can still lose up to the debounce window.
+        processLifecycle.addObserver(
+            LifecycleEventObserver { _, event ->
+                if (event != Lifecycle.Event.ON_STOP) return@LifecycleEventObserver
+                appScope.launch {
+                    if (!isSavingAllowed()) return@launch
+                    log(TAG) { "App stopped, flushing UI state" }
+                    saveUiState()
+                }
+            }
+        )
+
         // Hydrate a dormant workspace when it gains focus. Only armed once restoration finished:
         // focus emissions during restore (e.g. the stale SavedStateHandle focus) must not hydrate
         // anything, which is what keeps the cold start down to a single workspace.
@@ -168,34 +203,39 @@ class WorkspaceSessionManager @Inject constructor(
      */
     suspend fun saveSession() = saveLock.withLock { doSaveSession() }
 
-    private suspend fun doSaveSession() {
-        log(TAG, INFO) { "Saving session" }
+    /**
+     * Writes only the session row (focus, panes, scroll positions), leaving workspace rows alone.
+     * Scroll changes go through here so they don't amplify into a full session rewrite.
+     */
+    suspend fun saveUiState() = saveLock.withLock { doSaveUiState() }
 
-        var defaultSession = storage.dao.getSession(DEFAULT_SESSION_ID)
-        if (defaultSession == null) {
-            defaultSession = WorkspaceSessionEntity(
-                sessionId = DEFAULT_SESSION_ID,
-                label = "Default Session",
-                createdAt = Clock.System.now(),
-            )
-            log(TAG) { "Default session will be created: $defaultSession" }
-        }
-        storage.dao.upsertSession(defaultSession)
+    private suspend fun doSaveUiState() {
+        val session = storage.dao.getSession(DEFAULT_SESSION_ID) ?: newDefaultSession()
+        val uiState = buildUiState(workspaceRepo.state.first())
+        storage.dao.upsertSession(session.copy(updatedAt = Clock.System.now(), uiState = uiState))
+        log(TAG) { "Saved UI state: focused=${uiState.focusedWorkspaceId}, scroll=${uiState.scrollPositions.size}" }
+    }
 
-        // Pull workspace data
-        val repoState = workspaceRepo.state.first()
-        val workspacesToSave = repoState.infos.filter { !it.isSubWorkspace }
+    private fun newDefaultSession() = WorkspaceSessionEntity(
+        sessionId = DEFAULT_SESSION_ID,
+        label = "Default Session",
+        createdAt = Clock.System.now(),
+    )
 
-        // Pull UI state
-        val uiState = workspacePageManager.state.first()
-        val now = Clock.System.now()
-
-        // Sub-workspaces (modal pickers/exports) are transient and not persisted, so a focus that
-        // currently points at one must be resolved up to its owning tab — otherwise restore falls
-        // back to an arbitrary tab and clobbers the wrong pane.
+    /**
+     * The session row's UI payload, shared by both writers so the focus/pane resolution exists once.
+     *
+     * Sub-workspaces (modal pickers/exports) are transient and not persisted, so a focus that
+     * currently points at one must be resolved up to its owning tab — otherwise restore falls back
+     * to an arbitrary tab and clobbers the wrong pane. Scroll slots are pruned to the workspaces
+     * being saved so closed tabs never linger.
+     */
+    private suspend fun buildUiState(repoState: WorkspaceRemote.State): WorkspaceUIState {
+        val pageState = workspacePageManager.state.first()
         val infosById = repoState.infos.associateBy { it.id }
+
         val focusToPersist = run {
-            val id = uiState.focusedWorkspaceId ?: return@run null
+            val id = pageState.focusedWorkspaceId ?: return@run null
             var current = infosById[id] ?: return@run id
             val visited = mutableSetOf<Workspace.Id>()
             while (current.isSubWorkspace) {
@@ -205,16 +245,52 @@ class WorkspaceSessionManager @Inject constructor(
             current.id
         }
 
+        val savedIds = repoState.infos.filter { !it.isSubWorkspace }.map { it.id }.toSet()
+
+        return WorkspaceUIState(
+            focusedWorkspaceId = focusToPersist,
+            paneSelections = pageState.selectedWorkspaces,
+            scrollPositions = scrollPositions.snapshot().filterKeys { it in savedIds },
+        )
+    }
+
+    private suspend fun isSavingAllowed(): Boolean {
+        val restorationState = _state.value
+        if (restorationState == State.Restoring) {
+            log(TAG) { "Session restoration in progress, skipping save" }
+            return false
+        }
+        if (restorationState is State.Error) {
+            log(TAG, WARN) { "Session restoration failed, skipping save to preserve saved session" }
+            return false
+        }
+        return workspaceSettings.sessionRestoreEnabled.value()
+    }
+
+    private suspend fun doSaveSession() {
+        log(TAG, INFO) { "Saving session" }
+
+        var defaultSession = storage.dao.getSession(DEFAULT_SESSION_ID)
+        if (defaultSession == null) {
+            defaultSession = newDefaultSession()
+            log(TAG) { "Default session will be created: $defaultSession" }
+        }
+        storage.dao.upsertSession(defaultSession)
+
+        // Pull workspace data
+        val repoState = workspaceRepo.state.first()
+        val workspacesToSave = repoState.infos.filter { !it.isSubWorkspace }
+
+        val uiState = buildUiState(repoState)
+        val now = Clock.System.now()
+
         // Perform incremental save within transaction
         storage.database.withTransaction {
             // 1. Upsert session metadata (including UI state)
             storage.dao.upsertSession(
                 defaultSession.copy(
                     updatedAt = now,
-                    uiState = WorkspaceUIState(
-                        focusedWorkspaceId = focusToPersist,
-                        paneSelections = uiState.selectedWorkspaces,
-                    ),
+                    uiState = uiState,
                 )
             )
 
@@ -317,6 +393,12 @@ class WorkspaceSessionManager @Inject constructor(
 
         val candidates = buildRestoreCandidates(workspaceEntities)
 
+        // Seed scroll positions BEFORE any workspace is registered: registering makes it visible to
+        // WorkspacesViewModel and the pager composes its page right away. With an empty registry the
+        // page would resolve "nothing saved", record a zero, and restore() - which refuses to
+        // clobber live slots - would lose to it permanently.
+        scrollPositions.restore(sessionEntity.uiState.scrollPositions)
+
         // Which candidate becomes a real instance: the saved focus if it survived validation,
         // otherwise the first candidate - the same tab applyUIState() would fall back to.
         val onDemand = workspaceSettings.restoreWorkspacesOnDemand.value()
@@ -362,6 +444,12 @@ class WorkspaceSessionManager @Inject constructor(
         }
 
         seedSaveCache(candidates, restoredWorkspaceIds)
+
+        // Prune the seed for anything that did not make it back, so the next save doesn't carry
+        // slots of workspaces that no longer exist.
+        sessionEntity.uiState.scrollPositions.keys
+            .filter { it !in restoredWorkspaceIds }
+            .forEach { scrollPositions.forget(it) }
 
         // Apply saved UI state directly (IDs are preserved)
         applyUIState(
@@ -587,6 +675,7 @@ class WorkspaceSessionManager @Inject constructor(
     }
 
     companion object {
+        private const val SCROLL_SAVE_DEBOUNCE_MS = 2_000L
         private val TAG = logTag("Workspace", "Session", "Manager")
     }
 }

@@ -3,6 +3,7 @@ package eu.darken.butler.workspace.ui.manager.preview
 import android.content.Context
 import android.graphics.Bitmap
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.ui.unit.DpSize
 import androidx.lifecycle.ViewModelStoreOwner
 import eu.darken.butler.common.coroutine.DispatcherProvider
@@ -19,6 +20,8 @@ import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.LocalWorkspacePageHosts
 import eu.darken.butler.workspace.ui.WorkspacePageHostEntry
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.scroll.LocalWorkspaceScrollPositions
+import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPositions
 import eu.darken.butler.workspace.ui.workspaces.WorkspaceMapper
 import eu.darken.butler.workspace.ui.workspaces.WorkspacePaneInfo
 import kotlinx.coroutines.withContext
@@ -63,10 +66,14 @@ class WorkspacePreviewCaptureService @Inject constructor(
                 // Offscreen capture renders in a detached composition that doesn't inherit the
                 // app's locals, so the page host map must be re-provided here or every preview
                 // falls back to "no page host registered" error content.
-                // Disable focus during preview capture to prevent keyboard from showing
+                // Disable focus during preview capture to prevent keyboard from showing.
+                // The scroll registry is deliberately a fresh detached one: this composes real
+                // pages, which would otherwise read and clobber the live scroll positions.
+                val previewScrollPositions = remember { WorkspaceScrollPositions() }
                 CompositionLocalProvider(
                     LocalWorkspaceFocused provides false,
                     LocalWorkspacePageHosts provides pageHosts,
+                    LocalWorkspaceScrollPositions provides previewScrollPositions,
                 ) {
                     ButlerTheme(state = themeState) {
                         WorkspaceMapper(
