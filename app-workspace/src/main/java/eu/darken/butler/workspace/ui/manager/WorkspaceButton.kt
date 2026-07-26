@@ -15,15 +15,6 @@ import androidx.compose.foundation.layout.visible
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.Add
-import androidx.compose.material.icons.twotone.Close
-import androidx.compose.material.icons.twotone.Settings
-import androidx.compose.material.icons.twotone.Workspaces
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,7 +29,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
@@ -47,12 +37,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import eu.darken.butler.common.compose.ButlerMascot
 import eu.darken.butler.common.compose.ButlerMascotMode
-import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
-import eu.darken.butler.common.compose.LongClickableDropdownMenuItem
 import eu.darken.butler.common.compose.Preview2
-import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonDefaults.sizeCompact
@@ -98,93 +84,14 @@ fun WorkspaceButton(
             )
         }
 
-        // Dropdown menu
-        DropdownMenu(
+        WorkspaceButtonMenu(
             expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            state?.quickCreateItems?.forEach { item ->
-                DropdownMenuItem(
-                    text = {
-                        Text(
-                            stringResource(
-                                R.string.workspace_button_menu_new_workspace_format,
-                                item.title.asComposable(),
-                            )
-                        )
-                    },
-                    onClick = {
-                        expanded = false
-                        provider.createWorkspace(item)
-                    },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = item.icon,
-                            contentDescription = null,
-                        )
-                    },
-                )
-            }
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.workspace_button_menu_more_workspaces_action)) },
-                onClick = {
-                    expanded = false
-                    provider?.createTemplatesWorkspace()
-                },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.TwoTone.Add,
-                        contentDescription = null,
-                    )
-                },
-            )
-            HorizontalDivider()
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.workspace_button_menu_manager_action)) },
-                onClick = {
-                    expanded = false
-                    provider?.navToWorkspaceManager()
-                },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.TwoTone.Workspaces,
-                        contentDescription = null
-                    )
-                }
-            )
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.workspace_button_menu_settings_action)) },
-                onClick = {
-                    expanded = false
-                    provider?.navToSettings()
-                },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.TwoTone.Settings,
-                        contentDescription = null
-                    )
-                }
-            )
-            if (currentWorkspaceId != null) {
-                LongClickableDropdownMenuItem(
-                    text = stringResource(R.string.workspace_button_menu_close_current_action),
-                    onClick = {
-                        expanded = false
-                        provider?.executeWorkspaceAction(WorkspaceAction.Close(currentWorkspaceId))
-                    },
-                    onLongClick = {
-                        expanded = false
-                        showCloseAllDialog = true
-                    },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.TwoTone.Close,
-                            contentDescription = null,
-                        )
-                    },
-                )
-            }
-        }
+            onDismissRequest = { expanded = false },
+            state = state,
+            currentWorkspaceId = currentWorkspaceId,
+            provider = provider,
+            onCloseAllRequested = { showCloseAllDialog = true },
+        )
 
         // Close all confirmation dialog
         CloseAllWorkspacesDialog(

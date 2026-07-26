@@ -31,14 +31,14 @@ sealed interface WorkspaceAction {
     }
 
     /**
-     * Registers a lightweight dormant stand-in for a saved workspace: the entry occupies its slot in
+     * Registers a lightweight paused stand-in for a saved workspace: the entry occupies its slot in
      * the workspace list (tabs, reorder, close, session saving, quota accounting) while holding only
-     * its [arguments], performing no I/O until [Hydrate] swaps in the real instance.
+     * its [arguments], performing no I/O until [Resume] swaps in the real instance.
      *
      * Restore-only semantics are baked in: appended in restore order, never auto-focused, never a
      * replace, and — like a restoring [Create] with `skipLimitCheck` — not limit checked.
      */
-    data class RegisterDormant(
+    data class RegisterPaused(
         val id: Workspace.Id,
         val type: Workspace.Type,
         val arguments: Workspace.Arguments,
@@ -50,21 +50,58 @@ sealed interface WorkspaceAction {
     }
 
     /**
-     * Replaces a dormant stand-in with its real instance in place: same [Workspace.Id], same list
+     * Replaces a paused stand-in with its real instance in place: same [Workspace.Id], same list
      * position, so focus, pane selections and tab identity survive. Idempotent — an unknown or
-     * already hydrated id resolves to [Result.NoOp].
+     * already resumed id resolves to [Result.NoOp].
      */
-    data class Hydrate(
+    data class Resume(
         val id: Workspace.Id,
     ) : WorkspaceAction {
         sealed interface Result : WorkspaceAction.Result {
             data class Success(val newId: Workspace.Id) : Result
 
-            /** The id is unknown or its workspace is not dormant; nothing to do. */
+            /** The id is unknown or its workspace is not paused; nothing to do. */
             data object NoOp : Result
 
             /** Instantiation failed; the stand-in is kept and reports the error. */
             data class Failed(val error: Throwable) : Result
+        }
+    }
+
+    /**
+     * Releases a live workspace's instance to free memory and battery, replacing it in place with a
+     * paused stand-in that holds the arguments captured from its CURRENT state. Same [Workspace.Id],
+     * same list position, same focus and pane assignments — only the instance goes away, so no
+     * [WorkspaceEvent] is emitted. [Resume] brings it back.
+     *
+     * Refused whenever pausing would lose something: sub-workspaces and workspaces with children,
+     * a held content-path claim, running operations, unsaved changes, a workspace that isn't
+     * [Workspace.Info.isPausable], and anything not yet in [Workspace.LifecycleState.Ready].
+     */
+    data class Pause(
+        val id: Workspace.Id,
+    ) : WorkspaceAction {
+        sealed interface Result : WorkspaceAction.Result {
+            data class Success(val id: Workspace.Id) : Result
+
+            /** The id is unknown, or its workspace is already paused; nothing to do. */
+            data object NoOp : Result
+
+            data class Refused(val reason: Reason) : Result
+
+            /** Capturing the arguments failed before any state change; the workspace is still live. */
+            data class Failed(val error: Throwable) : Result
+        }
+
+        enum class Reason {
+            SUB_WORKSPACE,
+            HAS_CHILDREN,
+            BUSY,
+            UNSAVED_CHANGES,
+            NOT_PAUSABLE,
+            NOT_READY,
+            CLAIM_HELD,
+            ;
         }
     }
 

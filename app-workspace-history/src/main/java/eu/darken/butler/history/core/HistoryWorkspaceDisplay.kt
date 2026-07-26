@@ -8,7 +8,7 @@ import eu.darken.butler.workspace.core.WorkspaceDisplay
 /**
  * Tab identity of a History workspace derived from its arguments alone. The live tab publishes a
  * subtitle on every emission, so the derivation carries one too — otherwise the subtitle would
- * appear the moment a dormant tab is restored.
+ * appear the moment a paused tab is restored.
  */
 fun deriveHistoryDisplay(arguments: HistoryArguments) = WorkspaceDisplay(
     title = HistoryWorkspace.derivedTitle(arguments.filter),

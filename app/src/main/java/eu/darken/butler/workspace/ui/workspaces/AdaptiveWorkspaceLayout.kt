@@ -150,8 +150,8 @@ fun AdaptiveWorkspaceLayout(
                                         WorkspaceAction.Close(workspaceId)
                                     )
                                 },
-                                onRestoreWorkspace = { workspaceId ->
-                                    onScreenAction(WorkspaceScreenAction.RestoreDormant(workspaceId))
+                                onResumeWorkspace = { workspaceId ->
+                                    onScreenAction(WorkspaceScreenAction.ResumeWorkspace(workspaceId))
                                 },
                             )
                         }

@@ -33,7 +33,7 @@ import org.robolectric.annotation.Config
 import testhelpers.coroutine.TestDispatcherProvider
 
 /**
- * The live workspace must publish its [Workspace.Info] through the same derivation the dormant
+ * The live workspace must publish its [Workspace.Info] through the same derivation the paused
  * stand-in uses - at the seed AND on every later query or target change - otherwise a restored tab
  * disagrees with its stand-in, or keeps advertising state it no longer holds.
  */

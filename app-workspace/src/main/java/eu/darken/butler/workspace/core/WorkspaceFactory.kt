@@ -34,13 +34,13 @@ interface WorkspaceFactory<ArgT : Workspace.Arguments> {
     val argumentsSerializer: KSerializer<ArgT>
 
     /**
-     * Identity for [arguments] without instantiating the workspace, so a dormant stand-in can name
+     * Identity for [arguments] without instantiating the workspace, so a paused stand-in can name
      * itself the way its live counterpart does.
      *
      * MUST be synchronous and side-effect free: no filesystem, PackageManager or ContentResolver
      * access. It runs during session restore and while seeding [Workspace.Info]. The workspace type
      * that owns the arguments implements this once and uses it for BOTH this override and its own
-     * `initialInfo` seed, so the dormant and live identities cannot drift.
+     * `initialInfo` seed, so the paused and live identities cannot drift.
      *
      * Returning null (or a [WorkspaceDisplay] with null fields) means the arguments carry nothing
      * identifying and the caller falls back to [Workspace.Type.label].

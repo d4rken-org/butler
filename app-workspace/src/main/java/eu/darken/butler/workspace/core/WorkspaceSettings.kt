@@ -14,6 +14,9 @@ import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
 
 @Singleton
 class WorkspaceSettings @Inject constructor(
@@ -43,7 +46,13 @@ class WorkspaceSettings @Inject constructor(
 
     val sessionRestoreEnabled = dataStore.createValue("workspace.session.restore.enabled", true)
 
-    val restoreWorkspacesOnDemand = dataStore.createValue("workspace.session.restore.ondemand", true)
+    val autoPauseEnabled = dataStore.createValue("workspace.session.autopause.enabled", true)
+
+    val autoPauseIdleTimeout = dataStore.createValue(
+        "workspace.session.autopause.timeout",
+        AUTO_PAUSE_IDLE_TIMEOUT_DEFAULT,
+        json,
+    )
 
     override val mapper = PreferenceStoreMapper(
         debugSettings.isDebugMode,
@@ -55,10 +64,22 @@ class WorkspaceSettings @Inject constructor(
         layoutModePortrait,
         layoutModeLandscape,
         sessionRestoreEnabled,
-        restoreWorkspacesOnDemand,
+        autoPauseEnabled,
+        autoPauseIdleTimeout,
     )
 
     companion object {
         internal val TAG = logTag("Workspace", "Settings")
+
+        val AUTO_PAUSE_IDLE_TIMEOUT_DEFAULT = 2.hours
+        val AUTO_PAUSE_IDLE_TIMEOUT_MIN = 15.minutes
+        val AUTO_PAUSE_IDLE_TIMEOUT_MAX = 12.hours
+
+        /**
+         * Keeps a debug-edited or legacy stored value from producing a nonsense threshold (pausing
+         * everything a second after it leaves the screen, or effectively never).
+         */
+        fun clampIdleTimeout(value: Duration): Duration =
+            value.coerceIn(AUTO_PAUSE_IDLE_TIMEOUT_MIN, AUTO_PAUSE_IDLE_TIMEOUT_MAX)
     }
 }

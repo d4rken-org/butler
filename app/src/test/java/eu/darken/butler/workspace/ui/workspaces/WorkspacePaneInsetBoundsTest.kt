@@ -106,7 +106,7 @@ class WorkspacePaneInsetBoundsTest : ComposeTest() {
                             onDismissBanner = {},
                             onShareError = { _, _ -> },
                             onCloseWorkspace = {},
-                            onRestoreWorkspace = {},
+                            onResumeWorkspace = {},
                             paneEdges = paneEdges,
                         )
                     }

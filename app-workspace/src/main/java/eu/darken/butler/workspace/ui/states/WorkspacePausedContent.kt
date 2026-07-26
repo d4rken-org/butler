@@ -39,20 +39,20 @@ import java.io.IOException
 import eu.darken.butler.common.R as CommonR
 
 /**
- * Placeholder for a tab that was restored on demand and has not been loaded yet.
+ * Placeholder for a paused tab: it holds its arguments but has no live instance.
  * [title]/[subtitle] identify the tab from its persisted arguments; a blank or missing title falls
- * back to the workspace type. [error] is set when the last restore attempt failed; the action then
+ * back to the workspace type. [error] is set when the last resume attempt failed; the action then
  * offers a retry.
  */
 @Composable
-fun WorkspaceDormantContent(
+fun WorkspacePausedContent(
     modifier: Modifier = Modifier,
     design: WorkspaceDesign = WorkspaceDesign(),
     type: Workspace.Type,
     title: CaString? = null,
     subtitle: CaString? = null,
     error: Throwable? = null,
-    onRestore: () -> Unit,
+    onResume: () -> Unit,
     currentWorkspaceId: Workspace.Id? = null,
 ) {
     val paneInsets = design.paneInsets()
@@ -100,7 +100,7 @@ fun WorkspaceDormantContent(
 
             Text(
                 text = stringResource(
-                    if (error != null) R.string.workspace_dormant_error_body else R.string.workspace_dormant_body
+                    if (error != null) R.string.workspace_paused_error_body else R.string.workspace_paused_body
                 ),
                 style = MaterialTheme.typography.bodyMedium,
                 color = if (error != null) {
@@ -123,7 +123,7 @@ fun WorkspaceDormantContent(
             }
 
             Button(
-                onClick = onRestore,
+                onClick = onResume,
                 modifier = Modifier.padding(top = 24.dp),
             ) {
                 Text(
@@ -131,7 +131,7 @@ fun WorkspaceDormantContent(
                         if (error != null) {
                             CommonR.string.general_retry_action
                         } else {
-                            R.string.workspace_dormant_restore_action
+                            R.string.workspace_paused_resume_action
                         }
                     )
                 )
@@ -152,13 +152,13 @@ fun WorkspaceDormantContent(
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
-private fun WorkspaceDormantContentPreview() {
+private fun WorkspacePausedContentPreview() {
     CompositionLocalProvider(
         LocalWorkspaceButtonProvider provides FakeWorkspaceButtonProvider()
     ) {
-        WorkspaceDormantContent(
+        WorkspacePausedContent(
             type = Workspace.Type.EXPLORER,
-            onRestore = {},
+            onResume = {},
         )
     }
 }
@@ -166,14 +166,14 @@ private fun WorkspaceDormantContentPreview() {
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
-private fun WorkspaceDormantContentTitlePreview() {
+private fun WorkspacePausedContentTitlePreview() {
     CompositionLocalProvider(
         LocalWorkspaceButtonProvider provides FakeWorkspaceButtonProvider()
     ) {
-        WorkspaceDormantContent(
+        WorkspacePausedContent(
             type = Workspace.Type.EXPLORER,
             title = "/storage/emulated/0/Download".toCaString(),
-            onRestore = {},
+            onResume = {},
         )
     }
 }
@@ -181,15 +181,15 @@ private fun WorkspaceDormantContentTitlePreview() {
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
-private fun WorkspaceDormantContentSubtitlePreview() {
+private fun WorkspacePausedContentSubtitlePreview() {
     CompositionLocalProvider(
         LocalWorkspaceButtonProvider provides FakeWorkspaceButtonProvider()
     ) {
-        WorkspaceDormantContent(
+        WorkspacePausedContent(
             type = Workspace.Type.SEARCHER,
             title = "*.pdf".toCaString(),
             subtitle = "Downloads, Photos +3".toCaString(),
-            onRestore = {},
+            onResume = {},
         )
     }
 }
@@ -197,16 +197,16 @@ private fun WorkspaceDormantContentSubtitlePreview() {
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
-private fun WorkspaceDormantContentErrorPreview() {
+private fun WorkspacePausedContentErrorPreview() {
     CompositionLocalProvider(
         LocalWorkspaceButtonProvider provides FakeWorkspaceButtonProvider()
     ) {
-        WorkspaceDormantContent(
+        WorkspacePausedContent(
             type = Workspace.Type.EDITOR,
             title = "config.json".toCaString(),
             subtitle = "/storage/emulated/0/config.json".toCaString(),
-            error = IOException("Failed to restore tab: Permission denied"),
-            onRestore = {},
+            error = IOException("Failed to resume tab: Permission denied"),
+            onResume = {},
         )
     }
 }

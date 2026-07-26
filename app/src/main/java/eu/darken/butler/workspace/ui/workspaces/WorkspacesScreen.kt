@@ -284,6 +284,8 @@ fun WorkspacesScreenHost(
                     onCloseWorkspace = managerVm::closeWorkspace,
                     onReorderWorkspaces = managerVm::reorderWorkspaces,
                     onSelectWorkspace = managerVm::selectWorkspace,
+                    onPauseWorkspace = managerVm::pauseWorkspace,
+                    onResumeWorkspace = managerVm::resumeWorkspace,
                     onCreateWorkspace = managerVm::createWorkspace,
                     onQuickCreate = managerVm::createWorkspace,
                     onNavigateBack = managerVm::navigateBack,

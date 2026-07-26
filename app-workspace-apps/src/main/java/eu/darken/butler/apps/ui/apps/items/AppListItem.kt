@@ -78,10 +78,13 @@ fun AppListItem(
                 )
             } else {
                 if (item.icon != null) {
+                    val fallbackPainter = rememberAppIconFallbackPainter()
                     AsyncImage(
-                        model = item.icon.get(context),
+                        model = item.pkg,
                         contentDescription = null,
                         modifier = Modifier.size(40.dp),
+                        placeholder = fallbackPainter,
+                        error = fallbackPainter,
                     )
                 } else {
                     Icon(

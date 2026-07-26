@@ -4,9 +4,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Add
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.ButlerMascotMode
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -36,11 +38,14 @@ class WorkspaceButtonTest : ComposeTest() {
         state: WorkspaceButtonViewModel.State,
     ) : WorkspaceButtonProvider {
         val created = mutableListOf<QuickCreateItem>()
+        val actions = mutableListOf<WorkspaceAction>()
         var templatesCreated = 0
+        var managerNavigations = 0
+        var settingsNavigations = 0
         override val state: Flow<WorkspaceButtonViewModel.State> = flowOf(state)
-        override fun executeWorkspaceAction(action: WorkspaceAction) {}
-        override fun navToWorkspaceManager() {}
-        override fun navToSettings() {}
+        override fun executeWorkspaceAction(action: WorkspaceAction) { actions += action }
+        override fun navToWorkspaceManager() { managerNavigations++ }
+        override fun navToSettings() { settingsNavigations++ }
         override fun navToUpgradeButler() {}
         override fun createWorkspace(item: QuickCreateItem) { created += item }
         override fun createTemplatesWorkspace() { templatesCreated++ }
@@ -220,45 +225,77 @@ class WorkspaceButtonTest : ComposeTest() {
         composeTestRule.onNodeWithText("0").assertDoesNotExist()
     }
 
+    private fun setContent(
+        provider: RecordingButtonProvider,
+        currentWorkspaceId: Workspace.Id? = null,
+    ) {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                CompositionLocalProvider(LocalWorkspaceButtonProvider provides provider) {
+                    WorkspaceButton(
+                        mascotVariant = testMascotVariant,
+                        currentWorkspaceId = currentWorkspaceId,
+                    )
+                }
+            }
+        }
+    }
+
     @Test
-    fun `quick-create rows and More row are shown alongside existing items`() {
+    fun `recent rows and the new tab row are shown alongside existing items`() {
         val provider = RecordingButtonProvider(
             WorkspaceButtonViewModel.State(
-                quickCreateItems = listOf(
+                recentItems = listOf(
                     quickItem(Workspace.Type.EXPLORER, "Explorer"),
                     quickItem(Workspace.Type.SEARCHER, "Searcher"),
                 ),
             )
         )
-        composeTestRule.setContent {
-            PreviewWrapper {
-                CompositionLocalProvider(LocalWorkspaceButtonProvider provides provider) {
-                    WorkspaceButton(mascotVariant = testMascotVariant)
-                }
-            }
-        }
+        setContent(provider)
 
         openMenu()
 
         composeTestRule.onNodeWithText("New Explorer").assertIsDisplayed()
         composeTestRule.onNodeWithText("New Searcher").assertIsDisplayed()
-        composeTestRule.onNodeWithText("More…").assertIsDisplayed()
+        composeTestRule.onNodeWithText("New tab").assertIsDisplayed()
         composeTestRule.onNodeWithText("Tab manager").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Settings").assertIsDisplayed()
     }
 
     @Test
-    fun `clicking a quick-create row creates that workspace`() {
+    fun `category headers group the menu`() {
+        val provider = RecordingButtonProvider(
+            WorkspaceButtonViewModel.State(
+                recentItems = listOf(quickItem(Workspace.Type.EXPLORER, "Explorer")),
+            )
+        )
+        setContent(provider, currentWorkspaceId = Workspace.Id())
+
+        openMenu()
+
+        composeTestRule.onNodeWithText("Recently").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Other").assertIsDisplayed()
+        composeTestRule.onNodeWithText("This tab").assertIsDisplayed()
+    }
+
+    @Test
+    fun `the recently header is hidden while there are no recent items`() {
+        val provider = RecordingButtonProvider(WorkspaceButtonViewModel.State())
+        setContent(provider, currentWorkspaceId = Workspace.Id())
+
+        openMenu()
+
+        composeTestRule.onNodeWithText("Recently").assertDoesNotExist()
+        composeTestRule.onNodeWithText("Other").assertIsDisplayed()
+    }
+
+    @Test
+    fun `clicking a recent row creates that workspace`() {
         val explorer = quickItem(Workspace.Type.EXPLORER, "Explorer")
         val provider = RecordingButtonProvider(
-            WorkspaceButtonViewModel.State(quickCreateItems = listOf(explorer))
+            WorkspaceButtonViewModel.State(recentItems = listOf(explorer))
         )
-        composeTestRule.setContent {
-            PreviewWrapper {
-                CompositionLocalProvider(LocalWorkspaceButtonProvider provides provider) {
-                    WorkspaceButton(mascotVariant = testMascotVariant)
-                }
-            }
-        }
+        setContent(provider)
 
         openMenu()
         composeTestRule.onNodeWithText("New Explorer").performClick()
@@ -267,39 +304,69 @@ class WorkspaceButtonTest : ComposeTest() {
     }
 
     @Test
-    fun `clicking More creates the templates picker`() {
+    fun `clicking new tab creates the templates picker`() {
         val provider = RecordingButtonProvider(
             WorkspaceButtonViewModel.State(
-                quickCreateItems = listOf(quickItem(Workspace.Type.EXPLORER, "Explorer")),
+                recentItems = listOf(quickItem(Workspace.Type.EXPLORER, "Explorer")),
             )
         )
-        composeTestRule.setContent {
-            PreviewWrapper {
-                CompositionLocalProvider(LocalWorkspaceButtonProvider provides provider) {
-                    WorkspaceButton(mascotVariant = testMascotVariant)
-                }
-            }
-        }
+        setContent(provider)
 
         openMenu()
-        composeTestRule.onNodeWithText("More…").performClick()
+        composeTestRule.onNodeWithText("New tab").performClick()
 
         provider.templatesCreated shouldBe 1
     }
 
     @Test
+    fun `tab manager and settings rows still navigate`() {
+        val provider = RecordingButtonProvider(WorkspaceButtonViewModel.State())
+        setContent(provider)
+
+        openMenu()
+        composeTestRule.onNodeWithText("Tab manager").performClick()
+
+        openMenu()
+        composeTestRule.onNodeWithText("Settings").performClick()
+
+        provider.managerNavigations shouldBe 1
+        provider.settingsNavigations shouldBe 1
+    }
+
+    @Test
     fun `close current is hidden when there is no current workspace`() {
         val provider = RecordingButtonProvider(WorkspaceButtonViewModel.State())
-        composeTestRule.setContent {
-            PreviewWrapper {
-                CompositionLocalProvider(LocalWorkspaceButtonProvider provides provider) {
-                    WorkspaceButton(mascotVariant = testMascotVariant, currentWorkspaceId = null)
-                }
-            }
-        }
+        setContent(provider, currentWorkspaceId = null)
 
         openMenu()
 
+        composeTestRule.onNodeWithText("This tab").assertDoesNotExist()
         composeTestRule.onNodeWithText("Close current tab").assertDoesNotExist()
+    }
+
+    @Test
+    fun `close current closes exactly the current workspace`() {
+        val currentId = Workspace.Id()
+        val provider = RecordingButtonProvider(WorkspaceButtonViewModel.State(workspaceCount = 2))
+        setContent(provider, currentWorkspaceId = currentId)
+
+        openMenu()
+        composeTestRule.onNodeWithText("Close current tab").performClick()
+
+        provider.actions shouldBe listOf(WorkspaceAction.Close(currentId))
+    }
+
+    @Test
+    fun `long-pressing close current confirms closing all workspaces`() {
+        val provider = RecordingButtonProvider(WorkspaceButtonViewModel.State(workspaceCount = 3))
+        setContent(provider, currentWorkspaceId = Workspace.Id())
+
+        openMenu()
+        composeTestRule.onNodeWithText("Close current tab").performTouchInput { longClick() }
+
+        composeTestRule.onNodeWithText("Close all tabs?").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Close all").performClick()
+
+        provider.actions shouldBe listOf(WorkspaceAction.CloseAll)
     }
 }

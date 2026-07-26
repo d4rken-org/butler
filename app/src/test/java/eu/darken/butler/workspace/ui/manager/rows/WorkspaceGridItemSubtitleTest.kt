@@ -19,7 +19,7 @@ import sh.calvin.reorderable.ReorderableCollectionItemScope
 import testhelpers.ComposeTest
 
 /**
- * The manager grid is the screen used to pick which dormant tab to restore, so it must show the
+ * The manager grid is the screen used to pick which paused tab to restore, so it must show the
  * identity — and must not draw an empty second line for workspaces that publish a blank subtitle.
  */
 class WorkspaceGridItemSubtitleTest : ComposeTest() {

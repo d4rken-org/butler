@@ -44,8 +44,8 @@ class ExplorerWorkspaceDisplayTest {
     }
 
     @Test
-    fun `a target that describes itself keeps that description while dormant`() {
-        // Trash publishes a second line once loaded; the dormant tab must show the same one
+    fun `a target that describes itself keeps that description while paused`() {
+        // Trash publishes a second line once loaded; the paused tab must show the same one
         val display = deriveExplorerDisplay(ExplorerArguments.Default(startTarget = ExplorerStartTarget.TRASH))
 
         display!!.subtitle!!.get(context) shouldBe context.getString(R.string.explorer_navigation_trash_desc)
@@ -70,7 +70,7 @@ class ExplorerWorkspaceDisplayTest {
 
         val display = deriveExplorerDisplay(arguments)
 
-        // The tab must be named after the location hydration will actually open
+        // The tab must be named after the location resuming it will actually open
         display!!.title!!.get(context) shouldBe "/storage/emulated/0/Download"
         display.title!!.get(context) shouldBe explorerStartTarget(
             startPath = arguments.startPath,
