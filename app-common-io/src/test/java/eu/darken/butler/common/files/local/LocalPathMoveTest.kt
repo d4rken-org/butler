@@ -20,10 +20,13 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import testhelpers.BaseTest
+import testhelpers.TestClock
 import testhelpers.shouldContainPath
 import testhelpers.toPathPairs
 import java.io.File
 import java.nio.file.Files
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
 
 class LocalPathMoveTest : BaseTest() {
 
@@ -1289,36 +1292,39 @@ class LocalPathMoveTest : BaseTest() {
 
     @Test
     fun `progress callbacks should be throttled to reduce UI spam`(@TempDir tempDir: File) = runTest {
-        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
-        val destFolder = File(tempDir, "dest").apply { mkdirs() }
-        // Given - file large enough to generate many chunks (64KB buffer = ~20 chunks)
-        val sourceFile = File(sourceFolder, "large.bin")
-        sourceFile.writeBytes(ByteArray(1024 * 1024 * 2)) // 2MB file
+        // Given - file large enough to generate many chunks (64KB buffer = ~32 chunks)
+        suspend fun moveRun(name: String, clock: Clock): Int {
+            val sourceFolder = File(tempDir, "$name-source").apply { mkdirs() }
+            val destFolder = File(tempDir, "$name-dest").apply { mkdirs() }
+            val sourceFile = File(sourceFolder, "large.bin")
+            sourceFile.writeBytes(ByteArray(1024 * 1024 * 2)) // 2MB file
 
-        val progressTimestamps = mutableListOf<Long>()
-        val startTime = System.currentTimeMillis()
-
-        // When
-        LocalPath.build(sourceFile).move(
-            ops,
-            destination = LocalPath.build(destFolder),
-        ).onEach { state ->
-            if (state is MoveAction.State.Active) {
-                progressTimestamps.add(System.currentTimeMillis() - startTime)
-            }
-        }.last()
-
-        // Then - should have significantly fewer callbacks than chunks (2MB / 64KB = ~32 chunks)
-        // With 250ms throttling, expect ~4-20 callbacks depending on speed
-        progressTimestamps.size should { it < 40 }
-
-        // Verify time intervals between callbacks (except possibly the last)
-        if (progressTimestamps.size > 2) {
-            val intervals = progressTimestamps.zipWithNext { a, b -> b - a }
-            // Most intervals should respect the 250ms throttle (allow some variance)
-            val throttledIntervals = intervals.dropLast(1).count { it >= 200 }
-            throttledIntervals should { it >= intervals.size / 2 }
+            var actives = 0
+            LocalPath.build(sourceFile).move(
+                ops,
+                destination = LocalPath.build(destFolder),
+                progressClock = clock,
+            ).onEach { state ->
+                if (state is MoveAction.State.Active) actives++
+            }.last()
+            return actives
         }
+
+        // When - time never advances, so every tick inside the report interval is dropped ...
+        val throttled = moveRun("throttled", TestClock())
+        // ... and when the interval elapses before every tick, nothing is dropped.
+        val unthrottled = moveRun("unthrottled", TestClock(autoAdvance = 1.seconds))
+        // Real clock, default production wiring
+        val realClock = moveRun("realclock", Clock.System)
+
+        // Then - the exact retained set: throttling is what keeps these numbers apart. If the
+        // operation stopped routing progress through PathOperationProgressTracker both runs would
+        // report the same amount of progress states.
+        // 1 scan + 1 forced final report, the throttleable tick dropped
+        throttled shouldBe 2
+        // ... plus the throttleable tick (a same-filesystem move renames, it has no chunk ticks)
+        unthrottled shouldBe 3
+        realClock should { it in throttled..unthrottled }
     }
 
     @Test

@@ -2,7 +2,6 @@ package eu.darken.butler.explorer.ui.explorer.dialogs
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.DeleteForever
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -14,6 +13,7 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.explorer.R
+import eu.darken.butler.workspace.ui.dialogs.PaneBoundAlertDialog
 import eu.darken.butler.common.R as CommonR
 
 @Composable
@@ -21,7 +21,7 @@ fun EmptyTrashConfirmationDialog(
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
 ) {
-    AlertDialog(
+    PaneBoundAlertDialog(
         onDismissRequest = onDismiss,
         icon = {
             Icon(

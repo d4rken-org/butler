@@ -8,18 +8,20 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.explorer.ui.explorer.dialogs.AddDeviceStorageSheet
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogHost
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
+import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.ui.insets.paneInsets
 import eu.darken.butler.workspace.ui.issues.IssuesBottomSheet
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
-import eu.darken.butler.workspace.ui.operations.details.CancelOperationConfirmationDialog
+import eu.darken.butler.workspace.ui.operations.details.CancelOperationConfirmationHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
 
@@ -27,8 +29,10 @@ import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
  * Overlay slot of the explorer page.
  *
  * Shares the ViewModel with [ExplorerWorkspacePageHost] — the SAF picker launcher, the share and
- * toast event collectors and the error/navigation handlers all stay there and must not be repeated
- * here.
+ * toast event collectors and the navigation handler all stay there and must not be repeated here.
+ *
+ * The error handler is the exception: it renders a dialog, so it has to live in this slot to be
+ * pane-bound. It is collected here and nowhere else.
  */
 @Composable
 fun ExplorerWorkspaceOverlaysHost(
@@ -51,13 +55,17 @@ fun ExplorerWorkspaceOverlaysHost(
         design = design,
         dialogState = state?.dialogState ?: ExplorerDialogState.None,
         trashEnabled = state?.trashEnabled == true,
-        operationsState = operationsState ?: OperationsDisplayState(),
+        operationsState = operationsState,
         operationDialogState = operationDialogState,
         cancelConfirmationFor = cancelConfirmation,
         issue = issueState.takeIf { showIssueSheet },
         showAddStorageSheet = showAddStorageSheet,
         vm = vm,
     )
+
+    // Last on purpose: layers stack in composition order, so an error raised while one of
+    // this page's own dialogs is up lands on top of it instead of underneath.
+    ErrorEventHandler(vm)
 }
 
 @Composable
@@ -65,7 +73,9 @@ fun ExplorerWorkspaceOverlays(
     design: WorkspaceDesign = WorkspaceDesign(),
     dialogState: ExplorerDialogState = ExplorerDialogState.None,
     trashEnabled: Boolean = false,
-    operationsState: OperationsDisplayState = OperationsDisplayState(),
+    // Null while the operations flow has not emitted; the cancel confirmation needs to tell that
+    // apart from an empty list.
+    operationsState: OperationsDisplayState? = OperationsDisplayState(),
     operationDialogState: OperationDialogState = OperationDialogState.None,
     cancelConfirmationFor: Operation.Id? = null,
     issue: Issue? = null,
@@ -86,7 +96,7 @@ fun ExplorerWorkspaceOverlays(
 
     OperationDialogHost(
         dialogState = operationDialogState,
-        operations = operationsState.operations,
+        operations = operationsState?.operations.orEmpty(),
         onDismissDialog = { vm?.dismissOperationDialog() },
         onCancelOperation = { operationId -> vm?.requestCancelOperation(operationId) },
         onShareError = { vm?.shareError(it) },
@@ -116,15 +126,15 @@ fun ExplorerWorkspaceOverlays(
         )
     }
 
-    cancelConfirmationFor?.let { operationId ->
-        CancelOperationConfirmationDialog(
-            onDismiss = { vm?.dismissCancelOperationConfirmation() },
-            onConfirm = {
-                vm?.cancelOperation(operationId)
-                vm?.dismissCancelOperationConfirmation()
-            },
-        )
-    }
+    CancelOperationConfirmationHost(
+        pendingId = cancelConfirmationFor,
+        operations = operationsState?.operations,
+        onDismiss = { vm?.dismissCancelOperationConfirmation() },
+        onConfirm = { operationId ->
+            vm?.cancelOperation(operationId)
+            vm?.dismissCancelOperationConfirmation()
+        },
+    )
 }
 
 @Preview2
@@ -147,5 +157,9 @@ private fun ExplorerWorkspaceOverlaysRenamePreview() {
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ExplorerWorkspaceOverlaysCancelOperationPreview() {
-    ExplorerWorkspaceOverlays(cancelConfirmationFor = Operation.Id())
+    val operation = MockDataProvider.createMockRunningOperation()
+    ExplorerWorkspaceOverlays(
+        operationsState = OperationsDisplayState(operations = listOf(operation)),
+        cancelConfirmationFor = operation.id,
+    )
 }

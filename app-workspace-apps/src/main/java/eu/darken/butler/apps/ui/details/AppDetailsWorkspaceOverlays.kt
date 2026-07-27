@@ -13,6 +13,7 @@ import eu.darken.butler.apps.ui.details.components.ComponentDetailsSheet
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.insets.paneInsets
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
@@ -23,8 +24,9 @@ import kotlinx.coroutines.flow.flowOf
 /**
  * Overlay slot of the app details page.
  *
- * Shares the ViewModel with [AppDetailsWorkspacePageHost]; the error and navigation handlers stay
- * there, or every event would be handled twice.
+ * Shares the ViewModel with [AppDetailsWorkspacePageHost]; the navigation handler stays there, or
+ * every event would be handled twice. The error handler is the exception — it renders a dialog, so
+ * it has to live in this slot to be pane-bound, and it is collected here and nowhere else.
  */
 @Composable
 fun AppDetailsWorkspaceOverlaysHost(
@@ -41,6 +43,10 @@ fun AppDetailsWorkspaceOverlaysHost(
         onDismiss = vm::onComponentSheetDismissed,
         onLaunch = { vm.onLaunchComponent(packageName = it.packageName, className = it.className) },
     )
+
+    // Last on purpose: layers stack in composition order, so an error raised while one of this
+    // page's own overlays is up lands on top of it instead of underneath.
+    ErrorEventHandler(vm)
 }
 
 @Composable

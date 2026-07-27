@@ -8,6 +8,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.history.HistoryFilter
@@ -18,7 +19,8 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 /**
  * Overlay slot of the history page.
  *
- * Shares the ViewModel with [HistoryWorkspacePageHost]; the error handler stays there.
+ * Shares the ViewModel with [HistoryWorkspacePageHost]. The error handler lives here rather than in
+ * the page host, because it renders a dialog that has to be pane-bound.
  */
 @Composable
 fun HistoryWorkspaceOverlaysHost(
@@ -48,6 +50,10 @@ fun HistoryWorkspaceOverlaysHost(
             vm.closePathScopePicker()
         },
     )
+
+    // Last on purpose: layers stack in composition order, so an error raised while one of
+    // this page's own dialogs is up lands on top of it instead of underneath.
+    ErrorEventHandler(vm)
 }
 
 @Composable

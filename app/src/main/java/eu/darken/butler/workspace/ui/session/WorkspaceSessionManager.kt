@@ -16,6 +16,7 @@ import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.WorkspaceSettings
 import eu.darken.butler.workspace.core.defaultArguments
+import eu.darken.butler.workspace.core.isForSubWorkspace
 import eu.darken.butler.workspace.core.session.WorkspaceSessionStorage
 import eu.darken.butler.workspace.core.session.WorkspaceSessionStorage.Companion.DEFAULT_SESSION_ID
 import eu.darken.butler.workspace.core.session.db.WorkspaceInstanceEntity
@@ -520,6 +521,18 @@ class WorkspaceSessionManager @Inject constructor(
                         log(TAG, WARN) { "No default arguments for $type, skipping" }
                         return@forEach
                     }
+                }
+
+                // Mirrors the save-side filter: sub-workspaces are transient modals and are never
+                // written, so a row carrying a caller is stale or foreign data. Dropped HERE rather
+                // than at registration because the eagerly restored candidate goes through Create,
+                // which legitimately builds sub-workspaces - a stale row picked as the focus would
+                // otherwise return as a modal overlay covering the UI at launch.
+                if (arguments.isForSubWorkspace) {
+                    log(TAG, WARN) {
+                        "Skipping sub-workspace row during restore (id=${entity.workspaceId}, type=$type)"
+                    }
+                    return@forEach
                 }
 
                 candidates.add(

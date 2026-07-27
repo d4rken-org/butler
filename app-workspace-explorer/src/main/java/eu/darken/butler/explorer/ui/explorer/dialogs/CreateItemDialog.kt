@@ -9,7 +9,6 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
@@ -35,6 +34,8 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.explorer.R
+import eu.darken.butler.workspace.ui.dialogs.PaneBoundAlertDialog
+import eu.darken.butler.workspace.ui.modal.LocalLayerActive
 import eu.darken.butler.common.R as CommonR
 
 enum class CreateItemType {
@@ -60,12 +61,16 @@ fun CreateItemDialog(
     val isError = validation is FilenameValidator.ValidationResult.Invalid
     val trimmedName = remember(name) { name.trim() }
 
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
+    // Only pull focus (and with it the keyboard) while this dialog is the layer the user is
+    // actually talking to — otherwise it steals input from whatever is on top of it.
+    val layerActive = LocalLayerActive.current
+    LaunchedEffect(layerActive) {
+        if (layerActive) focusRequester.requestFocus()
     }
 
-    AlertDialog(
+    PaneBoundAlertDialog(
         onDismissRequest = onDismiss,
+        includeImePadding = true,
         title = {
             Text(
                 text = stringResource(R.string.explorer_dialog_create_title),

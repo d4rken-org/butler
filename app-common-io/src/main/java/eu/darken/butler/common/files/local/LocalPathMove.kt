@@ -9,6 +9,7 @@ import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.local.operations.strategies.LocalPathMoveStrategy
 import eu.darken.butler.common.files.operations.moveGeneric
 import kotlinx.coroutines.flow.Flow
+import kotlin.time.Clock
 
 /**
  * Move extension functions for LocalPath.
@@ -29,13 +30,15 @@ fun LocalPath.move(
     fileSystemOps: LocalFileSystemOps,
     destination: LocalPath,
     options: MoveAction.Options = MoveAction.Options(),
+    progressClock: Clock = Clock.System,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null,
-) = setOf(this).move(fileSystemOps, destination, options, onIssue)
+) = setOf(this).move(fileSystemOps, destination, options, progressClock, onIssue)
 
 fun Collection<LocalPath>.move(
     fileSystemOps: LocalFileSystemOps,
     destination: LocalPath,
     options: MoveAction.Options = MoveAction.Options(),
+    progressClock: Clock = Clock.System,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null,
 ): Flow<MoveAction.State<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>> {
     log(TAG, DEBUG) {
@@ -57,7 +60,8 @@ fun Collection<LocalPath>.move(
         destOps = fileSystemOps,
         strategy = LocalPathMoveStrategy(fileSystemOps),
         options = transferOptions,
-        onIssue = onIssue
+        onIssue = onIssue,
+        progressClock = progressClock,
     )
 }
 

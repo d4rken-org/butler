@@ -22,7 +22,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import eu.darken.butler.common.compose.ButlerChip
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
-import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import androidx.compose.runtime.collectAsState
 import eu.darken.butler.developer.R
@@ -60,7 +59,6 @@ fun DeveloperWorkspacePageHost(
         creationCallback = { factory: Factory -> factory.create(id = id) }
     ),
 ) {
-    ErrorEventHandler(vm)
     NavigationEventHandler(vm)
 
     // Handle share intent events
@@ -104,7 +102,7 @@ fun DeveloperWorkspacePageHost(
             onTestRoot = { vm.testRoot() },
             onTestShizuku = { vm.testShizuku() },
             onHideDeveloperMode = { vm.hideDeveloperMode() },
-            onCancelOperation = { vm.cancelOperation(it) },
+            onRequestCancelOperation = { vm.requestCancelOperation(it) },
             onDismissOperation = { vm.dismissOperation(it) },
             onClearCompletedOperations = { vm.clearCompletedOperations() },
             onShowOperationDetails = { operationId ->
@@ -150,7 +148,7 @@ fun DeveloperWorkspacePage(
     onTestRoot: () -> Unit = {},
     onTestShizuku: () -> Unit = {},
     onHideDeveloperMode: () -> Unit = {},
-    onCancelOperation: (Operation.Id) -> Unit = {},
+    onRequestCancelOperation: (Operation.Id) -> Unit = {},
     onDismissOperation: (Operation.Id) -> Unit = {},
     onClearCompletedOperations: () -> Unit = {},
     onShowOperationDetails: (Operation.Id) -> Unit = {},
@@ -257,7 +255,7 @@ fun DeveloperWorkspacePage(
                     .padding(horizontal = 16.dp)
                     .padding(bottom = navBarInset + 16.dp),
                 operations = operationsState.operations,
-                onCancelOperation = onCancelOperation,
+                onRequestCancelOperation = onRequestCancelOperation,
                 onDismissOperation = onDismissOperation,
                 onOperationClick = { onShowOperationDetails(it.id) },
                 onClearCompleted = onClearCompletedOperations,

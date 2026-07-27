@@ -1,5 +1,14 @@
 # Development Commands
 
+## Prerequisites
+
+- **JDK 21 (Temurin), at least 21.0.9.** CI (`.github/actions/common-setup/action.yml`) runs Temurin
+  21, and the repo-root `.sdkmanrc` pins `java=21.0.11-tem` for local use (`sdk env install`).
+  Temurin 21.0.5-21.0.8 must be avoided: they carry a C2 compiler SIGSEGV (JDK-8358534) that kills
+  Gradle test workers mid-run.
+- The build sets no Gradle Java toolchain, so whatever JDK runs Gradle is what compiles the project.
+  `jvmTarget`/`sourceCompatibility` stay at 17 — that is the bytecode target, not the build JDK.
+
 ## Building the Project
 
 ```bash

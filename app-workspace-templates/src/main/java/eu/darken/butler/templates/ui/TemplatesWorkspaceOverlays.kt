@@ -9,6 +9,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.templates.R
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.dialogs.PaneBoundWorkspaceRenameDialog
@@ -16,8 +17,8 @@ import eu.darken.butler.workspace.ui.dialogs.PaneBoundWorkspaceRenameDialog
 /**
  * Overlay slot of the templates page.
  *
- * Shares the ViewModel with [TemplatesWorkspacePageHost]; the error and navigation handlers stay
- * there.
+ * Shares the ViewModel with [TemplatesWorkspacePageHost]; the navigation handler stays there. The
+ * error handler lives here instead, because it renders a dialog that has to be pane-bound.
  */
 @Composable
 fun TemplatesWorkspaceOverlaysHost(
@@ -36,6 +37,10 @@ fun TemplatesWorkspaceOverlaysHost(
         onRename = { vm.renameWorkspace(it) },
         onDismissRename = { vm.dismissRenameDialog() },
     )
+
+    // Last on purpose: layers stack in composition order, so an error raised while one of
+    // this page's own dialogs is up lands on top of it instead of underneath.
+    ErrorEventHandler(vm)
 }
 
 @Composable

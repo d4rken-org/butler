@@ -673,6 +673,54 @@ class PaneBoundAlertDialogTest : ComposeTest() {
         composeTestRule.onNodeWithText("Confirm").assertIsFocused()
     }
 
+    /**
+     * A caller may pass an action slot that emits nothing — a selection dialog with only a cancel,
+     * or one that dismisses on pick and has no actions at all. Measuring such a slot used to throw.
+     */
+    @Composable
+    private fun EmptySlotCase(withConfirm: Boolean, withDismiss: Boolean) {
+        PreviewWrapper {
+            Box(modifier = Modifier.size(width = 400.dp, height = 400.dp)) {
+                PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = true) {
+                    PaneBoundAlertDialog(
+                        onDismissRequest = {},
+                        title = { Text("Title") },
+                        confirmButton = { if (withConfirm) TextButton(onClick = {}) { Text("Confirm") } },
+                        dismissButton = { if (withDismiss) TextButton(onClick = {}) { Text("Cancel") } },
+                    )
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `an empty confirm slot leaves the dismiss action end-aligned`() {
+        composeTestRule.setContent { EmptySlotCase(withConfirm = false, withDismiss = true) }
+
+        val surfaceBounds = composeTestRule.onNodeWithTag(surface).getUnclippedBoundsInRoot()
+        val dismiss = composeTestRule.onNodeWithText("Cancel").getUnclippedBoundsInRoot()
+
+        (surfaceBounds.right - dismiss.right < dismiss.left - surfaceBounds.left) shouldBe true
+    }
+
+    @Test
+    fun `an empty dismiss slot leaves the confirm action end-aligned`() {
+        composeTestRule.setContent { EmptySlotCase(withConfirm = true, withDismiss = false) }
+
+        val surfaceBounds = composeTestRule.onNodeWithTag(surface).getUnclippedBoundsInRoot()
+        val confirm = composeTestRule.onNodeWithText("Confirm").getUnclippedBoundsInRoot()
+
+        (surfaceBounds.right - confirm.right < confirm.left - surfaceBounds.left) shouldBe true
+    }
+
+    @Test
+    fun `a dialog with no actions at all still renders`() {
+        composeTestRule.setContent { EmptySlotCase(withConfirm = false, withDismiss = false) }
+
+        composeTestRule.onNodeWithTag(surface).assertExists()
+        composeTestRule.onNodeWithText("Title").assertExists()
+    }
+
     @Test
     fun `the pointer barrier covers the whole pane from the first frame`() {
         composeTestRule.mainClock.autoAdvance = false

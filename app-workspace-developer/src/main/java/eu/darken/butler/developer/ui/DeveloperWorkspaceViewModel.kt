@@ -56,6 +56,7 @@ import kotlin.uuid.Uuid
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -86,6 +87,19 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
 
     val shareIntentEvent = chrome.shareIntentEvent
     val operations = chrome.operations.asStateFlow()
+
+    // The cancel confirmation is rendered by the overlay slot, which is a sibling of the page — a
+    // `remember` in the page would be a different instance from the one the overlay reads.
+    private val _cancelOperationConfirmation = MutableStateFlow<Operation.Id?>(null)
+    val cancelOperationConfirmation: StateFlow<Operation.Id?> = _cancelOperationConfirmation
+
+    fun requestCancelOperation(operationId: Operation.Id) {
+        _cancelOperationConfirmation.value = operationId
+    }
+
+    fun dismissCancelOperationConfirmation() {
+        _cancelOperationConfirmation.value = null
+    }
 
     private val selectedTab = MutableStateFlow(DeveloperTab.SYSTEM)
     private val pausedLogSnapshot = MutableStateFlow<List<String>?>(null)

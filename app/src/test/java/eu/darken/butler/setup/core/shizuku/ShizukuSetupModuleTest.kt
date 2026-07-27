@@ -15,7 +15,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
@@ -24,6 +23,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
+import testhelpers.flow.awaitSharingStopped
 import testhelpers.flow.test
 
 class ShizukuSetupModuleTest : BaseTest() {
@@ -83,7 +83,7 @@ class ShizukuSetupModuleTest : BaseTest() {
         val first = mod.state.test(tag = "first", scope = scope)
         first.await { values, _ -> values.any { it is ShizukuSetupModule.Result } }
         runBlocking { first.cancelAndJoin() }
-        runBlocking { delay(50) } // let the share fully stop (clears the replay buffer)
+        mod.state.awaitSharingStopped() // the share must fully stop (clears the replay buffer)
 
         // Returning to the dashboard: the cached Result must come first so the setup card doesn't
         // flicker to Loading while the probe re-runs.
@@ -101,7 +101,7 @@ class ShizukuSetupModuleTest : BaseTest() {
         val first = mod.state.test(tag = "first", scope = scope)
         first.await { values, _ -> values.any { it is ShizukuSetupModule.Result } }
         runBlocking { first.cancelAndJoin() }
-        runBlocking { delay(50) }
+        mod.state.awaitSharingStopped()
 
         val before = probeCount
         val second = mod.state.test(tag = "second", scope = scope)
@@ -118,7 +118,7 @@ class ShizukuSetupModuleTest : BaseTest() {
         val first = mod.state.test(tag = "first", scope = scope)
         first.await { values, _ -> values.any { it is ShizukuSetupModule.Result } }
         runBlocking { first.cancelAndJoin() }
-        runBlocking { delay(50) }
+        mod.state.awaitSharingStopped()
 
         // User turns Shizuku off while nothing observes the module.
         useShizukuFlow.value = false

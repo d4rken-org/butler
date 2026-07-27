@@ -91,27 +91,57 @@ jobs:
           print("=" * 80)
 
           found = False
+          suspect_suites = []
           for xml_file in glob.glob("**/build/test-results/**/*.xml", recursive=True):
               try:
                   tree = ET.parse(xml_file)
-                  for testcase in tree.findall(".//testcase"):
-                      failure = testcase.find("failure")
-                      if failure is not None:
-                          found = True
-                          module = xml_file.split("/")[0]
-                          classname = testcase.get("classname", "").split(".")[-1]
-                          testname = testcase.get("name", "unknown")
-                          message = failure.get("message", "")[:200]
-                          message = html.unescape(message)
-                          print()
-                          print(f"📍 {module}")
-                          print(f"   {classname} > {testname}")
-                          print(f"   {message}")
               except ET.ParseError:
-                  pass
+                  continue
+
+              module = xml_file.split("/")[0]
+
+              for testcase in tree.findall(".//testcase"):
+                  # <failure> = assertion failed, <error> = test blew up (exception, init failure)
+                  for kind, element in (("FAILURE", testcase.find("failure")), ("ERROR", testcase.find("error"))):
+                      if element is None:
+                          continue
+                      found = True
+                      classname = testcase.get("classname", "").split(".")[-1]
+                      testname = testcase.get("name", "unknown")
+                      message = html.unescape(element.get("message", "")[:200])
+                      print()
+                      print(f"📍 {module} [{kind}]")
+                      print(f"   {classname} > {testname}")
+                      print(f"   {message}")
+
+              for suite in tree.iter("testsuite"):
+                  def count(attr):
+                      try:
+                          return int(suite.get(attr, "0"))
+                      except ValueError:
+                          return 0
+
+                  failures, errors, skipped = count("failures"), count("errors"), count("skipped")
+                  if errors or skipped:
+                      print()
+                      print(f"📊 {module} {suite.get('name', '?')}: "
+                            f"tests={count('tests')} failures={failures} errors={errors} skipped={skipped}")
+                  # Worker-death fingerprint: nothing failed, yet tests were skipped/errored out.
+                  if failures == 0 and skipped > 0:
+                      suspect_suites.append(f"{module} {suite.get('name', '?')} ({skipped} skipped)")
 
           if not found:
-              print("No failure details found in XML reports.")
+              print("No <failure>/<error> details found in XML reports.")
+              print("If the Gradle output above mentions a worker 'finished with non-zero exit value'")
+              print("or 'unexpected problem', the test JVM died - see the raw Gradle output and the")
+              print("uploaded test-jvm-crash artifact (hs_err / heap dumps).")
+
+          if suspect_suites and not found:
+              print()
+              print("⚠️  POSSIBLE TEST JVM WORKER DEATH - suites with skipped tests but zero failures:")
+              for entry in suspect_suites:
+                  print(f"   {entry}")
+              print("   (legitimate assumption-based skips look the same, so cross-check the Gradle output)")
 
           print()
           print("=" * 80)
@@ -126,3 +156,15 @@ jobs:
             **/build/test-results/**/*.xml
             **/build/reports/tests/**/*
           retention-days: 1
+
+      - name: Upload test JVM crash diagnostics
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a #v7.0.1
+        if: failure()
+        with:
+          name: test-jvm-crash-${{ matrix.flavor }}-${{ matrix.variant }}
+          path: |
+            **/build/test-jvm-crash/**
+            **/hs_err_pid*.log
+            **/*.hprof
+          if-no-files-found: ignore
+          retention-days: 7

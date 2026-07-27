@@ -13,7 +13,6 @@ import androidx.compose.material.icons.twotone.Share
 import androidx.compose.material.icons.twotone.Error
 import androidx.compose.material.icons.twotone.ExpandLess
 import androidx.compose.material.icons.twotone.ExpandMore
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -33,6 +32,7 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.searcher.R
+import eu.darken.butler.workspace.ui.dialogs.PaneBoundAlertDialog
 import java.io.IOException
 
 @Composable
@@ -44,7 +44,7 @@ fun SearchErrorDialog(
 ) {
     var showDetails by rememberSaveable { mutableStateOf(false) }
 
-    AlertDialog(
+    PaneBoundAlertDialog(
         onDismissRequest = onDismiss,
         icon = {
             Icon(

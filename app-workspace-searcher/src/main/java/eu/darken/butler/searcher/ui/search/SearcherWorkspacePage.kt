@@ -39,7 +39,6 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.OnValueChange
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.keyboard.KeyboardShortcut
 import eu.darken.butler.common.keyboard.keyboardShortcuts
 import eu.darken.butler.common.navigation.NavigationEventHandler
@@ -672,7 +671,9 @@ fun SearcherWorkspacePage(
                 ) {
                     OperationsBar(
                         operations = operationsState.operations,
-                        onCancelOperation = { onPageAction(SearcherPageAction.Operations.Cancel(it)) },
+                        onRequestCancelOperation = {
+                            onPageAction(SearcherPageAction.Overlays.RequestCancelOperation(it))
+                        },
                         onDismissOperation = { onPageAction(SearcherPageAction.Operations.Dismiss(it)) },
                         onOperationClick = { operation ->
                             when (operation.state) {
@@ -743,7 +744,6 @@ fun SearcherWorkspacePageHost(
         creationCallback = { factory: SearcherWorkspaceViewModel.Factory -> factory.create(id = id) }
     ),
 ) {
-    ErrorEventHandler(vm)
     NavigationEventHandler(vm)
 
     // Handle share intent events

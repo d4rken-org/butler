@@ -148,7 +148,7 @@ internal fun FloatingBarScope.ExplorerBottomBars(
     ) {
         OperationsBar(
             operations = operationsState.operations,
-            onCancelOperation = { id -> vm?.cancelOperation(id) },
+            onRequestCancelOperation = { id -> vm?.requestCancelOperation(id) },
             onDismissOperation = { id -> vm?.dismissOperation(id) },
             onOperationClick = { operation ->
                 when (operation.state) {

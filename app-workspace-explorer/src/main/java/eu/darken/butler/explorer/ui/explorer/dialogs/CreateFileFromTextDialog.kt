@@ -9,7 +9,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -36,6 +35,8 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.explorer.R
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
+import eu.darken.butler.workspace.ui.dialogs.PaneBoundAlertDialog
+import eu.darken.butler.workspace.ui.modal.LocalLayerActive
 import eu.darken.butler.common.R as CommonR
 
 @Composable
@@ -64,12 +65,16 @@ fun CreateFileFromTextDialog(
     val isError = validation is FilenameValidator.ValidationResult.Invalid
     val trimmedName = remember(textFieldValue.text) { textFieldValue.text.trim() }
 
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
+    // Only pull focus (and with it the keyboard) while this dialog is the layer the user is
+    // actually talking to — otherwise it steals input from whatever is on top of it.
+    val layerActive = LocalLayerActive.current
+    LaunchedEffect(layerActive) {
+        if (layerActive) focusRequester.requestFocus()
     }
 
-    AlertDialog(
+    PaneBoundAlertDialog(
         onDismissRequest = onDismiss,
+        includeImePadding = true,
         title = {
             Text(
                 text = stringResource(R.string.explorer_dialog_create_text_file_title),

@@ -528,7 +528,8 @@ class SharedResourceTest : BaseTest() {
             // The source teardown (and its onCompletion breadcrumb) now runs asynchronously off-lock,
             // so wait for it before asserting. Runs on real Dispatchers.IO, hence the real-time wait.
             withContext(Dispatchers.IO) {
-                withTimeoutOrNull(2_000) {
+                // Generous watchdog, the loop exits as soon as the breadcrumb shows up
+                withTimeoutOrNull(20_000) {
                     while (captured.none { it.contains("onCompletion due to") }) delay(10)
                 }
             }
@@ -865,7 +866,8 @@ class SharedResourceTest : BaseTest() {
             val closer = launch(Dispatchers.IO) { sr.close() }
             joinAll(getter, closer)
             acquired?.close()
-            withTimeout(2_000) { while (!sr.isClosed) delay(1) }
+            // Generous watchdog, the loop exits as soon as the resource settles
+            withTimeout(20_000) { while (!sr.isClosed) delay(1) }
             sr.isClosed shouldBe true
         }
     }

@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -18,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.history.R
+import eu.darken.butler.workspace.ui.dialogs.PaneBoundAlertDialog
 
 @Composable
 fun PathScopeDialog(
@@ -27,8 +27,9 @@ fun PathScopeDialog(
 ) {
     var input by rememberSaveable { mutableStateOf(initialPath.orEmpty()) }
 
-    AlertDialog(
+    PaneBoundAlertDialog(
         onDismissRequest = onDismiss,
+        includeImePadding = true,
         title = { Text(stringResource(R.string.history_path_scope_dialog_title)) },
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {

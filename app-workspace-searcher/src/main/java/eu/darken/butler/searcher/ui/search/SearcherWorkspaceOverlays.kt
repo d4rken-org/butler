@@ -11,6 +11,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.searcher.ui.search.dialogs.SearchErrorDialog
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogHost
@@ -25,6 +26,7 @@ import eu.darken.butler.workspace.ui.insets.paneInsets
 import eu.darken.butler.workspace.ui.issues.IssuesBottomSheet
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
+import eu.darken.butler.workspace.ui.operations.details.CancelOperationConfirmationHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
@@ -34,7 +36,8 @@ import kotlinx.coroutines.flow.flowOf
  * Overlay slot of the searcher page.
  *
  * Shares the ViewModel with [SearcherWorkspacePageHost] — the share-intent collector and the
- * error/navigation handlers stay there and must not be repeated here.
+ * navigation handler stay there and must not be repeated here. The error handler lives here
+ * instead, because it renders a dialog that has to be pane-bound.
  */
 @Composable
 fun SearcherWorkspaceOverlaysHost(
@@ -55,6 +58,10 @@ fun SearcherWorkspaceOverlaysHost(
         overlayState = overlayState,
         onPageAction = vm::onPageAction,
     )
+
+    // Last on purpose: layers stack in composition order, so an error raised while one of
+    // this page's own dialogs is up lands on top of it instead of underneath.
+    ErrorEventHandler(vm)
 }
 
 @Composable
@@ -207,6 +214,18 @@ fun SearcherWorkspaceOverlays(
         topInset = statusBarInset,
         bottomInset = navBarInset,
     )
+
+    CancelOperationConfirmationHost(
+        pendingId = overlayState.cancelOperationConfirmationFor,
+        // Deliberately the raw value: null here means "not loaded yet", which the confirmation has
+        // to tell apart from an operation that is genuinely gone.
+        operations = operationsStateRaw?.operations,
+        onDismiss = { onPageAction(SearcherPageAction.Overlays.DismissCancelOperation) },
+        onConfirm = { operationId ->
+            onPageAction(SearcherPageAction.Operations.Cancel(operationId))
+            onPageAction(SearcherPageAction.Overlays.DismissCancelOperation)
+        },
+    )
 }
 
 @Preview2
@@ -216,6 +235,18 @@ private fun SearcherWorkspaceOverlaysTemplatesPreview() {
     SearcherWorkspaceOverlays(
         stateSource = flowOf(SearcherMockDataProvider.createMockEmptyState()),
         overlayState = SearcherWorkspaceViewModel.OverlayState(showTemplatesSheet = true),
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun SearcherWorkspaceOverlaysCancelOperationPreview() {
+    val operation = SearcherMockDataProvider.createMockRunningOperation()
+    SearcherWorkspaceOverlays(
+        stateSource = flowOf(SearcherMockDataProvider.createMockEmptyState()),
+        operationsStateSource = flowOf(OperationsDisplayState(operations = listOf(operation))),
+        overlayState = SearcherWorkspaceViewModel.OverlayState(cancelOperationConfirmationFor = operation.id),
     )
 }
 

@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -22,6 +21,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
+import eu.darken.butler.workspace.ui.dialogs.PaneBoundAlertDialog
 import eu.darken.butler.common.R as CommonR
 
 @Composable
@@ -33,7 +33,7 @@ fun RemoveLocationConfirmationDialog(
     val context = LocalContext.current
     val itemCount = items.size
 
-    AlertDialog(
+    PaneBoundAlertDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(

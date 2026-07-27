@@ -4,11 +4,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
@@ -31,6 +28,7 @@ import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.common.files.archive.CompressionPreset
 import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.explorer.R
+import eu.darken.butler.workspace.ui.dialogs.PaneBoundAlertDialog
 import eu.darken.butler.common.R as CommonR
 
 /** Formats offered for creating a new archive. */
@@ -57,12 +55,14 @@ fun CompressOptionsDialog(
     val nameInvalid = validation is FilenameValidator.ValidationResult.Invalid
     val passwordsMatch = password.isEmpty() || password == confirmPassword
 
-    AlertDialog(
+    PaneBoundAlertDialog(
         onDismissRequest = onDismiss,
+        includeImePadding = true,
         title = { Text(stringResource(R.string.explorer_compress_dialog_title)) },
         text = {
+            // No verticalScroll here: PaneBoundAlertDialog already scrolls its title/text block, and
+            // a nested scroller would be measured with an infinite height constraint and crash.
             Column(
-                modifier = Modifier.verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 OutlinedTextField(

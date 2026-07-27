@@ -1,12 +1,13 @@
 package eu.darken.butler.common.flow
 
 import io.kotest.assertions.throwables.shouldThrow
-import io.kotest.matchers.ints.shouldBeInRange
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.take
@@ -19,6 +20,7 @@ import java.io.IOException
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.TestTimeSource
 
 class ThrottleLatestTest : BaseTest() {
     @Test
@@ -37,11 +39,12 @@ class ThrottleLatestTest : BaseTest() {
 
     @Test
     fun `subsequent throttled items within delay window are dropped`(): Unit = runBlocking {
+        val timeSource = TestTimeSource()
         val source = flow {
             emit("PROGRESS")
-            delay(50.milliseconds)
+            timeSource += 50.milliseconds
             emit("PROGRESS") // Should be dropped
-            delay(60.milliseconds) // Total 110ms > 100ms threshold
+            timeSource += 60.milliseconds // Total 110ms > 100ms threshold
             emit("PROGRESS") // Should emit
             emit("RESULT")
         }
@@ -49,6 +52,7 @@ class ThrottleLatestTest : BaseTest() {
         val results = source
             .throttleLatest(
                 delay = 100.milliseconds,
+                timeSource = timeSource,
                 shouldThrottle = { it == "PROGRESS" }
             )
             .toList()
@@ -120,6 +124,7 @@ class ThrottleLatestTest : BaseTest() {
 
     @Test
     fun `cancellation propagates correctly`(): Unit = runBlocking {
+        val firstEmission = CompletableDeferred<Unit>()
         val source = flow {
             emit("PROGRESS")
             delay(1.seconds)
@@ -132,10 +137,11 @@ class ThrottleLatestTest : BaseTest() {
                     delay = 100.milliseconds,
                     shouldThrottle = { true }
                 )
-                .collect()
+                .collect { firstEmission.complete(Unit) }
         }
 
-        delay(100.milliseconds)
+        // Explicit signal instead of a fixed delay: cancel once the flow is actually running.
+        firstEmission.await()
         job.cancel()
         job.join()
 
@@ -144,10 +150,11 @@ class ThrottleLatestTest : BaseTest() {
 
     @Test
     fun `maintains order of emissions`(): Unit = runBlocking {
+        val timeSource = TestTimeSource()
         val source = flow {
             emit("A")
             emit("B")
-            delay(150.milliseconds)
+            timeSource += 150.milliseconds
             emit("C")
             emit("D")
         }
@@ -155,6 +162,7 @@ class ThrottleLatestTest : BaseTest() {
         val results = source
             .throttleLatest(
                 delay = 100.milliseconds,
+                timeSource = timeSource,
                 shouldThrottle = { it in listOf("A", "C") }
             )
             .toList()
@@ -164,12 +172,14 @@ class ThrottleLatestTest : BaseTest() {
 
     @Test
     fun `concurrent collectors work independently`(): Unit = runBlocking {
+        val timeSource = TestTimeSource()
         val source = MutableSharedFlow<String>()
 
         val collector1 = async {
             source
                 .throttleLatest(
                     delay = 100.milliseconds,
+                    timeSource = timeSource,
                     shouldThrottle = { true }
                 )
                 .take(3)
@@ -180,17 +190,23 @@ class ThrottleLatestTest : BaseTest() {
             source
                 .throttleLatest(
                     delay = 200.milliseconds,
+                    timeSource = timeSource,
                     shouldThrottle = { true }
                 )
                 .take(2)
                 .toList()
         }
 
-        delay(50.milliseconds)
+        // Explicit signal instead of a timing guess: emit only once both collectors are subscribed.
+        // The unbuffered SharedFlow then makes each emit() a rendezvous, so both collectors have
+        // processed an item before the clock is moved on.
+        source.subscriptionCount.first { it == 2 }
+
+        timeSource += 50.milliseconds
         source.emit("ITEM1")
-        delay(150.milliseconds) // 200ms total
+        timeSource += 150.milliseconds // 200ms total
         source.emit("ITEM2")
-        delay(100.milliseconds) // 300ms total
+        timeSource += 100.milliseconds // 300ms total
         source.emit("ITEM3")
 
         val results1 = collector1.await()
@@ -202,10 +218,11 @@ class ThrottleLatestTest : BaseTest() {
 
     @Test
     fun `works with high frequency emissions`(): Unit = runBlocking {
+        val timeSource = TestTimeSource()
         val source = flow {
             repeat(1000) { index ->
                 emit("PROGRESS_$index")
-                delay(1.milliseconds)
+                timeSource += 1.milliseconds
             }
             emit("RESULT")
         }
@@ -213,23 +230,23 @@ class ThrottleLatestTest : BaseTest() {
         val results = source
             .throttleLatest(
                 delay = 50.milliseconds,
+                timeSource = timeSource,
                 shouldThrottle = { it.startsWith("PROGRESS") }
             )
             .toList()
 
-        // Should get approximately 20 progress items (1000ms / 50ms) plus RESULT
-        // Using a wide range due to timing variations on different systems
-        results.size shouldBeInRange 15..35
-        results.last() shouldBe "RESULT"
-        results.all { it.startsWith("PROGRESS") || it == "RESULT" } shouldBe true
+        // 1000 items, 1ms apart, 50ms throttle: the first item passes, then exactly every 50th.
+        // Asserting the exact retained set, not a range, so removing the throttle fails the test.
+        results shouldBe (0..950 step 50).map { "PROGRESS_$it" } + "RESULT"
     }
 
     @Test
     fun `works with high frequency emissions2`(): Unit = runBlocking {
+        val timeSource = TestTimeSource()
         val source = flow {
-            repeat(100) { index ->  // Reduced from 1000
+            repeat(100) { index ->
                 emit("PROGRESS_$index")
-                delay(10.milliseconds)  // Increased from 1ms
+                timeSource += 10.milliseconds
             }
             emit("RESULT")
         }
@@ -237,16 +254,12 @@ class ThrottleLatestTest : BaseTest() {
         val results = source
             .throttleLatest(
                 delay = 50.milliseconds,
+                timeSource = timeSource,
                 shouldThrottle = { it.startsWith("PROGRESS") }
             )
             .toList()
 
-        // 100 items * 10ms = 1000ms total
-        // With 50ms throttle: expect ~20 items plus RESULT
-        println("Results size: ${results.size}")
-        println("Results: $results")
-
-        results.size shouldBeInRange 18..23
-        results.last() shouldBe "RESULT"
+        // 100 items, 10ms apart, 50ms throttle: the first item passes, then exactly every 5th.
+        results shouldBe (0..95 step 5).map { "PROGRESS_$it" } + "RESULT"
     }
 }

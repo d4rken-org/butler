@@ -34,7 +34,6 @@ import androidx.compose.material.icons.twotone.DeleteSweep
 import androidx.compose.material.icons.twotone.FiberManualRecord
 import androidx.compose.material.icons.twotone.ReportProblem
 import androidx.compose.material.icons.twotone.Stop
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -68,13 +67,13 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.debug.bugreport.BugReport
 import eu.darken.butler.common.debug.bugreport.BugReportInfo
-import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.icon
 import eu.darken.butler.workspace.ui.common.CutoutCard
 import eu.darken.butler.workspace.ui.common.CutoutCardDefaults
 import eu.darken.butler.workspace.ui.common.CutoutMode
 import eu.darken.butler.workspace.ui.common.WorkspacePaddings
+import eu.darken.butler.workspace.ui.dialogs.PaneBoundAlertDialog
 import eu.darken.butler.workspace.ui.floatingbar.BarAnimation
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior
@@ -98,8 +97,6 @@ fun BugReportWorkspacePageHost(
         creationCallback = { factory: BugReportWorkspaceViewModel.Factory -> factory.create(id = id) },
     ),
 ) {
-    ErrorEventHandler(vm)
-
     val state by vm.state.collectAsState(initial = null)
     val overlayState by vm.overlayState.collectAsState()
 
@@ -533,7 +530,7 @@ internal fun ShareConsentDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    AlertDialog(
+    PaneBoundAlertDialog(
         onDismissRequest = onDismiss,
         icon = { Icon(Icons.TwoTone.ReportProblem, contentDescription = null) },
         title = { Text(stringResource(R.string.bugreport_share_consent_title)) },
@@ -552,7 +549,7 @@ internal fun ShortRecordingWarningDialog(
     onKeepRecording: () -> Unit,
     onStopAnyway: () -> Unit,
 ) {
-    AlertDialog(
+    PaneBoundAlertDialog(
         onDismissRequest = onKeepRecording,
         title = { Text(stringResource(R.string.bugreport_recording_short_title)) },
         text = { Text(stringResource(R.string.bugreport_recording_short_message)) },

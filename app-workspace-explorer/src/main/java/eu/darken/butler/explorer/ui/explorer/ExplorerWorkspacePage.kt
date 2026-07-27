@@ -30,7 +30,6 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.rememberDelayedState
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.navigation.NavigationEventHandler
@@ -452,7 +451,6 @@ fun ExplorerWorkspacePageHost(
         creationCallback = { factory: ExplorerWorkspaceViewModel.Factory -> factory.create(id = id) }
     ),
 ) {
-    ErrorEventHandler(vm)
     NavigationEventHandler(vm)
 
     val coroutineScope = rememberCoroutineScope()

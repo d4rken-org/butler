@@ -254,6 +254,10 @@ fun PaneBoundAlertDialog(
  * four existing callers keep their own measure and placement arithmetic instead of relying on a
  * more general algorithm happening to collapse back onto the same numbers.
  *
+ * Any slot may emit nothing — a caller can pass an empty `confirmButton` lambda for a dialog whose
+ * only action is dismissal, or a selection dialog that dismisses on pick and has no actions at all.
+ * A slot that emits no measurable is treated exactly like a missing one.
+ *
  * ### Placement order is focus order
  * One-dimensional focus traversal sorts siblings by `LayoutNode.placeOrder`, not by composition
  * order, so the `placeRelative` calls in every branch below are written in the order the row reads
@@ -280,7 +284,7 @@ private fun DialogActionRow(
         val spacingPx = spacing.roundToPx()
         val childConstraints = constraints.copy(minWidth = 0, minHeight = 0)
         val dismiss = dismissMeasurables.firstOrNull()?.measure(childConstraints)
-        val confirm = confirmMeasurables.first().measure(childConstraints)
+        val confirm = confirmMeasurables.firstOrNull()?.measure(childConstraints)
         val neutral = neutralMeasurables.firstOrNull()?.measure(childConstraints)
 
         val width = constraints.maxWidth
@@ -288,7 +292,33 @@ private fun DialogActionRow(
         // placeRelative, never place: x is measured from the layout's *start* edge, so the actions
         // mirror to the left in a right-to-left locale instead of being pinned to the physical
         // right. Arabic ships as a supported locale, so this is a real configuration.
-        if (neutral == null) {
+        if (confirm == null) {
+            // Whatever is left keeps the alignment it would have had beside a confirm action, so a
+            // dismiss-only dialog does not suddenly look centered or start-aligned.
+            val singleRow = neutral == null || dismiss == null ||
+                neutral.width + spacingPx + dismiss.width <= width
+            val height = when {
+                neutral == null && dismiss == null -> 0
+                neutral == null -> dismiss!!.height
+                dismiss == null -> neutral.height
+                singleRow -> maxOf(neutral.height, dismiss.height)
+                else -> dismiss.height + spacingPx + neutral.height
+            }
+
+            layout(width, height) {
+                if (singleRow) {
+                    if (neutral != null) {
+                        neutral.placeRelative(x = 0, y = (height - neutral.height) / 2)
+                    }
+                    if (dismiss != null) {
+                        dismiss.placeRelative(x = width - dismiss.width, y = (height - dismiss.height) / 2)
+                    }
+                } else {
+                    dismiss!!.placeRelative(x = width - dismiss.width, y = 0)
+                    neutral!!.placeRelative(x = 0, y = dismiss.height + spacingPx)
+                }
+            }
+        } else if (neutral == null) {
             val sideBySide = dismiss == null || dismiss.width + spacingPx + confirm.width <= width
             val height = when {
                 dismiss == null -> confirm.height
@@ -417,6 +447,21 @@ private fun PaneBoundAlertDialogLongLabelsPreview() {
             text = { Text("A file with the same name already exists at the destination.") },
             confirmButton = { TextButton(onClick = {}) { Text("Overwrite everything") } },
             dismissButton = { TextButton(onClick = {}) { Text("Keep both copies instead") } },
+        )
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun PaneBoundAlertDialogWithoutConfirmActionPreview() {
+    PaneBoundDialogPreviewFrame {
+        PaneBoundAlertDialog(
+            onDismissRequest = {},
+            title = { Text("Text encoding") },
+            text = { Text("Pick an encoding to reopen this file with.") },
+            confirmButton = {},
+            dismissButton = { TextButton(onClick = {}) { Text("Cancel") } },
         )
     }
 }

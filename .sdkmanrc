@@ -1,0 +1,5 @@
+# Enable auto-env through the sdkman_auto_env config
+# Add key=value pairs of SDKs to use below
+# Temurin 21 LTS, must be >= 21.0.9: earlier 21.x builds (21.0.5-21.0.8) hit a C2 compiler
+# SIGSEGV (JDK-8358534) that killed Gradle test workers.
+java=21.0.11-tem

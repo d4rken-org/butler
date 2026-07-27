@@ -1,6 +1,5 @@
 package eu.darken.butler.editor.ui.editor.dialogs
 
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -9,13 +8,14 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.editor.R
+import eu.darken.butler.workspace.ui.dialogs.PaneBoundAlertDialog
 
 @Composable
 fun LargeDeleteConfirmDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    AlertDialog(
+    PaneBoundAlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.editor_dialog_large_delete_confirm_title)) },
         text = { Text(stringResource(R.string.editor_dialog_large_delete_confirm_message)) },

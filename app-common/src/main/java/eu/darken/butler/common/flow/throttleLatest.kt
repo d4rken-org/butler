@@ -21,6 +21,7 @@ fun <T> Flow<T>.throttleLatest(
 
 fun <T> Flow<T>.throttleLatest(
     delay: Duration,
+    timeSource: TimeSource = TimeSource.Monotonic,
     shouldThrottle: (T) -> Boolean = { true }
 ): Flow<T> = flow {
     require(!delay.isNegative()) { "Delay must be non-negative" }
@@ -33,7 +34,7 @@ fun <T> Flow<T>.throttleLatest(
 
     collect { item ->
         if (shouldThrottle(item)) {
-            val currentMark = TimeSource.Monotonic.markNow()
+            val currentMark = timeSource.markNow()
             val shouldEmit = lastThrottledEmitMark?.let {
                 it.elapsedNow() >= delay
             } ?: true

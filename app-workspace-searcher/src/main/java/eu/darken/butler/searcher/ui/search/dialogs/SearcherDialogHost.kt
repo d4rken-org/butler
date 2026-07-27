@@ -1,6 +1,5 @@
 package eu.darken.butler.searcher.ui.search.dialogs
 
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -17,6 +16,7 @@ import eu.darken.butler.workspace.ui.clipboard.details.ClipboardInfoBottomSheet
 import eu.darken.butler.workspace.ui.dialogs.DeleteConfirmationDialog
 import eu.darken.butler.workspace.ui.dialogs.FileInfo
 import eu.darken.butler.workspace.ui.dialogs.FileInfoBottomSheet
+import eu.darken.butler.workspace.ui.dialogs.PaneBoundAlertDialog
 
 @Composable
 fun SearcherDialogHost(
@@ -49,7 +49,7 @@ fun SearcherDialogHost(
             )
         }
         is SearcherDialogState.ClearHistoryConfirmation -> {
-            AlertDialog(
+            PaneBoundAlertDialog(
                 onDismissRequest = onDismiss,
                 title = {
                     Text(text = stringResource(R.string.searcher_history_clear_dialog_title))

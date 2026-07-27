@@ -15,9 +15,11 @@ import kotlin.time.Instant
  * current file progress for detailed progress reporting.
  *
  * @param progressReportInterval Minimum time between progress reports to avoid UI spam
+ * @param clock Time source for throttling decisions, overridable so tests can control it
  */
 class PathOperationProgressTracker(
-    private val progressReportInterval: Duration = 250.milliseconds
+    private val progressReportInterval: Duration = 250.milliseconds,
+    private val clock: Clock = Clock.System,
 ) {
 
     // Overall operation progress
@@ -53,7 +55,7 @@ class PathOperationProgressTracker(
     fun startFile(size: Long) {
         currentFileSize = size
         currentFileBytes = 0L
-        currentFileStartTime = Clock.System.now()
+        currentFileStartTime = clock.now()
     }
 
     /**
@@ -125,14 +127,14 @@ class PathOperationProgressTracker(
      */
     fun shouldReportProgress(force: Boolean = false): Boolean {
         if (force) {
-            val now = Clock.System.now()
+            val now = clock.now()
             recordPerformanceSample(now)
             log(TAG, DEBUG) { "Progress report (forced). Samples: ${performanceHistory.samples.size}" }
             lastProgressTime = now
             return true
         }
 
-        val now = Clock.System.now()
+        val now = clock.now()
         val lastTime = lastProgressTime
 
         return if (lastTime == null || (now - lastTime) >= progressReportInterval) {

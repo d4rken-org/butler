@@ -1,6 +1,5 @@
 package eu.darken.butler.explorer.ui.explorer.dialogs
 
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -9,6 +8,7 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.explorer.R
+import eu.darken.butler.workspace.ui.dialogs.PaneBoundAlertDialog
 import eu.darken.butler.common.R as CommonR
 
 @Composable
@@ -17,7 +17,7 @@ fun CompressOverwriteDialog(
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
 ) {
-    AlertDialog(
+    PaneBoundAlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.explorer_compress_dialog_overwrite_title)) },
         text = { Text(stringResource(R.string.explorer_compress_dialog_overwrite_message, archiveName)) },

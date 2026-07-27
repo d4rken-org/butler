@@ -48,13 +48,12 @@ import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.common.ui.SwipeToDismissItem
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
-import eu.darken.butler.workspace.ui.operations.details.CancelOperationConfirmationDialog
 import kotlin.time.Clock
 
 @Composable
 fun OperationsBar(
     operations: List<OperationDisplay>,
-    onCancelOperation: (Operation.Id) -> Unit,
+    onRequestCancelOperation: (Operation.Id) -> Unit,
     onDismissOperation: (Operation.Id) -> Unit,
     onOperationClick: (OperationDisplay) -> Unit,
     onClearCompleted: () -> Unit,
@@ -65,9 +64,6 @@ fun OperationsBar(
     var isExpanded by remember {
         mutableStateOf(initialExpanded)
     }
-
-    // State for cancel confirmation dialog
-    var pendingCancelId by remember { mutableStateOf<Operation.Id?>(null) }
 
     // State for cascading clear completed animation
     var clearCompletedAnimationTrigger by remember { mutableLongStateOf(0L) }
@@ -225,7 +221,7 @@ fun OperationsBar(
                                 operation = operation,
                                 onRowClick = { onOperationClick(operation) },
                                 onActionClick = if (canCancel) {
-                                    { pendingCancelId = operation.id }
+                                    { onRequestCancelOperation(operation.id) }
                                 } else null,
                                 isBarExpanded = isExpanded,
                             )
@@ -243,18 +239,6 @@ fun OperationsBar(
             }
         }
     }
-
-    // Cancel confirmation dialog
-    pendingCancelId?.let { operationId ->
-        CancelOperationConfirmationDialog(
-            onDismiss = { pendingCancelId = null },
-            onConfirm = {
-                pendingCancelId = null
-                onCancelOperation(operationId)
-            }
-        )
-    }
-
 }
 
 @Preview2
@@ -297,7 +281,7 @@ private fun OperationsBarPreview() {
 
     OperationsBar(
         operations = operations,
-        onCancelOperation = {},
+        onRequestCancelOperation = {},
         onDismissOperation = {},
         onOperationClick = {},
         onClearCompleted = {},
@@ -332,7 +316,7 @@ private fun OperationsBarSingleItemPreview() {
         ) {
             OperationsBar(
                 operations = listOf(singleOperation),
-                onCancelOperation = {},
+                onRequestCancelOperation = {},
                 onDismissOperation = {},
                 onOperationClick = {},
                 onClearCompleted = {},
@@ -401,7 +385,7 @@ private fun OperationsBarExpandedPreview() {
             OperationsBar(
                 initialExpanded = true,
                 operations = operations,
-                onCancelOperation = {},
+                onRequestCancelOperation = {},
                 onDismissOperation = {},
                 onOperationClick = {},
                 onClearCompleted = {},
