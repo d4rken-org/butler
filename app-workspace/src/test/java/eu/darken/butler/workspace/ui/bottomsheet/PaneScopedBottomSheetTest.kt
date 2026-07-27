@@ -23,7 +23,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.test.assertExists
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.onNodeWithTag
@@ -272,7 +271,7 @@ class PaneScopedBottomSheetTest : ComposeTest() {
         composeTestRule.onNodeWithTag(itemTag(ITEM_COUNT - 1)).performScrollTo()
         composeTestRule.onNodeWithTag(itemTag(2)).performScrollTo()
 
-        val handoff = with(composeTestRule.density) { (2 * ITEM_HEIGHT + 150.dp).toPx() }
+        val handoff = with(composeTestRule.density) { (ITEM_HEIGHT * 2 + 150.dp).toPx() }
         composeTestRule.onNodeWithTag(CARD_TAG).performTouchInput {
             down(Offset(centerX, height * 0.1f))
             repeat(DRAG_STEPS) { moveBy(Offset(0f, handoff / DRAG_STEPS), delayMillis = 32) }

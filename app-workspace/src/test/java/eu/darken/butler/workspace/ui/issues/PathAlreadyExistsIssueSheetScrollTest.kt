@@ -96,7 +96,7 @@ class PathAlreadyExistsIssueSheetScrollTest : ComposeTest() {
 
         // Reachable also means usable, not merely laid out
         composeTestRule.onNodeWithText(CANCEL_ACTION).performScrollTo().performClick()
-        resolutions shouldBe listOf(PathActionIssue.PathAlreadyExists.Resolution.Cancel())
+        resolutions.single() shouldBe PathActionIssue.PathAlreadyExists.Resolution.Cancel()
     }
 
     /**
