@@ -26,7 +26,10 @@ import eu.darken.butler.workspace.ui.workspaces.adaptive.WorkspaceNavigationRail
 fun AdaptiveWorkspaceLayout(
     design: WorkspaceDesign,
     workspaces: List<Workspace.Info>,
+    /** Every assignment, incl. panes this layout does not render. Drives assignment, not display. */
     selected: Map<Int, WorkspacePaneInfo>,
+    /** Only the assignments this layout renders. Anything showing a pane number reads this. */
+    visibleSelected: Map<Int, WorkspacePaneInfo> = selected,
     focusedId: Workspace.Id?,
     dividerPositions: DividerPositions,
     onDividerPositionsChange: (DividerPositions) -> Unit,
@@ -58,7 +61,8 @@ fun AdaptiveWorkspaceLayout(
             WorkspaceNavigationRail(
                 design = design,
                 workspaces = workspaces,
-                selected = selected,
+                // Badges say which pane a tab occupies, so they follow the panes this layout has.
+                selected = visibleSelected,
                 focusedId = focusedId,
                 onTabAction = { workspaceActionHandler?.executeWorkspaceAction(it) },
                 onPaneAssignment = { workspaceId, paneIndex ->

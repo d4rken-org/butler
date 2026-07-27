@@ -233,6 +233,7 @@ class WorkspacesViewModel @Inject constructor(
             state = repoState,
             focusedWorkspace = uiState.focusedWorkspaceId,
             selectedWorkspaces = uiState.selectedWorkspaces,
+            visiblePaneSelections = uiState.visiblePaneAssignments,
             isUpgraded = upgradeInfo.isUpgraded,
             swipeGesturesEnabled = swipeGesturesEnabled,
             onDemandWorkspaceCreation = swipeGesturesEnabled && onDemandWorkspaceCreation,
@@ -399,6 +400,7 @@ class WorkspacesViewModel @Inject constructor(
         private val state: WorkspaceRemote.State,
         val focusedWorkspace: Workspace.Id?,
         val selectedWorkspaces: Map<Int, Workspace.Id>,
+        val visiblePaneSelections: Map<Int, Workspace.Id> = emptyMap(),
         val isUpgraded: Boolean,
         val swipeGesturesEnabled: Boolean = true,
         val onDemandWorkspaceCreation: Boolean = true,
@@ -418,12 +420,23 @@ class WorkspacesViewModel @Inject constructor(
         val current: Workspace.Info?
             get() = tabWorkspaces.firstOrNull { it.id == focused }
 
+        /**
+         * Every pane assignment, including indices this layout does not render. Pane assignment
+         * reads this so moving a workspace between panes does not silently drop the arrangement a
+         * wider layout left behind. Use [visibleSelected] for anything the user sees.
+         */
         val selected: Map<Int, WorkspacePaneInfo>
-            get() = selectedWorkspaces
-                .mapNotNull { (position, id) ->
-                    tabWorkspaces.find { it.id == id }?.let { position to it.asPaneInfo() }
-                }
-                .toMap()
+            get() = selectedWorkspaces.toPaneInfos()
+
+        /** The assignments this layout actually shows - what pane numbers may be derived from. */
+        val visibleSelected: Map<Int, WorkspacePaneInfo>
+            get() = visiblePaneSelections.toPaneInfos()
+
+        private fun Map<Int, Workspace.Id>.toPaneInfos(): Map<Int, WorkspacePaneInfo> = this
+            .mapNotNull { (position, id) ->
+                tabWorkspaces.find { it.id == id }?.let { position to it.asPaneInfo() }
+            }
+            .toMap()
 
         val all: List<Workspace.Info>
             get() = state.infos

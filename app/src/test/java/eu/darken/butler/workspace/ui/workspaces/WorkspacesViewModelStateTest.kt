@@ -3,6 +3,7 @@ package eu.darken.butler.workspace.ui.workspaces
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceRemote
+import eu.darken.butler.workspace.ui.WorkspacePageManager
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
@@ -49,6 +50,11 @@ class WorkspacesViewModelStateTest : BaseTest() {
         state = WorkspaceRemote.State(infos = infos),
         focusedWorkspace = focusedWorkspace,
         selectedWorkspaces = selectedWorkspaces,
+        // Derived exactly as the page manager derives it, so tests cannot drift from production.
+        visiblePaneSelections = WorkspacePageManager.State(
+            selectedWorkspaces = selectedWorkspaces,
+            currentPaneCount = currentPaneCount,
+        ).visiblePaneAssignments,
         isUpgraded = false,
         currentPaneCount = currentPaneCount,
     )
@@ -651,6 +657,68 @@ class WorkspacesViewModelStateTest : BaseTest() {
             state.fullScreenModalWorkspace shouldBe null
             state.paneLocalModalChains shouldBe emptyMap()
         }
+    }
+
+    // endregion
+
+    // region pane assignment visibility
+
+    /**
+     * A workspace parked on a pane index a narrower layout no longer renders is open but invisible.
+     * Pane badges must not claim it occupies a pane that is not on screen, while pane assignment
+     * still sees it - narrowing that would drop the arrangement a wider layout left behind.
+     */
+    @Test
+    fun `visibleSelected drops panes the layout does not render, selected keeps them`() {
+        val paneOne = Workspace.Id()
+        val paneTwo = Workspace.Id()
+        val hidden = Workspace.Id()
+
+        val state = createState(
+            infos = listOf(
+                createWorkspaceInfo(id = paneOne),
+                createWorkspaceInfo(id = paneTwo),
+                createWorkspaceInfo(id = hidden),
+            ),
+            selectedWorkspaces = mapOf(0 to paneOne, 1 to paneTwo, 3 to hidden),
+            currentPaneCount = 2,
+        )
+
+        state.visibleSelected.keys.sorted() shouldContainExactly listOf(0, 1)
+        state.visibleSelected.values.map { it.id } shouldContainExactly listOf(paneOne, paneTwo)
+
+        // Retained for assignment and for the layout growing back.
+        state.selected.keys.sorted() shouldContainExactly listOf(0, 1, 3)
+        state.selected[3]?.id shouldBe hidden
+    }
+
+    @Test
+    fun `visibleSelected matches selected when every pane is rendered`() {
+        val paneOne = Workspace.Id()
+        val paneTwo = Workspace.Id()
+
+        val state = createState(
+            infos = listOf(createWorkspaceInfo(id = paneOne), createWorkspaceInfo(id = paneTwo)),
+            selectedWorkspaces = mapOf(0 to paneOne, 1 to paneTwo),
+            currentPaneCount = 2,
+        )
+
+        // Whole maps, not just keys - over-filtering would drop a value while keeping its key.
+        state.visibleSelected shouldBe state.selected
+    }
+
+    @Test
+    fun `expanding the layout reveals the retained assignment`() {
+        val paneOne = Workspace.Id()
+        val hidden = Workspace.Id()
+        val infos = listOf(createWorkspaceInfo(id = paneOne), createWorkspaceInfo(id = hidden))
+        val assignments = mapOf(0 to paneOne, 3 to hidden)
+
+        createState(infos, selectedWorkspaces = assignments, currentPaneCount = 2)
+            .visibleSelected.keys.sorted() shouldContainExactly listOf(0)
+
+        createState(infos, selectedWorkspaces = assignments, currentPaneCount = 4)
+            .visibleSelected.keys.sorted() shouldContainExactly listOf(0, 3)
     }
 
     // endregion
