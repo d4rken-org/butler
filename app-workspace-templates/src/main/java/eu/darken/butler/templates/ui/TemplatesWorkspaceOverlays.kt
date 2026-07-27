@@ -12,7 +12,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.templates.R
 import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.ui.dialogs.PaneBoundWorkspaceRenameDialog
+import eu.darken.butler.workspace.ui.dialogs.WorkspaceRenameDialog
 
 /**
  * Overlay slot of the templates page.
@@ -51,9 +51,10 @@ fun TemplatesWorkspaceOverlays(
     onDismissRename: () -> Unit = {},
 ) {
     if (renameVisible) {
-        // Pane-bound: naming this tab is an action on this pane, so it must not dim the whole
-        // window, and back / focus / screen readers stay contained to the pane.
-        PaneBoundWorkspaceRenameDialog(
+        // Composed from inside the pane, so it renders pane-bound: naming this tab is an action on
+        // this pane, it must not dim the whole window, and back / focus / screen readers stay
+        // contained to the pane.
+        WorkspaceRenameDialog(
             currentCustomTitle = customTitle,
             autoTitle = stringResource(R.string.workspace_templates_tab_title),
             onConfirm = onRename,
