@@ -186,8 +186,13 @@ class FloatingBarStackStateTest : BaseTest() {
 
     // region Saver
 
-    private fun save(state: FloatingBarStackState): List<Any> =
-        with(SaverScope { true }) { FloatingBarStackState.Saver.save(state)!! }
+    /**
+     * `Saver.save` is a member extension - the saver is the dispatch receiver and can only be passed
+     * implicitly, the [SaverScope] is the extension receiver. Naming the saver explicitly instead
+     * offers it as the extension receiver, which does not resolve.
+     */
+    private fun savedBlob(state: FloatingBarStackState): List<Any> =
+        with(FloatingBarStackState.Saver) { SaverScope { true }.save(state)!! }
 
     @Test
     fun `a restored stack keeps the geometry it was saved with`() {
@@ -200,7 +205,7 @@ class FloatingBarStackStateTest : BaseTest() {
             initialImeExtraPx = 300f,
         )
 
-        val restored = FloatingBarStackState.Saver.restore(save(state))!!
+        val restored = FloatingBarStackState.Saver.restore(savedBlob(state))!!
 
         restored.position shouldBe BarPosition.BOTTOM
         // System bar and IME insets are recomputed from WindowInsets, so only the edge padding is back
@@ -230,9 +235,9 @@ class FloatingBarStackStateTest : BaseTest() {
         }
         state.applyCollapse(mapOf("toolbar" to 1f))
 
-        save(state) shouldBe listOf("TOP", 8f, 4f, 16f)
+        savedBlob(state) shouldBe listOf("TOP", 8f, 4f, 16f)
 
-        val restored = FloatingBarStackState.Saver.restore(save(state))!!
+        val restored = FloatingBarStackState.Saver.restore(savedBlob(state))!!
         restored.hasRegisteredBars shouldBe false
         restored.collapseTargets shouldBe emptyMap()
     }
@@ -244,7 +249,7 @@ class FloatingBarStackStateTest : BaseTest() {
     @Test
     fun `the saved position does not depend on the enum order`() {
         BarPosition.entries.forEach { position ->
-            val saved = save(FloatingBarStackState(position = position))
+            val saved = savedBlob(FloatingBarStackState(position = position))
 
             saved[0] shouldBe position.persistedKey
             FloatingBarStackState.Saver.restore(saved)!!.position shouldBe position
