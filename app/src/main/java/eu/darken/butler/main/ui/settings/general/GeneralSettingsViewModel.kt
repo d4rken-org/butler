@@ -44,15 +44,17 @@ constructor(
         generalSettings.isUpdateCheckEnabled.flow,
         motdSettings.isMotdEnabled.flow,
         generalSettings.isConfirmExitEnabled.flow,
+        generalSettings.isDisplayCutoutAvoided.flow,
         documentsProviderSettings.isEnabled.flow,
         upgradeRepo.upgradeInfo,
-    ) { themeState, languageSwitcher, updateCheckEnabled, motdEnabled, confirmExitEnabled, isDocumentsProviderEnabled, upgradeInfo ->
+    ) { themeState, languageSwitcher, updateCheckEnabled, motdEnabled, confirmExitEnabled, avoidDisplayCutout, isDocumentsProviderEnabled, upgradeInfo ->
         State(
             themeState = themeState,
             showLanguageSwitcher = languageSwitcher,
             updateCheckEnabled = updateCheckEnabled,
             motdEnabled = motdEnabled,
             confirmExitEnabled = confirmExitEnabled,
+            avoidDisplayCutout = avoidDisplayCutout,
             isDocumentsProviderEnabled = isDocumentsProviderEnabled,
             isUpgraded = upgradeInfo.isUpgraded,
         )
@@ -99,6 +101,11 @@ constructor(
         generalSettings.isConfirmExitEnabled.value(enabled)
     }
 
+    fun updateAvoidDisplayCutout(enabled: Boolean) = launch {
+        log(tag) { "updateAvoidDisplayCutout($enabled)" }
+        generalSettings.isDisplayCutoutAvoided.value(enabled)
+    }
+
     fun updateDocumentsProviderEnabled(enabled: Boolean) = launch {
         log(tag) { "updateDocumentsProviderEnabled($enabled)" }
         documentsProviderSettings.isEnabled.value(enabled)
@@ -125,6 +132,7 @@ constructor(
         val updateCheckEnabled: Boolean = false,
         val motdEnabled: Boolean = false,
         val confirmExitEnabled: Boolean = true,
+        val avoidDisplayCutout: Boolean = true,
         val isDocumentsProviderEnabled: Boolean = true,
         val isUpgraded: Boolean = false,
     )

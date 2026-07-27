@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.twotone.FolderOpen
+import androidx.compose.material.icons.twotone.Fullscreen
 import androidx.compose.material.icons.twotone.Image
 import androidx.compose.material.icons.twotone.Notifications
 import androidx.compose.material.icons.twotone.Palette
@@ -64,6 +65,7 @@ fun GeneralSettingsScreen(
     onUpdateCheckEnabledChange: (Boolean) -> Unit,
     onMotdEnabledChange: (Boolean) -> Unit,
     onConfirmExitEnabledChange: (Boolean) -> Unit,
+    onAvoidDisplayCutoutChange: (Boolean) -> Unit,
     onDocumentsProviderEnabledChange: (Boolean) -> Unit,
     onNavigateToPreviews: () -> Unit,
     onNavigateToShortcuts: () -> Unit,
@@ -209,6 +211,17 @@ fun GeneralSettingsScreen(
 
             item {
                 SettingsSwitchItem(
+                    icon = Icons.TwoTone.Fullscreen,
+                    title = stringResource(R.string.ui_display_cutout_avoid_setting_title),
+                    subtitle = stringResource(R.string.ui_display_cutout_avoid_setting_description),
+                    checked = state.avoidDisplayCutout,
+                    onCheckedChange = onAvoidDisplayCutoutChange
+                )
+                SettingsDivider()
+            }
+
+            item {
+                SettingsSwitchItem(
                     icon = Icons.TwoTone.Notifications,
                     title = stringResource(R.string.confirm_exit_setting_title),
                     subtitle = stringResource(R.string.confirm_exit_setting_description),
@@ -338,6 +351,7 @@ private fun GeneralSettingsScreenPreview() {
         onUpdateCheckEnabledChange = {},
         onMotdEnabledChange = {},
         onConfirmExitEnabledChange = {},
+        onAvoidDisplayCutoutChange = {},
         onDocumentsProviderEnabledChange = {},
         onNavigateToPreviews = {},
         onNavigateToShortcuts = {},
@@ -363,6 +377,7 @@ fun GeneralSettingsScreenHost(vm: GeneralSettingsViewModel = hiltViewModel()) {
             onUpdateCheckEnabledChange = { vm.updateUpdateCheckEnabled(it) },
             onMotdEnabledChange = { vm.updateMotdEnabled(it) },
             onConfirmExitEnabledChange = { vm.updateConfirmExitEnabled(it) },
+            onAvoidDisplayCutoutChange = { vm.updateAvoidDisplayCutout(it) },
             onDocumentsProviderEnabledChange = { vm.updateDocumentsProviderEnabled(it) },
             onNavigateToPreviews = { vm.navigateToPreviews() },
             onNavigateToShortcuts = { vm.navigateToShortcuts() },

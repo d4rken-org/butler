@@ -37,6 +37,7 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import dagger.hilt.android.AndroidEntryPoint
 import eu.darken.butler.common.BuildConfigWrap
+import eu.darken.butler.common.compose.LocalAvoidDisplayCutout
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -152,7 +153,11 @@ class MainActivity : Activity2() {
                         LaunchedEffect(mainState) {
                             log(TAG) { "Main state: $mainState" }
                         }
-                        Navigation(mainState)
+                        CompositionLocalProvider(
+                            LocalAvoidDisplayCutout provides mainState.avoidDisplayCutout,
+                        ) {
+                            Navigation(mainState)
+                        }
                     }
                 }
             }
