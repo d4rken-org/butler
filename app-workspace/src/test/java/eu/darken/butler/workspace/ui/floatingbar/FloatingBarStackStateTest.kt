@@ -230,11 +230,30 @@ class FloatingBarStackStateTest : BaseTest() {
         }
         state.applyCollapse(mapOf("toolbar" to 1f))
 
-        save(state) shouldBe listOf(BarPosition.TOP.ordinal, 8f, 4f, 16f)
+        save(state) shouldBe listOf("TOP", 8f, 4f, 16f)
 
         val restored = FloatingBarStackState.Saver.restore(save(state))!!
         restored.hasRegisteredBars shouldBe false
         restored.collapseTargets shouldBe emptyMap()
+    }
+
+    /**
+     * The position is saved under its [BarPosition.persistedKey], so that reordering the constants
+     * cannot turn a saved BOTTOM stack into a TOP one.
+     */
+    @Test
+    fun `the saved position does not depend on the enum order`() {
+        BarPosition.entries.forEach { position ->
+            val saved = save(FloatingBarStackState(position = position))
+
+            saved[0] shouldBe position.persistedKey
+            FloatingBarStackState.Saver.restore(saved)!!.position shouldBe position
+        }
+    }
+
+    @Test
+    fun `an unknown position restores nothing, leaving the caller a fresh stack`() {
+        FloatingBarStackState.Saver.restore(listOf("SIDE", 8f, 4f, 16f)) shouldBe null
     }
 
     // endregion

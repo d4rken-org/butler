@@ -331,24 +331,32 @@ class FloatingBarStackState(
         val Saver: Saver<FloatingBarStackState, List<Any>> = listSaver(
             save = { state ->
                 listOf(
-                    state.position.ordinal,
+                    state.position.persistedKey,
                     state.defaultSpacingPx,
                     state.edgePaddingPx,
                     state.contentGapPx,
                 )
             },
             restore = { saved ->
-                val position = BarPosition.entries[saved[0] as Int]
+                // Keyed by name, not by enum order: this blob is written and read by the same build,
+                // so an ordinal restores correctly today, but reordering the constants would silently
+                // turn a saved BOTTOM stack into a TOP one. An unrecognised key restores nothing and
+                // rememberSaveable falls back to a fresh stack, rather than throwing mid-restore.
+                val position = BarPosition.entries.firstOrNull { it.persistedKey == saved[0] }
                 val spacingPx = saved[1] as Float
                 val edgePx = saved[2] as Float
                 val contentGapPx = saved[3] as Float
                 // systemBarInsetPx / imeExtraPx are not saved - recomputed from WindowInsets via updateConfig()
-                FloatingBarStackState(
-                    position = position,
-                    initialDefaultSpacingPx = spacingPx,
-                    initialEdgePaddingPx = edgePx,
-                    initialContentGapPx = contentGapPx,
-                )
+                if (position == null) {
+                    null
+                } else {
+                    FloatingBarStackState(
+                        position = position,
+                        initialDefaultSpacingPx = spacingPx,
+                        initialEdgePaddingPx = edgePx,
+                        initialContentGapPx = contentGapPx,
+                    )
+                }
             },
         )
     }

@@ -3,7 +3,8 @@ package eu.darken.butler.workspace.ui.floatingbar
 /**
  * Defines the position of a [FloatingBarStack] relative to the screen edges.
  *
- * @param persistedKey The literal this position is stored as in the session blob's `barCollapse` map.
+ * @param persistedKey The literal this position is stored as in the session blob's `barCollapse` map
+ * and in [FloatingBarStackState.Saver]'s saved state.
  * It is spelled out instead of using the constant's name so that renaming a constant stays a rename:
  * with `name` as the key, `TOP` -> `TOP_EDGE` would quietly orphan every user's saved top bar state,
  * and nothing in the type system or the format tests would object. Changing a [persistedKey] value is

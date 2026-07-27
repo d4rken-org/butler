@@ -7,7 +7,8 @@ import testhelpers.BaseTest
 
 /**
  * [BarPosition.persistedKey] is a wire value, not a label: it is the slot key of the session blob's
- * `barCollapse` map. Changing one here means every stored bar state under the old key is orphaned, so
+ * `barCollapse` map, and how [FloatingBarStackState.Saver] identifies a stack's position across
+ * process death. Changing one here means every stored bar state under the old key is orphaned, so
  * the values are spelled out literally - a test that derived them from the enum would agree with any
  * rename.
  */
