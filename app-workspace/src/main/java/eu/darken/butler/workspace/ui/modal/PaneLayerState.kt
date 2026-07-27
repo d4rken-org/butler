@@ -66,14 +66,29 @@ class PaneLayerState {
 /**
  * Stacking ranks for the layers of a single pane, bottom to top.
  *
+ * A pane holds one tier of layers per modal depth: `rank = base + depth * TIER`, where depth 0 is
+ * the pane's own workspace and every pane-local modal stacked on it adds one.
+ *
  * Dialogs and sheets register at the ambient [LocalPaneLayerRank] of the region they are composed
- * in, so a dialog in the parent overlay slot always sits above the parent content but below a
- * pane-local child modal.
+ * in, so a dialog in one workspace's overlay slot always sits above that workspace's content but
+ * below the pane-local modal stacked on top of it.
  */
 object PaneLayerRank {
+    /** Rank span reserved for one modal depth tier. */
+    const val TIER = 300
     const val CONTENT = 0
     const val OVERLAY = 100
     const val MANAGER = 200
+
+    fun contentAt(depth: Int): Int = CONTENT + tierOffset(depth)
+    fun overlayAt(depth: Int): Int = OVERLAY + tierOffset(depth)
+    fun managerAt(depth: Int): Int = MANAGER + tierOffset(depth)
+
+    private fun tierOffset(depth: Int): Int {
+        require(depth >= 0) { "Layer depth must be >= 0, was $depth" }
+        return depth * TIER
+    }
+
     const val CHILD_CONTENT = 300
     const val CHILD_OVERLAY = 400
     const val CHILD_MANAGER = 500
