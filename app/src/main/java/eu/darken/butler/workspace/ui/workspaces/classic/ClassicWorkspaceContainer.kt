@@ -118,7 +118,7 @@ internal fun ClassicWorkspaceContainer(
                         info = paneInfo,
                         design = design,
                         paneFocused = isFocused,
-                        workspaceFocused = isFocused,
+                        activeWorkspaceId = paneInfo.id.takeIf { isFocused },
                         onRequestPaneFocus = {
                             onWorkspaceScreenAction(WorkspaceScreenAction.Select(paneInfo.id))
                         },

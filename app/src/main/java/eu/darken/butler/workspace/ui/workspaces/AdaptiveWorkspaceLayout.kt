@@ -40,9 +40,10 @@ fun AdaptiveWorkspaceLayout(
     bannerStates: Map<Workspace.Id, eu.darken.butler.workspace.ui.feedback.BannerState>,
     onDismissBanner: (Workspace.Id) -> Unit,
     onRenameWorkspace: (Workspace.Id) -> Unit = {},
-    paneLocalModals: Map<Workspace.Id, Workspace.Info> = emptyMap(),
+    paneLocalModalChains: Map<Workspace.Id, List<Workspace.Info>> = emptyMap(),
     isUpgraded: Boolean = false,
     isOverlayVisible: Boolean = false,
+    fullScreenModalVisible: Boolean = false,
     onShareError: (Workspace.Id, Throwable) -> Unit,
 ) {
     val dragDropState = remember { DragDropState() }
@@ -120,24 +121,28 @@ fun AdaptiveWorkspaceLayout(
                     val paneDesign = design.forPane(paneNumber).withoutEdges(start = true)
                     if (info != null) {
                         key(info.id) {
-                            // Check if this workspace has a pane-local modal child
-                            val childModal = paneLocalModals[info.id]
+                            val chain = paneLocalModalChains[info.id].orEmpty()
+                            // A modal covering everything takes focus away from the panes below it,
+                            // exactly like the tab manager overlay does.
+                            val focusSuppressed = isOverlayVisible || fullScreenModalVisible
+                            val paneIsFocused = !focusSuppressed &&
+                                (focusedId == info.id || chain.any { it.id == focusedId })
+                            // Deepest layer is the active one; global focus can sit on a covered
+                            // ancestor (launchPicker never moves it).
+                            val activeId = (chain.lastOrNull()?.id ?: info.id).takeIf { paneIsFocused }
 
                             WorkspacePane(
                                 info = info,
                                 design = paneDesign,
-                                // Either occupant counts as focusing the pane, and every layer
-                                // requests focus for the parent: a Focus(childModal.id) is silently
-                                // dropped, which would leave another pane active.
-                                paneFocused = !isOverlayVisible &&
-                                    (focusedId == info.id || (childModal != null && focusedId == childModal.id)),
-                                workspaceFocused = focusedId == info.id && !isOverlayVisible,
+                                // Any occupant counts as focusing the pane, and every layer requests
+                                // focus for the tab: a Focus() for a modal is silently dropped,
+                                // which would leave another pane active.
+                                paneFocused = paneIsFocused,
                                 onRequestPaneFocus = {
                                     onScreenAction(WorkspaceScreenAction.Focus(info.id))
                                 },
-                                childModal = childModal?.asPaneInfo(),
-                                childWorkspaceFocused = childModal != null &&
-                                    focusedId == childModal.id && !isOverlayVisible,
+                                childModals = chain.map { it.asPaneInfo() },
+                                activeWorkspaceId = activeId,
                                 managerDialogStates = managerDialogStates,
                                 onDismissManagerDialog = onDismissManagerDialog,
                                 onConfirmManagerDialog = onConfirmManagerDialog,

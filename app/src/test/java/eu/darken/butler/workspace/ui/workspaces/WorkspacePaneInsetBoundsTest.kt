@@ -97,7 +97,7 @@ class WorkspacePaneInsetBoundsTest : ComposeTest() {
                             info = paneInfo,
                             design = design,
                             paneFocused = true,
-                            workspaceFocused = true,
+                            activeWorkspaceId = paneInfo.id,
                             onRequestPaneFocus = {},
                             managerDialogStates = emptyMap(),
                             onDismissManagerDialog = {},

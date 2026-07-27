@@ -135,9 +135,12 @@ fun WorkspaceScreen(
                 bannerStates = bannerStates,
                 onDismissBanner = onDismissBanner,
                 onRenameWorkspace = { renameTargetId = it },
-                paneLocalModals = state.paneLocalModals,
+                paneLocalModalChains = state.paneLocalModalChains,
                 isUpgraded = state.isUpgraded,
                 isOverlayVisible = isOverlayVisible,
+                // A full-screen modal covers every pane, so none of them may stay focus- or
+                // back-active underneath it. Classic already guards this via its own container.
+                fullScreenModalVisible = state.fullScreenModalWorkspace != null,
                 onShareError = onShareError,
             )
         } else {

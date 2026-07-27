@@ -115,7 +115,7 @@ class WorkspacePaneErrorDialogTest : ComposeTest() {
                     info = info,
                     design = design,
                     paneFocused = true,
-                    workspaceFocused = true,
+                    activeWorkspaceId = info.id,
                     onRequestPaneFocus = {},
                     managerDialogStates = emptyMap(),
                     onDismissManagerDialog = {},

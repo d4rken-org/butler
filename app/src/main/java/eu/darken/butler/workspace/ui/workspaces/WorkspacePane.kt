@@ -22,19 +22,22 @@ import eu.darken.butler.workspace.ui.modal.PaneLayerHost
 import eu.darken.butler.workspace.ui.modal.PaneLayerRank
 
 /**
- * Everything that can occupy a single workspace pane, stacked bottom to top:
+ * Everything that can occupy a single workspace pane, stacked bottom to top.
  *
- * 1. parent workspace content (incl. its banner)
- * 2. parent workspace overlays
- * 3. manager dialog for the parent workspace
- * 4. pane-local child modal content, if present
- * 5. child modal overlays
- * 6. manager dialog for the child
+ * The pane's own workspace forms tier 0 — content (incl. its banner), overlays, manager dialog —
+ * and every entry of [childModals] adds one tier on top of it, nearest-tab-first. The stack is
+ * therefore as deep as the modal chain, not capped at one child.
  *
- * @param paneFocused whether this pane is the focused one — true for either occupant, because a
- *        pane-local child modal's id can never become the globally focused workspace id.
+ * @param paneFocused whether this pane is the focused one — true for any occupant, because a
+ *        pane-local modal's id can never become the globally focused workspace id.
+ * @param activeWorkspaceId the workspace the user is actually talking to: the deepest occupant of
+ *        a focused pane, or null while the pane is unfocused. Deliberately *not* compared against
+ *        the globally focused id — a picker opened via `launchPicker` never becomes the focused
+ *        workspace, so that comparison would mark the covered launcher focused and the visible
+ *        picker unfocused. Local activeness follows stack position; global focus only picks the
+ *        pane and the branch.
  * @param onRequestPaneFocus must always request focus for the pane's *parent* workspace, including
- *        from the child modal's layers: a focus request for a pane-local modal is silently dropped,
+ *        from a child modal's layers: a focus request for a pane-local modal is silently dropped,
  *        which would leave a different pane active while the user interacts with this one.
  */
 @Composable
@@ -43,7 +46,6 @@ fun WorkspacePane(
     info: WorkspacePaneInfo,
     design: WorkspaceDesign,
     paneFocused: Boolean,
-    workspaceFocused: Boolean,
     onRequestPaneFocus: () -> Unit,
     managerDialogStates: Map<Workspace.Id, ManagerDialog.WorkspaceTargeted>,
     onDismissManagerDialog: (Workspace.Id) -> Unit,
@@ -54,8 +56,8 @@ fun WorkspacePane(
     onCloseWorkspace: (Workspace.Id) -> Unit,
     onResumeWorkspace: (Workspace.Id) -> Unit,
     paneEdges: WorkspaceDesign.PaneEdges = WorkspaceDesign.PaneEdges.All,
-    childModal: WorkspacePaneInfo? = null,
-    childWorkspaceFocused: Boolean = false,
+    childModals: List<WorkspacePaneInfo> = emptyList(),
+    activeWorkspaceId: Workspace.Id? = null,
 ) {
     // Provided above the host so the host's own press observer can reach it: any press in the pane
     // must make it the focused pane, including presses that the content consumes.
@@ -69,14 +71,12 @@ fun WorkspacePane(
             paneEdges = paneEdges,
         ) {
             CompositionLocalProvider(
-                LocalWorkspaceFocused provides workspaceFocused,
+                LocalWorkspaceFocused provides (activeWorkspaceId == info.id),
             ) {
                 WorkspaceLayers(
                     info = info,
                     design = design,
-                    contentRank = PaneLayerRank.CONTENT,
-                    overlayRank = PaneLayerRank.OVERLAY,
-                    managerRank = PaneLayerRank.MANAGER,
+                    depth = 0,
                     contentIsModal = false,
                     managerDialogStates = managerDialogStates,
                     onDismissManagerDialog = onDismissManagerDialog,
@@ -90,17 +90,15 @@ fun WorkspacePane(
                 )
             }
 
-            childModal?.let { child ->
+            childModals.forEachIndexed { index, child ->
                 key(child.id) {
                     CompositionLocalProvider(
-                        LocalWorkspaceFocused provides childWorkspaceFocused,
+                        LocalWorkspaceFocused provides (activeWorkspaceId == child.id),
                     ) {
                         WorkspaceLayers(
                             info = child,
                             design = design,
-                            contentRank = PaneLayerRank.CHILD_CONTENT,
-                            overlayRank = PaneLayerRank.CHILD_OVERLAY,
-                            managerRank = PaneLayerRank.CHILD_MANAGER,
+                            depth = index + 1,
                             contentIsModal = true,
                             managerDialogStates = managerDialogStates,
                             onDismissManagerDialog = onDismissManagerDialog,
@@ -123,9 +121,7 @@ fun WorkspacePane(
 private fun BoxScope.WorkspaceLayers(
     info: WorkspacePaneInfo,
     design: WorkspaceDesign,
-    contentRank: Int,
-    overlayRank: Int,
-    managerRank: Int,
+    depth: Int,
     contentIsModal: Boolean,
     managerDialogStates: Map<Workspace.Id, ManagerDialog.WorkspaceTargeted>,
     onDismissManagerDialog: (Workspace.Id) -> Unit,
@@ -139,7 +135,7 @@ private fun BoxScope.WorkspaceLayers(
 ) {
     PaneLayer(
         modifier = Modifier.fillMaxSize(),
-        rank = contentRank,
+        rank = PaneLayerRank.contentAt(depth),
         modal = contentIsModal,
     ) {
         WorkspaceOverlayContainer(
@@ -166,7 +162,7 @@ private fun BoxScope.WorkspaceLayers(
     // lives in this slot, so gating on Ready would swallow anything raised during initialization.
     if (info.lifecycleState !is Workspace.LifecycleState.Paused) {
         LocalWorkspacePageHosts.current[info.type]?.let { entry ->
-            CompositionLocalProvider(LocalPaneLayerRank provides overlayRank) {
+            CompositionLocalProvider(LocalPaneLayerRank provides PaneLayerRank.overlayAt(depth)) {
                 entry.Overlays(id = info.id, design = design)
             }
         }
@@ -175,7 +171,7 @@ private fun BoxScope.WorkspaceLayers(
     // Deliberately outside the lifecycle gate: a close confirmation for a paused workspace must
     // still appear.
     managerDialogStates[info.id]?.let { dialog ->
-        PaneLayer(modifier = Modifier.fillMaxSize(), rank = managerRank) {
+        PaneLayer(modifier = Modifier.fillMaxSize(), rank = PaneLayerRank.managerAt(depth)) {
             ManagerDialogHost(
                 dialog = dialog,
                 onDismiss = { onDismissManagerDialog(it.targetWorkspaceId) },

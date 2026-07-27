@@ -14,7 +14,7 @@ import testhelpers.BaseTest
  * These tests verify the filtering logic used by UI containers:
  * - [WorkspacesViewModel.State.tabWorkspaces] - workspaces shown in pager/tabs
  * - [WorkspacesViewModel.State.fullScreenModalWorkspace] - modal overlay workspace
- * - [WorkspacesViewModel.State.paneLocalModals] - pane-specific modal overlays
+ * - [WorkspacesViewModel.State.paneLocalModalChains] - pane-scoped modal stacks
  */
 class WorkspacesViewModelStateTest : BaseTest() {
 
@@ -365,10 +365,10 @@ class WorkspacesViewModelStateTest : BaseTest() {
 
     // endregion
 
-    // region paneLocalModals tests
+    // region paneLocalModalChains tests
 
     @Test
-    fun `paneLocalModals - empty in single pane mode`() {
+    fun `paneLocalModalChains - empty in single pane mode`() {
         val explorer = Workspace.Id()
         val details = Workspace.Id()
 
@@ -384,12 +384,12 @@ class WorkspacesViewModelStateTest : BaseTest() {
             currentPaneCount = 1,
         )
 
-        // In single pane, paneLocalModals is empty (modals render as dialog instead)
-        state.paneLocalModals shouldBe emptyMap()
+        // In single pane, the chain map is empty (modals render as dialog instead)
+        state.paneLocalModalChains shouldBe emptyMap()
     }
 
     @Test
-    fun `paneLocalModals - maps parent to child in multi-pane mode`() {
+    fun `paneLocalModalChains - maps parent to child in multi-pane mode`() {
         val explorer = Workspace.Id()
         val details = Workspace.Id()
 
@@ -405,12 +405,12 @@ class WorkspacesViewModelStateTest : BaseTest() {
             currentPaneCount = 2,
         )
 
-        state.paneLocalModals.size shouldBe 1
-        state.paneLocalModals[explorer]?.id shouldBe details
+        state.paneLocalModalChains.size shouldBe 1
+        state.paneLocalModalChains[explorer]?.map { it.id } shouldBe listOf(details)
     }
 
     @Test
-    fun `paneLocalModals - excludes FULL_SCREEN modals`() {
+    fun `paneLocalModalChains - excludes FULL_SCREEN modals`() {
         val explorer = Workspace.Id()
         val picker = Workspace.Id()
 
@@ -427,11 +427,11 @@ class WorkspacesViewModelStateTest : BaseTest() {
         )
 
         // FULL_SCREEN modals render as dialog, not pane-local overlay
-        state.paneLocalModals shouldBe emptyMap()
+        state.paneLocalModalChains shouldBe emptyMap()
     }
 
     @Test
-    fun `paneLocalModals - multiple panes with their own modals`() {
+    fun `paneLocalModalChains - multiple panes with their own modals`() {
         val explorer1 = Workspace.Id()
         val explorer2 = Workspace.Id()
         val details1 = Workspace.Id()
@@ -455,9 +455,9 @@ class WorkspacesViewModelStateTest : BaseTest() {
             currentPaneCount = 2,
         )
 
-        state.paneLocalModals.size shouldBe 2
-        state.paneLocalModals[explorer1]?.id shouldBe details1
-        state.paneLocalModals[explorer2]?.id shouldBe details2
+        state.paneLocalModalChains.size shouldBe 2
+        state.paneLocalModalChains[explorer1]?.map { it.id } shouldBe listOf(details1)
+        state.paneLocalModalChains[explorer2]?.map { it.id } shouldBe listOf(details2)
     }
 
     // endregion
