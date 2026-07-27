@@ -2,22 +2,7 @@
 
 ## Test Commands
 
-```bash
-# Run all unit tests in the project
-./gradlew testDebugUnitTest
-
-# Run unit tests for a specific module
-./gradlew :app-common-io:testDebugUnitTest
-
-# Run a specific test class
-./gradlew :app-common-io:testDebugUnitTest --tests "eu.darken.butler.common.files.operations.GenericPathCopyTest"
-
-# Run a specific test method
-./gradlew :app-common-io:testDebugUnitTest --tests "eu.darken.butler.common.files.operations.GenericPathCopyTest.testCopyFile"
-
-# Run instrumented tests (on connected device/emulator)
-./gradlew connectedAndroidTest
-```
+Standard Gradle invocations (`testDebugUnitTest`, `--tests "<fqcn>"`, `connectedAndroidTest`). Flavored modules need the flavor in the task name — see the Compose section below.
 
 ### Context Management
 
@@ -25,7 +10,7 @@ When running test commands, use the Task tool with a sub-agent to keep verbose o
 
 **Default approach (preferred):**
 
-- Use Task tool → general-purpose agent → run gradle test command
+- Use Task tool → `devtools:build-runner` agent → run gradle test command
 - Sub-agent should report back only:
     - Success/failure status
     - Test failures (if any) with file locations and error messages

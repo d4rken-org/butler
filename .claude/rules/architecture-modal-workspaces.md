@@ -1,3 +1,7 @@
+---
+paths: ["app-workspace*/**"]
+---
+
 # Modal Workspace Pattern
 
 Butler supports **modal workspaces** - workspaces that render as full-screen overlays instead of tabs. This pattern enables workspace-to-workspace interactions like file/folder pickers, while maintaining full workspace capabilities.

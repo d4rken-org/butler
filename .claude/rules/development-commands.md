@@ -35,7 +35,7 @@ When running gradle build commands, use the Task tool with a sub-agent to keep v
 
 **Default approach (preferred):**
 
-- Use Task tool → general-purpose agent → run gradle command
+- Use Task tool → `devtools:build-runner` agent → run gradle command
 - Sub-agent should report back only:
     - Success/failure status
     - Compilation errors (if any) with file locations

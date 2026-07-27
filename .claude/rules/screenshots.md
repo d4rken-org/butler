@@ -1,3 +1,7 @@
+---
+paths: ["app/src/screenshotTest/**", "app/src/debug/**", "fastlane/**"]
+---
+
 # Play Store Screenshot Generation
 
 Butler uses **Jetpack Compose Preview Screenshot Testing** to generate localized Play Store screenshots across 76 languages. No device or emulator needed — screenshots are rendered via layoutlib.
@@ -14,26 +18,7 @@ generate_screenshots.sh   →  Batch-renders to avoid layoutlib memory leak
 copy_screenshots.sh       →  Organizes PNGs into fastlane/metadata/android/{locale}/
 ```
 
-## Key Files
-
-| File | Purpose |
-|------|---------|
-| `app/src/screenshotTest/kotlin/.../PlayStoreScreenshots.kt` | 6 `@PreviewTest` composables (one per screen) |
-| `app/src/screenshotTest/kotlin/.../PlayStoreLocales.kt` | `@PlayStoreLocales` (76 locales) and `@PlayStoreLocalesSmoke` (6 locales) annotations, device spec |
-| `app/src/debug/java/.../ScreenshotContent.kt` | Mock content composables with sample data |
-| `fastlane/generate_screenshots.sh` | Batch generation script |
-| `fastlane/copy_screenshots.sh` | Copies rendered PNGs to fastlane metadata dirs |
-
-## Screens Captured
-
-| # | Function | Output Filename |
-|---|----------|-----------------|
-| 1 | `ExplorerHome()` | `1_explorer_home.png` |
-| 2 | `ExplorerDirectory()` | `2_explorer_directory.png` |
-| 3 | `SearcherResults()` | `3_searcher_results.png` |
-| 4 | `EditorView()` | `4_editor.png` |
-| 5 | `AppsManager()` | `5_apps.png` |
-| 6 | `WorkspaceManager()` | `6_workspace_manager.png` |
+Function-to-filename mapping lives in `copy_screenshots.sh` (`SCREEN_MAP`).
 
 ## Commands
 
@@ -98,21 +83,6 @@ Edit `ScreenshotContent.kt`. The content composables use `PreviewWrapper` for th
 ### Adding/removing locales
 
 Edit `PlayStoreLocales.kt`. Each `@Preview` entry needs `locale` (Android code) and `name` (Play Store directory name, used in filenames and fastlane paths).
-
-## Gradle Plugin
-
-```kotlin
-// app/build.gradle.kts
-plugins {
-    id("com.android.compose.screenshot") version "0.0.1-alpha13"
-}
-
-dependencies {
-    "screenshotTestImplementation"(platform("androidx.compose:compose-bom:..."))
-    "screenshotTestImplementation"("com.android.tools.screenshot:screenshot-validation-api:0.0.1-alpha13")
-    "screenshotTestImplementation"("androidx.compose.ui:ui-tooling")
-}
-```
 
 ## ADB Screenshots (Debugging)
 

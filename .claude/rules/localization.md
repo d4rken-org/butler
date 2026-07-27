@@ -1,3 +1,7 @@
+---
+paths: ["**/res/values*/strings.xml", "fastlane/metadata/**"]
+---
+
 # Localization Guidelines
 
 ## String Extraction

@@ -26,23 +26,7 @@ Butler uses a workspace concept similar to browser tabs with 4 main workspace ty
 | Localization | `.claude/rules/localization.md` |
 | DI, logging, serialization | `.claude/rules/technical-patterns.md` |
 | Screenshots | `.claude/rules/screenshots.md` |
-| Agent delegation | `.claude/rules/agent-instructions.md` |
 | Commit messages | `.claude/rules/commit-guidelines.md` |
-
-## Quick Commands
-
-```bash
-# Build (FOSS flavor)
-./gradlew :app:compileFossDebugKotlin --no-daemon
-
-# Test
-./gradlew testDebugUnitTest
-
-# Lint
-./gradlew lintVitalFossRelease
-```
-
-See `.claude/rules/development-commands.md` for complete command reference.
 
 ## Important File Locations
 
@@ -69,6 +53,4 @@ See `.claude/rules/development-commands.md` for complete command reference.
 - `fastlane/metadata/android/{locale}/images/phoneScreenshots/`: Play Store screenshots
 
 ### Build Flavors
-- **FOSS**: Open source version without Google Play dependencies
-- **GPLAY**: Google Play version with additional features
-- Use FOSS debug flavor for local development
+FOSS and GPLAY (see `app/build.gradle.kts`). Use FOSS debug for local development.

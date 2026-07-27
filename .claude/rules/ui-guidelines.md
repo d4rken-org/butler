@@ -19,12 +19,7 @@ Exceptions: the Templates picker layout (24.dp), the Explorer grid branch (2.dp)
 
 ## MVVM with Custom ViewModel Hierarchy
 
-Butler uses a layered ViewModel hierarchy where each level adds capabilities:
-
-- **`ViewModel1`** (extends `androidx.lifecycle.ViewModel`): Base class. Adds debug logging on init/clear and a `tag` system for log identification.
-- **`ViewModel2`** (extends `ViewModel1`): Adds `DispatcherProvider`, `vmScope`, `launch()`, `Flow<T>.launchInViewModel()`, and `Flow<T>.asStateFlow()` for coroutine management.
-- **`ViewModel3`** (extends `ViewModel2`): Adds error handling via `ErrorEventSource` with `SingleEventFlow<Throwable>` and a `launchErrorHandler` that catches and emits errors.
-- **`ViewModel4`** (extends `ViewModel3`): Adds navigation via `NavigationEventSource` with `navTo()` and `navUp()` helpers.
+Butler uses a layered ViewModel hierarchy (`ViewModel1`…`ViewModel4`) where each level adds capabilities.
 
 New ViewModels should extend **`ViewModel3`** (no navigation needed) or **`ViewModel4`** (with navigation). Uses Hilt assisted injection for workspace ID parameters.
 

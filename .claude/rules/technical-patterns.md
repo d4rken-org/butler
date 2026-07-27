@@ -61,23 +61,7 @@
 
 Butler uses a custom logging system (`Logging.kt`) for comprehensive debugging and monitoring.
 
-### Required Imports
-
-```kotlin
-import eu.darken.butler.common.debug.logging.Logging.Priority.*
-import eu.darken.butler.common.debug.logging.asLog
-import eu.darken.butler.common.debug.logging.log
-import eu.darken.butler.common.debug.logging.logTag
-```
-
-### Priority Levels
-
-- **VERBOSE (2)**: Most detailed logging for deep debugging
-- **DEBUG (3)**: General debugging information (default priority)
-- **INFO (4)**: Important informational messages and milestones
-- **WARN (5)**: Warning conditions that need attention
-- **ERROR (6)**: Error conditions and exceptions
-- **ASSERT (7)**: Critical assertions and "WTF" moments
+Imports and priority levels: see `Logging.kt`.
 
 ### Tag Conventions
 
