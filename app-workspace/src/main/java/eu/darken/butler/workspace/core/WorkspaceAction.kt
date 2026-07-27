@@ -50,57 +50,104 @@ sealed interface WorkspaceAction {
     }
 
     /**
-     * Replaces a paused stand-in with its real instance in place: same [Workspace.Id], same list
+     * Replaces paused stand-ins with their real instances in place: same [Workspace.Id], same list
      * position, so focus, pane selections and tab identity survive. Idempotent — an unknown or
      * already resumed id resolves to [Result.NoOp].
+     *
+     * Acts on the whole ownership UNIT [id] belongs to, exactly like [Pause]: the id is resolved up
+     * to its ownership root and every paused member below it comes back too. A member is only
+     * instantiated after its owner resumed successfully — a modal over a paused owner has nothing to
+     * bind to — so a failing member skips its own descendants
+     * ([MemberOutcome.SkippedAncestorFailed]) while independent branches continue.
      */
     data class Resume(
         val id: Workspace.Id,
     ) : WorkspaceAction {
         sealed interface Result : WorkspaceAction.Result {
-            data class Success(val newId: Workspace.Id) : Result
+            data class Success(
+                val newId: Workspace.Id,
+                /** Per-member outcome, keyed by [Workspace.Id] (unique by construction). */
+                val outcomes: Map<Workspace.Id, MemberOutcome> = emptyMap(),
+            ) : Result
 
-            /** The id is unknown or its workspace is not paused; nothing to do. */
+            /** The id is unknown, nothing in its unit is paused, or its ownership is broken. */
             data object NoOp : Result
 
-            /** Instantiation failed; the stand-in is kept and reports the error. */
-            data class Failed(val error: Throwable) : Result
+            /**
+             * The requested id did not come back: its own instantiation failed, or an ancestor's did.
+             * Failing stand-ins are kept and report the error.
+             */
+            data class Failed(
+                val error: Throwable,
+                val outcomes: Map<Workspace.Id, MemberOutcome> = emptyMap(),
+            ) : Result
+        }
+
+        sealed interface MemberOutcome {
+            data object Resumed : MemberOutcome
+
+            /** Was not paused to begin with; nothing to do. */
+            data object AlreadyLive : MemberOutcome
+
+            data class Failed(val error: Throwable) : MemberOutcome
+
+            /** Never attempted: [ancestorId] failed, so this one would hang over a paused owner. */
+            data class SkippedAncestorFailed(
+                val ancestorId: Workspace.Id,
+                val error: Throwable,
+            ) : MemberOutcome
         }
     }
 
     /**
-     * Releases a live workspace's instance to free memory and battery, replacing it in place with a
+     * Releases live workspace instances to free memory and battery, replacing each in place with a
      * paused stand-in that holds the arguments captured from its CURRENT state. Same [Workspace.Id],
-     * same list position, same focus and pane assignments — only the instance goes away, so no
-     * [WorkspaceEvent] is emitted. [Resume] brings it back.
+     * same list position, same focus and pane assignments — only the instances go away, so no
+     * [WorkspaceEvent] is emitted. [Resume] brings them back.
      *
-     * Refused whenever pausing would lose something: sub-workspaces and workspaces with children,
-     * a held content-path claim, running operations, unsaved changes, a workspace that isn't
-     * [Workspace.Info.isPausable], and anything not yet in [Workspace.LifecycleState.Ready].
+     * Acts on the ownership UNIT [id] belongs to, never on a single workspace: the id is resolved up
+     * to its ownership root (following [Workspace.Info.callerWorkspaceId]) and the root plus all of
+     * its descendants are paused as one, all-or-nothing. A tab and its modal children live and die
+     * together on screen, so pausing one without the others would either leave a live modal over a
+     * released owner or keep a whole tab awake for a forgotten overlay.
+     *
+     * Refused whenever pausing would lose something, for ANY member of the unit: a child that does
+     * not opt into being paused with its owner (see [Workspace.ArgumentsWithCaller.pausableAsChild],
+     * which pickers never do), a held content-path claim, running operations, unsaved changes, a
+     * workspace that isn't [Workspace.Info.isPausable], and anything not yet in
+     * [Workspace.LifecycleState.Ready].
      */
     data class Pause(
         val id: Workspace.Id,
     ) : WorkspaceAction {
         sealed interface Result : WorkspaceAction.Result {
-            data class Success(val id: Workspace.Id) : Result
+            data class Success(
+                /** The ownership root the request resolved to; not necessarily [Pause.id]. */
+                val id: Workspace.Id,
+                /** Every member of the paused unit, root first. Authoritative topology snapshot. */
+                val pausedIds: List<Workspace.Id> = listOf(id),
+            ) : Result
 
-            /** The id is unknown, or its workspace is already paused; nothing to do. */
+            /** The id is unknown, or its whole unit is already paused; nothing to do. */
             data object NoOp : Result
 
             data class Refused(val reason: Reason) : Result
 
-            /** Capturing the arguments failed before any state change; the workspace is still live. */
+            /** Capturing the arguments failed before any state change; the unit is still live. */
             data class Failed(val error: Throwable) : Result
         }
 
         enum class Reason {
-            SUB_WORKSPACE,
+            /** A member of the unit does not opt into being paused with its owner. */
             HAS_CHILDREN,
             BUSY,
             UNSAVED_CHANGES,
             NOT_PAUSABLE,
             NOT_READY,
             CLAIM_HELD,
+
+            /** The caller chain cannot be resolved: a cycle, or a caller id that no longer exists. */
+            BROKEN_OWNERSHIP,
             ;
         }
     }

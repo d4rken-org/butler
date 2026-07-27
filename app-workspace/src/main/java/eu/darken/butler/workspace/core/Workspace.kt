@@ -192,6 +192,18 @@ interface Workspace<ArgT : Workspace.Arguments> {
          */
         val modalPresentation: ModalPresentationMode
             get() = ModalPresentationMode.PANE_LOCAL
+
+        /**
+         * True when this workspace may be released together with the workspace that owns it
+         * ([WorkspaceAction.Pause] acts on a whole ownership unit).
+         *
+         * Fail-closed by design: opting in means everything the child stands for survives a
+         * round-trip through [Arguments], so it can be rebuilt exactly as the user left it once the
+         * unit resumes. [ArgumentsForResult] must never opt in — the result collector lives in the
+         * caller's ViewModel and cannot survive its workspace being released.
+         */
+        val pausableAsChild: Boolean
+            get() = false
     }
 
     /**
@@ -278,6 +290,14 @@ interface Workspace<ArgT : Workspace.Arguments> {
          */
         val modalPresentation: ModalPresentationMode = ModalPresentationMode.PANE_LOCAL,
         /**
+         * True when this workspace may be paused together with the workspace that owns it, projected
+         * from [ArgumentsWithCaller.pausableAsChild]. Only relevant while [isSubWorkspace] is true.
+         *
+         * A cheap pre-filter for the UI and auto-pause; WorkspaceRepo re-checks the same property on
+         * the arguments it actually captured before releasing anything.
+         */
+        val pausableAsChild: Boolean = false,
+        /**
          * Content path this workspace currently holds (e.g. the editor's open file), making it
          * eligible for duplicate-open focusing: a Create/claim for the same path resolves to a
          * workspace publishing it instead of opening a duplicate. NOT an exclusivity guarantee -
@@ -326,3 +346,13 @@ interface Workspace<ArgT : Workspace.Arguments> {
  */
 val Workspace.Arguments.isForSubWorkspace: Boolean
     get() = (this as? Workspace.ArgumentsWithCaller)?.callerWorkspaceId != null
+
+/**
+ * Returns true if a workspace created from these arguments may be paused as part of its owner's
+ * ownership unit ([Workspace.ArgumentsWithCaller.pausableAsChild]).
+ *
+ * The [Workspace.ArgumentsForResult] veto is enforced here rather than left to each implementation:
+ * a picker owes its caller a result, so releasing the caller (or the picker) would drop it.
+ */
+val Workspace.Arguments.isPausableAsChild: Boolean
+    get() = this is Workspace.ArgumentsWithCaller && this !is Workspace.ArgumentsForResult && pausableAsChild

@@ -16,10 +16,10 @@ import kotlinx.coroutines.flow.stateIn
  * Builds the initial [Workspace.Info] used to seed [stateInWorkspace].
  *
  * The static relationship fields ([Workspace.Info.callerWorkspaceId],
- * [Workspace.Info.modalPresentation], [Workspace.Info.contentPath]) are extracted from
- * [arguments] so they are correct before the first real emission — WorkspaceRepo reads them
- * synchronously for lifecycle decisions (child cleanup, sub-workspace limit exclusion,
- * per-path open dedup).
+ * [Workspace.Info.modalPresentation], [Workspace.Info.pausableAsChild],
+ * [Workspace.Info.contentPath]) are extracted from [arguments] so they are correct before the first
+ * real emission — WorkspaceRepo reads them synchronously for lifecycle decisions (child cleanup,
+ * sub-workspace limit exclusion, unit pausing, per-path open dedup).
  *
  * [title] and [subtitle] should come from the same derivation the type's
  * [WorkspaceFactory.deriveDisplay] uses, so a paused stand-in and the live workspace show the
@@ -38,6 +38,7 @@ fun Workspace<*>.initialInfo(
         subtitle = subtitle,
         callerWorkspaceId = withCaller?.callerWorkspaceId,
         modalPresentation = withCaller?.modalPresentation ?: Workspace.ModalPresentationMode.PANE_LOCAL,
+        pausableAsChild = arguments.isPausableAsChild,
         contentPath = (arguments as? Workspace.ArgumentsWithContentPath)?.contentPath,
     )
 }
