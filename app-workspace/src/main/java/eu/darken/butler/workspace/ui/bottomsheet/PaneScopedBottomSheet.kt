@@ -266,10 +266,13 @@ fun PaneScopedBottomSheet(
                 }
 
                 SheetCard(
+                    // The tag sits *below* the drag offset on purpose: a semantics node reports the
+                    // bounds of its own place in the chain, so tagged above it the card would keep
+                    // reporting its resting position while it is being dragged.
                     modifier = modifier
-                        .testTag(PaneScopedBottomSheetDefaults.CARD_TEST_TAG)
                         .requestPaneFocusOnPress()
                         .offset { IntOffset(0, dragState.offset.roundToInt()) }
+                        .testTag(PaneScopedBottomSheetDefaults.CARD_TEST_TAG)
                         .nestedScroll(nestedScrollConnection),
                     // The handle keeps a drag path of its own: the nested-scroll route only reaches
                     // the sheet once a child scroller is at its top, and the handle must stay

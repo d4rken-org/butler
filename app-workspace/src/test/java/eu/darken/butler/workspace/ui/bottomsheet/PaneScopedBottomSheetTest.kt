@@ -228,6 +228,30 @@ class PaneScopedBottomSheetTest : ComposeTest() {
         cardBounds().height shouldBeLessThan 260.dp
     }
 
+    /**
+     * The contract the opt-out exists for: content that scrolls itself without a height cap — the
+     * shape every migrated call site used to have — must not end up inside the sheet's scroller as
+     * well. Two unbounded scrollers on one axis is a crash, which is the loud failure direction the
+     * parameter is documented to have.
+     */
+    @Test
+    fun `content that scrolls itself without a height cap is left alone`() {
+        composeTestRule.setContent {
+            Case(contentScroll = SheetContentScroll.ContentOwned) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState()),
+                ) {
+                    repeat(ITEM_COUNT) { Item(it) }
+                }
+            }
+        }
+
+        composeTestRule.onNodeWithTag(itemTag(ITEM_COUNT - 1)).performScrollTo().assertIsDisplayed()
+        cardBounds().height shouldBeLessThanOrEqualTo paneBounds().height
+    }
+
     @Test
     fun `an upward drag scrolls the content instead of dismissing`() {
         var dismissals = 0
@@ -254,6 +278,59 @@ class PaneScopedBottomSheetTest : ComposeTest() {
         swipeContent(up = false)
 
         itemBounds(0).top shouldBeGreaterThan before
+        cardBounds().top shouldBe paneBounds().top
+        dismissals shouldBe 0
+    }
+
+    /**
+     * The way back: while the sheet is displaced, upward movement belongs to the sheet until it is
+     * back at rest. Handing it to the content instead would scroll the content out from under a
+     * finger that is still putting the sheet back.
+     */
+    @Test
+    fun `an upward drag returns the displaced sheet before the content scrolls`() {
+        var dismissals = 0
+        composeTestRule.setContent { Case(onDismiss = { dismissals++ }) { TallContent() } }
+
+        val out = with(composeTestRule.density) { 100.dp.toPx() }
+        val back = with(composeTestRule.density) { 60.dp.toPx() }
+        composeTestRule.onNodeWithTag(CARD_TAG).performTouchInput {
+            down(Offset(centerX, height * 0.5f))
+            // The content is at its top, so this displaces the sheet
+            moveBy(Offset(0f, out), delayMillis = 32)
+            // Less than the displacement, so all of it is owed to the sheet
+            moveBy(Offset(0f, -back), delayMillis = 32)
+            up()
+        }
+        composeTestRule.waitForIdle()
+
+        itemBounds(0).top shouldBe handleBounds().bottom
+        dismissals shouldBe 0
+    }
+
+    /**
+     * A fling that runs out of content stops at the top. Carrying its leftover into the sheet would
+     * dismiss it out from under a user who was only scrolling back up.
+     */
+    @Test
+    fun `a fling that reaches the top of the content leaves the sheet alone`() {
+        var dismissals = 0
+        composeTestRule.setContent { Case(onDismiss = { dismissals++ }) { TallContent() } }
+
+        // Four items' worth of scroll left, less than the fling will cover
+        composeTestRule.onNodeWithTag(itemTag(ITEM_COUNT - 1)).performScrollTo()
+        composeTestRule.onNodeWithTag(itemTag(4)).performScrollTo()
+
+        val travel = with(composeTestRule.density) { 200.dp.toPx() }
+        composeTestRule.onNodeWithTag(CARD_TAG).performTouchInput {
+            // The drag itself stays within what the content can still consume
+            swipeDown(startY = height * 0.15f, endY = height * 0.15f + travel)
+        }
+        composeTestRule.waitForIdle()
+
+        // The fling really did carry the content to its top…
+        itemBounds(0).top shouldBe handleBounds().bottom
+        // …and stopped there instead of moving the sheet
         cardBounds().top shouldBe paneBounds().top
         dismissals shouldBe 0
     }
@@ -376,9 +453,12 @@ class PaneScopedBottomSheetTest : ComposeTest() {
     fun `a recomposition that keeps the same content does not reset the scroll`() {
         var dialogOpen by mutableStateOf(false)
         composeTestRule.setContent {
-            Case(contentKey = "same") {
+            // Read here rather than inside the content lambda, and passed on as a capture: that is
+            // what makes the sheet itself recompose instead of only its content.
+            val open = dialogOpen
+            Case(contentKey = "same", onDismiss = { check(!open) }) {
                 TallContent()
-                if (dialogOpen) Text("dialog")
+                if (open) Text("dialog")
             }
         }
 
@@ -516,6 +596,8 @@ class PaneScopedBottomSheetTest : ComposeTest() {
     private fun paneBounds() = composeTestRule.onNodeWithTag(PANE_TAG).getUnclippedBoundsInRoot()
 
     private fun cardBounds() = composeTestRule.onNodeWithTag(CARD_TAG).getUnclippedBoundsInRoot()
+
+    private fun handleBounds() = composeTestRule.onNodeWithTag(HANDLE_TAG).getUnclippedBoundsInRoot()
 
     private fun itemBounds(index: Int) =
         composeTestRule.onNodeWithTag(itemTag(index)).getUnclippedBoundsInRoot()
