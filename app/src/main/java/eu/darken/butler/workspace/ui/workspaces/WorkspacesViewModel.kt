@@ -20,7 +20,10 @@ import eu.darken.butler.main.core.motd.MotdState
 import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.workspace.contracts.bugreport.BugReportArguments
 import eu.darken.butler.workspace.core.PendingWorkspaceConfirmation
+import eu.darken.butler.workspace.core.RenderedWorkspaceStacks
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.WorkspaceStackChain
+import eu.darken.butler.workspace.core.WorkspaceStacks
 import eu.darken.butler.workspace.ui.WorkspacePageHostEntry
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceEvent
@@ -440,114 +443,35 @@ class WorkspacesViewModel @Inject constructor(
             get() = state.infos.filter { !it.isSubWorkspace }
 
         /**
-         * Every modal chain currently open, one entry per chain leaf, fully validated.
-         *
-         * A chain is only kept when walking its callers upward terminates at a workspace that
-         * exists and is not itself a sub-workspace. Anything else - a caller id that no longer
-         * resolves, a cycle, or a leaf whose ancestry runs into one - is dropped rather than
-         * rendered: a modal whose owning tab cannot be named has no pane to belong to, and
-         * surfacing it would put an undismissable overlay over an unrelated tab.
+         * What this layout puts on screen, resolved by the shared ownership walk. Shared on purpose:
+         * auto-pause decides what is idle from the same resolution, and the two disagreeing is what
+         * let a rendered modal be treated as unseen.
          */
-        private val resolvedChains: List<ResolvedModalChain> by lazy {
-            val infos = state.infos
-            val subs = infos.filter { it.isSubWorkspace }
-            if (subs.isEmpty()) return@lazy emptyList<ResolvedModalChain>()
-
-            val byId = infos.associateBy { it.id }
-            val callerIds = subs.mapNotNull { it.callerWorkspaceId }.toSet()
-
-            infos.withIndex()
-                .filter { (_, info) -> info.isSubWorkspace && info.id !in callerIds }
-                .mapNotNull { (order, leaf) ->
-                    val ancestry = mutableListOf<Workspace.Info>()
-                    val visited = mutableSetOf<Workspace.Id>()
-                    var current: Workspace.Info = leaf
-                    var rootTabId: Workspace.Id? = null
-
-                    while (visited.add(current.id)) {
-                        ancestry += current
-                        val caller = current.callerWorkspaceId?.let { byId[it] } ?: break
-                        if (!caller.isSubWorkspace) {
-                            rootTabId = caller.id
-                            break
-                        }
-                        current = caller
-                    }
-
-                    val root = rootTabId ?: return@mapNotNull null
-                    val chain = ancestry.reversed()
-                    ResolvedModalChain(
-                        rootTabId = root,
-                        chain = chain,
-                        isFullScreen = chain.any {
-                            it.modalPresentation == Workspace.ModalPresentationMode.FULL_SCREEN
-                        } || (
-                            chain.last().modalPresentation == Workspace.ModalPresentationMode.PANE_LOCAL &&
-                                !isMultiPane
-                            ),
-                        order = order,
-                    )
-                }
-        }
-
-        /**
-         * The chain the user is working in: the one focus points into, else the newest.
-         *
-         * `launchPicker` never moves the global focus, so focus can sit on any member of a chain
-         * or on its owning tab - all of them identify the same branch.
-         */
-        private fun List<ResolvedModalChain>.preferred(): ResolvedModalChain? {
-            val focusedId = focusedWorkspace ?: return maxByOrNull { it.order }
-            return filter { rec -> rec.chain.any { it.id == focusedId } || rec.rootTabId == focusedId }
-                .maxByOrNull { it.order }
-                ?: maxByOrNull { it.order }
+        private val renderedStacks: RenderedWorkspaceStacks by lazy {
+            WorkspaceStacks(state.infos).renderedChains(
+                focusedId = focusedWorkspace,
+                isMultiPane = isMultiPane,
+            )
         }
 
         /**
          * Deepest modal of the chain that should render as a full-screen Dialog covering all panes,
-         * or null when no chain qualifies.
-         *
-         * A chain is full-screen when any of its members asks for FULL_SCREEN (so a pane-local
-         * descendant of a full-screen parent still renders full-screen), or when its leaf is
-         * PANE_LOCAL on a single-pane layout - phones have no pane to scope a modal to.
+         * or null when no chain qualifies. See [WorkspaceStackChain.isFullScreen].
          *
          * Mutually exclusive with [paneLocalModalChains]: every resolved chain lands in exactly one
          * of the two, so a chain is never rendered twice.
          */
         val fullScreenModalWorkspace: Workspace.Info?
-            get() = resolvedChains.filter { it.isFullScreen }.preferred()?.chain?.last()
+            get() = renderedStacks.fullScreen?.leaf
 
         /**
          * Modal chains that render inside their owning tab's pane, keyed by that tab.
          *
          * Each value is nearest-tab-first, so a pane can stack it directly: index 0 sits on the
-         * tab's own workspace, index 1 on that, and so on. Only populated on multi-pane layouts;
-         * single-pane promotes the same chains to [fullScreenModalWorkspace].
-         *
-         * At most one chain per tab: two sibling branches under one tab cannot both be on top, so
-         * the focused (else newest) branch wins and the other stays composed-out.
+         * tab's own workspace, index 1 on that, and so on. Empty on single-pane layouts, which
+         * promote the same chains to [fullScreenModalWorkspace].
          */
         val paneLocalModalChains: Map<Workspace.Id, List<Workspace.Info>>
-            get() {
-                if (!isMultiPane) return emptyMap()
-                return resolvedChains
-                    .filterNot { it.isFullScreen }
-                    .groupBy { it.rootTabId }
-                    .mapNotNull { (rootId, candidates) -> candidates.preferred()?.let { rootId to it.chain } }
-                    .toMap()
-            }
+            get() = renderedStacks.paneLocal.mapValues { (_, chain) -> chain.modals }
     }
 }
-
-/**
- * One validated modal chain: the tab it belongs to, and the modals stacked on that tab.
- *
- * @param chain nearest-tab-first, depth 1..N. Never empty.
- * @param order index of the chain's leaf in the workspace list, for newest-wins tie-breaking.
- */
-private data class ResolvedModalChain(
-    val rootTabId: Workspace.Id,
-    val chain: List<Workspace.Info>,
-    val isFullScreen: Boolean,
-    val order: Int,
-)

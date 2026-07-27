@@ -203,6 +203,15 @@ fun WorkspaceScreen(
                     WorkspaceAction.Close(fullScreenModal.id)
                 )
             },
+            onShareError = { error -> onShareError(fullScreenModal.id, error) },
+            onCloseWorkspace = {
+                workspaceActionHandler?.executeWorkspaceAction(
+                    WorkspaceAction.Close(fullScreenModal.id)
+                )
+            },
+            onResumeWorkspace = {
+                onScreenAction(WorkspaceScreenAction.ResumeWorkspace(fullScreenModal.id))
+            },
         )
     }
 }
