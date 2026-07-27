@@ -31,6 +31,15 @@ class WorkspacesViewModelStateTest : BaseTest() {
         modalPresentation = modalPresentation,
     )
 
+    private fun paneLocalModal(
+        id: Workspace.Id = Workspace.Id(),
+        caller: Workspace.Id,
+    ) = createWorkspaceInfo(
+        id = id,
+        callerWorkspaceId = caller,
+        modalPresentation = Workspace.ModalPresentationMode.PANE_LOCAL,
+    )
+
     private fun createState(
         infos: List<Workspace.Info> = emptyList(),
         focusedWorkspace: Workspace.Id? = null,
@@ -458,6 +467,190 @@ class WorkspacesViewModelStateTest : BaseTest() {
         state.paneLocalModalChains.size shouldBe 2
         state.paneLocalModalChains[explorer1]?.map { it.id } shouldBe listOf(details1)
         state.paneLocalModalChains[explorer2]?.map { it.id } shouldBe listOf(details2)
+    }
+
+    @Test
+    fun `paneLocalModalChains - stacks a three-deep chain under its root tab`() {
+        val apps = Workspace.Id()
+        val details = Workspace.Id()
+        val saver = Workspace.Id()
+        val picker = Workspace.Id()
+
+        val state = createState(
+            infos = listOf(
+                createWorkspaceInfo(id = apps),
+                paneLocalModal(id = details, caller = apps),
+                paneLocalModal(id = saver, caller = details),
+                paneLocalModal(id = picker, caller = saver),
+            ),
+            currentPaneCount = 2,
+        )
+
+        // Nearest-tab-first, so the pane can stack it straight onto its own workspace
+        state.paneLocalModalChains.keys shouldBe setOf(apps)
+        state.paneLocalModalChains[apps]?.map { it.id } shouldBe listOf(details, saver, picker)
+        state.fullScreenModalWorkspace shouldBe null
+    }
+
+    @Test
+    fun `paneLocalModalChains - focus on a shared ancestor picks the newest branch`() {
+        val tab = Workspace.Id()
+        val shared = Workspace.Id()
+        val branch1 = Workspace.Id()
+        val branch2 = Workspace.Id()
+
+        val state = createState(
+            infos = listOf(
+                createWorkspaceInfo(id = tab),
+                paneLocalModal(id = shared, caller = tab),
+                paneLocalModal(id = branch1, caller = shared),
+                paneLocalModal(id = branch2, caller = shared),
+            ),
+            // Focus identifies the branch only down to the shared ancestor
+            focusedWorkspace = shared,
+            currentPaneCount = 2,
+        )
+
+        state.paneLocalModalChains[tab]?.map { it.id } shouldBe listOf(shared, branch2)
+    }
+
+    @Test
+    fun `paneLocalModalChains - focus on one leaf picks that branch`() {
+        val tab = Workspace.Id()
+        val shared = Workspace.Id()
+        val branch1 = Workspace.Id()
+        val branch2 = Workspace.Id()
+
+        val state = createState(
+            infos = listOf(
+                createWorkspaceInfo(id = tab),
+                paneLocalModal(id = shared, caller = tab),
+                paneLocalModal(id = branch1, caller = shared),
+                paneLocalModal(id = branch2, caller = shared),
+            ),
+            focusedWorkspace = branch1,
+            currentPaneCount = 2,
+        )
+
+        state.paneLocalModalChains[tab]?.map { it.id } shouldBe listOf(shared, branch1)
+    }
+
+    @Test
+    fun `paneLocalModalChains - a full-screen ancestor keeps the whole chain out of the panes`() {
+        val tab = Workspace.Id()
+        val fullScreenParent = Workspace.Id()
+        val paneLocalChild = Workspace.Id()
+
+        val state = createState(
+            infos = listOf(
+                createWorkspaceInfo(id = tab),
+                createWorkspaceInfo(
+                    id = fullScreenParent,
+                    callerWorkspaceId = tab,
+                    modalPresentation = Workspace.ModalPresentationMode.FULL_SCREEN,
+                ),
+                paneLocalModal(id = paneLocalChild, caller = fullScreenParent),
+            ),
+            currentPaneCount = 2,
+        )
+
+        // The two slots are mutually exclusive: the chain renders once, above all panes
+        state.paneLocalModalChains shouldBe emptyMap()
+        state.fullScreenModalWorkspace?.id shouldBe paneLocalChild
+    }
+
+    @Test
+    fun `paneLocalModalChains - a full-screen and a pane-local chain resolve side by side`() {
+        val tab1 = Workspace.Id()
+        val tab2 = Workspace.Id()
+        val fullScreenModal = Workspace.Id()
+        val paneLocal = Workspace.Id()
+
+        val state = createState(
+            infos = listOf(
+                createWorkspaceInfo(id = tab1),
+                createWorkspaceInfo(
+                    id = fullScreenModal,
+                    callerWorkspaceId = tab1,
+                    modalPresentation = Workspace.ModalPresentationMode.FULL_SCREEN,
+                ),
+                createWorkspaceInfo(id = tab2),
+                paneLocalModal(id = paneLocal, caller = tab2),
+            ),
+            currentPaneCount = 2,
+        )
+
+        state.fullScreenModalWorkspace?.id shouldBe fullScreenModal
+        state.paneLocalModalChains.keys shouldBe setOf(tab2)
+        state.paneLocalModalChains[tab2]?.map { it.id } shouldBe listOf(paneLocal)
+    }
+
+    // endregion
+
+    // region chain resolution guards
+
+    @Test
+    fun `single pane promotes a deep pane-local chain to one full-screen dialog`() {
+        val tab = Workspace.Id()
+        val first = Workspace.Id()
+        val second = Workspace.Id()
+        val third = Workspace.Id()
+
+        val state = createState(
+            infos = listOf(
+                createWorkspaceInfo(id = tab),
+                paneLocalModal(id = first, caller = tab),
+                paneLocalModal(id = second, caller = first),
+                paneLocalModal(id = third, caller = second),
+            ),
+            currentPaneCount = 1,
+        )
+
+        state.paneLocalModalChains shouldBe emptyMap()
+        state.fullScreenModalWorkspace?.id shouldBe third
+    }
+
+    @Test
+    fun `a modal whose caller no longer exists is dropped from both slots`() {
+        val tab = Workspace.Id()
+        val orphan = Workspace.Id()
+
+        listOf(1, 2).forEach { paneCount ->
+            val state = createState(
+                infos = listOf(
+                    createWorkspaceInfo(id = tab),
+                    // Caller closed without taking its child with it
+                    paneLocalModal(id = orphan, caller = Workspace.Id()),
+                ),
+                currentPaneCount = paneCount,
+            )
+
+            state.fullScreenModalWorkspace shouldBe null
+            state.paneLocalModalChains shouldBe emptyMap()
+        }
+    }
+
+    @Test
+    fun `a leaf whose ancestry enters a cycle is dropped from both slots`() {
+        val leaf = Workspace.Id()
+        val a = Workspace.Id()
+        val b = Workspace.Id()
+
+        listOf(1, 2).forEach { paneCount ->
+            val state = createState(
+                infos = listOf(
+                    // leaf -> a -> b -> a: a real leaf hanging off a cycle, so the leaf filter
+                    // alone does not catch it and the walk must terminate on its own.
+                    paneLocalModal(id = leaf, caller = a),
+                    paneLocalModal(id = a, caller = b),
+                    paneLocalModal(id = b, caller = a),
+                ),
+                currentPaneCount = paneCount,
+            )
+
+            state.fullScreenModalWorkspace shouldBe null
+            state.paneLocalModalChains shouldBe emptyMap()
+        }
     }
 
     // endregion
