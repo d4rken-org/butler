@@ -39,6 +39,7 @@ import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.common.WorkspacePaddings
 import eu.darken.butler.workspace.ui.insets.paneInsets
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
@@ -107,6 +108,11 @@ internal fun SaverWorkspacePage(
     LaunchedEffect(conflictUiState.visible) {
         if (conflictUiState.visible) operationDialogState = OperationDialogState.None
     }
+
+    // As a pane-local modal there is no dialog window to supply back for us. Placed at page level so
+    // it covers both modes; gated on the layer, so this page's own sheets and dialogs still win.
+    // The share-intent entry point is a normal tab and keeps the default back behaviour.
+    WorkspaceBackHandler(enabled = state.isModal) { vm?.onClose() }
 
     // Navigation bar inset for bottom sheets
     val paneInsets = design.paneInsets()
