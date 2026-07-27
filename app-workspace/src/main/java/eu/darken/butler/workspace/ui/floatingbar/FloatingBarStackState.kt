@@ -318,25 +318,26 @@ class FloatingBarStackState(
         private const val SCROLL_THRESHOLD = 5f
         private val TAG = logTag("Workspace", "FloatingBarStack")
 
-        val Saver: Saver<FloatingBarStackState, *> = listSaver(
+        /**
+         * Carries the stack's own geometry across process death - nothing about the bars in it.
+         *
+         * Per-bar collapse state is owned by [WorkspaceBarCollapseStates] and deliberately not
+         * carried here. Two restore paths for one fraction would race: bars re-register from their
+         * caller-supplied keys in the first composition pass, and both this saver and the registry
+         * would then have a claim on the same bar with no ordering between them and no way to tell
+         * which value is the newer one. A key that used to be random made a match here impossible;
+         * they are stable now, so the second path has to stay closed on purpose.
+         */
+        val Saver: Saver<FloatingBarStackState, List<Any>> = listSaver(
             save = { state ->
                 listOf(
                     state.position.ordinal,
                     state.defaultSpacingPx,
                     state.edgePaddingPx,
                     state.contentGapPx,
-                    state.barStates.map { bar ->
-                        listOf(
-                            bar.id,
-                            bar.scrollBehavior.javaClass.simpleName,
-                            bar.visible,
-                            bar.scrollCollapsedFraction,
-                        )
-                    },
                 )
             },
             restore = { saved ->
-                @Suppress("UNCHECKED_CAST")
                 val position = BarPosition.entries[saved[0] as Int]
                 val spacingPx = saved[1] as Float
                 val edgePx = saved[2] as Float
@@ -347,9 +348,7 @@ class FloatingBarStackState(
                     initialDefaultSpacingPx = spacingPx,
                     initialEdgePaddingPx = edgePx,
                     initialContentGapPx = contentGapPx,
-                ).also { state ->
-                    // Bar states are restored when bars re-register during recomposition
-                }
+                )
             },
         )
     }

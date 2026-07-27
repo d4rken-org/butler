@@ -1,5 +1,6 @@
 package eu.darken.butler.workspace.ui.floatingbar
 
+import androidx.compose.runtime.saveable.SaverScope
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
@@ -179,6 +180,61 @@ class FloatingBarStackStateTest : BaseTest() {
         state.registerBar(FloatingBarState(id = "toolbar", scrollBehavior = BarScrollBehavior.HideOnScroll))
 
         state.hasRegisteredBars shouldBe true
+    }
+
+    // endregion
+
+    // region Saver
+
+    private fun save(state: FloatingBarStackState): List<Any> =
+        with(SaverScope { true }) { FloatingBarStackState.Saver.save(state)!! }
+
+    @Test
+    fun `a restored stack keeps the geometry it was saved with`() {
+        val state = FloatingBarStackState(
+            position = BarPosition.BOTTOM,
+            initialDefaultSpacingPx = 8f,
+            initialEdgePaddingPx = 4f,
+            initialContentGapPx = 16f,
+            initialSystemBarInsetPx = 48f,
+            initialImeExtraPx = 300f,
+        )
+
+        val restored = FloatingBarStackState.Saver.restore(save(state))!!
+
+        restored.position shouldBe BarPosition.BOTTOM
+        // System bar and IME insets are recomputed from WindowInsets, so only the edge padding is back
+        restored.contentPaddingPx shouldBe 4f
+
+        restored.registerBar(FloatingBarState(id = "toolbar").apply { measuredHeight = 100f })
+        restored.registerBar(FloatingBarState(id = "infobar").apply { measuredHeight = 50f })
+
+        // edge 4 + bar 100 + spacing 8 + bar 50 + content gap 16
+        restored.contentPaddingPx shouldBe 178f
+    }
+
+    /**
+     * Collapse persistence belongs to [WorkspaceBarCollapseStates]. A second copy of it here would
+     * race the registry for the same bar, so the saved blob is pinned literally - re-adding bar state
+     * has to fail this test rather than quietly compete.
+     */
+    @Test
+    fun `the saver carries no per-bar state`() = runTest {
+        val state = FloatingBarStackState(
+            position = BarPosition.TOP,
+            initialDefaultSpacingPx = 8f,
+            initialEdgePaddingPx = 4f,
+            initialContentGapPx = 16f,
+        ).apply {
+            registerBar(FloatingBarState(id = "toolbar", scrollBehavior = BarScrollBehavior.HideOnScroll))
+        }
+        state.applyCollapse(mapOf("toolbar" to 1f))
+
+        save(state) shouldBe listOf(BarPosition.TOP.ordinal, 8f, 4f, 16f)
+
+        val restored = FloatingBarStackState.Saver.restore(save(state))!!
+        restored.hasRegisteredBars shouldBe false
+        restored.collapseTargets shouldBe emptyMap()
     }
 
     // endregion
