@@ -14,7 +14,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.Saver
-import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -327,10 +326,18 @@ class FloatingBarStackState(
          * would then have a claim on the same bar with no ordering between them and no way to tell
          * which value is the newer one. A key that used to be random made a match here impossible;
          * they are stable now, so the second path has to stay closed on purpose.
+         *
+         * Built with the `Saver(save, restore)` factory rather than `listSaver`, whose return type is
+         * hard-coded to `Saver<Original, Any>`: that erases the saved type at the declaration, so
+         * `restore()` can only be reached from a composition and this saver's entire behaviour - what
+         * position it comes back as, and what it deliberately does not carry - is untestable. The
+         * saved payload is byte-for-byte what `listSaver` produced, an `ArrayList` of Bundle-native
+         * values. Its per-item `canBeSaved()` check is not reproduced: that guards a helper whose
+         * element types are unknown, while these four are a String and three Floats by construction.
          */
-        val Saver: Saver<FloatingBarStackState, List<Any>> = listSaver(
+        val Saver: Saver<FloatingBarStackState, List<Any>> = Saver(
             save = { state ->
-                listOf(
+                arrayListOf<Any>(
                     state.position.persistedKey,
                     state.defaultSpacingPx,
                     state.edgePaddingPx,
