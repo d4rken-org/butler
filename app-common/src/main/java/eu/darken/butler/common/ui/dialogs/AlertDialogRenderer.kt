@@ -1,6 +1,5 @@
 package eu.darken.butler.common.ui.dialogs
 
-import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
@@ -14,12 +13,14 @@ import androidx.compose.ui.window.DialogProperties
  * layer. The workspace layer provides its own implementation through [LocalAlertDialogRenderer];
  * everything outside a pane keeps the platform window dialog.
  *
- * The slots mirror Material's `AlertDialog` so an implementation can delegate to either it or to a
- * pane-bound equivalent without the call site knowing which one it got.
+ * Both implementations share one content shell ([ButlerAlertDialogContent]), so the slots are the
+ * same set either way and a call site never has to know which host it got.
  */
 interface AlertDialogRenderer {
 
     /**
+     * @param neutralButton action placed at the *start* of the action row, away from confirm and
+     *        dismiss. Material's `AlertDialog` has no equivalent slot; both hosts here do.
      * @param includeImePadding pad the dialog above the soft keyboard. Only meaningful for a dialog
      *        that draws inside the window; a platform window dialog is positioned by the system and
      *        ignores it.
@@ -30,6 +31,7 @@ interface AlertDialogRenderer {
         confirmButton: @Composable () -> Unit,
         modifier: Modifier,
         dismissButton: (@Composable () -> Unit)?,
+        neutralButton: (@Composable () -> Unit)?,
         icon: (@Composable () -> Unit)?,
         title: (@Composable () -> Unit)?,
         text: (@Composable () -> Unit)?,
@@ -38,7 +40,7 @@ interface AlertDialogRenderer {
     )
 }
 
-/** Material's platform window dialog: covers the whole screen, blocks every pane. */
+/** Platform window dialog: covers the whole screen, blocks every pane. */
 object WindowAlertDialogRenderer : AlertDialogRenderer {
 
     @Composable
@@ -47,17 +49,19 @@ object WindowAlertDialogRenderer : AlertDialogRenderer {
         confirmButton: @Composable () -> Unit,
         modifier: Modifier,
         dismissButton: (@Composable () -> Unit)?,
+        neutralButton: (@Composable () -> Unit)?,
         icon: (@Composable () -> Unit)?,
         title: (@Composable () -> Unit)?,
         text: (@Composable () -> Unit)?,
         properties: DialogProperties,
         includeImePadding: Boolean,
     ) {
-        AlertDialog(
+        ButlerAlertDialog(
             onDismissRequest = onDismissRequest,
             confirmButton = confirmButton,
             modifier = modifier,
             dismissButton = dismissButton,
+            neutralButton = neutralButton,
             icon = icon,
             title = title,
             text = text,
@@ -82,6 +86,7 @@ fun AdaptiveAlertDialog(
     confirmButton: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     dismissButton: (@Composable () -> Unit)? = null,
+    neutralButton: (@Composable () -> Unit)? = null,
     icon: (@Composable () -> Unit)? = null,
     title: (@Composable () -> Unit)? = null,
     text: (@Composable () -> Unit)? = null,
@@ -93,6 +98,7 @@ fun AdaptiveAlertDialog(
         confirmButton = confirmButton,
         modifier = modifier,
         dismissButton = dismissButton,
+        neutralButton = neutralButton,
         icon = icon,
         title = title,
         text = text,

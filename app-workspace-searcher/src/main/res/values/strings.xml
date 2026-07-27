@@ -177,6 +177,8 @@
     <string name="searcher_match_line_label">Line %1$d: %2$s</string>
 
     <!-- Action strings -->
+    <string name="searcher_action_open">Open</string>
+    <string name="searcher_action_open_with">Open with</string>
     <string name="searcher_action_open_in_editor">Open in editor</string>
     <string name="searcher_action_open_in_explorer">Open in explorer</string>
     <string name="searcher_action_copy">Copy</string>

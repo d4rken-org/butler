@@ -193,9 +193,25 @@ fun SearchResultItemDetails(
                 modifier = Modifier.padding(top = 4.dp)
             ) {
                 // Primary actions
+                if (result.fileType != FileType.DIRECTORY) {
+                    QuickActionItem(
+                        action = SearcherActionBarItem.Open(result),
+                        onClick = onAction,
+                        isPrimary = true
+                    )
+                }
+
                 if (isTextFile(result)) {
                     QuickActionItem(
                         action = SearcherActionBarItem.OpenInEditor(result),
+                        onClick = onAction,
+                        isPrimary = true
+                    )
+                }
+
+                if (result.fileType != FileType.DIRECTORY) {
+                    QuickActionItem(
+                        action = SearcherActionBarItem.OpenWith(result),
                         onClick = onAction,
                         isPrimary = true
                     )

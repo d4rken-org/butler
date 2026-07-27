@@ -14,7 +14,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.Saver
-import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -318,37 +317,52 @@ class FloatingBarStackState(
         private const val SCROLL_THRESHOLD = 5f
         private val TAG = logTag("Workspace", "FloatingBarStack")
 
-        val Saver: Saver<FloatingBarStackState, *> = listSaver(
+        /**
+         * Carries the stack's own geometry across process death - nothing about the bars in it.
+         *
+         * Per-bar collapse state is owned by [WorkspaceBarCollapseStates] and deliberately not
+         * carried here. Two restore paths for one fraction would race: bars re-register from their
+         * caller-supplied keys in the first composition pass, and both this saver and the registry
+         * would then have a claim on the same bar with no ordering between them and no way to tell
+         * which value is the newer one. A key that used to be random made a match here impossible;
+         * they are stable now, so the second path has to stay closed on purpose.
+         *
+         * Built with the `Saver(save, restore)` factory rather than `listSaver`, whose return type is
+         * hard-coded to `Saver<Original, Any>`: that erases the saved type at the declaration, so
+         * `restore()` can only be reached from a composition and this saver's entire behaviour - what
+         * position it comes back as, and what it deliberately does not carry - is untestable. The
+         * saved payload is byte-for-byte what `listSaver` produced, an `ArrayList` of Bundle-native
+         * values. Its per-item `canBeSaved()` check is not reproduced: that guards a helper whose
+         * element types are unknown, while these four are a String and three Floats by construction.
+         */
+        val Saver: Saver<FloatingBarStackState, List<Any>> = Saver(
             save = { state ->
-                listOf(
-                    state.position.ordinal,
+                arrayListOf<Any>(
+                    state.position.persistedKey,
                     state.defaultSpacingPx,
                     state.edgePaddingPx,
                     state.contentGapPx,
-                    state.barStates.map { bar ->
-                        listOf(
-                            bar.id,
-                            bar.scrollBehavior.javaClass.simpleName,
-                            bar.visible,
-                            bar.scrollCollapsedFraction,
-                        )
-                    },
                 )
             },
             restore = { saved ->
-                @Suppress("UNCHECKED_CAST")
-                val position = BarPosition.entries[saved[0] as Int]
+                // Keyed by name, not by enum order: this blob is written and read by the same build,
+                // so an ordinal restores correctly today, but reordering the constants would silently
+                // turn a saved BOTTOM stack into a TOP one. An unrecognised key restores nothing and
+                // rememberSaveable falls back to a fresh stack, rather than throwing mid-restore.
+                val position = BarPosition.entries.firstOrNull { it.persistedKey == saved[0] }
                 val spacingPx = saved[1] as Float
                 val edgePx = saved[2] as Float
                 val contentGapPx = saved[3] as Float
                 // systemBarInsetPx / imeExtraPx are not saved - recomputed from WindowInsets via updateConfig()
-                FloatingBarStackState(
-                    position = position,
-                    initialDefaultSpacingPx = spacingPx,
-                    initialEdgePaddingPx = edgePx,
-                    initialContentGapPx = contentGapPx,
-                ).also { state ->
-                    // Bar states are restored when bars re-register during recomposition
+                if (position == null) {
+                    null
+                } else {
+                    FloatingBarStackState(
+                        position = position,
+                        initialDefaultSpacingPx = spacingPx,
+                        initialEdgePaddingPx = edgePx,
+                        initialContentGapPx = contentGapPx,
+                    )
                 }
             },
         )

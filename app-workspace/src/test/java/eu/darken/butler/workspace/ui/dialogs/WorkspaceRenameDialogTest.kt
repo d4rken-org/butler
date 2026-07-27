@@ -37,7 +37,7 @@ class WorkspaceRenameDialogTest : ComposeTest() {
         composeTestRule.setContent {
             PreviewWrapper {
                 PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = true) {
-                    PaneBoundWorkspaceRenameDialog(
+                    WorkspaceRenameDialog(
                         currentCustomTitle = currentCustomTitle,
                         autoTitle = "/storage/emulated/0/Download",
                         onConfirm = onConfirm,
@@ -76,7 +76,7 @@ class WorkspaceRenameDialogTest : ComposeTest() {
     }
 
     @Test
-    fun `the pane-bound variant clears the name in one press`() {
+    fun `the pane-bound host clears the name in one press`() {
         var confirmed: String? = "unset"
         var confirmCount = 0
         setPaneBoundDialog(currentCustomTitle = "Holiday photos") {
@@ -93,16 +93,33 @@ class WorkspaceRenameDialogTest : ComposeTest() {
     }
 
     @Test
-    fun `the pane-bound variant offers no clear action without a custom name`() {
+    fun `the pane-bound host offers no clear action without a custom name`() {
         setPaneBoundDialog(currentCustomTitle = null) {}
 
         composeTestRule.onNodeWithText("Clear").assertDoesNotExist()
     }
 
-    /** Material's `AlertDialog` has no neutral slot, so the window variant deliberately has no Clear. */
+    /** Both hosts share one shell with a neutral slot, so Clear is not a pane-bound privilege. */
     @Test
-    fun `the window variant offers no clear action`() {
-        setDialog(currentCustomTitle = "Holiday photos") {}
+    fun `the window host clears the name in one press`() {
+        var confirmed: String? = "unset"
+        var confirmCount = 0
+        setDialog(currentCustomTitle = "Holiday photos") {
+            confirmed = it
+            confirmCount++
+        }
+
+        composeTestRule.onNodeWithText("Clear").performClick()
+
+        composeTestRule.runOnIdle {
+            confirmCount shouldBe 1
+            confirmed shouldBe null
+        }
+    }
+
+    @Test
+    fun `the window host offers no clear action without a custom name`() {
+        setDialog(currentCustomTitle = null) {}
 
         composeTestRule.onNodeWithText("Clear").assertDoesNotExist()
     }

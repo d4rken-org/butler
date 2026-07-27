@@ -11,31 +11,28 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.workspace.core.OpenWithIntentUseCase
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class FileIntentHelper @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val openWithIntentUseCase: OpenWithIntentUseCase,
 ) {
     private val tag = logTag("FileIntentHelper")
 
-    fun openFileWith(item: ExplorerItem.File): Intent? {
+    /**
+     * Offers the file to other apps through a chooser. Returns false when nothing could handle it.
+     */
+    fun openFileWith(item: ExplorerItem.File, chooserTitle: CharSequence): Boolean {
         log(tag) { "openFileWith(${item.lookup.name})" }
-
-        return try {
-            val uri = getFileUri(item.lookup.lookedUp) ?: return null
-
-            Intent(Intent.ACTION_VIEW).apply {
-                setDataAndType(uri, item.mimeType.rawType)
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
-        } catch (e: Exception) {
-            log(tag, ERROR) { "Failed to create VIEW intent for ${item.lookup.name}: ${e.message}" }
-            null
-        }
+        return openWithIntentUseCase.openWithChooser(
+            path = item.lookup.lookedUp,
+            mime = item.mimeType.rawType,
+            chooserTitle = chooserTitle,
+        )
     }
 
     fun shareFile(item: ExplorerItem.File): Intent? {
@@ -115,9 +112,5 @@ class FileIntentHelper @Inject constructor(
             log(tag, ERROR) { "Failed to get URI for path $path: ${e.message}" }
             null
         }
-    }
-
-    companion object {
-        private const val FILE_PROVIDER_AUTHORITY = ".fileprovider"
     }
 }

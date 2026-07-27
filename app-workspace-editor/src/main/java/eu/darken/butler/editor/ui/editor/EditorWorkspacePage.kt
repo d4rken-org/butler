@@ -24,10 +24,10 @@ import androidx.compose.ui.zIndex
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
+import eu.darken.butler.common.compose.OnValueChange
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.navigation.NavigationEventHandler
-import eu.darken.butler.editor.core.engine.ContentSource
 import eu.darken.butler.editor.ui.editor.elements.EditorActionBar
 import eu.darken.butler.editor.ui.editor.elements.EditorActionBarItem
 import eu.darken.butler.editor.ui.editor.elements.EditorBannerGroup
@@ -120,6 +120,7 @@ fun EditorWorkspacePage(
 
     val topBarStackState = rememberPaneFloatingBarStackState(
         position = BarPosition.TOP,
+        workspaceId = workspaceId,
         defaultSpacing = 8.dp,
         edgePadding = 8.dp,
         contentPadding = 8.dp,
@@ -128,6 +129,7 @@ fun EditorWorkspacePage(
     )
     val bottomBarStackState = rememberPaneFloatingBarStackState(
         position = BarPosition.BOTTOM,
+        workspaceId = workspaceId,
         defaultSpacing = 8.dp,
         edgePadding = 8.dp,
         contentPadding = 16.dp,
@@ -137,14 +139,11 @@ fun EditorWorkspacePage(
         estimatedContentPadding = 80.dp,
     )
 
-    // Opening a new file is fresh content; reset scroll-collapse so bars don't stay hidden.
-    // Keyed on the source's IDENTITY: the contentSource value also refreshes after every save
-    // (size/mtime/line ending), which must not pop collapsed bars back in.
-    val contentIdentity = when (val source = state.contentSource) {
-        is ContentSource.File -> source.path
-        is ContentSource.Memory -> source.name
-    }
-    LaunchedEffect(contentIdentity) {
+    // Opening a different file is fresh content; reset scroll-collapse so bars don't stay hidden.
+    // Guarded on the transition, and keyed on the claimed path rather than the content source -
+    // see editorBarResetIdentity for why neither the initial composition nor the source settling
+    // may reset (both would undo the collapse state this workspace just restored).
+    OnValueChange(editorBarResetIdentity(state)) { _, _ ->
         topBarStackState.resetScrollCollapse()
         bottomBarStackState.resetScrollCollapse()
     }
@@ -164,7 +163,7 @@ fun EditorWorkspacePage(
             state = topBarStackState,
             bars = {
                 FloatingBar(
-                    key = "toolbar",
+                    key = EditorBarKeys.TOOLBAR,
                     scrollBehavior = BarScrollBehavior.CollapseOnScroll(),
                     estimatedHeight = 80.dp,
                     animation = BarAnimation.Slide(),
@@ -186,7 +185,7 @@ fun EditorWorkspacePage(
                     )
                 }
                 FloatingBar(
-                    key = "infobar",
+                    key = EditorBarKeys.INFOBAR,
                     scrollBehavior = BarScrollBehavior.VanishOnScroll,
                     estimatedHeight = 24.dp,
                     animation = BarAnimation.Slide(),
@@ -212,7 +211,7 @@ fun EditorWorkspacePage(
                 }
                 // Notices persist during scroll (Static) until dismissed; single stable bar, see EditorBannerGroup
                 FloatingBar(
-                    key = "banners",
+                    key = EditorBarKeys.BANNERS,
                     visible = state.isBackingLost || state.error != null || state.showExternalChangeBanner ||
                         state.showBackupNotice || state.isBinary || state.showLongLinesNotice,
                     scrollBehavior = BarScrollBehavior.Static,
@@ -250,7 +249,7 @@ fun EditorWorkspacePage(
             state = bottomBarStackState,
             bars = {
                 FloatingBar(
-                    key = "search",
+                    key = EditorBarKeys.SEARCH,
                     visible = state.isSearchBarVisible,
                     scrollBehavior = BarScrollBehavior.HideOnScroll,
                     animation = BarAnimation.Slide(),
@@ -281,7 +280,7 @@ fun EditorWorkspacePage(
                     )
                 }
                 FloatingBar(
-                    key = "clipboard",
+                    key = EditorBarKeys.CLIPBOARD,
                     visible = hasClipboard,
                     scrollBehavior = BarScrollBehavior.VanishOnScroll,
                     animation = BarAnimation.Bouncy,
@@ -296,7 +295,7 @@ fun EditorWorkspacePage(
                     )
                 }
                 FloatingBar(
-                    key = "actions",
+                    key = EditorBarKeys.ACTIONS,
                     visible = hasActions,
                     scrollBehavior = BarScrollBehavior.HideOnScroll,
                     animation = BarAnimation.Slide(),

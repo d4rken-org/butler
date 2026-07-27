@@ -22,6 +22,7 @@ import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
 import eu.darken.butler.searcher.ui.search.util.SearcherPageAction
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
+import eu.darken.butler.workspace.ui.bottomsheet.SheetContentScroll
 import eu.darken.butler.workspace.ui.insets.paneInsets
 import eu.darken.butler.workspace.ui.issues.IssuesBottomSheet
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
@@ -103,11 +104,13 @@ fun SearcherWorkspaceOverlays(
         )
     }
 
-    // Templates bottom sheet
+    // Templates bottom sheet. The content bounds and scrolls itself — its gradient is overlaid at
+    // the fixed bottom of that bounded box, so the sheet must not take the scrolling over.
     PaneScopedBottomSheet(
         visible = overlayState.showTemplatesSheet,
         onDismiss = { onPageAction(SearcherPageAction.Overlays.DismissTemplates) },
         topInset = statusBarInset,
+        contentScroll = SheetContentScroll.ContentOwned,
     ) {
         TemplatesBottomSheetContent(
             bottomPadding = navBarInset,
@@ -130,6 +133,8 @@ fun SearcherWorkspaceOverlays(
             visible = overlayState.showAccessErrorsSheet,
             onDismiss = { onPageAction(SearcherPageAction.Overlays.DismissAccessErrors) },
             topInset = statusBarInset,
+            // Bounded and scrolled by the content itself
+            contentScroll = SheetContentScroll.ContentOwned,
         ) {
             AccessErrorsSheetContent(
                 targetProgress = currentState.workspaceState.targetProgress,

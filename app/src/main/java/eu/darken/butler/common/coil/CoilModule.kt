@@ -1,9 +1,13 @@
 package eu.darken.butler.common.coil
 
 import android.content.Context
+import android.os.Build
 import coil3.ImageLoader
 import coil3.disk.DiskCache
 import coil3.disk.directory
+import coil3.gif.AnimatedImageDecoder
+import coil3.gif.GifDecoder
+import coil3.svg.SvgDecoder
 import coil3.util.Logger
 import dagger.Module
 import dagger.Provides
@@ -21,6 +25,8 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.main.core.GeneralSettings
+import eu.darken.butler.viewer.core.ViewerImageFetcher
+import eu.darken.butler.viewer.core.ViewerImageKeyer
 import eu.darken.butler.workspace.ui.manager.preview.WorkspacePreviewFetcher
 import eu.darken.butler.workspace.ui.manager.preview.WorkspacePreviewKeyer
 import javax.inject.Singleton
@@ -40,10 +46,12 @@ class CoilModule {
         sharedContentPreviewFetcher: SharedContentPreviewFetcher.Factory,
         bitmapFetcher: BitmapFetcher.Factory,
         workspacePreviewFetcher: WorkspacePreviewFetcher.Factory,
+        viewerImageFetcher: ViewerImageFetcher.Factory,
         pathPreviewKeyer: PathPreviewKeyer,
         sharedContentPreviewKeyer: SharedContentPreviewKeyer,
         workspacePreviewKeyer: WorkspacePreviewKeyer,
         pkgIconKeyer: PkgIconKeyer,
+        viewerImageKeyer: ViewerImageKeyer,
         dispatcherProvider: DispatcherProvider,
     ): ImageLoader = ImageLoader.Builder(context).apply {
         if (BuildConfigWrap.DEBUG) {
@@ -72,6 +80,7 @@ class CoilModule {
             add(sharedContentPreviewKeyer)
             add(workspacePreviewKeyer)
             add(pkgIconKeyer)
+            add(viewerImageKeyer)
 
             // Fetchers - load images from various sources
             add(appIconFetcherFactory)
@@ -79,9 +88,19 @@ class CoilModule {
             add(sharedContentPreviewFetcher)
             add(bitmapFetcher)
             add(workspacePreviewFetcher)
+            add(viewerImageFetcher)
 
             // Decoders - decode special formats
             add(BoundedVideoFrameDecoder.Factory(baseDispatcher = dispatcherProvider.IO))
+            add(SvgDecoder.Factory())
+            // AnimatedImageDecoder needs API 28+; minSdk is 26, so the legacy GIF decoder stays.
+            add(
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    AnimatedImageDecoder.Factory()
+                } else {
+                    GifDecoder.Factory()
+                }
+            )
         }
         val cores = Runtime.getRuntime().availableProcessors()
         // Cache checks + keying: cheap, but must stay off the main thread (keyer reads DataStore).

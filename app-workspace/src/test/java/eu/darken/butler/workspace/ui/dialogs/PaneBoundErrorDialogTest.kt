@@ -6,11 +6,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.FocusManager
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.requestFocus
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -88,14 +93,21 @@ class PaneBoundErrorDialogTest : ComposeTest() {
         composeTestRule.onNodeWithText(INFO).assertDoesNotExist()
     }
 
+    /**
+     * "Show details" is the neutral action, so on a row that fits it hugs the start and the two
+     * actions that resolve the error keep the end — the same shape every other three-action dialog
+     * has, and the same reading order the error dialog's own row used to produce.
+     */
     @Test
-    fun `an error with info and fix offers all three in reading order`() {
+    fun `a wide surface holds all three actions in one row`() {
         composeTestRule.setContent { Case(error = TestError(withInfo = true, withFix = true)) }
 
         val info = composeTestRule.onNodeWithText(INFO).getUnclippedBoundsInRoot()
         val dismiss = composeTestRule.onNodeWithText(DISMISS).getUnclippedBoundsInRoot()
         val fix = composeTestRule.onNodeWithText(FIX).getUnclippedBoundsInRoot()
 
+        info.top shouldBe dismiss.top
+        dismiss.top shouldBe fix.top
         (info.left < dismiss.left) shouldBe true
         (dismiss.left < fix.left) shouldBe true
     }
@@ -161,20 +173,38 @@ class PaneBoundErrorDialogTest : ComposeTest() {
     }
 
     /**
-     * Asserting the nodes exist proves nothing about clipping — a `Row` handed to the action slot
-     * as one placeable stays a single line and simply runs off the surface.
+     * The wrapped order is the one thing the shared row does differently from the hand-rolled row it
+     * replaced: that one kept `info → dismiss → fix` and pushed the *fix* onto the second line, this
+     * one keeps dismiss and fix together and drops the neutral "Show details" below them, so the
+     * actions that resolve the error stay most prominent.
+     *
+     * Asserting the nodes merely exist would prove nothing about clipping — a `Row` handed to the
+     * action slot as one placeable stays a single line and simply runs off the surface — so the
+     * tier, the order and the surface bounds are all pinned.
      */
     @Test
-    fun `three actions stay inside a narrow surface`() {
+    fun `a narrow surface drops the details action below dismiss and fix`() {
         composeTestRule.setContent {
             Case(error = TestError(withInfo = true, withFix = true), paneWidth = NARROW_PANE)
         }
+
+        val info = composeTestRule.onNodeWithText(INFO).getUnclippedBoundsInRoot()
+        val dismiss = composeTestRule.onNodeWithText(DISMISS).getUnclippedBoundsInRoot()
+        val fix = composeTestRule.onNodeWithText(FIX).getUnclippedBoundsInRoot()
+
+        dismiss.top shouldBe fix.top
+        (dismiss.left < fix.left) shouldBe true
+        (info.top >= dismiss.bottom) shouldBe true
+
+        // Details hugs the logical start, which is the physical left here
+        val surfaceBounds = composeTestRule.onNodeWithTag(surface).getUnclippedBoundsInRoot()
+        (info.left - surfaceBounds.left < surfaceBounds.right - info.right) shouldBe true
 
         assertActionsWrapWithinSurface()
     }
 
     @Test
-    fun `three actions stay inside a narrow surface in a right-to-left layout`() {
+    fun `the wrapped actions mirror in a right-to-left layout`() {
         composeTestRule.setContent {
             Case(
                 error = TestError(withInfo = true, withFix = true),
@@ -183,12 +213,48 @@ class PaneBoundErrorDialogTest : ComposeTest() {
             )
         }
 
-        assertActionsWrapWithinSurface()
-
-        // Mirrored: the first action in reading order now sits furthest right
         val info = composeTestRule.onNodeWithText(INFO).getUnclippedBoundsInRoot()
+        val dismiss = composeTestRule.onNodeWithText(DISMISS).getUnclippedBoundsInRoot()
         val fix = composeTestRule.onNodeWithText(FIX).getUnclippedBoundsInRoot()
-        (fix.left < info.left) shouldBe true
+
+        // The exact mirror of the assertion above, so neither can pass without the row mirroring
+        dismiss.top shouldBe fix.top
+        (fix.left < dismiss.left) shouldBe true
+        (info.top >= dismiss.bottom) shouldBe true
+
+        val surfaceBounds = composeTestRule.onNodeWithTag(surface).getUnclippedBoundsInRoot()
+        (surfaceBounds.right - info.right < info.left - surfaceBounds.left) shouldBe true
+
+        assertActionsWrapWithinSurface()
+    }
+
+    /**
+     * Placement order is focus order, so the wrapped tier moves "Show details" to the end of the
+     * keyboard traversal as well as to the bottom of the row. Pinning it here keeps the two from
+     * drifting apart.
+     */
+    @Test
+    fun `keyboard focus reaches the details action last when the row wraps`() {
+        var focusManager: FocusManager? = null
+
+        composeTestRule.setContent {
+            focusManager = LocalFocusManager.current
+            Case(error = TestError(withInfo = true, withFix = true), paneWidth = NARROW_PANE)
+        }
+
+        // The tier has to have held, or this would be the single-row traversal instead
+        val info = composeTestRule.onNodeWithText(INFO).getUnclippedBoundsInRoot()
+        val dismiss = composeTestRule.onNodeWithText(DISMISS).getUnclippedBoundsInRoot()
+        (info.top >= dismiss.bottom) shouldBe true
+
+        composeTestRule.onNodeWithText(DISMISS).requestFocus()
+        composeTestRule.onNodeWithText(DISMISS).assertIsFocused()
+
+        composeTestRule.runOnIdle { focusManager!!.moveFocus(FocusDirection.Next) }
+        composeTestRule.onNodeWithText(FIX).assertIsFocused()
+
+        composeTestRule.runOnIdle { focusManager!!.moveFocus(FocusDirection.Next) }
+        composeTestRule.onNodeWithText(INFO).assertIsFocused()
     }
 
     /**

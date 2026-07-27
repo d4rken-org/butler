@@ -9,20 +9,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.ContentCopy
 import androidx.compose.material.icons.twotone.Delete
-import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
@@ -51,35 +46,19 @@ fun OperationDetailsSheet(
     onShareError: (() -> Unit)? = null,
     onHandleIssue: (() -> Unit)? = null,
 ) {
-    val isInPreview = LocalInspectionMode.current
-
-    if (isInPreview) {
-        Card(
-            modifier = modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
-        ) {
-            OperationDetailsContent(
-                operation = operation,
-                onCancel = onCancel,
-                onShareError = onShareError,
-                onHandleIssue = onHandleIssue,
-            )
-        }
-    } else {
-        PaneScopedBottomSheet(
-            visible = true,
-            onDismiss = onDismiss,
-            topInset = topInset,
-            bottomInset = bottomInset,
-            modifier = modifier,
-        ) {
-            OperationDetailsContent(
-                operation = operation,
-                onCancel = onCancel,
-                onShareError = onShareError,
-                onHandleIssue = onHandleIssue,
-            )
-        }
+    PaneScopedBottomSheet(
+        visible = true,
+        onDismiss = onDismiss,
+        topInset = topInset,
+        bottomInset = bottomInset,
+        modifier = modifier,
+    ) {
+        OperationDetailsContent(
+            operation = operation,
+            onCancel = onCancel,
+            onShareError = onShareError,
+            onHandleIssue = onHandleIssue,
+        )
     }
 }
 
@@ -93,7 +72,6 @@ private fun OperationDetailsContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .verticalScroll(rememberScrollState())
             .padding(horizontal = 24.dp)
             .padding(top = 16.dp, bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)

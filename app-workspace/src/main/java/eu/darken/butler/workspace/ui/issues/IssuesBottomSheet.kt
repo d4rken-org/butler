@@ -39,6 +39,9 @@ fun IssuesBottomSheet(
         onDismiss = onDismiss,
         topInset = topInset,
         bottomInset = bottomInset,
+        // Always visible, so a replaced conflict would otherwise inherit the previous one's
+        // scroll offset instead of starting at the top.
+        contentKey = issue.id,
     ) {
         key(issue.id) {
             when (issue) {

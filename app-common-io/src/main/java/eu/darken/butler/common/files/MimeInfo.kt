@@ -41,6 +41,7 @@ data class MimeInfo(
                 "heic" -> "image/heic"
                 "heif" -> "image/heif"
                 "avif" -> "image/avif"
+                "svg" -> "image/svg+xml"
 
                 // Videos
                 "mp4" -> "video/mp4"

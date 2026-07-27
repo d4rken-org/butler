@@ -77,6 +77,8 @@ import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.workspace.contracts.editor.EditorArguments
 import eu.darken.butler.workspace.contracts.explorer.ExplorerArguments
 import eu.darken.butler.workspace.contracts.explorer.PickerConfig
+import eu.darken.butler.workspace.contracts.viewer.ViewerArguments
+import eu.darken.butler.workspace.core.NoAppForFileException
 import eu.darken.butler.workspace.core.OpenInNewTabsUseCase
 import eu.darken.butler.workspace.core.ShareIntentUseCase
 import eu.darken.butler.workspace.core.Workspace
@@ -85,6 +87,7 @@ import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.cancelResult
+import eu.darken.butler.workspace.core.createAndFocus
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import eu.darken.butler.workspace.core.clipboard.ClipboardSettings
@@ -342,6 +345,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val pickerConfig: PickerConfig? = null,
         val sortSettings: SortSettings = SortSettings(),
         val trashEnabled: Boolean = false,
+        val fileOpenActionsEnabled: Boolean = true,
         val saveAsFilename: String = "",
         val disabledItems: Set<ExplorerItem> = emptySet(),
         val canConfirmSelection: Boolean = true,
@@ -507,6 +511,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                         pickerConfig = pickerConfig,
                         sortSettings = sortSetting,
                         trashEnabled = recycleBinEnabled,
+                        fileOpenActionsEnabled = pickerHelper.allowsFileOpenActions(pickerConfig),
                         saveAsFilename = saveAsFilename,
                         disabledItems = disabledItems,
                         canConfirmSelection = canConfirmSelection,
@@ -946,6 +951,28 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 dismissDialog()
                 trash.deleteNestedPermanently(action.items)
             }
+            is ExplorerActionBarItem.File.Open -> {
+                try {
+                    // Same classification the multi-select path uses, so a text file reaches the
+                    // Editor instead of a Viewer that can only say it does not support the type.
+                    val request = openInNewTabsUseCase.createRequest(
+                        item = OpenInNewTabsUseCase.Item.File(
+                            path = action.item.lookup.lookedUp,
+                            isText = TextFileDetector.isTextFile(action.item.mimeType),
+                        ),
+                        createExplorerArguments = { ExplorerArguments.Default(startPath = it) },
+                        createEditorArguments = { EditorArguments.Default(filePath = it) },
+                        createViewerArguments = { ViewerArguments.Default(filePath = it) },
+                    )
+                    workspaceRemote.createAndFocus(
+                        type = request.type,
+                        arguments = request.arguments,
+                    )
+                } catch (e: Exception) {
+                    log(tag, ERROR) { "Failed to open ${action.item.lookup.name}: ${e.asLog()}" }
+                    errorEvents.emit(e)
+                }
+            }
             is ExplorerActionBarItem.File.OpenInEditor -> {
                 try {
                     val wsAction = WorkspaceAction.Create(
@@ -964,17 +991,15 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 }
             }
             is ExplorerActionBarItem.File.OpenWith -> {
-                val intent = fileIntentHelper.openFileWith(action.item)
-                if (intent != null && fileIntentHelper.canHandleIntent(intent)) {
-                    try {
-                        context.startActivity(intent)
-                    } catch (e: Exception) {
-                        log(tag, ERROR) { "Failed to open file with external app: ${e.asLog()}" }
-                        errorEvents.emit(e)
-                    }
-                } else {
+                val launched = fileIntentHelper.openFileWith(
+                    item = action.item,
+                    chooserTitle = context.getString(
+                        eu.darken.butler.workspace.R.string.workspace_open_with_chooser_title
+                    ),
+                )
+                if (!launched) {
                     log(tag, WARN) { "No app found to open file: ${action.item.lookup.name}" }
-                    errorEvents.emit(Exception("No app found to open file: ${action.item.lookup.name}"))
+                    errorEvents.emit(NoAppForFileException(action.item.lookup.name))
                 }
             }
             is ExplorerActionBarItem.File.Share -> {
@@ -1204,6 +1229,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             analysis = analysis,
             createExplorerArguments = { path -> ExplorerArguments.Default(startPath = path) },
             createEditorArguments = { path -> EditorArguments.Default(filePath = path) },
+            createViewerArguments = { path -> ViewerArguments.Default(filePath = path) },
         )
 
         // Execute batch creation directly - WorkspaceRepo handles confirmation and banner

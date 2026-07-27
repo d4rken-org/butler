@@ -1,15 +1,15 @@
 [versions]
 # Build tooling
-agp = "9.2.1"
-kotlin = "2.4.0"
-ksp = "2.3.9"
-kover = "0.9.8"
+agp = "9.3.1"
+kotlin = "2.4.10"
+ksp = "2.3.10"
+kover = "0.9.9"
 javapoet = "1.13.0"
 desugar = "2.1.5"
 screenshot = "0.0.1-alpha15"
 # Core
 coroutines = "1.11.0"
-dagger = "2.60"
+dagger = "2.60.1"
 androidx-hilt = "1.4.0"
 kotlinx-serialization = "1.11.0"
 okio = "3.13.0"
@@ -19,6 +19,7 @@ retrofit = "2.11.0"
 retrofit-kotlinx-converter = "1.0.0"
 okhttp = "5.4.0"
 coil = "3.2.0"
+telephoto = "0.19.0"
 lottie = "6.7.1"
 # AndroidX
 androidx-core = "1.19.0"
@@ -106,6 +107,10 @@ coil = { module = "io.coil-kt.coil3:coil", version.ref = "coil" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 coil-video = { module = "io.coil-kt.coil3:coil-video", version.ref = "coil" }
 coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
+coil-svg = { module = "io.coil-kt.coil3:coil-svg", version.ref = "coil" }
+coil-gif = { module = "io.coil-kt.coil3:coil-gif", version.ref = "coil" }
+telephoto-zoomable-image = { module = "me.saket.telephoto:zoomable-image", version.ref = "telephoto" }
+telephoto-sub-sampling-image = { module = "me.saket.telephoto:sub-sampling-image", version.ref = "telephoto" }
 lottie = { module = "com.airbnb.android:lottie", version.ref = "lottie" }
 lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "lottie" }
 # AndroidX core

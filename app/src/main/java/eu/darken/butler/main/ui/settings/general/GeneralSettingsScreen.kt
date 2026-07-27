@@ -40,7 +40,6 @@ import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.hasApiLevel
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.settings.EnumSelectorDialog
-import eu.darken.butler.common.settings.ThemeColorSelectorDialog
 import eu.darken.butler.common.settings.SettingsBaseItem
 import eu.darken.butler.common.settings.SettingsCategoryHeader
 import eu.darken.butler.common.settings.SettingsDivider

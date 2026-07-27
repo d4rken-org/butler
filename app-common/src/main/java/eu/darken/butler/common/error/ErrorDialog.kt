@@ -2,7 +2,6 @@ package eu.darken.butler.common.error
 
 import android.app.Activity
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
@@ -11,12 +10,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.Layout
-import androidx.compose.ui.layout.Placeable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
@@ -82,108 +78,51 @@ fun ErrorDialog(
                 }
             }
         },
-        // Everything goes through the confirm slot: an error can carry up to three actions, which
-        // the two-slot layout could neither order nor wrap correctly.
-        dismissButton = null,
+        // "Show details" is the neutral action: it belongs to the error rather than to resolving it,
+        // and it is the one that drops to its own line first when the row cannot hold all three.
+        neutralButton = if (infoAction != null) {
+            {
+                // Deliberately does not dismiss: details are meant to be read next to the error
+                TextButton(onClick = { infoAction() }) {
+                    Text(
+                        localizedError.infoActionLabel?.get(context)
+                            ?: stringResource(R.string.general_show_details_action),
+                    )
+                }
+            }
+        } else {
+            null
+        },
+        // Without a fix there is nothing to decline, so the acknowledging action stands alone
+        dismissButton = if (fixAction != null) {
+            {
+                TextButton(onClick = onDismiss) {
+                    Text(stringResource(R.string.general_dismiss_action))
+                }
+            }
+        } else {
+            null
+        },
         confirmButton = {
-            ErrorActionRow(
-                modifier = Modifier.fillMaxWidth(),
-                info = {
-                    if (infoAction != null) {
-                        // Deliberately does not dismiss: details are meant to be read next to the error
-                        TextButton(onClick = { infoAction() }) {
-                            Text(
-                                localizedError.infoActionLabel?.get(context)
-                                    ?: stringResource(R.string.general_show_details_action),
-                            )
-                        }
-                    }
-                },
-                dismiss = {
-                    if (fixAction != null) {
-                        TextButton(onClick = onDismiss) {
-                            Text(stringResource(R.string.general_dismiss_action))
-                        }
-                    }
-                },
-                fix = {
-                    if (fixAction != null) {
-                        TextButton(
-                            onClick = {
-                                fixAction()
-                                onDismiss()
-                            },
-                        ) {
-                            Text(
-                                localizedError.fixActionLabel?.get(context)
-                                    ?: stringResource(android.R.string.ok),
-                            )
-                        }
-                    } else {
-                        TextButton(onClick = onDismiss) {
-                            Text(stringResource(android.R.string.ok))
-                        }
-                    }
-                },
-            )
+            if (fixAction != null) {
+                TextButton(
+                    onClick = {
+                        fixAction()
+                        onDismiss()
+                    },
+                ) {
+                    Text(
+                        localizedError.fixActionLabel?.get(context)
+                            ?: stringResource(android.R.string.ok),
+                    )
+                }
+            } else {
+                TextButton(onClick = onDismiss) {
+                    Text(stringResource(android.R.string.ok))
+                }
+            }
         },
     )
-}
-
-/**
- * Action row for up to three error actions, kept in `info → dismiss → fix` reading order.
- *
- * Each action is measured on its own, so a row that does not fit wraps between actions instead of
- * being clipped — a plain `Row` inside a dialog's action slot is a single placeable and can only be
- * cut off. Order is preserved when wrapping, which keeps visual and accessibility traversal order
- * identical in both layouts. A slot that emits nothing takes no space.
- */
-@Composable
-private fun ErrorActionRow(
-    info: @Composable () -> Unit,
-    dismiss: @Composable () -> Unit,
-    fix: @Composable () -> Unit,
-    modifier: Modifier = Modifier,
-    spacing: Dp = 8.dp,
-) {
-    Layout(
-        modifier = modifier,
-        contents = listOf(info, dismiss, fix),
-    ) { slots, constraints ->
-        val spacingPx = spacing.roundToPx()
-        val childConstraints = constraints.copy(minWidth = 0, minHeight = 0)
-        val actions = slots.mapNotNull { it.firstOrNull()?.measure(childConstraints) }
-
-        val width = constraints.maxWidth
-        val lines = mutableListOf<MutableList<Placeable>>()
-        actions.forEach { action ->
-            val line = lines.lastOrNull()
-            val lineWidth = line?.sumOf { it.width + spacingPx } ?: 0
-            if (line == null || lineWidth + action.width > width) {
-                lines += mutableListOf(action)
-            } else {
-                line += action
-            }
-        }
-
-        val lineHeights = lines.map { line -> line.maxOf { it.height } }
-        val height = lineHeights.sum() + spacingPx * (lines.size - 1).coerceAtLeast(0)
-
-        // placeRelative, never place: x is measured from the layout's *start* edge, so the actions
-        // mirror in a right-to-left locale instead of being pinned to the physical right.
-        layout(width, height) {
-            var y = 0
-            lines.forEachIndexed { index, line ->
-                val lineHeight = lineHeights[index]
-                var x = width - (line.sumOf { it.width + spacingPx } - spacingPx)
-                line.forEach { action ->
-                    action.placeRelative(x = x, y = y + (lineHeight - action.height) / 2)
-                    x += action.width + spacingPx
-                }
-                y += lineHeight + spacingPx
-            }
-        }
-    }
 }
 
 @Preview2

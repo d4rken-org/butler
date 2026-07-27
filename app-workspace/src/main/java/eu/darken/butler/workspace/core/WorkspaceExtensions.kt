@@ -10,6 +10,7 @@ import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material.icons.twotone.ReportProblem
 import androidx.compose.material.icons.twotone.SaveAlt
 import androidx.compose.material.icons.twotone.Search
+import androidx.compose.material.icons.twotone.Visibility
 import androidx.compose.material.icons.twotone.Workspaces
 import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.common.ca.CaString
@@ -36,6 +37,7 @@ val Workspace.Type.icon: ImageVector
         Workspace.Type.DEVELOPER -> Icons.TwoTone.BugReport
         Workspace.Type.HISTORY -> Icons.AutoMirrored.TwoTone.ReceiptLong
         Workspace.Type.BUG_REPORT -> Icons.TwoTone.ReportProblem
+        Workspace.Type.VIEWER -> Icons.TwoTone.Visibility
     }
 
 val Workspace.Type.label: CaString
@@ -50,6 +52,7 @@ val Workspace.Type.label: CaString
         Workspace.Type.DEVELOPER -> R.string.workspace_developer_label.toCaString()
         Workspace.Type.HISTORY -> R.string.workspace_history_label.toCaString()
         Workspace.Type.BUG_REPORT -> R.string.workspace_bugreport_label.toCaString()
+        Workspace.Type.VIEWER -> R.string.workspace_viewer_label.toCaString()
     }
 
 val Workspace.Type.defaultArguments: Workspace.Arguments?
@@ -64,4 +67,5 @@ val Workspace.Type.defaultArguments: Workspace.Arguments?
         Workspace.Type.DEVELOPER -> DeveloperArguments.Default()
         Workspace.Type.HISTORY -> HistoryArguments.Default()
         Workspace.Type.BUG_REPORT -> BugReportArguments.Default()
+        Workspace.Type.VIEWER -> null
     }

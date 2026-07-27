@@ -8,8 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.Launch
 import androidx.compose.material.icons.twotone.ContentCopy
@@ -94,11 +92,7 @@ private fun ComponentDetailsContent(
 ) {
     val copy = rememberClipboardCopy()
 
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .verticalScroll(rememberScrollState()),
-    ) {
+    Column(modifier = modifier.fillMaxWidth()) {
         ComponentHeroCard(
             entry = entry,
             modifier = Modifier.padding(horizontal = 16.dp),

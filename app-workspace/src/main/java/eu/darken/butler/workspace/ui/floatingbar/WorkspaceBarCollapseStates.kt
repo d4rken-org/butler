@@ -26,11 +26,11 @@ class WorkspaceBarCollapseStates @Inject constructor() : WorkspaceSlotRegistry<M
     override val tag: String = TAG
 
     /**
-     * The slot key is [BarPosition.name] and the map keys are the bars' own keys - both end up
+     * The slot key is [BarPosition.persistedKey] and the map keys are the bars' own keys - both end up
      * verbatim in the persisted session blob, so renaming either orphans stored user state.
      */
     fun collapseFor(workspaceId: Workspace.Id, position: BarPosition): SlotLease<Map<String, Float>> =
-        leaseFor(workspaceId, position.name)
+        leaseFor(workspaceId, position.persistedKey)
 
     companion object {
         // Two positions today; the bound only exists so a future slot key can't grow unbounded.

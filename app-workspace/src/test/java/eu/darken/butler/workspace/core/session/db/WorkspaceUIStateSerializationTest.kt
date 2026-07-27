@@ -33,11 +33,12 @@ class WorkspaceUIStateSerializationTest : BaseTest() {
      * Do NOT replace this with JSON produced by encoding a model: a fixture generated from the code
      * under test moves along with every rename and would happily agree with a format break that
      * orphans every existing user's saved state. Every character here is the wire contract - field
-     * names, nesting depth, the "TOP"/"BOTTOM" literals, "index"/"offset", and Workspace.Id used as
-     * a bare UUID string map key.
+     * names, nesting depth, the version marker, the "TOP"/"BOTTOM" literals, "index"/"offset", and
+     * Workspace.Id used as a bare UUID string map key.
      */
     private val goldenBlob = """
         {
+          "version": 1,
           "focusedWorkspaceId": "${idA.id}",
           "paneSelections": {
             "0": "${idA.id}",
@@ -66,6 +67,7 @@ class WorkspaceUIStateSerializationTest : BaseTest() {
 
     /** The model [goldenBlob] describes, also written out by hand. */
     private val goldenState = WorkspaceUIState(
+        version = 1,
         focusedWorkspaceId = idA,
         paneSelections = mapOf(0 to idA, 1 to idB),
         scrollPositions = mapOf(
@@ -88,6 +90,7 @@ class WorkspaceUIStateSerializationTest : BaseTest() {
     fun `the current format decodes field by field`() {
         val decoded = json.decodeFromString(WorkspaceUIState.serializer(), goldenBlob)
 
+        decoded.version shouldBe 1
         decoded.focusedWorkspaceId shouldBe idA
         decoded.paneSelections shouldBe mapOf(0 to idA, 1 to idB)
 
@@ -126,6 +129,8 @@ class WorkspaceUIStateSerializationTest : BaseTest() {
         decoded.paneSelections shouldBe mapOf(0 to idA, 1 to idB)
         decoded.scrollPositions shouldBe emptyMap()
         decoded.barCollapse shouldBe emptyMap()
+        // Rows predate the marker; they are the format the marker calls v1
+        decoded.version shouldBe WorkspaceUIState.CURRENT_VERSION
     }
 
     /** A row written by the build that had scroll positions but not yet bar collapse state. */
