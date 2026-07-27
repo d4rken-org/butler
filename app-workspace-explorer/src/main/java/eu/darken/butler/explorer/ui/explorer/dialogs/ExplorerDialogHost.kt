@@ -15,6 +15,7 @@ import eu.darken.butler.workspace.ui.dialogs.MultipleItemsInfoBottomSheet
 fun ExplorerDialogHost(
     dialogState: ExplorerDialogState,
     trashEnabled: Boolean,
+    fileOpenActionsEnabled: Boolean = true,
     vm: ExplorerWorkspaceViewModel?,
     topInset: Dp = 0.dp,
     bottomInset: Dp = 0.dp,
@@ -85,6 +86,7 @@ fun ExplorerDialogHost(
             FileOptionsBottomSheet(
                 item = dialogState.item,
                 trashEnabled = trashEnabled,
+                openActionsEnabled = fileOpenActionsEnabled,
                 onDismiss = { vm?.dismissDialog() },
                 onAction = { action -> vm?.executeAction(action) },
                 topInset = topInset,

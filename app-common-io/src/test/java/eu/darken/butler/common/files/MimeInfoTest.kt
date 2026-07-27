@@ -16,6 +16,7 @@ class MimeInfoTest : BaseTest() {
         "heic" to "image/heic",
         "heif" to "image/heif",
         "avif" to "image/avif",
+        "svg" to "image/svg+xml",
         "mp4" to "video/mp4",
         "mkv" to "video/x-matroska",
         "avi" to "video/x-msvideo",
@@ -66,6 +67,7 @@ class MimeInfoTest : BaseTest() {
     @Test
     fun `media classification helpers match the table`() {
         MimeInfo.fromFileName("a.heic").isImage shouldBe true
+        MimeInfo.fromFileName("a.svg").isImage shouldBe true
         MimeInfo.fromFileName("a.3gp").isVideo shouldBe true
         MimeInfo.fromFileName("a.mp3").isImage shouldBe false
         MimeInfo.fromFileName("a.mp3").isVideo shouldBe false

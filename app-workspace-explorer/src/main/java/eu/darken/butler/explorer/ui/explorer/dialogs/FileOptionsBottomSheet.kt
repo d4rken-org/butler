@@ -72,6 +72,7 @@ fun FileOptionsBottomSheet(
     onDismiss: () -> Unit,
     onAction: (ExplorerActionBarItem) -> Unit,
     modifier: Modifier = Modifier,
+    openActionsEnabled: Boolean = true,
     topInset: Dp = 0.dp,
     bottomInset: Dp = 0.dp,
 ) {
@@ -85,6 +86,7 @@ fun FileOptionsBottomSheet(
         FileOptionsContent(
             item = item,
             trashEnabled = trashEnabled,
+            openActionsEnabled = openActionsEnabled,
             onAction = onAction,
         )
     }
@@ -94,6 +96,7 @@ fun FileOptionsBottomSheet(
 private fun FileOptionsContent(
     item: ExplorerItem.File,
     trashEnabled: Boolean,
+    openActionsEnabled: Boolean,
     onAction: (ExplorerActionBarItem) -> Unit,
 ) {
     val context = LocalContext.current
@@ -239,21 +242,32 @@ private fun FileOptionsContent(
             )
         }
 
-        if (isTextFile) {
+        // Inside a picker these would spawn a workspace while the caller is still blocked waiting
+        // for a result, so the picker suppresses them here just like on the action bar.
+        if (openActionsEnabled) {
+            if (isTextFile) {
+                FileActionRow(
+                    icon = Workspace.Type.EDITOR.icon,
+                    title = stringResource(R.string.explorer_file_action_open_in_editor),
+                    subtitle = stringResource(R.string.explorer_file_action_open_in_editor_subtitle),
+                    onClick = { onAction(ExplorerActionBarItem.File.OpenInEditor(item)) },
+                )
+            }
+
             FileActionRow(
-                icon = Workspace.Type.EDITOR.icon,
-                title = stringResource(R.string.explorer_file_action_open_in_editor),
-                subtitle = stringResource(R.string.explorer_file_action_open_in_editor_subtitle),
-                onClick = { onAction(ExplorerActionBarItem.File.OpenInEditor(item)) },
+                icon = Workspace.Type.VIEWER.icon,
+                title = stringResource(R.string.explorer_file_action_open),
+                subtitle = stringResource(R.string.explorer_file_action_open_subtitle),
+                onClick = { onAction(ExplorerActionBarItem.File.Open(item)) },
+            )
+
+            FileActionRow(
+                icon = Icons.TwoTone.OpenInBrowser,
+                title = stringResource(R.string.explorer_file_action_open_with),
+                subtitle = stringResource(R.string.explorer_file_action_open_with_subtitle),
+                onClick = { onAction(ExplorerActionBarItem.File.OpenWith(item)) },
             )
         }
-
-        FileActionRow(
-            icon = Icons.TwoTone.OpenInBrowser,
-            title = stringResource(R.string.explorer_file_action_open_with),
-            subtitle = stringResource(R.string.explorer_file_action_open_with_subtitle),
-            onClick = { onAction(ExplorerActionBarItem.File.OpenWith(item)) },
-        )
 
         FileActionRow(
             icon = Icons.TwoTone.Share,
@@ -382,24 +396,37 @@ private fun FileActionRow(
     }
 }
 
+private fun previewItem() = ExplorerItem.RegularFile(
+    lookup = LocalPathLookup(
+        lookedUp = LocalPath.build("/storage/emulated/0/Documents/test.txt"),
+        fileType = FileType.FILE,
+        size = 1024L * 50, // 50 KB
+        modifiedAt = kotlin.time.Clock.System.now()
+    ),
+    mimeType = MimeInfo("text/plain")
+)
+
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun FileOptionsBottomSheetPreview() {
-    val mockItem = ExplorerItem.RegularFile(
-        lookup = LocalPathLookup(
-            lookedUp = LocalPath.build("/storage/emulated/0/Documents/test.txt"),
-            fileType = FileType.FILE,
-            size = 1024L * 50, // 50 KB
-            modifiedAt = kotlin.time.Clock.System.now()
-        ),
-        mimeType = MimeInfo("text/plain")
-    )
-
     FileOptionsBottomSheet(
-        item = mockItem,
+        item = previewItem(),
         trashEnabled = true,
         onDismiss = {},
         onAction = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun FileOptionsBottomSheetInPickerPreview() {
+    FileOptionsBottomSheet(
+        item = previewItem(),
+        trashEnabled = true,
+        onDismiss = {},
+        onAction = {},
+        openActionsEnabled = false,
     )
 }

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Toolbar and image -->
+    <string name="viewer_open_with_action">Open with</string>
+    <string name="viewer_image_content_description">Image %1$s</string>
+
+    <!-- File info card -->
+    <string name="viewer_info_size_label">Size</string>
+    <string name="viewer_info_modified_label">Modified</string>
+    <string name="viewer_info_created_label">Created</string>
+    <string name="viewer_info_format_label">Format</string>
+    <string name="viewer_info_dimensions_label">Dimensions</string>
+    <string name="viewer_info_dimensions_value">%1$d × %2$d</string>
+    <string name="viewer_info_permissions_label">Permissions</string>
+    <string name="viewer_info_permissions_value">%1$s (%2$s)</string>
+    <string name="viewer_info_owner_label">Owner</string>
+    <string name="viewer_info_owner_value">%1$s / %2$s</string>
+
+    <!-- Unsupported file -->
+    <string name="viewer_unsupported_title">This file type is not supported yet</string>
+
+    <!-- Errors -->
+    <string name="viewer_error_title">Can\'t show this file</string>
+    <string name="viewer_error_not_a_file_label">Not a file</string>
+    <string name="viewer_error_not_a_file_description">%1$s is not a regular file.</string>
+    <string name="viewer_error_broken_symlink_label">Broken shortcut</string>
+    <string name="viewer_error_broken_symlink_description">%1$s points to something that no longer exists.</string>
+    <string name="viewer_error_undecodable_label">Damaged image</string>
+    <string name="viewer_error_undecodable_description">%1$s could not be decoded. The file may be incomplete or damaged.</string>
+    <string name="viewer_error_file_gone_label">File not found</string>
+    <string name="viewer_error_file_gone_description">%1$s no longer exists. It may have been moved, renamed or deleted.</string>
+    <string name="viewer_error_empty_file_label">Empty file</string>
+    <string name="viewer_error_empty_file_description">%1$s is empty and has nothing to show.</string>
+</resources>

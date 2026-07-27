@@ -300,6 +300,8 @@
     <string name="explorer_file_info_type_label">Type</string>
     <string name="explorer_file_info_size_label">Size</string>
     <string name="explorer_file_info_modified_label">Modified</string>
+    <string name="explorer_file_action_open">Open</string>
+    <string name="explorer_file_action_open_subtitle">View in Butler</string>
     <string name="explorer_file_action_open_in_editor">Open in editor</string>
     <string name="explorer_file_action_open_in_editor_subtitle">Edit in Butler\'s text editor</string>
     <string name="explorer_file_action_open_with">Open with</string>

@@ -75,6 +75,11 @@ fun Project.addCoil() {
     add("implementation", "coil-network-okhttp")
 }
 
+fun Project.addZoomableImage() {
+    add("implementation", "telephoto-zoomable-image")
+    add("implementation", "telephoto-sub-sampling-image")
+}
+
 fun Project.addLottie() {
     add("implementation", "lottie")
     add("implementation", "lottie-compose")

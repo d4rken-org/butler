@@ -1,0 +1,258 @@
+package eu.darken.butler.viewer.core
+
+import dagger.Module
+import dagger.Provides
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+import dagger.multibindings.IntoMap
+import eu.darken.butler.common.coroutine.DispatcherProvider
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.asLog
+import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.APathLookup
+import eu.darken.butler.common.files.GatewaySwitch
+import eu.darken.butler.common.files.LookupOptions
+import eu.darken.butler.common.files.MimeInfo
+import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.workspace.contracts.viewer.ViewerArguments
+import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.WorkspaceDisplay
+import eu.darken.butler.workspace.core.WorkspaceFactory
+import eu.darken.butler.workspace.core.WorkspaceTypeKey
+import eu.darken.butler.workspace.core.initialInfo
+import eu.darken.butler.workspace.core.label
+import eu.darken.butler.workspace.core.stateInWorkspace
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.serializer
+
+/**
+ * Single-file workspace that renders one image full screen. The workspace owns the classification
+ * of the target path; the ViewModel and page only render what it resolved.
+ */
+class ViewerWorkspace @AssistedInject constructor(
+    @Assisted override val id: Workspace.Id,
+    @Assisted private val creationArguments: ViewerArguments,
+    dispatcherProvider: DispatcherProvider,
+    private val gatewaySwitch: GatewaySwitch,
+    private val imageProbe: ImageProbe,
+) : Workspace<ViewerArguments> {
+
+    private val tag = logTag("Viewer", "Workspace", id.shortTag)
+    private val scope = CoroutineScope(
+        dispatcherProvider.IO +
+            CoroutineName(tag) +
+            CoroutineExceptionHandler { _, throwable ->
+                log(tag, ERROR) { "Uncaught exception in workspace scope: ${throwable.asLog()}" }
+            }
+    )
+
+    override val type: Workspace.Type = Workspace.Type.VIEWER
+
+    val filePath: APath<*> = creationArguments.filePath
+
+    private val stateFlow = MutableStateFlow(State())
+    val state: StateFlow<State> = stateFlow
+
+    private var loadJob: Job? = null
+
+    private val seedDisplay = deriveViewerDisplay(creationArguments)
+
+    override val info: StateFlow<Workspace.Info> = stateFlow.map { current ->
+        Workspace.Info(
+            id = id,
+            type = type,
+            title = seedDisplay.title ?: type.label,
+            subtitle = seedDisplay.subtitle,
+            // A failed or unsupported file stays Ready on purpose: the page renders its own
+            // explanation plus retry and "Open with", which the global error overlay would hide.
+            lifecycleState = when (current.content) {
+                is ViewerContent.Loading -> Workspace.LifecycleState.Initializing
+                else -> Workspace.LifecycleState.Ready
+            },
+            contentPath = filePath,
+        )
+    }.stateInWorkspace(
+        scope = scope,
+        initial = initialInfo(
+            title = seedDisplay.title ?: type.label,
+            subtitle = seedDisplay.subtitle,
+            arguments = creationArguments,
+        ),
+    )
+
+    init {
+        log(tag, INFO) { "Initialized for $filePath" }
+        reload()
+    }
+
+    fun reload() {
+        log(tag) { "reload()" }
+        loadJob?.cancel()
+        loadJob = scope.launch { load() }
+    }
+
+    override suspend fun createArguments(): ViewerArguments = ViewerArguments.Default(
+        filePath = filePath,
+    )
+
+    override suspend fun release() {
+        log(tag, INFO) { "release()" }
+        scope.cancel()
+    }
+
+    private suspend fun load() {
+        stateFlow.value = State()
+
+        val lookup = try {
+            gatewaySwitch.useRes { gatewaySwitch.lookup(filePath, LookupOptions.BASE) }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            log(tag, WARN) { "Lookup failed for $filePath: ${e.asLog()}" }
+            // A file deleted behind the viewer's back surfaces as a gateway permission error, which
+            // would send the user looking for an access problem that does not exist.
+            val error = if (isGone()) ViewerFileGoneException(filePath, e) else e
+            stateFlow.value = State(content = ViewerContent.Failed(error))
+            return
+        }
+
+        val fileInfo = ViewerFileInfo(
+            size = lookup.size,
+            modifiedAt = lookup.modifiedAt,
+            createdAt = lookup.createdAt,
+            permissions = lookup.permissions,
+            ownership = lookup.ownership,
+        )
+
+        // A restored session can point at a path that has since become a directory, a dangling
+        // symlink or a truncated file. None of those may render as a blank image.
+        val rejection = validate(lookup)
+        if (rejection != null) {
+            log(tag, WARN) { "Rejecting $filePath: $rejection" }
+            stateFlow.value = State(content = ViewerContent.Failed(rejection), fileInfo = fileInfo)
+            return
+        }
+
+        val mime = MimeInfo.fromFileName(lookup.name)
+        if (!mime.isImage) {
+            log(tag, INFO) { "$filePath is not an image ($mime)" }
+            stateFlow.value = State(content = ViewerContent.Unsupported(mime), fileInfo = fileInfo)
+            return
+        }
+
+        // The probe doubles as the decode check. It has to run before the image is announced,
+        // otherwise bytes the decoder rejects would render as a permanently blank canvas.
+        val imageInfo = when (val probe = imageProbe.probe(filePath)) {
+            is ProbeResult.Probed -> ViewerFileInfo.ImageInfo(
+                format = probe.format,
+                width = probe.width,
+                height = probe.height,
+            )
+
+            ProbeResult.NoRasterDimensions -> {
+                // Vector formats legitimately have none. For a raster format it means the decoder
+                // could not even read the header, i.e. the bytes are corrupt or truncated.
+                if (!mime.isVectorImage) {
+                    val error = ViewerUndecodableImageException(filePath)
+                    log(tag, WARN) { "Rejecting $filePath: $error" }
+                    stateFlow.value = State(content = ViewerContent.Failed(error), fileInfo = fileInfo)
+                    return
+                }
+                ViewerFileInfo.ImageInfo(format = mime.rawType)
+            }
+
+            is ProbeResult.ProbeFailed -> {
+                // A stream that cannot be opened or read is a real failure for any format.
+                log(tag, WARN) { "Probing $filePath failed: ${probe.error.asLog()}" }
+                stateFlow.value = State(content = ViewerContent.Failed(probe.error), fileInfo = fileInfo)
+                return
+            }
+        }
+
+        stateFlow.value = State(
+            content = ViewerContent.Image(mime),
+            fileInfo = fileInfo.copy(imageInfo = imageInfo),
+        )
+    }
+
+    /** Only a definitive "not there" counts; a failing check stays with the original error. */
+    private suspend fun isGone(): Boolean = try {
+        !gatewaySwitch.useRes { gatewaySwitch.exists(filePath) }
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        log(tag, WARN) { "Existence check failed for $filePath: ${e.asLog()}" }
+        false
+    }
+
+    private suspend fun validate(lookup: APathLookup<APath<*>>): Throwable? = when (lookup.fileType) {
+        FileType.FILE -> if (lookup.size == 0L) ViewerEmptyFileException(filePath) else null
+        FileType.DIRECTORY, FileType.UNKNOWN -> ViewerNotAFileException(filePath)
+        FileType.SYMBOLIC_LINK -> validateSymlink(lookup)
+    }
+
+    private suspend fun validateSymlink(lookup: APathLookup<APath<*>>): Throwable? {
+        val target = lookup.target ?: return ViewerBrokenSymlinkException(filePath)
+        val targetLookup = try {
+            gatewaySwitch.useRes { gatewaySwitch.lookup(target, LookupOptions.BASE) }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            log(tag, WARN) { "Symlink target lookup failed for $target: ${e.asLog()}" }
+            return ViewerBrokenSymlinkException(filePath)
+        }
+        return when {
+            targetLookup.fileType != FileType.FILE -> ViewerNotAFileException(filePath)
+            targetLookup.size == 0L -> ViewerEmptyFileException(filePath)
+            else -> null
+        }
+    }
+
+    data class State(
+        val content: ViewerContent = ViewerContent.Loading,
+        val fileInfo: ViewerFileInfo? = null,
+    )
+
+    @AssistedFactory
+    interface Factory : WorkspaceFactory<ViewerArguments> {
+        override fun create(id: Workspace.Id, arguments: ViewerArguments): ViewerWorkspace
+
+        override val argumentsSerializer: KSerializer<ViewerArguments> get() = serializer()
+
+        override fun deriveDisplay(arguments: ViewerArguments): WorkspaceDisplay =
+            deriveViewerDisplay(arguments)
+    }
+
+    @Module
+    @InstallIn(SingletonComponent::class)
+    object FactoryModule {
+        @Provides
+        @IntoMap
+        @WorkspaceTypeKey(Workspace.Type.VIEWER)
+        fun factory(factory: Factory): WorkspaceFactory<*> = factory
+    }
+}
+
+private val VECTOR_IMAGE_MIME_TYPES = setOf("image/svg+xml")
+
+/**
+ * Vector images have no pixel dimensions to read, so an empty dimension probe means something very
+ * different for them than it does for a raster format.
+ */
+private val MimeInfo.isVectorImage: Boolean
+    get() = rawType in VECTOR_IMAGE_MIME_TYPES

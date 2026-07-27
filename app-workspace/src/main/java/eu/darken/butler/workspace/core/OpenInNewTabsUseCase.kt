@@ -31,12 +31,23 @@ class OpenInNewTabsUseCase @Inject constructor() {
     data class AnalysisResult(
         val directoriesToOpen: List<APath<*>>,
         val textFilesToOpen: List<APath<*>>,
+        val viewerFilesToOpen: List<APath<*>>,
         val skippedCount: Int,
         val totalOpenableCount: Int,
         val needsConfirmation: Boolean,
     ) {
         val hasItemsToOpen: Boolean
             get() = totalOpenableCount > 0
+    }
+
+    /**
+     * The routing rule shared by every "open this" entry point: a directory goes to the Explorer,
+     * a text file to the Editor, and everything else to the Viewer, which shows images and explains
+     * the rest. Single source of truth for both the single-item and the multi-select path.
+     */
+    fun classify(item: Item): Workspace.Type = when (item) {
+        is Item.Directory -> Workspace.Type.EXPLORER
+        is Item.File -> if (item.isText) Workspace.Type.EDITOR else Workspace.Type.VIEWER
     }
 
     /**
@@ -47,37 +58,53 @@ class OpenInNewTabsUseCase @Inject constructor() {
 
         val directories = mutableListOf<APath<*>>()
         val textFiles = mutableListOf<APath<*>>()
-        var skippedCount = 0
+        val viewerFiles = mutableListOf<APath<*>>()
 
         request.items.forEach { item ->
-            when (item) {
-                is Item.Directory -> {
-                    directories.add(item.path)
-                }
-                is Item.File -> {
-                    if (item.isText) {
-                        textFiles.add(item.path)
-                    } else {
-                        skippedCount++
-                    }
-                }
+            when (classify(item)) {
+                Workspace.Type.EXPLORER -> directories.add(item.path)
+                Workspace.Type.EDITOR -> textFiles.add(item.path)
+                else -> viewerFiles.add(item.path)
             }
         }
 
-        val totalOpenableCount = directories.size + textFiles.size
+        val totalOpenableCount = directories.size + textFiles.size + viewerFiles.size
         val needsConfirmation = totalOpenableCount >= CONFIRMATION_THRESHOLD
 
         log(tag) {
             "Analysis: ${directories.size} directories, ${textFiles.size} text files, " +
-                "$skippedCount skipped, confirmation: $needsConfirmation"
+                "${viewerFiles.size} viewer files, confirmation: $needsConfirmation"
         }
 
         return AnalysisResult(
             directoriesToOpen = directories,
             textFilesToOpen = textFiles,
-            skippedCount = skippedCount,
+            viewerFilesToOpen = viewerFiles,
+            skippedCount = 0,
             totalOpenableCount = totalOpenableCount,
             needsConfirmation = needsConfirmation,
+        )
+    }
+
+    /**
+     * Single-item counterpart to [analyze] + [createRequests], used by the "Open" action so it
+     * routes through the exact same classification instead of always landing in the Viewer.
+     */
+    fun createRequest(
+        item: Item,
+        createExplorerArguments: (APath<*>) -> Workspace.Arguments,
+        createEditorArguments: (APath<*>) -> Workspace.Arguments,
+        createViewerArguments: (APath<*>) -> Workspace.Arguments,
+    ): WorkspaceAction.Create {
+        val type = classify(item)
+        log(tag) { "createRequest(): ${item.path} -> $type" }
+        return WorkspaceAction.Create(
+            type = type,
+            arguments = when (type) {
+                Workspace.Type.EXPLORER -> createExplorerArguments(item.path)
+                Workspace.Type.EDITOR -> createEditorArguments(item.path)
+                else -> createViewerArguments(item.path)
+            },
         )
     }
 
@@ -89,14 +116,15 @@ class OpenInNewTabsUseCase @Inject constructor() {
         analysis: AnalysisResult,
         createExplorerArguments: (APath<*>) -> Workspace.Arguments,
         createEditorArguments: (APath<*>) -> Workspace.Arguments,
+        createViewerArguments: (APath<*>) -> Workspace.Arguments,
     ): List<WorkspaceAction.Create> {
         log(tag) {
             "createRequests(): Creating ${analysis.totalOpenableCount} workspace requests " +
-                "(${analysis.directoriesToOpen.size} Explorer, ${analysis.textFilesToOpen.size} Editor)"
+                "(${analysis.directoriesToOpen.size} Explorer, ${analysis.textFilesToOpen.size} Editor, " +
+                "${analysis.viewerFilesToOpen.size} Viewer)"
         }
 
         return buildList {
-            // Create Explorer workspace requests for directories
             analysis.directoriesToOpen.forEach { path ->
                 add(
                     WorkspaceAction.Create(
@@ -106,12 +134,20 @@ class OpenInNewTabsUseCase @Inject constructor() {
                 )
             }
 
-            // Create Editor workspace requests for text files
             analysis.textFilesToOpen.forEach { path ->
                 add(
                     WorkspaceAction.Create(
                         type = Workspace.Type.EDITOR,
                         arguments = createEditorArguments(path),
+                    )
+                )
+            }
+
+            analysis.viewerFilesToOpen.forEach { path ->
+                add(
+                    WorkspaceAction.Create(
+                        type = Workspace.Type.VIEWER,
+                        arguments = createViewerArguments(path),
                     )
                 )
             }
