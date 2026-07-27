@@ -60,6 +60,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.isFinite
 import androidx.compose.ui.unit.isSpecified
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
@@ -338,7 +339,12 @@ private fun SheetCard(
                 Box(modifier = handleModifier.fillMaxWidth()) { it() }
             }
 
-            val sheetScrolls = contentScroll == SheetContentScroll.SheetOwned && maxHeight.isSpecified
+            // Both halves matter. `Dp.Unspecified` is the preview branch, and `Dp.Infinity` is a
+            // pane that gave the sheet no height to bound against — and a `weight` in a column with
+            // an unbounded main axis measures to *zero*, which would leave a stub card with the
+            // whole content clipped away instead of a sheet.
+            val boundedPane = maxHeight.isSpecified && maxHeight.isFinite
+            val sheetScrolls = contentScroll == SheetContentScroll.SheetOwned && boundedPane
             Box(
                 modifier = if (sheetScrolls) {
                     Modifier

@@ -22,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
@@ -31,6 +32,7 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeDown
 import androidx.compose.ui.test.swipeUp
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.height
@@ -594,6 +596,59 @@ class PaneScopedBottomSheetTest : ComposeTest() {
                     },
                     content = content,
                 )
+            }
+        }
+    }
+
+    /**
+     * A pane that hands the sheet an unbounded height — anything that wraps its content vertically
+     * rather than filling a window — gives it nothing to bound against. A `weight` in a column with
+     * an unbounded main axis measures to *zero*, so the sheet used to collapse to a stub card with
+     * its entire content clipped away and no way to reach it.
+     */
+    @Test
+    fun `an unbounded pane height does not collapse the sheet`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                UnboundedHeight {
+                    PaneLayerHost(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .testTag(PANE_TAG),
+                        paneFocused = true,
+                    ) {
+                        PaneScopedBottomSheet(
+                            visible = true,
+                            onDismiss = {},
+                            dragHandle = {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(24.dp)
+                                        .testTag(HANDLE_TAG),
+                                )
+                            },
+                        ) {
+                            TallContent()
+                        }
+                    }
+                }
+            }
+        }
+
+        cardBounds().height shouldBeGreaterThan 100.dp
+        composeTestRule.onNodeWithTag(itemTag(0)).assertIsDisplayed()
+    }
+
+    /** Measures its child with no height bound, the way a wrap-content container would. */
+    @Composable
+    private fun UnboundedHeight(content: @Composable () -> Unit) {
+        Layout(content = content) { measurables, constraints ->
+            val placeable = measurables.first().measure(
+                constraints.copy(minHeight = 0, maxHeight = Constraints.Infinity),
+            )
+            layout(placeable.width, placeable.height.coerceAtMost(constraints.maxHeight)) {
+                placeable.place(0, 0)
             }
         }
     }
