@@ -97,10 +97,10 @@ fun FloatingBarStack(
         }
 
         // Phase 3: Update measured heights and calculate positions
-        scope.barEntries.forEachIndexed { index, entry ->
+        scope.barEntries.forEachIndexed { index, barState ->
             val placeable = barPlaceables.getOrNull(index)
             if (placeable != null) {
-                entry.state.measuredHeight = placeable.height.toFloat()
+                barState.measuredHeight = placeable.height.toFloat()
             }
         }
 
@@ -188,14 +188,6 @@ fun FloatingBarStack(
 }
 
 /**
- * Internal entry tracking a bar and its state.
- */
-internal data class BarEntry(
-    val state: FloatingBarState,
-    val collapsedHeightPx: Float,
-)
-
-/**
  * Internal implementation of [FloatingBarScope].
  */
 @Stable
@@ -204,7 +196,7 @@ internal class FloatingBarScopeImpl(
     private val horizontalPadding: Dp,
 ) : FloatingBarScope() {
 
-    internal val barEntries = mutableStateListOf<BarEntry>()
+    internal val barEntries = mutableStateListOf<FloatingBarState>()
 
     @Composable
     override fun FloatingBarImpl(
@@ -218,10 +210,6 @@ internal class FloatingBarScopeImpl(
         content: @Composable FloatingBarContentScope.() -> Unit,
     ) {
         val density = LocalDensity.current
-        val collapsedHeightPx = when (scrollBehavior) {
-            is BarScrollBehavior.CollapseOnScroll -> with(density) { scrollBehavior.collapsedHeight.toPx() }
-            else -> 0f
-        }
         val estimatedHeightPx = with(density) { estimatedHeight.toPx() }
         val coroutineScope = rememberCoroutineScope()
 
@@ -236,14 +224,13 @@ internal class FloatingBarScopeImpl(
                 initialVisible = visible,
                 estimatedHeightPx = estimatedHeightPx,
             ).also {
-                it.collapsedHeightPx = collapsedHeightPx
                 // Register immediately so it's available during layout
                 stackState.registerBar(it)
             }
         }
 
         // Track entry for local iteration
-        barEntries.add(BarEntry(barState, collapsedHeightPx))
+        barEntries.add(barState)
 
         // Cleanup on dispose
         DisposableEffect(barState.id) {
@@ -267,11 +254,6 @@ internal class FloatingBarScopeImpl(
                     }
                 }
             }
-        }
-
-        // Update collapsed height if changed
-        LaunchedEffect(collapsedHeightPx) {
-            barState.collapsedHeightPx = collapsedHeightPx
         }
 
         // Update scroll behavior synchronously so scroll handler sees the correct value immediately

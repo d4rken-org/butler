@@ -240,7 +240,7 @@ fun AppDetailsWorkspacePage(
                 FloatingBar(
                     key = AppDetailsBarKeys.TOOLBAR,
                     visible = true,
-                    scrollBehavior = BarScrollBehavior.CollapseOnScroll(),
+                    scrollBehavior = BarScrollBehavior.CollapseOnScroll,
                     animation = BarAnimation.Slide(),
                     // Re-reveal the toolbar when switching routes so it isn't stuck collapsed.
                     revealOn = showComponents,
