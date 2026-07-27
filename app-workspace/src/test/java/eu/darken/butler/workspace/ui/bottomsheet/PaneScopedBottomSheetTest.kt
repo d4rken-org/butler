@@ -3,22 +3,61 @@ package eu.darken.butler.workspace.ui.bottomsheet
 import androidx.activity.OnBackPressedDispatcher
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.test.assertExists
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.getUnclippedBoundsInRoot
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeDown
+import androidx.compose.ui.test.swipeUp
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.height
+import androidx.compose.ui.unit.width
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.ui.modal.LocalLayerActive
 import eu.darken.butler.workspace.ui.modal.PaneLayer
 import eu.darken.butler.workspace.ui.modal.PaneLayerHost
 import eu.darken.butler.workspace.ui.modal.PaneLayerRank
 import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
+import io.kotest.matchers.comparables.shouldBeGreaterThan
+import io.kotest.matchers.comparables.shouldBeLessThan
+import io.kotest.matchers.comparables.shouldBeLessThanOrEqualTo
 import io.kotest.matchers.shouldBe
 import org.junit.Test
+import org.robolectric.annotation.Config
 import testhelpers.ComposeTest
+import testhelpers.TestApplication
 
+/**
+ * The screen qualifiers are load-bearing. The sheet anchors to the bottom of its pane, and the pane
+ * here deliberately *is* the test root: inside an oversized box the sheet's lower half would hang
+ * off the end of the root, where an injected touch lands on nothing while the call still reports
+ * success.
+ */
+@Config(application = TestApplication::class, sdk = [34], qualifiers = "w400dp-h400dp")
 class PaneScopedBottomSheetTest : ComposeTest() {
 
     /**
@@ -129,5 +168,370 @@ class PaneScopedBottomSheetTest : ComposeTest() {
 
         composeTestRule.waitForIdle()
         contentActive shouldBe true
+    }
+
+    /**
+     * The reported bug: content taller than the pane used to overflow the card and be clipped away,
+     * with no way to reach it. [performScrollTo] before the assertion is the point — a bare
+     * `performClick` on an off-screen control passes without the control ever being on screen.
+     */
+    @Test
+    fun `content taller than the pane stays reachable`() {
+        composeTestRule.setContent { Case { TallContent() } }
+
+        composeTestRule.onNodeWithTag(itemTag(ITEM_COUNT - 1)).performScrollTo().assertIsDisplayed()
+
+        val card = cardBounds()
+        val last = itemBounds(ITEM_COUNT - 1)
+        card.height shouldBeLessThanOrEqualTo paneBounds().height
+        last.bottom shouldBeLessThanOrEqualTo card.bottom
+    }
+
+    @Test
+    fun `short content does not stretch the sheet`() {
+        composeTestRule.setContent {
+            Case {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(40.dp)
+                        .testTag(itemTag(0)),
+                )
+            }
+        }
+
+        cardBounds().height shouldBeLessThan 120.dp
+    }
+
+    /**
+     * Templates-shaped opt-out: a box with a height cap around its own scroller. A bare unbounded
+     * lazy list would fail for reasons of its own and prove nothing about the opt-out.
+     */
+    @Test
+    fun `content that bounds itself keeps its own scrolling`() {
+        composeTestRule.setContent {
+            Case(contentScroll = SheetContentScroll.ContentOwned) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 200.dp),
+                ) {
+                    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                        repeat(ITEM_COUNT) { Item(it) }
+                    }
+                }
+            }
+        }
+
+        composeTestRule.onNodeWithTag(itemTag(ITEM_COUNT - 1)).performScrollTo().assertIsDisplayed()
+
+        // The content's own cap decides the height, not the pane
+        cardBounds().height shouldBeLessThan 260.dp
+    }
+
+    @Test
+    fun `an upward drag scrolls the content instead of dismissing`() {
+        var dismissals = 0
+        composeTestRule.setContent { Case(onDismiss = { dismissals++ }) { TallContent() } }
+
+        val before = itemBounds(0).top
+        swipeContent(up = true)
+
+        itemBounds(0).top shouldBeLessThan before
+        dismissals shouldBe 0
+    }
+
+    /**
+     * Also the fling policy: this swipe can carry the content all the way back to its top. Reaching
+     * the top must end the gesture there, not continue into a dismissal the user never aimed for.
+     */
+    @Test
+    fun `a downward drag scrolls toward the top and never dismisses`() {
+        var dismissals = 0
+        composeTestRule.setContent { Case(onDismiss = { dismissals++ }) { TallContent() } }
+
+        composeTestRule.onNodeWithTag(itemTag(ITEM_COUNT - 1)).performScrollTo()
+        val before = itemBounds(0).top
+        swipeContent(up = false)
+
+        itemBounds(0).top shouldBeGreaterThan before
+        cardBounds().top shouldBe paneBounds().top
+        dismissals shouldBe 0
+    }
+
+    /**
+     * The handoff: one continuous drag that first exhausts the content's remaining scroll and then
+     * keeps going hands the leftover to the sheet.
+     */
+    @Test
+    fun `a drag continuing past the top of the content moves the sheet`() {
+        var dismissals = 0
+        composeTestRule.setContent { Case(onDismiss = { dismissals++ }) { TallContent() } }
+
+        // Two items' worth of scroll left before the content reaches its top
+        composeTestRule.onNodeWithTag(itemTag(ITEM_COUNT - 1)).performScrollTo()
+        composeTestRule.onNodeWithTag(itemTag(2)).performScrollTo()
+
+        val handoff = with(composeTestRule.density) { (2 * ITEM_HEIGHT + 150.dp).toPx() }
+        composeTestRule.onNodeWithTag(CARD_TAG).performTouchInput {
+            down(Offset(centerX, height * 0.1f))
+            repeat(DRAG_STEPS) { moveBy(Offset(0f, handoff / DRAG_STEPS), delayMillis = 32) }
+            up()
+        }
+        composeTestRule.waitForIdle()
+
+        dismissals shouldBe 1
+    }
+
+    @Test
+    fun `the handle dismisses even while the content is scrolled`() {
+        var dismissals = 0
+        composeTestRule.setContent { Case(onDismiss = { dismissals++ }) { TallContent() } }
+
+        composeTestRule.onNodeWithTag(itemTag(ITEM_COUNT - 1)).performScrollTo()
+
+        val travel = with(composeTestRule.density) { 150.dp.toPx() }
+        composeTestRule.onNodeWithTag(HANDLE_TAG).performTouchInput {
+            down(center)
+            repeat(DRAG_STEPS) { moveBy(Offset(0f, travel / DRAG_STEPS), delayMillis = 32) }
+            up()
+        }
+        composeTestRule.waitForIdle()
+
+        dismissals shouldBe 1
+    }
+
+    /**
+     * A bounded nested scroller consumes its own gestures. The sheet may only take what that
+     * scroller could not use, otherwise scrolling a list inside the sheet would throw it away.
+     */
+    @Test
+    fun `scrolling a bounded nested list cannot dismiss the sheet`() {
+        var dismissals = 0
+        composeTestRule.setContent {
+            Case(onDismiss = { dismissals++ }) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 150.dp)
+                            .testTag(NESTED_TAG),
+                    ) {
+                        items((0 until ITEM_COUNT).toList()) { Item(it) }
+                    }
+                }
+            }
+        }
+
+        composeTestRule.onNodeWithTag(NESTED_TAG).performTouchInput {
+            swipeUp(startY = height * 0.9f, endY = height * 0.1f)
+        }
+        composeTestRule.waitForIdle()
+        // The list really did scroll, so the swipe below has somewhere to go inside it
+        composeTestRule.onNodeWithTag(itemTag(5)).assertExists()
+
+        composeTestRule.onNodeWithTag(NESTED_TAG).performTouchInput {
+            swipeDown(startY = height * 0.1f, endY = height * 0.9f)
+        }
+        composeTestRule.waitForIdle()
+
+        dismissals shouldBe 0
+    }
+
+    @Test
+    fun `reopening the sheet starts at the top`() {
+        var visible by mutableStateOf(true)
+        composeTestRule.setContent { Case(visible = visible) { TallContent() } }
+
+        composeTestRule.onNodeWithTag(itemTag(ITEM_COUNT - 1)).performScrollTo()
+        itemBounds(0).top shouldBeLessThan cardBounds().top
+
+        composeTestRule.runOnIdle { visible = false }
+        composeTestRule.waitForIdle()
+        composeTestRule.runOnIdle { visible = true }
+        composeTestRule.waitForIdle()
+
+        itemBounds(0).top shouldBeGreaterThan cardBounds().top
+    }
+
+    @Test
+    fun `new content while the sheet stays open starts at the top`() {
+        var contentKey by mutableStateOf("first")
+        composeTestRule.setContent { Case(contentKey = contentKey) { TallContent() } }
+
+        composeTestRule.onNodeWithTag(itemTag(ITEM_COUNT - 1)).performScrollTo()
+        itemBounds(0).top shouldBeLessThan cardBounds().top
+
+        composeTestRule.runOnIdle { contentKey = "second" }
+        composeTestRule.waitForIdle()
+
+        itemBounds(0).top shouldBeGreaterThan cardBounds().top
+    }
+
+    /**
+     * A dialog opened from within the sheet recomposes it without replacing its content — the
+     * position the user scrolled to has to survive that, or every rename attempt would throw the
+     * conflict details back to the top.
+     */
+    @Test
+    fun `a recomposition that keeps the same content does not reset the scroll`() {
+        var dialogOpen by mutableStateOf(false)
+        composeTestRule.setContent {
+            Case(contentKey = "same") {
+                TallContent()
+                if (dialogOpen) Text("dialog")
+            }
+        }
+
+        composeTestRule.onNodeWithTag(itemTag(ITEM_COUNT - 1)).performScrollTo()
+        val scrolledTo = itemBounds(0).top
+
+        composeTestRule.runOnIdle { dialogOpen = true }
+        composeTestRule.waitForIdle()
+        composeTestRule.runOnIdle { dialogOpen = false }
+        composeTestRule.waitForIdle()
+
+        itemBounds(0).top shouldBe scrolledTo
+    }
+
+    @Test
+    fun `a sheet with a text field keeps its actions reachable`() {
+        composeTestRule.setContent {
+            Case(includeImePadding = true) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    var text by remember { mutableStateOf("") }
+                    OutlinedTextField(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag(FIELD_TAG),
+                        value = text,
+                        onValueChange = { text = it },
+                    )
+                    repeat(ITEM_COUNT) { Item(it) }
+                }
+            }
+        }
+
+        composeTestRule.onNodeWithTag(FIELD_TAG).performClick()
+        composeTestRule.onNodeWithTag(itemTag(ITEM_COUNT - 1)).performScrollTo().assertIsDisplayed()
+        composeTestRule.onNodeWithTag(FIELD_TAG).performScrollTo().assertIsDisplayed()
+    }
+
+    /**
+     * Insets constrain the card only: the scrim has to keep covering the strip next to a side
+     * navigation bar or a cutout.
+     */
+    @Test
+    fun `insets constrain the card while the scrim stays full-pane`() {
+        composeTestRule.setContent {
+            Case(topInset = 48.dp, bottomInset = 32.dp) { TallContent() }
+        }
+
+        val pane = paneBounds()
+        val scrim = composeTestRule.onNodeWithTag(PaneScopedBottomSheetDefaults.SCRIM_TEST_TAG)
+            .getUnclippedBoundsInRoot()
+        scrim.width shouldBe pane.width
+        scrim.height shouldBe pane.height
+
+        val card = cardBounds()
+        card.top shouldBe pane.top + 48.dp
+        card.bottom shouldBe pane.bottom
+
+        composeTestRule.onNodeWithTag(itemTag(ITEM_COUNT - 1)).performScrollTo()
+        itemBounds(ITEM_COUNT - 1).bottom shouldBeLessThanOrEqualTo card.bottom - 32.dp
+    }
+
+    @Composable
+    private fun Case(
+        visible: Boolean = true,
+        onDismiss: () -> Unit = {},
+        contentScroll: SheetContentScroll = SheetContentScroll.SheetOwned,
+        contentKey: Any? = null,
+        includeImePadding: Boolean = false,
+        topInset: Dp = 0.dp,
+        bottomInset: Dp = 0.dp,
+        content: @Composable () -> Unit,
+    ) {
+        PreviewWrapper {
+            PaneLayerHost(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .testTag(PANE_TAG),
+                paneFocused = true,
+            ) {
+                PaneScopedBottomSheet(
+                    visible = visible,
+                    onDismiss = onDismiss,
+                    topInset = topInset,
+                    bottomInset = bottomInset,
+                    includeImePadding = includeImePadding,
+                    contentScroll = contentScroll,
+                    contentKey = contentKey,
+                    dragHandle = {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(24.dp)
+                                .testTag(HANDLE_TAG),
+                        )
+                    },
+                    content = content,
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun TallContent() {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            repeat(ITEM_COUNT) { Item(it) }
+        }
+    }
+
+    @Composable
+    private fun Item(index: Int) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(ITEM_HEIGHT)
+                .testTag(itemTag(index)),
+        )
+    }
+
+    /**
+     * Swiped on the card rather than on the content: the content is taller than the root, and a
+     * gesture aimed at the middle of an oversized node lands past the root's edge.
+     */
+    private fun swipeContent(up: Boolean) {
+        composeTestRule.onNodeWithTag(CARD_TAG).performTouchInput {
+            // Below the drag handle, so this is a content gesture and not a sheet gesture
+            if (up) {
+                swipeUp(startY = height * 0.9f, endY = height * 0.15f)
+            } else {
+                swipeDown(startY = height * 0.15f, endY = height * 0.9f)
+            }
+        }
+        composeTestRule.waitForIdle()
+    }
+
+    private fun paneBounds() = composeTestRule.onNodeWithTag(PANE_TAG).getUnclippedBoundsInRoot()
+
+    private fun cardBounds() = composeTestRule.onNodeWithTag(CARD_TAG).getUnclippedBoundsInRoot()
+
+    private fun itemBounds(index: Int) =
+        composeTestRule.onNodeWithTag(itemTag(index)).getUnclippedBoundsInRoot()
+
+    companion object {
+        private const val PANE_TAG = "pane.host"
+        private const val HANDLE_TAG = "sheet.handle"
+        private const val NESTED_TAG = "sheet.nested"
+        private const val FIELD_TAG = "sheet.field"
+        private val CARD_TAG = PaneScopedBottomSheetDefaults.CARD_TEST_TAG
+
+        private val ITEM_HEIGHT = 60.dp
+        private const val ITEM_COUNT = 20
+        private const val DRAG_STEPS = 6
+
+        private fun itemTag(index: Int) = "sheet.item.$index"
     }
 }
