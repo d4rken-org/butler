@@ -713,6 +713,44 @@ class WorkspaceSessionManagerTest : BaseTest() {
         private suspend fun pausedIds(): List<Workspace.Id> =
             repo.state.first().infos.filter { it.isPaused }.map { it.id }
 
+        /**
+         * Saving excludes sub-workspaces, so such a row is stale or foreign. It must not come back:
+         * registration would refuse it anyway, but the check has to sit before focus selection or
+         * the eager path (Create, which legitimately builds sub-workspaces) resurrects it.
+         */
+        @Test
+        fun `a stale sub-workspace row is skipped instead of restored paused`() =
+            runTest(UnconfinedTestDispatcher()) {
+                savedSession(
+                    focusedId = idA,
+                    entities = listOf(entity(idA, 0, "a"), entity(idB, 1, SUB_WORKSPACE_TAG)),
+                )
+
+                val manager = createManager()
+                restoreScope.testScheduler.runCurrent()
+
+                manager.state.value shouldBe WorkspaceSessionManager.State.Restored(listOf(idA))
+                workspaceIds() shouldBe listOf(idA)
+                pausedIds() shouldBe emptyList()
+            }
+
+        @Test
+        fun `a stale sub-workspace row is skipped even when it is the saved focus`() =
+            runTest(UnconfinedTestDispatcher()) {
+                savedSession(
+                    focusedId = idB,
+                    entities = listOf(entity(idA, 0, "a"), entity(idB, 1, SUB_WORKSPACE_TAG)),
+                )
+
+                val manager = createManager()
+                restoreScope.testScheduler.runCurrent()
+
+                // idB is gone entirely, so idA takes the eager slot instead of coming back as a modal
+                manager.state.value shouldBe WorkspaceSessionManager.State.Restored(listOf(idA))
+                createAttempts shouldBe listOf(idA)
+                workspaceIds() shouldBe listOf(idA)
+            }
+
         @Test
         fun `only the focused workspace is created, the rest stay paused`() =
             runTest(UnconfinedTestDispatcher()) {
@@ -1336,6 +1374,17 @@ private data class FakeSessionArguments(
     override fun writeToParcel(dest: Parcel, flags: Int) = Unit
 }
 
+/** Tag whose row deserializes into sub-workspace arguments, standing in for a stale/foreign row. */
+private const val SUB_WORKSPACE_TAG = "stale-sub-workspace"
+
+private data class FakeSessionPickerArguments(
+    override val type: Workspace.Type,
+    override val callerWorkspaceId: Workspace.Id?,
+) : Workspace.ArgumentsForResult {
+    override fun describeContents(): Int = 0
+    override fun writeToParcel(dest: Parcel, flags: Int) = Unit
+}
+
 private class FakeSessionWorkspace(
     override val id: Workspace.Id,
     private val arguments: Workspace.Arguments,
@@ -1367,9 +1416,14 @@ private class FakeSessionFactory(
     override val argumentsSerializer: KSerializer<Workspace.Arguments>
         get() = throw NotImplementedError("serialize/deserialize are overridden directly")
 
-    override fun serialize(json: Json, arguments: Workspace.Arguments): JsonElement =
-        JsonPrimitive((arguments as FakeSessionArguments).tag)
+    override fun serialize(json: Json, arguments: Workspace.Arguments): JsonElement = when (arguments) {
+        is FakeSessionPickerArguments -> JsonPrimitive(SUB_WORKSPACE_TAG)
+        else -> JsonPrimitive((arguments as FakeSessionArguments).tag)
+    }
 
     override fun deserialize(json: Json, element: JsonElement): Workspace.Arguments =
-        FakeSessionArguments(type, element.jsonPrimitive.content)
+        when (val tag = element.jsonPrimitive.content) {
+            SUB_WORKSPACE_TAG -> FakeSessionPickerArguments(type, Workspace.Id())
+            else -> FakeSessionArguments(type, tag)
+        }
 }

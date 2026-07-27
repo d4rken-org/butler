@@ -10,12 +10,15 @@ import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.datastore.createValue
 import eu.darken.butler.common.datastore.value
+import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.getPackageInfo
 import io.github.z4kn4fein.semver.Version
 import io.github.z4kn4fein.semver.VersionFormatException
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -47,13 +50,29 @@ class CurriculumVitae @Inject constructor(
 
     fun updateAppLaunch() = appScope.launch {
         log(TAG, VERBOSE) { "updateAppLaunch()" }
-        updateInstalledAt()
-        updateLaunchTime()
-        updateLaunchCount()
-        if (BuildConfigWrap.BUILD_TYPE != BuildConfigWrap.BuildType.RELEASE) {
-            updateLaunchCountBeta()
+        try {
+            updateInstalledAt()
+            updateLaunchTime()
+            updateLaunchCount()
+            if (BuildConfigWrap.BUILD_TYPE != BuildConfigWrap.BuildType.RELEASE) {
+                updateLaunchCountBeta()
+            }
+            updateVersionHistory()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            reportStatsFailure("updateAppLaunch()", e)
         }
-        updateVersionHistory()
+    }
+
+    private fun reportStatsFailure(operation: String, e: Exception) {
+        // Best effort: reporting itself must never escalate a stats failure into a crash
+        try {
+            log(TAG, ERROR) { "$operation failed: ${e.asLog()}" }
+            Bugs.report(e)
+        } catch (_: Exception) {
+            // Nothing else we can do here
+        }
     }
 
     private suspend fun updateInstalledAt() {
@@ -114,8 +133,14 @@ class CurriculumVitae @Inject constructor(
 
     fun updateAppOpened() = appScope.launch {
         log(TAG, VERBOSE) { "updateAppOpened()" }
-        updateOpenedTime()
-        updateOpenedCount()
+        try {
+            updateOpenedTime()
+            updateOpenedCount()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            reportStatsFailure("updateAppOpened()", e)
+        }
     }
 
     private suspend fun updateOpenedTime() {

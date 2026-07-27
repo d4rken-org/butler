@@ -108,8 +108,8 @@ class WorkspaceBarCollapseStatesTest : BaseTest() {
         registry.restore(
             mapOf(
                 id to mapOf(
-                    BarPosition.TOP.name to mapOf("toolbar" to 1f),
-                    BarPosition.BOTTOM.name to mapOf("actions" to 1f),
+                    BarPosition.TOP.persistedKey to mapOf("toolbar" to 1f),
+                    BarPosition.BOTTOM.persistedKey to mapOf("actions" to 1f),
                 ),
             )
         )
@@ -119,7 +119,7 @@ class WorkspaceBarCollapseStatesTest : BaseTest() {
     }
 
     @Test
-    fun `snapshot is a detached copy keyed by position name`() {
+    fun `snapshot is a detached copy keyed by the persisted position key`() {
         val id = Workspace.Id()
         registry.record(registry.collapseFor(id, BarPosition.TOP), mapOf("toolbar" to 1f))
 

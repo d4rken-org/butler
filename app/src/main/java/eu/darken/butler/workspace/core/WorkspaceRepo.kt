@@ -314,6 +314,15 @@ class WorkspaceRepo @Inject constructor(
                                 "does not match arguments type ${action.arguments.type}"
                         )
                     }
+                    // The other door into Paused, [WorkspaceAction.Pause], refuses sub-workspaces
+                    // outright, so this one does too - a paused modal is not a state any caller
+                    // should be able to reach through the repo. Sessions never save one either;
+                    // stale rows are dropped earlier, while building the restore candidates.
+                    if (action.arguments.isForSubWorkspace) {
+                        throw IllegalArgumentException(
+                            "Cannot register paused workspace ${action.id}: sub-workspaces are not persisted"
+                        )
+                    }
                     val display = deriveDisplay(action.type, action.arguments)
                     val paused = PausedWorkspace(
                         id = action.id,

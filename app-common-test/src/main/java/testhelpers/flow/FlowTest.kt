@@ -7,8 +7,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
@@ -17,8 +19,6 @@ import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeout
 
 fun <T> Flow<T>.test(
@@ -29,6 +29,20 @@ fun <T> Flow<T>.test(
 fun <T> Flow<T>.createTest(
     tag: String? = null
 ): TestCollector<T> = TestCollector(this, tag ?: "FlowTest")
+
+/**
+ * Blocks until a shared flow that lost its last subscriber has cleared its replay cache.
+ *
+ * The sharing coroutine resets the cache asynchronously, so tests that re-subscribe must wait for
+ * that exact postcondition instead of guessing a delay. The timeout is a watchdog.
+ */
+fun Flow<*>.awaitSharingStopped(timeout: Long = 10_000) = runBlocking {
+    val shared = this@awaitSharingStopped as? SharedFlow<*>
+        ?: throw IllegalArgumentException("Not a shared flow: ${this@awaitSharingStopped}")
+    withTimeout(timeMillis = timeout) {
+        while (shared.replayCache.isNotEmpty()) delay(1)
+    }
+}
 
 class TestCollector<T>(
     private val flow: Flow<T>,
@@ -42,9 +56,15 @@ class TestCollector<T>(
         extraBufferCapacity = Int.MAX_VALUE,
         onBufferOverflow = BufferOverflow.SUSPEND
     )
+    @Volatile
     private var latestInternal: T? = null
-    private val collectedValuesMutex = Mutex()
+
+    // Plain lock, not a coroutine Mutex: the synchronous getters below must be able to take it
+    // without runBlocking, which would deadlock on a single-threaded dispatcher.
+    private val collectedValuesLock = Any()
     private val collectedValues = mutableListOf<T>()
+
+    private fun snapshot(): List<T> = synchronized(collectedValuesLock) { collectedValues.toList() }
 
     var silent = false
 
@@ -54,12 +74,13 @@ class TestCollector<T>(
             .onStart { log(tag) { "Setting up." } }
             .onCompletion { log(tag) { "Final." } }
             .onEach {
-                collectedValuesMutex.withLock {
-                    if (!silent) log(tag) { "Collecting: $it" }
-                    latestInternal = it
+                if (!silent) log(tag) { "Collecting: $it" }
+                synchronized(collectedValuesLock) {
                     collectedValues.add(it)
-                    cache.emit(it)
+                    latestInternal = it
                 }
+                // Emitted outside the lock, emit() can suspend.
+                cache.emit(it)
             }
             .catch { e ->
                 log(tag, WARN) { "Caught error: ${e.asLog()}" }
@@ -72,10 +93,10 @@ class TestCollector<T>(
     fun emissions(): Flow<T> = cache
 
     val latestValue: T?
-        get() = collectedValues.last()
+        get() = latestInternal
 
     val latestValues: List<T>
-        get() = collectedValues
+        get() = snapshot()
 
     fun await(
         timeout: Long = 10_000,
@@ -83,7 +104,7 @@ class TestCollector<T>(
     ): T = runBlocking {
         withTimeout(timeMillis = timeout) {
             emissions().first {
-                condition(collectedValues, it)
+                condition(snapshot(), it)
             }
         }
     }

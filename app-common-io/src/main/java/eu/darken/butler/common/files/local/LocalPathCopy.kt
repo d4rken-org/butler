@@ -9,6 +9,7 @@ import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.local.operations.strategies.LocalPathCopyStrategy
 import eu.darken.butler.common.files.operations.copyGeneric
 import kotlinx.coroutines.flow.Flow
+import kotlin.time.Clock
 
 /**
  * Copy extension functions for LocalPath.
@@ -28,13 +29,15 @@ fun LocalPath.copy(
     fileSystemOps: LocalFileSystemOps,
     destination: LocalPath,
     options: CopyAction.Options = CopyAction.Options(),
+    progressClock: Clock = Clock.System,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null,
-) = setOf(this).copy(fileSystemOps, destination, options, onIssue)
+) = setOf(this).copy(fileSystemOps, destination, options, progressClock, onIssue)
 
 fun Collection<LocalPath>.copy(
     fileSystemOps: LocalFileSystemOps,
     destination: LocalPath,
     options: CopyAction.Options = CopyAction.Options(),
+    progressClock: Clock = Clock.System,
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null,
 ): Flow<CopyAction.State<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>> {
     log(TAG, DEBUG) {
@@ -55,7 +58,8 @@ fun Collection<LocalPath>.copy(
         destOps = fileSystemOps,
         options = transferOptions,
         strategy = LocalPathCopyStrategy(fileSystemOps),
-        onIssue = onIssue
+        onIssue = onIssue,
+        progressClock = progressClock,
     )
 }
 

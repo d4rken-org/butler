@@ -243,35 +243,6 @@ class WorkspaceGridItemTest : ComposeTest() {
         composeTestRule.onAllNodesWithText("Pause").assertCountEquals(0)
     }
 
-    /**
-     * Pausing skips sub-workspaces, but a stale session row can restore one as paused, so the menu
-     * has to appear for resume alone - otherwise the tab could not be woken from the manager.
-     */
-    @Test
-    fun `a paused sub-workspace offers resume but not rename`() {
-        var resumed = 0
-
-        composeTestRule.setContent {
-            PreviewWrapper {
-                WorkspaceGridItem(
-                    reorderableScope = noopReorderableScope,
-                    workspace = item(isSubWorkspace = true, isPaused = true),
-                    onClose = {},
-                    onSelect = {},
-                    onRename = { throw AssertionError("Renaming a sub-workspace would not persist") },
-                    onResume = { resumed++ },
-                    livePreview = false,
-                )
-            }
-        }
-
-        composeTestRule.onNodeWithContentDescription("More options").performClick()
-        composeTestRule.onAllNodesWithText("Rename").assertCountEquals(0)
-        composeTestRule.onNodeWithText("Resume").performClick()
-
-        resumed shouldBe 1
-    }
-
     private fun SemanticsNode.contentDescriptions(): List<String> =
         config.getOrNull(SemanticsProperties.ContentDescription).orEmpty() +
             children.flatMap { it.contentDescriptions() }

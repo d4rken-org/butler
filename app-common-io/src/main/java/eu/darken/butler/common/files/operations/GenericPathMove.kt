@@ -34,6 +34,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.isActive
 import eu.darken.butler.common.files.MoveOutcome
+import kotlin.time.Clock
 
 /**
  * Generic move operation that works with any path type.
@@ -79,7 +80,8 @@ internal class GenericPathMove<
     private val destOps: FileSystemOps<DP, DPL>,
     private val strategy: TransferStrategy<SP, SPL, DP, DPL>,
     private val options: TransferStrategy.Options,
-    private val onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?
+    private val onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?,
+    progressClock: Clock = Clock.System,
 ) {
 
     private val moved = linkedSetOf<Pair<SPL, APathLookup<DP>>>()
@@ -87,7 +89,7 @@ internal class GenericPathMove<
     private var totalBytesTransferred = 0L
 
     // Shared components
-    private val progressTracker = PathOperationProgressTracker()
+    private val progressTracker = PathOperationProgressTracker(clock = progressClock)
     private val issueResolver = PathOperationIssueResolver(onIssue)
     private val errorHandler = TransferErrorHandler()
     private val pathCalculator = TransferPathCalculator()
@@ -1125,7 +1127,8 @@ fun <
     destOps: FileSystemOps<DP, DPL>,
     strategy: TransferStrategy<SP, SPL, DP, DPL>,
     options: TransferStrategy.Options = TransferStrategy.Options(),
-    onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
+    progressClock: Clock = Clock.System,
+    onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null,
 ): Flow<MoveAction.State<SP, SPL, DP, DPL>> = GenericPathMove(
     sources = this,
     destination = destination,
@@ -1133,5 +1136,6 @@ fun <
     destOps = destOps,
     strategy = strategy,
     options = options,
-    onIssue = onIssue
+    onIssue = onIssue,
+    progressClock = progressClock,
 ).execute()

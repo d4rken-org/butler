@@ -1,5 +1,6 @@
 package eu.darken.butler.workspace.ui.floatingbar
 
+import androidx.compose.runtime.saveable.SaverScope
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
@@ -179,6 +180,85 @@ class FloatingBarStackStateTest : BaseTest() {
         state.registerBar(FloatingBarState(id = "toolbar", scrollBehavior = BarScrollBehavior.HideOnScroll))
 
         state.hasRegisteredBars shouldBe true
+    }
+
+    // endregion
+
+    // region Saver
+
+    /**
+     * `Saver.save` is a member extension - the saver is the dispatch receiver and can only be passed
+     * implicitly, the [SaverScope] is the extension receiver. Naming the saver explicitly instead
+     * offers it as the extension receiver, which does not resolve.
+     */
+    private fun savedBlob(state: FloatingBarStackState): List<Any> =
+        with(FloatingBarStackState.Saver) { SaverScope { true }.save(state)!! }
+
+    @Test
+    fun `a restored stack keeps the geometry it was saved with`() {
+        val state = FloatingBarStackState(
+            position = BarPosition.BOTTOM,
+            initialDefaultSpacingPx = 8f,
+            initialEdgePaddingPx = 4f,
+            initialContentGapPx = 16f,
+            initialSystemBarInsetPx = 48f,
+            initialImeExtraPx = 300f,
+        )
+
+        val restored = FloatingBarStackState.Saver.restore(savedBlob(state))!!
+
+        restored.position shouldBe BarPosition.BOTTOM
+        // System bar and IME insets are recomputed from WindowInsets, so only the edge padding is back
+        restored.contentPaddingPx shouldBe 4f
+
+        restored.registerBar(FloatingBarState(id = "toolbar").apply { measuredHeight = 100f })
+        restored.registerBar(FloatingBarState(id = "infobar").apply { measuredHeight = 50f })
+
+        // edge 4 + bar 100 + spacing 8 + bar 50 + content gap 16
+        restored.contentPaddingPx shouldBe 178f
+    }
+
+    /**
+     * Collapse persistence belongs to [WorkspaceBarCollapseStates]. A second copy of it here would
+     * race the registry for the same bar, so the saved blob is pinned literally - re-adding bar state
+     * has to fail this test rather than quietly compete.
+     */
+    @Test
+    fun `the saver carries no per-bar state`() = runTest {
+        val state = FloatingBarStackState(
+            position = BarPosition.TOP,
+            initialDefaultSpacingPx = 8f,
+            initialEdgePaddingPx = 4f,
+            initialContentGapPx = 16f,
+        ).apply {
+            registerBar(FloatingBarState(id = "toolbar", scrollBehavior = BarScrollBehavior.HideOnScroll))
+        }
+        state.applyCollapse(mapOf("toolbar" to 1f))
+
+        savedBlob(state) shouldBe listOf("TOP", 8f, 4f, 16f)
+
+        val restored = FloatingBarStackState.Saver.restore(savedBlob(state))!!
+        restored.hasRegisteredBars shouldBe false
+        restored.collapseTargets shouldBe emptyMap()
+    }
+
+    /**
+     * The position is saved under its [BarPosition.persistedKey], so that reordering the constants
+     * cannot turn a saved BOTTOM stack into a TOP one.
+     */
+    @Test
+    fun `the saved position does not depend on the enum order`() {
+        BarPosition.entries.forEach { position ->
+            val saved = savedBlob(FloatingBarStackState(position = position))
+
+            saved[0] shouldBe position.persistedKey
+            FloatingBarStackState.Saver.restore(saved)!!.position shouldBe position
+        }
+    }
+
+    @Test
+    fun `an unknown position restores nothing, leaving the caller a fresh stack`() {
+        FloatingBarStackState.Saver.restore(listOf("SIDE", 8f, 4f, 16f)) shouldBe null
     }
 
     // endregion
