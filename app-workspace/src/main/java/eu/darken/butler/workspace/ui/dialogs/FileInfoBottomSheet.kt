@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.ContentCopy
 import androidx.compose.material3.Card
@@ -22,7 +21,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -78,41 +76,22 @@ fun FileInfoBottomSheet(
     topInset: Dp = 0.dp,
     bottomInset: Dp = 0.dp,
 ) {
-    val isInPreview = LocalInspectionMode.current
-
-    if (isInPreview) {
-        Card(
-            modifier = modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
-        ) {
-            FileInfoContent(
-                lookup = fileInfo.lookup,
-                onCopyToClipboard = onCopyToClipboard,
-                ownership = fileInfo.ownership,
-                permissions = fileInfo.permissions,
-                createdAt = fileInfo.createdAt,
-                mimeInfo = fileInfo.mimeInfo,
-                childCount = fileInfo.childCount,
-            )
-        }
-    } else {
-        PaneScopedBottomSheet(
-            visible = true,
-            onDismiss = onDismiss,
-            topInset = topInset,
-            bottomInset = bottomInset,
-            modifier = modifier,
-        ) {
-            FileInfoContent(
-                lookup = fileInfo.lookup,
-                onCopyToClipboard = onCopyToClipboard,
-                ownership = fileInfo.ownership,
-                permissions = fileInfo.permissions,
-                createdAt = fileInfo.createdAt,
-                mimeInfo = fileInfo.mimeInfo,
-                childCount = fileInfo.childCount,
-            )
-        }
+    PaneScopedBottomSheet(
+        visible = true,
+        onDismiss = onDismiss,
+        topInset = topInset,
+        bottomInset = bottomInset,
+        modifier = modifier,
+    ) {
+        FileInfoContent(
+            lookup = fileInfo.lookup,
+            onCopyToClipboard = onCopyToClipboard,
+            ownership = fileInfo.ownership,
+            permissions = fileInfo.permissions,
+            createdAt = fileInfo.createdAt,
+            mimeInfo = fileInfo.mimeInfo,
+            childCount = fileInfo.childCount,
+        )
     }
 }
 
@@ -254,35 +233,19 @@ fun MultipleItemsInfoBottomSheet(
     topInset: Dp = 0.dp,
     bottomInset: Dp = 0.dp,
 ) {
-    val isInPreview = LocalInspectionMode.current
-
-    if (isInPreview) {
-        Card(
-            modifier = modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
-        ) {
-            MultipleItemsInfoContent(
-                totalCount = totalCount,
-                fileCount = fileCount,
-                directoryCount = directoryCount,
-                totalSize = totalSize,
-            )
-        }
-    } else {
-        PaneScopedBottomSheet(
-            visible = true,
-            onDismiss = onDismiss,
-            topInset = topInset,
-            bottomInset = bottomInset,
-            modifier = modifier,
-        ) {
-            MultipleItemsInfoContent(
-                totalCount = totalCount,
-                fileCount = fileCount,
-                directoryCount = directoryCount,
-                totalSize = totalSize,
-            )
-        }
+    PaneScopedBottomSheet(
+        visible = true,
+        onDismiss = onDismiss,
+        topInset = topInset,
+        bottomInset = bottomInset,
+        modifier = modifier,
+    ) {
+        MultipleItemsInfoContent(
+            totalCount = totalCount,
+            fileCount = fileCount,
+            directoryCount = directoryCount,
+            totalSize = totalSize,
+        )
     }
 }
 

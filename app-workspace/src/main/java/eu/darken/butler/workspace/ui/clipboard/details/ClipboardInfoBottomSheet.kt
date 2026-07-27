@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.InsertDriveFile
@@ -44,7 +43,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
@@ -80,37 +78,20 @@ fun ClipboardInfoBottomSheet(
     onRemove: (() -> Unit)? = null,
     onCopyPath: ((String) -> Unit)? = null,
 ) {
-    val isInPreview = LocalInspectionMode.current
-
-    if (isInPreview) {
-        Card(
-            modifier = modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
-        ) {
-            ClipboardInfoContent(
-                clip = clip,
-                onNavigateToSource = onNavigateToSource,
-                onPaste = onPaste,
-                onRemove = onRemove,
-                onCopyPath = onCopyPath,
-            )
-        }
-    } else {
-        PaneScopedBottomSheet(
-            visible = true,
-            onDismiss = onDismiss,
-            topInset = topInset,
-            bottomInset = bottomInset,
-            modifier = modifier,
-        ) {
-            ClipboardInfoContent(
-                clip = clip,
-                onNavigateToSource = onNavigateToSource,
-                onPaste = onPaste,
-                onRemove = onRemove,
-                onCopyPath = onCopyPath,
-            )
-        }
+    PaneScopedBottomSheet(
+        visible = true,
+        onDismiss = onDismiss,
+        topInset = topInset,
+        bottomInset = bottomInset,
+        modifier = modifier,
+    ) {
+        ClipboardInfoContent(
+            clip = clip,
+            onNavigateToSource = onNavigateToSource,
+            onPaste = onPaste,
+            onRemove = onRemove,
+            onCopyPath = onCopyPath,
+        )
     }
 }
 
