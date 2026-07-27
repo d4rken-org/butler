@@ -40,9 +40,10 @@ import eu.darken.butler.common.R as CommonR
 
 /**
  * Placeholder for a paused tab: it holds its arguments but has no live instance.
- * [title]/[subtitle] identify the tab from its persisted arguments; a blank or missing title falls
- * back to the workspace type. [error] is set when the last resume attempt failed; the action then
- * offers a retry.
+ * [title]/[subtitle] identify the tab from its persisted arguments, with the workspace type shown
+ * above them as an overline. A blank or missing title - or one that reads identically to the type
+ * label - leaves the type label as the only heading, so the same word is never printed twice.
+ * [error] is set when the last resume attempt failed; the action then offers a retry.
  */
 @Composable
 fun WorkspacePausedContent(
@@ -75,15 +76,33 @@ fun WorkspacePausedContent(
                 tint = MaterialTheme.colorScheme.primary,
             )
 
-            val resolvedTitle = title?.asComposable()?.takeIf { it.isNotBlank() }
-                ?: type.label.asComposable()
-            Text(
-                text = resolvedTitle,
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(top = 24.dp),
-            )
+            val typeLabel = type.label.asComposable()
+            val resolvedTitle = title?.asComposable()?.takeIf { it.isNotBlank() && it != typeLabel }
+
+            if (resolvedTitle != null) {
+                Text(
+                    text = typeLabel,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(top = 24.dp),
+                )
+                Text(
+                    text = resolvedTitle,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(top = 2.dp),
+                )
+            } else {
+                Text(
+                    text = typeLabel,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(top = 24.dp),
+                )
+            }
 
             val resolvedSubtitle = subtitle?.asComposable()
             if (!resolvedSubtitle.isNullOrBlank()) {
@@ -189,6 +208,22 @@ private fun WorkspacePausedContentSubtitlePreview() {
             type = Workspace.Type.SEARCHER,
             title = "*.pdf".toCaString(),
             subtitle = "Downloads, Photos +3".toCaString(),
+            onResume = {},
+        )
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspacePausedContentAppDetailsPreview() {
+    CompositionLocalProvider(
+        LocalWorkspaceButtonProvider provides FakeWorkspaceButtonProvider()
+    ) {
+        WorkspacePausedContent(
+            type = Workspace.Type.APP_DETAILS,
+            title = "Butler".toCaString(),
+            subtitle = "eu.darken.butler".toCaString(),
             onResume = {},
         )
     }
