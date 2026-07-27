@@ -179,11 +179,15 @@ class WorkspaceAutoPauseManager(
                 is WorkspaceAction.Pause.Result.Success -> {
                     result.pausedIds.forEach { idleSince.remove(it) }
                     log(TAG, INFO) { "Auto-paused ${result.pausedIds}" }
-                    // Backstop for a focus/selection change or a tab manager opening while we paused.
-                    // The result's member list is the authoritative topology - the repo resolved it
-                    // under its own lock, while workspaceRepo.state can still lag the swap.
+                    // Backstop for anything that put this unit back on screen while we paused: a
+                    // focus/selection change, a layout collapse promoting its modal to the
+                    // full-screen fallback, or a tab manager opening. Visibility is judged exactly
+                    // like in evaluate(), transitively over whole units and including the rendered
+                    // fallback - the raw selection/focus map would miss the promotion. Both the
+                    // member list and the topology come from post-swap sources: the repo resolved
+                    // them under its own lock, while workspaceRepo.state can still lag the swap.
                     val pageState = workspacePageManager.state.value
-                    val visibleIds = pageState.visibleWorkspaceIds()
+                    val visibleIds = workspaceRepo.peekStacks().visibleUnitIds(pageState)
                     if (result.pausedIds.any { it in visibleIds }) {
                         log(TAG, INFO) { "${result.id} became visible while pausing, resuming it right away" }
                         workspaceRepo.execute(WorkspaceAction.Resume(result.id))

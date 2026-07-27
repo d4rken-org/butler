@@ -584,6 +584,35 @@ class WorkspaceAutoPauseManagerTest : BaseTest() {
         }
 
     @Test
+    fun `a stack the renderer promotes to full-screen while being paused is resumed right away`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val (hiddenId, overlayId) = createHiddenStack()
+            val manager = createManager()
+            manager.evaluateNow()
+
+            // A rotation collapsing the panes: this unselected tab's pane-local overlay becomes the
+            // full-screen dialog, so the user is looking at the very stack being released
+            fake(hiddenId).whileCapturingArguments = { pageManager.setPaneCount(1) }
+
+            elapse(3.hours)
+            manager.evaluateNow()
+
+            // Nothing moved selection or focus onto the stack; only the fallback renders it
+            val pageState = pageManager.state.value
+            pageState.selectedWorkspaces
+                .filterKeys { it in 0 until pageState.currentPaneCount }
+                .values.contains(hiddenId) shouldBe false
+            pageState.focusedWorkspaceId shouldNotBe hiddenId
+            pageState.focusedWorkspaceId shouldNotBe overlayId
+
+            isPaused(hiddenId) shouldBe false
+            isPaused(overlayId) shouldBe false
+            // It really was paused and undone, not merely spared
+            createdWorkspaces.count { it.id == hiddenId } shouldBe 2
+            createdWorkspaces.count { it.id == overlayId } shouldBe 2
+        }
+
+    @Test
     fun `the tab manager opening mid-pass spares the remaining candidates`() =
         runTest(UnconfinedTestDispatcher()) {
             createTab()
