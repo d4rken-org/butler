@@ -11,6 +11,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalView
@@ -124,25 +125,42 @@ fun WorkspaceModalContent(
     workspace: Workspace.Info,
     design: WorkspaceDesign = WorkspaceDesign(),
 ) {
-    // Full size, like a pane host anywhere else: its layers carry the scrims of any dialog inside,
-    // and those have to cover the whole window. Only the page content is inset.
-    PaneLayerHost(
-        modifier = Modifier.fillMaxSize(),
-        paneFocused = true,
-        paneEdges = design.paneEdges,
-    ) {
-        PaneLayer(modifier = Modifier.fillMaxSize(), modal = false) {
-            Box(modifier = Modifier.paneHorizontalInsetPadding(design.paneEdges)) {
-                WorkspacePageHostDispatcher(id = workspace.id, type = workspace.type, design = design)
+    // One workspace per subtree. This is rendered from a single call site while the workspace
+    // flowing through it changes - unwinding a modal chain swaps the deepest modal for its parent -
+    // so without an identity composition treats the whole chain as one continuous subtree. Two
+    // things then carry over, and they carry over differently:
+    //
+    // - Page state: a page host reaches its page through one virtual call, so only workspaces of the
+    //   SAME type land in the same slots. Differing types emit different slots and replace the page
+    //   on their own.
+    // - The layer stack: [PaneLayerHost] sits above the page, so a shared one outlives EVERY swap,
+    //   including the type changes an unwind is made of. Back dispatch, focus containment and
+    //   accessibility all read from it, and it should describe one workspace, not a chain.
+    //
+    // Deliberately inside the dialog rather than around it: keying the Dialog would tear down and
+    // rebuild the window on every step of an unwind, re-running its edge-to-edge reconciliation and
+    // handing back dispatch to a window that did not exist a frame earlier.
+    key(workspace.id) {
+        // Full size, like a pane host anywhere else: its layers carry the scrims of any dialog
+        // inside, and those have to cover the whole window. Only the page content is inset.
+        PaneLayerHost(
+            modifier = Modifier.fillMaxSize(),
+            paneFocused = true,
+            paneEdges = design.paneEdges,
+        ) {
+            PaneLayer(modifier = Modifier.fillMaxSize(), modal = false) {
+                Box(modifier = Modifier.paneHorizontalInsetPadding(design.paneEdges)) {
+                    WorkspacePageHostDispatcher(id = workspace.id, type = workspace.type, design = design)
+                }
             }
-        }
 
-        // Same gate as a pane: everything but Paused, so an error raised while the workspace is
-        // still initializing still reaches the user through the handler in the overlay slot.
-        if (workspace.lifecycleState !is Workspace.LifecycleState.Paused) {
-            LocalWorkspacePageHosts.current[workspace.type]?.let { entry ->
-                CompositionLocalProvider(LocalPaneLayerRank provides PaneLayerRank.OVERLAY) {
-                    entry.Overlays(id = workspace.id, design = design)
+            // Same gate as a pane: everything but Paused, so an error raised while the workspace is
+            // still initializing still reaches the user through the handler in the overlay slot.
+            if (workspace.lifecycleState !is Workspace.LifecycleState.Paused) {
+                LocalWorkspacePageHosts.current[workspace.type]?.let { entry ->
+                    CompositionLocalProvider(LocalPaneLayerRank provides PaneLayerRank.OVERLAY) {
+                        entry.Overlays(id = workspace.id, design = design)
+                    }
                 }
             }
         }
