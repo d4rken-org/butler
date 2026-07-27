@@ -232,6 +232,20 @@ class WorkspaceRepo @Inject constructor(
      */
     fun peek(id: Workspace.Id): Workspace<out Workspace.Arguments>? = _workspaces.value.singleOrNull { it.id == id }
 
+    /**
+     * Ownership topology of the current workspace list, read straight off the backing state for the
+     * same reason as [peek]: [state] is an asynchronous share whose replay cache can lag a swap, and
+     * acting on a stale topology is what leaves a live modal over a released owner.
+     */
+    fun peekStacks(): WorkspaceStacks = WorkspaceStacks(_workspaces.value.map { it.info.value })
+
+    /**
+     * Id of the ownership unit [id] belongs to - the key every [WorkspacePauseGate] lease of a
+     * participant must use, so one lease covers a whole stack. Falls back to [id] itself when the
+     * ownership chain cannot be resolved; [WorkspaceAction.Pause] refuses that case anyway.
+     */
+    fun peekOwnershipRoot(id: Workspace.Id): Workspace.Id = peekStacks().rootOf(id)?.id ?: id
+
     fun resolveConfirmation(confirmationId: String, confirmed: Boolean) {
         log(TAG, INFO) { "resolveConfirmation($confirmationId, confirmed=$confirmed)" }
         _pendingConfirmations.update { it - confirmationId }
@@ -314,10 +328,10 @@ class WorkspaceRepo @Inject constructor(
                                 "does not match arguments type ${action.arguments.type}"
                         )
                     }
-                    // The other door into Paused, [WorkspaceAction.Pause], refuses sub-workspaces
-                    // outright, so this one does too - a paused modal is not a state any caller
-                    // should be able to reach through the repo. Sessions never save one either;
-                    // stale rows are dropped earlier, while building the restore candidates.
+                    // Sub-workspaces stay refused here even though [WorkspaceAction.Pause] may now
+                    // release one together with its owner: this door exists for session restore, and
+                    // a modal has no owner to belong to at that point. Sessions never save one
+                    // either; stale rows are dropped earlier, while building the restore candidates.
                     if (action.arguments.isForSubWorkspace) {
                         throw IllegalArgumentException(
                             "Cannot register paused workspace ${action.id}: sub-workspaces are not persisted"
@@ -346,37 +360,7 @@ class WorkspaceRepo @Inject constructor(
                 }
             }
 
-            is WorkspaceAction.Resume -> {
-                // Not paused (already resumed by a concurrent call, or never paused) is a no-op,
-                // which is what keeps double resume from running the factory twice.
-                val paused = _workspaces.value.firstOrNull { it.id == action.id } as? PausedWorkspace
-                if (paused == null) {
-                    log(TAG) { "Resume(${action.id}): unknown or not paused, nothing to do" }
-                    WorkspaceAction.Resume.Result.NoOp
-                } else {
-                    try {
-                        @Suppress("UNCHECKED_CAST")
-                        val factory = factoryMap[paused.type] as? WorkspaceFactory<Workspace.Arguments>
-                            ?: throw IllegalArgumentException("No factory found for workspace type: ${paused.type}")
-                        val resumed = factory.create(
-                            id = paused.id,
-                            arguments = paused.heldArguments,
-                        ) as Workspace<out Workspace.Arguments>
-
-                        val wip = _workspaces.value.toMutableList()
-                        val index = wip.indexOfFirst { it.id == action.id }
-                        wip[index] = resumed
-                        _workspaces.value = wip
-
-                        log(TAG, INFO) { "Resumed workspace ${action.id} (${paused.type})" }
-                        WorkspaceAction.Resume.Result.Success(action.id)
-                    } catch (e: Exception) {
-                        log(TAG, ERROR) { "Failed to resume workspace ${action.id}: ${e.asLog()}" }
-                        paused.markResumeError(e)
-                        WorkspaceAction.Resume.Result.Failed(e)
-                    }
-                }
-            }
+            is WorkspaceAction.Resume -> executeResume(action.id)
 
             is WorkspaceAction.Pause -> executePause(action.id)
 
@@ -572,90 +556,222 @@ class WorkspaceRepo @Inject constructor(
     }
 
     /**
-     * Releases the live instance behind [id] and swaps a [PausedWorkspace] stand-in into its list
-     * slot. Must be called while holding [lock].
+     * Releases the live instances of the ownership unit [requestedId] belongs to and swaps a
+     * [PausedWorkspace] stand-in into each of their list slots. Must be called while holding [lock].
      *
-     * Order matters: every guard is enforced here (so a manual pause can't bypass what auto-pause
-     * checks), the arguments are captured BEFORE any mutation, and the guards are re-checked
-     * afterwards because [Workspace.createArguments] suspends and a workspace can become busy
-     * meanwhile.
+     * Five phases, in this order, because a unit has to pause all-or-nothing: reusing a per-workspace
+     * pause would publish and release each member as it goes, so a later member's failing
+     * [Workspace.createArguments] would leave the earlier ones already released with no way back.
+     *
+     * 1. Resolve the topology (cycle- and dangling-guarded) - the unit is the root plus every
+     *    descendant, never just the requested id.
+     * 2. Capture the arguments of every live member. No mutation at all in this phase.
+     * 3. Revalidate every member, including eligibility against the arguments that were actually
+     *    captured - those are the objects that have to round-trip, and [Workspace.createArguments]
+     *    suspends, so a member can have gone busy meanwhile.
+     * 4. Publish the complete replacement list to [_workspaces] exactly once, so no consumer ever
+     *    observes a half-paused unit.
+     * 5. Release the old instances deepest-first, logging failures without failing the result.
      *
      * Known limitation: [execute] holds one global mutex across [Workspace.createArguments] and
      * [Workspace.release], so a slow engine release stalls unrelated create/close/resume actions.
      * Auto-pause issues Pause actions strictly sequentially, one per evaluation pass, to bound this.
      */
-    private suspend fun executePause(id: Workspace.Id): WorkspaceAction.Pause.Result {
-        val workspace = _workspaces.value.firstOrNull { it.id == id }
-        if (workspace == null || workspace is PausedWorkspace) {
-            log(TAG) { "Pause($id): unknown or already paused, nothing to do" }
+    private suspend fun executePause(requestedId: Workspace.Id): WorkspaceAction.Pause.Result {
+        if (_workspaces.value.none { it.id == requestedId }) {
+            log(TAG) { "Pause($requestedId): unknown workspace, nothing to do" }
             return WorkspaceAction.Pause.Result.NoOp
         }
 
-        pauseRefusal(workspace)?.let { reason ->
-            log(TAG, INFO) { "Pause($id) refused: $reason" }
-            return WorkspaceAction.Pause.Result.Refused(reason)
+        // Phase 1: topology
+        val stacks = peekStacks()
+        val root = stacks.rootOf(requestedId)
+        if (root == null) {
+            log(TAG, WARN) { "Pause($requestedId) refused: ownership chain is cyclic or dangling" }
+            return WorkspaceAction.Pause.Result.Refused(WorkspaceAction.Pause.Reason.BROKEN_OWNERSHIP)
         }
-
-        val heldArguments = try {
-            workspace.createArguments()
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            log(TAG, ERROR) { "Pause($id): capturing arguments failed, keeping it live: ${e.asLog()}" }
-            return WorkspaceAction.Pause.Result.Failed(e)
-        }
-        val carriedInfo = workspace.info.value
-
-        pauseRefusal(workspace)?.let { reason ->
-            log(TAG, INFO) { "Pause($id) refused after capturing arguments: $reason" }
-            return WorkspaceAction.Pause.Result.Refused(reason)
-        }
-
-        val index = _workspaces.value.indexOfFirst { it.id == id }
-        if (index == -1) {
-            log(TAG, WARN) { "Pause($id): workspace vanished while capturing arguments" }
+        val memberIds = stacks.unitOf(root.id).orEmpty().map { it.id }
+        val members = memberIds.mapNotNull { id -> _workspaces.value.firstOrNull { it.id == id } }
+        val liveMembers = members.filterNot { it is PausedWorkspace }
+        if (liveMembers.isEmpty()) {
+            log(TAG) { "Pause($requestedId): the unit rooted at ${root.id} is already paused" }
             return WorkspaceAction.Pause.Result.NoOp
         }
 
-        // Point of no return: the tab is reported as paused from here on, so a failing release()
-        // is logged but does not turn the result into a failure. Content claims are not cleared -
-        // pauseRefusal() guarantees this workspace holds none.
-        try {
-            // carriedInfo names the tab here; the derivation is only the fallback for the day a
-            // workspace publishes no identity of its own.
-            val display = deriveDisplay(workspace.type, heldArguments)
-            val wip = _workspaces.value.toMutableList()
-            wip[index] = PausedWorkspace(
-                id = id,
-                type = workspace.type,
-                heldArguments = heldArguments,
-                title = display?.title ?: workspace.type.label,
-                subtitle = display?.subtitle,
-                carriedInfo = carriedInfo,
-            )
-            _workspaces.value = wip
-        } finally {
-            try {
-                workspace.release()
-            } catch (e: Exception) {
-                log(TAG, ERROR) { "Pause($id): release() failed: ${e.asLog()}" }
+        members.forEach { member ->
+            pauseRefusal(member, isRoot = member.id == root.id)?.let { reason ->
+                log(TAG, INFO) { "Pause($requestedId) refused because of ${member.id}: $reason" }
+                return WorkspaceAction.Pause.Result.Refused(reason)
             }
         }
 
-        log(TAG, INFO) { "Paused workspace $id (${workspace.type})" }
-        return WorkspaceAction.Pause.Result.Success(id)
+        // Phase 2: capture, nothing else
+        val captured = mutableListOf<Pair<Workspace<*>, Workspace.Arguments>>()
+        liveMembers.forEach { member ->
+            val arguments = try {
+                member.createArguments()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                log(TAG, ERROR) {
+                    "Pause($requestedId): capturing arguments of ${member.id} failed, " +
+                        "keeping the whole unit live: ${e.asLog()}"
+                }
+                return WorkspaceAction.Pause.Result.Failed(e)
+            }
+            captured += member to arguments
+        }
+
+        // Phase 3: revalidate against what we captured
+        captured.forEach { (member, arguments) ->
+            if (_workspaces.value.none { it.id == member.id }) {
+                log(TAG, WARN) { "Pause($requestedId): ${member.id} vanished while capturing arguments" }
+                return WorkspaceAction.Pause.Result.NoOp
+            }
+            val isRoot = member.id == root.id
+            if (!isRoot && !arguments.isPausableAsChild) {
+                log(TAG, INFO) {
+                    "Pause($requestedId) refused: the captured arguments of ${member.id} do not " +
+                        "survive being paused with their owner"
+                }
+                return WorkspaceAction.Pause.Result.Refused(WorkspaceAction.Pause.Reason.HAS_CHILDREN)
+            }
+            pauseRefusal(member, isRoot = isRoot)?.let { reason ->
+                log(TAG, INFO) { "Pause($requestedId) refused after capturing arguments: $reason" }
+                return WorkspaceAction.Pause.Result.Refused(reason)
+            }
+        }
+
+        // Phase 4: point of no return. The unit is reported as paused from here on, so a failing
+        // release() below is logged but does not turn the result into a failure. Content claims are
+        // not cleared - pauseRefusal() guarantees no member holds one.
+        val standIns = captured.associate { (member, arguments) ->
+            // The live info names the tab here; the derivation is only the fallback for the day a
+            // workspace publishes no identity of its own.
+            val display = deriveDisplay(member.type, arguments)
+            member.id to PausedWorkspace(
+                id = member.id,
+                type = member.type,
+                heldArguments = arguments,
+                title = display?.title ?: member.type.label,
+                subtitle = display?.subtitle,
+                carriedInfo = member.info.value,
+            )
+        }
+        _workspaces.value = _workspaces.value.map { standIns[it.id] ?: it }
+
+        // Phase 5: deepest-first, so an owner is never released before what it owns
+        captured.asReversed().forEach { (member, _) ->
+            try {
+                member.release()
+            } catch (e: Exception) {
+                log(TAG, ERROR) { "Pause($requestedId): release() of ${member.id} failed: ${e.asLog()}" }
+            }
+        }
+
+        log(TAG, INFO) { "Paused ${captured.size} workspace(s) of the unit rooted at ${root.id}" }
+        return WorkspaceAction.Pause.Result.Success(id = root.id, pausedIds = memberIds)
     }
 
     /**
-     * The reason [id] must not be paused right now, or null when pausing is safe. Must be called
-     * while holding [lock].
+     * Instantiates every paused member of the ownership unit [requestedId] belongs to, owners before
+     * the workspaces they own. Must be called while holding [lock].
+     *
+     * A member whose factory throws keeps its stand-in (and its error), and its descendants are not
+     * attempted at all: composing a modal over a released owner has nothing to bind to. Independent
+     * branches are unaffected, so one broken tab cannot block the rest of a unit.
      */
-    private fun pauseRefusal(workspace: Workspace<*>): WorkspaceAction.Pause.Reason? {
+    private fun executeResume(requestedId: Workspace.Id): WorkspaceAction.Resume.Result {
+        if (_workspaces.value.none { it.id == requestedId }) {
+            log(TAG) { "Resume($requestedId): unknown workspace, nothing to do" }
+            return WorkspaceAction.Resume.Result.NoOp
+        }
+        val stacks = peekStacks()
+        val root = stacks.rootOf(requestedId)
+        if (root == null) {
+            log(TAG, WARN) { "Resume($requestedId): ownership chain is cyclic or dangling, leaving it alone" }
+            return WorkspaceAction.Resume.Result.NoOp
+        }
+        val members = stacks.unitOf(root.id).orEmpty()
+        if (members.none { _workspaces.value.firstOrNull { ws -> ws.id == it.id } is PausedWorkspace }) {
+            log(TAG) { "Resume($requestedId): nothing in the unit rooted at ${root.id} is paused" }
+            return WorkspaceAction.Resume.Result.NoOp
+        }
+
+        val outcomes = mutableMapOf<Workspace.Id, WorkspaceAction.Resume.MemberOutcome>()
+        // Members are breadth-first from the root, so an owner's outcome is always known by the time
+        // its children are visited.
+        members.forEach { info ->
+            val blockedBy = info.callerWorkspaceId?.let { callerId ->
+                when (val callerOutcome = outcomes[callerId]) {
+                    is WorkspaceAction.Resume.MemberOutcome.Failed ->
+                        callerId to callerOutcome.error
+                    is WorkspaceAction.Resume.MemberOutcome.SkippedAncestorFailed ->
+                        callerOutcome.ancestorId to callerOutcome.error
+                    else -> null
+                }
+            }
+            if (blockedBy != null) {
+                val (ancestorId, error) = blockedBy
+                log(TAG, WARN) { "Resume($requestedId): skipping ${info.id}, its owner $ancestorId stayed paused" }
+                outcomes[info.id] = WorkspaceAction.Resume.MemberOutcome.SkippedAncestorFailed(ancestorId, error)
+                return@forEach
+            }
+
+            // Not paused (already resumed by a concurrent call, or never paused) is skipped, which is
+            // what keeps a double resume from running the factory twice.
+            val paused = _workspaces.value.firstOrNull { it.id == info.id } as? PausedWorkspace
+            if (paused == null) {
+                outcomes[info.id] = WorkspaceAction.Resume.MemberOutcome.AlreadyLive
+                return@forEach
+            }
+
+            try {
+                @Suppress("UNCHECKED_CAST")
+                val factory = factoryMap[paused.type] as? WorkspaceFactory<Workspace.Arguments>
+                    ?: throw IllegalArgumentException("No factory found for workspace type: ${paused.type}")
+                val resumed = factory.create(
+                    id = paused.id,
+                    arguments = paused.heldArguments,
+                ) as Workspace<out Workspace.Arguments>
+
+                val wip = _workspaces.value.toMutableList()
+                wip[wip.indexOfFirst { it.id == paused.id }] = resumed
+                _workspaces.value = wip
+
+                log(TAG, INFO) { "Resumed workspace ${paused.id} (${paused.type})" }
+                outcomes[info.id] = WorkspaceAction.Resume.MemberOutcome.Resumed
+            } catch (e: Exception) {
+                log(TAG, ERROR) { "Failed to resume workspace ${paused.id}: ${e.asLog()}" }
+                paused.markResumeError(e)
+                outcomes[info.id] = WorkspaceAction.Resume.MemberOutcome.Failed(e)
+            }
+        }
+
+        return when (val requestedOutcome = outcomes[requestedId]) {
+            is WorkspaceAction.Resume.MemberOutcome.Failed ->
+                WorkspaceAction.Resume.Result.Failed(requestedOutcome.error, outcomes)
+            is WorkspaceAction.Resume.MemberOutcome.SkippedAncestorFailed ->
+                WorkspaceAction.Resume.Result.Failed(requestedOutcome.error, outcomes)
+            else -> WorkspaceAction.Resume.Result.Success(newId = requestedId, outcomes = outcomes)
+        }
+    }
+
+    /**
+     * The reason [workspace] must not be paused right now, or null when pausing it is safe. Must be
+     * called while holding [lock].
+     *
+     * Already-paused members are only checked for eligibility: they hold nothing that could be lost.
+     * [isRoot] members skip the eligibility check - a unit is always acted on through its root, so
+     * the root's own relationship to whatever created it is irrelevant.
+     */
+    private fun pauseRefusal(workspace: Workspace<*>, isRoot: Boolean): WorkspaceAction.Pause.Reason? {
         val info = workspace.info.value
+        // Structural, so it outranks the transient guards: this unit can never be paused, as opposed
+        // to not being pausable right now.
+        if (!isRoot && !info.pausableAsChild) return WorkspaceAction.Pause.Reason.HAS_CHILDREN
+        if (workspace is PausedWorkspace) return null
         return when {
-            info.isSubWorkspace -> WorkspaceAction.Pause.Reason.SUB_WORKSPACE
-            _workspaces.value.any { it.info.value.callerWorkspaceId == workspace.id } ->
-                WorkspaceAction.Pause.Reason.HAS_CHILDREN
             // An open-transition is in flight; dropping the claim could let a duplicate tab open
             // on that path, so the claim is never cleared - the pause waits instead.
             contentClaims.values.any { it == workspace.id } -> WorkspaceAction.Pause.Reason.CLAIM_HELD
