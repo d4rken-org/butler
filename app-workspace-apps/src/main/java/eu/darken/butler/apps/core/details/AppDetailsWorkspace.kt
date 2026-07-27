@@ -30,6 +30,7 @@ import eu.darken.butler.workspace.core.WorkspaceFactory
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.WorkspaceTypeKey
 import eu.darken.butler.workspace.core.initialInfo
+import eu.darken.butler.workspace.core.isPausableAsChild
 import eu.darken.butler.workspace.core.label
 import eu.darken.butler.workspace.core.stateInWorkspace
 import kotlinx.coroutines.CoroutineName
@@ -65,9 +66,14 @@ class AppDetailsWorkspace @AssistedInject constructor(
     override val type: Workspace.Type = Workspace.Type.APP_DETAILS
 
     override suspend fun createArguments(): AppDetailsArguments {
-        // The Components sub-screen is transient navigation state, not persisted: a restored
-        // workspace always reopens on Overview regardless of where the user navigated.
-        return args.copy(initialTab = DetailTab.OVERVIEW)
+        // Two callers with opposite needs:
+        // - As a modal (callerWorkspaceId set) this is only ever captured by a pause of the owning
+        //   tab, which the user expects to come back exactly as they left it - including the sub-tab.
+        //   Modals are never session-saved, so keeping it cannot leak into a restore.
+        // - As a tab this IS what session save persists, and the Components sub-screen is transient
+        //   navigation state: a restored workspace always reopens on Overview.
+        val tabToKeep = if (args.callerWorkspaceId != null) selectedTabFlow.value else DetailTab.OVERVIEW
+        return args.copy(initialTab = tabToKeep)
     }
 
     private val selectedTabFlow = MutableStateFlow(args.initialTab)
@@ -139,6 +145,9 @@ class AppDetailsWorkspace @AssistedInject constructor(
             attentionCount = 0,
             callerWorkspaceId = args.callerWorkspaceId,
             modalPresentation = args.modalPresentation,
+            // Built by hand instead of via initialInfo(), so the relationship fields have to be
+            // carried explicitly - a missing one here silently reads as "not pausable with my owner"
+            pausableAsChild = args.isPausableAsChild,
         )
     }.stateInWorkspace(
         scope = scope,

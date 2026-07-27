@@ -29,4 +29,12 @@ data class AppDetailsArguments(
 ) : Workspace.ArgumentsWithCaller {
     @IgnoredOnParcel
     override val type: Workspace.Type get() = Workspace.Type.APP_DETAILS
+
+    /**
+     * These arguments describe the whole workspace - a package and the tab it shows - so an app
+     * details overlay can be released together with the tab that opened it and rebuilt exactly as it
+     * was. It owes its caller no result, so nobody is waiting on it either.
+     */
+    @IgnoredOnParcel
+    override val pausableAsChild: Boolean get() = true
 }
