@@ -1,7 +1,6 @@
 package eu.darken.butler.searcher.ui.search
 
 import android.content.Context
-import android.webkit.MimeTypeMap
 import androidx.compose.runtime.Stable
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -19,7 +18,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
-import eu.darken.butler.common.files.TextFileDetector
+import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.extensions.commonParent
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.permissions.PermissionErrorClassifier
@@ -45,6 +44,7 @@ import eu.darken.butler.searcher.ui.search.util.SearchListItem
 import eu.darken.butler.searcher.ui.search.util.SearcherActionBarItem
 import eu.darken.butler.searcher.ui.search.util.SearcherPageAction
 import eu.darken.butler.searcher.ui.search.util.SearcherSelectionState
+import eu.darken.butler.searcher.ui.search.util.toOpenInNewTabsItem
 import eu.darken.butler.workspace.contracts.editor.EditorArguments
 import eu.darken.butler.workspace.contracts.explorer.ExplorerArguments
 import eu.darken.butler.workspace.contracts.explorer.PickerConfig
@@ -54,7 +54,10 @@ import eu.darken.butler.workspace.contracts.searcher.FilterCondition
 import eu.darken.butler.workspace.contracts.searcher.SearchFilter
 import eu.darken.butler.workspace.contracts.searcher.SearchTarget
 import eu.darken.butler.workspace.contracts.searcher.SearcherArguments
+import eu.darken.butler.workspace.contracts.viewer.ViewerArguments
+import eu.darken.butler.workspace.core.NoAppForFileException
 import eu.darken.butler.workspace.core.OpenInNewTabsUseCase
+import eu.darken.butler.workspace.core.OpenWithIntentUseCase
 import eu.darken.butler.workspace.core.ShareIntentUseCase
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
@@ -106,6 +109,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private val workspaceProvider: WorkspaceProvider,
     private val openInNewTabsUseCase: OpenInNewTabsUseCase,
     private val shareIntentUseCase: ShareIntentUseCase,
+    private val openWithIntentUseCase: OpenWithIntentUseCase,
     private val trashSettings: TrashSettings,
     private val folderPreviewResolver: FolderPreviewResolver,
     private val apiLevel: ApiLevel,
@@ -819,6 +823,38 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 }
                 deselectAll()
             }
+            is SearcherActionBarItem.Open -> {
+                launch {
+                    // Same classification the multi-select path uses, so a text file reaches the
+                    // Editor instead of a Viewer that can only say it does not support the type.
+                    val request = openInNewTabsUseCase.createRequest(
+                        item = action.result.toOpenInNewTabsItem(),
+                        createExplorerArguments = { ExplorerArguments.Default(startPath = it) },
+                        createEditorArguments = { EditorArguments.Default(filePath = it) },
+                        createViewerArguments = { ViewerArguments.Default(filePath = it) },
+                    )
+                    workspaceRemote.createAndFocus(
+                        type = request.type,
+                        arguments = request.arguments,
+                    )
+                }
+            }
+            is SearcherActionBarItem.OpenWith -> {
+                launch {
+                    val path = action.result.path
+                    val launched = openWithIntentUseCase.openWithChooser(
+                        path = path,
+                        mime = MimeInfo.fromFileName(action.result.name).rawType,
+                        chooserTitle = appContext.getString(
+                            eu.darken.butler.workspace.R.string.workspace_open_with_chooser_title
+                        ),
+                    )
+                    if (!launched) {
+                        log(TAG, WARN) { "No app found to open file: ${action.result.name}" }
+                        errorEvents.emit(NoAppForFileException(action.result.name))
+                    }
+                }
+            }
             is SearcherActionBarItem.OpenInEditor -> {
                 launch {
                     workspaceRemote.createAndFocus(
@@ -872,18 +908,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 vmScope.launch {
                     log(TAG) { "openInNewTabs(): ${action.results.size} items" }
 
-                    // Convert SearchItems to use case items
-                    val items = action.results.map { item ->
-                        if (item.fileType == FileType.DIRECTORY) {
-                            OpenInNewTabsUseCase.Item.Directory(item.path)
-                        } else {
-                            val isText = TextFileDetector.isTextFile(item.path)
-                            OpenInNewTabsUseCase.Item.File(item.path, isText)
-                        }
-                    }
-
                     val request = OpenInNewTabsUseCase.Request(
-                        items = items,
+                        items = action.results.map { it.toOpenInNewTabsItem() },
                         sourceWorkspaceId = id,
                     )
 
@@ -931,6 +957,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             analysis = analysis,
             createExplorerArguments = { path -> ExplorerArguments.Default(startPath = path) },
             createEditorArguments = { path -> EditorArguments.Default(filePath = path) },
+            createViewerArguments = { path -> ViewerArguments.Default(filePath = path) },
         )
 
         // Execute batch creation directly - WorkspaceRepo handles confirmation and banner
@@ -962,7 +989,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         val shareItems = results.map { result ->
             object : ShareIntentUseCase.Item {
                 override val path = result.path
-                override val mimeType = getMimeType(result.name)
+                override val mimeType = MimeInfo.fromFileName(result.name).rawType
                 override val displayName = result.name
             }
         }
@@ -980,15 +1007,6 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         val success = shareIntentUseCase.shareWithChooser(shareItems, chooserTitle)
         if (!success) {
             throw Exception("Failed to create share intent for selected files")
-        }
-    }
-
-    private fun getMimeType(fileName: String): String? {
-        val extension = fileName.substringAfterLast('.', "")
-        return if (extension.isNotEmpty()) {
-            MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension.lowercase())
-        } else {
-            null
         }
     }
 

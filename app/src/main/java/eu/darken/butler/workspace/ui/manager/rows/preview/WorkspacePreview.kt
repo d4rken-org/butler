@@ -94,6 +94,7 @@ fun WorkspacePreview(
                                         Workspace.Type.DEVELOPER -> DeveloperMockPreview()
                                         Workspace.Type.HISTORY -> DeveloperMockPreview()
                                         Workspace.Type.BUG_REPORT -> DeveloperMockPreview()
+                                        Workspace.Type.VIEWER -> ExplorerMockPreview()
                                     }
                                 }
                             }
@@ -110,6 +111,7 @@ fun WorkspacePreview(
                             Workspace.Type.DEVELOPER -> DeveloperMockPreview()
                             Workspace.Type.HISTORY -> DeveloperMockPreview()
                             Workspace.Type.BUG_REPORT -> DeveloperMockPreview()
+                            Workspace.Type.VIEWER -> ExplorerMockPreview()
                         }
                     }
                 }

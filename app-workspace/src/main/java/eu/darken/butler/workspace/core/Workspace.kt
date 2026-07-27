@@ -54,6 +54,10 @@ interface Workspace<ArgT : Workspace.Arguments> {
         DEVELOPER(isSingleton = true, isQuotaExempt = true),
         HISTORY,
         BUG_REPORT(isSingleton = true, isQuotaExempt = true),
+
+        // Appended last on purpose: the ordinal is part of no persisted format, but keeping the
+        // existing order stable avoids churn in anything that reads entries positionally.
+        VIEWER,
         ;
     }
 

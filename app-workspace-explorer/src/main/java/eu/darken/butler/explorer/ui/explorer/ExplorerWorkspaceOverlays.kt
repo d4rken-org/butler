@@ -55,6 +55,7 @@ fun ExplorerWorkspaceOverlaysHost(
         design = design,
         dialogState = state?.dialogState ?: ExplorerDialogState.None,
         trashEnabled = state?.trashEnabled == true,
+        fileOpenActionsEnabled = state?.fileOpenActionsEnabled != false,
         operationsState = operationsState,
         operationDialogState = operationDialogState,
         cancelConfirmationFor = cancelConfirmation,
@@ -73,6 +74,7 @@ fun ExplorerWorkspaceOverlays(
     design: WorkspaceDesign = WorkspaceDesign(),
     dialogState: ExplorerDialogState = ExplorerDialogState.None,
     trashEnabled: Boolean = false,
+    fileOpenActionsEnabled: Boolean = true,
     // Null while the operations flow has not emitted; the cancel confirmation needs to tell that
     // apart from an empty list.
     operationsState: OperationsDisplayState? = OperationsDisplayState(),
@@ -89,6 +91,7 @@ fun ExplorerWorkspaceOverlays(
     ExplorerDialogHost(
         dialogState = dialogState,
         trashEnabled = trashEnabled,
+        fileOpenActionsEnabled = fileOpenActionsEnabled,
         vm = vm,
         topInset = statusBarInset,
         bottomInset = navBarInset,

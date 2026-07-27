@@ -23,6 +23,7 @@ import androidx.compose.material.icons.twotone.BookmarkBorder
 import androidx.compose.material.icons.twotone.SelectAll
 import androidx.compose.material.icons.twotone.Share
 import androidx.compose.material.icons.twotone.Unarchive
+import androidx.compose.material.icons.twotone.Visibility
 import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
@@ -249,6 +250,15 @@ sealed interface ExplorerActionBarItem : WorkspaceActionBarItem {
      * Actions for single-file context menu operations (from FileOptionsBottomSheet).
      */
     sealed interface File : ExplorerActionBarItem {
+        /** Opens the file in the workspace type that fits it (currently the Viewer). */
+        data class Open(
+            val item: ExplorerItem.File,
+            override val icon: ImageVector = Icons.TwoTone.Visibility,
+            val labelRes: Int = R.string.explorer_file_action_open,
+        ) : File {
+            override val label = labelRes.toCaString()
+        }
+
         data class OpenInEditor(
             val item: ExplorerItem.File,
             override val icon: ImageVector = Icons.TwoTone.DriveFileRenameOutline,

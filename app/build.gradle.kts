@@ -193,6 +193,7 @@ dependencies {
     implementation(project(":app-workspace-developer"))
     implementation(project(":app-workspace-history"))
     implementation(project(":app-workspace-bugreport"))
+    implementation(project(":app-workspace-viewer"))
     implementation(project(":app-provider-documents"))
 
     addDI()
@@ -227,6 +228,10 @@ dependencies {
     implementation(libs.reorderable)
 
     addCoil()
+
+    // Decoders for the Viewer fallback path; only :app owns the singleton ImageLoader
+    implementation(libs.coil.svg)
+    implementation(libs.coil.gif)
 
     // Compose Preview Screenshot Testing
     "screenshotTestImplementation"(platform(libs.androidx.compose.bom))

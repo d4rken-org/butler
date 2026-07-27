@@ -89,6 +89,14 @@ class ExplorerPickerHelper @Inject constructor() {
     }
 
     /**
+     * Whether a surface may offer the actions that hand a file to another workspace: Open,
+     * Open with and Open in editor. A picker is a modal whose caller is blocked waiting for a
+     * result, so it must never spawn a tab. Both the action bar (via [filterActionsForPicker])
+     * and the file options sheet ask this, so the suppression stays in one place.
+     */
+    fun allowsFileOpenActions(config: PickerConfig?): Boolean = config == null
+
+    /**
      * Extracts selected paths for picker result based on selection mode.
      */
     fun extractSelectedPaths(
@@ -175,6 +183,11 @@ class ExplorerPickerHelper @Inject constructor() {
             is ExplorerActionBarItem.Directory.Create,
             is ExplorerActionBarItem.Directory.DeselectAll -> true
 
+            // Handing a file to another workspace, also rendered by the file options sheet
+            is ExplorerActionBarItem.File.Open,
+            is ExplorerActionBarItem.File.OpenInEditor,
+            is ExplorerActionBarItem.File.OpenWith -> allowsFileOpenActions(config)
+
             // Blocked: modification, clipboard, device, file, and recycle bin actions
             is ExplorerActionBarItem.Directory.Copy,
             is ExplorerActionBarItem.Directory.Cut,
@@ -187,8 +200,6 @@ class ExplorerPickerHelper @Inject constructor() {
             is ExplorerActionBarItem.Device.AddLocation,
             is ExplorerActionBarItem.Device.RemoveLocation,
             is ExplorerActionBarItem.Device.RenameLocation,
-            is ExplorerActionBarItem.File.OpenInEditor,
-            is ExplorerActionBarItem.File.OpenWith,
             is ExplorerActionBarItem.File.Share,
             is ExplorerActionBarItem.File.Copy,
             is ExplorerActionBarItem.File.Cut,

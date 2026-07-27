@@ -12,6 +12,7 @@ import androidx.compose.material.icons.twotone.Deselect
 import androidx.compose.material.icons.twotone.GridView
 import androidx.compose.material.icons.twotone.Info
 import androidx.compose.material.icons.twotone.Link
+import androidx.compose.material.icons.twotone.OpenInBrowser
 import androidx.compose.material.icons.twotone.SelectAll
 import androidx.compose.material.icons.twotone.Share
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -68,6 +69,20 @@ sealed interface SearcherActionBarItem : WorkspaceActionBarItem {
     }
 
     // Actions that only make sense for a single result
+    data class Open(
+        val result: SearchItem,
+    ) : SearcherActionBarItem {
+        override val icon = Workspace.Type.VIEWER.icon
+        override val label = R.string.searcher_action_open.toCaString()
+    }
+
+    data class OpenWith(
+        val result: SearchItem,
+    ) : SearcherActionBarItem {
+        override val icon = Icons.TwoTone.OpenInBrowser
+        override val label = R.string.searcher_action_open_with.toCaString()
+    }
+
     data class OpenInEditor(
         val result: SearchItem,
     ) : SearcherActionBarItem {

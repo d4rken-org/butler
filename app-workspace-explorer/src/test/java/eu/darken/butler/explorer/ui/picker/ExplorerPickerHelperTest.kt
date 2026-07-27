@@ -7,6 +7,7 @@ import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
+import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionBarItem
 import eu.darken.butler.workspace.contracts.explorer.PickerConfig
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
@@ -480,6 +481,52 @@ class ExplorerPickerHelperTest : BaseTest() {
 
                 paths shouldBe emptyList()
             }
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // allowsFileOpenActions Tests
+    // ═══════════════════════════════════════════════════════════════
+
+    @Nested
+    inner class AllowsFileOpenActions {
+
+        @Test
+        fun `allowed when not in picker mode`() {
+            helper.allowsFileOpenActions(config = null) shouldBe true
+        }
+
+        @Test
+        fun `blocked in every picker mode`() {
+            val selections = listOf(
+                PickerConfig.Selection.DirectorySingle,
+                PickerConfig.Selection.DirectoryMulti,
+                PickerConfig.Selection.FileSingle,
+                PickerConfig.Selection.FileMulti,
+                PickerConfig.Selection.MixedMulti,
+            )
+
+            selections.forEach { selection ->
+                val config = PickerConfig(callerWorkspaceId = mockk(), selection = selection)
+                helper.allowsFileOpenActions(config) shouldBe false
+            }
+        }
+
+        @Test
+        fun `the action bar agrees with the file options sheet`() {
+            val config = PickerConfig(
+                callerWorkspaceId = mockk(),
+                selection = PickerConfig.Selection.FileMulti,
+            )
+            val item = mockFile()
+            val actions = listOf(
+                ExplorerActionBarItem.File.Open(item),
+                ExplorerActionBarItem.File.OpenWith(item),
+                ExplorerActionBarItem.File.OpenInEditor(item),
+            )
+
+            helper.filterActionsForPicker(actions, config).shouldBeEmpty()
+            helper.filterActionsForPicker(actions, config = null) shouldBe actions
         }
     }
 }
