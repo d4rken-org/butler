@@ -1,11 +1,8 @@
 package eu.darken.butler.workspace.ui.insets
 
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
@@ -18,6 +15,8 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.LocalAvoidDisplayCutout
+import eu.darken.butler.common.compose.systemBarsWithOptionalCutout
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStackState
@@ -77,13 +76,14 @@ fun PaneEdges.includesSystemBarInset(position: BarPosition): Boolean = when (pos
  * The window's system bar insets, unmasked.
  *
  * Vertical values come from the status/navigation bar only (matching what pages have always used),
- * horizontal additionally covers display cutouts, which can occupy a screen side in landscape.
+ * horizontal additionally covers display cutouts, which can occupy a screen side in landscape. The
+ * cutout part is user-controlled via [LocalAvoidDisplayCutout].
  */
 @Composable
 private fun rawPaneInsets(): RawPaneInsets {
     val density = LocalDensity.current
     val layoutDirection = LocalLayoutDirection.current
-    val horizontal = WindowInsets.systemBars.union(WindowInsets.displayCutout)
+    val horizontal = systemBarsWithOptionalCutout()
     return with(density) {
         RawPaneInsets(
             top = WindowInsets.statusBars.getTop(density).toDp(),

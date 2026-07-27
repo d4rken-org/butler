@@ -7,17 +7,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -64,6 +60,7 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.systemBarsWithOptionalCutout
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.icon
@@ -216,8 +213,7 @@ internal fun WorkspaceRailContainer(
                 // Only the start side: the rail doesn't touch the end edge, and padding for an end-side
                 // navigation bar here would widen the rail while the end pane pads for it as well.
                 .windowInsetsPadding(
-                    WindowInsets.systemBars
-                        .union(WindowInsets.displayCutout)
+                    systemBarsWithOptionalCutout()
                         .only(WindowInsetsSides.Start + WindowInsetsSides.Vertical)
                 )
                 .width(80.dp)
