@@ -1,15 +1,15 @@
 [versions]
 # Build tooling
 agp = "9.2.1"
-kotlin = "2.4.0"
-ksp = "2.3.9"
-kover = "0.9.8"
+kotlin = "2.4.10"
+ksp = "2.3.10"
+kover = "0.9.9"
 javapoet = "1.13.0"
 desugar = "2.1.5"
 screenshot = "0.0.1-alpha15"
 # Core
 coroutines = "1.11.0"
-dagger = "2.60"
+dagger = "2.60.1"
 androidx-hilt = "1.4.0"
 kotlinx-serialization = "1.11.0"
 okio = "3.13.0"
