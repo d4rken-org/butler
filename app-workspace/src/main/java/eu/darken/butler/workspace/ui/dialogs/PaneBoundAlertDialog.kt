@@ -79,8 +79,8 @@ object PaneBoundAlertDialogDefaults {
  * @param includeImePadding pad the dialog above the soft keyboard. Enable for dialogs containing an
  *        editable text field; when `false` the dialog dismisses the keyboard as it appears.
  * @param neutralButton action placed at the *start* of the action row, away from confirm/dismiss.
- *        Material's `AlertDialog` has no equivalent slot — this is a deliberate divergence, not an
- *        oversight, and the reason a caller that needs a third action has to be pane-bound.
+ *        Material's `AlertDialog` has no equivalent slot; both of Butler's hosts do, so needing a
+ *        third action is no longer a reason to pick one host over the other.
  */
 @Composable
 fun PaneBoundAlertDialog(

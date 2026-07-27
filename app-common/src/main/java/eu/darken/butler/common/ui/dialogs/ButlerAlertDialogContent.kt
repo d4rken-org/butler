@@ -8,17 +8,22 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialogDefaults
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -34,7 +39,11 @@ import eu.darken.butler.common.compose.PreviewWrapper
  * looks and behaves the same whether it is presented in a platform window or bound to a pane.
  *
  * Title and text scroll; the action row stays outside the scroll region so it remains reachable no
- * matter how long a translation or how large the font scale is.
+ * matter how long a translation or how large the font scale is. That scroll is the one intentional
+ * divergence from Material's `AlertDialog`, which clips instead.
+ *
+ * Every other value comes out of [AlertDialogDefaults] rather than being written as a literal, so a
+ * Material upgrade carries through here instead of silently forking.
  *
  * Applies no test tag of its own — `Modifier.testTag` is a semantics property, so two of them on one
  * node means the later silently wins. Each host passes its own tag in via [modifier].
@@ -54,50 +63,103 @@ fun ButlerAlertDialogContent(
 ) {
     Surface(
         modifier = modifier,
-        shape = MaterialTheme.shapes.extraLarge,
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 6.dp,
+        shape = AlertDialogDefaults.shape,
+        color = AlertDialogDefaults.containerColor,
+        tonalElevation = AlertDialogDefaults.TonalElevation,
     ) {
         Column(modifier = Modifier.padding(24.dp)) {
+            // fillMaxWidth, or a Column would hand this child minWidth = 0 and the weight would only
+            // constrain the cross axis: the scroll area would shrink to its widest child, centering
+            // the icon over the text instead of over the dialog and turning Alignment.Start into a
+            // no-op.
             Column(
                 modifier = Modifier
                     .weight(weight = 1f, fill = false)
+                    .fillMaxWidth()
                     .verticalScroll(rememberScrollState()),
             ) {
                 icon?.let {
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.CenterHorizontally)
-                            .padding(bottom = 16.dp),
-                    ) {
-                        it()
+                    CompositionLocalProvider(LocalContentColor provides AlertDialogDefaults.iconContentColor) {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.CenterHorizontally)
+                                .padding(bottom = 16.dp),
+                        ) {
+                            it()
+                        }
                     }
                 }
 
                 title?.let {
-                    ProvideTextStyle(MaterialTheme.typography.headlineSmall) {
-                        Box(modifier = Modifier.padding(bottom = 16.dp)) { it() }
+                    ProvideContentColorTextStyle(
+                        contentColor = AlertDialogDefaults.titleContentColor,
+                        textStyle = MaterialTheme.typography.headlineSmall,
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                // Centered under an icon, start-aligned without one
+                                .align(if (icon == null) Alignment.Start else Alignment.CenterHorizontally)
+                                .padding(bottom = 16.dp),
+                        ) {
+                            it()
+                        }
                     }
                 }
 
                 text?.let {
-                    ProvideTextStyle(MaterialTheme.typography.bodyMedium) {
-                        Box(modifier = Modifier.padding(bottom = 8.dp)) { it() }
+                    ProvideContentColorTextStyle(
+                        contentColor = AlertDialogDefaults.textContentColor,
+                        textStyle = MaterialTheme.typography.bodyMedium,
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.Start)
+                                .padding(bottom = 24.dp),
+                        ) {
+                            it()
+                        }
                     }
                 }
             }
 
-            DialogActionRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp),
-                dismissButton = dismissButton,
-                confirmButton = confirmButton,
-                neutralButton = neutralButton,
-                crossAxisSpacing = 8.dp,
-            )
+            // Material provides this around its own action slot. A `TextButton` overrides both with
+            // its own colors and label style, so today it is a no-op for every caller in the tree —
+            // it exists for an action that is not a TextButton. Do not drop it as dead code.
+            ProvideContentColorTextStyle(
+                contentColor = MaterialTheme.colorScheme.primary,
+                textStyle = MaterialTheme.typography.labelLarge,
+            ) {
+                DialogActionRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    dismissButton = dismissButton,
+                    confirmButton = confirmButton,
+                    neutralButton = neutralButton,
+                    crossAxisSpacing = 12.dp,
+                )
+            }
         }
     }
+}
+
+/**
+ * Material's own `ProvideContentColorTextStyle`, which is `internal` there — reimplemented rather
+ * than reached for, since both of its ingredients are public.
+ *
+ * Merges into the surrounding text style instead of replacing it, so anything already provided
+ * further up (a font family, a locale list) survives.
+ */
+@Composable
+private fun ProvideContentColorTextStyle(
+    contentColor: Color,
+    textStyle: TextStyle,
+    content: @Composable () -> Unit,
+) {
+    val mergedStyle = LocalTextStyle.current.merge(textStyle)
+    CompositionLocalProvider(
+        LocalContentColor provides contentColor,
+        LocalTextStyle provides mergedStyle,
+        content = content,
+    )
 }
 
 /**
