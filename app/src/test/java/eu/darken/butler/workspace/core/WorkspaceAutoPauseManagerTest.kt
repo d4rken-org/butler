@@ -11,6 +11,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emitAll
@@ -52,6 +53,18 @@ class WorkspaceAutoPauseManagerTest : BaseTest() {
         override fun writeToParcel(dest: Parcel, flags: Int) = Unit
     }
 
+    /** An overlay that owes its caller no result, i.e. one that may go down with its owner. */
+    private class FakeChildArguments(
+        override val type: Workspace.Type,
+        override val callerWorkspaceId: Workspace.Id?,
+        override val modalPresentation: Workspace.ModalPresentationMode =
+            Workspace.ModalPresentationMode.PANE_LOCAL,
+    ) : Workspace.ArgumentsWithCaller {
+        override val pausableAsChild: Boolean = true
+        override fun describeContents(): Int = 0
+        override fun writeToParcel(dest: Parcel, flags: Int) = Unit
+    }
+
     private class FakeWorkspace(
         override val id: Workspace.Id,
         private val arguments: Workspace.Arguments,
@@ -68,6 +81,9 @@ class WorkspaceAutoPauseManagerTest : BaseTest() {
                 title = "Fake $type".toCaString(),
                 lifecycleState = Workspace.LifecycleState.Ready,
                 callerWorkspaceId = (arguments as? Workspace.ArgumentsWithCaller)?.callerWorkspaceId,
+                modalPresentation = (arguments as? Workspace.ArgumentsWithCaller)?.modalPresentation
+                    ?: Workspace.ModalPresentationMode.PANE_LOCAL,
+                pausableAsChild = arguments.isPausableAsChild,
             )
         )
 
@@ -166,6 +182,24 @@ class WorkspaceAutoPauseManagerTest : BaseTest() {
 
     private suspend fun createTab(type: Workspace.Type = Workspace.Type.EXPLORER): Workspace.Id {
         val result = repo.execute(WorkspaceAction.Create(type = type, arguments = FakeArguments(type)))
+        scope.testScheduler.runCurrent()
+        return (result as WorkspaceAction.Create.Result.Success).newId
+    }
+
+    private suspend fun createPicker(caller: Workspace.Id): Workspace.Id {
+        val type = Workspace.Type.EXPLORER
+        val result = repo.execute(
+            WorkspaceAction.Create(type = type, arguments = FakePickerArguments(type, caller))
+        )
+        scope.testScheduler.runCurrent()
+        return (result as WorkspaceAction.Create.Result.Success).newId
+    }
+
+    private suspend fun createChild(caller: Workspace.Id): Workspace.Id {
+        val type = Workspace.Type.APP_DETAILS
+        val result = repo.execute(
+            WorkspaceAction.Create(type = type, arguments = FakeChildArguments(type, caller))
+        )
         scope.testScheduler.runCurrent()
         return (result as WorkspaceAction.Create.Result.Success).newId
     }
@@ -328,27 +362,143 @@ class WorkspaceAutoPauseManagerTest : BaseTest() {
     }
 
     @Test
-    fun `a sub-workspace and its parent are not paused`() = runTest(UnconfinedTestDispatcher()) {
+    fun `a picker and its parent are not paused`() = runTest(UnconfinedTestDispatcher()) {
         val parentId = createTab()
         val otherId = createTab()
-        val childResult = repo.execute(
-            WorkspaceAction.Create(
-                type = Workspace.Type.EXPLORER,
-                arguments = FakePickerArguments(Workspace.Type.EXPLORER, parentId),
-            )
-        )
-        scope.testScheduler.runCurrent()
-        val childId = (childResult as WorkspaceAction.Create.Result.Success).newId
+        val childId = createPicker(caller = parentId)
         val manager = createManager()
 
         manager.evaluateNow()
         elapse(3.hours)
         manager.evaluateNow()
 
+        // The picker owes its caller a result, so neither of them may be released
         isPaused(parentId) shouldBe false
         isPaused(childId) shouldBe false
         isPaused(otherId) shouldBe true
     }
+
+    /**
+     * A pane-local overlay of an unselected tab, on a layout with panes: the only way a stack can be
+     * off screen while it exists. Single-pane promotes every chain to the full-screen dialog, which
+     * renders even when focus points elsewhere - see the fallback test below.
+     */
+    private suspend fun createHiddenStack(): Pair<Workspace.Id, Workspace.Id> {
+        pageManager.setPaneCount(2)
+        createTab()
+        createTab()
+        // Both panes are taken, so this one is created without a pane of its own
+        val hiddenId = createTab()
+        pageManager.state.value.selectedWorkspaces.values.contains(hiddenId) shouldBe false
+        return hiddenId to createChild(caller = hiddenId)
+    }
+
+    @Test
+    fun `an idle tab is paused together with its overlay`() = runTest(UnconfinedTestDispatcher()) {
+        val (hiddenId, overlayId) = createHiddenStack()
+        val manager = createManager()
+
+        manager.evaluateNow()
+        elapse(3.hours)
+        manager.evaluateNow()
+
+        isPaused(hiddenId) shouldBe true
+        isPaused(overlayId) shouldBe true
+        pageManager.state.value.selectedWorkspaces.values.forEach { isPaused(it) shouldBe false }
+    }
+
+    @Test
+    fun `an overlay that keeps its own state keeps its whole stack alive`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val (hiddenId, overlayId) = createHiddenStack()
+            // The Saver case: a transient export flow lives only in the instance
+            fake(overlayId).info.update { it.copy(isPausable = false) }
+            val manager = createManager()
+
+            manager.evaluateNow()
+            elapse(3.hours)
+            manager.evaluateNow()
+
+            isPaused(hiddenId) shouldBe false
+            isPaused(overlayId) shouldBe false
+        }
+
+    @Test
+    fun `a rendered modal stack is never paused, even when an unrelated tab holds focus`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val focusedId = createTab()
+            val modalOwnerId = createTab()
+            val idleId = createTab()
+            val overlayId = createChild(caller = modalOwnerId)
+            // Single pane: the overlay renders as a full-screen dialog. Focus points at a tab with no
+            // chain at all, so the renderer falls back to the newest chain - which is this one.
+            pageManager.setLayout(mapOf(0 to focusedId), focusedId = focusedId)
+            val manager = createManager()
+
+            manager.evaluateNow()
+            elapse(3.hours)
+            manager.evaluateNow()
+
+            isPaused(modalOwnerId) shouldBe false
+            isPaused(overlayId) shouldBe false
+            // The pass did run; only the on-screen stack was spared
+            isPaused(idleId) shouldBe true
+        }
+
+    @Test
+    fun `closing an overlay restarts its tab's idle clock instead of pausing it right away`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val focusedId = createTab()
+            val modalOwnerId = createTab()
+            val overlayId = createChild(caller = modalOwnerId)
+            pageManager.setLayout(mapOf(0 to focusedId), focusedId = focusedId)
+            val manager = createManager()
+
+            manager.evaluateNow()
+            elapse(3.hours)
+            manager.evaluateNow()
+            isPaused(modalOwnerId) shouldBe false
+
+            repo.execute(WorkspaceAction.Close(overlayId))
+            scope.testScheduler.runCurrent()
+
+            // The tab was on screen the whole time the overlay was up, so no stale idle stamp may
+            // survive it - otherwise it pauses on the very first pass after the overlay closes
+            manager.evaluateNow()
+            isPaused(modalOwnerId) shouldBe false
+
+            elapse(2.hours + 1.minutes)
+            manager.evaluateNow()
+            isPaused(modalOwnerId) shouldBe true
+        }
+
+    @Test
+    fun `a child created while a pause waits for the lease is not left behind`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val visibleId = createTab()
+            val hiddenId = createTab()
+            pageManager.setLayout(mapOf(0 to visibleId), focusedId = visibleId)
+            val manager = createManager()
+            manager.evaluateNow()
+            elapse(3.hours)
+
+            // Stands in for a preview capture holding the unit's lease
+            val captureDone = CompletableDeferred<Unit>()
+            val capture = launch { pauseGate.withLease(hiddenId) { captureDone.await() } }
+
+            manager.evaluateNow()
+            isPaused(hiddenId) shouldBe false
+
+            // The topology the pause acts on is resolved inside the repo, not before the lease
+            val pickerId = createPicker(caller = hiddenId)
+            captureDone.complete(Unit)
+            capture.join()
+            scope.testScheduler.runCurrent()
+
+            // Refused as a unit: never a released tab with a live picker on top of it
+            isPaused(hiddenId) shouldBe false
+            isPaused(pickerId) shouldBe false
+        }
 
     @Test
     fun `nothing is paused while the tab manager overlay is visible`() = runTest(UnconfinedTestDispatcher()) {

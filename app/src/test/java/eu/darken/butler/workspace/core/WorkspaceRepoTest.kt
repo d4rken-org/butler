@@ -32,12 +32,14 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
+import kotlin.time.Duration.Companion.seconds
 
 class WorkspaceRepoTest : BaseTest() {
 
@@ -52,6 +54,19 @@ class WorkspaceRepoTest : BaseTest() {
         override val type: Workspace.Type,
         override val callerWorkspaceId: Workspace.Id?,
     ) : Workspace.ArgumentsForResult {
+        override fun describeContents(): Int = 0
+        override fun writeToParcel(dest: Parcel, flags: Int) = Unit
+    }
+
+    /**
+     * A sub-workspace that owes its caller no result and can opt into being paused with it — the
+     * app-details case. [FakePickerArguments] must stay refused, so it cannot stand in for this.
+     */
+    private class FakeChildArguments(
+        override val type: Workspace.Type,
+        override val callerWorkspaceId: Workspace.Id?,
+        override val pausableAsChild: Boolean = true,
+    ) : Workspace.ArgumentsWithCaller {
         override fun describeContents(): Int = 0
         override fun writeToParcel(dest: Parcel, flags: Int) = Unit
     }
@@ -92,6 +107,8 @@ class WorkspaceRepoTest : BaseTest() {
                 callerWorkspaceId = (arguments as? Workspace.ArgumentsWithCaller)?.callerWorkspaceId,
                 modalPresentation = (arguments as? Workspace.ArgumentsWithCaller)?.modalPresentation
                     ?: Workspace.ModalPresentationMode.PANE_LOCAL,
+                // Mirrors initialInfo(): lifecycle decisions read the projected flag, not the arguments
+                pausableAsChild = arguments.isPausableAsChild,
                 contentPath = (arguments as? Workspace.ArgumentsWithContentPath)?.contentPath,
             )
         )
@@ -117,6 +134,9 @@ class WorkspaceRepoTest : BaseTest() {
     /** When set, the next [FakeFactory.create] throws it instead of creating a workspace. */
     private var nextCreateFailure: Exception? = null
 
+    /** Ids whose next [FakeFactory.create] throws, for failing one specific member of a unit. */
+    private val createFailures = mutableMapOf<Workspace.Id, Throwable>()
+
     /** When set, the next [FakeFactory.deriveDisplay] throws it instead of deriving an identity. */
     private var nextDeriveFailure: Exception? = null
 
@@ -125,6 +145,7 @@ class WorkspaceRepoTest : BaseTest() {
 
     private inner class FakeFactory : WorkspaceFactory<Workspace.Arguments> {
         override fun create(id: Workspace.Id, arguments: Workspace.Arguments): Workspace<Workspace.Arguments> {
+            createFailures.remove(id)?.let { throw it }
             nextCreateFailure?.let {
                 nextCreateFailure = null
                 throw it
@@ -1369,6 +1390,21 @@ class WorkspaceRepoTest : BaseTest() {
         type: Workspace.Type = Workspace.Type.EXPLORER,
     ): Workspace.Id = createTab(type).also { fake(it).markReady() }
 
+    /** A ready modal child that owes no result, i.e. one that may go down with its owner. */
+    private suspend fun WorkspaceRepo.createReadyChild(
+        caller: Workspace.Id,
+        type: Workspace.Type = Workspace.Type.APP_DETAILS,
+        pausableAsChild: Boolean = true,
+    ): Workspace.Id {
+        val result = execute(
+            WorkspaceAction.Create(
+                type = type,
+                arguments = FakeChildArguments(type, caller, pausableAsChild),
+            )
+        )
+        return (result as WorkspaceAction.Create.Result.Success).newId.also { fake(it).markReady() }
+    }
+
     private suspend fun WorkspaceRepo.pause(id: Workspace.Id): WorkspaceAction.Result =
         execute(WorkspaceAction.Pause(id))
 
@@ -1477,28 +1513,249 @@ class WorkspaceRepoTest : BaseTest() {
     }
 
     @Test
-    fun `pausing a sub-workspace is refused`() = runTest(UnconfinedTestDispatcher()) {
+    fun `pausing a picker sub-workspace refuses its whole unit`() = runTest(UnconfinedTestDispatcher()) {
         val repo = createRepo()
         val parentId = repo.createReadyTab()
         val childId = repo.createSubWorkspace(caller = parentId)
         fake(childId).markReady()
 
-        val result = repo.pause(childId)
-
-        result.shouldBeInstanceOf<WorkspaceAction.Pause.Result.Refused>()
-        result.reason shouldBe WorkspaceAction.Pause.Reason.SUB_WORKSPACE
+        // Both doors into the unit refuse: a picker owes its caller a result, and the collector for
+        // it lives in the caller that would be released too
+        repo.pause(childId)
+            .shouldBeInstanceOf<WorkspaceAction.Pause.Result.Refused>()
+            .reason shouldBe WorkspaceAction.Pause.Reason.HAS_CHILDREN
+        repo.pause(parentId)
+            .shouldBeInstanceOf<WorkspaceAction.Pause.Result.Refused>()
+            .reason shouldBe WorkspaceAction.Pause.Reason.HAS_CHILDREN
+        repo.infoFor(parentId).isPaused shouldBe false
+        repo.infoFor(childId).isPaused shouldBe false
     }
 
     @Test
-    fun `pausing a workspace with children is refused`() = runTest(UnconfinedTestDispatcher()) {
+    fun `a picker deeper in the stack refuses the whole unit`() = runTest(UnconfinedTestDispatcher()) {
         val repo = createRepo()
-        val parentId = repo.createReadyTab()
-        repo.createSubWorkspace(caller = parentId)
+        val rootId = repo.createReadyTab(Workspace.Type.APPS)
+        val childId = repo.createReadyChild(caller = rootId)
+        val pickerId = repo.createSubWorkspace(caller = childId)
+        fake(pickerId).markReady()
 
-        val result = repo.pause(parentId)
+        val result = repo.pause(rootId)
 
         result.shouldBeInstanceOf<WorkspaceAction.Pause.Result.Refused>()
         result.reason shouldBe WorkspaceAction.Pause.Reason.HAS_CHILDREN
+        fake(rootId).released shouldBe false
+        fake(childId).released shouldBe false
+    }
+
+    @Test
+    fun `a child that opted out refuses the whole unit`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val rootId = repo.createReadyTab(Workspace.Type.APPS)
+        repo.createReadyChild(caller = rootId, pausableAsChild = false)
+
+        val result = repo.pause(rootId)
+
+        result.shouldBeInstanceOf<WorkspaceAction.Pause.Result.Refused>()
+        result.reason shouldBe WorkspaceAction.Pause.Reason.HAS_CHILDREN
+    }
+
+    @Test
+    fun `a child that cannot be released right now refuses the whole unit`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val rootId = repo.createReadyTab(Workspace.Type.APPS)
+            // The Saver case: it opts in, but a transient export flow lives only in the instance
+            val childId = repo.createReadyChild(caller = rootId)
+            fake(childId).info.update { it.copy(isPausable = false) }
+
+            val result = repo.pause(rootId)
+
+            result.shouldBeInstanceOf<WorkspaceAction.Pause.Result.Refused>()
+            result.reason shouldBe WorkspaceAction.Pause.Reason.NOT_PAUSABLE
+        }
+
+    @Test
+    fun `pausing a unit swaps every member in a single publish`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val rootId = repo.createReadyTab(Workspace.Type.APPS)
+        val childId = repo.createReadyChild(caller = rootId)
+
+        val pausedSnapshots = mutableListOf<Set<Workspace.Id>>()
+        repo.state
+            .onEach { state -> pausedSnapshots += state.infos.filter { it.isPaused }.map { it.id }.toSet() }
+            .launchIn(backgroundScope)
+        testScheduler.runCurrent()
+        pausedSnapshots.clear()
+
+        val result = repo.pause(rootId)
+
+        result.shouldBeInstanceOf<WorkspaceAction.Pause.Result.Success>()
+        result.id shouldBe rootId
+        result.pausedIds shouldBe listOf(rootId, childId)
+        testScheduler.runCurrent()
+        // A per-member pause would publish the root's stand-in on its own first
+        pausedSnapshots.none { it.size == 1 } shouldBe true
+        pausedSnapshots.last() shouldBe setOf(rootId, childId)
+        fake(rootId).released shouldBe true
+        fake(childId).released shouldBe true
+    }
+
+    @Test
+    fun `resuming a unit rebuilds the owner before what it owns`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val rootId = repo.createReadyTab(Workspace.Type.APPS)
+        val childId = repo.createReadyChild(caller = rootId)
+        repo.pause(rootId).shouldBeInstanceOf<WorkspaceAction.Pause.Result.Success>()
+
+        val result = repo.execute(WorkspaceAction.Resume(rootId))
+
+        result.shouldBeInstanceOf<WorkspaceAction.Resume.Result.Success>()
+        result.outcomes shouldBe mapOf(
+            rootId to WorkspaceAction.Resume.MemberOutcome.Resumed,
+            childId to WorkspaceAction.Resume.MemberOutcome.Resumed,
+        )
+        // A modal has nothing to bind to while its owner is still a stand-in
+        createdWorkspaces.map { it.id }.drop(2) shouldBe listOf(rootId, childId)
+        repo.infoFor(rootId).isPaused shouldBe false
+        repo.infoFor(childId).isPaused shouldBe false
+    }
+
+    @Test
+    fun `a member failing to capture its arguments leaves the whole unit untouched`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val rootId = repo.createReadyTab(Workspace.Type.APPS)
+            val childId = repo.createReadyChild(caller = rootId)
+            val boom = IllegalStateException("Cannot serialize state")
+            fake(childId).argumentsError = boom
+
+            val result = repo.pause(rootId)
+
+            result.shouldBeInstanceOf<WorkspaceAction.Pause.Result.Failed>()
+            result.error shouldBe boom
+            repo.infoFor(rootId).isPaused shouldBe false
+            repo.infoFor(childId).isPaused shouldBe false
+            fake(rootId).released shouldBe false
+            fake(childId).released shouldBe false
+        }
+
+    @Test
+    fun `a guard flipping while a member is captured leaves the whole unit untouched`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val rootId = repo.createReadyTab(Workspace.Type.APPS)
+            val childId = repo.createReadyChild(caller = rootId)
+            val child = fake(childId)
+            child.whileCapturingArguments = {
+                child.info.update { it.copy(operationCount = 1) }
+            }
+
+            val result = repo.pause(rootId)
+
+            result.shouldBeInstanceOf<WorkspaceAction.Pause.Result.Refused>()
+            result.reason shouldBe WorkspaceAction.Pause.Reason.BUSY
+            repo.infoFor(rootId).isPaused shouldBe false
+            fake(rootId).released shouldBe false
+            child.released shouldBe false
+        }
+
+    @Test
+    fun `a failing owner leaves its descendants paused and reports them as skipped`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val rootId = repo.createReadyTab(Workspace.Type.APPS)
+            val childId = repo.createReadyChild(caller = rootId)
+            repo.pause(rootId)
+            val boom = IllegalStateException("Factory exploded")
+            createFailures[rootId] = boom
+
+            val result = repo.execute(WorkspaceAction.Resume(rootId))
+
+            result.shouldBeInstanceOf<WorkspaceAction.Resume.Result.Failed>()
+            result.error shouldBe boom
+            result.outcomes[rootId] shouldBe WorkspaceAction.Resume.MemberOutcome.Failed(boom)
+            result.outcomes[childId] shouldBe
+                WorkspaceAction.Resume.MemberOutcome.SkippedAncestorFailed(rootId, boom)
+            repo.infoFor(rootId).lifecycleState shouldBe Workspace.LifecycleState.Paused(boom)
+            // Skipped, NOT failed: the child never had a chance to break
+            repo.infoFor(childId).lifecycleState shouldBe Workspace.LifecycleState.Paused()
+        }
+
+    @Test
+    fun `a failing member in the middle only skips its own subtree`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val rootId = repo.createReadyTab(Workspace.Type.APPS)
+        val childId = repo.createReadyChild(caller = rootId)
+        val grandChildId = repo.createReadyChild(caller = childId)
+        val siblingId = repo.createReadyChild(caller = rootId)
+        repo.pause(rootId)
+        val boom = IllegalStateException("Factory exploded")
+        // The root resumes fine; the failure lands on the member in the middle
+        createFailures[childId] = boom
+
+        val result = repo.execute(WorkspaceAction.Resume(rootId))
+
+        result.shouldBeInstanceOf<WorkspaceAction.Resume.Result.Success>()
+        result.outcomes[rootId] shouldBe WorkspaceAction.Resume.MemberOutcome.Resumed
+        result.outcomes[childId] shouldBe WorkspaceAction.Resume.MemberOutcome.Failed(boom)
+        result.outcomes[grandChildId] shouldBe
+            WorkspaceAction.Resume.MemberOutcome.SkippedAncestorFailed(childId, boom)
+        result.outcomes[siblingId] shouldBe WorkspaceAction.Resume.MemberOutcome.Resumed
+        repo.infoFor(rootId).isPaused shouldBe false
+        repo.infoFor(siblingId).isPaused shouldBe false
+        repo.infoFor(grandChildId).lifecycleState shouldBe Workspace.LifecycleState.Paused()
+    }
+
+    @Test
+    fun `pausing and resuming a child id acts on its whole unit`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val rootId = repo.createReadyTab(Workspace.Type.APPS)
+        val childId = repo.createReadyChild(caller = rootId)
+
+        val paused = repo.pause(childId)
+
+        paused.shouldBeInstanceOf<WorkspaceAction.Pause.Result.Success>()
+        paused.id shouldBe rootId
+        repo.infoFor(rootId).isPaused shouldBe true
+        repo.infoFor(childId).isPaused shouldBe true
+
+        repo.execute(WorkspaceAction.Resume(childId))
+            .shouldBeInstanceOf<WorkspaceAction.Resume.Result.Success>()
+
+        repo.infoFor(rootId).isPaused shouldBe false
+        repo.infoFor(childId).isPaused shouldBe false
+    }
+
+    @Test
+    fun `a cycle in the caller graph is refused instead of hanging`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val idA = Workspace.Id()
+        val idB = Workspace.Id()
+        // Nothing validates caller ids at creation, so this topology is reachable
+        repo.execute(
+            WorkspaceAction.Create(
+                type = Workspace.Type.APPS,
+                arguments = FakeChildArguments(Workspace.Type.APPS, callerWorkspaceId = idB),
+                id = idA,
+            )
+        ).shouldBeInstanceOf<WorkspaceAction.Create.Result.Success>()
+        repo.execute(
+            WorkspaceAction.Create(
+                type = Workspace.Type.APPS,
+                arguments = FakeChildArguments(Workspace.Type.APPS, callerWorkspaceId = idA),
+                id = idB,
+            )
+        ).shouldBeInstanceOf<WorkspaceAction.Create.Result.Success>()
+        fake(idA).markReady()
+        fake(idB).markReady()
+
+        val result = withTimeout(10.seconds) { repo.pause(idA) }
+
+        result.shouldBeInstanceOf<WorkspaceAction.Pause.Result.Refused>()
+        result.reason shouldBe WorkspaceAction.Pause.Reason.BROKEN_OWNERSHIP
+        withTimeout(10.seconds) {
+            repo.execute(WorkspaceAction.Resume(idA)) shouldBe WorkspaceAction.Resume.Result.NoOp
+        }
     }
 
     @Test

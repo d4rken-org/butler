@@ -73,6 +73,9 @@ class WorkspacePreviewCaptureServiceTest : BaseTest() {
     private val workspaceRepo = mockk<WorkspaceRepo>().apply {
         every { state } returns repoState
         every { peek(any()) } answers { liveWorkspaces[firstArg()] }
+        // Captures lease the ownership root, so a pause of the whole unit holds them off. These are
+        // flat topologies, so every workspace is its own root.
+        every { peekOwnershipRoot(any()) } answers { firstArg() }
     }
 
     private val service = WorkspacePreviewCaptureService(

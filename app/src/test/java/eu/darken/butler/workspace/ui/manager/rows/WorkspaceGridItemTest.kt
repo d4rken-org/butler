@@ -87,7 +87,7 @@ class WorkspaceGridItemTest : ComposeTest() {
     }
 
     @Test
-    fun `a sub-workspace card has no overflow menu`() {
+    fun `a live sub-workspace card has no overflow menu`() {
         composeTestRule.setContent {
             PreviewWrapper {
                 WorkspaceGridItem(
@@ -103,6 +103,38 @@ class WorkspaceGridItemTest : ComposeTest() {
 
         composeTestRule.onAllNodesWithContentDescription("More options").assertCountEquals(0)
         composeTestRule.onNodeWithContentDescription("Close tab").assertExists()
+    }
+
+    /**
+     * A tab is paused together with its opted-in overlays, so a child card CAN be paused. It has to
+     * offer its way back - and only that: rename is lost on a workspace that is never persisted, and
+     * a child is only ever paused as part of its owner, never on its own.
+     */
+    @Test
+    fun `a paused sub-workspace card offers resume and nothing else`() {
+        var resumed = 0
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                WorkspaceGridItem(
+                    reorderableScope = noopReorderableScope,
+                    workspace = item(isSubWorkspace = true, isPaused = true, canPause = true),
+                    onClose = {},
+                    onSelect = {},
+                    onRename = {},
+                    onResume = { resumed++ },
+                    livePreview = false,
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithContentDescription("More options").performClick()
+
+        composeTestRule.onAllNodesWithText("Rename").assertCountEquals(0)
+        composeTestRule.onAllNodesWithText("Pause").assertCountEquals(0)
+        composeTestRule.onNodeWithText("Resume").performClick()
+
+        resumed shouldBe 1
     }
 
     /**
