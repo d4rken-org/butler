@@ -24,8 +24,8 @@ import testhelpers.ComposeTest
 
 /**
  * A pane-local saver has no dialog window to supply back handling, so the page has to own it —
- * but only while it is a sub-workspace modal. The ACTION_SEND share entry point is a normal tab
- * and must leave back alone.
+ * but only there. The full-screen modal renders inside a real Dialog that already consumes back,
+ * and the ACTION_SEND share entry point is a normal tab; both must leave back alone.
  */
 class SaverWorkspaceBackHandlerTest : ComposeTest() {
 
@@ -73,13 +73,28 @@ class SaverWorkspaceBackHandlerTest : ComposeTest() {
     }
 
     @Test
-    fun `modal saver closes on back`() {
+    fun `pane modal saver closes on back`() {
         val vm = mockVm()
-        val pressBack = setPage(vm, flowOf(SaverWorkspaceViewModel.State(isModal = true)))
+        val pressBack = setPage(vm, flowOf(SaverWorkspaceViewModel.State(isModal = true)), paneModal = true)
 
         pressBack()
 
         composeTestRule.runOnIdle { verify(exactly = 1) { vm.onClose() } }
+    }
+
+    /**
+     * On the single-pane path the modal saver is hosted by a real Dialog, which handles back via its
+     * own dismiss request. The page must stay out of it - a second consumer closes the workspace
+     * twice and the second close lands on an already-removed workspace, throwing tab navigation off.
+     */
+    @Test
+    fun `full screen saver leaves back to the dialog`() {
+        val vm = mockVm()
+        val pressBack = setPage(vm, flowOf(SaverWorkspaceViewModel.State(isModal = true)), paneModal = false)
+
+        pressBack()
+
+        composeTestRule.runOnIdle { verify(exactly = 0) { vm.onClose() } }
     }
 
     @Test

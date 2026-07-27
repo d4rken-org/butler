@@ -110,13 +110,14 @@ internal fun SaverWorkspacePage(
         if (conflictUiState.visible) operationDialogState = OperationDialogState.None
     }
 
-    // As a pane-local modal there is no dialog window to supply back for us. Placed at page level so
-    // it covers both modes; gated on the layer, so this page's own sheets and dialogs still win.
+    // As a pane-local modal there is no dialog window to supply back for us, so the page owns it.
+    // The gate is deliberately the pane-modal CompositionLocal and NOT the collected state:
+    // - the collected state is still its default (isModal=false) on the first frames, while the
+    //   workspace initializes, and a press in that window would otherwise escape the modal;
+    // - the state would also be true for the full-screen modal, where the surrounding Dialog already
+    //   owns back - a second consumer there races it and derails tab navigation.
     // The share-intent entry point is a normal tab and keeps the default back behaviour.
-    // The CompositionLocal is what makes this correct on the very first frame: the page is composed
-    // while the workspace still initializes, so the collected state is the default (isModal=false)
-    // and a press in that window would otherwise escape the modal entirely.
-    WorkspaceBackHandler(enabled = state.isModal || LocalWorkspaceIsPaneModal.current) { vm?.onClose() }
+    WorkspaceBackHandler(enabled = LocalWorkspaceIsPaneModal.current) { vm?.onClose() }
 
     // Navigation bar inset for bottom sheets
     val paneInsets = design.paneInsets()
