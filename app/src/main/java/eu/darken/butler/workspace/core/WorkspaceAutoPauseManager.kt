@@ -23,6 +23,9 @@ import kotlin.time.Instant
  * Pauses tab workspaces the user hasn't looked at for a while, freeing their engines, scopes and
  * buffers ([WorkspaceAction.Pause]). Focusing or resuming a tab brings it back.
  *
+ * A tab and its opted-in modal children are one unit: they are only ever paused together, and a unit
+ * counts as seen while ANY of its members is on screen.
+ *
  * "Last used" is tracked privately here as a visible -> hidden transition timestamp, deliberately
  * NOT as state on [WorkspacePageManager]: [eu.darken.butler.workspace.ui.session.WorkspaceSessionManager]
  * observes that whole state, so a periodic timestamp write would trigger a full session save (Room
@@ -107,8 +110,8 @@ class WorkspaceAutoPauseManager(
 
         idleSince.keys.retainAll(infos.map { it.id }.toSet())
 
-        val visibleIds = pageState.visibleWorkspaceIds()
-        val parentIds = infos.mapNotNull { it.callerWorkspaceId }.toSet()
+        val stacks = WorkspaceStacks(infos)
+        val visibleIds = stacks.visibleUnitIds(pageState)
 
         val candidates = mutableListOf<Workspace.Id>()
         infos.forEach { info ->
@@ -124,10 +127,12 @@ class WorkspaceAutoPauseManager(
             val since = idleSince.getOrPut(info.id) { now }
             if (now - since < timeout) return@forEach
 
-            // Cheap pre-filter only; WorkspaceRepo re-checks all of this under its lock
-            if (info.isSubWorkspace || info.id in parentIds) return@forEach
-            if (info.operationCount > 0 || info.attentionCount > 0) return@forEach
-            if (info.hasUnsavedChanges || !info.isPausable) return@forEach
+            // Cheap pre-filter only; WorkspaceRepo re-checks all of this under its lock.
+            // A unit is always paused through its root, so children are never candidates themselves -
+            // they go along with the tab that owns them.
+            if (info.isSubWorkspace) return@forEach
+            val members = stacks.unitOf(info.id) ?: return@forEach
+            if (members.any { !it.canPauseWithUnit(isRoot = it.id == info.id) }) return@forEach
 
             candidates += info.id
         }
@@ -149,35 +154,53 @@ class WorkspaceAutoPauseManager(
     }
 
     /**
-     * Held under [WorkspacePauseGate] for this id only, never for the whole pass: a slow release
-     * must not stall preview captures of unrelated tabs. The lease covers the backstop resume too,
-     * so a capture waiting on it never observes the brief paused window of a workspace we are about
-     * to wake up again.
+     * A member of an ownership unit may go down with it when nothing would be lost. Children
+     * additionally have to opt into it ([Workspace.Info.pausableAsChild]), which pickers never do -
+     * their result collector lives in the caller they would be released with.
      */
-    private suspend fun pause(id: Workspace.Id) = workspacePauseGate.withLease(id) {
-        when (val result = workspaceRepo.execute(WorkspaceAction.Pause(id))) {
-            is WorkspaceAction.Pause.Result.Success -> {
-                idleSince.remove(id)
-                log(TAG, INFO) { "Auto-paused $id" }
-                // Backstop for a focus/selection change or a tab manager opening while we paused
-                val pageState = workspacePageManager.state.value
-                if (id in pageState.visibleWorkspaceIds()) {
-                    log(TAG, INFO) { "$id became visible while pausing, resuming it right away" }
-                    workspaceRepo.execute(WorkspaceAction.Resume(id))
-                } else if (pageState.isManagerOverlayVisible) {
-                    log(TAG, INFO) { "Tab manager opened while pausing $id, resuming it right away" }
-                    workspaceRepo.execute(WorkspaceAction.Resume(id))
-                }
-            }
-            // The repo guards are the authority; a refusal just means we retry next pass
-            is WorkspaceAction.Pause.Result.Refused -> log(TAG) { "Auto-pause of $id refused: ${result.reason}" }
-            is WorkspaceAction.Pause.Result.Failed -> log(TAG, WARN) {
-                "Auto-pause of $id failed: ${result.error.asLog()}"
-            }
-            is WorkspaceAction.Pause.Result.NoOp -> log(TAG) { "Auto-pause of $id was a no-op" }
-            else -> log(TAG, ERROR) { "Unexpected Pause result for $id: $result" }
-        }
+    private fun Workspace.Info.canPauseWithUnit(isRoot: Boolean): Boolean = when {
+        !isRoot && !pausableAsChild -> false
+        operationCount > 0 || attentionCount > 0 -> false
+        hasUnsavedChanges || !isPausable -> false
+        lifecycleState !is Workspace.LifecycleState.Ready -> false
+        else -> true
     }
+
+    /**
+     * Held under [WorkspacePauseGate] for this unit's ownership root only, never for the whole pass:
+     * a slow release must not stall preview captures of unrelated tabs. One lease per unit (not one
+     * per member) is what makes the set atomic - a child created while we wait for the lease is
+     * covered by the same key. The lease covers the backstop resume too, so a capture waiting on it
+     * never observes the brief paused window of a unit we are about to wake up again.
+     */
+    private suspend fun pause(id: Workspace.Id) =
+        workspacePauseGate.withLease(workspaceRepo.peekOwnershipRoot(id)) {
+            when (val result = workspaceRepo.execute(WorkspaceAction.Pause(id))) {
+                is WorkspaceAction.Pause.Result.Success -> {
+                    result.pausedIds.forEach { idleSince.remove(it) }
+                    log(TAG, INFO) { "Auto-paused ${result.pausedIds}" }
+                    // Backstop for a focus/selection change or a tab manager opening while we paused.
+                    // The result's member list is the authoritative topology - the repo resolved it
+                    // under its own lock, while workspaceRepo.state can still lag the swap.
+                    val pageState = workspacePageManager.state.value
+                    val visibleIds = pageState.visibleWorkspaceIds()
+                    if (result.pausedIds.any { it in visibleIds }) {
+                        log(TAG, INFO) { "${result.id} became visible while pausing, resuming it right away" }
+                        workspaceRepo.execute(WorkspaceAction.Resume(result.id))
+                    } else if (pageState.isManagerOverlayVisible) {
+                        log(TAG, INFO) { "Tab manager opened while pausing ${result.id}, resuming it right away" }
+                        workspaceRepo.execute(WorkspaceAction.Resume(result.id))
+                    }
+                }
+                // The repo guards are the authority; a refusal just means we retry next pass
+                is WorkspaceAction.Pause.Result.Refused -> log(TAG) { "Auto-pause of $id refused: ${result.reason}" }
+                is WorkspaceAction.Pause.Result.Failed -> log(TAG, WARN) {
+                    "Auto-pause of $id failed: ${result.error.asLog()}"
+                }
+                is WorkspaceAction.Pause.Result.NoOp -> log(TAG) { "Auto-pause of $id was a no-op" }
+                else -> log(TAG, ERROR) { "Unexpected Pause result for $id: $result" }
+            }
+        }
 
     /**
      * Workspaces the user can actually see: pane selections whose pane index is still within the
@@ -188,6 +211,29 @@ class WorkspaceAutoPauseManager(
     private fun WorkspacePageManager.State.visibleWorkspaceIds(): Set<Workspace.Id> =
         selectedWorkspaces.filterKeys { it in 0 until currentPaneCount }.values.toSet() +
             setOfNotNull(focusedWorkspaceId)
+
+    /**
+     * Everything on screen, expanded to whole ownership units: a tab whose modal is up counts as
+     * visible, and so does every member of a visible tab's stack.
+     *
+     * Selections and focus alone are NOT enough. The renderer falls back to the newest full-screen
+     * chain when focus points at no chain at all, so a modal (and on single-pane layouts every modal
+     * is full-screen) can be the thing the user is looking at while neither it nor its tab is
+     * selected or focused. Classifying that stack as idle would pause a workspace out from under the
+     * user, which is why the rendered chains are seeded here rather than approximated.
+     */
+    private fun WorkspaceStacks.visibleUnitIds(pageState: WorkspacePageManager.State): Set<Workspace.Id> {
+        val rendered = renderedChains(
+            focusedId = pageState.focusedWorkspaceId,
+            isMultiPane = pageState.currentPaneCount > 1,
+        )
+        // Pane-local chains need no seed of their own: they only render inside their own tab's pane,
+        // and a tab occupying a pane is already a selection seed.
+        val seeds = pageState.visibleWorkspaceIds() + rendered.fullScreen?.memberIds.orEmpty()
+        return seeds.flatMapTo(mutableSetOf()) { seed ->
+            unitOf(seed)?.map { it.id } ?: listOf(seed)
+        }
+    }
 
     companion object {
         private val TAG = logTag("Workspace", "AutoPause")

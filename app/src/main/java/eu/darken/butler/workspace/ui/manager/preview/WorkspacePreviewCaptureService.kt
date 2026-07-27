@@ -53,8 +53,10 @@ class WorkspacePreviewCaptureService @Inject constructor(
      * (and resuming it here would defeat the pause). The precondition is enforced defensively below
      * and a violation yields null, so callers still need their own fallback.
      *
-     * The whole capture runs under [WorkspacePauseGate], so a pause of this workspace can neither
-     * start nor finish while we compose it. We wait for a pause in flight rather than bail out: a
+     * The whole capture runs under [WorkspacePauseGate], keyed on this workspace's ownership root
+     * (pausing acts on a whole unit, so the root is the only key that covers every participant), and
+     * a pause of this unit can therefore neither start nor finish while we compose it. We wait for a
+     * pause in flight rather than bail out: a
      * skipped capture would leave a stale thumbnail behind until something else invalidates it,
      * while waiting only delays a preview by one pause. Waiting means the caller's "is it live?"
      * check can have gone stale by the time we get the lease - a manual pause sticks instead of
@@ -69,7 +71,7 @@ class WorkspacePreviewCaptureService @Inject constructor(
     ): Bitmap? = try {
         log(TAG, INFO) { "Capturing preview for workspace ${workspaceId.shortTag} (${workspaceType})" }
 
-        workspacePauseGate.withLease(workspaceId) {
+        workspacePauseGate.withLease(workspaceRepo.peekOwnershipRoot(workspaceId)) {
             val currentInfo = workspaceRepo.peek(workspaceId)?.info?.value
             val skipReason = when {
                 currentInfo == null -> "it is gone from the repo"
