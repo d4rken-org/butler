@@ -194,23 +194,22 @@ interface Workspace<ArgT : Workspace.Arguments> {
      * Arguments for workspaces that are created to produce a result for another workspace
      * (e.g., picker workspaces, selection dialogs).
      *
-     * This interface extends [ArgumentsWithCaller] for workspaces that:
-     * - Return results to their parent via [eu.darken.butler.workspace.core.WorkspaceEvent]
-     * - Require focused user interaction (defaults to FULL_SCREEN presentation)
+     * This interface extends [ArgumentsWithCaller] for workspaces that return results to their
+     * parent via [eu.darken.butler.workspace.core.WorkspaceEvent].
+     *
+     * Presentation is not implied by returning a result: like any sub-workspace these are
+     * [ModalPresentationMode.PANE_LOCAL] by default, so a picker launched from a pane stays inside
+     * that pane and leaves the rest of the screen usable. A caller that genuinely needs the whole
+     * screen — because the choice is about the app rather than about one pane's content — passes
+     * [ModalPresentationMode.FULL_SCREEN] explicitly. Single-pane layouts promote either to a
+     * full-screen dialog anyway.
      *
      * Example: SearcherWorkspace creates ExplorerPickerWorkspace to select a directory.
-     * The Explorer picker renders as full-screen modal, returns selected path, then closes.
+     * The Explorer picker renders inside the Searcher's pane, returns the selected path, then closes.
      *
      * @see ArgumentsWithCaller
      */
-    interface ArgumentsForResult : ArgumentsWithCaller {
-        /**
-         * Pickers default to full-screen presentation for focused interaction.
-         * Caller can override this if context allows pane-aware rendering.
-         */
-        override val modalPresentation: ModalPresentationMode
-            get() = ModalPresentationMode.FULL_SCREEN
-    }
+    interface ArgumentsForResult : ArgumentsWithCaller
 
     /**
      * Arguments that bind the workspace to one content path. A [WorkspaceAction.Create] carrying

@@ -30,13 +30,18 @@ sealed interface SaverArguments : Workspace.Arguments {
         val destinationPath: APath<*>? = null,
         /**
          * Set when this Saver was launched by another workspace (e.g. APK export from Apps/App
-         * details) so it renders as a modal sub-workspace and is exempt from the tab limit.
+         * details) so it renders as a modal sub-workspace and is exempt from the tab limit. On
+         * multi-pane layouts it then stays inside the launching workspace's pane.
          * Null for the ACTION_SEND share entry point, which stays a normal tab.
          * Session-transient: sub-workspaces are excluded from session save.
          */
         @Transient override val callerWorkspaceId: Workspace.Id? = null,
-    ) : SaverArguments, Workspace.ArgumentsWithCaller {
-        override val modalPresentation: Workspace.ModalPresentationMode
-            get() = Workspace.ModalPresentationMode.FULL_SCREEN
-    }
+        /**
+         * How this Saver is presented when it has a caller. Transient for the same reason the
+         * caller is: what gets persisted is always a normal tab, for which presentation is
+         * meaningless.
+         */
+        @Transient override val modalPresentation: Workspace.ModalPresentationMode =
+            Workspace.ModalPresentationMode.PANE_LOCAL,
+    ) : SaverArguments, Workspace.ArgumentsWithCaller
 }

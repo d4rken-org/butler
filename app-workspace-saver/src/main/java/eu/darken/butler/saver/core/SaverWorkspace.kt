@@ -285,6 +285,7 @@ class SaverWorkspace @AssistedInject constructor(
         callerPackage = creationArguments.callerPackage,
         destinationPath = _destination.value,
         callerWorkspaceId = creationArguments.callerWorkspaceId,
+        modalPresentation = creationArguments.modalPresentation,
     )
 
     override suspend fun release() {

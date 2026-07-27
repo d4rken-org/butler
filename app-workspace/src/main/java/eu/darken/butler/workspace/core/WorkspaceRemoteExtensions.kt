@@ -63,6 +63,8 @@ inline fun <reified T : WorkspaceEvent.ResultEvent> Flow<WorkspaceEvent>.handleR
  * @param startPath Optional starting path for the picker (null = home)
  * @param selection The picker mode (FileSingle, FileMulti, DirectorySingle, DirectoryMulti, MixedMulti)
  * @param requireWritable When true, only writable paths can be confirmed
+ * @param modalPresentation How the picker is presented. Pane-local by default, so it stays inside
+ *        the caller's pane on multi-pane layouts; pass FULL_SCREEN for a screen-wide picker.
  * @return The Create action result with the new workspace ID
  */
 suspend fun WorkspaceRemote.launchPicker(
@@ -70,6 +72,7 @@ suspend fun WorkspaceRemote.launchPicker(
     startPath: APath<*>? = null,
     selection: PickerConfig.Selection,
     requireWritable: Boolean = false,
+    modalPresentation: Workspace.ModalPresentationMode = Workspace.ModalPresentationMode.PANE_LOCAL,
 ): WorkspaceAction.Create.Result {
     // Implementation detail: Uses Explorer workspace for picker functionality
     return execute(
@@ -80,6 +83,7 @@ suspend fun WorkspaceRemote.launchPicker(
                 selection = selection,
                 requireWritable = requireWritable,
                 callerWorkspaceId = callerWorkspaceId,
+                modalPresentation = modalPresentation,
             )
         )
     ) as WorkspaceAction.Create.Result

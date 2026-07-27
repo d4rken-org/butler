@@ -17,6 +17,8 @@ class WorkspaceInfoExtensionsTest : BaseTest() {
     private class FakePickerArguments(
         override val type: Workspace.Type,
         override val callerWorkspaceId: Workspace.Id?,
+        override val modalPresentation: Workspace.ModalPresentationMode =
+            Workspace.ModalPresentationMode.PANE_LOCAL,
     ) : Workspace.ArgumentsForResult {
         override fun describeContents(): Int = 0
         override fun writeToParcel(dest: Parcel, flags: Int) = Unit
@@ -50,8 +52,25 @@ class WorkspaceInfoExtensionsTest : BaseTest() {
         seed.id shouldBe workspace.id
         seed.type shouldBe workspace.type
         seed.callerWorkspaceId shouldBe caller
-        seed.modalPresentation shouldBe Workspace.ModalPresentationMode.FULL_SCREEN
+        // Returning a result says nothing about presentation: pane-local unless asked otherwise.
+        seed.modalPresentation shouldBe Workspace.ModalPresentationMode.PANE_LOCAL
         seed.isSubWorkspace shouldBe true
+    }
+
+    @Test
+    fun `initialInfo carries an explicit full-screen request`() {
+        val workspace = FakeWorkspace()
+
+        val seed = workspace.initialInfo(
+            title = "title".toCaString(),
+            arguments = FakePickerArguments(
+                type = Workspace.Type.EXPLORER,
+                callerWorkspaceId = Workspace.Id(),
+                modalPresentation = Workspace.ModalPresentationMode.FULL_SCREEN,
+            ),
+        )
+
+        seed.modalPresentation shouldBe Workspace.ModalPresentationMode.FULL_SCREEN
     }
 
     @Test

@@ -6,16 +6,24 @@ import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.serialization.SerializationCommonModule
 import eu.darken.butler.workspace.contracts.explorer.ExplorerArguments
 import eu.darken.butler.workspace.contracts.explorer.ExplorerStartTarget
+import eu.darken.butler.workspace.contracts.explorer.PickerConfig
 import eu.darken.butler.workspace.core.Workspace
 import io.kotest.matchers.shouldBe
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.contextual
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import testhelpers.json.toComparableJson
+import kotlin.uuid.Uuid
 
 class ExplorerArgumentsSerializationTest : BaseTest() {
 
@@ -26,6 +34,8 @@ class ExplorerArgumentsSerializationTest : BaseTest() {
                 subclass(LocalPath::class)
                 subclass(SAFPath::class)
             }
+            contextual(WorkspaceIdSerializer)
+            contextual(SelectionSerializer)
         }
     }
 
@@ -168,5 +178,64 @@ class ExplorerArgumentsSerializationTest : BaseTest() {
 
         serialized shouldBe json.encodeToJsonElement<ExplorerArguments>(original)
         factory.deserialize(json, serialized) shouldBe original
+    }
+
+    @Test
+    fun `roundtrip Picker keeps the default pane-local presentation`() {
+        val original = ExplorerArguments.Picker(
+            startPath = LocalPath.build("/sdcard/Download"),
+            callerWorkspaceId = Workspace.Id(),
+        )
+
+        val serialized = json.encodeToJsonElement<ExplorerArguments>(original)
+        val deserialized = json.decodeFromString<ExplorerArguments>(serialized.toString())
+
+        deserialized shouldBe original
+        (deserialized as ExplorerArguments.Picker).modalPresentation shouldBe
+            Workspace.ModalPresentationMode.PANE_LOCAL
+    }
+
+    @Test
+    fun `roundtrip Picker keeps an explicit full-screen presentation`() {
+        val original = ExplorerArguments.Picker(
+            selection = PickerConfig.Selection.FileSingle,
+            callerWorkspaceId = Workspace.Id(),
+            modalPresentation = Workspace.ModalPresentationMode.FULL_SCREEN,
+        )
+
+        val serialized = json.encodeToJsonElement<ExplorerArguments>(original)
+        val deserialized = json.decodeFromString<ExplorerArguments>(serialized.toString())
+
+        deserialized shouldBe original
+        (deserialized as ExplorerArguments.Picker).modalPresentation shouldBe
+            Workspace.ModalPresentationMode.FULL_SCREEN
+    }
+}
+
+/*
+ * Pickers are sub-workspaces and therefore never persisted in a session, so the app registers no
+ * serializers for their contextual fields. These two stand in for that, far enough to prove the
+ * presentation mode survives a round trip.
+ */
+
+private object WorkspaceIdSerializer : KSerializer<Workspace.Id> {
+    override val descriptor = PrimitiveSerialDescriptor("Workspace.Id", PrimitiveKind.STRING)
+    override fun serialize(encoder: Encoder, value: Workspace.Id) = encoder.encodeString(value.longTag)
+    override fun deserialize(decoder: Decoder) = Workspace.Id(Uuid.parse(decoder.decodeString()))
+}
+
+private object SelectionSerializer : KSerializer<PickerConfig.Selection> {
+    override val descriptor = PrimitiveSerialDescriptor("PickerConfig.Selection", PrimitiveKind.STRING)
+
+    override fun serialize(encoder: Encoder, value: PickerConfig.Selection) =
+        encoder.encodeString(requireNotNull(value::class.simpleName))
+
+    override fun deserialize(decoder: Decoder): PickerConfig.Selection = when (val name = decoder.decodeString()) {
+        "DirectorySingle" -> PickerConfig.Selection.DirectorySingle
+        "DirectoryMulti" -> PickerConfig.Selection.DirectoryMulti
+        "FileSingle" -> PickerConfig.Selection.FileSingle
+        "FileMulti" -> PickerConfig.Selection.FileMulti
+        "MixedMulti" -> PickerConfig.Selection.MixedMulti
+        else -> error("Selection not covered by this test serializer: $name")
     }
 }

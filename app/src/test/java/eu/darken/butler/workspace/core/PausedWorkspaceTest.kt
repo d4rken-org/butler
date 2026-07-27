@@ -82,7 +82,7 @@ class PausedWorkspaceTest : BaseTest() {
 
         workspace.info.value.callerWorkspaceId shouldBe callerId
         workspace.info.value.isSubWorkspace shouldBe true
-        workspace.info.value.modalPresentation shouldBe Workspace.ModalPresentationMode.FULL_SCREEN
+        workspace.info.value.modalPresentation shouldBe Workspace.ModalPresentationMode.PANE_LOCAL
     }
 
     /**

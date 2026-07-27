@@ -49,5 +49,8 @@ sealed interface ExplorerArguments : Workspace.Arguments {
         @Contextual val selection: PickerConfig.Selection = PickerConfig.Selection.DirectorySingle,
         val requireWritable: Boolean = false,
         @Contextual override val callerWorkspaceId: Workspace.Id,
+        /** Pane-scoped by default; a caller needing the whole screen asks for it explicitly. */
+        override val modalPresentation: Workspace.ModalPresentationMode =
+            Workspace.ModalPresentationMode.PANE_LOCAL,
     ) : ExplorerArguments, Workspace.ArgumentsForResult
 }
