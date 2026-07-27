@@ -70,6 +70,9 @@ import eu.darken.butler.workspace.ui.insets.paneHorizontalInsetPadding
 import eu.darken.butler.workspace.ui.modal.PaneLayer
 import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
 import eu.darken.butler.workspace.ui.modal.requestPaneFocusOnPress
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlin.math.min
 import kotlin.math.roundToInt
 
@@ -280,6 +283,8 @@ fun PaneScopedBottomSheet(
                     handleModifier = Modifier.draggable(
                         state = rememberDraggableState { delta -> dragState.dragBy(delta) },
                         orientation = Orientation.Vertical,
+                        // Grabbing the sheet stops it where it is, even before the first movement
+                        onDragStarted = { dragState.stopSettling() },
                         onDragStopped = { velocity ->
                             if (dragState.settle(velocity)) currentOnDismiss()
                         },
@@ -361,27 +366,53 @@ private class SheetDragState(
     var offset by mutableFloatStateOf(0f)
         private set
 
+    /**
+     * The spring back to rest runs in the coroutine of whichever node ended the gesture, and nothing
+     * cancels that scope when the *next* gesture begins. So every path that writes [offset] has to
+     * stop the animation first — otherwise the spring keeps assigning the offset from under the
+     * finger, and the second dismissal attempt fights an animation heading the other way.
+     *
+     * This is what `Animatable`'s `MutatorMutex` used to do; the offset is a plain state instead
+     * because [SheetNestedScrollConnection] has to read and write it synchronously.
+     */
+    private var settleJob: Job? = null
+
+    fun stopSettling() {
+        settleJob?.cancel()
+        settleJob = null
+    }
+
     /** Down is positive; the sheet never travels above its resting place. */
     fun dragBy(delta: Float) {
+        stopSettling()
         offset = (offset + delta).coerceAtLeast(0f)
     }
 
     fun snapToRest() {
+        stopSettling()
         offset = 0f
     }
 
     /** Returns whether the gesture ended far or fast enough to dismiss the sheet. */
     suspend fun settle(velocity: Float): Boolean {
+        stopSettling()
         if (offset > dismissThresholdPx || velocity > velocityThreshold) return true
-        animate(
-            initialValue = offset,
-            targetValue = 0f,
-            initialVelocity = velocity,
-            animationSpec = spring(
-                dampingRatio = Spring.DampingRatioMediumBouncy,
-                stiffness = Spring.StiffnessMedium,
-            ),
-        ) { value, _ -> offset = value }
+        coroutineScope {
+            val job = launch {
+                animate(
+                    initialValue = offset,
+                    targetValue = 0f,
+                    initialVelocity = velocity,
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessMedium,
+                    ),
+                ) { value, _ -> offset = value }
+            }
+            settleJob = job
+            job.join()
+            if (settleJob === job) settleJob = null
+        }
         return false
     }
 }

@@ -378,6 +378,44 @@ class PaneScopedBottomSheetTest : ComposeTest() {
     }
 
     /**
+     * Grabbing the sheet again while it is springing back must hand it to the new gesture. The
+     * spring runs in the coroutine of the node that ended the previous drag, and nothing cancels
+     * that scope on its own — left running it keeps assigning the offset while the finger is
+     * dragging the other way.
+     */
+    @Test
+    fun `a second drag takes the sheet over from the spring back`() {
+        var dismissals = 0
+        composeTestRule.mainClock.autoAdvance = false
+        composeTestRule.setContent { Case(onDismiss = { dismissals++ }) { TallContent() } }
+        composeTestRule.mainClock.advanceTimeBy(1_000)
+
+        // Short and slow: under both the distance and the velocity threshold, so it springs back
+        composeTestRule.onNodeWithTag(HANDLE_TAG).performTouchInput {
+            down(center)
+            repeat(DRAG_STEPS) { moveBy(Offset(0f, slowStep(60.dp)), delayMillis = 100) }
+            up()
+        }
+        composeTestRule.mainClock.advanceTimeBy(50)
+
+        val springingBack = handleBounds().top
+        springingBack shouldBeLessThan 60.dp
+
+        composeTestRule.onNodeWithTag(HANDLE_TAG).performTouchInput {
+            down(center)
+            repeat(DRAG_STEPS) { moveBy(Offset(0f, slowStep(80.dp)), delayMillis = 100) }
+        }
+        // Long enough for the previous spring to have finished, had it survived
+        composeTestRule.mainClock.advanceTimeBy(1_000)
+
+        // Followed the finger away from rest; the stale spring would have taken it back to zero.
+        // The margin is well under the 80dp dragged, because touch slop eats the start of a drag.
+        handleBounds().top shouldBeGreaterThan springingBack + 40.dp
+        composeTestRule.onNodeWithTag(HANDLE_TAG).performTouchInput { up() }
+        dismissals shouldBe 0
+    }
+
+    /**
      * A bounded nested scroller consumes its own gestures. The sheet may only take what that
      * scroller could not use, otherwise scrolling a list inside the sheet would throw it away.
      */
@@ -598,6 +636,9 @@ class PaneScopedBottomSheetTest : ComposeTest() {
     private fun cardBounds() = composeTestRule.onNodeWithTag(CARD_TAG).getUnclippedBoundsInRoot()
 
     private fun handleBounds() = composeTestRule.onNodeWithTag(HANDLE_TAG).getUnclippedBoundsInRoot()
+
+    /** One [DRAG_STEPS]th of [total], to be paired with a delay that keeps the fling velocity low. */
+    private fun slowStep(total: Dp) = with(composeTestRule.density) { total.toPx() } / DRAG_STEPS
 
     private fun itemBounds(index: Int) =
         composeTestRule.onNodeWithTag(itemTag(index)).getUnclippedBoundsInRoot()
