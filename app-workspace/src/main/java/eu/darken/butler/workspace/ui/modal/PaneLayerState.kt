@@ -114,3 +114,10 @@ val LocalPaneLayerRank = compositionLocalOf { PaneLayerRank.CONTENT }
 
 /** Token of the enclosing layer, so nesting can be distinguished from stacking. */
 val LocalPaneLayerParent = compositionLocalOf<Any?> { null }
+
+/**
+ * True when the enclosing workspace is stacked as a pane-local modal rather than being the pane's
+ * own workspace. Known at composition time, unlike anything a page collects from its ViewModel, so
+ * a page can gate modal-only behaviour from the very first frame.
+ */
+val LocalWorkspaceIsPaneModal = compositionLocalOf { false }

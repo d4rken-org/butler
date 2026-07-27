@@ -17,6 +17,7 @@ import eu.darken.butler.workspace.ui.feedback.BannerState
 import eu.darken.butler.workspace.ui.insets.paneHorizontalInsetPadding
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.modal.LocalPaneLayerRank
+import eu.darken.butler.workspace.ui.modal.LocalWorkspaceIsPaneModal
 import eu.darken.butler.workspace.ui.modal.PaneLayer
 import eu.darken.butler.workspace.ui.modal.PaneLayerHost
 import eu.darken.butler.workspace.ui.modal.PaneLayerRank
@@ -133,50 +134,55 @@ private fun BoxScope.WorkspaceLayers(
     onResumeWorkspace: (Workspace.Id) -> Unit,
     paneEdges: WorkspaceDesign.PaneEdges,
 ) {
-    PaneLayer(
-        modifier = Modifier.fillMaxSize(),
-        rank = PaneLayerRank.contentAt(depth),
-        modal = contentIsModal,
-    ) {
-        WorkspaceOverlayContainer(
-            // Page content and banner are what the user reads, so they get the horizontal insets
-            modifier = Modifier.paneHorizontalInsetPadding(paneEdges),
-            workspaceId = info.id,
-            bannerStates = bannerStates,
-            onDismissBanner = onDismissBanner,
-            paneEdges = paneEdges,
+    // Provided around all three sections: a page can only learn "am I a pane-local modal" from its
+    // own state flow, which is empty on the first frames. Anything that must be right immediately
+    // (back handling above all) reads this instead.
+    CompositionLocalProvider(LocalWorkspaceIsPaneModal provides contentIsModal) {
+        PaneLayer(
+            modifier = Modifier.fillMaxSize(),
+            rank = PaneLayerRank.contentAt(depth),
+            modal = contentIsModal,
         ) {
-            WorkspaceMapper(
-                info = info,
-                design = design,
-                onShareError = { error -> onShareError(info.id, error) },
-                onCloseWorkspace = { onCloseWorkspace(info.id) },
-                onResumeWorkspace = { onResumeWorkspace(info.id) },
-            )
-        }
-    }
-
-    // Overlays instantiate the page's ViewModel, so they must not be composed while the workspace
-    // is Paused: there is no live instance behind the id and the typed page host would cast the
-    // stand-in. Every other state composes them, matching the content layer — the error handler
-    // lives in this slot, so gating on Ready would swallow anything raised during initialization.
-    if (info.lifecycleState !is Workspace.LifecycleState.Paused) {
-        LocalWorkspacePageHosts.current[info.type]?.let { entry ->
-            CompositionLocalProvider(LocalPaneLayerRank provides PaneLayerRank.overlayAt(depth)) {
-                entry.Overlays(id = info.id, design = design)
+            WorkspaceOverlayContainer(
+                // Page content and banner are what the user reads, so they get the horizontal insets
+                modifier = Modifier.paneHorizontalInsetPadding(paneEdges),
+                workspaceId = info.id,
+                bannerStates = bannerStates,
+                onDismissBanner = onDismissBanner,
+                paneEdges = paneEdges,
+            ) {
+                WorkspaceMapper(
+                    info = info,
+                    design = design,
+                    onShareError = { error -> onShareError(info.id, error) },
+                    onCloseWorkspace = { onCloseWorkspace(info.id) },
+                    onResumeWorkspace = { onResumeWorkspace(info.id) },
+                )
             }
         }
-    }
 
-    // Deliberately outside the lifecycle gate: a close confirmation for a paused workspace must
-    // still appear.
-    managerDialogStates[info.id]?.let { dialog ->
-        PaneLayer(modifier = Modifier.fillMaxSize(), rank = PaneLayerRank.managerAt(depth)) {
-            ManagerDialogHost(
-                dialog = dialog,
-                onDismiss = { onDismissManagerDialog(it.targetWorkspaceId) },
-                onConfirm = onConfirmManagerDialog,
-            )
+        // Overlays instantiate the page's ViewModel, so they must not be composed while the workspace
+        // is Paused: there is no live instance behind the id and the typed page host would cast the
+        // stand-in. Every other state composes them, matching the content layer — the error handler
+        // lives in this slot, so gating on Ready would swallow anything raised during initialization.
+        if (info.lifecycleState !is Workspace.LifecycleState.Paused) {
+            LocalWorkspacePageHosts.current[info.type]?.let { entry ->
+                CompositionLocalProvider(LocalPaneLayerRank provides PaneLayerRank.overlayAt(depth)) {
+                    entry.Overlays(id = info.id, design = design)
+                }
+            }
+        }
+
+        // Deliberately outside the lifecycle gate: a close confirmation for a paused workspace must
+        // still appear.
+        managerDialogStates[info.id]?.let { dialog ->
+            PaneLayer(modifier = Modifier.fillMaxSize(), rank = PaneLayerRank.managerAt(depth)) {
+                ManagerDialogHost(
+                    dialog = dialog,
+                    onDismiss = { onDismissManagerDialog(it.targetWorkspaceId) },
+                    onConfirm = onConfirmManagerDialog,
+                )
+            }
         }
     }
 }
