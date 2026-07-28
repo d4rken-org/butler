@@ -204,7 +204,7 @@ object SearcherMockDataProvider {
             ),
             createMockSearchResult(
                 name = "config.properties",
-                path = "/storage/emulated/0/Downloads/backup/config.properties",
+                path = "/storage/emulated/0/Download/backup/config.properties",
                 fileType = FileType.FILE,
                 sizeKB = 1,
                 hoursAgo = 12
@@ -222,7 +222,35 @@ object SearcherMockDataProvider {
                 fileType = FileType.DIRECTORY,
                 sizeKB = null,
                 hoursAgo = 24
-            )
+            ),
+            createMockSearchResult(
+                name = "proxy-config.conf",
+                path = "/storage/emulated/0/Download/proxy-config.conf",
+                fileType = FileType.FILE,
+                sizeKB = 2,
+                hoursAgo = 6
+            ),
+            createMockSearchResult(
+                name = "config-backup.zip",
+                path = "/storage/1A2B-3C4D/Backups/config-backup.zip",
+                fileType = FileType.FILE,
+                sizeKB = 12 * 1024,
+                hoursAgo = 30
+            ),
+            createMockSearchResult(
+                name = "router-config.png",
+                path = "/storage/1A2B-3C4D/DCIM/router-config.png",
+                fileType = FileType.FILE,
+                sizeKB = 1434,
+                hoursAgo = 50
+            ),
+            createMockSearchResult(
+                name = "config.old",
+                path = "/storage/1A2B-3C4D/Backups/2026-06/config.old",
+                fileType = FileType.FILE,
+                sizeKB = 3,
+                hoursAgo = 96
+            ),
         )
 
         // Select 3 items: config.json, app-config.xml, and server-config.yaml
@@ -232,30 +260,17 @@ object SearcherMockDataProvider {
             filenameQuery = "config",
             workspaceState = SearcherWorkspace.State(
                 searchTargets = listOf(
-                    SearchTarget.Path.from(LocalPath.build("/storage/emulated/0"))
+                    SearchTarget.Path.from(LocalPath.build("/storage/emulated/0")),
+                    SearchTarget.Path.from(LocalPath.build("/storage/1A2B-3C4D")),
+                    SearchTarget.MediaStore(SearchTarget.MediaStore.Collection.IMAGES),
+                    SearchTarget.MediaStore(SearchTarget.MediaStore.Collection.DOWNLOADS),
                 ),
-                searchStatus = SearcherWorkspace.State.SearchStatus.SEARCHING,
+                // A finished search. The progress card shows while targetProgress is non-empty and
+                // the status is not IDLE, so both have to be cleared; a "completed" status alone
+                // would keep it, and the top bar stack has no room for it.
+                searchStatus = SearcherWorkspace.State.SearchStatus.IDLE,
                 results = results,
-                targetProgress = listOf(
-                    SearchEngine.SearchTargetProgress(
-                        target = SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Android")),
-                        itemsScanned = 1247,
-                        resultsFound = 2,
-                        status = SearchEngine.SearchTargetProgress.Status.COMPLETED
-                    ),
-                    SearchEngine.SearchTargetProgress(
-                        target = SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Documents")),
-                        itemsScanned = 583,
-                        resultsFound = 2,
-                        status = SearchEngine.SearchTargetProgress.Status.SEARCHING
-                    ),
-                    SearchEngine.SearchTargetProgress(
-                        target = SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Download")),
-                        itemsScanned = 0,
-                        resultsFound = 0,
-                        status = SearchEngine.SearchTargetProgress.Status.SEARCHING
-                    )
-                ),
+                targetProgress = emptyList(),
             ),
             selectionState = SearcherSelectionState(
                 selectableResults = results,
