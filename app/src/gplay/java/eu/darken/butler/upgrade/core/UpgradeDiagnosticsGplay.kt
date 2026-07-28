@@ -29,12 +29,21 @@ class UpgradeDiagnosticsGplay @Inject constructor(
 ) : UpgradeDiagnostics {
 
     override suspend fun debugInfo(): String {
-        val snapshot = billingCache.snapshot()
-        val lastProAt = snapshot.lastProStateAt.takeIf { it > 0 }?.let { Instant.fromEpochMilliseconds(it) } ?: "never"
-        val lastProSku = snapshot.lastProStateSku.takeIf { it.isNotEmpty() } ?: "unknown/legacy"
-        val unconfirmedSince = snapshot.proUnconfirmedSince.takeIf { it > 0 }?.let { Instant.fromEpochMilliseconds(it) } ?: "none"
-        val cache = "BillingCache(lastProStateAt=$lastProAt, lastProStateSku=$lastProSku, " +
-            "proUnconfirmedSince=$unconfirmedSince)"
+        val cache = try {
+            val snapshot = billingCache.snapshot()
+            val lastProAt =
+                snapshot.lastProStateAt.takeIf { it > 0 }?.let { Instant.fromEpochMilliseconds(it) } ?: "never"
+            val lastProSku = snapshot.lastProStateSku.takeIf { it.isNotEmpty() } ?: "unknown/legacy"
+            val unconfirmedSince =
+                snapshot.proUnconfirmedSince.takeIf { it > 0 }?.let { Instant.fromEpochMilliseconds(it) } ?: "none"
+            "BillingCache(lastProStateAt=$lastProAt, lastProStateSku=$lastProSku, " +
+                "proUnconfirmedSince=$unconfirmedSince)"
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            log(TAG, WARN) { "Billing cache unavailable: ${e.asLog()}" }
+            "BillingCache=unavailable"
+        }
         // Separate boundary from the cache read above on purpose: these are different DataStores,
         // and the counters only cover installs new enough to have them. A failure to read one must
         // not suppress the other's independent evidence.
