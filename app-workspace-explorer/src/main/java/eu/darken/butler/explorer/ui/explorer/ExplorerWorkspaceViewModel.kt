@@ -504,7 +504,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                         availableActions = availableActions,
                         dialogState = dialogState,
                         setupRequirements = wsStateInner.currentLocation?.setupRequirements ?: PathRequirements(),
-                        isPro = upgradeInfo.isUpgraded,
+                        isPro = upgradeInfo.isPro,
                         filterState = filterState,
                         useRegexPatterns = useRegexPatterns,
                         useBackButtonForNavigation = useBackButtonForNavigation,

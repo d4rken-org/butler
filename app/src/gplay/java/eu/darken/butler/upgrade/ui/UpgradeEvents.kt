@@ -1,11 +1,17 @@
 package eu.darken.butler.upgrade.ui
 
 sealed class UpgradeEvents {
-    data object RestoreFailed : UpgradeEvents()
     data object RestoreSucceeded : UpgradeEvents()
 
-    // Sub->IAP switch gate outcomes: the user still has an auto-renewing (or pending) subscription, or
-    // we couldn't verify the subscription state and refused to launch (fail-closed).
+    /** Play answered and no purchase was found. A real result: troubleshooting and escalation apply. */
+    data object RestoreFailed : UpgradeEvents()
+
+    /**
+     * The restore didn't finish within its budget, so ownership is simply unknown. Kept apart from
+     * [RestoreFailed] because that dialog asserts a completed check and steers toward the
+     * multi-account explanation, neither of which is warranted here.
+     */
+    data object RestoreInconclusive : UpgradeEvents()
     data object SubscriptionStillRenewing : UpgradeEvents()
     data object SubscriptionCheckFailed : UpgradeEvents()
 }

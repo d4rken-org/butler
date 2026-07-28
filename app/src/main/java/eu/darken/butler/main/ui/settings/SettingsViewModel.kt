@@ -28,7 +28,7 @@ class SettingsViewModel @Inject constructor(
     ) { upgradeInfo, isDeveloperUnlocked ->
         State(
             versionText = BuildConfigWrap.VERSION_DESCRIPTION,
-            isUpgraded = upgradeInfo.isUpgraded,
+            isUpgraded = upgradeInfo.isPro,
             upgradeType = upgradeInfo.type,
             isDeveloperModeUnlocked = isDeveloperUnlocked,
             canUnlockDeveloperMode = !isDeveloperUnlocked,

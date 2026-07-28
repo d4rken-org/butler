@@ -11,7 +11,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.flow.replayingShare
 import eu.darken.butler.common.flow.setupCommonEventHandlers
 import eu.darken.butler.upgrade.UpgradeRepo
-import eu.darken.butler.upgrade.isPro
+import eu.darken.butler.upgrade.isProForUi
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.usage.WorkspaceUsageRepo
 import kotlinx.coroutines.CancellationException
@@ -258,10 +258,10 @@ class WorkspaceRepo @Inject constructor(
     }
 
     override suspend fun execute(action: WorkspaceAction): WorkspaceAction.Result {
-        // Read outside the lock: isPro() suspends on the upgrade info flow and must not stall the repo.
+        // Read outside the lock: isProForUi() suspends on the upgrade info flow and must not stall the repo.
         val isPro = when (action) {
-            is WorkspaceAction.Create -> action.needsLimitCheck && upgradeRepo.isPro()
-            is WorkspaceAction.CreateBatch -> upgradeRepo.isPro()
+            is WorkspaceAction.Create -> action.needsLimitCheck && upgradeRepo.isProForUi()
+            is WorkspaceAction.CreateBatch -> upgradeRepo.isProForUi()
             else -> false
         }
         return lock.withLock {

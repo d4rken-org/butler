@@ -27,9 +27,11 @@ import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPositions
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.slot
@@ -631,8 +633,16 @@ class WorkspaceSessionManagerTest : BaseTest() {
                 }
             }
 
-            val upgradeInfo = mockk<UpgradeRepo.Info>().apply { every { isUpgraded } returns true }
-            val upgradeRepo = mockk<UpgradeRepo>().apply { every { this@apply.upgradeInfo } returns flowOf(upgradeInfo) }
+            val upgradeInfo = mockk<UpgradeRepo.Info>().apply {
+                every { isPro } returns true
+                every { isSettled } returns true
+                every { error } returns null
+            }
+            // Mirrors the real repo: a hot flow that never completes (see WorkspaceRepoTest).
+            val upgradeRepo = mockk<UpgradeRepo>().apply {
+                every { this@apply.upgradeInfo } returns MutableStateFlow(upgradeInfo)
+                coEvery { refresh() } just Runs
+            }
             repo = WorkspaceRepo(
                 appScope = restoreScope,
                 factoryMap = factoryMap,

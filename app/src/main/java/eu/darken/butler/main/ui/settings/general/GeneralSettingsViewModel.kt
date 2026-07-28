@@ -56,7 +56,7 @@ constructor(
             confirmExitEnabled = confirmExitEnabled,
             avoidDisplayCutout = avoidDisplayCutout,
             isDocumentsProviderEnabled = isDocumentsProviderEnabled,
-            isUpgraded = upgradeInfo.isUpgraded,
+            isUpgraded = upgradeInfo.isPro,
         )
     }
         .asStateFlow()

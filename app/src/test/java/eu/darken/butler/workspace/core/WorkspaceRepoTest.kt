@@ -16,9 +16,12 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.matchers.types.shouldBeSameInstanceAs
+import io.mockk.Runs
 import io.mockk.clearMocks
+import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
@@ -182,10 +185,15 @@ class WorkspaceRepoTest : BaseTest() {
 
     private fun TestScope.createRepo(isPro: Boolean = false): WorkspaceRepo {
         val upgradeInfo = mockk<UpgradeRepo.Info>().apply {
-            every { isUpgraded } returns isPro
+            every { this@apply.isPro } returns isPro
+            every { isSettled } returns true
+            every { error } returns null
         }
+        // Mirrors the real repo: a hot flow that never completes. The settled-aware upgrade gates
+        // suspend on it, and a finite flow would end that wait and trip their fail-open path.
         val upgradeRepo = mockk<UpgradeRepo>().apply {
-            every { this@apply.upgradeInfo } returns flowOf(upgradeInfo)
+            every { this@apply.upgradeInfo } returns MutableStateFlow(upgradeInfo)
+            coEvery { refresh() } just Runs
         }
         // Layout flows must actually emit: WorkspaceRepo.state combines them, so a relaxed mock
         // would leave the state flow silent and every read of it would hang.

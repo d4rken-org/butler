@@ -23,18 +23,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
+import androidx.compose.ui.unit.dp
 import eu.darken.butler.R
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
-import eu.darken.butler.common.compose.PreviewWrapper
 
-// The acquisition offers box: header, subscription offer row, "or" divider, one-time offer row,
-// parity footnote. Rendered inside an UpgradeActionCard by the caller.
+// The acquisition offers box: header, offer rows, "or" divider, parity footnote. Own file so the
+// box can be iterated via the previews below.
 @Composable
 internal fun LoadedOffers(
-    state: UpgradeUiState.Loaded,
+    uiState: UpgradeUiState.Loaded,
     onIap: () -> Unit,
     onSubscription: () -> Unit,
     onSubscriptionTrial: () -> Unit,
@@ -51,10 +50,11 @@ internal fun LoadedOffers(
         )
 
         val subscriptionText = stringResource(
-            if (state.subscriptionAction == UpgradeUiState.SubscriptionAction.TRIAL) {
-                R.string.upgrade_screen_subscription_trial_action
-            } else {
-                R.string.upgrade_screen_subscription_action
+            when (uiState.subscriptionAction) {
+                SubscriptionAction.TRIAL -> R.string.upgrade_screen_subscription_trial_action
+                SubscriptionAction.STANDARD,
+                SubscriptionAction.UNAVAILABLE,
+                    -> R.string.upgrade_screen_subscription_action
             }
         )
 
@@ -62,9 +62,10 @@ internal fun LoadedOffers(
 
         UpgradeOfferRow(
             title = stringResource(R.string.upgrade_screen_subscription_offer_title),
-            price = state.subscriptionPrice,
+            price = uiState.subscriptionPrice,
+            // Only promise the trial when Play actually returned the trial offer.
             hint = stringResource(
-                if (state.subscriptionAction == UpgradeUiState.SubscriptionAction.TRIAL) {
+                if (uiState.subscriptionAction == SubscriptionAction.TRIAL) {
                     R.string.upgrade_screen_subscription_offer_body
                 } else {
                     R.string.upgrade_screen_subscription_offer_body_no_trial
@@ -72,16 +73,31 @@ internal fun LoadedOffers(
             ),
         ) {
             Button(
-                onClick = if (state.subscriptionAction == UpgradeUiState.SubscriptionAction.TRIAL) {
-                    onSubscriptionTrial
-                } else {
-                    onSubscription
+                onClick = when (uiState.subscriptionAction) {
+                    SubscriptionAction.TRIAL -> onSubscriptionTrial
+                    SubscriptionAction.STANDARD,
+                    SubscriptionAction.UNAVAILABLE,
+                        -> onSubscription
                 },
-                enabled = state.subscriptionEnabled,
+                // Locked while ANY entitlement action runs: two concurrent billing launches (or a
+                // launch racing a restore) must not be startable from here.
+                enabled = uiState.subscriptionEnabled && uiState.busy == null,
                 modifier = Modifier
                     .fillMaxWidth()
                     .testTag(UpgradeScreenTags.SUBSCRIPTION),
-            ) { Text(subscriptionText) }
+            ) {
+                // The spinner marks the action the user actually started, never a sibling one.
+                if (uiState.busy == BusyOp.SUBSCRIPTION) {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .size(18.dp)
+                            .testTag(UpgradeScreenTags.SUBSCRIPTION_SPINNER),
+                        strokeWidth = 2.dp,
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+                Text(subscriptionText)
+            }
         }
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -102,18 +118,23 @@ internal fun LoadedOffers(
 
         UpgradeOfferRow(
             title = stringResource(R.string.upgrade_screen_iap_offer_title),
-            price = state.iapPrice,
+            price = uiState.iapPrice,
             hint = stringResource(R.string.upgrade_screen_iap_offer_body),
         ) {
             OutlinedButton(
                 onClick = onIap,
-                enabled = state.iapEnabled,
+                enabled = uiState.iapEnabled && uiState.busy == null,
                 modifier = Modifier
                     .fillMaxWidth()
                     .testTag(UpgradeScreenTags.IAP),
             ) {
-                if (state.verificationInProgress) {
-                    CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                if (uiState.busy == BusyOp.IAP) {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .size(18.dp)
+                            .testTag(UpgradeScreenTags.IAP_SPINNER),
+                        strokeWidth = 2.dp,
+                    )
                     Spacer(modifier = Modifier.width(8.dp))
                 }
                 Text(stringResource(R.string.upgrade_screen_iap_action))
@@ -126,7 +147,9 @@ internal fun LoadedOffers(
     }
 }
 
-// Title and price on one line (·-joined), terms as body text below, then the action button.
+// Title and price share one line ("·"-joined in code: direction-neutral punctuation, not
+// translatable copy), terms follow as body text, then the action — the terms must not repeat
+// the button label.
 @Composable
 internal fun UpgradeOfferRow(
     title: String,
@@ -135,7 +158,9 @@ internal fun UpgradeOfferRow(
     hint: String? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    Column(modifier = modifier.fillMaxWidth()) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+    ) {
         Text(
             text = listOfNotNull(title, price).joinToString(" · "),
             style = MaterialTheme.typography.titleMedium,
@@ -147,13 +172,32 @@ internal fun UpgradeOfferRow(
     }
 }
 
+internal fun previewLoaded(
+    subscriptionAction: SubscriptionAction = SubscriptionAction.TRIAL,
+    ownership: Ownership = Ownership(),
+    grace: GraceHint? = null,
+    wasPreviouslyPro: Boolean = false,
+    busy: BusyOp? = null,
+) = UpgradeUiState.Loaded(
+    subscriptionAction = subscriptionAction,
+    subscriptionEnabled = ownership.subscription == null && busy == null,
+    subscriptionPrice = "$2.99",
+    iapEnabled = !ownership.hasIap && busy == null,
+    iapPrice = "$4.99",
+    ownership = ownership,
+    grace = grace,
+    wasPreviouslyPro = wasPreviouslyPro,
+    busy = busy,
+)
+
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun LoadedOffersPreview() {
+    // Inside the real container so spacing and colors match the device.
     UpgradeActionCard {
         LoadedOffers(
-            state = previewLoaded(),
+            uiState = previewLoaded(),
             onIap = {},
             onSubscription = {},
             onSubscriptionTrial = {},
@@ -161,21 +205,16 @@ private fun LoadedOffersPreview() {
     }
 }
 
-internal fun previewLoaded(
-    ownership: UpgradeUiState.Ownership = UpgradeUiState.Ownership(),
-    grace: UpgradeUiState.GraceHint? = null,
-    wasPreviouslyPro: Boolean = false,
-    subscriptionAction: UpgradeUiState.SubscriptionAction = UpgradeUiState.SubscriptionAction.TRIAL,
-) = UpgradeUiState.Loaded(
-    manage = ownership.ownsAnything,
-    settled = true,
-    ownership = ownership,
-    grace = grace,
-    subscriptionAction = subscriptionAction,
-    subscriptionPrice = "$2.99",
-    trialPrice = "$2.99",
-    iapPrice = "$4.99",
-    wasPreviouslyPro = wasPreviouslyPro,
-    restoreInProgress = false,
-    verificationInProgress = false,
-)
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun LoadedOffersNoTrialPreview() {
+    UpgradeActionCard {
+        LoadedOffers(
+            uiState = previewLoaded(subscriptionAction = SubscriptionAction.STANDARD),
+            onIap = {},
+            onSubscription = {},
+            onSubscriptionTrial = {},
+        )
+    }
+}

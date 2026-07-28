@@ -53,8 +53,12 @@ import eu.darken.butler.common.compose.ColoredTitleText
 internal object UpgradeScreenTags {
     const val LOADING = "upgrade_loading"
     const val ACTIONS = "upgrade_actions"
+    const val MASCOT_HAPPY = "upgrade_mascot_happy"
+    const val MASCOT_GRUMPY = "upgrade_mascot_grumpy"
     const val SUBSCRIPTION = "upgrade_subscription"
+    const val SUBSCRIPTION_SPINNER = "upgrade_subscription_spinner"
     const val IAP = "upgrade_iap"
+    const val IAP_SPINNER = "upgrade_iap_spinner"
     const val RESTORE = "upgrade_restore"
     const val RESTORE_BANNER = "upgrade_restore_banner"
     const val RESTORE_BANNER_ACTION = "upgrade_restore_banner_action"
@@ -148,7 +152,10 @@ internal fun UpgradeMascot(
     happy: Boolean = true,
 ) {
     ButlerMascot(
-        modifier = modifier.size(size),
+        // Tagged by mood: the grace stages swap the face, and that swap is asserted in the tests.
+        modifier = modifier
+            .size(size)
+            .testTag(if (happy) UpgradeScreenTags.MASCOT_HAPPY else UpgradeScreenTags.MASCOT_GRUMPY),
         variant = if (happy) ButlerMascotMode.Static.Happy() else ButlerMascotMode.Static.Sad(),
     )
 }
