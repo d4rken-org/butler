@@ -37,6 +37,9 @@ import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
+import eu.darken.butler.workspace.ui.dialogs.InfoCard
+import eu.darken.butler.workspace.ui.dialogs.InfoField
+import eu.darken.butler.workspace.ui.dialogs.InfoValueStyle
 import java.text.DateFormat
 import java.util.Date
 import kotlin.time.Clock
@@ -121,55 +124,56 @@ private fun SingleFileInfo(
     val context = LocalContext.current
 
     InfoCard {
-        InfoRow(
+        InfoField(
             label = stringResource(R.string.explorer_info_name_label),
-            value = item.lookup.name
+            value = item.lookup.name,
         )
 
-        InfoRow(
+        InfoField(
             label = stringResource(R.string.explorer_info_path_label),
             value = item.lookup.path,
-            isCopyable = true,
-            onCopy = { onCopyToClipboard(item.lookup.path) }
+            onCopy = { onCopyToClipboard(item.lookup.path) },
+            valueStyle = InfoValueStyle.MONOSPACE,
         )
 
-        InfoRow(
+        InfoField(
             label = stringResource(R.string.explorer_info_type_label),
-            value = item.mimeType.toCaString().get(context)
+            value = item.mimeType.toCaString().get(context),
         )
 
-        InfoRow(
+        InfoField(
             label = stringResource(R.string.explorer_info_size_label),
-            value = item.lookup.size?.let { formatFileSize(it) } ?: "?"
+            value = item.lookup.size?.let { formatFileSize(it) } ?: "?",
         )
 
         item.lookup.modifiedAt?.let { modifiedAt ->
-            InfoRow(
+            InfoField(
                 label = stringResource(R.string.explorer_info_modified_label),
                 value = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
-                    .format(Date(modifiedAt.toEpochMilliseconds()))
+                    .format(Date(modifiedAt.toEpochMilliseconds())),
             )
         }
 
         item.permissions?.let { permissions ->
-            InfoRow(
+            InfoField(
                 label = stringResource(R.string.explorer_info_permissions_label),
-                value = permissions.toReadableString()
+                value = permissions.toReadableString(),
+                valueStyle = InfoValueStyle.MONOSPACE,
             )
         }
 
         item.ownership?.let { ownership ->
-            InfoRow(
+            InfoField(
                 label = stringResource(R.string.explorer_info_owner_label),
-                value = ownership.userName ?: ownership.userId.toString()
+                value = ownership.userName ?: ownership.userId.toString(),
             )
         }
 
         item.createdAt?.let { createdAt ->
-            InfoRow(
+            InfoField(
                 label = stringResource(R.string.explorer_info_created_label),
                 value = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
-                    .format(Date(createdAt.toEpochMilliseconds()))
+                    .format(Date(createdAt.toEpochMilliseconds())),
             )
         }
     }
@@ -177,17 +181,17 @@ private fun SingleFileInfo(
     if (item is ExplorerItem.SymbolicLink) {
         Spacer(modifier = Modifier.height(8.dp))
         InfoCard {
-            InfoRow(
+            InfoField(
                 label = stringResource(R.string.explorer_info_symlink_target_label),
                 value = item.targetPath ?: stringResource(R.string.explorer_info_unknown),
-                isCopyable = item.targetPath != null,
-                onCopy = { item.targetPath?.let { onCopyToClipboard(it) } }
+                onCopy = item.targetPath?.let { targetPath -> { onCopyToClipboard(targetPath) } },
+                valueStyle = InfoValueStyle.MONOSPACE,
             )
 
             if (item.isBroken) {
-                InfoRow(
+                InfoField(
                     label = stringResource(R.string.explorer_info_symlink_status_label),
-                    value = stringResource(R.string.explorer_info_symlink_broken)
+                    value = stringResource(R.string.explorer_info_symlink_broken),
                 )
             }
         }
@@ -200,62 +204,63 @@ private fun SingleDirectoryInfo(
     onCopyToClipboard: (String) -> Unit,
 ) {
     InfoCard {
-        InfoRow(
+        InfoField(
             label = stringResource(R.string.explorer_info_name_label),
-            value = item.lookup.name
+            value = item.lookup.name,
         )
 
-        InfoRow(
+        InfoField(
             label = stringResource(R.string.explorer_info_path_label),
             value = item.lookup.path,
-            isCopyable = true,
-            onCopy = { onCopyToClipboard(item.lookup.path) }
+            onCopy = { onCopyToClipboard(item.lookup.path) },
+            valueStyle = InfoValueStyle.MONOSPACE,
         )
 
-        InfoRow(
+        InfoField(
             label = stringResource(R.string.explorer_info_type_label),
-            value = stringResource(R.string.explorer_info_type_directory)
+            value = stringResource(R.string.explorer_info_type_directory),
         )
 
         when (val count = item.childCount) {
-            0 -> InfoRow(
+            0 -> InfoField(
                 label = stringResource(R.string.explorer_info_child_count_label),
-                value = stringResource(R.string.explorer_file_empty)
+                value = stringResource(R.string.explorer_file_empty),
             )
             null -> {}
-            else -> InfoRow(
+            else -> InfoField(
                 label = stringResource(R.string.explorer_info_child_count_label),
-                value = count.toString()
+                value = count.toString(),
             )
         }
 
         item.lookup.modifiedAt?.let { modifiedAt ->
-            InfoRow(
+            InfoField(
                 label = stringResource(R.string.explorer_info_modified_label),
                 value = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
-                    .format(Date(modifiedAt.toEpochMilliseconds()))
+                    .format(Date(modifiedAt.toEpochMilliseconds())),
             )
         }
 
         item.permissions?.let { permissions ->
-            InfoRow(
+            InfoField(
                 label = stringResource(R.string.explorer_info_permissions_label),
-                value = permissions.toReadableString()
+                value = permissions.toReadableString(),
+                valueStyle = InfoValueStyle.MONOSPACE,
             )
         }
 
         item.ownership?.let { ownership ->
-            InfoRow(
+            InfoField(
                 label = stringResource(R.string.explorer_info_owner_label),
-                value = ownership.userName ?: ownership.userId.toString()
+                value = ownership.userName ?: ownership.userId.toString(),
             )
         }
 
         item.createdAt?.let { createdAt ->
-            InfoRow(
+            InfoField(
                 label = stringResource(R.string.explorer_info_created_label),
                 value = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
-                    .format(Date(createdAt.toEpochMilliseconds()))
+                    .format(Date(createdAt.toEpochMilliseconds())),
             )
         }
     }
@@ -269,17 +274,16 @@ private fun SingleSAFInfo(
     val context = LocalContext.current
 
     InfoCard {
-        InfoRow(
+        InfoField(
             label = stringResource(R.string.explorer_info_name_label),
-            value = item.location.userLabel ?: item.location.displayName.get(context)
+            value = item.location.userLabel ?: item.location.displayName.get(context),
         )
 
-        InfoRow(
+        InfoField(
             label = stringResource(R.string.explorer_info_saf_uri_label),
             value = item.location.treeUri.toString(),
-            isCopyable = true,
             onCopy = { onCopyToClipboard(item.location.treeUri.toString()) },
-            valueStyle = InfoValueStyle.MONOSPACE
+            valueStyle = InfoValueStyle.MONOSPACE,
         )
 
         val context = LocalContext.current
@@ -289,15 +293,15 @@ private fun SingleSAFInfo(
             if (item.location.hasWritePermission) append(context.getString(R.string.explorer_info_saf_permission_write))
         }
 
-        InfoRow(
+        InfoField(
             label = stringResource(R.string.explorer_info_saf_permissions_label),
-            value = permissionText
+            value = permissionText,
         )
 
-        InfoRow(
+        InfoField(
             label = stringResource(R.string.explorer_info_saf_granted_label),
             value = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
-                .format(Date(item.location.grantedAt.toEpochMilliseconds()))
+                .format(Date(item.location.grantedAt.toEpochMilliseconds())),
         )
     }
 }
@@ -307,29 +311,29 @@ private fun MultipleItemsInfo(
     context: ExplorerDialogState.ItemInfo.InfoContext.MultipleItems,
 ) {
     InfoCard {
-        InfoRow(
+        InfoField(
             label = stringResource(R.string.explorer_info_selected_label),
-            value = context.selectedItems.size.toString()
+            value = context.selectedItems.size.toString(),
         )
 
         if (context.fileCount > 0) {
-            InfoRow(
+            InfoField(
                 label = stringResource(R.string.explorer_info_files_label),
-                value = context.fileCount.toString()
+                value = context.fileCount.toString(),
             )
         }
 
         if (context.directoryCount > 0) {
-            InfoRow(
+            InfoField(
                 label = stringResource(R.string.explorer_info_directories_label),
-                value = context.directoryCount.toString()
+                value = context.directoryCount.toString(),
             )
         }
 
         context.totalSize?.let { size ->
-            InfoRow(
+            InfoField(
                 label = stringResource(R.string.explorer_info_total_size_label),
-                value = formatFileSize(size)
+                value = formatFileSize(size),
             )
         }
     }
@@ -341,36 +345,36 @@ private fun DeviceViewInfo(
 ) {
     InfoCard {
         location.info?.let { info ->
-            InfoRow(
+            InfoField(
                 label = stringResource(R.string.explorer_info_locations_label),
-                value = info.locationCount.toString()
+                value = info.locationCount.toString(),
             )
 
             info.totalCapacity?.let { capacity ->
-                InfoRow(
+                InfoField(
                     label = stringResource(R.string.explorer_info_total_capacity_label),
-                    value = formatFileSize(capacity)
+                    value = formatFileSize(capacity),
                 )
             }
 
             info.usedSpace?.let { used ->
-                InfoRow(
+                InfoField(
                     label = stringResource(R.string.explorer_info_used_space_label),
-                    value = formatFileSize(used)
+                    value = formatFileSize(used),
                 )
             }
 
             if (info.totalCapacity != null && info.usedSpace != null) {
                 val freeSpace = info.totalCapacity - info.usedSpace
-                InfoRow(
+                InfoField(
                     label = stringResource(R.string.explorer_info_free_space_label),
-                    value = formatFileSize(freeSpace)
+                    value = formatFileSize(freeSpace),
                 )
 
                 val percentage = (info.usedSpace.toDouble() / info.totalCapacity * 100).toInt()
-                InfoRow(
+                InfoField(
                     label = stringResource(R.string.explorer_info_usage_label),
-                    value = "$percentage%"
+                    value = "$percentage%",
                 )
             }
         }
@@ -383,37 +387,35 @@ private fun HomeViewInfo(
 ) {
     InfoCard {
         location.info?.let { info ->
-            InfoRow(
+            InfoField(
                 label = stringResource(R.string.explorer_info_shortcuts_label),
-                value = info.shortcutCount.toString()
+                value = info.shortcutCount.toString(),
             )
 
             info.totalDeviceStorage?.let { total ->
-                InfoRow(
+                InfoField(
                     label = stringResource(R.string.explorer_info_device_storage_total_label),
-                    value = formatFileSize(total)
+                    value = formatFileSize(total),
                 )
             }
 
             info.usedStorage?.let { used ->
-                InfoRow(
+                InfoField(
                     label = stringResource(R.string.explorer_info_device_storage_used_label),
-                    value = formatFileSize(used)
+                    value = formatFileSize(used),
                 )
             }
 
             if (info.totalDeviceStorage != null && info.usedStorage != null) {
                 val freeSpace = info.totalDeviceStorage - info.usedStorage
-                InfoRow(
+                InfoField(
                     label = stringResource(R.string.explorer_info_device_storage_free_label),
-                    value = formatFileSize(freeSpace)
+                    value = formatFileSize(freeSpace),
                 )
             }
         }
     }
 }
-
-// InfoCard, InfoRow, and InfoValueStyle are now in InfoComponents.kt
 
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)

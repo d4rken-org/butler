@@ -38,6 +38,9 @@ import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionBarItem
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
+import eu.darken.butler.workspace.ui.dialogs.InfoCard
+import eu.darken.butler.workspace.ui.dialogs.InfoField
+import eu.darken.butler.workspace.ui.dialogs.InfoValueStyle
 import java.text.DateFormat
 import java.util.Date
 import kotlin.time.Clock
@@ -134,18 +137,18 @@ private fun TrashItemOptionsContent(
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
             InfoCard {
                 // Deleted at - trash specific
-                InfoRow(
+                InfoField(
                     label = stringResource(R.string.explorer_trash_info_deleted_label),
                     value = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
-                        .format(Date(item.deletedAt.toEpochMilliseconds()))
+                        .format(Date(item.deletedAt.toEpochMilliseconds())),
                 )
 
                 // Original path
-                InfoRow(
+                InfoField(
                     label = stringResource(R.string.explorer_info_path_label),
                     value = lookup.path,
-                    isCopyable = true,
-                    onCopy = { onCopyToClipboard(lookup.path) }
+                    onCopy = { onCopyToClipboard(lookup.path) },
+                    valueStyle = InfoValueStyle.MONOSPACE,
                 )
 
                 // Type
@@ -154,50 +157,51 @@ private fun TrashItemOptionsContent(
                     FileType.DIRECTORY -> context.getString(R.string.explorer_info_type_directory)
                     else -> context.getString(R.string.explorer_info_unknown)
                 }
-                InfoRow(
+                InfoField(
                     label = stringResource(R.string.explorer_info_type_label),
-                    value = typeValue
+                    value = typeValue,
                 )
 
                 // Size
                 lookup.size?.let { size ->
-                    InfoRow(
+                    InfoField(
                         label = stringResource(R.string.explorer_info_size_label),
-                        value = formatFileSize(size)
+                        value = formatFileSize(size),
                     )
                 }
 
                 // Modified date
                 lookup.modifiedAt?.let { modifiedAt ->
-                    InfoRow(
+                    InfoField(
                         label = stringResource(R.string.explorer_info_modified_label),
                         value = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
-                            .format(Date(modifiedAt.toEpochMilliseconds()))
+                            .format(Date(modifiedAt.toEpochMilliseconds())),
                     )
                 }
 
                 // Created date
                 lookup.createdAt?.let { createdAt ->
-                    InfoRow(
+                    InfoField(
                         label = stringResource(R.string.explorer_info_created_label),
                         value = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
-                            .format(Date(createdAt.toEpochMilliseconds()))
+                            .format(Date(createdAt.toEpochMilliseconds())),
                     )
                 }
 
                 // Permissions
                 lookup.permissions?.let { permissions ->
-                    InfoRow(
+                    InfoField(
                         label = stringResource(R.string.explorer_info_permissions_label),
-                        value = permissions.toReadableString()
+                        value = permissions.toReadableString(),
+                        valueStyle = InfoValueStyle.MONOSPACE,
                     )
                 }
 
                 // Owner
                 lookup.ownership?.let { ownership ->
-                    InfoRow(
+                    InfoField(
                         label = stringResource(R.string.explorer_info_owner_label),
-                        value = ownership.userName ?: ownership.userId.toString()
+                        value = ownership.userName ?: ownership.userId.toString(),
                     )
                 }
             }

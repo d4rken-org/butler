@@ -36,6 +36,9 @@ import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionBarItem
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
+import eu.darken.butler.workspace.ui.dialogs.InfoCard
+import eu.darken.butler.workspace.ui.dialogs.InfoField
+import eu.darken.butler.workspace.ui.dialogs.InfoValueStyle
 import java.text.DateFormat
 import java.util.Date
 
@@ -122,11 +125,11 @@ private fun TrashNestedItemOptionsContent(
             InfoCard {
                 // Original restore path
                 val restorePath = item.originalRestoredPath.path
-                InfoRow(
+                InfoField(
                     label = stringResource(R.string.explorer_info_path_label),
                     value = restorePath,
-                    isCopyable = true,
-                    onCopy = { onCopyToClipboard(restorePath) }
+                    onCopy = { onCopyToClipboard(restorePath) },
+                    valueStyle = InfoValueStyle.MONOSPACE,
                 )
 
                 // Type
@@ -135,33 +138,33 @@ private fun TrashNestedItemOptionsContent(
                     FileType.DIRECTORY -> context.getString(R.string.explorer_info_type_directory)
                     else -> context.getString(R.string.explorer_info_unknown)
                 }
-                InfoRow(
+                InfoField(
                     label = stringResource(R.string.explorer_info_type_label),
-                    value = typeValue
+                    value = typeValue,
                 )
 
                 // Size
                 lookup.size?.let { size ->
-                    InfoRow(
+                    InfoField(
                         label = stringResource(R.string.explorer_info_size_label),
-                        value = formatFileSize(size)
+                        value = formatFileSize(size),
                     )
                 }
 
                 // Modified date
                 lookup.modifiedAt?.let { modifiedAt ->
-                    InfoRow(
+                    InfoField(
                         label = stringResource(R.string.explorer_info_modified_label),
                         value = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
-                            .format(Date(modifiedAt.toEpochMilliseconds()))
+                            .format(Date(modifiedAt.toEpochMilliseconds())),
                     )
                 }
 
                 // Parent deleted at
-                InfoRow(
+                InfoField(
                     label = stringResource(R.string.explorer_trash_info_deleted_label),
                     value = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
-                        .format(Date(item.parentRef.deletedAt.toEpochMilliseconds()))
+                        .format(Date(item.parentRef.deletedAt.toEpochMilliseconds())),
                 )
             }
         }

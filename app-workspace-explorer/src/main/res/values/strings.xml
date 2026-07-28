@@ -106,7 +106,6 @@
     <string name="explorer_info_symlink_status_label">Status</string>
     <string name="explorer_info_symlink_broken">Broken link</string>
     <string name="explorer_info_unknown">Unknown</string>
-    <string name="explorer_info_copy_action">Copy to clipboard</string>
 
     <!-- Trash Item Info -->
     <string name="explorer_trash_info_deleted_label">Deleted</string>
