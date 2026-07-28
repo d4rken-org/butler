@@ -74,7 +74,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.ui.propagateScrollAtBoundary
+import eu.darken.butler.common.ui.blockHorizontalScrollPropagation
 import eu.darken.butler.editor.core.engine.SearchResult
 import eu.darken.butler.editor.core.engine.TextPosition
 import eu.darken.butler.editor.core.syntax.Token
@@ -764,7 +764,7 @@ private fun DualColumnEditorContent(
             } else {
                 Modifier
                     .fillMaxSize()
-                    .propagateScrollAtBoundary(horizontalScrollState, enabled = isWorkspaceFocused)
+                    .blockHorizontalScrollPropagation(horizontalScrollState, enabled = isWorkspaceFocused)
                     .horizontalScroll(horizontalScrollState)
             }
 
