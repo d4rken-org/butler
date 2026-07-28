@@ -76,7 +76,7 @@ fun InfoField(
                     Modifier
                 },
             )
-            .padding(horizontal = 12.dp, vertical = 8.dp),
+            .padding(horizontal = 12.dp, vertical = 4.dp),
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -97,12 +97,12 @@ fun InfoField(
             }
         }
 
-        Spacer(modifier = Modifier.height(2.dp))
+        Spacer(modifier = Modifier.height(1.dp))
 
         Text(
             text = value,
             style = when (valueStyle) {
-                InfoValueStyle.NORMAL -> MaterialTheme.typography.bodyLarge
+                InfoValueStyle.NORMAL -> MaterialTheme.typography.bodyMedium
                 InfoValueStyle.MONOSPACE -> MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace)
             },
             color = MaterialTheme.colorScheme.onSurface,
