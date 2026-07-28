@@ -741,7 +741,100 @@ object MockDataProvider {
         )
     }
 
+    fun createDeviceRootBreadcrumbs(): List<ExplorerBreadcrumb> = listOf(
+        createHomeBreadcrumb(),
+        ExplorerBreadcrumb(
+            label = "storage".toCaString(),
+            target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage")),
+            icon = Icons.TwoTone.FolderOpen,
+        ),
+        ExplorerBreadcrumb(
+            label = "emulated".toCaString(),
+            target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated")),
+            icon = Icons.TwoTone.FolderOpen,
+        ),
+        ExplorerBreadcrumb(
+            label = "0".toCaString(),
+            target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated/0")),
+            icon = Icons.TwoTone.FolderOpen,
+        ),
+    )
+
+    // MARK: - Android Device Listing
+
+    private const val DEVICE_ROOT = "/storage/emulated/0"
+
+    private fun deviceDirectory(
+        name: String,
+        childCount: Int,
+        daysAgo: Long,
+    ): ExplorerItem.RegularDirectory = ExplorerItem.RegularDirectory(
+        lookup = createMockLookup(
+            name = name,
+            path = "$DEVICE_ROOT/$name",
+            size = 0L,
+            fileType = FileType.DIRECTORY,
+            modifiedAt = MockTimes.daysAgo(daysAgo),
+        ),
+        childCount = childCount,
+    )
+
+    private fun deviceFile(
+        name: String,
+        size: Long,
+        mimeType: String,
+        hoursAgo: Long,
+    ): ExplorerItem.RegularFile = ExplorerItem.RegularFile(
+        lookup = createMockLookup(
+            name = name,
+            path = "$DEVICE_ROOT/$name",
+            size = size,
+            modifiedAt = MockTimes.hoursAgo(hoursAgo),
+        ),
+        mimeType = MimeInfo(mimeType),
+    )
+
+    /**
+     * A realistic `/storage/emulated/0` listing for the Play Store screenshot.
+     *
+     * Deliberately not folders-first: only around eight rows fit above the fold on a phone, and a
+     * sorted listing would push every file — and with it every file-type icon — out of the shot.
+     */
+    fun createAndroidDeviceListing(): List<ExplorerItem.Path> = listOf(
+        deviceDirectory("Alarms", childCount = 3, daysAgo = 96),
+        deviceDirectory("Android", childCount = 12, daysAgo = 1),
+        deviceDirectory("DCIM", childCount = 2, daysAgo = 1),
+        deviceFile("IMG_20260712_181402.jpg", MockSizes.mb(4), "image/jpeg", hoursAgo = 3),
+        deviceDirectory("Documents", childCount = 27, daysAgo = 2),
+        deviceFile("VID_20260705_094512.mp4", MockSizes.mb(148), "video/mp4", hoursAgo = 52),
+        deviceDirectory("Download", childCount = 41, daysAgo = 1),
+        deviceFile("invoice_july.pdf", MockSizes.kb(820), "application/pdf", hoursAgo = 120),
+        deviceDirectory("Audiobooks", childCount = 6, daysAgo = 34),
+        deviceDirectory("Movies", childCount = 4, daysAgo = 12),
+        deviceDirectory("Music", childCount = 128, daysAgo = 8),
+        deviceFile("Recording_014.m4a", MockSizes.mb(12), "audio/mp4", hoursAgo = 27),
+        deviceDirectory("Notifications", childCount = 5, daysAgo = 96),
+        deviceDirectory("Pictures", childCount = 312, daysAgo = 3),
+        deviceFile("backup-2026-07-19.zip", MockSizes.mb(512), "application/zip", hoursAgo = 216),
+        deviceDirectory("Podcasts", childCount = 9, daysAgo = 21),
+        deviceFile("butler-1.4.2.apk", MockSizes.mb(18), "application/vnd.android.package-archive", hoursAgo = 144),
+        deviceDirectory("Ringtones", childCount = 14, daysAgo = 96),
+        deviceFile("notes.md", MockSizes.kb(6), "text/markdown", hoursAgo = 4),
+        deviceFile("readme.txt", MockSizes.kb(2), "text/plain", hoursAgo = 720),
+    )
+
     // MARK: - Location Info Factories
+
+    /** Counts and size are derived from [items] so the info chips match what the listing shows. */
+    fun createAndroidDeviceInfo(
+        items: List<ExplorerItem.Path> = createAndroidDeviceListing(),
+    ): ExplorerLocation.Directory.Info = createMockDirectoryInfo(
+        fileCount = items.count { it is ExplorerItem.File },
+        directoryCount = items.count { it is ExplorerItem.Directory },
+        totalSize = items.filterIsInstance<ExplorerItem.File>().sumOf { it.lookup.size ?: 0L },
+        freeSpace = MockSizes.gb(53),
+        totalSpace = MockSizes.gb(128),
+    )
 
     fun createMockDirectoryInfo(
         fileCount: Int = 15,

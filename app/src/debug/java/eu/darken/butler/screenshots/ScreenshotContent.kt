@@ -195,7 +195,20 @@ private fun ExplorerDirectoryBody(id: Workspace.Id, design: WorkspaceDesign) {
     ExplorerWorkspacePage(
         workspaceId = id,
         design = design,
-        mainStateSource = remember { MutableStateFlow(MockDataProvider.createReadyState()) },
+        mainStateSource = remember {
+            val items = MockDataProvider.createAndroidDeviceListing()
+            MutableStateFlow(
+                MockDataProvider.createReadyState(
+                    location = MockDataProvider.createMockDirectoryLocation(
+                        path = "/storage/emulated/0",
+                        items = items,
+                        info = MockDataProvider.createAndroidDeviceInfo(items),
+                    ),
+                    breadcrumbs = MockDataProvider.createDeviceRootBreadcrumbs(),
+                    actions = MockDataProvider.createDefaultDirectoryActions(),
+                )
+            )
+        },
         operationsStateSource = remember { MutableStateFlow(OperationsDisplayState()) },
         clipboardStateSource = remember { MutableStateFlow(ClipboardDisplayState()) },
     )
