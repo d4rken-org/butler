@@ -183,6 +183,8 @@ private val ID_SEARCHER = screenshotWorkspaceId("3")
 private val ID_EDITOR = screenshotWorkspaceId("4")
 private val ID_APPS = screenshotWorkspaceId("5")
 private val ID_TEMPLATES = screenshotWorkspaceId("6")
+private val ID_EXPLORER_SDCARD = screenshotWorkspaceId("7")
+private val ID_SEARCHER_MEDIA = screenshotWorkspaceId("8")
 
 @Composable
 private fun ExplorerHomeBody(id: Workspace.Id, design: WorkspaceDesign) {
@@ -339,11 +341,20 @@ private fun WorkspaceManagerBody() {
                     paneNumber = 1,
                 ),
                 WorkspaceManagerViewModel.WorkspaceItem(
+                    id = ID_EXPLORER_HOME,
+                    type = Workspace.Type.EXPLORER,
+                    title = "Project files".toCaString(),
+                    autoTitle = "/storage/emulated/0/Projects/butler".toCaString(),
+                    subtitle = null,
+                    customTitle = "Project files",
+                ),
+                WorkspaceManagerViewModel.WorkspaceItem(
                     id = ID_SEARCHER,
                     type = Workspace.Type.SEARCHER,
                     title = "*.log".toCaString(),
                     autoTitle = "*.log".toCaString(),
                     subtitle = "Device storage".toCaString(),
+                    attentionCount = 1,
                 ),
                 WorkspaceManagerViewModel.WorkspaceItem(
                     id = ID_EDITOR,
@@ -351,6 +362,7 @@ private fun WorkspaceManagerBody() {
                     title = "build.gradle.kts".toCaString(),
                     autoTitle = "build.gradle.kts".toCaString(),
                     subtitle = "/storage/emulated/0/Projects/butler".toCaString(),
+                    operationCount = 2,
                 ),
                 WorkspaceManagerViewModel.WorkspaceItem(
                     id = ID_APPS,
@@ -359,9 +371,27 @@ private fun WorkspaceManagerBody() {
                     autoTitle = WorkspaceR.string.workspace_apps_label.toCaString(),
                     subtitle = AppsR.string.apps_subtitle.toCaString(),
                 ),
+                WorkspaceManagerViewModel.WorkspaceItem(
+                    id = ID_EXPLORER_SDCARD,
+                    type = Workspace.Type.EXPLORER,
+                    title = "/storage/1A2B-3C4D/Backups".toCaString(),
+                    autoTitle = "/storage/1A2B-3C4D/Backups".toCaString(),
+                    subtitle = null,
+                    isPaused = true,
+                    canPause = true,
+                ),
+                WorkspaceManagerViewModel.WorkspaceItem(
+                    id = ID_SEARCHER_MEDIA,
+                    type = Workspace.Type.SEARCHER,
+                    title = "IMG_2026".toCaString(),
+                    autoTitle = "IMG_2026".toCaString(),
+                    subtitle = "Photos".toCaString(),
+                ),
             ),
             showBadgeExplanation = false,
             showLongPressHint = false,
+            operationsCount = 2,
+            attentionCount = 1,
         ),
         onCloseWorkspace = {},
         onReorderWorkspaces = {},
