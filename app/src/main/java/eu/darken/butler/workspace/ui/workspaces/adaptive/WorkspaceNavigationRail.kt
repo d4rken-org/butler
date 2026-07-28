@@ -325,7 +325,7 @@ internal fun WorkspaceRailItem(
                 text = workspace.displayTitle.get(LocalContext.current),
                 style = MaterialTheme.typography.labelSmall,
                 textAlign = TextAlign.Center,
-                maxLines = 2,
+                maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
         }
