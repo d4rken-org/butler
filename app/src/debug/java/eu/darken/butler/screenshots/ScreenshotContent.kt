@@ -28,6 +28,7 @@ import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
 import eu.darken.butler.templates.ui.TemplatesWorkspacePage
 import eu.darken.butler.templates.ui.preview.TemplatesMockDataProvider
 import eu.darken.butler.workspace.R as WorkspaceR
+import eu.darken.butler.workspace.contracts.apps.AppTag
 import eu.darken.butler.workspace.contracts.apps.SortSettings
 import eu.darken.butler.workspace.contracts.apps.TagFilterConfig
 import eu.darken.butler.workspace.core.Workspace
@@ -301,18 +302,10 @@ private fun AppsManagerBody(id: Workspace.Id, design: WorkspaceDesign) {
         stateSource = remember {
             MutableStateFlow(
                 AppsWorkspaceViewModel.State.Ready(
-                    apps = listOf(
-                        AppsMockDataProvider.Presets.chromeItem,
-                        AppsMockDataProvider.Presets.settingsItem,
-                        AppsMockDataProvider.Presets.notesItem,
-                        AppsMockDataProvider.Presets.splitApkItem,
-                        AppsMockDataProvider.Presets.systemUiItem,
-                        AppsMockDataProvider.Presets.updatedSystemItem,
-                        AppsMockDataProvider.Presets.workProfileAppItem,
-                        AppsMockDataProvider.Presets.disabledAppItem,
-                    ),
+                    apps = AppsMockDataProvider.Presets.playStoreItems,
                     isLoading = false,
-                    filterConfig = TagFilterConfig(),
+                    // True of every row in the list: none of them is debuggable.
+                    filterConfig = TagFilterConfig(excludeTags = setOf(AppTag.Debug)),
                     sortSettings = SortSettings(),
                 )
             )
