@@ -464,27 +464,27 @@ internal fun WorkspaceManagerContent(formFactor: ScreenshotFormFactor) = Screens
 
 // IDE Previews
 
-@Preview(name = "1 - Explorer Home - Phone", locale = "en", device = DS_PHONE, showSystemUi = true)
+@Preview(name = "2 - Explorer Home - Phone", locale = "en", device = DS_PHONE, showSystemUi = true)
 @Composable
 private fun PreviewExplorerHomePhone() = ExplorerHomeContent(ScreenshotFormFactor.PHONE)
 
-@Preview(name = "1 - Explorer Home - 7\"", locale = "en", device = DS_SEVEN, showSystemUi = true)
+@Preview(name = "2 - Explorer Home - 7\"", locale = "en", device = DS_SEVEN, showSystemUi = true)
 @Composable
 private fun PreviewExplorerHomeSeven() = ExplorerHomeContent(ScreenshotFormFactor.SEVEN)
 
-@Preview(name = "1 - Explorer Home - 10\"", locale = "en", device = DS_TEN, showSystemUi = true)
+@Preview(name = "2 - Explorer Home - 10\"", locale = "en", device = DS_TEN, showSystemUi = true)
 @Composable
 private fun PreviewExplorerHomeTen() = ExplorerHomeContent(ScreenshotFormFactor.TEN)
 
-@Preview(name = "2 - Explorer Directory - Phone", locale = "en", device = DS_PHONE, showSystemUi = true)
+@Preview(name = "1 - Explorer Directory - Phone", locale = "en", device = DS_PHONE, showSystemUi = true)
 @Composable
 private fun PreviewExplorerDirectoryPhone() = ExplorerDirectoryContent(ScreenshotFormFactor.PHONE)
 
-@Preview(name = "2 - Explorer Directory - 7\"", locale = "en", device = DS_SEVEN, showSystemUi = true)
+@Preview(name = "1 - Explorer Directory - 7\"", locale = "en", device = DS_SEVEN, showSystemUi = true)
 @Composable
 private fun PreviewExplorerDirectorySeven() = ExplorerDirectoryContent(ScreenshotFormFactor.SEVEN)
 
-@Preview(name = "2 - Explorer Directory - 10\"", locale = "en", device = DS_TEN, showSystemUi = true)
+@Preview(name = "1 - Explorer Directory - 10\"", locale = "en", device = DS_TEN, showSystemUi = true)
 @Composable
 private fun PreviewExplorerDirectoryTen() = ExplorerDirectoryContent(ScreenshotFormFactor.TEN)
 
