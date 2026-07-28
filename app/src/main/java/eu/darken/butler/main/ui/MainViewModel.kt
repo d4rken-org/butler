@@ -83,7 +83,7 @@ class MainViewModel @Inject constructor(
 
     data class State(
         val startScreen: StartScreen = StartScreen.ONBOARDING,
-        val avoidDisplayCutout: Boolean = true,
+        val avoidDisplayCutout: Boolean = false,
     ) {
         enum class StartScreen {
             ONBOARDING,

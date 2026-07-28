@@ -132,7 +132,7 @@ constructor(
         val updateCheckEnabled: Boolean = false,
         val motdEnabled: Boolean = false,
         val confirmExitEnabled: Boolean = true,
-        val avoidDisplayCutout: Boolean = true,
+        val avoidDisplayCutout: Boolean = false,
         val isDocumentsProviderEnabled: Boolean = true,
         val isUpgraded: Boolean = false,
     )

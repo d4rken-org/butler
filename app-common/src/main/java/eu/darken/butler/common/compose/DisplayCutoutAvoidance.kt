@@ -10,10 +10,10 @@ import androidx.compose.runtime.compositionLocalOf
 /**
  * Whether the UI has to keep clear of the display cutout, user-controlled via settings.
  *
- * Defaults to `true` so previews, tests and anything composed outside the main activity behave like
- * the shipped default.
+ * Defaults to `false` so previews, tests and anything composed outside the main activity behave like
+ * the shipped default: draw into the cutout until the user opts into avoiding it.
  */
-val LocalAvoidDisplayCutout = compositionLocalOf { true }
+val LocalAvoidDisplayCutout = compositionLocalOf { false }
 
 /**
  * System bar insets, extended by the display cutout while [LocalAvoidDisplayCutout] is on.

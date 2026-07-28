@@ -74,6 +74,15 @@ class MainViewModelTest : BaseTest() {
     }
 
     @Test
+    fun `the shipped default draws into the cutout`() = runTest {
+        MainViewModel.State().avoidDisplayCutout shouldBe false
+
+        // Fresh install: nothing stored yet, so the preference emits its shipped default
+        displayCutoutAvoided.value = false
+        createViewModel().state.filterNotNull().first().avoidDisplayCutout shouldBe false
+    }
+
+    @Test
     fun `the cutout preference and the start screen stay independent`() = runTest {
         onboardingCompleted.value = true
         displayCutoutAvoided.value = false
