@@ -1,7 +1,6 @@
 package eu.darken.butler.explorer.ui.explorer.elements
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -9,8 +8,6 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshState
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
@@ -22,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
@@ -34,14 +32,16 @@ import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
 import eu.darken.butler.workspace.ui.common.WorkspacePaddings
+import eu.darken.butler.workspace.ui.common.WorkspacePullToRefreshBox
 import eu.darken.butler.workspace.ui.error.ErrorCard
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStackState
-import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
+import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarContentPadding
 import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
 import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlin.math.roundToInt
 
 /**
  * The Explorer page's "ready" branch: pull-to-refresh list/grid content, navigation error card
@@ -65,27 +65,30 @@ internal fun ExplorerReadyContent(
     initialClipboardExpanded: Boolean,
     onShowOperationDetails: (Operation.Id) -> Unit,
 ) {
-    val topContentPadding = topBarStackState.contentPaddingDp()
-
     // Focus state from ViewModel
     val contentFocusedItem = state.focusedItemIndex?.let { state.items?.getOrNull(it) }
 
+    val listContentPadding = rememberFloatingBarContentPadding(
+        topStackState = topBarStackState,
+        bottomStackState = bottomBarStackState,
+        start = WorkspacePaddings.ContentHorizontal,
+        end = WorkspacePaddings.ContentHorizontal,
+    )
+    val gridContentPadding = rememberFloatingBarContentPadding(
+        topStackState = topBarStackState,
+        bottomStackState = bottomBarStackState,
+        start = 2.dp,
+        end = 2.dp,
+    )
+
     Box(modifier = modifier.fillMaxSize()) {
         // Main content with pull-to-refresh
-        PullToRefreshBox(
+        WorkspacePullToRefreshBox(
+            modifier = Modifier.fillMaxSize(),
             isRefreshing = showPullToRefreshIndicator,
             onRefresh = onRefresh,
-            modifier = Modifier.fillMaxSize(),
+            topBarStackState = topBarStackState,
             state = pullToRefreshState,
-            indicator = {
-                PullToRefreshDefaults.Indicator(
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .offset(y = topContentPadding),
-                    state = pullToRefreshState,
-                    isRefreshing = showPullToRefreshIndicator,
-                )
-            },
         ) {
             when (state.viewStyle) {
                 is ExplorerViewStyle.List -> ExplorerListContent(
@@ -97,12 +100,7 @@ internal fun ExplorerReadyContent(
                     vm = vm,
                     contentFocusedItem = contentFocusedItem,
                     listState = listState,
-                    contentPadding = PaddingValues(
-                        start = WorkspacePaddings.ContentHorizontal,
-                        end = WorkspacePaddings.ContentHorizontal,
-                        top = topContentPadding,
-                        bottom = bottomBarStackState.contentPaddingDp(),
-                    ),
+                    contentPadding = listContentPadding,
                 )
 
                 is ExplorerViewStyle.Grid -> ExplorerGridContent(
@@ -114,12 +112,7 @@ internal fun ExplorerReadyContent(
                     vm = vm,
                     contentFocusedItem = contentFocusedItem,
                     gridState = gridState,
-                    contentPadding = PaddingValues(
-                        start = 2.dp,
-                        end = 2.dp,
-                        top = topContentPadding,
-                        bottom = bottomBarStackState.contentPaddingDp(),
-                    ),
+                    contentPadding = gridContentPadding,
                 )
             }
         }
@@ -131,7 +124,7 @@ internal fun ExplorerReadyContent(
                 ArchiveAccessErrorCard(
                     modifier = Modifier
                         .align(Alignment.TopCenter)
-                        .offset(y = topContentPadding)
+                        .offset { IntOffset(x = 0, y = topBarStackState.contentPaddingPx.roundToInt()) }
                         .padding(horizontal = 16.dp),
                     archiveName = error.container.name,
                     busy = archiveBusy,
@@ -144,7 +137,7 @@ internal fun ExplorerReadyContent(
                 ErrorCard(
                     modifier = Modifier
                         .align(Alignment.TopCenter)
-                        .offset(y = topContentPadding)
+                        .offset { IntOffset(x = 0, y = topBarStackState.contentPaddingPx.roundToInt()) }
                         .padding(horizontal = 16.dp),
                     title = stringResource(R.string.explorer_navigation_error_title),
                     error = error,

@@ -52,7 +52,7 @@ import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
-import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
+import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarContentPadding
 import eu.darken.butler.workspace.ui.insets.rememberPaneFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
@@ -221,7 +221,7 @@ fun ExplorerWorkspacePage(
             )
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            val topContentPadding = topBarStackState.contentPaddingDp()
+            val topContentPadding = rememberFloatingBarContentPadding(topStackState = topBarStackState)
 
             // Main content area
             if (state.setupRequirements.needsAction) {
@@ -232,7 +232,7 @@ fun ExplorerWorkspacePage(
                     onLaunchSAFPicker = { grant -> vm?.launchAndroidDataSAFPicker(grant) },
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(top = topContentPadding),
+                        .padding(topContentPadding),
                 )
             } else {
                 ExplorerReadyContent(
