@@ -29,24 +29,9 @@
 ./gradlew clean
 ```
 
-### Build Context Management
+### Build & Test Context Management
 
-When running gradle build commands, use the Task tool with a sub-agent to keep verbose build output isolated from the main context:
-
-**Default approach (preferred):**
-
-- Use Task tool → `devtools:build-runner` agent → run gradle command
-- Sub-agent should report back only:
-    - Success/failure status
-    - Compilation errors (if any) with file locations
-    - Count of warnings (without full output)
-
-**Run gradle directly in main context only when:**
-
-- User explicitly requests to see full build output
-- Quick verification of available gradle tasks (`./gradlew tasks`)
-
-This aligns with the "Agent instructions" principle of maintaining focused contexts and optimizes token usage.
+Run gradle build and test commands via the `devtools:build-runner` agent (Task tool) to keep verbose output out of the main context. The sub-agent reports back only: success/failure status, compilation/test errors with file locations, and warning/test counts. Run gradle directly only when the user asks for full output, or for quick verification of available tasks or tests (`./gradlew tasks`).
 
 ## Code Quality
 
@@ -60,21 +45,7 @@ This aligns with the "Agent instructions" principle of maintaining focused conte
 
 ## Play Store Screenshots
 
-Generate localized screenshots using Compose Preview Screenshot Testing. See `.claude/rules/screenshots.md` for full details.
-
-```bash
-# Smoke test (6 locales, fast iteration)
-./fastlane/generate_screenshots.sh --smoke
-
-# Full generation (76 locales)
-./fastlane/generate_screenshots.sh
-
-# Copy to fastlane metadata directories
-./fastlane/copy_screenshots.sh
-
-# Direct Gradle (no batching)
-./gradlew :app:updateGplayDebugScreenshotTest --no-daemon
-```
+Localized Play Store screenshots are generated via Compose Preview Screenshot Testing — pipeline, commands, and batching details in `.claude/rules/screenshots.md`.
 
 ## Debugging
 

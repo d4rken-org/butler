@@ -1,36 +1,13 @@
 # Coding Standards
 
 - Package by feature, not by layer.
-- All user facing strings should be extract to `values/strings.xml` and translated for all other languages too.
+- All user-facing strings are extracted to `values/strings.xml` and localized (details: `localization.md`).
 - Prefer adding to existing files unless creating new logical components.
 - **Composable organization**:
-    - Reusable composables should be in their own files (e.g., `ButlerIcon.kt`, `ColoredTitleText.kt`)
-    - Screen-specific composables can remain in the screen file unless the file grows too large
-    - Extract screen-specific composables to separate files when the main file exceeds ~200 lines
-    - **Always add `@Preview2` functions for ALL composables** (including screen-level pages):
-        - For simple composables: Create standard previews with representative data
-        - For complex screens with Flow/ViewModel dependencies:
-            - Use mock state objects with `flowOf()` for Flow parameters
-            - Create multiple preview scenarios where applicable (empty state, loading, with data, error states)
-            - Example: `SearcherWorkspacePage` should have previews showing different UI states
-    - Place compose previews below the composable being previewed
-    - Preview function naming: `ComponentNamePreview()` and mark as `private`
-- Don't add code comments for obvious code.
-- Write minimalistic and concise code (omit comments).
-- Prefer flow based solutions.
-- Prefer reactive programming.
-- When using `if` that is not single-line, always use brackets.
-- In `when` expressions, omit braces for single-expression branches. Use braces only when a branch contains multiple statements. A composable's trailing lambda does not require wrapper braces.
-    ```kotlin
-    when (state) {
-        // Comment goes above the branch
-        State.LOADING -> CircularProgressIndicator()
-        State.SUCCESS -> LazyColumn(...) { items(...) }
-        State.COMPLEX -> {
-            val data = computeData()
-            ComplexComponent(data)
-        }
-    }
-    ```
-- Always add trailing commas.
-- In `@Composable` functions, the parameter `modifier: Modifier = Modifier,` should be the first parameter.
+    - Reusable composables get their own files (e.g., `ButlerIcon.kt`); screen-specific composables stay in the screen file until it exceeds ~200 lines, then extract.
+    - **Always add `@Preview2` functions for ALL composables**, including screen-level pages. For screens with Flow/ViewModel dependencies, preview with mock state via `flowOf()`; cover distinct UI states (empty, loading, data, error) where applicable.
+    - Place previews below the composable being previewed; name them `ComponentNamePreview()`, marked `private`.
+- Write minimalistic and concise code. Match the surrounding code's comment density and idiom — no comments narrating obvious code.
+- Prefer flow-based, reactive solutions.
+- Style: brackets on any multi-line `if`; in `when`, braces only for multi-statement branches (a composable's trailing lambda needs no wrapper braces); always add trailing commas.
+- In `@Composable` functions, `modifier: Modifier = Modifier,` is the first parameter.

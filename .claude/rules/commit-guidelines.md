@@ -7,8 +7,6 @@
 
 <detailed technical description>
 
-<optional additional context>
-
 <issue references>
 ```
 
@@ -25,13 +23,15 @@
 
 ## Title Guidelines
 
-- **Keep user-friendly**: Titles appear in changelogs, so make them understandable to end users
-- **Be specific but concise**: Describe what the user will experience, not internal implementation details
-- **Use action words**: "Fix", "Add", "Improve", "Update", "Remove"
+Titles appear in changelogs, so describe the user-visible effect, not internal implementation details ("Explorer: Fix breadcrumb bar not extending below cutout", not "Fix: Update CutoutCardDefaults padding values"). Use action words: "Fix", "Add", "Improve", "Update", "Remove".
 
-## Examples
+## Body
 
-### Good Examples
+- Include the technical implementation details developers need.
+- Issue references: "Closes #123", "Fixes #123", or "Resolves #123".
+- Mark breaking changes with a "BREAKING:" prefix.
+
+Example:
 
 ```
 Explorer: Fix breadcrumb bar not extending below cutout
@@ -41,28 +41,3 @@ when rendering the breadcrumb bar overlay.
 
 Closes #42
 ```
-
-```
-Searcher: Add directory picker for search path selection
-
-Users can now select a search directory using the Explorer picker
-launched as a modal workspace.
-```
-
-### Bad Examples
-
-```
-Fix: Update CutoutCardDefaults padding values
-```
-*Too technical for changelog, should describe the user-visible effect*
-
-```
-Refactor workspace event handling for picker results
-```
-*No module prefix, too technical for users*
-
-## Technical Details
-
-- **Body**: Include technical implementation details that developers need
-- **Issue references**: Use "Closes #123", "Fixes #123", or "Resolves #123"
-- **Breaking changes**: Mark with "BREAKING:" prefix if applicable
