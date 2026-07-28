@@ -93,17 +93,21 @@ internal data class ScreenshotPane(
  * Composes [panes] through the real adaptive layout, including the navigation rail.
  *
  * @param layout pass null to use the layout the window size would recommend.
+ * @param railExtras open tabs that no pane shows. The rail lists every tab, not only the visible
+ *   ones; a workspace without a [selected] entry renders as an idle rail item. Their ids must not
+ *   collide with any pane id.
  */
 @Composable
 internal fun ScreenshotPaneFrame(
     panes: List<ScreenshotPane>,
     layout: WorkspaceDesign.Layout? = null,
+    railExtras: List<Workspace.Info> = emptyList(),
 ) {
     val resolvedLayout = layout ?: rememberWindowSizeInfo().recommendedLayout
     val design = remember(resolvedLayout) { WorkspaceDesign(layout = resolvedLayout) }
 
     // Drives the navigation rail; an inconsistent list leaves the rail without tabs.
-    val workspaces = remember(panes) {
+    val workspaces = remember(panes, railExtras) {
         panes.map {
             Workspace.Info(
                 id = it.id,
@@ -111,7 +115,7 @@ internal fun ScreenshotPaneFrame(
                 title = it.type.label,
                 lifecycleState = Workspace.LifecycleState.Ready,
             )
-        }
+        } + railExtras
     }
 
     // Zero-based: the layouts read selected[paneNumber - 1], a one-based map would blank every pane.
@@ -538,12 +542,41 @@ internal fun TemplatesPickerContent(formFactor: ScreenshotFormFactor) = Screensh
     }
 }
 
+/** Open tabs the multi-pane shot's rail lists without giving them a pane. */
+private val multiPaneRailExtras = listOf(
+    Workspace.Info(
+        id = ID_SEARCHER,
+        type = Workspace.Type.SEARCHER,
+        title = Workspace.Type.SEARCHER.label,
+        lifecycleState = Workspace.LifecycleState.Ready,
+    ),
+    Workspace.Info(
+        id = ID_APPS,
+        type = Workspace.Type.APPS,
+        title = Workspace.Type.APPS.label,
+        lifecycleState = Workspace.LifecycleState.Ready,
+    ),
+    Workspace.Info(
+        id = ID_TEMPLATES,
+        type = Workspace.Type.TEMPLATES,
+        title = Workspace.Type.TEMPLATES.label,
+        lifecycleState = Workspace.LifecycleState.Ready,
+    ),
+    Workspace.Info(
+        id = ID_EXPLORER_SDCARD,
+        type = Workspace.Type.EXPLORER,
+        title = Workspace.Type.EXPLORER.label,
+        lifecycleState = Workspace.LifecycleState.Paused(),
+    ),
+)
+
 @Composable
 internal fun MultiPaneContent(formFactor: ScreenshotFormFactor) = ScreenshotPreviewWrapper {
     when (formFactor) {
         ScreenshotFormFactor.PHONE -> ScreenshotPaneFrame(
             panes = listOf(explorerDirectoryPane, editorPane),
             layout = WorkspaceDesign.Layout.DUAL_HORIZONTAL,
+            railExtras = multiPaneRailExtras,
         )
         ScreenshotFormFactor.SEVEN, ScreenshotFormFactor.TEN -> ScreenshotPaneFrame(
             panes = listOf(explorerHomePane, searcherPane, editorPane, appsPane),
