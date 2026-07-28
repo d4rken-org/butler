@@ -258,11 +258,16 @@ internal fun WorkspaceRailItem(
     val restingContainerColor by animateColorAsState(
         targetValue = if (isFocused) colorScheme.secondaryContainer else Color.Transparent,
     )
-    // Opaque while dragging: the elevation shadow is drawn from the shape, not the fill, so a
-    // see-through card would carry a shadow and show other items through itself. Fill and elevation
-    // both switch instantly so they can never be out of step mid-animation; the spring scale below
-    // supplies the motion cue for the lift.
-    val containerColor = if (isDraggingItem && !isFocused) colorScheme.surface else restingContainerColor
+    // A dragging item is always opaque, in every state: the elevation shadow is drawn from the
+    // shape, not the fill, so a see-through card would carry a shadow and show other items through
+    // itself. Both dragging fills bypass the resting animator entirely, so fill and elevation can
+    // never be out of step - not even when focus changes mid-drag. The spring scale below supplies
+    // the motion cue for the lift.
+    val containerColor = when {
+        isDraggingItem && isFocused -> colorScheme.secondaryContainer
+        isDraggingItem -> colorScheme.surface
+        else -> restingContainerColor
+    }
     val shadowElevation = if (isDraggingItem) 6.dp else 0.dp
     val scale by animateFloatAsState(
         targetValue = if (isDraggingItem) 1.05f else 1f,
