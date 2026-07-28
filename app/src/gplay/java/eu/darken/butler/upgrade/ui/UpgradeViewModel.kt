@@ -65,7 +65,7 @@ class UpgradeViewModel @AssistedInject constructor(
         // stays open so the user can read their ownership and switch subscription -> one-time.
         if (!manage) {
             upgradeRepo.upgradeInfo
-                .filter { it.isUpgraded }
+                .filter { it.isPro }
                 .take(1)
                 .onEach { navUp() }
                 .launchInViewModel()
@@ -142,7 +142,7 @@ class UpgradeViewModel @AssistedInject constructor(
                     subscriptionPrice = subPrice,
                     trialPrice = subPrice,
                     iapPrice = iapOffer?.formattedPrice,
-                    wasPreviouslyPro = wasEverPro && !info.isUpgraded,
+                    wasPreviouslyPro = wasEverPro && !info.isPro,
                     restoreInProgress = op == Op.Restoring,
                     verificationInProgress = op == Op.Verifying,
                 )

@@ -234,7 +234,7 @@ class WorkspacesViewModel @Inject constructor(
             focusedWorkspace = uiState.focusedWorkspaceId,
             selectedWorkspaces = uiState.selectedWorkspaces,
             visiblePaneSelections = uiState.visiblePaneAssignments,
-            isUpgraded = upgradeInfo.isUpgraded,
+            isUpgraded = upgradeInfo.isPro,
             swipeGesturesEnabled = swipeGesturesEnabled,
             onDemandWorkspaceCreation = swipeGesturesEnabled && onDemandWorkspaceCreation,
             motd = motd,

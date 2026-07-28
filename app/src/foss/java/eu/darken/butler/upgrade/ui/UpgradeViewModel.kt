@@ -42,7 +42,7 @@ class UpgradeViewModel @AssistedInject constructor(
         when {
             // The sponsor pitch route never shows a status view.
             !manage -> FossUpgradeView.PITCH
-            info.isUpgraded -> FossUpgradeView.STATUS_UPGRADED
+            info.isPro -> FossUpgradeView.STATUS_UPGRADED
             showOptions -> FossUpgradeView.PITCH
             else -> FossUpgradeView.STATUS_FREE
         }
@@ -73,7 +73,7 @@ class UpgradeViewModel @AssistedInject constructor(
         savedStateHandle[KEY_SPONSOR_OPENED_AT] = null
 
         // Never nudge an already-upgraded supporter who happened to revisit the sponsor page.
-        if (upgradeRepo.upgradeInfo.first().isUpgraded) {
+        if (upgradeRepo.upgradeInfo.first().isPro) {
             log(tag) { "Already upgraded on resume, skipping honor check" }
             return@launch
         }
@@ -82,7 +82,7 @@ class UpgradeViewModel @AssistedInject constructor(
         if (elapsed >= MINIMUM_VISIT_DURATION) {
             log(tag, INFO) { "Sponsor page visited for $elapsed, applying upgrade" }
             upgradeRepo.applyUpgrade()
-            upgradeRepo.upgradeInfo.filter { it.isUpgraded }.first()
+            upgradeRepo.upgradeInfo.filter { it.isPro }.first()
             navUp()
         } else {
             log(tag, WARN) { "Sponsor page visited for only $elapsed, too fast" }

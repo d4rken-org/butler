@@ -21,7 +21,9 @@ class UpgradeRepoFoss @Inject constructor(
     private val webpageTool: WebpageTool,
 ) : UpgradeRepo {
 
-    override val mainWebsite: String = SITE
+    override val storeSite: String = STORE_SITE
+    override val upgradeSite: String = UPGRADE_SITE
+    override val betaSite: String = BETA_SITE
 
     private val refreshTrigger = MutableStateFlow(Uuid.random())
 
@@ -33,7 +35,7 @@ class UpgradeRepoFoss @Inject constructor(
             Info()
         } else {
             Info(
-                isUpgraded = true,
+                isPro = true,
                 upgradedAt = data.upgradedAt,
                 fossUpgradeType = data.upgradeType,
             )
@@ -43,7 +45,7 @@ class UpgradeRepoFoss @Inject constructor(
 
     fun openSponsorPage() {
         log(TAG) { "openSponsorPage()" }
-        webpageTool.open(mainWebsite)
+        webpageTool.open(upgradeSite)
     }
 
     suspend fun applyUpgrade() {
@@ -62,15 +64,22 @@ class UpgradeRepoFoss @Inject constructor(
     }
 
     data class Info(
-        override val isUpgraded: Boolean = false,
+        override val isPro: Boolean = false,
         override val upgradedAt: Instant? = null,
         val fossUpgradeType: FossUpgrade.Type? = null,
+        override val error: Throwable? = null,
     ) : UpgradeRepo.Info {
         override val type: UpgradeRepo.Type = UpgradeRepo.Type.FOSS
+
+        // The FOSS entitlement is a local cache read — authoritative from the first emission,
+        // there is no billing handshake to wait out.
+        override val isSettled: Boolean = true
     }
 
     companion object {
-        private const val SITE = "https://github.com/sponsors/d4rken"
+        private const val STORE_SITE = "https://github.com/d4rken-org/butler"
+        private const val UPGRADE_SITE = "https://github.com/sponsors/d4rken"
+        private const val BETA_SITE = "https://github.com/d4rken-org/butler/releases"
         private val TAG = logTag("Upgrade", "Foss", "Repo")
     }
 }

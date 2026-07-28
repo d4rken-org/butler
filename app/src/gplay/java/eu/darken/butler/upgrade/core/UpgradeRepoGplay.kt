@@ -53,7 +53,9 @@ class UpgradeRepoGplay @Inject constructor(
     private val billingCache: BillingCache,
 ) : UpgradeRepo {
 
-    override val mainWebsite: String = SITE
+    override val storeSite: String = STORE_SITE
+    override val upgradeSite: String = UPGRADE_SITE
+    override val betaSite: String = BETA_SITE
 
     init {
         // Fresh-provenance grace stamping: billingData emissions are only produced by fresh query
@@ -63,7 +65,7 @@ class UpgradeRepoGplay @Inject constructor(
             .distinctUntilChanged()
             .onEach {
                 try {
-                    recordProState(Info(billingData = it))
+                    recordProState(Info(billingData = it, isSettled = true))
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
@@ -139,9 +141,9 @@ class UpgradeRepoGplay @Inject constructor(
             log(TAG) { "upgradeInfo retry: graceActive=$graceActive, attempt=$attempt, error=$error" }
             if (graceActive) {
                 openGraceEpisodeIfWarranted(System.currentTimeMillis())
-                emit(Info(gracePeriod = true, billingData = null))
+                emit(Info(gracePeriod = true, billingData = null, isSettled = true))
             } else {
-                emit(Info(billingData = null))
+                emit(Info(billingData = null, error = error, isSettled = true))
             }
             delay((30_000L * 2.0.pow(attempt.toDouble())).toLong().coerceAtMost(RETRY_DELAY_CAP_MS))
             true
@@ -258,7 +260,7 @@ class UpgradeRepoGplay @Inject constructor(
                 openGraceEpisodeIfWarranted(System.currentTimeMillis())
                 return
             }
-            val info = Info(billingData = fresh)
+            val info = Info(billingData = fresh, isSettled = true)
             if (info.upgrades.isNotEmpty()) {
                 recordProState(info)
             } else {
@@ -280,7 +282,7 @@ class UpgradeRepoGplay @Inject constructor(
         log(TAG) { "restorePurchaseNow()" }
         return try {
             val fresh = billingManager.refresh()
-            val rawInfo = Info(billingData = fresh)
+            val rawInfo = Info(billingData = fresh, isSettled = true)
             if (rawInfo.upgrades.isNotEmpty()) {
                 recordProState(rawInfo)
                 rawInfo
@@ -297,7 +299,7 @@ class UpgradeRepoGplay @Inject constructor(
             if ((System.currentTimeMillis() - lastProStateAt) < graceWindowMs()) {
                 log(TAG, VERBOSE) { "restore hit a Play error but we were Pro recently -> grace" }
                 openGraceEpisodeIfWarranted(System.currentTimeMillis())
-                Info(gracePeriod = true, billingData = null)
+                Info(gracePeriod = true, billingData = null, isSettled = true)
             } else {
                 throw e
             }
@@ -310,13 +312,15 @@ class UpgradeRepoGplay @Inject constructor(
     private suspend fun BillingData?.toUpgradeInfo(): Info {
         val now = System.currentTimeMillis()
         val lastProStateAt = billingCache.lastProStateAt.value()
-        val info = Info(billingData = this)
+        // Only a real billing snapshot settles ownership; the seed emission (null) does not.
+        val settled = this != null
+        val info = Info(billingData = this, isSettled = settled)
         log(TAG) { "toUpgradeInfo(): now=$now, lastProStateAt=$lastProStateAt, upgrades=${info.upgrades}" }
         return when {
             info.upgrades.isNotEmpty() -> info
             (now - lastProStateAt) < graceWindowMs() -> {
                 log(TAG, VERBOSE) { "Not pro now, but recently -> grace" }
-                Info(gracePeriod = true, billingData = null)
+                Info(gracePeriod = true, billingData = null, isSettled = settled)
             }
             else -> info
         }
@@ -360,6 +364,10 @@ class UpgradeRepoGplay @Inject constructor(
     data class Info(
         val gracePeriod: Boolean = false,
         private val billingData: BillingData?,
+        override val error: Throwable? = null,
+        // Seed emissions (before the first billing result of this process) are unsettled: they
+        // report non-Pro even for paying users, so UI gates must not read them as a denial.
+        override val isSettled: Boolean = false,
     ) : UpgradeRepo.Info {
 
         override val type: UpgradeRepo.Type = UpgradeRepo.Type.GPLAY
@@ -389,7 +397,7 @@ class UpgradeRepoGplay @Inject constructor(
         // token and left a stale renewing record alongside a fresh non-renewing one.
         val anySubscriptionRenewing: Boolean = subscriptions.any { it.purchase.isAutoRenewing }
 
-        override val isUpgraded: Boolean = upgrades.isNotEmpty() || gracePeriod
+        override val isPro: Boolean = upgrades.isNotEmpty() || gracePeriod
 
         override val upgradedAt: Instant? = upgrades
             .maxByOrNull { it.purchase.purchaseTime }
@@ -398,7 +406,9 @@ class UpgradeRepoGplay @Inject constructor(
 
 
     companion object {
-        private const val SITE = "https://play.google.com/store/apps/details?id=eu.darken.butler"
+        private const val STORE_SITE = "https://play.google.com/store/apps/details?id=eu.darken.butler"
+        private const val UPGRADE_SITE = "https://play.google.com/store/apps/details?id=eu.darken.butler"
+        private const val BETA_SITE = "https://play.google.com/apps/testing/eu.darken.butler"
         val GRACE_PERIOD_MS = 7.days.inWholeMilliseconds
         val GRACE_PERIOD_IAP_MS = 30.days.inWholeMilliseconds
         val GRACE_DIAGNOSTICS_AFTER_MS = 24.hours.inWholeMilliseconds
