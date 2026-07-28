@@ -37,6 +37,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceUntilIdle
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
@@ -99,6 +100,13 @@ class UpgradeRepoGplayTest : BaseTest() {
     }
 
     private fun result(code: Int): BillingResult = BillingResult.newBuilder().setResponseCode(code).build()
+
+    // Starts a launch without blocking the test body: launchBillingFlowNow suspends until the
+    // launch resolved, but these tests drive gates/async events while it is in flight. The
+    // Unconfined scope keeps the old eager semantics (runs until the first real suspension).
+    private fun UpgradeRepoGplay.startLaunch(onError: (Throwable) -> Unit = {}) {
+        scope.launch { launchBillingFlowNow(mockk<Activity>(), OurSku.Iap.PRO_UPGRADE, null, onError) }
+    }
 
     private fun proPurchase() = mockk<Purchase>().apply {
         every { products } returns OurSku.PRO_SKUS.map { it.id }
@@ -312,7 +320,7 @@ class UpgradeRepoGplayTest : BaseTest() {
         coEvery { billingManager.refresh() } returns BillingData(setOf(proPurchase()))
 
         val errors = mutableListOf<Throwable>()
-        repo(lastProAt = 0L).launchBillingFlow(mockk<Activity>(), OurSku.Iap.PRO_UPGRADE, null) { errors.add(it) }
+        repo(lastProAt = 0L).startLaunch { errors.add(it) }
 
         errors shouldBe emptyList()
     }
@@ -324,7 +332,7 @@ class UpgradeRepoGplayTest : BaseTest() {
 
         val errors = mutableListOf<Throwable>()
         // Grace expired -> the restore can't rescue the entitlement either.
-        repo(lastProAt = 0L).launchBillingFlow(mockk<Activity>(), OurSku.Iap.PRO_UPGRADE, null) { errors.add(it) }
+        repo(lastProAt = 0L).startLaunch { errors.add(it) }
 
         errors.single().shouldBeInstanceOf<ItemAlreadyOwnedBillingException>()
     }
@@ -335,7 +343,7 @@ class UpgradeRepoGplayTest : BaseTest() {
         coEvery { billingManager.refresh() } throws RuntimeException("Play unavailable")
 
         val errors = mutableListOf<Throwable>()
-        repo(lastProAt = 0L).launchBillingFlow(mockk<Activity>(), OurSku.Iap.PRO_UPGRADE, null) { errors.add(it) }
+        repo(lastProAt = 0L).startLaunch { errors.add(it) }
 
         errors.single().shouldBeInstanceOf<ItemAlreadyOwnedBillingException>()
     }
@@ -345,7 +353,7 @@ class UpgradeRepoGplayTest : BaseTest() {
             UserCanceledBillingException(RuntimeException("launch result"))
 
         val errors = mutableListOf<Throwable>()
-        repo(lastProAt = 0L).launchBillingFlow(mockk<Activity>(), OurSku.Iap.PRO_UPGRADE, null) { errors.add(it) }
+        repo(lastProAt = 0L).startLaunch { errors.add(it) }
 
         errors shouldBe emptyList()
     }
@@ -355,7 +363,7 @@ class UpgradeRepoGplayTest : BaseTest() {
         coEvery { billingManager.startIapFlow(any(), any(), null) } throws CancellationException("scope died")
 
         val errors = mutableListOf<Throwable>()
-        repo(lastProAt = 0L).launchBillingFlow(mockk<Activity>(), OurSku.Iap.PRO_UPGRADE, null) { errors.add(it) }
+        repo(lastProAt = 0L).startLaunch { errors.add(it) }
 
         errors shouldBe emptyList()
     }
@@ -365,7 +373,7 @@ class UpgradeRepoGplayTest : BaseTest() {
         coEvery { billingManager.startIapFlow(any(), any(), null) } throws failure
 
         val errors = mutableListOf<Throwable>()
-        repo(lastProAt = 0L).launchBillingFlow(mockk<Activity>(), OurSku.Iap.PRO_UPGRADE, null) { errors.add(it) }
+        repo(lastProAt = 0L).startLaunch { errors.add(it) }
 
         errors.single() shouldBe failure
     }
@@ -540,7 +548,7 @@ class UpgradeRepoGplayTest : BaseTest() {
         // Grace is active: the restore's Info reports isPro=true, but no actual purchase came
         // back — the entitlement Play claims is owned is still missing, so the dialog must show.
         repo(lastProAt = System.currentTimeMillis() - 1_000)
-            .launchBillingFlow(mockk<Activity>(), OurSku.Iap.PRO_UPGRADE, null) { errors.add(it) }
+            .startLaunch { errors.add(it) }
 
         errors.single().shouldBeInstanceOf<ItemAlreadyOwnedBillingException>()
     }
@@ -556,7 +564,7 @@ class UpgradeRepoGplayTest : BaseTest() {
 
         val errors = mutableListOf<Throwable>()
         // The restore found the SUB, but Play claimed the IAP is owned — not reconciled.
-        repo(lastProAt = 0L).launchBillingFlow(mockk<Activity>(), OurSku.Iap.PRO_UPGRADE, null) { errors.add(it) }
+        repo(lastProAt = 0L).startLaunch { errors.add(it) }
 
         errors.single().shouldBeInstanceOf<ItemAlreadyOwnedBillingException>()
     }
@@ -597,7 +605,7 @@ class UpgradeRepoGplayTest : BaseTest() {
         val repo = repo(lastProAt = 0L, purchaseFailureFlow = asyncFailures)
 
         // Trigger 1: a buy tap whose launch result comes back ITEM_ALREADY_OWNED.
-        repo.launchBillingFlow(mockk<Activity>(), OurSku.Iap.PRO_UPGRADE, null) { errors.add(it) }
+        repo.startLaunch { errors.add(it) }
         repo.autoRestoreBusy.first() shouldBe true
 
         // Trigger 2: Play's async already-owned event lands while that restore is still in flight.
@@ -875,7 +883,7 @@ class UpgradeRepoGplayTest : BaseTest() {
         val repo = repo(lastProAt = 0L)
         repo.autoRestoreBusy.first() shouldBe false
 
-        repo.launchBillingFlow(mockk<Activity>(), OurSku.Iap.PRO_UPGRADE, null) { }
+        repo.startLaunch()
         repo.autoRestoreBusy.first() shouldBe true
 
         gate.complete(Unit)
