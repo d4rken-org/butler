@@ -1,5 +1,11 @@
 package eu.darken.butler.explorer.ui.explorer.util
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.Storage
+import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.explorer.core.ExplorerNavigation
+import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import io.kotest.matchers.shouldBe
@@ -44,7 +50,31 @@ class ItemInfoCalculatorTest : BaseTest() {
     }
 
     @Test
+    fun `local storage capacity is taken from the live items`() {
+        val stale = createLocalStorage(totalBytes = null, availableBytes = null)
+        val fresh = createLocalStorage(totalBytes = 128 * 1024L, availableBytes = 64 * 1024L)
+
+        val result = calculator.calculateInfo(listOf(stale), listOf(fresh))
+
+        result.shouldBeInstanceOf<ExplorerDialogState.ItemInfo.InfoContext.SingleLocalStorage>()
+        result.item.totalBytes shouldBe 128 * 1024L
+        result.item.availableBytes shouldBe 64 * 1024L
+    }
+
+    @Test
     fun `empty selection has no info`() {
         calculator.calculateInfo(emptyList(), listOf(MockDataProvider.createMockDirectory())) shouldBe null
     }
+
+    private fun createLocalStorage(
+        totalBytes: Long?,
+        availableBytes: Long?,
+    ) = ExplorerItem.Storage.Local(
+        localId = "internal-public",
+        displayName = "Internal Storage".toCaString(),
+        displayIcon = Icons.TwoTone.Storage,
+        target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated/0")),
+        totalBytes = totalBytes,
+        availableBytes = availableBytes,
+    )
 }

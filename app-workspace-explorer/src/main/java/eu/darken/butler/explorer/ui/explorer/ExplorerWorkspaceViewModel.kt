@@ -887,7 +887,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 if (selection.selectedItems.value.isNotEmpty()) {
                     val selectedItems = selection.selectedItems.value.toList()
 
-                    val infoContext = itemInfoCalculator.calculateInfo(selectedItems, stateSnap.items)
+                    // The display list lags behind metadata-only refreshes, resolve against the raw location items
+                    val infoContext = itemInfoCalculator.calculateInfo(selectedItems, stateSnap.currentLocation?.items)
                     infoContext?.let { context ->
                         dialogs.show(ItemInfo(context))
                     }
