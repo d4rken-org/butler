@@ -14,6 +14,7 @@ import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspacePauseGate
 import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.WorkspaceSettings
+import eu.darken.butler.workspace.core.WorkspaceStacks
 import eu.darken.butler.workspace.core.defaultArguments
 import eu.darken.butler.workspace.ui.WorkspacePageManager
 import eu.darken.butler.workspace.ui.manager.preview.WorkspacePreviewManager
@@ -55,7 +56,7 @@ class WorkspaceManagerViewModel @Inject constructor(
         filterAttentionFlow,
         quickCreateItems,
     ) { repoState, showBadge, showFabLongPressHint, livePreview, pageManagerState, filterOps, filterAtt, quickCreate ->
-        val parentIds = repoState.infos.mapNotNull { it.callerWorkspaceId }.toSet()
+        val stacks = WorkspaceStacks(repoState.infos)
         // Pane chips describe where a workspace is on screen, so they follow the layout's own panes
         // rather than the raw selection map, which retains indices from wider layouts.
         val visibleAssignments = pageManagerState.visiblePaneAssignments
@@ -78,7 +79,7 @@ class WorkspaceManagerViewModel @Inject constructor(
                     customTitle = info.customTitle,
                     isSubWorkspace = info.isSubWorkspace,
                     isPaused = info.isPaused,
-                    canPause = info.canBePausedManually(parentIds, isFocused),
+                    canPause = info.canBePausedManually(stacks, pageManagerState.focusedWorkspaceId),
                 )
             },
             useLivePreview = livePreview,
@@ -96,20 +97,32 @@ class WorkspaceManagerViewModel @Inject constructor(
 
     /**
      * Mirrors WorkspaceRepo's pause guards, relaxed for visible-but-unfocused panes: manually
-     * pausing one of those is explicit user intent, while auto-pause may not touch it. The focused
-     * workspace stays excluded - resume-on-focus would immediately undo the pause. Content-path
+     * pausing one of those is explicit user intent, while auto-pause may not touch it. Content-path
      * claims are invisible here, so this stays eventually consistent - the repo can still refuse.
+     *
+     * Pausing acts on a whole ownership unit, so every member has to be pausable, not just this card:
+     * a modal child that would lose state (or owes its caller a result) keeps its whole tab awake.
+     * Child cards never offer Pause themselves - a child only goes down with the tab that owns it.
+     * A focused member anywhere in the unit excludes it too: resume-on-focus would immediately undo
+     * the pause. [stacks] guards against cycles and orphaned callers, which nothing validates at
+     * creation time; an unresolvable unit is not offered.
      */
     private fun Workspace.Info.canBePausedManually(
-        parentIds: Set<Workspace.Id>,
-        isFocused: Boolean,
-    ): Boolean = when {
-        isFocused -> false
-        isPaused || !isReady -> false
-        isSubWorkspace || id in parentIds -> false
-        operationCount > 0 || attentionCount > 0 -> false
-        hasUnsavedChanges || !isPausable -> false
-        else -> true
+        stacks: WorkspaceStacks,
+        focusedId: Workspace.Id?,
+    ): Boolean {
+        if (isPaused || !isReady || isSubWorkspace) return false
+        val members = stacks.unitOf(id) ?: return false
+        if (members.any { it.id == focusedId }) return false
+        return members.all { member ->
+            when {
+                member.id != id && !member.pausableAsChild -> false
+                member.operationCount > 0 || member.attentionCount > 0 -> false
+                member.hasUnsavedChanges || !member.isPausable -> false
+                !member.isReady -> false
+                else -> true
+            }
+        }
     }
 
     fun closeWorkspace(id: Workspace.Id) = launch {
@@ -117,18 +130,21 @@ class WorkspaceManagerViewModel @Inject constructor(
     }
 
     /**
-     * The lease keeps the pause from swapping the instance out from under a preview capture of the
-     * same workspace - the manager being open is exactly when captures run.
+     * The lease keeps the pause from swapping an instance out from under a preview capture of the
+     * same unit - the manager being open is exactly when captures run. Keyed on the ownership root,
+     * because the pause releases every member of that unit, not just this card.
      */
     fun pauseWorkspace(id: Workspace.Id) = launch {
         log(tag) { "pauseWorkspace($id)" }
-        val result = workspacePauseGate.withLease(id) { workspaceRepo.execute(WorkspaceAction.Pause(id)) }
+        val leaseKey = workspaceRepo.peekOwnershipRoot(id)
+        val result = workspacePauseGate.withLease(leaseKey) { workspaceRepo.execute(WorkspaceAction.Pause(id)) }
         // canPause is eventually consistent, so a benign refusal is expected; the card just stays.
         if (result !is WorkspaceAction.Pause.Result.Success) {
             log(tag, WARN) { "Pausing $id did not succeed: $result" }
         }
     }
 
+    /** Resumes the whole unit [id] belongs to, so a child card's Resume also wakes its owner. */
     fun resumeWorkspace(id: Workspace.Id) = launch {
         log(tag) { "resumeWorkspace($id)" }
         workspaceRepo.execute(WorkspaceAction.Resume(id))

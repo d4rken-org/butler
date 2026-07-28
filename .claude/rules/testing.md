@@ -1,25 +1,12 @@
+---
+paths: ["**/src/test*/**", "**/src/androidTest/**", "**/*Test.kt", "app-common-test/**"]
+---
+
 # Testing Guidelines
 
 ## Test Commands
 
 Standard Gradle invocations (`testDebugUnitTest`, `--tests "<fqcn>"`, `connectedAndroidTest`). Flavored modules need the flavor in the task name — see the Compose section below.
-
-### Context Management
-
-When running test commands, use the Task tool with a sub-agent to keep verbose output isolated from the main context:
-
-**Default approach (preferred):**
-
-- Use Task tool → `devtools:build-runner` agent → run gradle test command
-- Sub-agent should report back only:
-    - Success/failure status
-    - Test failures (if any) with file locations and error messages
-    - Count of passed/skipped tests (without full output)
-
-**Run gradle directly in main context only when:**
-
-- User explicitly requests to see full test output
-- Quick verification of test availability
 
 ## What to Test
 

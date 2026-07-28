@@ -212,7 +212,7 @@ fun BugReportWorkspacePage(
                 FloatingBar(
                     key = "toolbar",
                     visible = true,
-                    scrollBehavior = BarScrollBehavior.CollapseOnScroll(),
+                    scrollBehavior = BarScrollBehavior.CollapseOnScroll,
                     animation = BarAnimation.Slide(),
                     estimatedHeight = 64.dp,
                     revealOn = state.isRecording,

@@ -23,7 +23,7 @@ import eu.darken.butler.common.compose.ButlerChipDefaults
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.ui.propagateScrollAtBoundary
+import eu.darken.butler.common.ui.blockHorizontalScrollPropagation
 
 @Composable
 fun WorkspaceInfoBar(
@@ -41,7 +41,7 @@ fun WorkspaceInfoBar(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .propagateScrollAtBoundary(scrollState, enabled = isWorkspaceFocused)
+            .blockHorizontalScrollPropagation(scrollState, enabled = isWorkspaceFocused)
             .horizontalScroll(scrollState),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.CenterVertically,

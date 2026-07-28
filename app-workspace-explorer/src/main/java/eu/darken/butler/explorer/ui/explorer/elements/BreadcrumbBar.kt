@@ -66,7 +66,7 @@ import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
-import eu.darken.butler.common.ui.propagateScrollAtBoundary
+import eu.darken.butler.common.ui.blockHorizontalScrollPropagation
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
@@ -507,7 +507,7 @@ private fun BreadcrumbDisplayRow(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .propagateScrollAtBoundary(scrollState, enabled = isWorkspaceFocused)
+            .blockHorizontalScrollPropagation(scrollState, enabled = isWorkspaceFocused)
             .horizontalScroll(scrollState)
             .padding(end = cutoutWidth),
         verticalAlignment = Alignment.CenterVertically,

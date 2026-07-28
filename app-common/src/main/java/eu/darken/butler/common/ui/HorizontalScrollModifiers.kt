@@ -9,22 +9,23 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.Velocity
 
 /**
- * Modifier that blocks horizontal scroll propagation to parent scrollables (like HorizontalPager)
- * EXCEPT when the scroll reaches its boundary - then further scrolling propagates to the parent.
+ * Modifier that blocks horizontal scroll propagation to parent scrollables (like HorizontalPager).
  *
- * Use this on horizontally scrollable content inside a HorizontalPager to prevent accidental
- * page changes while still allowing natural page swiping when the content is fully scrolled.
+ * Use this on horizontally scrollable content inside a HorizontalPager to prevent accidental page
+ * changes while scrolling the content. Reaching the content's scroll boundary does NOT hand the
+ * gesture over to the pager - switching pages requires a new gesture somewhere else.
  *
- * Behavior depends on [enabled]:
- * - When `enabled = true` (focused page): Scroll and fling propagate at boundaries only
- * - When `enabled = false` (unfocused page): ALL scroll and fling are blocked to prevent
- *   velocity leakage during pager swipes
+ * Content that can't scroll at all ([ScrollState.maxValue] is 0) is left alone, so a short
+ * breadcrumb trail or info bar doesn't become a dead zone for page swipes.
+ *
+ * Reporting the leftover delta as consumed also hides it from the content's own overscroll effect,
+ * so there is no edge stretch at the boundary - the scroll just stops.
  *
  * @param scrollState The ScrollState used by the horizontalScroll modifier on the same element
- * @param enabled When true, allows boundary propagation. When false, blocks ALL propagation
- *                (use false for non-focused pages in a pager)
+ * @param enabled When false (non-focused page in a pager), blocks propagation unconditionally to
+ *                prevent velocity leakage during pager swipes
  */
-fun Modifier.propagateScrollAtBoundary(
+fun Modifier.blockHorizontalScrollPropagation(
     scrollState: ScrollState,
     enabled: Boolean = true,
 ): Modifier {
@@ -47,25 +48,7 @@ fun Modifier.propagateScrollAtBoundary(
             // If no horizontal scrolling is possible, don't interfere with pager at all
             if (scrollState.maxValue <= 0) return Offset.Zero
 
-            // available.x > 0 means scrolling left (trying to go to start)
-            // available.x < 0 means scrolling right (trying to go to end)
-            val atStart = scrollState.value == 0
-            val atEnd = scrollState.value >= scrollState.maxValue
-
-            val shouldPropagate = when {
-                // At start and trying to scroll further left -> propagate to pager
-                atStart && available.x > 0 -> true
-                // At end and trying to scroll further right -> propagate to pager
-                atEnd && available.x < 0 -> true
-                // Otherwise block propagation
-                else -> false
-            }
-
-            return if (shouldPropagate) {
-                Offset.Zero // Let it propagate to parent (pager)
-            } else {
-                Offset(available.x, 0f) // Consume it to block propagation
-            }
+            return Offset(available.x, 0f)
         }
 
         override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
@@ -76,24 +59,7 @@ fun Modifier.propagateScrollAtBoundary(
             // If no horizontal scrolling is possible, don't interfere with pager at all
             if (scrollState.maxValue <= 0) return Velocity.Zero
 
-            // When enabled (focused page), propagate fling at boundaries so the pager can
-            // receive velocity for smooth page switching. Without this, the pager receives
-            // scroll but no fling, making page switches difficult from horizontally
-            // scrollable content.
-            val atStart = scrollState.value == 0
-            val atEnd = scrollState.value >= scrollState.maxValue
-
-            val shouldPropagate = when {
-                atStart && available.x > 0 -> true  // At start, flinging left
-                atEnd && available.x < 0 -> true    // At end, flinging right
-                else -> false
-            }
-
-            return if (shouldPropagate) {
-                Velocity.Zero // Let fling propagate to pager
-            } else {
-                Velocity(available.x, 0f) // Consume to block propagation
-            }
+            return Velocity(available.x, 0f)
         }
     }
 

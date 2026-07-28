@@ -56,7 +56,7 @@ class TemplatesWorkspaceViewModel @AssistedInject constructor(
         State(
             id = id,
             templates = temps,
-            isUpgraded = upgradeInfo.isUpgraded,
+            isUpgraded = upgradeInfo.isPro,
             versionDescription = BuildConfigWrap.VERSION_DESCRIPTION_SHORT,
             customTitle = currentCustomTitle,
         )

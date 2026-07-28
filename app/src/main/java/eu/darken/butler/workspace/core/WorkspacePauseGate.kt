@@ -13,6 +13,12 @@ import javax.inject.Singleton
 /**
  * Mutual exclusion between pausing a workspace and capturing its preview, per workspace id.
  *
+ * Every participant keys its lease on the OWNERSHIP ROOT of the workspace it is about to touch
+ * ([WorkspaceRepo.peekOwnershipRoot]), because [WorkspaceAction.Pause] releases a whole ownership
+ * unit. One lease per unit and not one per member is deliberate: a set of ids cannot be acquired
+ * atomically, and the authoritative member list is only known inside the repo action - so a child
+ * created while a pause waits for its lease would otherwise be released without its lease held.
+ *
  * Pausing releases a workspace instance, while
  * [eu.darken.butler.workspace.ui.manager.preview.WorkspacePreviewCaptureService] composes that same
  * instance's page host offscreen. Overlapping the two swaps the instance out from under a running
@@ -23,7 +29,7 @@ import javax.inject.Singleton
  * The gate lives with the callers, not inside [WorkspaceRepo]: the repo is the domain layer and has
  * no business knowing that previews exist.
  *
- * Exclusion is per workspace id, so capturing tab A never delays pausing tab B.
+ * Exclusion is per key, so capturing anything in tab A's stack never delays pausing tab B.
  *
  * Lock ordering is lease -> [WorkspaceRepo] lock, never the reverse: callers take the lease first
  * and only then call into the repo. Nothing reached from inside a lease may take a lease again -

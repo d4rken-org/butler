@@ -1,11 +1,13 @@
 package eu.darken.butler.apps.core.details
 
+import android.content.Context
 import dagger.Module
 import dagger.Provides
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoMap
 import eu.darken.butler.apps.R
@@ -30,6 +32,7 @@ import eu.darken.butler.workspace.core.WorkspaceFactory
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.WorkspaceTypeKey
 import eu.darken.butler.workspace.core.initialInfo
+import eu.darken.butler.workspace.core.isPausableAsChild
 import eu.darken.butler.workspace.core.label
 import eu.darken.butler.workspace.core.stateInWorkspace
 import kotlinx.coroutines.CoroutineName
@@ -51,6 +54,7 @@ import kotlinx.serialization.serializer
 class AppDetailsWorkspace @AssistedInject constructor(
     @Assisted override val id: Workspace.Id,
     @Assisted private val creationArguments: AppDetailsArguments,
+    @ApplicationContext private val context: Context,
     dispatcherProvider: DispatcherProvider,
     private val pkgRepo: PkgRepo,
     private val rootManager: RootManager,
@@ -64,10 +68,23 @@ class AppDetailsWorkspace @AssistedInject constructor(
     private val args = creationArguments
     override val type: Workspace.Type = Workspace.Type.APP_DETAILS
 
+    // Cached separately because `args` is immutable: the captured label has to survive into every
+    // later createArguments() call, not just the copy handed to the serializer.
+    @Volatile private var cachedAppLabel: String? = creationArguments.appLabel
+
     override suspend fun createArguments(): AppDetailsArguments {
-        // The Components sub-screen is transient navigation state, not persisted: a restored
-        // workspace always reopens on Overview regardless of where the user navigated.
-        return args.copy(initialTab = DetailTab.OVERVIEW)
+        // Two callers with opposite needs:
+        // - As a modal (callerWorkspaceId set) this is only ever captured by a pause of the owning
+        //   tab, which the user expects to come back exactly as they left it - including the sub-tab.
+        //   Modals are never session-saved, so keeping it cannot leak into a restore.
+        // - As a tab this IS what session save persists, and the Components sub-screen is transient
+        //   navigation state, so a restored workspace always reopens on Overview regardless of where
+        //   the user navigated.
+        val tabToKeep = if (args.callerWorkspaceId != null) selectedTabFlow.value else DetailTab.OVERVIEW
+        return args.copy(
+            initialTab = tabToKeep,
+            appLabel = cachedAppLabel,
+        )
     }
 
     private val selectedTabFlow = MutableStateFlow(args.initialTab)
@@ -76,7 +93,7 @@ class AppDetailsWorkspace @AssistedInject constructor(
     // Fetch app info from package manager; shared so `state` and `info` collect pkgs() once.
     // Plain stateIn (not shareLatest): null is a legitimate value meaning "package gone".
     private val appInfoFlow: StateFlow<AppInfo?> = pkgRepo.pkgs().map { pkgs ->
-        val pkg = pkgs.firstOrNull { it.id.name == args.packageName } ?: return@map null
+        val pkg = pkgs.firstOrNull { it.installId == args.installId } ?: return@map null
 
         AppInfo(
             install = pkg,
@@ -129,16 +146,20 @@ class AppDetailsWorkspace @AssistedInject constructor(
         appInfoFlow,
         selectedTabFlow,
     ) { app, _ ->
+        val label = normalizedAppLabel(app?.label?.get(context), args.packageName)
         Workspace.Info(
             id = id,
             type = type,
-            title = app?.label ?: seedDisplay.title ?: type.label,
-            subtitle = app?.packageName?.toCaString(),
+            title = label?.toCaString() ?: seedDisplay.title ?: type.label,
+            subtitle = label?.let { args.packageName.toCaString() },
             lifecycleState = Workspace.LifecycleState.Ready,
             operationCount = 0,
             attentionCount = 0,
             callerWorkspaceId = args.callerWorkspaceId,
             modalPresentation = args.modalPresentation,
+            // Built by hand instead of via initialInfo(), so the relationship fields have to be
+            // carried explicitly - a missing one here silently reads as "not pausable with my owner"
+            pausableAsChild = args.isPausableAsChild,
         )
     }.stateInWorkspace(
         scope = scope,
@@ -186,6 +207,10 @@ class AppDetailsWorkspace @AssistedInject constructor(
         // Only close after app was seen at least once (to avoid closing during initial load)
         appInfoFlow
             .onEach { appInfo ->
+                // Only ever upgrades: a gone package must not erase the cached label.
+                normalizedAppLabel(appInfo?.label?.get(context), args.packageName)
+                    ?.let { cachedAppLabel = it }
+
                 if (appInfo != null) {
                     wasAppSeen = true
                 } else if (wasAppSeen) {

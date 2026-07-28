@@ -19,6 +19,8 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.getPackageInfo
+import eu.darken.butler.upgrade.UpgradeDiagnostics
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,11 +31,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.Json
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.Uuid
 
 /**
@@ -55,6 +59,9 @@ class BugReportRecorder @Inject constructor(
     private val dispatcherProvider: DispatcherProvider,
     private val butlerId: ButlerId,
     private val json: Json,
+    // Multibound set, never a single binding: the implementations live in the flavor source sets of
+    // :app, and app-common must build (and record) whether or not one was contributed.
+    private val upgradeDiagnostics: Set<@JvmSuppressWildcards UpgradeDiagnostics>,
 ) {
 
     private val mutex = Mutex()
@@ -197,7 +204,7 @@ class BugReportRecorder @Inject constructor(
         locale = safeField { Resources.getSystem().configuration.locales.toLanguageTags() },
     )
 
-    private fun logSessionInfos() {
+    private suspend fun logSessionInfos() {
         runCatching {
             val pkgInfo = context.getPackageInfo()
             log(TAG, INFO) { "APILEVEL: ${BuildWrap.VERSION.SDK_INT}" }
@@ -210,6 +217,32 @@ class BugReportRecorder @Inject constructor(
             log(TAG, INFO) { "Build: ${BuildConfigWrap.FLAVOR}-${BuildConfigWrap.BUILD_TYPE}" }
             log(TAG, INFO) { "Install ID: ${butlerId.id}" }
             log(TAG, INFO) { "App locales: ${Resources.getSystem().configuration.locales}" }
+        }
+        logUpgradeDiagnostics()
+    }
+
+    /**
+     * Entitlement diagnostics for the header: billing complaints arrive as debug recordings, so
+     * having the local purchase cache and the lifetime Pro-state history in the log saves a support
+     * round-trip.
+     *
+     * Each provider is isolated: a failing or hanging one must not stop the recording from starting,
+     * and must not suppress the others' independent evidence.
+     */
+    private suspend fun logUpgradeDiagnostics() {
+        upgradeDiagnostics.forEach { diagnostics ->
+            try {
+                val info = withTimeoutOrNull(DIAGNOSTICS_TIMEOUT) { diagnostics.debugInfo() }
+                if (info == null) {
+                    log(TAG) { "No upgrade diagnostics from $diagnostics" }
+                } else {
+                    log(TAG, INFO) { "Upgrade diagnostics: $info" }
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                log(TAG, WARN) { "Upgrade diagnostics unavailable ($diagnostics): ${e.asLog()}" }
+            }
         }
     }
 
@@ -248,5 +281,8 @@ class BugReportRecorder @Inject constructor(
         private val TAG = logTag("Debug", "BugReport", "Recorder")
         const val MIN_RECORDING_MS = 5_000L
         private const val LOG_SIZE_UPDATE_INTERVAL_MS = 5_000L
+
+        // Diagnostics read local storage only; a longer wait would just delay the recording start.
+        private val DIAGNOSTICS_TIMEOUT = 5.seconds
     }
 }

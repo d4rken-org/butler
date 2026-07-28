@@ -164,7 +164,7 @@ fun EditorWorkspacePage(
             bars = {
                 FloatingBar(
                     key = EditorBarKeys.TOOLBAR,
-                    scrollBehavior = BarScrollBehavior.CollapseOnScroll(),
+                    scrollBehavior = BarScrollBehavior.CollapseOnScroll,
                     estimatedHeight = 80.dp,
                     animation = BarAnimation.Slide(),
                 ) {

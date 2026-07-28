@@ -28,6 +28,7 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.LocalWorkspacePageHosts
 import eu.darken.butler.workspace.ui.insets.paneHorizontalInsetPadding
+import eu.darken.butler.workspace.ui.manager.LocalWorkspaceButtonProvider
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.modal.LocalPaneLayerRank
 import eu.darken.butler.workspace.ui.modal.PaneLayer
@@ -47,12 +48,18 @@ import eu.darken.butler.workspace.ui.modal.PaneLayerRank
  * @param workspace The workspace to display
  * @param design The workspace design/layout configuration from the parent screen
  * @param onDismissRequest Called when the user dismisses the dialog
+ * @param onShareError Shares the failure of a workspace that could not initialize
+ * @param onCloseWorkspace Closes this workspace, offered by the error placeholder
+ * @param onResumeWorkspace Resumes this workspace, offered by the paused placeholder
  */
 @Composable
 fun WorkspaceModalDialog(
     workspace: Workspace.Info,
     design: WorkspaceDesign,
     onDismissRequest: () -> Unit,
+    onShareError: (Throwable) -> Unit = {},
+    onCloseWorkspace: () -> Unit = {},
+    onResumeWorkspace: () -> Unit = {},
 ) {
     Dialog(
         onDismissRequest = onDismissRequest,
@@ -107,6 +114,9 @@ fun WorkspaceModalDialog(
                 WorkspaceModalContent(
                     workspace = workspace,
                     design = design,
+                    onShareError = onShareError,
+                    onCloseWorkspace = onCloseWorkspace,
+                    onResumeWorkspace = onResumeWorkspace,
                 )
             }
         }
@@ -119,11 +129,19 @@ fun WorkspaceModalDialog(
  * A full-screen sub-workspace occupies its own window, so it needs its own layer stack: without one
  * its page host's [eu.darken.butler.workspace.ui.WorkspacePageHostEntry.Overlays] slot would never
  * be composed and the workspace would render without any of its dialogs.
+ *
+ * The page goes through [WorkspaceMapper] rather than straight to the page host, for the same reason
+ * a pane does: a modal can be paused now (a tab is released together with its opted-in children), and
+ * a paused id has no instance behind it - its typed ViewModel would wait on `retrieve()` forever.
+ * Single-pane layouts promote every chain to this dialog, so this is the phone path.
  */
 @Composable
 fun WorkspaceModalContent(
     workspace: Workspace.Info,
     design: WorkspaceDesign = WorkspaceDesign(),
+    onShareError: (Throwable) -> Unit = {},
+    onCloseWorkspace: () -> Unit = {},
+    onResumeWorkspace: () -> Unit = {},
 ) {
     // One workspace per subtree. This is rendered from a single call site while the workspace
     // flowing through it changes - unwinding a modal chain swaps the deepest modal for its parent -
@@ -150,7 +168,19 @@ fun WorkspaceModalContent(
         ) {
             PaneLayer(modifier = Modifier.fillMaxSize(), modal = false) {
                 Box(modifier = Modifier.paneHorizontalInsetPadding(design.paneEdges)) {
-                    WorkspacePageHostDispatcher(id = workspace.id, type = workspace.type, design = design)
+                    // The state placeholders offer a tab-manager button on single-pane layouts, which
+                    // is meaningless inside a modal window: it would open the manager behind the
+                    // dialog. Suppressed by taking the provider away instead of by faking
+                    // design.isSingle, which would perturb layout and insets.
+                    CompositionLocalProvider(LocalWorkspaceButtonProvider provides null) {
+                        WorkspaceMapper(
+                            info = workspace.asPaneInfo(),
+                            design = design,
+                            onShareError = onShareError,
+                            onCloseWorkspace = onCloseWorkspace,
+                            onResumeWorkspace = onResumeWorkspace,
+                        )
+                    }
                 }
             }
 
@@ -179,7 +209,26 @@ private fun WorkspaceModalContentPreview() {
                 id = Workspace.Id(),
                 type = Workspace.Type.EXPLORER,
                 title = "Select Folder".toCaString(),
+                lifecycleState = Workspace.LifecycleState.Ready,
                 callerWorkspaceId = Workspace.Id(), // Mock parent workspace
+            ),
+        )
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspaceModalContentPausedPreview() {
+    CompositionLocalProvider(LocalWorkspacePageHosts provides emptyMap()) {
+        WorkspaceModalContent(
+            workspace = Workspace.Info(
+                id = Workspace.Id(),
+                type = Workspace.Type.APP_DETAILS,
+                title = "Butler".toCaString(),
+                subtitle = "eu.darken.butler".toCaString(),
+                lifecycleState = Workspace.LifecycleState.Paused(),
+                callerWorkspaceId = Workspace.Id(),
             ),
         )
     }

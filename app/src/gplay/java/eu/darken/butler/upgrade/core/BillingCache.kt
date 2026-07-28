@@ -8,7 +8,10 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
+import eu.darken.butler.common.datastore.basicReader
+import eu.darken.butler.common.datastore.basicWriter
 import eu.darken.butler.common.datastore.createValue
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -22,41 +25,63 @@ class BillingCache @Inject constructor(
     private val dataStore: DataStore<Preferences>
         get() = context.dataStore
 
-    val lastProStateAt = dataStore.createValue("gplay.cache.lastProAt", 0L)
-    val lastProStateSku = dataStore.createValue("gplay.cache.lastProSku", "")
+    // Raw keys shared between the DataStoreValues and stampLastProState's transaction — one
+    // source of truth for key name and encoding.
+    private val lastProStateAtKey = longPreferencesKey("gplay.cache.lastProAt")
+    private val lastProStateSkuKey = stringPreferencesKey("gplay.cache.lastProSku")
+    private val proUnconfirmedSinceKey = longPreferencesKey("gplay.cache.proUnconfirmedAt")
 
-    // Start of the current "we should be Pro but Play won't confirm it" episode (0 = no episode /
-    // confirmed). Distinct from lastProStateAt (last CONFIRMED pro): the diagnostics UI promises
-    // "24h in THIS episode", so it must measure from when confirmation was lost, not last success.
-    val proUnconfirmedSince = dataStore.createValue("gplay.cache.proUnconfirmedAt", 0L)
+    val lastProStateAt = dataStore.createValue(
+        key = lastProStateAtKey,
+        reader = basicReader(0L),
+        writer = basicWriter(),
+    )
+    val lastProStateSku = dataStore.createValue(
+        key = lastProStateSkuKey,
+        reader = basicReader(""),
+        writer = basicWriter(),
+    )
 
-    // A confirmed Pro purchase: record SKU + timestamp AND close any open unconfirmed episode in ONE
-    // transaction, so a crash between writes can't leave a stale episode pointing past a fresh
-    // confirmation. SKU only modifies the grace-window length; the timestamp gates grace.
-    suspend fun stampProConfirmed(skuId: String, at: Long) {
-        context.dataStore.edit { prefs ->
-            prefs[stringPreferencesKey(SKU_KEY)] = skuId
-            prefs[longPreferencesKey(LAST_PRO_KEY)] = at
-            prefs[longPreferencesKey(UNCONFIRMED_KEY)] = 0L
-        }
+    // Start of the current "fresh data can't confirm Pro" episode (0 = none/confirmed). Drives the
+    // delayed grace hint on the upgrade screen; stamped only from fresh billing reconciliations —
+    // see UpgradeRepoGplay.recordProUnconfirmed().
+    val proUnconfirmedSince = dataStore.createValue(
+        key = proUnconfirmedSinceKey,
+        reader = basicReader(0L),
+        writer = basicWriter(),
+    )
+
+    // Point-in-time view of all three values. Reading them via three separate .value() calls can
+    // straddle a concurrent stampLastProState() and observe a combination that never existed --
+    // that write is transactional precisely because the values are only meaningful together.
+    data class Snapshot(
+        val lastProStateAt: Long,
+        val lastProStateSku: String,
+        val proUnconfirmedSince: Long,
+    )
+
+    suspend fun snapshot(): Snapshot {
+        val prefs = dataStore.data.first()
+        return Snapshot(
+            lastProStateAt = prefs[lastProStateAtKey] ?: 0L,
+            lastProStateSku = prefs[lastProStateSkuKey] ?: "",
+            proUnconfirmedSince = prefs[proUnconfirmedSinceKey] ?: 0L,
+        )
     }
 
-    // Set-if-unset episode start, guarded so a stale/buffered failure can't reopen an episode a newer
-    // confirmation already closed: only starts when no episode is open AND the failure occurred after
-    // the last confirmation (which itself must exist). Preserves an already-open episode's start.
-    suspend fun startUnconfirmedEpisode(occurredAt: Long) {
-        context.dataStore.edit { prefs ->
-            val lastPro = prefs[longPreferencesKey(LAST_PRO_KEY)] ?: 0L
-            val existing = prefs[longPreferencesKey(UNCONFIRMED_KEY)] ?: 0L
-            if (existing == 0L && lastPro > 0L && occurredAt > lastPro) {
-                prefs[longPreferencesKey(UNCONFIRMED_KEY)] = occurredAt
-            }
+    // One transaction for all three values: the timestamp gates the grace period, the SKU modifies
+    // its window length, and a confirmation closes the unconfirmed episode — none of it may be
+    // observable half-updated. `at` is the confirmation's OCCURRENCE time (commit time of the Play
+    // round-trip). The episode is closed only if it began at or before `at`: a failure that occurred
+    // AFTER this confirmation (e.g. a connection drop right after this success, delivered to the
+    // entitlement layer out of order) opened a still-valid episode that this older confirmation must
+    // not erase.
+    suspend fun stampLastProState(skuId: String, at: Long) {
+        dataStore.edit { prefs ->
+            prefs[lastProStateSkuKey] = skuId
+            prefs[lastProStateAtKey] = at
+            val episodeStart = prefs[proUnconfirmedSinceKey] ?: 0L
+            if (episodeStart in 1..at) prefs[proUnconfirmedSinceKey] = 0L
         }
-    }
-
-    companion object {
-        private const val LAST_PRO_KEY = "gplay.cache.lastProAt"
-        private const val SKU_KEY = "gplay.cache.lastProSku"
-        private const val UNCONFIRMED_KEY = "gplay.cache.proUnconfirmedAt"
     }
 }

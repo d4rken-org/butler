@@ -70,17 +70,6 @@ sponsor ❤️.
 
 <img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/tenInchScreenshots/1_explorer_home.png" width="160"><img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/tenInchScreenshots/2_explorer_directory.png" width="160"><img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/tenInchScreenshots/3_searcher_results.png" width="160"><img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/tenInchScreenshots/4_editor.png" width="160"><img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/tenInchScreenshots/5_apps.png" width="160"><img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/tenInchScreenshots/6_workspace_manager.png" width="160"><img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/tenInchScreenshots/7_multi_pane.png" width="160"><img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/tenInchScreenshots/8_templates.png" width="160">
 
-## Building
-
-Requires **JDK 21 (Temurin), 21.0.9 or newer** — the repo-root `.sdkmanrc` pins a known-good version,
-so `sdk env install` sets it up. Older 21.x builds (21.0.5–21.0.8) contain a JIT compiler crash that
-kills Gradle test workers.
-
-```bash
-./gradlew :app:assembleFossDebug
-./gradlew testDebugUnitTest testFossDebugUnitTest testGplayDebugUnitTest
-```
-
 ## License
 
 Butler's code is available under a GPL v3 license, this excludes:

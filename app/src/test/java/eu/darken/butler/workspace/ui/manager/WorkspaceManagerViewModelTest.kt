@@ -43,6 +43,8 @@ class WorkspaceManagerViewModelTest : BaseTest() {
         pauseGate = WorkspacePauseGate()
         workspaceRepo = mockk(relaxed = true) {
             every { state } returns repoState
+            // Pause leases are keyed on the ownership root; the flat topologies here are their own
+            every { peekOwnershipRoot(any()) } answers { firstArg() }
         }
         workspaceSettings = mockk(relaxed = true) {
             every { showTipBadgeExplanation } returns mockk { every { flow } returns flowOf(false) }
@@ -69,6 +71,16 @@ class WorkspaceManagerViewModelTest : BaseTest() {
         type = Workspace.Type.EXPLORER,
         title = "Workspace".toCaString(),
         lifecycleState = Workspace.LifecycleState.Ready,
+    )
+
+    private fun childInfo(
+        caller: Workspace.Id,
+        pausableAsChild: Boolean,
+        id: Workspace.Id = Workspace.Id(),
+    ) = readyInfo(id).copy(
+        type = Workspace.Type.APP_DETAILS,
+        callerWorkspaceId = caller,
+        pausableAsChild = pausableAsChild,
     )
 
     private suspend fun items() = createViewModel().state.filterNotNull().first().workspaces
@@ -147,5 +159,90 @@ class WorkspaceManagerViewModelTest : BaseTest() {
         pageState.value = WorkspacePageManager.State(focusedWorkspaceId = idA)
 
         items().single { it.id == idB }.canPause shouldBe false
+    }
+
+    @Test
+    fun `a busy or unsaved workspace cannot be paused`() = runTest {
+        val busyId = Workspace.Id()
+        val attentionId = Workspace.Id()
+        val dirtyId = Workspace.Id()
+        val initializingId = Workspace.Id()
+        repoState.value = WorkspaceRemote.State(
+            infos = listOf(
+                readyInfo(idA),
+                readyInfo(busyId).copy(operationCount = 1),
+                readyInfo(attentionId).copy(attentionCount = 1),
+                readyInfo(dirtyId).copy(hasUnsavedChanges = true),
+                readyInfo(initializingId).copy(lifecycleState = Workspace.LifecycleState.Initializing),
+            ),
+        )
+        pageState.value = WorkspacePageManager.State(focusedWorkspaceId = idA)
+
+        val items = items()
+        items.single { it.id == busyId }.canPause shouldBe false
+        items.single { it.id == attentionId }.canPause shouldBe false
+        items.single { it.id == dirtyId }.canPause shouldBe false
+        items.single { it.id == initializingId }.canPause shouldBe false
+    }
+
+    @Test
+    fun `a tab with an overlay can be paused only when the whole unit may go`() = runTest {
+        val goodOverlay = childInfo(caller = idB, pausableAsChild = true)
+        val busyOverlay = childInfo(caller = idA, pausableAsChild = true).copy(operationCount = 1)
+        val optedOutOverlay = childInfo(caller = idA, pausableAsChild = false)
+        val focusedId = Workspace.Id()
+        val pausableWithOverlayId = idB
+
+        repoState.value = WorkspaceRemote.State(
+            infos = listOf(readyInfo(focusedId), readyInfo(idA), readyInfo(idB), goodOverlay, busyOverlay),
+        )
+        pageState.value = WorkspacePageManager.State(focusedWorkspaceId = focusedId)
+
+        items().let { items ->
+            items.single { it.id == pausableWithOverlayId }.canPause shouldBe true
+            // A busy overlay keeps its whole tab awake
+            items.single { it.id == idA }.canPause shouldBe false
+            // Children never offer Pause themselves; they go down with their owner
+            items.single { it.id == goodOverlay.id }.canPause shouldBe false
+        }
+
+        repoState.value = WorkspaceRemote.State(
+            infos = listOf(readyInfo(focusedId), readyInfo(idA), optedOutOverlay),
+        )
+
+        // A picker-like overlay that owes a result never lets its caller be released
+        items().single { it.id == idA }.canPause shouldBe false
+    }
+
+    @Test
+    fun `a focused overlay keeps its owning tab from being paused`() = runTest {
+        val overlay = childInfo(caller = idB, pausableAsChild = true)
+        repoState.value = WorkspaceRemote.State(infos = listOf(readyInfo(idA), readyInfo(idB), overlay))
+        pageState.value = WorkspacePageManager.State(focusedWorkspaceId = overlay.id)
+
+        // Resume-on-focus would immediately undo it
+        items().single { it.id == idB }.canPause shouldBe false
+    }
+
+    @Test
+    fun `a broken ownership chain is never offered for pausing`() = runTest {
+        val cycleA = Workspace.Id()
+        val cycleB = Workspace.Id()
+        val orphan = Workspace.Id()
+        repoState.value = WorkspaceRemote.State(
+            infos = listOf(
+                readyInfo(idA),
+                // Nothing validates caller ids at creation time, so both of these are reachable
+                readyInfo(cycleA).copy(callerWorkspaceId = cycleB, pausableAsChild = true),
+                readyInfo(cycleB).copy(callerWorkspaceId = cycleA, pausableAsChild = true),
+                readyInfo(orphan).copy(callerWorkspaceId = Workspace.Id(), pausableAsChild = true),
+            ),
+        )
+        pageState.value = WorkspacePageManager.State(focusedWorkspaceId = idA)
+
+        val items = items()
+        items.single { it.id == cycleA }.canPause shouldBe false
+        items.single { it.id == cycleB }.canPause shouldBe false
+        items.single { it.id == orphan }.canPause shouldBe false
     }
 }

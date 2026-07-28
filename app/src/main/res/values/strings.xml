@@ -157,6 +157,8 @@
     <string name="ui_theme_color_value_system">System colors</string>
     <string name="ui_language_override_label">App language</string>
     <string name="ui_language_override_desc">Select a different language for Butler, independent of your system\'s default language.</string>
+    <string name="ui_display_cutout_avoid_setting_title">Avoid display cutout</string>
+    <string name="ui_display_cutout_avoid_setting_description">Keeps the interface clear of the camera cutout. Turn it off to use more of the screen, but parts of the interface may then sit behind the cutout.</string>
 
     <string name="previews_settings_title">Previews</string>
     <string name="previews_settings_subtitle">Manage image preview caches.</string>

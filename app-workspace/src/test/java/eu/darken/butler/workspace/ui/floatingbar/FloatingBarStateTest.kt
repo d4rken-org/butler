@@ -88,4 +88,22 @@ class FloatingBarStateTest : BaseTest() {
 
         dispatcher.dispatches shouldBe 1
     }
+
+    /**
+     * Forward-looking invariant, not a reproduction: a collapsing bar's content animates its own
+     * height, so the height the stack lays out against is whatever was measured - never a separately
+     * declared floor that could disagree with it.
+     */
+    @Test
+    fun `a collapsing bar occupies exactly its measured height`() {
+        val bar = FloatingBarState(
+            id = "bar",
+            scrollBehavior = BarScrollBehavior.CollapseOnScroll,
+        ).apply {
+            measuredHeight = 120f
+            runBlocking { scrollCollapseAnimatable.snapTo(1f) }
+        }
+
+        bar.effectiveHeight shouldBe 120f
+    }
 }

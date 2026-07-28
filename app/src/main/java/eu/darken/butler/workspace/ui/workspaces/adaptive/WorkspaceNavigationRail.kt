@@ -4,19 +4,16 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -51,6 +48,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -62,6 +60,7 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.systemBarsWithOptionalCutout
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.icon
@@ -73,6 +72,13 @@ import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import eu.darken.butler.common.R as CommonR
 
+object WorkspaceNavigationRailDefaults {
+    const val SURFACE_TEST_TAG = "workspace.rail.surface"
+    const val CONTENT_TEST_TAG = "workspace.rail.content"
+    const val LIST_TEST_TAG = "workspace.rail.list"
+}
+
+private val RailSectionPadding = 8.dp
 
 @Composable
 fun WorkspaceNavigationRail(
@@ -115,96 +121,107 @@ fun WorkspaceNavigationRail(
         }
     }
 
+    WorkspaceRailContainer(modifier = modifier) {
+        WorkspaceButton(
+            modifier = Modifier.padding(vertical = RailSectionPadding),
+            currentWorkspaceId = focusedId,
+        )
+
+        HorizontalDivider()
+
+        LazyColumn(
+            modifier = Modifier
+                .weight(1f)
+                .padding(vertical = RailSectionPadding)
+                .testTag(WorkspaceNavigationRailDefaults.LIST_TEST_TAG),
+            state = lazyListState,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            items(
+                items = localWorkspaces,
+                key = { it.id }
+            ) { ws ->
+                ReorderableItem(
+                    reorderableLazyListState,
+                    key = ws.id
+                ) { isDraggingItem ->
+                    val paneIndex = selected.entries.find { it.value.id == ws.id }?.key
+                    DraggableWorkspaceRailItem(
+                        workspace = ws,
+                        isSelected = selected.values.any { it.id == ws.id },
+                        isFocused = focusedId == ws.id,
+                        currentPaneIndex = paneIndex,
+                        onTabAction = onTabAction,
+                        onPaneAssignment = onPaneAssignment,
+                        onRename = onRename,
+                        maxPanes = design.maxPanes,
+                        onPaneMenuToggle = onPaneMenuToggle,
+                        isDraggingItem = isDraggingItem,
+                        onDragStarted = {
+                            isDragging = true
+                        },
+                        onDragStopped = {
+                            isDragging = false
+                            // Trigger reorder action with new order
+                            val newOrder = localWorkspaces.map { it.id }
+                            onTabAction(WorkspaceAction.Reorder(newOrder))
+                        },
+                        reorderableScope = this,
+                    )
+                }
+            }
+        }
+
+        HorizontalDivider()
+
+        Spacer(modifier = Modifier.height(RailSectionPadding))
+
+        FloatingActionButton(
+            onClick = {
+                onTabAction(
+                    WorkspaceAction.Create()
+                )
+            },
+            modifier = Modifier.size(48.dp),
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+        ) {
+            Icon(
+                imageVector = Icons.TwoTone.Add,
+                contentDescription = stringResource(R.string.workspace_add_tab_description),
+            )
+        }
+
+        Spacer(modifier = Modifier.height(RailSectionPadding))
+    }
+}
+
+@Composable
+internal fun WorkspaceRailContainer(
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit,
+) {
     Surface(
         modifier = modifier
             .fillMaxHeight()
-            // Only the start side: the rail doesn't touch the end edge, and padding for an end-side
-            // navigation bar here would widen the rail while the end pane pads for it as well.
-            .windowInsetsPadding(
-                WindowInsets.systemBars
-                    .union(WindowInsets.displayCutout)
-                    .only(WindowInsetsSides.Start + WindowInsetsSides.Vertical)
-            ),
+            .testTag(WorkspaceNavigationRailDefaults.SURFACE_TEST_TAG),
         color = MaterialTheme.colorScheme.surface,
         tonalElevation = 1.dp,
     ) {
         Column(
             modifier = Modifier
                 .fillMaxHeight()
+                // Only the start side: the rail doesn't touch the end edge, and padding for an end-side
+                // navigation bar here would widen the rail while the end pane pads for it as well.
+                .windowInsetsPadding(
+                    systemBarsWithOptionalCutout()
+                        .only(WindowInsetsSides.Start + WindowInsetsSides.Vertical)
+                )
                 .width(80.dp)
+                .testTag(WorkspaceNavigationRailDefaults.CONTENT_TEST_TAG)
                 .padding(horizontal = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            WorkspaceButton(
-                modifier = Modifier.padding(vertical = 16.dp),
-                currentWorkspaceId = focusedId,
-            )
-
-            HorizontalDivider()
-
-            LazyColumn(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(vertical = 16.dp),
-                state = lazyListState,
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                items(
-                    items = localWorkspaces,
-                    key = { it.id }
-                ) { ws ->
-                    ReorderableItem(
-                        reorderableLazyListState,
-                        key = ws.id
-                    ) { isDraggingItem ->
-                        val paneIndex = selected.entries.find { it.value.id == ws.id }?.key
-                        DraggableWorkspaceRailItem(
-                            workspace = ws,
-                            isSelected = selected.values.any { it.id == ws.id },
-                            isFocused = focusedId == ws.id,
-                            currentPaneIndex = paneIndex,
-                            onTabAction = onTabAction,
-                            onPaneAssignment = onPaneAssignment,
-                            onRename = onRename,
-                            maxPanes = design.maxPanes,
-                            onPaneMenuToggle = onPaneMenuToggle,
-                            isDraggingItem = isDraggingItem,
-                            onDragStarted = {
-                                isDragging = true
-                            },
-                            onDragStopped = {
-                                isDragging = false
-                                // Trigger reorder action with new order
-                                val newOrder = localWorkspaces.map { it.id }
-                                onTabAction(WorkspaceAction.Reorder(newOrder))
-                            },
-                            reorderableScope = this,
-                        )
-                    }
-                }
-            }
-
-            HorizontalDivider()
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            FloatingActionButton(
-                onClick = {
-                    onTabAction(
-                        WorkspaceAction.Create()
-                    )
-                },
-                modifier = Modifier.size(48.dp),
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-            ) {
-                Icon(
-                    imageVector = Icons.TwoTone.Add,
-                    contentDescription = stringResource(R.string.workspace_add_tab_description),
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-        }
+            content = content,
+        )
     }
 }
 
@@ -298,132 +315,6 @@ private fun DraggableWorkspaceRailItem(
                             )
                         }
                     }
-                }
-            },
-            label = {
-                Text(
-                    text = workspace.displayTitle.get(LocalContext.current),
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        textDecoration = if (isFocused) TextDecoration.Underline else TextDecoration.None
-                    ),
-                    textAlign = TextAlign.Center,
-                    maxLines = 2,
-                )
-            },
-        )
-
-        DropdownMenu(
-            expanded = showPaneMenu,
-            onDismissRequest = { showPaneMenu = false },
-        ) {
-            repeat(maxPanes) { paneIndex ->
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.workspace_pane_assign_action, paneIndex + 1)) },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = when (paneIndex) {
-                                0 -> Icons.TwoTone.LooksOne
-                                1 -> Icons.TwoTone.LooksTwo
-                                2 -> Icons.TwoTone.Looks3
-                                else -> Icons.TwoTone.LooksOne
-                            },
-                            contentDescription = null,
-                        )
-                    },
-                    onClick = {
-                        showPaneMenu = false
-                        onPaneMenuToggle(false)  // Explicitly hide overlays
-                        onPaneAssignment(workspace.id, paneIndex)
-                    },
-                )
-            }
-            DropdownMenuItem(
-                text = { Text(stringResource(CommonR.string.general_rename_action)) },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.TwoTone.Edit,
-                        contentDescription = null,
-                    )
-                },
-                onClick = {
-                    showPaneMenu = false
-                    onPaneMenuToggle(false)
-                    onRename(workspace.id)
-                },
-            )
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.workspace_pane_close_action)) },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.TwoTone.Close,
-                        contentDescription = null,
-                    )
-                },
-                onClick = {
-                    showPaneMenu = false
-                    onPaneMenuToggle(false)  // Explicitly hide overlays before closing
-                    onTabAction(WorkspaceAction.Close(workspace.id))
-                },
-            )
-        }
-    }
-}
-
-@Composable
-private fun WorkspaceRailItem(
-    workspace: Workspace.Info,
-    isSelected: Boolean,
-    isFocused: Boolean,
-    currentPaneIndex: Int?,
-    onTabAction: (WorkspaceAction) -> Unit,
-    onPaneAssignment: (workspaceId: Workspace.Id, paneIndex: Int) -> Unit,
-    onRename: (Workspace.Id) -> Unit,
-    maxPanes: Int,
-    onPaneMenuToggle: (Boolean) -> Unit,
-) {
-    var showPaneMenu by remember { mutableStateOf(false) }
-
-    LaunchedEffect(showPaneMenu) {
-        onPaneMenuToggle(showPaneMenu)
-    }
-
-    Box {
-        NavigationRailItem(
-            selected = isSelected,
-            onClick = { showPaneMenu = true },
-            modifier = if (isFocused) {
-                Modifier
-                    .background(
-                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f),
-                        shape = RoundedCornerShape(8.dp)
-                    )
-            } else {
-                Modifier
-            },
-            icon = {
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    // Show pane number on the left of the icon
-                    currentPaneIndex?.let { paneIdx ->
-                        Text(
-                            text = "${paneIdx + 1}",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Medium,
-                            modifier = Modifier.padding(end = 2.dp)
-                        )
-                    }
-                    Icon(
-                        imageVector = workspace.type.icon,
-                        contentDescription = workspace.displayTitle.get(LocalContext.current),
-                        modifier = if (currentPaneIndex != null) {
-                            Modifier.padding(start = 2.dp)
-                        } else {
-                            Modifier
-                        }
-                    )
                 }
             },
             label = {

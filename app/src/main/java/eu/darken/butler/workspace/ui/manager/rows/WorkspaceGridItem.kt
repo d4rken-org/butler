@@ -158,10 +158,13 @@ fun WorkspaceGridItem(
                         overflow = TextOverflow.Ellipsis,
                     )
 
-                    // Sub-workspaces are not persisted, so a rename on them would silently be lost.
-                    // Hiding the menu also hides resume, which is fine: WorkspaceRepo refuses to
-                    // pause them on every path it exposes, so no card here can be both.
-                    if (!workspace.isSubWorkspace) {
+                    // Sub-workspaces are not persisted, so a rename on them would silently be lost -
+                    // but a paused one still needs its Resume entry: a tab is now paused together
+                    // with its opted-in modal children, so a child card CAN be paused. It never
+                    // offers Pause itself, because children only ever go down with their owner.
+                    val canRename = !workspace.isSubWorkspace
+                    val canPauseFromCard = !workspace.isSubWorkspace && workspace.canPause
+                    if (canRename || canPauseFromCard || workspace.isPaused) {
                         Box {
                             IconButton(
                                 modifier = Modifier.size(24.dp),
@@ -193,7 +196,7 @@ fun WorkspaceGridItem(
                                             onResume()
                                         },
                                     )
-                                    workspace.canPause -> DropdownMenuItem(
+                                    canPauseFromCard -> DropdownMenuItem(
                                         text = { Text(stringResource(R.string.workspace_row_pause_action)) },
                                         leadingIcon = {
                                             Icon(
@@ -208,19 +211,21 @@ fun WorkspaceGridItem(
                                     )
                                 }
 
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(CommonR.string.general_rename_action)) },
-                                    leadingIcon = {
-                                        Icon(
-                                            imageVector = Icons.TwoTone.Edit,
-                                            contentDescription = null,
-                                        )
-                                    },
-                                    onClick = {
-                                        showOverflowMenu = false
-                                        onRename()
-                                    },
-                                )
+                                if (canRename) {
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(CommonR.string.general_rename_action)) },
+                                        leadingIcon = {
+                                            Icon(
+                                                imageVector = Icons.TwoTone.Edit,
+                                                contentDescription = null,
+                                            )
+                                        },
+                                        onClick = {
+                                            showOverflowMenu = false
+                                            onRename()
+                                        },
+                                    )
+                                }
                             }
                         }
                     }

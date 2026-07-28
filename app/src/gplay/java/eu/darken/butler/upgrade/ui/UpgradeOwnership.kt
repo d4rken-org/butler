@@ -29,18 +29,18 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.R
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
-import eu.darken.butler.common.compose.PreviewWrapper
 
-// Ownership presentation for users who already own Pro. A subscriber without the one-time purchase
-// always sees the switch offer — LOCKED while the subscription still renews.
+// Ownership presentation for users who already own a Pro entitlement. Subscribers without the
+// one-time purchase always see the switch offer — but LOCKED while the subscription still
+// renews, so buying it can't stack with an upcoming renewal.
 @Composable
 internal fun UpgradeOwnershipContent(
-    state: UpgradeUiState.Loaded,
+    uiState: UpgradeUiState.Loaded,
     onIap: () -> Unit,
     onManageSubscription: () -> Unit,
     onRestore: () -> Unit,
 ) {
-    val ownership = state.ownership
+    val ownership = uiState.ownership
     val subscription = ownership.subscription
 
     UpgradeOwnedHero(ownership = ownership)
@@ -79,16 +79,21 @@ internal fun UpgradeOwnershipContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .testTag(UpgradeScreenTags.MANAGE_SUB),
-            ) { Text(stringResource(R.string.upgrade_screen_manage_subscription_action)) }
+            ) {
+                Text(stringResource(R.string.upgrade_screen_manage_subscription_action))
+            }
         }
     }
 
     if (subscription != null && !ownership.hasIap) {
+        // The switch path as a visible artifact, not just prose: while the subscription still
+        // renews, the offer is shown LOCKED with the unlock condition — a renewing subscriber
+        // must never be able to stack the one-time purchase on an upcoming renewal.
         val switchUnlocked = !subscription.isAutoRenewing
         UpgradeActionCard {
             UpgradeOfferRow(
                 title = stringResource(R.string.upgrade_screen_iap_offer_title),
-                price = state.iapPrice,
+                price = uiState.iapPrice,
                 hint = stringResource(
                     if (switchUnlocked) R.string.upgrade_screen_switch_purchase_note
                     else R.string.upgrade_screen_switch_locked_note
@@ -97,15 +102,17 @@ internal fun UpgradeOwnershipContent(
                 Button(
                     onClick = onIap,
                     // Not gated on iapEnabled: prices may have failed to load while the purchase
-                    // itself would work (the billing flow re-queries details on launch). The
-                    // fail-closed SUBS verification happens on tap in the ViewModel.
-                    enabled = switchUnlocked && !state.verificationInProgress && !state.restoreInProgress,
+                    // itself would work (the billing flow re-queries details on launch).
+                    enabled = switchUnlocked && uiState.busy == null,
                     modifier = Modifier
                         .fillMaxWidth()
                         .testTag(UpgradeScreenTags.IAP),
                 ) {
-                    if (state.verificationInProgress) {
-                        CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                    if (uiState.busy == BusyOp.IAP) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp,
+                        )
                         Spacer(modifier = Modifier.width(8.dp))
                     }
                     Text(stringResource(R.string.upgrade_screen_iap_action))
@@ -114,19 +121,21 @@ internal fun UpgradeOwnershipContent(
         }
     }
 
+    // Framed as a status re-check; support is offered by the failed-restore dialog only.
     UpgradeRestoreSection(
         title = stringResource(R.string.upgrade_screen_restore_status_title),
         body = stringResource(R.string.upgrade_screen_restore_status_body),
         onRestore = onRestore,
-        restoreInProgress = state.restoreInProgress,
+        busy = uiState.busy,
     )
 }
 
-// The "you have it" moment: mascot + congrats in one hero card, variant (sub vs one-time) spelled
-// out; the per-purchase cards below carry the details and actions.
+// The "you have it" moment: mascot and congrats in one hero card at the top of the status
+// screen, with the variant (subscription vs one-time) spelled out. The per-purchase cards below
+// carry details and actions.
 @Composable
 private fun UpgradeOwnedHero(
-    ownership: UpgradeUiState.Ownership,
+    ownership: Ownership,
     modifier: Modifier = Modifier,
 ) {
     ElevatedCard(
@@ -146,13 +155,16 @@ private fun UpgradeOwnedHero(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             UpgradeMascot(size = 56.dp)
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
                 Text(
                     text = stringResource(R.string.upgrade_screen_owned_hero_title),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                 )
                 Text(
+                    // The permanent purchase is the meaningful one when both are owned.
                     text = stringResource(
                         if (ownership.hasIap) R.string.upgrade_screen_owned_hero_iap_body
                         else R.string.upgrade_screen_owned_hero_sub_body
@@ -164,15 +176,17 @@ private fun UpgradeOwnedHero(
     }
 }
 
-// Shown on the acquisition view while Pro is active purely via grace. Calm reassurance, not a
-// warning. Stage 1 confirms Pro is intact (spinner header); stage 2 (aged) explains + offers restore.
+// Shown on the acquisition view while Pro is active purely via the local grace window. Calm
+// reassurance styling, not a warning: the user has lost nothing (yet). Stage 1 confirms Pro is
+// intact; stage 2 (after the episode aged past the threshold) explains and offers restore.
 @Composable
 internal fun UpgradeGraceCard(
     showDiagnostics: Boolean,
     onRestore: () -> Unit,
     modifier: Modifier = Modifier,
-    restoreInProgress: Boolean = false,
+    busy: BusyOp? = null,
 ) {
+    val restoreInProgress = busy == BusyOp.RESTORE
     UpgradeSectionCard(
         title = stringResource(R.string.upgrade_screen_grace_title),
         icon = Icons.TwoTone.Verified,
@@ -181,6 +195,9 @@ internal fun UpgradeGraceCard(
             containerColor = MaterialTheme.colorScheme.secondaryContainer,
             contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
         ),
+        // While the episode is young the title says "Confirming…", so the header shows motion to
+        // match. Once diagnostics appear the copy asks the user to act — a spinner would say
+        // "still working, wait" and undercut the restore button, so the static icon returns.
         leading = if (showDiagnostics) null else {
             {
                 CircularProgressIndicator(
@@ -202,13 +219,17 @@ internal fun UpgradeGraceCard(
         if (showDiagnostics) {
             Button(
                 onClick = onRestore,
-                enabled = !restoreInProgress,
+                // Any running entitlement action blocks a restore; only a running RESTORE spins.
+                enabled = busy == null,
                 modifier = Modifier
                     .fillMaxWidth()
                     .testTag(UpgradeScreenTags.GRACE_RESTORE),
             ) {
                 if (restoreInProgress) {
-                    CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        strokeWidth = 2.dp,
+                    )
                     Spacer(modifier = Modifier.width(8.dp))
                 }
                 Text(stringResource(R.string.upgrade_screen_restore_purchase_action))
@@ -223,10 +244,8 @@ internal fun UpgradeGraceCard(
 private fun UpgradeOwnershipRenewingSubPreview() {
     Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
         UpgradeOwnershipContent(
-            state = previewLoaded(
-                ownership = UpgradeUiState.Ownership(
-                    subscription = UpgradeUiState.SubscriptionOwnership(isAutoRenewing = true),
-                ),
+            uiState = previewLoaded(
+                ownership = Ownership(subscription = SubscriptionOwnership(isAutoRenewing = true)),
             ),
             onIap = {},
             onManageSubscription = {},
@@ -241,9 +260,40 @@ private fun UpgradeOwnershipRenewingSubPreview() {
 private fun UpgradeOwnershipNonRenewingSubPreview() {
     Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
         UpgradeOwnershipContent(
-            state = previewLoaded(
-                ownership = UpgradeUiState.Ownership(
-                    subscription = UpgradeUiState.SubscriptionOwnership(isAutoRenewing = false),
+            uiState = previewLoaded(
+                ownership = Ownership(subscription = SubscriptionOwnership(isAutoRenewing = false)),
+            ),
+            onIap = {},
+            onManageSubscription = {},
+            onRestore = {},
+        )
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun UpgradeOwnershipIapPreview() {
+    Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+        UpgradeOwnershipContent(
+            uiState = previewLoaded(ownership = Ownership(hasIap = true)),
+            onIap = {},
+            onManageSubscription = {},
+            onRestore = {},
+        )
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun UpgradeOwnershipBothRenewingPreview() {
+    Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+        UpgradeOwnershipContent(
+            uiState = previewLoaded(
+                ownership = Ownership(
+                    hasIap = true,
+                    subscription = SubscriptionOwnership(isAutoRenewing = true),
                 ),
             ),
             onIap = {},
