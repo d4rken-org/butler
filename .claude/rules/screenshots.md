@@ -13,6 +13,7 @@ Two axes: **8 screens × 3 form factors = 24 renders per locale**, across **68 l
 
 ```
 ScreenshotContent.kt      →  Mock UI state + pane composition per screen (src/debug/)
+ScreenshotPreviewImages.kt→  Stand-in file/app images for the layoutlib render (src/debug/)
 PlayStoreLocales.kt       →  3 annotation classes, one per form factor (device spec + locales)
 PlayStoreScreenshots.kt   →  24 @PreviewTest functions (screen × form factor)
         ↓
@@ -76,6 +77,38 @@ right:
 
 Pass `layout = null` to use the layout the window size recommends, or an explicit
 `WorkspaceDesign.Layout` to force one (the multi-pane shots force `DUAL_HORIZONTAL` / `QUAD_GRID`).
+
+`railExtras` adds `Workspace.Info`s to the rail without giving them a pane — the real rail lists
+every open tab, not only the visible ones, and a workspace with no `selected` entry renders as an
+idle rail item. Their ids must not collide with any pane id.
+
+## Images
+
+Coil resolves nothing under layoutlib: its fetchers need a gateway, a package manager and disk
+access. Without help, every file row renders iconless and every app row falls back to the grey
+placeholder.
+
+`ScreenshotPreviewWrapper` (`ScreenshotPreviewImages.kt`) is `PreviewWrapper` plus
+`LocalAsyncImagePreviewHandler`, and it is what the eight `*Content(formFactor)` wrappers use.
+`ScreenshotImagePreviewHandler` answers every Coil request from the request data alone:
+
+| `request.data`                     | Result                                            | `DataSource` |
+|------------------------------------|---------------------------------------------------|--------------|
+| `APathLookup` (image/video by name)| synthetic thumbnail, hue derived from the name    | `DISK`       |
+| `APathLookup` (anything else)      | the app's own type drawable, XML tint stripped    | `MEMORY`     |
+| `Installed`                        | synthetic tile with the package's initial         | `DISK`       |
+| everything else                    | `AsyncImagePreviewHandler.Default`                | —            |
+
+Three things it must keep doing:
+
+- **The `DataSource` decides the tinting.** `TintedAsyncImage` tints only `DataSource.MEMORY`, which
+  is what makes type icons theme-coloured; the coloured stand-ins report `DISK` so they are not
+  flattened to a single colour. This is also why the `Success` state is assembled by hand instead of
+  via the `AsyncImagePreviewHandler { }` factory, which always reports `MEMORY`.
+- **Bitmap sizes are fixed.** Resolving the request's size resolver can suspend forever — a
+  single-frame render has no layout pass to feed it.
+- **The unknown branch delegates.** The handler wraps all eight screenshots and sees every request,
+  so a silent else branch would regress unrelated renders.
 
 ## Locales
 
@@ -146,8 +179,8 @@ Everything below has to stay in sync:
 
 1. `ScreenshotContent.kt`: a `<Screen>Body` composable with mock data, a `ScreenshotPane` for it if
    it should be usable as a pane, and a `<Screen>Content(formFactor)` wrapper that adds
-   `PreviewWrapper` exactly once. Never call another `*Content()` from inside a pane — that would
-   nest a whole `PreviewWrapper` per pane.
+   `ScreenshotPreviewWrapper` exactly once. Never call another `*Content()` from inside a pane —
+   that would nest a whole wrapper per pane.
 2. `ScreenshotContent.kt`: three IDE `@Preview` functions, one per device spec.
 3. `PlayStoreScreenshots.kt`: three `@PreviewTest` functions —
    `<Screen>Phone` / `<Screen>Seven` / `<Screen>Ten`. **Function names must not contain
