@@ -56,4 +56,11 @@ object Slogans {
             Occasions.Period.NEW_YEAR -> newYear.random()
             Occasions.Period.NONE -> general.random()
         }.toCaString()
+
+    /**
+     * Stable counterpart of [random] for compose previews and screenshot rendering, which must
+     * produce the same image on every run and on every day of the year.
+     */
+    val fixed: CaString
+        get() = general.first().toCaString()
 }

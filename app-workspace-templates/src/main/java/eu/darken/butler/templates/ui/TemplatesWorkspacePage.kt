@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -59,13 +60,10 @@ import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.navigation.settings
 import androidx.compose.runtime.collectAsState
-import eu.darken.butler.common.ca.CaString
-import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.templates.R
-import eu.darken.butler.workspace.contracts.templates.TemplatesArguments
+import eu.darken.butler.templates.ui.preview.TemplatesMockDataProvider
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
-import eu.darken.butler.workspace.core.icon
 import eu.darken.butler.workspace.ui.insets.paneInsets
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
@@ -112,7 +110,9 @@ fun TemplatesWorkspacePage(
     onRename: (String?) -> Unit = {},
     onEditName: () -> Unit = {},
 ) {
-    val randomSlogan = remember { Slogans.random }
+    // Previews and screenshot renders must be reproducible, a random slogan is not.
+    val isInspection = LocalInspectionMode.current
+    val slogan = remember(isInspection) { if (isInspection) Slogans.fixed else Slogans.random }
 
     val density = LocalDensity.current
     val paneInsets = design.paneInsets()
@@ -245,7 +245,7 @@ fun TemplatesWorkspacePage(
                                 )
                             }
                             Text(
-                                text = randomSlogan.get(LocalContext.current),
+                                text = slogan.get(LocalContext.current),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
@@ -454,22 +454,6 @@ private fun GradientFade(
     )
 }
 
-private fun previewState(
-    workspaceId: Workspace.Id,
-    customTitle: String? = null,
-) = TemplatesWorkspaceViewModel.State(
-    id = workspaceId,
-    customTitle = customTitle,
-    templates = listOf(
-        previewTemplate(Workspace.Type.EXPLORER, "Explorer", "Browse and manage files", 10),
-        previewTemplate(Workspace.Type.SEARCHER, "Searcher", "Find files and folders", 20),
-        previewTemplate(Workspace.Type.EDITOR, "Editor", "View and edit text files", 30),
-        previewTemplate(Workspace.Type.APPS, "Apps", "Manage installed apps", 40),
-    ),
-    isUpgraded = true,
-    versionDescription = "1.0.0-preview",
-)
-
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
@@ -477,7 +461,7 @@ private fun TemplatesWorkspacePagePreview() {
     val workspaceId = Workspace.Id()
     TemplatesWorkspacePage(
         workspaceId = workspaceId,
-        state = previewState(workspaceId),
+        state = TemplatesMockDataProvider.createMockState(workspaceId),
         onNavToSettings = {},
     )
 }
@@ -489,7 +473,7 @@ private fun TemplatesWorkspacePageNamedPreview() {
     val workspaceId = Workspace.Id()
     TemplatesWorkspacePage(
         workspaceId = workspaceId,
-        state = previewState(workspaceId, customTitle = "Holiday photos"),
+        state = TemplatesMockDataProvider.createMockState(workspaceId, customTitle = "Holiday photos"),
         onNavToSettings = {},
     )
 }
@@ -502,21 +486,7 @@ private fun TemplatesWorkspacePageMultiPanePreview() {
     TemplatesWorkspacePage(
         workspaceId = workspaceId,
         design = WorkspaceDesign(layout = WorkspaceDesign.Layout.DUAL_VERTICAL),
-        state = previewState(workspaceId),
+        state = TemplatesMockDataProvider.createMockState(workspaceId),
         onNavToSettings = {},
     )
-}
-
-private fun previewTemplate(
-    type: Workspace.Type,
-    title: String,
-    subtitle: String,
-    order: Int,
-) = object : WorkspaceTemplate {
-    override val type: Workspace.Type = type
-    override val icon = type.icon
-    override val title: CaString = title.toCaString()
-    override val subtitle: CaString = subtitle.toCaString()
-    override val arguments: Workspace.Arguments = TemplatesArguments.Default()
-    override val sortOrder: Int = order
 }
