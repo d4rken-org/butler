@@ -10,7 +10,6 @@ import eu.darken.butler.apps.ui.apps.AppsWorkspaceViewModel
 import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
 import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.ca.toCaString
-import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.editor.core.engine.ContentSource
 import eu.darken.butler.editor.ui.editor.EditorWorkspacePage
 import eu.darken.butler.editor.ui.editor.EditorWorkspaceViewModel
@@ -387,7 +386,7 @@ private val templatesPane = ScreenshotPane(
 ) { id, design -> TemplatesPickerBody(id, design) }
 
 @Composable
-internal fun ExplorerHomeContent(formFactor: ScreenshotFormFactor) = PreviewWrapper {
+internal fun ExplorerHomeContent(formFactor: ScreenshotFormFactor) = ScreenshotPreviewWrapper {
     when (formFactor) {
         ScreenshotFormFactor.PHONE -> ExplorerHomeBody(ID_EXPLORER_HOME, WorkspaceDesign())
         // Two EXPLORER panes side by side: the proof that pane content is dispatched by id.
@@ -397,7 +396,7 @@ internal fun ExplorerHomeContent(formFactor: ScreenshotFormFactor) = PreviewWrap
 }
 
 @Composable
-internal fun ExplorerDirectoryContent(formFactor: ScreenshotFormFactor) = PreviewWrapper {
+internal fun ExplorerDirectoryContent(formFactor: ScreenshotFormFactor) = ScreenshotPreviewWrapper {
     when (formFactor) {
         ScreenshotFormFactor.PHONE -> ExplorerDirectoryBody(ID_EXPLORER_DIRECTORY, WorkspaceDesign())
         ScreenshotFormFactor.SEVEN -> ScreenshotPaneFrame(listOf(explorerDirectoryPane, editorPane))
@@ -406,7 +405,7 @@ internal fun ExplorerDirectoryContent(formFactor: ScreenshotFormFactor) = Previe
 }
 
 @Composable
-internal fun SearcherResultsContent(formFactor: ScreenshotFormFactor) = PreviewWrapper {
+internal fun SearcherResultsContent(formFactor: ScreenshotFormFactor) = ScreenshotPreviewWrapper {
     when (formFactor) {
         ScreenshotFormFactor.PHONE -> SearcherResultsBody(ID_SEARCHER, WorkspaceDesign())
         ScreenshotFormFactor.SEVEN -> ScreenshotPaneFrame(listOf(searcherPane, explorerDirectoryPane))
@@ -415,7 +414,7 @@ internal fun SearcherResultsContent(formFactor: ScreenshotFormFactor) = PreviewW
 }
 
 @Composable
-internal fun EditorViewContent(formFactor: ScreenshotFormFactor) = PreviewWrapper {
+internal fun EditorViewContent(formFactor: ScreenshotFormFactor) = ScreenshotPreviewWrapper {
     when (formFactor) {
         ScreenshotFormFactor.PHONE -> EditorViewBody(ID_EDITOR, WorkspaceDesign())
         ScreenshotFormFactor.SEVEN -> ScreenshotPaneFrame(listOf(editorPane, explorerDirectoryPane))
@@ -424,7 +423,7 @@ internal fun EditorViewContent(formFactor: ScreenshotFormFactor) = PreviewWrappe
 }
 
 @Composable
-internal fun AppsManagerContent(formFactor: ScreenshotFormFactor) = PreviewWrapper {
+internal fun AppsManagerContent(formFactor: ScreenshotFormFactor) = ScreenshotPreviewWrapper {
     when (formFactor) {
         ScreenshotFormFactor.PHONE -> AppsManagerBody(ID_APPS, WorkspaceDesign())
         ScreenshotFormFactor.SEVEN -> ScreenshotPaneFrame(listOf(appsPane, explorerDirectoryPane))
@@ -433,7 +432,7 @@ internal fun AppsManagerContent(formFactor: ScreenshotFormFactor) = PreviewWrapp
 }
 
 @Composable
-internal fun TemplatesPickerContent(formFactor: ScreenshotFormFactor) = PreviewWrapper {
+internal fun TemplatesPickerContent(formFactor: ScreenshotFormFactor) = ScreenshotPreviewWrapper {
     when (formFactor) {
         ScreenshotFormFactor.PHONE -> TemplatesPickerBody(ID_TEMPLATES, WorkspaceDesign())
         ScreenshotFormFactor.SEVEN -> ScreenshotPaneFrame(listOf(templatesPane, explorerDirectoryPane))
@@ -442,7 +441,7 @@ internal fun TemplatesPickerContent(formFactor: ScreenshotFormFactor) = PreviewW
 }
 
 @Composable
-internal fun MultiPaneContent(formFactor: ScreenshotFormFactor) = PreviewWrapper {
+internal fun MultiPaneContent(formFactor: ScreenshotFormFactor) = ScreenshotPreviewWrapper {
     when (formFactor) {
         ScreenshotFormFactor.PHONE -> ScreenshotPaneFrame(
             panes = listOf(explorerDirectoryPane, editorPane),
@@ -456,7 +455,7 @@ internal fun MultiPaneContent(formFactor: ScreenshotFormFactor) = PreviewWrapper
 }
 
 @Composable
-internal fun WorkspaceManagerContent(formFactor: ScreenshotFormFactor) = PreviewWrapper {
+internal fun WorkspaceManagerContent(formFactor: ScreenshotFormFactor) = ScreenshotPreviewWrapper {
     when (formFactor) {
         // The manager is a full-window screen on every form factor, it is never paneled.
         ScreenshotFormFactor.PHONE, ScreenshotFormFactor.SEVEN, ScreenshotFormFactor.TEN -> WorkspaceManagerBody()
