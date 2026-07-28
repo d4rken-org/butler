@@ -52,7 +52,7 @@ class GeneralSettingsViewModelTest : BaseTest() {
 
     @BeforeEach
     fun setup() {
-        val info: UpgradeRepo.Info = mockk { every { isUpgraded } returns false }
+        val info: UpgradeRepo.Info = mockk { every { isPro } returns false }
         upgradeRepo = mockk { every { upgradeInfo } returns flowOf(info) }
 
         updateCheckEnabled = MutableStateFlow(true)

@@ -75,7 +75,7 @@ class WorkspacePauseGateTest : BaseTest() {
     }
 
     private fun TestScope.createRepo(): WorkspaceRepo {
-        val upgradeInfo = mockk<UpgradeRepo.Info>().apply { every { isUpgraded } returns true }
+        val upgradeInfo = mockk<UpgradeRepo.Info>().apply { every { isPro } returns true }
         val upgradeRepo = mockk<UpgradeRepo>().apply { every { this@apply.upgradeInfo } returns flowOf(upgradeInfo) }
         val workspaceSettings = mockk<WorkspaceSettings>(relaxed = true).apply {
             every { layoutModePortrait.flow } returns flowOf(WorkspacePanelMode.AUTO)
