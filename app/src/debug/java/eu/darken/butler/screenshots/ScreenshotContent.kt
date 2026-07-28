@@ -189,6 +189,7 @@ private val ID_APPS = screenshotWorkspaceId("5")
 private val ID_TEMPLATES = screenshotWorkspaceId("6")
 private val ID_EXPLORER_SDCARD = screenshotWorkspaceId("7")
 private val ID_SEARCHER_MEDIA = screenshotWorkspaceId("8")
+private val ID_EXPLORER_DEVICE = screenshotWorkspaceId("9")
 
 @Composable
 private fun ExplorerHomeBody(id: Workspace.Id, design: WorkspaceDesign) {
@@ -205,6 +206,27 @@ private fun ExplorerHomeBody(id: Workspace.Id, design: WorkspaceDesign) {
                     availableActions = MockDataProvider.createDefaultHomeActions(),
                     favorites = MockDataProvider.createMockFavorites(),
                     showHomeFavoritesSection = true,
+                )
+            )
+        },
+        operationsStateSource = remember { MutableStateFlow(OperationsDisplayState()) },
+        clipboardStateSource = remember { MutableStateFlow(ClipboardDisplayState()) },
+    )
+}
+
+@Composable
+private fun ExplorerDeviceBody(id: Workspace.Id, design: WorkspaceDesign) {
+    val deviceLocation = remember { MockDataProvider.createMockDeviceLocation() }
+    ExplorerWorkspacePage(
+        workspaceId = id,
+        design = design,
+        mainStateSource = remember {
+            MutableStateFlow(
+                ExplorerWorkspaceViewModel.State(
+                    currentLocation = deviceLocation,
+                    breadcrumbs = MockDataProvider.createDeviceBreadcrumbs(),
+                    items = deviceLocation.items,
+                    availableActions = MockDataProvider.createDefaultDeviceActions(),
                 )
             )
         },
@@ -416,6 +438,11 @@ private val explorerHomePane = ScreenshotPane(
     type = Workspace.Type.EXPLORER,
 ) { id, design -> ExplorerHomeBody(id, design) }
 
+private val explorerDevicePane = ScreenshotPane(
+    id = ID_EXPLORER_DEVICE,
+    type = Workspace.Type.EXPLORER,
+) { id, design -> ExplorerDeviceBody(id, design) }
+
 private val explorerDirectoryPane = ScreenshotPane(
     id = ID_EXPLORER_DIRECTORY,
     type = Workspace.Type.EXPLORER,
@@ -491,9 +518,10 @@ internal fun ExplorerHomeContent(formFactor: ScreenshotFormFactor) = ScreenshotP
                 ExpandedWorkspaceButtonMenu(ID_EXPLORER_HOME)
             }
         }
-        // Two EXPLORER panes side by side: the proof that pane content is dispatched by id.
-        ScreenshotFormFactor.SEVEN -> ScreenshotPaneFrame(listOf(explorerHomePane, explorerDirectoryPane))
-        ScreenshotFormFactor.TEN -> ScreenshotPaneFrame(listOf(explorerHomePane, explorerDirectoryPane, searcherPane))
+        // Home next to the device location, where the storages live. Two EXPLORER panes side by
+        // side: the proof that pane content is dispatched by id.
+        ScreenshotFormFactor.SEVEN -> ScreenshotPaneFrame(listOf(explorerHomePane, explorerDevicePane))
+        ScreenshotFormFactor.TEN -> ScreenshotPaneFrame(listOf(explorerHomePane, explorerDevicePane, searcherPane))
     }
 }
 

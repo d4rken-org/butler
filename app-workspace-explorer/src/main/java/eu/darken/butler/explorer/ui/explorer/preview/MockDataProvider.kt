@@ -12,6 +12,7 @@ import androidx.compose.material.icons.twotone.Storage
 import androidx.compose.material.icons.twotone.Usb
 import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.common.SafUri
+import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
@@ -24,6 +25,7 @@ import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.files.saf.location.SAFLocation
+import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
@@ -560,13 +562,26 @@ object MockDataProvider {
         displayName = R.string.explorer_navigation_device.toCaString(),
         displayIcon = Icons.TwoTone.PhoneAndroid,
         target = ExplorerNavigation.Target.Device,
+        // Same shape as HomeLocationLoader's "${Build.MODEL} (Android ${Build.VERSION.SDK_INT})".
+        subtitle = caString { "Nimbus P9 (Android 36)" },
     )
 
-    fun createTrashShortcut(): ExplorerItem.Shortcut = ExplorerItem.Shortcut(
+    fun createTrashShortcut(
+        itemCount: Int = 12,
+        totalSize: Long = MockSizes.mb(350),
+    ): ExplorerItem.Shortcut = ExplorerItem.Shortcut(
         shortcutId = "trash",
         displayName = R.string.explorer_navigation_trash.toCaString(),
         displayIcon = Icons.TwoTone.Delete,
         target = ExplorerNavigation.Target.Trash.Root,
+        subtitle = caString { cx ->
+            val countText = cx.resources.getQuantityString(
+                R.plurals.explorer_trash_item_count,
+                itemCount,
+                itemCount,
+            )
+            "$countText • ${formatFileSize(cx, totalSize)} "
+        },
     )
 
     // MARK: - Favorite Factories
@@ -805,6 +820,15 @@ object MockDataProvider {
         )
     }
 
+    fun createDeviceBreadcrumbs(): List<ExplorerBreadcrumb> = listOf(
+        createHomeBreadcrumb(),
+        ExplorerBreadcrumb(
+            label = R.string.explorer_navigation_device.toCaString(),
+            icon = Icons.TwoTone.PhoneAndroid,
+            target = ExplorerNavigation.Target.Device,
+        ),
+    )
+
     fun createDeviceRootBreadcrumbs(): List<ExplorerBreadcrumb> = listOf(
         createHomeBreadcrumb(),
         ExplorerBreadcrumb(
@@ -939,6 +963,16 @@ object MockDataProvider {
         usedStorage = usedStorage,
     )
 
+    /** Counts and capacity derived from [items] so the info chips match the listed storages. */
+    fun createDeviceInfoFor(items: List<ExplorerItem>): ExplorerLocation.Device.Info {
+        val storages = items.filterIsInstance<ExplorerItem.Storage>()
+        return createMockDeviceInfo(
+            locationCount = items.size,
+            totalCapacity = storages.sumOf { it.totalBytes ?: 0L },
+            usedSpace = storages.sumOf { (it.totalBytes ?: 0L) - (it.availableBytes ?: 0L) },
+        )
+    }
+
     fun createMockDeviceInfo(
         locationCount: Int = 2,
         totalCapacity: Long = MockSizes.gb(256),
@@ -991,8 +1025,16 @@ object MockDataProvider {
         info = createMockEmptyDirectoryInfo(),
     )
 
+    /**
+     * The two shortcuts `HomeLocationLoader` builds, in its order. Home never lists storages —
+     * those belong to the device location, see [createMockDeviceItems].
+     */
     fun createMockHomeItems(): List<ExplorerItem> = listOf(
         createDeviceShortcut(),
+        createTrashShortcut(),
+    )
+
+    fun createMockDeviceItems(): List<ExplorerItem> = listOf(
         createMockStorageLocal(),
         createMockStorageSAF(
             name = "SD Card",
@@ -1009,7 +1051,6 @@ object MockDataProvider {
             totalBytes = MockSizes.gb(64),
             availableBytes = MockSizes.gb(61),
         ),
-        createTrashShortcut(),
     )
 
     fun createMockHomeLocation(
@@ -1022,11 +1063,8 @@ object MockDataProvider {
     )
 
     fun createMockDeviceLocation(
-        items: List<ExplorerItem> = listOf(
-            createMockStorageLocal(),
-            createMockStorageSAF(),
-        ),
-        info: ExplorerLocation.Device.Info = createMockDeviceInfo(),
+        items: List<ExplorerItem> = createMockDeviceItems(),
+        info: ExplorerLocation.Device.Info = createDeviceInfoFor(items),
     ): ExplorerLocation.Device = ExplorerLocation.Device(
         items = items,
         info = info,
@@ -1069,6 +1107,15 @@ object MockDataProvider {
             },
         ),
     )
+
+    /**
+     * Mirrors [eu.darken.butler.explorer.ui.explorer.actions.DeviceActionProvider] with nothing
+     * selected: add-location first, then the shared actions.
+     */
+    fun createDefaultDeviceActions(
+        viewStyle: ExplorerViewStyle = ExplorerViewStyle.default(),
+    ): List<ExplorerActionBarItem> = listOf(ExplorerActionBarItem.Device.AddLocation()) +
+        createDefaultHomeActions(viewStyle)
 
     fun createDefaultDirectoryActions(
         createEnabled: Boolean = true,
