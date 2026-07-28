@@ -1,14 +1,29 @@
 package eu.darken.butler.screenshots
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.Add
+import androidx.compose.material.icons.twotone.Close
+import androidx.compose.material.icons.twotone.Settings
+import androidx.compose.material.icons.twotone.Workspaces
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MenuDefaults
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.apps.R as AppsR
@@ -17,6 +32,8 @@ import eu.darken.butler.apps.ui.apps.AppsWorkspaceViewModel
 import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
 import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.compose.LongClickableDropdownMenuItem
+import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.editor.core.engine.ContentSource
 import eu.darken.butler.editor.ui.editor.EditorWorkspacePage
 import eu.darken.butler.editor.ui.editor.EditorWorkspaceViewModel
@@ -41,9 +58,7 @@ import eu.darken.butler.workspace.ui.WorkspacePageHostEntry
 import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
 import eu.darken.butler.workspace.ui.floatingbar.LocalWorkspaceBarCollapseStates
 import eu.darken.butler.workspace.ui.floatingbar.WorkspaceBarCollapseStates
-import eu.darken.butler.workspace.ui.manager.FakeWorkspaceButtonProvider
-import eu.darken.butler.workspace.ui.manager.WorkspaceButtonMenu
-import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
+import eu.darken.butler.workspace.ui.manager.MenuCategoryHeader
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerScreen
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerViewModel
@@ -475,37 +490,77 @@ private fun quickCreateItem(type: Workspace.Type) = QuickCreateItem(
     arguments = type.defaultArguments!!,
 )
 
+@Composable
+private fun MenuEntry(text: String, icon: ImageVector) = DropdownMenuItem(
+    text = { Text(text) },
+    onClick = {},
+    leadingIcon = { Icon(imageVector = icon, contentDescription = null) },
+)
+
 /**
  * The Butler button's menu, opened.
  *
- * It cannot be opened by clicking in a single-frame render, so it is composed next to the page and
- * anchored on a zero-size box that sits where the real button's bottom edge is: the toolbar card's
- * cutout is top-aligned, 48dp tall and inset from the pane edge.
+ * A real `DropdownMenu` cannot be used here: its content lives in a separately attached popup
+ * composition, and layoutlib paints the popup's surface but leaves that subtree undrawn in a
+ * single-pass render, which yields an empty white slab. So the same entries — same composables,
+ * same strings, same icons — are composed inline on a menu surface instead, placed where the real
+ * menu drops down from the toolbar card's cutout button (top-aligned, 48dp tall, inset from the
+ * pane edge).
  */
 @Composable
-private fun ExpandedWorkspaceButtonMenu(currentWorkspaceId: Workspace.Id) {
-    Box(
-        modifier = Modifier
-            .padding(top = 54.dp, end = 16.dp)
-            .size(0.dp),
+private fun ExpandedWorkspaceButtonMenu(modifier: Modifier = Modifier) {
+    Surface(
+        modifier = modifier.sizeIn(minWidth = 112.dp, maxWidth = 280.dp),
+        shape = MenuDefaults.shape,
+        color = MenuDefaults.containerColor,
+        tonalElevation = MenuDefaults.TonalElevation,
+        shadowElevation = MenuDefaults.ShadowElevation,
     ) {
-        WorkspaceButtonMenu(
-            expanded = true,
-            onDismissRequest = {},
-            state = WorkspaceButtonViewModel.State(
-                workspaceCount = 5,
-                operationsCount = 1,
-                attentionCount = 1,
-                recentItems = listOf(
-                    quickCreateItem(Workspace.Type.EXPLORER),
-                    quickCreateItem(Workspace.Type.SEARCHER),
-                    quickCreateItem(Workspace.Type.EDITOR),
-                ),
-            ),
-            currentWorkspaceId = currentWorkspaceId,
-            provider = FakeWorkspaceButtonProvider(),
-            onCloseAllRequested = {},
-        )
+        Column(
+            modifier = Modifier
+                .width(IntrinsicSize.Max)
+                .padding(vertical = 8.dp),
+        ) {
+            MenuEntry(
+                text = stringResource(WorkspaceR.string.workspace_button_menu_new_tab_action),
+                icon = Icons.TwoTone.Add,
+            )
+
+            MenuCategoryHeader(text = stringResource(WorkspaceR.string.workspace_button_menu_category_recent))
+            listOf(Workspace.Type.EXPLORER, Workspace.Type.SEARCHER, Workspace.Type.EDITOR).forEach { type ->
+                val item = quickCreateItem(type)
+                MenuEntry(
+                    text = stringResource(
+                        WorkspaceR.string.workspace_button_menu_new_workspace_format,
+                        item.title.asComposable(),
+                    ),
+                    icon = item.icon,
+                )
+            }
+
+            MenuCategoryHeader(text = stringResource(WorkspaceR.string.workspace_button_menu_category_other))
+            MenuEntry(
+                text = stringResource(WorkspaceR.string.workspace_button_menu_manager_action),
+                icon = Icons.TwoTone.Workspaces,
+            )
+            MenuEntry(
+                text = stringResource(WorkspaceR.string.workspace_button_menu_settings_action),
+                icon = Icons.TwoTone.Settings,
+            )
+
+            MenuCategoryHeader(text = stringResource(WorkspaceR.string.workspace_button_menu_category_current_tab))
+            LongClickableDropdownMenuItem(
+                text = stringResource(WorkspaceR.string.workspace_button_menu_close_current_action),
+                onClick = {},
+                onLongClick = {},
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.TwoTone.Close,
+                        contentDescription = null,
+                    )
+                },
+            )
+        }
     }
 }
 
@@ -514,9 +569,11 @@ internal fun ExplorerHomeContent(formFactor: ScreenshotFormFactor) = ScreenshotP
     when (formFactor) {
         ScreenshotFormFactor.PHONE -> Box(modifier = Modifier.fillMaxSize()) {
             ExplorerHomeBody(ID_EXPLORER_HOME, WorkspaceDesign())
-            Box(modifier = Modifier.align(Alignment.TopEnd)) {
-                ExpandedWorkspaceButtonMenu(ID_EXPLORER_HOME)
-            }
+            ExpandedWorkspaceButtonMenu(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 54.dp, end = 16.dp),
+            )
         }
         // Home next to the device location, where the storages live. Two EXPLORER panes side by
         // side: the proof that pane content is dispatched by id.
