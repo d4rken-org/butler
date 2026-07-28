@@ -15,7 +15,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 REF_DIR="$PROJECT_DIR/app/src/screenshotTestGplayDebug/reference/eu/darken/butler/screenshots/PlayStoreScreenshotsKt"
-FASTLANE_DIR="$PROJECT_DIR/fastlane/metadata/android"
+FASTLANE_ROOT="$PROJECT_DIR/fastlane"
+FASTLANE_DIR="$FASTLANE_ROOT/metadata/android"
 
 CLEAN=false
 if [[ "${1:-}" == "--clean" ]]; then
@@ -168,43 +169,76 @@ fi
 
 # --- Phase 2: build complete replacement directories, then swap them in ------------------
 
-# The staging area lives next to the destinations so the commit is a rename, not a copy: a
-# rename either happens or it does not, there is no half-written destination directory.
+# The staging area lives beside the metadata tree, on the same filesystem as the destinations,
+# so the commit is a rename, not a copy: a rename either happens or it does not, there is no
+# half-written destination directory. Staying outside metadata/android/ also keeps it out of
+# everything that walks the metadata tree.
 STAGING_DIR=""
 SWAPS=()
 ROLLBACK_ARMED=false
 
+# Undoes the swaps recorded in SWAPS, newest first. Never destroys a live directory before its
+# replacement is in place: the live one is renamed into the staging dir first, so a failure at
+# any point leaves every previous state recoverable from STAGING_DIR. Returns non-zero on the
+# first failed operation, leaving the caller to preserve the staging dir.
 rollback() {
-    local i entry target backup
+    local i entry target backup aside
     for (( i = ${#SWAPS[@]} - 1; i >= 0; i-- )); do
         entry="${SWAPS[$i]}"
         target="${entry%%|*}"
         backup="${entry#*|}"
+
+        # A recorded backup path that does not exist means the swap never got past recording,
+        # so the original directory is still live and must be left alone.
+        if [[ -n "$backup" && ! -d "$backup" ]]; then
+            continue
+        fi
+
+        if [[ -d "$target" ]]; then
+            aside="$STAGING_DIR/replaced/$i"
+            mkdir -p "$STAGING_DIR/replaced" || return 1
+            mv -T "$target" "$aside" || return 1
+        fi
+
+        # An empty backup path means the target did not exist before this run, so moving it
+        # aside is the whole rollback for that entry.
         if [[ -n "$backup" ]]; then
-            # Empty backup path means the target did not exist before this run.
-            if [[ -d "$backup" ]]; then
-                rm -rf "$target"
-                mv "$backup" "$target"
-            fi
-        else
-            rm -rf "$target"
+            mv -T "$backup" "$target" || return 1
         fi
     done
     SWAPS=()
-    echo "Restored the previous screenshot directories" >&2
 }
 
 cleanup() {
     local status=$?
-    trap - EXIT HUP INT TERM
+    # Clear EXIT, but only ignore the terminating signals: the rollback below is a sequence of
+    # renames and a second signal must not kill the script in the middle of it.
+    trap - EXIT
+    trap '' HUP INT TERM
+
+    local rollback_failed=false
     if $ROLLBACK_ARMED; then
         ROLLBACK_ARMED=false
-        rollback
+        if rollback; then
+            echo "Restored the previous screenshot directories" >&2
+        else
+            rollback_failed=true
+        fi
     fi
-    if [[ -n "$STAGING_DIR" ]]; then
+
+    if $rollback_failed; then
+        echo "" >&2
+        echo "ERROR: Rollback failed, the screenshot directories are in a mixed state." >&2
+        echo "The previous directories are preserved, do NOT delete them:" >&2
+        echo "  $STAGING_DIR" >&2
+        if (( status == 0 )); then
+            status=1
+        fi
+    elif [[ -n "$STAGING_DIR" ]]; then
         rm -rf "$STAGING_DIR"
         STAGING_DIR=""
     fi
+
     exit "$status"
 }
 
@@ -213,7 +247,7 @@ trap 'exit 129' HUP
 trap 'exit 130' INT
 trap 'exit 143' TERM
 
-STAGING_DIR="$(mktemp -d "$FASTLANE_DIR/.screenshot-staging.XXXXXXXX")"
+STAGING_DIR="$(mktemp -d "$FASTLANE_ROOT/.screenshot-staging.XXXXXXXX")"
 
 for locale in "${!TOUCHED_LOCALES[@]}"; do
     for form_factor in "${!FORM_FACTOR_DIR[@]}"; do
@@ -247,10 +281,12 @@ for locale in "${!TOUCHED_LOCALES[@]}"; do
         # Recorded before the moves so a failure between them is still rolled back.
         SWAPS+=("$target_dir|$backup_dir")
         mkdir -p "$FASTLANE_DIR/$locale/images"
+        # -T on every directory rename: a destination that unexpectedly exists must fail the
+        # swap, never turn into a directory nested inside it.
         if [[ -n "$backup_dir" ]]; then
-            mv "$target_dir" "$backup_dir"
+            mv -T "$target_dir" "$backup_dir"
         fi
-        mv "$STAGING_DIR/new/$locale/$image_dir" "$target_dir"
+        mv -T "$STAGING_DIR/new/$locale/$image_dir" "$target_dir"
     done
 done
 
