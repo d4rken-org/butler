@@ -9,8 +9,11 @@ import android.graphics.RectF
 import android.graphics.Shader
 import android.graphics.Typeface
 import androidx.appcompat.content.res.AppCompatResources
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.toArgb
 import coil3.ImageLoader
 import coil3.annotation.ExperimentalCoilApi
 import coil3.asImage
@@ -36,10 +39,17 @@ import coil3.Image as CoilImage
  * and disk access, none of which exist in a preview render. Without this handler every file row is
  * iconless and every app row falls back to the same grey placeholder.
  *
- * Everything it produces is derived from the request data alone, so a render is reproducible.
+ * Everything it produces is derived from the request data and [iconTintArgb] alone, so a render is
+ * reproducible.
+ *
+ * @param iconTintArgb the colour type icons are baked with. `TintedAsyncImage` cannot do it here:
+ *   it reads the painter state once at first composition, when the request has not been answered
+ *   yet, and layoutlib never recomposes it to pick the tint up.
  */
 @OptIn(ExperimentalCoilApi::class)
-internal object ScreenshotImagePreviewHandler : AsyncImagePreviewHandler {
+internal class ScreenshotImagePreviewHandler(
+    private val iconTintArgb: Int,
+) : AsyncImagePreviewHandler {
 
     override suspend fun handle(
         imageLoader: ImageLoader,
@@ -63,21 +73,29 @@ internal object ScreenshotImagePreviewHandler : AsyncImagePreviewHandler {
             lookup.fileType == FileType.SYMBOLIC_LINK -> iconState(R.drawable.ic_file_link, request)
             lookup.fileType == FileType.UNKNOWN -> iconState(R.drawable.ic_file_unknown, request)
             extension in THUMBNAIL_EXTENSIONS -> thumbnailState(name, request)
+            // Production renders the first page here (PdfPreviewGenerator), never a type icon.
+            extension == "pdf" -> documentPreviewState(request)
             extension in AUDIO_EXTENSIONS -> iconState(R.drawable.ic_file_music, request)
             extension in ARCHIVE_EXTENSIONS -> iconState(IoR.drawable.ic_archive_24, request)
             extension == "apk" -> iconState(IoR.drawable.ic_package_variant_24, request)
+            // Everything else, code and text included, is what PathPreviewFetcher falls back to.
             else -> iconState(R.drawable.ic_file, request)
         }
     }
 
     /**
-     * The app's own type icon, mirroring what `PathPreviewFetcher` falls back to: the XML tint is
-     * stripped and [DataSource.MEMORY] lets `TintedAsyncImage` apply the theme tint.
+     * The app's own type icon, rasterized with the tint already baked in — see [iconTintArgb] for
+     * why the tint cannot be left to `TintedAsyncImage`.
      */
     private fun iconState(iconRes: Int, request: ImageRequest): AsyncImagePainter.State {
-        val drawable = AppCompatResources.getDrawable(request.context, iconRes)!!
-        drawable.setTintList(null)
-        return successState(drawable.asImage(), request, DataSource.MEMORY)
+        val drawable = AppCompatResources.getDrawable(request.context, iconRes)!!.mutate()
+        drawable.setTint(iconTintArgb)
+        drawable.setBounds(0, 0, ICON_EDGE, ICON_EDGE)
+
+        val bitmap = createBitmap(ICON_EDGE, ICON_EDGE)
+        drawable.draw(Canvas(bitmap))
+
+        return successState(bitmap.asImage(), request, DataSource.DISK)
     }
 
     /** A stand-in photo/video preview. [DataSource.DISK] keeps it out of the type-icon tinting. */
@@ -112,6 +130,38 @@ internal object ScreenshotImagePreviewHandler : AsyncImagePreviewHandler {
         return successState(bitmap.asImage(), request, DataSource.DISK)
     }
 
+    /** A stand-in first-page render: a portrait page with a heading and a few lines of body text. */
+    private fun documentPreviewState(request: ImageRequest): AsyncImagePainter.State {
+        val bitmap = createBitmap(PAGE_WIDTH, PAGE_HEIGHT)
+        val canvas = Canvas(bitmap)
+        val width = PAGE_WIDTH.toFloat()
+        val height = PAGE_HEIGHT.toFloat()
+
+        val page = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.rgb(250, 249, 246) }
+        canvas.drawRect(0f, 0f, width, height, page)
+
+        val edge = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.rgb(206, 204, 198)
+            style = Paint.Style.STROKE
+            strokeWidth = 2f
+        }
+        canvas.drawRect(1f, 1f, width - 1f, height - 1f, edge)
+
+        val margin = width * 0.14f
+        val heading = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.rgb(74, 72, 68) }
+        canvas.drawRect(margin, height * 0.12f, width - margin * 2.2f, height * 0.17f, heading)
+
+        val body = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.rgb(158, 156, 150) }
+        // Ragged right edge, so it reads as text rather than as a bar chart.
+        val lineWidths = listOf(1f, 0.94f, 0.98f, 0.72f, 1f, 0.9f, 0.55f)
+        lineWidths.forEachIndexed { index, fraction ->
+            val top = height * (0.26f + index * 0.085f)
+            canvas.drawRect(margin, top, margin + (width - margin * 2) * fraction, top + height * 0.032f, body)
+        }
+
+        return successState(bitmap.asImage(), request, DataSource.DISK)
+    }
+
     /** A stand-in launcher icon: a coloured tile with the package's initial. */
     private fun appIconState(packageName: String, request: ImageRequest): AsyncImagePainter.State {
         val hue = hueOf(packageName)
@@ -139,8 +189,8 @@ internal object ScreenshotImagePreviewHandler : AsyncImagePreviewHandler {
 
     /**
      * Built by hand instead of via the `AsyncImagePreviewHandler { }` factory: that one always
-     * reports [DataSource.MEMORY], which would make `TintedAsyncImage` flatten the coloured
-     * stand-ins to a single tint colour.
+     * reports [DataSource.MEMORY], and `TintedAsyncImage` would flatten anything it does manage to
+     * observe as such to a single tint colour.
      */
     private fun successState(
         image: CoilImage,
@@ -163,22 +213,33 @@ internal object ScreenshotImagePreviewHandler : AsyncImagePreviewHandler {
     /** [String.hashCode] is contractually stable, so the same name always yields the same colour. */
     private fun hueOf(source: String): Float = source.hashCode().mod(360).toFloat()
 
-    private const val ICON_EDGE = 128
-    private const val THUMBNAIL_EDGE = 256
+    private companion object {
+        const val ICON_EDGE = 128
+        const val THUMBNAIL_EDGE = 256
+        const val PAGE_WIDTH = 181
+        const val PAGE_HEIGHT = 256
 
-    private val THUMBNAIL_EXTENSIONS = setOf(
-        "jpg", "jpeg", "png", "webp", "gif", "heic", "bmp",
-        "mp4", "mkv", "webm", "mov", "avi", "3gp",
-    )
-    private val AUDIO_EXTENSIONS = setOf("mp3", "m4a", "aac", "flac", "ogg", "opus", "wav")
-    private val ARCHIVE_EXTENSIONS = setOf("zip", "7z", "rar", "tar", "gz", "bz2", "xz")
+        val THUMBNAIL_EXTENSIONS = setOf(
+            "jpg", "jpeg", "png", "webp", "gif", "heic", "bmp",
+            "mp4", "mkv", "webm", "mov", "avi", "3gp",
+        )
+        val AUDIO_EXTENSIONS = setOf("mp3", "m4a", "aac", "flac", "ogg", "opus", "wav")
+        val ARCHIVE_EXTENSIONS = setOf("zip", "7z", "rar", "tar", "gz", "bz2", "xz")
+    }
 }
 
-/** [PreviewWrapper] plus the image stand-ins. Exactly one per render, never nested. */
+/**
+ * [PreviewWrapper] plus the image stand-ins. Exactly one per render, never nested.
+ *
+ * The handler is remembered per tint rather than held in a singleton: screenshot renders can
+ * overlap, and a mutable shared handler would let one render's theme colour leak into another's.
+ */
 @OptIn(ExperimentalCoilApi::class)
 @Composable
 internal fun ScreenshotPreviewWrapper(content: @Composable () -> Unit) = PreviewWrapper {
-    CompositionLocalProvider(LocalAsyncImagePreviewHandler provides ScreenshotImagePreviewHandler) {
+    val tintArgb = MaterialTheme.colorScheme.onSurfaceVariant.toArgb()
+    val handler = remember(tintArgb) { ScreenshotImagePreviewHandler(tintArgb) }
+    CompositionLocalProvider(LocalAsyncImagePreviewHandler provides handler) {
         content()
     }
 }

@@ -92,23 +92,34 @@ placeholder.
 `LocalAsyncImagePreviewHandler`, and it is what the eight `*Content(formFactor)` wrappers use.
 `ScreenshotImagePreviewHandler` answers every Coil request from the request data alone:
 
-| `request.data`                     | Result                                            | `DataSource` |
-|------------------------------------|---------------------------------------------------|--------------|
-| `APathLookup` (image/video by name)| synthetic thumbnail, hue derived from the name    | `DISK`       |
-| `APathLookup` (anything else)      | the app's own type drawable, XML tint stripped    | `MEMORY`     |
-| `Installed`                        | synthetic tile with the package's initial         | `DISK`       |
-| everything else                    | `AsyncImagePreviewHandler.Default`                | —            |
+| `request.data`                      | Result                                                    |
+|-------------------------------------|-----------------------------------------------------------|
+| `APathLookup` (image/video by name) | synthetic thumbnail, hue derived from the name            |
+| `APathLookup` (`.pdf`)              | synthetic first-page render, like `PdfPreviewGenerator`   |
+| `APathLookup` (anything else)       | the app's own type drawable, rasterized with a baked tint |
+| `Installed`                         | synthetic tile with the package's initial                 |
+| everything else                     | `AsyncImagePreviewHandler.Default`                        |
 
-Three things it must keep doing:
+Four things it must keep doing:
 
-- **The `DataSource` decides the tinting.** `TintedAsyncImage` tints only `DataSource.MEMORY`, which
-  is what makes type icons theme-coloured; the coloured stand-ins report `DISK` so they are not
-  flattened to a single colour. This is also why the `Success` state is assembled by hand instead of
-  via the `AsyncImagePreviewHandler { }` factory, which always reports `MEMORY`.
+- **Every result reports `DataSource.DISK`.** `TintedAsyncImage` tints only `DataSource.MEMORY`, but
+  it cannot do the tinting here: it derives `shouldTint` from the painter state it observes at first
+  composition — `State.Empty`, the request is not answered yet — and layoutlib never recomposes it
+  to pick the answer up. Type icons therefore arrive pre-tinted: the wrapper reads
+  `MaterialTheme.colorScheme.onSurfaceVariant`, and the handler bakes it into the rasterized icon.
+  `MEMORY` would only risk the tint being applied twice.
+- **The tint travels in the handler instance, not in a singleton.** The wrapper `remember`s one
+  handler per tint. Renders can overlap, so a mutable shared handler would leak one render's theme
+  colour into another's.
 - **Bitmap sizes are fixed.** Resolving the request's size resolver can suspend forever — a
   single-frame render has no layout pass to feed it.
 - **The unknown branch delegates.** The handler wraps all eight screenshots and sees every request,
   so a silent else branch would regress unrelated renders.
+
+The type-icon set is what production actually resolves to, no more: there is no PDF, code or text
+drawable in the repo, and `PathPreviewFetcher.fallbackIcon` genuinely falls back to `ic_file` for
+them. Do not invent glyphs the app never draws — where production renders content instead of an
+icon (photos, videos, PDFs), the handler renders a stand-in for that content.
 
 ## Locales
 
