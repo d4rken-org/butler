@@ -142,21 +142,6 @@ val childWorkspaces = _workspaces.value.filter { ws ->
 - No manual tracking needed
 - Works for any `ArgumentsForResult` implementation
 
-## Example Use Cases
-
-1. **File/Folder Picker** (Implemented)
-    - Searcher launches Explorer picker to select search directory
-    - Full Explorer features: navigation, permissions, folder creation
-    - Returns selected path, closes automatically
-
-2. **File Picker for Editor** (Future)
-    - Editor launches Explorer picker to open files
-    - Multi-select support for opening multiple files
-
-3. **Template Picker** (Future)
-    - Any workspace can launch Templates picker to switch types
-    - Returns selected template, workspace morphs
-
 ## Best Practices
 
 **Domain Layer:**

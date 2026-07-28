@@ -17,21 +17,10 @@
 
 # Build specific modules (use compileDebugKotlin, not compileFossDebugKotlin for modules)
 ./gradlew :app-workspace:compileDebugKotlin --no-daemon
-./gradlew :app-workspace-explorer:compileDebugKotlin --no-daemon
-./gradlew :app-workspace-searcher:compileDebugKotlin --no-daemon
-./gradlew :app-workspace-editor:compileDebugKotlin --no-daemon
-./gradlew :app-workspace-templates:compileDebugKotlin --no-daemon
 
 # Build release version
 ./gradlew :app:bundleFossRelease
-
-# Clean build
-./gradlew clean
 ```
-
-### Build & Test Context Management
-
-Run gradle build and test commands via the `devtools:build-runner` agent (Task tool) to keep verbose output out of the main context. The sub-agent reports back only: success/failure status, compilation/test errors with file locations, and warning/test counts. Run gradle directly only when the user asks for full output, or for quick verification of available tasks or tests (`./gradlew tasks`).
 
 ## Code Quality
 
@@ -60,13 +49,6 @@ When debugging UI issues, layout problems, or visual elements:
 # Or with a custom filename
 ./.claude/skills/screenshot/screenshot.sh my-ui-bug
 ```
-
-Use cases:
-
-- Verifying UI element positioning (badges, overlays, spacing)
-- Checking visual appearance of components
-- Confirming layout issues before/after fixes
-- Documenting visual bugs
 
 ## Fastlane Deployment
 
