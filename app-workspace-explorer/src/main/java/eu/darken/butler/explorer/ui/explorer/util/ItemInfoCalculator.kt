@@ -12,28 +12,32 @@ class ItemInfoCalculator @Inject constructor() {
     ): ExplorerDialogState.ItemInfo.InfoContext? {
         if (selectedItems.isEmpty()) return null
 
+        // Selections are snapshots taken before extended data was loaded, resolve against the live list
+        val items = selectedItems.map { selected -> allItems?.firstOrNull { it.id == selected.id } ?: selected }
+
         return when {
-            selectedItems.size == 1 -> {
-                when (val item = selectedItems.first()) {
+            items.size == 1 -> {
+                when (val item = items.first()) {
                     is ExplorerItem.File -> ExplorerDialogState.ItemInfo.InfoContext.SingleFile(item)
                     is ExplorerItem.Directory -> ExplorerDialogState.ItemInfo.InfoContext.SingleDirectory(item)
                     is ExplorerItem.Storage.SAF -> ExplorerDialogState.ItemInfo.InfoContext.SingleSAF(item)
+                    is ExplorerItem.Storage.Local -> ExplorerDialogState.ItemInfo.InfoContext.SingleLocalStorage(item)
                     else -> null
                 }
             }
 
-            selectedItems.size > 1 -> {
-                val fileCount = selectedItems.count { it is ExplorerItem.File }
-                val directoryCount = selectedItems.count { it is ExplorerItem.Directory }
+            items.size > 1 -> {
+                val fileCount = items.count { it is ExplorerItem.File }
+                val directoryCount = items.count { it is ExplorerItem.Directory }
 
                 // Calculate total size - only for items that have size information
-                val totalSize = selectedItems
+                val totalSize = items
                     .filterIsInstance<ExplorerItem.Lookup>()
                     .mapNotNull { it.lookup.size }
                     .sum()
 
                 ExplorerDialogState.ItemInfo.InfoContext.MultipleItems(
-                    selectedItems = selectedItems,
+                    selectedItems = items,
                     fileCount = fileCount,
                     directoryCount = directoryCount,
                     totalSize = if (totalSize > 0) totalSize else null,

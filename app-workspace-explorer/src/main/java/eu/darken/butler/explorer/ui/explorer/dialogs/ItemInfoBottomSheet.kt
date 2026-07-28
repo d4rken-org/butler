@@ -36,6 +36,7 @@ import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
+import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 import eu.darken.butler.workspace.ui.dialogs.InfoCard
 import eu.darken.butler.workspace.ui.dialogs.InfoField
@@ -99,6 +100,10 @@ private fun ItemInfoContent(
 
             is ExplorerDialogState.ItemInfo.InfoContext.SingleSAF -> {
                 SingleSAFInfo(item = context.item, onCopyToClipboard = onCopyToClipboard)
+            }
+
+            is ExplorerDialogState.ItemInfo.InfoContext.SingleLocalStorage -> {
+                LocalStorageInfo(item = context.item, onCopyToClipboard = onCopyToClipboard)
             }
 
             is ExplorerDialogState.ItemInfo.InfoContext.MultipleItems -> {
@@ -307,6 +312,60 @@ private fun SingleSAFInfo(
 }
 
 @Composable
+private fun LocalStorageInfo(
+    item: ExplorerItem.Storage.Local,
+    onCopyToClipboard: (String) -> Unit,
+) {
+    val context = LocalContext.current
+    val path = item.target.path.path
+    val totalBytes = item.totalBytes
+    val availableBytes = item.availableBytes
+
+    InfoCard {
+        InfoField(
+            label = stringResource(R.string.explorer_info_name_label),
+            value = item.displayName.get(context),
+        )
+
+        InfoField(
+            label = stringResource(R.string.explorer_info_path_label),
+            value = path,
+            onCopy = { onCopyToClipboard(path) },
+            valueStyle = InfoValueStyle.MONOSPACE,
+        )
+
+        totalBytes?.let { total ->
+            InfoField(
+                label = stringResource(R.string.explorer_info_total_capacity_label),
+                value = formatFileSize(total),
+            )
+        }
+
+        if (totalBytes != null && availableBytes != null) {
+            InfoField(
+                label = stringResource(R.string.explorer_info_used_space_label),
+                value = formatFileSize(totalBytes - availableBytes),
+            )
+        }
+
+        availableBytes?.let { available ->
+            InfoField(
+                label = stringResource(R.string.explorer_info_free_space_label),
+                value = formatFileSize(available),
+            )
+        }
+
+        if (totalBytes != null && availableBytes != null) {
+            val percentage = ((totalBytes - availableBytes).toDouble() / totalBytes * 100).toInt()
+            InfoField(
+                label = stringResource(R.string.explorer_info_usage_label),
+                value = "$percentage%",
+            )
+        }
+    }
+}
+
+@Composable
 private fun MultipleItemsInfo(
     context: ExplorerDialogState.ItemInfo.InfoContext.MultipleItems,
 ) {
@@ -463,6 +522,19 @@ private fun ItemInfoBottomSheetPreviewSAF() {
 
     ItemInfoBottomSheet(
         context = ExplorerDialogState.ItemInfo.InfoContext.SingleSAF(mockSAF),
+        onDismiss = {},
+        onCopyToClipboard = {}
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ItemInfoBottomSheetPreviewLocalStorage() {
+    ItemInfoBottomSheet(
+        context = ExplorerDialogState.ItemInfo.InfoContext.SingleLocalStorage(
+            MockDataProvider.createMockStorageLocal(),
+        ),
         onDismiss = {},
         onCopyToClipboard = {}
     )

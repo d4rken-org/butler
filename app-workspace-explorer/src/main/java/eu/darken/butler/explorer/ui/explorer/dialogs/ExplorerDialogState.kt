@@ -68,6 +68,7 @@ sealed interface ExplorerDialogState {
             data class SingleFile(val item: ExplorerItem.File) : InfoContext
             data class SingleDirectory(val item: ExplorerItem.Directory) : InfoContext
             data class SingleSAF(val item: ExplorerItem.Storage.SAF) : InfoContext
+            data class SingleLocalStorage(val item: ExplorerItem.Storage.Local) : InfoContext
             data class MultipleItems(
                 val selectedItems: List<ExplorerItem>,
                 val fileCount: Int,
