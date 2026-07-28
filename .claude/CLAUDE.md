@@ -48,9 +48,10 @@ Butler uses a workspace concept similar to browser tabs with 4 main workspace ty
 ### Screenshots
 - `app/src/screenshotTest/kotlin/.../screenshots/`: Compose screenshot test definitions
 - `app/src/debug/java/.../screenshots/ScreenshotContent.kt`: Mock content for screenshots
+- `fastlane/screenshots/locales.txt`: Locale source of truth for screenshot generation
 - `fastlane/generate_screenshots.sh`: Batch screenshot generation script
 - `fastlane/copy_screenshots.sh`: Copies screenshots to fastlane metadata
-- `fastlane/metadata/android/{locale}/images/phoneScreenshots/`: Play Store screenshots
+- `fastlane/metadata/android/{locale}/images/{phone,sevenInch,tenInch}Screenshots/`: Play Store screenshots
 
 ### Build Flavors
 FOSS and GPLAY (see `app/build.gradle.kts`). Use FOSS debug for local development.
