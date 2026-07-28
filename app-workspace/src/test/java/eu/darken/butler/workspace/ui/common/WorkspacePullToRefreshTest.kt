@@ -10,7 +10,6 @@ import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertRangeInfoEquals
 import androidx.compose.ui.test.assertTopPositionInRootIsEqualTo
-import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -92,11 +91,16 @@ class WorkspacePullToRefreshTest : ComposeTest() {
             }
         }
 
-        val quarterPull = composeTestRule.onNodeWithTag(indicatorTag).getUnclippedBoundsInRoot().top
+        // Measured on the spinner, not the tagged container: only the spinner is composed inside
+        // the indicator's graphicsLayer, so only its bounds observe the layer transform. Centre,
+        // not top: the pull's scale is about the default centre origin and leaves the centre
+        // untouched, while a pull-driven translation moves it. boundsInRoot is the transformed rect;
+        // getUnclippedBoundsInRoot() is position + untransformed size and shifts under scale alone.
+        val quarterPull = composeTestRule.onNode(progressNode).fetchSemanticsNode().boundsInRoot.center.y
 
         composeTestRule.runOnIdle { progress.floatValue = 1f }
 
-        composeTestRule.onNodeWithTag(indicatorTag).getUnclippedBoundsInRoot().top shouldBe quarterPull
+        composeTestRule.onNode(progressNode).fetchSemanticsNode().boundsInRoot.center.y shouldBe quarterPull
     }
 
     @Test
