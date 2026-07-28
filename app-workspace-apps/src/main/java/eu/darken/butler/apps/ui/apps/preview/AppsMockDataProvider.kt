@@ -364,6 +364,7 @@ object AppsMockDataProvider {
             isEnabled: Boolean = true,
             isUpdatedSystemApp: Boolean = false,
             isSplitApk: Boolean = false,
+            isDebuggable: Boolean = false,
             fromStore: Boolean = true,
             userProfile: UserProfile2 = UserProfile2(handle = UserHandle2(0)),
         ) = createMockAppItem(
@@ -377,6 +378,7 @@ object AppsMockDataProvider {
             hoursAgo = hoursAgo,
             isUpdatedSystemApp = isUpdatedSystemApp,
             isSplitApk = isSplitApk,
+            isDebuggable = isDebuggable,
             userProfile = userProfile,
             icon = placeholderIcon,
             installerInfo = if (fromStore) storeInstaller else null,
@@ -384,8 +386,8 @@ object AppsMockDataProvider {
 
         /**
          * The Play Store screenshot's app list: invented labels and invented package names only,
-         * no real-world app, vendor or trademark. No entry is debuggable, so the shot's active
-         * "exclude debug apps" filter is true of every visible row.
+         * no real-world app, vendor or trademark. Between them the entries carry every status tag
+         * the app can show.
          */
         val playStoreItems: List<AppItem> = listOf(
             playStoreItem(
@@ -403,6 +405,7 @@ object AppsMockDataProvider {
                 versionName = "1.0",
                 versionCode = 1,
                 hoursAgo = 30,
+                isDebuggable = true,
                 fromStore = false,
             ),
             playStoreItem(

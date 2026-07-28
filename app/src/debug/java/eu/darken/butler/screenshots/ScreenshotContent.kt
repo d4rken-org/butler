@@ -347,8 +347,11 @@ private fun AppsManagerBody(id: Workspace.Id, design: WorkspaceDesign) {
                 AppsWorkspaceViewModel.State.Ready(
                     apps = AppsMockDataProvider.Presets.playStoreItems,
                     isLoading = false,
-                    // True of every row in the list: none of them is debuggable.
-                    filterConfig = TagFilterConfig(excludeTags = setOf(AppTag.Debug)),
+                    // True of every row in the list: none of them belongs to that profile. An
+                    // active filter has to hold for everything the shot shows.
+                    filterConfig = TagFilterConfig(
+                        excludeTags = setOf(AppTag.User(handleId = 11, label = "Guest")),
+                    ),
                     sortSettings = SortSettings(),
                 )
             )
