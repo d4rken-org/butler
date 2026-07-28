@@ -171,12 +171,31 @@ fi
 BACKUP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/butler-screenshots.XXXXXXXX")"
 cp "$LOCALES_FILE" "$BACKUP_DIR/PlayStoreLocales.kt"
 
+# The in-progress codegen temp file, tracked so a signal cannot leave it in the tracked
+# source directory.
+TMP_LOCALES_FILE=""
+
 cleanup() {
+    local status=$?
+    # Disarm before doing anything: a second signal must not re-enter and delete the backup
+    # while the restore is still running.
+    trap - EXIT HUP INT TERM
+    if [[ -n "$TMP_LOCALES_FILE" ]]; then
+        rm -f "$TMP_LOCALES_FILE"
+        TMP_LOCALES_FILE=""
+    fi
     cp -f "$BACKUP_DIR/PlayStoreLocales.kt" "$LOCALES_FILE"
     rm -rf "$BACKUP_DIR"
     echo "Restored original PlayStoreLocales.kt"
+    exit "$status"
 }
-trap cleanup EXIT HUP INT TERM
+
+# Signals only set the exit status; the restore itself happens once, in the EXIT trap. Without
+# the explicit exits a signal would return into the batch loop and rewrite the source file again.
+trap cleanup EXIT
+trap 'exit 129' HUP
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
 rm -rf "$REF_DIR"
 echo "Cleaned reference directory"
@@ -190,6 +209,7 @@ generate_locales_file() {
     target_dir="$(dirname "$LOCALES_FILE")"
     local tmp_file
     tmp_file="$(mktemp "$target_dir/.PlayStoreLocales.kt.XXXXXX")"
+    TMP_LOCALES_FILE="$tmp_file"
 
     {
         cat << 'HEADER'
@@ -221,6 +241,7 @@ HEADER
     } > "$tmp_file"
 
     mv -f "$tmp_file" "$LOCALES_FILE"
+    TMP_LOCALES_FILE=""
 }
 
 emit_previews() {
