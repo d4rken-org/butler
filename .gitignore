@@ -31,3 +31,5 @@ fastlane/metadata/android/*/images/tenInchScreenshots/*.png
 !fastlane/metadata/android/en-US/images/phoneScreenshots/*.png
 !fastlane/metadata/android/en-US/images/sevenInchScreenshots/*.png
 !fastlane/metadata/android/en-US/images/tenInchScreenshots/*.png
+# Staging area of copy_screenshots.sh, removed on every exit path but never a repo file
+fastlane/metadata/android/.screenshot-staging.*/

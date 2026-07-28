@@ -5,7 +5,8 @@ set -euo pipefail
 # fastlane metadata directories for Play Store upload.
 #
 # Two phases, fail closed: nothing is written until the whole set has been parsed and
-# validated, and nothing is deleted until every copy has been staged successfully.
+# validated, and each destination directory is then replaced by a single rename of a complete
+# staged directory, with every completed swap rolled back if a later one fails.
 #
 # Usage:
 #   ./fastlane/copy_screenshots.sh           # Copy all screenshots
@@ -77,6 +78,8 @@ fi
 
 png_size() {
     # Width and height are big-endian uint32 at byte offsets 16 and 20 of a PNG.
+    # Requires GNU coreutils `od` (--endian); this script is Linux-only, like CI. On BSD/macOS
+    # `od` this fails loudly instead of reporting a wrong size.
     od -An -j16 -N8 -tu4 --endian=big "$1" | awk '{print $1 "x" $2}'
 }
 
@@ -163,34 +166,98 @@ if (( ERRORS > 0 )); then
     exit 1
 fi
 
-# --- Phase 2: stage every copy, then commit ---------------------------------------------
+# --- Phase 2: build complete replacement directories, then swap them in ------------------
 
-STAGING_DIR="$(mktemp -d "${TMPDIR:-/tmp}/butler-screenshot-copy.XXXXXXXX")"
-trap 'rm -rf "$STAGING_DIR"' EXIT HUP INT TERM
+# The staging area lives next to the destinations so the commit is a rename, not a copy: a
+# rename either happens or it does not, there is no half-written destination directory.
+STAGING_DIR=""
+SWAPS=()
+ROLLBACK_ARMED=false
+
+rollback() {
+    local i entry target backup
+    for (( i = ${#SWAPS[@]} - 1; i >= 0; i-- )); do
+        entry="${SWAPS[$i]}"
+        target="${entry%%|*}"
+        backup="${entry#*|}"
+        if [[ -n "$backup" ]]; then
+            # Empty backup path means the target did not exist before this run.
+            if [[ -d "$backup" ]]; then
+                rm -rf "$target"
+                mv "$backup" "$target"
+            fi
+        else
+            rm -rf "$target"
+        fi
+    done
+    SWAPS=()
+    echo "Restored the previous screenshot directories" >&2
+}
+
+cleanup() {
+    local status=$?
+    trap - EXIT HUP INT TERM
+    if $ROLLBACK_ARMED; then
+        ROLLBACK_ARMED=false
+        rollback
+    fi
+    if [[ -n "$STAGING_DIR" ]]; then
+        rm -rf "$STAGING_DIR"
+        STAGING_DIR=""
+    fi
+    exit "$status"
+}
+
+trap cleanup EXIT
+trap 'exit 129' HUP
+trap 'exit 130' INT
+trap 'exit 143' TERM
+
+STAGING_DIR="$(mktemp -d "$FASTLANE_DIR/.screenshot-staging.XXXXXXXX")"
+
+for locale in "${!TOUCHED_LOCALES[@]}"; do
+    for form_factor in "${!FORM_FACTOR_DIR[@]}"; do
+        image_dir="${FORM_FACTOR_DIR[$form_factor]}"
+        replacement="$STAGING_DIR/new/$locale/$image_dir"
+        mkdir -p "$replacement"
+        # Without --clean the replacement starts as a copy of the current directory, so files
+        # that this run does not produce survive the swap.
+        if ! $CLEAN && [[ -d "$FASTLANE_DIR/$locale/images/$image_dir" ]]; then
+            cp -a "$FASTLANE_DIR/$locale/images/$image_dir/." "$replacement/"
+        fi
+    done
+done
 
 for entry in "${MANIFEST[@]}"; do
     source_png="${entry%%|*}"
     destination="${entry#*|}"
-    mkdir -p "$STAGING_DIR/$(dirname "$destination")"
-    cp "$source_png" "$STAGING_DIR/$destination"
+    cp -f "$source_png" "$STAGING_DIR/new/$destination"
 done
 
-COPIED=0
+ROLLBACK_ARMED=true
 for locale in "${!TOUCHED_LOCALES[@]}"; do
     for form_factor in "${!FORM_FACTOR_DIR[@]}"; do
         image_dir="${FORM_FACTOR_DIR[$form_factor]}"
         target_dir="$FASTLANE_DIR/$locale/images/$image_dir"
-        if $CLEAN; then
-            rm -rf "$target_dir"
+        backup_dir=""
+        if [[ -d "$target_dir" ]]; then
+            backup_dir="$STAGING_DIR/backup/$locale/$image_dir"
+            mkdir -p "$(dirname "$backup_dir")"
         fi
-        mkdir -p "$target_dir"
-        for staged in "$STAGING_DIR/$locale/$image_dir"/*.png; do
-            cp "$staged" "$target_dir/$(basename "$staged")"
-            COPIED=$(( COPIED + 1 ))
-        done
+        # Recorded before the moves so a failure between them is still rolled back.
+        SWAPS+=("$target_dir|$backup_dir")
+        mkdir -p "$FASTLANE_DIR/$locale/images"
+        if [[ -n "$backup_dir" ]]; then
+            mv "$target_dir" "$backup_dir"
+        fi
+        mv "$STAGING_DIR/new/$locale/$image_dir" "$target_dir"
     done
 done
 
+# Everything is in place; the backups inside the staging dir are no longer needed.
+ROLLBACK_ARMED=false
+SWAPS=()
+
 echo ""
 echo "=== Copy Complete ==="
-echo "Locales: ${#TOUCHED_LOCALES[@]} | Copied: $COPIED images"
+echo "Locales: ${#TOUCHED_LOCALES[@]} | Copied: ${#MANIFEST[@]} images"
