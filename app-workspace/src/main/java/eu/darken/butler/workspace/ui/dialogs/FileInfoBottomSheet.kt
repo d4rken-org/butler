@@ -1,30 +1,19 @@
 package eu.darken.butler.workspace.ui.dialogs
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.ContentCopy
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -126,17 +115,18 @@ private fun FileInfoContent(
         // Main info card
         InfoCard {
             // Name - always shown
-            InfoRow(
+            InfoField(
                 label = stringResource(R.string.workspace_file_info_name_label),
-                value = lookup.name
+                value = lookup.name,
+                onCopy = { onCopyToClipboard(lookup.name) },
             )
 
             // Path - always shown, copyable
-            InfoRow(
+            InfoField(
                 label = stringResource(R.string.workspace_file_info_path_label),
                 value = lookup.path,
-                isCopyable = true,
-                onCopy = { onCopyToClipboard(lookup.path) }
+                onCopy = { onCopyToClipboard(lookup.path) },
+                valueStyle = InfoValueStyle.MONOSPACE,
             )
 
             // Type - shown with MIME info if available, otherwise generic type
@@ -148,58 +138,59 @@ private fun FileInfoContent(
                 lookup.fileType == FileType.UNKNOWN -> context.getString(R.string.workspace_file_info_type_unknown)
                 else -> context.getString(R.string.workspace_file_info_unknown)
             }
-            InfoRow(
+            InfoField(
                 label = stringResource(R.string.workspace_file_info_type_label),
-                value = typeValue
+                value = typeValue,
             )
 
             // Size - always shown for files, shown for directories if available
             if (lookup.fileType == FileType.FILE || (lookup.size ?: 0) > 0) {
-                InfoRow(
+                InfoField(
                     label = stringResource(R.string.workspace_file_info_size_label),
-                    value = formatFileSize(lookup.size ?: 0)
+                    value = formatFileSize(lookup.size ?: 0),
                 )
             }
 
             // Child count - only for directories, if provided
             if (lookup.fileType == FileType.DIRECTORY && childCount != null) {
-                InfoRow(
+                InfoField(
                     label = stringResource(R.string.workspace_file_info_child_count_label),
-                    value = childCount.toString()
+                    value = childCount.toString(),
                 )
             }
 
             // Modified date - always shown if available
             lookup.modifiedAt?.let { modifiedAt ->
-                InfoRow(
+                InfoField(
                     label = stringResource(R.string.workspace_file_info_modified_label),
                     value = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
-                        .format(Date(modifiedAt.toEpochMilliseconds()))
+                        .format(Date(modifiedAt.toEpochMilliseconds())),
                 )
             }
 
             // Permissions - only shown if provided (Explorer has this, Searcher doesn't)
             permissions?.let { perms ->
-                InfoRow(
+                InfoField(
                     label = stringResource(R.string.workspace_file_info_permissions_label),
-                    value = perms.octal
+                    value = perms.octal,
+                    valueStyle = InfoValueStyle.MONOSPACE,
                 )
             }
 
             // Owner - only shown if provided (Explorer has this, Searcher doesn't)
             ownership?.let { owner ->
-                InfoRow(
+                InfoField(
                     label = stringResource(R.string.workspace_file_info_owner_label),
-                    value = owner.userName ?: owner.userId.toString()
+                    value = owner.userName ?: owner.userId.toString(),
                 )
             }
 
             // Created date - only shown if provided (Explorer has this, Searcher doesn't)
             createdAt?.let { created ->
-                InfoRow(
+                InfoField(
                     label = stringResource(R.string.workspace_file_info_created_label),
                     value = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
-                        .format(Date(created.toEpochMilliseconds()))
+                        .format(Date(created.toEpochMilliseconds())),
                 )
             }
         }
@@ -208,11 +199,11 @@ private fun FileInfoContent(
         if (lookup.fileType == FileType.SYMBOLIC_LINK && lookup.target != null) {
             Spacer(modifier = Modifier.height(8.dp))
             InfoCard {
-                InfoRow(
+                InfoField(
                     label = stringResource(R.string.workspace_file_info_symlink_target_label),
                     value = lookup.target?.path ?: stringResource(R.string.workspace_file_info_unknown),
-                    isCopyable = lookup.target != null,
-                    onCopy = { lookup.target?.path?.let { onCopyToClipboard(it) } }
+                    onCopy = lookup.target?.path?.let { targetPath -> { onCopyToClipboard(targetPath) } },
+                    valueStyle = InfoValueStyle.MONOSPACE,
                 )
             }
         }
@@ -273,107 +264,29 @@ private fun MultipleItemsInfoContent(
         HorizontalDivider()
 
         InfoCard {
-            InfoRow(
+            InfoField(
                 label = stringResource(R.string.workspace_file_info_selected_label),
-                value = totalCount.toString()
+                value = totalCount.toString(),
             )
 
             if (fileCount > 0) {
-                InfoRow(
+                InfoField(
                     label = stringResource(R.string.workspace_file_info_files_label),
-                    value = fileCount.toString()
+                    value = fileCount.toString(),
                 )
             }
 
             if (directoryCount > 0) {
-                InfoRow(
+                InfoField(
                     label = stringResource(R.string.workspace_file_info_directories_label),
-                    value = directoryCount.toString()
+                    value = directoryCount.toString(),
                 )
             }
 
             totalSize?.let { size ->
-                InfoRow(
+                InfoField(
                     label = stringResource(R.string.workspace_file_info_total_size_label),
-                    value = formatFileSize(size)
-                )
-            }
-        }
-    }
-}
-
-// Helper composables
-
-@Composable
-private fun InfoCard(content: @Composable () -> Unit) {
-    Card(
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-        )
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            content()
-        }
-    }
-}
-
-private enum class InfoValueStyle {
-    NORMAL,
-    MONOSPACE
-}
-
-@Composable
-private fun InfoRow(
-    label: String,
-    value: String,
-    modifier: Modifier = Modifier,
-    isCopyable: Boolean = false,
-    onCopy: (() -> Unit)? = null,
-    valueStyle: InfoValueStyle = InfoValueStyle.NORMAL,
-) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.weight(0.35f)
-        )
-
-        Row(
-            modifier = Modifier.weight(0.65f),
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = value,
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    fontFamily = if (valueStyle == InfoValueStyle.MONOSPACE) FontFamily.Monospace else FontFamily.Default
-                ),
-                color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.Medium,
-                maxLines = if (valueStyle == InfoValueStyle.MONOSPACE) Int.MAX_VALUE else 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f, fill = false)
-            )
-
-            if (isCopyable && onCopy != null) {
-                Icon(
-                    imageVector = Icons.TwoTone.ContentCopy,
-                    contentDescription = stringResource(R.string.workspace_file_info_copy_action),
-                    modifier = Modifier
-                        .size(20.dp)
-                        .padding(start = 8.dp)
-                        .clickable { onCopy() },
-                    tint = MaterialTheme.colorScheme.primary
+                    value = formatFileSize(size),
                 )
             }
         }
