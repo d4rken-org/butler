@@ -83,13 +83,3 @@ Edit `ScreenshotContent.kt`. The content composables use `PreviewWrapper` for th
 ### Adding/removing locales
 
 Edit `PlayStoreLocales.kt`. Each `@Preview` entry needs `locale` (Android code) and `name` (Play Store directory name, used in filenames and fastlane paths).
-
-## ADB Screenshots (Debugging)
-
-For quick device screenshots during debugging (not Play Store generation):
-
-```bash
-./.claude/skills/screenshot/screenshot.sh [filename]
-```
-
-Output: `.claude/tmp/{filename}.png`. Use for verifying layouts, documenting bugs, before/after comparisons.

@@ -1,12 +1,14 @@
+---
+paths: ["**/ui/**", "**/common/compose/**", "**/common/theming/**", "**/common/navigation/**", "**/common/error/**", "**/common/settings/**", "**/*ViewModel.kt"]
+---
+
 # UI Guidelines
 
 ## User Interface
 
-- Full Jetpack Compose with Material 3.
-- Custom theming system (`ButlerTheme`, `ButlerColors`).
-- Edge-to-edge display support.
-- Use icons out of the `androidx.compose.material.icons.twotone` package where possible.
-- When creating compose previews, use the `@Preview2` annotation, and wrap the UI element in a `PreviewWrapper`.
+- Full Jetpack Compose with Material 3; custom theming via `ButlerTheme` / `ButlerColors`; edge-to-edge.
+- Use icons from the `androidx.compose.material.icons.twotone` package where possible.
+- Compose previews use the `@Preview2` annotation and wrap the UI element in a `PreviewWrapper`.
 
 ## Pane Edge Padding
 
@@ -21,73 +23,21 @@ Exceptions: the Templates picker layout (24.dp), the Explorer grid branch (2.dp)
 
 Butler uses a layered ViewModel hierarchy (`ViewModel1`…`ViewModel4`) where each level adds capabilities.
 
-New ViewModels should extend **`ViewModel3`** (no navigation needed) or **`ViewModel4`** (with navigation). Uses Hilt assisted injection for workspace ID parameters.
+New ViewModels extend **`ViewModel3`** (no navigation needed) or **`ViewModel4`** (with navigation), using Hilt assisted injection for workspace ID parameters.
 
 ## Host/Page Pattern
 
-Screens follow a two-composable pattern that separates side effects from presentation:
+Screens follow a two-composable pattern separating side effects from presentation:
 
-**Page composable** (e.g., `ExplorerWorkspacePage`): Pure presentation. Accepts `Flow<State>` parameters (not ViewModel). Collects with `collectAsState()`. Contains no side effects. Previewable with mock `flowOf()` data.
+- **Page** (e.g., `SearcherWorkspacePage`): pure presentation. Accepts `Flow<State>` parameters (not the ViewModel), collects with `collectAsState()`, contains no side effects, previewable with `flowOf()` mock data.
+- **Host** (e.g., `SearcherWorkspacePageHost`): gets the ViewModel via `hiltViewModel()` with assisted injection (`key = id.longTag`, factory `creationCallback`), wires the event handlers used by the screen (`NavigationEventHandler(vm)`, `ErrorEventHandler(vm)` where applicable) and other side effects (permission/intent launchers), and passes state flows to the Page.
 
-**Host composable** (e.g., `ExplorerWorkspacePageHost`): Gets ViewModel via `hiltViewModel()` with assisted injection. Handles side effects (event handlers, permission launchers, intent launchers). Connects `ErrorEventHandler(vm)` and `NavigationEventHandler(vm)`. Passes state flows to the Page.
-
-```kotlin
-// Host — side effects and ViewModel wiring
-@Composable
-fun MyWorkspacePageHost(
-    id: Workspace.Id,
-    design: WorkspaceDesign,
-    vm: MyWorkspaceViewModel = hiltViewModel(
-        key = id.longTag,
-        creationCallback = { factory: MyWorkspaceViewModel.Factory -> factory.create(id = id) }
-    ),
-) {
-    ErrorEventHandler(vm)
-    NavigationEventHandler(vm)
-
-    MyWorkspacePage(
-        design = design,
-        stateSource = vm.state,
-    )
-}
-
-// Page — pure presentation, previewable
-@Composable
-fun MyWorkspacePage(
-    design: WorkspaceDesign = WorkspaceDesign(),
-    stateSource: Flow<MyWorkspaceViewModel.State>,
-) {
-    val state by stateSource.collectAsState(initial = null)
-    state ?: return
-    // ... render UI
-}
-```
+Reference implementation: `SearcherWorkspacePageHost` + `SearcherWorkspacePage` in
+`app-workspace-searcher/src/main/java/eu/darken/butler/searcher/ui/search/SearcherWorkspacePage.kt`. (Explorer's Page predates the pattern and takes the ViewModel directly — don't copy it for new screens.)
 
 ## State Patterns
 
-Two patterns are used for ViewModel state:
+Two patterns for ViewModel state — choose by whether the screen has distinct lifecycle phases:
 
-**Single State data class** — one `data class State(...)` with all fields having defaults. Updated via `.copy()`. Used when the screen always has meaningful content (e.g., Explorer).
-
-```kotlin
-data class State(
-    val items: List<Item>? = null,
-    val error: Throwable? = null,
-    val selectionState: SelectionState = SelectionState(),
-)
-```
-
-**Sealed interface** — distinct variants like `Initializing`, `Error`, `Ready`. Used when the screen has clearly different phases (e.g., Searcher). Makes loading/error states more explicit in the UI via `when` expressions.
-
-```kotlin
-sealed interface State {
-    data object Initializing : State
-    data class Error(val error: Throwable) : State
-    data class Ready(
-        val items: List<Item> = emptyList(),
-        // ...
-    ) : State
-}
-```
-
-Both are valid approaches — choose based on whether the screen has distinct lifecycle phases.
+- **Single `data class State`** with defaulted fields, updated via `.copy()` — when the screen always has meaningful content. Reference: `ExplorerWorkspaceViewModel.State`.
+- **Sealed interface** with variants like `Initializing` / `Error` / `Ready` — when the screen has clearly different phases; makes loading/error states explicit in `when` expressions. Reference: `SearcherWorkspaceViewModel.State`.

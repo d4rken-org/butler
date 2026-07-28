@@ -9,12 +9,6 @@
     - When accessing settings values, use the `.value()` extension function instead of `.flow.first()`
     - Example: `searcherSettings.defaultSearchPath.value()` not `searcherSettings.defaultSearchPath.flow.first()`
     - For setting values use: `searcherSettings.someSetting.value(newValue)`
-- Jetpack Compose for UI.
-- Hilt for dependency injection.
-- Kotlin Coroutines & Flow for async operations.
-- KotlinX for JSON serialization.
-- Coil for image loading.
-- Room for database operations.
 - Use `FlowCombineExtensions` instead of nesting multiple combine statements.
 - Prefer Kotlin standard library types over Java equivalents:
     - Use `kotlin.Uuid` instead of `java.util.UUID`
@@ -24,13 +18,6 @@
 - Check if `@OptIn` annotations are actually necessary before adding them:
     - Many experimental APIs (like `ExperimentalMaterial3Api`) are already enabled project-wide via gradle compile flags (`freeCompilerArgs`)
     - Only add `@OptIn` if you get a compilation error without it
-
-## Dependency Injection
-
-- Hilt/Dagger throughout the application.
-- `@AndroidEntryPoint` for Activities/Fragments.
-- `@HiltViewModel` for ViewModels.
-- Modular DI setup across different modules.
 
 ## Business Logic
 
@@ -105,9 +92,6 @@ try {
 
 ### Best Practices
 
-- Always use lazy evaluation with lambda: `{ "message" }` for performance
-- Use `e.asLog()` extension for exception logging to get full stack traces
-- Use appropriate priority levels: ERROR for exceptions, WARN for concerning conditions, INFO for milestones, DEBUG for general logging
-- Follow hierarchical tag naming for consistent categorization
-- ViewModels should include workspace ID in tags when applicable
-- Keep log messages concise but descriptive
+- Always use the lazy lambda form `{ "message" }`; use `e.asLog()` for exception stack traces (both shown above).
+- Priorities: ERROR for exceptions, WARN for concerning conditions, INFO for milestones, DEBUG otherwise.
+- ViewModels include the workspace ID in tags where applicable.

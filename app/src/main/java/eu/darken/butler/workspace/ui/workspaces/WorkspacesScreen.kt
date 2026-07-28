@@ -117,6 +117,7 @@ fun WorkspaceScreen(
                 design = design,
                 workspaces = state.tabWorkspaces,
                 selected = state.selected,
+                visibleSelected = state.visibleSelected,
                 focusedId = state.focused,
                 dividerPositions = dividerPositions,
                 onDividerPositionsChange = { newPositions ->

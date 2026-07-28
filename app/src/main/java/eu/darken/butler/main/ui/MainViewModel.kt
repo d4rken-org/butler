@@ -27,7 +27,6 @@ import eu.darken.butler.workspace.core.operations.OperationFocusRequest
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.serialization.PolymorphicSerializer
@@ -51,15 +50,18 @@ class MainViewModel @Inject constructor(
         generalSettings.themeStateBlocking,
     )
 
-    val state = generalSettings.isOnboardingCompleted.flow
-        .combine(flowOf(Unit)) { onBoardingComplete, _ ->
-            State(
-                startScreen = when {
-                    !onBoardingComplete -> State.StartScreen.ONBOARDING
-                    else -> State.StartScreen.HOME
-                },
-            )
-        }
+    val state = combine(
+        generalSettings.isOnboardingCompleted.flow,
+        generalSettings.isDisplayCutoutAvoided.flow,
+    ) { onBoardingComplete, avoidDisplayCutout ->
+        State(
+            startScreen = when {
+                !onBoardingComplete -> State.StartScreen.ONBOARDING
+                else -> State.StartScreen.HOME
+            },
+            avoidDisplayCutout = avoidDisplayCutout,
+        )
+    }
         .onEach { log(VERBOSE) { "New state: $it" } }
         .asStateFlow()
 
@@ -81,6 +83,7 @@ class MainViewModel @Inject constructor(
 
     data class State(
         val startScreen: StartScreen = StartScreen.ONBOARDING,
+        val avoidDisplayCutout: Boolean = false,
     ) {
         enum class StartScreen {
             ONBOARDING,

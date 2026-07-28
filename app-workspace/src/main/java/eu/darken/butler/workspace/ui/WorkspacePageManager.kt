@@ -43,7 +43,24 @@ class WorkspacePageManager @Inject constructor(
         val currentPaneCount: Int = 1,
         val workspaceAccessTimes: Map<Workspace.Id, Instant> = emptyMap(),
         val isManagerOverlayVisible: Boolean = false,
-    ) : Parcelable
+    ) : Parcelable {
+
+        /**
+         * The pane assignments the current layout can actually show.
+         *
+         * [selectedWorkspaces] deliberately outlives layout changes: [setPaneCount] lowers
+         * [currentPaneCount] without pruning, so collapsing quad -> dual and expanding back restores
+         * the arrangement instead of losing it. The price is that the raw map keeps indices no pane
+         * renders, and a workspace parked on one is open but invisible.
+         *
+         * Anything answering "which pane is this workspace in" *for the user* - pane badges, pane
+         * chips, whether a workspace counts as on-screen - must read this rather than the raw map,
+         * or it will advertise a pane the layout does not have. Assignment and session persistence
+         * still work on [selectedWorkspaces]; narrowing those would discard the retention above.
+         */
+        val visiblePaneAssignments: Map<Int, Workspace.Id>
+            get() = selectedWorkspaces.filterKeys { it in 0 until currentPaneCount }
+    }
 
     private val _state = MutableStateFlow(State())
     val state: StateFlow<State> = _state.asStateFlow()
@@ -176,7 +193,11 @@ class WorkspacePageManager @Inject constructor(
         }
 
         _state.update { currentState ->
-            val existingPosition = currentState.selectedWorkspaces.entries.find { it.value == workspaceId }?.key
+            // Only a pane the layout renders counts as "already there". A workspace parked on an
+            // index left behind by a wider layout is invisible, so selecting it has to move it onto
+            // screen rather than just focus something the user cannot see.
+            val existingPosition = currentState.visiblePaneAssignments.entries
+                .find { it.value == workspaceId }?.key
 
             // Update MRU timestamp
             val updatedAccessTimes = currentState.workspaceAccessTimes + (workspaceId to Clock.System.now())
@@ -189,9 +210,11 @@ class WorkspacePageManager @Inject constructor(
                     workspaceAccessTimes = updatedAccessTimes,
                 )
             } else {
-                // Workspace not selected, assign it to an empty pane or replace current selection
+                // Workspace not selected, assign it to an empty pane or replace current selection.
+                // Drop any hidden assignment it still holds first, or it would occupy two panes at
+                // once. Other workspaces' retained assignments are left alone.
                 val paneCount = currentState.currentPaneCount
-                val currentSelections = currentState.selectedWorkspaces
+                val currentSelections = currentState.selectedWorkspaces.filterValues { it != workspaceId }
 
                 val newSelections = if (paneCount > 1) {
                     // Multi-pane mode: find empty pane

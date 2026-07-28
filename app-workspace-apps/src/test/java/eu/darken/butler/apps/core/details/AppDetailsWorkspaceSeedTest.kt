@@ -2,6 +2,9 @@ package eu.darken.butler.apps.core.details
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
+import eu.darken.butler.common.pkgs.Pkg
+import eu.darken.butler.common.pkgs.features.InstallId
+import eu.darken.butler.common.user.UserHandle2
 import eu.darken.butler.workspace.contracts.apps.AppDetailsArguments
 import eu.darken.butler.workspace.core.Workspace
 import io.kotest.matchers.shouldBe
@@ -28,10 +31,14 @@ class AppDetailsWorkspaceSeedTest {
 
     @Test
     fun `the seed matches the derivation`() {
-        val arguments = AppDetailsArguments(packageName = "eu.darken.butler")
+        val arguments = AppDetailsArguments(
+            installId = InstallId(Pkg.Id("eu.darken.butler"), UserHandle2(0)),
+            appLabel = "Butler",
+        )
         val workspace = AppDetailsWorkspace(
             id = Workspace.Id(),
             creationArguments = arguments,
+            context = context,
             dispatcherProvider = TestDispatcherProvider(StandardTestDispatcher()),
             pkgRepo = mockk(relaxed = true),
             rootManager = mockk(relaxed = true),

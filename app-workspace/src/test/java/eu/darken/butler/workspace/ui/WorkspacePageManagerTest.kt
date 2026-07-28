@@ -8,6 +8,8 @@ import eu.darken.butler.workspace.ui.floatingbar.WorkspaceBarCollapseStates
 import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPosition
 import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPositions
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldNotBe
 import io.mockk.every
 import io.mockk.mockk
@@ -649,5 +651,84 @@ class WorkspacePageManagerTest : BaseTest() {
 
         pageManager.hideManagerOverlay()
         pageManager.state.value.isManagerOverlayVisible shouldBe false
+    }
+    /**
+     * A workspace parked on a pane index a narrower layout no longer renders is invisible, and the
+     * tab manager now presents it as unselected. Selecting it must therefore put it on screen -
+     * treating the stale assignment as "already selected" would close the manager and change
+     * nothing the user can see.
+     */
+    @Test
+    fun `selecting a workspace stranded on a hidden pane brings it on screen`() = runTest {
+        val paneOne = Workspace.Id()
+        val paneTwo = Workspace.Id()
+        val stranded = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(
+                createWorkspaceInfo(id = paneOne),
+                createWorkspaceInfo(id = paneTwo),
+                createWorkspaceInfo(id = stranded),
+            )
+        )
+        pageManager.setPaneCount(4)
+        pageManager.applyRestoredUIState(null, mapOf(0 to paneOne, 1 to paneTwo, 3 to stranded))
+        pageManager.setPaneCount(2)
+
+        pageManager.state.value.visiblePaneAssignments.values shouldNotContain stranded
+
+        pageManager.handleWorkspaceSelection(stranded)
+
+        val after = pageManager.state.value
+        after.focusedWorkspaceId shouldBe stranded
+        // Now actually on screen...
+        after.visiblePaneAssignments.values shouldContain stranded
+        // ...and only in one place, not both its old hidden pane and a new one.
+        after.selectedWorkspaces.values.count { it == stranded } shouldBe 1
+    }
+
+    /** Another workspace's retained assignment must survive that relocation. */
+    @Test
+    fun `relocating a stranded workspace leaves other retained assignments alone`() = runTest {
+        val paneOne = Workspace.Id()
+        val stranded = Workspace.Id()
+        val otherHidden = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(
+                createWorkspaceInfo(id = paneOne),
+                createWorkspaceInfo(id = stranded),
+                createWorkspaceInfo(id = otherHidden),
+            )
+        )
+        pageManager.setPaneCount(4)
+        pageManager.applyRestoredUIState(null, mapOf(0 to paneOne, 2 to stranded, 3 to otherHidden))
+        pageManager.setPaneCount(2)
+
+        pageManager.handleWorkspaceSelection(stranded)
+
+        val after = pageManager.state.value
+        after.visiblePaneAssignments.values shouldContain stranded
+        // The unrelated hidden arrangement is retained for when the layout grows back.
+        after.selectedWorkspaces[3] shouldBe otherHidden
+    }
+
+    /** A workspace already in a rendered pane is only focused - no reshuffling. */
+    @Test
+    fun `selecting a visible workspace does not move it`() = runTest {
+        val paneOne = Workspace.Id()
+        val paneTwo = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(createWorkspaceInfo(id = paneOne), createWorkspaceInfo(id = paneTwo))
+        )
+        pageManager.setPaneCount(2)
+        pageManager.applyRestoredUIState(null, mapOf(0 to paneOne, 1 to paneTwo))
+
+        pageManager.handleWorkspaceSelection(paneTwo)
+
+        val after = pageManager.state.value
+        after.focusedWorkspaceId shouldBe paneTwo
+        after.selectedWorkspaces shouldBe mapOf(0 to paneOne, 1 to paneTwo)
     }
 }

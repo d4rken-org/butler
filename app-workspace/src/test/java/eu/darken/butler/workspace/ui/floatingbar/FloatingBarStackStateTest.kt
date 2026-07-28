@@ -108,6 +108,31 @@ class FloatingBarStackStateTest : BaseTest() {
         state.contentPaddingPx shouldBe 132f
     }
 
+    /**
+     * Forward-looking invariant, not a reproduction: the bar below a collapsing one is placed against
+     * that bar's measured height, so a shrinking toolbar pulls it along instead of leaving a widening
+     * gap behind.
+     */
+    @Test
+    fun `a bar below a collapsing bar keeps its spacing as that bar shrinks`() = runTest {
+        val state = FloatingBarStackState(
+            position = BarPosition.TOP,
+            initialDefaultSpacingPx = 8f,
+            initialEdgePaddingPx = 8f,
+            initialSystemBarInsetPx = 0f,
+        )
+        val toolbar = FloatingBarState(id = "toolbar", scrollBehavior = BarScrollBehavior.CollapseOnScroll)
+        state.registerBar(toolbar)
+        state.registerBar(FloatingBarState(id = "info"))
+
+        toolbar.measuredHeight = 64f
+        state.getBarOffset(1) shouldBe 80f
+
+        toolbar.measuredHeight = 40f
+        toolbar.scrollCollapseAnimatable.snapTo(1f)
+        state.getBarOffset(1) shouldBe 56f
+    }
+
     // endregion
 
     // region Collapse state carried across compositions

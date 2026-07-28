@@ -57,9 +57,12 @@ class WorkspaceManagerViewModel @Inject constructor(
         quickCreateItems,
     ) { repoState, showBadge, showFabLongPressHint, livePreview, pageManagerState, filterOps, filterAtt, quickCreate ->
         val stacks = WorkspaceStacks(repoState.infos)
+        // Pane chips describe where a workspace is on screen, so they follow the layout's own panes
+        // rather than the raw selection map, which retains indices from wider layouts.
+        val visibleAssignments = pageManagerState.visiblePaneAssignments
         State(
             workspaces = repoState.infos.map { info ->
-                val panePosition = pageManagerState.selectedWorkspaces.entries
+                val panePosition = visibleAssignments.entries
                     .find { it.value == info.id }?.key
                 val isFocused = pageManagerState.focusedWorkspaceId == info.id
                 WorkspaceItem(
@@ -68,7 +71,7 @@ class WorkspaceManagerViewModel @Inject constructor(
                     title = info.displayTitle,
                     subtitle = info.subtitle,
                     isFocused = isFocused,
-                    isSelected = pageManagerState.selectedWorkspaces.values.contains(info.id),
+                    isSelected = visibleAssignments.values.contains(info.id),
                     paneNumber = panePosition,
                     operationCount = info.operationCount,
                     attentionCount = info.attentionCount,

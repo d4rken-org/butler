@@ -207,14 +207,12 @@ class WorkspaceAutoPauseManager(
         }
 
     /**
-     * Workspaces the user can actually see: pane selections whose pane index is still within the
-     * current pane count, plus the focused one. The raw selection map is not enough — setPaneCount()
-     * lowers currentPaneCount without pruning out-of-range entries, so after a quad -> single
-     * collapse three hidden tabs would look visible forever and never auto-pause.
+     * Workspaces the user can actually see: the occupants of panes the layout still renders, plus
+     * the focused one. Reads [WorkspacePageManager.State.visiblePaneAssignments] rather than the raw
+     * selection map, which retains out-of-range indices by design.
      */
     private fun WorkspacePageManager.State.visibleWorkspaceIds(): Set<Workspace.Id> =
-        selectedWorkspaces.filterKeys { it in 0 until currentPaneCount }.values.toSet() +
-            setOfNotNull(focusedWorkspaceId)
+        visiblePaneAssignments.values.toSet() + setOfNotNull(focusedWorkspaceId)
 
     /**
      * Everything on screen, expanded to whole ownership units: a tab whose modal is up counts as

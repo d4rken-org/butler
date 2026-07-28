@@ -12,6 +12,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.apps.core.AppsSettings
 import eu.darken.butler.apps.core.AppsWorkspace
+import eu.darken.butler.apps.core.details.normalizedAppLabel
 import eu.darken.butler.apps.core.engine.AppItem
 import eu.darken.butler.apps.core.engine.standardTags
 import eu.darken.butler.apps.ui.apps.dialogs.AppsDialogState
@@ -299,7 +300,8 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
         workspaceRemote.createAndFocus(
             type = Workspace.Type.APP_DETAILS,
             arguments = AppDetailsArguments(
-                packageName = app.packageName,
+                installId = app.pkg.installId,
+                appLabel = normalizedAppLabel(app.label.get(context), app.packageName),
                 callerWorkspaceId = id,
             )
         )
@@ -310,7 +312,8 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
         workspaceRemote.createAndFocus(
             type = Workspace.Type.APP_DETAILS,
             arguments = AppDetailsArguments(
-                packageName = app.packageName,
+                installId = app.pkg.installId,
+                appLabel = normalizedAppLabel(app.label.get(context), app.packageName),
                 callerWorkspaceId = null,
             )
         )

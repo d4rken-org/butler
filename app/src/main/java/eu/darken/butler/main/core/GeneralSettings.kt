@@ -63,6 +63,8 @@ class GeneralSettings @Inject constructor(
 
     val isConfirmExitEnabled = dataStore.createValue("core.confirm.exit.enabled", true)
 
+    val isDisplayCutoutAvoided = dataStore.createValue("core.ui.cutout.avoided", false)
+
     override val mapper = PreferenceStoreMapper(
         debugSettings.isDebugMode,
         themeMode,
@@ -71,6 +73,7 @@ class GeneralSettings @Inject constructor(
         motdSettings.isMotdEnabled,
         isUpdateCheckEnabled,
         isConfirmExitEnabled,
+        isDisplayCutoutAvoided,
     )
 
     companion object {

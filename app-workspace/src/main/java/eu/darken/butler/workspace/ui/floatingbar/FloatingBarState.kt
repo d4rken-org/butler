@@ -45,11 +45,6 @@ class FloatingBarState(
         internal set
 
     /**
-     * The collapsed height for [BarScrollBehavior.CollapseOnScroll], in pixels.
-     */
-    var collapsedHeightPx: Float by mutableFloatStateOf(0f)
-
-    /**
      * Internal animatable for smooth scroll collapse transitions.
      * 0.0 = fully expanded, 1.0 = fully collapsed/hidden.
      */
@@ -115,10 +110,10 @@ class FloatingBarState(
     val effectiveHeight: Float
         get() {
             val baseHeight = when (scrollBehavior) {
-                is BarScrollBehavior.Static -> measuredHeight
-                // For CollapseOnScroll, the content handles its own collapse animation
-                // via collapsedFraction. Use collapsedHeightPx as a minimum floor for safety.
-                is BarScrollBehavior.CollapseOnScroll -> measuredHeight.coerceAtLeast(collapsedHeightPx)
+                // CollapseOnScroll content drives its own height via collapsedFraction, so what was
+                // measured is authoritative - a declared floor could only disagree with it.
+                is BarScrollBehavior.Static,
+                is BarScrollBehavior.CollapseOnScroll -> measuredHeight
                 is BarScrollBehavior.HideOnScroll,
                 is BarScrollBehavior.VanishOnScroll -> {
                     val clampedFraction = scrollCollapsedFraction.coerceIn(0f, 1f)

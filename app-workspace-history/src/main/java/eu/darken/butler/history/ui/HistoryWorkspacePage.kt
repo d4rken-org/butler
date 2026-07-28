@@ -149,7 +149,7 @@ fun HistoryWorkspacePage(
                 FloatingBar(
                     key = HistoryBarKeys.TOOLBAR,
                     visible = true,
-                    scrollBehavior = BarScrollBehavior.CollapseOnScroll(),
+                    scrollBehavior = BarScrollBehavior.CollapseOnScroll,
                     animation = BarAnimation.Slide(),
                 ) {
                     HistoryToolbarCard(

@@ -58,7 +58,7 @@ internal fun FloatingBarScope.ExplorerTopBars(
     FloatingBar(
         key = ExplorerBarKeys.TOOLBAR,
         visible = true,
-        scrollBehavior = BarScrollBehavior.CollapseOnScroll(collapsedHeight = 44.dp),
+        scrollBehavior = BarScrollBehavior.CollapseOnScroll,
         animation = BarAnimation.Slide(),
         estimatedHeight = 64.dp,
     ) {

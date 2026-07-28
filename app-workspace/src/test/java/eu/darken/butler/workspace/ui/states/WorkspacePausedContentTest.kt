@@ -1,7 +1,9 @@
 package eu.darken.butler.workspace.ui.states
 
 import android.content.Context
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.ca.toCaString
@@ -67,6 +69,42 @@ class WorkspacePausedContentTest : ComposeTest() {
             .onNodeWithText(Workspace.Type.EXPLORER.label.get(context))
             .assertIsDisplayed()
         composeTestRule.onNodeWithText("   ").assertDoesNotExist()
+    }
+
+    @Test
+    fun `the type label sits above a distinct title`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                WorkspacePausedContent(
+                    type = Workspace.Type.APP_DETAILS,
+                    title = "Butler".toCaString(),
+                    subtitle = "eu.darken.butler".toCaString(),
+                    onResume = {},
+                )
+            }
+        }
+
+        composeTestRule
+            .onNodeWithText(Workspace.Type.APP_DETAILS.label.get(context))
+            .assertIsDisplayed()
+        composeTestRule.onNodeWithText("Butler").assertIsDisplayed()
+        composeTestRule.onNodeWithText("eu.darken.butler").assertIsDisplayed()
+    }
+
+    @Test
+    fun `a title identical to the type label is only drawn once`() {
+        val typeLabel = Workspace.Type.HISTORY.label.get(context)
+        composeTestRule.setContent {
+            PreviewWrapper {
+                WorkspacePausedContent(
+                    type = Workspace.Type.HISTORY,
+                    title = typeLabel.toCaString(),
+                    onResume = {},
+                )
+            }
+        }
+
+        composeTestRule.onAllNodesWithText(typeLabel).assertCountEquals(1)
     }
 
     @Test

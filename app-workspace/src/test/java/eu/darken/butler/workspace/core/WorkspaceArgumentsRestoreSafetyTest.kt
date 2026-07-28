@@ -1,6 +1,9 @@
 package eu.darken.butler.workspace.core
 
+import eu.darken.butler.common.pkgs.Pkg
+import eu.darken.butler.common.pkgs.features.InstallId
 import eu.darken.butler.common.serialization.SerializationIOModule
+import eu.darken.butler.common.user.UserHandle2
 import eu.darken.butler.workspace.contracts.apps.AppDetailsArguments
 import eu.darken.butler.workspace.contracts.apps.AppsArguments
 import eu.darken.butler.workspace.contracts.apps.DetailTab
@@ -24,7 +27,7 @@ import testhelpers.json.toComparableJson
  *
  * Policy: preference/UI-style fields must have defaults (or be nullable) so that sessions saved
  * by older app versions keep restoring after fields are added. Content-identity fields
- * (e.g. AppDetails packageName, Saver sourceUris) stay required on purpose — a row missing its
+ * (e.g. AppDetails installId, Saver sourceUris) stay required on purpose — a row missing its
  * identity fails deserialization and is skipped during restore instead of producing a broken tab.
  *
  * If a "decodes from minimal JSON" test fails, you added a required field to persisted
@@ -33,6 +36,8 @@ import testhelpers.json.toComparableJson
 class WorkspaceArgumentsRestoreSafetyTest : BaseTest() {
 
     private val json = SerializationIOModule().json()
+
+    private val installId = InstallId(Pkg.Id("com.example.app"), UserHandle2(0))
 
     @Test
     fun `TemplatesArguments decodes from minimal JSON`() {
@@ -94,12 +99,12 @@ class WorkspaceArgumentsRestoreSafetyTest : BaseTest() {
     @Test
     fun `AppDetailsArguments decodes from minimal JSON with identity`() {
         json.decodeFromString<AppDetailsArguments>(
-            """{"packageName":"com.example.app"}"""
-        ) shouldBe AppDetailsArguments(packageName = "com.example.app")
+            """{"installId":{"pkgId":{"name":"com.example.app"},"userHandle":{"handleId":0}}}"""
+        ) shouldBe AppDetailsArguments(installId = installId)
     }
 
     @Test
-    fun `AppDetailsArguments without packageName fails instead of restoring an empty tab`() {
+    fun `AppDetailsArguments without installId fails instead of restoring an empty tab`() {
         shouldThrow<SerializationException> {
             json.decodeFromString<AppDetailsArguments>("""{}""")
         }
@@ -109,9 +114,15 @@ class WorkspaceArgumentsRestoreSafetyTest : BaseTest() {
     fun `AppDetailsArguments tolerates legacy type field from old sessions`() {
         // Older versions serialized the `type` property (it had a backing field).
         json.decodeFromString<AppDetailsArguments>(
-            """{"packageName":"com.example.app","type":"APP_DETAILS","initialTab":"PACKAGE_INFO"}"""
+            """
+                {
+                    "installId":{"pkgId":{"name":"com.example.app"},"userHandle":{"handleId":0}},
+                    "type":"APP_DETAILS",
+                    "initialTab":"PACKAGE_INFO"
+                }
+            """.trimIndent()
         ) shouldBe AppDetailsArguments(
-            packageName = "com.example.app",
+            installId = installId,
             initialTab = DetailTab.PACKAGE_INFO,
         )
     }
@@ -119,12 +130,15 @@ class WorkspaceArgumentsRestoreSafetyTest : BaseTest() {
     @Test
     fun `AppDetailsArguments no longer serializes the type enum`() {
         val serialized = json.encodeToJsonElement(
-            AppDetailsArguments(packageName = "com.example.app")
+            AppDetailsArguments(installId = installId)
         )
 
         serialized.toString().toComparableJson() shouldBe """
             {
-                "packageName": "com.example.app",
+                "installId": {
+                    "pkgId": {"name": "com.example.app"},
+                    "userHandle": {"handleId": 0}
+                },
                 "initialTab": "OVERVIEW"
             }
         """.toComparableJson()

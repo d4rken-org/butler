@@ -106,7 +106,7 @@ fun AppsWorkspacePage(
                 FloatingBar(
                     key = AppsBarKeys.TOOLBAR,
                     visible = true,
-                    scrollBehavior = BarScrollBehavior.CollapseOnScroll(),
+                    scrollBehavior = BarScrollBehavior.CollapseOnScroll,
                     animation = BarAnimation.Slide(),
                 ) {
                     AppsToolbarCard(
