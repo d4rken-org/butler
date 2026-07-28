@@ -169,7 +169,8 @@ fi
 # same annotation classes, so a generated copy on an extra source root would be a duplicate
 # declaration. Backup lives in a unique temp dir so a peer run cannot collide with it.
 BACKUP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/butler-screenshots.XXXXXXXX")"
-cp "$LOCALES_FILE" "$BACKUP_DIR/PlayStoreLocales.kt"
+BACKUP_FILE="$BACKUP_DIR/PlayStoreLocales.kt"
+cp -p "$LOCALES_FILE" "$BACKUP_FILE"
 
 # The in-progress codegen temp file, tracked so a signal cannot leave it in the tracked
 # source directory.
@@ -177,16 +178,40 @@ TMP_LOCALES_FILE=""
 
 cleanup() {
     local status=$?
-    # Disarm before doing anything: a second signal must not re-enter and delete the backup
-    # while the restore is still running.
-    trap - EXIT HUP INT TERM
+    # Clear EXIT, but only ignore the terminating signals: restoring the tracked source is a
+    # multi-step operation and a second signal must not kill the script in the middle of it.
+    trap - EXIT
+    trap '' HUP INT TERM
+
     if [[ -n "$TMP_LOCALES_FILE" ]]; then
         rm -f "$TMP_LOCALES_FILE"
         TMP_LOCALES_FILE=""
     fi
-    cp -f "$BACKUP_DIR/PlayStoreLocales.kt" "$LOCALES_FILE"
-    rm -rf "$BACKUP_DIR"
-    echo "Restored original PlayStoreLocales.kt"
+
+    # No backup means the restore already ran; a repeated call is a no-op.
+    if [[ -f "$BACKUP_FILE" ]]; then
+        local restore_tmp=""
+        # Restore through a temp file beside the target so the replacement itself is a single
+        # rename: the tracked file is never observed truncated or half written.
+        if restore_tmp="$(mktemp "$(dirname "$LOCALES_FILE")/.PlayStoreLocales.kt.XXXXXX")" &&
+            cp -p "$BACKUP_FILE" "$restore_tmp" &&
+            mv -f "$restore_tmp" "$LOCALES_FILE"; then
+            rm -rf "$BACKUP_DIR"
+            echo "Restored original PlayStoreLocales.kt"
+        else
+            if [[ -n "$restore_tmp" ]]; then
+                rm -f "$restore_tmp"
+            fi
+            echo "" >&2
+            echo "ERROR: Failed to restore $LOCALES_FILE" >&2
+            echo "The original file is preserved at: $BACKUP_FILE" >&2
+            echo "Restore it manually: cp '$BACKUP_FILE' '$LOCALES_FILE'" >&2
+            if (( status == 0 )); then
+                status=1
+            fi
+        fi
+    fi
+
     exit "$status"
 }
 
