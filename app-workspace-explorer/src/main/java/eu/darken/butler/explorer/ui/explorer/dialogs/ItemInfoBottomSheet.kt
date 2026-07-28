@@ -355,7 +355,7 @@ private fun LocalStorageInfo(
             )
         }
 
-        if (totalBytes != null && availableBytes != null) {
+        if (totalBytes != null && totalBytes > 0L && availableBytes != null) {
             val percentage = ((totalBytes - availableBytes).toDouble() / totalBytes * 100).toInt()
             InfoField(
                 label = stringResource(R.string.explorer_info_usage_label),
@@ -430,11 +430,13 @@ private fun DeviceViewInfo(
                     value = formatFileSize(freeSpace),
                 )
 
-                val percentage = (info.usedSpace.toDouble() / info.totalCapacity * 100).toInt()
-                InfoField(
-                    label = stringResource(R.string.explorer_info_usage_label),
-                    value = "$percentage%",
-                )
+                if (info.totalCapacity > 0L) {
+                    val percentage = (info.usedSpace.toDouble() / info.totalCapacity * 100).toInt()
+                    InfoField(
+                        label = stringResource(R.string.explorer_info_usage_label),
+                        value = "$percentage%",
+                    )
+                }
             }
         }
     }
