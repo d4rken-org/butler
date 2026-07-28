@@ -19,6 +19,10 @@ Horizontal insets from the pane edge come from `WorkspacePaddings` (`app-workspa
 
 Exceptions: the Templates picker layout (24.dp), the Explorer grid branch (2.dp) and the Apps grid branch (8.dp). Card-internal paddings are not pane-edge insets and stay as they are.
 
+## Pull to Refresh
+
+Workspace pages use `WorkspacePullToRefreshBox` (`app-workspace`, package `eu.darken.butler.workspace.ui.common`) and pass their top `FloatingBarStackState`. Never use `PullToRefreshBox` + `PullToRefreshDefaults.Indicator` directly: the default indicator translates vertically as the user pulls, so it emerges from behind the floating bar stack.
+
 ## MVVM with Custom ViewModel Hierarchy
 
 Butler uses a layered ViewModel hierarchy (`ViewModel1`…`ViewModel4`) where each level adds capabilities.
