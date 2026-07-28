@@ -1,15 +1,19 @@
 package eu.darken.butler.workspace.ui.workspaces.adaptive
 
-import androidx.compose.foundation.background
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
@@ -28,13 +32,14 @@ import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material.icons.twotone.Looks3
 import androidx.compose.material.icons.twotone.LooksOne
 import androidx.compose.material.icons.twotone.LooksTwo
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -45,14 +50,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.R
@@ -79,6 +90,9 @@ object WorkspaceNavigationRailDefaults {
 }
 
 private val RailSectionPadding = 8.dp
+private val RailItemHeight = 56.dp
+private val RailItemSpacing = 4.dp
+private val RailItemShape = RoundedCornerShape(16.dp)
 
 @Composable
 fun WorkspaceNavigationRail(
@@ -135,7 +149,7 @@ fun WorkspaceNavigationRail(
                 .padding(vertical = RailSectionPadding)
                 .testTag(WorkspaceNavigationRailDefaults.LIST_TEST_TAG),
             state = lazyListState,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(RailItemSpacing),
         ) {
             items(
                 items = localWorkspaces,
@@ -148,7 +162,6 @@ fun WorkspaceNavigationRail(
                     val paneIndex = selected.entries.find { it.value.id == ws.id }?.key
                     DraggableWorkspaceRailItem(
                         workspace = ws,
-                        isSelected = selected.values.any { it.id == ws.id },
                         isFocused = focusedId == ws.id,
                         currentPaneIndex = paneIndex,
                         onTabAction = onTabAction,
@@ -225,10 +238,157 @@ internal fun WorkspaceRailContainer(
     }
 }
 
+/**
+ * Rail entry with its own background: nothing when the workspace sits idle, an outline once it is
+ * assigned to a pane, a filled container while it is the focused one.
+ */
+@Composable
+internal fun WorkspaceRailItem(
+    modifier: Modifier = Modifier,
+    workspace: Workspace.Info,
+    paneIndex: Int?,
+    isFocused: Boolean,
+    isDraggingItem: Boolean = false,
+    dragHandleModifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    val colorScheme = MaterialTheme.colorScheme
+    val isAssigned = paneIndex != null
+
+    val containerColor by animateColorAsState(
+        targetValue = if (isFocused) colorScheme.secondaryContainer else Color.Transparent,
+    )
+    val shadowElevation by animateDpAsState(
+        targetValue = if (isDraggingItem) 6.dp else 0.dp,
+    )
+    val scale by animateFloatAsState(
+        targetValue = if (isDraggingItem) 1.05f else 1f,
+        animationSpec = spring(),
+    )
+
+    Surface(
+        onClick = onClick,
+        modifier = modifier
+            .fillMaxWidth()
+            .height(RailItemHeight)
+            .scale(scale)
+            .semantics {
+                selected = isAssigned
+                role = Role.Tab
+            },
+        shape = RailItemShape,
+        color = containerColor,
+        contentColor = when {
+            isFocused -> colorScheme.onSecondaryContainer
+            isAssigned -> colorScheme.onSurface
+            else -> colorScheme.onSurfaceVariant
+        },
+        border = if (isAssigned && !isFocused) BorderStroke(1.dp, colorScheme.outline) else null,
+        shadowElevation = shadowElevation,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(vertical = 4.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            Box(
+                modifier = dragHandleModifier,
+                contentAlignment = Alignment.Center,
+            ) {
+                BadgedBox(
+                    badge = {
+                        paneIndex?.let {
+                            val paneDescription = stringResource(R.string.workspace_pane_current_description, it + 1)
+                            Badge(
+                                modifier = Modifier.semantics { contentDescription = paneDescription },
+                                containerColor = colorScheme.tertiary,
+                                contentColor = colorScheme.onTertiary,
+                            ) {
+                                Text(text = "${it + 1}")
+                            }
+                        }
+                    },
+                ) {
+                    Icon(
+                        imageVector = if (isDraggingItem) Icons.TwoTone.DragIndicator else workspace.type.icon,
+                        contentDescription = if (isDraggingItem) {
+                            stringResource(R.string.workspace_dragging_description)
+                        } else {
+                            workspace.displayTitle.get(LocalContext.current)
+                        },
+                    )
+                }
+            }
+            Text(
+                text = workspace.displayTitle.get(LocalContext.current),
+                style = MaterialTheme.typography.labelSmall,
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspaceRailItemPreview() {
+    Column(
+        modifier = Modifier
+            .width(80.dp)
+            .padding(horizontal = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(RailItemSpacing),
+    ) {
+        WorkspaceRailItem(
+            workspace = Workspace.Info(
+                id = Workspace.Id(),
+                type = Workspace.Type.EXPLORER,
+                title = "Explorer".toCaString(),
+            ),
+            paneIndex = null,
+            isFocused = false,
+            onClick = {},
+        )
+        WorkspaceRailItem(
+            workspace = Workspace.Info(
+                id = Workspace.Id(),
+                type = Workspace.Type.SEARCHER,
+                title = "Search".toCaString(),
+            ),
+            paneIndex = 1,
+            isFocused = false,
+            onClick = {},
+        )
+        WorkspaceRailItem(
+            workspace = Workspace.Info(
+                id = Workspace.Id(),
+                type = Workspace.Type.EDITOR,
+                title = "Editor".toCaString(),
+            ),
+            paneIndex = 0,
+            isFocused = true,
+            onClick = {},
+        )
+        WorkspaceRailItem(
+            workspace = Workspace.Info(
+                id = Workspace.Id(),
+                type = Workspace.Type.TEMPLATES,
+                title = "Templates".toCaString(),
+            ),
+            paneIndex = null,
+            isFocused = false,
+            isDraggingItem = true,
+            onClick = {},
+        )
+    }
+}
+
 @Composable
 private fun DraggableWorkspaceRailItem(
     workspace: Workspace.Info,
-    isSelected: Boolean,
     isFocused: Boolean,
     currentPaneIndex: Int?,
     onTabAction: (WorkspaceAction) -> Unit,
@@ -249,84 +409,24 @@ private fun DraggableWorkspaceRailItem(
     }
 
     Box {
-        NavigationRailItem(
-            selected = isSelected,
-            onClick = { showPaneMenu = true },
-            modifier = if (isFocused) {
-                Modifier
-                    .background(
-                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f),
-                        shape = RoundedCornerShape(8.dp)
-                    )
-            } else if (isDraggingItem) {
-                Modifier
-                    .background(
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f),
-                        shape = RoundedCornerShape(8.dp)
-                    )
-            } else {
-                Modifier
-            },
-            icon = {
-                Box(
-                    modifier = with(reorderableScope) {
-                        Modifier.draggableHandle(
-                            onDragStarted = {
-                                onDragStarted()
-                                hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                            },
-                            onDragStopped = {
-                                onDragStopped()
-                                hapticFeedback.performHapticFeedback(HapticFeedbackType.GestureEnd)
-                            }
-                        )
+        WorkspaceRailItem(
+            workspace = workspace,
+            paneIndex = currentPaneIndex,
+            isFocused = isFocused,
+            isDraggingItem = isDraggingItem,
+            dragHandleModifier = with(reorderableScope) {
+                Modifier.draggableHandle(
+                    onDragStarted = {
+                        onDragStarted()
+                        hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
                     },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        if (isDraggingItem) {
-                            // Show drag indicator when dragging
-                            Icon(
-                                imageVector = Icons.TwoTone.DragIndicator,
-                                contentDescription = stringResource(R.string.workspace_dragging_description),
-                                tint = MaterialTheme.colorScheme.primary,
-                            )
-                        } else {
-                            // Show pane number on the left of the icon
-                            currentPaneIndex?.let { paneIdx ->
-                                Text(
-                                    text = "${paneIdx + 1}",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontWeight = FontWeight.Medium,
-                                    modifier = Modifier.padding(end = 2.dp)
-                                )
-                            }
-                            Icon(
-                                imageVector = workspace.type.icon,
-                                contentDescription = workspace.displayTitle.get(LocalContext.current),
-                                modifier = if (currentPaneIndex != null) {
-                                    Modifier.padding(start = 2.dp)
-                                } else {
-                                    Modifier
-                                }
-                            )
-                        }
-                    }
-                }
-            },
-            label = {
-                Text(
-                    text = workspace.displayTitle.get(LocalContext.current),
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        textDecoration = if (isFocused) TextDecoration.Underline else TextDecoration.None
-                    ),
-                    textAlign = TextAlign.Center,
-                    maxLines = 2,
+                    onDragStopped = {
+                        onDragStopped()
+                        hapticFeedback.performHapticFeedback(HapticFeedbackType.GestureEnd)
+                    },
                 )
             },
+            onClick = { showPaneMenu = true },
         )
 
         DropdownMenu(
