@@ -5,64 +5,57 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
-import eu.darken.butler.BuildConfig
+import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.WebpageTool
 import eu.darken.butler.common.coroutine.DispatcherProvider
-import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
+import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.ui.ViewModel4
+import eu.darken.butler.main.ui.settings.DestinationSettingsContactForm
 import eu.darken.butler.upgrade.core.OurSku
 import eu.darken.butler.upgrade.core.UpgradeRepoGplay
-import eu.darken.butler.upgrade.core.UpgradeRepoGplay.Companion.GRACE_DIAGNOSTICS_AFTER_MS
+import eu.darken.butler.upgrade.core.billing.GplayServiceUnavailableException
 import eu.darken.butler.upgrade.core.billing.Sku
 import eu.darken.butler.upgrade.core.billing.SkuDetails
-import eu.darken.butler.upgrade.ui.UpgradeUiState.Companion.toOwnership
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withTimeoutOrNull
-
-private sealed interface QueryState {
-    data object Loading : QueryState
-    data class Loaded(val data: SkuData?) : QueryState
-}
-
-private data class SkuData(
-    val iap: Collection<SkuDetails>?,
-    val sub: Collection<SkuDetails>?,
-)
-
-// Single atomic operation state: one compareAndSet acquires it, so a restore and a switch-verify
-// started concurrently on the multi-threaded Default dispatcher can never both run a Play operation.
-private enum class Op { Idle, Restoring, Verifying }
+import kotlin.time.Duration.Companion.hours
 
 @HiltViewModel(assistedFactory = UpgradeViewModel.Factory::class)
 class UpgradeViewModel @AssistedInject constructor(
+    // Butler binds the route via assisted injection (see UpgradeNavigation), not a SavedStateHandle.
     @Assisted private val manage: Boolean,
     dispatcherProvider: DispatcherProvider,
     private val upgradeRepo: UpgradeRepoGplay,
     private val webpageTool: WebpageTool,
-) : ViewModel4(dispatcherProvider, logTag("Upgrade", "Screen", "VM")) {
+) : ViewModel4(dispatcherProvider, logTag("Upgrade", "Gplay", "ViewModel")) {
 
+    private var hasShownRepoError: Boolean = false
+    private var hasShownServiceUnavailableError: Boolean = false
+    private var hasShownPartialQueryError: Boolean = false
     val events = SingleEventFlow<UpgradeEvents>()
 
-    private val operation = MutableStateFlow(Op.Idle)
-    private val skuRetry = MutableStateFlow(0)
-
     init {
-        // Only the acquisition route auto-closes when the user becomes Pro; the manage/status route
-        // stays open so the user can read their ownership and switch subscription -> one-time.
+        // The manage route is the ownership screen — Pro users are its audience, they must not be
+        // bounced out. Only the acquisition route auto-closes once the user becomes Pro.
         if (!manage) {
             upgradeRepo.upgradeInfo
                 .filter { it.isPro }
@@ -72,205 +65,358 @@ class UpgradeViewModel @AssistedInject constructor(
         }
     }
 
-    private val skuQuery = skuRetry.flatMapLatest {
-        flow {
-            emit(QueryState.Loading)
-            val data = withTimeoutOrNull(SKU_QUERY_TIMEOUT_MS) {
-                coroutineScope {
-                    val iap = async { safeQuery { upgradeRepo.querySkus(OurSku.Iap.PRO_UPGRADE) } }
-                    val sub = async { safeQuery { upgradeRepo.querySkus(OurSku.Sub.PRO_UPGRADE) } }
-                    SkuData(iap = iap.await(), sub = sub.await())
+    // ONE arbiter for every entitlement action (both purchase paths and restore). They all talk to
+    // the same Play account state, so two independent guards let a subscription tap and a restore
+    // tap run concurrent Play operations against each other.
+    private val activeOp = MutableStateFlow<BusyOp?>(null)
+    private val retryTrigger = MutableStateFlow(0)
+
+    // Test seam: the diagnostics threshold compares wall-clock time, which coroutine test
+    // dispatchers can't advance.
+    internal var clock: () -> Long = { System.currentTimeMillis() }
+
+    // Re-evaluates the diagnostics threshold when the episode crosses it: all other combined
+    // flows are distinct-until-changed and can stay silent across the 24h boundary, which would
+    // otherwise leave a long-lived ViewModel stuck on the quiet stage.
+    private val graceTick: Flow<Unit> = upgradeRepo.proUnconfirmedSince
+        .flatMapLatest { stamp ->
+            flow {
+                emit(Unit)
+                if (stamp > 0L) {
+                    val remaining = stamp + GRACE_DIAGNOSTICS_AFTER_MS - clock()
+                    if (remaining > 0) {
+                        delay(remaining)
+                        emit(Unit)
+                    }
                 }
             }
-            emit(QueryState.Loaded(data))
+        }
+
+    // One aggregate query per retry generation: both SKU lookups run concurrently and land in a
+    // single Done, so the UI can never combine results from two different retry attempts.
+    private sealed interface SkuQueries {
+        data object Pending : SkuQueries
+        data class Done(
+            val iap: Result<Collection<SkuDetails>>,
+            val sub: Result<Collection<SkuDetails>>,
+        ) : SkuQueries
+    }
+
+    private val skuQueries: Flow<SkuQueries> = retryTrigger.flatMapLatest {
+        flow {
+            emit(SkuQueries.Pending)
+            val done = coroutineScope {
+                val iap = async { querySkuDetails(OurSku.Iap.PRO_UPGRADE) }
+                val sub = async { querySkuDetails(OurSku.Sub.PRO_UPGRADE) }
+                SkuQueries.Done(iap = iap.await(), sub = sub.await())
+            }
+            emit(done)
         }
     }
 
-    val state = combine(
-        skuQuery,
+    private suspend fun querySkuDetails(sku: Sku): Result<Collection<SkuDetails>> = try {
+        val details = withTimeoutOrNull(SKU_QUERY_TIMEOUT_MS) { upgradeRepo.querySkus(sku) }
+            ?: throw GplayServiceUnavailableException(RuntimeException("SKU query timed out for ${sku.id}"))
+        Result.success(details)
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        log(tag, WARN) { "querySkuDetails($sku) failed: ${e.asLog()}" }
+        Result.failure(e)
+    }
+
+    internal val state: StateFlow<UpgradeUiState> = combine(
+        skuQueries,
         upgradeRepo.upgradeInfo,
-        upgradeRepo.isSettled,
         upgradeRepo.wasEverPro,
         upgradeRepo.proUnconfirmedSince,
-        upgradeRepo.graceTick,
-        operation,
-    ) { skuState, info, settled, wasEverPro, unconfirmedSince, _, op ->
-        val ownership = info.toOwnership()
-        val ownsAnything = ownership.ownsAnything
-
-        // Grace = Pro purely via the local grace window (not actually owning anything).
-        val grace = if (info.gracePeriod && !ownsAnything) {
-            val aged = unconfirmedSince > 0L &&
-                (System.currentTimeMillis() - unconfirmedSince) >= GRACE_DIAGNOSTICS_AFTER_MS
-            UpgradeUiState.GraceHint(showDiagnostics = aged)
+        graceTick,
+        activeOp,
+        upgradeRepo.autoRestoreBusy,
+        upgradeRepo.purchaseLaunchSku,
+    ) { queries, current, wasEverPro, proUnconfirmedSince, _, vmOp, isAutoRestoring, launchSku ->
+        val ownership = current.toOwnership()
+        // Pro without any owned purchase == grace. Stage 1 (quiet "still active" line) shows
+        // immediately; the diagnostics + restore CTA only once the unconfirmed episode has aged
+        // past the threshold, so self-healing Play blips never surface them.
+        val grace = if (current.isPro && !ownership.ownsAnything) {
+            GraceHint(
+                showDiagnostics = proUnconfirmedSince > 0L &&
+                    clock() - proUnconfirmedSince >= GRACE_DIAGNOSTICS_AFTER_MS,
+            )
         } else {
             null
         }
+        // Owners and grace users don't depend on offer prices: their status and management
+        // actions render immediately and price problems are not their problem.
+        val priceIndependent = ownership.ownsAnything || grace != null
 
-        // Owners and grace render price-independently: a failed price query must never blank their
-        // screen into Loading/Unavailable.
-        val priceIndependent = ownsAnything || grace != null
-        val skuData = (skuState as? QueryState.Loaded)?.data
-        // Both prices missing: either the query timed out (skuData == null) or both product-type
-        // queries came back empty/failed.
-        val bothPricesMissing = skuData == null || (skuData.iap == null && skuData.sub == null)
+        val done = queries as? SkuQueries.Done
+        if (done == null) {
+            // A new attempt starts a new error episode.
+            hasShownServiceUnavailableError = false
+            hasShownPartialQueryError = false
+        }
+        // Structural close: entitlement-dependent UI never renders from a pre-reconciliation
+        // Info — even if fast SKU queries finish before the reconciled Info propagates, an
+        // unsettled owner must not be flashed acquisition offers. Carve-out: a Done where BOTH
+        // fresh SKU queries failed is itself a definitive can't-reach-Play outcome and may
+        // resolve to Unavailable/grace without waiting for the connect loop's failure signal
+        // (preserves the ~15s bound from the query timeouts during a total Play hang).
+        val bothQueriesFailed = done != null && done.iap.isFailure && done.sub.isFailure
+        if (!current.isSettled && !bothQueriesFailed) return@combine UpgradeUiState.Loading
+        // Acquisition renders with prices like it always has; owners and grace users render
+        // their status immediately without waiting for prices.
+        if (done == null && !priceIndependent) return@combine UpgradeUiState.Loading
 
-        when {
-            skuState is QueryState.Loading && !priceIndependent -> UpgradeUiState.Loading
-            skuState is QueryState.Loaded && bothPricesMissing && !priceIndependent ->
-                UpgradeUiState.Unavailable(error = null)
-            else -> {
-                val iapOffer = skuData?.iap?.firstOrNull()?.details?.oneTimePurchaseOfferDetails
-                val subOffer = skuData?.sub?.firstOrNull()?.details?.subscriptionOfferDetails
-                    ?.singleOrNull { OurSku.Sub.PRO_UPGRADE.BASE_OFFER.matches(it) }
-                val trialAvailable = skuData?.sub?.firstOrNull()?.details?.subscriptionOfferDetails
-                    ?.any { OurSku.Sub.PRO_UPGRADE.TRIAL_OFFER.matches(it) } == true
-                val subPrice = subOffer?.pricingPhases?.pricingPhaseList?.firstOrNull()?.formattedPrice
+        val iap = done?.iap?.getOrNull()
+        val sub = done?.sub?.getOrNull()
 
-                val subAction = when {
-                    subOffer == null -> UpgradeUiState.SubscriptionAction.UNAVAILABLE
-                    trialAvailable -> UpgradeUiState.SubscriptionAction.TRIAL
-                    else -> UpgradeUiState.SubscriptionAction.STANDARD
-                }
-
-                UpgradeUiState.Loaded(
-                    manage = manage,
-                    settled = settled,
-                    ownership = ownership,
-                    grace = grace,
-                    subscriptionAction = subAction,
-                    subscriptionPrice = subPrice,
-                    trialPrice = subPrice,
-                    iapPrice = iapOffer?.formattedPrice,
-                    wasPreviouslyPro = wasEverPro && !info.isPro,
-                    restoreInProgress = op == Op.Restoring,
-                    verificationInProgress = op == Op.Verifying,
+        if (done != null) {
+            if (iap == null && sub == null) {
+                val serviceUnavailableError = GplayServiceUnavailableException(
+                    done.iap.exceptionOrNull() ?: RuntimeException("IAP and SUB data request failed.")
                 )
+                // Grace users and owners are excluded: during an outage (exactly when grace
+                // matters) they must keep the Loaded presentation with their status/grace card,
+                // not an acquisition-style error state or dialog.
+                if (!priceIndependent) {
+                    // This combine re-runs on every upstream change (e.g. restore progress
+                    // toggling) — emit once per failure episode, not once per recombination.
+                    if (!hasShownServiceUnavailableError) {
+                        hasShownServiceUnavailableError = true
+                        errorEvents.tryEmit(serviceUnavailableError)
+                    }
+                    return@combine UpgradeUiState.Unavailable(serviceUnavailableError)
+                }
+            } else {
+                hasShownServiceUnavailableError = false
+
+                // Exactly one product type failed: keep today's behavior — show what's available,
+                // surface the failure once. Not for owners/grace: price errors aren't their problem.
+                val partialError = done.iap.exceptionOrNull() ?: done.sub.exceptionOrNull()
+                if (partialError != null && !priceIndependent) {
+                    if (!hasShownPartialQueryError) {
+                        hasShownPartialQueryError = true
+                        errorEvents.tryEmit(partialError)
+                    }
+                } else if (partialError == null) {
+                    // Only a SUCCESS resets the flag. A priceIndependent user with a failed query
+                    // must leave it untouched: it may already be true from before they became an
+                    // owner, and resetting would re-emit the same episode if ownership lapses
+                    // again. A new query attempt (Pending above) resets it either way.
+                    hasShownPartialQueryError = false
+                }
+            }
+
+            if (!current.isPro && current.error != null) {
+                if (!hasShownRepoError) {
+                    hasShownRepoError = true
+                    @Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
+                    errorEvents.tryEmit(current.error!!)
+                }
+            } else {
+                hasShownRepoError = false
+            }
+
+            // Diagnosability: distinguishes "Play withheld the trial offer" from "offer matching
+            // failed" when users report a missing trial (see the no-trial offer body fallback).
+            sub?.firstOrNull()?.details?.subscriptionOfferDetails?.let { offers ->
+                log(tag) { "Subscription offers from Play: ${offers.map { "${it.basePlanId}/${it.offerId}" }}" }
             }
         }
-    }.asStateFlow()
 
+        toLoadedState(
+            iap = iap?.firstOrNull(),
+            sub = sub?.firstOrNull(),
+            ownership = ownership,
+            grace = grace,
+            wasPreviouslyPro = wasEverPro && !current.isPro,
+            // This ViewModel's own action wins; otherwise a launch started elsewhere (previous VM
+            // instance, e.g. across a rotation — the launch lives on AppScope) or the repo's
+            // invisible already-owned auto-restore still pauses the entitlement actions here.
+            busy = vmOp
+                ?: launchSku?.let { if (it is Sku.Subscription) BusyOp.SUBSCRIPTION else BusyOp.IAP }
+                ?: BusyOp.RESTORE.takeIf { isAutoRestoring },
+        )
+    }.safeStateIn(
+        initialValue = UpgradeUiState.Loading,
+        // Lazily (not WhileSubscribed): keep the billing SKU queries cached for the VM lifetime so
+        // backgrounding >5s and returning doesn't drop the offer cards back to Loading and re-query.
+        started = SharingStarted.Lazily,
+        onError = { error -> UpgradeUiState.Unavailable(error) },
+    )
+
+    // Re-runs the SKU queries after a full "Play unavailable" episode — without this, the Lazily
+    // cached failure bricked the screen for the whole ViewModel lifetime.
     fun retrySkuQuery() {
         log(tag) { "retrySkuQuery()" }
-        skuRetry.value += 1
+        retryTrigger.update { it + 1 }
     }
 
-    fun onGoIap(activity: Activity) = launch {
-        // Single-flight; also excludes a concurrent restore.
-        if (!operation.compareAndSet(Op.Idle, Op.Verifying)) {
-            log(tag) { "onGoIap ignored, operation in progress" }
-            return@launch
+    // Acquires the single action slot. Rejects while ANY other entitlement action of this ViewModel
+    // runs, and while the repo reports a Play launch in flight (which may belong to another VM
+    // instance — the repo CAS remains the authoritative gate, this only avoids the pointless tap).
+    private fun acquireOp(op: BusyOp): Boolean {
+        upgradeRepo.purchaseLaunchSku.value?.let {
+            log(tag) { "$op ignored, a billing launch for $it is already in flight" }
+            return false
         }
+        if (!activeOp.compareAndSet(expect = null, update = op)) {
+            log(tag) { "$op ignored, ${activeOp.value} is already in progress" }
+            return false
+        }
+        return true
+    }
+
+    fun onGoIap(activity: Activity) {
         log(tag) { "onGoIap($activity)" }
-        try {
-            // Fail-closed sub->IAP gate: authoritatively check for a still-renewing/pending sub first.
-            val status = safeVerify { upgradeRepo.queryCurrentSubscriptions() }
-            when {
-                status == null -> events.tryEmit(UpgradeEvents.SubscriptionCheckFailed)
-                status.hasBlockingSubscription -> events.tryEmit(UpgradeEvents.SubscriptionStillRenewing)
-                else -> upgradeRepo.launchBillingFlow(activity, OurSku.Iap.PRO_UPGRADE, null) {
-                    errorEvents.tryEmit(it)
-                }
-            }
-        } finally {
-            operation.value = Op.Idle
-        }
-    }
-
-    fun onGoSubscription(activity: Activity) = launchSubscribe(activity, OurSku.Sub.PRO_UPGRADE.BASE_OFFER)
-
-    fun onGoSubscriptionTrial(activity: Activity) = launchSubscribe(activity, OurSku.Sub.PRO_UPGRADE.TRIAL_OFFER)
-
-    private fun launchSubscribe(activity: Activity, offer: Sku.Subscription.Offer) = launch {
-        if (!operation.compareAndSet(Op.Idle, Op.Verifying)) {
-            log(tag) { "launchSubscribe ignored, operation in progress" }
-            return@launch
-        }
-        log(tag) { "launchSubscribe($activity, $offer)" }
-        try {
-            // Symmetric fail-closed gate: an IAP owner whose INAPP query failed must not buy a sub too.
-            val iapOwned = safeVerify { upgradeRepo.isIapOwnedNow() }
-            when {
-                iapOwned == null -> events.tryEmit(UpgradeEvents.SubscriptionCheckFailed)
-                // Already Pro via the one-time purchase: the fresh refresh heals upgradeInfo and the
-                // screen switches to the ownership view; nothing to launch.
-                iapOwned == true -> log(tag, INFO) { "IAP already owned -> not launching subscription" }
-                else -> upgradeRepo.launchBillingFlow(activity, OurSku.Sub.PRO_UPGRADE, offer) {
-                    errorEvents.tryEmit(it)
-                }
-            }
-        } finally {
-            operation.value = Op.Idle
-        }
-    }
-
-    fun restorePurchase() = launch {
-        if (!operation.compareAndSet(Op.Idle, Op.Restoring)) {
-            log(tag) { "restorePurchase ignored, operation in progress" }
-            return@launch
-        }
-        log(tag) { "restorePurchase()" }
-        try {
-            coroutineScope {
-                // Pad the spinner to a minimum visible duration concurrently with the real query so a
-                // sub-second check still reads as "we checked" rather than a one-frame flash.
-                val pad = async { delay(RESTORE_MIN_VISIBLE_MS) }
-                val restored = try {
-                    withTimeoutOrNull(RESTORE_TIMEOUT_MS) { upgradeRepo.restorePurchaseNow() }
+        launch {
+            // Single-flight: repeated taps must not stack verifications or billing launches.
+            if (!acquireOp(BusyOp.IAP)) return@launch
+            try {
+                // Hard gate against double-billing: verify against a FRESH SUBS-only query — the
+                // replayed upgradeInfo can be stale or built from partial results. Fails closed:
+                // no verified "not set to renew" (or no sub at all), no one-time purchase.
+                val subscriptions = try {
+                    withTimeoutOrNull(VERIFY_TIMEOUT_MS) { upgradeRepo.queryCurrentSubscriptions() }
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
-                    log(tag, WARN) { "Restore errored: ${e.asLog()}" }
+                    log(tag, WARN) { "Subscription verification errored: ${e.asLog()}" }
                     errorEvents.tryEmit(e)
-                    pad.await()
-                    return@coroutineScope
+                    return@launch
                 }
-                pad.await()
                 when {
-                    restored == null -> {
-                        log(tag, WARN) { "Restore timed out" }
-                        events.tryEmit(UpgradeEvents.RestoreFailed)
+                    subscriptions == null -> {
+                        log(tag, WARN) { "Subscription verification timed out" }
+                        events.tryEmit(UpgradeEvents.SubscriptionCheckFailed)
                     }
-                    // Success requires ACTUAL owned purchases; a grace-only result is not a restore.
-                    restored.upgrades.isNotEmpty() -> {
-                        log(tag, INFO) { "Restore succeeded" }
-                        events.tryEmit(UpgradeEvents.RestoreSucceeded)
+
+                    subscriptions.any { it.isAutoRenewing } -> {
+                        log(tag, INFO) { "IAP purchase blocked: subscription is still set to renew" }
+                        events.tryEmit(UpgradeEvents.SubscriptionStillRenewing)
                     }
-                    else -> {
-                        log(tag, WARN) { "Restore found nothing" }
-                        events.tryEmit(UpgradeEvents.RestoreFailed)
-                    }
+
+                    // Suspends until the Play sheet launch resolved, so the single-flight guard
+                    // covers the whole tap-to-sheet window, not just the verification.
+                    else -> upgradeRepo.launchBillingFlowNow(
+                        activity,
+                        OurSku.Iap.PRO_UPGRADE,
+                        null,
+                        onError = errorEvents::tryEmit,
+                    )
                 }
+            } finally {
+                activeOp.value = null
             }
-        } finally {
-            operation.value = Op.Idle
+        }
+    }
+
+    fun onGoSubscription(activity: Activity) {
+        log(tag) { "onGoSubscription($activity)" }
+        startSubPurchase(activity, OurSku.Sub.PRO_UPGRADE.BASE_OFFER)
+    }
+
+    fun onGoSubscriptionTrial(activity: Activity) {
+        log(tag) { "onGoSubscriptionTrial($activity)" }
+        startSubPurchase(activity, OurSku.Sub.PRO_UPGRADE.TRIAL_OFFER)
+    }
+
+    private fun startSubPurchase(activity: Activity, offer: Sku.Subscription.Offer) {
+        launch {
+            if (!acquireOp(BusyOp.SUBSCRIPTION)) return@launch
+            try {
+                // launchBillingFlowNow, not the fire-and-forget launchBillingFlow: the guard has to
+                // cover the whole tap-to-sheet window. The flow itself still runs on AppScope, so
+                // closing the screen mid-launch doesn't abort the purchase.
+                upgradeRepo.launchBillingFlowNow(
+                    activity,
+                    OurSku.Sub.PRO_UPGRADE,
+                    offer,
+                    onError = errorEvents::tryEmit,
+                )
+            } finally {
+                activeOp.value = null
+            }
         }
     }
 
     fun onManageSubscription() {
         log(tag) { "onManageSubscription()" }
-        webpageTool.open(
-            "https://play.google.com/store/account/subscriptions" +
-                "?sku=${OurSku.Sub.PRO_UPGRADE.id}&package=${BuildConfig.APPLICATION_ID}"
-        )
+        webpageTool.open(PLAY_SUBSCRIPTION_SITE)
     }
 
-    private suspend fun <T> safeQuery(block: suspend () -> T): T? = try {
-        block()
-    } catch (e: CancellationException) {
-        throw e
-    } catch (e: Exception) {
-        log(tag, WARN) { "Query failed: ${e.asLog()}" }
-        null
+    fun onContactSupport() {
+        log(tag) { "onContactSupport()" }
+        // The guided support form, not a bare mailto: it attaches version and Pro context, which
+        // is exactly what purchase troubleshooting needs.
+        navTo(DestinationSettingsContactForm)
     }
 
-    private suspend fun <T> safeVerify(block: suspend () -> T): T? = try {
-        withTimeoutOrNull(VERIFY_TIMEOUT_MS) { block() }
-    } catch (e: CancellationException) {
-        throw e
-    } catch (e: Exception) {
-        log(tag, WARN) { "Verify failed: ${e.asLog()}" }
-        null
+    fun restorePurchase() = launch {
+        // Single-flight: repeated taps while a restore is running (worst case bounded by
+        // RESTORE_TIMEOUT_MS) must not stack concurrent restores and duplicate result dialogs —
+        // and a restore must not run alongside a purchase either.
+        if (!acquireOp(BusyOp.RESTORE)) return@launch
+        log(tag) { "restorePurchase()" }
+
+        try {
+            // Minimum visible duration, not a fixed add-on: the pad runs CONCURRENTLY with the
+            // real Play query, so a fast check gets stretched to a believable length while a slow
+            // one gains nothing. A sub-second round-trip reads as "nothing was checked" and
+            // undermines the result — the check is real, this only makes its duration perceptible.
+            // Manual restores only; the repo's invisible auto-restore must stay fast.
+            val restored = coroutineScope {
+                val minVisible = async { delay(RESTORE_MIN_VISIBLE_MS) }
+                val result = withTimeoutOrNull(RESTORE_TIMEOUT_MS) { upgradeRepo.restorePurchaseNow() }
+                minVisible.await()
+                result
+            }
+            when {
+                restored == null -> {
+                    // Budget covers connecting, the refresh mutex AND both queries, so a query may
+                    // well have started. All we know is the check didn't finish -- not that Play
+                    // said no. Reporting this as a completed check would send an owner chasing the
+                    // multi-account explanation for what is really a slow or unreachable Play.
+                    log(tag, WARN) { "Restore purchase timed out" }
+                    events.tryEmit(UpgradeEvents.RestoreInconclusive)
+                }
+
+                restored is UpgradeRepoGplay.RestoreOutcome.Inconclusive -> {
+                    // Play errored and grace kept Pro alive. Same non-answer as a timeout, and the
+                    // user is by definition a recent owner -- the last person to tell that we
+                    // checked and found nothing.
+                    log(tag, WARN) { "Restore purchase inconclusive: ${restored.cause.asLog()}" }
+                    events.tryEmit(UpgradeEvents.RestoreInconclusive)
+                }
+
+                restored.info.upgrades.isNotEmpty() -> {
+                    log(tag, INFO) { "Restored purchase :))" }
+                    // Explicit feedback: on the ownership screen a successful restore changes
+                    // nothing visible (the user already is Pro), so silence reads as "broken".
+                    events.tryEmit(UpgradeEvents.RestoreSucceeded)
+                }
+
+                else -> {
+                    // Play answered and had nothing. Includes a grace-only result from a successful
+                    // EMPTY query: Pro may still be active, but the check really did complete, so
+                    // troubleshooting and escalation are warranted.
+                    log(tag, WARN) { "Restore purchase found no purchases (isPro=${restored.info.isPro})" }
+                    events.tryEmit(UpgradeEvents.RestoreFailed)
+                }
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            // Play/billing error (e.g. service unavailable): surface the proper error dialog instead
+            // of the generic "restore failed" message, so the user can tell the two cases apart.
+            log(tag, WARN) { "Restore purchase errored: ${e.asLog()}" }
+            errorEvents.tryEmit(e)
+        } finally {
+            // Reset only after result handling, so the single-flight guard covers the whole action.
+            activeOp.value = null
+        }
     }
 
     @AssistedFactory
@@ -279,9 +425,26 @@ class UpgradeViewModel @AssistedInject constructor(
     }
 
     companion object {
-        private const val SKU_QUERY_TIMEOUT_MS = 15_000L
-        private const val VERIFY_TIMEOUT_MS = 10_000L
         private const val RESTORE_TIMEOUT_MS = 15_000L
-        private const val RESTORE_MIN_VISIBLE_MS = 1_500L
+
+        // Floor for how long a manual restore visibly runs (spinner up, result held back). Long
+        // enough that the user believes a round-trip to Play happened, short enough not to drag.
+        internal const val RESTORE_MIN_VISIBLE_MS = 1_500L
+        private const val VERIFY_TIMEOUT_MS = 10_000L
+
+        // The very first billing query after Play sign-in can take >8s (measured 8.5s) while Play
+        // warms up — 5s produced false "Play unavailable" dialogs on slow-but-healthy stores.
+        private const val SKU_QUERY_TIMEOUT_MS = 15_000L
+
+        // How long a fresh-data-confirmed grace episode must last before the grace card shows its
+        // diagnostics: long enough that self-healing Play blips stay invisible, short enough to
+        // leave most of the 7-day subscription grace for the user to act in.
+        internal val GRACE_DIAGNOSTICS_AFTER_MS = 24.hours.inWholeMilliseconds
+
+        // Play's management page for our subscription specifically; harmless without a matching
+        // sub on the account (Play falls back to the general subscription list).
+        internal val PLAY_SUBSCRIPTION_SITE =
+            "https://play.google.com/store/account/subscriptions" +
+                "?sku=${OurSku.Sub.PRO_UPGRADE.id}&package=${BuildConfigWrap.APPLICATION_ID}"
     }
 }

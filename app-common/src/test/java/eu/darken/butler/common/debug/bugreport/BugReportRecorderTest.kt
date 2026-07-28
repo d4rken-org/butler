@@ -3,6 +3,7 @@ package eu.darken.butler.common.debug.bugreport
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.ButlerId
+import eu.darken.butler.upgrade.UpgradeDiagnostics
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -23,12 +24,15 @@ class BugReportRecorderTest : BaseTest() {
     private val context: Context get() = ApplicationProvider.getApplicationContext()
     private val reportsDir get() = File(context.filesDir, "bugreports")
 
-    private fun createRecorder(): BugReportRecorder = BugReportRecorder(
+    private fun createRecorder(
+        upgradeDiagnostics: Set<UpgradeDiagnostics> = emptySet(),
+    ): BugReportRecorder = BugReportRecorder(
         context = context,
         appScope = CoroutineScope(Dispatchers.Unconfined),
         dispatcherProvider = TestDispatcherProvider(),
         butlerId = ButlerId(context),
         json = Json { ignoreUnknownKeys = true },
+        upgradeDiagnostics = upgradeDiagnostics,
     )
 
     @Test
@@ -59,6 +63,31 @@ class BugReportRecorderTest : BaseTest() {
 
         recorder.requestStop() shouldBe BugReportRecorder.StopResult.TooShort
         recorder.state.value.isRecording shouldBe true
+
+        recorder.forceStop()
+    }
+
+    @Test
+    fun `a failing diagnostics provider neither stops the recording nor its siblings`() = runTest {
+        var siblingAsked = false
+        val recorder = createRecorder(
+            upgradeDiagnostics = setOf(
+                object : UpgradeDiagnostics {
+                    override suspend fun debugInfo(): String = throw IllegalStateException("nope")
+                },
+                object : UpgradeDiagnostics {
+                    override suspend fun debugInfo(): String {
+                        siblingAsked = true
+                        return "sibling-info"
+                    }
+                },
+            ),
+        )
+
+        recorder.start()
+
+        recorder.state.value.isRecording shouldBe true
+        siblingAsked shouldBe true
 
         recorder.forceStop()
     }

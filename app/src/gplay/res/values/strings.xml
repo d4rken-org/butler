@@ -24,8 +24,10 @@
     <string name="upgrade_screen_restore_purchase_action">Restore purchase</string>
     <string name="upgrade_screen_restore_banner_title">Already bought Pro?</string>
     <string name="upgrade_screen_restore_banner_body">It looks like you upgraded to Pro on this device before. Restore your purchase to unlock it again.</string>
-    <string name="upgrade_screen_restore_purchase_message">Your upgrade is valid across devices on the same Google account.</string>
-    <string name="upgrade_screen_restore_troubleshooting_msg">Troubleshooting tips for unrecognized upgrades:</string>
+    <string name="upgrade_screen_restore_checked_message">Butler just checked with Google Play, but no Pro purchase could be confirmed for the account Google Play uses for this app.</string>
+    <string name="upgrade_screen_restore_inconclusive_message">The check with Google Play didn\'t finish in time, so your purchase status is still unknown. Nothing has changed on your account.</string>
+    <string name="upgrade_screen_restore_contact_hint">Still stuck? Get in touch from the email that made the purchase and include your Google Play order number.</string>
+    <string name="upgrade_screen_contact_support_action">Contact support</string>
     <string name="upgrade_screen_restore_sync_patience_hint">Play Store synchronization may take time. Try rebooting, clearing Google Play cache or simply wait.</string>
     <string name="upgrade_screen_restore_multiaccount_hint">Multiple accounts can confuse Google Play. Log out of other accounts or install through the Google Play website, which forces associations with a specific account.</string>
     <string name="upgrade_screen_restore_success_message">Your purchase was restored ❤️</string>
@@ -33,7 +35,6 @@
     <string name="upgrade_screen_restore_status_body">If you already bought Pro but it isn\'t showing, restore your purchase.</string>
 
     <string name="upgrade_screen_offers_or">or</string>
-    <string name="upgrade_screen_unavailable_retry_action">Try again</string>
 
     <string name="upgrade_screen_offers_title">Upgrade options</string>
     <string name="upgrade_screen_offers_body">Both options unlock the exact same Pro features — pick whichever pricing suits you.</string>
@@ -41,7 +42,7 @@
     <string name="upgrade_screen_subscription_offer_title">Yearly subscription</string>
     <string name="upgrade_screen_subscription_offer_body">Starts with a free 14-day trial, then billed once per year. Cancel anytime.</string>
     <string name="upgrade_screen_subscription_offer_body_no_trial">Billed once per year. Cancel anytime.</string>
-    <string name="upgrade_screen_iap_offer_title">One-time purchase</string>
+    <string name="upgrade_screen_iap_offer_title">Buy once</string>
     <string name="upgrade_screen_iap_offer_body">Pay once, yours for good. No subscription.</string>
     <string name="upgrade_screen_restore_body">Restoring asks Google Play to re-check this app\'s purchases for the current account.</string>
 
@@ -72,6 +73,14 @@
     <string name="upgrades_gplay_already_owned_error_description">Google Play reports that you already own this upgrade, but it couldn\'t be restored automatically. Make sure you are logged in with the Google account used for the original purchase, then try \"Restore purchase\".</string>
     <string name="upgrades_gplay_unavailable_error_title">Google Play is unavailable</string>
     <string name="upgrades_gplay_unavailable_error_description">Butler can\'t connect to Google Play. Is Google Play installed and up to date? Is your Google Account logged in? Try clearing the cache of the Google Play app and rebooting your device.</string>
+    <string name="upgrades_gplay_billing_error_label">Google Play problem</string>
+    <string name="upgrades_gplay_billing_error_description">Something went wrong while talking to Google Play. Please try again later or restart your device.\n\nDetails: %s</string>
+    <string name="upgrades_gplay_internal_error_title">Google Play error</string>
+    <string name="upgrades_gplay_internal_error_description">Google Play ran into an internal error. Please try the following:\n\n• Restart your device\n• Clear the Google Play Store cache\n• Try again later</string>
+    <string name="upgrades_gplay_network_error_title">Connection error</string>
+    <string name="upgrades_gplay_network_error_description">Butler couldn\'t reach Google Play. Please check your internet connection and try again.</string>
+    <string name="upgrades_gplay_offer_unavailable_title">Offer unavailable</string>
+    <string name="upgrades_gplay_offer_unavailable_description">Google Play currently doesn\'t offer this upgrade option for your account. Please try again later or check the Google Play Store.</string>
     <string name="upgrades_no_purchases_found_check_account">No purchases found. Are you using the right account?</string>
 
     <string name="upgrade_benefits_title">Upgrade benefits</string>

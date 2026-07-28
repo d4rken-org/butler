@@ -6,14 +6,12 @@ import eu.darken.butler.common.error.HasLocalizedError
 import eu.darken.butler.common.error.LocalizedError
 import eu.darken.butler.common.error.LocalizedErrorContext
 
-open class BillingException(
-    override val message: String? = null,
-    override val cause: Throwable? = null,
-) : Exception(), HasLocalizedError {
+class NetworkBillingException(cause: Throwable) :
+    BillingException("Unable to connect to Google Play.", cause), HasLocalizedError {
 
     override fun getLocalizedError(context: LocalizedErrorContext): LocalizedError = LocalizedError(
         throwable = this,
-        label = R.string.upgrades_gplay_billing_error_label.toCaString(),
-        description = R.string.upgrades_gplay_billing_error_description.toCaString(message ?: "?")
+        label = R.string.upgrades_gplay_network_error_title.toCaString(),
+        description = R.string.upgrades_gplay_network_error_description.toCaString(),
     )
 }
