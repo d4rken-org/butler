@@ -1,16 +1,24 @@
 package eu.darken.butler.workspace.ui.workspaces
 
+import android.content.Context
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertHeightIsEqualTo
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.assertIsSelected
-import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.unit.dp
+import androidx.test.core.app.ApplicationProvider
+import eu.darken.butler.R
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.Workspace
@@ -31,10 +39,17 @@ import testhelpers.ComposeTest
  */
 class WorkspaceRailItemTest : ComposeTest() {
 
+    private val context = ApplicationProvider.getApplicationContext<Context>()
+
     private fun workspace(title: String = "Explorer") = Workspace.Info(
         id = Workspace.Id(),
         type = Workspace.Type.EXPLORER,
         title = title.toCaString(),
+    )
+
+    private fun paneDescription(paneNumber: Int) = context.getString(
+        R.string.workspace_pane_current_description,
+        paneNumber,
     )
 
     private fun renderItem(paneIndex: Int?) {
@@ -55,15 +70,17 @@ class WorkspaceRailItemTest : ComposeTest() {
     fun `a workspace in a pane shows its pane number`() {
         renderItem(paneIndex = 1)
 
-        composeTestRule.onNodeWithText("2", useUnmergedTree = true).assertExists()
+        composeTestRule.onNodeWithContentDescription(paneDescription(2), useUnmergedTree = true).assertExists()
     }
 
     @Test
     fun `a workspace without a pane shows no badge`() {
         renderItem(paneIndex = null)
 
-        composeTestRule.onAllNodesWithText("1", useUnmergedTree = true).assertCountEquals(0)
-        composeTestRule.onAllNodesWithText("2", useUnmergedTree = true).assertCountEquals(0)
+        composeTestRule.onAllNodesWithContentDescription(paneDescription(1), useUnmergedTree = true)
+            .assertCountEquals(0)
+        composeTestRule.onAllNodesWithContentDescription(paneDescription(2), useUnmergedTree = true)
+            .assertCountEquals(0)
     }
 
     @Test
@@ -78,6 +95,14 @@ class WorkspaceRailItemTest : ComposeTest() {
         renderItem(paneIndex = null)
 
         composeTestRule.onNodeWithTag(ITEM_TAG).assertIsNotSelected()
+    }
+
+    @Test
+    fun `the item is a tab`() {
+        renderItem(paneIndex = 0)
+
+        composeTestRule.onNodeWithTag(ITEM_TAG)
+            .assert(SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Tab))
     }
 
     @Test

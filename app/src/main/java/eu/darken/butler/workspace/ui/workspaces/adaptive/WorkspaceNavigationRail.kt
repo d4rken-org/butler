@@ -58,6 +58,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
@@ -256,7 +257,13 @@ internal fun WorkspaceRailItem(
     val isAssigned = paneIndex != null
 
     val containerColor by animateColorAsState(
-        targetValue = if (isFocused) colorScheme.secondaryContainer else Color.Transparent,
+        targetValue = when {
+            isFocused -> colorScheme.secondaryContainer
+            // Opaque while dragging: the elevation shadow is drawn from the shape, not the fill,
+            // so a see-through card would carry a shadow and show other items through itself.
+            isDraggingItem -> colorScheme.surface
+            else -> Color.Transparent
+        },
     )
     val shadowElevation by animateDpAsState(
         targetValue = if (isDraggingItem) 6.dp else 0.dp,
@@ -302,7 +309,7 @@ internal fun WorkspaceRailItem(
                         paneIndex?.let {
                             val paneDescription = stringResource(R.string.workspace_pane_current_description, it + 1)
                             Badge(
-                                modifier = Modifier.semantics { contentDescription = paneDescription },
+                                modifier = Modifier.clearAndSetSemantics { contentDescription = paneDescription },
                                 containerColor = colorScheme.tertiary,
                                 contentColor = colorScheme.onTertiary,
                             ) {
@@ -316,7 +323,7 @@ internal fun WorkspaceRailItem(
                         contentDescription = if (isDraggingItem) {
                             stringResource(R.string.workspace_dragging_description)
                         } else {
-                            workspace.displayTitle.get(LocalContext.current)
+                            null
                         },
                     )
                 }
