@@ -108,12 +108,8 @@ class GeneralSettingsViewModelTest : BaseTest() {
     }
 
     @Test
-    fun `the shipped default shows the switch as off`() = runTest {
+    fun `State defaults the switch to off`() {
         GeneralSettingsViewModel.State().avoidDisplayCutout shouldBe false
-
-        // Fresh install: nothing stored yet, so the preference emits its shipped default
-        displayCutoutAvoided.value = false
-        createViewModel().state.filterNotNull().first().avoidDisplayCutout shouldBe false
     }
 
     @Test

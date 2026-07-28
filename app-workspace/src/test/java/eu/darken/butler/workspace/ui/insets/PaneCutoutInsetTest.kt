@@ -48,10 +48,14 @@ class PaneCutoutInsetTest : ComposeTest() {
 
         val avoided = startInset(AVOIDED_CONTAINER_TAG, AVOIDED_CONTENT_TAG, LayoutDirection.Ltr)
         val reclaimed = startInset(RECLAIMED_CONTAINER_TAG, RECLAIMED_CONTENT_TAG, LayoutDirection.Ltr)
+        val default = startInset(DEFAULT_CONTAINER_TAG, DEFAULT_CONTENT_TAG, LayoutDirection.Ltr)
 
         withClue("avoided=$avoided reclaimed=$reclaimed") {
             (avoided > reclaimed) shouldBe true
             (reclaimed > 0.dp) shouldBe true
+        }
+        withClue("default=$default reclaimed=$reclaimed") {
+            default shouldBe reclaimed
         }
     }
 
@@ -61,10 +65,14 @@ class PaneCutoutInsetTest : ComposeTest() {
 
         val avoided = startInset(AVOIDED_CONTAINER_TAG, AVOIDED_CONTENT_TAG, LayoutDirection.Rtl)
         val reclaimed = startInset(RECLAIMED_CONTAINER_TAG, RECLAIMED_CONTENT_TAG, LayoutDirection.Rtl)
+        val default = startInset(DEFAULT_CONTAINER_TAG, DEFAULT_CONTENT_TAG, LayoutDirection.Rtl)
 
         withClue("avoided=$avoided reclaimed=$reclaimed") {
             (avoided > reclaimed) shouldBe true
             (reclaimed > 0.dp) shouldBe true
+        }
+        withClue("default=$default reclaimed=$reclaimed") {
+            default shouldBe reclaimed
         }
     }
 
@@ -91,6 +99,8 @@ class PaneCutoutInsetTest : ComposeTest() {
                     CompositionLocalProvider(LocalAvoidDisplayCutout provides false) {
                         InsetCase(containerTag = RECLAIMED_CONTAINER_TAG, contentTag = RECLAIMED_CONTENT_TAG)
                     }
+                    // Unprovided: falls back to the CompositionLocal's own default
+                    InsetCase(containerTag = DEFAULT_CONTAINER_TAG, contentTag = DEFAULT_CONTENT_TAG)
                 }
             }
         }
@@ -138,6 +148,8 @@ class PaneCutoutInsetTest : ComposeTest() {
         private const val AVOIDED_CONTENT_TAG = "avoided.content"
         private const val RECLAIMED_CONTAINER_TAG = "reclaimed.container"
         private const val RECLAIMED_CONTENT_TAG = "reclaimed.content"
+        private const val DEFAULT_CONTAINER_TAG = "default.container"
+        private const val DEFAULT_CONTENT_TAG = "default.content"
 
         /** Stands in for a side navigation bar; smaller than the cutout so the two can be told apart. */
         private const val SYSTEM_BAR_INSET_PX = 24
