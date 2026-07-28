@@ -7,7 +7,9 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -23,12 +25,15 @@ import eu.darken.butler.viewer.R
 import eu.darken.butler.viewer.core.ViewerContent
 import eu.darken.butler.viewer.core.ViewerFileInfo
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.actions.WorkspaceActionBar
 import eu.darken.butler.workspace.ui.error.ErrorCard
 import eu.darken.butler.workspace.ui.floatingbar.BarAnimation
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
 import eu.darken.butler.workspace.ui.insets.rememberPaneFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import me.saket.telephoto.zoomable.ZoomableState
+import me.saket.telephoto.zoomable.rememberZoomableState
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
 
@@ -87,6 +92,20 @@ fun ViewerWorkspacePage(
         estimatedContentPadding = 120.dp,
     )
 
+    // Hoisted: the toolbar is a sibling of the content area, so it cannot read the zoom itself.
+    val zoomableState = rememberZoomableState()
+    // derivedStateOf keeps pan frames out of the page: contentTransformation carries scale and
+    // offset in one object, so a direct read would recompose both floating stacks on every frame.
+    val zoomedIn by remember(zoomableState) {
+        derivedStateOf {
+            val transformation = zoomableState.contentTransformation
+            isZoomedIn(
+                transformationSpecified = transformation.isSpecified,
+                userZoom = if (transformation.isSpecified) transformation.scaleMetadata.userZoom else 1f,
+            )
+        }
+    }
+
     Box(modifier = modifier.fillMaxSize()) {
         when (state) {
             ViewerWorkspaceViewModel.State.Initializing -> CircularProgressIndicator(
@@ -104,8 +123,11 @@ fun ViewerWorkspacePage(
             )
 
             is ViewerWorkspaceViewModel.State.Ready -> {
+                val isToolbarCollapsed = shouldCollapseToolbar(state.content, zoomedIn)
+
                 ViewerContentArea(
                     state = state,
+                    zoomableState = zoomableState,
                     onOpenWith = onOpenWith,
                     onRetry = onRetry,
                     onShareError = onShareError,
@@ -125,8 +147,8 @@ fun ViewerWorkspacePage(
                                 workspaceId = workspaceId,
                                 design = design,
                                 fileName = state.path.name,
-                                parentPath = state.path.parent?.path,
-                                onOpenWith = onOpenWith,
+                                fullPath = state.path.path,
+                                isCollapsed = isToolbarCollapsed,
                             )
                         }
                     },
@@ -137,6 +159,19 @@ fun ViewerWorkspacePage(
                     position = BarPosition.BOTTOM,
                     modifier = Modifier.align(Alignment.BottomCenter),
                     bars = {
+                        // Bars in a BOTTOM stack are declared top-to-bottom, so the action bar
+                        // comes first to sit above the metadata card.
+                        FloatingBar(
+                            key = ViewerBarKeys.ACTIONS,
+                            visible = true,
+                            animation = BarAnimation.Slide(),
+                        ) {
+                            WorkspaceActionBar(
+                                actions = listOf(ViewerActionBarItem.OpenWith),
+                                onActionClick = { onOpenWith() },
+                            )
+                        }
+
                         // Metadata read before the failure describes a file that is no longer
                         // there, so next to the error it would read as current.
                         val fileInfo = state.fileInfo?.takeIf { state.content !is ViewerContent.Failed }
@@ -154,10 +189,24 @@ fun ViewerWorkspacePage(
     }
 }
 
+/** Telephoto reports userZoom 1.0 at rest; `isSpecified` is false until the first layout pass. */
+internal const val ZOOM_COLLAPSE_THRESHOLD = 1.01f
+
+internal fun isZoomedIn(transformationSpecified: Boolean, userZoom: Float): Boolean =
+    transformationSpecified && userZoom > ZOOM_COLLAPSE_THRESHOLD
+
+/**
+ * Telephoto keeps its transformation when the image composable leaves, so a decode failure after a
+ * zoom would otherwise strand the toolbar collapsed with no gesture surface left to expand it.
+ */
+internal fun shouldCollapseToolbar(content: ViewerContent, isZoomedIn: Boolean): Boolean =
+    content is ViewerContent.Image && isZoomedIn
+
 @Composable
 private fun ViewerContentArea(
     modifier: Modifier = Modifier,
     state: ViewerWorkspaceViewModel.State.Ready,
+    zoomableState: ZoomableState,
     onOpenWith: () -> Unit,
     onRetry: () -> Unit,
     onShareError: (Throwable) -> Unit,
@@ -169,7 +218,11 @@ private fun ViewerContentArea(
             )
 
             is ViewerContent.Image -> state.imageSource?.let { source ->
-                ZoomableFileImage(imageSource = source, fileName = state.path.name)
+                ZoomableFileImage(
+                    imageSource = source,
+                    fileName = state.path.name,
+                    state = zoomableState,
+                )
             }
 
             is ViewerContent.Unsupported -> UnsupportedFilePlaceholder(

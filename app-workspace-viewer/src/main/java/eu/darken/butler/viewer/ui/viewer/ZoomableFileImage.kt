@@ -14,6 +14,7 @@ import eu.darken.butler.viewer.R
 import kotlinx.coroutines.flow.Flow
 import me.saket.telephoto.zoomable.ZoomableImage
 import me.saket.telephoto.zoomable.ZoomableImageSource
+import me.saket.telephoto.zoomable.ZoomableState
 import me.saket.telephoto.zoomable.rememberZoomableImageState
 import me.saket.telephoto.zoomable.rememberZoomableState
 
@@ -32,9 +33,9 @@ fun ZoomableFileImage(
     imageSource: ZoomableImageSource,
     fileName: String,
     contentDescription: String? = stringResource(R.string.viewer_image_content_description, fileName),
+    state: ZoomableState = rememberZoomableState(),
 ) {
-    val zoomableState = rememberZoomableState()
-    val imageState = rememberZoomableImageState(zoomableState)
+    val imageState = rememberZoomableImageState(state)
 
     ZoomableImage(
         modifier = modifier.fillMaxSize(),
