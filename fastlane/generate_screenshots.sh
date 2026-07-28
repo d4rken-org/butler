@@ -1,211 +1,286 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Generates localized Play Store screenshots in batches to work around
-# layoutlib ImagePoolImpl memory leak (accumulates rendered images without release).
+# Generates localized Play Store screenshots in batches to work around the layoutlib
+# ImagePoolImpl memory leak (rendered images accumulate without being released).
+#
+# Locales come from fastlane/screenshots/locales.txt, the single source of truth.
+# Each locale renders 24 images (8 screens x 3 form factors).
 #
 # Usage:
-#   ./fastlane/generate_screenshots.sh          # Full run (all locales, ~12 batches)
-#   ./fastlane/generate_screenshots.sh --smoke   # Smoke test (6 locales, 1 batch)
-#   ./fastlane/generate_screenshots.sh --batch-size 10  # Custom batch size
+#   ./fastlane/generate_screenshots.sh              # All locales
+#   ./fastlane/generate_screenshots.sh --english    # en-US only, the commit-refresh path
+#   ./fastlane/generate_screenshots.sh --smoke      # 6 locales covering LTR, RTL, CJK
+#   ./fastlane/generate_screenshots.sh --batch-size 2
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+LOCALES_LIST="$SCRIPT_DIR/screenshots/locales.txt"
 LOCALES_FILE="$PROJECT_DIR/app/src/screenshotTest/kotlin/eu/darken/butler/screenshots/PlayStoreLocales.kt"
 REF_DIR="$PROJECT_DIR/app/src/screenshotTestGplayDebug/reference"
 
-# Default batch size — 4 locales x 6 composables = 24 renders per batch.
-# Kept small to avoid layoutlib OOM (leaks ~4MB per rendered image).
-BATCH_SIZE=4
+# 8 screens x 3 form factors.
+RENDERS_PER_LOCALE=24
+
+# One locale per batch. 24 renders already hold a few hundred MB of leaked pixels in the
+# render JVM, so do not raise this without checking memory first.
+BATCH_SIZE=1
 SMOKE=false
+ENGLISH_ONLY=false
+
+# Fastlane directories of the smoke subset.
+SMOKE_TARGETS=("en-US" "de-DE" "ja-JP" "ar" "zh-CN" "pt-BR")
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --smoke) SMOKE=true; shift ;;
-        --batch-size) BATCH_SIZE="$2"; shift 2 ;;
-        *) echo "Unknown option: $1"; exit 1 ;;
+        --english) ENGLISH_ONLY=true; shift ;;
+        --batch-size) BATCH_SIZE="${2:-}"; shift 2 ;;
+        *) echo "Unknown option: $1" >&2; exit 1 ;;
     esac
 done
 
-# Each entry: "android_locale:fastlane_name"
-ALL_LOCALES=(
-    "en:en-US"
-    "af:af"
-    "am:am"
-    "ar:ar"
-    "az:az-AZ"
-    "be:be"
-    "bg:bg"
-    "bn-BD:bn-BD"
-    "ca:ca"
-    "cs:cs-CZ"
-    "da:da-DK"
-    "de:de-DE"
-    "el:el-GR"
-    "es:es-ES"
-    "es-MX:es-419"
-    "et-EE:et"
-    "eu-ES:eu-ES"
-    "fa:fa"
-    "fi:fi-FI"
-    "fil:fil"
-    "fr:fr-FR"
-    "gl-ES:gl-ES"
-    "hi-IN:hi-IN"
-    "hr:hr"
-    "hu:hu-HU"
-    "hy-AM:hy-AM"
-    "in:id"
-    "is:is-IS"
-    "it:it-IT"
-    "iw:iw-IL"
-    "ja:ja-JP"
-    "ka-GE:ka-GE"
-    "km-KH:km-KH"
-    "kn-IN:kn-IN"
-    "ko:ko-KR"
-    "ky-KG:ky-KG"
-    "lo-LA:lo-LA"
-    "lt:lt"
-    "lv:lv"
-    "mk-MK:mk-MK"
-    "ml-IN:ml-IN"
-    "mn-MN:mn-MN"
-    "mr-IN:mr-IN"
-    "ms:ms"
-    "my-MM:my-MM"
-    "nb:no-NO"
-    "ne-NP:ne-NP"
-    "nl:nl-NL"
-    "pl:pl-PL"
-    "pt:pt-PT"
-    "pt-BR:pt-BR"
-    "rm:rm"
-    "ro:ro"
-    "ru:ru-RU"
-    "sk:sk"
-    "sl:sl"
-    "sr:sr"
-    "sv:sv-SE"
-    "sw:sw"
-    "ta-IN:ta-IN"
-    "te-IN:te-IN"
-    "th:th"
-    "tr:tr-TR"
-    "uk:uk"
-    "vi:vi"
-    "zh-CN:zh-CN"
-    "zh-HK:zh-HK"
-    "zh-TW:zh-TW"
-)
-
-SMOKE_LOCALES=(
-    "en:en-US"
-    "de:de-DE"
-    "ja:ja-JP"
-    "ar:ar"
-    "zh-CN:zh-CN"
-    "pt-BR:pt-BR"
-)
-
-if $SMOKE; then
-    LOCALES=("${SMOKE_LOCALES[@]}")
-    BATCH_SIZE=${#LOCALES[@]}  # Single batch for smoke
-else
-    LOCALES=("${ALL_LOCALES[@]}")
+if $SMOKE && $ENGLISH_ONLY; then
+    echo "ERROR: --smoke and --english are mutually exclusive" >&2
+    exit 1
 fi
 
-TOTAL=${#LOCALES[@]}
+if ! [[ "$BATCH_SIZE" =~ ^[1-9][0-9]*$ ]]; then
+    echo "ERROR: --batch-size must be a positive integer, got '$BATCH_SIZE'" >&2
+    exit 1
+fi
+
+# --- Read and validate the locale list before touching any source file ------------------
+
+if [[ ! -f "$LOCALES_LIST" ]]; then
+    echo "ERROR: Locale list not found: $LOCALES_LIST" >&2
+    exit 1
+fi
+
+ALL_QUALIFIERS=()
+ALL_DIRS=()
+INVALID=0
+LINE_NO=0
+
+while IFS= read -r raw_line || [[ -n "$raw_line" ]]; do
+    LINE_NO=$(( LINE_NO + 1 ))
+    line="${raw_line%%#*}"
+
+    fields=()
+    read -r -a fields <<< "$line"
+    if (( ${#fields[@]} == 0 )); then
+        continue
+    fi
+    if (( ${#fields[@]} != 2 )); then
+        echo "ERROR: $LOCALES_LIST:$LINE_NO expected 2 fields, got ${#fields[@]}: '$line'" >&2
+        INVALID=1
+        continue
+    fi
+
+    ALL_QUALIFIERS+=("${fields[0]}")
+    ALL_DIRS+=("${fields[1]}")
+done < "$LOCALES_LIST"
+
+if (( ${#ALL_QUALIFIERS[@]} == 0 )); then
+    echo "ERROR: $LOCALES_LIST contains no locales" >&2
+    exit 1
+fi
+
+DUPE_QUALIFIERS="$(printf '%s\n' "${ALL_QUALIFIERS[@]}" | sort | uniq -d)"
+if [[ -n "$DUPE_QUALIFIERS" ]]; then
+    echo "ERROR: duplicate android qualifiers in $LOCALES_LIST:" >&2
+    echo "$DUPE_QUALIFIERS" >&2
+    INVALID=1
+fi
+
+DUPE_DIRS="$(printf '%s\n' "${ALL_DIRS[@]}" | sort | uniq -d)"
+if [[ -n "$DUPE_DIRS" ]]; then
+    echo "ERROR: duplicate fastlane directories in $LOCALES_LIST:" >&2
+    echo "$DUPE_DIRS" >&2
+    INVALID=1
+fi
+
+EN_COUNT="$(printf '%s\n' "${ALL_DIRS[@]}" | grep -c '^en-US$' || true)"
+if (( EN_COUNT != 1 )); then
+    echo "ERROR: $LOCALES_LIST must contain exactly one en-US entry, found $EN_COUNT" >&2
+    INVALID=1
+fi
+
+if (( INVALID != 0 )); then
+    exit 1
+fi
+
+# --- Select the locales for this run ----------------------------------------------------
+
+QUALIFIERS=()
+DIRS=()
+
+select_dirs() {
+    local wanted
+    for wanted in "$@"; do
+        local found=false
+        local i
+        for (( i = 0; i < ${#ALL_DIRS[@]}; i++ )); do
+            if [[ "${ALL_DIRS[$i]}" == "$wanted" ]]; then
+                QUALIFIERS+=("${ALL_QUALIFIERS[$i]}")
+                DIRS+=("${ALL_DIRS[$i]}")
+                found=true
+                break
+            fi
+        done
+        if ! $found; then
+            echo "ERROR: '$wanted' is not listed in $LOCALES_LIST" >&2
+            exit 1
+        fi
+    done
+}
+
+if $ENGLISH_ONLY; then
+    select_dirs "en-US"
+elif $SMOKE; then
+    select_dirs "${SMOKE_TARGETS[@]}"
+else
+    QUALIFIERS=("${ALL_QUALIFIERS[@]}")
+    DIRS=("${ALL_DIRS[@]}")
+fi
+
+TOTAL=${#DIRS[@]}
 NUM_BATCHES=$(( (TOTAL + BATCH_SIZE - 1) / BATCH_SIZE ))
+EXPECTED=$(( TOTAL * RENDERS_PER_LOCALE ))
 
 echo "=== Localized Screenshot Generation ==="
-echo "Locales: $TOTAL | Batch size: $BATCH_SIZE | Batches: $NUM_BATCHES"
+echo "Locales: $TOTAL | Renders per locale: $RENDERS_PER_LOCALE | Batch size: $BATCH_SIZE | Batches: $NUM_BATCHES"
 echo ""
 
-# Back up the original file
-cp "$LOCALES_FILE" "$LOCALES_FILE.bak"
-trap 'mv "$LOCALES_FILE.bak" "$LOCALES_FILE"; echo "Restored original PlayStoreLocales.kt"' EXIT
+# --- Serialize with peer agents ---------------------------------------------------------
 
-# Clean reference directory from previous runs
+# Both the generated source file and the reference output directory are rewritten per run,
+# and `gradlew --stop` reaches every daemon of this user, so runs must not overlap.
+LOCK_FILE="${TMPDIR:-/tmp}/butler-screenshot-generation.lock"
+exec 9>"$LOCK_FILE"
+if ! flock -n 9; then
+    echo "Another screenshot generation is running, waiting for it to finish..."
+    flock 9
+fi
+
+# --- Back up the tracked source we are about to rewrite ---------------------------------
+
+# The annotation file is generated in place: the checked-in PlayStoreLocales.kt declares the
+# same annotation classes, so a generated copy on an extra source root would be a duplicate
+# declaration. Backup lives in a unique temp dir so a peer run cannot collide with it.
+BACKUP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/butler-screenshots.XXXXXXXX")"
+cp "$LOCALES_FILE" "$BACKUP_DIR/PlayStoreLocales.kt"
+
+cleanup() {
+    cp -f "$BACKUP_DIR/PlayStoreLocales.kt" "$LOCALES_FILE"
+    rm -rf "$BACKUP_DIR"
+    echo "Restored original PlayStoreLocales.kt"
+}
+trap cleanup EXIT HUP INT TERM
+
 rm -rf "$REF_DIR"
 echo "Cleaned reference directory"
 
-generate_locales_file() {
-    local -n batch_locales=$1
-    local file="$2"
+# --- Codegen ----------------------------------------------------------------------------
 
-    cat > "$file" << 'HEADER'
+generate_locales_file() {
+    local start="$1"
+    local count="$2"
+    local target_dir
+    target_dir="$(dirname "$LOCALES_FILE")"
+    local tmp_file
+    tmp_file="$(mktemp "$target_dir/.PlayStoreLocales.kt.XXXXXX")"
+
+    {
+        cat << 'HEADER'
 package eu.darken.butler.screenshots
 
 import androidx.compose.ui.tooling.preview.Preview
 
 /**
- * Multi-preview annotation generating one preview per Play Store-supported locale (light mode).
- * Each [name] is the fastlane metadata directory name for direct use in the copy script.
+ * Locale previews rendered on the phone device spec.
+ *
+ * The three annotation classes below differ only in the device spec they pin - the form factor of a
+ * screenshot comes from the test function that carries the annotation, never from the preview
+ * [name]. [name] stays the plain fastlane metadata directory so the copy script can keep reading
+ * the locale straight out of the file name.
+ *
+ * Generated by `fastlane/generate_screenshots.sh`; the checked-in state is en-US only.
  */
 HEADER
+        emit_previews "$start" "$count" "DS_PHONE"
+        echo "annotation class PlayStoreLocalesPhone"
+        echo ""
+        echo "/** Locale previews rendered on the 7\" tablet device spec. See [PlayStoreLocalesPhone]. */"
+        emit_previews "$start" "$count" "DS_SEVEN"
+        echo "annotation class PlayStoreLocalesSeven"
+        echo ""
+        echo "/** Locale previews rendered on the 10\" tablet device spec. See [PlayStoreLocalesPhone]. */"
+        emit_previews "$start" "$count" "DS_TEN"
+        echo "annotation class PlayStoreLocalesTen"
+    } > "$tmp_file"
 
-    # Light annotations
-    for entry in "${batch_locales[@]}"; do
-        local locale="${entry%%:*}"
-        local name="${entry##*:}"
-        echo "@Preview(locale = \"$locale\", name = \"$name\", device = DS, showSystemUi = true)" >> "$file"
-    done
-    echo "annotation class PlayStoreLocales" >> "$file"
-    echo "" >> "$file"
-
-    # Smoke annotation (single entry placeholder — required for compilation)
-    echo "/**" >> "$file"
-    echo " * Smoke test subset for fast iteration (6 locales covering LTR, RTL, CJK)." >> "$file"
-    echo " */" >> "$file"
-    echo "@Preview(locale = \"en\", name = \"en-US\", device = DS, showSystemUi = true)" >> "$file"
-    echo "annotation class PlayStoreLocalesSmoke" >> "$file"
+    mv -f "$tmp_file" "$LOCALES_FILE"
 }
 
-for (( batch=0; batch < NUM_BATCHES; batch++ )); do
+emit_previews() {
+    local start="$1"
+    local count="$2"
+    local spec="$3"
+    local i
+    for (( i = start; i < start + count; i++ )); do
+        echo "@Preview(locale = \"${QUALIFIERS[$i]}\", name = \"${DIRS[$i]}\", device = $spec, showSystemUi = true)"
+    done
+}
+
+# --- Render -----------------------------------------------------------------------------
+
+cd "$PROJECT_DIR"
+
+for (( batch = 0; batch < NUM_BATCHES; batch++ )); do
     start=$(( batch * BATCH_SIZE ))
     end=$(( start + BATCH_SIZE ))
     if (( end > TOTAL )); then
         end=$TOTAL
     fi
-
-    # Extract batch slice
-    BATCH_SLICE=("${LOCALES[@]:$start:$((end - start))}")
     batch_num=$(( batch + 1 ))
 
-    echo "--- Batch $batch_num/$NUM_BATCHES (locales $((start+1))-$end of $TOTAL) ---"
+    echo "--- Batch $batch_num/$NUM_BATCHES (locales $((start + 1))-$end of $TOTAL) ---"
 
-    # Generate locales file for this batch
-    generate_locales_file BATCH_SLICE "$LOCALES_FILE"
+    generate_locales_file "$start" "$(( end - start ))"
 
-    # Stop daemon to release memory from previous batch
+    # Release the memory the previous batch leaked
     echo "Stopping Gradle daemon..."
-    cd "$PROJECT_DIR"
-    ./gradlew --stop 2>/dev/null || true
+    ./gradlew --stop > /dev/null 2>&1 || true
 
-    # Run screenshot generation
     echo "Generating screenshots..."
-    if ! ./gradlew updateGplayDebugScreenshotTest --no-daemon 2>&1; then
-        echo "ERROR: Batch $batch_num failed! Check output above."
-        echo "Generated images so far are preserved in: $REF_DIR"
+    # --rerun-tasks: after the reference directory is wiped the update task still considers
+    # itself up to date and would silently render nothing.
+    if ! ./gradlew :app:updateGplayDebugScreenshotTest --no-daemon --rerun-tasks 2>&1; then
+        echo "ERROR: Batch $batch_num failed! Check output above." >&2
+        echo "Images generated so far are preserved in: $REF_DIR" >&2
         exit 1
     fi
 
     count=$(find "$REF_DIR" -name "*.png" 2>/dev/null | wc -l)
+    batch_expected=$(( end * RENDERS_PER_LOCALE ))
+    if (( count != batch_expected )); then
+        echo "ERROR: Batch $batch_num produced $count images, expected $batch_expected." >&2
+        echo "Check $REF_DIR for details." >&2
+        exit 1
+    fi
     echo "Batch $batch_num complete. Total images so far: $count"
     echo ""
 done
 
-# Count final results
 FINAL_COUNT=$(find "$REF_DIR" -name "*.png" 2>/dev/null | wc -l)
-EXPECTED=$(( TOTAL * 6 ))  # 6 composables per locale
 
 echo "=== Generation Complete ==="
 echo "Generated: $FINAL_COUNT images (expected: $EXPECTED)"
 
 if (( FINAL_COUNT != EXPECTED )); then
-    echo "WARNING: Count mismatch! Some screenshots may be missing."
-    echo "Check $REF_DIR for details."
+    echo "ERROR: Count mismatch, some screenshots are missing." >&2
+    exit 1
 fi
 
 echo ""

@@ -1,0 +1,87 @@
+# Play Store screenshot locales - the single source of truth.
+#
+# Format: <android resource qualifier> <fastlane metadata directory>
+# Blank lines and lines starting with # are ignored.
+#
+# Field 1 goes into @Preview(locale = ...) and therefore selects the values-<qualifier>
+# resource directory. Field 2 is the fastlane/metadata/android/<dir> the rendered PNGs
+# are copied into, and is also the preview name embedded in the rendered file name.
+#
+# The qualifiers are derived from crowdin.yml: take the crowdin language code that maps
+# to the fastlane directory in the play store `locale` mapping, then look up its
+# `android_code`. That is the directory crowdin actually writes translations into.
+#
+# Four entries have no crowdin android_code and use the plain language qualifier:
+#   en-US  source language, not translated by crowdin
+#   af     listed for the store but not for strings
+#   hi-IN  listed for the store but not for strings
+#   mk-MK  listed for the store but not for strings
+
+en     en-US
+af     af
+am     am
+ar     ar
+az     az-AZ
+be     be
+bg     bg
+bn-rBD bn-BD
+ca     ca
+cs     cs-CZ
+da     da-DK
+de     de-DE
+el     el-GR
+es     es-ES
+es-rMX es-419
+et-rEE et
+eu-rES eu-ES
+fa     fa
+fi     fi-FI
+fil    fil
+fr     fr-FR
+gl-rES gl-ES
+hi     hi-IN
+hr     hr
+hu     hu-HU
+hy-rAM hy-AM
+in     id
+is     is-IS
+it     it-IT
+iw     iw-IL
+ja     ja-JP
+ka-rGE ka-GE
+km-rKH km-KH
+kn-rIN kn-IN
+ko     ko-KR
+ky-rKG ky-KG
+lo-rLA lo-LA
+lt     lt
+lv     lv
+mk     mk-MK
+ml-rIN ml-IN
+mn-rMN mn-MN
+mr-rIN mr-IN
+ms     ms
+my-rMM my-MM
+nb     no-NO
+ne-rNP ne-NP
+nl     nl-NL
+pl     pl-PL
+pt     pt-PT
+pt-rBR pt-BR
+rm     rm
+ro     ro
+ru     ru-RU
+sk     sk
+sl     sl
+sr     sr
+sv     sv-SE
+sw     sw
+ta-rIN ta-IN
+te-rIN te-IN
+th     th
+tr     tr-TR
+uk     uk
+vi     vi
+zh-rCN zh-CN
+zh-rHK zh-HK
+zh-rTW zh-TW
