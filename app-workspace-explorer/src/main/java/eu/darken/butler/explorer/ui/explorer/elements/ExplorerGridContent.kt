@@ -92,6 +92,7 @@ internal fun ExplorerGridContent(
                 )
             }
         }
+        // Trailing block layout is mirrored by State.favoriteContentIndex() for scroll-to-favorite.
         if (state.showHomeFavoritesSection) {
             item(
                 span = { GridItemSpan(maxLineSpan) },
@@ -101,6 +102,7 @@ internal fun ExplorerGridContent(
             }
             favoritesSection(
                 favorites = state.favorites,
+                highlightedItemIds = state.highlightedItemIds,
                 onClick = { vm?.onFavoriteClick(it) },
                 onRemove = { vm?.onFavoriteRemove(it) },
             )

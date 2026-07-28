@@ -19,6 +19,7 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
@@ -45,6 +46,12 @@ class ExplorerNavigationControllerTest : BaseTest() {
             every { this@apply.name } returns name
         }
         return ExplorerItem.RegularFile(lookup = lookup, mimeType = MimeInfo("text/plain"))
+    }
+
+    private fun homeLocation(): ExplorerLocation.Home = mockk<ExplorerLocation.Home>().apply {
+        every { locationId } returns "home"
+        every { progress } returns null
+        every { info } returns null
     }
 
     private fun mockWorkspace(): ExplorerWorkspace = mockk<ExplorerWorkspace>().apply {
@@ -143,10 +150,73 @@ class ExplorerNavigationControllerTest : BaseTest() {
 
         received.map { it.path.path } shouldBe listOf(target.path)
         received.first().highlight shouldBe true
+        received.first().scope shouldBe ExplorerWorkspaceViewModel.RevealRequest.Scope.Items
         controller.highlightedItemIds.value shouldBe setOf(target.path)
 
-        controller.clearHighlights()
+        controller.clearHighlights("some-other-location")
         controller.highlightedItemIds.value shouldBe emptySet()
+
+        collector.cancel()
+    }
+
+    @Test
+    fun `highlights survive the arrival event of the location they belong to`() = runTest {
+        val location = homeLocation()
+        val controller = controller(state = ExplorerWorkspaceViewModel.State(currentLocation = location))
+        val collector = launch { controller.revealRequests.collect { } }
+        runCurrent()
+
+        controller.revealItems(listOf(path("fav")))
+        runCurrent()
+        controller.highlightedItemIds.value shouldBe setOf(path("fav").path)
+
+        // The location change that brought us here must not wipe the highlight set for it.
+        controller.clearHighlights("home")
+        controller.highlightedItemIds.value shouldBe setOf(path("fav").path)
+
+        // Leaving does clear it.
+        controller.clearHighlights("elsewhere")
+        controller.highlightedItemIds.value shouldBe emptySet()
+
+        collector.cancel()
+    }
+
+    @Test
+    fun `revealFavorite navigates home and reveals in the favorites section`() = runTest {
+        val directory = mockk<ExplorerLocation.Directory>().apply {
+            every { locationId } returns "some-dir"
+            every { progress } returns null
+            every { info } returns null
+        }
+        val home = homeLocation()
+        val homeState = mockk<ExplorerWorkspace.State.Ready>().apply {
+            every { currentLocation } returns home
+        }
+        val workspace = mockWorkspace().apply {
+            every { state } returns flowOf(homeState)
+        }
+        // The combined UI state deliberately lags behind the workspace state here: the highlight
+        // must be attributed to the location we actually arrived at, not to this stale one.
+        val controller = controller(
+            workspace = workspace,
+            state = ExplorerWorkspaceViewModel.State(currentLocation = directory),
+        )
+        val received = mutableListOf<ExplorerWorkspaceViewModel.RevealRequest>()
+        val collector = launch { controller.revealRequests.collect { received.add(it) } }
+        runCurrent()
+
+        val target = path("Pictures")
+        launch { controller.revealFavorite(target) }
+        runCurrent()
+
+        coVerify { workspace.navigate(ExplorerNavigation.Target.Home) }
+        received.single().path.path shouldBe target.path
+        received.single().scope shouldBe ExplorerWorkspaceViewModel.RevealRequest.Scope.Favorites
+        controller.highlightedItemIds.value shouldBe setOf(target.path)
+
+        // The arrival event for Home must not wipe the highlight we just installed for it.
+        controller.clearHighlights("home")
+        controller.highlightedItemIds.value shouldBe setOf(target.path)
 
         collector.cancel()
     }

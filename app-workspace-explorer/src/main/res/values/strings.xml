@@ -464,7 +464,14 @@
     <string name="explorer_favorites_unavailable_subtitle">Not accessible</string>
     <string name="explorer_favorites_unavailable_toast">Favorite is not accessible</string>
     <string name="explorer_favorites_remove_action">Remove from favorites</string>
-    <string name="explorer_favorites_added_toast">Added to favorites</string>
-    <string name="explorer_favorites_removed_toast">Removed from favorites</string>
-    <string name="explorer_favorites_undo_message">Removed %1$s</string>
+    <string name="explorer_favorites_added_message">Added %1$s to favorites</string>
+    <plurals name="explorer_favorites_added_multiple_message">
+        <item quantity="one">Added %1$d item to favorites</item>
+        <item quantity="other">Added %1$d items to favorites</item>
+    </plurals>
+    <string name="explorer_favorites_removed_message">Removed %1$s from favorites</string>
+    <plurals name="explorer_favorites_removed_multiple_message">
+        <item quantity="one">Removed %1$d item from favorites</item>
+        <item quantity="other">Removed %1$d items from favorites</item>
+    </plurals>
 </resources>

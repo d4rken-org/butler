@@ -12,7 +12,7 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.explorer.core.ExplorerNavigation
-import eu.darken.butler.explorer.core.favorites.PendingFavoriteRemoval
+import eu.darken.butler.explorer.core.favorites.FavoriteFeedback
 import eu.darken.butler.explorer.ui.explorer.ExplorerBarKeys
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionBarItem
@@ -109,7 +109,7 @@ internal fun FloatingBarScope.ExplorerTopBars(
 }
 
 /**
- * The Explorer's bottom floating bars: operations, clipboard, favorites-undo and actions.
+ * The Explorer's bottom floating bars: operations, clipboard, favorites-feedback and actions.
  */
 @Composable
 internal fun FloatingBarScope.ExplorerBottomBars(
@@ -133,12 +133,12 @@ internal fun FloatingBarScope.ExplorerBottomBars(
     val hasClipboard by derivedStateOf { clipboardState.entries.isNotEmpty() }
     val hasActions by derivedStateOf { state.availableActions.isNotEmpty() }
 
-    // Cache the last non-null pending favorite removal so the undo bar has content to
-    // animate out when the underlying state transitions back to null. FloatingBar keeps
-    // its content composed during the slide-out, so the lambda must always have data.
-    var lastPendingRemoval by remember { mutableStateOf<PendingFavoriteRemoval?>(null) }
-    state.pendingFavoriteRemoval?.let { lastPendingRemoval = it }
-    val showFavoritesUndoBar = state.pendingFavoriteRemoval != null && state.pickerConfig == null
+    // Cache the last non-null favorite feedback so the bar has content to animate out when the
+    // underlying state transitions back to null. FloatingBar keeps its content composed during
+    // the slide-out, so the lambda must always have data.
+    var lastFavoriteFeedback by remember { mutableStateOf<FavoriteFeedback?>(null) }
+    state.favoriteFeedback?.let { lastFavoriteFeedback = it }
+    val showFavoritesFeedbackBar = state.favoriteFeedback != null && state.pickerConfig == null
 
     FloatingBar(
         key = ExplorerBarKeys.OPERATIONS,
@@ -179,15 +179,15 @@ internal fun FloatingBarScope.ExplorerBottomBars(
     }
 
     FloatingBar(
-        key = ExplorerBarKeys.FAVORITES_UNDO,
-        visible = showFavoritesUndoBar,
+        key = ExplorerBarKeys.FAVORITES_FEEDBACK,
+        visible = showFavoritesFeedbackBar,
         scrollBehavior = BarScrollBehavior.Static,
         animation = BarAnimation.Slide(),
     ) {
-        lastPendingRemoval?.let { pending ->
-            FavoritesUndoBar(
-                pendingRemoval = pending,
-                onUndo = { vm?.undoFavoriteRemoval() },
+        lastFavoriteFeedback?.let { feedback ->
+            FavoritesFeedbackBar(
+                feedback = feedback,
+                onAction = { vm?.onFavoriteFeedbackAction() },
             )
         }
     }

@@ -53,7 +53,7 @@ import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.favorites.ExplorerFavoritesRepo
 import eu.darken.butler.explorer.core.favorites.FavoriteItem
-import eu.darken.butler.explorer.core.favorites.PendingFavoriteRemoval
+import eu.darken.butler.explorer.core.favorites.FavoriteFeedback
 import eu.darken.butler.explorer.core.favorites.applyFavoritePriority
 import eu.darken.butler.explorer.core.ArchiveCompressionDefaults
 import eu.darken.butler.explorer.core.operations.ExplorerCommand
@@ -168,6 +168,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         scope = vmScope,
         doLaunch = doLaunch,
         isPickerActive = { cachedPickerConfig != null },
+        revealFavorite = { path -> navigation.revealFavorite(path) },
         tag = tag,
     )
     private val conflicts = ExplorerOperationConflictController(
@@ -238,8 +239,12 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     data class RevealRequest(
         val path: APath<*>,
         val highlight: Boolean = true,
+        val scope: Scope = Scope.Items,
         val highlightDurationMs: Long = 2000L,
-    )
+    ) {
+        /** Which part of the page content holds the reveal target. */
+        enum class Scope { Items, Favorites }
+    }
 
     val revealRequests get() = navigation.revealRequests
 
@@ -278,7 +283,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 // The bar is hidden in picker mode anyway; without this, returning to
                 // non-picker mode within the 5s window would resurface a stale bar.
                 if (config != null) {
-                    favoritesController.finalizePendingRemoval()
+                    favoritesController.clearFeedback()
                 }
             }
             .launchInViewModel()
@@ -302,7 +307,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         workspaceReadyState
             .map { it?.currentLocation?.locationId }
             .distinctUntilChanged()
-            .onEach { navigation.clearHighlights() }
+            .onEach { navigation.clearHighlights(it) }
             .launchInViewModel()
 
         // Favorite-path changes can reorder the directory listing (favorited dirs move
@@ -355,7 +360,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val favorites: List<FavoriteItem> = emptyList(),
         val favoritePaths: List<APath<*>> = emptyList(),
         val showHomeFavoritesSection: Boolean = false,
-        val pendingFavoriteRemoval: PendingFavoriteRemoval? = null,
+        val favoriteFeedback: FavoriteFeedback? = null,
     ) {
         val progress = currentLocation?.progress
         val info = currentLocation?.info
@@ -453,8 +458,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     navigation.highlightedItemIds,
                     focus.focusedIndex,
                     favoritesRepo.favorites,
-                    favoritesController.pendingRemoval,
-                ) { wsStateInner, items, selectionState, viewStyle, dialogState, sortSetting, upgradeInfo, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig, recycleBinEnabled, saveAsFilename, highlightedItemIds, focusedItemIndex, favorites, pendingFavoriteRemoval ->
+                    favoritesController.feedback,
+                ) { wsStateInner, items, selectionState, viewStyle, dialogState, sortSetting, upgradeInfo, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig, recycleBinEnabled, saveAsFilename, highlightedItemIds, focusedItemIndex, favorites, favoriteFeedback ->
                     val disabledItems = items?.let { pickerHelper.computeDisabledItems(it, pickerConfig) } ?: emptySet()
 
                     val canConfirmSelection = pickerHelper.canConfirmSelection(
@@ -524,7 +529,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                         showHomeFavoritesSection = pickerConfig == null
                             && wsStateInner.currentLocation is ExplorerLocation.Home
                             && favorites.isNotEmpty(),
-                        pendingFavoriteRemoval = pendingFavoriteRemoval,
+                        favoriteFeedback = favoriteFeedback,
                     )
                 }
             }
@@ -595,9 +600,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun onFavoriteRemove(fav: FavoriteItem) = favoritesController.remove(fav)
+    fun onFavoriteRemove(fav: FavoriteItem) = favoritesController.removeFromHome(fav)
 
-    fun undoFavoriteRemoval() = favoritesController.undo()
+    fun onFavoriteFeedbackAction() = favoritesController.onFeedbackAction()
 
     fun clearSelection() = selection.clear()
 
@@ -865,15 +870,15 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 navigation.refresh()
             }
             is ExplorerActionBarItem.Common.AddToFavorites -> {
-                favoritesRepo.addAll(action.items)
+                favoritesController.addAll(action.items)
                 clearSelection()
             }
             is ExplorerActionBarItem.Common.RemoveFromFavorites -> {
-                favoritesRepo.removeAll(action.items)
+                favoritesController.removeAll(action.items)
                 clearSelection()
             }
             is ExplorerActionBarItem.Directory.ToggleFavoriteCurrent -> {
-                favoritesRepo.toggle(action.path)
+                favoritesController.toggleCurrent(action.path)
             }
             is ExplorerActionBarItem.Common.Info -> {
                 log(tag) { "showInfo(): ${selection.selectedItems.value.size} items selected" }

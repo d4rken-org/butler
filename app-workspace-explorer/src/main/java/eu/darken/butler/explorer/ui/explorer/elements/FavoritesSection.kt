@@ -1,5 +1,7 @@
 package eu.darken.butler.explorer.ui.explorer.elements
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -27,9 +29,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -39,16 +43,21 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.extensions.matches
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.core.engine.ExplorerItem.Path.Companion.toPathItemId
 import eu.darken.butler.explorer.core.favorites.FavoriteItem
+import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
 
 /** List-scope variant: header item + a row per favorite. */
 fun LazyListScope.favoritesSection(
     favorites: List<FavoriteItem>,
+    highlightedItemIds: Set<String>,
     onClick: (FavoriteItem) -> Unit,
     onRemove: (FavoriteItem) -> Unit,
 ) {
@@ -59,6 +68,7 @@ fun LazyListScope.favoritesSection(
     items(favorites, key = { favoriteKey(it) }) { favorite ->
         FavoriteRow(
             favorite = favorite,
+            isHighlighted = favorite.path.toPathItemId() in highlightedItemIds,
             onClick = { onClick(favorite) },
             onRemove = { onRemove(favorite) },
         )
@@ -68,6 +78,7 @@ fun LazyListScope.favoritesSection(
 /** Grid-scope variant: header spans the full row, items each take a cell. */
 fun LazyGridScope.favoritesSection(
     favorites: List<FavoriteItem>,
+    highlightedItemIds: Set<String>,
     onClick: (FavoriteItem) -> Unit,
     onRemove: (FavoriteItem) -> Unit,
 ) {
@@ -89,10 +100,34 @@ fun LazyGridScope.favoritesSection(
         // remains legible (a folder named "Music" can come from many roots).
         FavoriteRow(
             favorite = favorite,
+            isHighlighted = favorite.path.toPathItemId() in highlightedItemIds,
             onClick = { onClick(favorite) },
             onRemove = { onRemove(favorite) },
         )
     }
+}
+
+/**
+ * Lazy index of the favorite for [path], for scrolling it into view.
+ *
+ * Mirrors the layout both [ExplorerListContent] and [ExplorerGridContent] build — leading content
+ * block, divider, section header, then one entry per favorite — and must be updated with them.
+ *
+ * @return `null` while the favorites section isn't showing, the content is still loading, or the
+ *         path isn't among the favorites yet.
+ */
+internal fun ExplorerWorkspaceViewModel.State.favoriteContentIndex(path: APath<*>): Int? {
+    if (!showHomeFavoritesSection) return null
+    val favoriteIndex = favorites.indexOfFirst { it.path.matches(path) }
+    if (favoriteIndex < 0) return null
+    val leadingItems = when {
+        // No items: an error renders nothing above the section, loading renders skeletons whose
+        // count is about to change — so wait for the content instead of pointing at a skeleton.
+        items == null -> if (error != null) 0 else return null
+        items.isEmpty() -> 1 // the empty-state item
+        else -> items.size
+    }
+    return leadingItems + 2 + favoriteIndex // + divider + section header
 }
 
 @Composable
@@ -131,6 +166,7 @@ private fun favoriteKey(favorite: FavoriteItem): String =
 fun FavoriteRow(
     modifier: Modifier = Modifier,
     favorite: FavoriteItem,
+    isHighlighted: Boolean = false,
     onClick: () -> Unit,
     onRemove: () -> Unit,
 ) {
@@ -150,10 +186,22 @@ fun FavoriteRow(
 
     val removeLabel = stringResource(R.string.explorer_favorites_remove_action)
 
+    // Same reveal tint the file rows use, see FileRowBase.
+    val highlightColor by animateColorAsState(
+        targetValue = if (isHighlighted) {
+            MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f)
+        } else {
+            Color.Transparent
+        },
+        animationSpec = tween(durationMillis = 300),
+        label = "highlightColor",
+    )
+
     Row(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(8.dp))
+            .background(highlightColor, RoundedCornerShape(8.dp))
             .clickable(enabled = !isResolving) { onClick() }
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -316,6 +364,7 @@ private fun FavoritesSectionMixedPreview() {
                     state = FavoriteItem.State.Unavailable(IllegalStateException("not found")),
                 ),
             ),
+            highlightedItemIds = setOf(LocalPath.build("/storage/emulated/0/Download").toPathItemId()),
             onClick = {},
             onRemove = {},
         )

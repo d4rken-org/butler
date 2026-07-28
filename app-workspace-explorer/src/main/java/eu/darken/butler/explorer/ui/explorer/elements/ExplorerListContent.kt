@@ -89,12 +89,14 @@ internal fun ExplorerListContent(
                 )
             }
         }
+        // Trailing block layout is mirrored by State.favoriteContentIndex() for scroll-to-favorite.
         if (state.showHomeFavoritesSection) {
             item(key = "favorites:divider") {
                 HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
             }
             favoritesSection(
                 favorites = state.favorites,
+                highlightedItemIds = state.highlightedItemIds,
                 onClick = { vm?.onFavoriteClick(it) },
                 onRemove = { vm?.onFavoriteRemove(it) },
             )

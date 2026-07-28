@@ -131,6 +131,19 @@ class ExplorerFavoritesRepoTest : BaseTest() {
     }
 
     @Test
+    fun `addAll - returns only the paths that were actually added`() = runTest {
+        val scope = CoroutineScope(SupervisorJob() + dispatcherProvider.IO)
+        val repo = freshRepo(scope)
+
+        val a = LocalPath.build("/p/a")
+        val b = LocalPath.build("/p/b")
+        repo.add(a)
+
+        repo.addAll(listOf(a, b, b)) shouldContainExactly listOf(b)
+        repo.addAll(listOf(a, b)) shouldBe emptyList()
+    }
+
+    @Test
     fun `remove - drops the path, isFavorite reflects it`() = runTest {
         val scope = CoroutineScope(SupervisorJob() + dispatcherProvider.IO)
         val repo = freshRepo(scope)
@@ -165,19 +178,93 @@ class ExplorerFavoritesRepoTest : BaseTest() {
         val repo = freshRepo(scope)
 
         val path = LocalPath.build("/toggle-target")
-        repo.toggle(path) shouldBe ExplorerFavoritesRepo.ToggleResult.Added
+        repo.toggle(path) shouldBe ExplorerFavoritesRepo.ToggleResult.Added(path)
         repo.isFavorite(path) shouldBe true
     }
 
     @Test
-    fun `toggle - present path removes, returns Removed`() = runTest {
+    fun `toggle - present path removes, returns Removed with its original index`() = runTest {
         val scope = CoroutineScope(SupervisorJob() + dispatcherProvider.IO)
         val repo = freshRepo(scope)
 
+        val other = LocalPath.build("/p/other")
         val path = LocalPath.build("/toggle-target")
-        repo.add(path)
-        repo.toggle(path) shouldBe ExplorerFavoritesRepo.ToggleResult.Removed
+        repo.addAll(listOf(other, path))
+
+        repo.toggle(path) shouldBe ExplorerFavoritesRepo.ToggleResult.Removed(
+            ExplorerFavoritesRepo.RemovedFavorite(path, 1)
+        )
         repo.isFavorite(path) shouldBe false
+    }
+
+    @Test
+    fun `removeAllForUndo - captures each removed entry with its original index`() = runTest {
+        val scope = CoroutineScope(SupervisorJob() + dispatcherProvider.IO)
+        val repo = freshRepo(scope)
+
+        val a = LocalPath.build("/p/a")
+        val b = LocalPath.build("/p/b")
+        val c = LocalPath.build("/p/c")
+        val d = LocalPath.build("/p/d")
+        repo.addAll(listOf(a, b, c, d))
+
+        val removed = repo.removeAllForUndo(listOf(b, d, LocalPath.build("/p/missing")))
+
+        removed shouldContainExactly listOf(
+            ExplorerFavoritesRepo.RemovedFavorite(b, 1),
+            ExplorerFavoritesRepo.RemovedFavorite(d, 3),
+        )
+        repo.favoritePaths.first { it.size == 2 } shouldContainExactly listOf(a, c)
+    }
+
+    @Test
+    fun `removeAllForUndo - no match is a no-op`() = runTest {
+        val scope = CoroutineScope(SupervisorJob() + dispatcherProvider.IO)
+        val repo = freshRepo(scope)
+
+        val a = LocalPath.build("/p/a")
+        repo.add(a)
+
+        repo.removeAllForUndo(listOf(LocalPath.build("/p/missing"))) shouldBe emptyList()
+        repo.favoritePaths.first { it.isNotEmpty() } shouldContainExactly listOf(a)
+    }
+
+    @Test
+    fun `removeAllForUndo + addAllAt - round-trip preserves every position`() = runTest {
+        val scope = CoroutineScope(SupervisorJob() + dispatcherProvider.IO)
+        val repo = freshRepo(scope)
+
+        val a = LocalPath.build("/p/a")
+        val b = LocalPath.build("/p/b")
+        val c = LocalPath.build("/p/c")
+        val d = LocalPath.build("/p/d")
+        repo.addAll(listOf(a, b, c, d))
+
+        val removed = repo.removeAllForUndo(listOf(a, c))
+        repo.favoritePaths.first { it.size == 2 } shouldContainExactly listOf(b, d)
+
+        repo.addAllAt(removed)
+        repo.favoritePaths.first { it.size == 4 } shouldContainExactly listOf(a, b, c, d)
+    }
+
+    @Test
+    fun `addAllAt - skips entries that are already present`() = runTest {
+        val scope = CoroutineScope(SupervisorJob() + dispatcherProvider.IO)
+        val repo = freshRepo(scope)
+
+        val a = LocalPath.build("/p/a")
+        val b = LocalPath.build("/p/b")
+        repo.addAll(listOf(a, b))
+
+        repo.addAllAt(
+            listOf(
+                ExplorerFavoritesRepo.RemovedFavorite(a, 0),
+                ExplorerFavoritesRepo.RemovedFavorite(LocalPath.build("/p/c"), 99),
+            )
+        )
+
+        repo.favoritePaths.first { it.size == 3 } shouldContainExactly
+            listOf(a, b, LocalPath.build("/p/c"))
     }
 
     @Test

@@ -36,10 +36,12 @@ import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.SortSettings
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel.RevealRequest
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionBarItem
 import eu.darken.butler.explorer.ui.explorer.elements.ExplorerReadyContent
 import eu.darken.butler.explorer.ui.explorer.elements.ExplorerTopBars
 import eu.darken.butler.explorer.ui.explorer.elements.PermissionRequestCard
+import eu.darken.butler.explorer.ui.explorer.elements.favoriteContentIndex
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.ui.insets.paneInsets
 import eu.darken.butler.workspace.ui.preview.ProvideFolderPreviews
@@ -342,20 +344,26 @@ private fun ExplorerRevealEffect(
         val tag = logTag("Explorer", "Page", "Reveal")
         log(tag) { "LaunchedEffect started, collecting revealRequests" }
         vm?.revealRequests?.collect { request ->
-            log(tag) { "Received reveal request for path: ${request.path.path}" }
+            log(tag) { "Received reveal request for path: ${request.path.path} (${request.scope})" }
             val result = mainStateSource
                 .mapNotNull { emittedState ->
                     emittedState ?: return@mapNotNull null
-                    val items = emittedState.items
-                    log(tag) { "State emission: ${items?.size ?: 0} items" }
-                    val index = items?.indexOfFirst { item ->
-                        when (item) {
-                            is ExplorerItem.Path -> {
-                                val match = item.path.path == request.path.path
-                                if (match) log(tag) { "Found match at item: ${item.path.path}" }
-                                match
+                    val index = when (request.scope) {
+                        // Favorites live in a trailing section, not in `items`.
+                        RevealRequest.Scope.Favorites -> emittedState.favoriteContentIndex(request.path)
+                        RevealRequest.Scope.Items -> {
+                            val items = emittedState.items
+                            log(tag) { "State emission: ${items?.size ?: 0} items" }
+                            items?.indexOfFirst { item ->
+                                when (item) {
+                                    is ExplorerItem.Path -> {
+                                        val match = item.path.path == request.path.path
+                                        if (match) log(tag) { "Found match at item: ${item.path.path}" }
+                                        match
+                                    }
+                                    else -> false
+                                }
                             }
-                            else -> false
                         }
                     }
                     log(tag) { "Index search result: $index" }

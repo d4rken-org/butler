@@ -25,9 +25,13 @@ import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.returnResult
 import java.io.File
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * Navigation and reveal/highlight handling: item taps that resolve to navigation (including
@@ -52,6 +56,9 @@ class ExplorerNavigationController(
 
     private val highlightedItemIdsFlow = MutableStateFlow<Set<String>>(emptySet())
     val highlightedItemIds: StateFlow<Set<String>> = highlightedItemIdsFlow
+
+    /** Location the current highlight belongs to, so arriving at it doesn't clear it again. */
+    private var highlightedLocationId: String? = null
 
     fun navigate(item: ExplorerItem) = doLaunch {
         log(tag) { "navigate($item)" }
@@ -204,19 +211,71 @@ class ExplorerNavigationController(
     }
 
     fun revealItems(paths: List<APath<*>>, highlight: Boolean = true) = doLaunch {
-        if (paths.isEmpty()) return@doLaunch
-        log(tag) { "revealItems(${paths.map { it.path }}, highlight=$highlight)" }
-        revealRequests.emit(ExplorerWorkspaceViewModel.RevealRequest(paths.first(), highlight))
+        revealItemsNow(paths, highlight)
+    }
+
+    /**
+     * Navigate to the Home screen (where the favorites section lives) and reveal [path] there.
+     *
+     * Waits for Home to actually become the current location before revealing: highlights are
+     * dropped on every location change, so highlighting mid-navigation would be wiped.
+     */
+    suspend fun revealFavorite(path: APath<*>) {
+        log(tag) { "revealFavorite(${path.path})" }
+        val homeLocation = if (getState().currentLocation is ExplorerLocation.Home) {
+            getState().currentLocation
+        } else {
+            val workspace = workspace()
+            workspace.navigate(ExplorerNavigation.Target.Home)
+            val arrived = withTimeoutOrNull(HOME_ARRIVAL_TIMEOUT) {
+                workspace.state
+                    .filterIsInstance<ExplorerWorkspace.State.Ready>()
+                    .first { it.currentLocation is ExplorerLocation.Home }
+            }
+            if (arrived == null) {
+                log(tag, WARN) { "revealFavorite: Home did not become current in time" }
+                return
+            }
+            // Take the id from the state we waited on, not from getState(): the combined UI state
+            // can still report the previous location here, which would misattribute the highlight
+            // and let the arrival event clear it again.
+            arrived.currentLocation
+        }
+        revealItemsNow(
+            paths = listOf(path),
+            highlight = true,
+            scope = ExplorerWorkspaceViewModel.RevealRequest.Scope.Favorites,
+            highlightOwner = homeLocation?.locationId,
+        )
+    }
+
+    private suspend fun revealItemsNow(
+        paths: List<APath<*>>,
+        highlight: Boolean,
+        scope: ExplorerWorkspaceViewModel.RevealRequest.Scope =
+            ExplorerWorkspaceViewModel.RevealRequest.Scope.Items,
+        highlightOwner: String? = null,
+    ) {
+        if (paths.isEmpty()) return
+        log(tag) { "revealItems(${paths.map { it.path }}, highlight=$highlight, scope=$scope)" }
+        revealRequests.emit(ExplorerWorkspaceViewModel.RevealRequest(paths.first(), highlight, scope))
         if (highlight) {
+            highlightedLocationId = highlightOwner ?: getState().currentLocation?.locationId
             highlightedItemIdsFlow.value = paths.map { it.toPathItemId() }.toSet()
         }
     }
 
-    fun clearHighlights() {
-        if (highlightedItemIdsFlow.value.isNotEmpty()) {
-            log(tag) { "clearHighlights()" }
-            highlightedItemIdsFlow.value = emptySet()
-        }
+    /**
+     * Drop highlights when the user leaves the location they were set for. [newLocationId] is the
+     * location that just became current: a highlight set for it (e.g. by [revealFavorite], which
+     * highlights right after arriving) must survive its own arrival event.
+     */
+    fun clearHighlights(newLocationId: String?) {
+        if (highlightedItemIdsFlow.value.isEmpty()) return
+        if (newLocationId != null && newLocationId == highlightedLocationId) return
+        log(tag) { "clearHighlights($newLocationId)" }
+        highlightedItemIdsFlow.value = emptySet()
+        highlightedLocationId = null
     }
 
     /**
@@ -242,5 +301,10 @@ class ExplorerNavigationController(
         } else {
             workspace.navigate(ExplorerNavigation.Target.Home)
         }
+    }
+
+    companion object {
+        /** How long [revealFavorite] waits for the Home screen before giving up on the reveal. */
+        private val HOME_ARRIVAL_TIMEOUT = 2.seconds
     }
 }

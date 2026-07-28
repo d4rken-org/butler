@@ -97,18 +97,20 @@ class ExplorerFavoritesRepo @Inject constructor(
 
     suspend fun add(path: APath<*>) = addAll(listOf(path))
 
-    suspend fun addAll(paths: List<APath<*>>) {
-        var addedCount = 0
+    /** @return the paths that were actually added; entries already favorited are skipped. */
+    suspend fun addAll(paths: List<APath<*>>): List<APath<*>> {
+        var added = emptyList<APath<*>>()
         settings.favoritePaths.update { current ->
             // Dedupe against existing storage AND against earlier entries in this batch.
             val deduped = paths.fold(emptyList<APath<*>>()) { acc, incoming ->
                 if (current.any { it.matches(incoming) } || acc.any { it.matches(incoming) }) acc
                 else acc + incoming
             }
-            addedCount = deduped.size
+            added = deduped
             current + deduped
         }
-        log(TAG, INFO) { "Added $addedCount favorite(s)." }
+        log(TAG, INFO) { "Added ${added.size} favorite(s)." }
+        return added
     }
 
     suspend fun remove(path: APath<*>) = removeAll(listOf(path))
@@ -120,59 +122,73 @@ class ExplorerFavoritesRepo @Inject constructor(
         log(TAG, INFO) { "Removed up to ${paths.size} favorite(s)." }
     }
 
+    suspend fun removeForUndo(path: APath<*>): RemovedFavorite? = removeAllForUndo(listOf(path)).firstOrNull()
+
     /**
-     * Atomically remove a path AND return the removed entry's original index for undo.
-     * The capture-and-remove happens inside a single DataStore update, so the index
+     * Atomically remove [paths] AND return each removed entry's original index for undo.
+     * The capture-and-remove happens inside a single DataStore update, so the indices
      * cannot be invalidated by a concurrent mutation.
      *
-     * @return [RemovedFavorite] if the path was present and removed, `null` if no match.
+     * @return the removed entries in ascending original-index order; empty if nothing matched.
      */
-    suspend fun removeForUndo(path: APath<*>): RemovedFavorite? {
-        var removed: RemovedFavorite? = null
+    suspend fun removeAllForUndo(paths: List<APath<*>>): List<RemovedFavorite> {
+        var removed = emptyList<RemovedFavorite>()
         settings.favoritePaths.update { current ->
-            val idx = current.indexOfFirst { it.matches(path) }
-            if (idx < 0) {
+            val hits = current
+                .mapIndexedNotNull { idx, existing ->
+                    if (paths.any { it.matches(existing) }) RemovedFavorite(existing, idx) else null
+                }
+            // Assigned on every invocation: the transform may run more than once, and only the
+            // committed run's captures may survive as the undo payload.
+            removed = hits
+            if (hits.isEmpty()) {
                 current
             } else {
-                removed = RemovedFavorite(current[idx], idx)
-                current.toMutableList().apply { removeAt(idx) }
+                current.filterIndexed { idx, _ -> hits.none { it.originalIndex == idx } }
             }
         }
-        removed?.let { log(TAG, INFO) { "Removed for undo at index ${it.originalIndex}." } }
+        if (removed.isNotEmpty()) {
+            log(TAG, INFO) { "Removed ${removed.size} favorite(s) for undo at ${removed.map { it.originalIndex }}." }
+        }
         return removed
     }
 
+    suspend fun addAt(path: APath<*>, index: Int) = addAllAt(listOf(RemovedFavorite(path, index)))
+
     /**
-     * Insert [path] at [index]. Used by undo to restore a [removeForUndo]-removed entry
-     * at its original position. Out-of-range indices are clamped; duplicates (per
-     * [APath.matches]) are no-ops.
+     * Re-insert [entries] at their captured positions. Used by undo to restore
+     * [removeAllForUndo]-removed entries. Insertion runs in ascending index order so each
+     * entry lands at its original slot; out-of-range indices are clamped and duplicates
+     * (per [APath.matches]) are skipped.
      */
-    suspend fun addAt(path: APath<*>, index: Int) {
-        var insertedAt = index
+    suspend fun addAllAt(entries: List<RemovedFavorite>) {
+        if (entries.isEmpty()) return
         settings.favoritePaths.update { current ->
-            if (current.any { it.matches(path) }) {
-                current
-            } else {
-                insertedAt = index.coerceIn(0, current.size)
-                current.toMutableList().apply { add(insertedAt, path) }
+            val restored = current.toMutableList()
+            entries.sortedBy { it.originalIndex }.forEach { entry ->
+                if (restored.none { it.matches(entry.path) }) {
+                    restored.add(entry.originalIndex.coerceIn(0, restored.size), entry.path)
+                }
             }
+            restored
         }
-        log(TAG, INFO) { "Restored favorite at index $insertedAt (requested $index)." }
+        log(TAG, INFO) { "Restored ${entries.size} favorite(s) at ${entries.map { it.originalIndex }}." }
     }
 
     /**
      * Atomically toggle a path's favorite state. Reads the current list inside the
      * DataStore update so the result reflects committed storage, not a UI snapshot.
+     * A removal carries its original index so the caller can offer undo.
      */
     suspend fun toggle(path: APath<*>): ToggleResult {
-        var result: ToggleResult = ToggleResult.Added
+        var result: ToggleResult = ToggleResult.Added(path)
         settings.favoritePaths.update { current ->
-            val existing = current.firstOrNull { it.matches(path) }
-            if (existing != null) {
-                result = ToggleResult.Removed
-                current - existing
+            val idx = current.indexOfFirst { it.matches(path) }
+            if (idx >= 0) {
+                result = ToggleResult.Removed(RemovedFavorite(current[idx], idx))
+                current.toMutableList().apply { removeAt(idx) }
             } else {
-                result = ToggleResult.Added
+                result = ToggleResult.Added(path)
                 current + path
             }
         }
@@ -185,11 +201,14 @@ class ExplorerFavoritesRepo @Inject constructor(
         refreshTrigger.emit(Unit)
     }
 
-    enum class ToggleResult { Added, Removed }
+    sealed interface ToggleResult {
+        data class Added(val path: APath<*>) : ToggleResult
+        data class Removed(val entry: RemovedFavorite) : ToggleResult
+    }
 
     /**
-     * Capture of a favorite that was removed via [removeForUndo], suitable for restoring
-     * via [addAt] at the original position.
+     * Capture of a favorite that was removed via [removeAllForUndo], suitable for restoring
+     * via [addAllAt] at the original position.
      */
     data class RemovedFavorite(val path: APath<*>, val originalIndex: Int)
 
