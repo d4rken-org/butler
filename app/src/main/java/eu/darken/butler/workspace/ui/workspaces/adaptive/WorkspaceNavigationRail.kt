@@ -423,7 +423,9 @@ private fun DraggableWorkspaceRailItem(
             isFocused = isFocused,
             isDraggingItem = isDraggingItem,
             dragHandleModifier = with(reorderableScope) {
-                Modifier.draggableHandle(
+                // Long press, not press: the handle drags along the list's own scroll axis, so a
+                // press-based detector turns every scroll that starts on an item into a reorder.
+                Modifier.longPressDraggableHandle(
                     onDragStarted = {
                         onDragStarted()
                         hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)

@@ -126,7 +126,10 @@ fun WorkspaceGridItem(
                             .fillMaxWidth()
                             .testTag(TEST_TAG_WORKSPACE_CARD_HEADER)
                             .padding(start = 10.dp, top = 6.dp, end = 6.dp)
-                            .draggableHandle(
+                            // Long press, not press: the handle drags along the grid's own scroll
+                            // axis, so a press-based detector turns every scroll that starts on a
+                            // card header into a reorder.
+                            .longPressDraggableHandle(
                                 onDragStarted = {
                                     onDragStarted()
                                     haptic.performHapticFeedback(HapticFeedbackType.GestureThresholdActivate)
