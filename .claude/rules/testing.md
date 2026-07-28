@@ -8,8 +8,6 @@ paths: ["**/src/test*/**", "**/src/androidTest/**", "**/*Test.kt", "app-common-t
 
 Standard Gradle invocations (`testDebugUnitTest`, `--tests "<fqcn>"`, `connectedAndroidTest`). Flavored modules need the flavor in the task name — see the Compose section below.
 
-Run test commands via the `devtools:build-runner` agent — see `development-commands.md` (Build & Test Context Management).
-
 ## What to Test
 
 - Write tests for web APIs and serialized data
