@@ -1,9 +1,16 @@
 package eu.darken.butler.screenshots
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import eu.darken.butler.apps.R as AppsR
 import eu.darken.butler.apps.ui.apps.AppsWorkspacePage
 import eu.darken.butler.apps.ui.apps.AppsWorkspaceViewModel
@@ -24,6 +31,8 @@ import eu.darken.butler.workspace.R as WorkspaceR
 import eu.darken.butler.workspace.contracts.apps.SortSettings
 import eu.darken.butler.workspace.contracts.apps.TagFilterConfig
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.defaultArguments
+import eu.darken.butler.workspace.core.icon
 import eu.darken.butler.workspace.core.label
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.LocalWorkspacePageHosts
@@ -31,6 +40,9 @@ import eu.darken.butler.workspace.ui.WorkspacePageHostEntry
 import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
 import eu.darken.butler.workspace.ui.floatingbar.LocalWorkspaceBarCollapseStates
 import eu.darken.butler.workspace.ui.floatingbar.WorkspaceBarCollapseStates
+import eu.darken.butler.workspace.ui.manager.FakeWorkspaceButtonProvider
+import eu.darken.butler.workspace.ui.manager.WorkspaceButtonMenu
+import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerScreen
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerViewModel
@@ -38,6 +50,7 @@ import eu.darken.butler.workspace.ui.manager.rememberWindowSizeInfo
 import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
 import eu.darken.butler.workspace.ui.scroll.LocalWorkspaceScrollPositions
 import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPositions
+import eu.darken.butler.workspace.ui.template.QuickCreateItem
 import eu.darken.butler.workspace.ui.workspaces.AdaptiveWorkspaceLayout
 import eu.darken.butler.workspace.ui.workspaces.WorkspacePaneInfo
 import eu.darken.butler.workspace.ui.workspaces.adaptive.DividerPositions
@@ -182,6 +195,9 @@ private fun ExplorerHomeBody(id: Workspace.Id, design: WorkspaceDesign) {
                     currentLocation = homeLocation,
                     breadcrumbs = listOf(MockDataProvider.createHomeBreadcrumb()),
                     items = homeLocation.items,
+                    availableActions = MockDataProvider.createDefaultHomeActions(),
+                    favorites = MockDataProvider.createMockFavorites(),
+                    showHomeFavoritesSection = true,
                 )
             )
         },
@@ -398,10 +414,56 @@ private val templatesPane = ScreenshotPane(
     type = Workspace.Type.TEMPLATES,
 ) { id, design -> TemplatesPickerBody(id, design) }
 
+private fun quickCreateItem(type: Workspace.Type) = QuickCreateItem(
+    type = type,
+    icon = type.icon,
+    title = type.label,
+    arguments = type.defaultArguments!!,
+)
+
+/**
+ * The Butler button's menu, opened.
+ *
+ * It cannot be opened by clicking in a single-frame render, so it is composed next to the page and
+ * anchored on a zero-size box that sits where the real button's bottom edge is: the toolbar card's
+ * cutout is top-aligned, 48dp tall and inset from the pane edge.
+ */
+@Composable
+private fun ExpandedWorkspaceButtonMenu(currentWorkspaceId: Workspace.Id) {
+    Box(
+        modifier = Modifier
+            .padding(top = 54.dp, end = 16.dp)
+            .size(0.dp),
+    ) {
+        WorkspaceButtonMenu(
+            expanded = true,
+            onDismissRequest = {},
+            state = WorkspaceButtonViewModel.State(
+                workspaceCount = 5,
+                operationsCount = 1,
+                attentionCount = 1,
+                recentItems = listOf(
+                    quickCreateItem(Workspace.Type.EXPLORER),
+                    quickCreateItem(Workspace.Type.SEARCHER),
+                    quickCreateItem(Workspace.Type.EDITOR),
+                ),
+            ),
+            currentWorkspaceId = currentWorkspaceId,
+            provider = FakeWorkspaceButtonProvider(),
+            onCloseAllRequested = {},
+        )
+    }
+}
+
 @Composable
 internal fun ExplorerHomeContent(formFactor: ScreenshotFormFactor) = ScreenshotPreviewWrapper {
     when (formFactor) {
-        ScreenshotFormFactor.PHONE -> ExplorerHomeBody(ID_EXPLORER_HOME, WorkspaceDesign())
+        ScreenshotFormFactor.PHONE -> Box(modifier = Modifier.fillMaxSize()) {
+            ExplorerHomeBody(ID_EXPLORER_HOME, WorkspaceDesign())
+            Box(modifier = Modifier.align(Alignment.TopEnd)) {
+                ExpandedWorkspaceButtonMenu(ID_EXPLORER_HOME)
+            }
+        }
         // Two EXPLORER panes side by side: the proof that pane content is dispatched by id.
         ScreenshotFormFactor.SEVEN -> ScreenshotPaneFrame(listOf(explorerHomePane, explorerDirectoryPane))
         ScreenshotFormFactor.TEN -> ScreenshotPaneFrame(listOf(explorerHomePane, explorerDirectoryPane, searcherPane))

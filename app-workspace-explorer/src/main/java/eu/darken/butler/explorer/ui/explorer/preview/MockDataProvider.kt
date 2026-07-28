@@ -9,9 +9,11 @@ import androidx.compose.material.icons.twotone.FolderShared
 import androidx.compose.material.icons.twotone.Home
 import androidx.compose.material.icons.twotone.PhoneAndroid
 import androidx.compose.material.icons.twotone.Storage
+import androidx.compose.material.icons.twotone.Usb
 import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.common.SafUri
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
@@ -26,9 +28,11 @@ import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
+import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.engine.TrashItemReference
+import eu.darken.butler.explorer.core.favorites.FavoriteItem
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionBarItem
 import eu.darken.butler.explorer.ui.explorer.util.ExplorerSelectionState
@@ -500,17 +504,29 @@ object MockDataProvider {
         )
     }
 
+    const val SAF_TREE_URI_DOCUMENTS = "content://com.android.externalstorage.documents/tree/primary%3ADocuments"
+    const val SAF_TREE_URI_SDCARD = "content://com.android.externalstorage.documents/tree/1A2B-3C4D%3A"
+    const val SAF_TREE_URI_USB = "content://com.android.externalstorage.documents/tree/18E4-9F02%3A"
+
+    /**
+     * [id] and [treeUri] are parameters because the list key and the navigation target both derive
+     * from them: two calls sharing them would be the same entry twice.
+     */
     fun createMockStorageSAF(
         name: String = "SD Card",
         icon: ImageVector = Icons.TwoTone.FolderShared,
         hasReadPermission: Boolean = true,
         hasWritePermission: Boolean = true,
+        id: String = "saf-mock-id",
+        treeUri: String = SAF_TREE_URI_DOCUMENTS,
+        totalBytes: Long = MockSizes.gb(999),
+        availableBytes: Long = MockSizes.gb(555),
     ): ExplorerItem.Storage.SAF {
         return ExplorerItem.Storage.SAF(
             location = SAFLocation(
-                id = "saf-mock-id",
-                treeUri = SafUri.parse("content://com.android.externalstorage.documents/tree/primary%3ADocuments"),
-                path = SAFPath.build("content://com.android.externalstorage.documents/tree/primary%3ADocuments"),
+                id = id,
+                treeUri = SafUri.parse(treeUri),
+                path = SAFPath.build(treeUri),
                 hasReadPermission = hasReadPermission,
                 hasWritePermission = hasWritePermission,
                 grantedAt = MockTimes.daysAgo(7),
@@ -518,26 +534,74 @@ object MockDataProvider {
             ),
             displayName = name.toCaString(),
             displayIcon = icon,
-            totalBytes = 999 * 1024 * 1024 * 1024L,
-            availableBytes = 555 * 1024 * 1024 * 1024L,
-            target = ExplorerNavigation.Target.Directory(
-                SAFPath.build("content://com.android.externalstorage.documents/tree/primary%3ADocuments")
-            )
+            totalBytes = totalBytes,
+            availableBytes = availableBytes,
+            target = ExplorerNavigation.Target.Directory(SAFPath.build(treeUri)),
         )
     }
 
     fun createMockShortcut(
         shortcutId: String = "device",
         name: String = "Device",
-        icon: ImageVector = Icons.TwoTone.PhoneAndroid
+        icon: ImageVector = Icons.TwoTone.PhoneAndroid,
+        target: ExplorerNavigation.Target = ExplorerNavigation.Target.Device,
     ): ExplorerItem.Shortcut {
         return ExplorerItem.Shortcut(
             shortcutId = shortcutId,
             displayName = name.toCaString(),
             displayIcon = icon,
-            target = ExplorerNavigation.Target.Device
+            target = target,
         )
     }
+
+    /** Localized like the real home screen's, unlike the plain-string [createMockShortcut]. */
+    fun createDeviceShortcut(): ExplorerItem.Shortcut = ExplorerItem.Shortcut(
+        shortcutId = "device",
+        displayName = R.string.explorer_navigation_device.toCaString(),
+        displayIcon = Icons.TwoTone.PhoneAndroid,
+        target = ExplorerNavigation.Target.Device,
+    )
+
+    fun createTrashShortcut(): ExplorerItem.Shortcut = ExplorerItem.Shortcut(
+        shortcutId = "trash",
+        displayName = R.string.explorer_navigation_trash.toCaString(),
+        displayIcon = Icons.TwoTone.Delete,
+        target = ExplorerNavigation.Target.Trash.Root,
+    )
+
+    // MARK: - Favorite Factories
+
+    private fun favoriteDirectory(
+        path: APath<*>,
+        childCount: Int,
+        daysAgo: Long,
+    ): FavoriteItem = FavoriteItem(
+        path = path,
+        state = FavoriteItem.State.Available(
+            ExplorerItem.RegularDirectory(
+                lookup = createMockLookup(
+                    name = path.name,
+                    path = path.path,
+                    size = 0L,
+                    fileType = FileType.DIRECTORY,
+                    modifiedAt = MockTimes.daysAgo(daysAgo),
+                ),
+                childCount = childCount,
+            ),
+        ),
+    )
+
+    fun createMockFavorites(): List<FavoriteItem> = listOf(
+        favoriteDirectory(LocalPath.build("/storage/emulated/0/Download"), childCount = 41, daysAgo = 1),
+        favoriteDirectory(LocalPath.build("/storage/emulated/0/DCIM/Camera"), childCount = 312, daysAgo = 1),
+        favoriteDirectory(LocalPath.build("/storage/emulated/0/Projects/butler"), childCount = 18, daysAgo = 4),
+        // Same SD identity as the home screen's storage entry, so the unavailable treatment reads
+        // as "the card is gone", not as an unrelated path.
+        FavoriteItem(
+            path = SAFPath.build(SAF_TREE_URI_SDCARD, "Backups"),
+            state = FavoriteItem.State.Unavailable(IOException("Storage not mounted")),
+        ),
+    )
 
     // MARK: - Trash Item Factories
 
@@ -927,12 +991,30 @@ object MockDataProvider {
         info = createMockEmptyDirectoryInfo(),
     )
 
-    fun createMockHomeLocation(
-        items: List<ExplorerItem> = listOf(
-            createMockShortcut("device", "Device", Icons.TwoTone.PhoneAndroid),
-            createMockStorageLocal(),
+    fun createMockHomeItems(): List<ExplorerItem> = listOf(
+        createDeviceShortcut(),
+        createMockStorageLocal(),
+        createMockStorageSAF(
+            name = "SD Card",
+            id = "saf-sdcard",
+            treeUri = SAF_TREE_URI_SDCARD,
+            totalBytes = MockSizes.gb(512),
+            availableBytes = MockSizes.gb(213),
         ),
-        info: ExplorerLocation.Home.Info = createMockHomeInfo(),
+        createMockStorageSAF(
+            name = "USB Drive",
+            icon = Icons.TwoTone.Usb,
+            id = "saf-usb",
+            treeUri = SAF_TREE_URI_USB,
+            totalBytes = MockSizes.gb(64),
+            availableBytes = MockSizes.gb(61),
+        ),
+        createTrashShortcut(),
+    )
+
+    fun createMockHomeLocation(
+        items: List<ExplorerItem> = createMockHomeItems(),
+        info: ExplorerLocation.Home.Info = createMockHomeInfo(shortcutCount = items.size),
     ): ExplorerLocation.Home = ExplorerLocation.Home(
         items = items,
         info = info,
@@ -972,6 +1054,21 @@ object MockDataProvider {
     )
 
     // MARK: - Action Bar Factories
+
+    /** Mirrors [eu.darken.butler.explorer.ui.explorer.actions.HomeActionProvider]. */
+    fun createDefaultHomeActions(
+        viewStyle: ExplorerViewStyle = ExplorerViewStyle.default(),
+    ): List<ExplorerActionBarItem> = listOf(
+        ExplorerActionBarItem.Common.Refresh(),
+        ExplorerActionBarItem.Common.Sort(),
+        ExplorerActionBarItem.Common.Filter(),
+        ExplorerActionBarItem.Common.UpdateViewStyle(
+            when (viewStyle) {
+                is ExplorerViewStyle.List -> ExplorerViewStyle.Grid()
+                is ExplorerViewStyle.Grid -> ExplorerViewStyle.List()
+            },
+        ),
+    )
 
     fun createDefaultDirectoryActions(
         createEnabled: Boolean = true,
