@@ -1,7 +1,6 @@
 package eu.darken.butler.workspace.ui.workspaces.adaptive
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
@@ -256,18 +255,15 @@ internal fun WorkspaceRailItem(
     val colorScheme = MaterialTheme.colorScheme
     val isAssigned = paneIndex != null
 
-    val containerColor by animateColorAsState(
-        targetValue = when {
-            isFocused -> colorScheme.secondaryContainer
-            // Opaque while dragging: the elevation shadow is drawn from the shape, not the fill,
-            // so a see-through card would carry a shadow and show other items through itself.
-            isDraggingItem -> colorScheme.surface
-            else -> Color.Transparent
-        },
+    val restingContainerColor by animateColorAsState(
+        targetValue = if (isFocused) colorScheme.secondaryContainer else Color.Transparent,
     )
-    val shadowElevation by animateDpAsState(
-        targetValue = if (isDraggingItem) 6.dp else 0.dp,
-    )
+    // Opaque while dragging: the elevation shadow is drawn from the shape, not the fill, so a
+    // see-through card would carry a shadow and show other items through itself. Fill and elevation
+    // both switch instantly so they can never be out of step mid-animation; the spring scale below
+    // supplies the motion cue for the lift.
+    val containerColor = if (isDraggingItem && !isFocused) colorScheme.surface else restingContainerColor
+    val shadowElevation = if (isDraggingItem) 6.dp else 0.dp
     val scale by animateFloatAsState(
         targetValue = if (isDraggingItem) 1.05f else 1f,
         animationSpec = spring(),
