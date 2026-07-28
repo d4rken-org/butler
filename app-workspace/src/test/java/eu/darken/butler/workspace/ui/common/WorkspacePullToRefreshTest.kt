@@ -3,6 +3,7 @@ package eu.darken.butler.workspace.ui.common
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
@@ -123,6 +124,34 @@ class WorkspacePullToRefreshTest : ComposeTest() {
         // starts there; the assertable node is the spinner centred inside it.
         val spinnerInset = (INDICATOR_CONTAINER_SIZE - SPINNER_SIZE) / 2
         composeTestRule.onNode(progressNode).assertTopPositionInRootIsEqualTo(ANCHOR + spinnerInset)
+    }
+
+    @Test
+    fun `the indicator stays visible briefly after refreshing ends`() {
+        composeTestRule.mainClock.autoAdvance = false
+        val refreshing = mutableStateOf(true)
+        composeTestRule.setContent {
+            PreviewWrapper {
+                WorkspacePullToRefreshBox(
+                    isRefreshing = refreshing.value,
+                    onRefresh = {},
+                    topBarStackState = rememberFloatingBarStackState(
+                        position = BarPosition.TOP,
+                        estimatedContentPadding = ANCHOR,
+                    ),
+                    content = {},
+                )
+            }
+        }
+
+        composeTestRule.onNode(progressNode).assertExists()
+
+        refreshing.value = false
+        composeTestRule.mainClock.advanceTimeBy(200)
+        composeTestRule.onNode(progressNode).assertExists()
+
+        composeTestRule.mainClock.advanceTimeBy(1200)
+        composeTestRule.onNode(progressNode).assertDoesNotExist()
     }
 
     companion object {

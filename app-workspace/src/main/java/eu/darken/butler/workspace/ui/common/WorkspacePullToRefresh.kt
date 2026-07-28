@@ -7,15 +7,19 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshState
+import androidx.compose.material3.pulltorefresh.pullToRefresh
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
@@ -28,13 +32,20 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStackState
 import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.filter
 import kotlin.math.roundToInt
+import kotlin.time.Duration.Companion.seconds
 
 private const val AlphaRampFraction = 0.5f
 private const val MinScale = 0.6f
 private val IndicatorContainerSize = 40.dp
 private val SpinnerSize = 20.dp
 private val SpinnerStrokeWidth = 2.5.dp
+private val MinimumVisibleDuration = 1.seconds
+
+// Deliberately above Material3's default of 80.dp so a casual swipe does not trigger a refresh.
+private val PullThreshold = PullToRefreshDefaults.PositionalThreshold * 1.25f
 
 /**
  * Pull-to-refresh for workspace pages, with an indicator that pops in at a fixed anchor instead of
@@ -45,7 +56,9 @@ private val SpinnerStrokeWidth = 2.5.dp
  * [topBarStackState], so it appears just below the top floating bar stack rather than emerging
  * from behind it mid-pull.
  *
- * Gesture handling, threshold and [onRefresh] semantics are Material3's, unchanged.
+ * The pull has to travel further than Material3's default before [onRefresh] fires, and once it
+ * does the indicator stays on screen for at least [MinimumVisibleDuration] even if the caller's
+ * refresh finishes sooner - only the visual is held, [onRefresh] still fires immediately.
  */
 @Composable
 fun WorkspacePullToRefreshBox(
@@ -56,22 +69,39 @@ fun WorkspacePullToRefreshBox(
     state: PullToRefreshState = rememberPullToRefreshState(),
     content: @Composable BoxScope.() -> Unit,
 ) {
-    PullToRefreshBox(
-        isRefreshing = isRefreshing,
-        onRefresh = onRefresh,
-        modifier = modifier,
-        state = state,
-        indicator = {
-            WorkspacePullToRefreshIndicator(
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .offset { IntOffset(x = 0, y = topBarStackState.contentPaddingPx.roundToInt()) },
-                progress = { state.distanceFraction },
-                isRefreshing = isRefreshing,
-            )
-        },
-        content = content,
-    )
+    val currentRefreshing by rememberUpdatedState(isRefreshing)
+    var holding by remember { mutableStateOf(false) }
+    // Keyed on Unit, not on isRefreshing: keying on the flag would cancel the pending hold the
+    // moment refreshing ends, leaving `holding` stuck at true and the indicator on screen forever.
+    LaunchedEffect(Unit) {
+        snapshotFlow { currentRefreshing }
+            .filter { it }
+            .collect {
+                holding = true
+                delay(MinimumVisibleDuration)
+                holding = false
+            }
+    }
+    val effectiveRefreshing = isRefreshing || holding
+
+    Box(
+        modifier = modifier.pullToRefresh(
+            isRefreshing = effectiveRefreshing,
+            state = state,
+            threshold = PullThreshold,
+            onRefresh = onRefresh,
+        ),
+        contentAlignment = Alignment.TopStart,
+    ) {
+        content()
+        WorkspacePullToRefreshIndicator(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .offset { IntOffset(x = 0, y = topBarStackState.contentPaddingPx.roundToInt()) },
+            progress = { state.distanceFraction },
+            isRefreshing = effectiveRefreshing,
+        )
+    }
 }
 
 @Preview2
