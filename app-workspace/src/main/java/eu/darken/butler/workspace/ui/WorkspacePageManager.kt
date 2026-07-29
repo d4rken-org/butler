@@ -678,12 +678,15 @@ class WorkspacePageManager @Inject constructor(
             return currentSelections
         }
 
+        fun lastUsed(paneIndex: Int): Instant {
+            val occupant = currentSelections[paneIndex] ?: return Instant.DISTANT_PAST
+            return currentState.workspaceAccessTimes[occupant] ?: Instant.DISTANT_PAST
+        }
+
         val victim = (0 until paneCount)
             .filter { it != sourcePaneIndex }
-            .minWithOrNull(
-                compareBy<Int> { currentState.workspaceAccessTimes[currentSelections[it]] ?: Instant.DISTANT_PAST }
-                    .thenBy { it }
-            )
+            // Ties (never visited, or two stamps in the same instant) resolve to the lowest index.
+            .minWithOrNull(compareBy<Int> { lastUsed(it) }.thenBy { it })
         if (victim == null) {
             log(TAG) { "assignPane: All panes full and none evictable, $workspaceId stays unassigned" }
             return currentSelections
