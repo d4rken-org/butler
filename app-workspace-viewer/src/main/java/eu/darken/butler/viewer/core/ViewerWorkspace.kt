@@ -25,6 +25,7 @@ import eu.darken.butler.workspace.core.WorkspaceDisplay
 import eu.darken.butler.workspace.core.WorkspaceFactory
 import eu.darken.butler.workspace.core.WorkspaceTypeKey
 import eu.darken.butler.workspace.core.initialInfo
+import eu.darken.butler.workspace.core.isPausableAsChild
 import eu.darken.butler.workspace.core.label
 import eu.darken.butler.workspace.core.stateInWorkspace
 import kotlinx.coroutines.CancellationException
@@ -72,6 +73,9 @@ class ViewerWorkspace @AssistedInject constructor(
 
     private val seedDisplay = deriveViewerDisplay(creationArguments)
 
+    // Only the concrete variant carries a caller; the sealed interface itself is not caller-aware.
+    private val callerArguments = creationArguments as? Workspace.ArgumentsWithCaller
+
     override val info: StateFlow<Workspace.Info> = stateFlow.map { current ->
         Workspace.Info(
             id = id,
@@ -84,6 +88,12 @@ class ViewerWorkspace @AssistedInject constructor(
                 is ViewerContent.Loading -> Workspace.LifecycleState.Initializing
                 else -> Workspace.LifecycleState.Ready
             },
+            callerWorkspaceId = callerArguments?.callerWorkspaceId,
+            modalPresentation = callerArguments?.modalPresentation
+                ?: Workspace.ModalPresentationMode.PANE_LOCAL,
+            // Built by hand instead of via initialInfo(), so the relationship fields have to be
+            // carried explicitly - a missing one here silently reads as "not pausable with my owner"
+            pausableAsChild = creationArguments.isPausableAsChild,
             contentPath = filePath,
         )
     }.stateInWorkspace(
@@ -106,9 +116,13 @@ class ViewerWorkspace @AssistedInject constructor(
         loadJob = scope.launch { load() }
     }
 
-    override suspend fun createArguments(): ViewerArguments = ViewerArguments.Default(
-        filePath = filePath,
-    )
+    /**
+     * The creation arguments verbatim: a viewer holds no state beyond its file path, and the caller
+     * has to survive. Pause captures these and rebuilds the workspace from them, so dropping the
+     * caller would resume a drill-down as a tab - outside its ownership unit and no longer closing
+     * with the workspace that opened it.
+     */
+    override suspend fun createArguments(): ViewerArguments = creationArguments
 
     override suspend fun release() {
         log(tag, INFO) { "release()" }
