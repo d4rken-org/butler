@@ -112,26 +112,29 @@ fun StorageListItems(
 
                     else -> {
                         // Storage breakdown bars
-                        if (app?.appSize != null) {
+                        val appSize = app?.appSize
+                        if (appSize != null) {
                             StorageItem(
                                 label = stringResource(R.string.apps_storage_app_label),
-                                size = app.appSize,
+                                size = appSize,
                                 color = MaterialTheme.colorScheme.primary
                             )
                         }
 
-                        if (app?.dataSize != null && app.dataSize > 0) {
+                        val dataSize = app?.dataSize
+                        if (dataSize != null && dataSize > 0) {
                             StorageItem(
                                 label = stringResource(R.string.apps_data_size_label),
-                                size = app.dataSize,
+                                size = dataSize,
                                 color = MaterialTheme.colorScheme.secondary
                             )
                         }
 
-                        if (app?.cacheSize != null && app.cacheSize > 0) {
+                        val cacheSize = app?.cacheSize
+                        if (cacheSize != null && cacheSize > 0) {
                             StorageItem(
                                 label = stringResource(R.string.apps_cache_size_label),
-                                size = app.cacheSize,
+                                size = cacheSize,
                                 color = MaterialTheme.colorScheme.tertiary
                             )
                         }
