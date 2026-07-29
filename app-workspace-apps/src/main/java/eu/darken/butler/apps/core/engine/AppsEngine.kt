@@ -5,6 +5,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.qualifiers.ApplicationContext
+import eu.darken.butler.apps.core.AppSizeCache
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
@@ -23,12 +24,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.updateAndGet
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 
@@ -39,6 +43,7 @@ class AppsEngine @AssistedInject constructor(
     private val pkgRepo: PkgRepo,
     private val userManager: UserManager2,
     private val dispatcherProvider: DispatcherProvider,
+    private val appSizeCache: AppSizeCache,
 ) {
 
     private val tag = logTag("Apps", "Workspace", workspaceId.shortTag, "Engine")
@@ -65,7 +70,8 @@ class AppsEngine @AssistedInject constructor(
             _sortSettings,
             _searchQuery,
             _selectedAppIds,
-        ) { packages, userProfiles, filterConfig, sortSettings, searchQuery, selectedAppIds ->
+            appSizeCache.snapshot,
+        ) { packages, userProfiles, filterConfig, sortSettings, searchQuery, selectedAppIds, sizes ->
             log(tag, DEBUG) { "Processing ${packages.size} packages" }
 
             // Build a map of user handles to profiles for efficient lookup
@@ -75,7 +81,7 @@ class AppsEngine @AssistedInject constructor(
                 try {
                     val profile = userProfileMap[pkg.userHandle]
                         ?: UserProfile2(handle = pkg.userHandle)
-                    AppItem.from(pkg, userProfile = profile, appSize = null)
+                    AppItem.from(pkg, userProfile = profile, appSize = sizes.sizes[pkg.installId]?.total)
                 } catch (e: Exception) {
                     log(tag, WARN) { "Failed to create AppItem for ${pkg.id.name}: ${e.asLog()}" }
                     null
@@ -108,17 +114,40 @@ class AppsEngine @AssistedInject constructor(
                 emit(_state.value.copy(isLoading = false, error = e))
             }
 
-        // Cheap overlay of the refresh flag. Because _isRefreshing never completes, this keeps
-        // clearing the indicator (via refresh()'s finally) even if the pipeline above terminates.
-        // Fully-qualified: the project's combine helper only defines 3+ arg overloads.
-        kotlinx.coroutines.flow.combine(processedState, _isRefreshing) { state, isRefreshing ->
-            state.copy(isRefreshing = isRefreshing)
+        // Cheap overlay of the progress flags. Because these never complete, this keeps clearing the
+        // indicator (via refresh()'s finally) even if the pipeline above terminates.
+        combine(
+            processedState,
+            _isRefreshing,
+            appSizeCache.isResolving,
+        ) { state, isRefreshing, isResolvingSizes ->
+            state.copy(isRefreshing = isRefreshing, isResolvingSizes = isResolvingSizes)
         }
             .onEach { newState ->
                 log(tag) { "State updated: ${newState.filteredApps.size}/${newState.apps.size} apps visible" }
                 _state.value = newState
             }
             .launchIn(workspaceScope)
+
+        // Size resolution is its own cancellable job, not a side effect of the state pipeline: the
+        // key deliberately excludes the cache's own output, which would otherwise feed back into it.
+        workspaceScope.launch {
+            // Fully-qualified: the project's combine helper only defines 3+ arg overloads.
+            kotlinx.coroutines.flow.combine(_state, appSizeCache.isAvailable) { state, isAvailable ->
+                Triple(state.sortSettings.mode, state.filteredApps.map { it.pkg }, isAvailable)
+            }
+                .distinctUntilChanged { old, new ->
+                    old.first == new.first &&
+                        old.third == new.third &&
+                        old.second.map { it.installId } == new.second.map { it.installId }
+                }
+                // Cancels the in-flight batch when the user leaves size sorting.
+                .collectLatest { (mode, pkgs, isAvailable) ->
+                    if (mode != SortSettings.Mode.SIZE || !isAvailable) return@collectLatest
+                    log(tag) { "Resolving sizes for ${pkgs.size} apps" }
+                    appSizeCache.resolve(pkgs)
+                }
+        }
     }
 
     suspend fun updateFilterConfig(config: TagFilterConfig) = withContext(dispatcherProvider.Default) {

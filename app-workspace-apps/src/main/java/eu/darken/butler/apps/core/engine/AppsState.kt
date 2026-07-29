@@ -14,6 +14,7 @@ data class AppsState(
     val selectedAppIds: Set<InstallId> = emptySet(),
     val isLoading: Boolean = false,
     val isRefreshing: Boolean = false,
+    val isResolvingSizes: Boolean = false,
     val error: Throwable? = null,
 ) {
     val isMultiSelectMode: Boolean

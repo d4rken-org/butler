@@ -23,6 +23,7 @@ data class AppItem(
     val packageName: String,
     val versionName: String?,
     val versionCode: Long,
+    /** Total storage footprint (app + data + cache), null while unmeasured. */
     val appSize: Long?,
     val isSystemApp: Boolean,
     val isEnabled: Boolean,
@@ -98,6 +99,8 @@ fun AppItem.matchesSearch(context: Context, query: String): Boolean {
 fun Collection<AppItem>.sortedBy(context: Context, settings: SortSettings): List<AppItem> {
     val sorted = when (settings.mode) {
         SortSettings.Mode.NAME -> sortedBy { it.label.get(context).lowercase() }
+        // An unmeasured app sorts as 0: first ascending, last descending - so the common
+        // "largest first" view puts unknowns at the bottom.
         SortSettings.Mode.SIZE -> sortedBy { it.appSize ?: 0L }
         SortSettings.Mode.INSTALL_DATE -> sortedBy { it.installedAt }
         SortSettings.Mode.UPDATE_DATE -> sortedBy { it.updatedAt }

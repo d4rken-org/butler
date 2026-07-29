@@ -56,6 +56,7 @@ class AppsWorkspace @AssistedInject constructor(
     dispatcherProvider: DispatcherProvider,
     appsEngineFactory: AppsEngine.Factory,
     private val appsSettings: AppsSettings,
+    private val appSizeCache: AppSizeCache,
     private val pkgOps: PkgOps,
     private val rootManager: RootManager,
     private val adbManager: AdbManager,
@@ -94,6 +95,7 @@ class AppsWorkspace @AssistedInject constructor(
             val hasAdb: Boolean = false,
             val isLoading: Boolean = false,
             val isRefreshing: Boolean = false,
+            val isResolvingSizes: Boolean = false,
             val error: Throwable? = null,
         ) : State {
             // Selection state counts only visible apps, so it always matches what actions operate on.
@@ -226,6 +228,7 @@ class AppsWorkspace @AssistedInject constructor(
                     hasAdb = hasAdb,
                     isLoading = engineState.isLoading,
                     isRefreshing = engineState.isRefreshing,
+                    isResolvingSizes = engineState.isResolvingSizes,
                     error = engineState.error,
                 )
             }
@@ -348,6 +351,7 @@ class AppsWorkspace @AssistedInject constructor(
                 throw PkgOpsException("Failed to clear cache for ${failures.size}/${apps.size} apps", failures.first().second)
             }
         } finally {
+            appSizeCache.invalidate(apps.map { it.pkg.installId })
             appsEngine.refresh()
             appsEngine.clearSelection()
         }
@@ -369,6 +373,7 @@ class AppsWorkspace @AssistedInject constructor(
                 throw PkgOpsException("Failed to clear data for ${failures.size}/${apps.size} apps", failures.first().second)
             }
         } finally {
+            appSizeCache.invalidate(apps.map { it.pkg.installId })
             appsEngine.refresh()
             appsEngine.clearSelection()
         }

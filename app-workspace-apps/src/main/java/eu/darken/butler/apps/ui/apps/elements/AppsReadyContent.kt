@@ -63,7 +63,8 @@ internal fun AppsReadyContent(
 
     WorkspacePullToRefreshBox(
         modifier = modifier,
-        isRefreshing = state.isRefreshing,
+        // Size measurement reuses the pull-to-refresh indicator instead of adding a second affordance.
+        isRefreshing = state.isRefreshing || state.isResolvingSizes,
         onRefresh = {
             // Ignore pulls during the initial load — that scan is already running.
             if (!state.isLoading) onPageAction(AppsPageAction.Apps.Refresh)
