@@ -37,7 +37,6 @@ import kotlinx.coroutines.flow.filter
 import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.seconds
 
-private const val AlphaRampFraction = 0.5f
 private const val MinScale = 0.6f
 private val IndicatorContainerSize = 40.dp
 private val SpinnerSize = 20.dp
@@ -142,7 +141,14 @@ internal fun WorkspacePullToRefreshIndicator(
                     // release and only returns to the threshold once isRefreshing has reached
                     // composition, which would otherwise show as a visible dip and rebound.
                     val fraction = if (isRefreshing) 1f else currentProgress().coerceIn(0f, 1f)
-                    alpha = (fraction / AlphaRampFraction).coerceIn(0f, 1f)
+                    // Opacity tracks the whole pull, so the indicator is only fully formed at the
+                    // point where releasing actually refreshes. It has to: unlike Material3's
+                    // indicator this one sits at a fixed on-screen anchor rather than translating in
+                    // from above, so alpha is the only thing conveying how far along the pull is.
+                    // Ramping over a fraction of the pull made an incidental overscroll - scrolling
+                    // back to the top of a list, where the leftover drag feeds the pull - render a
+                    // solid spinner that then retracted without refreshing.
+                    alpha = fraction
                     scaleX = MinScale + (1f - MinScale) * fraction
                     scaleY = scaleX
                     shape = PullToRefreshDefaults.indicatorShape
