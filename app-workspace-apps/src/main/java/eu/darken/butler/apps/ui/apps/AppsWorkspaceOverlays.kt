@@ -75,6 +75,7 @@ fun AppsWorkspaceOverlays(
         onConfirmUninstall = { onPageAction(AppsPageAction.Dialog.ConfirmUninstall(it)) },
         onConfirmClearCache = { onPageAction(AppsPageAction.Dialog.ConfirmClearCache(it)) },
         onConfirmClearData = { onPageAction(AppsPageAction.Dialog.ConfirmClearData(it)) },
+        onOpenSizeSetup = { onPageAction(AppsPageAction.Dialog.OpenSizeSetup) },
         topInset = statusBarInset,
         bottomInset = navBarInset,
     )
@@ -87,7 +88,26 @@ private fun AppsWorkspaceOverlaysSortOptionsPreview() {
     AppsWorkspaceOverlays(
         stateSource = flowOf(
             AppsWorkspaceViewModel.State.Ready(
-                dialogState = AppsDialogState.SortOptions(currentSortSettings = SortSettings()),
+                dialogState = AppsDialogState.SortOptions(
+                    currentSortSettings = SortSettings(),
+                    sizesAvailable = true,
+                ),
+            )
+        ),
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun AppsWorkspaceOverlaysSortOptionsNoUsageAccessPreview() {
+    AppsWorkspaceOverlays(
+        stateSource = flowOf(
+            AppsWorkspaceViewModel.State.Ready(
+                dialogState = AppsDialogState.SortOptions(
+                    currentSortSettings = SortSettings(mode = SortSettings.Mode.SIZE),
+                    sizesAvailable = false,
+                ),
             )
         ),
     )

@@ -10,6 +10,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import eu.darken.butler.apps.core.AppSizeCache
 import eu.darken.butler.apps.core.AppsSettings
 import eu.darken.butler.apps.core.AppsWorkspace
 import eu.darken.butler.apps.core.details.normalizedAppLabel
@@ -22,11 +23,14 @@ import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.navigation.Nav
+import eu.darken.butler.common.navigation.destSetup
 import eu.darken.butler.common.pkgs.Pkg
 import eu.darken.butler.common.pkgs.features.AppStore
 import eu.darken.butler.common.pkgs.features.InstallId
 import eu.darken.butler.common.pkgs.features.SourceAvailable
 import eu.darken.butler.common.ui.ViewModel4
+import eu.darken.butler.setup.core.SetupModule
 import eu.darken.butler.workspace.contracts.apps.AppDetailsArguments
 import eu.darken.butler.workspace.contracts.apps.AppTag
 import eu.darken.butler.workspace.contracts.apps.AppsViewStyle
@@ -57,6 +61,7 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
     workspaceProvider: WorkspaceProvider,
     private val workspaceRemote: WorkspaceRemote,
     private val appsSettings: AppsSettings,
+    private val appSizeCache: AppSizeCache,
 ) : ViewModel4(dispatchers, logTag("Apps", "Workspace", id.shortTag, "Page")) {
 
     private val workspaceSource: Flow<AppsWorkspace?> =
@@ -343,7 +348,25 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
     fun showSortDialog() = launch {
         log(tag) { "Showing sort dialog" }
         val currentState = getReadyState()
-        dialogStateFlow.value = AppsDialogState.SortOptions(currentState.sortSettings)
+        appSizeCache.refreshAvailability()
+        dialogStateFlow.value = AppsDialogState.SortOptions(
+            currentSortSettings = currentState.sortSettings,
+            sizesAvailable = appSizeCache.isAvailable.value,
+        )
+    }
+
+    fun onOpenSizePermissionSetup() = launch {
+        log(tag) { "Opening setup for usage access" }
+        // Dismiss first, otherwise a dialog that captured sizesAvailable=false lingers underneath
+        // Setup and reappears stale.
+        dialogStateFlow.value = AppsDialogState.None
+        navTo(
+            Nav.Main.destSetup(
+                typeFilter = setOf(SetupModule.Type.USAGE_STATS),
+                satisfyingCombos = setOf(setOf(SetupModule.Type.USAGE_STATS)),
+                autoCloseWhenComplete = true,
+            )
+        )
     }
 
     fun dismissDialog() = launch {
@@ -427,6 +450,7 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
             is AppsPageAction.Dialog.ConfirmUninstall -> performUninstallApps(action.apps)
             is AppsPageAction.Dialog.ConfirmClearCache -> performClearCacheApps(action.apps)
             is AppsPageAction.Dialog.ConfirmClearData -> performClearDataApps(action.apps)
+            is AppsPageAction.Dialog.OpenSizeSetup -> onOpenSizePermissionSetup()
 
             // Action bar clicks
             is AppsPageAction.ActionBarClick -> onActionBarClick(action.item)

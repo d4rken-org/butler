@@ -20,6 +20,7 @@ sealed interface AppsDialogState {
 
     data class SortOptions(
         val currentSortSettings: SortSettings,
+        val sizesAvailable: Boolean = true,
     ) : AppsDialogState
 
     data class ConfirmDisable(

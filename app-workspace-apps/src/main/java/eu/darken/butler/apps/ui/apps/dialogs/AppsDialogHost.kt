@@ -23,6 +23,7 @@ fun AppsDialogHost(
     onConfirmUninstall: (List<AppItem>) -> Unit,
     onConfirmClearCache: (List<AppItem>) -> Unit,
     onConfirmClearData: (List<AppItem>) -> Unit,
+    onOpenSizeSetup: () -> Unit,
     topInset: Dp = 0.dp,
     bottomInset: Dp = 0.dp,
 ) {
@@ -60,7 +61,9 @@ fun AppsDialogHost(
                 currentSortSettings = dialogState.currentSortSettings,
                 onDismiss = onDismiss,
                 onApply = onSortApply,
+                onOpenSetup = onOpenSizeSetup,
                 modifier = modifier,
+                sizesAvailable = dialogState.sizesAvailable,
             )
         }
 

@@ -33,7 +33,9 @@ fun SortOptionsDialog(
     currentSortSettings: SortSettings,
     onDismiss: () -> Unit,
     onApply: (SortSettings) -> Unit,
+    onOpenSetup: () -> Unit,
     modifier: Modifier = Modifier,
+    sizesAvailable: Boolean = true,
 ) {
     var selectedMode by rememberSaveable(currentSortSettings) { mutableStateOf(currentSortSettings.mode) }
     var isReversed by rememberSaveable(currentSortSettings) { mutableStateOf(currentSortSettings.reversed) }
@@ -76,6 +78,26 @@ fun SortOptionsDialog(
                                 modifier = Modifier.padding(start = 8.dp),
                                 style = MaterialTheme.typography.bodyMedium
                             )
+                        }
+                    }
+                }
+
+                if (selectedMode == SortSettings.Mode.SIZE) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    if (sizesAvailable) {
+                        Text(
+                            text = stringResource(R.string.apps_sort_mode_size_slowdown_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    } else {
+                        Text(
+                            text = stringResource(R.string.apps_size_permission_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        TextButton(onClick = onOpenSetup) {
+                            Text(stringResource(CommonR.string.general_open_setup_action))
                         }
                     }
                 }
