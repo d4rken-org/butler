@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Scale
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import eu.darken.butler.apps.R
@@ -16,15 +17,17 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.formatFileSize
 
+const val APP_SIZE_CHIP_TAG = "app-size-chip"
+
 @Composable
 fun AppSizeChip(
-    bytes: Long,
     modifier: Modifier = Modifier,
+    bytes: Long,
     compact: Boolean = false,
 ) {
     val label = formatFileSize(bytes)
     ButlerChip(
-        modifier = modifier,
+        modifier = modifier.testTag(APP_SIZE_CHIP_TAG),
         label = label,
         leadingIcon = Icons.TwoTone.Scale,
         size = if (compact) ButlerChipSize.Mini else ButlerChipSize.Compact,

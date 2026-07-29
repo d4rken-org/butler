@@ -2,6 +2,7 @@ package eu.darken.butler.apps.ui.apps.items
 
 import android.content.Context
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
@@ -98,7 +99,6 @@ class AppGridItemTest : ComposeTest() {
 
     @Test
     fun `tile shows no size chip while the size is unknown`() {
-        val bytes = AppsMockDataProvider.MockSizes.mb(128)
         composeTestRule.setContent {
             PreviewWrapper {
                 AppGridItem(
@@ -114,6 +114,8 @@ class AppGridItemTest : ComposeTest() {
             }
         }
 
-        composeTestRule.onNodeWithText(formatFileSize(context, bytes)).assertDoesNotExist()
+        // By tag, not by an expected size string: asserting a size that was never supplied is absent
+        // would also pass if the unknown branch regressed to rendering a chip reading "0 B".
+        composeTestRule.onNodeWithTag(APP_SIZE_CHIP_TAG, useUnmergedTree = true).assertDoesNotExist()
     }
 }
