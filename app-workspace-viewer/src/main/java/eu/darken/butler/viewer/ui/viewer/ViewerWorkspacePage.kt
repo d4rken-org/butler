@@ -32,10 +32,17 @@ import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
 import eu.darken.butler.workspace.ui.insets.rememberPaneFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
 import me.saket.telephoto.zoomable.ZoomableState
 import me.saket.telephoto.zoomable.rememberZoomableState
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
+
+/** Page-level intents the viewer hands back to its host. */
+sealed interface ViewerPageAction {
+    /** Leave a drill-down viewer and return to the workspace that opened the file. */
+    data object Close : ViewerPageAction
+}
 
 @Composable
 fun ViewerWorkspacePageHost(
@@ -52,15 +59,22 @@ fun ViewerWorkspacePageHost(
     }
 
     val state by vm.state.collectAsState(initial = null)
+    val callerWorkspaceId by vm.callerWorkspaceId.collectAsState(initial = null)
 
     state?.let {
         ViewerWorkspacePage(
             workspaceId = id,
             design = design,
             state = it,
+            callerWorkspaceId = callerWorkspaceId,
             onOpenWith = { vm.openWith() },
             onRetry = { vm.retry() },
             onShareError = { error -> vm.shareError(error) },
+            onPageAction = { action ->
+                when (action) {
+                    ViewerPageAction.Close -> vm.close()
+                }
+            },
         )
     }
 }
@@ -71,10 +85,17 @@ fun ViewerWorkspacePage(
     workspaceId: Workspace.Id,
     design: WorkspaceDesign = WorkspaceDesign(),
     state: ViewerWorkspaceViewModel.State,
+    callerWorkspaceId: Workspace.Id? = null,
     onOpenWith: () -> Unit = {},
     onRetry: () -> Unit = {},
     onShareError: (Throwable) -> Unit = {},
+    onPageAction: (ViewerPageAction) -> Unit = {},
 ) {
+    // A drill-down viewer is an overlay in its opener's pane, so back belongs to it in every phase -
+    // including while the image loads and after a failure, where there is nothing else to dismiss.
+    val isModal = callerWorkspaceId != null
+    WorkspaceBackHandler(enabled = isModal) { onPageAction(ViewerPageAction.Close) }
+
     val topBarStackState = rememberPaneFloatingBarStackState(
         position = BarPosition.TOP,
         defaultSpacing = 8.dp,
@@ -149,6 +170,9 @@ fun ViewerWorkspacePage(
                                 fileName = state.path.name,
                                 fullPath = state.path.path,
                                 isCollapsed = isToolbarCollapsed,
+                                onBackClick = if (isModal) {
+                                    { onPageAction(ViewerPageAction.Close) }
+                                } else null,
                             )
                         }
                     },
@@ -263,6 +287,22 @@ private fun ViewerWorkspacePageImagePreview() {
             path = previewPath,
             imageSource = null,
         ),
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ViewerWorkspacePageModalPreview() {
+    ViewerWorkspacePage(
+        workspaceId = Workspace.Id(),
+        state = ViewerWorkspaceViewModel.State.Ready(
+            content = ViewerContent.Image(MimeInfo("image/jpeg")),
+            fileInfo = previewFileInfo,
+            path = previewPath,
+            imageSource = null,
+        ),
+        callerWorkspaceId = Workspace.Id(),
     )
 }
 

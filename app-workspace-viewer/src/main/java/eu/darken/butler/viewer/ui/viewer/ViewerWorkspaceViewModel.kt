@@ -20,7 +20,9 @@ import eu.darken.butler.viewer.core.ViewerWorkspace
 import eu.darken.butler.workspace.core.NoAppForFileException
 import eu.darken.butler.workspace.core.OpenWithIntentUseCase
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceProvider
+import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.ui.page.WorkspacePageChrome
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
@@ -40,6 +42,7 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
     dispatchers: DispatcherProvider,
     @ApplicationContext private val context: Context,
     private val workspaceProvider: WorkspaceProvider,
+    private val workspaceRemote: WorkspaceRemote,
     private val imageSourceFactory: GatewayZoomableImageSource.Factory,
     private val openWithIntentUseCase: OpenWithIntentUseCase,
     chromeFactory: WorkspacePageChrome.Factory,
@@ -79,6 +82,17 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
         workspace.state.map { workspace.filePath to it }
     }
 
+    /**
+     * Kept out of [State] on purpose: the page needs it in every phase, and [State.Initializing] and
+     * [State.Error] carry no workspace data. Back has to work while the file loads and after a
+     * decode failure - a pane-local overlay has no enclosing dialog the user could dismiss instead.
+     */
+    val callerWorkspaceId = workspaceSource
+        .flatMapLatest { it.info }
+        .map { it.callerWorkspaceId }
+        .distinctUntilChanged()
+        .asStateFlow()
+
     val state = combine(snapshots, renderErrorFlow, imageSourceFlow) { snapshot, renderError, imageSource ->
         val (path, workspaceState) = snapshot
         val content = renderError?.let { ViewerContent.Failed(it) } ?: workspaceState.content
@@ -106,6 +120,11 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
         renderErrorFlow.value = null
         attemptFlow.update { it + 1 }
         workspaceSource.first().reload()
+    }
+
+    fun close() = launch {
+        log(tag, INFO) { "close()" }
+        workspaceRemote.execute(WorkspaceAction.Close(id))
     }
 
     fun openWith() = launch {

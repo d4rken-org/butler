@@ -14,8 +14,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.twotone.ArrowBack
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -53,6 +56,7 @@ fun ViewerToolbarCard(
     fileName: String,
     fullPath: String,
     isCollapsed: Boolean = false,
+    onBackClick: (() -> Unit)? = null,
 ) {
     val cardPadding by animateDpAsState(
         targetValue = if (isCollapsed) CutoutCardDefaults.ContentPaddingCollapsed else CutoutCardDefaults.ContentPaddingExpanded,
@@ -78,10 +82,11 @@ fun ViewerToolbarCard(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 8.dp),
+                    .padding(start = if (onBackClick == null) 8.dp else 0.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
+                onBackClick?.let { ViewerBackButton(onClick = it) }
                 Icon(
                     modifier = Modifier.size(24.dp),
                     imageVector = Workspace.Type.VIEWER.icon,
@@ -107,6 +112,10 @@ fun ViewerToolbarCard(
                         .padding(end = cutoutWidth),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
+                    onBackClick?.let {
+                        ViewerBackButton(onClick = it)
+                        Spacer(modifier = Modifier.width(4.dp))
+                    }
                     Icon(
                         modifier = Modifier.size(24.dp),
                         imageVector = Workspace.Type.VIEWER.icon,
@@ -156,6 +165,31 @@ fun ViewerToolbarCard(
     }
 }
 
+/** Leaves a drill-down viewer; absent when the viewer is a tab of its own. */
+@Composable
+private fun ViewerBackButton(
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    IconButton(
+        onClick = onClick,
+        modifier = modifier.size(40.dp),
+    ) {
+        Icon(
+            imageVector = Icons.AutoMirrored.TwoTone.ArrowBack,
+            contentDescription = stringResource(R.string.viewer_back_action),
+            tint = MaterialTheme.colorScheme.primary,
+        )
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ViewerBackButtonPreview() {
+    ViewerBackButton(onClick = {})
+}
+
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
@@ -180,6 +214,35 @@ private fun ViewerToolbarCardLongPathPreview() {
         fileName = "a-really-quite-unreasonably-long-screenshot-file-name-2024-08-17.png",
         fullPath = "/storage/emulated/0/Android/data/eu.darken.butler/files/backups/2024/august/" +
             "screenshots/pending-upload/a-really-quite-unreasonably-long-screenshot-file-name-2024-08-17.png",
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ViewerToolbarCardModalPreview() {
+    ViewerToolbarCard(
+        modifier = Modifier.width(360.dp),
+        workspaceId = Workspace.Id(),
+        design = WorkspaceDesign(),
+        fileName = "IMG_20240817_183042_HDR.jpg",
+        fullPath = "/storage/emulated/0/DCIM/Camera/IMG_20240817_183042_HDR.jpg",
+        onBackClick = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ViewerToolbarCardModalCollapsedPreview() {
+    ViewerToolbarCard(
+        modifier = Modifier.width(360.dp),
+        workspaceId = Workspace.Id(),
+        design = WorkspaceDesign(),
+        fileName = "IMG_20240817_183042_HDR.jpg",
+        fullPath = "/storage/emulated/0/DCIM/Camera/IMG_20240817_183042_HDR.jpg",
+        isCollapsed = true,
+        onBackClick = {},
     )
 }
 
