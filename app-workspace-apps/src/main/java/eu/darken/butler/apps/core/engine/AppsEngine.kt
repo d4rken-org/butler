@@ -14,6 +14,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.pkgs.PkgRepo
 import eu.darken.butler.common.pkgs.features.InstallId
+import eu.darken.butler.common.pkgs.features.Installed
 import eu.darken.butler.common.pkgs.pkgs
 import eu.darken.butler.common.user.UserManager2
 import eu.darken.butler.common.user.UserProfile2
@@ -129,23 +130,34 @@ class AppsEngine @AssistedInject constructor(
             }
             .launchIn(workspaceScope)
 
-        // Size resolution is its own cancellable job, not a side effect of the state pipeline: the
-        // key deliberately excludes the cache's own output, which would otherwise feed back into it.
+        // Size resolution is its own cancellable job, not a side effect of the state pipeline. The
+        // key carries the cache's revision but not its contents: publishing sizes leaves the
+        // revision untouched, so this can't feed back into itself, while an invalidation bumps it
+        // and re-triggers measurement of the ids that were just dropped.
         workspaceScope.launch {
-            // Fully-qualified: the project's combine helper only defines 3+ arg overloads.
-            kotlinx.coroutines.flow.combine(_state, appSizeCache.isAvailable) { state, isAvailable ->
-                Triple(state.sortSettings.mode, state.filteredApps.map { it.pkg }, isAvailable)
+            combine(
+                _state,
+                appSizeCache.isAvailable,
+                appSizeCache.snapshot,
+            ) { state, isAvailable, snapshot ->
+                ResolveTrigger(
+                    mode = state.sortSettings.mode,
+                    pkgs = state.filteredApps.map { it.pkg },
+                    isAvailable = isAvailable,
+                    revision = snapshot.revision,
+                )
             }
                 .distinctUntilChanged { old, new ->
-                    old.first == new.first &&
-                        old.third == new.third &&
-                        old.second.map { it.installId } == new.second.map { it.installId }
+                    old.mode == new.mode &&
+                        old.isAvailable == new.isAvailable &&
+                        old.revision == new.revision &&
+                        old.pkgs.map { it.installId } == new.pkgs.map { it.installId }
                 }
                 // Cancels the in-flight batch when the user leaves size sorting.
-                .collectLatest { (mode, pkgs, isAvailable) ->
-                    if (mode != SortSettings.Mode.SIZE || !isAvailable) return@collectLatest
-                    log(tag) { "Resolving sizes for ${pkgs.size} apps" }
-                    appSizeCache.resolve(pkgs)
+                .collectLatest { trigger ->
+                    if (trigger.mode != SortSettings.Mode.SIZE || !trigger.isAvailable) return@collectLatest
+                    log(tag) { "Resolving sizes for ${trigger.pkgs.size} apps" }
+                    appSizeCache.resolve(trigger.pkgs)
                 }
         }
     }
@@ -209,6 +221,13 @@ class AppsEngine @AssistedInject constructor(
             refreshMutex.unlock()
         }
     }
+
+    private data class ResolveTrigger(
+        val mode: SortSettings.Mode,
+        val pkgs: List<Installed>,
+        val isAvailable: Boolean,
+        val revision: Long,
+    )
 
     @AssistedFactory
     interface Factory {

@@ -132,6 +132,31 @@ class AppsEngineTest : BaseTest() {
     }
 
     @Test
+    fun `an invalidated size is measured again`() = runTest {
+        coEvery { pkgOps.querySizeStats(any(), any()) } returns PkgOps.SizeStats(
+            appBytes = 100,
+            cacheBytes = 20,
+            externalCacheBytes = null,
+            dataBytes = 50,
+        )
+        val engine = createEngine()
+
+        engine.updateSortSettings(SortSettings(mode = SortSettings.Mode.SIZE))
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { pkgOps.querySizeStats(any(), any()) }
+        engine.state.value.filteredApps.single().appSize shouldBe 150L
+
+        // A package refresh drops every cached size; the filtered ids are unchanged, so only the
+        // cache revision tells the engine it has to measure again.
+        pkgRevision.value = 1L
+        advanceUntilIdle()
+
+        coVerify(exactly = 2) { pkgOps.querySizeStats(any(), any()) }
+        engine.state.value.filteredApps.single().appSize shouldBe 150L
+    }
+
+    @Test
     fun `leaving the size sort cancels the batch in flight`() = runTest {
         val gate = CompletableDeferred<Unit>()
         coEvery { pkgOps.querySizeStats(any(), any()) } coAnswers {
