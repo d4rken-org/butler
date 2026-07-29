@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -130,33 +131,54 @@ fun AppGridItem(
                 }
             }
 
-            // App name at the bottom
-            Box(
+            // Size chip floats above the label scrim; stacking them keeps it clear of the
+            // overlay without hardcoding the overlay's (dynamic, two-line) height.
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .align(Alignment.BottomCenter)
-                    .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f))
-                    .padding(horizontal = 6.dp, vertical = 4.dp),
+                    .align(Alignment.BottomCenter),
             ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.Start,
-                    verticalArrangement = Arrangement.spacedBy(1.dp),
+                if (item.appSize != null) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(4.dp),
+                        horizontalArrangement = Arrangement.End,
+                    ) {
+                        AppSizeChip(
+                            bytes = item.appSize,
+                            compact = true,
+                        )
+                    }
+                }
+
+                // App name at the bottom
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f))
+                        .padding(horizontal = 6.dp, vertical = 4.dp),
                 ) {
-                    Text(
-                        text = item.label.get(context),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onScrim,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    Text(
-                        text = item.packageName,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onScrim.copy(alpha = 0.7f),
-                        maxLines = 1,
-                        overflow = TextOverflow.MiddleEllipsis,
-                    )
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.Start,
+                        verticalArrangement = Arrangement.spacedBy(1.dp),
+                    ) {
+                        Text(
+                            text = item.label.get(context),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onScrim,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        Text(
+                            text = item.packageName,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onScrim.copy(alpha = 0.7f),
+                            maxLines = 1,
+                            overflow = TextOverflow.MiddleEllipsis,
+                        )
+                    }
                 }
             }
         }
@@ -238,6 +260,7 @@ private fun AppGridItemSmallTileLongNamesPreview() {
             item = AppsMockDataProvider.createMockAppItem(
                 packageName = "com.superlongvendor.some.deeply.nested.application.identifier",
                 label = "Very Long Application Name",
+                appSize = AppsMockDataProvider.MockSizes.gb(3),
             ),
             isSelected = false,
             onClick = {},
@@ -257,6 +280,26 @@ private fun AppGridItemLargeTileLongNamesPreview() {
                 packageName = "com.superlongvendor.some.deeply.nested.application.identifier",
                 label = "Very Long Application Name",
                 isEnabled = false,
+                appSize = AppsMockDataProvider.MockSizes.mb(84),
+            ),
+            isSelected = false,
+            onClick = {},
+            onLongClick = {},
+            showSelection = false,
+        )
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun AppGridItemWithoutSizePreview() {
+    Box(modifier = Modifier.width(90.dp)) {
+        AppGridItem(
+            item = AppsMockDataProvider.createMockAppItem(
+                packageName = "com.example.unmeasured",
+                label = "Unmeasured App",
+                appSize = null,
             ),
             isSelected = false,
             onClick = {},

@@ -23,6 +23,7 @@
     <string name="apps_sort_mode_update_date_label">Update date</string>
     <string name="apps_sort_mode_package_name_label">Package name</string>
     <string name="apps_sort_descending_label">Descending order</string>
+    <string name="apps_sort_mode_size_slowdown_hint">Calculating app sizes makes loading slower</string>
 
     <!-- Actions -->
     <string name="apps_action_launch">Launch</string>
@@ -61,6 +62,8 @@
     <string name="apps_package_name_label">Package</string>
     <string name="apps_version_label">Version</string>
     <string name="apps_size_label">Size</string>
+    <string name="apps_size_chip_desc">App size: %1$s</string>
+    <string name="apps_size_permission_hint">App sizes require usage access</string>
 
     <!-- App Details -->
     <string name="apps_details_storage_locations_label">Storage locations</string>

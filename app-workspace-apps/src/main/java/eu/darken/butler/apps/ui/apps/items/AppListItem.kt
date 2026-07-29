@@ -34,7 +34,6 @@ import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.formatFileSize
 
 @Composable
 fun AppListItem(
@@ -129,15 +128,26 @@ fun AppListItem(
                     )
                 }
             }
-            if (item.appSize != null) {
-                Text(
-                    text = formatFileSize(item.appSize),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            if (item.tags.isNotEmpty()) {
-                AppTagRow(tags = item.tags)
+            if (item.tags.isNotEmpty() || item.appSize != null) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    // AppTagRow renders nothing without tags, so the spacer is what keeps a lone
+                    // size chip pushed to the end of the row.
+                    if (item.tags.isNotEmpty()) {
+                        AppTagRow(
+                            modifier = Modifier.weight(1f),
+                            tags = item.tags,
+                        )
+                    } else {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
+                    if (item.appSize != null) {
+                        AppSizeChip(bytes = item.appSize)
+                    }
+                }
             }
         }
     }
@@ -198,6 +208,55 @@ private fun AppListItemWithTagsPreview() {
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
+private fun AppListItemWithSizeAndTagsPreview() {
+    AppListItem(
+        item = AppsMockDataProvider.Presets.multiTagAppItem.copy(
+            appSize = AppsMockDataProvider.MockSizes.gb(1),
+        ),
+        isSelected = false,
+        onClick = {},
+        onLongClick = {},
+        showSelection = false,
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun AppListItemWithSizeNoTagsPreview() {
+    AppListItem(
+        item = AppsMockDataProvider.createMockAppItem(
+            packageName = "com.example.notes",
+            label = "Notes",
+            appSize = AppsMockDataProvider.MockSizes.mb(84),
+        ),
+        isSelected = false,
+        onClick = {},
+        onLongClick = {},
+        showSelection = false,
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun AppListItemWithoutSizePreview() {
+    AppListItem(
+        item = AppsMockDataProvider.createMockAppItem(
+            packageName = "com.example.unmeasured",
+            label = "Unmeasured App",
+            appSize = null,
+        ),
+        isSelected = false,
+        onClick = {},
+        onLongClick = {},
+        showSelection = false,
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
 private fun AppListItemSplitApkPreview() {
     AppListItem(
         item = AppsMockDataProvider.Presets.updatedSystemItem,
@@ -218,7 +277,7 @@ private fun AppListItemLongVersionNarrowPreview() {
                 packageName = "com.superlongvendor.some.deeply.nested.application.identifier",
                 label = "Very Long Application Name",
                 versionName = "12.34.5678-beta.20250724+build",
-                appSize = null,
+                appSize = AppsMockDataProvider.MockSizes.mb(84),
             ),
             isSelected = false,
             onClick = {},
