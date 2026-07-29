@@ -165,8 +165,10 @@ class PkgRepo @Inject constructor(
     suspend fun refresh(): Collection<Installed> {
         val before = cache.value()
         log(TAG) { "refresh()... (before=${before.pkgCount})" }
-        val after = cache.updateBlocking { generateCacheContainer() }
-        _revision.update { it + 1 }
+        // Incremented inside the update action, which runs on this repo's own scope: cancelling the
+        // caller aborts it while it waits for the update, but the submitted update still completes
+        // and publishes, and consumers must not be left believing the data is unchanged.
+        val after = cache.updateBlocking { generateCacheContainer().also { _revision.update { r -> r + 1 } } }
         log(TAG, INFO) { "...refresh()ed (after=${after.pkgCount})" }
         return after.pkgs
     }
