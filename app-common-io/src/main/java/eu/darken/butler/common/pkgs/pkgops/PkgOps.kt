@@ -319,6 +319,63 @@ class PkgOps @Inject constructor(
         }
     }
 
+    /**
+     * Enables/disables a single manifest component.
+     *
+     * Same transport and permission as [changePackageState] ([android.Manifest.permission.CHANGE_COMPONENT_ENABLED_STATE]),
+     * only the target differs. `DONT_KILL_APP` is deliberately not passed, matching `pm disable`:
+     * the owning app is killed so the new state takes effect immediately.
+     */
+    suspend fun changeComponentState(id: Pkg.Id, className: String, enabled: Boolean, mode: Mode = Mode.AUTO) {
+        log(TAG, VERBOSE) { "changeComponentState($id, $className, enabled=$enabled, mode=$mode)" }
+        try {
+            if (mode == Mode.NORMAL) {
+                throw PkgOpsException("changeComponentState($id,$className,$enabled) does not support mode=NORMAL")
+            }
+
+            // Component-level disable: DISABLED_USER is the application-level form.
+            val newState = when (enabled) {
+                true -> COMPONENT_ENABLED_STATE_ENABLED
+                false -> COMPONENT_ENABLED_STATE_DISABLED
+            }
+
+            val opsAction = { opsClient: PkgOpsClient ->
+                opsClient.setComponentEnabledSetting(
+                    packageName = id.name,
+                    className = className,
+                    newState = newState,
+                    flags = run {
+                        @Suppress("NewApi")
+                        if (hasApiLevel(30)) SYNCHRONOUS else 0
+                    }
+                )
+            }
+
+            if (adbManager.canUseAdbNow() && (mode == Mode.AUTO || mode == Mode.ADB)) {
+                log(TAG) { "changeComponentState($id, $className, enabled=$enabled, $mode->ADB)" }
+                adbOps { opsAction(it) }
+                return
+            }
+
+            if (rootManager.canUseRootNow() && (mode == Mode.AUTO || mode == Mode.ROOT)) {
+                log(TAG) { "changeComponentState($id, $className, enabled=$enabled, $mode->ROOT)" }
+                rootOps { opsAction(it) }
+                return
+            }
+
+            throw ElevatedAccessUnavailableException("Mode $mode is unavailable")
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            if (e is ElevatedAccessUnavailableException) {
+                log(TAG, DEBUG) { "changeComponentState(...): $mode unavailable for $id" }
+            } else {
+                log(TAG, WARN) { "changeComponentState($id, $className, enabled=$enabled, mode=$mode) failed: $e" }
+            }
+            throw PkgOpsException(message = "changeComponentState($id, $className, $enabled, $mode) failed", cause = e)
+        }
+    }
+
     suspend fun clearCache(id: InstallId, mode: Mode = Mode.AUTO) {
         log(TAG) { "clearCache($id, $mode)" }
         try {

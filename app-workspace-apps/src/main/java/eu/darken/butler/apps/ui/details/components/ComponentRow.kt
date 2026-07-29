@@ -1,24 +1,31 @@
 package eu.darken.butler.apps.ui.details.components
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.AppRegistration
 import androidx.compose.material.icons.twotone.CellTower
 import androidx.compose.material.icons.twotone.DataObject
 import androidx.compose.material.icons.twotone.MiscellaneousServices
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -36,6 +43,10 @@ import eu.darken.butler.common.compose.ButlerChipSize
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+
+internal object ComponentRowDefaults {
+    const val SELECTION_CHECKBOX_TEST_TAG = "apps.components.row.checkbox"
+}
 
 internal fun ComponentKind.icon(): ImageVector = when (this) {
     ComponentKind.ACTIVITY -> Icons.TwoTone.AppRegistration
@@ -60,6 +71,9 @@ internal fun ComponentRow(
     entry: ComponentEntry,
     query: String,
     onClick: () -> Unit,
+    isSelected: Boolean = false,
+    showSelection: Boolean = false,
+    onLongClick: () -> Unit = {},
 ) {
     val colors = MaterialTheme.colorScheme
     val highlightStyle = SpanStyle(
@@ -71,17 +85,37 @@ internal fun ComponentRow(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .clip(RoundedCornerShape(8.dp))
+            .background(
+                if (isSelected) colors.primaryContainer.copy(alpha = 0.3f) else Color.Transparent,
+            )
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
             .padding(horizontal = 16.dp, vertical = 6.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(
-            imageVector = entry.kind.icon(),
-            contentDescription = null,
-            tint = colors.onSurfaceVariant,
+        // Same 20.dp slot either way, so entering selection mode doesn't reflow the list.
+        Box(
             modifier = Modifier.size(20.dp),
-        )
+            contentAlignment = Alignment.Center,
+        ) {
+            if (showSelection) {
+                Checkbox(
+                    checked = isSelected,
+                    onCheckedChange = null,
+                    // Tagged because a Checkbox without onCheckedChange carries no semantics of its
+                    // own — the row owns the click — so this is the only handle tests have on it.
+                    modifier = Modifier.testTag(ComponentRowDefaults.SELECTION_CHECKBOX_TEST_TAG),
+                )
+            } else {
+                Icon(
+                    imageVector = entry.kind.icon(),
+                    contentDescription = null,
+                    tint = colors.onSurfaceVariant,
+                    modifier = Modifier.size(20.dp),
+                )
+            }
+        }
 
         Column(
             modifier = Modifier.weight(1f),
@@ -125,14 +159,14 @@ private fun ComponentStatusChips(
         if (entry.isExported) {
             ButlerChip(
                 label = stringResource(R.string.apps_components_exported),
-                size = ButlerChipSize.Mini,
+                size = ButlerChipSize.Compact,
                 colors = ButlerChipDefaults.accentedColors(),
             )
         }
         if (showDisabled) {
             ButlerChip(
                 label = stringResource(R.string.apps_components_disabled),
-                size = ButlerChipSize.Mini,
+                size = ButlerChipSize.Compact,
                 colors = ButlerChipDefaults.errorColors(),
             )
         }
@@ -217,6 +251,46 @@ private fun ComponentRowHighlightedPreview() {
         ),
         query = "sync",
         onClick = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ComponentRowSelectedPreview() {
+    ComponentRow(
+        entry = ComponentEntry(
+            kind = ComponentKind.ACTIVITY,
+            packageName = "com.example.app",
+            className = "com.example.app.MainActivity",
+            isExported = true,
+            enabledState = ComponentEnabledState.ENABLED,
+        ),
+        query = "",
+        onClick = {},
+        isSelected = true,
+        showSelection = true,
+        onLongClick = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ComponentRowSelectionModeUnselectedPreview() {
+    ComponentRow(
+        entry = ComponentEntry(
+            kind = ComponentKind.SERVICE,
+            packageName = "com.example.app",
+            className = "com.example.app.sync.SyncService",
+            isExported = false,
+            enabledState = ComponentEnabledState.DISABLED,
+        ),
+        query = "",
+        onClick = {},
+        isSelected = false,
+        showSelection = true,
+        onLongClick = {},
     )
 }
 

@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
+import kotlinx.coroutines.flow.update
 import kotlin.time.Instant
 
 /**
@@ -44,6 +45,8 @@ class AppComponentsController(
     private val identity = MutableStateFlow<AppIdentity?>(null)
     private val routeActive = MutableStateFlow(false)
     private val selectedKey = MutableStateFlow<String?>(null)
+    private val selectedKeys = MutableStateFlow<Set<String>>(emptySet())
+    private val refreshTicks = MutableStateFlow(0)
 
     /**
      * `flatMapLatest` on the identity is what makes the ordering safe structurally: an identity
@@ -71,9 +74,10 @@ class AppComponentsController(
                     emit(ComponentsUiState.Ready(data))
                     // Fires as soon as the route is active — including when it already was before
                     // the load finished, because routeActive is a StateFlow — and re-fires on every
-                    // re-entry, which is the refresh path. List membership is never reloaded: with
-                    // MATCH_DISABLED_COMPONENTS a component is listed regardless of its state, so
-                    // only the state can change under us.
+                    // re-entry and on every refresh() tick, which is how a toggle's result reaches
+                    // the chips. List membership is never reloaded: with MATCH_DISABLED_COMPONENTS a
+                    // component is listed regardless of its state, so only the state can change
+                    // under us.
                     //
                     // transformLatest, not filter + mapLatest: the inactive edge has to reach the
                     // operator so it cancels an in-flight pass. Filtering it away would let the N
@@ -81,7 +85,7 @@ class AppComponentsController(
                     // into a state the Overview summary card renders from too. The `false` edge
                     // emits nothing, so the last good result persists while the route is inactive.
                     emitAll(
-                        routeActive.transformLatest { active ->
+                        combine(routeActive, refreshTicks) { active, _ -> active }.transformLatest { active ->
                             if (!active) return@transformLatest
                             val resolved: ComponentsUiState = try {
                                 ComponentsUiState.Ready(data.withEnabledStates(loader.resolveEnabledStates(data)))
@@ -119,6 +123,23 @@ class AppComponentsController(
         }
     }.stateIn(scope, SharingStarted.Eagerly, null)
 
+    /**
+     * The multi-selection, resolved from the keys against the current data for the same reasons
+     * [selectedComponent] is: a refresh keeps the entries current, keys that stopped resolving drop
+     * out, and the list is empty while the route is inactive.
+     */
+    val selectedComponents: StateFlow<List<ComponentEntry>> = combine(
+        state,
+        selectedKeys,
+        routeActive,
+    ) { current, keys, active ->
+        if (!active || keys.isEmpty()) {
+            emptyList()
+        } else {
+            (current as? ComponentsUiState.Ready)?.data?.all?.filter { it.key in keys } ?: emptyList()
+        }
+    }.stateIn(scope, SharingStarted.Eagerly, emptyList())
+
     /** `null` (workspace closed, package gone) cancels both phases through `flatMapLatest`. */
     fun onAppChanged(app: AppInfo?) {
         val next = app?.let { AppIdentity(it.packageName, it.versionCode, it.updatedAt) }
@@ -126,13 +147,23 @@ class AppComponentsController(
         log(tag) { "onAppChanged(): $next" }
         identity.value = next
         selectedKey.value = null
+        selectedKeys.value = emptySet()
     }
 
     fun onComponentsRouteActive(active: Boolean) {
         if (routeActive.value == active) return
         log(tag) { "onComponentsRouteActive($active)" }
         routeActive.value = active
-        if (!active) selectedKey.value = null
+        if (!active) {
+            selectedKey.value = null
+            selectedKeys.value = emptySet()
+        }
+    }
+
+    /** Re-runs the enrichment pass against the loaded listing, e.g. after a component was toggled. */
+    fun refresh() {
+        log(tag) { "refresh()" }
+        refreshTicks.update { it + 1 }
     }
 
     fun select(entry: ComponentEntry) {
@@ -144,4 +175,27 @@ class AppComponentsController(
         log(tag) { "dismiss()" }
         selectedKey.value = null
     }
+
+    fun toggleSelection(entry: ComponentEntry) {
+        log(tag) { "toggleSelection(${entry.key})" }
+        selectedKeys.update { current ->
+            if (entry.key in current) current - entry.key else current + entry.key
+        }
+    }
+
+    fun clearSelection() {
+        log(tag) { "clearSelection()" }
+        selectedKeys.value = emptySet()
+    }
+
+    /** Mirrors `ExplorerSelectionController`: a tap extends an active selection, else it opens the sheet. */
+    fun onItemClick(entry: ComponentEntry) {
+        if (selectedKeys.value.isNotEmpty()) {
+            toggleSelection(entry)
+        } else {
+            select(entry)
+        }
+    }
+
+    fun onItemLongClick(entry: ComponentEntry) = toggleSelection(entry)
 }

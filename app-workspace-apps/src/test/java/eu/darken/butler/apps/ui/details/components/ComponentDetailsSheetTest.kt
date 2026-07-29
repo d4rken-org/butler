@@ -5,11 +5,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import eu.darken.butler.apps.core.details.components.ComponentEnabledState
 import eu.darken.butler.apps.core.details.components.ComponentEntry
 import eu.darken.butler.apps.core.details.components.ComponentKind
+import eu.darken.butler.apps.core.details.components.ComponentToggleState
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.ui.modal.PaneLayerHost
+import io.kotest.matchers.shouldBe
 import org.junit.Test
 import testhelpers.ComposeTest
 
@@ -27,7 +31,13 @@ class ComponentDetailsSheetTest : ComposeTest() {
         enabledState = ComponentEnabledState.ENABLED,
     )
 
-    private fun setSheet(entry: ComponentEntry, onLaunch: (() -> Unit)? = null) {
+    private fun setSheet(
+        entry: ComponentEntry,
+        onLaunch: (() -> Unit)? = null,
+        toggleState: ComponentToggleState = ComponentToggleState.UNSUPPORTED,
+        onSetEnabled: (Boolean) -> Unit = {},
+        onSetupRequested: () -> Unit = {},
+    ) {
         composeTestRule.setContent {
             PreviewWrapper {
                 PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = true) {
@@ -35,6 +45,9 @@ class ComponentDetailsSheetTest : ComposeTest() {
                         entry = entry,
                         onDismiss = {},
                         onLaunch = onLaunch,
+                        toggleState = toggleState,
+                        onSetEnabled = onSetEnabled,
+                        onSetupRequested = onSetupRequested,
                     )
                 }
             }
@@ -101,6 +114,76 @@ class ComponentDetailsSheetTest : ComposeTest() {
         setSheet(exportedActivity)
 
         composeTestRule.onNodeWithText("AUTHORITY").assertDoesNotExist()
+    }
+
+    @Test
+    fun `the toggle row is absent while toggling is unsupported`() {
+        setSheet(exportedActivity, toggleState = ComponentToggleState.UNSUPPORTED)
+
+        composeTestRule.onNodeWithText("Disable component").assertDoesNotExist()
+        composeTestRule.onNodeWithText("Enable component").assertDoesNotExist()
+    }
+
+    @Test
+    fun `the toggle row is absent while the state is unresolved`() {
+        setSheet(
+            exportedActivity.copy(enabledState = ComponentEnabledState.UNRESOLVED),
+            toggleState = ComponentToggleState.AVAILABLE,
+        )
+
+        composeTestRule.onNodeWithText("Disable component").assertDoesNotExist()
+        composeTestRule.onNodeWithText("Enable component").assertDoesNotExist()
+    }
+
+    @Test
+    fun `an enabled component offers to disable it`() {
+        setSheet(exportedActivity, toggleState = ComponentToggleState.AVAILABLE)
+
+        composeTestRule.onNodeWithText("Disable component").assertExists()
+        composeTestRule.onNodeWithText("Enable component").assertDoesNotExist()
+    }
+
+    @Test
+    fun `a disabled component offers to enable it`() {
+        setSheet(
+            exportedActivity.copy(enabledState = ComponentEnabledState.DISABLED),
+            toggleState = ComponentToggleState.AVAILABLE,
+        )
+
+        composeTestRule.onNodeWithText("Enable component").assertExists()
+        composeTestRule.onNodeWithText("Disable component").assertDoesNotExist()
+    }
+
+    @Test
+    fun `tapping the toggle inverts the current state`() {
+        val values = mutableListOf<Boolean>()
+        setSheet(
+            exportedActivity,
+            toggleState = ComponentToggleState.AVAILABLE,
+            onSetEnabled = { values += it },
+        )
+
+        composeTestRule.onNodeWithText("Disable component").performScrollTo().performClick()
+
+        values shouldBe listOf(false)
+    }
+
+    @Test
+    fun `without elevated access the toggle explains itself and routes to setup`() {
+        var setupRequests = 0
+        val values = mutableListOf<Boolean>()
+        setSheet(
+            exportedActivity,
+            toggleState = ComponentToggleState.NEEDS_SETUP,
+            onSetEnabled = { values += it },
+            onSetupRequested = { setupRequests++ },
+        )
+
+        composeTestRule.onNodeWithText("Requires root or Shizuku — tap to set up").assertExists()
+        composeTestRule.onNodeWithText("Disable component").performScrollTo().performClick()
+
+        setupRequests shouldBe 1
+        values shouldBe emptyList()
     }
 
     @Test

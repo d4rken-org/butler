@@ -37,6 +37,8 @@ fun LazyListScope.appComponentsItems(
     filtered: ComponentsData,
     query: String,
     onComponentClick: (ComponentEntry) -> Unit,
+    selectedKeys: Set<String> = emptySet(),
+    onComponentLongClick: (ComponentEntry) -> Unit = {},
 ) {
     when (state) {
         ComponentsUiState.Loading -> item(key = "components-loading") {
@@ -57,10 +59,10 @@ fun LazyListScope.appComponentsItems(
             }
 
             else -> {
-                componentGroup("activities", R.string.apps_components_activities_label, filtered.activities, query, onComponentClick)
-                componentGroup("services", R.string.apps_components_services_label, filtered.services, query, onComponentClick)
-                componentGroup("receivers", R.string.apps_components_receivers_label, filtered.receivers, query, onComponentClick)
-                componentGroup("providers", R.string.apps_components_providers_label, filtered.providers, query, onComponentClick)
+                componentGroup("activities", R.string.apps_components_activities_label, filtered.activities, query, onComponentClick, selectedKeys, onComponentLongClick)
+                componentGroup("services", R.string.apps_components_services_label, filtered.services, query, onComponentClick, selectedKeys, onComponentLongClick)
+                componentGroup("receivers", R.string.apps_components_receivers_label, filtered.receivers, query, onComponentClick, selectedKeys, onComponentLongClick)
+                componentGroup("providers", R.string.apps_components_providers_label, filtered.providers, query, onComponentClick, selectedKeys, onComponentLongClick)
             }
         }
     }
@@ -72,6 +74,8 @@ private fun LazyListScope.componentGroup(
     entries: List<ComponentEntry>,
     query: String,
     onComponentClick: (ComponentEntry) -> Unit,
+    selectedKeys: Set<String>,
+    onComponentLongClick: (ComponentEntry) -> Unit,
 ) {
     if (entries.isEmpty()) return
     item(key = "header:$groupId") {
@@ -82,6 +86,9 @@ private fun LazyListScope.componentGroup(
             entry = entry,
             query = query,
             onClick = { onComponentClick(entry) },
+            isSelected = entry.key in selectedKeys,
+            showSelection = selectedKeys.isNotEmpty(),
+            onLongClick = { onComponentLongClick(entry) },
         )
     }
 }
@@ -168,6 +175,25 @@ private fun AppComponentsItemsFilteredPreview() {
             filtered = previewComponentsData.filter(query),
             query = query,
             onComponentClick = {},
+        )
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun AppComponentsItemsSelectionPreview() {
+    LazyColumn(modifier = Modifier.fillMaxWidth()) {
+        appComponentsItems(
+            state = ComponentsUiState.Ready(previewComponentsData),
+            filtered = previewComponentsData,
+            query = "",
+            onComponentClick = {},
+            selectedKeys = setOf(
+                previewComponentsData.activities.first().key,
+                previewComponentsData.receivers.first().key,
+            ),
+            onComponentLongClick = {},
         )
     }
 }

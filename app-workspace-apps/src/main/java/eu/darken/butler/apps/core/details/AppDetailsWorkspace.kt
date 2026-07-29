@@ -12,6 +12,9 @@ import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoMap
 import eu.darken.butler.apps.R
 import eu.darken.butler.apps.core.AppPath
+import eu.darken.butler.apps.core.details.components.ComponentEntry
+import eu.darken.butler.apps.core.details.components.ComponentToggleAvailability
+import eu.darken.butler.apps.core.details.components.ComponentToggleState
 import eu.darken.butler.common.adb.AdbManager
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
@@ -21,7 +24,10 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.pkgs.PkgRepo
+import eu.darken.butler.common.pkgs.pkgops.PkgOps
+import eu.darken.butler.common.pkgs.pkgops.PkgOpsException
 import eu.darken.butler.common.pkgs.pkgs
+import eu.darken.butler.common.pkgs.toPkgId
 import eu.darken.butler.common.root.RootManager
 import eu.darken.butler.workspace.contracts.apps.AppDetailsArguments
 import eu.darken.butler.workspace.contracts.apps.DetailTab
@@ -35,6 +41,7 @@ import eu.darken.butler.workspace.core.initialInfo
 import eu.darken.butler.workspace.core.isPausableAsChild
 import eu.darken.butler.workspace.core.label
 import eu.darken.butler.workspace.core.stateInWorkspace
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
@@ -44,10 +51,12 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
 
@@ -57,6 +66,7 @@ class AppDetailsWorkspace @AssistedInject constructor(
     @ApplicationContext private val context: Context,
     dispatcherProvider: DispatcherProvider,
     private val pkgRepo: PkgRepo,
+    private val pkgOps: PkgOps,
     private val rootManager: RootManager,
     private val adbManager: AdbManager,
     private val workspaceRemote: WorkspaceRemote,
@@ -105,6 +115,15 @@ class AppDetailsWorkspace @AssistedInject constructor(
         }
         .stateIn(scope, SharingStarted.Eagerly, null)
 
+    // Declared after appInfoFlow on purpose: it probes that flow, so it has to see the shared one.
+    private val componentToggleAvailability = ComponentToggleAvailability(
+        scope = scope,
+        appInfo = appInfoFlow,
+        rootManager = rootManager,
+        adbManager = adbManager,
+        ownPackageName = context.packageName,
+    )
+
     data class State(
         val app: AppInfo? = null,
         val selectedTab: DetailTab = DetailTab.OVERVIEW,
@@ -113,6 +132,7 @@ class AppDetailsWorkspace @AssistedInject constructor(
         val callerWorkspaceId: Workspace.Id? = null,
         val hasRoot: Boolean = false,
         val hasAdb: Boolean = false,
+        val componentToggleState: ComponentToggleState = ComponentToggleState.UNSUPPORTED,
     ) {
         val canEnableDisable: Boolean get() = hasRoot || hasAdb
         val canForceStop: Boolean get() = hasRoot || hasAdb
@@ -125,7 +145,8 @@ class AppDetailsWorkspace @AssistedInject constructor(
         selectedTabFlow,
         rootManager.useRoot,
         adbManager.useAdb,
-    ) { app, selectedTab, hasRoot, hasAdb ->
+        componentToggleAvailability.state.filterNotNull(),
+    ) { app, selectedTab, hasRoot, hasAdb, componentToggleState ->
         val paths = app?.let { buildAppPaths(it) } ?: emptyList()
         State(
             selectedTab = selectedTab,
@@ -135,6 +156,7 @@ class AppDetailsWorkspace @AssistedInject constructor(
             callerWorkspaceId = args.callerWorkspaceId,
             hasRoot = hasRoot,
             hasAdb = hasAdb,
+            componentToggleState = componentToggleState,
         )
     }
 
@@ -142,10 +164,27 @@ class AppDetailsWorkspace @AssistedInject constructor(
     // The live tab enriches this to the app label once package data resolves.
     private val seedDisplay = deriveAppDetailsDisplay(args)
 
+    /**
+     * Number of package operations (enable/disable/uninstall/clear/component toggle) currently
+     * running. Package operations don't go through OperationsManager, so this is the only signal
+     * that keeps a pause from releasing the workspace mid-operation.
+     */
+    private val pkgOpsInFlight = MutableStateFlow(0)
+
+    private suspend fun <T> trackPkgOp(block: suspend () -> T): T {
+        pkgOpsInFlight.update { it + 1 }
+        try {
+            return block()
+        } finally {
+            pkgOpsInFlight.update { it - 1 }
+        }
+    }
+
     override val info: StateFlow<Workspace.Info> = combine(
         appInfoFlow,
         selectedTabFlow,
-    ) { app, _ ->
+        pkgOpsInFlight,
+    ) { app, _, opsInFlight ->
         val label = normalizedAppLabel(app?.label?.get(context), args.packageName)
         Workspace.Info(
             id = id,
@@ -155,6 +194,7 @@ class AppDetailsWorkspace @AssistedInject constructor(
             lifecycleState = Workspace.LifecycleState.Ready,
             operationCount = 0,
             attentionCount = 0,
+            isPausable = opsInFlight == 0,
             callerWorkspaceId = args.callerWorkspaceId,
             modalPresentation = args.modalPresentation,
             // Built by hand instead of via initialInfo(), so the relationship fields have to be
@@ -193,6 +233,56 @@ class AppDetailsWorkspace @AssistedInject constructor(
     fun updateSelectedTab(tab: DetailTab) {
         log(tag) { "Tab selected: $tab" }
         selectedTabFlow.value = tab
+    }
+
+    // Package operations live here, not on the ViewModel, so pkgOpsInFlight actually covers them.
+    // Exceptions propagate to the caller, which owns error surfacing and any fallback.
+
+    suspend fun uninstallApp(app: AppInfo): Boolean = trackPkgOp {
+        log(tag) { "uninstallApp(${app.packageName})" }
+        pkgOps.uninstall(app.installId)
+    }
+
+    suspend fun forceStopApp(app: AppInfo): Boolean = trackPkgOp {
+        log(tag) { "forceStopApp(${app.packageName})" }
+        pkgOps.forceStop(app.id)
+    }
+
+    suspend fun clearCacheApp(app: AppInfo) = trackPkgOp {
+        log(tag) { "clearCacheApp(${app.packageName})" }
+        pkgOps.clearCache(app.installId)
+    }
+
+    suspend fun clearDataApp(app: AppInfo): Boolean = trackPkgOp {
+        log(tag) { "clearDataApp(${app.packageName})" }
+        pkgOps.clearData(app.installId)
+    }
+
+    suspend fun setAppEnabled(app: AppInfo, enabled: Boolean) = trackPkgOp {
+        log(tag) { "setAppEnabled(${app.packageName}, enabled=$enabled)" }
+        pkgOps.changePackageState(app.id, enabled = enabled)
+    }
+
+    suspend fun setComponentsEnabled(entries: List<ComponentEntry>, enabled: Boolean) = trackPkgOp {
+        log(tag) { "setComponentsEnabled(${entries.size} components, enabled=$enabled)" }
+        val failures = mutableListOf<Pair<ComponentEntry, Exception>>()
+        entries.forEach { entry ->
+            try {
+                pkgOps.changeComponentState(entry.packageName.toPkgId(), entry.className, enabled = enabled)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                log(tag, WARN) { "Failed to set ${entry.className} to enabled=$enabled: $e" }
+                failures.add(entry to e)
+            }
+        }
+        if (failures.isNotEmpty()) {
+            val verb = if (enabled) "enable" else "disable"
+            throw PkgOpsException(
+                "Failed to $verb ${failures.size}/${entries.size} components",
+                failures.first().second,
+            )
+        }
     }
 
     override suspend fun release() {

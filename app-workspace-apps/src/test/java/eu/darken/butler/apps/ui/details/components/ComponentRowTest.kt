@@ -1,9 +1,12 @@
 package eu.darken.butler.apps.ui.details.components
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
 import eu.darken.butler.apps.core.details.components.ComponentEnabledState
 import eu.darken.butler.apps.core.details.components.ComponentEntry
 import eu.darken.butler.apps.core.details.components.ComponentKind
@@ -92,5 +95,61 @@ class ComponentRowTest : ComposeTest() {
         composeTestRule.onNodeWithText("MainActivity").performClick()
 
         clicks shouldBe 1
+    }
+
+    @Test
+    fun `selection mode renders a checkbox`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                ComponentRow(
+                    entry = entry(),
+                    query = "",
+                    onClick = {},
+                    isSelected = true,
+                    showSelection = true,
+                )
+            }
+        }
+
+        // Unmerged: the row is combinedClickable, so it merges its descendants' semantics and the
+        // checkbox's tag is not addressable in the merged tree.
+        composeTestRule
+            .onNodeWithTag(ComponentRowDefaults.SELECTION_CHECKBOX_TEST_TAG, useUnmergedTree = true)
+            .assertExists()
+    }
+
+    @Test
+    fun `there is no checkbox outside selection mode`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                ComponentRow(entry = entry(), query = "", onClick = {})
+            }
+        }
+
+        // Same unmerged finder as the positive case, or this would pass vacuously.
+        composeTestRule
+            .onNodeWithTag(ComponentRowDefaults.SELECTION_CHECKBOX_TEST_TAG, useUnmergedTree = true)
+            .assertDoesNotExist()
+    }
+
+    @Test
+    fun `a long press fires onLongClick`() {
+        var longClicks = 0
+        var clicks = 0
+        composeTestRule.setContent {
+            PreviewWrapper {
+                ComponentRow(
+                    entry = entry(),
+                    query = "",
+                    onClick = { clicks++ },
+                    onLongClick = { longClicks++ },
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText("MainActivity").performTouchInput { longClick() }
+
+        longClicks shouldBe 1
+        clicks shouldBe 0
     }
 }

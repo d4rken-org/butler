@@ -332,4 +332,113 @@ class AppComponentsControllerTest : BaseTest() {
 
         controller.selectedComponent.value shouldBe null
     }
+
+    @Test
+    fun `a long press enters multi-selection instead of opening the sheet`() = runTest {
+        val loader = mockk<AppComponentsLoader>()
+        coEvery { loader.load(any()) } returns data
+        coEvery { loader.resolveEnabledStates(any()) } returns emptyMap()
+        val controller = backgroundScope.controller(loader)
+
+        controller.onAppChanged(appInfo())
+        controller.onComponentsRouteActive(true)
+        runCurrent()
+
+        controller.onItemLongClick(activity)
+        runCurrent()
+
+        controller.selectedComponents.value shouldBe listOf(activity)
+        controller.selectedComponent.value shouldBe null
+    }
+
+    @Test
+    fun `a click extends an active selection and opens the sheet otherwise`() = runTest {
+        val loader = mockk<AppComponentsLoader>()
+        coEvery { loader.load(any()) } returns data
+        coEvery { loader.resolveEnabledStates(any()) } returns emptyMap()
+        val controller = backgroundScope.controller(loader)
+
+        controller.onAppChanged(appInfo())
+        controller.onComponentsRouteActive(true)
+        runCurrent()
+
+        controller.onItemClick(activity)
+        runCurrent()
+        controller.selectedComponent.value shouldBe activity
+        controller.selectedComponents.value shouldBe emptyList()
+
+        controller.dismiss()
+        controller.onItemLongClick(activity)
+        controller.onItemClick(service)
+        runCurrent()
+        controller.selectedComponents.value shouldBe listOf(activity, service)
+        controller.selectedComponent.value shouldBe null
+
+        // Clicking a selected entry removes it again.
+        controller.onItemClick(activity)
+        runCurrent()
+        controller.selectedComponents.value shouldBe listOf(service)
+    }
+
+    @Test
+    fun `losing the app clears the multi-selection`() = runTest {
+        val loader = mockk<AppComponentsLoader>()
+        coEvery { loader.load(any()) } returns data
+        coEvery { loader.resolveEnabledStates(any()) } returns emptyMap()
+        val controller = backgroundScope.controller(loader)
+
+        controller.onAppChanged(appInfo())
+        controller.onComponentsRouteActive(true)
+        controller.onItemLongClick(activity)
+        runCurrent()
+        controller.selectedComponents.value shouldBe listOf(activity)
+
+        controller.onAppChanged(null)
+        runCurrent()
+
+        controller.selectedComponents.value shouldBe emptyList()
+    }
+
+    @Test
+    fun `leaving the route clears the multi-selection`() = runTest {
+        val loader = mockk<AppComponentsLoader>()
+        coEvery { loader.load(any()) } returns data
+        coEvery { loader.resolveEnabledStates(any()) } returns emptyMap()
+        val controller = backgroundScope.controller(loader)
+
+        controller.onAppChanged(appInfo())
+        controller.onComponentsRouteActive(true)
+        controller.onItemLongClick(activity)
+        runCurrent()
+
+        controller.onComponentsRouteActive(false)
+        runCurrent()
+
+        controller.selectedComponents.value shouldBe emptyList()
+    }
+
+    @Test
+    fun `refresh re-resolves and the selection reflects the new states`() = runTest {
+        val loader = mockk<AppComponentsLoader>()
+        coEvery { loader.load(any()) } returns data
+        coEvery { loader.resolveEnabledStates(data) } returnsMany listOf(
+            mapOf(activity.key to true, service.key to true),
+            mapOf(activity.key to false, service.key to true),
+        )
+        val controller = backgroundScope.controller(loader)
+
+        controller.onAppChanged(appInfo())
+        controller.onComponentsRouteActive(true)
+        controller.onItemLongClick(activity)
+        runCurrent()
+
+        controller.selectedComponents.value.single().enabledState shouldBe ComponentEnabledState.ENABLED
+
+        controller.refresh()
+        runCurrent()
+
+        coVerify(exactly = 1) { loader.load(any()) }
+        coVerify(exactly = 2) { loader.resolveEnabledStates(data) }
+        controller.selectedComponents.value.single().enabledState shouldBe ComponentEnabledState.DISABLED
+    }
 }

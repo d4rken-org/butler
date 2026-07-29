@@ -15,17 +15,22 @@ import eu.darken.butler.apps.R
 import eu.darken.butler.apps.core.details.components.AppComponentsController
 import eu.darken.butler.apps.core.details.components.AppComponentsLoader
 import eu.darken.butler.apps.core.details.components.ComponentEntry
+import eu.darken.butler.apps.core.details.components.ComponentToggleState
+import eu.darken.butler.apps.ui.details.components.ComponentsActionBarItem
+import eu.darken.butler.apps.ui.details.components.ComponentsConfirmRequest
 import eu.darken.butler.common.ElevatedAccessUnavailableException
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.navigation.Nav
+import eu.darken.butler.common.navigation.destSetup
 import eu.darken.butler.common.pkgs.features.AppStore
 import eu.darken.butler.common.pkgs.features.SourceAvailable
 import eu.darken.butler.common.pkgs.isEnabled
-import eu.darken.butler.common.pkgs.pkgops.PkgOps
 import eu.darken.butler.common.ui.ViewModel4
+import eu.darken.butler.setup.core.SetupModule
 import eu.darken.butler.workspace.contracts.apps.DetailTab
 import eu.darken.butler.workspace.contracts.explorer.ExplorerArguments
 import eu.darken.butler.workspace.contracts.saver.SaverArguments
@@ -33,13 +38,20 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.createAndFocus
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 
 @HiltViewModel(assistedFactory = AppDetailsWorkspaceViewModel.Factory::class)
 class AppDetailsWorkspaceViewModel @AssistedInject constructor(
@@ -48,7 +60,6 @@ class AppDetailsWorkspaceViewModel @AssistedInject constructor(
     dispatchers: DispatcherProvider,
     workspaceProvider: WorkspaceProvider,
     private val workspaceRemote: WorkspaceRemote,
-    private val pkgOps: PkgOps,
     componentsLoader: AppComponentsLoader,
 ) : ViewModel4(dispatchers, logTag("AppDetails", "Workspace", id.shortTag, "Page")) {
 
@@ -70,6 +81,41 @@ class AppDetailsWorkspaceViewModel @AssistedInject constructor(
     val componentsState = componentsController.state
     val selectedComponent = componentsController.selectedComponent
 
+    /**
+     * Eagerly shared, like [selectedComponent]: a cold flow would drop the checkboxes and the bars
+     * for a frame on rotation or a pane remount, and a Back press landing in that frame would
+     * navigate away instead of clearing the selection.
+     */
+    val selectedComponentKeys: StateFlow<Set<String>> = componentsController.selectedComponents
+        .map { entries -> entries.map { it.key }.toSet() }
+        .stateIn(vmScope, SharingStarted.Eagerly, emptySet())
+
+    val componentToggleState: StateFlow<ComponentToggleState> = state
+        .map { it.componentToggleState }
+        .distinctUntilChanged()
+        .stateIn(vmScope, SharingStarted.Eagerly, ComponentToggleState.UNSUPPORTED)
+
+    /** The items filter their own direction via `isVisible`, which is what `WorkspaceActionBar` expects. */
+    val componentActions: StateFlow<List<ComponentsActionBarItem>> = combine(
+        componentsController.selectedComponents,
+        componentToggleState,
+    ) { selection, toggleState ->
+        if (selection.isEmpty() || toggleState != ComponentToggleState.AVAILABLE) {
+            emptyList()
+        } else {
+            listOf(
+                ComponentsActionBarItem.Disable(selection),
+                ComponentsActionBarItem.Enable(selection),
+            )
+        }
+    }.stateIn(vmScope, SharingStarted.Eagerly, emptyList())
+
+    private val componentConfirmFlow = MutableStateFlow<ComponentsConfirmRequest?>(null)
+
+    // Assigned, not `.asStateFlow()`: ViewModel2 declares a member extension of that name which
+    // shadows the kotlinx one inside every subclass and returns a plain Flow.
+    val componentConfirm: StateFlow<ComponentsConfirmRequest?> = componentConfirmFlow
+
     init {
         // Driven from the nullable source, not from `state`: that one filters the absent workspace
         // away and would never emit, leaving the controller holding data, a live selection and a
@@ -81,16 +127,95 @@ class AppDetailsWorkspaceViewModel @AssistedInject constructor(
                 componentsController.onComponentsRouteActive(workspaceState?.selectedTab == DetailTab.COMPONENTS)
             }
             .launchInViewModel()
+
+        // A pending batch dialog must not outlive the selection it was raised for: onAppChanged
+        // (package update) and route changes clear the controller's keys without touching this flow.
+        componentsController.selectedComponents
+            .onEach { live ->
+                val pending = componentConfirmFlow.value ?: return@onEach
+                if (live.mapTo(mutableSetOf()) { it.key } != pending.entries.mapTo(mutableSetOf()) { it.key }) {
+                    componentConfirmFlow.value = null
+                }
+            }
+            .launchInViewModel()
     }
 
     fun onComponentSelected(entry: ComponentEntry) {
         log(tag) { "onComponentSelected(${entry.key})" }
-        componentsController.select(entry)
+        componentsController.onItemClick(entry)
+    }
+
+    fun onComponentLongPressed(entry: ComponentEntry) {
+        log(tag) { "onComponentLongPressed(${entry.key})" }
+        componentsController.onItemLongClick(entry)
+    }
+
+    fun clearComponentSelection() {
+        log(tag) { "clearComponentSelection()" }
+        componentsController.clearSelection()
     }
 
     fun onComponentSheetDismissed() {
         log(tag) { "onComponentSheetDismissed()" }
         componentsController.dismiss()
+    }
+
+    /** Batch actions are always confirmed; the single-component toggle in the sheet is not. */
+    fun onComponentAction(item: ComponentsActionBarItem) {
+        log(tag) { "onComponentAction($item)" }
+        componentConfirmFlow.value = when (item) {
+            is ComponentsActionBarItem.Enable -> ComponentsConfirmRequest(item.entries, enable = true)
+            is ComponentsActionBarItem.Disable -> ComponentsConfirmRequest(item.entries, enable = false)
+        }
+    }
+
+    fun onComponentConfirm(request: ComponentsConfirmRequest) = launch {
+        val live = componentsController.selectedComponents.value
+        componentConfirmFlow.value = null
+        if (live.mapTo(mutableSetOf()) { it.key } != request.entries.mapTo(mutableSetOf()) { it.key }) {
+            log(tag, WARN) { "onComponentConfirm(): selection changed under the dialog, ignoring" }
+            return@launch
+        }
+        log(tag) { "onComponentConfirm(${live.size} components, enable=${request.enable})" }
+        applyComponentState(live, request.enable)
+    }
+
+    fun onComponentConfirmDismiss() {
+        log(tag) { "onComponentConfirmDismiss()" }
+        componentConfirmFlow.value = null
+    }
+
+    fun onSetComponentEnabled(entry: ComponentEntry, enabled: Boolean) = launch {
+        log(tag) { "onSetComponentEnabled(${entry.key}, enabled=$enabled)" }
+        applyComponentState(listOf(entry), enabled)
+    }
+
+    fun openElevatedAccessSetup() {
+        log(tag) { "openElevatedAccessSetup()" }
+        navTo(
+            Nav.Main.destSetup(
+                typeFilter = setOf(SetupModule.Type.ROOT, SetupModule.Type.SHIZUKU),
+                showCompleted = true,
+            )
+        )
+    }
+
+    private suspend fun applyComponentState(entries: List<ComponentEntry>, enabled: Boolean) {
+        try {
+            getWorkspace().setComponentsEnabled(entries, enabled)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            // Unwrap so the "Open setup" fix action survives: LocalizedError matches
+            // HasLocalizedError on the top-level throwable only, and PkgOpsException is a plain
+            // IOException. Same cause-walk idiom as onUninstall().
+            throw generateSequence<Throwable>(e) { it.cause }
+                .filterIsInstance<ElevatedAccessUnavailableException>()
+                .firstOrNull() ?: e
+        } finally {
+            componentsController.refresh()
+            componentsController.clearSelection()
+        }
     }
 
     fun onTabSelected(tab: DetailTab) = launch {
@@ -131,7 +256,7 @@ class AppDetailsWorkspaceViewModel @AssistedInject constructor(
     fun onUninstall(app: AppInfo) = launch {
         log(tag) { "Uninstalling app: ${app.packageName}" }
         try {
-            pkgOps.uninstall(app.installId)
+            getWorkspace().uninstallApp(app)
             // Don't close here — auto-close in AppDetailsWorkspace handles it reactively
         } catch (e: Exception) {
             val isElevatedUnavailable = generateSequence<Throwable>(e) { it.cause }
@@ -198,7 +323,7 @@ class AppDetailsWorkspaceViewModel @AssistedInject constructor(
 
     fun onEnableDisable(app: AppInfo) = launch {
         log(tag) { "Toggle enable/disable: ${app.packageName}, current=${app.install.isEnabled}" }
-        pkgOps.changePackageState(app.id, enabled = !app.isEnabled)
+        getWorkspace().setAppEnabled(app, enabled = !app.isEnabled)
     }
 
     fun onLaunchComponent(packageName: String, className: String) {
@@ -220,17 +345,17 @@ class AppDetailsWorkspaceViewModel @AssistedInject constructor(
 
     fun onForceStop(app: AppInfo) = launch {
         log(tag) { "Force stopping: ${app.packageName}" }
-        pkgOps.forceStop(app.id)
+        getWorkspace().forceStopApp(app)
     }
 
     fun onClearCache(app: AppInfo) = launch {
         log(tag) { "Clearing cache: ${app.packageName}" }
-        pkgOps.clearCache(app.installId)
+        getWorkspace().clearCacheApp(app)
     }
 
     fun onClearData(app: AppInfo) = launch {
         log(tag) { "Clearing data: ${app.packageName}" }
-        pkgOps.clearData(app.installId)
+        getWorkspace().clearDataApp(app)
     }
 
     fun close() = launch {

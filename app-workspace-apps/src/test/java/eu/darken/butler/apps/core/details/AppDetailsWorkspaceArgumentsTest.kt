@@ -36,6 +36,7 @@ class AppDetailsWorkspaceArgumentsTest : BaseTest() {
         context = mockk(relaxed = true),
         dispatcherProvider = TestDispatcherProvider(),
         pkgRepo = mockk(relaxed = true),
+        pkgOps = mockk(relaxed = true),
         rootManager = mockk<RootManager> { every { useRoot } returns flowOf(false) },
         adbManager = mockk<AdbManager> { every { useAdb } returns flowOf(false) },
         workspaceRemote = mockk(relaxed = true),

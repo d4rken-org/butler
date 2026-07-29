@@ -60,6 +60,7 @@ class AppDetailsWorkspaceLabelCaptureTest {
             context = context,
             dispatcherProvider = TestDispatcherProvider(StandardTestDispatcher(testScheduler)),
             pkgRepo = pkgRepo,
+            pkgOps = mockk(relaxed = true),
             rootManager = mockk(relaxed = true),
             adbManager = mockk(relaxed = true),
             workspaceRemote = mockk(relaxed = true),

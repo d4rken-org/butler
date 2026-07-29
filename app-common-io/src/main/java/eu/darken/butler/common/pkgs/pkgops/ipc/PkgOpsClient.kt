@@ -106,6 +106,16 @@ class PkgOpsClient @AssistedInject constructor(
         }
     }
 
+    fun setComponentEnabledSetting(packageName: String, className: String, newState: Int, flags: Int): Unit = try {
+        connection.setComponentEnabledSetting(packageName, className, newState, flags)
+    } catch (e: Exception) {
+        throw e.refineException().also {
+            log(TAG, ERROR) {
+                "setComponentEnabledSetting(packageName=$packageName, className=$className, newState=$newState, flags=$flags) failed: ${it.asLog()}"
+            }
+        }
+    }
+
     fun grantPermission(id: InstallId, permission: Permission): Boolean = try {
         connection.grantPermission(id.pkgId.name, id.userHandle.handleId, permission.permissionId)
     } catch (e: Exception) {

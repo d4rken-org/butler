@@ -192,6 +192,17 @@
     <string name="apps_components_launch_action">Launch</string>
     <string name="apps_components_copy_name_action">Copy component name</string>
     <string name="apps_components_copy_package_action">Copy package name</string>
+    <string name="apps_components_action_enable">Enable component</string>
+    <string name="apps_components_action_disable">Disable component</string>
+    <string name="apps_components_action_requires_elevated">Requires root or Shizuku — tap to set up</string>
+    <string name="apps_components_confirm_enable_title">Enable components?</string>
+    <string name="apps_components_confirm_disable_title">Disable components?</string>
+    <string name="apps_components_confirm_enable_message">The following components will be enabled:</string>
+    <string name="apps_components_confirm_disable_message">The following components will be disabled. This can break the app.</string>
+    <plurals name="apps_components_selected_count">
+        <item quantity="one">%d component selected</item>
+        <item quantity="other">%d components selected</item>
+    </plurals>
 
     <!-- Generic navigation -->
     <string name="appdetails_back_generic_action">Back</string>

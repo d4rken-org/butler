@@ -41,6 +41,7 @@ class AppDetailsWorkspaceSeedTest {
             context = context,
             dispatcherProvider = TestDispatcherProvider(StandardTestDispatcher()),
             pkgRepo = mockk(relaxed = true),
+            pkgOps = mockk(relaxed = true),
             rootManager = mockk(relaxed = true),
             adbManager = mockk(relaxed = true),
             workspaceRemote = mockk(relaxed = true),

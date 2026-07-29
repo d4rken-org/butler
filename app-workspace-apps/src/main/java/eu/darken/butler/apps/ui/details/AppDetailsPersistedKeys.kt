@@ -22,4 +22,6 @@ internal object AppDetailsScrollSlots {
  */
 internal object AppDetailsBarKeys {
     const val TOOLBAR = "toolbar"
+    const val INFOBAR = "infobar"
+    const val ACTIONS = "actions"
 }

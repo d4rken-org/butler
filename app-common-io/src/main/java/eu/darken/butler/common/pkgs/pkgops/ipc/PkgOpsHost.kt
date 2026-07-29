@@ -1,6 +1,7 @@
 package eu.darken.butler.common.pkgs.pkgops.ipc
 
 import android.app.ActivityManager
+import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
@@ -144,6 +145,17 @@ class PkgOpsHost @Inject constructor(
         log(TAG, VERBOSE) { "setApplicationEnabledSetting($packageName, $newState, $flags) succesful" }
     } catch (e: Exception) {
         log(TAG, ERROR) { "setApplicationEnabledSetting($packageName, $newState, $flags) failed: ${e.asLog()}" }
+        throw e.wrapToPropagate()
+    }
+
+    override fun setComponentEnabledSetting(packageName: String, className: String, newState: Int, flags: Int) = try {
+        log(TAG, VERBOSE) { "setComponentEnabledSetting($packageName, $className, $newState, $flags)..." }
+        pm.setComponentEnabledSetting(ComponentName(packageName, className), newState, flags)
+        log(TAG, VERBOSE) { "setComponentEnabledSetting($packageName, $className, $newState, $flags) succesful" }
+    } catch (e: Exception) {
+        log(TAG, ERROR) {
+            "setComponentEnabledSetting($packageName, $className, $newState, $flags) failed: ${e.asLog()}"
+        }
         throw e.wrapToPropagate()
     }
 

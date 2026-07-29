@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -22,6 +21,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -41,6 +41,7 @@ import eu.darken.butler.apps.core.details.components.ComponentsData
 import eu.darken.butler.apps.core.details.components.ComponentsUiState
 import eu.darken.butler.apps.core.details.components.filter
 import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
+import eu.darken.butler.apps.ui.details.components.ComponentsActionBarItem
 import eu.darken.butler.apps.ui.details.components.ComponentsSummary
 import eu.darken.butler.apps.ui.details.components.appComponentsItems
 import eu.darken.butler.apps.ui.details.components.previewComponentsData
@@ -54,17 +55,19 @@ import eu.darken.butler.common.navigation.NavigationEventHandler
 import androidx.compose.runtime.collectAsState
 import eu.darken.butler.workspace.contracts.apps.DetailTab
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.WorkspaceInfoBar
+import eu.darken.butler.workspace.ui.actions.WorkspaceActionBar
 import eu.darken.butler.workspace.ui.floatingbar.BarAnimation
 import eu.darken.butler.workspace.ui.common.WorkspacePaddings
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
-import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
-import eu.darken.butler.workspace.ui.insets.paneInsets
+import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarContentPadding
 import eu.darken.butler.workspace.ui.insets.rememberPaneFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
 import eu.darken.butler.workspace.ui.scroll.rememberWorkspaceLazyListState
+import kotlinx.coroutines.flow.drop
 
 sealed interface AppDetailsPageAction {
     data object Close : AppDetailsPageAction
@@ -77,6 +80,11 @@ sealed interface AppDetailsPageAction {
     data class ExportApk(val app: AppInfo) : AppDetailsPageAction
     data class ShareApk(val app: AppInfo) : AppDetailsPageAction
     data class SelectComponent(val entry: ComponentEntry) : AppDetailsPageAction
+    data class LongPressComponent(val entry: ComponentEntry) : AppDetailsPageAction
+    data class ComponentAction(val item: ComponentsActionBarItem) : AppDetailsPageAction
+    data object ClearComponentSelection : AppDetailsPageAction
+    data class SetComponentEnabled(val entry: ComponentEntry, val enabled: Boolean) : AppDetailsPageAction
+    data object OpenElevatedAccessSetup : AppDetailsPageAction
     data class ForceStop(val app: AppInfo) : AppDetailsPageAction
     data class ClearCache(val app: AppInfo) : AppDetailsPageAction
     data class ClearData(val app: AppInfo) : AppDetailsPageAction
@@ -97,12 +105,16 @@ fun AppDetailsWorkspacePageHost(
 
     val state by vm.state.collectAsState(initial = null)
     val componentsState by vm.componentsState.collectAsState(initial = ComponentsUiState.Loading)
+    val selectedComponentKeys by vm.selectedComponentKeys.collectAsState()
+    val componentActions by vm.componentActions.collectAsState()
 
     state?.let { currentState ->
         AppDetailsWorkspacePage(
             design = design,
             state = currentState,
             componentsState = componentsState,
+            selectedComponentKeys = selectedComponentKeys,
+            componentActions = componentActions,
             workspaceId = id,
             onPageAction = { action ->
                 when (action) {
@@ -116,6 +128,11 @@ fun AppDetailsWorkspacePageHost(
                     is AppDetailsPageAction.ExportApk -> vm.onExportApk(action.app)
                     is AppDetailsPageAction.ShareApk -> vm.onShareApk(action.app)
                     is AppDetailsPageAction.SelectComponent -> vm.onComponentSelected(action.entry)
+                    is AppDetailsPageAction.LongPressComponent -> vm.onComponentLongPressed(action.entry)
+                    is AppDetailsPageAction.ComponentAction -> vm.onComponentAction(action.item)
+                    is AppDetailsPageAction.ClearComponentSelection -> vm.clearComponentSelection()
+                    is AppDetailsPageAction.SetComponentEnabled -> vm.onSetComponentEnabled(action.entry, action.enabled)
+                    is AppDetailsPageAction.OpenElevatedAccessSetup -> vm.openElevatedAccessSetup()
                     is AppDetailsPageAction.ForceStop -> vm.onForceStop(action.app)
                     is AppDetailsPageAction.ClearCache -> vm.onClearCache(action.app)
                     is AppDetailsPageAction.ClearData -> vm.onClearData(action.app)
@@ -131,6 +148,8 @@ fun AppDetailsWorkspacePage(
     design: WorkspaceDesign,
     state: AppDetailsWorkspace.State,
     componentsState: ComponentsUiState = ComponentsUiState.Loading,
+    selectedComponentKeys: Set<String> = emptySet(),
+    componentActions: List<ComponentsActionBarItem> = emptyList(),
     workspaceId: Workspace.Id? = null,
     onPageAction: (AppDetailsPageAction) -> Unit = {},
 ) {
@@ -164,11 +183,34 @@ fun AppDetailsWorkspacePage(
         (componentsState as? ComponentsUiState.Ready)?.data?.filter(query) ?: ComponentsData()
     }
 
-    // Single back handler: search closes first, then the Components sub-screen returns to Overview,
-    // then an Overview shown as a modal closes the workspace. Deliberately unaware of the component
-    // sheet — that sheet owns a pane layer of its own, which disables this handler while it is up.
-    WorkspaceBackHandler(enabled = showComponents || isModal) {
+    // The selection resolves against the controller's unfiltered data while search is page-local, so
+    // narrowing the query would otherwise leave a batch action operating on entries the user can no
+    // longer see, with a count that disagrees with the visible checkboxes.
+    //
+    // drop(1) discards the query current when the effect starts, so only edits made within this
+    // composition clear. LaunchedEffect(query) would instead fire on every *entry* into composition:
+    // a remount (rotation, pane-layout change) would re-run it with the restored, unchanged query
+    // and wipe a selection the ViewModel deliberately kept alive across that remount.
+    //
+    // The state is read inside snapshotFlow rather than via the `query` local: that local is a plain
+    // String captured once when this never-restarting effect launched, so observing it would track
+    // nothing and the flow would go silent after its first value. For the same reason the block must
+    // not gate on `selectedComponentKeys` either — clearing unconditionally is a conflated no-op
+    // when nothing is selected, since the controller's keys are a StateFlow.
+    LaunchedEffect(Unit) {
+        snapshotFlow { searchQuery.text.trim() }
+            .drop(1)
+            .collect { onPageAction(AppDetailsPageAction.ClearComponentSelection) }
+    }
+
+    // Single back handler: an active selection clears first, then search closes, then the Components
+    // sub-screen returns to Overview, then an Overview shown as a modal closes the workspace.
+    // Deliberately unaware of the component sheet — that sheet owns a pane layer of its own, which
+    // disables this handler while it is up.
+    WorkspaceBackHandler(enabled = selectedComponentKeys.isNotEmpty() || showComponents || isModal) {
         when {
+            selectedComponentKeys.isNotEmpty() -> onPageAction(AppDetailsPageAction.ClearComponentSelection)
+
             searchActive -> {
                 searchActive = false
                 searchQuery = TextFieldValue()
@@ -188,8 +230,21 @@ fun AppDetailsWorkspacePage(
         design = design,
     )
 
-    val paneInsets = design.paneInsets()
-    val navBarInset = paneInsets.bottom
+    val bottomBarStackState = rememberPaneFloatingBarStackState(
+        position = BarPosition.BOTTOM,
+        workspaceId = workspaceId,
+        defaultSpacing = 8.dp,
+        edgePadding = 8.dp,
+        contentPadding = 16.dp,
+        design = design,
+    )
+
+    val contentPadding = rememberFloatingBarContentPadding(
+        topStackState = topBarStackState,
+        bottomStackState = bottomBarStackState,
+        start = WorkspacePaddings.ContentHorizontal,
+        end = WorkspacePaddings.ContentHorizontal,
+    )
 
     val overviewListState = rememberWorkspaceLazyListState(workspaceId, slot = AppDetailsScrollSlots.OVERVIEW)
     val componentsListState = rememberWorkspaceLazyListState(workspaceId, slot = AppDetailsScrollSlots.COMPONENTS)
@@ -203,13 +258,9 @@ fun AppDetailsWorkspacePage(
             state = if (showComponents) componentsListState else overviewListState,
             modifier = Modifier
                 .fillMaxSize()
-                .nestedScroll(topBarStackState.nestedScrollConnection),
-            contentPadding = PaddingValues(
-                top = topBarStackState.contentPaddingDp(),
-                bottom = navBarInset + 16.dp,
-                start = WorkspacePaddings.ContentHorizontal,
-                end = WorkspacePaddings.ContentHorizontal,
-            ),
+                .nestedScroll(topBarStackState.nestedScrollConnection)
+                .nestedScroll(bottomBarStackState.nestedScrollConnection),
+            contentPadding = contentPadding,
             // Cards on the overview are spaced apart; the flat component list stays dense.
             verticalArrangement = Arrangement.spacedBy(if (showComponents) 0.dp else 8.dp),
         ) {
@@ -220,6 +271,8 @@ fun AppDetailsWorkspacePage(
                         filtered = filteredComponents,
                         query = query,
                         onComponentClick = { onPageAction(AppDetailsPageAction.SelectComponent(it)) },
+                        selectedKeys = selectedComponentKeys,
+                        onComponentLongClick = { onPageAction(AppDetailsPageAction.LongPressComponent(it)) },
                     )
                 } else {
                     overviewItems(
@@ -279,6 +332,42 @@ fun AppDetailsWorkspacePage(
                             currentWorkspaceId = workspaceId,
                         )
                     }
+                }
+
+                FloatingBar(
+                    key = AppDetailsBarKeys.INFOBAR,
+                    visible = showComponents && selectedComponentKeys.isNotEmpty(),
+                    scrollBehavior = BarScrollBehavior.Static,
+                    animation = BarAnimation.Slide(),
+                ) {
+                    WorkspaceInfoBar(
+                        selectedCount = selectedComponentKeys.size,
+                        onClearSelection = { onPageAction(AppDetailsPageAction.ClearComponentSelection) },
+                    )
+                }
+            },
+        )
+
+        // Without elevated access the ViewModel hands us an empty list, so this bar never appears —
+        // that is the intended "multi-selection offers nothing" behaviour.
+        FloatingBarStack(
+            state = bottomBarStackState,
+            position = BarPosition.BOTTOM,
+            modifier = Modifier.align(Alignment.BottomCenter),
+            bars = {
+                FloatingBar(
+                    key = AppDetailsBarKeys.ACTIONS,
+                    visible = showComponents && componentActions.any { it.isVisible },
+                    scrollBehavior = BarScrollBehavior.HideOnScroll,
+                    animation = BarAnimation.Slide(),
+                    revealOn = selectedComponentKeys,
+                ) {
+                    WorkspaceActionBar(
+                        actions = componentActions,
+                        onActionClick = { action ->
+                            onPageAction(AppDetailsPageAction.ComponentAction(action as ComponentsActionBarItem))
+                        },
+                    )
                 }
             },
         )
@@ -389,6 +478,28 @@ private fun AppDetailsWorkspacePageComponentsPreview() {
             selectedTab = DetailTab.COMPONENTS,
         ),
         componentsState = ComponentsUiState.Ready(previewComponentsData),
+        workspaceId = Workspace.Id(),
+        onPageAction = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun AppDetailsWorkspacePageComponentsSelectionPreview() {
+    val selected = previewComponentsData.activities
+    AppDetailsWorkspacePage(
+        design = WorkspaceDesign(),
+        state = AppDetailsWorkspace.State(
+            app = AppsMockDataProvider.Presets.chrome,
+            selectedTab = DetailTab.COMPONENTS,
+        ),
+        componentsState = ComponentsUiState.Ready(previewComponentsData),
+        selectedComponentKeys = selected.map { it.key }.toSet(),
+        componentActions = listOf(
+            ComponentsActionBarItem.Disable(selected),
+            ComponentsActionBarItem.Enable(selected),
+        ),
         workspaceId = Workspace.Id(),
         onPageAction = {},
     )

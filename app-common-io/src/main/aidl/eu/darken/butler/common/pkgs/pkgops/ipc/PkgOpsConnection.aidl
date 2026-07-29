@@ -36,4 +36,9 @@ interface PkgOpsConnection {
     boolean uninstallPackage(String packageName, int handleId);
 
     boolean clearData(String packageName, int handleId);
+
+    // Appended, never inserted: this is non-stable AIDL, so transaction codes come from declaration
+    // order. Adding a method mid-interface renumbers every later one, and a root/Shizuku host that
+    // survived an in-place app update would then dispatch the wrong transaction.
+    void setComponentEnabledSetting(String packageName, String className, int newState, int flags);
 }

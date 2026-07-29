@@ -9,7 +9,10 @@ import eu.darken.butler.apps.core.details.AppDetailsWorkspaceViewModel
 import eu.darken.butler.apps.core.details.components.ComponentEnabledState
 import eu.darken.butler.apps.core.details.components.ComponentEntry
 import eu.darken.butler.apps.core.details.components.ComponentKind
+import eu.darken.butler.apps.core.details.components.ComponentToggleState
 import eu.darken.butler.apps.ui.details.components.ComponentDetailsSheet
+import eu.darken.butler.apps.ui.details.components.ComponentsConfirmDialog
+import eu.darken.butler.apps.ui.details.components.ComponentsConfirmRequest
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -40,8 +43,14 @@ fun AppDetailsWorkspaceOverlaysHost(
     AppDetailsWorkspaceOverlays(
         design = design,
         selectedSource = vm.selectedComponent,
+        toggleStateSource = vm.componentToggleState,
+        confirmSource = vm.componentConfirm,
         onDismiss = vm::onComponentSheetDismissed,
         onLaunch = { vm.onLaunchComponent(packageName = it.packageName, className = it.className) },
+        onSetEnabled = { entry, enabled -> vm.onSetComponentEnabled(entry, enabled) },
+        onSetupRequested = vm::openElevatedAccessSetup,
+        onConfirm = vm::onComponentConfirm,
+        onConfirmDismiss = vm::onComponentConfirmDismiss,
     )
 
     // Last on purpose: layers stack in composition order, so an error raised while one of this
@@ -53,17 +62,31 @@ fun AppDetailsWorkspaceOverlaysHost(
 fun AppDetailsWorkspaceOverlays(
     design: WorkspaceDesign = WorkspaceDesign(),
     selectedSource: Flow<ComponentEntry?>,
+    toggleStateSource: Flow<ComponentToggleState> = flowOf(ComponentToggleState.UNSUPPORTED),
+    confirmSource: Flow<ComponentsConfirmRequest?> = flowOf(null),
     onDismiss: () -> Unit = {},
     onLaunch: (ComponentEntry) -> Unit = {},
+    onSetEnabled: (ComponentEntry, Boolean) -> Unit = { _, _ -> },
+    onSetupRequested: () -> Unit = {},
+    onConfirm: (ComponentsConfirmRequest) -> Unit = {},
+    onConfirmDismiss: () -> Unit = {},
 ) {
-    // The real source is an eagerly shared StateFlow, so a remount reads the current selection with
-    // no null first frame — which would briefly unmount the sheet's layer.
+    // The real sources are eagerly shared StateFlows, so a remount reads the current values with no
+    // null first frame — which would briefly unmount the sheet's layer.
     val selected by selectedSource.collectAsState(
         initial = (selectedSource as? StateFlow<ComponentEntry?>)?.value
+    )
+    val toggleState by toggleStateSource.collectAsState(
+        initial = (toggleStateSource as? StateFlow<ComponentToggleState>)?.value
+            ?: ComponentToggleState.UNSUPPORTED
+    )
+    val confirmRequest by confirmSource.collectAsState(
+        initial = (confirmSource as? StateFlow<ComponentsConfirmRequest?>)?.value
     )
 
     val paneInsets = design.paneInsets()
     val launchable = selected?.takeIf { it.kind == ComponentKind.ACTIVITY }
+    val toggleTarget = selected
 
     // Passed straight through, including null: the sheet stays composed and drives its visibility
     // from the selection so it can run its exit transition.
@@ -71,9 +94,21 @@ fun AppDetailsWorkspaceOverlays(
         entry = selected,
         onDismiss = onDismiss,
         onLaunch = launchable?.let { entry -> { onLaunch(entry) } },
+        toggleState = toggleState,
+        onSetEnabled = { enabled -> toggleTarget?.let { onSetEnabled(it, enabled) } },
+        onSetupRequested = onSetupRequested,
         topInset = paneInsets.top,
         bottomInset = paneInsets.bottom,
     )
+
+    // Composed conditionally: PaneBoundAlertDialog has no exit animation.
+    confirmRequest?.let { request ->
+        ComponentsConfirmDialog(
+            request = request,
+            onConfirm = { onConfirm(request) },
+            onDismiss = onConfirmDismiss,
+        )
+    }
 }
 
 @Preview2
@@ -90,6 +125,7 @@ private fun AppDetailsWorkspaceOverlaysActivityPreview() {
                 enabledState = ComponentEnabledState.ENABLED,
             )
         ),
+        toggleStateSource = flowOf(ComponentToggleState.AVAILABLE),
     )
 }
 
@@ -108,6 +144,7 @@ private fun AppDetailsWorkspaceOverlaysProviderPreview() {
                 authority = "com.example.app.files",
             )
         ),
+        toggleStateSource = flowOf(ComponentToggleState.NEEDS_SETUP),
     )
 }
 
@@ -116,4 +153,35 @@ private fun AppDetailsWorkspaceOverlaysProviderPreview() {
 @Composable
 private fun AppDetailsWorkspaceOverlaysNoSelectionPreview() {
     AppDetailsWorkspaceOverlays(selectedSource = flowOf(null))
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun AppDetailsWorkspaceOverlaysConfirmPreview() {
+    AppDetailsWorkspaceOverlays(
+        selectedSource = flowOf(null),
+        toggleStateSource = flowOf(ComponentToggleState.AVAILABLE),
+        confirmSource = flowOf(
+            ComponentsConfirmRequest(
+                entries = listOf(
+                    ComponentEntry(
+                        kind = ComponentKind.RECEIVER,
+                        packageName = "com.example.app",
+                        className = "com.example.app.BootReceiver",
+                        isExported = true,
+                        enabledState = ComponentEnabledState.ENABLED,
+                    ),
+                    ComponentEntry(
+                        kind = ComponentKind.SERVICE,
+                        packageName = "com.example.app",
+                        className = "com.example.app.sync.SyncService",
+                        isExported = false,
+                        enabledState = ComponentEnabledState.ENABLED,
+                    ),
+                ),
+                enable = false,
+            )
+        ),
+    )
 }

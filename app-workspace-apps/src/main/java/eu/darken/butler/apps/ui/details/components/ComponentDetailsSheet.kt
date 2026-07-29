@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.Launch
+import androidx.compose.material.icons.twotone.Block
+import androidx.compose.material.icons.twotone.CheckCircle
 import androidx.compose.material.icons.twotone.ContentCopy
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -33,6 +35,7 @@ import eu.darken.butler.apps.R
 import eu.darken.butler.apps.core.details.components.ComponentEnabledState
 import eu.darken.butler.apps.core.details.components.ComponentEntry
 import eu.darken.butler.apps.core.details.components.ComponentKind
+import eu.darken.butler.apps.core.details.components.ComponentToggleState
 import eu.darken.butler.common.compose.ButlerChip
 import eu.darken.butler.common.compose.ButlerChipDefaults
 import eu.darken.butler.common.compose.ButlerChipSize
@@ -57,6 +60,9 @@ fun ComponentDetailsSheet(
     entry: ComponentEntry?,
     onDismiss: () -> Unit,
     onLaunch: (() -> Unit)? = null,
+    toggleState: ComponentToggleState = ComponentToggleState.UNSUPPORTED,
+    onSetEnabled: (Boolean) -> Unit = {},
+    onSetupRequested: () -> Unit = {},
     topInset: Dp = 0.dp,
     bottomInset: Dp = 0.dp,
 ) {
@@ -78,6 +84,9 @@ fun ComponentDetailsSheet(
                 entry = current,
                 onDismiss = onDismiss,
                 onLaunch = onLaunch,
+                toggleState = toggleState,
+                onSetEnabled = onSetEnabled,
+                onSetupRequested = onSetupRequested,
             )
         }
     }
@@ -89,6 +98,9 @@ private fun ComponentDetailsContent(
     entry: ComponentEntry,
     onDismiss: () -> Unit,
     onLaunch: (() -> Unit)?,
+    toggleState: ComponentToggleState = ComponentToggleState.UNSUPPORTED,
+    onSetEnabled: (Boolean) -> Unit = {},
+    onSetupRequested: () -> Unit = {},
 ) {
     val copy = rememberClipboardCopy()
 
@@ -102,20 +114,25 @@ private fun ComponentDetailsContent(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            ComponentInfoRow(
-                label = stringResource(R.string.apps_components_field_type),
-                value = entry.kind.label(),
-            )
-            // Omitted while unresolved: the sheet must not claim a state it has not resolved.
-            if (entry.enabledState != ComponentEnabledState.UNRESOLVED) {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 ComponentInfoRow(
-                    label = stringResource(R.string.apps_components_state_label),
-                    value = if (entry.enabledState == ComponentEnabledState.ENABLED) {
-                        stringResource(R.string.apps_components_state_enabled)
-                    } else {
-                        stringResource(R.string.apps_components_state_disabled)
-                    },
+                    modifier = Modifier.weight(1f),
+                    label = stringResource(R.string.apps_components_field_type),
+                    value = entry.kind.label(),
                 )
+                // Omitted while unresolved: the sheet must not claim a state it has not resolved.
+                // Type keeps its weighted column either way, so the layout doesn't jump.
+                if (entry.enabledState != ComponentEnabledState.UNRESOLVED) {
+                    ComponentInfoRow(
+                        modifier = Modifier.weight(1f),
+                        label = stringResource(R.string.apps_components_state_label),
+                        value = if (entry.enabledState == ComponentEnabledState.ENABLED) {
+                            stringResource(R.string.apps_components_state_enabled)
+                        } else {
+                            stringResource(R.string.apps_components_state_disabled)
+                        },
+                    )
+                }
             }
             ComponentInfoRow(
                 label = stringResource(R.string.apps_components_field_package),
@@ -147,6 +164,34 @@ private fun ComponentDetailsContent(
             color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
         )
 
+        // Hidden entirely when there is nothing to toggle, or while the current state is unknown —
+        // without a resolved state there is no direction to offer.
+        if (toggleState != ComponentToggleState.UNSUPPORTED &&
+            entry.enabledState != ComponentEnabledState.UNRESOLVED
+        ) {
+            val currentlyEnabled = entry.enabledState == ComponentEnabledState.ENABLED
+            ComponentActionRow(
+                icon = if (currentlyEnabled) Icons.TwoTone.Block else Icons.TwoTone.CheckCircle,
+                title = if (currentlyEnabled) {
+                    stringResource(R.string.apps_components_action_disable)
+                } else {
+                    stringResource(R.string.apps_components_action_enable)
+                },
+                subtitle = when (toggleState) {
+                    ComponentToggleState.NEEDS_SETUP -> stringResource(R.string.apps_components_action_requires_elevated)
+                    else -> null
+                },
+                // Dimmed, not disabled: the row stays clickable and routes into setup.
+                dimmed = toggleState == ComponentToggleState.NEEDS_SETUP,
+                onClick = {
+                    onDismiss()
+                    when (toggleState) {
+                        ComponentToggleState.NEEDS_SETUP -> onSetupRequested()
+                        else -> onSetEnabled(!currentlyEnabled)
+                    }
+                },
+            )
+        }
         if (onLaunch != null) {
             ComponentActionRow(
                 icon = Icons.AutoMirrored.TwoTone.Launch,
@@ -261,15 +306,22 @@ private fun ComponentInfoRow(
     }
 }
 
+/**
+ * @param enabled `false` greys the row *and* makes it inert.
+ * @param dimmed greys the row while leaving it clickable — for an action that is currently
+ *        unavailable but whose tap leads somewhere useful (e.g. the setup screen).
+ */
 @Composable
 private fun ComponentActionRow(
     modifier: Modifier = Modifier,
     icon: ImageVector,
     title: String,
     enabled: Boolean = true,
+    subtitle: String? = null,
+    dimmed: Boolean = false,
     onClick: () -> Unit,
 ) {
-    val contentAlpha = if (enabled) 1f else 0.38f
+    val contentAlpha = if (enabled && !dimmed) 1f else 0.38f
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -284,11 +336,20 @@ private fun ComponentActionRow(
             tint = MaterialTheme.colorScheme.primary.copy(alpha = contentAlpha),
             modifier = Modifier.size(24.dp),
         )
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = contentAlpha),
-        )
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = contentAlpha),
+            )
+            subtitle?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
     }
 }
 
@@ -352,5 +413,76 @@ private fun ComponentDetailsSheetUnresolvedPreview() {
             isExported = false,
         ),
         onDismiss = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ComponentDetailsSheetToggleAvailableEnabledPreview() {
+    ComponentDetailsSheet(
+        entry = ComponentEntry(
+            kind = ComponentKind.RECEIVER,
+            packageName = "com.example.app",
+            className = "com.example.app.BootReceiver",
+            isExported = true,
+            enabledState = ComponentEnabledState.ENABLED,
+        ),
+        onDismiss = {},
+        toggleState = ComponentToggleState.AVAILABLE,
+        onSetEnabled = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ComponentDetailsSheetToggleAvailableDisabledPreview() {
+    ComponentDetailsSheet(
+        entry = ComponentEntry(
+            kind = ComponentKind.RECEIVER,
+            packageName = "com.example.app",
+            className = "com.example.app.BootReceiver",
+            isExported = true,
+            enabledState = ComponentEnabledState.DISABLED,
+        ),
+        onDismiss = {},
+        toggleState = ComponentToggleState.AVAILABLE,
+        onSetEnabled = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ComponentDetailsSheetToggleNeedsSetupPreview() {
+    ComponentDetailsSheet(
+        entry = ComponentEntry(
+            kind = ComponentKind.RECEIVER,
+            packageName = "com.example.app",
+            className = "com.example.app.BootReceiver",
+            isExported = true,
+            enabledState = ComponentEnabledState.ENABLED,
+        ),
+        onDismiss = {},
+        toggleState = ComponentToggleState.NEEDS_SETUP,
+        onSetupRequested = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ComponentDetailsSheetToggleUnsupportedPreview() {
+    ComponentDetailsSheet(
+        entry = ComponentEntry(
+            kind = ComponentKind.RECEIVER,
+            packageName = "com.example.app",
+            className = "com.example.app.BootReceiver",
+            isExported = true,
+            enabledState = ComponentEnabledState.ENABLED,
+        ),
+        onDismiss = {},
+        toggleState = ComponentToggleState.UNSUPPORTED,
     )
 }
