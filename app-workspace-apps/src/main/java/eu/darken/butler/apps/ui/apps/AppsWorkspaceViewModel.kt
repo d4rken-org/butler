@@ -315,7 +315,8 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
                 installId = app.pkg.installId,
                 appLabel = normalizedAppLabel(app.label.get(context), app.packageName),
                 callerWorkspaceId = null,
-            )
+            ),
+            sourceWorkspaceId = id,
         )
     }
 
@@ -553,6 +554,7 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
                 workspaceRemote.createAndFocus(
                     type = Workspace.Type.EXPLORER,
                     arguments = ExplorerArguments.Default(startPath = action.path),
+                    sourceWorkspaceId = id,
                 )
             }
 

@@ -873,6 +873,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                             arguments = ExplorerArguments.Default(
                                 startPath = startPath,
                             ),
+                            sourceWorkspaceId = id,
                         )
                     }
                 }
@@ -1154,7 +1155,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                         // Open Explorer at the source path and switch to it
                         workspaceRemote.createAndFocus(
                             type = Workspace.Type.EXPLORER,
-                            arguments = ExplorerArguments.Default(startPath = parentPath)
+                            arguments = ExplorerArguments.Default(startPath = parentPath),
+                            sourceWorkspaceId = id,
                         )
                     }
                 }
@@ -1166,7 +1168,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                     if (parentPath != null) {
                         workspaceRemote.createAndFocus(
                             type = Workspace.Type.EXPLORER,
-                            arguments = ExplorerArguments.Default(startPath = parentPath)
+                            arguments = ExplorerArguments.Default(startPath = parentPath),
+                            sourceWorkspaceId = id,
                         )
                     }
                 }
@@ -1193,7 +1196,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 log(TAG) { "Opening Explorer at common parent: $commonParent" }
                 workspaceRemote.createAndFocus(
                     type = Workspace.Type.EXPLORER,
-                    arguments = ExplorerArguments.Default(startPath = commonParent)
+                    arguments = ExplorerArguments.Default(startPath = commonParent),
+                    sourceWorkspaceId = id,
                 )
             }
             is ClipboardClip.Text -> {

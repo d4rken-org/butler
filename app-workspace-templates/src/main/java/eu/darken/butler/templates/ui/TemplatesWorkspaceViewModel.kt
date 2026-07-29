@@ -89,7 +89,7 @@ class TemplatesWorkspaceViewModel @AssistedInject constructor(
             }
             is WorkspaceAction.Create.Result.AlreadyOpen -> {
                 log(tag) { "Singleton already open, focusing existing: ${result.existingId}" }
-                workspaceRemote.emitEvent(WorkspaceEvent.SelectionRequested(result.existingId))
+                workspaceRemote.emitEvent(WorkspaceEvent.SelectionRequested(result.existingId, id))
             }
             is WorkspaceAction.Create.Result.LimitReached -> {
                 log(tag, WARN) { "Workspace creation blocked - limit reached" }

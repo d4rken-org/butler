@@ -124,6 +124,7 @@ class AppDetailsWorkspaceViewModel @AssistedInject constructor(
         workspaceRemote.createAndFocus(
             type = Workspace.Type.EXPLORER,
             arguments = ExplorerArguments.Default(startPath = path),
+            sourceWorkspaceId = id,
         )
     }
 

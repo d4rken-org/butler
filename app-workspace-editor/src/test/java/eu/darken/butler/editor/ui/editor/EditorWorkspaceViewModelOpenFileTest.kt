@@ -123,8 +123,10 @@ class EditorWorkspaceViewModelOpenFileTest : BaseTest() {
         vm.openFile(pathB)
 
         coVerify(exactly = 0) { workspace.openFile(any()) }
-        emitted.single().shouldBeInstanceOf<WorkspaceEvent.SelectionRequested>()
-            .workspaceId shouldBe otherId
+        val selection = emitted.single().shouldBeInstanceOf<WorkspaceEvent.SelectionRequested>()
+        selection.workspaceId shouldBe otherId
+        // Placement hint: the holding tab should surface next to the tab that asked for it
+        selection.sourceWorkspaceId shouldBe workspaceId
         // The path was never claimed by us, so nothing may be released
         executed.filterIsInstance<WorkspaceAction.ReleaseContentPath>().shouldBeEmpty()
     }

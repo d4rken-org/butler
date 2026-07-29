@@ -315,7 +315,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
                 )
                 if (claim is WorkspaceAction.ClaimContentPath.Result.AlreadyOpen) {
                     log(tag, INFO) { "File already open in ${claim.existingId}, focusing it: $filePath" }
-                    workspaceRemote.emitEvent(WorkspaceEvent.SelectionRequested(claim.existingId))
+                    workspaceRemote.emitEvent(WorkspaceEvent.SelectionRequested(claim.existingId, id))
                     return@launch
                 }
                 try {

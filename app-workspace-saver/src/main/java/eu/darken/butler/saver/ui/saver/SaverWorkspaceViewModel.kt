@@ -263,6 +263,7 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
             workspaceRemote.createAndFocus(
                 type = Workspace.Type.EXPLORER,
                 arguments = ExplorerArguments.Default(startPath = firstSavedPath.parent),
+                sourceWorkspaceId = id,
             )
         }
     }
