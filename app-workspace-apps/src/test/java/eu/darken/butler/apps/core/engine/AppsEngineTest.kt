@@ -21,12 +21,15 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -67,23 +70,41 @@ class AppsEngineTest : BaseTest() {
         every { it.state } returns flowOf(SetupStateProvider.State(modules = emptyMap()))
     }
 
+    private val longLivedScopes = mutableListOf<CoroutineScope>()
+
     @Before
     fun setup() {
         mockkObject(Permission.PACKAGE_USAGE_STATS)
         every { Permission.PACKAGE_USAGE_STATS.isGranted(any()) } returns true
     }
 
+    @After
+    fun teardown() {
+        longLivedScopes.forEach { it.cancel() }
+        longLivedScopes.clear()
+    }
+
+    /**
+     * Standalone scopes on the test scheduler, not [TestScope.backgroundScope]: `advanceUntilIdle()`
+     * does not drive background work (it only runs while the test coroutine itself suspends), so the
+     * engine's pipeline and its size-resolution job would never be scheduled. Not being children of
+     * the test job also keeps their never-completing collectors from stalling `runTest`;
+     * [teardown] cancels them.
+     */
+    private fun TestScope.newScope(): CoroutineScope =
+        CoroutineScope(StandardTestDispatcher(testScheduler)).also { longLivedScopes += it }
+
     private fun TestScope.createEngine(): AppsEngine {
         val dispatcherProvider = TestDispatcherProvider(StandardTestDispatcher(testScheduler))
         return AppsEngine(
             workspaceId = Workspace.Id(),
-            workspaceScope = backgroundScope,
+            workspaceScope = newScope(),
             context = context,
             pkgRepo = pkgRepo,
             userManager = userManager,
             dispatcherProvider = dispatcherProvider,
             appSizeCache = AppSizeCache(
-                appScope = backgroundScope,
+                appScope = newScope(),
                 context = context,
                 dispatcherProvider = dispatcherProvider,
                 pkgRepo = pkgRepo,

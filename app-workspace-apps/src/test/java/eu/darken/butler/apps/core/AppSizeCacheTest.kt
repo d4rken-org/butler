@@ -18,6 +18,8 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
@@ -25,6 +27,7 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -48,10 +51,18 @@ class AppSizeCacheTest : BaseTest() {
         every { it.state } returns flowOf(SetupStateProvider.State(modules = emptyMap()))
     }
 
+    private val appScopes = mutableListOf<CoroutineScope>()
+
     @Before
     fun setup() {
         mockkObject(Permission.PACKAGE_USAGE_STATS)
         every { Permission.PACKAGE_USAGE_STATS.isGranted(any()) } returns true
+    }
+
+    @After
+    fun teardown() {
+        appScopes.forEach { it.cancel() }
+        appScopes.clear()
     }
 
     private fun installId(name: String) = InstallId(Pkg.Id(name), UserHandle2(0))
@@ -71,15 +82,23 @@ class AppSizeCacheTest : BaseTest() {
         dataBytes = dataBytes,
     )
 
-    // backgroundScope, so the cache's own collectors don't keep runTest waiting.
-    private fun TestScope.createCache() = AppSizeCache(
-        appScope = backgroundScope,
-        context = context,
-        dispatcherProvider = TestDispatcherProvider(StandardTestDispatcher(testScheduler)),
-        pkgRepo = pkgRepo,
-        pkgOps = pkgOps,
-        setupStateProvider = setupStateProvider,
-    )
+    /**
+     * A standalone scope on the test scheduler, not [TestScope.backgroundScope]: `advanceUntilIdle()`
+     * does not drive background work (it only runs while the test coroutine itself suspends), so the
+     * cache's `pkgRepo.revision` collector would never be scheduled. Not being a child of the test
+     * job also keeps its never-completing collectors from stalling `runTest`; [teardown] cancels it.
+     */
+    private fun TestScope.createCache(): AppSizeCache {
+        val appScope = CoroutineScope(StandardTestDispatcher(testScheduler)).also { appScopes += it }
+        return AppSizeCache(
+            appScope = appScope,
+            context = context,
+            dispatcherProvider = TestDispatcherProvider(StandardTestDispatcher(testScheduler)),
+            pkgRepo = pkgRepo,
+            pkgOps = pkgOps,
+            setupStateProvider = setupStateProvider,
+        )
+    }
 
     @Test
     fun `sizes are cached per install id`() = runTest {
