@@ -23,8 +23,11 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.plus
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -73,6 +76,14 @@ class PkgRepo @Inject constructor(
 
     val data: Flow<PkgData> = cache.flow
         .replayingShare(appScope)
+
+    private val _revision = MutableStateFlow(0L)
+
+    /**
+     * Incremented after every [refresh]. Unlike [data] this always emits, even when the reloaded
+     * package data is equal to what was there before.
+     */
+    val revision: StateFlow<Long> = _revision
 
     init {
         pkgEventListener.events
@@ -155,6 +166,7 @@ class PkgRepo @Inject constructor(
         val before = cache.value()
         log(TAG) { "refresh()... (before=${before.pkgCount})" }
         val after = cache.updateBlocking { generateCacheContainer() }
+        _revision.update { it + 1 }
         log(TAG, INFO) { "...refresh()ed (after=${after.pkgCount})" }
         return after.pkgs
     }

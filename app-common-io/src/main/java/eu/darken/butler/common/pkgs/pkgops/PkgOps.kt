@@ -623,8 +623,9 @@ class PkgOps @Inject constructor(
         val externalCacheBytes: Long?,
         val dataBytes: Long,
     ) {
+        // StorageStats.getDataBytes() already includes getCacheBytes(), adding cache would double-count it.
         val total: Long
-            get() = appBytes + dataBytes + cacheBytes
+            get() = appBytes + dataBytes
     }
 
     suspend fun querySizeStats(
