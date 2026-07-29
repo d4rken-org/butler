@@ -1,5 +1,6 @@
 package eu.darken.butler.apps.core.engine
 
+import android.content.Context
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.pkgs.AKnownPkg
 import eu.darken.butler.common.pkgs.Pkg
@@ -8,6 +9,7 @@ import eu.darken.butler.common.pkgs.features.InstallerInfo
 import eu.darken.butler.common.user.UserHandle2
 import eu.darken.butler.common.user.UserProfile2
 import eu.darken.butler.workspace.contracts.apps.AppTag
+import eu.darken.butler.workspace.contracts.apps.SortSettings
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
@@ -101,6 +103,25 @@ class AppItemTest : BaseTest() {
 
         val backToSideloaded = fromStore.copy(installerInfo = null)
         backToSideloaded.tags shouldContain AppTag.Sideloaded
+    }
+
+    /**
+     * An unmeasured app sorts as 0, which is what puts unknowns at the bottom of the common
+     * "largest first" view.
+     */
+    @Test
+    fun `unknown sizes sort as zero in both directions`() {
+        val context = mockk<Context>(relaxed = true)
+        val small = appItem().copy(appSize = 10L, packageName = "small")
+        val large = appItem().copy(appSize = 1000L, packageName = "large")
+        val unknown = appItem().copy(appSize = null, packageName = "unknown")
+        val items = listOf(large, unknown, small)
+
+        items.sortedBy(context, SortSettings(mode = SortSettings.Mode.SIZE)).map { it.packageName } shouldBe
+            listOf("unknown", "small", "large")
+
+        items.sortedBy(context, SortSettings(mode = SortSettings.Mode.SIZE, reversed = true))
+            .map { it.packageName } shouldBe listOf("large", "small", "unknown")
     }
 
     @Test
