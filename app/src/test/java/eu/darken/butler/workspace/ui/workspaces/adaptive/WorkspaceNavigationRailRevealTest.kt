@@ -28,7 +28,7 @@ class WorkspaceNavigationRailRevealTest : BaseTest() {
     fun `a focused entry outside the visible window is revealed`() {
         shouldRevealFocused(
             focusedIndex = 7,
-            visibleIndices = listOf(0, 1, 2),
+            fullyVisibleIndices = listOf(0, 1, 2),
             isDragging = false,
             isScrolling = false,
         ) shouldBe true
@@ -38,17 +38,31 @@ class WorkspaceNavigationRailRevealTest : BaseTest() {
     fun `a focused entry already on screen is left alone`() {
         shouldRevealFocused(
             focusedIndex = 1,
-            visibleIndices = listOf(0, 1, 2),
+            fullyVisibleIndices = listOf(0, 1, 2),
             isDragging = false,
             isScrolling = false,
         ) shouldBe false
+    }
+
+    /**
+     * A clipped entry is still in visibleItemsInfo, but a sliver at the edge of the rail reads as
+     * "nothing happened" to the user who just picked that tab.
+     */
+    @Test
+    fun `a focused entry that is only partially visible is revealed`() {
+        shouldRevealFocused(
+            focusedIndex = 3,
+            fullyVisibleIndices = listOf(0, 1, 2),
+            isDragging = false,
+            isScrolling = false,
+        ) shouldBe true
     }
 
     @Test
     fun `a reorder drag suppresses the reveal`() {
         shouldRevealFocused(
             focusedIndex = 7,
-            visibleIndices = listOf(0, 1, 2),
+            fullyVisibleIndices = listOf(0, 1, 2),
             isDragging = true,
             isScrolling = false,
         ) shouldBe false
@@ -59,7 +73,7 @@ class WorkspaceNavigationRailRevealTest : BaseTest() {
     fun `a scroll in progress suppresses the reveal`() {
         shouldRevealFocused(
             focusedIndex = 7,
-            visibleIndices = listOf(0, 1, 2),
+            fullyVisibleIndices = listOf(0, 1, 2),
             isDragging = false,
             isScrolling = true,
         ) shouldBe false
@@ -69,7 +83,7 @@ class WorkspaceNavigationRailRevealTest : BaseTest() {
     fun `an unknown focused id is not revealed`() {
         shouldRevealFocused(
             focusedIndex = -1,
-            visibleIndices = listOf(0, 1, 2),
+            fullyVisibleIndices = listOf(0, 1, 2),
             isDragging = false,
             isScrolling = false,
         ) shouldBe false

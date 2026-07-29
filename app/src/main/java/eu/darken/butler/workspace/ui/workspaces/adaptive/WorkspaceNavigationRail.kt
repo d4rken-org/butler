@@ -110,15 +110,18 @@ internal fun railRevealKey(focusedId: Workspace.Id?, workspaces: List<Workspace.
     RailRevealKey(focusedId = focusedId, orderedIds = workspaces.map { it.id })
 
 /**
- * True when the focused entry is off screen and nothing the user is doing should be interrupted.
+ * True when the focused entry is not fully on screen and nothing the user is doing should be
+ * interrupted. A partially visible entry counts as needing reveal: a card clipped to a sliver at the
+ * edge of the rail reads as "nothing happened" to the user who just picked that tab, so only
+ * [fullyVisibleIndices] - entries within the viewport in their entirety - may suppress the scroll.
  * [isScrolling] covers an ordinary scroll or fling, which [isDragging] (reorder only) does not.
  */
 internal fun shouldRevealFocused(
     focusedIndex: Int,
-    visibleIndices: List<Int>,
+    fullyVisibleIndices: List<Int>,
     isDragging: Boolean,
     isScrolling: Boolean,
-): Boolean = focusedIndex >= 0 && !isDragging && !isScrolling && focusedIndex !in visibleIndices
+): Boolean = focusedIndex >= 0 && !isDragging && !isScrolling && focusedIndex !in fullyVisibleIndices
 
 @Composable
 fun WorkspaceNavigationRail(
@@ -166,9 +169,15 @@ fun WorkspaceNavigationRail(
     val revealKey = railRevealKey(focusedId, localWorkspaces)
     LaunchedEffect(revealKey) {
         val focusedIndex = revealKey.orderedIds.indexOf(revealKey.focusedId)
+        val layoutInfo = lazyListState.layoutInfo
+        // visibleItemsInfo includes items clipped by the viewport, so filter down to the entries that
+        // fit inside it completely.
+        val fullyVisibleIndices = layoutInfo.visibleItemsInfo
+            .filter { it.offset >= layoutInfo.viewportStartOffset && it.offset + it.size <= layoutInfo.viewportEndOffset }
+            .map { it.index }
         val shouldReveal = shouldRevealFocused(
             focusedIndex = focusedIndex,
-            visibleIndices = lazyListState.layoutInfo.visibleItemsInfo.map { it.index },
+            fullyVisibleIndices = fullyVisibleIndices,
             isDragging = isDragging,
             isScrolling = lazyListState.isScrollInProgress,
         )
