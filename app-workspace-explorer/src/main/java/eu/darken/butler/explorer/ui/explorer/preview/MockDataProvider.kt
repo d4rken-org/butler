@@ -852,17 +852,22 @@ object MockDataProvider {
 
     private const val DEVICE_ROOT = "/storage/emulated/0"
 
+    /**
+     * [hoursAgo] rather than whole days on purpose: a day-aligned offset gives every row the exact
+     * same clock time, and a screenshot of twenty rows all modified at 5:21:40 PM reads as fake.
+     * Keep these off multiples of 24.
+     */
     private fun deviceDirectory(
         name: String,
         childCount: Int,
-        daysAgo: Long,
+        hoursAgo: Long,
     ): ExplorerItem.RegularDirectory = ExplorerItem.RegularDirectory(
         lookup = createMockLookup(
             name = name,
             path = "$DEVICE_ROOT/$name",
             size = 0L,
             fileType = FileType.DIRECTORY,
-            modifiedAt = MockTimes.daysAgo(daysAgo),
+            modifiedAt = MockTimes.hoursAgo(hoursAgo),
         ),
         childCount = childCount,
     )
@@ -889,26 +894,26 @@ object MockDataProvider {
      * sorted listing would push every file — and with it every file-type icon — out of the shot.
      */
     fun createAndroidDeviceListing(): List<ExplorerItem.Path> = listOf(
-        deviceDirectory("Alarms", childCount = 3, daysAgo = 96),
-        deviceDirectory("Android", childCount = 12, daysAgo = 1),
-        deviceDirectory("DCIM", childCount = 2, daysAgo = 1),
+        deviceDirectory("Alarms", childCount = 3, hoursAgo = 2305),
+        deviceDirectory("Android", childCount = 12, hoursAgo = 19),
+        deviceDirectory("DCIM", childCount = 2, hoursAgo = 26),
         deviceFile("IMG_20260712_181402.jpg", MockSizes.mb(4), "image/jpeg", hoursAgo = 3),
-        deviceDirectory("Documents", childCount = 27, daysAgo = 2),
+        deviceDirectory("Documents", childCount = 27, hoursAgo = 43),
         deviceFile("VID_20260705_094512.mp4", MockSizes.mb(148), "video/mp4", hoursAgo = 52),
-        deviceDirectory("Download", childCount = 41, daysAgo = 1),
-        deviceFile("invoice_july.pdf", MockSizes.kb(820), "application/pdf", hoursAgo = 120),
-        deviceDirectory("Audiobooks", childCount = 6, daysAgo = 34),
-        deviceDirectory("Movies", childCount = 4, daysAgo = 12),
-        deviceDirectory("Music", childCount = 128, daysAgo = 8),
+        deviceDirectory("Download", childCount = 41, hoursAgo = 31),
+        deviceFile("invoice_july.pdf", MockSizes.kb(820), "application/pdf", hoursAgo = 118),
+        deviceDirectory("Audiobooks", childCount = 6, hoursAgo = 823),
+        deviceDirectory("Movies", childCount = 4, hoursAgo = 295),
+        deviceDirectory("Music", childCount = 128, hoursAgo = 197),
         deviceFile("Recording_014.m4a", MockSizes.mb(12), "audio/mp4", hoursAgo = 27),
-        deviceDirectory("Notifications", childCount = 5, daysAgo = 96),
-        deviceDirectory("Pictures", childCount = 312, daysAgo = 3),
-        deviceFile("backup-2026-07-19.zip", MockSizes.mb(512), "application/zip", hoursAgo = 216),
-        deviceDirectory("Podcasts", childCount = 9, daysAgo = 21),
-        deviceFile("butler-1.4.2.apk", MockSizes.mb(18), "application/vnd.android.package-archive", hoursAgo = 144),
-        deviceDirectory("Ringtones", childCount = 14, daysAgo = 96),
+        deviceDirectory("Notifications", childCount = 5, hoursAgo = 2311),
+        deviceDirectory("Pictures", childCount = 312, hoursAgo = 70),
+        deviceFile("backup-2026-07-19.zip", MockSizes.mb(512), "application/zip", hoursAgo = 209),
+        deviceDirectory("Podcasts", childCount = 9, hoursAgo = 511),
+        deviceFile("butler-1.4.2.apk", MockSizes.mb(18), "application/vnd.android.package-archive", hoursAgo = 139),
+        deviceDirectory("Ringtones", childCount = 14, hoursAgo = 2318),
         deviceFile("notes.md", MockSizes.kb(6), "text/markdown", hoursAgo = 4),
-        deviceFile("readme.txt", MockSizes.kb(2), "text/plain", hoursAgo = 720),
+        deviceFile("readme.txt", MockSizes.kb(2), "text/plain", hoursAgo = 713),
     )
 
     // MARK: - Location Info Factories
@@ -1124,6 +1129,21 @@ object MockDataProvider {
         ExplorerActionBarItem.Directory.Create(isEnabled = createEnabled),
         ExplorerActionBarItem.Common.Sort(),
         ExplorerActionBarItem.Common.Filter(isEnabled = filterEnabled),
+    )
+
+    /**
+     * What the action bar offers once rows are selected, mirroring what `DirectoryActionProvider`
+     * swaps in. Pair with a non-empty [ExplorerSelectionState] - browse actions next to a selection
+     * would show a state the app never produces.
+     */
+    fun createSelectionActions(
+        trashEnabled: Boolean = true,
+    ): List<ExplorerActionBarItem> = listOf(
+        ExplorerActionBarItem.Directory.Copy(),
+        ExplorerActionBarItem.Directory.Cut(),
+        ExplorerActionBarItem.Directory.Delete(trashEnabled = trashEnabled),
+        ExplorerActionBarItem.Directory.Share(),
+        ExplorerActionBarItem.Directory.Compress(),
     )
 
     // MARK: - State Factories

@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.BuildConfigWrap
+import eu.darken.butler.common.compose.LocalSystemBarInsetsOverride
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -416,10 +417,14 @@ fun rememberFloatingBarStackState(
     }
 
     // System bar inset based on position (status bar for TOP, nav bar for BOTTOM). No IME here.
+    // LocalSystemBarInsetsOverride is null outside the screenshot renders, so production keeps
+    // reading the same window insets it always did.
+    val insetOverride = LocalSystemBarInsetsOverride.current
     val systemBarInsetPx = if (includeSystemBarInset) {
         when (position) {
-            BarPosition.TOP -> WindowInsets.statusBars.getTop(density).toFloat()
-            BarPosition.BOTTOM -> WindowInsets.navigationBars.getBottom(density).toFloat()
+            BarPosition.TOP -> (insetOverride?.getTop(density) ?: WindowInsets.statusBars.getTop(density)).toFloat()
+            BarPosition.BOTTOM ->
+                (insetOverride?.getBottom(density) ?: WindowInsets.navigationBars.getBottom(density)).toFloat()
         }
     } else {
         0f

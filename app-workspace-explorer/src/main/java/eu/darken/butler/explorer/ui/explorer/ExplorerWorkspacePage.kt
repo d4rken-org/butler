@@ -90,9 +90,16 @@ fun ExplorerWorkspacePage(
     val state = nullableState ?: return
 
     val coroutineScope = rememberCoroutineScope()
-    val operationsStateRaw by operationsStateSource.collectAsState(initial = null)
+    // Same StateFlow unwrap as the main state above: a single-frame renderer never runs the
+    // collection, so `initial = null` would leave the operations and clipboard bars permanently
+    // hidden in screenshot tests and IDE previews.
+    val operationsStateRaw by operationsStateSource.collectAsState(
+        initial = (operationsStateSource as? StateFlow)?.value,
+    )
     val operationsState = operationsStateRaw ?: OperationsDisplayState()
-    val clipboardStateRaw by clipboardStateSource.collectAsState(initial = null)
+    val clipboardStateRaw by clipboardStateSource.collectAsState(
+        initial = (clipboardStateSource as? StateFlow)?.value,
+    )
     val clipboardState = clipboardStateRaw ?: ClipboardDisplayState()
     val isWorkspaceFocused = LocalWorkspaceFocused.current
 

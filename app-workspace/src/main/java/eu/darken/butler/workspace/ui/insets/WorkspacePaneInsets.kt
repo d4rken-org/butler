@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.LocalAvoidDisplayCutout
+import eu.darken.butler.common.compose.LocalSystemBarInsetsOverride
 import eu.darken.butler.common.compose.systemBarsWithOptionalCutout
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
@@ -84,10 +85,13 @@ private fun rawPaneInsets(): RawPaneInsets {
     val density = LocalDensity.current
     val layoutDirection = LocalLayoutDirection.current
     val horizontal = systemBarsWithOptionalCutout()
+    // Null outside the screenshot renders, so production keeps reading the status and navigation
+    // bars exactly as before rather than the systemBars union.
+    val override = LocalSystemBarInsetsOverride.current
     return with(density) {
         RawPaneInsets(
-            top = WindowInsets.statusBars.getTop(density).toDp(),
-            bottom = WindowInsets.navigationBars.getBottom(density).toDp(),
+            top = (override?.getTop(density) ?: WindowInsets.statusBars.getTop(density)).toDp(),
+            bottom = (override?.getBottom(density) ?: WindowInsets.navigationBars.getBottom(density)).toDp(),
             left = horizontal.getLeft(density, layoutDirection).toDp(),
             right = horizontal.getRight(density, layoutDirection).toDp(),
         )

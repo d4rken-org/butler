@@ -30,6 +30,9 @@ import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.io.R as IoR
 import eu.darken.butler.common.pkgs.features.Installed
+import eu.darken.butler.common.theming.ThemeMode
+import eu.darken.butler.common.theming.ThemeState
+import eu.darken.butler.common.theming.ThemeStyle
 import coil3.Image as CoilImage
 
 /**
@@ -229,17 +232,27 @@ internal class ScreenshotImagePreviewHandler(
 }
 
 /**
- * [PreviewWrapper] plus the image stand-ins. Exactly one per render, never nested.
+ * [PreviewWrapper] plus the image stand-ins and the synthetic system bars. Exactly one per render,
+ * never nested.
  *
  * The handler is remembered per tint rather than held in a singleton: screenshot renders can
  * overlap, and a mutable shared handler would let one render's theme colour leak into another's.
+ *
+ * [theme] defaults to an explicit light theme rather than [ThemeMode.SYSTEM]: a render has no
+ * system to ask, so SYSTEM would leave the result at the mercy of layoutlib's default `uiMode`.
+ * The dark shots pass [ThemeMode.DARK].
  */
 @OptIn(ExperimentalCoilApi::class)
 @Composable
-internal fun ScreenshotPreviewWrapper(content: @Composable () -> Unit) = PreviewWrapper {
+internal fun ScreenshotPreviewWrapper(
+    theme: ThemeState = ThemeState(mode = ThemeMode.LIGHT, style = ThemeStyle.DEFAULT),
+    content: @Composable () -> Unit,
+) = PreviewWrapper(theme = theme) {
     val tintArgb = MaterialTheme.colorScheme.onSurfaceVariant.toArgb()
     val handler = remember(tintArgb) { ScreenshotImagePreviewHandler(tintArgb) }
     CompositionLocalProvider(LocalAsyncImagePreviewHandler provides handler) {
-        content()
+        ScreenshotSystemBars {
+            content()
+        }
     }
 }

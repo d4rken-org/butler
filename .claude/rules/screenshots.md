@@ -7,15 +7,18 @@ paths: ["app/src/screenshotTest/**", "app/src/debug/**", "fastlane/**"]
 Butler uses **Jetpack Compose Preview Screenshot Testing** to render Play Store screenshots. No
 device or emulator is needed — everything is rendered via layoutlib.
 
-Two axes: **8 screens × 3 form factors = 24 renders per locale**, across **68 locales**.
+Two axes: **8 screens × 3 form factors**, but not a full grid — the phone set drops the explorer
+home shot, so it is **7 phone + 8 seven-inch + 8 ten-inch = 23 renders per locale**, across
+**68 locales**.
 
 ## Architecture
 
 ```
 ScreenshotContent.kt      →  Mock UI state + pane composition per screen (src/debug/)
 ScreenshotPreviewImages.kt→  Stand-in file/app images for the layoutlib render (src/debug/)
+ScreenshotSystemBars.kt   →  Synthetic status/navigation bars + the inset override (src/debug/)
 PlayStoreLocales.kt       →  3 annotation classes, one per form factor (device spec + locales)
-PlayStoreScreenshots.kt   →  24 @PreviewTest functions (screen × form factor)
+PlayStoreScreenshots.kt   →  23 @PreviewTest functions (screen × form factor)
         ↓
 fastlane/screenshots/locales.txt  →  the locale source of truth
         ↓
@@ -27,7 +30,7 @@ copy_screenshots.sh       →  Sorts PNGs into fastlane/metadata/android/{locale
 ## Commands
 
 ```bash
-# Refresh the committed English set (24 renders, 1 batch) — the usual path
+# Refresh the committed English set (23 renders, 1 batch) — the usual path
 ./fastlane/generate_screenshots.sh --english
 
 # Smoke test (6 locales: en-US, de-DE, ja-JP, ar, zh-CN, pt-BR)
@@ -36,7 +39,7 @@ copy_screenshots.sh       →  Sorts PNGs into fastlane/metadata/android/{locale
 # Full generation (68 locales, 68 batches — slow)
 ./fastlane/generate_screenshots.sh
 
-# Custom batch size (default is 1 locale = 24 renders per batch)
+# Custom batch size (default is 1 locale = 23 renders per batch)
 ./fastlane/generate_screenshots.sh --batch-size 2
 
 # Sort rendered screenshots into fastlane metadata (--clean replaces the target dirs)
@@ -47,9 +50,20 @@ copy_screenshots.sh       →  Sorts PNGs into fastlane/metadata/android/{locale
 
 | Form factor | Device spec           | dp        | Derived layout   |
 |-------------|-----------------------|-----------|------------------|
-| Phone       | 1080×2400 px, 428 dpi | 404×897   | SINGLE           |
-| 7" tablet   | 1200×1920 px, 320 dpi | 600×960   | DUAL_HORIZONTAL  |
-| 10" tablet  | 2560×1600 px, 320 dpi | 1280×800  | TRIPLE_MAIN_LEFT |
+| Phone       | 1440×2560 px, 560 dpi | 411×731   | SINGLE           |
+| 7" tablet   | 1080×1920 px, 288 dpi | 600×1066  | DUAL_HORIZONTAL  |
+| 10" tablet  | 2560×1440 px, 320 dpi | 1280×720  | TRIPLE_MAIN_LEFT |
+
+Every spec is exactly 16:9. Play rejects a screenshot whose long side exceeds twice its short side,
+and only 9:16 portrait / 16:9 landscape shots are eligible for the promotional surfaces — the old
+1080×2400 phone spec was 9:20 and satisfied neither.
+
+**The dpi is not cosmetic.** It sets the dp size, the dp size picks the layout through
+`WindowSizeInfo.recommendedPaneCount`, and a pane index the layout renders but `ScreenshotPaneFrame`
+has no `selected` entry for falls back to the empty-pane placeholder. The 7" spec is 288 dpi rather
+than a standard bucket for exactly this reason: 1080×1920 at 320 dpi is 540 dp wide, under the
+600 dp breakpoint, which silently collapses both tablet panes to `SINGLE`. Redo that arithmetic
+before changing any spec.
 
 The form factor of a screenshot comes from **the name of its `@PreviewTest` function**
 (`<Screen>Phone` / `<Screen>Seven` / `<Screen>Ten`), never from the preview `name` — that stays the
@@ -81,6 +95,69 @@ Pass `layout = null` to use the layout the window size recommends, or an explici
 `railExtras` adds `Workspace.Info`s to the rail without giving them a pane — the real rail lists
 every open tab, not only the visible ones, and a workspace with no `selected` entry renders as an
 idle rail item. Their ids must not collide with any pane id.
+
+## Shot Order
+
+The phone and tablet sets are different lists. The number is the fastlane filename prefix, which is
+the order Play shows them in.
+
+| # | Phone (7)            | 7" and 10" tablet (8) |
+|---|----------------------|-----------------------|
+| 1 | multi_pane           | explorer_directory    |
+| 2 | explorer_directory   | explorer_home         |
+| 3 | searcher_results     | searcher_results      |
+| 4 | editor *(dark)*      | editor *(dark)*       |
+| 5 | apps                 | apps                  |
+| 6 | workspace_manager *(dark)* | workspace_manager *(dark)* |
+| 7 | templates            | multi_pane            |
+| 8 | —                    | templates             |
+
+The phone set leads with the multi-pane shot because that is what distinguishes Butler in a search
+result, and drops the explorer home shot to stay within eight. The quick-create dropdown overlay
+rides on the phone templates shot, which is the only phone shot left that is about creating tabs.
+
+## System Bars and Insets
+
+layoutlib **ignores `showSystemUi` in a screenshot-test render** — verified: neither a
+`navigation=`/`cutout=` device spec nor a `parent=` device makes it paint the bars — and it reports
+every window inset as zero. Left alone, panes start at y=0 and draw where the status bar belongs.
+
+`ScreenshotSystemBars` (`ScreenshotSystemBars.kt`) fixes both halves: it overlays a synthetic status
+bar and gesture handle, and provides `LocalSystemBarInsetsOverride` with the matching values.
+`ScreenshotPreviewWrapper` applies it once per render.
+
+Drawing our own is also what Play asks for — the asset guidance wants a clean notification bar with
+no carrier text, no notifications and battery/wifi/signal shown full — and it keeps all 68 locales
+identical. The clock is a hardcoded `12:30` for the same reason; the `Row` mirrors itself under RTL,
+as a real status bar does.
+
+`LocalSystemBarInsetsOverride` lives in `app-common` (`DisplayCutoutAvoidance.kt`) because its
+consumers span layers, and it is null everywhere outside these renders — production reads the same
+window insets it always did:
+
+| Consumer | What it insets |
+|----------|----------------|
+| `systemBarsWithOptionalCutout()` | the navigation rail (`WorkspaceNavigationRail.kt`) |
+| `rawPaneInsets()` (`WorkspacePaneInsets.kt`) | pane chrome |
+| `FloatingBarStackState` | the floating bar stacks |
+
+The bars are an **overlay, not padding**: page content is meant to scroll under them, as it does
+edge-to-edge on a device. Content with no inset consumer of its own needs
+`Modifier.screenshotSystemBarPadding()` instead — the workspace manager is the case that matters,
+because it insets itself through a `Scaffold` and a `Scaffold` reads `WindowInsets.systemBars`
+directly, which the override cannot reach.
+
+### Single-frame collection
+
+A single-frame render never runs a flow collection, so a page that takes `Flow` parameters must
+unwrap `StateFlow` for its initial value or the bar it drives stays permanently hidden:
+
+```kotlin
+val state by source.collectAsState(initial = (source as? StateFlow)?.value)
+```
+
+`ExplorerWorkspacePage` does this for its main, operations and clipboard sources. `initial = null`
+is why the operations bar rendered blank before.
 
 ## Images
 
@@ -150,7 +227,7 @@ Upload with `fastlane android screenshots_only` (screenshots and nothing else).
 `generate_screenshots.sh` works around a layoutlib memory leak (rendered images accumulate without
 being released) by:
 
-1. Splitting the locales into batches of `--batch-size` (default 1 = 24 renders per batch).
+1. Splitting the locales into batches of `--batch-size` (default 1 = 23 renders per batch).
 2. Rewriting `PlayStoreLocales.kt` in place with only that batch's locales, then running Gradle with
    `--no-daemon --rerun-tasks` (without `--rerun-tasks` the update task reports up to date after the
    reference directory has been wiped and renders nothing).
@@ -171,8 +248,10 @@ would be a duplicate declaration.
 `copy_screenshots.sh` runs in two phases and fails closed:
 
 1. **Parse & validate** every source into an in-memory manifest — unknown function names, duplicate
-   destinations, unknown form factors, wrong pixel dimensions and locales without exactly 8 images
-   per form factor are all fatal. On any violation nothing is copied.
+   destinations, unknown form factors, wrong pixel dimensions and locales that miss their
+   per-form-factor count (`SCREENS_PER_FORM_FACTOR`: phone 7, seven 8, ten 8) are all fatal. On any
+   violation nothing is copied. `SCREEN_SIZE_OVERRIDE` lets a single shot render at a size other
+   than its form factor's default; it is empty today.
 2. **Stage & commit** — all copies are staged into a temp dir first; only once staging fully
    succeeds are the destination directories replaced. `--clean` happens only in this phase and only
    for the locales in this run.
@@ -193,12 +272,14 @@ Everything below has to stay in sync:
    `ScreenshotPreviewWrapper` exactly once. Never call another `*Content()` from inside a pane —
    that would nest a whole wrapper per pane.
 2. `ScreenshotContent.kt`: three IDE `@Preview` functions, one per device spec.
-3. `PlayStoreScreenshots.kt`: three `@PreviewTest` functions —
+3. `PlayStoreScreenshots.kt`: a `@PreviewTest` function per form factor the screen appears on —
    `<Screen>Phone` / `<Screen>Seven` / `<Screen>Ten`. **Function names must not contain
-   underscores**: the copy script splits the rendered file name at the first underscore.
-4. `copy_screenshots.sh`: three `SCREEN_MAP` entries, `"<form factor>:<order>_<label>"`.
-5. `copy_screenshots.sh`: bump `SCREENS_PER_FORM_FACTOR`.
-6. `generate_screenshots.sh`: bump `RENDERS_PER_LOCALE` (screens × 3).
+   underscores**: the copy script splits the rendered file name at the first underscore. A form
+   factor a screen does not appear on gets a `noVariant(formFactor)` branch in `ScreenshotContent.kt`
+   rather than a silently rendered extra.
+4. `copy_screenshots.sh`: one `SCREEN_MAP` entry per shot, `"<form factor>:<order>_<label>"`.
+5. `copy_screenshots.sh`: bump the affected entries in `SCREENS_PER_FORM_FACTOR`.
+6. `generate_screenshots.sh`: bump `RENDERS_PER_LOCALE` (the sum across form factors).
 7. This file: update the counts at the top.
 
 Removing a screen is the same list in reverse.

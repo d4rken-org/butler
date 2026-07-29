@@ -34,12 +34,16 @@ import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.LongClickableDropdownMenuItem
 import eu.darken.butler.common.compose.asComposable
+import eu.darken.butler.common.theming.ThemeMode
+import eu.darken.butler.common.theming.ThemeState
+import eu.darken.butler.common.theming.ThemeStyle
 import eu.darken.butler.editor.core.engine.ContentSource
 import eu.darken.butler.editor.ui.editor.EditorWorkspacePage
 import eu.darken.butler.editor.ui.editor.EditorWorkspaceViewModel
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspacePage
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
+import eu.darken.butler.explorer.ui.explorer.util.ExplorerSelectionState
 import eu.darken.butler.searcher.ui.search.SearcherWorkspacePage
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
 import eu.darken.butler.templates.ui.TemplatesWorkspacePage
@@ -73,9 +77,15 @@ import eu.darken.butler.workspace.ui.workspaces.adaptive.DividerPositions
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.uuid.Uuid
 
-internal const val DS_PHONE = "spec:width=1080px,height=2400px,dpi=428"
-internal const val DS_SEVEN = "spec:width=1200px,height=1920px,dpi=320"
-internal const val DS_TEN = "spec:width=2560px,height=1600px,dpi=320"
+// Play requires the long side to stay within 2x the short side, and only 9:16 portrait / 16:9
+// landscape shots are eligible for the promotional surfaces. Every spec below is exactly 16:9.
+// The dpi is not cosmetic: it sets the dp size, and the dp size picks the layout via
+// WindowSizeInfo.recommendedPaneCount. A pane index the layout renders but ScreenshotPaneFrame
+// has no `selected` entry for falls back to the empty-pane placeholder, so changing a spec
+// without redoing that arithmetic silently ships a "Pane 3 is ready for content" screenshot.
+internal const val DS_PHONE = "spec:width=1440px,height=2560px,dpi=560" // 411x731dp, SINGLE
+internal const val DS_SEVEN = "spec:width=1080px,height=1920px,dpi=288" // 600x1066dp, DUAL_HORIZONTAL
+internal const val DS_TEN = "spec:width=2560px,height=1440px,dpi=320" // 1280x720dp, TRIPLE_MAIN_LEFT
 
 /**
  * Which device spec a screenshot renders on, and therefore how many panes it composes.
@@ -250,12 +260,22 @@ private fun ExplorerDeviceBody(id: Workspace.Id, design: WorkspaceDesign) {
     )
 }
 
+/**
+ * @param selectedIndices positions in the listing to show as selected. A non-empty set puts the
+ *   page into selection mode, which is what surfaces the checkboxes and the contextual action bar.
+ * @param operations a populated state shows the running-operation bar over the listing.
+ */
 @Composable
-private fun ExplorerDirectoryBody(id: Workspace.Id, design: WorkspaceDesign) {
+private fun ExplorerDirectoryBody(
+    id: Workspace.Id,
+    design: WorkspaceDesign,
+    selectedIndices: Set<Int> = emptySet(),
+    operations: OperationsDisplayState = OperationsDisplayState(),
+) {
     ExplorerWorkspacePage(
         workspaceId = id,
         design = design,
-        mainStateSource = remember {
+        mainStateSource = remember(selectedIndices) {
             val items = MockDataProvider.createAndroidDeviceListing()
             MutableStateFlow(
                 MockDataProvider.createReadyState(
@@ -265,11 +285,20 @@ private fun ExplorerDirectoryBody(id: Workspace.Id, design: WorkspaceDesign) {
                         info = MockDataProvider.createAndroidDeviceInfo(items),
                     ),
                     breadcrumbs = MockDataProvider.createDeviceRootBreadcrumbs(),
-                    actions = MockDataProvider.createDefaultDirectoryActions(),
+                    // The action bar has to agree with the selection: browsing actions next to
+                    // "3 selected" is a combination the app never shows.
+                    actions = when {
+                        selectedIndices.isEmpty() -> MockDataProvider.createDefaultDirectoryActions()
+                        else -> MockDataProvider.createSelectionActions()
+                    },
+                    selectionState = ExplorerSelectionState(
+                        selectableItems = items.toSet(),
+                        selectedItems = selectedIndices.map { items[it] }.toSet(),
+                    ),
                 )
             )
         },
-        operationsStateSource = remember { MutableStateFlow(OperationsDisplayState()) },
+        operationsStateSource = remember(operations) { MutableStateFlow(operations) },
         clipboardStateSource = remember { MutableStateFlow(ClipboardDisplayState()) },
     )
 }
@@ -466,6 +495,17 @@ private val explorerDirectoryPane = ScreenshotPane(
     type = Workspace.Type.EXPLORER,
 ) { id, design -> ExplorerDirectoryBody(id, design) }
 
+/**
+ * Built once at class init, not per composition: [MockDataProvider.createMockOperationsState] mints
+ * a fresh operation id on every call, which would make the `remember` key in
+ * [ExplorerDirectoryBody] change on each recomposition.
+ */
+private val runningCopy = OperationsDisplayState(
+    // createMockOperationsState's first running entry is a delete; a delete at 50/100 sitting next
+    // to three selected files is an alarming thing to put in a store listing. A copy is not.
+    operations = listOf(MockDataProvider.createMockRunningOperation()),
+)
+
 private val searcherPane = ScreenshotPane(
     id = ID_SEARCHER,
     type = Workspace.Type.SEARCHER,
@@ -567,28 +607,43 @@ private fun ExpandedWorkspaceButtonMenu(modifier: Modifier = Modifier) {
     }
 }
 
+/**
+ * A form factor this screen is not rendered on.
+ *
+ * The set of shots per form factor is decided in `PlayStoreScreenshots.kt`, not here, and the two
+ * have to agree: the phone set drops the explorer home shot, so it has no variant to render.
+ * Failing loudly beats rendering a shot nobody asked for and letting `copy_screenshots.sh` reject
+ * it later on a count mismatch.
+ */
+private fun noVariant(formFactor: ScreenshotFormFactor): Nothing =
+    error("No $formFactor variant for this screen - PlayStoreScreenshots.kt should not ask for one")
+
+/** The theme the dark shots use, so the carousel is not eight light frames in a row. */
+private val DarkScreenshotTheme = ThemeState(mode = ThemeMode.DARK, style = ThemeStyle.DEFAULT)
+
 @Composable
 internal fun ExplorerHomeContent(formFactor: ScreenshotFormFactor) = ScreenshotPreviewWrapper {
     when (formFactor) {
-        ScreenshotFormFactor.PHONE -> Box(modifier = Modifier.fillMaxSize()) {
-            ExplorerHomeBody(ID_EXPLORER_HOME, WorkspaceDesign())
-            ExpandedWorkspaceButtonMenu(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(top = 54.dp, end = 16.dp),
-            )
-        }
         // Home next to the device location, where the storages live. Two EXPLORER panes side by
         // side: the proof that pane content is dispatched by id.
         ScreenshotFormFactor.SEVEN -> ScreenshotPaneFrame(listOf(explorerHomePane, explorerDevicePane))
         ScreenshotFormFactor.TEN -> ScreenshotPaneFrame(listOf(explorerHomePane, explorerDevicePane, searcherPane))
+        ScreenshotFormFactor.PHONE -> noVariant(formFactor)
     }
 }
 
 @Composable
 internal fun ExplorerDirectoryContent(formFactor: ScreenshotFormFactor) = ScreenshotPreviewWrapper {
     when (formFactor) {
-        ScreenshotFormFactor.PHONE -> ExplorerDirectoryBody(ID_EXPLORER_DIRECTORY, WorkspaceDesign())
+        // Selected rows put the page into selection mode, which is what brings up the checkboxes
+        // and the contextual action bar - the file management story in one frame. The running copy
+        // rides along here rather than on the hero, whose stacked panes are only ~365dp tall.
+        ScreenshotFormFactor.PHONE -> ExplorerDirectoryBody(
+            id = ID_EXPLORER_DIRECTORY,
+            design = WorkspaceDesign(),
+            selectedIndices = setOf(3, 4, 5),
+            operations = runningCopy,
+        )
         ScreenshotFormFactor.SEVEN -> ScreenshotPaneFrame(listOf(explorerDirectoryPane, editorPane))
         ScreenshotFormFactor.TEN -> ScreenshotPaneFrame(listOf(explorerDirectoryPane, editorPane, appsPane))
     }
@@ -604,7 +659,9 @@ internal fun SearcherResultsContent(formFactor: ScreenshotFormFactor) = Screensh
 }
 
 @Composable
-internal fun EditorViewContent(formFactor: ScreenshotFormFactor) = ScreenshotPreviewWrapper {
+internal fun EditorViewContent(formFactor: ScreenshotFormFactor) = ScreenshotPreviewWrapper(
+    theme = DarkScreenshotTheme,
+) {
     when (formFactor) {
         ScreenshotFormFactor.PHONE -> EditorViewBody(ID_EDITOR, WorkspaceDesign())
         ScreenshotFormFactor.SEVEN -> ScreenshotPaneFrame(listOf(editorPane, explorerDirectoryPane))
@@ -624,13 +681,27 @@ internal fun AppsManagerContent(formFactor: ScreenshotFormFactor) = ScreenshotPr
 @Composable
 internal fun TemplatesPickerContent(formFactor: ScreenshotFormFactor) = ScreenshotPreviewWrapper {
     when (formFactor) {
-        ScreenshotFormFactor.PHONE -> TemplatesPickerBody(ID_TEMPLATES, WorkspaceDesign())
+        // The quick-create dropdown rides along here: the phone set no longer has an explorer home
+        // shot to host it, and creating workspaces is what this screen is about anyway.
+        ScreenshotFormFactor.PHONE -> Box(modifier = Modifier.fillMaxSize()) {
+            TemplatesPickerBody(ID_TEMPLATES, WorkspaceDesign())
+            ExpandedWorkspaceButtonMenu(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = ScreenshotStatusBarHeight + 54.dp, end = 16.dp),
+            )
+        }
         ScreenshotFormFactor.SEVEN -> ScreenshotPaneFrame(listOf(templatesPane, explorerDirectoryPane))
         ScreenshotFormFactor.TEN -> ScreenshotPaneFrame(listOf(templatesPane, explorerDirectoryPane, editorPane))
     }
 }
 
-/** Open tabs the multi-pane shot's rail lists without giving them a pane. */
+/**
+ * Open tabs the multi-pane shot's rail lists without giving them a pane.
+ *
+ * The tablet shots use all of these. The phone hero uses [phoneRailExtras] instead: six tabs plus
+ * the create button overflow its rail and the last entries lose their labels.
+ */
 private val multiPaneRailExtras = listOf(
     Workspace.Info(
         id = ID_SEARCHER,
@@ -658,13 +729,19 @@ private val multiPaneRailExtras = listOf(
     ),
 )
 
+/** The two the phone rail has room for: still more tabs open than panes shown, which is the point. */
+private val phoneRailExtras = multiPaneRailExtras.take(2)
+
 @Composable
 internal fun MultiPaneContent(formFactor: ScreenshotFormFactor) = ScreenshotPreviewWrapper {
     when (formFactor) {
+        // The lead phone shot, forced to two stacked panes. DUAL_HORIZONTAL splits with a
+        // horizontal divider (a Column); DUAL_VERTICAL would put them side by side, which needs
+        // width a 411dp phone does not have - the info chips and the editor's line-1 chip get cut.
         ScreenshotFormFactor.PHONE -> ScreenshotPaneFrame(
             panes = listOf(explorerDirectoryPane, editorPane),
             layout = WorkspaceDesign.Layout.DUAL_HORIZONTAL,
-            railExtras = multiPaneRailExtras,
+            railExtras = phoneRailExtras,
         )
         ScreenshotFormFactor.SEVEN, ScreenshotFormFactor.TEN -> ScreenshotPaneFrame(
             panes = listOf(explorerHomePane, searcherPane, editorPane, appsPane),
@@ -674,107 +751,116 @@ internal fun MultiPaneContent(formFactor: ScreenshotFormFactor) = ScreenshotPrev
 }
 
 @Composable
-internal fun WorkspaceManagerContent(formFactor: ScreenshotFormFactor) = ScreenshotPreviewWrapper {
+internal fun WorkspaceManagerContent(formFactor: ScreenshotFormFactor) = ScreenshotPreviewWrapper(
+    theme = DarkScreenshotTheme,
+) {
     when (formFactor) {
-        // The manager is a full-window screen on every form factor, it is never paneled.
-        ScreenshotFormFactor.PHONE, ScreenshotFormFactor.SEVEN, ScreenshotFormFactor.TEN -> WorkspaceManagerBody()
+        // The manager is a full-window screen on every form factor, it is never paneled - so it
+        // insets itself through a Scaffold, and a Scaffold reads WindowInsets.systemBars directly,
+        // which layoutlib pins to zero. LocalSystemBarInsetsOverride cannot reach it; pad explicitly.
+        ScreenshotFormFactor.PHONE, ScreenshotFormFactor.SEVEN, ScreenshotFormFactor.TEN -> Box(
+            modifier = Modifier.screenshotSystemBarPadding(),
+        ) {
+            WorkspaceManagerBody()
+        }
     }
 }
 
 // IDE Previews
+//
+// One per rendered shot, named with the position that shot has in its own fastlane set - the phone
+// set is a different list to the tablet ones. No showSystemUi: the screenshot renderer ignores it
+// (neither a navigation=/cutout= spec nor a parent= device makes layoutlib paint the bars), while
+// the IDE panel honours it, which would draw a second set on top of ScreenshotSystemBars.
 
-@Preview(name = "2 - Explorer Home - Phone", locale = "en", device = DS_PHONE, showSystemUi = true)
-@Composable
-private fun PreviewExplorerHomePhone() = ExplorerHomeContent(ScreenshotFormFactor.PHONE)
-
-@Preview(name = "2 - Explorer Home - 7\"", locale = "en", device = DS_SEVEN, showSystemUi = true)
-@Composable
-private fun PreviewExplorerHomeSeven() = ExplorerHomeContent(ScreenshotFormFactor.SEVEN)
-
-@Preview(name = "2 - Explorer Home - 10\"", locale = "en", device = DS_TEN, showSystemUi = true)
-@Composable
-private fun PreviewExplorerHomeTen() = ExplorerHomeContent(ScreenshotFormFactor.TEN)
-
-@Preview(name = "1 - Explorer Directory - Phone", locale = "en", device = DS_PHONE, showSystemUi = true)
-@Composable
-private fun PreviewExplorerDirectoryPhone() = ExplorerDirectoryContent(ScreenshotFormFactor.PHONE)
-
-@Preview(name = "1 - Explorer Directory - 7\"", locale = "en", device = DS_SEVEN, showSystemUi = true)
-@Composable
-private fun PreviewExplorerDirectorySeven() = ExplorerDirectoryContent(ScreenshotFormFactor.SEVEN)
-
-@Preview(name = "1 - Explorer Directory - 10\"", locale = "en", device = DS_TEN, showSystemUi = true)
-@Composable
-private fun PreviewExplorerDirectoryTen() = ExplorerDirectoryContent(ScreenshotFormFactor.TEN)
-
-@Preview(name = "3 - Searcher Results - Phone", locale = "en", device = DS_PHONE, showSystemUi = true)
-@Composable
-private fun PreviewSearcherResultsPhone() = SearcherResultsContent(ScreenshotFormFactor.PHONE)
-
-@Preview(name = "3 - Searcher Results - 7\"", locale = "en", device = DS_SEVEN, showSystemUi = true)
-@Composable
-private fun PreviewSearcherResultsSeven() = SearcherResultsContent(ScreenshotFormFactor.SEVEN)
-
-@Preview(name = "3 - Searcher Results - 10\"", locale = "en", device = DS_TEN, showSystemUi = true)
-@Composable
-private fun PreviewSearcherResultsTen() = SearcherResultsContent(ScreenshotFormFactor.TEN)
-
-@Preview(name = "4 - Editor - Phone", locale = "en", device = DS_PHONE, showSystemUi = true)
-@Composable
-private fun PreviewEditorViewPhone() = EditorViewContent(ScreenshotFormFactor.PHONE)
-
-@Preview(name = "4 - Editor - 7\"", locale = "en", device = DS_SEVEN, showSystemUi = true)
-@Composable
-private fun PreviewEditorViewSeven() = EditorViewContent(ScreenshotFormFactor.SEVEN)
-
-@Preview(name = "4 - Editor - 10\"", locale = "en", device = DS_TEN, showSystemUi = true)
-@Composable
-private fun PreviewEditorViewTen() = EditorViewContent(ScreenshotFormFactor.TEN)
-
-@Preview(name = "5 - Apps Manager - Phone", locale = "en", device = DS_PHONE, showSystemUi = true)
-@Composable
-private fun PreviewAppsManagerPhone() = AppsManagerContent(ScreenshotFormFactor.PHONE)
-
-@Preview(name = "5 - Apps Manager - 7\"", locale = "en", device = DS_SEVEN, showSystemUi = true)
-@Composable
-private fun PreviewAppsManagerSeven() = AppsManagerContent(ScreenshotFormFactor.SEVEN)
-
-@Preview(name = "5 - Apps Manager - 10\"", locale = "en", device = DS_TEN, showSystemUi = true)
-@Composable
-private fun PreviewAppsManagerTen() = AppsManagerContent(ScreenshotFormFactor.TEN)
-
-@Preview(name = "6 - Workspace Manager - Phone", locale = "en", device = DS_PHONE, showSystemUi = true)
-@Composable
-private fun PreviewWorkspaceManagerPhone() = WorkspaceManagerContent(ScreenshotFormFactor.PHONE)
-
-@Preview(name = "6 - Workspace Manager - 7\"", locale = "en", device = DS_SEVEN, showSystemUi = true)
-@Composable
-private fun PreviewWorkspaceManagerSeven() = WorkspaceManagerContent(ScreenshotFormFactor.SEVEN)
-
-@Preview(name = "6 - Workspace Manager - 10\"", locale = "en", device = DS_TEN, showSystemUi = true)
-@Composable
-private fun PreviewWorkspaceManagerTen() = WorkspaceManagerContent(ScreenshotFormFactor.TEN)
-
-@Preview(name = "7 - Multi Pane - Phone", locale = "en", device = DS_PHONE, showSystemUi = true)
+@Preview(name = "Phone 1 - Multi Pane", locale = "en", device = DS_PHONE)
 @Composable
 private fun PreviewMultiPanePhone() = MultiPaneContent(ScreenshotFormFactor.PHONE)
 
-@Preview(name = "7 - Multi Pane - 7\"", locale = "en", device = DS_SEVEN, showSystemUi = true)
+@Preview(name = "Phone 2 - Explorer Directory", locale = "en", device = DS_PHONE)
 @Composable
-private fun PreviewMultiPaneSeven() = MultiPaneContent(ScreenshotFormFactor.SEVEN)
+private fun PreviewExplorerDirectoryPhone() = ExplorerDirectoryContent(ScreenshotFormFactor.PHONE)
 
-@Preview(name = "7 - Multi Pane - 10\"", locale = "en", device = DS_TEN, showSystemUi = true)
+@Preview(name = "Phone 3 - Searcher Results", locale = "en", device = DS_PHONE)
 @Composable
-private fun PreviewMultiPaneTen() = MultiPaneContent(ScreenshotFormFactor.TEN)
+private fun PreviewSearcherResultsPhone() = SearcherResultsContent(ScreenshotFormFactor.PHONE)
 
-@Preview(name = "8 - Templates Picker - Phone", locale = "en", device = DS_PHONE, showSystemUi = true)
+@Preview(name = "Phone 4 - Editor", locale = "en", device = DS_PHONE)
+@Composable
+private fun PreviewEditorViewPhone() = EditorViewContent(ScreenshotFormFactor.PHONE)
+
+@Preview(name = "Phone 5 - Apps Manager", locale = "en", device = DS_PHONE)
+@Composable
+private fun PreviewAppsManagerPhone() = AppsManagerContent(ScreenshotFormFactor.PHONE)
+
+@Preview(name = "Phone 6 - Workspace Manager", locale = "en", device = DS_PHONE)
+@Composable
+private fun PreviewWorkspaceManagerPhone() = WorkspaceManagerContent(ScreenshotFormFactor.PHONE)
+
+@Preview(name = "Phone 7 - Templates Picker", locale = "en", device = DS_PHONE)
 @Composable
 private fun PreviewTemplatesPickerPhone() = TemplatesPickerContent(ScreenshotFormFactor.PHONE)
 
-@Preview(name = "8 - Templates Picker - 7\"", locale = "en", device = DS_SEVEN, showSystemUi = true)
+@Preview(name = "Seven 1 - Explorer Directory", locale = "en", device = DS_SEVEN)
+@Composable
+private fun PreviewExplorerDirectorySeven() = ExplorerDirectoryContent(ScreenshotFormFactor.SEVEN)
+
+@Preview(name = "Seven 2 - Explorer Home", locale = "en", device = DS_SEVEN)
+@Composable
+private fun PreviewExplorerHomeSeven() = ExplorerHomeContent(ScreenshotFormFactor.SEVEN)
+
+@Preview(name = "Seven 3 - Searcher Results", locale = "en", device = DS_SEVEN)
+@Composable
+private fun PreviewSearcherResultsSeven() = SearcherResultsContent(ScreenshotFormFactor.SEVEN)
+
+@Preview(name = "Seven 4 - Editor", locale = "en", device = DS_SEVEN)
+@Composable
+private fun PreviewEditorViewSeven() = EditorViewContent(ScreenshotFormFactor.SEVEN)
+
+@Preview(name = "Seven 5 - Apps Manager", locale = "en", device = DS_SEVEN)
+@Composable
+private fun PreviewAppsManagerSeven() = AppsManagerContent(ScreenshotFormFactor.SEVEN)
+
+@Preview(name = "Seven 6 - Workspace Manager", locale = "en", device = DS_SEVEN)
+@Composable
+private fun PreviewWorkspaceManagerSeven() = WorkspaceManagerContent(ScreenshotFormFactor.SEVEN)
+
+@Preview(name = "Seven 7 - Multi Pane", locale = "en", device = DS_SEVEN)
+@Composable
+private fun PreviewMultiPaneSeven() = MultiPaneContent(ScreenshotFormFactor.SEVEN)
+
+@Preview(name = "Seven 8 - Templates Picker", locale = "en", device = DS_SEVEN)
 @Composable
 private fun PreviewTemplatesPickerSeven() = TemplatesPickerContent(ScreenshotFormFactor.SEVEN)
 
-@Preview(name = "8 - Templates Picker - 10\"", locale = "en", device = DS_TEN, showSystemUi = true)
+@Preview(name = "Ten 1 - Explorer Directory", locale = "en", device = DS_TEN)
+@Composable
+private fun PreviewExplorerDirectoryTen() = ExplorerDirectoryContent(ScreenshotFormFactor.TEN)
+
+@Preview(name = "Ten 2 - Explorer Home", locale = "en", device = DS_TEN)
+@Composable
+private fun PreviewExplorerHomeTen() = ExplorerHomeContent(ScreenshotFormFactor.TEN)
+
+@Preview(name = "Ten 3 - Searcher Results", locale = "en", device = DS_TEN)
+@Composable
+private fun PreviewSearcherResultsTen() = SearcherResultsContent(ScreenshotFormFactor.TEN)
+
+@Preview(name = "Ten 4 - Editor", locale = "en", device = DS_TEN)
+@Composable
+private fun PreviewEditorViewTen() = EditorViewContent(ScreenshotFormFactor.TEN)
+
+@Preview(name = "Ten 5 - Apps Manager", locale = "en", device = DS_TEN)
+@Composable
+private fun PreviewAppsManagerTen() = AppsManagerContent(ScreenshotFormFactor.TEN)
+
+@Preview(name = "Ten 6 - Workspace Manager", locale = "en", device = DS_TEN)
+@Composable
+private fun PreviewWorkspaceManagerTen() = WorkspaceManagerContent(ScreenshotFormFactor.TEN)
+
+@Preview(name = "Ten 7 - Multi Pane", locale = "en", device = DS_TEN)
+@Composable
+private fun PreviewMultiPaneTen() = MultiPaneContent(ScreenshotFormFactor.TEN)
+
+@Preview(name = "Ten 8 - Templates Picker", locale = "en", device = DS_TEN)
 @Composable
 private fun PreviewTemplatesPickerTen() = TemplatesPickerContent(ScreenshotFormFactor.TEN)

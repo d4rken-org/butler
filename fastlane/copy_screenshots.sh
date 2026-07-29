@@ -30,14 +30,13 @@ fi
 # The order controls the Play Store ordering, the label aids humans.
 # The form factor is read from here, never parsed out of the locale in the file name.
 declare -A SCREEN_MAP=(
-    [ExplorerHomePhone]="phone:2_explorer_home"
-    [ExplorerDirectoryPhone]="phone:1_explorer_directory"
+    [MultiPanePhone]="phone:1_multi_pane"
+    [ExplorerDirectoryPhone]="phone:2_explorer_directory"
     [SearcherResultsPhone]="phone:3_searcher_results"
     [EditorViewPhone]="phone:4_editor"
     [AppsManagerPhone]="phone:5_apps"
     [WorkspaceManagerPhone]="phone:6_workspace_manager"
-    [MultiPanePhone]="phone:7_multi_pane"
-    [TemplatesPickerPhone]="phone:8_templates"
+    [TemplatesPickerPhone]="phone:7_templates"
     [ExplorerHomeSeven]="seven:2_explorer_home"
     [ExplorerDirectorySeven]="seven:1_explorer_directory"
     [SearcherResultsSeven]="seven:3_searcher_results"
@@ -63,13 +62,24 @@ declare -A FORM_FACTOR_DIR=(
 )
 
 # Rendered pixel size per form factor, must match the device specs in ScreenshotContent.kt.
+# Every entry is 16:9 or 9:16 - Play rejects a screenshot whose long side is more than twice its
+# short side, and only these two ratios are eligible for the promotional surfaces.
 declare -A FORM_FACTOR_SIZE=(
-    [phone]="1080x2400"
-    [seven]="1200x1920"
-    [ten]="2560x1600"
+    [phone]="1440x2560"
+    [seven]="1080x1920"
+    [ten]="2560x1440"
 )
 
-SCREENS_PER_FORM_FACTOR=8
+# Shots that do not render at their form factor's default size. Empty today; keep the lookup so a
+# future off-size shot is a one-line addition rather than a reshaped validation loop.
+declare -A SCREEN_SIZE_OVERRIDE=()
+
+# The phone set is one short: it has no explorer home shot.
+declare -A SCREENS_PER_FORM_FACTOR=(
+    [phone]=7
+    [seven]=8
+    [ten]=8
+)
 
 if [[ ! -d "$REF_DIR" ]]; then
     echo "ERROR: Reference directory not found: $REF_DIR" >&2
@@ -129,9 +139,10 @@ for png in "${SOURCES[@]}"; do
         continue
     fi
 
+    expected_size="${SCREEN_SIZE_OVERRIDE[$func_name]:-${FORM_FACTOR_SIZE[$form_factor]}}"
     actual_size="$(png_size "$png")"
-    if [[ "$actual_size" != "${FORM_FACTOR_SIZE[$form_factor]}" ]]; then
-        echo "ERROR: $filename is ${actual_size}, expected ${FORM_FACTOR_SIZE[$form_factor]} for $form_factor" >&2
+    if [[ "$actual_size" != "$expected_size" ]]; then
+        echo "ERROR: $filename is ${actual_size}, expected ${expected_size} for $form_factor" >&2
         ERRORS=$(( ERRORS + 1 ))
         continue
     fi
@@ -154,8 +165,9 @@ done
 for locale in "${!TOUCHED_LOCALES[@]}"; do
     for form_factor in "${!FORM_FACTOR_DIR[@]}"; do
         count="${LOCALE_FORM_FACTOR_COUNT[$locale/$form_factor]:-0}"
-        if (( count != SCREENS_PER_FORM_FACTOR )); then
-            echo "ERROR: locale '$locale' has $count/$SCREENS_PER_FORM_FACTOR $form_factor screenshots" >&2
+        expected="${SCREENS_PER_FORM_FACTOR[$form_factor]}"
+        if (( count != expected )); then
+            echo "ERROR: locale '$locale' has $count/$expected $form_factor screenshots" >&2
             ERRORS=$(( ERRORS + 1 ))
         fi
     done
