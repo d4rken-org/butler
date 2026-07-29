@@ -94,6 +94,32 @@ private val RailItemHeight = 56.dp
 private val RailItemSpacing = 4.dp
 private val RailItemShape = RoundedCornerShape(16.dp)
 
+/**
+ * What the reveal effect restarts on: which workspace is focused and where the entries sit.
+ *
+ * Deliberately NOT the [Workspace.Info] list itself - those carry titles, lifecycle states,
+ * operation counts and badges, so keying on them would restart the effect on every unrelated
+ * update and yank a rail the user just scrolled.
+ */
+internal data class RailRevealKey(
+    val focusedId: Workspace.Id?,
+    val orderedIds: List<Workspace.Id>,
+)
+
+internal fun railRevealKey(focusedId: Workspace.Id?, workspaces: List<Workspace.Info>) =
+    RailRevealKey(focusedId = focusedId, orderedIds = workspaces.map { it.id })
+
+/**
+ * True when the focused entry is off screen and nothing the user is doing should be interrupted.
+ * [isScrolling] covers an ordinary scroll or fling, which [isDragging] (reorder only) does not.
+ */
+internal fun shouldRevealFocused(
+    focusedIndex: Int,
+    visibleIndices: List<Int>,
+    isDragging: Boolean,
+    isScrolling: Boolean,
+): Boolean = focusedIndex >= 0 && !isDragging && !isScrolling && focusedIndex !in visibleIndices
+
 @Composable
 fun WorkspaceNavigationRail(
     modifier: Modifier = Modifier,
@@ -133,6 +159,20 @@ fun WorkspaceNavigationRail(
                 localWorkspaces = mutableList
             }
         }
+    }
+
+    // A workspace can gain focus without being on screen (opened from a pane far down the list), and
+    // an off-screen focused entry leaves the rail looking like nothing happened.
+    val revealKey = railRevealKey(focusedId, localWorkspaces)
+    LaunchedEffect(revealKey) {
+        val focusedIndex = revealKey.orderedIds.indexOf(revealKey.focusedId)
+        val shouldReveal = shouldRevealFocused(
+            focusedIndex = focusedIndex,
+            visibleIndices = lazyListState.layoutInfo.visibleItemsInfo.map { it.index },
+            isDragging = isDragging,
+            isScrolling = lazyListState.isScrollInProgress,
+        )
+        if (shouldReveal) lazyListState.animateScrollToItem(focusedIndex)
     }
 
     WorkspaceRailContainer(modifier = modifier) {
