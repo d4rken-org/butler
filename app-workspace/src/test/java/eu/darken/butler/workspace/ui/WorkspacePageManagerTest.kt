@@ -193,7 +193,7 @@ class WorkspacePageManagerTest : BaseTest() {
     }
 
     @Test
-    fun `regular workspace selection when all panes full replaces pane 0`() = runTest {
+    fun `regular workspace selection when all panes full replaces the least recently used pane`() = runTest {
         val workspace1 = Workspace.Id()
         val workspace2 = Workspace.Id()
         val workspace3 = Workspace.Id()
@@ -212,10 +212,245 @@ class WorkspacePageManagerTest : BaseTest() {
 
         pageManager.handleWorkspaceSelection(workspace3)
 
+        // workspace1 is the older of the two, so its pane makes way.
         pageManager.state.value.selectedWorkspaces shouldBe mapOf(
             0 to workspace3,
             1 to workspace2,
         )
+    }
+
+    // ==================== Pane placement policy ====================
+
+    /**
+     * Quad panes are column-major (see WorkspaceDesign.forPane), so 1 borders 0 and 3 while 2 sits
+     * diagonally across. Each case leaves an empty pane that is a neighbour and one that isn't, and
+     * the non-neighbour is the one plain ascending order would pick.
+     */
+    private suspend fun selectWithSourcePane(
+        occupied: Map<Int, Workspace.Id>,
+        source: Workspace.Id,
+        target: Workspace.Id,
+    ): Map<Int, Workspace.Id> {
+        stateFlow.value = WorkspaceRemote.State(
+            infos = (occupied.values + target).map { createWorkspaceInfo(id = it) },
+        )
+        pageManager.setPaneCount(4)
+        pageManager.applyRestoredUIState(null, occupied)
+
+        pageManager.handleWorkspaceSelection(target, sourceWorkspaceId = source)
+
+        return pageManager.state.value.selectedWorkspaces
+    }
+
+    @Test
+    fun `an empty pane adjacent to pane 0 is preferred`() = runTest {
+        val source = Workspace.Id()
+        val target = Workspace.Id()
+
+        val selections = selectWithSourcePane(
+            occupied = mapOf(0 to source),
+            source = source,
+            target = target,
+        )
+
+        selections[1] shouldBe target
+    }
+
+    @Test
+    fun `an empty pane adjacent to pane 1 is preferred over the lowest empty index`() = runTest {
+        val source = Workspace.Id()
+        val other = Workspace.Id()
+        val target = Workspace.Id()
+
+        val selections = selectWithSourcePane(
+            occupied = mapOf(0 to other, 1 to source),
+            source = source,
+            target = target,
+        )
+
+        // 3 neighbours 1; 2 is the diagonal and would win on index order.
+        selections[3] shouldBe target
+    }
+
+    @Test
+    fun `an empty pane adjacent to pane 2 is preferred over the lowest empty index`() = runTest {
+        val source = Workspace.Id()
+        val other = Workspace.Id()
+        val target = Workspace.Id()
+
+        val selections = selectWithSourcePane(
+            occupied = mapOf(0 to other, 2 to source),
+            source = source,
+            target = target,
+        )
+
+        selections[3] shouldBe target
+    }
+
+    @Test
+    fun `an empty pane adjacent to pane 3 is preferred over the lowest empty index`() = runTest {
+        val source = Workspace.Id()
+        val other = Workspace.Id()
+        val target = Workspace.Id()
+
+        val selections = selectWithSourcePane(
+            occupied = mapOf(1 to other, 3 to source),
+            source = source,
+            target = target,
+        )
+
+        selections[2] shouldBe target
+    }
+
+    @Test
+    fun `all panes full evicts the least recently used pane but never the invoking one`() = runTest {
+        val pane0 = Workspace.Id()
+        val pane1 = Workspace.Id()
+        val pane2 = Workspace.Id()
+        val pane3 = Workspace.Id()
+        val target = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(pane0, pane1, pane2, pane3, target).map { createWorkspaceInfo(id = it) },
+        )
+        pageManager.setPaneCount(4)
+        // Visited in ascending order, so pane 0 holds the oldest and pane 3 the newest.
+        pageManager.handleWorkspaceSelection(pane0)
+        pageManager.handleWorkspaceSelection(pane1)
+        pageManager.handleWorkspaceSelection(pane2)
+        pageManager.handleWorkspaceSelection(pane3)
+
+        pageManager.handleWorkspaceSelection(target, sourceWorkspaceId = pane0)
+
+        val after = pageManager.state.value
+        // The list the user acted from stays put, and the next-oldest pane makes way instead.
+        after.selectedWorkspaces[0] shouldBe pane0
+        after.selectedWorkspaces[1] shouldBe target
+        after.focusedWorkspaceId shouldBe target
+    }
+
+    /** A modal occupies no pane of its own, so the raw id would protect nothing. */
+    @Test
+    fun `a modal source protects the pane of the tab that owns it`() = runTest {
+        val owner = Workspace.Id()
+        val other = Workspace.Id()
+        val modal = Workspace.Id()
+        val target = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(
+                createWorkspaceInfo(id = owner),
+                createWorkspaceInfo(id = other),
+                createWorkspaceInfo(id = modal, callerWorkspaceId = owner),
+                createWorkspaceInfo(id = target),
+            )
+        )
+        pageManager.setPaneCount(2)
+        pageManager.handleWorkspaceSelection(owner)
+        pageManager.handleWorkspaceSelection(other)
+
+        pageManager.handleWorkspaceSelection(target, sourceWorkspaceId = modal)
+
+        val after = pageManager.state.value
+        // Without rootOf() the owner's pane would be the LRU victim.
+        after.selectedWorkspaces[0] shouldBe owner
+        after.selectedWorkspaces[1] shouldBe target
+    }
+
+    @Test
+    fun `a null source does not prefer adjacency`() = runTest {
+        val pane0 = Workspace.Id()
+        val pane1 = Workspace.Id()
+        val target = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(pane0, pane1, target).map { createWorkspaceInfo(id = it) },
+        )
+        pageManager.setPaneCount(4)
+        pageManager.applyRestoredUIState(null, mapOf(1 to pane0, 3 to pane1))
+
+        pageManager.handleWorkspaceSelection(target)
+
+        // Plain ascending order: pane 0, not a neighbour of anything in particular.
+        pageManager.state.value.selectedWorkspaces[0] shouldBe target
+    }
+
+    @Test
+    fun `an auto-focused create with all panes full still lands in a pane`() = runTest {
+        val pane0 = Workspace.Id()
+        val pane1 = Workspace.Id()
+        val created = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(createWorkspaceInfo(id = pane0), createWorkspaceInfo(id = pane1)),
+        )
+        pageManager.setPaneCount(2)
+        pageManager.handleWorkspaceSelection(pane0)
+        pageManager.handleWorkspaceSelection(pane1)
+
+        eventsFlow.emit(
+            WorkspaceEvent.Created(workspaceId = created, autoFocus = true, sourceWorkspaceId = pane0)
+        )
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(pane0, pane1, created).map { createWorkspaceInfo(id = it) },
+        )
+        testScope.testScheduler.advanceUntilIdle()
+
+        val after = pageManager.state.value
+        after.focusedWorkspaceId shouldBe created
+        // A focused workspace that occupies no pane is invisible - the Editor-tab defect.
+        after.selectedWorkspaces.values shouldContain created
+        after.selectedWorkspaces[0] shouldBe pane0
+    }
+
+    @Test
+    fun `a background create with all panes full evicts nothing`() = runTest {
+        val pane0 = Workspace.Id()
+        val pane1 = Workspace.Id()
+        val created = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(createWorkspaceInfo(id = pane0), createWorkspaceInfo(id = pane1)),
+        )
+        pageManager.setPaneCount(2)
+        pageManager.handleWorkspaceSelection(pane0)
+        pageManager.handleWorkspaceSelection(pane1)
+
+        // Batch "open in new tabs", session restore and the tab manager all create without asking
+        // for focus; replacing visible content for them would move a pane the user isn't looking at.
+        eventsFlow.emit(
+            WorkspaceEvent.Created(workspaceId = created, autoFocus = false, sourceWorkspaceId = pane0)
+        )
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(pane0, pane1, created).map { createWorkspaceInfo(id = it) },
+        )
+        testScope.testScheduler.advanceUntilIdle()
+
+        val after = pageManager.state.value
+        after.selectedWorkspaces shouldBe mapOf(0 to pane0, 1 to pane1)
+        after.focusedWorkspaceId shouldBe pane1
+    }
+
+    @Test
+    fun `a background create with a null source and all panes full evicts nothing`() = runTest {
+        val pane0 = Workspace.Id()
+        val pane1 = Workspace.Id()
+        val created = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(createWorkspaceInfo(id = pane0), createWorkspaceInfo(id = pane1)),
+        )
+        pageManager.setPaneCount(2)
+        pageManager.handleWorkspaceSelection(pane0)
+        pageManager.handleWorkspaceSelection(pane1)
+
+        eventsFlow.emit(WorkspaceEvent.Created(workspaceId = created))
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(pane0, pane1, created).map { createWorkspaceInfo(id = it) },
+        )
+        testScope.testScheduler.advanceUntilIdle()
+
+        pageManager.state.value.selectedWorkspaces shouldBe mapOf(0 to pane0, 1 to pane1)
     }
 
     @Test

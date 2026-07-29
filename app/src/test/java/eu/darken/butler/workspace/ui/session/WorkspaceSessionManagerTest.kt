@@ -6,7 +6,9 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import androidx.room.withTransaction
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.upgrade.UpgradeRepo
+import eu.darken.butler.workspace.contracts.viewer.ViewerArguments
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceFactory
@@ -309,7 +311,10 @@ class WorkspaceSessionManagerTest : BaseTest() {
             registerWorkspace(wsIdB)
             registerWorkspace(wsIdC)
 
-            factoryMap = mapOf(Workspace.Type.EXPLORER to mockFactory)
+            factoryMap = mapOf(
+                Workspace.Type.EXPLORER to mockFactory,
+                Workspace.Type.VIEWER to mockFactory,
+            )
             sessionManager = WorkspaceSessionManager(
                 appScope = testScope,
                 workspaceSettings = workspaceSettings,
@@ -347,9 +352,10 @@ class WorkspaceSessionManagerTest : BaseTest() {
             id: Workspace.Id,
             callerWorkspaceId: Workspace.Id? = null,
             customTitle: String? = null,
+            type: Workspace.Type = Workspace.Type.EXPLORER,
         ) = Workspace.Info(
             id = id,
-            type = Workspace.Type.EXPLORER,
+            type = type,
             title = "Workspace".toCaString(),
             callerWorkspaceId = callerWorkspaceId,
             customTitle = customTitle,
@@ -486,6 +492,34 @@ class WorkspaceSessionManagerTest : BaseTest() {
             upsertedEntities.map { it.workspaceId }.toSet() shouldBe setOf(wsIdA, wsIdB)
             // B should be at index 1 (sub-workspace doesn't count)
             upsertedEntities.single { it.workspaceId == wsIdB }.orderIndex shouldBe 1
+        }
+
+        /**
+         * A drill-down viewer is a full workspace holding a file path, so nothing but its caller
+         * keeps it out of the session - a viewer opened as a tab is saved like any other.
+         */
+        @Test
+        fun `a viewer drill-down is excluded from save while a viewer tab is saved`() = runTest {
+            val viewerTabId = Workspace.Id()
+            val drillDownId = Workspace.Id()
+            val filePath = LocalPath.build("/storage/emulated/0/DCIM/photo.jpg")
+            registerWorkspace(viewerTabId, ViewerArguments.Default(filePath = filePath))
+            registerWorkspace(
+                drillDownId,
+                ViewerArguments.Default(filePath = filePath, callerWorkspaceId = wsIdA),
+            )
+
+            repoStateFlow.value = WorkspaceRemote.State(
+                infos = listOf(
+                    makeInfo(wsIdA),
+                    makeInfo(viewerTabId, type = Workspace.Type.VIEWER),
+                    makeInfo(drillDownId, type = Workspace.Type.VIEWER, callerWorkspaceId = wsIdA),
+                ),
+            )
+            sessionManager.saveSession()
+
+            upsertedEntities.map { it.workspaceId }.toSet() shouldBe setOf(wsIdA, viewerTabId)
+            upsertedEntities.single { it.workspaceId == viewerTabId }.type shouldBe Workspace.Type.VIEWER
         }
 
         @Test

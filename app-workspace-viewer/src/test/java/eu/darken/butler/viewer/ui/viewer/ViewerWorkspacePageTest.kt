@@ -1,6 +1,8 @@
 package eu.darken.butler.viewer.ui.viewer
 
 import android.content.Context
+import androidx.activity.OnBackPressedDispatcher
+import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
@@ -46,5 +48,95 @@ class ViewerWorkspacePageTest : ComposeTest() {
             .performClick()
 
         openWithCount shouldBe 1
+    }
+
+    private val readyState = ViewerWorkspaceViewModel.State.Ready(
+        content = ViewerContent.Image(MimeInfo("image/jpeg")),
+        fileInfo = ViewerFileInfo(size = 1024L),
+        path = LocalPath.build("/storage/emulated/0/DCIM/photo.jpg"),
+        imageSource = null,
+    )
+
+    private val failedState = ViewerWorkspaceViewModel.State.Ready(
+        content = ViewerContent.Failed(IllegalStateException("Decoder gave up")),
+        fileInfo = null,
+        path = LocalPath.build("/storage/emulated/0/DCIM/photo.jpg"),
+        imageSource = null,
+    )
+
+    /**
+     * A drill-down viewer is a pane-local overlay with no enclosing dialog to dismiss, so back has to
+     * reach it in every phase - including while the file is still loading and after a decode failure.
+     */
+    private fun pressBack(
+        state: ViewerWorkspaceViewModel.State,
+        callerWorkspaceId: Workspace.Id?,
+    ): Int {
+        var closeCount = 0
+        var dispatcher: OnBackPressedDispatcher? = null
+
+        composeTestRule.setContent {
+            dispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
+            PreviewWrapper {
+                ViewerWorkspacePage(
+                    workspaceId = Workspace.Id(),
+                    design = WorkspaceDesign(layout = WorkspaceDesign.Layout.DUAL_VERTICAL),
+                    state = state,
+                    callerWorkspaceId = callerWorkspaceId,
+                    onPageAction = { action ->
+                        when (action) {
+                            ViewerPageAction.Close -> closeCount++
+                        }
+                    },
+                )
+            }
+        }
+
+        composeTestRule.runOnIdle { dispatcher!!.onBackPressed() }
+        composeTestRule.waitForIdle()
+
+        return closeCount
+    }
+
+    @Test
+    fun `back closes a drill-down that is still loading`() {
+        pressBack(ViewerWorkspaceViewModel.State.Initializing, callerWorkspaceId = Workspace.Id()) shouldBe 1
+    }
+
+    @Test
+    fun `back closes a drill-down showing an image`() {
+        pressBack(readyState, callerWorkspaceId = Workspace.Id()) shouldBe 1
+    }
+
+    @Test
+    fun `back closes a drill-down that failed to decode`() {
+        pressBack(failedState, callerWorkspaceId = Workspace.Id()) shouldBe 1
+    }
+
+    @Test
+    fun `back leaves a viewer tab alone`() {
+        pressBack(readyState, callerWorkspaceId = null) shouldBe 0
+    }
+
+    @Test
+    fun `a drill-down offers a back affordance in its toolbar`() {
+        var closeCount = 0
+        composeTestRule.setContent {
+            PreviewWrapper {
+                ViewerWorkspacePage(
+                    workspaceId = Workspace.Id(),
+                    design = WorkspaceDesign(layout = WorkspaceDesign.Layout.DUAL_VERTICAL),
+                    state = readyState,
+                    callerWorkspaceId = Workspace.Id(),
+                    onPageAction = { closeCount++ },
+                )
+            }
+        }
+
+        composeTestRule
+            .onNodeWithContentDescription(context.getString(R.string.viewer_back_action))
+            .performClick()
+
+        closeCount shouldBe 1
     }
 }

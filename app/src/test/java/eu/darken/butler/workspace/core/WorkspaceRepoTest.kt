@@ -7,6 +7,7 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.upgrade.UpgradeRepo
+import eu.darken.butler.workspace.contracts.viewer.ViewerArguments
 import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.usage.WorkspaceUsageRepo
@@ -716,6 +717,86 @@ class WorkspaceRepoTest : BaseTest() {
         result.shouldBeInstanceOf<WorkspaceAction.Create.Result.AlreadyOpen>()
         result.existingId shouldBe holderId
         repo.pendingConfirmations.first() shouldBe emptyMap()
+    }
+
+    // ==================== Viewer drill-downs ====================
+
+    private suspend fun WorkspaceRepo.createViewer(
+        path: APath<*>,
+        caller: Workspace.Id? = null,
+    ): Workspace.Id {
+        val result = execute(
+            WorkspaceAction.Create(
+                type = Workspace.Type.VIEWER,
+                arguments = ViewerArguments.Default(filePath = path, callerWorkspaceId = caller),
+            )
+        )
+        return (result as WorkspaceAction.Create.Result.Success).newId
+    }
+
+    /**
+     * A drill-down publishes its content path like any viewer, but dedup skips sub-workspace creates
+     * and only matches non-sub holders, so it can neither trigger nor satisfy a match.
+     */
+    @Test
+    fun `a viewer drill-down opens alongside a tab on the same path`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val ownerId = repo.createTab()
+        val tabId = repo.createViewer(pathA)
+
+        val drillDownId = repo.createViewer(pathA, caller = ownerId)
+
+        drillDownId shouldNotBe tabId
+        repo.infoFor(drillDownId).isSubWorkspace shouldBe true
+        repo.infoFor(drillDownId).contentPath shouldBe pathA
+    }
+
+    @Test
+    fun `an open drill-down does not block a tab for the same path`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val ownerId = repo.createTab()
+        repo.createViewer(pathA, caller = ownerId)
+
+        repo.execute(
+            WorkspaceAction.Create(
+                type = Workspace.Type.VIEWER,
+                arguments = ViewerArguments.Default(filePath = pathA),
+            )
+        ).shouldBeInstanceOf<WorkspaceAction.Create.Result.Success>()
+    }
+
+    @Test
+    fun `a second same-path viewer tab still returns AlreadyOpen`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val ownerId = repo.createTab()
+        val tabId = repo.createViewer(pathA)
+        repo.createViewer(pathA, caller = ownerId)
+
+        val second = repo.execute(
+            WorkspaceAction.Create(
+                type = Workspace.Type.VIEWER,
+                arguments = ViewerArguments.Default(filePath = pathA),
+            )
+        )
+
+        second.shouldBeInstanceOf<WorkspaceAction.Create.Result.AlreadyOpen>()
+        second.existingId shouldBe tabId
+    }
+
+    /** Pause captures the arguments and resume rebuilds from them, caller included. */
+    @Test
+    fun `a paused and resumed drill-down stays under the same root`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val ownerId = repo.createReadyTab()
+        val drillDownId = repo.createViewer(pathA, caller = ownerId).also { fake(it).markReady() }
+
+        repo.pause(drillDownId).shouldBeInstanceOf<WorkspaceAction.Pause.Result.Success>()
+        repo.execute(WorkspaceAction.Resume(drillDownId))
+            .shouldBeInstanceOf<WorkspaceAction.Resume.Result.Success>()
+
+        val stacks = WorkspaceStacks(repo.state.first().infos)
+        stacks.rootOf(drillDownId)?.id shouldBe ownerId
+        repo.infoFor(drillDownId).isSubWorkspace shouldBe true
     }
 
     // ==================== Content-path claims ====================

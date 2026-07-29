@@ -4,6 +4,7 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.serialization.SerializationCommonModule
 import eu.darken.butler.workspace.contracts.viewer.ViewerArguments
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.isPausableAsChild
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.json.encodeToJsonElement
 import org.junit.jupiter.api.Test
@@ -40,6 +41,35 @@ class ViewerArgumentsSerializationTest : BaseTest() {
         val deserialized = json.decodeFromString<ViewerArguments>(serialized.toString())
 
         deserialized shouldBe original
+    }
+
+    @Test
+    fun `the caller is not persisted`() {
+        val modal = ViewerArguments.Default(filePath = path, callerWorkspaceId = Workspace.Id())
+
+        val serialized = json.encodeToJsonElement<ViewerArguments>(modal)
+
+        // Byte-identical to the tab form: a drill-down is never session-saved, and a restored caller
+        // could not be reached anyway.
+        serialized shouldBe json.encodeToJsonElement<ViewerArguments>(ViewerArguments.Default(filePath = path))
+    }
+
+    @Test
+    fun `a persisted drill-down deserializes as a tab`() {
+        val modal = ViewerArguments.Default(filePath = path, callerWorkspaceId = Workspace.Id())
+
+        val serialized = json.encodeToJsonElement<ViewerArguments>(modal)
+        val deserialized = json.decodeFromString<ViewerArguments>(serialized.toString())
+
+        deserialized shouldBe ViewerArguments.Default(filePath = path)
+        (deserialized as Workspace.ArgumentsWithCaller).callerWorkspaceId shouldBe null
+    }
+
+    @Test
+    fun `a drill-down may be paused together with its owner`() {
+        val modal = ViewerArguments.Default(filePath = path, callerWorkspaceId = Workspace.Id())
+
+        modal.isPausableAsChild shouldBe true
     }
 
     @Test
