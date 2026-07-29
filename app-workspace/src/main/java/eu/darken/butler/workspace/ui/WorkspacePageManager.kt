@@ -9,6 +9,7 @@ import eu.darken.butler.common.parcel.InstantParceler
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceRemote
+import eu.darken.butler.workspace.core.WorkspaceStacks
 import eu.darken.butler.workspace.ui.floatingbar.WorkspaceBarCollapseStates
 import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPositions
 import kotlinx.coroutines.CoroutineScope
@@ -75,7 +76,12 @@ class WorkspacePageManager @Inject constructor(
                 log(TAG) { "Workspace event received: $event" }
                 when (event) {
                     is WorkspaceEvent.Created -> {
-                        handleWorkspaceCreated(event.workspaceId, event.replacedId, event.autoFocus)
+                        handleWorkspaceCreated(
+                            workspaceId = event.workspaceId,
+                            replacedId = event.replacedId,
+                            autoFocus = event.autoFocus,
+                            sourceWorkspaceId = event.sourceWorkspaceId,
+                        )
                     }
 
                     is WorkspaceEvent.Closed -> {
@@ -94,7 +100,7 @@ class WorkspacePageManager @Inject constructor(
 
                     is WorkspaceEvent.SelectionRequested -> {
                         log(TAG) { "Selection requested for workspace: ${event.workspaceId}" }
-                        handleWorkspaceSelection(event.workspaceId)
+                        handleWorkspaceSelection(event.workspaceId, event.sourceWorkspaceId)
                     }
 
                     is WorkspaceEvent.Reordered -> {
@@ -170,15 +176,19 @@ class WorkspacePageManager @Inject constructor(
         handleWorkspaceSelection(workspaceId)
     }
 
-    suspend fun handleWorkspaceSelection(workspaceId: Workspace.Id) {
-        log(TAG) { "handleWorkspaceSelection: workspaceId=$workspaceId" }
+    suspend fun handleWorkspaceSelection(
+        workspaceId: Workspace.Id,
+        sourceWorkspaceId: Workspace.Id? = null,
+    ) {
+        log(TAG) { "handleWorkspaceSelection: workspaceId=$workspaceId, sourceWorkspaceId=$sourceWorkspaceId" }
 
         // Check if this is a sub-workspace (modal) - they only get focus, not pane assignment.
         // Wait for the workspace to appear in state before checking isSubWorkspace to avoid
         // acting on stale state (new workspaces may not have emitted their info flow yet).
-        val workspaceInfo = workspaceRemote.state
+        val repoInfos = workspaceRemote.state
             .first { repoState -> repoState.infos.any { it.id == workspaceId } }
-            .infos.find { it.id == workspaceId }
+            .infos
+        val workspaceInfo = repoInfos.find { it.id == workspaceId }
         val isSubWorkspace = workspaceInfo?.isSubWorkspace == true
 
         if (isSubWorkspace) {
@@ -210,25 +220,16 @@ class WorkspacePageManager @Inject constructor(
                     workspaceAccessTimes = updatedAccessTimes,
                 )
             } else {
-                // Workspace not selected, assign it to an empty pane or replace current selection.
-                // Drop any hidden assignment it still holds first, or it would occupy two panes at
-                // once. Other workspaces' retained assignments are left alone.
-                val paneCount = currentState.currentPaneCount
-                val currentSelections = currentState.selectedWorkspaces.filterValues { it != workspaceId }
-
-                val newSelections = if (paneCount > 1) {
-                    // Multi-pane mode: find empty pane
-                    val emptyPaneIndex = (0 until paneCount).firstOrNull { paneIndex ->
-                        !currentSelections.containsKey(paneIndex)
-                    }
-
-                    if (emptyPaneIndex != null) {
-                        log(TAG) { "Assigned workspace $workspaceId to empty pane $emptyPaneIndex" }
-                        currentSelections + (emptyPaneIndex to workspaceId)
-                    } else {
-                        log(TAG) { "All panes full, replaced pane 0 with workspace $workspaceId" }
-                        currentSelections + (0 to workspaceId)
-                    }
+                // Workspace not selected, assign it to a pane or replace current selection.
+                val newSelections = if (currentState.currentPaneCount > 1) {
+                    // An explicit selection always focuses, and a focused workspace that occupies no
+                    // pane is invisible, so this path may evict.
+                    assignPane(
+                        currentState = currentState,
+                        workspaceId = workspaceId,
+                        sourcePaneIndex = currentState.paneOf(sourceWorkspaceId, repoInfos),
+                        allowEviction = true,
+                    )
                 } else {
                     // Single pane mode: replace current selection
                     log(TAG) { "Single pane mode, selected workspace $workspaceId" }
@@ -432,8 +433,16 @@ class WorkspacePageManager @Inject constructor(
         }
     }
 
-    private suspend fun handleWorkspaceCreated(workspaceId: Workspace.Id, replacedId: Workspace.Id?, autoFocus: Boolean) {
-        log(TAG) { "handleWorkspaceCreated: workspaceId=$workspaceId, replacedId=$replacedId, autoFocus=$autoFocus" }
+    private suspend fun handleWorkspaceCreated(
+        workspaceId: Workspace.Id,
+        replacedId: Workspace.Id?,
+        autoFocus: Boolean,
+        sourceWorkspaceId: Workspace.Id?,
+    ) {
+        log(TAG) {
+            "handleWorkspaceCreated: workspaceId=$workspaceId, replacedId=$replacedId, " +
+                "autoFocus=$autoFocus, sourceWorkspaceId=$sourceWorkspaceId"
+        }
 
         // A replace (e.g. the Templates tile morphing a tab into an Explorer) retires the old
         // workspace without ever emitting Closed, so its view state has to be dropped here.
@@ -444,9 +453,10 @@ class WorkspacePageManager @Inject constructor(
 
         // Wait until workspace is reflected in state for accurate isSubWorkspace check.
         // Sub-workspaces render as modal overlays and must never be assigned to a pane.
-        val workspaceInfo = workspaceRemote.state
+        val repoInfos = workspaceRemote.state
             .first { repoState -> repoState.infos.any { it.id == workspaceId } }
-            .infos.find { it.id == workspaceId }
+            .infos
+        val workspaceInfo = repoInfos.find { it.id == workspaceId }
 
         if (workspaceInfo?.isSubWorkspace == true) {
             log(TAG) { "Sub-workspace $workspaceId created, skipping pane assignment" }
@@ -457,6 +467,7 @@ class WorkspacePageManager @Inject constructor(
         _state.update { currentState ->
             // Update MRU timestamp for newly created workspace
             val updatedAccessTimes = currentState.workspaceAccessTimes + (workspaceId to Clock.System.now())
+            val sourcePaneIndex = currentState.paneOf(sourceWorkspaceId, repoInfos)
 
             if (replacedId != null) {
                 // This is a replacement
@@ -481,24 +492,29 @@ class WorkspacePageManager @Inject constructor(
                     )
                 } else {
                     log(TAG) { "Replaced workspace $replacedId was not in any pane, treating as new workspace" }
-                    assignToEmptyPaneInternal(currentState, workspaceId)
+                    assignToEmptyPaneInternal(currentState, workspaceId, sourcePaneIndex)
                         .copy(workspaceAccessTimes = updatedAccessTimes)
                 }
             } else {
                 // New workspace, not a replacement
                 if (!currentState.selectedWorkspaces.containsValue(workspaceId)) {
                     log(TAG) { "New workspace $workspaceId, assigning to empty pane (autoFocus=$autoFocus)" }
-                    val newState = assignToEmptyPaneInternal(currentState, workspaceId)
+                    val newState = assignToEmptyPaneInternal(currentState, workspaceId, sourcePaneIndex)
                         .copy(workspaceAccessTimes = updatedAccessTimes)
 
                     // Auto-focus if requested or if no workspace is focused
                     if (autoFocus) {
                         log(TAG) { "Auto-focusing new workspace $workspaceId" }
-                        // In single-pane mode, switch to the new workspace
-                        val newSelections = if (currentState.currentPaneCount == 1) {
-                            mapOf(0 to workspaceId)
-                        } else {
-                            newState.selectedWorkspaces
+                        // A focused workspace with no pane is invisible, so this branch - unlike the
+                        // background creates above - may evict to make room for it.
+                        val newSelections = when {
+                            currentState.currentPaneCount == 1 -> mapOf(0 to workspaceId)
+                            else -> assignPane(
+                                currentState = currentState,
+                                workspaceId = workspaceId,
+                                sourcePaneIndex = sourcePaneIndex,
+                                allowEviction = true,
+                            )
                         }
                         newState.copy(
                             focusedWorkspaceId = workspaceId,
@@ -596,44 +612,119 @@ class WorkspacePageManager @Inject constructor(
         }
     }
 
-    private fun assignToEmptyPaneInternal(currentState: State, workspaceId: Workspace.Id): State {
+    /**
+     * Placement for creates that did not ask for focus: batch "open in new tabs", session-restore
+     * registration and the tab manager's create path all land here. They deliberately never request
+     * selection, so evicting for them would let a background create replace visible content while
+     * focus stays elsewhere - all panes full means the workspace stays reachable from the rail only.
+     */
+    private fun assignToEmptyPaneInternal(
+        currentState: State,
+        workspaceId: Workspace.Id,
+        sourcePaneIndex: Int?,
+    ): State {
         val paneCount = currentState.currentPaneCount
-        val currentSelections = currentState.selectedWorkspaces
         log(TAG) { "assignToEmptyPane: Pane count=$paneCount, workspace=$workspaceId" }
 
         val newSelections = if (paneCount > 1) {
-            // Find first empty pane
-            val emptyPaneIndex = (0 until paneCount).firstOrNull { paneIndex ->
-                !currentSelections.containsKey(paneIndex)
-            }
-            log(TAG) { "assignToEmptyPane: Empty pane index=$emptyPaneIndex" }
-
-            if (emptyPaneIndex != null) {
-                // Assign to empty pane
-                log(TAG) { "assignToEmptyPane: Assigned to empty pane $emptyPaneIndex" }
-                currentSelections + (emptyPaneIndex to workspaceId)
-            } else {
-                // All panes full, don't select the new workspace
-                log(TAG) { "assignToEmptyPane: All panes full, workspace created but not selected" }
-                currentSelections
-            }
+            assignPane(
+                currentState = currentState,
+                workspaceId = workspaceId,
+                sourcePaneIndex = sourcePaneIndex,
+                allowEviction = false,
+            )
         } else {
             // Single pane mode
-            if (currentSelections.isEmpty()) {
+            if (currentState.selectedWorkspaces.isEmpty()) {
                 // No workspace selected, assign to pane 0
                 log(TAG) { "assignToEmptyPane: Single pane mode, assigned to pane 0" }
                 mapOf(0 to workspaceId)
             } else {
                 // Pane 0 already occupied, don't select the new workspace
                 log(TAG) { "assignToEmptyPane: Single pane mode, pane 0 occupied, workspace created but not selected" }
-                currentSelections
+                currentState.selectedWorkspaces
             }
         }
 
         return currentState.copy(selectedWorkspaces = newSelections)
     }
 
+    /**
+     * Where a workspace goes when it isn't already in a rendered pane: the empty pane next to the one
+     * it was invoked from, else any empty pane by ascending index, else - only when [allowEviction] -
+     * the least-recently-used pane other than the invoking one, so the list the user acted from
+     * survives. Multi-pane only; single-pane placement is trivial and stays at the call sites.
+     */
+    private fun assignPane(
+        currentState: State,
+        workspaceId: Workspace.Id,
+        sourcePaneIndex: Int?,
+        allowEviction: Boolean,
+    ): Map<Int, Workspace.Id> {
+        val paneCount = currentState.currentPaneCount
+        // Drop any hidden assignment it still holds first, or it would occupy two panes at once.
+        // Other workspaces' retained assignments are left alone.
+        val currentSelections = currentState.selectedWorkspaces.filterValues { it != workspaceId }
+
+        val emptyPaneIndex = paneSearchOrder(paneCount, sourcePaneIndex)
+            .firstOrNull { !currentSelections.containsKey(it) }
+        if (emptyPaneIndex != null) {
+            log(TAG) { "assignPane: $workspaceId -> empty pane $emptyPaneIndex (source pane $sourcePaneIndex)" }
+            return currentSelections + (emptyPaneIndex to workspaceId)
+        }
+
+        if (!allowEviction) {
+            log(TAG) { "assignPane: All panes full, $workspaceId created but not selected" }
+            return currentSelections
+        }
+
+        val victim = (0 until paneCount)
+            .filter { it != sourcePaneIndex }
+            .minWithOrNull(
+                compareBy<Int> { currentState.workspaceAccessTimes[currentSelections[it]] ?: Instant.DISTANT_PAST }
+                    .thenBy { it }
+            )
+        if (victim == null) {
+            log(TAG) { "assignPane: All panes full and none evictable, $workspaceId stays unassigned" }
+            return currentSelections
+        }
+
+        log(TAG) { "assignPane: All panes full, evicting LRU pane $victim for $workspaceId" }
+        return currentSelections + (victim to workspaceId)
+    }
+
+    /**
+     * The pane [workspaceId] acts from, resolved through its ownership root: a modal child occupies
+     * no pane of its own, so the raw id would find nothing and eviction would fail to protect the
+     * tab the user is actually working in. Null when there is no source or it is off screen.
+     */
+    private fun State.paneOf(workspaceId: Workspace.Id?, infos: List<Workspace.Info>): Int? {
+        val rootId = workspaceId?.let { WorkspaceStacks(infos).rootOf(it)?.id } ?: return null
+        return visiblePaneAssignments.entries.find { it.value == rootId }?.key
+    }
+
     companion object {
         private val TAG = logTag("Workspace", "UIManager")
+
+        /**
+         * Neighbour panes per index, nearest first. Explicit rather than index±1: the column-based
+         * layouts fill column by column (see [eu.darken.butler.workspace.ui.manager.WorkspaceDesign.forPane]),
+         * so in a quad grid pane 1 borders 0 and 3 while 2 sits diagonally across. Narrower layouts
+         * use the same table truncated to their pane count.
+         */
+        private val PANE_NEIGHBOURS = mapOf(
+            0 to listOf(1, 2),
+            1 to listOf(0, 3),
+            2 to listOf(0, 3),
+            3 to listOf(1, 2),
+        )
+
+        /** Panes to try, neighbours of [sourcePaneIndex] first, then everything else ascending. */
+        internal fun paneSearchOrder(paneCount: Int, sourcePaneIndex: Int?): List<Int> {
+            val all = (0 until paneCount).toList()
+            if (sourcePaneIndex == null) return all
+            val neighbours = PANE_NEIGHBOURS[sourcePaneIndex].orEmpty().filter { it < paneCount }
+            return neighbours + all.filterNot { it in neighbours }
+        }
     }
 }

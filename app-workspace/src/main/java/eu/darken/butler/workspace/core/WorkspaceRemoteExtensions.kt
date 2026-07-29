@@ -95,22 +95,32 @@ suspend fun WorkspaceRemote.launchPicker(
  *
  * @param type The type of workspace to create
  * @param arguments Optional workspace-specific arguments
+ * @param sourceWorkspaceId Workspace this was invoked from, used as a pane placement hint
+ *        (see [WorkspaceAction.Create.sourceWorkspaceId]).
  * @return The Create action result (Success, AlreadyOpen for singletons, or LimitReached)
  */
 suspend fun WorkspaceRemote.createAndFocus(
     type: Workspace.Type,
     arguments: Workspace.Arguments,
+    sourceWorkspaceId: Workspace.Id? = null,
 ): WorkspaceAction.Create.Result {
     val result = execute(
         WorkspaceAction.Create(
             type = type,
-            arguments = arguments
+            arguments = arguments,
+            sourceWorkspaceId = sourceWorkspaceId,
         )
     ) as WorkspaceAction.Create.Result
 
     when (result) {
-        is WorkspaceAction.Create.Result.Success -> emitEvent(WorkspaceEvent.SelectionRequested(result.newId))
-        is WorkspaceAction.Create.Result.AlreadyOpen -> emitEvent(WorkspaceEvent.SelectionRequested(result.existingId))
+        is WorkspaceAction.Create.Result.Success -> {
+            emitEvent(WorkspaceEvent.SelectionRequested(result.newId, sourceWorkspaceId))
+        }
+
+        is WorkspaceAction.Create.Result.AlreadyOpen -> {
+            emitEvent(WorkspaceEvent.SelectionRequested(result.existingId, sourceWorkspaceId))
+        }
+
         WorkspaceAction.Create.Result.LimitReached -> Unit
     }
 

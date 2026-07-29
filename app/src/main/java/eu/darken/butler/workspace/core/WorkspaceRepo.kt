@@ -308,6 +308,7 @@ class WorkspaceRepo @Inject constructor(
                         workspaceId = newId,
                         replacedId = action.replace,
                         autoFocus = action.autoFocus,
+                        sourceWorkspaceId = action.sourceWorkspaceId,
                     )
                 )
 

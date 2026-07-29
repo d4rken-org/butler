@@ -15,6 +15,13 @@ sealed interface WorkspaceAction {
          * Used by session restoration where the saved state is the source of truth.
          */
         val skipLimitCheck: Boolean = false,
+        /**
+         * Workspace this create was invoked from, if any. Purely a placement hint: the UI prefers a
+         * pane adjacent to it and never evicts the pane it occupies. Null (the default) means
+         * "no origin" - global entry points, the tab manager, session restore and batch creates -
+         * and keeps today's first-empty-pane behaviour.
+         */
+        val sourceWorkspaceId: Workspace.Id? = null,
     ) : WorkspaceAction {
         sealed interface Result : WorkspaceAction.Result {
             data class Success(val newId: Workspace.Id) : Result

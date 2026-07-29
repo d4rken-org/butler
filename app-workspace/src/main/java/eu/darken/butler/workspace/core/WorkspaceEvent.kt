@@ -3,10 +3,15 @@ package eu.darken.butler.workspace.core
 import eu.darken.butler.common.files.APath
 
 sealed interface WorkspaceEvent {
+    /**
+     * @param sourceWorkspaceId Workspace the create was invoked from, carried through as a pane
+     * placement hint (see [WorkspaceAction.Create.sourceWorkspaceId]).
+     */
     data class Created(
         val workspaceId: Workspace.Id,
         val replacedId: Workspace.Id? = null,
         val autoFocus: Boolean = false,
+        val sourceWorkspaceId: Workspace.Id? = null,
     ) : WorkspaceEvent
 
     data class Closed(
@@ -18,8 +23,13 @@ sealed interface WorkspaceEvent {
         val workspaceIds: List<Workspace.Id>,
     ) : WorkspaceEvent
 
+    /**
+     * @param sourceWorkspaceId Workspace the selection was requested from, carried through as a pane
+     * placement hint (see [WorkspaceAction.Create.sourceWorkspaceId]).
+     */
     data class SelectionRequested(
         val workspaceId: Workspace.Id,
+        val sourceWorkspaceId: Workspace.Id? = null,
     ) : WorkspaceEvent
 
     /**
