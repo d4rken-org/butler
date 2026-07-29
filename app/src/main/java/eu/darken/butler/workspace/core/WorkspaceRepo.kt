@@ -1041,6 +1041,7 @@ class WorkspaceRepo @Inject constructor(
                     WorkspaceEvent.Created(
                         workspaceId = newId,
                         replacedId = createRequest.replace,
+                        sourceWorkspaceId = sourceWorkspaceId,
                     )
                 )
                 results[createRequest] = WorkspaceAction.CreateBatch.CreationResult.Success(newId)

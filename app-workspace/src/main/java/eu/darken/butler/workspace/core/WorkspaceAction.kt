@@ -18,8 +18,8 @@ sealed interface WorkspaceAction {
         /**
          * Workspace this create was invoked from, if any. Purely a placement hint: the UI prefers a
          * pane adjacent to it and never evicts the pane it occupies. Null (the default) means
-         * "no origin" - global entry points, the tab manager, session restore and batch creates -
-         * and keeps today's first-empty-pane behaviour.
+         * "no origin" - global entry points, the tab manager and session restore - and keeps
+         * today's first-empty-pane behaviour.
          */
         val sourceWorkspaceId: Workspace.Id? = null,
     ) : WorkspaceAction {

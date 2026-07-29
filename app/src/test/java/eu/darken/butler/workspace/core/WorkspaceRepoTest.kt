@@ -991,6 +991,29 @@ class WorkspaceRepoTest : BaseTest() {
         values.count { it is WorkspaceAction.CreateBatch.CreationResult.AlreadyOpen } shouldBe 1
     }
 
+    @Test
+    fun `batch creation carries the source workspace on every Created event`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val sourceId = repo.createTab()
+            val events = mutableListOf<WorkspaceEvent>()
+            repo.events.onEach { events += it }.launchIn(backgroundScope)
+
+            repo.execute(
+                WorkspaceAction.CreateBatch(
+                    requests = listOf(
+                        contentReq(pathA, id = Workspace.Id()),
+                        contentReq(pathB, id = Workspace.Id()),
+                    ),
+                    sourceWorkspaceId = sourceId,
+                )
+            ).shouldBeInstanceOf<WorkspaceAction.CreateBatch.Result.Success>()
+
+            val created = events.filterIsInstance<WorkspaceEvent.Created>()
+            created shouldHaveSize 2
+            created.forEach { it.sourceWorkspaceId shouldBe sourceId }
+        }
+
     // ==================== Paused workspaces ====================
 
     private suspend fun WorkspaceRepo.registerPaused(
@@ -1083,6 +1106,8 @@ class WorkspaceRepoTest : BaseTest() {
             created.workspaceId shouldBe pausedId
             created.replacedId shouldBe null
             created.autoFocus shouldBe false
+            // Session restore has no origin pane, so there is no placement hint to carry
+            created.sourceWorkspaceId shouldBe null
         }
 
     @Test
