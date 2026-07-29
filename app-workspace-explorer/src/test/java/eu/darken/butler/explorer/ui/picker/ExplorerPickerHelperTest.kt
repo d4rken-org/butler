@@ -521,6 +521,7 @@ class ExplorerPickerHelperTest : BaseTest() {
             val item = mockFile()
             val actions = listOf(
                 ExplorerActionBarItem.File.Open(item),
+                ExplorerActionBarItem.File.OpenInTab(item),
                 ExplorerActionBarItem.File.OpenWith(item),
                 ExplorerActionBarItem.File.OpenInEditor(item),
             )

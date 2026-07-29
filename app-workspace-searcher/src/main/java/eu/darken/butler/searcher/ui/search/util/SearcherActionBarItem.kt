@@ -69,11 +69,23 @@ sealed interface SearcherActionBarItem : WorkspaceActionBarItem {
     }
 
     // Actions that only make sense for a single result
+    /**
+     * Opens the result in the workspace type that fits it, as a drill-down of this workspace:
+     * an overlay in the same pane that returns here on back.
+     */
     data class Open(
         val result: SearchItem,
     ) : SearcherActionBarItem {
         override val icon = Workspace.Type.VIEWER.icon
         override val label = R.string.searcher_action_open.toCaString()
+    }
+
+    /** Same routing as [Open], but as a workspace of its own instead of a drill-down. */
+    data class OpenInTab(
+        val result: SearchItem,
+    ) : SearcherActionBarItem {
+        override val icon = Icons.AutoMirrored.TwoTone.OpenInNew
+        override val label = R.string.searcher_action_open_in_tab.toCaString()
     }
 
     data class OpenWith(

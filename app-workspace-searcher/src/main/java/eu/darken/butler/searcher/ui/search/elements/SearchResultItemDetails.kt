@@ -199,6 +199,12 @@ fun SearchResultItemDetails(
                         onClick = onAction,
                         isPrimary = true
                     )
+
+                    QuickActionItem(
+                        action = SearcherActionBarItem.OpenInTab(result),
+                        onClick = onAction,
+                        isPrimary = true
+                    )
                 }
 
                 if (isTextFile(result)) {

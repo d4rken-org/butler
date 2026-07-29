@@ -185,6 +185,7 @@ class ExplorerPickerHelper @Inject constructor() {
 
             // Handing a file to another workspace, also rendered by the file options sheet
             is ExplorerActionBarItem.File.Open,
+            is ExplorerActionBarItem.File.OpenInTab,
             is ExplorerActionBarItem.File.OpenInEditor,
             is ExplorerActionBarItem.File.OpenWith -> allowsFileOpenActions(config)
 

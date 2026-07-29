@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.InsertDriveFile
+import androidx.compose.material.icons.automirrored.twotone.OpenInNew
 import androidx.compose.material.icons.twotone.ContentCopy
 import androidx.compose.material.icons.twotone.ContentCut
 import androidx.compose.material.icons.twotone.Delete
@@ -259,6 +260,13 @@ private fun FileOptionsContent(
                 title = stringResource(R.string.explorer_file_action_open),
                 subtitle = stringResource(R.string.explorer_file_action_open_subtitle),
                 onClick = { onAction(ExplorerActionBarItem.File.Open(item)) },
+            )
+
+            FileActionRow(
+                icon = Icons.AutoMirrored.TwoTone.OpenInNew,
+                title = stringResource(R.string.explorer_file_action_open_in_tab),
+                subtitle = stringResource(R.string.explorer_file_action_open_in_tab_subtitle),
+                onClick = { onAction(ExplorerActionBarItem.File.OpenInTab(item)) },
             )
 
             FileActionRow(

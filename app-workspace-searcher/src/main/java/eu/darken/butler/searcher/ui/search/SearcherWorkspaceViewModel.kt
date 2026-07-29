@@ -825,19 +825,13 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             }
             is SearcherActionBarItem.Open -> {
                 launch {
-                    // Same classification the multi-select path uses, so a text file reaches the
-                    // Editor instead of a Viewer that can only say it does not support the type.
-                    val request = openInNewTabsUseCase.createRequest(
-                        item = action.result.toOpenInNewTabsItem(),
-                        createExplorerArguments = { ExplorerArguments.Default(startPath = it) },
-                        createEditorArguments = { EditorArguments.Default(filePath = it) },
-                        createViewerArguments = { ViewerArguments.Default(filePath = it) },
-                    )
-                    workspaceRemote.createAndFocus(
-                        type = request.type,
-                        arguments = request.arguments,
-                    )
+                    // The viewer opens as a drill-down of this workspace: an overlay in the same
+                    // pane that returns here on back. Text files still go to the Editor as a tab.
+                    openResult(result = action.result, asDrillDown = true)
                 }
+            }
+            is SearcherActionBarItem.OpenInTab -> {
+                launch { openResult(result = action.result, asDrillDown = false) }
             }
             is SearcherActionBarItem.OpenWith -> {
                 launch {
@@ -861,7 +855,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                         type = Workspace.Type.EDITOR,
                         arguments = EditorArguments.Default(
                             filePath = action.result.path
-                        )
+                        ),
+                        sourceWorkspaceId = id,
                     )
                 }
             }
@@ -947,6 +942,33 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 onAction(action)
             }
         }
+    }
+
+    /**
+     * Routes a single result to the workspace type that fits it - the same classification the
+     * multi-select path uses, so a text file reaches the Editor instead of a Viewer that can only
+     * say it does not support the type.
+     *
+     * [asDrillDown] only affects the Viewer: it is the one target whose whole content is this file,
+     * so it can live as an overlay in this pane. The Editor always opens as a tab of its own.
+     */
+    private suspend fun openResult(result: SearchItem, asDrillDown: Boolean) {
+        val request = openInNewTabsUseCase.createRequest(
+            item = result.toOpenInNewTabsItem(),
+            createExplorerArguments = { ExplorerArguments.Default(startPath = it) },
+            createEditorArguments = { EditorArguments.Default(filePath = it) },
+            createViewerArguments = {
+                ViewerArguments.Default(
+                    filePath = it,
+                    callerWorkspaceId = if (asDrillDown) id else null,
+                )
+            },
+        )
+        workspaceRemote.createAndFocus(
+            type = request.type,
+            arguments = request.arguments,
+            sourceWorkspaceId = id,
+        )
     }
 
     private suspend fun executeOpenInNewTabs(analysis: OpenInNewTabsUseCase.AnalysisResult) {

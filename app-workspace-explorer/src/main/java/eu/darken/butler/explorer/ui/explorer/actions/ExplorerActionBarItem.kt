@@ -250,11 +250,23 @@ sealed interface ExplorerActionBarItem : WorkspaceActionBarItem {
      * Actions for single-file context menu operations (from FileOptionsBottomSheet).
      */
     sealed interface File : ExplorerActionBarItem {
-        /** Opens the file in the workspace type that fits it (currently the Viewer). */
+        /**
+         * Opens the file in the workspace type that fits it, as a drill-down of this workspace:
+         * an overlay in the same pane that returns here on back.
+         */
         data class Open(
             val item: ExplorerItem.File,
             override val icon: ImageVector = Icons.TwoTone.Visibility,
             val labelRes: Int = R.string.explorer_file_action_open,
+        ) : File {
+            override val label = labelRes.toCaString()
+        }
+
+        /** Same routing as [Open], but as a workspace of its own instead of a drill-down. */
+        data class OpenInTab(
+            val item: ExplorerItem.File,
+            override val icon: ImageVector = Icons.AutoMirrored.TwoTone.OpenInNew,
+            val labelRes: Int = R.string.explorer_file_action_open_in_tab,
         ) : File {
             override val label = labelRes.toCaString()
         }

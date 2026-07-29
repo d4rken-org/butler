@@ -959,21 +959,17 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             }
             is ExplorerActionBarItem.File.Open -> {
                 try {
-                    // Same classification the multi-select path uses, so a text file reaches the
-                    // Editor instead of a Viewer that can only say it does not support the type.
-                    val request = openInNewTabsUseCase.createRequest(
-                        item = OpenInNewTabsUseCase.Item.File(
-                            path = action.item.lookup.lookedUp,
-                            isText = TextFileDetector.isTextFile(action.item.mimeType),
-                        ),
-                        createExplorerArguments = { ExplorerArguments.Default(startPath = it) },
-                        createEditorArguments = { EditorArguments.Default(filePath = it) },
-                        createViewerArguments = { ViewerArguments.Default(filePath = it) },
-                    )
-                    workspaceRemote.createAndFocus(
-                        type = request.type,
-                        arguments = request.arguments,
-                    )
+                    // The viewer opens as a drill-down of this workspace: an overlay in the same
+                    // pane that returns here on back. Text files still go to the Editor as a tab.
+                    openFile(item = action.item, asDrillDown = true)
+                } catch (e: Exception) {
+                    log(tag, ERROR) { "Failed to open ${action.item.lookup.name}: ${e.asLog()}" }
+                    errorEvents.emit(e)
+                }
+            }
+            is ExplorerActionBarItem.File.OpenInTab -> {
+                try {
+                    openFile(item = action.item, asDrillDown = false)
                 } catch (e: Exception) {
                     log(tag, ERROR) { "Failed to open ${action.item.lookup.name}: ${e.asLog()}" }
                     errorEvents.emit(e)
@@ -981,16 +977,13 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             }
             is ExplorerActionBarItem.File.OpenInEditor -> {
                 try {
-                    val wsAction = WorkspaceAction.Create(
+                    // createAndFocus, like File.Open: one path for both rows, and it already handles
+                    // AlreadyOpen by focusing the tab that has the file.
+                    workspaceRemote.createAndFocus(
                         type = Workspace.Type.EDITOR,
                         arguments = EditorArguments.Default(filePath = action.item.lookup.lookedUp),
-                        autoFocus = true,
+                        sourceWorkspaceId = id,
                     )
-                    val result = workspaceRemote.execute(wsAction)
-                    if (result is WorkspaceAction.Create.Result.AlreadyOpen) {
-                        // The file is already open in an editor tab; focus it instead
-                        workspaceRemote.emitEvent(WorkspaceEvent.SelectionRequested(result.existingId))
-                    }
                 } catch (e: Exception) {
                     log(tag, ERROR) { "Failed to create editor workspace: ${e.asLog()}" }
                     errorEvents.emit(e)
@@ -1227,6 +1220,36 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     }
 
     // File action handlers
+    /**
+     * Routes a single file to the workspace type that fits it - the same classification the
+     * multi-select path uses, so a text file reaches the Editor instead of a Viewer that can only
+     * say it does not support the type.
+     *
+     * [asDrillDown] only affects the Viewer: it is the one target whose whole content is this file,
+     * so it can live as an overlay in this pane. The Editor always opens as a tab of its own.
+     */
+    private suspend fun openFile(item: ExplorerItem.File, asDrillDown: Boolean) {
+        val request = openInNewTabsUseCase.createRequest(
+            item = OpenInNewTabsUseCase.Item.File(
+                path = item.lookup.lookedUp,
+                isText = TextFileDetector.isTextFile(item.mimeType),
+            ),
+            createExplorerArguments = { ExplorerArguments.Default(startPath = it) },
+            createEditorArguments = { EditorArguments.Default(filePath = it) },
+            createViewerArguments = {
+                ViewerArguments.Default(
+                    filePath = it,
+                    callerWorkspaceId = if (asDrillDown) id else null,
+                )
+            },
+        )
+        workspaceRemote.createAndFocus(
+            type = request.type,
+            arguments = request.arguments,
+            sourceWorkspaceId = id,
+        )
+    }
+
     private suspend fun executeOpenInNewTabs(analysis: OpenInNewTabsUseCase.AnalysisResult) {
         log(tag, INFO) { "executeOpenInNewTabs(): Opening ${analysis.totalOpenableCount} workspaces" }
 
