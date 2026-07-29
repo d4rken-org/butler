@@ -1,0 +1,160 @@
+package eu.darken.butler.apps.core
+
+import android.content.Context
+import androidx.test.core.app.ApplicationProvider
+import eu.darken.butler.apps.core.details.AppDetailsWorkspace
+import eu.darken.butler.apps.core.engine.AppsEngine
+import eu.darken.butler.common.pkgs.Pkg
+import eu.darken.butler.common.pkgs.PkgRepo
+import eu.darken.butler.common.pkgs.features.InstallId
+import eu.darken.butler.common.pkgs.pkgops.PkgOps
+import eu.darken.butler.common.user.UserHandle2
+import eu.darken.butler.common.user.UserManager2
+import eu.darken.butler.setup.core.SetupStateProvider
+import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
+import eu.darken.butler.workspace.contracts.apps.AppDetailsArguments
+import eu.darken.butler.workspace.contracts.apps.SortSettings
+import eu.darken.butler.workspace.core.Workspace
+import io.kotest.matchers.shouldBe
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.mockk
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runTest
+import org.junit.After
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
+import testhelpers.BaseTest
+import testhelpers.coroutine.TestDispatcherProvider
+
+/**
+ * End-to-end cover for "sizes actually get measured": from selecting the size sort (and from opening
+ * App Details) all the way through to a [PkgOps.querySizeStats] call.
+ *
+ * Deliberately does NOT mock [eu.darken.butler.common.permissions.Permission], so the real
+ * availability gate in [AppSizeCache] is part of what's under test - both resolution call sites bail
+ * out silently before logging when that gate is closed, which makes it the one shared way for the
+ * whole feature to go inert.
+ */
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34])
+class AppSizeResolutionE2ETest : BaseTest() {
+
+    private val context = ApplicationProvider.getApplicationContext<Context>()
+
+    private val installId = InstallId(Pkg.Id("com.test.app"), UserHandle2(0))
+    private val installed = AppsMockDataProvider.createMockInstalled(
+        packageName = installId.pkgId.name,
+        label = "Test App",
+    )
+
+    private val pkgOps = mockk<PkgOps>(relaxed = true)
+    private val pkgRevision = MutableStateFlow(0L)
+    private val pkgRepo = mockk<PkgRepo>().also {
+        every { it.data } returns MutableStateFlow(PkgRepo.PkgData.from(listOf(installed)))
+        every { it.revision } returns pkgRevision
+    }
+    private val scopes = mutableListOf<CoroutineScope>()
+
+    @After
+    fun teardown() {
+        scopes.forEach { it.cancel() }
+        scopes.clear()
+    }
+
+    private fun TestScope.newScope(): CoroutineScope =
+        CoroutineScope(StandardTestDispatcher(testScheduler)).also { scopes += it }
+
+    private fun TestScope.createCache(dispatcherProvider: TestDispatcherProvider) = AppSizeCache(
+        appScope = newScope(),
+        context = context,
+        dispatcherProvider = dispatcherProvider,
+        pkgRepo = pkgRepo,
+        pkgOps = pkgOps,
+        setupStateProvider = mockk<SetupStateProvider>().also {
+            every { it.state } returns flowOf(SetupStateProvider.State(modules = emptyMap()))
+        },
+    )
+
+    private fun stubSizes() {
+        coEvery { pkgOps.querySizeStats(any(), any()) } returns PkgOps.SizeStats(
+            appBytes = 100,
+            cacheBytes = 20,
+            externalCacheBytes = null,
+            dataBytes = 50,
+        )
+    }
+
+    @Test
+    fun `usage access is available so resolution is not gated off`() = runTest {
+        val cache = createCache(TestDispatcherProvider(StandardTestDispatcher(testScheduler)))
+        advanceUntilIdle()
+
+        cache.isAvailable.value shouldBe true
+    }
+
+    @Test
+    fun `selecting the size sort measures the visible apps`() = runTest {
+        stubSizes()
+        val dispatcherProvider = TestDispatcherProvider(StandardTestDispatcher(testScheduler))
+        val engine = AppsEngine(
+            workspaceId = Workspace.Id(),
+            workspaceScope = newScope(),
+            context = context,
+            pkgRepo = pkgRepo,
+            userManager = mockk<UserManager2>().also { every { it.users } returns MutableStateFlow(emptySet()) },
+            dispatcherProvider = dispatcherProvider,
+            appSizeCache = createCache(dispatcherProvider),
+        )
+        advanceUntilIdle()
+
+        // Nothing measured while the default (name) sort is active.
+        coVerify(exactly = 0) { pkgOps.querySizeStats(any(), any()) }
+
+        engine.updateSortSettings(SortSettings(mode = SortSettings.Mode.SIZE))
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { pkgOps.querySizeStats(installId, any()) }
+        engine.state.value.filteredApps.single().appSize shouldBe 150L
+    }
+
+    @Test
+    fun `opening app details measures that app`() = runTest {
+        stubSizes()
+        val dispatcherProvider = TestDispatcherProvider(StandardTestDispatcher(testScheduler))
+        val workspace = AppDetailsWorkspace(
+            id = Workspace.Id(),
+            creationArguments = AppDetailsArguments(installId = installId),
+            context = context,
+            dispatcherProvider = dispatcherProvider,
+            pkgRepo = pkgRepo,
+            appSizeCache = createCache(dispatcherProvider),
+            rootManager = mockk<eu.darken.butler.common.root.RootManager> {
+                every { useRoot } returns flowOf(false)
+            },
+            adbManager = mockk<eu.darken.butler.common.adb.AdbManager> {
+                every { useAdb } returns flowOf(false)
+            },
+            workspaceRemote = mockk(relaxed = true),
+        )
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { pkgOps.querySizeStats(installId, any()) }
+
+        val state = workspace.state.first()
+        state.app?.appSize shouldBe 100L
+        state.app?.dataSize shouldBe 30L
+        state.app?.cacheSize shouldBe 20L
+        state.app?.totalSize shouldBe 150L
+    }
+}
