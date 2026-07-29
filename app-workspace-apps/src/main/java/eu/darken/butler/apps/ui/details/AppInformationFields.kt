@@ -163,11 +163,11 @@ fun AppInformationFields(
             )
         }
 
-        // App Size if available
-        if (app.appSize != null) {
+        // Total size if available - same number the list chip and the size sort use
+        app.totalSize?.let { totalSize ->
             InfoField(
                 label = stringResource(R.string.apps_size_label),
-                value = formatFileSize(app.appSize)
+                value = formatFileSize(totalSize)
             )
         }
 

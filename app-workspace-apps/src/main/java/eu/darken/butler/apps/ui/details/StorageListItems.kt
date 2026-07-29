@@ -17,8 +17,10 @@ import androidx.compose.material.icons.twotone.Folder
 import androidx.compose.material.icons.twotone.Storage
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,9 +34,11 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.apps.R
 import eu.darken.butler.apps.core.AppPath
 import eu.darken.butler.apps.core.details.AppInfo
+import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.R as CommonR
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.formatFileSize
 
@@ -43,15 +47,19 @@ fun StorageListItems(
     modifier: Modifier = Modifier,
     availablePaths: List<AppPath>,
     onBrowsePath: (APath<*>) -> Unit,
+    onOpenSetup: () -> Unit,
     app: AppInfo? = null,
+    isLoadingSize: Boolean = false,
+    sizesAvailable: Boolean = true,
 ) {
-    if (availablePaths.isEmpty() && app?.appSize == null && app?.cacheSize == null && app?.dataSize == null) return
+    val hasSizeData = app?.appSize != null || app?.cacheSize != null || app?.dataSize != null
+    // The loading and permission states have to render even without any size data yet.
+    if (availablePaths.isEmpty() && !hasSizeData && !isLoadingSize && sizesAvailable) return
 
     val context = LocalContext.current
 
     Column(modifier = modifier.fillMaxWidth()) {
-        // Storage Overview (if size data available)
-        if (app?.appSize != null || app?.cacheSize != null || app?.dataSize != null) {
+        if (hasSizeData || isLoadingSize || !sizesAvailable) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -75,7 +83,7 @@ fun StorageListItems(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
-                    val totalSize = (app.appSize ?: 0L) + (app.dataSize ?: 0L) + (app.cacheSize ?: 0L)
+                    val totalSize = app?.totalSize ?: 0L
                     if (totalSize > 0) {
                         Text(
                             text = formatFileSize(totalSize),
@@ -86,29 +94,48 @@ fun StorageListItems(
                     }
                 }
 
-                // Storage breakdown bars
-                if (app.appSize != null) {
-                    StorageItem(
-                        label = stringResource(R.string.apps_storage_app_label),
-                        size = app.appSize,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
+                when {
+                    !hasSizeData && isLoadingSize -> {
+                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                    }
 
-                if (app.dataSize != null && app.dataSize > 0) {
-                    StorageItem(
-                        label = stringResource(R.string.apps_data_size_label),
-                        size = app.dataSize,
-                        color = MaterialTheme.colorScheme.secondary
-                    )
-                }
+                    !hasSizeData && !sizesAvailable -> {
+                        Text(
+                            text = stringResource(R.string.apps_size_permission_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        TextButton(onClick = onOpenSetup) {
+                            Text(stringResource(CommonR.string.general_open_setup_action))
+                        }
+                    }
 
-                if (app.cacheSize != null && app.cacheSize > 0) {
-                    StorageItem(
-                        label = stringResource(R.string.apps_cache_size_label),
-                        size = app.cacheSize,
-                        color = MaterialTheme.colorScheme.tertiary
-                    )
+                    else -> {
+                        // Storage breakdown bars
+                        if (app?.appSize != null) {
+                            StorageItem(
+                                label = stringResource(R.string.apps_storage_app_label),
+                                size = app.appSize,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+
+                        if (app?.dataSize != null && app.dataSize > 0) {
+                            StorageItem(
+                                label = stringResource(R.string.apps_data_size_label),
+                                size = app.dataSize,
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                        }
+
+                        if (app?.cacheSize != null && app.cacheSize > 0) {
+                            StorageItem(
+                                label = stringResource(R.string.apps_cache_size_label),
+                                size = app.cacheSize,
+                                color = MaterialTheme.colorScheme.tertiary
+                            )
+                        }
+                    }
                 }
             }
 
@@ -202,6 +229,45 @@ private fun StorageListItemsPreview() {
     StorageListItems(
         availablePaths = emptyList(),
         onBrowsePath = {},
+        onOpenSetup = {},
         app = null
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun StorageListItemsWithSizesPreview() {
+    StorageListItems(
+        availablePaths = emptyList(),
+        onBrowsePath = {},
+        onOpenSetup = {},
+        app = AppsMockDataProvider.Presets.chrome,
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun StorageListItemsLoadingPreview() {
+    StorageListItems(
+        availablePaths = emptyList(),
+        onBrowsePath = {},
+        onOpenSetup = {},
+        app = AppsMockDataProvider.createMockAppInfo(appSize = null, dataSize = null, cacheSize = null),
+        isLoadingSize = true,
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun StorageListItemsNoUsageAccessPreview() {
+    StorageListItems(
+        availablePaths = emptyList(),
+        onBrowsePath = {},
+        onOpenSetup = {},
+        app = AppsMockDataProvider.createMockAppInfo(appSize = null, dataSize = null, cacheSize = null),
+        sizesAvailable = false,
     )
 }

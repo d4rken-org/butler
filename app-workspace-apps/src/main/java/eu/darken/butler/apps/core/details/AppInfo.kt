@@ -17,6 +17,14 @@ data class AppInfo(
     val dataSize: Long? = null,
     val cacheSize: Long? = null,
 ) {
+    /** Total storage footprint, null while no component is known. */
+    val totalSize: Long?
+        get() = if (appSize == null && dataSize == null && cacheSize == null) {
+            null
+        } else {
+            (appSize ?: 0L) + (dataSize ?: 0L) + (cacheSize ?: 0L)
+        }
+
     val id: Pkg.Id
         get() = install.id
     val installId: InstallId

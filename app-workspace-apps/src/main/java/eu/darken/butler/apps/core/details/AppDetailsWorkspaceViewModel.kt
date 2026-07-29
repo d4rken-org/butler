@@ -12,6 +12,7 @@ import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.apps.R
+import eu.darken.butler.apps.core.AppSizeCache
 import eu.darken.butler.apps.core.details.components.AppComponentsController
 import eu.darken.butler.apps.core.details.components.AppComponentsLoader
 import eu.darken.butler.apps.core.details.components.ComponentEntry
@@ -60,6 +61,7 @@ class AppDetailsWorkspaceViewModel @AssistedInject constructor(
     dispatchers: DispatcherProvider,
     workspaceProvider: WorkspaceProvider,
     private val workspaceRemote: WorkspaceRemote,
+    private val appSizeCache: AppSizeCache,
     componentsLoader: AppComponentsLoader,
 ) : ViewModel4(dispatchers, logTag("AppDetails", "Workspace", id.shortTag, "Page")) {
 
@@ -351,11 +353,24 @@ class AppDetailsWorkspaceViewModel @AssistedInject constructor(
     fun onClearCache(app: AppInfo) = launch {
         log(tag) { "Clearing cache: ${app.packageName}" }
         getWorkspace().clearCacheApp(app)
+        appSizeCache.invalidate(listOf(app.installId))
     }
 
     fun onClearData(app: AppInfo) = launch {
         log(tag) { "Clearing data: ${app.packageName}" }
         getWorkspace().clearDataApp(app)
+        appSizeCache.invalidate(listOf(app.installId))
+    }
+
+    fun onOpenSizePermissionSetup() = launch {
+        log(tag) { "Opening setup for usage access" }
+        navTo(
+            Nav.Main.destSetup(
+                typeFilter = setOf(SetupModule.Type.USAGE_STATS),
+                satisfyingCombos = setOf(setOf(SetupModule.Type.USAGE_STATS)),
+                autoCloseWhenComplete = true,
+            )
+        )
     }
 
     fun close() = launch {

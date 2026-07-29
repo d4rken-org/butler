@@ -2,6 +2,7 @@ package eu.darken.butler.apps.core.details
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
+import eu.darken.butler.apps.core.AppSizeCache
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.pkgs.Pkg
 import eu.darken.butler.common.pkgs.PkgRepo
@@ -61,6 +62,10 @@ class AppDetailsWorkspaceLabelCaptureTest {
             dispatcherProvider = TestDispatcherProvider(StandardTestDispatcher(testScheduler)),
             pkgRepo = pkgRepo,
             pkgOps = mockk(relaxed = true),
+            appSizeCache = mockk(relaxed = true) {
+                every { snapshot } returns MutableStateFlow(AppSizeCache.Snapshot())
+                every { isAvailable } returns MutableStateFlow(false)
+            },
             rootManager = mockk(relaxed = true),
             adbManager = mockk(relaxed = true),
             workspaceRemote = mockk(relaxed = true),

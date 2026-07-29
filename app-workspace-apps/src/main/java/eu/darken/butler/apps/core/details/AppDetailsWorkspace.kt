@@ -12,6 +12,7 @@ import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoMap
 import eu.darken.butler.apps.R
 import eu.darken.butler.apps.core.AppPath
+import eu.darken.butler.apps.core.AppSizeCache
 import eu.darken.butler.apps.core.details.components.ComponentEntry
 import eu.darken.butler.apps.core.details.components.ComponentToggleAvailability
 import eu.darken.butler.apps.core.details.components.ComponentToggleState
@@ -23,6 +24,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.pkgs.PkgRepo
 import eu.darken.butler.common.pkgs.pkgops.PkgOps
 import eu.darken.butler.common.pkgs.pkgops.PkgOpsException
@@ -50,13 +52,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
 
@@ -67,6 +70,7 @@ class AppDetailsWorkspace @AssistedInject constructor(
     dispatcherProvider: DispatcherProvider,
     private val pkgRepo: PkgRepo,
     private val pkgOps: PkgOps,
+    private val appSizeCache: AppSizeCache,
     private val rootManager: RootManager,
     private val adbManager: AdbManager,
     private val workspaceRemote: WorkspaceRemote,
@@ -124,11 +128,15 @@ class AppDetailsWorkspace @AssistedInject constructor(
         ownPackageName = context.packageName,
     )
 
+    private val _sizeLoading = MutableStateFlow(false)
+
     data class State(
         val app: AppInfo? = null,
         val selectedTab: DetailTab = DetailTab.OVERVIEW,
         val availablePaths: List<AppPath> = emptyList(),
         val isLoading: Boolean = true,
+        val isLoadingSize: Boolean = false,
+        val sizesAvailable: Boolean = true,
         val callerWorkspaceId: Workspace.Id? = null,
         val hasRoot: Boolean = false,
         val hasAdb: Boolean = false,
@@ -146,13 +154,26 @@ class AppDetailsWorkspace @AssistedInject constructor(
         rootManager.useRoot,
         adbManager.useAdb,
         componentToggleAvailability.state.filterNotNull(),
-    ) { app, selectedTab, hasRoot, hasAdb, componentToggleState ->
-        val paths = app?.let { buildAppPaths(it) } ?: emptyList()
+        appSizeCache.snapshot,
+        appSizeCache.isAvailable,
+        _sizeLoading,
+    ) { app, selectedTab, hasRoot, hasAdb, componentToggleState, sizeSnapshot, sizesAvailable, isLoadingSize ->
+        val withSize = app?.let { info ->
+            val size = sizeSnapshot.sizes[info.installId] ?: return@let info
+            info.copy(
+                appSize = size.appBytes,
+                dataSize = size.dataBytes,
+                cacheSize = size.cacheBytes,
+            )
+        }
+        val paths = withSize?.let { buildAppPaths(it) } ?: emptyList()
         State(
             selectedTab = selectedTab,
-            app = app,
+            app = withSize,
             availablePaths = paths,
-            isLoading = app == null,
+            isLoading = withSize == null,
+            isLoadingSize = isLoadingSize,
+            sizesAvailable = sizesAvailable,
             callerWorkspaceId = args.callerWorkspaceId,
             hasRoot = hasRoot,
             hasAdb = hasAdb,
@@ -309,6 +330,28 @@ class AppDetailsWorkspace @AssistedInject constructor(
                 }
             }
             .launchIn(scope)
+
+        // Keyed on "not yet attempted at the current revision", not on the install id: a details
+        // workspace's id never changes, so an id-keyed trigger would fire once and the card would
+        // stay empty forever after any invalidation.
+        scope.launch {
+            combine(
+                appInfoFlow,
+                appSizeCache.snapshot,
+                appSizeCache.isAvailable,
+            ) { app, snapshot, isAvailable ->
+                Triple(app, snapshot, isAvailable)
+            }.collectLatest { (app, snapshot, isAvailable) ->
+                if (app == null || !isAvailable || app.installId in snapshot.attempted) return@collectLatest
+                log(tag) { "Resolving size for ${app.packageName}" }
+                _sizeLoading.value = true
+                try {
+                    appSizeCache.resolve(listOf(app.install))
+                } finally {
+                    _sizeLoading.value = false
+                }
+            }
+        }
     }
 
     @AssistedFactory

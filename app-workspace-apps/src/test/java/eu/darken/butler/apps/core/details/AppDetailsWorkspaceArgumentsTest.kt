@@ -1,5 +1,6 @@
 package eu.darken.butler.apps.core.details
 
+import eu.darken.butler.apps.core.AppSizeCache
 import eu.darken.butler.common.adb.AdbManager
 import eu.darken.butler.common.pkgs.Pkg
 import eu.darken.butler.common.pkgs.features.InstallId
@@ -11,6 +12,7 @@ import eu.darken.butler.workspace.core.Workspace
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -37,6 +39,10 @@ class AppDetailsWorkspaceArgumentsTest : BaseTest() {
         dispatcherProvider = TestDispatcherProvider(),
         pkgRepo = mockk(relaxed = true),
         pkgOps = mockk(relaxed = true),
+        appSizeCache = mockk(relaxed = true) {
+            every { snapshot } returns MutableStateFlow(AppSizeCache.Snapshot())
+            every { isAvailable } returns MutableStateFlow(false)
+        },
         rootManager = mockk<RootManager> { every { useRoot } returns flowOf(false) },
         adbManager = mockk<AdbManager> { every { useAdb } returns flowOf(false) },
         workspaceRemote = mockk(relaxed = true),

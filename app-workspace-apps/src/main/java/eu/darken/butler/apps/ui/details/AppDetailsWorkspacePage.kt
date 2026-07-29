@@ -88,6 +88,7 @@ sealed interface AppDetailsPageAction {
     data class ForceStop(val app: AppInfo) : AppDetailsPageAction
     data class ClearCache(val app: AppInfo) : AppDetailsPageAction
     data class ClearData(val app: AppInfo) : AppDetailsPageAction
+    data object OpenSizeSetup : AppDetailsPageAction
 }
 
 @Composable
@@ -136,6 +137,7 @@ fun AppDetailsWorkspacePageHost(
                     is AppDetailsPageAction.ForceStop -> vm.onForceStop(action.app)
                     is AppDetailsPageAction.ClearCache -> vm.onClearCache(action.app)
                     is AppDetailsPageAction.ClearData -> vm.onClearData(action.app)
+                    is AppDetailsPageAction.OpenSizeSetup -> vm.onOpenSizePermissionSetup()
                 }
             },
         )
@@ -413,7 +415,9 @@ private fun LazyListScope.overviewItems(
     }
 
     // Storage Section (full-width row highlight → no content horizontal padding)
-    if (state.availablePaths.isNotEmpty() || appInfo.appSize != null || appInfo.cacheSize != null || appInfo.dataSize != null) {
+    if (state.availablePaths.isNotEmpty() || appInfo.appSize != null || appInfo.cacheSize != null ||
+        appInfo.dataSize != null || state.isLoadingSize || !state.sizesAvailable
+    ) {
         item {
             DetailSectionCard(
                 title = stringResource(R.string.apps_details_section_storage),
@@ -422,7 +426,10 @@ private fun LazyListScope.overviewItems(
                 StorageListItems(
                     availablePaths = state.availablePaths,
                     onBrowsePath = { onPageAction(AppDetailsPageAction.BrowsePath(it)) },
+                    onOpenSetup = { onPageAction(AppDetailsPageAction.OpenSizeSetup) },
                     app = appInfo,
+                    isLoadingSize = state.isLoadingSize,
+                    sizesAvailable = state.sizesAvailable,
                 )
             }
         }

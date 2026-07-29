@@ -46,6 +46,7 @@ class AppsWorkspacePausableTest : BaseTest() {
             dispatcherProvider = TestDispatcherProvider(),
             appsEngineFactory = mockk<AppsEngine.Factory> { every { create(any(), any()) } returns engine },
             appsSettings = mockk(relaxed = true),
+            appSizeCache = mockk(relaxed = true),
             pkgOps = pkgOps,
             rootManager = mockk<RootManager> { every { useRoot } returns flowOf(false) },
             adbManager = mockk<AdbManager> { every { useAdb } returns flowOf(false) },
