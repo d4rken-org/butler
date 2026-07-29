@@ -8,14 +8,19 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.draganddrop.dragAndDropTarget
 import androidx.compose.material3.pulltorefresh.PullToRefreshState
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draganddrop.DragAndDropEvent
+import androidx.compose.ui.draganddrop.DragAndDropTarget
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
@@ -27,10 +32,16 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.archive.ArchiveNotSeekableException
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerViewStyle
+import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
+import eu.darken.butler.explorer.ui.explorer.dnd.validateDropDestination
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
+import eu.darken.butler.workspace.contracts.dnd.WorkspaceDragPayload
+import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
+import eu.darken.butler.workspace.ui.dnd.dropTargetHighlight
+import eu.darken.butler.workspace.ui.dnd.workspaceDragPayload
 import eu.darken.butler.workspace.ui.common.WorkspacePaddings
 import eu.darken.butler.workspace.ui.common.WorkspacePullToRefreshBox
 import eu.darken.butler.workspace.ui.error.ErrorCard
@@ -50,6 +61,7 @@ import kotlin.math.roundToInt
 @Composable
 internal fun ExplorerReadyContent(
     modifier: Modifier = Modifier,
+    workspaceId: Workspace.Id,
     state: ExplorerWorkspaceViewModel.State,
     vm: ExplorerWorkspaceViewModel?,
     listState: LazyListState,
@@ -64,6 +76,7 @@ internal fun ExplorerReadyContent(
     initialOperationsExpanded: Boolean,
     initialClipboardExpanded: Boolean,
     onShowOperationDetails: (Operation.Id) -> Unit,
+    dragPayloadFactory: ((ExplorerItem) -> WorkspaceDragPayload?)? = null,
 ) {
     // Focus state from ViewModel
     val contentFocusedItem = state.focusedItemIndex?.let { state.items?.getOrNull(it) }
@@ -81,7 +94,44 @@ internal fun ExplorerReadyContent(
         end = 2.dp,
     )
 
-    Box(modifier = modifier.fillMaxSize()) {
+    val isDragHovered = remember { mutableStateOf(false) }
+    val currentState by rememberUpdatedState(state)
+    val currentVm by rememberUpdatedState(vm)
+    val dropTarget = remember {
+        object : DragAndDropTarget {
+            override fun onEntered(event: DragAndDropEvent) {
+                isDragHovered.value = true
+            }
+
+            override fun onExited(event: DragAndDropEvent) {
+                isDragHovered.value = false
+            }
+
+            override fun onEnded(event: DragAndDropEvent) {
+                isDragHovered.value = false
+            }
+
+            override fun onDrop(event: DragAndDropEvent): Boolean {
+                isDragHovered.value = false
+                val payload = event.workspaceDragPayload() ?: return false
+                currentVm?.onDragDropped(payload)
+                return true
+            }
+        }
+    }
+
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .dragAndDropTarget(
+                shouldStartDragAndDrop = { event ->
+                    val payload = event.workspaceDragPayload()
+                    payload != null && validateDropDestination(currentState, workspaceId, payload) != null
+                },
+                target = dropTarget,
+            )
+            .dropTargetHighlight(isDragHovered.value),
+    ) {
         // Main content with pull-to-refresh
         WorkspacePullToRefreshBox(
             modifier = Modifier.fillMaxSize(),
@@ -101,6 +151,7 @@ internal fun ExplorerReadyContent(
                     contentFocusedItem = contentFocusedItem,
                     listState = listState,
                     contentPadding = listContentPadding,
+                    dragPayloadFactory = dragPayloadFactory,
                 )
 
                 is ExplorerViewStyle.Grid -> ExplorerGridContent(
@@ -113,6 +164,7 @@ internal fun ExplorerReadyContent(
                     contentFocusedItem = contentFocusedItem,
                     gridState = gridState,
                     contentPadding = gridContentPadding,
+                    dragPayloadFactory = dragPayloadFactory,
                 )
             }
         }
@@ -174,6 +226,7 @@ internal fun ExplorerReadyContent(
 private fun ExplorerReadyContentPreview() {
     PreviewWrapper {
         ExplorerReadyContent(
+            workspaceId = Workspace.Id(),
             state = MockDataProvider.createReadyState(),
             vm = null,
             listState = rememberLazyListState(),

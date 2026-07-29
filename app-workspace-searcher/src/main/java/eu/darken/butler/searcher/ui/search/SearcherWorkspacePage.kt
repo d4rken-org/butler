@@ -47,6 +47,7 @@ import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearcherViewStyle
 import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.searcher.core.resultKey
+import eu.darken.butler.searcher.ui.search.dnd.SearcherDragPayloadFactory
 import eu.darken.butler.searcher.ui.search.elements.PermissionSetupCard
 import eu.darken.butler.searcher.ui.search.elements.SearchProgressCard
 import eu.darken.butler.searcher.ui.search.elements.SearchTargetsEmptyStateCard
@@ -62,6 +63,7 @@ import eu.darken.butler.searcher.ui.search.util.SearcherActionBarItem
 import eu.darken.butler.searcher.ui.search.util.SearcherPageAction
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.actions.WorkspaceActionBar
+import eu.darken.butler.workspace.ui.dnd.rememberWorkspaceDragSource
 import eu.darken.butler.workspace.ui.clipboard.bar.ClipboardBar
 import eu.darken.butler.workspace.ui.common.WorkspacePaddings
 import eu.darken.butler.workspace.ui.error.ErrorCard
@@ -283,6 +285,10 @@ fun SearcherWorkspacePage(
     // Only render when Ready - WorkspaceMapper handles Init/Error overlays
     val currentState = mainState as? SearcherWorkspaceViewModel.State.Ready ?: return
 
+    // Dragging results to another pane needs a second pane to drop them on. The payload comes from
+    // the state this composition already holds, so a drag can't lose items to an in-flight update.
+    val dragsToOtherPanes = !design.isSingle
+
     // Handle back button for selection mode - clear selection first
     WorkspaceBackHandler(enabled = currentState.selectionState.isSelectionMode) {
         onPageAction(SearcherPageAction.Results.ExitSelectionMode)
@@ -439,7 +445,19 @@ fun SearcherWorkspacePage(
                             ) { item ->
                                 when (item) {
                                     is SearchListItem.Result -> {
+                                        val dragSource = if (dragsToOtherPanes) {
+                                            rememberWorkspaceDragSource {
+                                                SearcherDragPayloadFactory.build(
+                                                    currentState,
+                                                    workspaceId,
+                                                    item.searchItem,
+                                                )
+                                            }
+                                        } else {
+                                            null
+                                        }
                                         SelectableFileRow(
+                                            modifier = dragSource?.modifier ?: Modifier,
                                             result = item.searchItem,
                                             isSelected = currentState.selectionState.isSelected(item.searchItem),
                                             isSelectionMode = currentState.selectionState.isSelectionMode,
@@ -451,6 +469,7 @@ fun SearcherWorkspacePage(
                                                 }
                                             },
                                             onLongPress = {
+                                                dragSource?.startDrag()
                                                 wrappedOnEnterSelectionMode(item.searchItem)
                                             },
                                         )
@@ -540,7 +559,19 @@ fun SearcherWorkspacePage(
                                 key = { item -> item.searchItem.resultKey },
                                 contentType = { "result" },
                             ) { item ->
+                                val dragSource = if (dragsToOtherPanes) {
+                                    rememberWorkspaceDragSource {
+                                        SearcherDragPayloadFactory.build(
+                                            currentState,
+                                            workspaceId,
+                                            item.searchItem,
+                                        )
+                                    }
+                                } else {
+                                    null
+                                }
                                 SelectableFileGrid(
+                                    modifier = dragSource?.modifier ?: Modifier,
                                     result = item.searchItem,
                                     isSelected = currentState.selectionState.isSelected(item.searchItem),
                                     isSelectionMode = currentState.selectionState.isSelectionMode,
@@ -552,6 +583,7 @@ fun SearcherWorkspacePage(
                                         }
                                     },
                                     onLongPress = {
+                                        dragSource?.startDrag()
                                         wrappedOnEnterSelectionMode(item.searchItem)
                                     },
                                     previewsSettled = previewsSettled,

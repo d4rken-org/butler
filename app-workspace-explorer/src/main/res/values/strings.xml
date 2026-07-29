@@ -396,6 +396,20 @@
     <string name="explorer_compress_dialog_overwrite_message">\"%1$s\" already exists and will be replaced.</string>
     <string name="explorer_compress_dialog_overwrite_action">Replace</string>
 
+    <!-- Drop dialog (items dragged in from another pane) -->
+    <plurals name="explorer_drop_dialog_title">
+        <item quantity="one">Drop %1$d item?</item>
+        <item quantity="other">Drop %1$d items?</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message">
+        <item quantity="one">Copy or move %1$d item to \"%2$s\"?</item>
+        <item quantity="other">Copy or move %1$d items to \"%2$s\"?</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message_copy_only">
+        <item quantity="one">Copy %1$d item to \"%2$s\"?</item>
+        <item quantity="other">Copy %1$d items to \"%2$s\"?</item>
+    </plurals>
+
     <string name="explorer_operation_move_title">Move operation</string>
     <string name="explorer_operation_move_description_single">Move \"%1$s\" from \"%2$s\" to \"%3$s\".</string>
     <plurals name="explorer_operation_move_description">

@@ -22,6 +22,7 @@ import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
 import eu.darken.butler.explorer.ui.explorer.items.ExplorerItemRenderer
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
+import eu.darken.butler.workspace.contracts.dnd.WorkspaceDragPayload
 import eu.darken.butler.workspace.ui.common.WorkspacePaddings
 
 /**
@@ -36,6 +37,7 @@ internal fun ExplorerListContent(
     contentFocusedItem: ExplorerItem?,
     listState: LazyListState,
     contentPadding: PaddingValues,
+    dragPayloadFactory: ((ExplorerItem) -> WorkspaceDragPayload?)? = null,
 ) {
     LazyColumn(
         state = listState,
@@ -86,6 +88,7 @@ internal fun ExplorerListContent(
                     onItemLongClick = { vm?.onItemLongClick(it) },
                     onNavigate = { vm?.navigate(it) },
                     onToggleSelection = { vm?.toggleItemSelection(it) },
+                    dragPayloadFactory = dragPayloadFactory,
                 )
             }
         }

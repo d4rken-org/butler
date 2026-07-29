@@ -25,6 +25,7 @@ import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
 import eu.darken.butler.explorer.ui.explorer.items.ExplorerItemRenderer
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
+import eu.darken.butler.workspace.contracts.dnd.WorkspaceDragPayload
 
 /**
  * The grid-style main content of the Explorer page.
@@ -38,6 +39,7 @@ internal fun ExplorerGridContent(
     contentFocusedItem: ExplorerItem?,
     gridState: LazyGridState,
     contentPadding: PaddingValues,
+    dragPayloadFactory: ((ExplorerItem) -> WorkspaceDragPayload?)? = null,
 ) {
     LazyVerticalGrid(
         state = gridState,
@@ -89,6 +91,7 @@ internal fun ExplorerGridContent(
                     onItemLongClick = { vm?.onItemLongClick(it) },
                     onNavigate = { vm?.navigate(it) },
                     onToggleSelection = { vm?.toggleItemSelection(it) },
+                    dragPayloadFactory = dragPayloadFactory,
                 )
             }
         }

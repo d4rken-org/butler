@@ -4,9 +4,13 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
+import eu.darken.butler.common.files.local.LocalPathLookup
+import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.ExplorerWorkspace
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.workspace.contracts.explorer.PickerConfig
 import io.kotest.matchers.shouldBe
 import io.mockk.Runs
@@ -53,11 +57,13 @@ class ExplorerSelectionControllerTest : BaseTest() {
         config: PickerConfig? = null,
         workspace: ExplorerWorkspace = mockWorkspace(config),
         selectableItems: Set<ExplorerItem> = emptySet(),
+        currentLocationId: () -> String? = { null },
         navigate: (ExplorerItem) -> Unit = {},
     ) = ExplorerSelectionController(
         pickerConfig = { config },
         workspace = { workspace },
         selectableItems = { selectableItems },
+        currentLocationId = currentLocationId,
         navigate = navigate,
         doLaunch = { block -> launch { block() } },
         tag = "test",
@@ -255,5 +261,96 @@ class ExplorerSelectionControllerTest : BaseTest() {
         val storage = storageItem("vol")
         dirSingle.onItemLongClick(storage)
         dirSingle.selectedItems.value shouldBe setOf(storage)
+    }
+
+    private fun lookupItem(name: String) = ExplorerItem.RegularFile(
+        lookup = LocalPathLookup(
+            lookedUp = LocalPath.build(LISTING_PATH, name),
+            fileType = FileType.FILE,
+            size = 1L,
+            modifiedAt = null,
+        ),
+        mimeType = MimeInfo("text/plain"),
+    )
+
+    private fun listing(
+        vararg items: ExplorerItem.Path,
+        path: String = LISTING_PATH,
+        loading: Boolean = false,
+    ) = ExplorerLocation.Directory(
+        items = items.toList(),
+        path = LocalPath.build(path),
+        progress = if (loading) Progress.Data() else null,
+    )
+
+    private fun CoroutineScope.pruningController() = controller(
+        currentLocationId = { listing().locationId },
+    )
+
+    @Test
+    fun `pruning drops items that vanished from the listing`() = runTest {
+        val kept = lookupItem("a.txt")
+        val gone = lookupItem("b.txt")
+        val controller = pruningController()
+        controller.set(setOf(kept, gone))
+
+        controller.pruneAgainst(listing(kept))
+
+        controller.selectedItems.value shouldBe setOf(kept)
+    }
+
+    @Test
+    fun `a metadata refresh re-projects the selection`() = runTest {
+        val item = lookupItem("a.txt")
+        val refreshed = item.copy(canWrite = true)
+        val controller = pruningController()
+        controller.set(setOf(item))
+
+        controller.pruneAgainst(listing(refreshed))
+
+        controller.selectedItems.value shouldBe setOf(refreshed)
+    }
+
+    @Test
+    fun `a still loading listing never prunes`() = runTest {
+        val first = lookupItem("a.txt")
+        val second = lookupItem("b.txt")
+        val controller = pruningController()
+        controller.set(setOf(first, second))
+
+        controller.pruneAgainst(listing(first, loading = true))
+        controller.selectedItems.value shouldBe setOf(first, second)
+
+        controller.pruneAgainst(listing(loading = true))
+        controller.selectedItems.value shouldBe setOf(first, second)
+    }
+
+    @Test
+    fun `a listing of another location never prunes`() = runTest {
+        val item = lookupItem("a.txt")
+        val controller = pruningController()
+        controller.set(setOf(item))
+
+        controller.pruneAgainst(listing(path = "/tmp/somewhere-else"))
+
+        controller.selectedItems.value shouldBe setOf(item)
+    }
+
+    @Test
+    fun `items hidden by a filter stay selected`() = runTest {
+        // Filtering only shortens the displayed list; pruning runs against the raw listing, which
+        // still holds the item.
+        val hidden = lookupItem("a.txt")
+        val shown = lookupItem("b.txt")
+        val controller = pruningController()
+        controller.set(setOf(hidden))
+
+        controller.pruneAgainst(listing(hidden, shown))
+
+        controller.selectedItems.value shouldBe setOf(hidden)
+    }
+
+    companion object {
+        private const val LISTING_PATH = "/tmp/selection-test"
     }
 }

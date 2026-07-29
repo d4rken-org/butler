@@ -19,6 +19,10 @@ import eu.darken.butler.main.core.motd.MotdRepo
 import eu.darken.butler.main.core.motd.MotdState
 import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.workspace.contracts.bugreport.BugReportArguments
+import eu.darken.butler.workspace.contracts.editor.EditorArguments
+import eu.darken.butler.workspace.contracts.explorer.ExplorerArguments
+import eu.darken.butler.workspace.contracts.viewer.ViewerArguments
+import eu.darken.butler.workspace.core.OpenInNewTabsUseCase
 import eu.darken.butler.workspace.core.PendingWorkspaceConfirmation
 import eu.darken.butler.workspace.core.RenderedWorkspaceStacks
 import eu.darken.butler.workspace.core.Workspace
@@ -62,6 +66,7 @@ class WorkspacesViewModel @Inject constructor(
     private val webpageTool: WebpageTool,
     private val errorReportTool: ErrorReportTool,
     private val bugReportRepo: BugReportRepo,
+    private val openInNewTabsUseCase: OpenInNewTabsUseCase,
     val pageHosts: Map<Workspace.Type, @JvmSuppressWildcards WorkspacePageHostEntry>,
     val scrollPositions: WorkspaceScrollPositions,
     val barCollapseStates: WorkspaceBarCollapseStates,
@@ -304,6 +309,47 @@ class WorkspacesViewModel @Inject constructor(
                         val selections = workspacePageManager.state.value.selectedWorkspaces +
                             (action.paneIndex to result.existingId)
                         workspacePageManager.setLayout(selections, focusedId = result.existingId)
+                    }
+                    is WorkspaceAction.Create.Result.LimitReached -> {
+                        log(tag, WARN) { "Workspace creation blocked - limit reached" }
+                    }
+                }
+            }
+            is WorkspaceScreenAction.OpenDropInPane -> {
+                val item = action.payload.items.singleOrNull()
+                if (item == null) {
+                    log(tag, WARN) { "OpenDropInPane needs a single item, got ${action.payload.items.size}" }
+                    return@launch
+                }
+                log(tag) { "Opening dropped ${item.path} in pane ${action.paneIndex}" }
+                val request = openInNewTabsUseCase.createRequest(
+                    item = item.toOpenInNewTabsItem(),
+                    createExplorerArguments = { ExplorerArguments.Default(startPath = it) },
+                    createEditorArguments = { EditorArguments.Default(filePath = it) },
+                    createViewerArguments = { ViewerArguments.Default(filePath = it) },
+                )
+                when (val result = workspaceRepo.execute(request)) {
+                    is WorkspaceAction.Create.Result.Success -> {
+                        log(tag) { "Dropped item opened as ${result.newId} in pane ${action.paneIndex}" }
+                        workspacePageManager.setLayout(
+                            paneAssignmentAfterDrop(
+                                current = workspacePageManager.state.value.selectedWorkspaces,
+                                paneIndex = action.paneIndex,
+                                workspaceId = result.newId,
+                            ),
+                            focusedId = result.newId,
+                        )
+                    }
+                    is WorkspaceAction.Create.Result.AlreadyOpen -> {
+                        log(tag) { "Dropped item already open as ${result.existingId}, moving it to the pane" }
+                        workspacePageManager.setLayout(
+                            paneAssignmentAfterDrop(
+                                current = workspacePageManager.state.value.selectedWorkspaces,
+                                paneIndex = action.paneIndex,
+                                workspaceId = result.existingId,
+                            ),
+                            focusedId = result.existingId,
+                        )
                     }
                     is WorkspaceAction.Create.Result.LimitReached -> {
                         log(tag, WARN) { "Workspace creation blocked - limit reached" }

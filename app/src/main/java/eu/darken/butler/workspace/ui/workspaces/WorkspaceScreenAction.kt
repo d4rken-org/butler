@@ -1,5 +1,6 @@
 package eu.darken.butler.workspace.ui.workspaces
 
+import eu.darken.butler.workspace.contracts.dnd.WorkspaceDragPayload
 import eu.darken.butler.workspace.core.Workspace
 
 sealed interface WorkspaceScreenAction {
@@ -39,5 +40,11 @@ sealed interface WorkspaceScreenAction {
 
     data class CreateForPane(
         val paneIndex: Int,
+    ) : WorkspaceScreenAction
+
+    /** A single item was dropped on an empty pane; open it there. */
+    data class OpenDropInPane(
+        val paneIndex: Int,
+        val payload: WorkspaceDragPayload,
     ) : WorkspaceScreenAction
 }

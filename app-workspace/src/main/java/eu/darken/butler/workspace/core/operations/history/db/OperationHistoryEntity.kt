@@ -18,7 +18,7 @@ data class OperationHistoryEntity(
     @PrimaryKey val id: String = Uuid.random().toString(),
     /** Operation.Metadata.Kind name */
     val kind: String,
-    /** Operation.Metadata.Intent name (RENAME / PASTE_COPY / PASTE_MOVE), null when no intent override */
+    /** Operation.Metadata.Intent name, null when no intent override */
     val intent: String?,
     /** Origin discriminator: EXPLORER | SEARCHER | SAVER | DEVELOPER */
     val originType: String,

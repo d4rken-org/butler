@@ -26,6 +26,7 @@ import eu.darken.butler.common.files.TextFileDetector
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.extensions.isDirectory
+import eu.darken.butler.common.files.extensions.matches
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.common.flow.SingleEventFlow
@@ -68,12 +69,14 @@ import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.*
 import eu.darken.butler.explorer.ui.explorer.dialogs.FilterOptionsResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.RenameResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.SortOptionsResult
+import eu.darken.butler.explorer.ui.explorer.dnd.validateDropDestination
 import eu.darken.butler.explorer.ui.explorer.util.ExplorerSelectionState
 import eu.darken.butler.explorer.ui.explorer.util.ItemInfoCalculator
 import eu.darken.butler.explorer.ui.picker.ExplorerPickerHelper
 import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.permissions.core.SAFPickerGrant
 import eu.darken.butler.upgrade.UpgradeRepo
+import eu.darken.butler.workspace.contracts.dnd.WorkspaceDragPayload
 import eu.darken.butler.workspace.contracts.editor.EditorArguments
 import eu.darken.butler.workspace.contracts.explorer.ExplorerArguments
 import eu.darken.butler.workspace.contracts.explorer.PickerConfig
@@ -204,6 +207,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         pickerConfig = { cachedPickerConfig },
         workspace = ::getWorkspace,
         selectableItems = { getState().selectionState.selectableItems },
+        currentLocationId = { cachedCurrentLocation?.locationId },
         navigate = { navigate(it) },
         doLaunch = doLaunch,
         tag = tag,
@@ -294,7 +298,12 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
         workspaceReadyState
             .map { it?.currentLocation }
-            .onEach { cachedCurrentLocation = it }
+            .onEach { location ->
+                cachedCurrentLocation = location
+                // Keep the selection anchored to what's actually on disk: items removed elsewhere
+                // drop out of it, a metadata pass only swaps in the refreshed instances.
+                selection.pruneAgainst(location)
+            }
             .launchInViewModel()
         // Handle dialog events
         dialogEvents
@@ -1430,6 +1439,60 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 // Show filename dialog for text snippet paste
                 dialogs.show(CreateFileFromText(clip))
             }
+        }
+    }
+
+    /** Items dragged in from another workspace landed on this one, ask what to do with them. */
+    fun onDragDropped(payload: WorkspaceDragPayload) = launch {
+        log(tag) { "onDragDropped(${payload.items.size} items from ${payload.sourceWorkspaceId})" }
+        val destination = validateDropDestination(getState(), id, payload)
+        if (destination == null) {
+            log(tag) { "onDragDropped(): Drop is not valid here, ignoring" }
+            return@launch
+        }
+        dialogs.show(DropConfirmation(payload, destination))
+    }
+
+    fun onDropConfirmed(payload: WorkspaceDragPayload, destination: APath<*>, move: Boolean) = launch {
+        log(tag) { "onDropConfirmed(move=$move, ${payload.items.size} items to $destination)" }
+        // Atomic claim of the dialog: a second invocation (double tap) finds it already gone and
+        // does nothing, so exactly one command is ever launched.
+        if (!dialogs.dismissIfCurrent(DropConfirmation(payload, destination))) return@launch
+
+        if (move && !payload.allowMove) {
+            log(tag, WARN) { "onDropConfirmed(): Move rejected, the source doesn't allow it" }
+            return@launch
+        }
+
+        val target = validateDropDestination(getState(), id, payload)
+        if (target == null || !target.matches(destination)) {
+            log(tag, WARN) { "onDropConfirmed(): Destination is no longer valid" }
+            errorEvents.emit(WriteException("Drop destination is no longer available", destination))
+            return@launch
+        }
+
+        val sources = payload.items.map { it.path }.toSet()
+        val command = if (move) {
+            ExplorerCommand.Move(
+                sources = sources,
+                destination = target,
+                intent = Operation.Metadata.Intent.DROP_MOVE,
+            )
+        } else {
+            ExplorerCommand.Copy(
+                sources = sources,
+                destination = target,
+                intent = Operation.Metadata.Intent.DROP_COPY,
+            )
+        }
+
+        val completed = getWorkspace().execute(command)
+        if (completed.error == null) {
+            val addedPaths = completed.report?.affectedPaths
+                ?.filter { it.change == Operation.Report.PathChange.Change.ADDED || it.change == Operation.Report.PathChange.Change.MOVED }
+                ?.map { it.path }
+                ?: emptyList()
+            revealItems(addedPaths)
         }
     }
 

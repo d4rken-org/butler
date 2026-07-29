@@ -151,6 +151,16 @@ fun ExplorerDialogHost(
             )
         }
 
+        is ExplorerDialogState.DropConfirmation -> {
+            DropConfirmationDialog(
+                payload = dialogState.payload,
+                destination = dialogState.destination,
+                onDismiss = { vm?.dismissDialog() },
+                onCopy = { vm?.onDropConfirmed(dialogState.payload, dialogState.destination, move = false) },
+                onMove = { vm?.onDropConfirmed(dialogState.payload, dialogState.destination, move = true) },
+            )
+        }
+
         is ExplorerDialogState.ClipboardInfo -> {
             ClipboardInfoBottomSheet(
                 clip = dialogState.clip,

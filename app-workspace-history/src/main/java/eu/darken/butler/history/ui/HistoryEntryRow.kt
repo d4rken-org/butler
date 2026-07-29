@@ -153,6 +153,8 @@ private fun HistoryEntry.headline(): String {
         Operation.Metadata.Intent.RENAME -> "Renamed"
         Operation.Metadata.Intent.PASTE_COPY -> "Pasted"
         Operation.Metadata.Intent.PASTE_MOVE -> "Pasted (move)"
+        Operation.Metadata.Intent.DROP_COPY -> "Dropped (copy)"
+        Operation.Metadata.Intent.DROP_MOVE -> "Dropped (move)"
         null -> kind.entryHeadlineLabel()
     }
     val target = paths.firstOrNull()?.path?.substringAfterLast('/')

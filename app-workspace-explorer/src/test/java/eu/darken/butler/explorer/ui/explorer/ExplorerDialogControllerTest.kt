@@ -85,6 +85,29 @@ class ExplorerDialogControllerTest : BaseTest() {
     }
 
     @Test
+    fun `dismissIfCurrent claims the expected dialog exactly once`() {
+        val controller = controller()
+        val shown = ExplorerDialogState.DeleteConfirmation(setOf(path("a")))
+        controller.show(shown)
+
+        controller.dismissIfCurrent(ExplorerDialogState.DeleteConfirmation(setOf(path("a")))) shouldBe true
+        controller.current() shouldBe ExplorerDialogState.None
+
+        // A second caller finds the slot already claimed.
+        controller.dismissIfCurrent(shown) shouldBe false
+    }
+
+    @Test
+    fun `dismissIfCurrent leaves a different dialog alone`() {
+        val controller = controller()
+        controller.show(ExplorerDialogState.CreateItem)
+
+        controller.dismissIfCurrent(ExplorerDialogState.DeleteConfirmation(setOf(path("a")))) shouldBe false
+
+        controller.current() shouldBe ExplorerDialogState.CreateItem
+    }
+
+    @Test
     fun `create and dismiss events update the slot`() {
         val controller = controller()
 

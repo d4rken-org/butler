@@ -38,6 +38,7 @@ import eu.darken.butler.explorer.core.SortSettings
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel.RevealRequest
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionBarItem
+import eu.darken.butler.explorer.ui.explorer.dnd.ExplorerDragPayloadFactory
 import eu.darken.butler.explorer.ui.explorer.elements.ExplorerReadyContent
 import eu.darken.butler.explorer.ui.explorer.elements.ExplorerTopBars
 import eu.darken.butler.explorer.ui.explorer.elements.PermissionRequestCard
@@ -47,6 +48,7 @@ import eu.darken.butler.workspace.ui.insets.paneInsets
 import eu.darken.butler.workspace.ui.preview.ProvideFolderPreviews
 import eu.darken.butler.explorer.ui.explorer.util.OpenDocumentTreeWithIntent
 import eu.darken.butler.explorer.ui.explorer.util.explorerKeyboardShortcuts
+import eu.darken.butler.workspace.contracts.dnd.WorkspaceDragPayload
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
@@ -175,6 +177,14 @@ fun ExplorerWorkspacePage(
         onClearSelection = { vm?.clearSelection() },
     )
 
+    // Dragging items to another pane needs a second pane to drop them on. The payload is built from
+    // the state this composition already holds, so a drag can't lose items to an in-flight update.
+    val dragPayloadFactory: ((ExplorerItem) -> WorkspaceDragPayload?)? = if (design.isSingle) {
+        null
+    } else {
+        { pressed -> ExplorerDragPayloadFactory.build(state, workspaceId, pressed) }
+    }
+
     // Grid columns for keyboard navigation (approximate for adaptive grid)
     val gridColumns = 3
     val focusedItem = state.focusedItemIndex?.let { state.items?.getOrNull(it) }
@@ -237,6 +247,7 @@ fun ExplorerWorkspacePage(
             } else {
                 ExplorerReadyContent(
                     modifier = Modifier.fillMaxSize(),
+                    workspaceId = workspaceId,
                     state = state,
                     vm = vm,
                     listState = listState,
@@ -251,6 +262,7 @@ fun ExplorerWorkspacePage(
                     initialOperationsExpanded = initialOperationsExpanded,
                     initialClipboardExpanded = initialClipboardExpanded,
                     onShowOperationDetails = { operationId -> vm?.showOperationDetails(operationId) },
+                    dragPayloadFactory = dragPayloadFactory,
                 )
             }
 

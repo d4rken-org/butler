@@ -23,6 +23,8 @@ import eu.darken.butler.explorer.ui.explorer.items.row.ShortcutRow
 import eu.darken.butler.explorer.ui.explorer.items.row.StorageRow
 import eu.darken.butler.explorer.ui.explorer.items.row.TrashItemRow
 import eu.darken.butler.explorer.ui.explorer.items.row.TrashNestedItemRow
+import eu.darken.butler.workspace.contracts.dnd.WorkspaceDragPayload
+import eu.darken.butler.workspace.ui.dnd.rememberWorkspaceDragSource
 
 /**
  * Unified item renderer for ExplorerWorkspacePage.
@@ -38,6 +40,7 @@ fun ExplorerItemRenderer(
     onItemLongClick: (ExplorerItem) -> Unit,
     onNavigate: (ExplorerItem) -> Unit,
     onToggleSelection: (ExplorerItem) -> Unit,
+    dragPayloadFactory: ((ExplorerItem) -> WorkspaceDragPayload?)? = null,
 ) {
     val isSelected = state.selectionState.selectedItems.contains(item)
     val isEnabled = item !in state.disabledItems
@@ -53,7 +56,11 @@ fun ExplorerItemRenderer(
         Modifier
     }
 
-    Box(modifier = focusModifier) {
+    // The long-press that already selects also arms the drag - the pointer is still down when it
+    // fires, which is what the platform needs to pick up the drag. A null payload means no drag.
+    val dragSource = dragPayloadFactory?.let { factory -> rememberWorkspaceDragSource { factory(item) } }
+
+    Box(modifier = focusModifier.then(dragSource?.modifier ?: Modifier)) {
         ItemContent(
             item = item,
             viewStyle = viewStyle,
@@ -62,7 +69,10 @@ fun ExplorerItemRenderer(
             isEnabled = isEnabled,
             showSelection = showSelection,
             onItemClick = onItemClick,
-            onItemLongClick = onItemLongClick,
+            onItemLongClick = {
+                dragSource?.startDrag()
+                onItemLongClick(it)
+            },
             onNavigate = onNavigate,
             onToggleSelection = onToggleSelection,
         )

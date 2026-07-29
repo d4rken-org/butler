@@ -1,17 +1,25 @@
 package eu.darken.butler.workspace.ui.workspaces
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.draganddrop.dragAndDropTarget
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draganddrop.DragAndDropEvent
+import androidx.compose.ui.draganddrop.DragAndDropTarget
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
+import eu.darken.butler.workspace.ui.dnd.dropTargetHighlight
+import eu.darken.butler.workspace.ui.dnd.workspaceDragPayload
 import eu.darken.butler.workspace.ui.insets.paneHorizontalInsetPadding
 import eu.darken.butler.workspace.ui.manager.LocalWorkspaceButtonProvider
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
@@ -51,6 +59,7 @@ fun AdaptiveWorkspaceLayout(
 ) {
     val dragDropState = remember { DragDropState() }
     val workspaceActionHandler = LocalWorkspaceButtonProvider.current
+    val currentOnScreenAction by rememberUpdatedState(onScreenAction)
 
     CompositionLocalProvider(LocalDragDropState provides dragDropState) {
         Row(
@@ -165,10 +174,48 @@ fun AdaptiveWorkspaceLayout(
                             )
                         }
                     } else {
+                        // An empty pane opens exactly one dropped item, the same way tapping it
+                        // would (folder -> Explorer, text -> Editor, anything else -> Viewer).
+                        val paneIndex = paneNumber - 1
+                        val isDropHovered = remember { mutableStateOf(false) }
+                        val dropTarget = remember(paneIndex) {
+                            object : DragAndDropTarget {
+                                override fun onEntered(event: DragAndDropEvent) {
+                                    isDropHovered.value = true
+                                }
+
+                                override fun onExited(event: DragAndDropEvent) {
+                                    isDropHovered.value = false
+                                }
+
+                                override fun onEnded(event: DragAndDropEvent) {
+                                    isDropHovered.value = false
+                                }
+
+                                override fun onDrop(event: DragAndDropEvent): Boolean {
+                                    isDropHovered.value = false
+                                    val payload = event.workspaceDragPayload()
+                                        ?.takeIf { it.items.size == 1 }
+                                        ?: return false
+                                    currentOnScreenAction(
+                                        WorkspaceScreenAction.OpenDropInPane(paneIndex, payload)
+                                    )
+                                    return true
+                                }
+                            }
+                        }
+
                         EmptyAdaptiveWorkspaceContent(
                             modifier = Modifier
                                 .weight(1f)
-                                .paneHorizontalInsetPadding(paneDesign.paneEdges),
+                                .paneHorizontalInsetPadding(paneDesign.paneEdges)
+                                .dragAndDropTarget(
+                                    shouldStartDragAndDrop = { event ->
+                                        event.workspaceDragPayload()?.items?.size == 1
+                                    },
+                                    target = dropTarget,
+                                )
+                                .dropTargetHighlight(isDropHovered.value),
                             paneNumber = paneNumber,
                             paneEdges = paneDesign.paneEdges,
                             isUpgraded = isUpgraded,

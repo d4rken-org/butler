@@ -60,7 +60,7 @@ interface Operation {
 
         enum class Kind { COPY, MOVE, DELETE, RESTORE, CREATE_FOLDER, CREATE_FILE, SAVE, COMPRESS, EXTRACT }
 
-        enum class Intent { RENAME, PASTE_COPY, PASTE_MOVE }
+        enum class Intent { RENAME, PASTE_COPY, PASTE_MOVE, DROP_COPY, DROP_MOVE }
 
         sealed interface Origin {
             val workspaceId: Workspace.Id

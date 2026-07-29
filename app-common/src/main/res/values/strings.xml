@@ -45,6 +45,7 @@
     <string name="general_done_action">Done</string>
     <string name="general_copy_action">Copy</string>
     <string name="general_cut_action">Cut</string>
+    <string name="general_move_action">Move</string>
     <string name="general_paste_action">Paste</string>
     <string name="general_apply_action">Apply</string>
     <string name="general_open_action">Open</string>

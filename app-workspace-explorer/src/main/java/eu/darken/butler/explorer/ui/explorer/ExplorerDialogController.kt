@@ -32,6 +32,16 @@ class ExplorerDialogController(
         dialogStateFlow.value = ExplorerDialogState.None
     }
 
+    /**
+     * Atomically dismisses [expected] if it is the dialog currently showing. Callers that act on a
+     * dialog's confirmation use this instead of a check followed by [dismiss]: two rapid taps would
+     * both pass a separate check and run the action twice.
+     *
+     * @return true if this call is the one that dismissed [expected].
+     */
+    fun dismissIfCurrent(expected: ExplorerDialogState): Boolean =
+        dialogStateFlow.compareAndSet(expected, ExplorerDialogState.None)
+
     fun current(): ExplorerDialogState = dialogStateFlow.value
 
     fun handle(event: ExplorerDialogEvent) {

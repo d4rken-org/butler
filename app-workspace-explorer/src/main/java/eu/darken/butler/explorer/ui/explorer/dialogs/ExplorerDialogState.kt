@@ -7,6 +7,7 @@ import eu.darken.butler.explorer.core.FileTypeFilter
 import eu.darken.butler.explorer.core.SortSettings
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.operations.ExplorerCommand
+import eu.darken.butler.workspace.contracts.dnd.WorkspaceDragPayload
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 
 sealed interface ExplorerDialogState {
@@ -58,6 +59,12 @@ sealed interface ExplorerDialogState {
     data class TrashNestedItemOptions(val item: ExplorerItem.Trash.Nested) : ExplorerDialogState
 
     data object EmptyTrashConfirmation : ExplorerDialogState
+
+    /** Items dropped from another workspace, waiting for the user to pick copy or move. */
+    data class DropConfirmation(
+        val payload: WorkspaceDragPayload,
+        val destination: APath<*>,
+    ) : ExplorerDialogState
 
     data class ClipboardInfo(val clip: ClipboardClip) : ExplorerDialogState
 
