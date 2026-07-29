@@ -783,6 +783,29 @@ class WorkspaceRepoTest : BaseTest() {
         second.existingId shouldBe tabId
     }
 
+    /** Restore builds the tab past dedup, but what it produces still holds the path for later. */
+    @Test
+    fun `a restored viewer tab keeps deduping later opens of its path`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val restoredId = repo.execute(
+            WorkspaceAction.Create(
+                type = Workspace.Type.VIEWER,
+                arguments = ViewerArguments.Default(filePath = pathA),
+                skipLimitCheck = true,
+            )
+        ).let { (it as WorkspaceAction.Create.Result.Success).newId }
+
+        val reopened = repo.execute(
+            WorkspaceAction.Create(
+                type = Workspace.Type.VIEWER,
+                arguments = ViewerArguments.Default(filePath = pathA),
+            )
+        )
+
+        reopened.shouldBeInstanceOf<WorkspaceAction.Create.Result.AlreadyOpen>()
+        reopened.existingId shouldBe restoredId
+    }
+
     /** Pause captures the arguments and resume rebuilds from them, caller included. */
     @Test
     fun `a paused and resumed drill-down stays under the same root`() = runTest(UnconfinedTestDispatcher()) {
