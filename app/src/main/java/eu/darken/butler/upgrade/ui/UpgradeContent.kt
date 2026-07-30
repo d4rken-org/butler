@@ -51,6 +51,7 @@ import eu.darken.butler.common.compose.ColoredTitleText
 // SD Maid SE's upgrade design system: a centered, max-width scrolling column of tonal "section"
 // and "action" cards, each led by an icon+title header, over a center-aligned top app bar.
 internal object UpgradeScreenTags {
+    const val TITLE = "upgrade_title"
     const val LOADING = "upgrade_loading"
     const val ACTIONS = "upgrade_actions"
     const val MASCOT_HAPPY = "upgrade_mascot_happy"
@@ -107,11 +108,17 @@ internal fun UpgradeScreenScaffold(
 // The composed "Butler Pro"/"Butler FOSS" title with the flavor postfix highlighted, used on the
 // owner/grace/status screens; the plain acquisition pitch uses a normal Text title instead.
 @Composable
-internal fun UpgradeTitle() {
+internal fun UpgradeTitle(upgraded: Boolean = true) {
+    val baseColor = MaterialTheme.colorScheme.primary
     ColoredTitleText(
         fullTitle = stringResource(R.string.app_name_upgraded),
         postfix = stringResource(R.string.app_name_upgrade_postfix),
+        modifier = Modifier.testTag(UpgradeScreenTags.TITLE),
         style = MaterialTheme.typography.titleLarge,
+        baseColor = baseColor,
+        // The highlighted postfix is what says "you have this" — a user who hasn't upgraded gets
+        // the same words in one plain color instead of the earned styling.
+        postfixColor = if (upgraded) MaterialTheme.colorScheme.tertiary else baseColor,
     )
 }
 

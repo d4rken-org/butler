@@ -87,7 +87,7 @@ internal fun UpgradeScreen(
             if (view == FossUpgradeView.PITCH || view == null) {
                 Text(stringResource(R.string.upgrade_screen_title))
             } else {
-                UpgradeTitle()
+                UpgradeTitle(upgraded = view == FossUpgradeView.STATUS_UPGRADED)
             }
         },
         onNavigateUp = onNavigateUp,
@@ -156,7 +156,7 @@ private fun StatusFreeContent(
     onShowUpgradeOptions: () -> Unit,
 ) {
     UpgradeScreenContent(paddingValues = paddingValues) {
-        UpgradeHeader(mascotSize = 104.dp, happy = false)
+        UpgradeHeader(mascotSize = 104.dp)
 
         UpgradeSectionCard(
             title = stringResource(R.string.upgrade_screen_status_free_title),
