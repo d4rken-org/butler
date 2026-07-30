@@ -24,6 +24,7 @@
     <string name="upgrade_screen_status_free_action">See upgrade options</string>
     <string name="upgrade_screen_status_upgraded_title">You\'re a supporter</string>
     <string name="upgrade_screen_status_upgraded_body">Thank you for supporting open-source development ❤️ All extra features are unlocked.</string>
+    <string name="upgrade_screen_supporter_since">Supporter since %s</string>
     <string name="upgrade_screen_recurring_title">Keep it going</string>
     <string name="upgrade_screen_recurring_body">Butler is developed in my spare time. A recurring donation helps keep it alive.</string>
     <string name="upgrade_screen_recurring_action">Become a recurring sponsor</string>

@@ -16,16 +16,20 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import org.junit.Test
 import testhelpers.ComposeTest
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
+import kotlin.time.Instant
 
 class FossUpgradeScreenTest : ComposeTest() {
 
     private val context: Context
         get() = ApplicationProvider.getApplicationContext()
 
-    private fun setView(view: FossUpgradeView) {
+    private fun setView(view: FossUpgradeView, supporterSince: Instant? = null) {
         composeTestRule.setContent {
             PreviewWrapper {
-                UpgradeScreen(view = view)
+                UpgradeScreen(view = view, supporterSince = supporterSince)
             }
         }
     }
@@ -99,4 +103,30 @@ class FossUpgradeScreenTest : ComposeTest() {
         colors.size shouldBe 2
         colors[0] shouldNotBe colors[1]
     }
+
+    @Test
+    fun `the upgraded status shows since when the user has been supporting`() {
+        val since = Instant.fromEpochMilliseconds(1_700_000_000_000L)
+        setView(FossUpgradeView.STATUS_UPGRADED, supporterSince = since)
+
+        composeTestRule.onAllNodesWithText(
+            context.getString(R.string.upgrade_screen_supporter_since, formatted(since)),
+        ).assertCountEquals(1)
+    }
+
+    @Test
+    fun `the upgraded status omits the date when the repo has none`() {
+        // Legacy unlocks predate the stored timestamp -- no date is better than a 1970 one.
+        setView(FossUpgradeView.STATUS_UPGRADED)
+
+        composeTestRule.onAllNodesWithText(
+            context.getString(R.string.upgrade_screen_supporter_since, formatted(Instant.fromEpochMilliseconds(0L))),
+        ).assertCountEquals(0)
+        composeTestRule.onAllNodesWithTag(UpgradeScreenTags.FOSS_STATUS_UPGRADED).assertCountEquals(1)
+    }
 }
+
+private fun formatted(instant: Instant): String = DateTimeFormatter
+    .ofLocalizedDate(FormatStyle.MEDIUM)
+    .withZone(ZoneId.systemDefault())
+    .format(java.time.Instant.ofEpochMilli(instant.toEpochMilliseconds()))

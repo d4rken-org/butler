@@ -1,5 +1,6 @@
 package eu.darken.butler.upgrade.ui
 
+import android.os.SystemClock
 import androidx.lifecycle.SavedStateHandle
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -18,8 +19,9 @@ import eu.darken.butler.upgrade.core.UpgradeRepoFoss
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
-import kotlin.time.Clock
-import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.take
+import kotlin.time.Instant
 
 enum class FossUpgradeView { PITCH, STATUS_FREE, STATUS_UPGRADED }
 
@@ -32,21 +34,43 @@ class UpgradeViewModel @AssistedInject constructor(
 ) : ViewModel4(dispatcherProvider, logTag("Upgrade", "Screen", "VM")) {
 
     val snackbarEvent = SingleEventFlow<Int>()
+    val toastEvent = SingleEventFlow<Int>()
 
     private val showUpgradeOptions = MutableStateFlow(savedStateHandle.get<Boolean>(KEY_SHOW_OPTIONS) ?: false)
+
+    init {
+        // The manage route is the settings "upgrade status" entry — supporters must not be bounced
+        // out of the screen they explicitly opened. Only the default route auto-closes once the
+        // sponsorship lands, which is what DestinationUpgrade promises its callers.
+        if (!manage) {
+            upgradeRepo.upgradeInfo
+                .filter { it.isPro }
+                .take(1)
+                .onEach { navUp() }
+                .launchInViewModel()
+        }
+    }
 
     val state = combine(
         upgradeRepo.upgradeInfo,
         showUpgradeOptions,
     ) { info, showOptions ->
-        when {
+        val view = when {
             // The sponsor pitch route never shows a status view.
             !manage -> FossUpgradeView.PITCH
             info.isPro -> FossUpgradeView.STATUS_UPGRADED
             showOptions -> FossUpgradeView.PITCH
             else -> FossUpgradeView.STATUS_FREE
         }
+        // Derived in the same emission as the view on purpose: a sibling flow would let the
+        // upgraded status render for a frame without the date it is supposed to carry.
+        State(view = view, supporterSince = info.upgradedAt)
     }.asStateFlow()
+
+    data class State(
+        val view: FossUpgradeView,
+        val supporterSince: Instant? = null,
+    )
 
     fun onShowUpgradeOptions() {
         log(tag) { "onShowUpgradeOptions()" }
@@ -57,36 +81,55 @@ class UpgradeViewModel @AssistedInject constructor(
     // The pitch sponsor action: arms the 5s "visited the sponsor page" honor check.
     fun openSponsor() {
         log(tag) { "openSponsor()" }
-        savedStateHandle[KEY_SPONSOR_OPENED_AT] = Clock.System.now().toEpochMilliseconds()
-        upgradeRepo.openSponsorPage()
+        // Single-flight: a second tap while a launch is still awaiting its return would restamp
+        // the timer and reset the window the return check evaluates.
+        if (hasPendingSponsorLaunch()) {
+            log(tag) { "A sponsor launch is already awaiting its return" }
+            return
+        }
+        savedStateHandle[KEY_SPONSOR_PRESSED_AT] = SystemClock.elapsedRealtime()
+        upgradeRepo.openGithubSponsorsPage()
     }
 
     // The recurring-donation action shown to existing supporters: opens the sponsor page WITHOUT
     // arming the unlock heuristic (they're already unlocked; re-arming would pop a spurious snackbar).
     fun openRecurringSponsor() {
         log(tag) { "openRecurringSponsor()" }
-        upgradeRepo.openSponsorPage()
+        upgradeRepo.openGithubSponsorsPage()
     }
 
-    fun onAppResumed() = launch {
-        val openedAtMillis = savedStateHandle.get<Long>(KEY_SPONSOR_OPENED_AT) ?: return@launch
-        savedStateHandle[KEY_SPONSOR_OPENED_AT] = null
+    /**
+     * Whether a sponsor-page launch is still awaiting its return.
+     *
+     * Handle-backed, so it survives process recreation while the browser is in front — the screen's
+     * in-memory return tracker does not, and gating on that alone drops the first return after a
+     * recreation.
+     */
+    fun hasPendingSponsorLaunch(): Boolean = savedStateHandle.contains(KEY_SPONSOR_PRESSED_AT)
 
-        // Never nudge an already-upgraded supporter who happened to revisit the sponsor page.
+    fun checkSponsorReturn() = launch {
+        val pressedAt = savedStateHandle.remove<Long>(KEY_SPONSOR_PRESSED_AT) ?: return@launch
+
+        // Evaluated before the duration: an already-upgraded supporter has nothing left to unlock,
+        // and rewriting their upgradedAt from a stale armed key (or a launch that raced the status
+        // view) would falsify the "supporter since" date they are being shown.
         if (upgradeRepo.upgradeInfo.first().isPro) {
-            log(tag) { "Already upgraded on resume, skipping honor check" }
+            log(tag) { "checkSponsorReturn(): Already upgraded, staying quiet" }
             return@launch
         }
 
-        val elapsed = Clock.System.now() - kotlin.time.Instant.fromEpochMilliseconds(openedAtMillis)
-        if (elapsed >= MINIMUM_VISIT_DURATION) {
-            log(tag, INFO) { "Sponsor page visited for $elapsed, applying upgrade" }
-            upgradeRepo.applyUpgrade()
-            upgradeRepo.upgradeInfo.filter { it.isPro }.first()
-            navUp()
-        } else {
-            log(tag, WARN) { "Sponsor page visited for only $elapsed, too fast" }
+        // Monotonic: wall-clock elapsed can be moved by the user or a network time sync between
+        // the launch and the return.
+        val elapsed = SystemClock.elapsedRealtime() - pressedAt
+        log(tag) { "checkSponsorReturn(): elapsed=${elapsed}ms" }
+
+        if (elapsed < SPONSOR_DELAY_MS) {
+            log(tag, WARN) { "checkSponsorReturn(): Too quick, showing snackbar" }
             snackbarEvent.emit(R.string.upgrade_screen_sponsor_too_fast)
+        } else {
+            log(tag, INFO) { "checkSponsorReturn(): Delay passed, persisting upgrade" }
+            upgradeRepo.persistUpgrade()
+            toastEvent.emit(R.string.upgrade_screen_thanks_toast)
         }
     }
 
@@ -96,8 +139,8 @@ class UpgradeViewModel @AssistedInject constructor(
     }
 
     companion object {
-        private const val KEY_SPONSOR_OPENED_AT = "sponsor_opened_at"
+        private const val KEY_SPONSOR_PRESSED_AT = "sponsor_pressed_at"
         private const val KEY_SHOW_OPTIONS = "show_upgrade_options"
-        private val MINIMUM_VISIT_DURATION = 5.seconds
+        private const val SPONSOR_DELAY_MS = 5_000L
     }
 }

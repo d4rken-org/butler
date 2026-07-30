@@ -1,5 +1,6 @@
 package eu.darken.butler.upgrade.ui
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
@@ -26,7 +27,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.LifecycleResumeEffect
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import eu.darken.butler.R
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
@@ -34,6 +36,10 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import kotlinx.coroutines.launch
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
+import kotlin.time.Instant
 
 @Composable
 fun UpgradeScreenHost(
@@ -49,6 +55,12 @@ fun UpgradeScreenHost(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    // Seeded from the ViewModel's handle-backed pending launch: after a process death while the
+    // sponsor page was open, a blank tracker would swallow the very first return. The handle is the
+    // authority on whether a return is still expected, so it reconstructs the tracker's state.
+    val sponsorReturnTracker = remember(vm) {
+        SponsorReturnTracker(wentToBackground = vm.hasPendingSponsorLaunch())
+    }
 
     LaunchedEffect(Unit) {
         vm.snackbarEvent.collect { stringResId ->
@@ -56,15 +68,26 @@ fun UpgradeScreenHost(
         }
     }
 
-    LifecycleResumeEffect(Unit) {
-        vm.onAppResumed()
-        onPauseOrDispose {}
+    LaunchedEffect(Unit) {
+        vm.toastEvent.collect { stringResId ->
+            Toast.makeText(context, context.getString(stringResId), Toast.LENGTH_LONG).show()
+        }
     }
 
-    val view by vm.state.collectAsState(initial = null)
+    LifecycleEventEffect(Lifecycle.Event.ON_STOP) {
+        sponsorReturnTracker.onStop()
+    }
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        if (sponsorReturnTracker.consumeResumeReturn()) {
+            vm.checkSponsorReturn()
+        }
+    }
+
+    val state by vm.state.collectAsState(initial = null)
 
     UpgradeScreen(
-        view = view,
+        view = state?.view,
+        supporterSince = state?.supporterSince,
         snackbarHostState = snackbarHostState,
         onNavigateUp = { vm.navUp() },
         onSponsor = { vm.openSponsor() },
@@ -76,6 +99,7 @@ fun UpgradeScreenHost(
 @Composable
 internal fun UpgradeScreen(
     view: FossUpgradeView?,
+    supporterSince: Instant? = null,
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     onNavigateUp: () -> Unit = {},
     onSponsor: () -> Unit = {},
@@ -97,7 +121,11 @@ internal fun UpgradeScreen(
             null -> Unit
             FossUpgradeView.PITCH -> PitchContent(paddingValues, onSponsor)
             FossUpgradeView.STATUS_FREE -> StatusFreeContent(paddingValues, onShowUpgradeOptions)
-            FossUpgradeView.STATUS_UPGRADED -> StatusUpgradedContent(paddingValues, onRecurringSponsor)
+            FossUpgradeView.STATUS_UPGRADED -> StatusUpgradedContent(
+                paddingValues = paddingValues,
+                supporterSince = supporterSince,
+                onRecurringSponsor = onRecurringSponsor,
+            )
         }
     }
 }
@@ -177,6 +205,7 @@ private fun StatusFreeContent(
 @Composable
 private fun StatusUpgradedContent(
     paddingValues: PaddingValues,
+    supporterSince: Instant?,
     onRecurringSponsor: () -> Unit,
 ) {
     UpgradeScreenContent(paddingValues = paddingValues) {
@@ -195,6 +224,16 @@ private fun StatusUpgradedContent(
                 text = stringResource(R.string.upgrade_screen_status_upgraded_body),
                 style = MaterialTheme.typography.bodyMedium,
             )
+            supporterSince?.let { since ->
+                val formatter = remember {
+                    DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withZone(ZoneId.systemDefault())
+                }
+                val formatted = formatter.format(java.time.Instant.ofEpochMilli(since.toEpochMilliseconds()))
+                Text(
+                    text = stringResource(R.string.upgrade_screen_supporter_since, formatted),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
         }
 
         UpgradeSectionCard(
@@ -208,6 +247,24 @@ private fun StatusUpgradedContent(
                     .fillMaxWidth()
                     .testTag(UpgradeScreenTags.FOSS_DONATE),
             ) { Text(stringResource(R.string.upgrade_screen_recurring_action)) }
+        }
+    }
+}
+
+internal class SponsorReturnTracker(
+    private var wentToBackground: Boolean = false,
+) {
+
+    fun onStop() {
+        wentToBackground = true
+    }
+
+    fun consumeResumeReturn(): Boolean {
+        return if (wentToBackground) {
+            wentToBackground = false
+            true
+        } else {
+            false
         }
     }
 }
@@ -230,5 +287,8 @@ private fun UpgradeScreenStatusFreePreview() {
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun UpgradeScreenStatusUpgradedPreview() {
-    UpgradeScreen(view = FossUpgradeView.STATUS_UPGRADED)
+    UpgradeScreen(
+        view = FossUpgradeView.STATUS_UPGRADED,
+        supporterSince = Instant.fromEpochMilliseconds(1_700_000_000_000L),
+    )
 }
