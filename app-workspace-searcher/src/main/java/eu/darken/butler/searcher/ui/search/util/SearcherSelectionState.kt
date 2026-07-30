@@ -40,7 +40,12 @@ data class SearcherSelectionState(
         return copy(selectedResultIds = emptySet())
     }
 
+    /**
+     * Long press entry point. Once a selection exists the long press belongs to the drag gesture,
+     * so it no longer changes what is selected - taps do that.
+     */
     fun enterSelectionMode(result: SearchItem): SearcherSelectionState {
+        if (isSelectionMode) return this
         return copy(selectedResultIds = setOf(result.resultKey))
     }
 }
