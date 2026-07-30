@@ -1,5 +1,6 @@
 package eu.darken.butler.apps.core
 
+import android.app.AppOpsManager
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.apps.core.details.AppDetailsWorkspace
@@ -33,6 +34,7 @@ import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import testhelpers.BaseTest
 import testhelpers.coroutine.TestDispatcherProvider
@@ -86,6 +88,16 @@ class AppSizeResolutionE2ETest : BaseTest() {
         },
     )
 
+    private fun setUsageAccess(granted: Boolean) {
+        val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
+        shadowOf(appOps).setMode(
+            AppOpsManager.OPSTR_GET_USAGE_STATS,
+            context.packageManager.getApplicationInfo(context.packageName, 0).uid,
+            context.packageName,
+            if (granted) AppOpsManager.MODE_ALLOWED else AppOpsManager.MODE_IGNORED,
+        )
+    }
+
     private fun stubSizes() {
         coEvery { pkgOps.querySizeStats(any(), any()) } returns PkgOps.SizeStats(
             appBytes = 100,
@@ -125,6 +137,48 @@ class AppSizeResolutionE2ETest : BaseTest() {
         advanceUntilIdle()
 
         coVerify(exactly = 1) { pkgOps.querySizeStats(installId, any()) }
+        engine.state.value.filteredApps.single().appSize shouldBe 150L
+    }
+
+    /**
+     * Usage access granted while Butler is already running, by a route that never touches Butler's
+     * own Setup screen. Nothing re-reads the permission on the measurement path unless resolve()
+     * does it, so gating the trigger on the cached flag latches the feature off for the whole
+     * process - no chips, no breakdown, no log line, until a restart.
+     */
+    @Test
+    fun `usage access granted at runtime is picked up without a restart`() = runTest {
+        setUsageAccess(granted = false)
+        stubSizes()
+        // Two apps, so narrowing the search below actually changes the filtered ids and produces a
+        // trigger. With a single app the list is identical before and after and gets deduped away.
+        val other = AppsMockDataProvider.createMockInstalled(packageName = "com.other.app", label = "Other")
+        every { pkgRepo.data } returns MutableStateFlow(PkgRepo.PkgData.from(listOf(installed, other)))
+        val dispatcherProvider = TestDispatcherProvider(StandardTestDispatcher(testScheduler))
+        val engine = AppsEngine(
+            workspaceId = Workspace.Id(),
+            workspaceScope = newScope(),
+            context = context,
+            pkgRepo = pkgRepo,
+            userManager = mockk<UserManager2>().also { every { it.users } returns MutableStateFlow(emptySet()) },
+            dispatcherProvider = dispatcherProvider,
+            appSizeCache = createCache(dispatcherProvider),
+        )
+
+        engine.updateSortSettings(SortSettings(mode = SortSettings.Mode.SIZE))
+        advanceUntilIdle()
+        coVerify(exactly = 0) { pkgOps.querySizeStats(any(), any()) }
+
+        // Granted outside Butler: no sort change, no revision bump, no setup-state emission and no
+        // sort dialog - none of the paths that already call refreshAvailability().
+        setUsageAccess(granted = true)
+        advanceUntilIdle()
+
+        // Ordinary list activity is all it may take to recover.
+        engine.updateSearchQuery(installId.pkgId.name)
+        advanceUntilIdle()
+
+        coVerify(atLeast = 1) { pkgOps.querySizeStats(installId, any()) }
         engine.state.value.filteredApps.single().appSize shouldBe 150L
     }
 

@@ -122,9 +122,13 @@ class AppSizeCache @Inject constructor(
     }
 
     suspend fun resolve(pkgs: Collection<Installed>) {
+        // The single availability gate for both call sites. Re-derived here rather than trusted from
+        // the cached flag, so access granted outside Butler is picked up on the very next trigger.
         refreshAvailability()
         if (!_isAvailable.value) {
-            log(TAG) { "resolve(${pkgs.size}): usage access unavailable" }
+            // VERBOSE: with the gate here this runs on every trigger while the permission is absent.
+            // refreshAvailability() already logs the transition at INFO.
+            log(TAG, VERBOSE) { "resolve(${pkgs.size}): usage access unavailable" }
             return
         }
 

@@ -154,9 +154,16 @@ class AppsEngine @AssistedInject constructor(
                         old.pkgs.map { it.installId } == new.pkgs.map { it.installId }
                 }
                 // Cancels the in-flight batch when the user leaves size sorting.
+                // Availability is deliberately NOT checked here: resolve() re-derives it on entry,
+                // so every trigger is a chance to notice access granted outside Butler. Gating here
+                // on the cached flag would latch the feature off for the whole process, because
+                // nothing on this path would ever re-read the permission.
                 .collectLatest { trigger ->
-                    if (trigger.mode != SortSettings.Mode.SIZE || !trigger.isAvailable) return@collectLatest
-                    log(tag) { "Resolving sizes for ${trigger.pkgs.size} apps" }
+                    if (trigger.mode != SortSettings.Mode.SIZE) return@collectLatest
+                    // VERBOSE: this fires per trigger, including when resolve() will immediately
+                    // return for a missing permission. resolve() logs at DEBUG once it really
+                    // measures, so that stays the signal for work actually happening.
+                    log(tag, VERBOSE) { "Triggering size resolution for ${trigger.pkgs.size} apps" }
                     appSizeCache.resolve(trigger.pkgs)
                 }
         }

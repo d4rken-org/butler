@@ -341,8 +341,11 @@ class AppDetailsWorkspace @AssistedInject constructor(
                 appSizeCache.isAvailable,
             ) { app, snapshot, isAvailable ->
                 Triple(app, snapshot, isAvailable)
-            }.collectLatest { (app, snapshot, isAvailable) ->
-                if (app == null || !isAvailable || app.installId in snapshot.attempted) return@collectLatest
+            }.collectLatest { (app, snapshot, _) ->
+                // isAvailable stays in the combine so a false->true flip re-triggers, but it is
+                // deliberately not checked here: resolve() re-derives the permission on entry, so
+                // gating on the cached flag would latch this screen off for the whole process.
+                if (app == null || app.installId in snapshot.attempted) return@collectLatest
                 log(tag) { "Resolving size for ${app.packageName}" }
                 _sizeLoading.value = true
                 try {
