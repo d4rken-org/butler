@@ -75,6 +75,7 @@ class AppDetailsWorkspaceComponentConfirmTest : BaseTest() {
             dispatchers = TestDispatcherProvider(),
             workspaceProvider = mockk<WorkspaceProvider> { every { retrieve(id) } returns flowOf(workspace) },
             workspaceRemote = mockk<WorkspaceRemote>(relaxed = true),
+            appSizeCache = mockk(relaxed = true),
             componentsLoader = loader,
         )
     }
