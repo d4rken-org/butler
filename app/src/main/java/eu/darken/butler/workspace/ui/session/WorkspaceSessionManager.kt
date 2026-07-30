@@ -25,6 +25,8 @@ import eu.darken.butler.workspace.core.session.db.WorkspaceUIState
 import eu.darken.butler.workspace.ui.WorkspacePageManager
 import eu.darken.butler.workspace.ui.floatingbar.WorkspaceBarCollapseStates
 import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPositions
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -86,6 +88,30 @@ class WorkspaceSessionManager @Inject constructor(
     // Serializes the two writers: the full save and the lightweight UI-state save both touch the
     // session row, and the full save additionally races lastSavedWorkspaces and the transaction.
     private val saveLock = Mutex()
+
+    /**
+     * Which workspaces occupied a rendered pane on the previous emission. Null until the observer
+     * below sees its first state after both arming gates opened, whose occupants are the baseline
+     * rather than new arrivals. Only touched by that observer.
+     */
+    private var panedWorkspaces: Set<Workspace.Id>? = null
+
+    /**
+     * Opened once the startup pane layout has been applied, see [onInitialPaneLayoutApplied].
+     */
+    private val initialPaneLayoutApplied = CompletableDeferred<Unit>()
+
+    /**
+     * Called by the UI when the first pane count the layout resolves has been applied. Everything
+     * that layout pass placed - including whatever its auto-fill picked - belongs to startup, so the
+     * pane observer below only starts counting arrivals afterwards.
+     *
+     * Idempotent: a later layout pass or an Activity recreation calls this again and must not reset
+     * the baseline that has been established by then.
+     */
+    fun onInitialPaneLayoutApplied() {
+        initialPaneLayoutApplied.complete(Unit)
+    }
 
     init {
         appScope.launch {
@@ -189,6 +215,27 @@ class WorkspaceSessionManager @Inject constructor(
             .onEach { focusedInfo -> resumeOnFocus(focusedInfo) }
             .catch { log(TAG, ERROR) { "Resume-on-focus observer failed: ${it.asLog()}" } }
             .launchIn(appScope)
+
+        // Resume a paused tab that is newly placed into a rendered pane. Focus has its own observer
+        // above; this covers the placements that never move focus - the rail's "assign to pane" menu,
+        // the auto-fill when the pane count grows, and a widening layout that starts rendering a pane a
+        // tab was already parked on.
+        // Edge-triggered on the occupant set rather than level-triggered: a tab the user pauses from the
+        // tab manager while it sits in an unfocused pane has to stay paused.
+        // Armed by two gates, because everything that startup places is baseline, not an arrival: a
+        // terminal restoration state (the assignments restore applies), and the startup pane layout
+        // having been applied (the panes its auto-fill filled in). Waiting for both makes the cold
+        // start instantiate the focused tab only, whichever of the two finishes first.
+        state
+            .filter { it !is State.Restoring }
+            .take(1)
+            .onEach { initialPaneLayoutApplied.await() }
+            .flatMapLatest { workspacePageManager.state }
+            .map { it.visiblePaneAssignments.values.toSet() }
+            .distinctUntilChanged()
+            .onEach { occupants -> resumeNewPaneOccupants(occupants) }
+            .catch { log(TAG, ERROR) { "Resume-on-pane-assignment observer failed: ${it.asLog()}" } }
+            .launchIn(appScope)
     }
 
     /**
@@ -209,6 +256,45 @@ class WorkspaceSessionManager @Inject constructor(
             workspaceRepo.execute(WorkspaceAction.Resume(focusedInfo.id))
         } catch (e: Exception) {
             log(TAG, ERROR) { "Failed to resume focused workspace ${focusedInfo.id}: ${e.asLog()}" }
+        }
+    }
+
+    /**
+     * Instantiates the paused stand-ins that just entered a rendered pane. One that already failed to
+     * resume is left alone for the same reason as in [resumeOnFocus] - retrying on every layout change
+     * would loop; the placeholder's retry button is the way back.
+     *
+     * The first call after the observer is armed only records the baseline: by then restoration has
+     * reached a terminal state and [onInitialPaneLayoutApplied] has fired, so those occupants are
+     * what startup put there rather than arrivals.
+     *
+     * State comes from [WorkspaceRepo.peek], not from the [WorkspaceRepo.state] share, because nothing
+     * re-triggers this observer: the occupant set does not change again when the share catches up. A
+     * lagging "Ready" would drop the resume for good - exactly the case this observer exists for - and
+     * a lagging "Paused(error=null)" would retry one that already failed. The focus observer can read
+     * the share safely only because it re-evaluates on every repo emission.
+     */
+    private suspend fun resumeNewPaneOccupants(occupants: Set<Workspace.Id>) {
+        val previous = panedWorkspaces
+        panedWorkspaces = occupants
+        if (previous == null) return
+        (occupants - previous).forEach { id ->
+            try {
+                val lifecycleState = workspaceRepo.peek(id)?.info?.value?.lifecycleState
+                if (lifecycleState !is Workspace.LifecycleState.Paused) return@forEach
+                if (lifecycleState.error != null) {
+                    log(TAG) { "Workspace $id failed resume before, waiting for a manual retry" }
+                    return@forEach
+                }
+                log(TAG, INFO) { "Paused workspace $id was assigned to a pane, resuming" }
+                workspaceRepo.execute(WorkspaceAction.Resume(id))
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                // Per arrival, not per batch: the occupant set stays unchanged after a failure, so a
+                // batch-wide catch would strand every later arrival with nothing to retrigger them.
+                log(TAG, ERROR) { "Failed to resume newly paned workspace $id: ${e.asLog()}" }
+            }
         }
     }
 

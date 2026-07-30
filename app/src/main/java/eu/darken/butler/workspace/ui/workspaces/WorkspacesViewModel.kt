@@ -270,6 +270,10 @@ class WorkspacesViewModel @Inject constructor(
             is WorkspaceScreenAction.SetPaneCount -> {
                 log(tag) { "Setting pane count to ${action.count}" }
                 workspacePageManager.setPaneCount(action.count)
+                // setPaneCount suspends through its MRU auto-fill, so once it returns the layout is
+                // complete and everything it placed belongs to startup rather than to a user
+                // assignment. Repeat calls are ignored, only the first one arms the session manager.
+                sessionManager.onInitialPaneLayoutApplied()
             }
             is WorkspaceScreenAction.Rename -> {
                 log(tag, INFO) { "Renaming workspace ${action.id} to ${action.customTitle}" }

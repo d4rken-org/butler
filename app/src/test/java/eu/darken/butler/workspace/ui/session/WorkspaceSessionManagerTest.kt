@@ -28,6 +28,7 @@ import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPosition
 import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPositions
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.Runs
 import io.mockk.coEvery
@@ -923,6 +924,195 @@ class WorkspaceSessionManagerTest : BaseTest() {
                     .shouldBeInstanceOf<Workspace.LifecycleState.Paused>()
             }
 
+        /**
+         * The pane assignments restore applies are a baseline, not arrivals: a cold start still
+         * instantiates the focused tab only.
+         */
+        @Test
+        fun `a paused workspace restored into a rendered pane stays paused`() =
+            runTest(UnconfinedTestDispatcher()) {
+                // Both panes pre-assigned, so setPaneCount's auto-fill stays out of the assertions.
+                // The repo is empty at this point, so there is nothing for it to fill in anyway.
+                pageManager.setPaneCount(2)
+                restoreScope.testScheduler.runCurrent()
+                savedSession(focusedId = idB, paneSelections = mapOf(0 to idB, 1 to idC))
+
+                val manager = createManager()
+                restoreScope.testScheduler.runCurrent()
+
+                // The layout pass ran before restore here, so the restored assignments are what the
+                // observer sees first
+                manager.onInitialPaneLayoutApplied()
+                restoreScope.testScheduler.runCurrent()
+
+                createAttempts shouldBe listOf(idB)
+                pausedIds() shouldBe listOf(idA, idC)
+            }
+
+        /**
+         * The cold-start ordering the other way round: restore finishes first and the startup layout
+         * pass auto-fills a pane afterwards. What it places is still baseline, not an arrival.
+         */
+        @Test
+        fun `the initial pane layout is baseline even when it auto-fills panes`() =
+            runTest(UnconfinedTestDispatcher()) {
+                savedSession(focusedId = idB, paneSelections = mapOf(0 to idB))
+                val manager = createManager()
+                restoreScope.testScheduler.runCurrent()
+
+                // Startup layout: pane 1 has no saved assignment, so the auto-fill parks a paused
+                // stand-in there
+                pageManager.setPaneCount(2)
+                restoreScope.testScheduler.runCurrent()
+                pageManager.state.value.visiblePaneAssignments[1] shouldNotBe null
+
+                manager.onInitialPaneLayoutApplied()
+                restoreScope.testScheduler.runCurrent()
+
+                createAttempts shouldBe listOf(idB)
+            }
+
+        @Test
+        fun `widening the layout resumes a tab parked on the newly rendered pane`() =
+            runTest(UnconfinedTestDispatcher()) {
+                savedSession(focusedId = idB, paneSelections = mapOf(0 to idB, 1 to idA))
+                val manager = createManager()
+                restoreScope.testScheduler.runCurrent()
+                createAttempts shouldBe listOf(idB)
+
+                // The startup layout was single-pane, the widening below is a later pass
+                manager.onInitialPaneLayoutApplied()
+                restoreScope.testScheduler.runCurrent()
+
+                // idA sits on pane 1, which a single-pane layout does not render
+                pageManager.setPaneCount(2)
+                restoreScope.testScheduler.runCurrent()
+
+                createAttempts shouldBe listOf(idB, idA)
+                pausedIds() shouldBe listOf(idC)
+            }
+
+        @Test
+        fun `a later pane layout pass does not reset the baseline`() =
+            runTest(UnconfinedTestDispatcher()) {
+                savedSession(focusedId = idB, paneSelections = mapOf(0 to idB, 1 to idA))
+                val manager = createManager()
+                restoreScope.testScheduler.runCurrent()
+                manager.onInitialPaneLayoutApplied()
+                restoreScope.testScheduler.runCurrent()
+
+                pageManager.setPaneCount(2)
+                restoreScope.testScheduler.runCurrent()
+                createAttempts shouldBe listOf(idB, idA)
+
+                // An Activity recreation re-applies the pane count and calls this again
+                manager.onInitialPaneLayoutApplied()
+                restoreScope.testScheduler.runCurrent()
+                createAttempts shouldBe listOf(idB, idA)
+
+                // The observer is still armed, so the next arrival is resumed as before
+                pageManager.setSelectedWorkspaces(mapOf(0 to idB, 1 to idC))
+                restoreScope.testScheduler.runCurrent()
+
+                createAttempts shouldBe listOf(idB, idA, idC)
+            }
+
+        @Test
+        fun `assigning a paused workspace to a rendered pane resumes it without focusing it`() =
+            runTest(UnconfinedTestDispatcher()) {
+                savedSession(focusedId = idB, paneSelections = mapOf(0 to idB, 1 to idA))
+                val manager = createManager()
+                restoreScope.testScheduler.runCurrent()
+                manager.onInitialPaneLayoutApplied()
+                restoreScope.testScheduler.runCurrent()
+                pageManager.setPaneCount(2)
+                restoreScope.testScheduler.runCurrent()
+
+                pageManager.setSelectedWorkspaces(mapOf(0 to idB, 1 to idC))
+                restoreScope.testScheduler.runCurrent()
+
+                createAttempts shouldBe listOf(idB, idA, idC)
+                pageManager.state.value.focusedWorkspaceId shouldBe idB
+            }
+
+        @Test
+        fun `a workspace paused while occupying a rendered pane is not resumed`() =
+            runTest(UnconfinedTestDispatcher()) {
+                savedSession(focusedId = idB, paneSelections = mapOf(0 to idB, 1 to idA))
+                val manager = createManager()
+                restoreScope.testScheduler.runCurrent()
+                manager.onInitialPaneLayoutApplied()
+                restoreScope.testScheduler.runCurrent()
+                pageManager.setPaneCount(2)
+                restoreScope.testScheduler.runCurrent()
+
+                // idA is live on pane 1 and idB holds focus; pausing idA must stick
+                repo.execute(WorkspaceAction.Pause(idA))
+                restoreScope.testScheduler.runCurrent()
+
+                createAttempts.count { it == idA } shouldBe 1
+                repo.state.first().infos.single { it.id == idA }.lifecycleState
+                    .shouldBeInstanceOf<Workspace.LifecycleState.Paused>()
+            }
+
+        @Test
+        fun `a workspace that failed to resume is not retried when it is assigned to a pane again`() =
+            runTest(UnconfinedTestDispatcher()) {
+                failingIds += idC
+                savedSession(focusedId = idB, paneSelections = mapOf(0 to idB, 1 to idA))
+                val manager = createManager()
+                restoreScope.testScheduler.runCurrent()
+                manager.onInitialPaneLayoutApplied()
+                restoreScope.testScheduler.runCurrent()
+                pageManager.setPaneCount(2)
+                restoreScope.testScheduler.runCurrent()
+
+                pageManager.setSelectedWorkspaces(mapOf(0 to idB, 1 to idC))
+                restoreScope.testScheduler.runCurrent()
+                pageManager.setSelectedWorkspaces(mapOf(0 to idB, 1 to idA))
+                restoreScope.testScheduler.runCurrent()
+                pageManager.setSelectedWorkspaces(mapOf(0 to idB, 1 to idC))
+                restoreScope.testScheduler.runCurrent()
+
+                createAttempts.count { it == idC } shouldBe 1
+            }
+
+        @Test
+        fun `growing the pane count resumes the tab its auto-fill picks`() =
+            runTest(UnconfinedTestDispatcher()) {
+                savedSession(focusedId = idB, paneSelections = mapOf(0 to idB))
+                val manager = createManager()
+                restoreScope.testScheduler.runCurrent()
+                manager.onInitialPaneLayoutApplied()
+                restoreScope.testScheduler.runCurrent()
+
+                pageManager.setPaneCount(2)
+                restoreScope.testScheduler.runCurrent()
+
+                // Which tab the MRU auto-fill picks is not this test's business, only that it is live
+                val autoFilled = pageManager.state.value.visiblePaneAssignments[1]
+                autoFilled shouldNotBe null
+                pausedIds().contains(autoFilled) shouldBe false
+                pageManager.state.value.focusedWorkspaceId shouldBe idB
+            }
+
+        @Test
+        fun `a pane-count jump resumes every tab it fills in`() =
+            runTest(UnconfinedTestDispatcher()) {
+                savedSession(focusedId = idB, paneSelections = mapOf(0 to idB))
+                val manager = createManager()
+                restoreScope.testScheduler.runCurrent()
+                manager.onInitialPaneLayoutApplied()
+                restoreScope.testScheduler.runCurrent()
+
+                // Two panes get filled in one emission
+                pageManager.setPaneCount(4)
+                restoreScope.testScheduler.runCurrent()
+
+                pageManager.state.value.visiblePaneAssignments.values.toSet() shouldBe setOf(idA, idB, idC)
+                pausedIds() shouldBe emptyList()
+            }
+
         @Test
         fun `focusing a paused workspace resumes it while session restore is disabled`() =
             runTest(UnconfinedTestDispatcher()) {
@@ -947,6 +1137,48 @@ class WorkspaceSessionManagerTest : BaseTest() {
 
                 createAttempts shouldBe listOf(idA)
                 pausedIds() shouldBe emptyList()
+            }
+
+        /** The pane observer arms on a terminal restoration state, Disabled included. */
+        @Test
+        fun `assigning a paused workspace to a pane resumes it while session restore is disabled`() =
+            runTest(UnconfinedTestDispatcher()) {
+                every { workspaceSettings.sessionRestoreEnabled } returns mockk {
+                    every { flow } returns flowOf(false)
+                }
+
+                val manager = createManager()
+                restoreScope.testScheduler.runCurrent()
+                manager.state.value shouldBe WorkspaceSessionManager.State.Disabled
+
+                // Auto-paused tabs exist without session restore, so they must still be resumable
+                repo.execute(
+                    WorkspaceAction.RegisterPaused(
+                        id = idA,
+                        type = Workspace.Type.EXPLORER,
+                        arguments = FakeSessionArguments(Workspace.Type.EXPLORER, "a"),
+                    )
+                )
+                restoreScope.testScheduler.runCurrent()
+                pageManager.setPaneCount(2)
+                restoreScope.testScheduler.runCurrent()
+                manager.onInitialPaneLayoutApplied()
+                restoreScope.testScheduler.runCurrent()
+
+                // idA holds pane 0 and the focus, so idB lands on pane 1 without ever being focused
+                repo.execute(
+                    WorkspaceAction.RegisterPaused(
+                        id = idB,
+                        type = Workspace.Type.EXPLORER,
+                        arguments = FakeSessionArguments(Workspace.Type.EXPLORER, "b"),
+                    )
+                )
+                restoreScope.testScheduler.runCurrent()
+
+                createAttempts shouldBe listOf(idA, idB)
+                pausedIds() shouldBe emptyList()
+                pageManager.state.value.visiblePaneAssignments[1] shouldBe idB
+                pageManager.state.value.focusedWorkspaceId shouldBe idA
             }
 
         @Test
