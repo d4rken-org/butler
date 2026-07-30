@@ -2,6 +2,7 @@ package eu.darken.butler.upgrade.ui
 
 import android.content.Context
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
@@ -149,6 +150,10 @@ class UpgradeScreenTest : ComposeTest() {
         composeTestRule.onAllNodesWithTag(UpgradeScreenTags.IAP).assertCountEquals(0)
         composeTestRule.onAllNodesWithTag(UpgradeScreenTags.RESTORE).assertCountEquals(0)
         composeTestRule.onAllNodesWithTag(UpgradeScreenTags.UNAVAILABLE).assertCountEquals(1)
+        // Only the prices are missing — the generic "Google Play is unavailable" title overstated
+        // the problem while the rest of the screen (benefits, restore) still works.
+        composeTestRule.onAllNodesWithText(context.getString(R.string.upgrade_screen_offers_unavailable_title)).assertCountEquals(1)
+        composeTestRule.onAllNodesWithText(context.getString(R.string.upgrades_gplay_unavailable_error_title)).assertCountEquals(0)
         composeTestRule.onAllNodesWithText(context.getString(R.string.upgrade_screen_offers_unavailable_message)).assertCountEquals(1)
         composeTestRule.onAllNodesWithText(context.getString(R.string.upgrade_benefits_title)).assertCountEquals(1)
     }
@@ -300,6 +305,34 @@ class UpgradeScreenTest : ComposeTest() {
         // would silently miss the button.
         composeTestRule.onNodeWithTag(UpgradeScreenTags.RETRY).performScrollTo().performClick()
         composeTestRule.runOnIdle { check(retryClicks == 1) { "expected 1 retry click, got $retryClicks" } }
+    }
+
+    @Test
+    fun `two retry taps in the same frame only fire one query`() {
+        var retryClicks = 0
+        composeTestRule.setUpgradeContent {
+            UpgradeScreen(
+                uiState = UpgradeUiState.Unavailable(
+                    error = RuntimeException("Google Play services unavailable"),
+                ),
+                onRetry = { retryClicks++ },
+            )
+        }
+
+        // Two sequential performClick calls allow a recomposition in between, so `enabled` alone
+        // would absorb the second one and the in-callback guard would go untested. Invoking the
+        // node's CACHED OnClick lambda twice is what two taps within one frame look like.
+        val onClick = composeTestRule.onNodeWithTag(UpgradeScreenTags.RETRY)
+            .fetchSemanticsNode()
+            .config[SemanticsActions.OnClick]
+            .action!!
+        composeTestRule.runOnUiThread {
+            onClick()
+            onClick()
+        }
+
+        composeTestRule.runOnIdle { check(retryClicks == 1) { "expected 1 retry click, got $retryClicks" } }
+        composeTestRule.onNodeWithTag(UpgradeScreenTags.RETRY).assertIsNotEnabled()
     }
 
     @Test
