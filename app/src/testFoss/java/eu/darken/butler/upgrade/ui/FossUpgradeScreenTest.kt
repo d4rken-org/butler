@@ -4,9 +4,11 @@ import android.content.Context
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.R
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -45,6 +47,23 @@ class FossUpgradeScreenTest : ComposeTest() {
         composeTestRule.onAllNodesWithTag(UpgradeScreenTags.TITLE).assertCountEquals(0)
         composeTestRule.onAllNodesWithText(context.getString(R.string.upgrade_screen_title)).assertCountEquals(1)
         composeTestRule.onAllNodesWithTag(UpgradeScreenTags.FOSS_SPONSOR).assertCountEquals(1)
+    }
+
+    @Test
+    fun `the pitch shows what you get before how to help`() {
+        setView(FossUpgradeView.PITCH)
+
+        // Family order: the benefits answer "what do I get" first, the sponsor mechanics follow.
+        val benefitsTop = composeTestRule
+            .onNodeWithText(context.getString(R.string.upgrade_benefits_title))
+            .getUnclippedBoundsInRoot().top
+        val howTop = composeTestRule
+            .onNodeWithText(context.getString(R.string.upgrade_screen_how_title))
+            .getUnclippedBoundsInRoot().top
+
+        check(benefitsTop < howTop) {
+            "Expected the benefits card above the how-to-help card, got benefits=$benefitsTop how=$howTop"
+        }
     }
 
     @Test

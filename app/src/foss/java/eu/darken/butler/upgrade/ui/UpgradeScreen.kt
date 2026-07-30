@@ -119,17 +119,17 @@ private fun PitchContent(
         )
 
         UpgradeSectionCard(
-            title = stringResource(R.string.upgrade_screen_how_title),
-            icon = Icons.TwoTone.Favorite,
-        ) {
-            UpgradeSectionBody(text = stringResource(R.string.upgrade_screen_how_body))
-        }
-
-        UpgradeSectionCard(
             title = stringResource(R.string.upgrade_benefits_title),
             icon = Icons.TwoTone.AutoAwesome,
         ) {
             UpgradeBenefitsList()
+        }
+
+        UpgradeSectionCard(
+            title = stringResource(R.string.upgrade_screen_how_title),
+            icon = Icons.TwoTone.Favorite,
+        ) {
+            UpgradeSectionBody(text = stringResource(R.string.upgrade_screen_how_body))
         }
 
         UpgradeActionCard(
