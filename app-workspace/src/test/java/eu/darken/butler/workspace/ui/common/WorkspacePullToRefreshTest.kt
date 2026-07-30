@@ -1,7 +1,13 @@
 package eu.darken.butler.workspace.ui.common
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
@@ -9,9 +15,12 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.TouchInjectionScope
 import androidx.compose.ui.test.assertRangeInfoEquals
 import androidx.compose.ui.test.assertTopPositionInRootIsEqualTo
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeDown
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
@@ -27,6 +36,7 @@ import testhelpers.ComposeTest
 class WorkspacePullToRefreshTest : ComposeTest() {
 
     private val indicatorTag = "ptr-indicator"
+    private val contentTag = "ptr-content"
 
     private val progressNode = SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo)
 
@@ -153,6 +163,62 @@ class WorkspacePullToRefreshTest : ComposeTest() {
         composeTestRule.mainClock.advanceTimeBy(1200)
         composeTestRule.onNode(progressNode).assertDoesNotExist()
     }
+
+    @Test
+    fun `pulling refreshes while enabled`() {
+        var refreshes = 0
+        setPullableContent(enabled = true) { refreshes++ }
+
+        composeTestRule.onNodeWithTag(contentTag).performTouchInput { longPull() }
+
+        composeTestRule.runOnIdle { refreshes shouldBe 1 }
+    }
+
+    @Test
+    fun `pulling does not refresh while disabled`() {
+        var refreshes = 0
+        setPullableContent(enabled = false) { refreshes++ }
+
+        composeTestRule.onNodeWithTag(contentTag).performTouchInput { longPull() }
+
+        composeTestRule.runOnIdle { refreshes shouldBe 0 }
+    }
+
+    private fun setPullableContent(enabled: Boolean, onRefresh: () -> Unit) {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                WorkspacePullToRefreshBox(
+                    modifier = Modifier.fillMaxSize(),
+                    isRefreshing = false,
+                    onRefresh = onRefresh,
+                    enabled = enabled,
+                    topBarStackState = rememberFloatingBarStackState(position = BarPosition.TOP),
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .testTag(contentTag)
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState()),
+                    ) {
+                        repeat(20) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(48.dp),
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /** The pull is dampened and has to clear a raised threshold, so a short swipe wouldn't reach it. */
+    private fun TouchInjectionScope.longPull() = swipeDown(
+        startY = top + 1f,
+        endY = bottom - 1f,
+        durationMillis = 400,
+    )
 
     companion object {
         private val ANCHOR = 100.dp

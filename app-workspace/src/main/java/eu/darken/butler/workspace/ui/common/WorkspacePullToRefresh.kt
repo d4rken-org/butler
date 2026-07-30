@@ -64,6 +64,7 @@ fun WorkspacePullToRefreshBox(
     modifier: Modifier = Modifier,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
+    enabled: Boolean = true,
     topBarStackState: FloatingBarStackState,
     state: PullToRefreshState = rememberPullToRefreshState(),
     content: @Composable BoxScope.() -> Unit,
@@ -87,8 +88,12 @@ fun WorkspacePullToRefreshBox(
         modifier = modifier.pullToRefresh(
             isRefreshing = effectiveRefreshing,
             state = state,
+            enabled = enabled,
             threshold = PullThreshold,
-            onRefresh = onRefresh,
+            // Also gated in the callback: Material3 only checks `enabled` while consuming scroll,
+            // the release path fires onRefresh whenever the accumulated pull passed the threshold.
+            // So a pull started while enabled and released after it flipped would still refresh.
+            onRefresh = { if (enabled) onRefresh() },
         ),
         contentAlignment = Alignment.TopStart,
     ) {
