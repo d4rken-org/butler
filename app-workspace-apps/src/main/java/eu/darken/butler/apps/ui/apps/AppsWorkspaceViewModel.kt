@@ -207,6 +207,11 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
 
     private fun onAppLongClick(item: AppItem) = launch {
         log(tag) { "onAppLongClick(${item.packageName})" }
+        // Once a selection exists the long press belongs to the drag gesture, taps do the selecting.
+        if (workspaceReadyState.filterNotNull().first().isMultiSelectMode) {
+            log(tag, DEBUG) { "onAppLongClick() ignored, selection is active" }
+            return@launch
+        }
         toggleAppSelection(item.pkg.installId)
     }
 
@@ -271,6 +276,10 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
 
     fun onRefresh() = launch {
         log(tag) { "Refreshing apps" }
+        if (workspaceReadyState.filterNotNull().first().isMultiSelectMode) {
+            log(tag, DEBUG) { "onRefresh() ignored, selection is active" }
+            return@launch
+        }
         getWorkspace().refresh()
     }
 

@@ -69,6 +69,7 @@ internal fun AppsReadyContent(
             // Ignore pulls during the initial load — that scan is already running.
             if (!state.isLoading) onPageAction(AppsPageAction.Apps.Refresh)
         },
+        enabled = !state.isMultiSelectMode,
         topBarStackState = topBarStackState,
     ) {
         when (state.viewStyle) {
