@@ -43,13 +43,13 @@ class UpgradeRepoFoss @Inject constructor(
     }
         .setupCommonEventHandlers(TAG) { "upgradeInfo" }
 
-    fun openSponsorPage() {
-        log(TAG) { "openSponsorPage()" }
+    fun openGithubSponsorsPage() {
+        log(TAG) { "openGithubSponsorsPage()" }
         webpageTool.open(upgradeSite)
     }
 
-    suspend fun applyUpgrade() {
-        log(TAG) { "applyUpgrade()" }
+    suspend fun persistUpgrade() {
+        log(TAG) { "persistUpgrade()" }
         fossCache.upgrade.value(
             FossUpgrade(
                 upgradedAt = Clock.System.now(),

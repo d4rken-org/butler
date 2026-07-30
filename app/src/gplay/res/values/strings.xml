@@ -38,6 +38,7 @@
 
     <string name="upgrade_screen_offers_title">Upgrade options</string>
     <string name="upgrade_screen_offers_body">Both options unlock the exact same Pro features — pick whichever pricing suits you.</string>
+    <string name="upgrade_screen_offers_unavailable_title">Prices unavailable</string>
     <string name="upgrade_screen_offers_unavailable_message">Butler couldn\'t load the upgrade options from Google Play. This is often temporary — try again in a moment.</string>
     <string name="upgrade_screen_subscription_offer_title">Yearly subscription</string>
     <string name="upgrade_screen_subscription_offer_body">Starts with a free 14-day trial, then billed once per year. Cancel anytime.</string>
