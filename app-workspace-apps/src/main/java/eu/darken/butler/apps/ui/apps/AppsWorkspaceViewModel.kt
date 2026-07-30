@@ -275,11 +275,11 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun onRefresh() = launch {
-        log(tag) { "Refreshing apps" }
         if (workspaceReadyState.filterNotNull().first().isMultiSelectMode) {
             log(tag, DEBUG) { "onRefresh() ignored, selection is active" }
             return@launch
         }
+        log(tag) { "Refreshing apps" }
         getWorkspace().refresh()
     }
 

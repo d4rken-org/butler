@@ -104,7 +104,12 @@ internal fun AppsReadyContent(
                                     item = appItem,
                                     isSelected = appItem.pkg.installId in state.selectedAppIds,
                                     onClick = { onPageAction(AppsPageAction.Apps.Click(appItem)) },
-                                    onLongClick = { onPageAction(AppsPageAction.Apps.LongClick(appItem)) },
+                                    onLongClick = {
+                                        // Synchronous gate, the ViewModel guard reads state across a suspension point.
+                                        if (!state.isMultiSelectMode) {
+                                            onPageAction(AppsPageAction.Apps.LongClick(appItem))
+                                        }
+                                    },
                                     showSelection = state.isMultiSelectMode,
                                 )
                             }
@@ -154,7 +159,12 @@ internal fun AppsReadyContent(
                                     item = appItem,
                                     isSelected = appItem.pkg.installId in state.selectedAppIds,
                                     onClick = { onPageAction(AppsPageAction.Apps.Click(appItem)) },
-                                    onLongClick = { onPageAction(AppsPageAction.Apps.LongClick(appItem)) },
+                                    onLongClick = {
+                                        // Synchronous gate, the ViewModel guard reads state across a suspension point.
+                                        if (!state.isMultiSelectMode) {
+                                            onPageAction(AppsPageAction.Apps.LongClick(appItem))
+                                        }
+                                    },
                                     showSelection = state.isMultiSelectMode,
                                 )
                             }
