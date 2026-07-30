@@ -178,6 +178,13 @@ class ExplorerSelectionController(
 
     fun onItemLongClick(item: ExplorerItem) {
         log(tag) { "onItemLongClick($item)" }
+
+        // While a selection exists the long press belongs to the drag gesture, taps do the selecting.
+        if (selectedItemsFlow.value.isNotEmpty()) {
+            log(tag) { "onItemLongClick($item) ignored, selection is active" }
+            return
+        }
+
         val pickerConfig = pickerConfig()
 
         // Enable long-press selection in:

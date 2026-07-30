@@ -143,7 +143,7 @@ fun ExplorerWorkspacePage(
     val handleRefresh: () -> Unit = {
         coroutineScope.launch {
             showPullToRefreshIndicator = true
-            vm?.retryNavigation()
+            vm?.onPullToRefresh()
             delay(200)
             showPullToRefreshIndicator = false
         }

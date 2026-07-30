@@ -263,6 +263,22 @@ class ExplorerSelectionControllerTest : BaseTest() {
         dirSingle.selectedItems.value shouldBe setOf(storage)
     }
 
+    @Test
+    fun `long press stops changing the selection once one exists`() = runTest {
+        val first = fileItem("a.txt")
+        val second = fileItem("b.txt")
+        val controller = controller()
+
+        controller.onItemLongClick(first)
+        controller.selectedItems.value shouldBe setOf(first)
+
+        controller.onItemLongClick(second)
+        controller.selectedItems.value shouldBe setOf(first)
+
+        controller.onItemLongClick(first)
+        controller.selectedItems.value shouldBe setOf(first)
+    }
+
     private fun lookupItem(name: String) = ExplorerItem.RegularFile(
         lookup = LocalPathLookup(
             lookedUp = LocalPath.build(LISTING_PATH, name),

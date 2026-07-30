@@ -149,13 +149,15 @@ private fun ItemContent(
             val storageShowSelection = state.selectionState.selectedItems.isNotEmpty() &&
                 item in state.selectionState.selectableItems
             val decorations = decorationsFor(item, state)
+            // Once a selection exists, only taps change it - the long press is the drag gesture.
+            val onLongClick = { if (!state.selectionState.isSelectionMode) onToggleSelection(item) }
             when (viewStyle) {
                 is ExplorerViewStyle.List -> StorageRow(
                     item = item,
                     isSelected = isSelected,
                     onToggleSelection = { onToggleSelection(item) },
                     onClick = { onItemClick(item) },
-                    onLongClick = { onToggleSelection(item) },
+                    onLongClick = onLongClick,
                     showSelection = storageShowSelection,
                     isEnabled = isEnabled,
                     decorations = decorations,
@@ -165,7 +167,7 @@ private fun ItemContent(
                     isSelected = isSelected,
                     onToggleSelection = { onToggleSelection(item) },
                     onClick = { onItemClick(item) },
-                    onLongClick = { onToggleSelection(item) },
+                    onLongClick = onLongClick,
                     showSelection = storageShowSelection,
                     isEnabled = isEnabled,
                     decorations = decorations,

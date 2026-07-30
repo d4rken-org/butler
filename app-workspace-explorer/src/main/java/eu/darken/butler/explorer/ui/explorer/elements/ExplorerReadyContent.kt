@@ -137,6 +137,7 @@ internal fun ExplorerReadyContent(
             modifier = Modifier.fillMaxSize(),
             isRefreshing = showPullToRefreshIndicator,
             onRefresh = onRefresh,
+            enabled = !state.selectionState.isSelectionMode,
             topBarStackState = topBarStackState,
             state = pullToRefreshState,
         ) {

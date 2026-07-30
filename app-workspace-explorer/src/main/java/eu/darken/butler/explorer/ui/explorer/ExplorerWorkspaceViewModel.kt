@@ -488,6 +488,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     } ?: emptyList()
 
                     val availableActions = pickerHelper.filterActionsForPicker(rawActions, pickerConfig)
+                        // Refreshing would re-list under a live selection, so it's off while selecting.
+                        // Filtered here because the Device and Home providers offer it unconditionally.
+                        .filter { !selectionState.isSelectionMode || it !is ExplorerActionBarItem.Common.Refresh }
                         .map { action ->
                             if (action is ExplorerActionBarItem.Common.Filter) {
                                 val hasActiveFilters = filterState.fileTypeFilter != FileTypeFilter.ALL
@@ -876,6 +879,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 viewSettings.updateViewStyle(action.viewStyle)
             }
             is ExplorerActionBarItem.Common.Refresh -> {
+                if (selection.selectedItems.value.isNotEmpty()) {
+                    log(tag) { "Refresh ignored, selection is active" }
+                    return@launch
+                }
                 navigation.refresh()
             }
             is ExplorerActionBarItem.Common.AddToFavorites -> {
@@ -1629,6 +1636,18 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun retryNavigation() = navigation.retryNavigation()
+
+    /**
+     * Pull-to-refresh entry point. Unlike [retryNavigation], which the error card's retry button
+     * shares and which has to keep working, a pull is ignored while a selection is active.
+     */
+    fun onPullToRefresh() {
+        if (selection.selectedItems.value.isNotEmpty()) {
+            log(tag) { "onPullToRefresh() ignored, selection is active" }
+            return
+        }
+        navigation.retryNavigation()
+    }
 
     fun dismissNavigationError() = navigation.dismissNavigationError()
 
