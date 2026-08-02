@@ -6,6 +6,10 @@ import android.text.format.DateFormat
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
@@ -235,6 +239,49 @@ fun formatDate(timestamp: Instant): String {
     }
     return remember(timestamp) {
         dateFormat.format(java.util.Date(timestamp.toEpochMilliseconds()))
+    }
+}
+
+/**
+ * Compact, locale-aware timestamp. Same calendar year renders day + time, other years render
+ * day + year without a time. The same-year test uses the ISO year so locale calendars with their
+ * own eras (Buddhist, Japanese imperial) can't split one Gregorian year in two.
+ */
+fun formatDateCompact(
+    timestamp: Instant,
+    now: Instant,
+    zone: TimeZone,
+    locale: Locale,
+    is24Hour: Boolean,
+): String {
+    val zoneId = zone.toZoneId()
+    val isoYear = { instant: Instant ->
+        java.time.Instant.ofEpochMilli(instant.toEpochMilliseconds()).atZone(zoneId).year
+    }
+    val skeleton = when {
+        isoYear(timestamp) != isoYear(now) -> "yMMMd"
+        is24Hour -> "MMMdHm"
+        else -> "MMMdhm"
+    }
+    val pattern = DateFormat.getBestDateTimePattern(locale, skeleton)
+    val formatter = SimpleDateFormat(pattern, locale).apply { timeZone = zone }
+    return formatter.format(Date(timestamp.toEpochMilliseconds()))
+}
+
+@Composable
+fun formatDateCompact(timestamp: Instant): String {
+    val context = LocalContext.current
+    val locale = context.resources.configuration.locales[0]
+    val is24Hour = DateFormat.is24HourFormat(context)
+    val zone = TimeZone.getDefault()
+    return remember(timestamp, locale, is24Hour, zone) {
+        formatDateCompact(
+            timestamp = timestamp,
+            now = Clock.System.now(),
+            zone = zone,
+            locale = locale,
+            is24Hour = is24Hour,
+        )
     }
 }
 
