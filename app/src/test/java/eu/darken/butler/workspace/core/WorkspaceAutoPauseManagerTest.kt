@@ -6,6 +6,7 @@ import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import eu.darken.butler.workspace.ui.WorkspacePageManager
 import eu.darken.butler.workspace.ui.floatingbar.WorkspaceBarCollapseStates
+import eu.darken.butler.workspace.ui.restore.WorkspaceViewPrefs
 import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPositions
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -161,6 +162,7 @@ class WorkspaceAutoPauseManagerTest : BaseTest() {
             workspaceRemote = repo,
             scrollPositions = WorkspaceScrollPositions(),
             barCollapseStates = WorkspaceBarCollapseStates(),
+            viewPrefs = WorkspaceViewPrefs(),
         )
     }
 

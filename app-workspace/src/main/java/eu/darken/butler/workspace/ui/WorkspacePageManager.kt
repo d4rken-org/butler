@@ -11,6 +11,7 @@ import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.WorkspaceStacks
 import eu.darken.butler.workspace.ui.floatingbar.WorkspaceBarCollapseStates
+import eu.darken.butler.workspace.ui.restore.WorkspaceViewPrefs
 import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPositions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -35,6 +36,7 @@ class WorkspacePageManager @Inject constructor(
     private val workspaceRemote: WorkspaceRemote,
     private val scrollPositions: WorkspaceScrollPositions,
     private val barCollapseStates: WorkspaceBarCollapseStates,
+    private val viewPrefs: WorkspaceViewPrefs,
 ) {
     @Parcelize
     @TypeParceler<Instant, InstantParceler>
@@ -87,6 +89,7 @@ class WorkspacePageManager @Inject constructor(
                     is WorkspaceEvent.Closed -> {
                         scrollPositions.forget(event.workspaceId)
                         barCollapseStates.forget(event.workspaceId)
+                        viewPrefs.forget(event.workspaceId)
                         handleWorkspaceClosed(event.workspaceId, event.callerWorkspaceId)
                     }
 
@@ -115,6 +118,7 @@ class WorkspacePageManager @Inject constructor(
                         log(TAG) { "All workspaces closed" }
                         scrollPositions.clear()
                         barCollapseStates.clear()
+                        viewPrefs.clear()
                         _state.update {
                             it.copy(
                                 focusedWorkspaceId = null,
@@ -449,6 +453,7 @@ class WorkspacePageManager @Inject constructor(
         if (replacedId != null && replacedId != workspaceId) {
             scrollPositions.forget(replacedId)
             barCollapseStates.forget(replacedId)
+            viewPrefs.forget(replacedId)
         }
 
         // Wait until workspace is reflected in state for accurate isSubWorkspace check.

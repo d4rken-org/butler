@@ -6,7 +6,11 @@ import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPosition
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.put
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import kotlin.uuid.Uuid
@@ -61,6 +65,11 @@ class WorkspaceUIStateSerializationTest : BaseTest() {
             "${idB.id}": {
               "TOP": {"toolbar": 1.0}
             }
+          },
+          "viewPrefs": {
+            "${idA.id}": {
+              "explorer.sort": {"default": {"mode": "NAME"}, "rules": {}}
+            }
           }
         }
     """.trimIndent()
@@ -83,6 +92,15 @@ class WorkspaceUIStateSerializationTest : BaseTest() {
                 "BOTTOM" to mapOf("actions" to 0f, "clipboard" to 1f),
             ),
             idB to mapOf("TOP" to mapOf("toolbar" to 1f)),
+        ),
+        // The envelope is the contract here; what is inside the payload belongs to the writing module
+        viewPrefs = mapOf(
+            idA to mapOf(
+                "explorer.sort" to buildJsonObject {
+                    put("default", buildJsonObject { put("mode", JsonPrimitive("NAME")) })
+                    put("rules", JsonObject(emptyMap()))
+                },
+            ),
         ),
     )
 
@@ -107,6 +125,9 @@ class WorkspaceUIStateSerializationTest : BaseTest() {
         decoded.barCollapse[idA]?.get("BOTTOM") shouldBe mapOf("actions" to 0f, "clipboard" to 1f)
         decoded.barCollapse[idB] shouldBe mapOf("TOP" to mapOf("toolbar" to 1f))
 
+        decoded.viewPrefs.keys shouldBe setOf(idA)
+        decoded.viewPrefs[idA]?.keys shouldBe setOf("explorer.sort")
+
         decoded shouldBe goldenState
     }
 
@@ -129,8 +150,39 @@ class WorkspaceUIStateSerializationTest : BaseTest() {
         decoded.paneSelections shouldBe mapOf(0 to idA, 1 to idB)
         decoded.scrollPositions shouldBe emptyMap()
         decoded.barCollapse shouldBe emptyMap()
+        decoded.viewPrefs shouldBe emptyMap()
         // Rows predate the marker; they are the format the marker calls v1
         decoded.version shouldBe WorkspaceUIState.CURRENT_VERSION
+    }
+
+    /** A row written by the build that had bar collapse state but not yet view prefs. */
+    @Test
+    fun `rows without view prefs decode`() {
+        val previous = """
+            {"focusedWorkspaceId":"${idA.id}","paneSelections":{},"barCollapse":{"${idA.id}":{"TOP":{"toolbar":1.0}}}}
+        """.trimIndent()
+
+        val decoded = json.decodeFromString(WorkspaceUIState.serializer(), previous)
+
+        decoded.barCollapse shouldBe mapOf(idA to mapOf("TOP" to mapOf("toolbar" to 1f)))
+        decoded.viewPrefs shouldBe emptyMap()
+    }
+
+    /**
+     * Payloads are opaque, so an entry a newer build wrote has to round-trip through this one
+     * untouched rather than be dropped or rewritten.
+     */
+    @Test
+    fun `an unknown view pref payload round-trips unchanged`() {
+        val stored = """
+            {"viewPrefs":{"${idA.id}":{"future.slot":{"deeply":{"nested":[1,2,3]}}}}}
+        """.trimIndent()
+
+        val decoded = json.decodeFromString(WorkspaceUIState.serializer(), stored)
+        val reEncoded = json.encodeToString(WorkspaceUIState.serializer(), decoded)
+
+        json.parseToJsonElement(reEncoded).jsonObject.getValue("viewPrefs") shouldBe
+            json.parseToJsonElement(stored).jsonObject.getValue("viewPrefs")
     }
 
     /** A row written by the build that had scroll positions but not yet bar collapse state. */

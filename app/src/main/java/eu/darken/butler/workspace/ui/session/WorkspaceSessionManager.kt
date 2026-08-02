@@ -24,6 +24,7 @@ import eu.darken.butler.workspace.core.session.db.WorkspaceSessionEntity
 import eu.darken.butler.workspace.core.session.db.WorkspaceUIState
 import eu.darken.butler.workspace.ui.WorkspacePageManager
 import eu.darken.butler.workspace.ui.floatingbar.WorkspaceBarCollapseStates
+import eu.darken.butler.workspace.ui.restore.WorkspaceViewPrefs
 import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPositions
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -64,6 +65,7 @@ class WorkspaceSessionManager @Inject constructor(
     private val factoryMap: Map<Workspace.Type, @JvmSuppressWildcards WorkspaceFactory<*>>,
     private val scrollPositions: WorkspaceScrollPositions,
     private val barCollapseStates: WorkspaceBarCollapseStates,
+    private val viewPrefs: WorkspaceViewPrefs,
     @ProcessLifecycle private val processLifecycle: Lifecycle,
 ) {
 
@@ -162,13 +164,14 @@ class WorkspaceSessionManager @Inject constructor(
             saveSession()
         }.launchIn(appScope)
 
-        // Scroll and bar-collapse changes get their own lightweight writer instead of a fourth
+        // Scroll, bar-collapse and view-pref changes get their own lightweight writer instead of a fourth
         // source in the combine above: they must not re-run createArguments() + serialize() for
         // every workspace only to discover that no workspace row changed. The initial counter values
         // are dropped, they only reflect "nothing recorded yet".
         merge(
             scrollPositions.changes.drop(1),
             barCollapseStates.changes.drop(1),
+            viewPrefs.changes.drop(1),
         )
             .debounce(UI_STATE_SAVE_DEBOUNCE_MS)
             .onEach {
@@ -315,7 +318,8 @@ class WorkspaceSessionManager @Inject constructor(
         storage.dao.upsertSession(session.copy(updatedAt = Clock.System.now(), uiState = uiState))
         log(TAG) {
             "Saved UI state: focused=${uiState.focusedWorkspaceId}," +
-                " scroll=${uiState.scrollPositions.size}, bars=${uiState.barCollapse.size}"
+                " scroll=${uiState.scrollPositions.size}, bars=${uiState.barCollapse.size}," +
+                " viewPrefs=${uiState.viewPrefs.size}"
         }
     }
 
@@ -357,6 +361,7 @@ class WorkspaceSessionManager @Inject constructor(
             paneSelections = pageState.selectedWorkspaces,
             scrollPositions = scrollPositions.snapshot(),
             barCollapse = barCollapseStates.snapshot(),
+            viewPrefs = viewPrefs.snapshot(),
         )
     }
 
@@ -506,6 +511,7 @@ class WorkspaceSessionManager @Inject constructor(
         // which refuses to clobber live slots - would lose to it permanently.
         scrollPositions.restore(sessionEntity.uiState.scrollPositions)
         barCollapseStates.restore(sessionEntity.uiState.barCollapse)
+        viewPrefs.restore(sessionEntity.uiState.viewPrefs)
 
         // Only one candidate becomes a real instance: the saved focus if it survived validation,
         // otherwise the first candidate - the same tab applyUIState() would fall back to. Every
@@ -555,11 +561,16 @@ class WorkspaceSessionManager @Inject constructor(
 
         // Prune the seed for anything that did not make it back, so the next save doesn't carry
         // slots of workspaces that no longer exist.
-        (sessionEntity.uiState.scrollPositions.keys + sessionEntity.uiState.barCollapse.keys)
+        (
+            sessionEntity.uiState.scrollPositions.keys +
+                sessionEntity.uiState.barCollapse.keys +
+                sessionEntity.uiState.viewPrefs.keys
+            )
             .filter { it !in restoredWorkspaceIds }
             .forEach {
                 scrollPositions.forget(it)
                 barCollapseStates.forget(it)
+                viewPrefs.forget(it)
             }
 
         // Apply saved UI state directly (IDs are preserved)

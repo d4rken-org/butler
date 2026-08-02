@@ -4,6 +4,7 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.serialization.WorkspaceIdSerializer
 import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPosition
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
 
 /**
  * Workspace UI state that gets persisted across app restarts.
@@ -30,6 +31,13 @@ data class WorkspaceUIState(
     val scrollPositions: Map<@Serializable(with = WorkspaceIdSerializer::class) Workspace.Id, Map<String, WorkspaceScrollPosition>> = emptyMap(),
     /** Floating bar collapse fractions per workspace: bar position (TOP/BOTTOM) -> bar key -> fraction. */
     val barCollapse: Map<@Serializable(with = WorkspaceIdSerializer::class) Workspace.Id, Map<String, Map<String, Float>>> = emptyMap(),
+    /**
+     * Per-workspace view preferences: slot key -> opaque payload.
+     *
+     * Opaque at this layer on purpose - the slot keys and their JSON shapes are owned by the writing
+     * workspace module, so a payload this build cannot read stays confined to that module's decode.
+     */
+    val viewPrefs: Map<@Serializable(with = WorkspaceIdSerializer::class) Workspace.Id, Map<String, JsonElement>> = emptyMap(),
 ) {
     companion object {
         /** Bump only when a field changes meaning; adding a field with a default is not a new version. */

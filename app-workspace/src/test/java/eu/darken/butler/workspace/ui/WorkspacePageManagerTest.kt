@@ -5,6 +5,7 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.ui.floatingbar.WorkspaceBarCollapseStates
+import eu.darken.butler.workspace.ui.restore.WorkspaceViewPrefs
 import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPosition
 import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPositions
 import io.kotest.matchers.shouldBe
@@ -18,6 +19,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.JsonPrimitive
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
@@ -31,6 +33,7 @@ class WorkspacePageManagerTest : BaseTest() {
     private lateinit var pageManager: WorkspacePageManager
     private lateinit var scrollPositions: WorkspaceScrollPositions
     private lateinit var barCollapseStates: WorkspaceBarCollapseStates
+    private lateinit var viewPrefs: WorkspaceViewPrefs
 
     @BeforeEach
     fun setup() {
@@ -45,11 +48,13 @@ class WorkspacePageManagerTest : BaseTest() {
         testScope = TestScope(UnconfinedTestDispatcher())
         scrollPositions = WorkspaceScrollPositions()
         barCollapseStates = WorkspaceBarCollapseStates()
+        viewPrefs = WorkspaceViewPrefs()
         pageManager = WorkspacePageManager(
             appScope = testScope,
             workspaceRemote = workspaceRemote,
             scrollPositions = scrollPositions,
             barCollapseStates = barCollapseStates,
+            viewPrefs = viewPrefs,
         )
     }
 
@@ -814,6 +819,10 @@ class WorkspacePageManagerTest : BaseTest() {
         scrollPositions.record(scrollPositions.positionFor(id, slot), WorkspaceScrollPosition(7, 3))
     }
 
+    private fun recordViewPref(id: Workspace.Id, slot: String = "explorer.sort") {
+        viewPrefs.mutateSlot(id, slot) { JsonPrimitive("pref") }
+    }
+
     @Test
     fun `closing a workspace forgets its scroll positions`() = runTest {
         val kept = Workspace.Id()
@@ -866,6 +875,45 @@ class WorkspacePageManagerTest : BaseTest() {
         testScope.testScheduler.advanceUntilIdle()
 
         scrollPositions.snapshot().keys shouldBe setOf(created)
+    }
+
+    @Test
+    fun `closing a workspace forgets its view prefs`() = runTest {
+        val kept = Workspace.Id()
+        val closed = Workspace.Id()
+        recordViewPref(kept)
+        recordViewPref(closed)
+
+        eventsFlow.emit(WorkspaceEvent.Closed(workspaceId = closed))
+        testScope.testScheduler.advanceUntilIdle()
+
+        viewPrefs.snapshot().keys shouldBe setOf(kept)
+    }
+
+    @Test
+    fun `replacing a workspace forgets the replaced view prefs`() = runTest {
+        val replaced = Workspace.Id()
+        val replacement = Workspace.Id()
+        recordViewPref(replaced)
+        recordViewPref(replacement)
+
+        stateFlow.value = WorkspaceRemote.State(infos = listOf(createWorkspaceInfo(id = replacement)))
+        eventsFlow.emit(WorkspaceEvent.Created(workspaceId = replacement, replacedId = replaced))
+        testScope.testScheduler.advanceUntilIdle()
+
+        viewPrefs.snapshot().keys shouldBe setOf(replacement)
+    }
+
+    /** Without this, every tab's prefs would survive into the next session. */
+    @Test
+    fun `closing all workspaces clears every view pref`() = runTest {
+        recordViewPref(Workspace.Id())
+        recordViewPref(Workspace.Id())
+
+        eventsFlow.emit(WorkspaceEvent.AllClosed)
+        testScope.testScheduler.advanceUntilIdle()
+
+        viewPrefs.snapshot() shouldBe emptyMap()
     }
 
     @Test

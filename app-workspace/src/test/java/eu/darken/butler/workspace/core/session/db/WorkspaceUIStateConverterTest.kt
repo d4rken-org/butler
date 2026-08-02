@@ -5,9 +5,13 @@ import eu.darken.butler.common.serialization.SerializationIOModule
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPosition
 import io.kotest.matchers.shouldBe
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -48,6 +52,7 @@ class WorkspaceUIStateConverterTest : BaseTest() {
         paneSelections = mapOf(0 to idA, 1 to idB),
         scrollPositions = mapOf(idA to mapOf("list#location://home" to WorkspaceScrollPosition(12, 34))),
         barCollapse = mapOf(idA to mapOf("TOP" to mapOf("toolbar" to 1f), "BOTTOM" to mapOf("actions" to 0f))),
+        viewPrefs = mapOf(idA to mapOf("explorer.sort" to buildJsonObject { put("default", JsonPrimitive("NAME")) })),
     )
 
     @Test
@@ -58,12 +63,73 @@ class WorkspaceUIStateConverterTest : BaseTest() {
               "focusedWorkspaceId": "${idA.id}",
               "paneSelections": {"0": "${idA.id}", "1": "${idB.id}"},
               "scrollPositions": {"${idA.id}": {"list#location://home": {"index": 12, "offset": 34}}},
-              "barCollapse": {"${idA.id}": {"TOP": {"toolbar": 1.0}, "BOTTOM": {"actions": 0.0}}}
+              "barCollapse": {"${idA.id}": {"TOP": {"toolbar": 1.0}, "BOTTOM": {"actions": 0.0}}},
+              "viewPrefs": {"${idA.id}": {"explorer.sort": {"default": "NAME"}}}
             }
         """.trimIndent()
 
         converter.toUIState(stored) shouldBe state
         warnings() shouldBe emptyList()
+    }
+
+    /**
+     * [toUIState] rebuilds the state from explicitly named fields, so the generated serializer that
+     * the golden/serialization tests exercise would not notice a missing or misspelled decode here.
+     */
+    @Test
+    fun `a non-empty view prefs map survives the converter's field-by-field decode`() {
+        val decoded = converter.toUIState(converter.fromUIState(state))
+
+        decoded.viewPrefs shouldBe state.viewPrefs
+        warnings() shouldBe emptyList()
+    }
+
+    @Test
+    fun `a legacy blob without view prefs decodes to an empty map`() {
+        val stored = """
+            {
+              "focusedWorkspaceId": "${idA.id}",
+              "paneSelections": {"0": "${idA.id}"},
+              "scrollPositions": {"${idA.id}": {"history": {"index": 4, "offset": 9}}}
+            }
+        """.trimIndent()
+
+        val decoded = converter.toUIState(stored)
+
+        decoded.viewPrefs shouldBe emptyMap()
+        decoded.focusedWorkspaceId shouldBe idA
+        warnings() shouldBe emptyList()
+    }
+
+    @Test
+    fun `a corrupt view prefs map does not take the other fields with it`() {
+        val stored = """
+            {
+              "focusedWorkspaceId": "${idA.id}",
+              "paneSelections": {"0": "${idA.id}"},
+              "scrollPositions": {"${idA.id}": {"history": {"index": 4, "offset": 9}}},
+              "barCollapse": {"${idA.id}": {"TOP": {"toolbar": 1.0}}},
+              "viewPrefs": [1, 2]
+            }
+        """.trimIndent()
+
+        val decoded = converter.toUIState(stored)
+
+        decoded.focusedWorkspaceId shouldBe idA
+        decoded.paneSelections shouldBe mapOf(0 to idA)
+        decoded.scrollPositions shouldBe mapOf(idA to mapOf("history" to WorkspaceScrollPosition(4, 9)))
+        decoded.barCollapse shouldBe mapOf(idA to mapOf("TOP" to mapOf("toolbar" to 1f)))
+        decoded.viewPrefs shouldBe emptyMap()
+
+        warnings().size shouldBe 1
+        warnings().single().contains("viewPrefs") shouldBe true
+    }
+
+    @Test
+    fun `a default state is written with an empty view prefs field`() {
+        val encoded = json.parseToJsonElement(converter.fromUIState(WorkspaceUIState())).jsonObject
+
+        encoded.getValue("viewPrefs") shouldBe JsonObject(emptyMap())
     }
 
     @Test

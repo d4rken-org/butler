@@ -25,6 +25,7 @@ import eu.darken.butler.workspace.core.session.db.WorkspaceUIState
 import eu.darken.butler.workspace.ui.WorkspacePageManager
 import eu.darken.butler.workspace.ui.floatingbar.WorkspaceBarCollapseStates
 import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPosition
+import eu.darken.butler.workspace.ui.restore.WorkspaceViewPrefs
 import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPositions
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -68,6 +69,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
     private lateinit var sessionManager: WorkspaceSessionManager
     private lateinit var scrollPositions: WorkspaceScrollPositions
     private lateinit var barCollapseStates: WorkspaceBarCollapseStates
+    private lateinit var viewPrefs: WorkspaceViewPrefs
     private lateinit var processLifecycle: FakeLifecycleOwner
 
     // Captured arguments from mock
@@ -88,6 +90,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
         testScope = TestScope(UnconfinedTestDispatcher())
         scrollPositions = WorkspaceScrollPositions()
         barCollapseStates = WorkspaceBarCollapseStates()
+        viewPrefs = WorkspaceViewPrefs()
         processLifecycle = FakeLifecycleOwner()
 
         // Provide a valid state flow for findReplacementWorkspace
@@ -111,6 +114,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
             factoryMap = factoryMap,
             scrollPositions = scrollPositions,
             barCollapseStates = barCollapseStates,
+            viewPrefs = viewPrefs,
             processLifecycle = processLifecycle.registry,
         )
     }
@@ -326,6 +330,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
                 factoryMap = factoryMap,
                 scrollPositions = scrollPositions,
                 barCollapseStates = barCollapseStates,
+                viewPrefs = viewPrefs,
                 processLifecycle = processLifecycle.registry,
             )
         }
@@ -691,6 +696,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
                 workspaceRemote = repo,
                 scrollPositions = scrollPositions,
                 barCollapseStates = barCollapseStates,
+                viewPrefs = viewPrefs,
             )
         }
 
@@ -704,6 +710,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
             factoryMap = factoryMap,
             scrollPositions = scrollPositions,
             barCollapseStates = barCollapseStates,
+            viewPrefs = viewPrefs,
             processLifecycle = processLifecycle.registry,
         )
 
@@ -711,6 +718,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
             focusedId: Workspace.Id?,
             paneSelections: Map<Int, Workspace.Id> = emptyMap(),
             scrollPositions: Map<Workspace.Id, Map<String, WorkspaceScrollPosition>> = emptyMap(),
+            viewPrefs: Map<Workspace.Id, Map<String, JsonElement>> = emptyMap(),
         ) = WorkspaceSessionEntity(
             sessionId = DEFAULT_SESSION_ID,
             label = "Test Session",
@@ -719,6 +727,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
                 focusedWorkspaceId = focusedId,
                 paneSelections = paneSelections,
                 scrollPositions = scrollPositions,
+                viewPrefs = viewPrefs,
             ),
         )
 
@@ -743,13 +752,15 @@ class WorkspaceSessionManagerTest : BaseTest() {
             focusedId: Workspace.Id?,
             paneSelections: Map<Int, Workspace.Id> = emptyMap(),
             savedScrollPositions: Map<Workspace.Id, Map<String, WorkspaceScrollPosition>> = emptyMap(),
+            savedViewPrefs: Map<Workspace.Id, Map<String, JsonElement>> = emptyMap(),
             entities: List<WorkspaceInstanceEntity> = listOf(
                 entity(idA, 0, "a"),
                 entity(idB, 1, "b"),
                 entity(idC, 2, "c"),
             ),
         ) {
-            coEvery { storage.dao.getSession(any()) } returns session(focusedId, paneSelections, savedScrollPositions)
+            coEvery { storage.dao.getSession(any()) } returns
+                session(focusedId, paneSelections, savedScrollPositions, savedViewPrefs)
             coEvery { storage.dao.getWorkspaces(any()) } returns entities
         }
 
@@ -1251,6 +1262,40 @@ class WorkspaceSessionManagerTest : BaseTest() {
                 scrollPositions.snapshot() shouldBe emptyMap()
             }
 
+        @Test
+        fun `restore seeds saved view prefs`() =
+            runTest(UnconfinedTestDispatcher()) {
+                savedSession(
+                    focusedId = idB,
+                    savedViewPrefs = mapOf(idB to mapOf("explorer.sort" to JsonPrimitive("payload"))),
+                )
+
+                createManager()
+                restoreScope.testScheduler.runCurrent()
+
+                viewPrefs.snapshot() shouldBe mapOf(idB to mapOf("explorer.sort" to JsonPrimitive("payload")))
+            }
+
+        /**
+         * The prune union has to include view prefs on its own: an id that only ever had prefs is
+         * invisible to the scroll and bar keys the union used to be built from.
+         */
+        @Test
+        fun `view prefs of an id that did not come back are dropped`() =
+            runTest(UnconfinedTestDispatcher()) {
+                val gone = Workspace.Id()
+                savedSession(
+                    focusedId = idA,
+                    savedViewPrefs = mapOf(gone to mapOf("explorer.sort" to JsonPrimitive("payload"))),
+                    entities = listOf(entity(idA, 0, "a")),
+                )
+
+                createManager()
+                restoreScope.testScheduler.runCurrent()
+
+                viewPrefs.snapshot() shouldBe emptyMap()
+            }
+
         private suspend fun customTitles(): Map<Workspace.Id, String?> =
             repo.state.first().infos.associate { it.id to it.customTitle }
 
@@ -1430,6 +1475,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
             factoryMap = factoryMap,
             scrollPositions = scrollPositions,
             barCollapseStates = barCollapseStates,
+            viewPrefs = viewPrefs,
             processLifecycle = processLifecycle.registry,
         )
 
@@ -1499,6 +1545,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
         private lateinit var scrollScope: TestScope
         private lateinit var registry: WorkspaceScrollPositions
         private lateinit var barRegistry: WorkspaceBarCollapseStates
+        private lateinit var viewPrefsRegistry: WorkspaceViewPrefs
         private lateinit var lifecycleOwner: FakeLifecycleOwner
 
         @BeforeEach
@@ -1506,6 +1553,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
             scrollScope = TestScope(UnconfinedTestDispatcher())
             registry = WorkspaceScrollPositions()
             barRegistry = WorkspaceBarCollapseStates()
+            viewPrefsRegistry = WorkspaceViewPrefs()
             lifecycleOwner = FakeLifecycleOwner()
             upsertedEntities.clear()
             upsertedSessions.clear()
@@ -1557,6 +1605,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
             factoryMap = factoryMap,
             scrollPositions = registry,
             barCollapseStates = barRegistry,
+            viewPrefs = viewPrefsRegistry,
             processLifecycle = lifecycleOwner.registry,
         )
 
@@ -1609,6 +1658,19 @@ class WorkspaceSessionManagerTest : BaseTest() {
             scrollScope.testScheduler.runCurrent()
 
             upsertedSessions.last().uiState.scrollPositions.keys shouldBe setOf(wsId, notInSnapshot)
+        }
+
+        @Test
+        fun `a view pref change writes the session row without rewriting workspace rows`() = runTest {
+            startWithOneWorkspace()
+
+            viewPrefsRegistry.mutateSlot(wsId, "explorer.sort") { JsonPrimitive("payload") }
+            scrollScope.testScheduler.advanceTimeBy(3000)
+            scrollScope.testScheduler.runCurrent()
+
+            upsertedEntities shouldHaveSize 0
+            upsertedSessions.last().uiState.viewPrefs shouldBe
+                mapOf(wsId to mapOf("explorer.sort" to JsonPrimitive("payload")))
         }
 
         @Test

@@ -14,6 +14,7 @@ import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.nullable
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonObject
@@ -56,7 +57,7 @@ class WorkspaceUIStateConverter @Inject constructor(
         } catch (e: Exception) {
             log(TAG, WARN) {
                 "Persisted UI state is not a readable JSON object, ALL of it is DISCARDED " +
-                    "(focus, panes, scroll positions and bar collapse): ${e.asLog()}"
+                    "(focus, panes, scroll positions, bar collapse and view prefs): ${e.asLog()}"
             }
             return WorkspaceUIState()
         }
@@ -68,6 +69,7 @@ class WorkspaceUIStateConverter @Inject constructor(
             paneSelections = json.decodeField(root, FIELD_PANES, PANE_SELECTIONS, emptyMap()),
             scrollPositions = json.decodeField(root, FIELD_SCROLL, SCROLL_POSITIONS, emptyMap()),
             barCollapse = json.decodeField(root, FIELD_BARS, BAR_COLLAPSE, emptyMap()),
+            viewPrefs = json.decodeField(root, FIELD_VIEW_PREFS, VIEW_PREFS, emptyMap()),
         )
     }
 }
@@ -94,6 +96,7 @@ private const val FIELD_FOCUSED = "focusedWorkspaceId"
 private const val FIELD_PANES = "paneSelections"
 private const val FIELD_SCROLL = "scrollPositions"
 private const val FIELD_BARS = "barCollapse"
+private const val FIELD_VIEW_PREFS = "viewPrefs"
 
 private val PANE_SELECTIONS: KSerializer<Map<Int, Workspace.Id>> =
     MapSerializer(Int.serializer(), WorkspaceIdSerializer)
@@ -108,6 +111,16 @@ private val BAR_COLLAPSE: KSerializer<Map<Workspace.Id, Map<String, Map<String, 
     MapSerializer(
         WorkspaceIdSerializer,
         MapSerializer(String.serializer(), MapSerializer(String.serializer(), Float.serializer())),
+    )
+
+/**
+ * Values stay [JsonElement], so a decode failure here is near-impossible: a payload this build does
+ * not understand still round-trips, and its owning module decides what to do with it.
+ */
+private val VIEW_PREFS: KSerializer<Map<Workspace.Id, Map<String, JsonElement>>> =
+    MapSerializer(
+        WorkspaceIdSerializer,
+        MapSerializer(String.serializer(), JsonElement.serializer()),
     )
 
 private fun <T> Json.decodeField(root: JsonObject, name: String, serializer: KSerializer<T>, fallback: T): T {
