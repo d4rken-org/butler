@@ -1,0 +1,66 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "50849ef2507af8106097eabfd49894d9",
+    "entities": [
+      {
+        "tableName": "folder_sort_rules",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`pathKey` TEXT NOT NULL, `path` TEXT NOT NULL, `followsDefault` INTEGER NOT NULL, `mode` TEXT, `reversed` INTEGER NOT NULL, `subtree` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, PRIMARY KEY(`pathKey`))",
+        "fields": [
+          {
+            "fieldPath": "pathKey",
+            "columnName": "pathKey",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "path",
+            "columnName": "path",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "followsDefault",
+            "columnName": "followsDefault",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mode",
+            "columnName": "mode",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "reversed",
+            "columnName": "reversed",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "subtree",
+            "columnName": "subtree",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updatedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "pathKey"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '50849ef2507af8106097eabfd49894d9')"
+    ]
+  }
+}

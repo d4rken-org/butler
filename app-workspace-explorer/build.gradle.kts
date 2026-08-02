@@ -9,6 +9,8 @@ plugins {
 
 apply(plugin = "dagger.hilt.android.plugin")
 
+setupRoomSchemas()
+
 android {
     namespace = "${projectConfig.packageName}.explorer"
 
@@ -36,6 +38,12 @@ android {
             setupTestJvm()
         }
     }
+
+    sourceSets {
+        getByName("test") {
+            assets.directories.add("$projectDir/schemas")
+        }
+    }
 }
 
 dependencies {
@@ -56,6 +64,7 @@ dependencies {
     addTesting()
 
     addCoil()
+    addRoomDb()
 
     // Compose UI testing with Robolectric
     testImplementation(platform(libs.androidx.compose.bom))
