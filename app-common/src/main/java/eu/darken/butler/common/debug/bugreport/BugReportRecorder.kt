@@ -64,6 +64,10 @@ class BugReportRecorder @Inject constructor(
     private val upgradeDiagnostics: Set<@JvmSuppressWildcards UpgradeDiagnostics>,
 ) {
 
+    // Test seam: the bounded reads below run on real dispatchers, so a virtual-time test cannot
+    // advance the production bound. Same pattern as BillingCache.cacheTimeoutMs.
+    internal var diagnosticsTimeout = DIAGNOSTICS_TIMEOUT
+
     private val mutex = Mutex()
     private var fileLogger: FileLogger? = null
 
@@ -232,11 +236,15 @@ class BugReportRecorder @Inject constructor(
     private suspend fun logUpgradeDiagnostics() {
         upgradeDiagnostics.forEach { diagnostics ->
             try {
-                val info = withTimeoutOrNull(DIAGNOSTICS_TIMEOUT) { diagnostics.debugInfo() }
-                if (info == null) {
+                val read = withTimeoutOrNull(diagnosticsTimeout) { HeaderRead(diagnostics.debugInfo()) }
+                if (read == null) {
+                    log(TAG, WARN) {
+                        "Upgrade diagnostics unavailable ($diagnostics), read did not finish within $diagnosticsTimeout"
+                    }
+                } else if (read.value == null) {
                     log(TAG) { "No upgrade diagnostics from $diagnostics" }
                 } else {
-                    log(TAG, INFO) { "Upgrade diagnostics: $info" }
+                    log(TAG, INFO) { "Upgrade diagnostics: ${read.value}" }
                 }
             } catch (e: CancellationException) {
                 throw e
@@ -245,6 +253,13 @@ class BugReportRecorder @Inject constructor(
             }
         }
     }
+
+    /**
+     * Completion marker for a diagnostics read: tells a source that legitimately has nothing to
+     * report (no diagnostics on FOSS) apart from one that never answered within the bound. Without
+     * it both arrive as a bare `null` and the log can't say which happened.
+     */
+    private class HeaderRead<T>(val value: T)
 
     private fun isMainProcess(): Boolean {
         val name = currentProcessName() ?: return true // best-effort: assume main if undetermined

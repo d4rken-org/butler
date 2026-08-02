@@ -2,15 +2,21 @@ package eu.darken.butler.upgrade.core
 
 import eu.darken.butler.main.core.CurriculumVitae
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.longs.shouldBeLessThan
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
+import kotlin.system.measureTimeMillis
 
 class UpgradeDiagnosticsGplayTest : BaseTest() {
 
@@ -121,6 +127,35 @@ class UpgradeDiagnosticsGplayTest : BaseTest() {
         info shouldContain "BillingCache=unavailable"
         info shouldNotContain "lastProStateAt=never"
         info shouldContain "ProHistory=${proHistory}"
+    }
+
+    @Test
+    fun `a wedged history is reported as unavailable`() = runTest {
+        // Real dispatchers on purpose: the bound below is a wall-clock timeout, under virtual time
+        // it would fire instantly while nothing else is scheduled and prove nothing.
+        withContext(Dispatchers.IO) {
+            val diagnostics = UpgradeDiagnosticsGplay(
+                billingCache = mockk<BillingCache>().apply {
+                    coEvery { snapshot() } returns BillingCache.Snapshot(
+                        lastProStateAt = 1_700_000_000_000L,
+                        lastProStateSku = OurSku.Iap.PRO_UPGRADE.id,
+                        proUnconfirmedSince = 0L,
+                    )
+                },
+                curriculumVitae = mockk<CurriculumVitae>().apply { coEvery { proHistory() } coAnswers { awaitCancellation() } },
+            ).apply { historyTimeoutMs = 50L }
+
+            lateinit var info: String
+            // Wall-clock watchdog: an unbounded read would hang this test forever instead of failing.
+            val elapsed = measureTimeMillis {
+                withTimeout(10_000) { info = diagnostics.debugInfo() }
+            }
+
+            elapsed shouldBeLessThan 1_000L
+            // The cache read is a separate boundary and must survive the wedged one.
+            info shouldContain "lastProStateSku=${OurSku.Iap.PRO_UPGRADE.id}"
+            info shouldContain "ProHistory=unavailable"
+        }
     }
 
     @Test
