@@ -157,6 +157,7 @@ fun ExplorerWorkspacePage(
     )
     ScrollToTopOnSortChange(
         sortSettings = state.sortSettings,
+        locationId = state.locationId,
         viewStyle = state.viewStyle,
         listState = listState,
         gridState = gridState,
@@ -318,15 +319,23 @@ private fun SyncScrollPositionOnViewStyleChange(
     }
 }
 
-// Auto-scroll to top when sort settings change.
+/**
+ * Auto-scroll to top when the sort changes *at a stable location*.
+ *
+ * The location has to be part of the key: with per-folder rules, entering a folder that sorts
+ * differently changes the sort as a side effect of navigating, and scrolling to top there would
+ * animate away the per-directory scroll position that was just restored.
+ */
 @Composable
 private fun ScrollToTopOnSortChange(
     sortSettings: SortSettings,
+    locationId: String?,
     viewStyle: ExplorerViewStyle,
     listState: LazyListState,
     gridState: LazyGridState,
 ) {
-    OnValueChange(sortSettings) { _, _ ->
+    OnValueChange(locationId to sortSettings) { old, new ->
+        if (old.first != new.first) return@OnValueChange
         when (viewStyle) {
             is ExplorerViewStyle.Grid -> gridState.animateScrollToItem(0)
             is ExplorerViewStyle.List -> listState.animateScrollToItem(0)

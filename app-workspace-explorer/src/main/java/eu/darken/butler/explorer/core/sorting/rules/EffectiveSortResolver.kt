@@ -1,5 +1,6 @@
 package eu.darken.butler.explorer.core.sorting.rules
 
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.explorer.core.SortSettings
 
 /** Which layer a rule came from. The tab layer only wins ties at the same key. */
@@ -13,8 +14,8 @@ enum class SortRuleLayer {
 data class SortRuleCandidate(
     val settings: SortSettings?,
     val subtree: Boolean,
-    /** User-readable path of the folder that owns the rule, for the sheet's notices. */
-    val path: String?,
+    /** Folder that owns the rule, so the sheet's notices can name it. Null when it is unreadable. */
+    val path: APath<*>?,
 )
 
 /**
@@ -31,11 +32,11 @@ data class EffectiveSortResolution(
     val winnerIndex: Int? = null,
     val winnerLayer: SortRuleLayer? = null,
     val winnerSubtree: Boolean = false,
-    val winnerPath: String? = null,
+    val winnerPath: APath<*>? = null,
     /** True when the folder itself carries a "use the default here" marker. */
     val ownsFollowDefault: Boolean = false,
     /** Nearest rule the winner hides, for the "this overrides …" notice. */
-    val suppressedAncestorPath: String? = null,
+    val suppressedAncestorPath: APath<*>? = null,
 )
 
 /**

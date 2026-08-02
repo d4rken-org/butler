@@ -274,6 +274,23 @@
     <string name="explorer_sort_mode_modified_label">Modified date</string>
     <string name="explorer_sort_mode_created_label">Created date</string>
     <string name="explorer_sort_descending_label">Descending order</string>
+    <string name="explorer_sort_scope_label">Apply to</string>
+    <string name="explorer_sort_scope_all_folders">All folders</string>
+    <string name="explorer_sort_scope_this_folder">This folder</string>
+    <string name="explorer_sort_scope_this_folder_and_subfolders">This folder and subfolders</string>
+    <string name="explorer_sort_scope_use_default_here">Use default here</string>
+    <string name="explorer_sort_only_this_tab_label">Only for this tab</string>
+    <string name="explorer_sort_inherited_notice">Sorted by a rule saved for %1$s</string>
+    <string name="explorer_sort_suppressed_notice">This overrides the rule saved for %1$s</string>
+    <string name="explorer_sort_tab_overrides_default_notice">This tab uses its own default sort order</string>
+    <string name="explorer_sort_tab_overrides_clear_action">Clear</string>
+
+    <!-- Folder Sort Rules -->
+    <string name="explorer_settings_folder_sort_rules_title">Folder sort rules</string>
+    <string name="explorer_settings_folder_sort_rules_desc">Sort settings you saved for individual folders</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_title">Clear folder sort rules?</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_message">All folders go back to the default sort order. This cannot be undone.</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_action">Clear all</string>
 
     <!-- Filter Options -->
     <string name="explorer_filter_file_type_label">File type</string>
@@ -488,5 +505,13 @@
     <plurals name="explorer_favorites_removed_multiple_message">
         <item quantity="one">Removed %1$d item from favorites</item>
         <item quantity="other">Removed %1$d items from favorites</item>
+    </plurals>
+    <plurals name="explorer_sort_tab_overrides_notice">
+        <item quantity="one">This tab overrides the sort order in %1$d folder</item>
+        <item quantity="other">This tab overrides the sort order in %1$d folders</item>
+    </plurals>
+    <plurals name="explorer_settings_folder_sort_rules_value">
+        <item quantity="one">%1$d folder</item>
+        <item quantity="other">%1$d folders</item>
     </plurals>
 </resources>

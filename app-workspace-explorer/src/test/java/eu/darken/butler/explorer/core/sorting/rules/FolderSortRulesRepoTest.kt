@@ -144,7 +144,7 @@ class FolderSortRulesRepoTest : BaseTest() {
             ancestorKeys = nested.sortAncestorKeys(),
             tabRules = emptyMap(),
             savedRules = candidates.associate {
-                it.pathKey to SortRuleCandidate(it.settings, it.subtree, it.path.path)
+                it.pathKey to SortRuleCandidate(it.settings, it.subtree, it.path)
             },
             tabDefault = null,
             globalDefault = SortSettings(),

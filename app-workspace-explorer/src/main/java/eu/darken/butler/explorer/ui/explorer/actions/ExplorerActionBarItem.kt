@@ -55,6 +55,7 @@ sealed interface ExplorerActionBarItem : WorkspaceActionBarItem {
         data class Sort(
             override val isEnabled: Boolean = true,
             override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.SECONDARY,
+            override val badge: Boolean = false,
         ) : Common {
             override val icon = Icons.AutoMirrored.TwoTone.Sort
             override val label = R.string.explorer_action_sort.toCaString()

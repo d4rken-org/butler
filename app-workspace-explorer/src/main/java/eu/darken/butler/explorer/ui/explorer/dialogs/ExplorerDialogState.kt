@@ -1,5 +1,6 @@
 package eu.darken.butler.explorer.ui.explorer.dialogs
 
+import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.common.files.archive.CompressionPreset
@@ -30,7 +31,24 @@ sealed interface ExplorerDialogState {
 
     data class Rename(val item: APath<*>) : ExplorerDialogState
 
-    data class EditSortOptions(val currentSortSettings: SortSettings) : ExplorerDialogState
+    /**
+     * [hasTabDefault] is kept apart from [tabRuleCount]: a tab that only carries a default has zero
+     * overridden folders but is still overridden, and must still offer to clear that.
+     */
+    data class EditSortOptions(
+        val currentSortSettings: SortSettings,
+        /** Home, Device and Trash have no path, so scope and the tab checkbox do not apply there. */
+        val isDirectory: Boolean = false,
+        val scope: SortScope = SortScope.ALL_FOLDERS,
+        val onlyThisTab: Boolean = false,
+        val canUseDefaultHere: Boolean = false,
+        /** Folder whose rule is in effect here, when it is not this one. */
+        val inheritedFrom: CaString? = null,
+        /** Nearest rule this folder's own rule or marker hides. */
+        val suppressedAncestor: CaString? = null,
+        val hasTabDefault: Boolean = false,
+        val tabRuleCount: Int = 0,
+    ) : ExplorerDialogState
 
     data class FilterOptions(
         val includePattern: String,

@@ -59,6 +59,11 @@ import eu.darken.butler.explorer.core.favorites.applyFavoritePriority
 import eu.darken.butler.explorer.core.ArchiveCompressionDefaults
 import eu.darken.butler.explorer.core.operations.ExplorerCommand
 import eu.darken.butler.explorer.core.sorting.ExplorerItemSorter
+import eu.darken.butler.explorer.core.sorting.rules.ExplorerTabSortStore
+import eu.darken.butler.explorer.core.sorting.rules.FolderSortRulesRepo
+import eu.darken.butler.explorer.core.sorting.rules.SortRuleLayer
+import eu.darken.butler.explorer.core.sorting.rules.TabSortRule
+import eu.darken.butler.explorer.core.sorting.rules.sortPathKey
 import eu.darken.butler.explorer.ui.explorer.actions.DefaultActionProvider
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionBarItem
 import eu.darken.butler.explorer.ui.explorer.dialogs.CreateItemResult
@@ -69,6 +74,7 @@ import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.*
 import eu.darken.butler.explorer.ui.explorer.dialogs.FilterOptionsResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.RenameResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.SortOptionsResult
+import eu.darken.butler.explorer.ui.explorer.dialogs.SortScope
 import eu.darken.butler.explorer.ui.explorer.dnd.validateDropDestination
 import eu.darken.butler.explorer.ui.explorer.util.ExplorerSelectionState
 import eu.darken.butler.explorer.ui.explorer.util.ItemInfoCalculator
@@ -118,6 +124,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.serialization.PolymorphicSerializer
+import kotlinx.serialization.json.Json
 
 @HiltViewModel(assistedFactory = ExplorerWorkspaceViewModel.Factory::class)
 class ExplorerWorkspaceViewModel @AssistedInject constructor(
@@ -146,6 +154,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val operationFocusRequest: OperationFocusRequest,
     private val folderPreviewResolver: FolderPreviewResolver,
     private val storageEnvironment: StorageEnvironment,
+    private val folderSortRules: FolderSortRulesRepo,
+    private val tabSortStore: ExplorerTabSortStore,
+    private val json: Json,
     chromeFactory: WorkspacePageChrome.Factory,
 ) : ViewModel4(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page")) {
 
@@ -155,10 +166,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     private val doLaunch: (suspend CoroutineScope.() -> Unit) -> Unit = { block -> launch(block = block) }
 
-    private val viewSettings = ExplorerViewSettingsController(
-        explorerSettings = explorerSettings,
-        doLaunch = doLaunch,
-    )
     private val dialogs = ExplorerDialogController(
         filterState = { viewSettings.filterState.value },
         useRegexPatterns = { cachedUseRegexPatterns },
@@ -267,6 +274,19 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val workspaceReadyState: Flow<ExplorerWorkspace.State.Ready?> = workspaceState.map {
         it as? ExplorerWorkspace.State.Ready
     }
+
+    // Declared here rather than beside the other controllers: it consumes workspaceReadyState, so a
+    // property reference from above would read an uninitialized field.
+    private val viewSettings = ExplorerViewSettingsController(
+        explorerSettings = explorerSettings,
+        folderSortRules = folderSortRules,
+        tabSortStore = tabSortStore,
+        json = json,
+        workspaceId = id,
+        currentLocation = workspaceReadyState.map { it?.currentLocation },
+        scope = vmScope,
+        doLaunch = doLaunch,
+    )
 
     // Picker configuration (null for non-picker workspaces)
     private val pickerConfigFlow: Flow<PickerConfig?> = workspaceSource.map { it?.pickerConfig }
@@ -405,16 +425,20 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         workspaceReadyState
             .map { it?.currentLocation?.items }
             .distinctUntilChanged { old, new -> old.hasSameItemsAs(new) },
-        viewSettings.sortSettings,
+        viewSettings.resolvedSort,
         viewSettings.filterState,
         explorerSettings.useRegexPatterns.flow,
         favoritesRepo.favoritePaths,
         workspaceReadyState.map { it?.currentLocation }.distinctUntilChanged { a, b -> a?.locationId == b?.locationId },
         pickerConfigFlow,
-    ) { items, sortSetting, filterState, useRegexPatterns, favoritePaths, location, pickerConfig ->
+    ) { items, resolvedSort, filterState, useRegexPatterns, favoritePaths, location, pickerConfig ->
+        // flatMapLatest does not clear this combine's last sort value, so items are only paired with
+        // a resolution that was computed for the location they came from - otherwise the next
+        // folder's listing would briefly render under the previous folder's sort.
+        if (resolvedSort == null || resolvedSort.locationKey != location?.locationId) return@combineMany null
         items
             ?.let { viewSettings.applyFilters(it, filterState, useRegexPatterns) }
-            ?.let { itemSorter.sortItems(it, sortSetting) }
+            ?.let { itemSorter.sortItems(it, resolvedSort.resolution.settings) }
             ?.let { applyFavoritePriority(it, location, pickerConfig, favoritePaths) }
     }.shareIn(vmScope, SharingStarted.Lazily, replay = 1)
 
@@ -456,7 +480,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     derivedSelectionStateFlow,
                     viewSettings.viewStyle,
                     dialogs.state,
-                    viewSettings.sortSettings,
+                    viewSettings.resolvedSort,
                     upgradeRepo.upgradeInfo,
                     viewSettings.filterState,
                     explorerSettings.useRegexPatterns.flow,
@@ -468,7 +492,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     focus.focusedIndex,
                     favoritesRepo.favorites,
                     favoritesController.feedback,
-                ) { wsStateInner, items, selectionState, viewStyle, dialogState, sortSetting, upgradeInfo, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig, recycleBinEnabled, saveAsFilename, highlightedItemIds, focusedItemIndex, favorites, favoriteFeedback ->
+                ) { wsStateInner, items, selectionState, viewStyle, dialogState, resolvedSort, upgradeInfo, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig, recycleBinEnabled, saveAsFilename, highlightedItemIds, focusedItemIndex, favorites, favoriteFeedback ->
                     val disabledItems = items?.let { pickerHelper.computeDisabledItems(it, pickerConfig) } ?: emptySet()
 
                     val canConfirmSelection = pickerHelper.canConfirmSelection(
@@ -492,18 +516,23 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                         // Filtered here because the Device and Home providers offer it unconditionally.
                         .filter { !selectionState.isSelectionMode || it !is ExplorerActionBarItem.Common.Refresh }
                         .map { action ->
-                            if (action is ExplorerActionBarItem.Common.Filter) {
-                                val hasActiveFilters = filterState.fileTypeFilter != FileTypeFilter.ALL
-                                    || filterState.includePattern.isNotBlank()
-                                    || filterState.excludePattern.isNotBlank()
+                            when (action) {
+                                is ExplorerActionBarItem.Common.Filter -> {
+                                    val hasActiveFilters = filterState.fileTypeFilter != FileTypeFilter.ALL
+                                        || filterState.includePattern.isNotBlank()
+                                        || filterState.excludePattern.isNotBlank()
 
-                                if (hasActiveFilters) {
-                                    action.copy(badge = true)
-                                } else {
-                                    action
+                                    if (hasActiveFilters) action.copy(badge = true) else action
                                 }
-                            } else {
-                                action
+                                // Badged whenever a rule - saved or tab-local - decides this listing
+                                is ExplorerActionBarItem.Common.Sort -> {
+                                    if (resolvedSort?.resolution?.winnerKey != null) {
+                                        action.copy(badge = true)
+                                    } else {
+                                        action
+                                    }
+                                }
+                                else -> action
                             }
                         }
 
@@ -526,7 +555,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                         useRegexPatterns = useRegexPatterns,
                         useBackButtonForNavigation = useBackButtonForNavigation,
                         pickerConfig = pickerConfig,
-                        sortSettings = sortSetting,
+                        sortSettings = resolvedSort?.resolution?.settings ?: SortSettings(),
                         trashEnabled = recycleBinEnabled,
                         fileOpenActionsEnabled = pickerHelper.allowsFileOpenActions(pickerConfig),
                         saveAsFilename = saveAsFilename,
@@ -858,11 +887,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 executeOpenInNewTabs(analysis)
             }
             is ExplorerActionBarItem.Common.Sort -> {
-                dialogs.show(
-                    EditSortOptions(
-                        currentSortSettings = viewSettings.sortSettings.value
-                    )
-                )
+                dialogs.show(buildSortOptionsState(stateSnap))
             }
             is ExplorerActionBarItem.Common.Filter -> {
                 val filterState = viewSettings.filterState.value
@@ -1372,10 +1397,111 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         )
     }
 
+    /**
+     * The sheet opens on the rule this folder owns, if it owns one, so an untouched sheet re-applies
+     * exactly what is already in effect and casual re-sorting never creates a rule.
+     */
+    private fun buildSortOptionsState(stateSnap: State): EditSortOptions {
+        val resolution = viewSettings.resolvedSort.value?.resolution
+        val overrides = viewSettings.tabOverrides.value
+        val ownsRule = resolution?.winnerIndex == 0
+
+        return EditSortOptions(
+            currentSortSettings = stateSnap.sortSettings,
+            isDirectory = stateSnap.currentLocation is ExplorerLocation.Directory,
+            scope = when {
+                !ownsRule -> SortScope.ALL_FOLDERS
+                resolution.ownsFollowDefault -> SortScope.USE_DEFAULT_HERE
+                resolution.winnerSubtree -> SortScope.THIS_FOLDER_AND_SUBFOLDERS
+                else -> SortScope.THIS_FOLDER
+            },
+            onlyThisTab = ownsRule && resolution.winnerLayer == SortRuleLayer.TAB,
+            // Suppressing needs something to suppress: an ancestor rule, or a marker already here
+            canUseDefaultHere = (resolution?.winnerIndex ?: 0) > 0 || resolution?.ownsFollowDefault == true,
+            inheritedFrom = resolution
+                ?.takeIf { (it.winnerIndex ?: 0) > 0 }
+                ?.winnerPath
+                ?.userReadablePath,
+            suppressedAncestor = resolution
+                ?.takeIf { ownsRule }
+                ?.suppressedAncestorPath
+                ?.userReadablePath,
+            hasTabDefault = overrides.default != null,
+            tabRuleCount = overrides.rules.size,
+        )
+    }
+
+    /**
+     * Applies the sheet's choice. Every persistent write clears the same-key tab rule (and, for
+     * "All folders", the tab default too): without that the tab layer keeps winning and Apply would
+     * be a silent no-op. Nothing here ever deletes an *ancestor* rule - "Use default here" is what
+     * suppresses those.
+     */
     fun onSortOptions(result: SortOptionsResult) = launch {
         log(tag) { "onSortOptions($result)" }
         dialogs.dismiss()
-        viewSettings.applySortSettings(result.sortSettings)
+
+        val path = (getState().currentLocation as? ExplorerLocation.Directory)?.path
+        if (path == null) {
+            // Home, Device and Trash have no path to hang a rule on: write the global default and
+            // drop the tab default, which would otherwise keep overriding it.
+            tabSortStore.update(id) { it.copy(default = null) }
+            explorerSettings.sortSettings.value(result.sortSettings)
+            return@launch
+        }
+
+        val key = path.sortPathKey()
+        val serializedPath = json.encodeToString(PolymorphicSerializer(APath::class), path)
+
+        when (result.scope) {
+            SortScope.ALL_FOLDERS -> if (result.onlyThisTab) {
+                tabSortStore.update(id) { it.copy(default = result.sortSettings, rules = it.rules - key) }
+            } else {
+                folderSortRules.clear(path)
+                tabSortStore.update(id) { it.copy(default = null, rules = it.rules - key) }
+                explorerSettings.sortSettings.value(result.sortSettings)
+            }
+
+            SortScope.THIS_FOLDER,
+            SortScope.THIS_FOLDER_AND_SUBFOLDERS -> {
+                val subtree = result.scope == SortScope.THIS_FOLDER_AND_SUBFOLDERS
+                if (result.onlyThisTab) {
+                    tabSortStore.update(id) {
+                        it.copy(
+                            rules = it.rules + (
+                                key to TabSortRule(
+                                    settings = result.sortSettings,
+                                    subtree = subtree,
+                                    path = serializedPath,
+                                )
+                                ),
+                        )
+                    }
+                } else {
+                    folderSortRules.set(path, result.sortSettings, subtree = subtree)
+                    tabSortStore.update(id) { it.copy(rules = it.rules - key) }
+                }
+            }
+
+            SortScope.USE_DEFAULT_HERE -> if (result.onlyThisTab) {
+                tabSortStore.update(id) {
+                    it.copy(
+                        rules = it.rules + (
+                            key to TabSortRule(settings = null, subtree = false, path = serializedPath)
+                            ),
+                    )
+                }
+            } else {
+                folderSortRules.setFollowsDefault(path)
+                tabSortStore.update(id) { it.copy(rules = it.rules - key) }
+            }
+        }
+    }
+
+    fun clearTabSortOverrides() = launch {
+        log(tag) { "clearTabSortOverrides()" }
+        dialogs.dismiss()
+        tabSortStore.clear(id)
     }
 
     fun onFilterOptions(result: FilterOptionsResult) = launch {

@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.twotone.ArrowBack
+import androidx.compose.material.icons.automirrored.twotone.Sort
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.DeleteSweep
 import androidx.compose.material.icons.twotone.FilterList
@@ -24,6 +25,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import eu.darken.butler.common.error.ErrorEventHandler
@@ -47,10 +49,12 @@ fun ExplorerSettingsScreen(
     onToggleTrash: (Boolean) -> Unit,
     onAutoDeleteDaysChanged: (Int) -> Unit,
     onMaxSizeChanged: (Long) -> Unit,
+    onClearFolderSortRules: () -> Unit,
 ) {
     var showEnableTrashDialog by remember { mutableStateOf(false) }
     var showAutoDeleteDialog by remember { mutableStateOf(false) }
     var showMaxSizeDialog by remember { mutableStateOf(false) }
+    var showClearFolderSortRulesDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -101,6 +105,22 @@ fun ExplorerSettingsScreen(
                     checked = state.useRegexPatterns,
                     onCheckedChange = onToggleRegexPatterns,
                 )
+            }
+
+            if (state.folderSortRuleCount > 0) {
+                item {
+                    SettingsPreferenceItem(
+                        icon = Icons.AutoMirrored.TwoTone.Sort,
+                        title = stringResource(R.string.explorer_settings_folder_sort_rules_title),
+                        subtitle = stringResource(R.string.explorer_settings_folder_sort_rules_desc),
+                        value = pluralStringResource(
+                            R.plurals.explorer_settings_folder_sort_rules_value,
+                            state.folderSortRuleCount,
+                            state.folderSortRuleCount,
+                        ),
+                        onClick = { showClearFolderSortRulesDialog = true },
+                    )
+                }
             }
 
             item {
@@ -158,6 +178,33 @@ fun ExplorerSettingsScreen(
                 }
             }
         }
+    }
+
+    if (showClearFolderSortRulesDialog) {
+        AlertDialog(
+            onDismissRequest = { showClearFolderSortRulesDialog = false },
+            title = {
+                Text(text = stringResource(R.string.explorer_settings_folder_sort_rules_clear_confirm_title))
+            },
+            text = {
+                Text(text = stringResource(R.string.explorer_settings_folder_sort_rules_clear_confirm_message))
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onClearFolderSortRules()
+                        showClearFolderSortRulesDialog = false
+                    }
+                ) {
+                    Text(text = stringResource(R.string.explorer_settings_folder_sort_rules_clear_confirm_action))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showClearFolderSortRulesDialog = false }) {
+                    Text(text = stringResource(eu.darken.butler.common.R.string.general_cancel_action))
+                }
+            }
+        )
     }
 
     if (showEnableTrashDialog) {
@@ -237,6 +284,7 @@ fun ExplorerSettingsScreenHost(vm: ExplorerSettingsViewModel = hiltViewModel()) 
             onToggleTrash = { vm.toggleTrash(it) },
             onAutoDeleteDaysChanged = { vm.setTrashAutoDeleteDays(it) },
             onMaxSizeChanged = { vm.setTrashMaxSizeMB(it) },
+            onClearFolderSortRules = { vm.clearFolderSortRules() },
         )
     }
 }

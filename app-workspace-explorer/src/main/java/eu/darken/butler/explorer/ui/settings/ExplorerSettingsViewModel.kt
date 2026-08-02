@@ -10,6 +10,7 @@ import eu.darken.butler.common.trash.TrashSettings
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.explorer.core.ExplorerSettings
 import eu.darken.butler.explorer.core.SortSettings
+import eu.darken.butler.explorer.core.sorting.rules.FolderSortRulesRepo
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.days
 
@@ -18,6 +19,7 @@ class ExplorerSettingsViewModel @Inject constructor(
     dispatcherProvider: DispatcherProvider,
     private val explorerSettings: ExplorerSettings,
     private val trashSettings: TrashSettings,
+    private val folderSortRules: FolderSortRulesRepo,
 ) : ViewModel4(dispatcherProvider, logTag("Explorer", "Settings", "Screen", "VM")) {
 
     val state = combine(
@@ -27,9 +29,11 @@ class ExplorerSettingsViewModel @Inject constructor(
         trashSettings.enabled.flow,
         trashSettings.expiresAfter.flow,
         trashSettings.maxTrashSize.flow,
-    ) { sortSettings, useRegexPatterns, useBackButtonForNavigation, recycleBinEnabled, expiresAfter, maxSize ->
+        folderSortRules.count,
+    ) { sortSettings, useRegexPatterns, useBackButtonForNavigation, recycleBinEnabled, expiresAfter, maxSize, folderSortRuleCount ->
         State(
             sortSettings = sortSettings,
+            folderSortRuleCount = folderSortRuleCount,
             useRegexPatterns = useRegexPatterns,
             useBackButtonForNavigation = useBackButtonForNavigation,
             trashEnabled = recycleBinEnabled,
@@ -61,6 +65,11 @@ class ExplorerSettingsViewModel @Inject constructor(
         trashSettings.maxTrashSize.value(sizeMB * 1048576L)
     }
 
+    fun clearFolderSortRules() = launch {
+        log(tag) { "clearFolderSortRules()" }
+        folderSortRules.clearAll()
+    }
+
     data class State(
         val sortSettings: SortSettings,
         val useRegexPatterns: Boolean,
@@ -68,5 +77,6 @@ class ExplorerSettingsViewModel @Inject constructor(
         val trashEnabled: Boolean = true,
         val trashAutoDeleteDays: Int = 30,
         val trashMaxSizeMB: Long = 500L,
+        val folderSortRuleCount: Int = 0,
     )
 }

@@ -1,5 +1,7 @@
 package eu.darken.butler.explorer.core.sorting.rules
 
+import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.explorer.core.SortSettings
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
@@ -18,7 +20,7 @@ class EffectiveSortResolverTest : BaseTest() {
     private fun rule(
         settings: SortSettings?,
         subtree: Boolean = false,
-        path: String? = null,
+        path: APath<*>? = null,
     ) = SortRuleCandidate(settings = settings, subtree = subtree, path = path)
 
     private fun resolve(
@@ -64,12 +66,12 @@ class EffectiveSortResolverTest : BaseTest() {
 
     @Test
     fun `a subtree ancestor rule reaches down`() {
-        val result = resolve(savedRules = mapOf(keys[1] to rule(bySize, subtree = true, path = "/a/b")))
+        val result = resolve(savedRules = mapOf(keys[1] to rule(bySize, subtree = true, path = LocalPath.build("/a/b"))))
 
         result.settings shouldBe bySize
         result.winnerIndex shouldBe 1
         result.winnerSubtree shouldBe true
-        result.winnerPath shouldBe "/a/b"
+        result.winnerPath shouldBe LocalPath.build("/a/b")
     }
 
     @Test
@@ -131,14 +133,14 @@ class EffectiveSortResolverTest : BaseTest() {
         val result = resolve(
             savedRules = mapOf(
                 keys[0] to rule(null),
-                keys[1] to rule(bySize, subtree = true, path = "/a/b"),
+                keys[1] to rule(bySize, subtree = true, path = LocalPath.build("/a/b")),
             ),
             tabDefault = tabDefault,
         )
 
         result.settings shouldBe tabDefault
         result.ownsFollowDefault shouldBe true
-        result.suppressedAncestorPath shouldBe "/a/b"
+        result.suppressedAncestorPath shouldBe LocalPath.build("/a/b")
     }
 
     @Test
@@ -180,14 +182,14 @@ class EffectiveSortResolverTest : BaseTest() {
     fun `the suppressed ancestor is the nearest rule the winner hides`() {
         val result = resolve(
             savedRules = mapOf(
-                keys[0] to rule(bySize, path = "/a/b/c"),
-                keys[1] to rule(byModified, subtree = true, path = "/a/b"),
-                keys[2] to rule(byModified, subtree = true, path = "/a"),
+                keys[0] to rule(bySize, path = LocalPath.build("/a/b/c")),
+                keys[1] to rule(byModified, subtree = true, path = LocalPath.build("/a/b")),
+                keys[2] to rule(byModified, subtree = true, path = LocalPath.build("/a")),
             )
         )
 
-        result.winnerPath shouldBe "/a/b/c"
-        result.suppressedAncestorPath shouldBe "/a/b"
+        result.winnerPath shouldBe LocalPath.build("/a/b/c")
+        result.suppressedAncestorPath shouldBe LocalPath.build("/a/b")
     }
 
     @Test
@@ -195,7 +197,7 @@ class EffectiveSortResolverTest : BaseTest() {
         val result = resolve(
             savedRules = mapOf(
                 keys[0] to rule(bySize),
-                keys[1] to rule(byModified, subtree = false, path = "/a/b"),
+                keys[1] to rule(byModified, subtree = false, path = LocalPath.build("/a/b")),
             )
         )
 

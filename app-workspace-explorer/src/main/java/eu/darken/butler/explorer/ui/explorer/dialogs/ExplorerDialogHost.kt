@@ -64,10 +64,13 @@ fun ExplorerDialogHost(
         }
 
         is ExplorerDialogState.EditSortOptions -> {
-            SortOptionsDialog(
-                currentSortSettings = dialogState.currentSortSettings,
+            SortOptionsSheet(
+                state = dialogState,
                 onDismiss = { vm?.dismissDialog() },
-                onConfirm = { result -> vm?.onSortOptions(result) }
+                onConfirm = { result -> vm?.onSortOptions(result) },
+                onClearTabOverrides = { vm?.clearTabSortOverrides() },
+                topInset = topInset,
+                bottomInset = bottomInset,
             )
         }
 
