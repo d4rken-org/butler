@@ -41,8 +41,11 @@ internal fun ExplorerGridContent(
     contentPadding: PaddingValues,
     dragPayloadFactory: ((ExplorerItem) -> WorkspaceDragPayload?)? = null,
 ) {
+    // Skeletons must never attach to the persisted scroll state: restore readiness would fire
+    // against placeholder content and the recorder would persist the resulting clamp.
+    val skeletonGridState = rememberLazyGridState()
     LazyVerticalGrid(
-        state = gridState,
+        state = if (state.items == null) skeletonGridState else gridState,
         columns = GridCells.Adaptive(minSize = 120.dp),
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(2.dp),

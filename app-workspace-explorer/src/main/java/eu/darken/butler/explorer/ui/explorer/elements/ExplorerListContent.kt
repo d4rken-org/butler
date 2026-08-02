@@ -39,8 +39,11 @@ internal fun ExplorerListContent(
     contentPadding: PaddingValues,
     dragPayloadFactory: ((ExplorerItem) -> WorkspaceDragPayload?)? = null,
 ) {
+    // Skeletons must never attach to the persisted scroll state: restore readiness would fire
+    // against placeholder content and the recorder would persist the resulting clamp.
+    val skeletonListState = rememberLazyListState()
     LazyColumn(
-        state = listState,
+        state = if (state.items == null) skeletonListState else listState,
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(4.dp),
         contentPadding = contentPadding,
