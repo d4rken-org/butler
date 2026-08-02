@@ -63,6 +63,9 @@ class FossUpgradeViewModelTest : BaseTest() {
         info: MutableStateFlow<UpgradeRepoFoss.Info> = MutableStateFlow(UpgradeRepoFoss.Info()),
     ): UpgradeRepoFoss = mockk<UpgradeRepoFoss>(relaxed = true).apply {
         every { upgradeInfo } returns info
+        // Explicit: a relaxed mock would answer the launch with `false`, which now means "no page
+        // opened" and would leave every armed-path test unarmed.
+        every { openGithubSponsorsPage() } returns true
     }
 
     private fun buildVm(
@@ -215,6 +218,29 @@ class FossUpgradeViewModelTest : BaseTest() {
     }
 
     @Test
+    fun `a sponsor page that never opened arms nothing and a later retry still works`() = runTest2(
+        context = testDispatcher,
+    ) {
+        // A silently failed launch must not leave the heuristic armed: an unrelated later
+        // background round-trip would otherwise hand out supporter status for free.
+        val repo = mockRepo()
+        every { repo.openGithubSponsorsPage() } returns false
+        val vm = buildVm(repo = repo, manage = false)
+
+        vm.openSponsor()
+        advanceUntilIdle()
+
+        vm.hasPendingSponsorLaunch() shouldBe false
+
+        // And the failure must not brick the button either — the next working attempt arms as usual.
+        every { repo.openGithubSponsorsPage() } returns true
+        vm.openSponsor()
+        advanceUntilIdle()
+
+        vm.hasPendingSponsorLaunch() shouldBe true
+    }
+
+    @Test
     fun `a too-quick sponsor return only nudges, it does not upgrade`() = runTest2(context = testDispatcher) {
         val repo = mockRepo()
         val vm = buildVm(repo = repo, manage = false)
@@ -262,6 +288,8 @@ class FossUpgradeViewModelTest : BaseTest() {
         vm.checkSponsorReturn()
         advanceUntilIdle()
 
+        // Unarmed, not inert: the button still has to take the supporter to the sponsor page.
+        verify(exactly = 1) { repo.openGithubSponsorsPage() }
         coVerify(exactly = 0) { repo.persistUpgrade() }
     }
 

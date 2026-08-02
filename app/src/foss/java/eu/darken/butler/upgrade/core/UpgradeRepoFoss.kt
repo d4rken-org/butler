@@ -43,9 +43,11 @@ class UpgradeRepoFoss @Inject constructor(
     }
         .setupCommonEventHandlers(TAG) { "upgradeInfo" }
 
-    fun openGithubSponsorsPage() {
+    // Synchronous so the caller learns whether the page actually opened: the FOSS unlock heuristic
+    // only arms on a successful launch, and a fire-and-forget coroutine can't report that back.
+    fun openGithubSponsorsPage(): Boolean {
         log(TAG) { "openGithubSponsorsPage()" }
-        webpageTool.open(upgradeSite)
+        return webpageTool.open(upgradeSite)
     }
 
     suspend fun persistUpgrade() {

@@ -39,6 +39,9 @@ class FossUpgradeScreenHostTest : BaseTest() {
 
     private fun mockRepo(): UpgradeRepoFoss = mockk<UpgradeRepoFoss>(relaxed = true).apply {
         every { upgradeInfo } returns MutableStateFlow(UpgradeRepoFoss.Info())
+        // Explicit: a relaxed mock would answer the launch with `false`, which now means "no page
+        // opened" and would leave every armed-path test unarmed.
+        every { openGithubSponsorsPage() } returns true
         coEvery { persistUpgrade() } answers { persisted++ }
     }
 

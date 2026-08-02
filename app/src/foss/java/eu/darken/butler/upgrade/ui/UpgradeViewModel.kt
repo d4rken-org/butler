@@ -87,8 +87,13 @@ class UpgradeViewModel @AssistedInject constructor(
             log(tag) { "A sponsor launch is already awaiting its return" }
             return
         }
+        // Only arm the heuristic if the page actually opened; otherwise an unrelated later
+        // background/foreground round-trip would grant supporter status with no page ever shown.
+        if (!upgradeRepo.openGithubSponsorsPage()) {
+            log(tag) { "Sponsor page didn't open; not arming the unlock heuristic" }
+            return
+        }
         savedStateHandle[KEY_SPONSOR_PRESSED_AT] = SystemClock.elapsedRealtime()
-        upgradeRepo.openGithubSponsorsPage()
     }
 
     // The recurring-donation action shown to existing supporters: opens the sponsor page WITHOUT
