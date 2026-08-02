@@ -34,7 +34,6 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.explorer.core.ExplorerViewStyle
-import eu.darken.butler.explorer.core.SortSettings
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel.RevealRequest
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionBarItem
@@ -156,8 +155,7 @@ fun ExplorerWorkspacePage(
         gridState = gridState,
     )
     ScrollToTopOnSortChange(
-        sortSettings = state.sortSettings,
-        locationId = state.locationId,
+        resolvedSort = state.resolvedSort,
         viewStyle = state.viewStyle,
         listState = listState,
         gridState = gridState,
@@ -322,20 +320,22 @@ private fun SyncScrollPositionOnViewStyleChange(
 /**
  * Auto-scroll to top when the sort changes *at a stable location*.
  *
- * The location has to be part of the key: with per-folder rules, entering a folder that sorts
- * differently changes the sort as a side effect of navigating, and scrolling to top there would
- * animate away the per-directory scroll position that was just restored.
+ * Only two resolved sorts for the same location may trigger this: with per-folder rules, entering a
+ * folder that sorts differently changes the sort as a side effect of navigating, and scrolling to
+ * top there would animate away the per-directory scroll position that was just restored. An
+ * unresolved (null) sort is likewise not a sort change - it is the gap while the rules are loaded.
  */
 @Composable
 private fun ScrollToTopOnSortChange(
-    sortSettings: SortSettings,
-    locationId: String?,
+    resolvedSort: ExplorerViewSettingsController.ResolvedSort?,
     viewStyle: ExplorerViewStyle,
     listState: LazyListState,
     gridState: LazyGridState,
 ) {
-    OnValueChange(locationId to sortSettings) { old, new ->
-        if (old.first != new.first) return@OnValueChange
+    OnValueChange(resolvedSort) { old, new ->
+        if (old == null || new == null) return@OnValueChange
+        if (old.locationKey != new.locationKey) return@OnValueChange
+        if (old.resolution.settings == new.resolution.settings) return@OnValueChange
         when (viewStyle) {
             is ExplorerViewStyle.Grid -> gridState.animateScrollToItem(0)
             is ExplorerViewStyle.List -> listState.animateScrollToItem(0)

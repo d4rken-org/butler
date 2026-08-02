@@ -289,7 +289,7 @@
     <string name="explorer_settings_folder_sort_rules_title">Folder sort rules</string>
     <string name="explorer_settings_folder_sort_rules_desc">Sort settings you saved for individual folders</string>
     <string name="explorer_settings_folder_sort_rules_clear_confirm_title">Clear folder sort rules?</string>
-    <string name="explorer_settings_folder_sort_rules_clear_confirm_message">All folders go back to the default sort order. This cannot be undone.</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_message">All folders go back to the default sort order. Tabs with their own sort override keep it. This cannot be undone.</string>
     <string name="explorer_settings_folder_sort_rules_clear_confirm_action">Clear all</string>
 
     <!-- Filter Options -->

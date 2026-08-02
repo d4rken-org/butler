@@ -377,6 +377,12 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val useRegexPatterns: Boolean = false,
         val useBackButtonForNavigation: Boolean = false,
         val pickerConfig: PickerConfig? = null,
+        /**
+         * The resolution that belongs to [locationId], or null while the new location's rules are
+         * still being looked up. Everything sort-related is derived from this, so the UI can never
+         * pair one folder with another folder's rule.
+         */
+        val resolvedSort: ExplorerViewSettingsController.ResolvedSort? = null,
         val sortSettings: SortSettings = SortSettings(),
         val trashEnabled: Boolean = false,
         val fileOpenActionsEnabled: Boolean = true,
@@ -495,6 +501,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 ) { wsStateInner, items, selectionState, viewStyle, dialogState, resolvedSort, upgradeInfo, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig, recycleBinEnabled, saveAsFilename, highlightedItemIds, focusedItemIndex, favorites, favoriteFeedback ->
                     val disabledItems = items?.let { pickerHelper.computeDisabledItems(it, pickerConfig) } ?: emptySet()
 
+                    // flatMapLatest does not clear this combine's last sort value: until the new
+                    // location's rules resolve, the retained one belongs to the previous folder.
+                    val matchedSort = resolvedSort
+                        ?.takeIf { it.locationKey == wsStateInner.currentLocation?.locationId }
+
                     val canConfirmSelection = pickerHelper.canConfirmSelection(
                         config = pickerConfig,
                         currentLocation = wsStateInner.currentLocation,
@@ -524,14 +535,12 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
                                     if (hasActiveFilters) action.copy(badge = true) else action
                                 }
-                                // Badged whenever a rule - saved or tab-local - decides this listing
-                                is ExplorerActionBarItem.Common.Sort -> {
-                                    if (resolvedSort?.resolution?.winnerKey != null) {
-                                        action.copy(badge = true)
-                                    } else {
-                                        action
-                                    }
-                                }
+                                // Badged whenever a rule - saved or tab-local - decides this listing,
+                                // and disabled until this location's own rules have resolved.
+                                is ExplorerActionBarItem.Common.Sort -> action.copy(
+                                    isEnabled = action.isEnabled && matchedSort != null,
+                                    badge = matchedSort?.resolution?.winnerKey != null,
+                                )
                                 else -> action
                             }
                         }
@@ -555,7 +564,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                         useRegexPatterns = useRegexPatterns,
                         useBackButtonForNavigation = useBackButtonForNavigation,
                         pickerConfig = pickerConfig,
-                        sortSettings = resolvedSort?.resolution?.settings ?: SortSettings(),
+                        resolvedSort = matchedSort,
+                        sortSettings = matchedSort?.resolution?.settings ?: SortSettings(),
                         trashEnabled = recycleBinEnabled,
                         fileOpenActionsEnabled = pickerHelper.allowsFileOpenActions(pickerConfig),
                         saveAsFilename = saveAsFilename,
@@ -887,7 +897,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 executeOpenInNewTabs(analysis)
             }
             is ExplorerActionBarItem.Common.Sort -> {
-                dialogs.show(buildSortOptionsState(stateSnap))
+                // No sheet while the location's rules are still resolving: it would edit stale ones
+                buildSortOptionsState(stateSnap)?.let { dialogs.show(it) }
             }
             is ExplorerActionBarItem.Common.Filter -> {
                 val filterState = viewSettings.filterState.value
@@ -1400,11 +1411,14 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     /**
      * The sheet opens on the rule this folder owns, if it owns one, so an untouched sheet re-applies
      * exactly what is already in effect and casual re-sorting never creates a rule.
+     *
+     * Built from the location-matched resolution, so a sheet opened mid-navigation can never show
+     * the previous folder's rule; null while this location's rules are still resolving.
      */
-    private fun buildSortOptionsState(stateSnap: State): EditSortOptions {
-        val resolution = viewSettings.resolvedSort.value?.resolution
+    private fun buildSortOptionsState(stateSnap: State): EditSortOptions? {
+        val resolution = stateSnap.resolvedSort?.resolution ?: return null
         val overrides = viewSettings.tabOverrides.value
-        val ownsRule = resolution?.winnerIndex == 0
+        val ownsRule = resolution.winnerIndex == 0
 
         return EditSortOptions(
             currentSortSettings = stateSnap.sortSettings,
@@ -1417,13 +1431,13 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             },
             onlyThisTab = ownsRule && resolution.winnerLayer == SortRuleLayer.TAB,
             // Suppressing needs something to suppress: an ancestor rule, or a marker already here
-            canUseDefaultHere = (resolution?.winnerIndex ?: 0) > 0 || resolution?.ownsFollowDefault == true,
+            canUseDefaultHere = (resolution.winnerIndex ?: 0) > 0 || resolution.ownsFollowDefault,
             inheritedFrom = resolution
-                ?.takeIf { (it.winnerIndex ?: 0) > 0 }
+                .takeIf { (it.winnerIndex ?: 0) > 0 }
                 ?.winnerPath
                 ?.userReadablePath,
             suppressedAncestor = resolution
-                ?.takeIf { ownsRule }
+                .takeIf { ownsRule }
                 ?.suppressedAncestorPath
                 ?.userReadablePath,
             hasTabDefault = overrides.default != null,

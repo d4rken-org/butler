@@ -22,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -83,6 +84,8 @@ private fun SortOptionsContent(
     var isReversed by remember { mutableStateOf(state.currentSortSettings.reversed) }
     var selectedScope by remember { mutableStateOf(state.scope) }
     var onlyThisTab by remember { mutableStateOf(state.onlyThisTab) }
+    // "Use default here" saves a marker, not settings: mode and direction would be discarded
+    val sortSettingsEnabled = selectedScope != SortScope.USE_DEFAULT_HERE
 
     Column(
         modifier = Modifier
@@ -99,6 +102,7 @@ private fun SortOptionsContent(
         Text(
             text = stringResource(R.string.explorer_sort_mode_label),
             style = MaterialTheme.typography.titleSmall,
+            color = labelColor(sortSettingsEnabled),
         )
 
         Column(modifier = Modifier.selectableGroup()) {
@@ -107,6 +111,7 @@ private fun SortOptionsContent(
                     label = stringResource(sortModeLabel(mode)),
                     selected = selectedMode == mode,
                     onClick = { selectedMode = mode },
+                    enabled = sortSettingsEnabled,
                 )
             }
         }
@@ -118,11 +123,13 @@ private fun SortOptionsContent(
             Text(
                 text = stringResource(R.string.explorer_sort_descending_label),
                 style = MaterialTheme.typography.bodyMedium,
+                color = labelColor(sortSettingsEnabled),
                 modifier = Modifier.weight(1f),
             )
             Switch(
                 checked = isReversed,
                 onCheckedChange = { isReversed = it },
+                enabled = sortSettingsEnabled,
             )
         }
 
@@ -228,22 +235,29 @@ private fun OptionRow(
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .selectable(selected = selected, onClick = onClick, role = Role.RadioButton)
+            .selectable(selected = selected, enabled = enabled, onClick = onClick, role = Role.RadioButton)
             .padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        RadioButton(selected = selected, onClick = null)
+        RadioButton(selected = selected, onClick = null, enabled = enabled)
         Text(
             text = label,
             style = MaterialTheme.typography.bodyMedium,
+            color = labelColor(enabled),
             modifier = Modifier.padding(start = 8.dp),
         )
     }
 }
+
+/** Material 3 disabled content: the same label color at 38% opacity. */
+@Composable
+private fun labelColor(enabled: Boolean): Color =
+    if (enabled) Color.Unspecified else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
 
 @Composable
 private fun Notice(
@@ -339,6 +353,7 @@ private fun SortOptionsSheetInheritsPreview() {
     )
 }
 
+/** The marker scope saves no settings, so mode and direction render disabled. */
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
