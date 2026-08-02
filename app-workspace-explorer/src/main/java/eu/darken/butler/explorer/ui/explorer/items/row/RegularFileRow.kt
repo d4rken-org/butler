@@ -1,6 +1,7 @@
 package eu.darken.butler.explorer.ui.explorer.items.row
 
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -12,7 +13,7 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.TintedAsyncImage
 import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
-import eu.darken.butler.common.formatDate
+import eu.darken.butler.common.formatDateCompact
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.common.isProblematicInvisible
 import eu.darken.butler.explorer.R
@@ -56,21 +57,12 @@ internal fun RegularFileRow(
         },
         primaryText = primaryText,
         hasProblematicChars = hasProblematicChars,
-        secondaryText = buildString {
-            append(item.lookup.size?.let { formatFileSize(it) } ?: "?")
-            append(" • ")
-            append(item.lookup.modifiedAt?.let { formatDate(it) } ?: "?")
-            item.permissions?.let { perms ->
-                append(" • ")
-                append(perms.toReadableString())
-            }
-            item.ownership?.let { owner ->
-                append(" • ")
-                append(owner.userName ?: owner.userId)
-                append(" | ")
-                append(owner.groupName ?: owner.groupId)
-            }
-        }
+        secondaryText = listOfNotNull(
+            item.lookup.size?.let { formatFileSize(it) } ?: "?",
+            item.permissions?.toReadableString(),
+            item.ownership?.let { "${it.userName ?: it.userId} | ${it.groupName ?: it.groupId}" },
+        ).joinToString(" • ").takeIf { it.isNotEmpty() },
+        secondaryEndText = item.lookup.modifiedAt?.let { formatDateCompact(it) },
     )
 }
 
@@ -80,6 +72,23 @@ internal fun RegularFileRow(
 private fun RegularFileRowPreview() {
     RegularFileRow(
         item = MockDataProvider.createMockRegularFile(),
+        isSelected = false,
+        onToggleSelection = {},
+        onClick = {},
+        showSelection = false
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun RegularFileRowNarrowPreview() {
+    RegularFileRow(
+        modifier = Modifier.width(220.dp),
+        item = MockDataProvider.createMockRegularFile(
+            name = "quarterly_report_final.pdf",
+            modifiedAt = MockDataProvider.MockTimes.hoursAgo(3),
+        ),
         isSelected = false,
         onToggleSelection = {},
         onClick = {},

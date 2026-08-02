@@ -17,6 +17,7 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.TintedAsyncImage
 import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
+import eu.darken.butler.common.formatDateCompact
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
@@ -56,6 +57,7 @@ internal fun RegularFileGrid(
         },
         primaryText = item.displayName.get(LocalContext.current),
         secondaryText = item.lookup.size?.let { formatFileSize(it) } ?: "?",
+        tertiaryText = item.lookup.modifiedAt?.let { formatDateCompact(it) },
         previewContent = {
             TintedAsyncImage(
                 model = item.lookup,

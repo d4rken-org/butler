@@ -14,7 +14,7 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
-import eu.darken.butler.common.formatDate
+import eu.darken.butler.common.formatDateCompact
 import eu.darken.butler.common.isProblematicInvisible
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
@@ -61,17 +61,11 @@ internal fun SymlinkFileRow(
         },
         primaryText = primaryText,
         hasProblematicChars = hasProblematicChars,
-        secondaryText = buildString {
-            item.targetPath?.let {
-                append("→ $it")
-                append(" • ")
-            }
-            if (item.isBroken) {
-                append(stringResource(R.string.explorer_file_broken_link_label))
-            } else {
-                append(item.lookup.modifiedAt?.let { formatDate(it) } ?: "?")
-            }
-        }
+        secondaryText = listOfNotNull(
+            item.targetPath?.let { "→ $it" },
+            stringResource(R.string.explorer_file_broken_link_label).takeIf { item.isBroken },
+        ).joinToString(" • ").takeIf { it.isNotEmpty() },
+        secondaryEndText = item.lookup.modifiedAt?.let { formatDateCompact(it) },
     )
 }
 

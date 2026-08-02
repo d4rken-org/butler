@@ -12,7 +12,7 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.TintedAsyncImage
 import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
-import eu.darken.butler.common.formatDate
+import eu.darken.butler.common.formatDateCompact
 import eu.darken.butler.common.isProblematicInvisible
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
@@ -55,28 +55,16 @@ internal fun DirectoryRow(
         },
         primaryText = primaryText,
         hasProblematicChars = hasProblematicChars,
-        secondaryText = buildString {
+        secondaryText = listOfNotNull(
             when (val count = item.childCount) {
-                0 -> {
-                    append(stringResource(R.string.explorer_file_empty))
-                    append(" • ")
-                }
-                null -> {}
-                else -> {
-                    append(stringResource(R.string.explorer_file_items_count, count))
-                    append(" • ")
-                }
-            }
-            append(item.lookup.modifiedAt?.let { formatDate(it) } ?: "?")
-            item.permissions?.let { perms ->
-                append(" • ")
-                append(perms.toReadableString())
-            }
-            item.ownership?.let { owner ->
-                append(" • ")
-                append(owner.userName ?: owner.userId)
-            }
-        }
+                0 -> stringResource(R.string.explorer_file_empty)
+                null -> null
+                else -> stringResource(R.string.explorer_file_items_count, count)
+            },
+            item.permissions?.toReadableString(),
+            item.ownership?.let { it.userName ?: it.userId.toString() },
+        ).joinToString(" • ").takeIf { it.isNotEmpty() },
+        secondaryEndText = item.lookup.modifiedAt?.let { formatDateCompact(it) },
     )
 }
 

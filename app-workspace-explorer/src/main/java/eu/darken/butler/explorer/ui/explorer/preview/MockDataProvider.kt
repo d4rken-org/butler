@@ -111,9 +111,12 @@ object MockDataProvider {
         )
     }
 
-    fun createMockRegularFile(name: String = "readme.txt"): ExplorerItem.RegularFile {
+    fun createMockRegularFile(
+        name: String = "readme.txt",
+        modifiedAt: Instant = Instant.parse("2023-10-15T10:30:00Z"),
+    ): ExplorerItem.RegularFile {
         return ExplorerItem.RegularFile(
-            lookup = createMockLookup(name, "/home/user/$name", 4_096L),
+            lookup = createMockLookup(name, "/home/user/$name", 4_096L, modifiedAt = modifiedAt),
             mimeType = MimeInfo("text/plain"),
         ).withExtendedData(
             ownership = Ownership(

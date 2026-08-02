@@ -86,6 +86,7 @@ internal fun FileRowBase(
     leadingContent: @Composable () -> Unit,
     primaryText: String,
     secondaryText: String? = null,
+    secondaryEndText: String? = null,
     tertiaryText: String? = null,
     trailingContent: (@Composable () -> Unit)? = null,
     hasProblematicChars: Boolean = false,
@@ -166,14 +167,30 @@ internal fun FileRowBase(
                 overflow = TextOverflow.Ellipsis
             )
 
-            secondaryText?.let { text ->
-                Text(
-                    text = text,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+            if (secondaryText != null || secondaryEndText != null) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = secondaryText.orEmpty(),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
+                    )
+
+                    if (secondaryEndText != null) {
+                        if (!secondaryText.isNullOrBlank()) {
+                            Spacer(modifier = Modifier.width(8.dp))
+                        }
+                        Text(
+                            text = secondaryEndText,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
             }
 
             tertiaryText?.let { text ->
