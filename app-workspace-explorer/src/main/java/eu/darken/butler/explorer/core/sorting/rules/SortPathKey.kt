@@ -10,9 +10,9 @@ import eu.darken.butler.common.files.SAFPath
  *
  * Keys are built from a component list, never from the raw path string: ancestors are the truncated
  * component list, so `PhotosBackup` can never resolve as a child of `Photos` the way a string prefix
- * comparison would. Components are individually escaped so a folder legitimately named `Budget:2026`
- * cannot collide with `Budget/2026`, and so the archive marker cannot collide with a real filename
- * containing `!`.
+ * comparison would. Components are individually escaped (`%`, `/` and `!`) so a folder legitimately
+ * named `Budget:2026` cannot collide with `Budget/2026`, and so the archive marker - the only
+ * unescaped `!` a key can contain - cannot collide with a real filename containing `!`.
  *
  * SAF keys are deliberately grant-independent: the document ID is parsed exactly the way
  * [SAFPath.userReadablePath] parses it, so a broad `primary:` grant and a narrow
@@ -44,7 +44,7 @@ private data class KeyComponents(
 
 private fun APath<*>.keyComponents(): KeyComponents = when (this) {
     is LocalPath -> KeyComponents(
-        components = listOf(LOCAL_PREFIX) + normalizedLocalSegments(file.path),
+        components = (listOf(LOCAL_PREFIX) + normalizedLocalSegments(file.path)).escapeComponents(),
         floor = 1,
     )
 
@@ -55,15 +55,18 @@ private fun APath<*>.keyComponents(): KeyComponents = when (this) {
         val storageId = parts?.getOrNull(0) ?: treeRootUri.rawUri
         val basePath = parts?.getOrNull(1)?.split("/")?.filter { it.isNotEmpty() } ?: emptyList()
         KeyComponents(
-            components = listOf(SAF_PREFIX, treeRootUri.authority ?: "", storageId) + basePath + segments,
+            components = (listOf(SAF_PREFIX, treeRootUri.authority ?: "", storageId) + basePath + segments)
+                .escapeComponents(),
             floor = 3,
         )
     }
 
     is ArchivePath -> {
         val containerKey = container.keyComponents()
+        // The marker is a reserved literal and deliberately bypasses escaping: every path-derived
+        // component has its '!' escaped, so no real folder can ever produce it.
         KeyComponents(
-            components = containerKey.components + ARCHIVE_MARKER + segments,
+            components = containerKey.components + ARCHIVE_MARKER + segments.escapeComponents(),
             floor = containerKey.components.size + 1,
         )
     }
@@ -86,8 +89,14 @@ private fun normalizedLocalSegments(path: String): List<String> {
     return resolved.toList()
 }
 
-private fun List<String>.joinKey(): String = joinToString("/") { it.escapeComponent() }
+/** Components are stored escaped, so the archive marker can be joined in as a literal. */
+private fun List<String>.joinKey(): String = joinToString("/")
 
-private fun String.escapeComponent(): String = replace("%", "%25").replace("/", "%2F")
+private fun List<String>.escapeComponents(): List<String> = map { it.escapeComponent() }
+
+/** '%' first, so the escaping stays reversible. */
+private fun String.escapeComponent(): String = replace("%", "%25")
+    .replace("/", "%2F")
+    .replace("!", "%21")
 
 private val TREE_DOCUMENT_ID_REGEX by lazy { Regex("^/tree/(.+)$") }

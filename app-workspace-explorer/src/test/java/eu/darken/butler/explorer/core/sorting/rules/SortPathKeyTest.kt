@@ -67,8 +67,24 @@ class SortPathKeyTest : BaseTest() {
         val archive = ArchivePath(container = LocalPath.build("/sdcard/foo.zip"), segments = emptyList())
 
         bang.sortPathKey() shouldNotBe archive.sortPathKey()
-        bang.sortPathKey() shouldBe "local/sdcard/!archive"
+        bang.sortPathKey() shouldBe "local/sdcard/%21archive"
         archive.sortPathKey() shouldBe "local/sdcard/foo.zip/!archive"
+    }
+
+    /**
+     * The collision shape: a real directory tree that mirrors an archive entry component for
+     * component. Both would share the rule table's primary key, so the second rule saved would
+     * silently overwrite the first.
+     */
+    @Test
+    fun `an archive entry cannot collide with a directory tree of the same shape`() {
+        val archiveEntry = ArchivePath(
+            container = LocalPath.build("/sdcard/foo.zip"),
+            segments = listOf("docs"),
+        )
+        val directory = LocalPath.build("/sdcard/foo.zip/!archive/docs")
+
+        archiveEntry.sortPathKey() shouldNotBe directory.sortPathKey()
     }
 
     @Test
