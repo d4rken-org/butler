@@ -13,6 +13,7 @@ import java.util.TimeZone
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.hours
 import kotlin.time.Instant
 
 enum class DurationFormat {
@@ -24,16 +25,18 @@ enum class DurationFormat {
 @Composable
 fun formatRelativeTime(
     instant: Instant,
-    reference: Instant = Clock.System.now()
+    reference: Instant = Clock.System.now(),
+    hoursThreshold: Duration = 24.hours,
 ): String {
     val context = LocalContext.current
-    return remember(instant) { formatRelativeTime(context, instant, reference) }
+    return remember(instant, hoursThreshold) { formatRelativeTime(context, instant, reference, hoursThreshold) }
 }
 
 fun formatRelativeTime(
     context: Context,
     instant: Instant,
-    reference: Instant = Clock.System.now()
+    reference: Instant = Clock.System.now(),
+    hoursThreshold: Duration = 24.hours,
 ): String {
     val locale = context.resources.configuration.locales[0]
     val formatter = RelativeDateTimeFormatter.getInstance(locale)
@@ -50,7 +53,7 @@ fun formatRelativeTime(
             RelativeDateTimeFormatter.Direction.LAST,
             RelativeDateTimeFormatter.RelativeUnit.MINUTES
         )
-        duration.inWholeHours < 24 -> formatter.format(
+        duration < hoursThreshold -> formatter.format(
             duration.inWholeHours.toDouble(),
             RelativeDateTimeFormatter.Direction.LAST,
             RelativeDateTimeFormatter.RelativeUnit.HOURS
@@ -227,19 +230,19 @@ private fun formatDurationFull(context: Context, duration: Duration): String {
 @Composable
 fun formatDate(timestamp: Instant): String {
     val context = LocalContext.current
-    val dateFormat = remember {
-        // Use Android's DateFormat to respect user's 12/24 hour preference
-        val timeFormat = if (DateFormat.is24HourFormat(context)) {
-            "HH:mm:ss"
-        } else {
-            "h:mm:ss a"
-        }
-        // Full format: abbreviated month, day, year, time with seconds
-        java.text.SimpleDateFormat("MMM d, yyyy, $timeFormat", context.resources.configuration.locales[0])
+    return remember(timestamp) { formatDate(context, timestamp) }
+}
+
+fun formatDate(context: Context, timestamp: Instant): String {
+    // Use Android's DateFormat to respect user's 12/24 hour preference
+    val timeFormat = if (DateFormat.is24HourFormat(context)) {
+        "HH:mm:ss"
+    } else {
+        "h:mm:ss a"
     }
-    return remember(timestamp) {
-        dateFormat.format(java.util.Date(timestamp.toEpochMilliseconds()))
-    }
+    // Full format: abbreviated month, day, year, time with seconds
+    val dateFormat = SimpleDateFormat("MMM d, yyyy, $timeFormat", context.resources.configuration.locales[0])
+    return dateFormat.format(Date(timestamp.toEpochMilliseconds()))
 }
 
 /**
@@ -289,11 +292,28 @@ fun formatDateCompact(timestamp: Instant): String {
 fun formatSmartTime(
     instant: Instant,
     threshold: Duration = 7.days,
+    hoursThreshold: Duration = 4.days,
 ): String {
-    val age = Clock.System.now() - instant
+    val context = LocalContext.current
+    return formatSmartTime(
+        context = context,
+        instant = instant,
+        threshold = threshold,
+        hoursThreshold = hoursThreshold,
+    )
+}
+
+fun formatSmartTime(
+    context: Context,
+    instant: Instant,
+    reference: Instant = Clock.System.now(),
+    threshold: Duration = 7.days,
+    hoursThreshold: Duration = 4.days,
+): String {
+    val age = reference - instant
     return if (age < threshold) {
-        formatRelativeTime(instant)
+        formatRelativeTime(context, instant, reference, hoursThreshold)
     } else {
-        formatDate(instant)
+        formatDate(context, instant)
     }
 }
