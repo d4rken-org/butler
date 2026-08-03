@@ -55,7 +55,7 @@ internal fun SymlinkFileGrid(
         },
         primaryText = item.displayName.get(LocalContext.current),
         secondaryText = null, // Don't show target path in top corner to avoid overlap
-        tertiaryText = item.lookup.modifiedAt?.let { formatDateTime(it, DateTimeStyle.SHORT) },
+        tertiaryText = item.lookup.modifiedAt?.let { formatDateTime(it, DateTimeStyle.COMPACT) },
         backgroundColor = if (item.isBroken) {
             MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
         } else {

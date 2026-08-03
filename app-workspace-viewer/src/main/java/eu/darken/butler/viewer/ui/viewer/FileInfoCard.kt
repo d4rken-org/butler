@@ -23,7 +23,8 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
-import eu.darken.butler.common.formatDate
+import eu.darken.butler.common.DateTimeStyle
+import eu.darken.butler.common.formatDateTime
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.viewer.R
 import eu.darken.butler.viewer.core.ViewerFileInfo
@@ -79,7 +80,7 @@ fun FileInfoCard(
             add(
                 InfoEntry(
                     label = stringResource(R.string.viewer_info_modified_label),
-                    value = formatDate(it),
+                    value = formatDateTime(it, DateTimeStyle.FULL),
                     pairable = true,
                 ),
             )
@@ -88,7 +89,7 @@ fun FileInfoCard(
             add(
                 InfoEntry(
                     label = stringResource(R.string.viewer_info_created_label),
-                    value = formatDate(it),
+                    value = formatDateTime(it, DateTimeStyle.FULL),
                     pairable = true,
                 ),
             )

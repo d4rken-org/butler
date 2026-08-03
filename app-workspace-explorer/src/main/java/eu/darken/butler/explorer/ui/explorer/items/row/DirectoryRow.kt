@@ -65,7 +65,7 @@ internal fun DirectoryRow(
             item.permissions?.toReadableString(),
             item.ownership?.let { it.userName ?: it.userId.toString() },
         ).joinToString(" • ").takeIf { it.isNotEmpty() },
-        secondaryEndText = item.lookup.modifiedAt?.let { formatDateTime(it, DateTimeStyle.LONG) },
+        secondaryEndText = item.lookup.modifiedAt?.let { formatDateTime(it, DateTimeStyle.FULL) },
     )
 }
 

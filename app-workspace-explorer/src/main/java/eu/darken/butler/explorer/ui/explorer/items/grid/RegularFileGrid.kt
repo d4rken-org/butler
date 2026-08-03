@@ -58,7 +58,7 @@ internal fun RegularFileGrid(
         },
         primaryText = item.displayName.get(LocalContext.current),
         secondaryText = item.lookup.size?.let { formatFileSize(it) } ?: "?",
-        tertiaryText = item.lookup.modifiedAt?.let { formatDateTime(it, DateTimeStyle.SHORT) },
+        tertiaryText = item.lookup.modifiedAt?.let { formatDateTime(it, DateTimeStyle.COMPACT) },
         previewContent = {
             TintedAsyncImage(
                 model = item.lookup,

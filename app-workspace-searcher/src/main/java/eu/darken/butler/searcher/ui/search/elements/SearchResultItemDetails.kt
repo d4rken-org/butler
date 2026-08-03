@@ -33,7 +33,8 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.TextFileDetector
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
-import eu.darken.butler.common.formatDate
+import eu.darken.butler.common.DateTimeStyle
+import eu.darken.butler.common.formatDateTime
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearchItem
@@ -95,7 +96,7 @@ fun SearchResultItemDetails(
                     val metadataText = buildString {
                         result.lookup.size?.let { append(formatFileSize(it)) } ?: append("?")
                         append(" • ")
-                        result.lookup.modifiedAt?.let { append(formatDate(it)) } ?: append("?")
+                        result.lookup.modifiedAt?.let { append(formatDateTime(it, DateTimeStyle.FULL)) } ?: append("?")
                     }
                     Text(
                         text = metadataText,

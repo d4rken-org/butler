@@ -66,7 +66,7 @@ internal fun SymlinkFileRow(
             item.targetPath?.let { "→ $it" },
             stringResource(R.string.explorer_file_broken_link_label).takeIf { item.isBroken },
         ).joinToString(" • ").takeIf { it.isNotEmpty() },
-        secondaryEndText = item.lookup.modifiedAt?.let { formatDateTime(it, DateTimeStyle.LONG) },
+        secondaryEndText = item.lookup.modifiedAt?.let { formatDateTime(it, DateTimeStyle.FULL) },
     )
 }
 

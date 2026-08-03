@@ -27,7 +27,8 @@ fun formatRelativeTime(
     reference: Instant = Clock.System.now()
 ): String {
     val context = LocalContext.current
-    return remember(instant) { formatRelativeTime(context, instant, reference) }
+    val locale = context.resources.configuration.locales[0]
+    return remember(instant, reference, locale) { formatRelativeTime(context, instant, reference) }
 }
 
 fun formatRelativeTime(
@@ -224,37 +225,32 @@ private fun formatDurationFull(context: Context, duration: Duration): String {
     }
 }
 
-@Composable
-fun formatDate(timestamp: Instant): String {
-    val context = LocalContext.current
-    val dateFormat = remember {
-        // Use Android's DateFormat to respect user's 12/24 hour preference
-        val timeFormat = if (DateFormat.is24HourFormat(context)) {
-            "HH:mm:ss"
-        } else {
-            "h:mm:ss a"
-        }
-        // Full format: abbreviated month, day, year, time with seconds
-        java.text.SimpleDateFormat("MMM d, yyyy, $timeFormat", context.resources.configuration.locales[0])
-    }
-    return remember(timestamp) {
-        dateFormat.format(java.util.Date(timestamp.toEpochMilliseconds()))
-    }
-}
-
 enum class DateTimeStyle {
-    /** Two digit year, no seconds, e.g. "31.12.26 13:49". */
-    SHORT,
+    /** Numeric, two-digit year, no seconds, e.g. "31.12.26 13:49". */
+    COMPACT,
 
-    /** Full year and seconds, e.g. "31.12.2026 13:49:07". */
-    LONG,
+    /** Numeric, full year, seconds, e.g. "31.12.2026 13:49:07". */
+    FULL,
+
+    /** Textual month, full year, seconds and milliseconds, e.g. "31. Dez. 2026, 13:49:07,123". */
+    DETAILED,
+
+    /** Numeric, full year, no time, e.g. "31.12.2026". */
+    DATE_NUMERIC,
+
+    /** Textual month, full year, no time, e.g. "31. Dez. 2026". */
+    DATE_TEXTUAL,
 }
 
 /**
- * Numeric, locale-aware timestamp. Field order, digit grouping and separators come from the
- * locale, so the same instant renders as "31.12.26 13:49" in de-DE and "12/31/26 1:49 PM" in en-US.
- * Date and time patterns are resolved separately and joined with a plain space, keeping the pair
- * as narrow as possible for list and grid metadata lines.
+ * Locale-aware timestamp. Field order, digit grouping and separators come from the locale, so the
+ * same instant renders as "31.12.26 13:49" in de-DE and "12/31/26 1:49 PM" in en-US.
+ *
+ * [DateTimeStyle.COMPACT] and [DateTimeStyle.FULL] resolve date and time separately and join them
+ * with a plain space, keeping the pair as narrow as possible for list and grid metadata lines.
+ * [DateTimeStyle.DETAILED] resolves a single combined skeleton so the locale's own date-time glue
+ * applies (e.g. fi-FI inserts "klo"); the fractional-second separator comes from the same lookup
+ * and is locale-specific ("." in en, "," in de, an Arabic decimal separator in ar).
  */
 fun formatDateTime(
     timestamp: Instant,
@@ -264,18 +260,23 @@ fun formatDateTime(
     style: DateTimeStyle,
 ): String {
     val dateSkeleton = when (style) {
-        DateTimeStyle.SHORT -> "yyMMdd"
-        DateTimeStyle.LONG -> "yMMdd"
+        DateTimeStyle.COMPACT -> "yyMMdd"
+        DateTimeStyle.FULL, DateTimeStyle.DATE_NUMERIC -> "yMMdd"
+        DateTimeStyle.DETAILED, DateTimeStyle.DATE_TEXTUAL -> "yMMMd"
     }
-    val timeSkeleton = when {
-        style == DateTimeStyle.SHORT && is24Hour -> "Hm"
-        style == DateTimeStyle.SHORT -> "hm"
-        is24Hour -> "Hms"
-        else -> "hms"
+    val timeSkeleton = when (style) {
+        DateTimeStyle.COMPACT -> if (is24Hour) "Hm" else "hm"
+        DateTimeStyle.FULL -> if (is24Hour) "Hms" else "hms"
+        DateTimeStyle.DETAILED -> if (is24Hour) "HmsSSS" else "hmsSSS"
+        DateTimeStyle.DATE_NUMERIC, DateTimeStyle.DATE_TEXTUAL -> null
     }
-    val pattern = DateFormat.getBestDateTimePattern(locale, dateSkeleton) +
-            " " +
-            DateFormat.getBestDateTimePattern(locale, timeSkeleton)
+    val pattern = when {
+        timeSkeleton == null -> DateFormat.getBestDateTimePattern(locale, dateSkeleton)
+        style == DateTimeStyle.DETAILED -> DateFormat.getBestDateTimePattern(locale, dateSkeleton + timeSkeleton)
+        else -> DateFormat.getBestDateTimePattern(locale, dateSkeleton) +
+                " " +
+                DateFormat.getBestDateTimePattern(locale, timeSkeleton)
+    }
     val formatter = SimpleDateFormat(pattern, locale).apply { timeZone = zone }
     return formatter.format(Date(timestamp.toEpochMilliseconds()))
 }
@@ -301,11 +302,12 @@ fun formatDateTime(timestamp: Instant, style: DateTimeStyle): String {
 fun formatSmartTime(
     instant: Instant,
     threshold: Duration = 7.days,
+    absoluteStyle: DateTimeStyle = DateTimeStyle.FULL,
 ): String {
     val age = Clock.System.now() - instant
     return if (age < threshold) {
         formatRelativeTime(instant)
     } else {
-        formatDate(instant)
+        formatDateTime(instant, absoluteStyle)
     }
 }

@@ -16,6 +16,7 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.TintedAsyncImage
+import eu.darken.butler.common.DateTimeStyle
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.common.formatSmartTime
 import eu.darken.butler.explorer.R
@@ -66,7 +67,7 @@ fun TrashItemRow(
                 append(formatFileSize(size))
             }
         }.ifEmpty { null },
-        tertiaryText = formatSmartTime(item.deletedAt),
+        tertiaryText = formatSmartTime(item.deletedAt, absoluteStyle = DateTimeStyle.FULL),
     )
 }
 

@@ -19,6 +19,7 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.TintedAsyncImage
+import eu.darken.butler.common.DateTimeStyle
 import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.common.formatSmartTime
@@ -57,7 +58,7 @@ fun TrashItemGrid(
         },
         primaryText = item.displayName.get(context),
         secondaryText = item.trashLookup?.size?.let { formatFileSize(it) },
-        tertiaryText = formatSmartTime(item.deletedAt),
+        tertiaryText = formatSmartTime(item.deletedAt, absoluteStyle = DateTimeStyle.COMPACT),
         previewContent = {
             TintedAsyncImage(
                 model = item.trashLookup ?: item.originalLookup,

@@ -65,7 +65,7 @@ internal fun DirectoryGrid(
             null -> null
             else -> stringResource(R.string.explorer_file_items_count, count)
         },
-        tertiaryText = item.lookup.modifiedAt?.let { formatDateTime(it, DateTimeStyle.SHORT) },
+        tertiaryText = item.lookup.modifiedAt?.let { formatDateTime(it, DateTimeStyle.COMPACT) },
         backgroundColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
     )
 }
