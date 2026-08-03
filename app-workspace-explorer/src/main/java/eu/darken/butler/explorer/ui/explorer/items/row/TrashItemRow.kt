@@ -1,6 +1,7 @@
 package eu.darken.butler.explorer.ui.explorer.items.row
 
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.QuestionMark
 import androidx.compose.material3.Icon
@@ -60,14 +61,9 @@ fun TrashItemRow(
             }
         },
         primaryText = item.displayName.get(context),
-        secondaryText = buildString {
-            item.subtitle?.get(context)?.let { append(it) }
-            item.trashLookup?.size?.let { size ->
-                if (isNotEmpty()) append(" • ")
-                append(formatFileSize(size))
-            }
-        }.ifEmpty { null },
+        secondaryText = item.subtitle.get(context),
         tertiaryText = formatSmartTime(item.deletedAt, absoluteStyle = DateTimeStyle.FULL),
+        tertiaryEndText = item.trashLookup?.size?.let { formatFileSize(it) },
     )
 }
 
@@ -97,6 +93,17 @@ private fun TrashItemRowSelectedPreview() {
 private fun TrashItemRowOldPreview() {
     TrashItemRow(
         item = MockDataProvider.createMockTrashItemOld(),
+    )
+}
+
+/** Long deletion timestamp and a wide size in a narrow row - the tertiary line's worst case. */
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun TrashItemRowNarrowPreview() {
+    TrashItemRow(
+        modifier = Modifier.width(200.dp),
+        item = MockDataProvider.createMockTrashItemOld(sizeKB = 1_289_748),
     )
 }
 

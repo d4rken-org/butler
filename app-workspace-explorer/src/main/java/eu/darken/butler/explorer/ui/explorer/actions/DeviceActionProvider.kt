@@ -4,6 +4,7 @@ import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.favorites.ExplorerFavoritesRepo
+import eu.darken.butler.explorer.core.toggled
 import eu.darken.butler.explorer.ui.explorer.util.ExplorerSelectionState
 import javax.inject.Inject
 
@@ -49,11 +50,7 @@ class DeviceActionProvider @Inject constructor(
         actions.add(ExplorerActionBarItem.Common.Sort())
         actions.add(ExplorerActionBarItem.Common.Filter())
 
-        val toggledViewStyle = when (viewStyle) {
-            is ExplorerViewStyle.List -> ExplorerViewStyle.Grid()
-            is ExplorerViewStyle.Grid -> ExplorerViewStyle.List()
-        }
-        actions.add(ExplorerActionBarItem.Common.UpdateViewStyle(toggledViewStyle))
+        actions.add(ExplorerActionBarItem.Common.UpdateViewStyle(viewStyle.toggled()))
 
         return actions
     }

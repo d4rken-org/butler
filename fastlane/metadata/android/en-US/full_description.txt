@@ -2,27 +2,38 @@ Butler is the file explorer for Android I always wanted, so I built it.
 
 Fast, private, open source. A little whimsical. Built for power users.
 
-File manager with tabs and workspaces:
+Butler works on your whole storage: internal, SD cards, USB drives. And every file type, not just the media your gallery shows you.
 
-- Browse files and folders in tabs. Open any of Butler's features in parallel.
+<b>Tabs and workspaces</b>
+- Browse files in tabs and run any of Butler's tools in parallel.
 - Organize tabs with the workspace manager and reuse tab setups with workspace templates.
-- Use multi-pane layouts on phones and tablets.
-- See transfer speeds and performance graphs during copy and move operations.
-- Delete files with trash bin support.
+- Multi-pane layouts on phones and tablets.
+- Pin favorites and add extra storage locations.
 
-Search and text:
+<b>File operations</b>
+- Copy, move, rename and delete, with transfer speeds and performance graphs while operations run.
+- Trash bin support, so deletions stay reversible.
+- Create and extract ZIP archives, including encrypted ones.
+- An operation history showing what ran, what succeeded and what failed.
 
+<b>Search and text</b>
 - Search by file name and within file contents, with regular expression (regex) support.
-- Edit text files, including very large files.
+- A text editor that stays fast on very large files.
 
-Apps and APKs:
+<b>Apps and APKs</b>
+- App manager: browse installed apps, disable them, export APKs, clear caches and uninstall.
+- Receive, inspect and open APK files. Installation goes through Android's system installer.
 
-- Use the app manager to browse installed apps, disable them, export APKs, clear caches, and uninstall apps.
-- Receive, manage, and open APK files. Install apps through Android's system installer.
+<b>Access and appearance</b>
+- Root or Shizuku for the places Android normally keeps locked.
+- Butler shows up in other apps' file pickers, so you can browse with Butler wherever you open or save a file.
+- Material You theming with dynamic colors, dark mode and an AMOLED option.
 
-Access and appearance:
+<b>Privacy</b>
+No tracking. No analytics SDKs, no account, no cloud. Crash and error reports stay on your device unless you choose to send one. Open source.
 
-- Use root or Shizuku when elevated access is needed.
-- Personalize Butler with Material You theming, including dynamic colors, dark mode, and an AMOLED option.
+Butler asks for "All files access" because a file manager has to reach your whole storage. Everything it does happens on your device.
 
-No ads. No tracking. Open source (GPL v3).
+This app is ad-free. Some features require a paid upgrade.
+
+Butler is a file manager, file explorer and text editor for Android.

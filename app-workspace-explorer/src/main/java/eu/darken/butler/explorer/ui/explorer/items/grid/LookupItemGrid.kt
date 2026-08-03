@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
@@ -27,6 +28,7 @@ fun LookupItemGrid(
     isEnabled: Boolean = true,
     isHighlighted: Boolean = false,
     decorations: ItemDecorations = ItemDecorations(),
+    previewsSettled: State<Boolean> = PREVIEWS_ALWAYS_SETTLED,
 ) {
     when (item) {
         is ExplorerItem.RegularDirectory -> DirectoryGrid(
@@ -40,6 +42,7 @@ fun LookupItemGrid(
             isEnabled = isEnabled,
             isHighlighted = isHighlighted,
             decorations = decorations,
+            previewsSettled = previewsSettled,
         )
 
         is ExplorerItem.SymbolicLink -> SymlinkFileGrid(

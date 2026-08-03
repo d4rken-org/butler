@@ -27,12 +27,18 @@ class TrashActionProviderTest : BaseTest() {
         relativePath = "dir",
     )
 
-    private fun actionsFor(location: ExplorerLocation) = provider().getActions(
+    private fun actionsFor(
+        location: ExplorerLocation,
+        viewStyle: ExplorerViewStyle = ExplorerViewStyle.List(),
+    ) = provider().getActions(
         location = location,
         selectionState = ExplorerSelectionState(),
-        viewStyle = ExplorerViewStyle.List(),
+        viewStyle = viewStyle,
         trashEnabled = true,
     )
+
+    private fun List<ExplorerActionBarItem>.viewStyleAction(): ExplorerViewStyle =
+        filterIsInstance<ExplorerActionBarItem.Common.UpdateViewStyle>().single().viewStyle
 
     private fun List<ExplorerActionBarItem>.hasSecondaryBrowsingActions(): Boolean =
         any { it is ExplorerActionBarItem.Common.Sort } &&
@@ -80,5 +86,21 @@ class TrashActionProviderTest : BaseTest() {
         val actions = actionsFor(nested(listOf(MockDataProvider.createMockRegularFile())))
 
         actions.hasSecondaryBrowsingActions() shouldBe true
+    }
+
+    @Test
+    fun `root trash view-style action offers the opposite style`() {
+        val location = root(listOf(MockDataProvider.createMockTrashItem()))
+
+        actionsFor(location, ExplorerViewStyle.List()).viewStyleAction() shouldBe ExplorerViewStyle.Grid()
+        actionsFor(location, ExplorerViewStyle.Grid()).viewStyleAction() shouldBe ExplorerViewStyle.List()
+    }
+
+    @Test
+    fun `nested trash view-style action offers the opposite style`() {
+        val location = nested(listOf(MockDataProvider.createMockRegularFile()))
+
+        actionsFor(location, ExplorerViewStyle.List()).viewStyleAction() shouldBe ExplorerViewStyle.Grid()
+        actionsFor(location, ExplorerViewStyle.Grid()).viewStyleAction() shouldBe ExplorerViewStyle.List()
     }
 }

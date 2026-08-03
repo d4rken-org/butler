@@ -6,6 +6,8 @@ import androidx.compose.material.icons.twotone.Folder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -15,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.DateTimeStyle
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.formatDateTime
 import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
 import eu.darken.butler.explorer.R
@@ -22,6 +25,9 @@ import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.ui.preview.FolderPreviewCollage
 import eu.darken.butler.workspace.ui.preview.rememberFolderPreviewChildren
+
+/** Default for previews/tests: previews are always considered "settled" (loaded immediately). */
+internal val PREVIEWS_ALWAYS_SETTLED: State<Boolean> = mutableStateOf(true)
 
 @Composable
 internal fun DirectoryGrid(
@@ -35,8 +41,8 @@ internal fun DirectoryGrid(
     isEnabled: Boolean = true,
     isHighlighted: Boolean = false,
     decorations: ItemDecorations = ItemDecorations(),
+    previewsSettled: State<Boolean> = PREVIEWS_ALWAYS_SETTLED,
 ) {
-    val previewChildren = rememberFolderPreviewChildren(item.lookup.lookedUp)
     FileGridBase(
         modifier = modifier,
         item = item,
@@ -48,8 +54,11 @@ internal fun DirectoryGrid(
         isEnabled = isEnabled,
         isHighlighted = isHighlighted,
         decorations = decorations,
-        previewContent = previewChildren.takeIf { it.isNotEmpty() }?.let { children ->
-            { FolderPreviewCollage(children = children) }
+        previewContent = {
+            DirectoryPreviewBackground(
+                dir = item.lookup.lookedUp,
+                previewsSettled = previewsSettled,
+            )
         },
         icon = {
             Icon(
@@ -68,6 +77,24 @@ internal fun DirectoryGrid(
         tertiaryText = item.lookup.modifiedAt?.let { formatDateTime(it, DateTimeStyle.COMPACT) },
         backgroundColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
     )
+}
+
+/**
+ * Folder tile background: a collage of the folder's newest media, or nothing.
+ *
+ * The scroll-driven [previewsSettled] read is isolated here so scroll start/stop recomposes only
+ * this child, never the surrounding tile chrome or file tiles.
+ */
+@Composable
+private fun DirectoryPreviewBackground(
+    modifier: Modifier = Modifier,
+    dir: APath<*>,
+    previewsSettled: State<Boolean>,
+) {
+    val children = rememberFolderPreviewChildren(dir, loadingEnabled = previewsSettled.value)
+    if (children.isNotEmpty()) {
+        FolderPreviewCollage(modifier = modifier, children = children)
+    }
 }
 
 @Preview2

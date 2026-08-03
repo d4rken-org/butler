@@ -13,6 +13,10 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
@@ -26,6 +30,8 @@ import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
 import eu.darken.butler.explorer.ui.explorer.items.ExplorerItemRenderer
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.contracts.dnd.WorkspaceDragPayload
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 
 /**
  * The grid-style main content of the Explorer page.
@@ -44,8 +50,24 @@ internal fun ExplorerGridContent(
     // Skeletons must never attach to the persisted scroll state: restore readiness would fire
     // against placeholder content and the recorder would persist the resulting clamp.
     val skeletonGridState = rememberLazyGridState()
+    val effectiveGridState = if (state.items == null) skeletonGridState else gridState
+
+    // Folder previews load only once scrolling has settled ~120ms. Asymmetric on purpose —
+    // false immediately on scroll start, so no new preview work begins during the gesture.
+    val previewsSettled = remember { mutableStateOf(true) }
+    LaunchedEffect(effectiveGridState) {
+        snapshotFlow { effectiveGridState.isScrollInProgress }.collectLatest { scrolling ->
+            if (scrolling) {
+                previewsSettled.value = false
+            } else {
+                delay(120)
+                previewsSettled.value = true
+            }
+        }
+    }
+
     LazyVerticalGrid(
-        state = if (state.items == null) skeletonGridState else gridState,
+        state = effectiveGridState,
         columns = GridCells.Adaptive(minSize = 120.dp),
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(2.dp),
@@ -95,6 +117,7 @@ internal fun ExplorerGridContent(
                     onNavigate = { vm?.navigate(it) },
                     onToggleSelection = { vm?.toggleItemSelection(it) },
                     dragPayloadFactory = dragPayloadFactory,
+                    previewsSettled = previewsSettled,
                 )
             }
         }

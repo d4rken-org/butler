@@ -1,1 +1,1 @@
-Tabs for files. Private, open-source file manager. No ads or tracking.
+Tabs for files. A fast multi-pane file manager for power users. No ads.

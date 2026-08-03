@@ -1,5 +1,6 @@
 package eu.darken.butler.common
 
+import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -10,17 +11,24 @@ import io.kotest.matchers.string.shouldNotBeEmpty
 import io.kotest.matchers.string.shouldNotContain
 import io.kotest.matchers.string.shouldStartWith
 import org.junit.Test
+import org.robolectric.RuntimeEnvironment
+import org.robolectric.annotation.Config
 import testhelpers.ComposeTest
+import testhelpers.TestApplication
 import java.util.Locale
 import java.util.TimeZone
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
 
+@Config(application = TestApplication::class, sdk = [34], qualifiers = "en-rUS")
 class TimeFormattingTest : ComposeTest() {
 
     private val utc = TimeZone.getTimeZone("UTC")
     private val timestamp = Instant.parse("2026-08-02T14:23:45.123Z")
+    private val now = Instant.parse("2026-06-15T12:00:00Z")
     private val german = Locale.forLanguageTag("de-DE")
     private val english = Locale.forLanguageTag("en-US")
 
@@ -35,6 +43,14 @@ class TimeFormattingTest : ComposeTest() {
         locale = locale,
         is24Hour = is24Hour,
         style = style,
+    )
+
+    private val context: Context get() = RuntimeEnvironment.getApplication()
+
+    private fun smartTimeAgo(age: Duration): String = formatSmartTime(
+        context = context,
+        instant = now - age,
+        reference = now,
     )
 
     @Test
@@ -157,5 +173,61 @@ class TimeFormattingTest : ComposeTest() {
         composeTestRule.waitForIdle()
 
         rendered.last() shouldNotBe rendered.first()
+    }
+
+    @Test
+    fun `smart time stays in hours past a day`() {
+        val result = smartTimeAgo(39.hours)
+
+        result shouldContain "39"
+        result shouldContain "hour"
+        result shouldNotContain "day"
+    }
+
+    @Test
+    fun `smart time stays in hours just below four days`() {
+        val result = smartTimeAgo(95.hours + 59.minutes)
+
+        result shouldContain "95"
+        result shouldContain "hour"
+        result shouldNotContain "day"
+    }
+
+    @Test
+    fun `smart time switches to days at exactly four days`() {
+        val result = smartTimeAgo(4.days)
+
+        result shouldContain "4"
+        result shouldContain "day"
+        result shouldNotContain "hour"
+    }
+
+    @Test
+    fun `smart time shows days below the absolute threshold`() {
+        val result = smartTimeAgo(5.days)
+
+        result shouldContain "5"
+        result shouldContain "day"
+        result shouldNotContain "hour"
+    }
+
+    @Test
+    fun `smart time switches to an absolute date at exactly seven days`() {
+        val result = smartTimeAgo(7.days)
+
+        result shouldContain "2026"
+        result shouldNotContain "ago"
+    }
+
+    @Test
+    fun `relative time keeps its 24 hour default for other callers`() {
+        val result = formatRelativeTime(
+            context = context,
+            instant = now - 39.hours,
+            reference = now,
+        )
+
+        result shouldContain "day"
+        result shouldNotContain "hour"
     }
 }

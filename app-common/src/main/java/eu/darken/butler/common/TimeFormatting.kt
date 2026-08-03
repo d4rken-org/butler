@@ -13,6 +13,7 @@ import java.util.TimeZone
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.hours
 import kotlin.time.Instant
 
 enum class DurationFormat {
@@ -24,17 +25,21 @@ enum class DurationFormat {
 @Composable
 fun formatRelativeTime(
     instant: Instant,
-    reference: Instant = Clock.System.now()
+    reference: Instant = Clock.System.now(),
+    hoursThreshold: Duration = 24.hours,
 ): String {
     val context = LocalContext.current
     val locale = context.resources.configuration.locales[0]
-    return remember(instant, reference, locale) { formatRelativeTime(context, instant, reference) }
+    return remember(instant, reference, hoursThreshold, locale) {
+        formatRelativeTime(context, instant, reference, hoursThreshold)
+    }
 }
 
 fun formatRelativeTime(
     context: Context,
     instant: Instant,
-    reference: Instant = Clock.System.now()
+    reference: Instant = Clock.System.now(),
+    hoursThreshold: Duration = 24.hours,
 ): String {
     val locale = context.resources.configuration.locales[0]
     val formatter = RelativeDateTimeFormatter.getInstance(locale)
@@ -51,7 +56,7 @@ fun formatRelativeTime(
             RelativeDateTimeFormatter.Direction.LAST,
             RelativeDateTimeFormatter.RelativeUnit.MINUTES
         )
-        duration.inWholeHours < 24 -> formatter.format(
+        duration < hoursThreshold -> formatter.format(
             duration.inWholeHours.toDouble(),
             RelativeDateTimeFormatter.Direction.LAST,
             RelativeDateTimeFormatter.RelativeUnit.HOURS
@@ -302,12 +307,42 @@ fun formatDateTime(timestamp: Instant, style: DateTimeStyle): String {
 fun formatSmartTime(
     instant: Instant,
     threshold: Duration = 7.days,
+    hoursThreshold: Duration = 4.days,
     absoluteStyle: DateTimeStyle = DateTimeStyle.FULL,
 ): String {
-    val age = Clock.System.now() - instant
+    val context = LocalContext.current
+    val reference = Clock.System.now()
+    val isRelative = reference - instant < threshold
+    return remember(instant, threshold, hoursThreshold, absoluteStyle, isRelative) {
+        formatSmartTime(
+            context = context,
+            instant = instant,
+            reference = reference,
+            threshold = threshold,
+            hoursThreshold = hoursThreshold,
+            absoluteStyle = absoluteStyle,
+        )
+    }
+}
+
+fun formatSmartTime(
+    context: Context,
+    instant: Instant,
+    reference: Instant = Clock.System.now(),
+    threshold: Duration = 7.days,
+    hoursThreshold: Duration = 4.days,
+    absoluteStyle: DateTimeStyle = DateTimeStyle.FULL,
+): String {
+    val age = reference - instant
     return if (age < threshold) {
-        formatRelativeTime(instant)
+        formatRelativeTime(context, instant, reference, hoursThreshold)
     } else {
-        formatDateTime(instant, absoluteStyle)
+        formatDateTime(
+            timestamp = instant,
+            zone = TimeZone.getDefault(),
+            locale = context.resources.configuration.locales[0],
+            is24Hour = DateFormat.is24HourFormat(context),
+            style = absoluteStyle,
+        )
     }
 }

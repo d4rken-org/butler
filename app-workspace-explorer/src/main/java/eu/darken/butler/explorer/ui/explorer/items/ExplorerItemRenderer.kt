@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.files.extensions.matches
@@ -12,6 +13,7 @@ import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
 import eu.darken.butler.explorer.ui.explorer.items.grid.LookupItemGrid
+import eu.darken.butler.explorer.ui.explorer.items.grid.PREVIEWS_ALWAYS_SETTLED
 import eu.darken.butler.explorer.ui.explorer.items.grid.PeekGrid
 import eu.darken.butler.explorer.ui.explorer.items.grid.ShortcutGrid
 import eu.darken.butler.explorer.ui.explorer.items.grid.StorageGrid
@@ -41,6 +43,7 @@ fun ExplorerItemRenderer(
     onNavigate: (ExplorerItem) -> Unit,
     onToggleSelection: (ExplorerItem) -> Unit,
     dragPayloadFactory: ((ExplorerItem) -> WorkspaceDragPayload?)? = null,
+    previewsSettled: State<Boolean> = PREVIEWS_ALWAYS_SETTLED,
 ) {
     val isSelected = state.selectionState.selectedItems.contains(item)
     val isEnabled = item !in state.disabledItems
@@ -75,6 +78,7 @@ fun ExplorerItemRenderer(
             },
             onNavigate = onNavigate,
             onToggleSelection = onToggleSelection,
+            previewsSettled = previewsSettled,
         )
     }
 }
@@ -91,6 +95,7 @@ private fun ItemContent(
     onItemLongClick: (ExplorerItem) -> Unit,
     onNavigate: (ExplorerItem) -> Unit,
     onToggleSelection: (ExplorerItem) -> Unit,
+    previewsSettled: State<Boolean>,
 ) {
     when (item) {
         is ExplorerItem.Lookup -> {
@@ -118,6 +123,7 @@ private fun ItemContent(
                     isEnabled = isEnabled,
                     isHighlighted = isHighlighted,
                     decorations = decorations,
+                    previewsSettled = previewsSettled,
                 )
             }
         }
