@@ -75,42 +75,45 @@ fun WorkspacePausedContent(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(top = statusBarInset + 32.dp, bottom = navBarInset + 32.dp, start = 32.dp, end = 32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterVertically),
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                Icon(
-                    imageVector = type.icon,
-                    contentDescription = null,
-                    modifier = Modifier.size(64.dp),
-                    tint = MaterialTheme.colorScheme.primary,
-                )
-
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
+                    Icon(
+                        imageVector = type.icon,
+                        contentDescription = null,
+                        modifier = Modifier.size(32.dp),
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+
                     Text(
                         text = typeLabel,
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface,
                     )
-
-                    Text(
-                        text = stringResource(
-                            if (error != null) R.string.workspace_paused_error_body else R.string.workspace_paused_body
-                        ),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = if (error != null) {
-                            MaterialTheme.colorScheme.error
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        },
-                    )
                 }
+
+                Text(
+                    modifier = Modifier.fillMaxWidth(),
+                    text = stringResource(
+                        if (error != null) R.string.workspace_paused_error_body else R.string.workspace_paused_body
+                    ),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (error != null) {
+                        MaterialTheme.colorScheme.error
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+                )
             }
 
             if (resolvedTitle != null || resolvedSubtitle != null || error != null) {
@@ -126,6 +129,12 @@ fun WorkspacePausedContent(
                             .padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
+                        Text(
+                            text = stringResource(R.string.workspace_paused_content_label),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+
                         if (resolvedTitle != null) {
                             Text(
                                 text = resolvedTitle,
@@ -155,7 +164,10 @@ fun WorkspacePausedContent(
                 }
             }
 
-            Button(onClick = onResume) {
+            Button(
+                modifier = Modifier.align(Alignment.End),
+                onClick = onResume,
+            ) {
                 Text(
                     text = stringResource(
                         if (error != null) {
