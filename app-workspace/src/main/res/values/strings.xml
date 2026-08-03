@@ -232,6 +232,7 @@
     <string name="workspace_paused_error_body">This tab could not be resumed.</string>
     <string name="workspace_paused_resume_action">Resume</string>
     <string name="workspace_paused_label">Paused</string>
+    <string name="workspace_paused_content_label">Tab content</string>
 
     <!-- Issue Resolution (conflict handling) -->
     <string name="workspace_issue_collision_existing_file_label">Existing file</string>
