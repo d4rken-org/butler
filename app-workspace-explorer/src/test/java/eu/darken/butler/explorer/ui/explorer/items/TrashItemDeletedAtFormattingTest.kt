@@ -7,6 +7,7 @@ import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.DateTimeStyle
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.formatDateTime
+import eu.darken.butler.common.formatRelativeTime
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.items.grid.TrashItemGrid
 import eu.darken.butler.explorer.ui.explorer.items.row.TrashItemRow
@@ -82,8 +83,13 @@ class TrashItemDeletedAtFormattingTest : ComposeTest() {
     fun `a freshly deleted row stays on the relative rendering`() {
         renderRow(recentItem)
 
+        // Deleted an hour ago, so the relative rendering stays on the hours bucket for the whole
+        // test - the expectation cannot race the clock the composable reads.
+        val relative = formatRelativeTime(context, recentItem.deletedAt)
+
         // The name proves the row rendered at all, so the missing timestamp is a real branch choice
         composeTestRule.onNodeWithText(RECENT_NAME).assertExists()
+        composeTestRule.onNodeWithText(relative).assertExists()
         composeTestRule.onNodeWithText(absolute(recentItem.deletedAt, DateTimeStyle.FULL))
             .assertDoesNotExist()
     }
