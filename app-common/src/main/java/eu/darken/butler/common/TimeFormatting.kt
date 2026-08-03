@@ -295,12 +295,17 @@ fun formatSmartTime(
     hoursThreshold: Duration = 4.days,
 ): String {
     val context = LocalContext.current
-    return formatSmartTime(
-        context = context,
-        instant = instant,
-        threshold = threshold,
-        hoursThreshold = hoursThreshold,
-    )
+    val reference = Clock.System.now()
+    val isRelative = reference - instant < threshold
+    return remember(instant, threshold, hoursThreshold, isRelative) {
+        formatSmartTime(
+            context = context,
+            instant = instant,
+            reference = reference,
+            threshold = threshold,
+            hoursThreshold = hoursThreshold,
+        )
+    }
 }
 
 fun formatSmartTime(
