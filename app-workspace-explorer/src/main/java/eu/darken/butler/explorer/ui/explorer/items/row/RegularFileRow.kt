@@ -13,7 +13,8 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.TintedAsyncImage
 import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
-import eu.darken.butler.common.formatDateCompact
+import eu.darken.butler.common.DateTimeStyle
+import eu.darken.butler.common.formatDateTime
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.common.isProblematicInvisible
 import eu.darken.butler.explorer.R
@@ -62,7 +63,7 @@ internal fun RegularFileRow(
             item.permissions?.toReadableString(),
             item.ownership?.let { "${it.userName ?: it.userId} | ${it.groupName ?: it.groupId}" },
         ).joinToString(" • ").takeIf { it.isNotEmpty() },
-        secondaryEndText = item.lookup.modifiedAt?.let { formatDateCompact(it) },
+        secondaryEndText = item.lookup.modifiedAt?.let { formatDateTime(it, DateTimeStyle.LONG) },
     )
 }
 

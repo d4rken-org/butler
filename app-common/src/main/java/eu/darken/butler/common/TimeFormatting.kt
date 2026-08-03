@@ -242,45 +242,57 @@ fun formatDate(timestamp: Instant): String {
     }
 }
 
+enum class DateTimeStyle {
+    /** Two digit year, no seconds, e.g. "31.12.26 13:49". */
+    SHORT,
+
+    /** Full year and seconds, e.g. "31.12.2026 13:49:07". */
+    LONG,
+}
+
 /**
- * Compact, locale-aware timestamp. Same calendar year renders day + time, other years render
- * day + year without a time. The same-year test uses the ISO year so locale calendars with their
- * own eras (Buddhist, Japanese imperial) can't split one Gregorian year in two.
+ * Numeric, locale-aware timestamp. Field order, digit grouping and separators come from the
+ * locale, so the same instant renders as "31.12.26 13:49" in de-DE and "12/31/26 1:49 PM" in en-US.
+ * Date and time patterns are resolved separately and joined with a plain space, keeping the pair
+ * as narrow as possible for list and grid metadata lines.
  */
-fun formatDateCompact(
+fun formatDateTime(
     timestamp: Instant,
-    now: Instant,
     zone: TimeZone,
     locale: Locale,
     is24Hour: Boolean,
+    style: DateTimeStyle,
 ): String {
-    val zoneId = zone.toZoneId()
-    val isoYear = { instant: Instant ->
-        java.time.Instant.ofEpochMilli(instant.toEpochMilliseconds()).atZone(zoneId).year
+    val dateSkeleton = when (style) {
+        DateTimeStyle.SHORT -> "yyMMdd"
+        DateTimeStyle.LONG -> "yMMdd"
     }
-    val skeleton = when {
-        isoYear(timestamp) != isoYear(now) -> "yMMMd"
-        is24Hour -> "MMMdHm"
-        else -> "MMMdhm"
+    val timeSkeleton = when {
+        style == DateTimeStyle.SHORT && is24Hour -> "Hm"
+        style == DateTimeStyle.SHORT -> "hm"
+        is24Hour -> "Hms"
+        else -> "hms"
     }
-    val pattern = DateFormat.getBestDateTimePattern(locale, skeleton)
+    val pattern = DateFormat.getBestDateTimePattern(locale, dateSkeleton) +
+            " " +
+            DateFormat.getBestDateTimePattern(locale, timeSkeleton)
     val formatter = SimpleDateFormat(pattern, locale).apply { timeZone = zone }
     return formatter.format(Date(timestamp.toEpochMilliseconds()))
 }
 
 @Composable
-fun formatDateCompact(timestamp: Instant): String {
+fun formatDateTime(timestamp: Instant, style: DateTimeStyle): String {
     val context = LocalContext.current
     val locale = context.resources.configuration.locales[0]
     val is24Hour = DateFormat.is24HourFormat(context)
     val zone = TimeZone.getDefault()
-    return remember(timestamp, locale, is24Hour, zone) {
-        formatDateCompact(
+    return remember(timestamp, locale, is24Hour, zone, style) {
+        formatDateTime(
             timestamp = timestamp,
-            now = Clock.System.now(),
             zone = zone,
             locale = locale,
             is24Hour = is24Hour,
+            style = style,
         )
     }
 }

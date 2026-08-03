@@ -1,5 +1,6 @@
 package eu.darken.butler.common
 
+import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotBeEmpty
@@ -20,161 +21,87 @@ import kotlin.time.Instant
 class TimeFormattingTest : BaseTest() {
 
     private val utc = TimeZone.getTimeZone("UTC")
-    private val now = Instant.parse("2026-06-15T12:00:00Z")
-    private val sameYear = Instant.parse("2026-08-02T14:23:00Z")
-    private val priorYear = Instant.parse("2025-08-02T14:23:00Z")
+    private val timestamp = Instant.parse("2026-08-02T14:23:45Z")
+    private val german = Locale.forLanguageTag("de-DE")
+    private val english = Locale.forLanguageTag("en-US")
+
+    private fun format(
+        style: DateTimeStyle,
+        locale: Locale = german,
+        is24Hour: Boolean = true,
+        zone: TimeZone = utc,
+    ) = formatDateTime(
+        timestamp = timestamp,
+        zone = zone,
+        locale = locale,
+        is24Hour = is24Hour,
+        style = style,
+    )
 
     @Test
-    fun `same year with 24h shows time and no year`() {
-        val result = formatDateCompact(
-            timestamp = sameYear,
-            now = now,
-            zone = utc,
-            locale = Locale.forLanguageTag("en-US"),
-            is24Hour = true,
-        )
-        result shouldContain "14:23"
-        result shouldNotContain "2026"
+    fun `short style drops the century and the seconds`() {
+        format(DateTimeStyle.SHORT) shouldBe "02.08.26 14:23"
     }
 
     @Test
-    fun `same year with 12h shows day period`() {
-        val result = formatDateCompact(
-            timestamp = sameYear,
-            now = now,
-            zone = utc,
-            locale = Locale.forLanguageTag("en-US"),
-            is24Hour = false,
-        )
-        result shouldContain "2:23"
-        result.lowercase() shouldContain "pm"
-        result shouldNotContain "2026"
+    fun `long style keeps the century and the seconds`() {
+        format(DateTimeStyle.LONG) shouldBe "02.08.2026 14:23:45"
     }
 
     @Test
-    fun `other year shows year and no time`() {
-        val result = formatDateCompact(
-            timestamp = priorYear,
-            now = now,
-            zone = utc,
-            locale = Locale.forLanguageTag("en-US"),
-            is24Hour = true,
-        )
-        result shouldContain "2025"
-        result shouldNotContain ":"
+    fun `months render numerically`() {
+        listOf(DateTimeStyle.SHORT, DateTimeStyle.LONG).forEach { style ->
+            format(style, locale = english) shouldNotContain "Aug"
+            format(style, locale = german) shouldNotContain "Aug"
+        }
     }
 
     @Test
     fun `field order follows the locale`() {
-        val english = formatDateCompact(
-            timestamp = priorYear,
-            now = now,
-            zone = utc,
-            locale = Locale.forLanguageTag("en-US"),
-            is24Hour = true,
-        )
-        val japanese = formatDateCompact(
-            timestamp = priorYear,
-            now = now,
-            zone = utc,
-            locale = Locale.forLanguageTag("ja-JP"),
-            is24Hour = true,
-        )
-        japanese shouldStartWith "2025"
-        english shouldStartWith "Aug"
-        english shouldNotBe japanese
+        format(DateTimeStyle.SHORT, locale = english) shouldBe "08/02/26 14:23"
+        format(DateTimeStyle.SHORT, locale = german) shouldBe "02.08.26 14:23"
+        format(DateTimeStyle.LONG, locale = Locale.forLanguageTag("ja-JP")) shouldStartWith "2026"
     }
 
     @Test
-    fun `elision follows the calendar year not a 365 day delta`() {
-        val newYearsEve = formatDateCompact(
-            timestamp = Instant.parse("2025-12-31T23:59:00Z"),
-            now = Instant.parse("2026-01-01T00:01:00Z"),
-            zone = utc,
-            locale = Locale.forLanguageTag("en-US"),
-            is24Hour = true,
-        )
-        newYearsEve shouldContain "2025"
-        newYearsEve shouldNotContain ":"
+    fun `twelve hour preference is honoured`() {
+        val short = format(DateTimeStyle.SHORT, locale = english, is24Hour = false)
+        short shouldContain "2:23"
+        short.lowercase() shouldContain "pm"
+        short shouldNotContain "2:23:45"
 
-        val almostAYearApart = formatDateCompact(
-            timestamp = Instant.parse("2026-01-05T14:23:00Z"),
-            now = Instant.parse("2026-12-30T12:00:00Z"),
-            zone = utc,
-            locale = Locale.forLanguageTag("en-US"),
-            is24Hour = true,
-        )
-        almostAYearApart shouldContain "14:23"
-        almostAYearApart shouldNotContain "2026"
+        val long = format(DateTimeStyle.LONG, locale = english, is24Hour = false)
+        long shouldContain "2:23:45"
+        long.lowercase() shouldContain "pm"
     }
 
     @Test
-    fun `year comparison uses the supplied zone`() {
-        val timestamp = Instant.parse("2025-12-31T12:00:00Z")
-        val reference = Instant.parse("2026-01-15T00:00:00Z")
-
-        // UTC+14: the instant already falls into 2026 -> same year as the reference
-        val kiritimati = formatDateCompact(
-            timestamp = timestamp,
-            now = reference,
-            zone = TimeZone.getTimeZone("Pacific/Kiritimati"),
-            locale = Locale.forLanguageTag("en-US"),
-            is24Hour = true,
-        )
-        kiritimati shouldContain "02:00"
-        kiritimati shouldNotContain "2026"
-
-        // UTC-8: the instant is still 2025 -> other year than the reference
-        val losAngeles = formatDateCompact(
-            timestamp = timestamp,
-            now = reference,
-            zone = TimeZone.getTimeZone("America/Los_Angeles"),
-            locale = Locale.forLanguageTag("en-US"),
-            is24Hour = true,
-        )
-        losAngeles shouldContain "2025"
-        losAngeles shouldNotContain ":"
+    fun `rendering uses the supplied zone`() {
+        format(DateTimeStyle.LONG, zone = TimeZone.getTimeZone("America/Los_Angeles")) shouldBe
+                "02.08.2026 07:23:45"
+        format(DateTimeStyle.LONG, zone = TimeZone.getTimeZone("Pacific/Kiritimati")) shouldBe
+                "03.08.2026 04:23:45"
     }
 
     @Test
-    fun `locale calendars do not confuse the year comparison`() {
-        val result = formatDateCompact(
-            timestamp = sameYear,
-            now = now,
-            zone = utc,
-            locale = Locale.forLanguageTag("th-TH"),
-            is24Hour = true,
-        )
-        result.shouldNotBeEmpty()
-        result shouldNotContain "2026"
-        result shouldNotContain "2569"
+    fun `locale calendars keep their own era`() {
+        // Thai renders the Buddhist year, which is what a th-TH user expects to read
+        format(DateTimeStyle.LONG, locale = Locale.forLanguageTag("th-TH")) shouldContain "2569"
     }
 
     @Test
-    fun `all supported locales format both variants`() {
+    fun `all supported locales format both styles`() {
         val locales = listOf(
             "en-US", "de-DE", "fi-FI", "ru-RU", "tr-TR",
             "ja-JP", "zh-CN", "ko-KR", "ar-EG", "hi-IN", "th-TH",
         )
         locales.forEach { tag ->
             val locale = Locale.forLanguageTag(tag)
-            val current = formatDateCompact(
-                timestamp = sameYear,
-                now = now,
-                zone = utc,
-                locale = locale,
-                is24Hour = true,
-            )
-            val other = formatDateCompact(
-                timestamp = priorYear,
-                now = now,
-                zone = utc,
-                locale = locale,
-                is24Hour = true,
-            )
-            current.shouldNotBeEmpty()
-            other.shouldNotBeEmpty()
-            current shouldNotBe other
+            val short = format(DateTimeStyle.SHORT, locale = locale)
+            val long = format(DateTimeStyle.LONG, locale = locale)
+            short.shouldNotBeEmpty()
+            long.shouldNotBeEmpty()
+            short shouldNotBe long
         }
     }
 }
