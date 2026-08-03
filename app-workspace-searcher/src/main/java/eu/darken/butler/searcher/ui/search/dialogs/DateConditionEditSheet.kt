@@ -110,9 +110,11 @@ private fun DateConditionEditContent(
     // The condition stores an absolute cutoff, so the sheet edits that instant directly. Re-deriving
     // a preset from it only worked for an hour after it was picked; past that every stored cutoff
     // fell back to "Last 7 days" and applying silently rewrote it.
+    // An existing cutoff is kept verbatim - truncating it here would move cutoffs stored before
+    // minute precision was introduced backwards just by reopening and applying the sheet.
     var selectedCutoffMillis by rememberSaveable(existingCondition) {
-        val initial = existingCondition?.instant ?: (Clock.System.now() - 7.days)
-        mutableStateOf(initial.truncatedToMinute().toEpochMilliseconds())
+        val initial = existingCondition?.instant ?: (Clock.System.now() - 7.days).truncatedToMinute()
+        mutableStateOf(initial.toEpochMilliseconds())
     }
     val selectedCutoff = Instant.fromEpochMilliseconds(selectedCutoffMillis)
 

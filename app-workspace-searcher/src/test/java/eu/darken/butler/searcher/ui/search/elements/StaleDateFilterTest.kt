@@ -41,7 +41,7 @@ class StaleDateFilterTest : ComposeTest() {
         get() = ApplicationProvider.getApplicationContext()
 
     // Far outside every preset window and well past the old 60-minute tolerance
-    private val staleCutoff = Instant.parse("2026-05-04T12:34:00Z")
+    private val staleCutoff = Instant.parse("2026-05-04T12:34:56.789Z")
 
     private val condition = FilterCondition.ModifiedDate(
         comparator = FilterComparator.GT,
