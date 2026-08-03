@@ -36,3 +36,9 @@ sealed class ExplorerViewStyle {
         fun default(): ExplorerViewStyle = List()
     }
 }
+
+/** The style the view-style action switches to. */
+fun ExplorerViewStyle.toggled(): ExplorerViewStyle = when (this) {
+    is ExplorerViewStyle.List -> ExplorerViewStyle.Grid()
+    is ExplorerViewStyle.Grid -> ExplorerViewStyle.List()
+}
