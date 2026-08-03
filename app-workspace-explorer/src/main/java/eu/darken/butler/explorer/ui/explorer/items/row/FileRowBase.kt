@@ -88,6 +88,7 @@ internal fun FileRowBase(
     secondaryText: String? = null,
     secondaryEndText: String? = null,
     tertiaryText: String? = null,
+    tertiaryEndText: String? = null,
     trailingContent: (@Composable () -> Unit)? = null,
     hasProblematicChars: Boolean = false,
 ) {
@@ -193,14 +194,30 @@ internal fun FileRowBase(
                 }
             }
 
-            tertiaryText?.let { text ->
-                Text(
-                    text = text,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+            if (tertiaryText != null || tertiaryEndText != null) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = tertiaryText.orEmpty(),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
+                    )
+
+                    if (tertiaryEndText != null) {
+                        if (!tertiaryText.isNullOrBlank()) {
+                            Spacer(modifier = Modifier.width(8.dp))
+                        }
+                        Text(
+                            text = tertiaryEndText,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
             }
         }
 
