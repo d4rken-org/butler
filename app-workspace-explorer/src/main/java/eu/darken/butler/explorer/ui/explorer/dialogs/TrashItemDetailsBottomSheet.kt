@@ -33,6 +33,8 @@ import eu.darken.butler.common.compose.TintedAsyncImage
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.DateTimeStyle
+import eu.darken.butler.common.formatDateTime
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
@@ -41,8 +43,6 @@ import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 import eu.darken.butler.workspace.ui.dialogs.InfoCard
 import eu.darken.butler.workspace.ui.dialogs.InfoField
 import eu.darken.butler.workspace.ui.dialogs.InfoValueStyle
-import java.text.DateFormat
-import java.util.Date
 import kotlin.time.Clock
 import kotlin.uuid.Uuid
 
@@ -139,8 +139,7 @@ private fun TrashItemOptionsContent(
                 // Deleted at - trash specific
                 InfoField(
                     label = stringResource(R.string.explorer_trash_info_deleted_label),
-                    value = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
-                        .format(Date(item.deletedAt.toEpochMilliseconds())),
+                    value = formatDateTime(item.deletedAt, DateTimeStyle.DETAILED),
                 )
 
                 // Original path
@@ -174,8 +173,7 @@ private fun TrashItemOptionsContent(
                 lookup.modifiedAt?.let { modifiedAt ->
                     InfoField(
                         label = stringResource(R.string.explorer_info_modified_label),
-                        value = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
-                            .format(Date(modifiedAt.toEpochMilliseconds())),
+                        value = formatDateTime(modifiedAt, DateTimeStyle.DETAILED),
                     )
                 }
 
@@ -183,8 +181,7 @@ private fun TrashItemOptionsContent(
                 lookup.createdAt?.let { createdAt ->
                     InfoField(
                         label = stringResource(R.string.explorer_info_created_label),
-                        value = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
-                            .format(Date(createdAt.toEpochMilliseconds())),
+                        value = formatDateTime(createdAt, DateTimeStyle.DETAILED),
                     )
                 }
 

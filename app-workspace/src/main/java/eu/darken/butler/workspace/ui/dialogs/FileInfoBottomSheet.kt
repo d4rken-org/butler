@@ -27,11 +27,11 @@ import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
+import eu.darken.butler.common.DateTimeStyle
+import eu.darken.butler.common.formatDateTime
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
-import java.text.DateFormat
-import java.util.Date
 import kotlin.time.Clock
 import kotlin.time.Instant
 
@@ -163,8 +163,7 @@ private fun FileInfoContent(
             lookup.modifiedAt?.let { modifiedAt ->
                 InfoField(
                     label = stringResource(R.string.workspace_file_info_modified_label),
-                    value = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
-                        .format(Date(modifiedAt.toEpochMilliseconds())),
+                    value = formatDateTime(modifiedAt, DateTimeStyle.DETAILED),
                 )
             }
 
@@ -189,8 +188,7 @@ private fun FileInfoContent(
             createdAt?.let { created ->
                 InfoField(
                     label = stringResource(R.string.workspace_file_info_created_label),
-                    value = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
-                        .format(Date(created.toEpochMilliseconds())),
+                    value = formatDateTime(created, DateTimeStyle.DETAILED),
                 )
             }
         }

@@ -15,7 +15,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -31,10 +30,10 @@ import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.DateTimeStyle
+import eu.darken.butler.common.formatDateTime
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.workspace.R
-import java.text.DateFormat
-import java.util.Date
 import kotlin.time.Instant
 
 @Composable
@@ -42,8 +41,6 @@ fun PathIssueFileComparisonCard(
     lookup: APathLookup<*>,
     modifier: Modifier = Modifier,
 ) {
-    val dateFormat = remember { DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM) }
-
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -91,7 +88,7 @@ fun PathIssueFileComparisonCard(
                 )
 
                 Text(
-                    text = lookup.modifiedAt?.let { dateFormat.format(Date(it.toEpochMilliseconds())) } ?: "?",
+                    text = lookup.modifiedAt?.let { formatDateTime(it, DateTimeStyle.FULL) } ?: "?",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

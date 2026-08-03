@@ -21,7 +21,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
@@ -36,6 +35,8 @@ import androidx.core.graphics.drawable.toBitmap
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.DateTimeStyle
+import eu.darken.butler.common.formatDateTime
 import eu.darken.butler.common.R as CommonR
 import eu.darken.butler.common.pkgs.Pkg
 import eu.darken.butler.common.pkgs.getIcon2
@@ -46,8 +47,6 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.cancellation.CancellationException
-import java.text.DateFormat
-import java.util.Date
 import kotlin.time.Instant
 
 @Composable
@@ -122,12 +121,7 @@ private fun SharedFromCard(
         }
     }
 
-    val formattedTime = remember(createdAt) {
-        createdAt?.let {
-            DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
-                .format(Date(it.toEpochMilliseconds()))
-        }
-    }
+    val formattedTime = createdAt?.let { formatDateTime(it, DateTimeStyle.FULL) }
 
     OutlinedCard(modifier = modifier.fillMaxWidth()) {
         Row(

@@ -30,6 +30,8 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.TintedAsyncImage
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.DateTimeStyle
+import eu.darken.butler.common.formatDateTime
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
@@ -39,8 +41,6 @@ import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 import eu.darken.butler.workspace.ui.dialogs.InfoCard
 import eu.darken.butler.workspace.ui.dialogs.InfoField
 import eu.darken.butler.workspace.ui.dialogs.InfoValueStyle
-import java.text.DateFormat
-import java.util.Date
 
 @Composable
 fun TrashNestedItemDetailsBottomSheet(
@@ -155,16 +155,14 @@ private fun TrashNestedItemOptionsContent(
                 lookup.modifiedAt?.let { modifiedAt ->
                     InfoField(
                         label = stringResource(R.string.explorer_info_modified_label),
-                        value = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
-                            .format(Date(modifiedAt.toEpochMilliseconds())),
+                        value = formatDateTime(modifiedAt, DateTimeStyle.DETAILED),
                     )
                 }
 
                 // Parent deleted at
                 InfoField(
                     label = stringResource(R.string.explorer_trash_info_deleted_label),
-                    value = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
-                        .format(Date(item.parentRef.deletedAt.toEpochMilliseconds())),
+                    value = formatDateTime(item.parentRef.deletedAt, DateTimeStyle.DETAILED),
                 )
             }
         }
