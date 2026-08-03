@@ -1,6 +1,7 @@
 package eu.darken.butler.upgrade.ui
 
 import android.content.Context
+import android.text.format.DateFormat
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.assertCountEquals
@@ -11,14 +12,14 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.R
+import eu.darken.butler.common.DateTimeStyle
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.formatDateTime
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import org.junit.Test
 import testhelpers.ComposeTest
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
+import java.util.TimeZone
 import kotlin.time.Instant
 
 class FossUpgradeScreenTest : ComposeTest() {
@@ -124,9 +125,17 @@ class FossUpgradeScreenTest : ComposeTest() {
         ).assertCountEquals(0)
         composeTestRule.onAllNodesWithTag(UpgradeScreenTags.FOSS_STATUS_UPGRADED).assertCountEquals(1)
     }
-}
 
-private fun formatted(instant: Instant): String = DateTimeFormatter
-    .ofLocalizedDate(FormatStyle.MEDIUM)
-    .withZone(ZoneId.systemDefault())
-    .format(java.time.Instant.ofEpochMilli(instant.toEpochMilliseconds()))
+    /**
+     * The screen renders through the composable [formatDateTime]; a test helper cannot call that, so
+     * it uses the pure overload with the same locale, zone and 12/24-hour preference the composable
+     * would have picked up from the context.
+     */
+    private fun formatted(instant: Instant): String = formatDateTime(
+        timestamp = instant,
+        zone = TimeZone.getDefault(),
+        locale = context.resources.configuration.locales[0],
+        is24Hour = DateFormat.is24HourFormat(context),
+        style = DateTimeStyle.DATE_TEXTUAL,
+    )
+}

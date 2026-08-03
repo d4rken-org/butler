@@ -65,8 +65,10 @@ import eu.darken.butler.bugreport.R
 import eu.darken.butler.bugreport.ui.detail.BugReportDetailContent
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.DateTimeStyle
 import eu.darken.butler.common.debug.bugreport.BugReport
 import eu.darken.butler.common.debug.bugreport.BugReportInfo
+import eu.darken.butler.common.formatDateTime
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.icon
 import eu.darken.butler.workspace.ui.common.CutoutCard
@@ -412,7 +414,7 @@ private fun ReportCard(
                 )
             }
             Text(
-                text = report.createdAt.toString(),
+                text = formatDateTime(report.createdAt, DateTimeStyle.COMPACT),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

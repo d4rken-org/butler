@@ -33,12 +33,11 @@ import eu.darken.butler.R
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.DateTimeStyle
 import eu.darken.butler.common.error.ErrorEventHandler
+import eu.darken.butler.common.formatDateTime
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import kotlinx.coroutines.launch
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
 import kotlin.time.Instant
 
 @Composable
@@ -225,10 +224,7 @@ private fun StatusUpgradedContent(
                 style = MaterialTheme.typography.bodyMedium,
             )
             supporterSince?.let { since ->
-                val formatter = remember {
-                    DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withZone(ZoneId.systemDefault())
-                }
-                val formatted = formatter.format(java.time.Instant.ofEpochMilli(since.toEpochMilliseconds()))
+                val formatted = formatDateTime(since, DateTimeStyle.DATE_TEXTUAL)
                 Text(
                     text = stringResource(R.string.upgrade_screen_supporter_since, formatted),
                     style = MaterialTheme.typography.bodySmall,

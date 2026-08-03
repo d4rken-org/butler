@@ -26,7 +26,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -41,8 +40,10 @@ import eu.darken.butler.bugreport.ui.label
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.rememberClipboardCopy
+import eu.darken.butler.common.DateTimeStyle
 import eu.darken.butler.common.debug.bugreport.BugReport
 import eu.darken.butler.common.debug.bugreport.BugReportInfo
+import eu.darken.butler.common.formatDateTime
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.workspace.ui.floatingbar.BarAnimation
 import eu.darken.butler.workspace.ui.common.WorkspacePaddings
@@ -53,11 +54,7 @@ import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
 import eu.darken.butler.workspace.ui.insets.paneInsets
 import eu.darken.butler.workspace.ui.insets.rememberPaneFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
 import kotlin.time.Instant
-import kotlin.time.toJavaInstant
 
 /**
  * Full-screen bug-report detail: a metadata card, an optional error section (class/message/thread/
@@ -141,10 +138,6 @@ fun BugReportDetailContent(
 @Composable
 private fun MetadataCard(info: BugReportInfo) {
     val report = info.report
-    val dateFormatter = remember {
-        DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)
-            .withZone(ZoneId.systemDefault())
-    }
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -162,7 +155,7 @@ private fun MetadataCard(info: BugReportInfo) {
                 )
                 MetaField(
                     label = stringResource(R.string.bugreport_detail_field_time),
-                    value = dateFormatter.format(report.createdAt.toJavaInstant()),
+                    value = formatDateTime(report.createdAt, DateTimeStyle.FULL),
                     modifier = Modifier.weight(1f),
                 )
             }

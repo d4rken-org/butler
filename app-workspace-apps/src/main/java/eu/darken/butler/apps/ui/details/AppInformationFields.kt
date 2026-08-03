@@ -23,11 +23,9 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.rememberClipboardCopy
+import eu.darken.butler.common.DateTimeStyle
+import eu.darken.butler.common.formatDateTime
 import eu.darken.butler.common.formatFileSize
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
-import kotlin.time.toJavaInstant
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -39,8 +37,6 @@ fun AppInformationFields(
 
     val context = LocalContext.current
     val copy = rememberClipboardCopy()
-    val dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)
-        .withZone(ZoneId.systemDefault())
 
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -94,7 +90,7 @@ fun AppInformationFields(
                 InfoField(
                     modifier = Modifier.weight(1f),
                     label = stringResource(R.string.apps_installed_label),
-                    value = dateFormatter.format(it.toJavaInstant()),
+                    value = formatDateTime(it, DateTimeStyle.DATE_NUMERIC),
                 )
             }
 
@@ -104,7 +100,7 @@ fun AppInformationFields(
                     InfoField(
                         modifier = Modifier.weight(1f),
                         label = stringResource(R.string.apps_updated_label),
-                        value = dateFormatter.format(it.toJavaInstant()),
+                        value = formatDateTime(it, DateTimeStyle.DATE_NUMERIC),
                     )
                 }
             } ?: run {
