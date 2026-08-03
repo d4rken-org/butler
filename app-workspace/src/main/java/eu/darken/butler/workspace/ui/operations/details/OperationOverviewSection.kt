@@ -142,7 +142,7 @@ internal fun OperationOverviewSection(
                                 text = when (operation.state) {
                                     is OperationDisplay.State.Completed,
                                     is OperationDisplay.State.Failed,
-                                    is OperationDisplay.State.Cancelled -> "Completed"
+                                    is OperationDisplay.State.Cancelled -> stringResource(R.string.operations_details_completed_at)
                                     else -> stringResource(R.string.operations_details_started_at)
                                 },
                                 style = MaterialTheme.typography.bodyMedium,
@@ -172,7 +172,7 @@ internal fun OperationOverviewSection(
                             )
                             Text(
                                 text = when (operation.state) {
-                                    is OperationDisplay.State.Queued -> "Not started"
+                                    is OperationDisplay.State.Queued -> stringResource(R.string.operations_details_duration_not_started)
                                     is OperationDisplay.State.Running,
                                     is OperationDisplay.State.Waiting -> formatDuration(Clock.System.now() - operation.startedAt)
                                     is OperationDisplay.State.Completed -> formatDuration(operation.state.completedAt - operation.startedAt)
