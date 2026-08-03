@@ -26,6 +26,8 @@ import eu.darken.butler.common.compose.ButlerChipDefaults
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.DateTimeStyle
+import eu.darken.butler.common.formatDateTime
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.searcher.R
 import eu.darken.butler.workspace.contracts.searcher.FilterComparator
@@ -35,7 +37,6 @@ import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
-import kotlin.time.Instant
 
 /**
  * Displays active filter conditions as chips with individual remove capability.
@@ -126,13 +127,10 @@ private fun formatConditionLabel(condition: FilterCondition, context: android.co
                 FilterComparator.LT, FilterComparator.LTE -> stringResource(R.string.searcher_filter_date_direction_before)
                 FilterComparator.EQ -> stringResource(R.string.searcher_filter_date_direction_after)
             }
-            val preset = findPresetForInstant(condition.instant)
-            val dateStr = if (preset != DateFilterPreset.ANY) {
-                stringResource(preset.labelResId)
-            } else {
-                // Fallback for custom dates
-                stringResource(R.string.searcher_filter_date_value_label)
-            }
+            // The stored cutoff is an absolute instant. Naming a preset ("Last 7 days") would be a
+            // claim the chip cannot keep: the same condition drifts out of every preset window as
+            // time passes, and it stopped matching one an hour after it was picked.
+            val dateStr = formatDateTime(condition.instant, DateTimeStyle.COMPACT)
             "$direction $dateStr"
         }
         is FilterCondition.Type -> when (condition.fileType) {
@@ -141,24 +139,6 @@ private fun formatConditionLabel(condition: FilterCondition, context: android.co
             else -> condition.fileType.name
         }
     }
-}
-
-fun findPresetForInstant(instant: Instant?): DateFilterPreset {
-    if (instant == null) return DateFilterPreset.ANY
-
-    val now = Clock.System.now()
-    val durationFromNow = now - instant
-
-    return DateFilterPreset.entries
-        .filter { it.duration != null }
-        .minByOrNull { preset ->
-            kotlin.math.abs((preset.duration!! - durationFromNow).inWholeMinutes)
-        }
-        ?.takeIf { preset ->
-            // Only match if within 1 hour tolerance
-            kotlin.math.abs((preset.duration!! - durationFromNow).inWholeMinutes) < 60
-        }
-        ?: DateFilterPreset.ANY
 }
 
 enum class DateFilterPreset(

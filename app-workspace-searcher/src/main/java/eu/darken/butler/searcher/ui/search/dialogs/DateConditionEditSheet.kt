@@ -34,14 +34,16 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.DateTimeStyle
+import eu.darken.butler.common.formatDateTime
 import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.ui.search.elements.DateFilterPreset
-import eu.darken.butler.searcher.ui.search.elements.findPresetForInstant
 import eu.darken.butler.workspace.contracts.searcher.FilterComparator
 import eu.darken.butler.workspace.contracts.searcher.FilterCondition
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
+import kotlin.time.Instant
 
 /**
  * Bottom sheet for editing a single date condition with comparator selection.
@@ -81,6 +83,13 @@ private enum class DateDirection(val labelResId: Int) {
     BEFORE(R.string.searcher_filter_date_direction_before),
 }
 
+/**
+ * The cutoff is shown at minute precision, so it is stored at minute precision too - otherwise the
+ * comparator would use seconds the user was never shown.
+ */
+private fun Instant.truncatedToMinute(): Instant =
+    Instant.fromEpochMilliseconds(toEpochMilliseconds() - toEpochMilliseconds().mod(60_000L))
+
 @Composable
 private fun DateConditionEditContent(
     existingCondition: FilterCondition.ModifiedDate?,
@@ -98,11 +107,14 @@ private fun DateConditionEditContent(
     var selectedDirection by rememberSaveable(existingCondition) {
         mutableStateOf(initialDirection)
     }
-    var selectedPreset by rememberSaveable(existingCondition) {
-        val preset = findPresetForInstant(existingCondition?.instant)
-        // Default to Last 7 days if no existing condition (ANY is not useful for conditions)
-        mutableStateOf(if (preset == DateFilterPreset.ANY) DateFilterPreset.LAST_7_DAYS else preset)
+    // The condition stores an absolute cutoff, so the sheet edits that instant directly. Re-deriving
+    // a preset from it only worked for an hour after it was picked; past that every stored cutoff
+    // fell back to "Last 7 days" and applying silently rewrote it.
+    var selectedCutoffMillis by rememberSaveable(existingCondition) {
+        val initial = existingCondition?.instant ?: (Clock.System.now() - 7.days)
+        mutableStateOf(initial.truncatedToMinute().toEpochMilliseconds())
     }
+    val selectedCutoff = Instant.fromEpochMilliseconds(selectedCutoffMillis)
 
     var presetExpanded by remember { mutableStateOf(false) }
 
@@ -146,7 +158,7 @@ private fun DateConditionEditContent(
                 onExpandedChange = { presetExpanded = it },
             ) {
                 OutlinedTextField(
-                    value = stringResource(selectedPreset.labelResId),
+                    value = formatDateTime(selectedCutoff, DateTimeStyle.COMPACT),
                     onValueChange = {},
                     readOnly = true,
                     label = { Text(stringResource(R.string.searcher_filter_date_value_label)) },
@@ -159,12 +171,15 @@ private fun DateConditionEditContent(
                     expanded = presetExpanded,
                     onDismissRequest = { presetExpanded = false },
                 ) {
-                    // Only show non-ANY presets for condition editing
-                    DateFilterPreset.entries.filter { it != DateFilterPreset.ANY }.forEach { preset ->
+                    // Presets are one-shot shortcuts that write a date; the condition keeps the
+                    // instant, not the preset.
+                    DateFilterPreset.entries.filter { it.duration != null }.forEach { preset ->
                         DropdownMenuItem(
                             text = { Text(stringResource(preset.labelResId)) },
                             onClick = {
-                                selectedPreset = preset
+                                selectedCutoffMillis = (Clock.System.now() - preset.duration!!)
+                                    .truncatedToMinute()
+                                    .toEpochMilliseconds()
                                 presetExpanded = false
                             },
                         )
@@ -189,24 +204,18 @@ private fun DateConditionEditContent(
 
             Button(
                 onClick = {
-                    val duration = selectedPreset.duration
-                    if (duration != null) {
-                        val now = Clock.System.now()
-                        val instant = now - duration
-                        val comparator = when (selectedDirection) {
-                            DateDirection.AFTER -> FilterComparator.GT
-                            DateDirection.BEFORE -> FilterComparator.LT
-                        }
-                        onApply(
-                            FilterCondition.ModifiedDate(
-                                comparator = comparator,
-                                instant = instant,
-                            )
-                        )
+                    val comparator = when (selectedDirection) {
+                        DateDirection.AFTER -> FilterComparator.GT
+                        DateDirection.BEFORE -> FilterComparator.LT
                     }
+                    onApply(
+                        FilterCondition.ModifiedDate(
+                            comparator = comparator,
+                            instant = selectedCutoff,
+                        )
+                    )
                 },
                 modifier = Modifier.weight(1f),
-                enabled = selectedPreset != DateFilterPreset.ANY,
             ) {
                 Text(stringResource(eu.darken.butler.common.R.string.general_apply_action))
             }
