@@ -68,8 +68,21 @@ class BugReportRecorder @Inject constructor(
     // advance the production bound. Same pattern as BillingCache.cacheTimeoutMs.
     internal var diagnosticsTimeout = DIAGNOSTICS_TIMEOUT
 
+    // Test seams for the two clocks a recording uses: both are real-time reads, so virtual time
+    // cannot drive them either. Same pattern as diagnosticsTimeout above.
+    internal var wallClock: () -> kotlin.time.Instant = { Clock.System.now() }
+    internal var monotonicClock: () -> Long = android.os.SystemClock::elapsedRealtime
+
     private val mutex = Mutex()
     private var fileLogger: FileLogger? = null
+
+    /**
+     * Monotonic base for the duration heuristic, guarded by [mutex] like [fileLogger]. Deliberately
+     * NOT part of the public [State]: no consumer measures duration itself (they all render the wall
+     * stamp), and there is no resume — an interrupted recording is finalized by
+     * [sweepOrphanedSentinels], never continued, so no monotonic base ever has to survive a process.
+     */
+    private var startedAtMonotonicMs: Long = 0L
 
     private val internalState = MutableStateFlow(State())
     val state: StateFlow<State> = internalState.asStateFlow()
@@ -81,7 +94,11 @@ class BugReportRecorder @Inject constructor(
         try {
             if (internalState.value.isRecording) return@withLock
 
-            val now = Clock.System.now()
+            val now = wallClock()
+            // Sampled here, next to the wall stamp and BEFORE the file setup and the per-provider
+            // diagnostics loop below. Capturing it at the state commit instead would exclude that
+            // setup time from the measured duration, changing what the existing heuristic measures.
+            val startedAtMonotonic = monotonicClock()
             val id = "${BugReportStorage.RECORDING_ID_PREFIX}${now.toEpochMilliseconds()}_${Uuid.random().toString().take(8)}"
             val reportDir = File(reportsDir, id)
             reportDir.mkdirs()
@@ -105,6 +122,7 @@ class BugReportRecorder @Inject constructor(
 
             logSessionInfos()
 
+            startedAtMonotonicMs = startedAtMonotonic
             internalState.value = State(
                 isRecording = true,
                 recordingId = id,
@@ -123,7 +141,10 @@ class BugReportRecorder @Inject constructor(
     suspend fun requestStop(): StopResult = mutex.withLock {
         val current = internalState.value
         if (!current.isRecording) return@withLock StopResult.NotRecording
-        val elapsed = System.currentTimeMillis() - current.startedAtMs
+        // Monotonic, immune to wall-clock adjustments mid-recording (NTP sync, the user changing the
+        // time). State.startedAtMs stays wall — that is the stamp the banner, the contact form and
+        // the bug-report workspace render, and it is not what this heuristic measures.
+        val elapsed = monotonicClock() - startedAtMonotonicMs
         if (elapsed < MIN_RECORDING_MS) return@withLock StopResult.TooShort
         val id = current.recordingId
         stopInternal()
@@ -144,6 +165,7 @@ class BugReportRecorder @Inject constructor(
             it.stop()
         }
         fileLogger = null
+        startedAtMonotonicMs = 0L
         val id = internalState.value.recordingId
         if (id != null) {
             runCatching { File(File(reportsDir, id), BugReportStorage.RECORDING_SENTINEL).delete() }
@@ -294,7 +316,18 @@ class BugReportRecorder @Inject constructor(
 
     companion object {
         private val TAG = logTag("Debug", "BugReport", "Recorder")
-        const val MIN_RECORDING_MS = 5_000L
+        /**
+         * Duration heuristic for "did you forget to reproduce the issue?". A recording stopped this
+         * quickly usually contains nothing but the recorder starting and stopping, which costs a
+         * support round-trip to re-request.
+         *
+         * It stays a prompt because short recordings can be perfectly valid: a crash is logged and
+         * flushed immediately, so the reproduction is already on disk. The [StopResult.TooShort]
+         * consumers — the support contact form, the recording banner and the bug-report workspace
+         * dialog — turn it into their short-recording warning, and its "stop anyway" answer goes
+         * through [forceStop], which has no duration check.
+         */
+        const val MIN_RECORDING_MS = 10_000L
         private const val LOG_SIZE_UPDATE_INTERVAL_MS = 5_000L
 
         // Diagnostics read local storage only; a longer wait would just delay the recording start.

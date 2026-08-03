@@ -7,12 +7,18 @@ import eu.darken.butler.common.debug.logging.Logging
 import eu.darken.butler.upgrade.UpgradeDiagnostics
 import io.kotest.matchers.longs.shouldBeLessThan
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.Json
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -22,7 +28,9 @@ import testhelpers.BaseTest
 import testhelpers.coroutine.TestDispatcherProvider
 import java.io.File
 import kotlin.system.measureTimeMillis
+import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Instant
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [29])
@@ -31,20 +39,73 @@ class BugReportRecorderTest : BaseTest() {
     private val context: Context get() = ApplicationProvider.getApplicationContext()
     private val reportsDir get() = File(context.filesDir, "bugreports")
 
+    /**
+     * Test-controlled clocks, handed to the recorder's two seams. The durations under test are
+     * wall-clock/monotonic reads, so virtual time cannot drive them — and `SystemClock` throws on
+     * the JVM, so the monotonic fake is mandatory for anything that reaches [BugReportRecorder.start].
+     * Volatile: the seams are read on the recorder's coroutines, the fields written from the test.
+     */
+    private class TestClocks(
+        @Volatile var wall: Instant = WALL_BASE,
+        @Volatile var monotonic: Long = MONOTONIC_BASE,
+    )
+
     private fun createRecorder(
+        appScope: CoroutineScope,
+        clocks: TestClocks,
         upgradeDiagnostics: Set<UpgradeDiagnostics> = emptySet(),
     ): BugReportRecorder = BugReportRecorder(
         context = context,
-        appScope = CoroutineScope(Dispatchers.Unconfined),
+        appScope = appScope,
         dispatcherProvider = TestDispatcherProvider(),
         butlerId = ButlerId(context),
         json = Json { ignoreUnknownKeys = true },
         upgradeDiagnostics = upgradeDiagnostics,
-    )
+    ).apply {
+        wallClock = { clocks.wall }
+        monotonicClock = { clocks.monotonic }
+    }
+
+    /**
+     * Shared harness for every test that starts a recorder. The recorder is stopped in a nested
+     * finally, BEFORE the scope goes: cancelling the scope alone does NOT uninstall a running
+     * recorder's globally installed [eu.darken.butler.common.debug.logging.FileLogger], and several
+     * cases deliberately end still recording. A leaked logger must fail THIS test rather than write
+     * into every later one, so the installed-logger set is asserted and stragglers removed after.
+     *
+     * Real dispatchers: the diagnostics bound is a real-time timeout and the clock seams are what
+     * make the durations deterministic. The envelope turns a wedged start or stop into a failure in
+     * seconds instead of a held gradle worker.
+     */
+    private fun withRecorder(
+        clocks: TestClocks = TestClocks(),
+        upgradeDiagnostics: Set<UpgradeDiagnostics> = emptySet(),
+        configure: BugReportRecorder.() -> Unit = {},
+        block: suspend (BugReportRecorder) -> Unit,
+    ) {
+        val loggersBefore = Logging.loggers
+        val appScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+        var recorder: BugReportRecorder? = null
+        try {
+            try {
+                val created = createRecorder(appScope, clocks, upgradeDiagnostics).apply(configure)
+                recorder = created
+                runBlocking(Dispatchers.IO) { withTimeout(BLOCK_TIMEOUT_MS) { block(created) } }
+            } finally {
+                recorder?.let {
+                    runBlocking(Dispatchers.IO) { withTimeoutOrNull(STOP_TIMEOUT_MS) { it.forceStop() } }
+                }
+            }
+        } finally {
+            appScope.cancel()
+            val leaked = Logging.loggers - loggersBefore.toSet()
+            leaked.forEach { Logging.remove(it) }
+            leaked shouldBe emptyList<Logging.Logger>()
+        }
+    }
 
     @Test
-    fun `start creates meta, log and sentinel - forceStop clears sentinel`() = runTest {
-        val recorder = createRecorder()
+    fun `start creates meta, log and sentinel - forceStop clears sentinel`() = withRecorder { recorder ->
         recorder.start()
 
         val state = recorder.state.value
@@ -64,20 +125,122 @@ class BugReportRecorderTest : BaseTest() {
     }
 
     @Test
-    fun `requestStop is rejected before the minimum duration`() = runTest {
-        val recorder = createRecorder()
+    fun `requestStop is rejected before the minimum duration`() = withRecorder { recorder ->
         recorder.start()
 
         recorder.requestStop() shouldBe BugReportRecorder.StopResult.TooShort
         recorder.state.value.isRecording shouldBe true
-
-        recorder.forceStop()
     }
 
     @Test
-    fun `a failing diagnostics provider neither stops the recording nor its siblings`() = runTest {
+    fun `an eight second recording warns`() {
+        val clocks = TestClocks()
+        withRecorder(clocks) { recorder ->
+            recorder.start()
+
+            clocks.monotonic += 8_000L
+            recorder.requestStop() shouldBe BugReportRecorder.StopResult.TooShort
+            recorder.state.value.isRecording shouldBe true
+
+            // "Stop anyway" is the user's own next step, and past the threshold it stops cleanly.
+            clocks.monotonic += 3_000L
+            recorder.requestStop().shouldBeInstanceOf<BugReportRecorder.StopResult.Stopped>()
+            recorder.state.value.isRecording shouldBe false
+        }
+    }
+
+    @Test
+    fun `a ten second recording stops`() {
+        val clocks = TestClocks()
+        withRecorder(clocks) { recorder ->
+            recorder.start()
+
+            clocks.monotonic += 10_000L
+
+            recorder.requestStop().shouldBeInstanceOf<BugReportRecorder.StopResult.Stopped>()
+            recorder.state.value.isRecording shouldBe false
+        }
+    }
+
+    @Test
+    fun `a forward wall-clock jump does not skip the warning`() {
+        val clocks = TestClocks()
+        withRecorder(clocks) { recorder ->
+            recorder.start()
+
+            // Three real seconds of recording, and a clock correction an hour forward. Wall-clock
+            // measurement would call this a one-hour recording and skip the prompt.
+            clocks.monotonic += 3_000L
+            clocks.wall += 1.hours
+
+            recorder.requestStop() shouldBe BugReportRecorder.StopResult.TooShort
+            recorder.state.value.isRecording shouldBe true
+        }
+    }
+
+    @Test
+    fun `a backward wall-clock jump does not warn on a long recording`() {
+        val clocks = TestClocks()
+        withRecorder(clocks) { recorder ->
+            recorder.start()
+
+            // Twelve real seconds of recording, and an NTP sync that moves the wall clock an hour
+            // back. Wall-clock measurement would report a negative duration here.
+            clocks.monotonic += 12_000L
+            clocks.wall -= 1.hours
+
+            recorder.requestStop().shouldBeInstanceOf<BugReportRecorder.StopResult.Stopped>()
+            recorder.state.value.isRecording shouldBe false
+        }
+    }
+
+    @Test
+    fun `slow diagnostics still count toward the duration`() {
+        // The monotonic base is sampled BEFORE the file setup and the diagnostics loop, so time spent
+        // inside start() is part of the recording's duration — as it always was under the wall clock.
+        // The provider below stalls for real (well under the diagnostics bound) and, while stalled,
+        // advances the fake monotonic clock by the 7s that stall stands for.
+        val clocks = TestClocks()
+        val slowProvider = object : UpgradeDiagnostics {
+            override suspend fun debugInfo(): String {
+                delay(1_000)
+                clocks.monotonic += 7_000L
+                return "slow-info"
+            }
+        }
+
+        withRecorder(clocks, upgradeDiagnostics = setOf(slowProvider)) { recorder ->
+            recorder.start()
+            recorder.state.value.isRecording shouldBe true
+
+            // Non-vacuous by construction: 3s since the state was committed is far short of the 10s
+            // threshold, so this only stops if the base predates the setup (7s + 3s = 10s).
+            clocks.monotonic += 3_000L
+            recorder.requestStop().shouldBeInstanceOf<BugReportRecorder.StopResult.Stopped>()
+            recorder.state.value.isRecording shouldBe false
+        }
+    }
+
+    @Test
+    fun `force stop bypasses the duration threshold`() {
+        // "Stop anyway" — the answer to the short-recording warning in the banner, the contact form
+        // and the bug-report workspace dialog. It must stop a recording the threshold would reject.
+        val clocks = TestClocks()
+        withRecorder(clocks) { recorder ->
+            recorder.start()
+
+            clocks.monotonic += 2_000L
+            recorder.requestStop() shouldBe BugReportRecorder.StopResult.TooShort
+
+            recorder.forceStop() shouldNotBe null
+            recorder.state.value.isRecording shouldBe false
+        }
+    }
+
+    @Test
+    fun `a failing diagnostics provider neither stops the recording nor its siblings`() {
         var siblingAsked = false
-        val recorder = createRecorder(
+        withRecorder(
             upgradeDiagnostics = setOf(
                 object : UpgradeDiagnostics {
                     override suspend fun debugInfo(): String = throw IllegalStateException("nope")
@@ -89,40 +252,35 @@ class BugReportRecorderTest : BaseTest() {
                     }
                 },
             ),
-        )
+        ) { recorder ->
+            recorder.start()
 
-        recorder.start()
-
-        recorder.state.value.isRecording shouldBe true
-        siblingAsked shouldBe true
-
-        recorder.forceStop()
+            recorder.state.value.isRecording shouldBe true
+            siblingAsked shouldBe true
+        }
     }
 
     @Test
-    fun `a hanging diagnostics provider is reported as wedged and does not stop the recording`() = runTest {
-        // Real dispatchers on purpose: the bound is a wall-clock timeout, under virtual time it
-        // would fire instantly while nothing else is scheduled and prove nothing.
-        withContext(Dispatchers.IO) {
-            var siblingAsked = false
-            val recorder = createRecorder(
-                upgradeDiagnostics = setOf(
-                    object : UpgradeDiagnostics {
-                        override suspend fun debugInfo(): String = awaitCancellation()
-                    },
-                    object : UpgradeDiagnostics {
-                        override suspend fun debugInfo(): String {
-                            siblingAsked = true
-                            return "sibling-info"
-                        }
-                    },
-                ),
-            ).apply { diagnosticsTimeout = 300.milliseconds }
-
+    fun `a hanging diagnostics provider is reported as wedged and does not stop the recording`() {
+        var siblingAsked = false
+        withRecorder(
+            upgradeDiagnostics = setOf(
+                object : UpgradeDiagnostics {
+                    override suspend fun debugInfo(): String = awaitCancellation()
+                },
+                object : UpgradeDiagnostics {
+                    override suspend fun debugInfo(): String {
+                        siblingAsked = true
+                        return "sibling-info"
+                    }
+                },
+            ),
+            configure = { diagnosticsTimeout = 300.milliseconds },
+        ) { recorder ->
             val capture = RecordingLogger()
             Logging.install(capture)
             val elapsed = try {
-                // Wall-clock watchdog: an unbounded read would hang this test forever instead of failing.
+                // Wall-clock watchdog: an unbounded read would hang this test instead of failing.
                 measureTimeMillis { withTimeout(10_000) { recorder.start() } }
             } finally {
                 Logging.remove(capture)
@@ -134,35 +292,31 @@ class BugReportRecorderTest : BaseTest() {
             capture.warnings().any { it.contains("read did not finish within") } shouldBe true
             siblingAsked shouldBe true
             recorder.state.value.isRecording shouldBe true
-
-            recorder.forceStop()
         }
     }
 
     @Test
-    fun `a provider with nothing to report stays quiet instead of warning`() = runTest {
+    fun `a provider with nothing to report stays quiet instead of warning`() {
         // The FOSS case: no diagnostics contributed is normal, not a failure. A warning here would
         // send every FOSS debug log out looking like a wedged billing read.
-        val recorder = createRecorder(
+        withRecorder(
             upgradeDiagnostics = setOf(
                 object : UpgradeDiagnostics {
                     override suspend fun debugInfo(): String? = null
                 },
             ),
-        )
+        ) { recorder ->
+            val capture = RecordingLogger()
+            Logging.install(capture)
+            try {
+                recorder.start()
+            } finally {
+                Logging.remove(capture)
+            }
 
-        val capture = RecordingLogger()
-        Logging.install(capture)
-        try {
-            recorder.start()
-        } finally {
-            Logging.remove(capture)
+            capture.messages().any { it.contains("No upgrade diagnostics from") } shouldBe true
+            capture.warnings().any { it.contains("Upgrade diagnostics unavailable") } shouldBe false
         }
-
-        capture.messages().any { it.contains("No upgrade diagnostics from") } shouldBe true
-        capture.warnings().any { it.contains("Upgrade diagnostics unavailable") } shouldBe false
-
-        recorder.forceStop()
     }
 
     @Test
@@ -177,7 +331,8 @@ class BugReportRecorderTest : BaseTest() {
         val incomplete = File(reportsDir, "recording_2_bbbb").apply { mkdirs() }
         File(incomplete, "meta.json").writeText("{}")
 
-        createRecorder().sweepOrphanedSentinels()
+        // No recorder is started here, so this needs neither the clock fakes nor the leak harness.
+        createRecorder(CoroutineScope(Dispatchers.Unconfined), TestClocks()).sweepOrphanedSentinels()
 
         interrupted.exists() shouldBe true
         File(interrupted, ".recording").exists() shouldBe false
@@ -196,5 +351,14 @@ class BugReportRecorderTest : BaseTest() {
         fun warnings(): List<String> = synchronized(lines) {
             lines.filter { it.first == Logging.Priority.WARN }.map { it.second }
         }
+    }
+
+    companion object {
+        // Independent of any production bound: a wedged wait has to fail the test, not hang the
+        // gradle worker.
+        private const val BLOCK_TIMEOUT_MS = 20_000L
+        private const val STOP_TIMEOUT_MS = 10_000L
+        private val WALL_BASE = Instant.fromEpochMilliseconds(1_800_000_000_000L)
+        private const val MONOTONIC_BASE = 100_000L
     }
 }
