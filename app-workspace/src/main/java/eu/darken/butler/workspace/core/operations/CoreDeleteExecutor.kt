@@ -16,8 +16,8 @@ import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.extensions.delete
 import eu.darken.butler.common.files.local.operations.core.PerformanceHistory
+import eu.darken.butler.common.formatDuration
 import eu.darken.butler.common.formatItemSpeed
-import eu.darken.butler.common.getQuantityString2
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.common.trash.TrashManager
 import eu.darken.butler.common.trash.TrashSettings
@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.time.Duration.Companion.seconds
 
 class CoreDeleteExecutor @Inject constructor(
     private val gatewaySwitch: GatewaySwitch,
@@ -300,12 +301,8 @@ class CoreDeleteExecutor @Inject constructor(
                     )
                 }
                 val speedPart = parts.joinToString(" • ")
-                val etaPart = if (overallEta != null) {
-                    val duration = ctx.getQuantityString2(
-                        eu.darken.butler.common.R.plurals.common_duration_seconds_full,
-                        overallEta.toInt(),
-                        overallEta
-                    )
+                val etaPart = if (overallEta != null && overallEta > 0) {
+                    val duration = formatDuration(ctx, overallEta.seconds)
                     " • " + ctx.getString(
                         eu.darken.butler.workspace.R.string.workspace_operation_progress_time_remaining,
                         duration
@@ -369,11 +366,7 @@ class CoreDeleteExecutor @Inject constructor(
                 }
                 val speedPart = parts.joinToString(" • ")
                 val etaPart = if (overallEta != null && overallEta > 0) {
-                    val duration = ctx.getQuantityString2(
-                        eu.darken.butler.common.R.plurals.common_duration_seconds_full,
-                        overallEta.toInt(),
-                        overallEta
-                    )
+                    val duration = formatDuration(ctx, overallEta.seconds)
                     " • " + ctx.getString(
                         eu.darken.butler.workspace.R.string.workspace_operation_progress_time_remaining,
                         duration

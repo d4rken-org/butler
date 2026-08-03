@@ -1,14 +1,28 @@
 package eu.darken.butler.workspace.core.operations
 
+import android.content.Context
+import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.files.local.operations.core.PerformanceHistory
 import eu.darken.butler.common.files.local.operations.core.PerformanceSample
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import org.junit.jupiter.api.Test
+import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldNotContain
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 import testhelpers.BaseTest
+import testhelpers.TestApplication
 import kotlin.time.Instant
 
+// Robolectric: the progress strings are CaStrings, so asserting what they render needs a context.
+@RunWith(RobolectricTestRunner::class)
+@Config(application = TestApplication::class, sdk = [34])
 class TransferProgressFormattingTest : BaseTest() {
+
+    private val context: Context
+        get() = ApplicationProvider.getApplicationContext()
 
     private val baseTime = Instant.fromEpochMilliseconds(1_000_000)
 
@@ -131,5 +145,50 @@ class TransferProgressFormattingTest : BaseTest() {
 
         metrics.overall shouldBe null
         metrics.overallEta shouldBe null
+    }
+
+    @Test
+    fun `an hour of remaining work reads as an hour, not 3600 seconds`() {
+        val metrics = build(
+            performanceHistory = history(bytesPerSecond = 1L, itemsPerSecond = 1f),
+            totalBytes = 3600L,
+            processedBytes = 0L,
+        )
+
+        metrics.overallEta shouldBe 3600L
+        val rendered = metrics.overall!!.get(context)
+        rendered shouldContain "1 hour remaining"
+        rendered shouldNotContain "3600"
+    }
+
+    @Test
+    fun `a per-file hour reads as an hour too`() {
+        val metrics = build(
+            currentFileSize = 3601L,
+            currentFileBytes = 1L,
+            currentFileStartTime = baseTime,
+            now = baseTime + kotlin.time.Duration.parse("1s"),
+        )
+
+        metrics.fileEta shouldBe 3600L
+        metrics.currentFile!!.get(context) shouldContain "1 hour remaining"
+    }
+
+    @Test
+    fun `a zero eta renders no remaining segment`() {
+        val metrics = build(totalBytes = 1000L, processedBytes = 1000L)
+
+        metrics.overallEta shouldBe 0L
+        metrics.overall!!.get(context) shouldNotContain "remaining"
+    }
+
+    @Test
+    fun `a negative eta renders no remaining segment`() {
+        // Preserved Saver behavior: without requireTotalBytesForEta the raw metric can go negative.
+        // The number stays untouched, but "-5 seconds remaining" is not shown.
+        val metrics = build(totalBytes = 0L, processedBytes = 500L, requireTotalBytesForEta = false)
+
+        metrics.overallEta shouldBe -5L
+        metrics.overall!!.get(context) shouldNotContain "remaining"
     }
 }

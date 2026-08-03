@@ -4,10 +4,11 @@ import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.files.local.operations.core.PerformanceHistory
 import eu.darken.butler.common.formatByteSpeed
+import eu.darken.butler.common.formatDuration
 import eu.darken.butler.common.formatItemSpeed
-import eu.darken.butler.common.getQuantityString2
 import eu.darken.butler.workspace.R
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
 data class TransferProgressMetrics(
@@ -67,12 +68,8 @@ fun buildTransferProgressMetrics(
                 " • " + formatItemSpeed(ctx, overallItemsSpeed)
             } else ""
 
-            val etaPart = if (overallEta != null) {
-                val duration = ctx.getQuantityString2(
-                    eu.darken.butler.common.R.plurals.common_duration_seconds_full,
-                    overallEta.toInt(),
-                    overallEta
-                )
+            val etaPart = if (overallEta != null && overallEta > 0) {
+                val duration = formatDuration(ctx, overallEta.seconds)
                 " • " + ctx.getString(R.string.workspace_operation_progress_time_remaining, duration)
             } else ""
 
@@ -83,12 +80,8 @@ fun buildTransferProgressMetrics(
     val currentFile = if (fileSpeed > 0) {
         caString { ctx ->
             val speedPart = formatByteSpeed(ctx, fileSpeed)
-            val etaPart = if (fileEta != null) {
-                val duration = ctx.getQuantityString2(
-                    eu.darken.butler.common.R.plurals.common_duration_seconds_full,
-                    fileEta.toInt(),
-                    fileEta
-                )
+            val etaPart = if (fileEta != null && fileEta > 0) {
+                val duration = formatDuration(ctx, fileEta.seconds)
                 " • " + ctx.getString(R.string.workspace_operation_progress_time_remaining, duration)
             } else ""
             speedPart + etaPart
