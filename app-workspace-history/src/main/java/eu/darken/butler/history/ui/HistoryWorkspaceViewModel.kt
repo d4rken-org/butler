@@ -26,9 +26,12 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 import kotlin.time.Clock
-import kotlin.time.Duration.Companion.days
 import kotlin.time.Instant
+import kotlin.time.toJavaInstant
 
 @HiltViewModel(assistedFactory = HistoryWorkspaceViewModel.Factory::class)
 class HistoryWorkspaceViewModel @AssistedInject constructor(
@@ -57,7 +60,7 @@ class HistoryWorkspaceViewModel @AssistedInject constructor(
         State(
             id = id,
             filter = filter,
-            groups = groupByDate(entries, Clock.System.now()),
+            groups = groupByDate(entries, Clock.System.now(), ZoneId.systemDefault()),
             entryCount = entries.size,
             totalCount = totalCount,
             hasAnyHistory = totalCount > 0,
@@ -157,12 +160,20 @@ class HistoryWorkspaceViewModel @AssistedInject constructor(
     }
 
     companion object {
-        private fun groupByDate(entries: List<HistoryEntry>, now: Instant): List<DateGroup> {
+        /**
+         * Buckets by *calendar* day in [zone]. Dividing epoch millis by a day length buckets by UTC
+         * day instead, which puts entries under the wrong header everywhere but UTC - the boundary
+         * sits at 2am in Berlin and at 5pm the previous day in Los Angeles.
+         */
+        internal fun groupByDate(
+            entries: List<HistoryEntry>,
+            now: Instant,
+            zone: ZoneId,
+        ): List<DateGroup> {
             if (entries.isEmpty()) return emptyList()
-            val nowDays = now.toEpochMilliseconds() / DAY_MS
+            val today = now.toLocalDate(zone)
             val grouped = entries.groupBy { entry ->
-                val entryDays = entry.completedAt.toEpochMilliseconds() / DAY_MS
-                val ageDays = nowDays - entryDays
+                val ageDays = ChronoUnit.DAYS.between(entry.completedAt.toLocalDate(zone), today)
                 when {
                     ageDays <= 0 -> GroupKey.TODAY
                     ageDays == 1L -> GroupKey.YESTERDAY
@@ -176,6 +187,7 @@ class HistoryWorkspaceViewModel @AssistedInject constructor(
             }
         }
 
-        private val DAY_MS = 1.days.inWholeMilliseconds
+        private fun Instant.toLocalDate(zone: ZoneId): LocalDate =
+            toJavaInstant().atZone(zone).toLocalDate()
     }
 }
