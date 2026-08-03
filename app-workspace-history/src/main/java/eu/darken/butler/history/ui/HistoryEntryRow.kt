@@ -43,12 +43,12 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.formatRelativeTime
 import eu.darken.butler.history.R
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.history.HistoryEntry
 import eu.darken.butler.workspace.core.operations.history.HistoryOutcome
 import kotlin.time.Clock
-import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
@@ -95,7 +95,7 @@ fun HistoryEntryRow(
                 )
                 Spacer(Modifier.size(2.dp))
                 Text(
-                    text = entry.subline(),
+                    text = entry.subline(timeAgo = formatRelativeTime(entry.completedAt)),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
@@ -161,9 +161,8 @@ private fun HistoryEntry.headline(): String {
     return if (target.isNullOrBlank()) intentLabel else "$intentLabel  $target"
 }
 
-private fun HistoryEntry.subline(): String {
+private fun HistoryEntry.subline(timeAgo: String): String {
     val originLabel = originType.name.lowercase().replaceFirstChar { it.uppercaseChar() }
-    val timeAgo = formatTimeAgo(Clock.System.now() - completedAt)
     val pathHint = paths.firstOrNull()?.path?.substringBeforeLast('/').orEmpty()
     return if (pathHint.isNotEmpty()) "$originLabel  ·  $timeAgo  ·  $pathHint" else "$originLabel  ·  $timeAgo"
 }
@@ -206,13 +205,6 @@ internal fun HistoryOutcome.color(): Color = when (this) {
     HistoryOutcome.PARTIAL -> MaterialTheme.colorScheme.tertiary
     HistoryOutcome.FAILED -> MaterialTheme.colorScheme.error
     HistoryOutcome.CANCELLED -> MaterialTheme.colorScheme.onSurfaceVariant
-}
-
-private fun formatTimeAgo(d: Duration): String = when {
-    d < 1.minutes -> "just now"
-    d < 60.minutes -> "${d.inWholeMinutes}m"
-    d < 1.minutes * 60 * 24 -> "${d.inWholeHours}h"
-    else -> "${d.inWholeDays}d"
 }
 
 @Preview2

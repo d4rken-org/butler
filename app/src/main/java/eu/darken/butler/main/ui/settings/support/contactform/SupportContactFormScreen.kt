@@ -1,7 +1,6 @@
 package eu.darken.butler.main.ui.settings.support.contactform
 
 import android.content.ActivityNotFoundException
-import android.text.format.DateUtils
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -62,6 +61,7 @@ import eu.darken.butler.common.debug.bugreport.BugReport
 import eu.darken.butler.common.debug.bugreport.BugReportInfo
 import eu.darken.butler.common.debug.recorder.ui.ShortRecordingDialog
 import eu.darken.butler.common.error.ErrorEventHandler
+import eu.darken.butler.common.formatRelativeTime
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import kotlin.time.Instant
 
@@ -301,14 +301,8 @@ fun SupportContactFormScreen(
                                                 style = MaterialTheme.typography.bodyMedium,
                                                 maxLines = 1,
                                             )
-                                            val agoText = DateUtils.getRelativeTimeSpanString(
-                                                info.report.createdAt.toEpochMilliseconds(),
-                                                System.currentTimeMillis(),
-                                                DateUtils.SECOND_IN_MILLIS,
-                                                DateUtils.FORMAT_ABBREV_RELATIVE,
-                                            )
                                             Text(
-                                                text = agoText.toString(),
+                                                text = formatRelativeTime(info.report.createdAt),
                                                 style = MaterialTheme.typography.bodySmall,
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                             )
