@@ -1,5 +1,6 @@
 package eu.darken.butler.upgrade.ui
 
+import android.os.SystemClock
 import androidx.lifecycle.SavedStateHandle
 import eu.darken.butler.R
 import eu.darken.butler.common.navigation.NavEvent
@@ -7,20 +8,27 @@ import eu.darken.butler.upgrade.core.FossUpgrade
 import eu.darken.butler.upgrade.core.UpgradeRepoFoss
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
+import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
+import kotlinx.serialization.SerializationException
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -32,6 +40,7 @@ import testhelpers.BaseTest
 import testhelpers.TestApplication
 import testhelpers.coroutine.TestDispatcherProvider
 import testhelpers.coroutine.runTest2
+import java.io.IOException
 import java.time.Duration
 import kotlin.time.Instant
 
@@ -66,6 +75,9 @@ class FossUpgradeViewModelTest : BaseTest() {
         // Explicit: a relaxed mock would answer the launch with `false`, which now means "no page
         // opened" and would leave every armed-path test unarmed.
         every { openGithubSponsorsPage() } returns true
+        // Explicit: a relaxed mock would answer the Boolean with false, i.e. "record already
+        // existed", silently turning every thanks-toast assertion below into a no-op.
+        coEvery { persistUpgrade() } returns true
     }
 
     private fun buildVm(
@@ -256,8 +268,9 @@ class FossUpgradeViewModelTest : BaseTest() {
 
     @Test
     fun `a sponsor return stays silent for already upgraded users`() = runTest2(context = testDispatcher) {
-        // The already-upgraded check runs BEFORE the elapsed time is looked at: an armed stale key
-        // must never rewrite the supporter-since date, however long the visit was.
+        // The already-upgraded check runs BEFORE the elapsed time is looked at. The store transaction
+        // keeps the existing record either way, so this is about the feedback: no redundant write
+        // attempt and no thanks toast for an unlock that already happened, however long the visit was.
         val repo = mockRepo(MutableStateFlow(upgradedInfo()))
         val vm = buildVm(repo = repo)
 
@@ -276,8 +289,8 @@ class FossUpgradeViewModelTest : BaseTest() {
 
     @Test
     fun `the recurring sponsor button never arms the unlock check`() = runTest2(context = testDispatcher) {
-        // The unarmed entrypoint: a supporter donating again must not re-run the unlock and
-        // rewrite the supporter-since date shown right above the button.
+        // The unarmed entrypoint: a supporter donating again must not re-run the unlock heuristic —
+        // no write attempt, and no thanks toast right above the date they already have.
         val repo = mockRepo(MutableStateFlow(upgradedInfo()))
         val vm = buildVm(repo = repo)
 
@@ -335,5 +348,197 @@ class FossUpgradeViewModelTest : BaseTest() {
         coVerify(exactly = 1) { repo.persistUpgrade() }
         // Consumed: a later resume must not re-run the unlock.
         recreatedVm.hasPendingSponsorLaunch() shouldBe false
+    }
+
+    @Test
+    fun `a sponsor return whose record already existed stays quiet`() = runTest2(context = testDispatcher) {
+        // The isPro fast path reads an entitlement emission that can be stale, so a supporter's
+        // return can get past it. Only the store transaction knows the record is already there — it
+        // keeps it and reports "not created", and there is no unlock to thank anyone for.
+        val repo = mockRepo()
+        coEvery { repo.persistUpgrade() } returns false
+        val vm = buildVm(repo = repo, manage = false)
+
+        val nudges = mutableListOf<Int>()
+        val thanks = mutableListOf<Int>()
+        val snackbarCollector = launch(start = CoroutineStart.UNDISPATCHED) {
+            vm.snackbarEvent.collect { nudges.add(it) }
+        }
+        val toastCollector = launch(start = CoroutineStart.UNDISPATCHED) { vm.toastEvent.collect { thanks.add(it) } }
+
+        vm.openSponsor()
+        ShadowSystemClock.advanceBy(Duration.ofSeconds(6))
+        vm.checkSponsorReturn()
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { repo.persistUpgrade() }
+        thanks.shouldBeEmpty()
+        nudges.shouldBeEmpty()
+        // Consumed: the visit was evaluated, there is nothing left to retry.
+        vm.hasPendingSponsorLaunch() shouldBe false
+
+        snackbarCollector.cancel()
+        toastCollector.cancel()
+    }
+
+    @Test
+    fun `a failed persist restores the pending sponsor launch`() = runTest2(context = testDispatcher) {
+        // The marker is consumed before the write. If the write then fails, dropping it would eat a
+        // valid sponsor visit for good — the next return/resume has to be able to retry the unlock.
+        val repo = mockRepo()
+        coEvery { repo.persistUpgrade() } throws IOException("write failed")
+        val vm = buildVm(repo = repo, manage = false)
+
+        val thanks = mutableListOf<Int>()
+        val errors = mutableListOf<Throwable>()
+        val toastCollector = launch(start = CoroutineStart.UNDISPATCHED) { vm.toastEvent.collect { thanks.add(it) } }
+        val errorCollector = launch(start = CoroutineStart.UNDISPATCHED) { vm.errorEvents.collect { errors.add(it) } }
+
+        vm.openSponsor()
+        ShadowSystemClock.advanceBy(Duration.ofSeconds(6))
+        vm.checkSponsorReturn()
+        advanceUntilIdle()
+
+        vm.hasPendingSponsorLaunch() shouldBe true
+        thanks.shouldBeEmpty()
+        // Rethrown, not swallowed: the failure still travels the normal error path.
+        errors.single().shouldBeInstanceOf<IOException>()
+
+        toastCollector.cancel()
+        errorCollector.cancel()
+    }
+
+    @Test
+    fun `a thrown entitlement read restores the pending sponsor launch`() = runTest2(context = testDispatcher) {
+        // The guard's entitlement read happens after the marker was consumed, so it can eat the
+        // sponsor visit just as a failed write can. Installed after arming: the ViewModel's init
+        // collector already holds the working flow, so the only failing read is the guard's. Butler's
+        // upgradeInfo is a plain combine over the cache flow (only logging handlers on top, no
+        // shareIn), so a thrown cache read propagates straight into the guard's first().
+        val repo = mockRepo()
+        val vm = buildVm(repo = repo, manage = false)
+
+        val thanks = mutableListOf<Int>()
+        val errors = mutableListOf<Throwable>()
+        val toastCollector = launch(start = CoroutineStart.UNDISPATCHED) { vm.toastEvent.collect { thanks.add(it) } }
+        val errorCollector = launch(start = CoroutineStart.UNDISPATCHED) { vm.errorEvents.collect { errors.add(it) } }
+
+        vm.openSponsor()
+        advanceUntilIdle()
+        every { repo.upgradeInfo } returns flow { throw IOException("read failed") }
+
+        ShadowSystemClock.advanceBy(Duration.ofSeconds(6))
+        vm.checkSponsorReturn()
+        advanceUntilIdle()
+
+        vm.hasPendingSponsorLaunch() shouldBe true
+        thanks.shouldBeEmpty()
+        coVerify(exactly = 0) { repo.persistUpgrade() }
+        errors.single().shouldBeInstanceOf<IOException>()
+
+        toastCollector.cancel()
+        errorCollector.cancel()
+    }
+
+    @Test
+    fun `a hung entitlement read releases the visit when the screen dies`() = runTest2(context = testDispatcher) {
+        // A read that never answers holds the check open with the marker already consumed. When the
+        // screen goes away the coroutine is cancelled — the catch's cancellation path has to hand
+        // the sponsor visit back, otherwise it is lost with nothing to retry from.
+        val repo = mockRepo()
+        val vm = buildVm(repo = repo, manage = false)
+
+        vm.openSponsor()
+        advanceUntilIdle()
+        every { repo.upgradeInfo } returns flow { awaitCancellation() }
+
+        ShadowSystemClock.advanceBy(Duration.ofSeconds(6))
+        vm.checkSponsorReturn()
+        advanceUntilIdle()
+        // Suspended inside the guard's read, marker already consumed.
+        vm.hasPendingSponsorLaunch() shouldBe false
+
+        // The ViewModel going away: vmScope shares viewModelScope's job, so this is the cleared VM.
+        vm.vmScope.cancel()
+        advanceUntilIdle()
+
+        vm.hasPendingSponsorLaunch() shouldBe true
+        coVerify(exactly = 0) { repo.persistUpgrade() }
+    }
+
+    @Test
+    fun `a newer sponsor launch survives a failed older attempt`() = runTest2(context = testDispatcher) {
+        // The restore must not clobber a launch armed while the old attempt was still suspended:
+        // the newer visit is the one the user is actually waiting on.
+        val repo = mockRepo()
+        val gate = CompletableDeferred<Unit>()
+        coEvery { repo.persistUpgrade() } coAnswers {
+            gate.await()
+            throw IOException("write failed")
+        }
+        val handle = SavedStateHandle()
+        val vm = buildVm(repo = repo, handle = handle, manage = false)
+
+        val errors = mutableListOf<Throwable>()
+        val errorCollector = launch(start = CoroutineStart.UNDISPATCHED) { vm.errorEvents.collect { errors.add(it) } }
+
+        vm.openSponsor()
+        ShadowSystemClock.advanceBy(Duration.ofSeconds(6))
+        vm.checkSponsorReturn()
+        advanceUntilIdle()
+        // Consumed and parked in the write.
+        vm.hasPendingSponsorLaunch() shouldBe false
+
+        // A second sponsor visit while the first attempt is still hanging.
+        ShadowSystemClock.advanceBy(Duration.ofSeconds(30))
+        val newerPressedAt = SystemClock.elapsedRealtime()
+        vm.openSponsor()
+        advanceUntilIdle()
+
+        gate.complete(Unit)
+        advanceUntilIdle()
+
+        vm.hasPendingSponsorLaunch() shouldBe true
+        // Mirrors the ViewModel's private KEY_SPONSOR_PRESSED_AT: the newer timestamp must still be
+        // the one stored, the failed older attempt must not have written its own back over it.
+        handle.get<Long>("sponsor_pressed_at") shouldBe newerPressedAt
+        errors.single().shouldBeInstanceOf<IOException>()
+
+        errorCollector.cancel()
+    }
+
+    @Test
+    fun `a corrupt record keeps failing without losing the visit`() = runTest2(context = testDispatcher) {
+        // The accepted cost of the no-clobber invariant: FossCache leaves the decode fallback off, so
+        // a corrupt stored record makes the entitlement read THROW instead of silently reading as
+        // absent. Every armed resume then repeats the same sequence — read throws, marker restored,
+        // error surfaced — rather than replacing the record. Deliberate: an honest repeated signal,
+        // nothing destroyed, recovery stays an explicit user action.
+        val repo = mockRepo()
+        val vm = buildVm(repo = repo, manage = false)
+
+        val errors = mutableListOf<Throwable>()
+        val errorCollector = launch(start = CoroutineStart.UNDISPATCHED) { vm.errorEvents.collect { errors.add(it) } }
+
+        vm.openSponsor()
+        advanceUntilIdle()
+        every { repo.upgradeInfo } returns flow { throw SerializationException("corrupt record") }
+
+        ShadowSystemClock.advanceBy(Duration.ofSeconds(6))
+        vm.checkSponsorReturn()
+        advanceUntilIdle()
+
+        // Restored, so the second resume finds the visit still armed and re-runs the same failure.
+        vm.hasPendingSponsorLaunch() shouldBe true
+
+        vm.checkSponsorReturn()
+        advanceUntilIdle()
+
+        vm.hasPendingSponsorLaunch() shouldBe true
+        errors.size shouldBe 2
+        errors.forEach { it.shouldBeInstanceOf<SerializationException>() }
+        coVerify(exactly = 0) { repo.persistUpgrade() }
+
+        errorCollector.cancel()
     }
 }

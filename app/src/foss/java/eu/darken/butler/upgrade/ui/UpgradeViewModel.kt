@@ -115,26 +115,46 @@ class UpgradeViewModel @AssistedInject constructor(
     fun checkSponsorReturn() = launch {
         val pressedAt = savedStateHandle.remove<Long>(KEY_SPONSOR_PRESSED_AT) ?: return@launch
 
-        // Evaluated before the duration: an already-upgraded supporter has nothing left to unlock,
-        // and rewriting their upgradedAt from a stale armed key (or a launch that raced the status
-        // view) would falsify the "supporter since" date they are being shown.
-        if (upgradeRepo.upgradeInfo.first().isPro) {
-            log(tag) { "checkSponsorReturn(): Already upgraded, staying quiet" }
-            return@launch
-        }
+        try {
+            // Evaluated before the duration: an already-upgraded supporter has nothing left to
+            // unlock, so this fast path exists for the UX — return quietly, no redundant write
+            // attempt and no thanks toast for an unlock that already happened. Data integrity is
+            // not this guard's job: the repo's create-only transaction owns that.
+            if (upgradeRepo.upgradeInfo.first().isPro) {
+                log(tag) { "checkSponsorReturn(): Already upgraded, staying quiet" }
+                return@launch
+            }
 
-        // Monotonic: wall-clock elapsed can be moved by the user or a network time sync between
-        // the launch and the return.
-        val elapsed = SystemClock.elapsedRealtime() - pressedAt
-        log(tag) { "checkSponsorReturn(): elapsed=${elapsed}ms" }
+            // Monotonic: wall-clock elapsed can be moved by the user or a network time sync between
+            // the launch and the return.
+            val elapsed = SystemClock.elapsedRealtime() - pressedAt
+            log(tag) { "checkSponsorReturn(): elapsed=${elapsed}ms" }
 
-        if (elapsed < SPONSOR_DELAY_MS) {
-            log(tag, WARN) { "checkSponsorReturn(): Too quick, showing snackbar" }
-            snackbarEvent.emit(R.string.upgrade_screen_sponsor_too_fast)
-        } else {
-            log(tag, INFO) { "checkSponsorReturn(): Delay passed, persisting upgrade" }
-            upgradeRepo.persistUpgrade()
-            toastEvent.emit(R.string.upgrade_screen_thanks_toast)
+            if (elapsed < SPONSOR_DELAY_MS) {
+                log(tag, WARN) { "checkSponsorReturn(): Too quick, showing snackbar" }
+                snackbarEvent.emit(R.string.upgrade_screen_sponsor_too_fast)
+            } else {
+                log(tag, INFO) { "checkSponsorReturn(): Delay passed, persisting upgrade" }
+                val created = upgradeRepo.persistUpgrade()
+                if (created) {
+                    toastEvent.emit(R.string.upgrade_screen_thanks_toast)
+                } else {
+                    // The isPro fast-path read a stale emission; the transaction kept the existing record.
+                    log(tag) { "checkSponsorReturn(): Record already existed, staying quiet" }
+                }
+            }
+        } catch (e: Exception) {
+            // The marker was consumed above; neither a failed entitlement read nor a failed write may
+            // eat the user's valid sponsor visit — restore it so the next return/resume can retry the
+            // unlock. Conditional: the user may have armed a NEWER launch while this attempt was
+            // suspended, and that one must survive. The contains-check has a small check-then-act
+            // window against a concurrent new arm; accepted — the create-only transaction owns data
+            // integrity, a wrong winner only changes which REAL visit's timestamp gates the unlock.
+            // Rethrow unconditionally: cancellation is not swallowed.
+            if (!savedStateHandle.contains(KEY_SPONSOR_PRESSED_AT)) {
+                savedStateHandle[KEY_SPONSOR_PRESSED_AT] = pressedAt
+            }
+            throw e
         }
     }
 

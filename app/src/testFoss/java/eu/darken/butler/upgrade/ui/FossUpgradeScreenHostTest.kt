@@ -42,7 +42,7 @@ class FossUpgradeScreenHostTest : BaseTest() {
         // Explicit: a relaxed mock would answer the launch with `false`, which now means "no page
         // opened" and would leave every armed-path test unarmed.
         every { openGithubSponsorsPage() } returns true
-        coEvery { persistUpgrade() } answers { persisted++ }
+        coEvery { persistUpgrade() } answers { persisted++; true }
     }
 
     private fun buildVm(
