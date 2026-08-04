@@ -6,11 +6,13 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.AutoAwesome
 import androidx.compose.material.icons.twotone.WarningAmber
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -26,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -133,6 +136,15 @@ fun UpgradeScreenHost(
     )
 }
 
+// The acquisition pitch inserts the SAME composed brand the status title uses, postfix colored —
+// one brand rendering for both. Word-order-proof: the brand is spliced into the TRANSLATED pattern,
+// so Android's formatter owns placeholder semantics (numbering, reordering, escaping).
+@Composable
+private fun upgradeAcquisitionTitle(): AnnotatedString = spliceBrandTitle(
+    formatted = stringResource(R.string.upgrade_screen_title_template, BRAND_TITLE_MARKER),
+    brand = upgradeScreenTitle(upgraded = true),
+)
+
 @Composable
 internal fun UpgradeScreen(
     uiState: UpgradeUiState = UpgradeUiState.Loading,
@@ -152,12 +164,21 @@ internal fun UpgradeScreen(
 
     UpgradeScreenScaffold(
         title = {
-            // Grace users are still Pro: they get the status title too — a "Upgrade Butler" title
+            // Grace users are still Pro: they get the status title too — an "Upgrade Butler" title
             // on the status screen would contradict the rest of the app, which behaves upgraded.
+            // Acquisition wraps that same brand in the pitch sentence, deliberately UNTAGGED: the
+            // TITLE tag marks the status title, which is what the screen tests key off.
             if (ownedState != null || loaded?.grace != null) {
-                UpgradeTitle()
+                Text(
+                    text = upgradeScreenTitle(upgraded = true),
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.testTag(UpgradeScreenTags.TITLE),
+                )
             } else {
-                Text(stringResource(R.string.upgrade_screen_title))
+                Text(
+                    text = upgradeAcquisitionTitle(),
+                    style = MaterialTheme.typography.titleLarge,
+                )
             }
         },
         onNavigateUp = onNavigateUp,
@@ -171,10 +192,24 @@ internal fun UpgradeScreen(
                 // episode ages into the diagnostics stage, the mascot joins the mood: unimpressed
                 // at Google Play, matching the setup card's "needs your attention" face. The young
                 // episode keeps the happy face — its message is that nothing is wrong.
-                UpgradeHeader(
-                    mascotSize = 88.dp,
-                    happy = loaded?.grace?.showDiagnostics != true,
-                )
+                if (loaded?.grace != null) {
+                    // Grace users never see the preamble (sales copy contradicts "still active"),
+                    // so there is nothing to pair the mascot with — it stays a standalone header
+                    // above the grace card.
+                    UpgradeHeader(
+                        mascotSize = 88.dp,
+                        happy = loaded.grace.showDiagnostics != true,
+                    )
+                } else {
+                    UpgradeHeroCard(
+                        text = stringResource(R.string.upgrade_screen_preamble),
+                        mascotSize = 88.dp,
+                        colors = CardDefaults.elevatedCardColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        ),
+                    )
+                }
             }
 
             if (ownedState != null) {
@@ -223,14 +258,6 @@ private fun UpgradeAcquisitionContent(
     // blip) shows calm status only, an aged one (likely really gone) adds restore AND the offers,
     // so an expired subscriber can switch without waiting out the full grace window.
     if (!inGrace) {
-        UpgradePreambleCard(
-            text = stringResource(R.string.upgrade_screen_preamble),
-            colors = CardDefaults.elevatedCardColors(
-                containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-            ),
-        )
-
         if (loadedState != null && loadedState.wasPreviouslyPro) {
             // The targeted returning-buyer nudge: prominent placement and emphasis, and the ONLY
             // restore affordance on the screen — a second one below would make the screen feel
@@ -306,6 +333,7 @@ private fun UpgradeOffersBox(
                 // the user re-run the offer queries instead of leaving a dead screen.
                 // No reset needed: this composable unmounts the moment the state leaves Unavailable.
                 var retryTapped by remember { mutableStateOf(false) }
+                val retryEnabled = !retryTapped
                 OutlinedButton(
                     // Guard inside the callback, not just via `enabled`: `enabled` only takes effect
                     // after recomposition, so two taps in the same frame would both fire.
@@ -315,10 +343,20 @@ private fun UpgradeOffersBox(
                             onRetry()
                         }
                     },
-                    enabled = !retryTapped,
+                    enabled = retryEnabled,
                     modifier = Modifier
                         .fillMaxWidth()
                         .testTag(UpgradeScreenTags.RETRY),
+                    // The button sits on the errorContainer card, so the default primary-on-surface
+                    // outlined colors read as a foreign element with poor contrast.
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                        disabledContentColor = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.38f),
+                    ),
+                    border = BorderStroke(
+                        1.dp,
+                        MaterialTheme.colorScheme.onErrorContainer.copy(alpha = if (retryEnabled) 1f else 0.1f),
+                    ),
                 ) {
                     Text(stringResource(eu.darken.butler.common.R.string.general_retry_action))
                 }

@@ -1,8 +1,11 @@
 package eu.darken.butler.upgrade.ui
 
 import android.content.Context
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
@@ -35,6 +38,112 @@ class UpgradeScreenTest : ComposeTest() {
         bodyRes,
         "${context.getString(CommonR.string.app_name)} ${context.getString(R.string.app_name_upgrade_postfix)}",
     )
+
+    private val brand: String
+        get() = "${context.getString(CommonR.string.app_name)} ${context.getString(R.string.app_name_upgrade_postfix)}"
+
+    private val acquisitionTitle: String
+        get() = context.getString(R.string.upgrade_screen_title_template, brand)
+
+    private fun acquisitionState() = UpgradeUiState.Loaded(
+        subscriptionAction = SubscriptionAction.STANDARD,
+        subscriptionEnabled = true,
+        subscriptionPrice = "$12.99",
+        iapEnabled = true,
+        iapPrice = "$24.99",
+    )
+
+    @Test
+    fun `the acquisition title wraps the composed brand in the pitch sentence`() {
+        composeTestRule.setUpgradeContent {
+            UpgradeScreen(uiState = acquisitionState())
+        }
+
+        // The whole sentence, not just the brand: the pattern is what carries the translation.
+        composeTestRule.onAllNodesWithText(acquisitionTitle).assertCountEquals(1)
+    }
+
+    @Test
+    fun `the acquisition title colors exactly the upgrade postfix`() {
+        var capturedPrimary = Color.Unspecified
+        var capturedTertiary = Color.Unspecified
+        composeTestRule.setContent {
+            PreviewWrapper {
+                // Theme roles, captured from the composition under test rather than hardcoded.
+                capturedPrimary = MaterialTheme.colorScheme.primary
+                capturedTertiary = MaterialTheme.colorScheme.tertiary
+                UpgradeScreen(uiState = acquisitionState())
+            }
+        }
+
+        val rendered = composeTestRule.onNodeWithText(acquisitionTitle)
+            .fetchSemanticsNode()
+            .config[SemanticsProperties.Text]
+            .single()
+
+        rendered.text shouldBe acquisitionTitle
+        // Two spans, always: the app name in the brand color, the postfix highlighted on top.
+        rendered.spanStyles.size shouldBe 2
+
+        val base = rendered.spanStyles[0]
+        base.item.color shouldBe capturedPrimary
+        rendered.text.substring(base.start, base.end) shouldBe "${context.getString(CommonR.string.app_name)} "
+
+        val postfix = context.getString(R.string.app_name_upgrade_postfix)
+        val highlight = rendered.spanStyles[1]
+        highlight.item.color shouldBe capturedTertiary
+        rendered.text.substring(highlight.start, highlight.end) shouldBe postfix
+        // Pins the range rather than just its content: only one candidate position exists.
+        rendered.text.indexOf(postfix) shouldBe highlight.start
+        rendered.text.lastIndexOf(postfix) shouldBe highlight.start
+    }
+
+    @Test
+    fun `the hero card opens the acquisition screen`() {
+        composeTestRule.setUpgradeContent {
+            UpgradeScreen(uiState = acquisitionState())
+        }
+
+        composeTestRule.onAllNodesWithTag(UpgradeScreenTags.HERO).assertCountEquals(1)
+    }
+
+    @Test
+    fun `the hero card is present while the offers are still loading`() {
+        composeTestRule.setUpgradeContent {
+            UpgradeScreen(uiState = UpgradeUiState.Loading)
+        }
+
+        composeTestRule.onAllNodesWithTag(UpgradeScreenTags.HERO).assertCountEquals(1)
+    }
+
+    @Test
+    fun `owners get no hero card`() {
+        composeTestRule.setUpgradeContent {
+            UpgradeScreen(uiState = ownedState(Ownership(hasIap = true)))
+        }
+
+        // Owners have their own congrats hero; grace users keep the standalone header, because the
+        // preamble the hero pairs the mascot with is sales copy they must not see.
+        composeTestRule.onAllNodesWithTag(UpgradeScreenTags.HERO).assertCountEquals(0)
+    }
+
+    @Test
+    fun `the quiet grace stage keeps the standalone header instead of a hero`() {
+        composeTestRule.setUpgradeContent {
+            UpgradeScreen(uiState = graceState(showDiagnostics = false))
+        }
+
+        composeTestRule.onAllNodesWithTag(UpgradeScreenTags.HERO).assertCountEquals(0)
+    }
+
+    @Test
+    fun `the aged grace stage keeps the standalone header instead of a hero`() {
+        composeTestRule.setUpgradeContent {
+            UpgradeScreen(uiState = graceState(showDiagnostics = true))
+        }
+
+        composeTestRule.onAllNodesWithTag(UpgradeScreenTags.HERO).assertCountEquals(0)
+    }
 
     @Test
     fun `loading state shows progress and hides actions`() {

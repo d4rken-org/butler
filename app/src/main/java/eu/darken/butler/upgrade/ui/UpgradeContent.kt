@@ -3,6 +3,7 @@ package eu.darken.butler.upgrade.ui
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
@@ -36,16 +37,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.R
 import eu.darken.butler.common.compose.ButlerMascot
 import eu.darken.butler.common.compose.ButlerMascotMode
-import eu.darken.butler.common.compose.ColoredTitleText
+import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.R as CommonR
 
 // Shared upgrade-screen primitives used by both the gplay and foss upgrade screens, mirroring
 // SD Maid SE's upgrade design system: a centered, max-width scrolling column of tonal "section"
@@ -77,6 +85,52 @@ internal object UpgradeScreenTags {
     const val FOSS_STATUS_UPGRADED = "upgrade_foss_status_upgraded"
     const val FOSS_SHOW_OPTIONS = "upgrade_foss_show_options"
     const val FOSS_DONATE = "upgrade_foss_donate"
+    const val HERO = "upgrade_hero"
+}
+
+// "Butler" + the flavor postfix, the postfix highlighted while the upgrade is active. Composed from
+// TWO resources (the app name and the postfix), never by locating a substring inside a combined
+// name: localized upgrade words reorder, and RTL layouts make substring math wrong. Butler's own
+// identity keeps its primary-colored base either way.
+@Composable
+internal fun upgradeScreenTitle(upgraded: Boolean): AnnotatedString = buildAnnotatedString {
+    pushStyle(SpanStyle(color = MaterialTheme.colorScheme.primary))
+    append(stringResource(CommonR.string.app_name))
+    append(" ")
+    pop()
+    // The highlighted postfix is what says "you have this" — a user who hasn't upgraded gets the
+    // same words in one plain color instead of the earned styling.
+    pushStyle(
+        SpanStyle(
+            color = if (upgraded) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary,
+        )
+    )
+    append(stringResource(R.string.app_name_upgrade_postfix))
+    pop()
+}
+
+// Marker char for brand-title splicing: formatted into the translated pattern via the normal
+// Android format path (so %1$s vs %s, argument reordering, and %% all behave), then replaced
+// with the styled brand. U+FFFC (object replacement) cannot occur in a real translation.
+internal const val BRAND_TITLE_MARKER = "￼"
+
+internal fun spliceBrandTitle(formatted: String, brand: AnnotatedString): AnnotatedString = buildAnnotatedString {
+    var rest = formatted
+    var found = false
+    while (true) {
+        val idx = rest.indexOf(BRAND_TITLE_MARKER)
+        if (idx < 0) break
+        found = true
+        append(rest.substring(0, idx))
+        append(brand)
+        rest = rest.substring(idx + BRAND_TITLE_MARKER.length)
+    }
+    append(rest)
+    if (!found) {
+        // Defensive: a translation that lost its placeholder still shows the brand.
+        append(" ")
+        append(brand)
+    }
 }
 
 @Composable
@@ -102,23 +156,6 @@ internal fun UpgradeScreenScaffold(
         },
         snackbarHost = { snackbarHostState?.let { SnackbarHost(it) } },
         content = content,
-    )
-}
-
-// The composed "Butler Pro"/"Butler FOSS" title with the flavor postfix highlighted, used on the
-// owner/grace/status screens; the plain acquisition pitch uses a normal Text title instead.
-@Composable
-internal fun UpgradeTitle(upgraded: Boolean = true) {
-    val baseColor = MaterialTheme.colorScheme.primary
-    ColoredTitleText(
-        fullTitle = stringResource(R.string.app_name_upgraded),
-        postfix = stringResource(R.string.app_name_upgrade_postfix),
-        modifier = Modifier.testTag(UpgradeScreenTags.TITLE),
-        style = MaterialTheme.typography.titleLarge,
-        baseColor = baseColor,
-        // The highlighted postfix is what says "you have this" — a user who hasn't upgraded gets
-        // the same words in one plain color instead of the earned styling.
-        postfixColor = if (upgraded) MaterialTheme.colorScheme.tertiary else baseColor,
     )
 }
 
@@ -190,23 +227,132 @@ internal fun UpgradeHeader(
     }
 }
 
+private val HERO_GAP = 16.dp
+
+// Below this much room for the copy the side-by-side split stops paying for itself: measured on a
+// 320dp screen at 200% font, the row wrapped the preamble over 10 lines (breaking a word mid-way)
+// and came out TALLER than stacking, which needs 6. Scaled by fontScale because the squeeze comes
+// from text size as much as from screen width — at 200% font even a normal-width phone must stack.
+private val HERO_MIN_TEXT_WIDTH = 150.dp
+
+// The screen opener: mascot and preamble in one card instead of a floating icon stacked on a
+// separate text box. Side-by-side keeps the mascot at eye level with the copy it introduces, and
+// buys back the vertical space the standalone header used to spend above the fold — but only while
+// the copy still has room to breathe, hence the stacked fallback.
 @Composable
-internal fun UpgradePreambleCard(
+internal fun UpgradeHeroCard(
     text: String,
     modifier: Modifier = Modifier,
+    mascotSize: Dp = 88.dp,
+    happy: Boolean = true,
     colors: CardColors = CardDefaults.elevatedCardColors(),
 ) {
     ElevatedCard(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .testTag(UpgradeScreenTags.HERO),
         colors = colors,
     ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodyMedium,
+        BoxWithConstraints(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-        )
+                .padding(8.dp)
+                .padding(end = 8.dp),
+        ) {
+            val minTextWidth = HERO_MIN_TEXT_WIDTH * LocalDensity.current.fontScale
+            if (maxWidth - mascotSize - HERO_GAP < minTextWidth) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    UpgradeMascot(
+                        size = mascotSize,
+                        happy = happy,
+                    )
+                    Text(
+                        text = text,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(HERO_GAP),
+                ) {
+                    UpgradeMascot(
+                        size = mascotSize,
+                        happy = happy,
+                    )
+                    Text(
+                        text = text,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+            }
+        }
+    }
+}
+
+// Preview copy matches the shipped preamble in length: the mascot/text split only reads correctly
+// if the text wraps like it does in the app.
+private const val PREVIEW_PREAMBLE =
+    "Butler has no ads and doesn't sell user data. My work is financed by you ❤️."
+
+// The screen pads its content column by 24dp horizontally, so the previews do too — the hero's
+// branch threshold is measured against the width that actually remains for the card.
+@Preview2
+@Composable
+private fun UpgradeHeroCardPreview() {
+    PreviewWrapper {
+        Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)) {
+            UpgradeHeroCard(text = PREVIEW_PREAMBLE)
+        }
+    }
+}
+
+// Preview2 only varies light/dark, so it can never reach the stacked branch. These two pin the
+// thresholds that flip it: a narrow screen, and a normal-width screen at 200% font.
+@Preview(showBackground = true, name = "Compact width", widthDp = 280)
+@Preview(showBackground = true, name = "Huge font", fontScale = 2f)
+@Composable
+private fun UpgradeHeroCardCompactPreview() {
+    PreviewWrapper {
+        Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)) {
+            UpgradeHeroCard(text = PREVIEW_PREAMBLE)
+        }
+    }
+}
+
+// Both flavors tint the hero: FOSS on primaryContainer, GPLAY on secondaryContainer. Neither is
+// the composable's default, so the default-colored preview above would not catch a contrast
+// regression on the colors that actually ship.
+@Preview2
+@Composable
+private fun UpgradeHeroCardTintedPreview() {
+    PreviewWrapper {
+        Column(
+            modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            UpgradeHeroCard(
+                text = PREVIEW_PREAMBLE,
+                colors = CardDefaults.elevatedCardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                ),
+            )
+            UpgradeHeroCard(
+                text = PREVIEW_PREAMBLE,
+                colors = CardDefaults.elevatedCardColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                ),
+            )
+        }
     }
 }
 

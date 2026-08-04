@@ -110,7 +110,11 @@ internal fun UpgradeScreen(
             if (view == FossUpgradeView.PITCH || view == null) {
                 Text(stringResource(R.string.upgrade_screen_title))
             } else {
-                UpgradeTitle(upgraded = view == FossUpgradeView.STATUS_UPGRADED)
+                Text(
+                    text = upgradeScreenTitle(upgraded = view == FossUpgradeView.STATUS_UPGRADED),
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.testTag(UpgradeScreenTags.TITLE),
+                )
             }
         },
         onNavigateUp = onNavigateUp,
@@ -135,9 +139,9 @@ private fun PitchContent(
     onSponsor: () -> Unit,
 ) {
     UpgradeScreenContent(paddingValues = paddingValues) {
-        UpgradeHeader(mascotSize = 104.dp)
-
-        UpgradePreambleCard(
+        // Mascot and preamble in one card: the pitch's opener, at the fleet's default mascot size
+        // (the standalone header's 104dp stays with the status views, which have no copy to pair).
+        UpgradeHeroCard(
             text = stringResource(R.string.upgrade_screen_preamble),
             colors = CardDefaults.elevatedCardColors(
                 containerColor = MaterialTheme.colorScheme.primaryContainer,

@@ -126,6 +126,29 @@ class FossUpgradeScreenTest : ComposeTest() {
         composeTestRule.onAllNodesWithTag(UpgradeScreenTags.FOSS_STATUS_UPGRADED).assertCountEquals(1)
     }
 
+    @Test
+    fun `the pitch opens with the hero card`() {
+        setView(FossUpgradeView.PITCH)
+
+        // Mascot and preamble merged into one opener instead of a floating header above a text box.
+        composeTestRule.onAllNodesWithTag(UpgradeScreenTags.HERO).assertCountEquals(1)
+    }
+
+    @Test
+    fun `the free status keeps the standalone header instead of a hero`() {
+        setView(FossUpgradeView.STATUS_FREE)
+
+        // The status views carry no preamble, so there is no copy for the mascot to pair with.
+        composeTestRule.onAllNodesWithTag(UpgradeScreenTags.HERO).assertCountEquals(0)
+    }
+
+    @Test
+    fun `the upgraded status keeps the standalone header instead of a hero`() {
+        setView(FossUpgradeView.STATUS_UPGRADED)
+
+        composeTestRule.onAllNodesWithTag(UpgradeScreenTags.HERO).assertCountEquals(0)
+    }
+
     /**
      * The screen renders through the composable [formatDateTime]; a test helper cannot call that, so
      * it uses the pure overload with the same locale, zone and 12/24-hour preference the composable

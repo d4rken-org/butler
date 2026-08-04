@@ -9,7 +9,9 @@
     <string name="upgrade_prompt_body">Butler Pro offers better results, more features and options for power users.</string>
     <string name="upgrade_prompt_upgrade_action">Upgrade</string>
 
-    <string name="upgrade_screen_title">Upgrade Butler</string>
+    <!-- %1$s is the full brand name ("Butler Pro"), composed from the app name plus the upgrade
+         postfix. Translate the sentence around it and keep the placeholder. -->
+    <string name="upgrade_screen_title_template">Get %1$s</string>
     <string name="upgrade_screen_preamble">Butler has no ads and doesn\'t sell user data. My work is financed by you ❤️.</string>
 
     <string name="upgrade_screen_how_title">Options</string>
