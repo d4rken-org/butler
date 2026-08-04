@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.sync.Mutex
@@ -58,6 +59,21 @@ class BrowsingEngine @AssistedInject constructor(
         val location: ExplorerLocation? = null,
         val error: Throwable? = null,
         val breadcrumbs: List<ExplorerBreadcrumb>? = null,
+        /** A [refresh] of the location that is already displayed is running, as opposed to a load for a new target. */
+        val isRefreshing: Boolean = false,
+        /**
+         * Counts [refresh] calls. This is a conflating [StateFlow] and a refresh of unchanged
+         * content can start and finish between two collector resumptions, in which case
+         * [isRefreshing] is never observed as true and the refresh would pass entirely unnoticed.
+         * A counter survives that: its new value is still there in whichever state does arrive.
+         */
+        val refreshId: Int = 0,
+    )
+
+    /** A loader run, tagged with what started it: a new target, or a [refresh] of the one already displayed. */
+    private data class Load(
+        val location: ExplorerLocation,
+        val isRefresh: Boolean,
     )
 
     init {
@@ -75,12 +91,13 @@ class BrowsingEngine @AssistedInject constructor(
             }
             .flatMapLatest { target ->
                 refreshTrigger
-                    .onStart { emit(Unit) }
-                    .onEach {
-                        log(tag) { "Loading/refreshing target: $target" }
+                    .map { true }
+                    .onStart { emit(false) }
+                    .onEach { isRefresh ->
+                        log(tag) { "Loading target (refresh=$isRefresh): $target" }
                         hintMutex.withLock { pendingHints.clear() }
                     }
-                    .flatMapLatest {
+                    .flatMapLatest { isRefresh ->
                         when (target) {
                             is ExplorerNavigation.Target.Home -> homeLocationLoader.loadHome()
                             is ExplorerNavigation.Target.Device -> deviceLocationLoader.loadDevice()
@@ -92,16 +109,18 @@ class BrowsingEngine @AssistedInject constructor(
                             is ExplorerNavigation.Target.Directory -> directoryLoader.loadDirectory(target.path)
                         }
                             .flowOn(dispatcherProvider.IO)
+                            .map { Load(location = it, isRefresh = isRefresh) }
                             .catch {
                                 log(tag, ERROR) { "Browsing failed on $target\n${it.asLog()}" }
                                 _location.value = _location.value.copy(
                                     error = it,
                                     location = null,
+                                    isRefreshing = false,
                                 )
                             }
                     }
             }
-            .onEach { location ->
+            .onEach { (location, isRefresh) ->
                 val previousLocation = _location.value.location
                 val pathChanged = location.locationId != previousLocation?.locationId
 
@@ -113,9 +132,16 @@ class BrowsingEngine @AssistedInject constructor(
                     _location.value.breadcrumbs ?: emptyList()
                 }
 
+                val published = previousLocation
+                    ?.takeIf { isRefresh && !pathChanged }
+                    ?.let { location.retainContentFrom(it) }
+                    ?: location
+
                 _location.value = State(
-                    location = location,
+                    location = published,
                     breadcrumbs = breadcrumbs,
+                    isRefreshing = isRefresh && location.isLoading,
+                    refreshId = _location.value.refreshId,
                 )
 
                 // When loading completes, process queued hints
@@ -138,6 +164,9 @@ class BrowsingEngine @AssistedInject constructor(
 
     fun setTarget(target: ExplorerNavigation.Target) {
         log(tag, INFO) { "setTarget(): $target" }
+        // Cancelling a refresh by navigating elsewhere kills the loader without an emission, so the
+        // flag has to be dropped here - the new target's own load may take a while to report in.
+        _location.value = _location.value.copy(isRefreshing = false)
         targetFlow.value = target
     }
 
@@ -209,6 +238,7 @@ class BrowsingEngine @AssistedInject constructor(
 
     suspend fun refresh() {
         log(tag, INFO) { "refresh()" }
+        _location.value = _location.value.let { it.copy(refreshId = it.refreshId + 1) }
         refreshTrigger.emit(Unit)
     }
 
@@ -225,6 +255,47 @@ class BrowsingEngine @AssistedInject constructor(
         ): BrowsingEngine
     }
 }
+
+/**
+ * Keeps the content that is already on screen while the same location reloads.
+ *
+ * A refresh restarts the loader, which first emits a location with no items at all and then a peek
+ * listing whose items carry different ids than the finished lookups. Publishing those tears the
+ * list down to skeletons and rebuilds every row twice for the length of the load - and the skeleton
+ * branch renders on its own list state, so the scroll position visibly snaps to the top and back.
+ * The previous items and info are therefore held until the reload has produced a listing of its
+ * own. Progress is not held: it still reports that a load is running.
+ *
+ * Only called for a refresh of the location that is already displayed, so the receiver and
+ * [previous] are the same variant in practice - a mismatch just skips the carry-over.
+ */
+internal fun ExplorerLocation.retainContentFrom(previous: ExplorerLocation): ExplorerLocation {
+    if (!isLoading || previous.items == null || hasOwnListing) return this
+    return when (this) {
+        is ExplorerLocation.Home -> (previous as? ExplorerLocation.Home)
+            ?.let { copy(items = it.items, info = it.info) }
+
+        is ExplorerLocation.Device -> (previous as? ExplorerLocation.Device)
+            ?.let { copy(items = it.items, info = it.info) }
+
+        is ExplorerLocation.Directory -> (previous as? ExplorerLocation.Directory)
+            ?.let { copy(items = it.items, info = it.info) }
+
+        is ExplorerLocation.Trash.Root -> (previous as? ExplorerLocation.Trash.Root)
+            ?.let { copy(items = it.items, info = it.info) }
+
+        is ExplorerLocation.Trash.Nested -> (previous as? ExplorerLocation.Trash.Nested)
+            ?.let { copy(items = it.items, info = it.info) }
+    } ?: this
+}
+
+/**
+ * Whether this emission carries a listing of its own, as opposed to nothing yet or the loader's
+ * peek stage. An empty listing counts - a directory whose contents were deleted has to be able to
+ * replace the retained items.
+ */
+private val ExplorerLocation.hasOwnListing: Boolean
+    get() = items?.none { it is ExplorerItem.Peek } == true
 
 /**
  * Recomputes the directory file/folder counts from the given items so the stat-bar stays in sync
