@@ -33,6 +33,7 @@ import eu.darken.butler.searcher.R
 import eu.darken.butler.workspace.contracts.searcher.FilterComparator
 import eu.darken.butler.workspace.contracts.searcher.FilterCondition
 import eu.darken.butler.workspace.contracts.searcher.SearchFilter
+import eu.darken.butler.workspace.ui.modal.DismissWhenPaneUnfocused
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
@@ -83,6 +84,7 @@ fun FilterChipBar(
                 onClick = { showAddMenu = true },
             )
 
+            DismissWhenPaneUnfocused(expanded = showAddMenu) { showAddMenu = false }
             DropdownMenu(
                 expanded = showAddMenu,
                 onDismissRequest = { showAddMenu = false },

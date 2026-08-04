@@ -5,14 +5,17 @@ import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
@@ -21,18 +24,19 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeUp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import org.junit.Test
 import testhelpers.ComposeTest
 
@@ -369,30 +373,32 @@ class PaneLayerHostTest : ComposeTest() {
      * host's own press observer the previously focused pane would stay focused forever and keyboard
      * focus could never move to another pane at all.
      *
-     * The pressed target must also end up holding focus. It asks for it on the *up* event, long
-     * before the pane-focus request has travelled through the workspace plumbing and come back, so
-     * nothing may be replayed on its behalf here — the press has to be enough on its own.
+     * The press itself goes no further: arriving in a pane that is not the focused one, the host
+     * consumes it, so the field is neither clicked nor given the cursor. The *next* press, once the
+     * pane focus request has been honoured, is an ordinary press — and its focus request must
+     * succeed, which works only because the first press already released the focus the other
+     * pane's modal was holding (a refused-and-never-replayed field request used to leave the
+     * cursor unplaceable).
+     *
+     * The focus requests are honoured by hand *after* the release is asserted: once the old pane
+     * stops being focused, [PaneLayer] clears the modal's focus on its own, and an assertion made
+     * only then could not tell the press observer's immediate release from that later cleanup.
      */
     @Test
-    fun `pressing another pane hands the focused pane over and gives the press focus`() {
+    fun `pressing another pane hands the pane over and only the next press reaches the field`() {
         var focusedPane by mutableStateOf(PANE_A)
         var modalHasFocus = false
         var otherFieldHasFocus = false
+        var otherFieldClicks = 0
+        var paneBRequests = 0
         val modalFocus = FocusRequester()
         val otherFieldFocus = FocusRequester()
-        var scope: CoroutineScope? = null
 
         composeTestRule.setContent {
-            scope = rememberCoroutineScope()
             PreviewWrapper {
                 Row {
                     CompositionLocalProvider(
-                        LocalWorkspaceFocusRequest provides {
-                            scope?.launch {
-                                delay(PANE_FOCUS_ROUND_TRIP)
-                                focusedPane = PANE_A
-                            }
-                        },
+                        LocalWorkspaceFocusRequest provides { },
                     ) {
                         PaneLayerHost(paneFocused = focusedPane == PANE_A) {
                             PaneLayer(rank = PaneLayerRank.CONTENT, modal = false) {
@@ -410,13 +416,8 @@ class PaneLayerHostTest : ComposeTest() {
                         }
                     }
                     CompositionLocalProvider(
-                        // Answered a round trip later, never synchronously from the press
-                        LocalWorkspaceFocusRequest provides {
-                            scope?.launch {
-                                delay(PANE_FOCUS_ROUND_TRIP)
-                                focusedPane = PANE_B
-                            }
-                        },
+                        // Recorded only; the test honours it by hand once the release is asserted
+                        LocalWorkspaceFocusRequest provides { paneBRequests++ },
                     ) {
                         PaneLayerHost(paneFocused = focusedPane == PANE_B) {
                             PaneLayer(rank = PaneLayerRank.CONTENT, modal = false) {
@@ -428,7 +429,10 @@ class PaneLayerHostTest : ComposeTest() {
                                         .focusRequester(otherFieldFocus)
                                         .onFocusChanged { otherFieldHasFocus = it.isFocused }
                                         .focusable()
-                                        .clickable { otherFieldFocus.requestFocus() },
+                                        .clickable {
+                                            otherFieldClicks++
+                                            otherFieldFocus.requestFocus()
+                                        },
                                 )
                             }
                         }
@@ -441,16 +445,296 @@ class PaneLayerHostTest : ComposeTest() {
         composeTestRule.runOnIdle { modalHasFocus shouldBe true }
 
         composeTestRule.onNodeWithTag(OTHER_PANE_FIELD_TAG).performClick()
-        composeTestRule.mainClock.advanceTimeBy(500)
         composeTestRule.waitForIdle()
 
         composeTestRule.runOnIdle {
-            // The press handed the focused pane over...
-            focusedPane shouldBe PANE_B
-            // ...the modal gave up its focus...
+            // The request is still pending — pane A is untouched and still the focused one...
+            focusedPane shouldBe PANE_A
+            (paneBRequests > 0) shouldBe true
+            // ...yet the modal already gave up its focus: the press observer released it, no
+            // pane-focus change has happened that anything else could react to
             modalHasFocus shouldBe false
-            // ...and the thing that was actually pressed is holding it
+            // ...and the swallowed press neither clicked the field nor placed the cursor
+            otherFieldClicks shouldBe 0
+            otherFieldHasFocus shouldBe false
+        }
+
+        // The request comes back as pane focus, a round trip later
+        composeTestRule.runOnIdle { focusedPane = PANE_B }
+
+        composeTestRule.onNodeWithTag(OTHER_PANE_FIELD_TAG).performClick()
+        composeTestRule.waitForIdle()
+
+        composeTestRule.runOnIdle {
+            // The pane is focused now, so this press is an ordinary one and lands
+            otherFieldClicks shouldBe 1
             otherFieldHasFocus shouldBe true
+        }
+    }
+
+    @Test
+    fun `a press into an unfocused pane does not reach the content`() {
+        var clicked = 0
+        var paneFocusRequests = 0
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                CompositionLocalProvider(
+                    LocalWorkspaceFocusRequest provides { paneFocusRequests++ },
+                ) {
+                    PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = false) {
+                        PaneLayer(rank = PaneLayerRank.CONTENT, modal = false) {
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .testTag(PRESS_TARGET_TAG)
+                                    .clickable { clicked++ },
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG).performClick()
+        composeTestRule.waitForIdle()
+
+        composeTestRule.runOnIdle {
+            clicked shouldBe 0
+            (paneFocusRequests > 0) shouldBe true
+        }
+    }
+
+    @Test
+    fun `a press inside the focused pane reaches the content`() {
+        var clicked = 0
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                CompositionLocalProvider(
+                    LocalWorkspaceFocusRequest provides { },
+                ) {
+                    PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = true) {
+                        PaneLayer(rank = PaneLayerRank.CONTENT, modal = false) {
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .testTag(PRESS_TARGET_TAG)
+                                    .clickable { clicked++ },
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG).performClick()
+        composeTestRule.waitForIdle()
+
+        composeTestRule.runOnIdle { clicked shouldBe 1 }
+    }
+
+    /**
+     * The swallow keys off the authoritative pane focus state, not off having asked for it: until
+     * the request comes back as pane focus, every further press keeps being consumed. A request
+     * that is never honoured leaves the pane tap-inert rather than misclick-prone.
+     */
+    @Test
+    fun `presses stay swallowed until pane focus arrives`() {
+        var paneFocused by mutableStateOf(false)
+        var clicked = 0
+        var paneFocusRequests = 0
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                CompositionLocalProvider(
+                    // Deliberately not honoured from here; the test flips the state itself
+                    LocalWorkspaceFocusRequest provides { paneFocusRequests++ },
+                ) {
+                    PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = paneFocused) {
+                        PaneLayer(rank = PaneLayerRank.CONTENT, modal = false) {
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .testTag(PRESS_TARGET_TAG)
+                                    .clickable { clicked++ },
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG).performClick()
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG).performClick()
+        composeTestRule.waitForIdle()
+
+        composeTestRule.runOnIdle {
+            clicked shouldBe 0
+            paneFocusRequests shouldBe 2
+        }
+
+        composeTestRule.runOnIdle { paneFocused = true }
+
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG).performClick()
+        composeTestRule.waitForIdle()
+
+        composeTestRule.runOnIdle { clicked shouldBe 1 }
+    }
+
+    /**
+     * A second finger's down belongs to the same gesture as the first finger's, but hits its own
+     * target — it must be swallowed individually. Consuming only the first down of a gesture would
+     * let a tap slip through while another finger rests on the pane.
+     */
+    @Test
+    fun `a second finger's tap into an unfocused pane is also swallowed`() {
+        var clicked = 0
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                CompositionLocalProvider(
+                    LocalWorkspaceFocusRequest provides { },
+                ) {
+                    PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = false) {
+                        PaneLayer(rank = PaneLayerRank.CONTENT, modal = false) {
+                            Box(
+                                modifier = Modifier
+                                    .size(96.dp)
+                                    .testTag(PRESS_TARGET_TAG)
+                                    .clickable { clicked++ },
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG).performTouchInput {
+            down(0, centerLeft)
+        }
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG).performTouchInput {
+            down(1, centerRight)
+            up(1)
+        }
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG).performTouchInput { up(0) }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.runOnIdle { clicked shouldBe 0 }
+    }
+
+    /**
+     * The swallow is pointer input only, by design: assistive tech states its target explicitly,
+     * so the misclick this guards against cannot happen there. A semantics click in an unfocused
+     * pane keeps invoking the content's action directly — pinned here so a change to it is a
+     * deliberate one.
+     */
+    @Test
+    fun `a semantics click in an unfocused pane still activates the content`() {
+        var clicked = 0
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                CompositionLocalProvider(
+                    LocalWorkspaceFocusRequest provides { },
+                ) {
+                    PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = false) {
+                        PaneLayer(rank = PaneLayerRank.CONTENT, modal = false) {
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .testTag(PRESS_TARGET_TAG)
+                                    .clickable { clicked++ },
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG)
+            .performSemanticsAction(SemanticsActions.OnClick)
+        composeTestRule.waitForIdle()
+
+        composeTestRule.runOnIdle { clicked shouldBe 1 }
+    }
+
+    /** Scroll and drag detectors accept a consumed down — only taps are swallowed. */
+    @Test
+    fun `an unfocused pane can still be scrolled by dragging`() {
+        var listState: LazyListState? = null
+        var paneFocusRequests = 0
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                CompositionLocalProvider(
+                    LocalWorkspaceFocusRequest provides { paneFocusRequests++ },
+                ) {
+                    PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = false) {
+                        PaneLayer(rank = PaneLayerRank.CONTENT, modal = false) {
+                            val state = rememberLazyListState().also { listState = it }
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .testTag(PRESS_TARGET_TAG),
+                                state = state,
+                            ) {
+                                items(List(100) { it }) {
+                                    Box(modifier = Modifier.fillMaxWidth().height(40.dp))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG).performTouchInput { swipeUp() }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.runOnIdle {
+            val scrolled = listState!!.firstVisibleItemIndex > 0 ||
+                listState!!.firstVisibleItemScrollOffset > 0
+            scrolled shouldBe true
+            // The drag's press still asked for the pane
+            (paneFocusRequests > 0) shouldBe true
+        }
+    }
+
+    /**
+     * The press observer stays installed across recompositions and reads the focus request handler
+     * when a press arrives — a handler whose lambda identity changed in between must still be the
+     * one that is invoked.
+     */
+    @Test
+    fun `a press is delivered to the latest focus request handler`() {
+        var useSecond by mutableStateOf(false)
+        var firstRequests = 0
+        var secondRequests = 0
+        val first: () -> Unit = { firstRequests++ }
+        val second: () -> Unit = { secondRequests++ }
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                CompositionLocalProvider(
+                    LocalWorkspaceFocusRequest provides if (useSecond) second else first,
+                ) {
+                    PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = false) {
+                        PaneLayer(rank = PaneLayerRank.CONTENT, modal = false) {
+                            Box(modifier = Modifier.size(48.dp).testTag(PRESS_TARGET_TAG))
+                        }
+                    }
+                }
+            }
+        }
+
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG).performClick()
+        composeTestRule.runOnIdle { useSecond = true }
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG).performClick()
+
+        composeTestRule.runOnIdle {
+            firstRequests shouldBe 1
+            secondRequests shouldBe 1
         }
     }
 
@@ -786,9 +1070,9 @@ class PaneLayerHostTest : ComposeTest() {
         private const val CONTENT_TAG = "layer.content"
         private const val OVERLAY_TAG = "layer.overlay"
         private const val OTHER_PANE_FIELD_TAG = "pane.b.field"
+        private const val PRESS_TARGET_TAG = "press.target"
         private const val PANE_A = "A"
         private const val PANE_B = "B"
-        private const val PANE_FOCUS_ROUND_TRIP = 50L
         private const val MODAL_SURFACE_TAG = "modal.surface"
     }
 }

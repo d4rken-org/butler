@@ -41,6 +41,7 @@ import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.searcher.R
 import eu.darken.butler.workspace.contracts.searcher.SearchTarget
+import eu.darken.butler.workspace.ui.modal.DismissWhenPaneUnfocused
 
 @Composable
 fun MultiPathChipBar(
@@ -133,6 +134,7 @@ fun MultiPathChipBar(
                 enabled = !isSearching,
                 onClick = { isAddMenuOpen = true },
             )
+            DismissWhenPaneUnfocused(expanded = isAddMenuOpen && !isSearching) { isAddMenuOpen = false }
             DropdownMenu(
                 // An auto-search can start while the menu is open; close it with the chip
                 expanded = isAddMenuOpen && !isSearching,

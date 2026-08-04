@@ -41,6 +41,7 @@ import eu.darken.butler.searcher.ui.search.elements.DateFilterPreset
 import eu.darken.butler.workspace.contracts.searcher.FilterComparator
 import eu.darken.butler.workspace.contracts.searcher.FilterCondition
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
+import eu.darken.butler.workspace.ui.modal.DismissWhenPaneUnfocused
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Instant
@@ -155,6 +156,7 @@ private fun DateConditionEditContent(
             }
 
             // Date preset dropdown (full width)
+            DismissWhenPaneUnfocused(expanded = presetExpanded) { presetExpanded = false }
             ExposedDropdownMenuBox(
                 expanded = presetExpanded,
                 onExpandedChange = { presetExpanded = it },

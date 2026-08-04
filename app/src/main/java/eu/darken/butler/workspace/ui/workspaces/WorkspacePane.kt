@@ -61,7 +61,9 @@ fun WorkspacePane(
     activeWorkspaceId: Workspace.Id? = null,
 ) {
     // Provided above the host so the host's own press observer can reach it: any press in the pane
-    // must make it the focused pane, including presses that the content consumes.
+    // must make it the focused pane, including presses that the content consumes. While the pane is
+    // not the focused one the host consumes presses itself, so the first click into an unfocused
+    // pane focuses it without activating content.
     CompositionLocalProvider(LocalWorkspaceFocusRequest provides onRequestPaneFocus) {
         PaneLayerHost(
             // Full pane on purpose: its layers carry the scrims and pointer barriers, which must

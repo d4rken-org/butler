@@ -53,6 +53,7 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.R
 import eu.darken.butler.common.R as CommonR
+import eu.darken.butler.workspace.ui.modal.DismissWhenPaneUnfocused
 
 /**
  * Shared action bar for workspace modules
@@ -215,6 +216,7 @@ fun WorkspaceActionBar(
                             )
                         }
 
+                        DismissWhenPaneUnfocused(expanded = showOverflowMenu) { showOverflowMenu = false }
                         DropdownMenu(
                             expanded = showOverflowMenu,
                             onDismissRequest = { showOverflowMenu = false },

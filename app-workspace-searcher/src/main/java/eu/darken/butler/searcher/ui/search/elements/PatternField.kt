@@ -46,6 +46,7 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.searcher.R
+import eu.darken.butler.workspace.ui.modal.DismissWhenPaneUnfocused
 
 @Composable
 fun PatternField(
@@ -167,6 +168,7 @@ fun PatternField(
                 tint = if (hasActiveOptions) colors.primary else colors.onSurfaceVariant,
             )
 
+            DismissWhenPaneUnfocused(expanded = menuExpanded) { menuExpanded = false }
             DropdownMenu(
                 expanded = menuExpanded,
                 onDismissRequest = { menuExpanded = false },
