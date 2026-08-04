@@ -67,14 +67,12 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.R
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
-import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.systemBarsWithOptionalCutout
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
@@ -88,6 +86,7 @@ import eu.darken.butler.workspace.ui.workspaces.WorkspacePaneInfo
 import eu.darken.butler.workspace.ui.workspaces.asPaneInfo
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import eu.darken.butler.common.R as CommonR
 
 object WorkspaceNavigationRailDefaults {
@@ -104,7 +103,7 @@ object WorkspaceNavigationRailDefaults {
 }
 
 private val RailSectionPadding = 8.dp
-private val RailItemHeight = 56.dp
+private val RailItemHeight = 64.dp
 private val RailItemSpacing = 4.dp
 private val RailItemInset = 8.dp
 private val RailItemCornerRadius = 16.dp
@@ -466,11 +465,12 @@ internal fun WorkspaceRailItem(
                     )
                 }
                 Text(
+                    modifier = Modifier.padding(start = 2.dp, end = 2.dp, bottom = 4.dp, top = 8.dp),
                     text = workspace.displayTitle.get(LocalContext.current),
                     style = MaterialTheme.typography.labelSmall,
                     textAlign = TextAlign.Center,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    overflow = TextOverflow.MiddleEllipsis,
                 )
             }
         }
