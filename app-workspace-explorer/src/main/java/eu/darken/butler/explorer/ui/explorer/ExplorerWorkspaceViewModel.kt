@@ -396,6 +396,21 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val favoritePaths: List<APath<*>> = emptyList(),
         val showHomeFavoritesSection: Boolean = false,
         val favoriteFeedback: FavoriteFeedback? = null,
+        /**
+         * A reload of the location that is already on screen - pull-to-refresh, the action bar's
+         * refresh, a SAF re-grant, a trash operation. Loads for a new target are covered by the
+         * skeleton rows instead and do not count, which is why this is reported by [BrowsingEngine]
+         * from what triggered the load rather than derived from progress and items here: a loader
+         * publishes items well before it clears its progress, so the two are not distinguishable
+         * after the fact.
+         */
+        val isRefreshing: Boolean = false,
+        /**
+         * Counts refreshes. Everything from here to the UI conflates, and a refresh of unchanged
+         * content can start and finish in between two of those steps - [isRefreshing] alone would
+         * then never be seen as true and the refresh would produce no visible feedback at all.
+         */
+        val refreshId: Int = 0,
     ) {
         val progress = currentLocation?.progress
         val info = currentLocation?.info
@@ -552,6 +567,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                         items = items,
                         unfilteredItemCount = wsStateInner.currentLocation?.items?.size ?: 0,
                         error = wsStateInner.error,
+                        isRefreshing = wsStateInner.isRefreshing,
+                        refreshId = wsStateInner.refreshId,
                         selectionState = selectionState,
                         viewStyle = viewStyle,
                         canGoBack = wsStateInner.canGoBack,

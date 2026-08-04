@@ -70,7 +70,7 @@ internal fun ExplorerReadyContent(
     bottomBarStackState: FloatingBarStackState,
     operationsState: OperationsDisplayState,
     clipboardState: ClipboardDisplayState,
-    showPullToRefreshIndicator: Boolean,
+    isRefreshing: Boolean,
     pullToRefreshState: PullToRefreshState,
     onRefresh: () -> Unit,
     initialOperationsExpanded: Boolean,
@@ -135,7 +135,7 @@ internal fun ExplorerReadyContent(
         // Main content with pull-to-refresh
         WorkspacePullToRefreshBox(
             modifier = Modifier.fillMaxSize(),
-            isRefreshing = showPullToRefreshIndicator,
+            isRefreshing = isRefreshing,
             onRefresh = onRefresh,
             enabled = !state.selectionState.isSelectionMode,
             topBarStackState = topBarStackState,
@@ -236,7 +236,7 @@ private fun ExplorerReadyContentPreview() {
             bottomBarStackState = rememberFloatingBarStackState(position = BarPosition.BOTTOM),
             operationsState = OperationsDisplayState(),
             clipboardState = ClipboardDisplayState(),
-            showPullToRefreshIndicator = false,
+            isRefreshing = false,
             pullToRefreshState = rememberPullToRefreshState(),
             onRefresh = {},
             initialOperationsExpanded = false,

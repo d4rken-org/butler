@@ -17,6 +17,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -60,7 +61,6 @@ import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
 import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
 import eu.darken.butler.workspace.ui.scroll.rememberWorkspaceLazyGridState
 import eu.darken.butler.workspace.ui.scroll.rememberWorkspaceLazyListState
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
@@ -88,7 +88,6 @@ fun ExplorerWorkspacePage(
     val nullableState by mainStateSource.collectAsState(initial = (mainStateSource as? StateFlow)?.value)
     val state = nullableState ?: return
 
-    val coroutineScope = rememberCoroutineScope()
     // Same StateFlow unwrap as the main state above: a single-frame renderer never runs the
     // collection, so `initial = null` would leave the operations and clipboard bars permanently
     // hidden in screenshot tests and IDE previews.
@@ -134,19 +133,7 @@ fun ExplorerWorkspacePage(
         bottomBarStackState.resetScrollCollapse()
     }
 
-    // Pull-to-refresh state
-    var showPullToRefreshIndicator by remember { mutableStateOf(false) }
     val pullToRefreshState = rememberPullToRefreshState()
-
-    // Pull-to-refresh handler
-    val handleRefresh: () -> Unit = {
-        coroutineScope.launch {
-            showPullToRefreshIndicator = true
-            vm?.onPullToRefresh()
-            delay(200)
-            showPullToRefreshIndicator = false
-        }
-    }
 
     SyncScrollPositionOnViewStyleChange(
         viewStyle = state.viewStyle,
@@ -262,9 +249,9 @@ fun ExplorerWorkspacePage(
                     bottomBarStackState = bottomBarStackState,
                     operationsState = operationsState,
                     clipboardState = clipboardState,
-                    showPullToRefreshIndicator = showPullToRefreshIndicator,
+                    isRefreshing = rememberRefreshIndication(state.refreshId, state.isRefreshing),
                     pullToRefreshState = pullToRefreshState,
-                    onRefresh = handleRefresh,
+                    onRefresh = { vm?.onPullToRefresh() },
                     initialOperationsExpanded = initialOperationsExpanded,
                     initialClipboardExpanded = initialClipboardExpanded,
                     onShowOperationDetails = { operationId -> vm?.showOperationDetails(operationId) },
@@ -291,6 +278,27 @@ fun ExplorerWorkspacePage(
             // Dialogs and sheets live in the page host's overlay slot, see ExplorerWorkspaceOverlays
         }
     }
+}
+
+/**
+ * Whether the refresh indicator should be showing.
+ *
+ * [isRefreshing] alone would be enough if it always reached composition, but every step from the
+ * browsing engine to here conflates, and a refresh that finds nothing changed can start and finish
+ * in between two of them - the pull would then produce no feedback whatsoever. [refreshId] survives
+ * that, so a refresh nobody saw running is still turned into one frame of indication, which
+ * WorkspacePullToRefreshBox's own minimum-visible hold stretches into a readable spinner.
+ */
+@Composable
+private fun rememberRefreshIndication(refreshId: Int, isRefreshing: Boolean): Boolean {
+    var missedRefresh by remember { mutableStateOf(false) }
+    OnValueChange(refreshId) { _, _ -> missedRefresh = true }
+    LaunchedEffect(missedRefresh) {
+        if (!missedRefresh) return@LaunchedEffect
+        withFrameNanos { }
+        missedRefresh = false
+    }
+    return isRefreshing || missedRefresh
 }
 
 // Carry the scroll position over when the user switches between list and grid, so the file they

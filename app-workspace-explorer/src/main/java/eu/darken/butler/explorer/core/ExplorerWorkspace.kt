@@ -199,6 +199,10 @@ class ExplorerWorkspace @AssistedInject constructor(
             val currentLocation: ExplorerLocation? = null,
             val currentBreadcrumbs: List<ExplorerBreadcrumb>? = null,
             val error: Throwable? = null,
+            /** A refresh of the location that is already displayed is running, not a load for a new target. */
+            val isRefreshing: Boolean = false,
+            /** Counts refreshes, so one that starts and finishes between two collections is still noticed. */
+            val refreshId: Int = 0,
         ) : State {
             val canGoBack: Boolean get() = historyIndex > 0
             val canGoForward: Boolean get() = historyIndex < navigationHistory.size - 1
@@ -224,7 +228,9 @@ class ExplorerWorkspace @AssistedInject constructor(
                     copy(
                         currentLocation = engineState.location,
                         currentBreadcrumbs = engineState.breadcrumbs ?: currentBreadcrumbs,
-                        error = engineState.error
+                        error = engineState.error,
+                        isRefreshing = engineState.isRefreshing,
+                        refreshId = engineState.refreshId,
                     )
                 }
             }
@@ -241,13 +247,13 @@ class ExplorerWorkspace @AssistedInject constructor(
                     when (e) {
                         is CancellationException -> {
                             log(tag, INFO) { "Navigation cancelled" }
-                            updateReady { copy(currentLocation = null) }
+                            updateReady { copy(currentLocation = null, isRefreshing = false) }
                             throw e
                         }
 
                         else -> {
                             log(tag, ERROR) { "Navigation failed: $e" }
-                            updateReady { copy(currentLocation = null, error = e) }
+                            updateReady { copy(currentLocation = null, error = e, isRefreshing = false) }
                         }
                     }
                 }
@@ -319,7 +325,7 @@ class ExplorerWorkspace @AssistedInject constructor(
 
             is ExplorerNavigation.Cancel -> {
                 log(tag, INFO) { "Navigation cancel request processed" }
-                updateReady { copy(currentLocation = null, error = null) }
+                updateReady { copy(currentLocation = null, error = null, isRefreshing = false) }
             }
         }
     }
