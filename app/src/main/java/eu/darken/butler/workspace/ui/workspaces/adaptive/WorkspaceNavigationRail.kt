@@ -103,7 +103,7 @@ object WorkspaceNavigationRailDefaults {
 }
 
 private val RailSectionPadding = 8.dp
-private val RailItemHeight = 64.dp
+private val RailItemHeight = 56.dp
 private val RailItemSpacing = 4.dp
 private val RailItemInset = 8.dp
 private val RailItemCornerRadius = 16.dp
