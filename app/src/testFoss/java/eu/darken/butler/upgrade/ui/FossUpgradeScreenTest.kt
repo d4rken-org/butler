@@ -135,6 +135,17 @@ class FossUpgradeScreenTest : ComposeTest() {
     }
 
     @Test
+    fun `the benefits render as rows without their bullet markers`() {
+        setView(FossUpgradeView.PITCH)
+
+        // The checkmark icon IS the bullet: a literal "•" left in the text would double it up.
+        composeTestRule.onAllNodesWithText("Unlimited tabs and operations").assertCountEquals(1)
+        composeTestRule.onAllNodesWithText("• Unlimited tabs and operations").assertCountEquals(0)
+        // The unmarked trailing line stays plain footnote text, not a checkmarked feature.
+        composeTestRule.onAllNodesWithText("and more…").assertCountEquals(1)
+    }
+
+    @Test
     fun `the free status keeps the standalone header instead of a hero`() {
         setView(FossUpgradeView.STATUS_FREE)
 

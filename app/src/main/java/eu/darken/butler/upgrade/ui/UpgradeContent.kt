@@ -428,43 +428,58 @@ internal fun UpgradeSectionBody(
     )
 }
 
-// Butler's Pro benefits rendered as SD-Maid-style check-icon feature rows. Uses the existing
-// per-flavor benefit strings (kept for their translations) instead of one parsed multiline blob.
+// Renders a feature blurb: bullet lines (leading • or -, some translations use hyphens) become
+// checkmark rows, everything else stays plain paragraph text.
 @Composable
-internal fun UpgradeBenefitsList(modifier: Modifier = Modifier) {
-    val benefits = listOf(
-        R.string.upgrade_benefit_multitasking,
-        R.string.upgrade_benefit_customization,
-        R.string.upgrade_benefit_extra_options,
-        R.string.upgrade_benefit_early_access,
-        R.string.upgrade_benefit_motivation,
-        R.string.upgrade_benefit_and_more,
-    )
+internal fun UpgradeFeatureList(
+    text: String,
+    modifier: Modifier = Modifier,
+) {
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        benefits.forEach { res ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.TwoTone.CheckCircle,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier
-                        .padding(top = 2.dp)
-                        .size(18.dp),
-                )
-                Text(
-                    text = stringResource(res),
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.weight(1f),
-                )
+        text.lineSequence()
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .forEach { line ->
+                val bullet = line.startsWith("•") || line.startsWith("-")
+                if (bullet) {
+                    UpgradeFeatureRow(text = line.drop(1).trim())
+                } else {
+                    Text(
+                        text = line,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
-        }
+    }
+}
+
+@Composable
+private fun UpgradeFeatureRow(
+    text: String,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.Top,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Icon(
+            imageVector = Icons.TwoTone.CheckCircle,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier
+                .padding(top = 2.dp)
+                .size(18.dp),
+        )
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.weight(1f),
+        )
     }
 }
 

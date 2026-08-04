@@ -153,7 +153,7 @@ private fun PitchContent(
             title = stringResource(R.string.upgrade_benefits_title),
             icon = Icons.TwoTone.AutoAwesome,
         ) {
-            UpgradeBenefitsList()
+            UpgradeFeatureList(text = stringResource(R.string.upgrade_screen_benefits_body))
         }
 
         UpgradeSectionCard(

@@ -146,6 +146,19 @@ class UpgradeScreenTest : ComposeTest() {
     }
 
     @Test
+    fun `the benefits render as rows without their bullet markers`() {
+        composeTestRule.setUpgradeContent {
+            UpgradeScreen(uiState = acquisitionState())
+        }
+
+        // The checkmark icon IS the bullet: a literal "•" left in the text would double it up.
+        composeTestRule.onAllNodesWithText("Unlimited tabs and operations").assertCountEquals(1)
+        composeTestRule.onAllNodesWithText("• Unlimited tabs and operations").assertCountEquals(0)
+        // The unmarked trailing line stays plain footnote text, not a checkmarked feature.
+        composeTestRule.onAllNodesWithText("and more…").assertCountEquals(1)
+    }
+
+    @Test
     fun `loading state shows progress and hides actions`() {
         composeTestRule.setUpgradeContent {
             UpgradeScreen(uiState = UpgradeUiState.Loading)
