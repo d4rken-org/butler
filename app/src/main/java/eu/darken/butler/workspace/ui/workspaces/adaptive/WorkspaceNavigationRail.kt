@@ -1,6 +1,7 @@
 package eu.darken.butler.workspace.ui.workspaces.adaptive
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
@@ -8,12 +9,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -29,10 +32,9 @@ import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.DragIndicator
 import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material.icons.twotone.Looks3
+import androidx.compose.material.icons.twotone.Looks4
 import androidx.compose.material.icons.twotone.LooksOne
 import androidx.compose.material.icons.twotone.LooksTwo
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FloatingActionButton
@@ -42,6 +44,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -54,10 +57,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
@@ -65,6 +68,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.R
 import eu.darken.butler.common.ca.toCaString
@@ -75,8 +79,11 @@ import eu.darken.butler.common.compose.systemBarsWithOptionalCutout
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.icon
+import eu.darken.butler.workspace.ui.common.CutoutTopRightCornerShape
+import eu.darken.butler.workspace.ui.manager.PaneLayoutGlyph
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.manager.paneCells
 import eu.darken.butler.workspace.ui.workspaces.WorkspacePaneInfo
 import eu.darken.butler.workspace.ui.workspaces.asPaneInfo
 import sh.calvin.reorderable.ReorderableItem
@@ -87,12 +94,62 @@ object WorkspaceNavigationRailDefaults {
     const val SURFACE_TEST_TAG = "workspace.rail.surface"
     const val CONTENT_TEST_TAG = "workspace.rail.content"
     const val LIST_TEST_TAG = "workspace.rail.list"
+
+    /**
+     * On the entry's card, not on its outer box: the card is the node that carries the click, the
+     * selection state and the pane description, and a tag on the box would address a different node
+     * than the one under test.
+     */
+    const val ITEM_TEST_TAG = "workspace.rail.item"
 }
 
 private val RailSectionPadding = 8.dp
 private val RailItemHeight = 56.dp
 private val RailItemSpacing = 4.dp
-private val RailItemShape = RoundedCornerShape(16.dp)
+private val RailItemInset = 8.dp
+private val RailItemCornerRadius = 16.dp
+private val RailItemShape = RoundedCornerShape(RailItemCornerRadius)
+
+/**
+ * The notch is bounded by the type icon, which [RailIconNotchShift] centres in the width left over.
+ * At 23dp the icon's box ends 10dp clear of it. Height is not contended - the shape would allow 36dp
+ * - so the notch is square and the glyph inside it is too, which is what makes a quad grid's cells
+ * readable at this size.
+ *
+ * Its transition corner is deliberately tighter than the entry's own - see [CutoutTopRightCornerShape].
+ *
+ * Declared before the values derived from it: top-level properties initialise in file order, so a
+ * later declaration would read as 0.dp here without any complaint from the compiler.
+ */
+private val RailItemNotchWidth = 23.dp
+
+/**
+ * Centres the type icon in the width the notch leaves rather than in the whole entry, which is a
+ * shift of exactly half the notch - the icon's box is centred, so moving its centre from `W/2` to
+ * `(W - notch)/2` is `notch/2`. Derived rather than tuned, so the two cannot drift apart.
+ */
+private val RailIconNotchShift = RailItemNotchWidth / 2
+
+/**
+ * The type icon gives up a little size as well as position when a notch opens, so the assigned state
+ * reads as distinct rather than merely shifted. Not a clearance fix - [RailIconNotchShift] already
+ * leaves the icon 8.5dp clear of the notch at full size - which is why the difference stays at 4dp:
+ * assigned and unassigned entries sit in one list, and a bigger gap starts to look like two icon
+ * sets rather than one icon in two states.
+ */
+private val RailIconSize = 24.dp
+private val RailIconNotchedSize = 20.dp
+
+private val RailItemNotchedShape = CutoutTopRightCornerShape(
+    cutoutWidth = RailItemNotchWidth,
+    cutoutHeight = RailItemNotchWidth,
+    cornerRadius = RailItemCornerRadius,
+    cutoutCornerRadius = 4.dp,
+    transitionCornerRadius = 4.dp,
+)
+
+/** Centres the 19x19dp glyph inside the 23x23dp notch. */
+private val RailNotchGlyphPadding = PaddingValues(top = 2.dp, end = 2.dp)
 
 /**
  * What the reveal effect restarts on: which workspace is focused and where the entries sit.
@@ -216,7 +273,7 @@ fun WorkspaceNavigationRail(
                         onTabAction = onTabAction,
                         onPaneAssignment = onPaneAssignment,
                         onRename = onRename,
-                        maxPanes = design.maxPanes,
+                        design = design,
                         onPaneMenuToggle = onPaneMenuToggle,
                         isDraggingItem = isDraggingItem,
                         onDragStarted = {
@@ -280,7 +337,10 @@ internal fun WorkspaceRailContainer(
                 )
                 .width(80.dp)
                 .testTag(WorkspaceNavigationRailDefaults.CONTENT_TEST_TAG)
-                .padding(horizontal = 12.dp),
+                // Inside the tagged 80dp, so the rail's own width is unaffected. Kept tight because
+                // the entry's spare width is what the pane glyph's notch is carved out of, and what
+                // the label has left after the type icon.
+                .padding(horizontal = RailItemInset),
             horizontalAlignment = Alignment.CenterHorizontally,
             content = content,
         )
@@ -290,6 +350,19 @@ internal fun WorkspaceRailContainer(
 /**
  * Rail entry with its own background: nothing when the workspace sits idle, an outline once it is
  * assigned to a pane, a filled container while it is the focused one.
+ *
+ * An assigned entry also loses its top-trailing corner to a notch holding a [PaneLayoutGlyph]. The
+ * glyph has to be a sibling of the [Surface] rather than its child, because a Surface clips content
+ * to its shape and the notch is by definition outside it - hence the wrapping [Box], which exists
+ * purely to position the two and is deliberately semantics-free.
+ *
+ * The glyph is decorative and the pane it depicts is announced by the Surface instead, so that the
+ * entry stays one node for TalkBack. Merging at the Box would not achieve that: `Surface(onClick)`
+ * is itself a merging node, so an enclosing merging node cannot absorb it, and the entry would
+ * announce twice - once for the glyph, once for the clickable card.
+ *
+ * [modifier] therefore goes on the Box: everything that lays the entry out or paints it has to move
+ * the card and the glyph together, so it cannot live on the card alone.
  */
 @Composable
 internal fun WorkspaceRailItem(
@@ -297,12 +370,18 @@ internal fun WorkspaceRailItem(
     workspace: Workspace.Info,
     paneIndex: Int?,
     isFocused: Boolean,
+    layout: WorkspaceDesign.Layout = WorkspaceDesign.Layout.SINGLE,
     isDraggingItem: Boolean = false,
     dragHandleModifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
     val colorScheme = MaterialTheme.colorScheme
     val isAssigned = paneIndex != null
+    // A single pane makes the glyph a decorative dot - the fill and outline already say "assigned" -
+    // and a dragging entry swaps its icon out for the drag handle, so it drops the notch too. A pane
+    // index the layout no longer has (an assignment outliving a rotation) simply gets no glyph.
+    val cells = remember(layout) { paneCells(layout) }
+    val glyphPaneIndex = paneIndex?.takeIf { !isDraggingItem && cells.size > 1 && it in cells.indices }
 
     val restingContainerColor by animateColorAsState(
         targetValue = if (isFocused) colorScheme.secondaryContainer else Color.Transparent,
@@ -322,53 +401,62 @@ internal fun WorkspaceRailItem(
         targetValue = if (isDraggingItem) 1.05f else 1f,
         animationSpec = spring(),
     )
+    // Animated rather than snapped: gaining a pane already changes the entry's shape and border, so
+    // the icon sliding aside reads as part of that one movement instead of a jump. Offset, not
+    // padding, so it costs no layout pass - and Modifier.offset resolves against the layout
+    // direction, which keeps the icon moving away from the notch under RTL too.
+    val iconNotchShift by animateDpAsState(
+        targetValue = if (glyphPaneIndex != null) RailIconNotchShift else 0.dp,
+    )
+    val iconSize by animateDpAsState(
+        targetValue = if (glyphPaneIndex != null) RailIconNotchedSize else RailIconSize,
+    )
 
-    Surface(
-        onClick = onClick,
+    val paneDescription = glyphPaneIndex
+        ?.let { stringResource(R.string.workspace_pane_current_description, it + 1) }
+
+    Box(
         modifier = modifier
             .fillMaxWidth()
             .height(RailItemHeight)
-            .scale(scale)
-            .semantics {
-                selected = isAssigned
-                role = Role.Tab
-            },
-        shape = RailItemShape,
-        color = containerColor,
-        contentColor = when {
-            isFocused -> colorScheme.onSecondaryContainer
-            isAssigned -> colorScheme.onSurface
-            else -> colorScheme.onSurfaceVariant
-        },
-        border = if (isAssigned && !isFocused) BorderStroke(1.dp, colorScheme.outline) else null,
-        shadowElevation = shadowElevation,
+            .scale(scale),
     ) {
-        Column(
+        Surface(
+            onClick = onClick,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(vertical = 4.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
+                .testTag(WorkspaceNavigationRailDefaults.ITEM_TEST_TAG)
+                .semantics {
+                    selected = isAssigned
+                    role = Role.Tab
+                    paneDescription?.let { contentDescription = it }
+                },
+            shape = if (glyphPaneIndex != null) RailItemNotchedShape else RailItemShape,
+            color = containerColor,
+            contentColor = when {
+                isFocused -> colorScheme.onSecondaryContainer
+                isAssigned -> colorScheme.onSurface
+                else -> colorScheme.onSurfaceVariant
+            },
+            border = if (isAssigned && !isFocused) BorderStroke(1.dp, colorScheme.outline) else null,
+            shadowElevation = shadowElevation,
         ) {
-            Box(
-                modifier = dragHandleModifier,
-                contentAlignment = Alignment.Center,
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(vertical = 4.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
             ) {
-                BadgedBox(
-                    badge = {
-                        paneIndex?.let {
-                            val paneDescription = stringResource(R.string.workspace_pane_current_description, it + 1)
-                            Badge(
-                                modifier = Modifier.clearAndSetSemantics { contentDescription = paneDescription },
-                                containerColor = colorScheme.tertiary,
-                                contentColor = colorScheme.onTertiary,
-                            ) {
-                                Text(text = "${it + 1}")
-                            }
-                        }
-                    },
+                Box(
+                    // Only the icon row steps aside, not the label: the notch takes width from the
+                    // top of the entry and the label sits below it with the full width still. Same
+                    // principle as CutoutAwareColumn, which the toolbar cards use.
+                    modifier = dragHandleModifier.offset(x = -iconNotchShift),
+                    contentAlignment = Alignment.Center,
                 ) {
                     Icon(
+                        modifier = Modifier.size(iconSize),
                         imageVector = if (isDraggingItem) Icons.TwoTone.DragIndicator else workspace.type.icon,
                         contentDescription = if (isDraggingItem) {
                             stringResource(R.string.workspace_dragging_description)
@@ -377,13 +465,23 @@ internal fun WorkspaceRailItem(
                         },
                     )
                 }
+                Text(
+                    text = workspace.displayTitle.get(LocalContext.current),
+                    style = MaterialTheme.typography.labelSmall,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
             }
-            Text(
-                text = workspace.displayTitle.get(LocalContext.current),
-                style = MaterialTheme.typography.labelSmall,
-                textAlign = TextAlign.Center,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+        }
+
+        glyphPaneIndex?.let { index ->
+            PaneLayoutGlyph(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(RailNotchGlyphPadding),
+                layout = layout,
+                paneIndex = index,
             )
         }
     }
@@ -393,10 +491,34 @@ internal fun WorkspaceRailItem(
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspaceRailItemPreview() {
+    WorkspaceRailItemStates(layout = WorkspaceDesign.Layout.TRIPLE_MAIN_LEFT)
+}
+
+/**
+ * The notch has to disappear when a single pane makes the glyph meaningless.
+ */
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspaceRailItemSinglePanePreview() {
+    WorkspaceRailItemStates(layout = WorkspaceDesign.Layout.SINGLE)
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspaceRailItemRtlPreview() {
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+        WorkspaceRailItemStates(layout = WorkspaceDesign.Layout.TRIPLE_MAIN_LEFT)
+    }
+}
+
+@Composable
+private fun WorkspaceRailItemStates(layout: WorkspaceDesign.Layout) {
     Column(
         modifier = Modifier
             .width(80.dp)
-            .padding(horizontal = 12.dp),
+            .padding(horizontal = RailItemInset),
         verticalArrangement = Arrangement.spacedBy(RailItemSpacing),
     ) {
         WorkspaceRailItem(
@@ -407,8 +529,10 @@ private fun WorkspaceRailItemPreview() {
             ),
             paneIndex = null,
             isFocused = false,
+            layout = layout,
             onClick = {},
         )
+        // Assigned but not focused: the border has to follow the notch.
         WorkspaceRailItem(
             workspace = Workspace.Info(
                 id = Workspace.Id(),
@@ -417,6 +541,7 @@ private fun WorkspaceRailItemPreview() {
             ),
             paneIndex = 1,
             isFocused = false,
+            layout = layout,
             onClick = {},
         )
         WorkspaceRailItem(
@@ -427,6 +552,7 @@ private fun WorkspaceRailItemPreview() {
             ),
             paneIndex = 0,
             isFocused = true,
+            layout = layout,
             onClick = {},
         )
         WorkspaceRailItem(
@@ -435,8 +561,9 @@ private fun WorkspaceRailItemPreview() {
                 type = Workspace.Type.TEMPLATES,
                 title = "Templates".toCaString(),
             ),
-            paneIndex = null,
+            paneIndex = 2,
             isFocused = false,
+            layout = layout,
             isDraggingItem = true,
             onClick = {},
         )
@@ -451,7 +578,7 @@ private fun DraggableWorkspaceRailItem(
     onTabAction: (WorkspaceAction) -> Unit,
     onPaneAssignment: (workspaceId: Workspace.Id, paneIndex: Int) -> Unit,
     onRename: (Workspace.Id) -> Unit,
-    maxPanes: Int,
+    design: WorkspaceDesign,
     onPaneMenuToggle: (Boolean) -> Unit,
     isDraggingItem: Boolean,
     onDragStarted: () -> Unit,
@@ -470,6 +597,7 @@ private fun DraggableWorkspaceRailItem(
             workspace = workspace,
             paneIndex = currentPaneIndex,
             isFocused = isFocused,
+            layout = design.layout,
             isDraggingItem = isDraggingItem,
             dragHandleModifier = with(reorderableScope) {
                 // Long press, not press: the handle drags along the list's own scroll axis, so a
@@ -492,7 +620,7 @@ private fun DraggableWorkspaceRailItem(
             expanded = showPaneMenu,
             onDismissRequest = { showPaneMenu = false },
         ) {
-            repeat(maxPanes) { paneIndex ->
+            repeat(design.maxPanes) { paneIndex ->
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.workspace_pane_assign_action, paneIndex + 1)) },
                     leadingIcon = {
@@ -501,7 +629,7 @@ private fun DraggableWorkspaceRailItem(
                                 0 -> Icons.TwoTone.LooksOne
                                 1 -> Icons.TwoTone.LooksTwo
                                 2 -> Icons.TwoTone.Looks3
-                                else -> Icons.TwoTone.LooksOne
+                                else -> Icons.TwoTone.Looks4
                             },
                             contentDescription = null,
                         )
@@ -571,6 +699,9 @@ private fun WorkspaceNavigationRailPreview() {
         workspaces = tabs,
         selected = mapOf(0 to tabs[0].asPaneInfo(), 1 to tabs[1].asPaneInfo()),
         focusedId = tabs[0].id,
+        // The rail only exists in multi-pane mode, so previewing the default SINGLE would show a
+        // rail that can never occur - and no glyphs.
+        design = WorkspaceDesign(layout = WorkspaceDesign.Layout.TRIPLE_MAIN_LEFT),
         onTabAction = {},
         onPaneAssignment = { _, _ -> },
         onPaneMenuToggle = {},
@@ -615,6 +746,17 @@ private fun PaneMenuPreview() {
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.TwoTone.Looks3,
+                        contentDescription = null,
+                    )
+                },
+                onClick = {},
+            )
+            // Four entries, because pane 4 used to fall back to the "1" icon.
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.workspace_pane_assign_action, 4)) },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.TwoTone.Looks4,
                         contentDescription = null,
                     )
                 },
