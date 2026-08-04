@@ -45,10 +45,15 @@ class UpgradeRepoFossPersistTest : BaseTest() {
     // One store scope per test: the DataStore keeps its own actor alive on it.
     private var storeScope: CoroutineScope? = null
 
+    // The repo's shared upgradeInfo runs on this one, same lifetime rules as the store scope.
+    private var appScope: CoroutineScope? = null
+
     @AfterEach
     fun teardown() {
         storeScope?.cancel()
         storeScope = null
+        appScope?.cancel()
+        appScope = null
     }
 
     private class Harness(
@@ -60,6 +65,9 @@ class UpgradeRepoFossPersistTest : BaseTest() {
     private fun newStoreScope(): CoroutineScope =
         CoroutineScope(Dispatchers.IO + SupervisorJob()).also { storeScope = it }
 
+    private fun newAppScope(): CoroutineScope =
+        CoroutineScope(Dispatchers.IO + SupervisorJob()).also { appScope = it }
+
     // Unique file name per test method: DataStore forbids two active instances on the same file.
     private fun buildHarness(storeName: String): Harness {
         val dataStore = PreferenceDataStoreFactory.create(
@@ -69,6 +77,7 @@ class UpgradeRepoFossPersistTest : BaseTest() {
         // The real DI Json config: FossUpgrade's upgradedAt needs the contextual Instant serializer.
         val cache = FossCache(dataStore, SerializationIOModule().json())
         val repo = UpgradeRepoFoss(
+            appScope = newAppScope(),
             fossCache = cache,
             webpageTool = mockk<WebpageTool>(relaxed = true),
         )

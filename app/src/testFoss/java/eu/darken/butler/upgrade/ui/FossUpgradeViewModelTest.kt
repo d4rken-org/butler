@@ -412,9 +412,9 @@ class FossUpgradeViewModelTest : BaseTest() {
     fun `a thrown entitlement read restores the pending sponsor launch`() = runTest2(context = testDispatcher) {
         // The guard's entitlement read happens after the marker was consumed, so it can eat the
         // sponsor visit just as a failed write can. Installed after arming: the ViewModel's init
-        // collector already holds the working flow, so the only failing read is the guard's. Butler's
-        // upgradeInfo is a plain combine over the cache flow (only logging handlers on top, no
-        // shareIn), so a thrown cache read propagates straight into the guard's first().
+        // collector already holds the working flow, so the only failing read is the guard's. The repo
+        // now settles its own cache read failures into error Infos, so this throw stands for whatever
+        // still can throw into the guard's first() — the VM-level contract is the same either way.
         val repo = mockRepo()
         val vm = buildVm(repo = repo, manage = false)
 
@@ -508,37 +508,75 @@ class FossUpgradeViewModelTest : BaseTest() {
     }
 
     @Test
-    fun `a corrupt record keeps failing without losing the visit`() = runTest2(context = testDispatcher) {
-        // The accepted cost of the no-clobber invariant: FossCache leaves the decode fallback off, so
-        // a corrupt stored record makes the entitlement read THROW instead of silently reading as
-        // absent. Every armed resume then repeats the same sequence — read throws, marker restored,
-        // error surfaced — rather than replacing the record. Deliberate: an honest repeated signal,
-        // nothing destroyed, recovery stays an explicit user action.
-        val repo = mockRepo()
-        val vm = buildVm(repo = repo, manage = false)
+    fun `a settled error Info raises an error event`() = runTest2(context = testDispatcher) {
+        // The repo settles a failed entitlement read into an error Info instead of dying, so the
+        // ViewModel is the only place left that can turn that failure into something the user sees.
+        val info = MutableStateFlow(UpgradeRepoFoss.Info())
+        val vm = buildVm(repo = mockRepo(info))
 
         val errors = mutableListOf<Throwable>()
         val errorCollector = launch(start = CoroutineStart.UNDISPATCHED) { vm.errorEvents.collect { errors.add(it) } }
+        advanceUntilIdle()
+        errors.shouldBeEmpty()
+
+        val first = IOException("cache broken")
+        info.value = UpgradeRepoFoss.Info(error = first)
+        advanceUntilIdle()
+
+        errors shouldBe listOf(first)
+
+        // Deliberately unsuppressed: butler refreshes the entitlement on every foreground transition,
+        // so a still-broken store raises the failure again on each resume while the screen is open,
+        // instead of going quiet after the first one.
+        val second = IOException("cache still broken")
+        info.value = UpgradeRepoFoss.Info(error = second)
+        advanceUntilIdle()
+
+        errors shouldBe listOf(first, second)
+
+        errorCollector.cancel()
+    }
+
+    @Test
+    fun `a corrupt record keeps failing without losing the visit`() = runTest2(context = testDispatcher) {
+        // The accepted cost of the no-clobber invariant: FossCache leaves the decode fallback off, so
+        // a corrupt stored record makes the persist transaction THROW instead of silently replacing
+        // it. The read leg no longer propagates that throw — the repo settles it into an error Info —
+        // so the write is where a corrupt record now surfaces. Every armed resume repeats the same
+        // sequence: persist throws, marker restored, error surfaced. Deliberate: an honest repeated
+        // signal, nothing destroyed, recovery stays an explicit user action.
+        val readError = IOException("cache broken")
+        val repo = mockRepo(MutableStateFlow(UpgradeRepoFoss.Info(error = readError)))
+        coEvery { repo.persistUpgrade() } throws SerializationException("corrupt record")
+        val vm = buildVm(repo = repo, manage = false)
+
+        val thanks = mutableListOf<Int>()
+        val errors = mutableListOf<Throwable>()
+        val toastCollector = launch(start = CoroutineStart.UNDISPATCHED) { vm.toastEvent.collect { thanks.add(it) } }
+        val errorCollector = launch(start = CoroutineStart.UNDISPATCHED) { vm.errorEvents.collect { errors.add(it) } }
 
         vm.openSponsor()
-        advanceUntilIdle()
-        every { repo.upgradeInfo } returns flow { throw SerializationException("corrupt record") }
-
         ShadowSystemClock.advanceBy(Duration.ofSeconds(6))
         vm.checkSponsorReturn()
         advanceUntilIdle()
 
         // Restored, so the second resume finds the visit still armed and re-runs the same failure.
         vm.hasPendingSponsorLaunch() shouldBe true
+        thanks.shouldBeEmpty()
+        coVerify(exactly = 1) { repo.persistUpgrade() }
+        // Filtered: the settled read error rides the same channel (the init collector raises it), the
+        // persist failures are the ones this test is about.
+        errors.filterIsInstance<SerializationException>().size shouldBe 1
 
         vm.checkSponsorReturn()
         advanceUntilIdle()
 
         vm.hasPendingSponsorLaunch() shouldBe true
-        errors.size shouldBe 2
-        errors.forEach { it.shouldBeInstanceOf<SerializationException>() }
-        coVerify(exactly = 0) { repo.persistUpgrade() }
+        thanks.shouldBeEmpty()
+        coVerify(exactly = 2) { repo.persistUpgrade() }
+        errors.filterIsInstance<SerializationException>().size shouldBe 2
 
+        toastCollector.cancel()
         errorCollector.cancel()
     }
 }

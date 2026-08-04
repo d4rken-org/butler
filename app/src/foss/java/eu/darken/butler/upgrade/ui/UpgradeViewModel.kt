@@ -49,6 +49,20 @@ class UpgradeViewModel @AssistedInject constructor(
                 .onEach { navUp() }
                 .launchInViewModel()
         }
+
+        // The repo settles a failed entitlement read into an error Info instead of dying, so the
+        // failure has to be raised here or it would never reach the user. Deliberately NOT guarded
+        // against repetition: butler refreshes the entitlement on every foreground transition, so a
+        // persistently broken store re-raises this dialog on each resume while the screen is open.
+        // That is the corrupt-record doctrine's honest repeated signal — nothing is destroyed,
+        // recovery stays an explicit user action, and silence would be the worse failure.
+        upgradeRepo.upgradeInfo
+            .filter { !it.isPro && it.error != null }
+            .onEach { current ->
+                @Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
+                errorEvents.tryEmit(current.error!!)
+            }
+            .launchInViewModel()
     }
 
     val state = combine(
