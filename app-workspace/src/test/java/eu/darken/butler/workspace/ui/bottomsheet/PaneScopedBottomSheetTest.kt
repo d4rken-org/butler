@@ -16,6 +16,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.height
 import androidx.compose.ui.unit.width
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
 import eu.darken.butler.workspace.ui.modal.LocalLayerActive
 import eu.darken.butler.workspace.ui.modal.PaneLayer
 import eu.darken.butler.workspace.ui.modal.PaneLayerHost
@@ -361,6 +363,36 @@ class PaneScopedBottomSheetTest : ComposeTest() {
         dismissals shouldBe 1
     }
 
+    /**
+     * The pane host consumes the down of a press arriving while its pane is not the focused one,
+     * so a tap only focuses the pane. The handle's `draggable` accepts a consumed down, so a drag
+     * must keep working there — an unfocused pane's sheet can be dismissed with one gesture.
+     */
+    @Test
+    fun `the handle still drags in an unfocused pane`() {
+        var dismissals = 0
+        var paneFocusRequests = 0
+
+        composeTestRule.setContent {
+            CompositionLocalProvider(
+                LocalWorkspaceFocusRequest provides { paneFocusRequests++ },
+            ) {
+                Case(paneFocused = false, onDismiss = { dismissals++ }) { TallContent() }
+            }
+        }
+
+        val travel = with(composeTestRule.density) { 150.dp.toPx() }
+        composeTestRule.onNodeWithTag(HANDLE_TAG).performTouchInput {
+            down(center)
+            repeat(DRAG_STEPS) { moveBy(Offset(0f, travel / DRAG_STEPS), delayMillis = 32) }
+            up()
+        }
+        composeTestRule.waitForIdle()
+
+        dismissals shouldBe 1
+        (paneFocusRequests > 0) shouldBe true
+    }
+
     @Test
     fun `the handle dismisses even while the content is scrolled`() {
         var dismissals = 0
@@ -569,6 +601,7 @@ class PaneScopedBottomSheetTest : ComposeTest() {
         includeImePadding: Boolean = false,
         topInset: Dp = 0.dp,
         bottomInset: Dp = 0.dp,
+        paneFocused: Boolean = true,
         content: @Composable () -> Unit,
     ) {
         PreviewWrapper {
@@ -576,7 +609,7 @@ class PaneScopedBottomSheetTest : ComposeTest() {
                 modifier = Modifier
                     .fillMaxSize()
                     .testTag(PANE_TAG),
-                paneFocused = true,
+                paneFocused = paneFocused,
             ) {
                 PaneScopedBottomSheet(
                     visible = visible,

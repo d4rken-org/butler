@@ -73,6 +73,7 @@ import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
+import eu.darken.butler.workspace.ui.modal.DismissWhenPaneUnfocused
 import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
@@ -672,6 +673,7 @@ private fun BreadcrumbContextMenu(
     onSetAsHome: (() -> Unit)?,
     onCopyPath: (() -> Unit)?,
 ) {
+    DismissWhenPaneUnfocused(expanded = true, onDismiss = onDismiss)
     DropdownMenu(
         expanded = true,
         onDismissRequest = onDismiss,

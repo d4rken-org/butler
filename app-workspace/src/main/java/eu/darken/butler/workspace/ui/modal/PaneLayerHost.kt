@@ -21,7 +21,9 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceDesign.PaneEdges
  * individual modal surfaces: a press that a text field or a list row consumes never reaches a click
  * handler further up, so a pane whose content swallowed the touch would never become focused — and
  * a modal in the previously focused pane would keep its focus trap armed forever, leaving keyboard
- * focus unable to move between panes at all.
+ * focus unable to move between panes at all. Presses arriving while the pane is not the focused one
+ * are additionally consumed, so the first click into an unfocused pane focuses it without
+ * activating the content under the finger.
  *
  * Callers must provide [eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest] *above* this
  * composable for that to work.
@@ -53,7 +55,9 @@ fun PaneLayerHost(
         LocalAlertDialogRenderer provides PaneBoundAlertDialogRenderer,
     ) {
         Box(
-            modifier = modifier.requestPaneFocusOnPress(),
+            // The pane boundary is also where the first press into an unfocused pane is swallowed:
+            // it focuses the pane without activating the content under the finger.
+            modifier = modifier.requestPaneFocusOnPress(consumeWhenUnfocused = true),
             content = content,
         )
     }

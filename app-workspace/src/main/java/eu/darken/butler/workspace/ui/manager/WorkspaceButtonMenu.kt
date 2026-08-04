@@ -28,6 +28,7 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.defaultArguments
 import eu.darken.butler.workspace.core.icon
+import eu.darken.butler.workspace.ui.modal.DismissWhenPaneUnfocused
 import eu.darken.butler.workspace.ui.template.QuickCreateItem
 
 @Composable
@@ -40,6 +41,7 @@ fun WorkspaceButtonMenu(
     provider: WorkspaceButtonProvider?,
     onCloseAllRequested: () -> Unit,
 ) {
+    DismissWhenPaneUnfocused(expanded = expanded, onDismiss = onDismissRequest)
     DropdownMenu(
         modifier = modifier,
         expanded = expanded,

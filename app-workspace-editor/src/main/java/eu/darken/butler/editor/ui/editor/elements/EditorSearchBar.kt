@@ -55,6 +55,7 @@ import eu.darken.butler.editor.R
 import eu.darken.butler.editor.core.engine.SearchResult
 import eu.darken.butler.editor.ui.editor.EditorSearchController
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
+import eu.darken.butler.workspace.ui.modal.DismissWhenPaneUnfocused
 
 /**
  * [searchTruncated] marks a result list capped by the engine: the counter shows "N of M+" and
@@ -203,6 +204,7 @@ fun EditorSearchBar(
                             }
                         )
 
+                        DismissWhenPaneUnfocused(expanded = showOptionsMenu) { showOptionsMenu = false }
                         DropdownMenu(
                             expanded = showOptionsMenu,
                             onDismissRequest = { showOptionsMenu = false }
