@@ -81,18 +81,18 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>>(
     private val completedScans = mutableSetOf<P>()
 
     // Work queue
-    private var workQueue = ArrayDeque<WorkItem>()
+    private var workQueue = ArrayDeque<WorkItem<P, PL>>()
 
     // Collect DeletePath items during scanning to preserve post-order
-    private val deferredDeletions = ArrayDeque<WorkItem>()
+    private val deferredDeletions = ArrayDeque<WorkItem<P, PL>>()
 
-    private sealed class WorkItem {
+    private sealed class WorkItem<P : APath<P>, PL : APathLookup<P>> {
         /**
          * Scan a path and queue children for deletion.
          */
-        data class ScanPath<P : APath<P>>(
+        data class ScanPath<P : APath<P>, PL : APathLookup<P>>(
             val path: P,
-        ) : WorkItem()
+        ) : WorkItem<P, PL>()
 
         /**
          * Perform actual deletion of a path.
@@ -100,7 +100,7 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>>(
          */
         data class DeletePath<P : APath<P>, PL : APathLookup<P>>(
             val lookup: PL,
-        ) : WorkItem() {
+        ) : WorkItem<P, PL>() {
             val path: P get() = lookup.lookedUp
         }
 
@@ -110,7 +110,7 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>>(
         data class BatchDeleteSubtree<P : APath<P>, PL : APathLookup<P>>(
             val lookup: PL,
             val sourceRoute: Route,
-        ) : WorkItem() {
+        ) : WorkItem<P, PL>() {
             val path: P get() = lookup.lookedUp
         }
     }
@@ -130,9 +130,9 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>>(
         // Process work queue in two phases
         while (workQueue.isNotEmpty() && currentCoroutineContext().isActive) {
             when (val item = workQueue.removeFirst()) {
-                is WorkItem.ScanPath<*> -> {
+                is WorkItem.ScanPath -> {
                     scanItemsRemaining--
-                    val childrenAdded = processScan(item as WorkItem.ScanPath<P>) { send(it) }
+                    val childrenAdded = processScan(item) { send(it) }
                     scanItemsRemaining += childrenAdded
 
                     // When scan completes, add all deferred deletions to queue
@@ -144,10 +144,9 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>>(
                     }
                 }
 
-                is WorkItem.DeletePath<*, *> -> processDeletePath(item as WorkItem.DeletePath<P, PL>) { send(it) }
+                is WorkItem.DeletePath -> processDeletePath(item) { send(it) }
 
-                is WorkItem.BatchDeleteSubtree<*, *> ->
-                    processBatchDeleteSubtree(item as WorkItem.BatchDeleteSubtree<P, PL>) { send(it) }
+                is WorkItem.BatchDeleteSubtree -> processBatchDeleteSubtree(item) { send(it) }
             }
         }
 
@@ -163,7 +162,7 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>>(
     }
 
     private suspend fun processScan(
-        item: WorkItem.ScanPath<P>,
+        item: WorkItem.ScanPath<P, PL>,
         emit: suspend (DeleteAction.State<P, PL>) -> Unit
     ): Int {
         log(TAG, VERBOSE) { "Scanning path: ${item.path}" }

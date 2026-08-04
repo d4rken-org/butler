@@ -119,7 +119,7 @@ internal fun AppsReadyContent(
             }
 
             is AppsViewStyle.Grid -> {
-                val gridSize = (state.viewStyle as AppsViewStyle.Grid).size
+                val gridSize = state.viewStyle.size
                 val minSize = when (gridSize) {
                     AppsViewStyle.Grid.GridSize.SMALL -> 90.dp
                     AppsViewStyle.Grid.GridSize.MEDIUM -> 120.dp

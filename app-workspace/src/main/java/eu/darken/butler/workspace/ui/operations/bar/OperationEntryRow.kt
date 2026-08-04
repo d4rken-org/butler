@@ -168,15 +168,10 @@ fun OperationEntryRow(
                                 is OperationDisplay.State.Completed -> operation.state.completedAt to R.string.operations_state_successful
                                 is OperationDisplay.State.Failed -> operation.state.completedAt to R.string.operations_state_failed
                                 is OperationDisplay.State.Cancelled -> operation.state.completedAt to R.string.operations_state_cancelled
-                                else -> null to null
                             }
 
-                            val durationText = completedAt?.let {
-                                val duration = it - operation.startedAt
-                                val formatted = formatDuration(duration, DurationFormat.COMPACT)
-                                val stateLabel = stateStringRes?.let { stringResource(it) } ?: ""
-                                "$formatted • $stateLabel"
-                            } ?: ""
+                            val formatted = formatDuration(completedAt - operation.startedAt, DurationFormat.COMPACT)
+                            val durationText = "$formatted • ${stringResource(stateStringRes)}"
 
                             Text(
                                 text = durationText,

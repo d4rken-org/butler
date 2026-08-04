@@ -4,6 +4,7 @@ import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.VersionCatalog
 import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.kotlin.dsl.exclude
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 private val Project.libs: VersionCatalog
     get() = extensions.getByType(VersionCatalogsExtension::class.java).named("libs")
@@ -165,6 +166,12 @@ fun Project.addAndroidUI() {
     add("implementation", "hilt-lifecycle-viewmodel-compose")
 
     add("implementation", "accompanist-drawablepainter")
+
+    // Tied to the compose-material3 dependency above: the marker only resolves where material3 is
+    // on the compile classpath, so applying it project-wide warns in the non-UI modules.
+    tasks.withType(KotlinCompile::class.java) {
+        compilerOptions.freeCompilerArgs.add("-opt-in=androidx.compose.material3.ExperimentalMaterial3Api")
+    }
 }
 
 fun Project.addNavigation3() {

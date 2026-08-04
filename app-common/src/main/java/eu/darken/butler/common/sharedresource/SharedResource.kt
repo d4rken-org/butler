@@ -411,7 +411,7 @@ open class SharedResource<T : Any>(
         }
     }
 
-    private suspend fun doLeaseCheck(tag: String) = coreLock.withLock("doLeaseCheck()-$tag") {
+    private suspend fun doLeaseCheck(tag: String): Unit = coreLock.withLock("doLeaseCheck()-$tag") {
         if (leases.isNotEmpty()) {
             if (Bugs.isTrace) {
                 log(iTag, DEBUG) { "[$sId|_]-doLeaseCheck()-$tag There are leases (${leases.size}), aborting" }

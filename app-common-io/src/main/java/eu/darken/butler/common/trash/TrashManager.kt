@@ -181,7 +181,7 @@ class TrashManager @Inject constructor(
                         id = Uuid.random(),
                         originalLookup = lookup,
                         trashPath = trashPath,
-                        trashLookup = moveCompleted!!.movedFiles.first().second,
+                        trashLookup = moveCompleted.movedFiles.first().second,
                         size = lookup.size!!,
                     )
 

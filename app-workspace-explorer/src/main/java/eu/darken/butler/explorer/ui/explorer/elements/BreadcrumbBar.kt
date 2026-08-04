@@ -548,7 +548,7 @@ private fun BreadcrumbDisplayRow(
                     onCopyPath = if (isDirectory && onCopyPath != null) {
                         {
                             onShowContextMenu(null)
-                            onCopyPath((breadcrumb.target as ExplorerNavigation.Target.Directory).path.path)
+                            onCopyPath(breadcrumb.target.path.path)
                         }
                     } else null,
                 )

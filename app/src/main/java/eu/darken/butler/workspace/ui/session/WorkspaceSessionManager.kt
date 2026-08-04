@@ -542,7 +542,7 @@ class WorkspaceSessionManager @Inject constructor(
 
             restoredWorkspaceIds.add(candidate.id)
             if (restoreEagerly) {
-                if (candidate.id == focusedCandidate?.id) focusedIsLive = true
+                if (candidate.id == focusedCandidate.id) focusedIsLive = true
             } else {
                 pausedIds.add(candidate.id)
             }

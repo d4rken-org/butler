@@ -260,8 +260,8 @@ private fun DialogActionRow(
                         dismiss.placeRelative(x = width - dismiss.width, y = (height - dismiss.height) / 2)
                     }
                 } else {
-                    dismiss!!.placeRelative(x = width - dismiss.width, y = 0)
-                    neutral!!.placeRelative(x = 0, y = dismiss.height + crossAxisSpacingPx)
+                    dismiss.placeRelative(x = width - dismiss.width, y = 0)
+                    neutral.placeRelative(x = 0, y = dismiss.height + crossAxisSpacingPx)
                 }
             }
         } else if (neutral == null) {
@@ -281,7 +281,7 @@ private fun DialogActionRow(
                     confirm.placeRelative(x = width - confirm.width, y = (height - confirm.height) / 2)
                 } else {
                     confirm.placeRelative(x = width - confirm.width, y = 0)
-                    dismiss!!.placeRelative(x = width - dismiss.width, y = confirm.height + crossAxisSpacingPx)
+                    dismiss.placeRelative(x = width - dismiss.width, y = confirm.height + crossAxisSpacingPx)
                 }
             }
         } else if (dismiss == null) {

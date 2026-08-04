@@ -78,14 +78,14 @@ fun PaneLayer(
     val registered = enabled && layerState != null
 
     DisposableEffect(layerState, token, rank, parentToken, registered) {
-        if (registered) layerState?.push(token, rank, parentToken)
+        if (registered) layerState.push(token, rank, parentToken)
         onDispose { layerState?.pop(token) }
     }
 
-    val isTop = !registered || layerState?.isTop(token) == true
+    val isTop = !registered || layerState.isTop(token)
     // A layer that encloses the top one must stay reachable, or it would take the top layer down
     // with it — but it is still not the active layer.
-    val onTopPath = !registered || layerState?.isOnTopPath(token) == true
+    val onTopPath = !registered || layerState.isOnTopPath(token)
     val active = if (registered) paneFocused && isTop else inheritedActive
 
     val focusRequester = remember { FocusRequester() }

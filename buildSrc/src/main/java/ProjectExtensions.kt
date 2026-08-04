@@ -77,11 +77,8 @@ fun Project.setupKotlinOptions() {
                 "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
                 "-opt-in=kotlinx.coroutines.FlowPreview",
                 "-opt-in=kotlin.time.ExperimentalTime",
-                "-Xjvm-default=all",
-                "-Xcontext-parameters",
-                "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
+                "-jvm-default=no-compatibility",
                 "-opt-in=kotlin.uuid.ExperimentalUuidApi",
-                "-XXLanguage:+PropertyParamAnnotationDefaultTargetMode",
             )
         }
     }

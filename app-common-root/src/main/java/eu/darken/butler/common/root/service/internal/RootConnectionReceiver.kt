@@ -38,8 +38,10 @@ abstract class RootConnectionReceiver(private val pairingCode: String) {
     }
 
     private val self: IBinder = Binder()
-    private val binderSync = Object()
-    private val eventSync = Object()
+    // Not kotlin.Any: these are wait()/notifyAll() monitors and Kotlin hides those members on Any.
+    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN") private val binderSync = Object()
+
+    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN") private val eventSync = Object()
 
     private var contextRef: WeakReference<Context>? = null
 

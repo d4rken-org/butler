@@ -168,7 +168,7 @@ private fun OperationDetailsHeader(
                 overflow = TextOverflow.Ellipsis,
             )
 
-            operation.description?.let { description ->
+            operation.description.let { description ->
                 Text(
                     modifier = Modifier.padding(top = 2.dp),
                     text = description.asComposable(),

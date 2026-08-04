@@ -41,8 +41,10 @@ class RootIPC @AssistedInject constructor(
     private val reflectionBroadcast: ReflectionBroadcast,
 ) {
 
-    private val helloWaiter = Object()
-    private val byeWaiter = Object()
+    // Not kotlin.Any: these are wait()/notifyAll() monitors and Kotlin hides those members on Any.
+    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN") private val helloWaiter = Object()
+
+    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN") private val byeWaiter = Object()
 
     data class Connection(val binder: IBinder, val deathRecipient: DeathRecipient)
 

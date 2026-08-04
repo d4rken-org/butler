@@ -21,8 +21,8 @@ import java.util.Collections
 fun APath<*>.isAncestorOf(descendant: APath<*>): Boolean {
     if (this::class != descendant::class) return false
     return when (this) {
-        is LocalPath -> (this as LocalPath).isAncestorOf(descendant as LocalPath)
-        is SAFPath -> (this as SAFPath).isAncestorOf(descendant as SAFPath)
+        is LocalPath -> this.isAncestorOf(descendant as LocalPath)
+        is SAFPath -> this.isAncestorOf(descendant as SAFPath)
         is ArchivePath -> this.isAncestorOf(descendant as ArchivePath)
     }
 }

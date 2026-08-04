@@ -122,7 +122,7 @@ class ExplorerWorkspace @AssistedInject constructor(
     // Picker configuration if this is a picker workspace
     val pickerConfig: PickerConfig? = (creationArguments as? ExplorerArguments.Picker)?.let {
         PickerConfig(
-            callerWorkspaceId = it.callerWorkspaceId ?: error("callerWorkspaceId required for picker mode"),
+            callerWorkspaceId = it.callerWorkspaceId,
             selection = it.selection,
             requireWritable = it.requireWritable,
         )

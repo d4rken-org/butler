@@ -74,10 +74,7 @@ fun CompressOptionsDialog(
                     isError = nameInvalid,
                     supportingText = if (nameInvalid) {
                         {
-                            Text(
-                                (validation as FilenameValidator.ValidationResult.Invalid)
-                                    .invalidChars.joinToString(" ")
-                            )
+                            Text(validation.invalidChars.joinToString(" "))
                         }
                     } else {
                         null

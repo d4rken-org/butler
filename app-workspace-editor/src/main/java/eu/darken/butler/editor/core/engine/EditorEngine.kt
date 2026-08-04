@@ -1073,7 +1073,7 @@ class EditorEngine @AssistedInject constructor(
         refreshVisibleContent()
     }
 
-    suspend fun moveCursor(direction: CursorDirection, extendSelection: Boolean) = stateMutex.withLock {
+    suspend fun moveCursor(direction: CursorDirection, extendSelection: Boolean): Unit = stateMutex.withLock {
         log(tag) { "moveCursor(direction=$direction, extendSelection=$extendSelection)" }
         val currentState = _state.value as? EditorState.Loaded
         if (currentState == null) {
@@ -1658,7 +1658,7 @@ class EditorEngine @AssistedInject constructor(
      * visible line's furthest full-window start; a no-op at the bound. Does NOT re-centre on the caret
      * (that would fight the scroll) - [refreshVisibleContent] is called with ensureCursor=false.
      */
-    suspend fun revealMoreColumns(forward: Boolean) = stateMutex.withLock {
+    suspend fun revealMoreColumns(forward: Boolean): Unit = stateMutex.withLock {
         val currentState = _state.value as? EditorState.Loaded ?: return
         val buffer = currentState.resources.textBuffer
         val cap = buffer.maxDisplayLineChars.toLong()

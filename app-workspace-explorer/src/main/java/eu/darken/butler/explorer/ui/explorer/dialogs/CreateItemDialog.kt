@@ -93,8 +93,7 @@ fun CreateItemDialog(
                     isError = isError,
                     supportingText = if (isError) {
                         {
-                            val chars =
-                                (validation as FilenameValidator.ValidationResult.Invalid).invalidChars.joinToString(" ")
+                            val chars = validation.invalidChars.joinToString(" ")
                             Text(stringResource(CommonR.string.general_filename_validation_error, chars))
                         }
                     } else null,

@@ -14,7 +14,7 @@ data class FocusNavigationState(
     companion object {
         val Saver: Saver<FocusNavigationState, *> = listSaver(
             save = { listOf(it.focusedIndex, it.itemCount) },
-            restore = { FocusNavigationState(focusedIndex = it[0] as Int?, itemCount = it[1] as Int) },
+            restore = { FocusNavigationState(focusedIndex = it[0], itemCount = it[1] as Int) },
         )
     }
     val hasFocus: Boolean get() = focusedIndex != null

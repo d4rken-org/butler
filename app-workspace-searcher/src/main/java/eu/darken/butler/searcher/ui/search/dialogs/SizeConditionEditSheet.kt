@@ -148,7 +148,7 @@ private fun SizeConditionEditContent(
 
     val handleApply = {
         if (isInputValid) {
-            onApply(FilterCondition.Size(selectedDirection.comparator, parsedBytes!!))
+            onApply(FilterCondition.Size(selectedDirection.comparator, parsedBytes))
         }
     }
 
