@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.draganddrop.dragAndDropTarget
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -57,6 +58,8 @@ fun AdaptiveWorkspaceLayout(
     fullScreenModalVisible: Boolean = false,
     /** The pane whose empty content anchors the first-tab tour, or `null` when it isn't running. */
     firstTabTourPaneNumber: Int? = null,
+    /** Scrolls the add-tab card into view before the tour's step is published. */
+    firstTabTourRequester: BringIntoViewRequester? = null,
     onShareError: (Workspace.Id, Throwable) -> Unit,
 ) {
     val dragDropState = remember { DragDropState() }
@@ -222,6 +225,7 @@ fun AdaptiveWorkspaceLayout(
                             paneEdges = paneDesign.paneEdges,
                             isUpgraded = isUpgraded,
                             isTourTarget = paneNumber == firstTabTourPaneNumber,
+                            tourRequester = firstTabTourRequester,
                             onAddWorkspace = {
                                 onScreenAction(WorkspaceScreenAction.CreateForPane(paneNumber - 1))
                             },

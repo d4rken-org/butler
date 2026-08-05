@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -124,14 +125,22 @@ fun WorkspaceScreen(
     // With zero tabs every pane is empty, so the first one is always the one to tag - no scan needed.
     val firstTabTourPaneNumber: Int? = if (!firstTabTourEligible || design.isSingle) null else 1
 
+    // Both empty-state surfaces scroll vertically, so on a short viewport the create/add-tab card
+    // starts below the fold with no bounds to anchor on. The tour's prepareTarget brings it in
+    // before the step is published.
+    val createTabRequester = remember { BringIntoViewRequester() }
+
     val tourController = LocalGuidedTourController.current
+    val firstTabTourDefinition = remember(createTabRequester) {
+        FirstTabTour.definition(prepareCreateTab = { createTabRequester.bringIntoView() })
+    }
     var tourStartAttempted by remember { mutableStateOf(false) }
     LaunchedEffect(firstTabTourEligible, isOverlayVisible) {
         // Starting under the manager overlay would anchor on a card the user cannot see.
         if (!firstTabTourEligible || isOverlayVisible || tourStartAttempted) return@LaunchedEffect
         // tryStart is atomic: `attempted` is only set when the start actually took, so a transient
         // block (another tour active) cannot permanently suppress this one.
-        tourStartAttempted = tourController.tryStart(FirstTabTour.definition)
+        tourStartAttempted = tourController.tryStart(firstTabTourDefinition)
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -167,6 +176,7 @@ fun WorkspaceScreen(
                 // back-active underneath it. Classic already guards this via its own container.
                 fullScreenModalVisible = state.fullScreenModalWorkspace != null,
                 firstTabTourPaneNumber = firstTabTourPaneNumber,
+                firstTabTourRequester = createTabRequester,
                 onShareError = onShareError,
             )
         } else {
@@ -181,6 +191,7 @@ fun WorkspaceScreen(
                 bannerStates = bannerStates,
                 onDismissBanner = onDismissBanner,
                 isFirstTabTourTarget = firstTabTourEligible,
+                firstTabTourRequester = createTabRequester,
                 onShareError = onShareError,
             )
         }

@@ -22,7 +22,14 @@ object FirstTabTour : GuidedTour {
 
     const val CREATE_TAB_TARGET = "workspaces.createTab"
 
-    val definition = TourDefinition(
+    /**
+     * [prepareCreateTab] scrolls the create/add-tab card into the viewport before the step is
+     * published. It is required, not optional: both empty-state surfaces wrap their content in a
+     * `verticalScroll`, so in a compact or split-screen window, at large font scale, or in a short
+     * adaptive pane the card sits below the viewport — `boundsInRoot()` clips it to nothing, no
+     * anchor registers, and the single step grace-skips before the tour ever appears.
+     */
+    fun definition(prepareCreateTab: suspend () -> Unit): TourDefinition = TourDefinition(
         id = id,
         clickProtection = true,
         steps = listOf(
@@ -31,6 +38,7 @@ object FirstTabTour : GuidedTour {
                 targetId = CREATE_TAB_TARGET,
                 title = R.string.tour_first_tab_title.toCaString(),
                 body = R.string.tour_first_tab_body.toCaString(),
+                prepareTarget = prepareCreateTab,
             ),
         ),
     )

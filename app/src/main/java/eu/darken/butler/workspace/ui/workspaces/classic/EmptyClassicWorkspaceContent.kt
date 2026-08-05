@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -47,6 +49,8 @@ internal fun EmptyClassicWorkspaceContent(
     modifier: Modifier = Modifier,
     isUpgraded: Boolean,
     isTourTarget: Boolean = false,
+    /** Lets the tour scroll the create card into the viewport before its step is published. */
+    tourRequester: BringIntoViewRequester? = null,
 ) {
     val workspaceActionHandler = LocalWorkspaceButtonProvider.current
     Column(
@@ -106,7 +110,11 @@ internal fun EmptyClassicWorkspaceContent(
                         .fillMaxWidth()
                         .then(
                             if (isTourTarget) {
-                                Modifier.guidedTourTarget(FirstTabTour.CREATE_TAB_TARGET)
+                                Modifier
+                                    .guidedTourTarget(FirstTabTour.CREATE_TAB_TARGET)
+                                    .let { m ->
+                                        tourRequester?.let { m.bringIntoViewRequester(it) } ?: m
+                                    }
                             } else {
                                 Modifier
                             },

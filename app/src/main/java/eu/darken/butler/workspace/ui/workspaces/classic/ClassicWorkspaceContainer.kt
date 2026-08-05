@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerDefaults
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -46,6 +47,8 @@ internal fun ClassicWorkspaceContainer(
     bannerStates: Map<Workspace.Id, eu.darken.butler.workspace.ui.feedback.BannerState>,
     onDismissBanner: (Workspace.Id) -> Unit,
     isFirstTabTourTarget: Boolean = false,
+    /** Scrolls the create card into view before the tour's step is published. */
+    firstTabTourRequester: BringIntoViewRequester? = null,
     onShareError: (Workspace.Id, Throwable) -> Unit,
 ) {
     val workspaceActionHandler = LocalWorkspaceButtonProvider.current
@@ -150,6 +153,7 @@ internal fun ClassicWorkspaceContainer(
                     .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Vertical)),
                 isUpgraded = state.isUpgraded,
                 isTourTarget = isFirstTabTourTarget,
+                tourRequester = firstTabTourRequester,
             )
         }
 

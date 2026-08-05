@@ -23,8 +23,11 @@ import eu.darken.butler.workspace.ui.WorkspacePageHostEntry
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.workspaces.tour.FirstTabTour
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import org.junit.Test
 import org.robolectric.annotation.Config
 import testhelpers.ComposeTest
@@ -53,7 +56,8 @@ class WorkspaceScreenTourEligibilityTest : ComposeTest() {
     private class RecordingTourAccess : GuidedTourAccess {
         private val _session = MutableStateFlow<TourSession?>(null)
         override val session: StateFlow<TourSession?> = _session
-        val started = mutableListOf<TourId>()
+        val startedDefinitions = mutableListOf<TourDefinition>()
+        val started: List<TourId> get() = startedDefinitions.map { it.id }
 
         override suspend fun shouldStart(definition: TourDefinition): Boolean = true
 
@@ -62,7 +66,7 @@ class WorkspaceScreenTourEligibilityTest : ComposeTest() {
         }
 
         override suspend fun tryStart(definition: TourDefinition): Boolean {
-            started += definition.id
+            startedDefinitions += definition
             _session.value = TourSession(definition, stepIndex = 0)
             return true
         }
@@ -184,6 +188,31 @@ class WorkspaceScreenTourEligibilityTest : ComposeTest() {
         val rootWidth = rootBounds.right - rootBounds.left
         val anchorCenterX = with(composeTestRule.density) { registered!!.center.x.toDp() }
         (anchorCenterX < rootWidth / 2) shouldBe true
+    }
+
+    // Robolectric's default 320x470dp screen, i.e. the case the class-level qualifier hides: a
+    // compact window, split screen, large font scale or a short adaptive pane all put the create
+    // card below the scroll viewport.
+    @Test
+    @Config(qualifiers = "w320dp-h470dp")
+    fun `on a short viewport the create card anchors only after prepareTarget has run`() {
+        val harness = setScreen(state())
+
+        // Card is composed but clipped away by the scroll viewport, so nothing registers and the
+        // one-step tour would grace-skip.
+        harness.registry.has(FirstTabTour.CREATE_TAB_TARGET) shouldBe false
+
+        val prepare = harness.tourAccess.startedDefinitions.single().steps.single().prepareTarget!!
+        val prepareJob = CoroutineScope(Dispatchers.Main).launch { prepare() }
+        // The clock is parked (see setScreen), so the bring-into-view scroll animation is stepped
+        // frame by frame - a single large advance does not run it to completion.
+        repeat(20) {
+            composeTestRule.mainClock.advanceTimeByFrame()
+            composeTestRule.waitForIdle()
+        }
+
+        harness.registry.has(FirstTabTour.CREATE_TAB_TARGET) shouldBe true
+        prepareJob.cancel()
     }
 
     @Test
