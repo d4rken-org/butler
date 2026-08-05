@@ -178,6 +178,7 @@ fun EditorWorkspacePage(
                         isBackingLost = state.isBackingLost,
                         progress = state.progress,
                         hasContent = state.hasContent,
+                        hasFile = state.hasFile,
                         canUndo = state.canUndo,
                         canRedo = state.canRedo,
                         onAction = onPageAction,

@@ -2,6 +2,7 @@ package eu.darken.butler.editor.ui.editor.elements
 
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,15 +11,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.twotone.Redo
+import androidx.compose.material.icons.automirrored.twotone.Undo
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.Description
 import androidx.compose.material.icons.twotone.Edit
-import androidx.compose.material.icons.twotone.KeyboardArrowDown
-import androidx.compose.material.icons.twotone.KeyboardArrowUp
+import androidx.compose.material.icons.twotone.FolderOpen
 import androidx.compose.material.icons.twotone.Save
-import androidx.compose.material.icons.twotone.SaveAs
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -26,6 +29,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -35,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
+import eu.darken.butler.common.compose.ButlerTooltip
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
@@ -49,6 +56,7 @@ import eu.darken.butler.workspace.ui.common.CutoutMode
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonDefaults
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.modal.DismissWhenPaneUnfocused
 
 @Composable
 fun EditorToolbarCard(
@@ -62,6 +70,7 @@ fun EditorToolbarCard(
     isBackingLost: Boolean = false,
     progress: Progress.Data?,
     hasContent: Boolean,
+    hasFile: Boolean = false,
     canUndo: Boolean,
     canRedo: Boolean,
     onAction: (EditorPageAction) -> Unit,
@@ -257,55 +266,93 @@ fun EditorToolbarCard(
                             .fillMaxWidth()
                             .padding(top = 8.dp, bottom = 4.dp),
                     ) {
-                        IconButton(onClick = { onAction(EditorPageAction.File.LaunchPicker) }) {
-                            Icon(
-                                Icons.TwoTone.Description,
-                                contentDescription = stringResource(R.string.editor_action_open)
-                            )
+                        ButlerTooltip(label = stringResource(R.string.editor_action_open)) {
+                            IconButton(onClick = { onAction(EditorPageAction.File.LaunchPicker) }) {
+                                Icon(
+                                    Icons.TwoTone.FolderOpen,
+                                    contentDescription = stringResource(R.string.editor_action_open)
+                                )
+                            }
                         }
 
-                        IconButton(
-                            onClick = { onAction(EditorPageAction.File.Save) },
-                            enabled = isModified && !isReadOnly
-                        ) {
-                            Icon(Icons.TwoTone.Save, contentDescription = stringResource(R.string.editor_action_save))
-                        }
-
+                        val canSave = isModified && !isReadOnly
                         // Save-As can export a read-only file elsewhere, but not a vanished one -
                         // its original bytes can no longer be read.
-                        if ((hasContent || isModified) && !isBackingLost) {
-                            IconButton(onClick = { onAction(EditorPageAction.File.SaveAs) }) {
-                                Icon(
-                                    Icons.TwoTone.SaveAs,
-                                    contentDescription = stringResource(R.string.editor_action_save_as)
-                                )
+                        val canSaveAs = (hasContent || isModified) && !isBackingLost
+                        if (canSave || canSaveAs) {
+                            var showSaveMenu by remember { mutableStateOf(false) }
+                            Box {
+                                ButlerTooltip(label = stringResource(R.string.editor_action_save)) {
+                                    IconButton(
+                                        onClick = {
+                                            // A scratch buffer has nothing to save into, so there is
+                                            // only one meaningful choice - skip the menu.
+                                            if (hasFile) showSaveMenu = true
+                                            else onAction(EditorPageAction.File.SaveAs)
+                                        },
+                                    ) {
+                                        Icon(
+                                            Icons.TwoTone.Save,
+                                            contentDescription = stringResource(R.string.editor_action_save)
+                                        )
+                                    }
+                                }
+
+                                DismissWhenPaneUnfocused(expanded = showSaveMenu) { showSaveMenu = false }
+                                DropdownMenu(
+                                    expanded = showSaveMenu,
+                                    onDismissRequest = { showSaveMenu = false },
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.editor_action_save)) },
+                                        enabled = canSave,
+                                        onClick = {
+                                            onAction(EditorPageAction.File.Save)
+                                            showSaveMenu = false
+                                        },
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.editor_action_save_as)) },
+                                        enabled = canSaveAs,
+                                        onClick = {
+                                            onAction(EditorPageAction.File.SaveAs)
+                                            showSaveMenu = false
+                                        },
+                                    )
+                                }
                             }
                         }
 
                         if (hasContent) {
-                            IconButton(onClick = { onAction(EditorPageAction.File.Close) }) {
-                                Icon(
-                                    Icons.TwoTone.Close,
-                                    contentDescription = stringResource(R.string.editor_action_close)
-                                )
+                            ButlerTooltip(label = stringResource(R.string.editor_action_close)) {
+                                IconButton(onClick = { onAction(EditorPageAction.File.Close) }) {
+                                    Icon(
+                                        Icons.TwoTone.Close,
+                                        contentDescription = stringResource(R.string.editor_action_close)
+                                    )
+                                }
                             }
                         }
 
                         if (canUndo) {
-                            IconButton(onClick = { onAction(EditorPageAction.Edit.Undo) }) {
-                                Icon(
-                                    Icons.TwoTone.KeyboardArrowUp,
-                                    contentDescription = stringResource(R.string.editor_action_undo)
-                                )
+                            ButlerTooltip(label = stringResource(R.string.editor_action_undo)) {
+                                IconButton(onClick = { onAction(EditorPageAction.Edit.Undo) }) {
+                                    Icon(
+                                        Icons.AutoMirrored.TwoTone.Undo,
+                                        contentDescription = stringResource(R.string.editor_action_undo)
+                                    )
+                                }
                             }
                         }
 
                         if (canRedo) {
-                            IconButton(onClick = { onAction(EditorPageAction.Edit.Redo) }) {
-                                Icon(
-                                    Icons.TwoTone.KeyboardArrowDown,
-                                    contentDescription = stringResource(R.string.editor_action_redo)
-                                )
+                            ButlerTooltip(label = stringResource(R.string.editor_action_redo)) {
+                                IconButton(onClick = { onAction(EditorPageAction.Edit.Redo) }) {
+                                    Icon(
+                                        Icons.AutoMirrored.TwoTone.Redo,
+                                        contentDescription = stringResource(R.string.editor_action_redo)
+                                    )
+                                }
                             }
                         }
 
@@ -329,6 +376,26 @@ private fun EditorToolbarCardPreview() {
         isModified = true,
         progress = null,
         hasContent = true,
+        hasFile = true,
+        canUndo = true,
+        canRedo = false,
+        onAction = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun EditorToolbarCardScratchBufferPreview() {
+    EditorToolbarCard(
+        workspaceId = Workspace.Id(),
+        design = WorkspaceDesign(),
+        title = "In-Memory-Buffer".toCaString(),
+        subTitle = "Never saved".toCaString(),
+        isModified = true,
+        progress = null,
+        hasContent = false,
+        hasFile = false,
         canUndo = true,
         canRedo = false,
         onAction = {},
@@ -411,6 +478,7 @@ private fun EditorToolbarCardMultiPanePreview() {
         isModified = true,
         progress = null,
         hasContent = true,
+        hasFile = true,
         canUndo = true,
         canRedo = false,
         onAction = {},
