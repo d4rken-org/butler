@@ -22,6 +22,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withTimeoutOrNull
+import java.io.IOException
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * System- and Butler-clipboard routing for the editor. Extracted from the ViewModel so the
@@ -179,10 +182,16 @@ class EditorClipboardController(
      * Shared paste-from-file path: failures (file too large, binary content, I/O) throw so they
      * reach the launching coroutine's error handler and become visible - they were silently
      * logged before.
+     *
+     * The read runs on the ordered edit queue, so a provider that never answers (unresponsive SAF
+     * or network mount) would stall every later edit and the editor would go mute. Bound it and
+     * fail as a plain I/O error - a [kotlinx.coroutines.CancellationException] would tear down the
+     * queue's consumer instead of being reported per-command.
      */
     private suspend fun pasteFileContent(path: APath<*>) {
         log(tag) { "pasteFileContent($path)" }
-        val content = workspace().readFileContent(path).getOrThrow()
+        val content = withTimeoutOrNull(FILE_READ_TIMEOUT) { workspace().readFileContent(path).getOrThrow() }
+            ?: throw IOException("Timed out after $FILE_READ_TIMEOUT reading ${path.name}")
         if (guardedInsert(content)) log(tag, INFO) { "Pasted ${content.length} characters from file: ${path.name}" }
     }
 
@@ -220,6 +229,9 @@ class EditorClipboardController(
     }
 
     companion object {
+        /** Upper bound for a paste-from-file read; it blocks the whole edit queue while it runs. */
+        val FILE_READ_TIMEOUT = 30.seconds
+
         /**
          * System-clipboard cap in UTF-16 units (~500KB in the parcel) - comfortable margin under
          * the ~1MB binder transaction limit that makes setPrimaryClip throw.

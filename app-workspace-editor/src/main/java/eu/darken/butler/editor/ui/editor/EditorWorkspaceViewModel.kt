@@ -15,6 +15,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.validation.FilenameValidator
+import eu.darken.butler.common.flow.combine as combineMany
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.editor.core.EditorWorkspace
@@ -123,15 +124,24 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     // this signal makes the field revert to engine content. Normal typing never bumps it.
     private val _editResyncSignal = MutableStateFlow(0)
 
-    val state: Flow<State> = combine(
+    // Reference count of clipboard ops that are queued or running. Incremented SYNCHRONOUSLY in
+    // [enqueueClipboardOp], so it is already nonzero before any keystroke that follows the paste
+    // gesture can be enqueued. Clipboard retrieval happens inside the queued op, so the queue can
+    // sit in that op for a while - and a field edit enqueued meanwhile carries positions captured
+    // from the pre-paste document, which frequently stay representable and thus pass the engine's
+    // column check instead of being rejected. The field is made read-only while this is nonzero.
+    private val _clipboardMutationPending = MutableStateFlow(0)
+
+    val state: Flow<State> = combineMany(
         workspaceWithState,
         dialogsController.state,
         searchController.state,
         clipboardController.hasSystemClipboardContent,
         _editResyncSignal,
-    ) { (workspace, wsState, contentPath), dialogs, search, hasClipboardContent, editResyncSignal ->
+        _clipboardMutationPending,
+    ) { (workspace, wsState, contentPath), dialogs, search, hasClipboardContent, editResyncSignal, clipboardPending ->
         // Only emit Ready states - Init/Error are handled globally by WorkspaceMapper
-        val readyState = wsState as? EditorWorkspace.State.Ready ?: return@combine null
+        val readyState = wsState as? EditorWorkspace.State.Ready ?: return@combineMany null
 
         val editorState = readyState.editor
 
@@ -191,6 +201,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             maxUndoableEditChars = editorState.maxUndoableEditChars,
             showLargeDeleteConfirmDialog = dialogs.showLargeDeleteConfirmDialog,
             editResyncSignal = editResyncSignal,
+            isClipboardBusy = clipboardPending > 0,
         )
     }.filterNotNull()
 
@@ -560,7 +571,17 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             is EditCommand.Redo -> getWorkspace().redo()
             // The gate already ran before the dialog; re-running it would defer the confirmed edit again
             is EditCommand.Confirmed -> command.action()
-            is EditCommand.Clipboard -> command.op()
+            is EditCommand.Clipboard -> {
+                try {
+                    command.op()
+                    // The field was read-only across the op, so it never saw the mutation; rebuild
+                    // it from engine content before input is handed back.
+                    _editResyncSignal.update { it + 1 }
+                } finally {
+                    // Also on failure - otherwise a throwing op would leave the editor mute
+                    _clipboardMutationPending.update { it - 1 }
+                }
+            }
         }
     }
 
@@ -571,8 +592,20 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         getWorkspace().insertText(text)
     }
 
-    fun replaceText(start: TextPosition, end: TextPosition, text: String, caret: TextPosition) =
+    /**
+     * A field edit carries positions captured from the content the field was showing. While a
+     * clipboard mutation is pending that content is about to change, so the edit must not enter the
+     * queue - the field is already read-only via [State.isClipboardBusy], but events dispatched
+     * before that recomposition lands still arrive here. Reject them and resync the field instead.
+     */
+    fun replaceText(start: TextPosition, end: TextPosition, text: String, caret: TextPosition) {
+        if (_clipboardMutationPending.value > 0) {
+            log(tag, WARN) { "Dropping field edit while a clipboard op is pending: $text" }
+            _editResyncSignal.update { it + 1 }
+            return
+        }
         enqueue { EditCommand.Replace(it, start, end, text, caret) }
+    }
 
     private suspend fun performReplaceText(
         start: TextPosition,
@@ -654,8 +687,16 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         return true
     }
 
-    /** Runs a clipboard op - retrieval included - inside the ordered pipeline. */
-    private fun enqueueClipboardOp(op: suspend () -> Unit) = enqueue { EditCommand.Clipboard(it, op) }
+    /**
+     * Runs a clipboard op - retrieval included - inside the ordered pipeline.
+     *
+     * The pending count is raised here rather than in the consumer: the increment has to happen
+     * before the gesture returns to the UI, so a keystroke arriving right after it already sees it.
+     */
+    private fun enqueueClipboardOp(op: suspend () -> Unit) {
+        _clipboardMutationPending.update { it + 1 }
+        enqueue { EditCommand.Clipboard(it, op) }
+    }
 
     fun moveCursor(direction: CursorDirection, extendSelection: Boolean) = launch {
         getWorkspace().moveCursor(direction, extendSelection)
@@ -864,6 +905,12 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val showLargeDeleteConfirmDialog: Boolean = false,
         /** Increments when a field edit is gated behind the confirm dialog; signals the text field to revert to engine content. */
         val editResyncSignal: Int = 0,
+        /**
+         * A clipboard mutation is queued or running. Kept apart from [isReadOnly] on purpose: that
+         * one also disables saving in the toolbar, which a paste must not do. Only the text field
+         * ORs it in.
+         */
+        val isClipboardBusy: Boolean = false,
     ) {
         val isLoading: Boolean get() = progress != null
         val hasFile: Boolean get() = contentSource is ContentSource.File
