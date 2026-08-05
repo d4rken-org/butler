@@ -261,6 +261,16 @@
     <string name="common_select_all_files_action">Select all files</string>
     <string name="general_undo_action">Undo</string>
 
+    <!-- Guided tours -->
+    <string name="tour_action_next">Next</string>
+    <string name="tour_action_previous">Previous</string>
+    <string name="tour_action_cancel">Skip</string>
+    <string name="tour_confirm_title">Skip the tour?</string>
+    <string name="tour_confirm_message">You can re-enable tours anytime from Settings.</string>
+    <string name="tour_confirm_continue">Continue tour</string>
+    <string name="tour_confirm_dont_show_this_tour">Don\'t show this tour</string>
+    <string name="tour_confirm_disable_all">Disable all tours</string>
+
     <!-- Butler Tips -->
     <string name="common_tip_multiple_panes">Use multiple panes to compare files side by side.</string>
     <string name="common_tip_different_folders">Open different folders in each pane for easy file management.</string>
