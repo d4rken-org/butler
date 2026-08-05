@@ -38,6 +38,8 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.hideFromAccessibility
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.ca.toCaString
@@ -135,7 +137,20 @@ fun GuidedTourHost(
                 event.key !in KEY_SHIELD_PASSTHROUGH
             },
         ) {
-            content()
+            // The scrim blocks pointers and the shield blocks keys, but the wrapped screen would
+            // still be in the accessibility tree — TalkBack could activate exactly the controls the
+            // tour presents as blocked. Same mechanism PaneLayer uses for covered layers. Covers
+            // the Pending grace window too; TourOverlay stays outside so the bubble keeps its own
+            // semantics.
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .then(
+                        if (keyShieldActive) Modifier.semantics { hideFromAccessibility() } else Modifier,
+                    ),
+            ) {
+                content()
+            }
 
             val activeSession = current
             val renderable = layout as? StepLayout.Anchored ?: (layout as? StepLayout.Centerless)
