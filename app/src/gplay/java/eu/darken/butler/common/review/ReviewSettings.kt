@@ -25,8 +25,20 @@ class ReviewSettings @Inject constructor(
     override val dataStore: DataStore<Preferences>
         get() = context.dataStore
 
-    val lastDismissed = dataStore.createValue("review.dismissedAt", null as Instant?, json)
-    val reviewedAt = dataStore.createValue("review.reviewedAt", null as Instant?, json)
+    // Pinned loud: unreadable data has to surface instead of silently reading as "never reviewed",
+    // which would re-ask a user who already left a review.
+    val lastDismissed = dataStore.createValue(
+        "review.dismissedAt",
+        null as Instant?,
+        json,
+        onErrorFallbackToDefault = false,
+    )
+    val reviewedAt = dataStore.createValue(
+        "review.reviewedAt",
+        null as Instant?,
+        json,
+        onErrorFallbackToDefault = false,
+    )
 
     override val mapper = PreferenceStoreMapper(
 
