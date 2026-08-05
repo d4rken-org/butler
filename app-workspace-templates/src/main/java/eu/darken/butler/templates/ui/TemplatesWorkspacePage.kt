@@ -341,12 +341,54 @@ private fun TabNameRow(
     }
 }
 
+private data class TemplateCardColors(
+    val iconContainer: Color,
+    val icon: Color,
+    val title: Color,
+    val subtitle: Color,
+    val trailing: Color,
+)
+
+/**
+ * The accent is deliberately subordinate to the featured styling: a template that sorts first
+ * always renders as the featured card, even if it declares an accent.
+ */
+@Composable
+private fun templateCardColors(
+    isFeatured: Boolean,
+    accent: WorkspaceTemplate.Accent,
+): TemplateCardColors = when {
+    isFeatured -> TemplateCardColors(
+        iconContainer = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+        icon = MaterialTheme.colorScheme.onPrimaryContainer,
+        title = MaterialTheme.colorScheme.onPrimaryContainer,
+        subtitle = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
+        trailing = MaterialTheme.colorScheme.onPrimaryContainer,
+    )
+    accent == WorkspaceTemplate.Accent.TERTIARY -> TemplateCardColors(
+        iconContainer = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f),
+        icon = MaterialTheme.colorScheme.onTertiaryContainer,
+        title = MaterialTheme.colorScheme.onTertiaryContainer,
+        subtitle = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.8f),
+        trailing = MaterialTheme.colorScheme.onTertiaryContainer,
+    )
+    else -> TemplateCardColors(
+        iconContainer = MaterialTheme.colorScheme.surfaceVariant,
+        icon = MaterialTheme.colorScheme.onSurfaceVariant,
+        title = MaterialTheme.colorScheme.onSurface,
+        subtitle = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+        trailing = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+    )
+}
+
 @Composable
 private fun TemplateCard(
     template: WorkspaceTemplate,
     isFirstItem: Boolean,
     onClick: () -> Unit
 ) {
+    val colors = templateCardColors(isFeatured = isFirstItem, accent = template.accent)
+
     val cardContent = @Composable {
         Row(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
@@ -356,11 +398,7 @@ private fun TemplateCard(
                 modifier = Modifier
                     .size(40.dp)
                     .background(
-                        color = if (isFirstItem) {
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
-                        } else {
-                            MaterialTheme.colorScheme.surfaceVariant
-                        },
+                        color = colors.iconContainer,
                         shape = CircleShape
                     ),
                 contentAlignment = Alignment.Center
@@ -368,11 +406,7 @@ private fun TemplateCard(
                 Icon(
                     imageVector = template.icon,
                     contentDescription = null,
-                    tint = if (isFirstItem) {
-                        MaterialTheme.colorScheme.onPrimaryContainer
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    },
+                    tint = colors.icon,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -385,20 +419,12 @@ private fun TemplateCard(
                 Text(
                     text = template.title.asComposable(),
                     style = MaterialTheme.typography.titleMedium,
-                    color = if (isFirstItem) {
-                        MaterialTheme.colorScheme.onPrimaryContainer
-                    } else {
-                        MaterialTheme.colorScheme.onSurface
-                    }
+                    color = colors.title,
                 )
                 Text(
                     text = template.subtitle.asComposable(),
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (isFirstItem) {
-                        MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-                    } else {
-                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                    },
+                    color = colors.subtitle,
                     modifier = Modifier.padding(top = 2.dp)
                 )
             }
@@ -406,26 +432,31 @@ private fun TemplateCard(
             Icon(
                 imageVector = Icons.TwoTone.Add,
                 contentDescription = null,
-                tint = if (isFirstItem) {
-                    MaterialTheme.colorScheme.onPrimaryContainer
-                } else {
-                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                },
+                tint = colors.trailing,
                 modifier = Modifier.size(20.dp)
             )
         }
     }
 
-    if (isFirstItem) {
-        ElevatedCard(
+    when {
+        isFirstItem -> ElevatedCard(
             onClick = onClick,
             modifier = Modifier
                 .fillMaxWidth(),
             colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
             elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp)
         ) { cardContent() }
-    } else {
-        Card(
+        // Plain Card, not ElevatedCard: the elevation stays the featured card's distinguishing trait.
+        template.accent == WorkspaceTemplate.Accent.TERTIARY -> Card(
+            onClick = onClick,
+            modifier = Modifier
+                .fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+            )
+        ) { cardContent() }
+        else -> Card(
             onClick = onClick,
             modifier = Modifier
                 .fillMaxWidth(),
@@ -474,6 +505,18 @@ private fun TemplatesWorkspacePageNamedPreview() {
     TemplatesWorkspacePage(
         workspaceId = workspaceId,
         state = TemplatesMockDataProvider.createMockState(workspaceId, customTitle = "Holiday photos"),
+        onNavToSettings = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun TemplatesWorkspacePageWithToolingPreview() {
+    val workspaceId = Workspace.Id()
+    TemplatesWorkspacePage(
+        workspaceId = workspaceId,
+        state = TemplatesMockDataProvider.createMockState(workspaceId, includeTooling = true),
         onNavToSettings = {},
     )
 }

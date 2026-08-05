@@ -15,4 +15,7 @@ interface WorkspaceTemplate {
     val sortOrder: Int
     val isQuickCreate: Boolean get() = false
     val availability: Flow<Boolean> get() = flowOf(true)
+    val accent: Accent get() = Accent.DEFAULT
+
+    enum class Accent { DEFAULT, TERTIARY }
 }
