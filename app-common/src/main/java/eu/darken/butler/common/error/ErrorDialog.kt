@@ -23,6 +23,10 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.asLog
+import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.dialogs.AdaptiveAlertDialog
 
@@ -83,7 +87,15 @@ fun ErrorDialog(
         neutralButton = if (infoAction != null) {
             {
                 // Deliberately does not dismiss: details are meant to be read next to the error
-                TextButton(onClick = { infoAction() }) {
+                TextButton(
+                    onClick = {
+                        try {
+                            infoAction()
+                        } catch (e: Exception) {
+                            log(TAG, ERROR) { "Error action failed: ${e.asLog()}" }
+                        }
+                    },
+                ) {
                     Text(
                         localizedError.infoActionLabel?.get(context)
                             ?: stringResource(R.string.general_show_details_action),
@@ -106,9 +118,17 @@ fun ErrorDialog(
         confirmButton = {
             if (fixAction != null) {
                 TextButton(
+                    // Error actions are arbitrary third-party code (intent launches, navigation): a
+                    // throw here would crash the UI thread from inside a click handler, and skipping
+                    // onDismiss() would leave the dialog latched on the current error with no way out.
                     onClick = {
-                        fixAction()
-                        onDismiss()
+                        try {
+                            fixAction()
+                        } catch (e: Exception) {
+                            log(TAG, ERROR) { "Error action failed: ${e.asLog()}" }
+                        } finally {
+                            onDismiss()
+                        }
                     },
                 ) {
                     Text(
@@ -170,3 +190,5 @@ private class PreviewLocalizedError(
         fixAction = if (withFix) ({ }) else null,
     )
 }
+
+private val TAG = logTag("Error", "Dialog")

@@ -50,6 +50,10 @@ import dagger.hilt.components.SingletonComponent
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.asLog
+import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.LocalizedErrorContext
 import eu.darken.butler.common.error.PermissionFixResolver
 import eu.darken.butler.common.error.localized
@@ -246,7 +250,16 @@ fun ErrorCard(
 
                 if (fixAction != null && fixLabel != null) {
                     TextButton(
-                        onClick = fixAction,
+                        // Error actions are arbitrary third-party code (intent launches, navigation):
+                        // a throw here would crash the UI thread from inside a click handler. The card
+                        // is inline and stays where it is, so there is nothing to dismiss.
+                        onClick = {
+                            try {
+                                fixAction()
+                            } catch (e: Exception) {
+                                log(TAG, ERROR) { "Error action failed: ${e.asLog()}" }
+                            }
+                        },
                         modifier = Modifier.weight(1f),
                     ) {
                         Row(
@@ -323,3 +336,5 @@ private fun ErrorCardMinimalPreview() {
         onShareError = {},
     )
 }
+
+private val TAG = logTag("Workspace", "ErrorCard")

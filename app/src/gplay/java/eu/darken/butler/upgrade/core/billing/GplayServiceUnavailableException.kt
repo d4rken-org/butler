@@ -1,5 +1,6 @@
 package eu.darken.butler.upgrade.core.billing
 
+import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
@@ -25,21 +26,28 @@ class GplayServiceUnavailableException(cause: Throwable) :
             fixActionLabel = activity?.let { "Google Play".toCaString() },
             fixAction = activity?.let {
                 {
-                    try {
-                        val intent = Intent().apply {
-                            action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
-                            data = Uri.fromParts("package", GPLAY_PKG, null)
-                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        }
+                    val intent = Intent().apply {
+                        action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+                        data = Uri.fromParts("package", GPLAY_PKG, null)
+                    }
 
+                    try {
                         activity.startActivity(intent)
                     } catch (e: ActivityNotFoundException) {
-                        log(ERROR) { "Can't launch settings intent for Google Play: $e" }
-                        Toast.makeText(activity, "Google Play is not installed", Toast.LENGTH_SHORT).show()
+                        onLaunchFailed(activity, e)
+                    } catch (e: SecurityException) {
+                        // Play can be installed but unreachable: disabled app, work/restricted profile or a
+                        // ROM that guards the settings screen. The launch is denied, not unresolvable.
+                        onLaunchFailed(activity, e)
                     }
                 }
             },
         )
+    }
+
+    private fun onLaunchFailed(activity: Activity, e: Exception) {
+        log(ERROR) { "Can't launch settings intent for Google Play: $e" }
+        Toast.makeText(activity, R.string.upgrades_gplay_not_installed_message, Toast.LENGTH_SHORT).show()
     }
 
     companion object {
