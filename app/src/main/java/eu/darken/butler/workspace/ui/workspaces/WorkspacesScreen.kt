@@ -1,5 +1,6 @@
 package eu.darken.butler.workspace.ui.workspaces
 
+import android.app.Activity
 import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
@@ -30,6 +31,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.main.ui.motd.MotdCard
+import eu.darken.butler.main.ui.review.ReviewCard
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.LocalWorkspacePageHosts
 import eu.darken.butler.workspace.core.WorkspaceAction
@@ -59,10 +61,13 @@ fun WorkspaceScreen(
     managerDialogStates: Map<Workspace.Id, ManagerDialog.WorkspaceTargeted>,
     managerDialogs: List<ManagerDialog> = emptyList(),
     isOverlayVisible: Boolean = false,
+    reviewActivity: Activity? = null,
     onScreenAction: (WorkspaceScreenAction) -> Unit,
     onHideMotd: (Uuid) -> Unit = {},
     onDismissMotd: (Uuid) -> Unit = {},
     onMotdLinkClick: (String) -> Unit = {},
+    onReviewDismiss: () -> Unit = {},
+    onReviewNow: (Activity) -> Unit = {},
     onDismissBanner: (Workspace.Id) -> Unit = {},
     onDismissManagerDialog: (Workspace.Id) -> Unit = {},
     onConfirmManagerDialog: (ManagerDialog.WorkspaceTargeted) -> Unit = {},
@@ -172,6 +177,19 @@ fun WorkspaceScreen(
                     .padding(horizontal = 16.dp, vertical = 8.dp),
             )
         }
+
+        // Review overlay, gated to a quiet screen by the ViewModel
+        if (state.showReviewCard) {
+            ReviewCard(
+                activity = reviewActivity,
+                onDismiss = onReviewDismiss,
+                onReview = onReviewNow,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .statusBarsPadding()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+            )
+        }
     }
 
     renameTargetId?.let { targetId ->
@@ -248,6 +266,7 @@ fun WorkspacesScreenHost(
     NavigationEventHandler(vm, workspaceButtonVm, managerVm)
 
     val context = LocalContext.current
+    val activity = context as? Activity
     val focusManager = LocalFocusManager.current
     val bannerStatesRaw by vm.bannerStates.collectAsState(initial = emptyMap())
     val bannerStates = bannerStatesRaw ?: emptyMap()
@@ -301,10 +320,13 @@ fun WorkspacesScreenHost(
                 managerDialogStates = managerDialogStates,
                 managerDialogs = managerDialogs,
                 isOverlayVisible = pageManagerState.isManagerOverlayVisible,
+                reviewActivity = activity,
                 onScreenAction = { vm.executeScreenAction(it) },
                 onHideMotd = { vm.hideMotd(it) },
                 onDismissMotd = { vm.dismissMotd(it) },
                 onMotdLinkClick = { vm.openMotdLink(it) },
+                onReviewDismiss = { vm.reviewDismiss() },
+                onReviewNow = { vm.reviewNow(it) },
                 onDismissBanner = { vm.dismissBanner(it) },
                 onDismissManagerDialog = { vm.dismissManagerDialog(it) },
                 onConfirmManagerDialog = { vm.confirmManagerDialog(it) },

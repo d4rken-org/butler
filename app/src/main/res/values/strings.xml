@@ -450,4 +450,9 @@
     <string name="ops_notification_state_attention_text">A conflict needs your attention — tap to resolve</string>
     <string name="ops_notification_result_failed_title">Operation failed</string>
 
+    <!-- Review prompt -->
+    <string name="review_app_body">Would you like to leave Butler a review? ❤️</string>
+    <string name="review_app_dismiss_action">Maybe later</string>
+    <string name="review_app_review_action">Review</string>
+
 </resources>
