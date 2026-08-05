@@ -268,10 +268,13 @@ class WorkspacesViewModel @Inject constructor(
         )
 
         // Asking for a favor is the lowest-priority surface there is: anything that asks the user
-        // for a decision, or covers the screen, has to win over it.
+        // for a decision, or covers the screen, has to win over it. Both modal buckets have to be
+        // checked: single-pane layouts promote pane-local chains to the full-screen slot, so either
+        // one alone would miss a layout.
         val isQuiet = motd == null &&
             !uiState.isManagerOverlayVisible &&
             dialogs.isEmpty() &&
+            base.fullScreenModalWorkspace == null &&
             base.paneLocalModalChains.isEmpty()
 
         base.copy(showReviewCard = review.shouldAskForReview && isQuiet)

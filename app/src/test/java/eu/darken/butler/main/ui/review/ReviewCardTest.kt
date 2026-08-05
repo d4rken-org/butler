@@ -28,8 +28,8 @@ class ReviewCardTest : ComposeTest() {
     private val reviewAction: String
         get() = context.getString(R.string.review_app_review_action)
 
-    /** The card hides itself first and reports back after the exit animation. */
-    private fun settleDismissAnimation() {
+    /** Dismissing hides the card first and reports back after the exit animation. */
+    private fun settleAnimations() {
         composeTestRule.mainClock.advanceTimeBy(500)
         composeTestRule.waitForIdle()
     }
@@ -47,10 +47,10 @@ class ReviewCardTest : ComposeTest() {
         composeTestRule.onNodeWithText(reviewAction).assertExists()
     }
 
-    // One action per test: either tap hides the card, so the second button is gone by then.
+    // One action per test: dismissing hides the card, so the other button is gone by then.
 
     @Test
-    fun `the dismiss action reports back`() {
+    fun `the dismiss action reports back and takes the card with it`() {
         var dismissed = 0
 
         composeTestRule.setContent {
@@ -64,9 +64,11 @@ class ReviewCardTest : ComposeTest() {
         }
 
         composeTestRule.onNodeWithText(dismissAction).performClick()
-        settleDismissAnimation()
+        settleAnimations()
 
         dismissed shouldBe 1
+        // Dismissing always persists, so the card is gone for good regardless of the hosting state.
+        composeTestRule.onNodeWithText(bodyText).assertDoesNotExist()
     }
 
     @Test
@@ -85,9 +87,34 @@ class ReviewCardTest : ComposeTest() {
         }
 
         composeTestRule.onNodeWithText(reviewAction).performClick()
-        settleDismissAnimation()
+        settleAnimations()
 
         reviewed shouldBe activity
+    }
+
+    @Test
+    fun `the review action stays tappable while the card is still asked for`() {
+        var reviewed = 0
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                ReviewCard(
+                    activity = mockk<Activity>(relaxed = true),
+                    onDismiss = {},
+                    onReview = { reviewed++ },
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText(reviewAction).performClick()
+        settleAnimations()
+
+        // A transient failure of the review flow persists nothing, so the host keeps the card up.
+        // Hiding locally would strand it invisible-but-mounted and burn the retry.
+        composeTestRule.onNodeWithText(bodyText).assertExists()
+
+        composeTestRule.onNodeWithText(reviewAction).performClick()
+        reviewed shouldBe 2
     }
 
     @Test

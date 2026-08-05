@@ -230,6 +230,27 @@ class WorkspacesViewModelReviewCardTest : BaseTest() {
         vm.settledState()!!.showReviewCard shouldBe false
     }
 
+    @Test fun `a full-screen modal suppresses the review card`() = runTest2(context = testDispatcher) {
+        val explorer = Workspace.Id()
+        val picker = Workspace.Id()
+        val vm = vm(
+            infos = listOf(
+                workspaceInfo(explorer),
+                workspaceInfo(
+                    id = picker,
+                    caller = explorer,
+                    modalPresentation = Workspace.ModalPresentationMode.PANE_LOCAL,
+                ),
+            ),
+            paneCount = 1,
+        )
+        advanceUntilIdle()
+
+        // Single-pane promotes pane-local chains to the full-screen slot, so paneLocalModalChains is
+        // empty here - the card would still be asked for behind a modal that covers the screen.
+        vm.settledState()!!.showReviewCard shouldBe false
+    }
+
     @Test fun `dismissing the card delegates to the review tool`() = runTest2(context = testDispatcher) {
         val vm = vm()
 

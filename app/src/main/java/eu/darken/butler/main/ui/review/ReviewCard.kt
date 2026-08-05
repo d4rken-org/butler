@@ -113,6 +113,8 @@ fun ReviewCard(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
+                    // Dismissing always persists, so the card can hide right away and report back
+                    // once the exit animation is through.
                     TextButton(
                         onClick = {
                             scope.launch {
@@ -125,14 +127,13 @@ fun ReviewCard(
                         Text(text = stringResource(R.string.review_app_dismiss_action))
                     }
 
+                    // No local hide here: the review flow can fail transiently and persist nothing,
+                    // and a locally hidden card would leave the tap unrepeatable. When it does
+                    // persist, the state change collapses the card through the exit animation.
                     Button(
                         onClick = {
                             val target = activity ?: return@Button
-                            scope.launch {
-                                isVisible = false
-                                delay(350)
-                                onReview(target)
-                            }
+                            onReview(target)
                         },
                         enabled = activity != null,
                     ) {
