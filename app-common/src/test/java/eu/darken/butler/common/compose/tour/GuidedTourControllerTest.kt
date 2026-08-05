@@ -214,8 +214,50 @@ class GuidedTourControllerTest : BaseTest() {
         val ctrl = controller()
         ctrl.start(basicDefinition)
         ctrl.session.value!!.stepIndex shouldBe 0
-        ctrl.next()
+        ctrl.nextFromCurrent()
         ctrl.session.value!!.stepIndex shouldBe 1
+    }
+
+    @Test
+    fun `two next calls for the same step advance exactly one step`() = runTest {
+        // A double tap on Next launches two coroutines; the second one still names the step it was
+        // tapped for. Without the identity guard both would advance.
+        val ctrl = controller()
+        ctrl.start(basicDefinition)
+        ctrl.next(basicDefinition.id, "a")
+        ctrl.next(basicDefinition.id, "a")
+        ctrl.session.value!!.stepIndex shouldBe 1
+    }
+
+    @Test
+    fun `next with a stale step id is a no-op`() = runTest {
+        val ctrl = controller()
+        ctrl.start(basicDefinition)
+        ctrl.nextFromCurrent()
+        ctrl.session.value!!.stepIndex shouldBe 1
+        ctrl.next(basicDefinition.id, "a") // the step the session has already left
+        ctrl.session.value!!.stepIndex shouldBe 1
+    }
+
+    @Test
+    fun `next for a different tour is a no-op`() = runTest {
+        // Step ids are not unique across definitions, so the tour has to be checked as well.
+        val ctrl = controller()
+        ctrl.start(basicDefinition)
+        ctrl.next(TourId("test.other"), "a")
+        ctrl.session.value!!.stepIndex shouldBe 0
+    }
+
+    @Test
+    fun `a stale next on the last step does not complete the tour`() = runTest {
+        val ctrl = controller()
+        ctrl.start(basicDefinition)
+        ctrl.markStepRendered(basicDefinition.id)
+        ctrl.nextFromCurrent()
+        ctrl.nextFromCurrent() // now on the last step "c"
+        ctrl.next(basicDefinition.id, "b")
+        ctrl.session.value!!.stepIndex shouldBe 2
+        prefsFlow.value.completed shouldBe emptySet()
     }
 
     @Test
@@ -223,9 +265,9 @@ class GuidedTourControllerTest : BaseTest() {
         val ctrl = controller()
         ctrl.start(basicDefinition)
         ctrl.markStepRendered(basicDefinition.id) // host showed a step — a real walkthrough, persists
-        ctrl.next()
-        ctrl.next()
-        ctrl.next() // last → complete
+        ctrl.nextFromCurrent()
+        ctrl.nextFromCurrent()
+        ctrl.nextFromCurrent() // last → complete
         ctrl.session.value shouldBe null
         prefsFlow.value.completed shouldBe setOf(basicDefinition.id.raw)
         prefsFlow.value.dismissed shouldBe emptySet()
@@ -247,9 +289,9 @@ class GuidedTourControllerTest : BaseTest() {
         ctrl.start(def)
         ctrl.markStepRendered(def.id)
 
-        ctrl.next()
-        ctrl.next()
-        ctrl.next() // Finish on the last step.
+        ctrl.nextFromCurrent()
+        ctrl.nextFromCurrent()
+        ctrl.nextFromCurrent() // Finish on the last step.
 
         completionCalls shouldBe 1
     }
@@ -297,9 +339,9 @@ class GuidedTourControllerTest : BaseTest() {
     fun `next to end without any rendered step skips instead of persisting`() = runTest {
         val ctrl = controller()
         ctrl.start(basicDefinition) // no markStepRendered: every step grace-skipped, nothing shown
-        ctrl.next()
-        ctrl.next()
-        ctrl.next() // last → would complete, but nothing rendered → skip-for-now
+        ctrl.nextFromCurrent()
+        ctrl.nextFromCurrent()
+        ctrl.nextFromCurrent() // last → would complete, but nothing rendered → skip-for-now
         ctrl.session.value shouldBe null
         prefsFlow.value.completed shouldBe emptySet()
         prefsFlow.value.dismissed shouldBe emptySet()
@@ -312,7 +354,7 @@ class GuidedTourControllerTest : BaseTest() {
     fun `previous decrements stepIndex`() = runTest {
         val ctrl = controller()
         ctrl.start(basicDefinition)
-        ctrl.next()
+        ctrl.nextFromCurrent()
         ctrl.session.value!!.stepIndex shouldBe 1
         ctrl.previous()
         ctrl.session.value!!.stepIndex shouldBe 0
@@ -504,7 +546,7 @@ class GuidedTourControllerTest : BaseTest() {
         )
         val ctrl = controller()
         ctrl.start(def)
-        val advanceJob: Job = launch { ctrl.next() }
+        val advanceJob: Job = launch { ctrl.nextFromCurrent() }
         runCurrentUntilIdle()
         // While prepareTarget is suspended, the index must NOT have advanced.
         ctrl.session.value!!.stepIndex shouldBe 0
@@ -529,7 +571,7 @@ class GuidedTourControllerTest : BaseTest() {
         )
         val ctrl = controller()
         ctrl.start(def)
-        val nextJob = launch { ctrl.next() } // suspends inside prepareTarget under the mutex
+        val nextJob = launch { ctrl.nextFromCurrent() } // suspends inside prepareTarget under the mutex
         runCurrentUntilIdle()
         val dismissJob = launch { ctrl.dismissForever() } // will queue behind the mutex
         runCurrentUntilIdle()
@@ -547,6 +589,12 @@ class GuidedTourControllerTest : BaseTest() {
 
 @Serializable
 private data class TestRoute(val tag: String) : NavKey
+
+/** Advance from whatever step is current — the identity the real bubble would send. */
+private suspend fun GuidedTourController.nextFromCurrent() {
+    val s = session.value ?: return
+    next(s.definition.id, s.currentStep.stepId)
+}
 
 private fun TestScope.runCurrentUntilIdle() {
     testScheduler.advanceUntilIdle()

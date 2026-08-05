@@ -79,9 +79,22 @@ class GuidedTourController @Inject constructor(
         return true
     }
 
-    suspend fun next() {
+    /**
+     * Advance past the step the request was made for.
+     *
+     * [fromTour] and [fromStepId] name that step, and a request that no longer matches the current
+     * session is dropped: a second Next tap queues its own coroutine, and without this guard the
+     * two would advance twice — on a two-step tour that shows the last step and immediately
+     * completes it, persisting a tour the user never saw. Both parts of the identity are checked
+     * because step ids are only unique within a definition.
+     */
+    suspend fun next(fromTour: TourId, fromStepId: String) {
         val onComplete: (suspend () -> Unit)? = mutationMutex.withLock {
             val s = _session.value ?: return@withLock null
+            if (s.definition.id != fromTour || s.currentStep.stepId != fromStepId) {
+                log(TAG, VERBOSE) { "next(${fromTour.raw}/$fromStepId): no longer the current step" }
+                return@withLock null
+            }
             if (s.isLast) return@withLock completeLocked()
 
             val nextStep = s.definition.steps[s.stepIndex + 1]

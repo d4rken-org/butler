@@ -111,7 +111,7 @@ class GuidedTourHostTest : ComposeTest() {
         composeTestRule.setHostContent(
             sessionFlow,
             preregister = mapOf("first" to targetRect),
-            onNext = { nextCount++ },
+            onNext = { _, _ -> nextCount++ },
         ) {
             Text("CONTENT_MARKER")
         }
@@ -204,7 +204,7 @@ class GuidedTourHostTest : ComposeTest() {
         composeTestRule.setHostContent(
             sessionFlow,
             preregister = mapOf("first" to targetRect),
-            onNext = { nextCount++ },
+            onNext = { _, _ -> nextCount++ },
         ) {
             // Small clickable at top-start. The bubble (placeBelow = true given the target rect)
             // is anchored top-center, padded down 16dp from targetRect.bottom (~216dp) — its
@@ -291,17 +291,39 @@ class GuidedTourHostTest : ComposeTest() {
         // Nothing is drawn during the window and the step's anchor never registers, so this is the
         // one behaviour that has no observable on-device state — it lives here on purpose.
         val sessionFlow = MutableStateFlow<TourSession?>(TourSession(protectedDef, 0))
-        var nextCount = 0
+        val advances = mutableListOf<Pair<TourId, String>>()
         composeTestRule.mainClock.autoAdvance = false
-        composeTestRule.setHostContent(sessionFlow, onNext = { nextCount++ }) {
+        composeTestRule.setHostContent(
+            sessionFlow,
+            onNext = { tourId, stepId -> advances += tourId to stepId },
+        ) {
             Text("CONTENT_MARKER")
         }
         composeTestRule.mainClock.advanceTimeBy(MISSING_TARGET_GRACE_MS / 2)
-        nextCount shouldBe 0
+        advances shouldBe emptyList()
         composeTestRule.mainClock.advanceTimeBy(MISSING_TARGET_GRACE_MS)
         composeTestRule.mainClock.autoAdvance = true
         composeTestRule.waitForIdle()
-        nextCount shouldBe 1
+        // The skip names the step it was waiting on, so the controller accepts it.
+        advances shouldBe listOf(protectedDef.id to "first")
+    }
+
+    @Test
+    fun `two immediate Next taps report a single advance`() {
+        // The controller drops a request naming a step it already left, but a double tap that spans
+        // the recomposition would carry the NEW step's id, so the host debounces the tap itself.
+        val sessionFlow = MutableStateFlow<TourSession?>(TourSession(protectedDef, 0))
+        val advances = mutableListOf<Pair<TourId, String>>()
+        composeTestRule.setHostContent(
+            sessionFlow,
+            preregister = mapOf("first" to targetRect),
+            onNext = { tourId, stepId -> advances += tourId to stepId },
+        ) {
+            Text("CONTENT_MARKER")
+        }
+        composeTestRule.onNodeWithContentDescription("Next").performClick()
+        composeTestRule.onNodeWithContentDescription("Next").performClick()
+        advances shouldBe listOf(protectedDef.id to "first")
     }
 
     @Test
@@ -319,7 +341,7 @@ class GuidedTourHostTest : ComposeTest() {
         val sessionFlow = MutableStateFlow<TourSession?>(TourSession(centerlessDef, 0))
         var nextCount = 0
         composeTestRule.mainClock.autoAdvance = false
-        composeTestRule.setHostContent(sessionFlow, onNext = { nextCount++ }) {
+        composeTestRule.setHostContent(sessionFlow, onNext = { _, _ -> nextCount++ }) {
             Text("CONTENT_MARKER")
         }
         // Advance well past MISSING_TARGET_GRACE_MS — if grace-skip leaked, onNext would fire.
@@ -336,7 +358,7 @@ class GuidedTourHostTest : ComposeTest() {
         var nextCount = 0
         composeTestRule.setHostContent(
             sessionFlow,
-            onNext = { nextCount++ },
+            onNext = { _, _ -> nextCount++ },
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
                 Box(
@@ -379,7 +401,7 @@ class GuidedTourHostTest : ComposeTest() {
         composeTestRule.setHostContent(
             sessionFlow,
             preregister = mapOf("first" to targetRect),
-            onNext = { nextCount++ },
+            onNext = { _, _ -> nextCount++ },
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
                 Box(
@@ -630,7 +652,7 @@ private fun KeyProbe(received: MutableList<Key>) {
 private fun ComposeContentTestRule.setHostContent(
     session: StateFlow<TourSession?>,
     preregister: Map<String, Rect> = emptyMap(),
-    onNext: () -> Unit = {},
+    onNext: (TourId, String) -> Unit = { _, _ -> },
     onPrevious: () -> Unit = {},
     onDontShowAgain: () -> Unit = {},
     onDisableAllTours: () -> Unit = {},

@@ -1,5 +1,7 @@
 package eu.darken.butler.common.compose.tour
 
+import android.os.SystemClock
+import android.view.ViewConfiguration
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
@@ -82,7 +84,8 @@ private fun resolveStepLayout(step: TourStep, registry: TourTargetRegistry): Ste
 @Composable
 fun GuidedTourHost(
     session: StateFlow<TourSession?>,
-    onNext: () -> Unit,
+    /** Advance past the given step of the given tour; identity travels along so a stale request can be dropped. */
+    onNext: (TourId, String) -> Unit,
     onPrevious: () -> Unit,
     onDontShowAgain: () -> Unit,
     onDisableAllTours: () -> Unit,
@@ -105,12 +108,15 @@ fun GuidedTourHost(
         if (stepRendered && activeTourId != null) onStepRendered(activeTourId)
     }
 
+    // Deliberately NOT debounced like the bubble's Next below: this path is programmatic, already
+    // gated by the grace window, and swallowing it would strand the tour on a step it can't show.
     LaunchedEffect(current, step?.targetId, layout) {
-        if (current == null || step == null) return@LaunchedEffect
+        val activeSession = current
+        if (activeSession == null || step == null) return@LaunchedEffect
         if (layout !is StepLayout.Pending) return@LaunchedEffect
         delay(MISSING_TARGET_GRACE_MS)
         val tid = step.targetId ?: return@LaunchedEffect
-        if (registry.get(tid) == null) onNext()
+        if (registry.get(tid) == null) onNext(activeSession.definition.id, step.stepId)
     }
 
     // Confirm-exit UI state, hoisted here so the BackHandler below can drive it. Keyed per tour
@@ -122,6 +128,22 @@ fun GuidedTourHost(
     // bubble buttons must keep working, everything else must not react to the D-pad.
     var bubbleHasFocus by remember { mutableStateOf(false) }
     val keyShieldActive = current?.definition?.clickProtection == true
+
+    // Double-tap guard for the user-initiated advance. The controller drops a request naming a step
+    // that is no longer current, but a physical double tap can span the recomposition: the second
+    // tap lands on the freshly rendered step's button, carries ITS id and would be accepted. Keyed
+    // per tour so a later tour starts with a clean slate.
+    val doubleTapTimeoutMs = remember { ViewConfiguration.getDoubleTapTimeout().toLong() }
+    var lastBubbleAdvanceUptime by remember(activeTourId?.raw) { mutableStateOf<Long?>(null) }
+    val onBubbleNext: () -> Unit = advance@{
+        val tourId = activeTourId ?: return@advance
+        val stepId = step?.stepId ?: return@advance
+        val now = SystemClock.uptimeMillis()
+        val last = lastBubbleAdvanceUptime
+        if (last != null && now - last < doubleTapTimeoutMs) return@advance
+        lastBubbleAdvanceUptime = now
+        onNext(tourId, stepId)
+    }
 
     CompositionLocalProvider(LocalTourTargetRegistry provides registry) {
         Box(
@@ -178,7 +200,7 @@ fun GuidedTourHost(
                     session = activeSession,
                     showConfirm = showExitConfirm,
                     onShowConfirmChange = { showExitConfirm = it },
-                    onNext = onNext,
+                    onNext = onBubbleNext,
                     onPrevious = onPrevious,
                     onDontShowAgain = onDontShowAgain,
                     onDisableAllTours = onDisableAllTours,
@@ -333,7 +355,7 @@ private fun GuidedTourHostPreviewActive() {
     Box(modifier = Modifier.fillMaxSize()) {
         GuidedTourHost(
             session = sessionFlow,
-            onNext = {},
+            onNext = { _, _ -> },
             onPrevious = {},
             onDontShowAgain = {},
             onDisableAllTours = {},
@@ -381,7 +403,7 @@ private fun GuidedTourHostPreviewCenterless() {
     Box(modifier = Modifier.fillMaxSize()) {
         GuidedTourHost(
             session = sessionFlow,
-            onNext = {},
+            onNext = { _, _ -> },
             onPrevious = {},
             onDontShowAgain = {},
             onDisableAllTours = {},
@@ -411,7 +433,7 @@ private fun GuidedTourHostPreviewIdle() {
     Box(modifier = Modifier.fillMaxSize()) {
         GuidedTourHost(
             session = sessionFlow,
-            onNext = {},
+            onNext = { _, _ -> },
             onPrevious = {},
             onDontShowAgain = {},
             onDisableAllTours = {},
