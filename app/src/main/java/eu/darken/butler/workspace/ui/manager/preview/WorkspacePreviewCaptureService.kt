@@ -6,6 +6,8 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.unit.DpSize
 import androidx.lifecycle.ViewModelStoreOwner
+import eu.darken.butler.common.compose.tour.LocalGuidedTourController
+import eu.darken.butler.common.compose.tour.NoOpGuidedTourAccess
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
@@ -100,6 +102,8 @@ class WorkspacePreviewCaptureService @Inject constructor(
                     // The view-state registries are deliberately fresh detached ones: this composes
                     // real pages, which would otherwise read and clobber the live scroll positions
                     // and bar collapse state.
+                    // The guided-tour local has no default, so a page reading it here (Templates
+                    // does) would throw and the broad catch below would turn every thumbnail null.
                     val previewScrollPositions = remember { WorkspaceScrollPositions() }
                     val previewBarCollapse = remember { WorkspaceBarCollapseStates() }
                     CompositionLocalProvider(
@@ -107,6 +111,7 @@ class WorkspacePreviewCaptureService @Inject constructor(
                         LocalWorkspacePageHosts provides pageHosts,
                         LocalWorkspaceScrollPositions provides previewScrollPositions,
                         LocalWorkspaceBarCollapseStates provides previewBarCollapse,
+                        LocalGuidedTourController provides NoOpGuidedTourAccess,
                     ) {
                         ButlerTheme(state = themeState) {
                             WorkspaceMapper(

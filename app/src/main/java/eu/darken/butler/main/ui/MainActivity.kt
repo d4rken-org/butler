@@ -27,6 +27,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
@@ -38,6 +39,9 @@ import androidx.navigation3.ui.NavDisplay
 import dagger.hilt.android.AndroidEntryPoint
 import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.compose.LocalAvoidDisplayCutout
+import eu.darken.butler.common.compose.tour.GuidedTourController
+import eu.darken.butler.common.compose.tour.GuidedTourHost
+import eu.darken.butler.common.compose.tour.LocalGuidedTourController
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -81,6 +85,7 @@ class MainActivity : Activity2() {
     @Inject lateinit var shortcutManager: DynamicShortcutManager
     @Inject lateinit var notificationPermissionGate: NotificationPermissionGate
     @Inject lateinit var operationFgsCoordinator: OperationFgsCoordinator
+    @Inject lateinit var guidedTourController: GuidedTourController
 
     private val notificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -182,8 +187,14 @@ class MainActivity : Activity2() {
         }
 
         val backStack = rememberNavBackStack(start)
+        val coroutineScope = rememberCoroutineScope()
 
         LaunchedEffect(Unit) { navCtrl.setup(backStack) }
+
+        // Tours without click protection end themselves when the user navigates away.
+        LaunchedEffect(backStack.lastOrNull()) {
+            guidedTourController.onRouteChanged(backStack.lastOrNull())
+        }
 
         // Handle system back button with double-press to exit
         BackHandler(enabled = backStack.size <= 1) {
@@ -205,25 +216,40 @@ class MainActivity : Activity2() {
         }
 
         Box(modifier = Modifier.fillMaxSize()) {
-            NavDisplay(
-                backStack = backStack,
-                onBack = {
-                    // Only handle programmatic navigation
-                    navCtrl.up()
-                },
-                entryDecorators = listOf(
-                    rememberSaveableStateHolderNavEntryDecorator(),
-                    rememberViewModelStoreNavEntryDecorator(),
-                ),
-                entryProvider = entryProvider {
-                    navigationEntries.forEach { entry ->
-                        entry.apply {
-                            log(TAG) { "Set up navigation entry: $this" }
-                            setup()
+            // The tour host wraps only the nav content: its scrim and cut-out are anchored in root
+            // coordinates, and the banner/log panel below stay later siblings so those debug and
+            // system affordances keep drawing above the scrim.
+            CompositionLocalProvider(LocalGuidedTourController provides guidedTourController) {
+                GuidedTourHost(
+                    session = guidedTourController.session,
+                    onNext = { coroutineScope.launch { guidedTourController.next() } },
+                    onPrevious = { coroutineScope.launch { guidedTourController.previous() } },
+                    onDontShowAgain = { coroutineScope.launch { guidedTourController.dismissForever() } },
+                    onDisableAllTours = { coroutineScope.launch { guidedTourController.disableAllTours() } },
+                    onStepRendered = guidedTourController::markStepRendered,
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    NavDisplay(
+                        backStack = backStack,
+                        onBack = {
+                            // Only handle programmatic navigation
+                            navCtrl.up()
+                        },
+                        entryDecorators = listOf(
+                            rememberSaveableStateHolderNavEntryDecorator(),
+                            rememberViewModelStoreNavEntryDecorator(),
+                        ),
+                        entryProvider = entryProvider {
+                            navigationEntries.forEach { entry ->
+                                entry.apply {
+                                    log(TAG) { "Set up navigation entry: $this" }
+                                    setup()
+                                }
+                            }
                         }
-                    }
+                    )
                 }
-            )
+            }
 
             // App-wide recording banner overlay
             RecordingBannerHost(
