@@ -1,12 +1,44 @@
 package eu.darken.butler.common.ui
 
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.Velocity
+
+/**
+ * Horizontal scrolling for content living inside a HorizontalPager.
+ *
+ * Combines [blockHorizontalScrollPropagation] with [horizontalScroll], and only claims drag
+ * gestures while there is actually something to scroll.
+ *
+ * That last part matters: [horizontalScroll] claims horizontal drags even when the content fits
+ * ([ScrollState.maxValue] is 0), then forwards the unusable delta to the pager as *nested* scroll.
+ * The pager changes page, but its own drag handler never runs, so no DragInteraction is emitted
+ * and the swipe is invisible to anything driven off `pagerState.interactionSource` - which is how
+ * swiping across a short breadcrumb, info bar or text buffer silently failed to trigger the
+ * trailing-placeholder workspace creation. Leaving the gesture unclaimed lets the pager handle it
+ * directly and emit Start/Stop as normal.
+ *
+ * The [ScrollState.viewportSize] check is not redundant: [ScrollState.maxValue] starts out at
+ * [Int.MAX_VALUE] to mean "not measured yet", so testing it alone would claim the gesture for the
+ * first frame even on content that turns out to be short. Gating on a measured viewport instead
+ * treats "unknown" as "not scrollable"; the layout node keeps measuring either way, so scrolling
+ * switches back on as soon as the content really does overflow.
+ *
+ * @param scrollState backing state for the scroll
+ * @param isWorkspaceFocused false for a non-focused page in a pager; blocks propagation
+ *                           unconditionally to prevent velocity leakage during pager swipes
+ */
+fun Modifier.pagerFriendlyHorizontalScroll(
+    scrollState: ScrollState,
+    isWorkspaceFocused: Boolean,
+): Modifier = this
+    .blockHorizontalScrollPropagation(scrollState, enabled = isWorkspaceFocused)
+    .horizontalScroll(scrollState, enabled = scrollState.viewportSize > 0 && scrollState.maxValue > 0)
 
 /**
  * Modifier that blocks horizontal scroll propagation to parent scrollables (like HorizontalPager).

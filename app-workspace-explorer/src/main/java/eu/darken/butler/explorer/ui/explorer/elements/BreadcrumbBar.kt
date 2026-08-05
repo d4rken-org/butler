@@ -6,7 +6,6 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -66,7 +65,7 @@ import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
-import eu.darken.butler.common.ui.blockHorizontalScrollPropagation
+import eu.darken.butler.common.ui.pagerFriendlyHorizontalScroll
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
@@ -508,8 +507,7 @@ private fun BreadcrumbDisplayRow(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .blockHorizontalScrollPropagation(scrollState, enabled = isWorkspaceFocused)
-            .horizontalScroll(scrollState)
+            .pagerFriendlyHorizontalScroll(scrollState, isWorkspaceFocused = isWorkspaceFocused)
             .padding(end = cutoutWidth),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(2.dp),

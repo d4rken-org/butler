@@ -174,13 +174,33 @@ fun rememberPlaceholderCreationController(
             .collectLatest { idle ->
                 if (!idle) return@collectLatest
                 delay(SETTLE_QUIESCENCE_MS)
-                if (!controller.gestureArmed) return@collectLatest
+
+                // Declines are logged only when they happen ON the placeholder: there, doing nothing
+                // is indistinguishable from the gesture never having happened. Settles elsewhere
+                // (startup, programmatic scrolls, ordinary tab swipes) decline constantly and stay quiet.
+                val onPlaceholder = currentTabCount > 0 && pagerState.settledPage >= currentTabCount
+                if (!controller.gestureArmed) {
+                    if (onPlaceholder) {
+                        log(TAG, VERBOSE) {
+                            "Settle declined on placeholder: no drag gesture armed — the page change " +
+                                "did not come from the pager's own drag handler"
+                        }
+                    }
+                    return@collectLatest
+                }
                 controller.gestureArmed = false
 
-                val onPlaceholder = currentTabCount > 0 && pagerState.settledPage >= currentTabCount
                 if (!onPlaceholder) return@collectLatest
-                if (!currentOnDemand || currentBlocked || currentDialog) return@collectLatest
-                if (controller.creationState != PlaceholderCreationState.Idle) return@collectLatest
+                if (!currentOnDemand || currentBlocked || currentDialog) {
+                    log(TAG, VERBOSE) {
+                        "Settle declined: onDemand=$currentOnDemand blocked=$currentBlocked dialog=$currentDialog"
+                    }
+                    return@collectLatest
+                }
+                if (controller.creationState != PlaceholderCreationState.Idle) {
+                    log(TAG, VERBOSE) { "Settle declined: state is ${controller.creationState}, not Idle" }
+                    return@collectLatest
+                }
 
                 log(TAG, INFO) { "User gesture settled on placeholder, transitioning to Visiting" }
                 controller.creationState = PlaceholderCreationState.Visiting
