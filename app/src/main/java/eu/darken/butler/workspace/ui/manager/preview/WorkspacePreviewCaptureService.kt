@@ -2,6 +2,7 @@ package eu.darken.butler.workspace.ui.manager.preview
 
 import android.content.Context
 import android.graphics.Bitmap
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.unit.DpSize
@@ -93,26 +94,9 @@ class WorkspacePreviewCaptureService @Inject constructor(
                     captureContext = captureContext,
                     viewModelStoreOwner = viewmodelStoreOwner,
                 ) {
-                    // Offscreen capture renders in a detached composition that doesn't inherit the
-                    // app's locals, so the page host map must be re-provided here or every preview
-                    // falls back to "no page host registered" error content.
                     // Only the page host's Content is rendered (via WorkspaceMapper) — a preview
                     // thumbnail must never compose a workspace's dialogs or sheets.
-                    // Disable focus during preview capture to prevent keyboard from showing.
-                    // The view-state registries are deliberately fresh detached ones: this composes
-                    // real pages, which would otherwise read and clobber the live scroll positions
-                    // and bar collapse state.
-                    // The guided-tour local has no default, so a page reading it here (Templates
-                    // does) would throw and the broad catch below would turn every thumbnail null.
-                    val previewScrollPositions = remember { WorkspaceScrollPositions() }
-                    val previewBarCollapse = remember { WorkspaceBarCollapseStates() }
-                    CompositionLocalProvider(
-                        LocalWorkspaceFocused provides false,
-                        LocalWorkspacePageHosts provides pageHosts,
-                        LocalWorkspaceScrollPositions provides previewScrollPositions,
-                        LocalWorkspaceBarCollapseStates provides previewBarCollapse,
-                        LocalGuidedTourController provides NoOpGuidedTourAccess,
-                    ) {
+                    WorkspacePreviewCompositionLocals(pageHosts = pageHosts) {
                         ButlerTheme(state = themeState) {
                             WorkspaceMapper(
                                 info = WorkspacePaneInfo(
@@ -142,4 +126,34 @@ class WorkspacePreviewCaptureService @Inject constructor(
     companion object {
         private val TAG = logTag("Workspace", "PreviewCapture")
     }
+}
+
+/**
+ * The composition locals an offscreen capture has to establish itself.
+ *
+ * A capture renders in a detached composition that inherits none of the app's locals, and it
+ * composes real pages: without the page host map every preview falls back to "no page host
+ * registered" error content, and reading a local that has no default (the guided-tour controller)
+ * throws outright — which the service's catch-all would silently turn into a null thumbnail.
+ * Focus is off so no page pops the keyboard, and the view-state registries are deliberately fresh
+ * detached ones so a capture cannot read or clobber the live scroll and bar-collapse state.
+ *
+ * Extracted from [WorkspacePreviewCaptureService] so this set can be asserted on: the renderer
+ * itself needs a VirtualDisplay and real bitmaps, neither of which exist in a unit test.
+ */
+@Composable
+internal fun WorkspacePreviewCompositionLocals(
+    pageHosts: Map<Workspace.Type, @JvmSuppressWildcards WorkspacePageHostEntry>,
+    content: @Composable () -> Unit,
+) {
+    val previewScrollPositions = remember { WorkspaceScrollPositions() }
+    val previewBarCollapse = remember { WorkspaceBarCollapseStates() }
+    CompositionLocalProvider(
+        LocalWorkspaceFocused provides false,
+        LocalWorkspacePageHosts provides pageHosts,
+        LocalWorkspaceScrollPositions provides previewScrollPositions,
+        LocalWorkspaceBarCollapseStates provides previewBarCollapse,
+        LocalGuidedTourController provides NoOpGuidedTourAccess,
+        content = content,
+    )
 }
