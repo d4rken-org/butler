@@ -163,6 +163,10 @@
     <string name="previews_settings_title">Previews</string>
     <string name="previews_settings_subtitle">Manage image preview caches.</string>
 
+    <string name="tour_settings_reset_title">Reset guided tours</string>
+    <string name="tour_settings_reset_subtitle">Show the guided tours again, including any you skipped or disabled.</string>
+    <string name="tour_settings_reset_done">Guided tours have been reset.</string>
+
     <string name="storage_settings_title">Storage</string>
     <string name="storage_settings_subtitle">Manage Butler\'s caches, storage and trash.</string>
     <string name="storage_category_previews_label">Previews</string>
