@@ -12,15 +12,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.Tab
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -33,20 +29,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.R
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.compose.asComposable
-import eu.darken.butler.main.ui.onboarding.components.CardLayout
 import eu.darken.butler.main.ui.onboarding.components.OnboardingContentWrapper
-import eu.darken.butler.main.ui.onboarding.components.OnboardingInfoCard
+import eu.darken.butler.main.ui.onboarding.components.OnboardingMultiPaneMockup
 import eu.darken.butler.main.ui.onboarding.components.OnboardingPageHeader
+import eu.darken.butler.main.ui.onboarding.components.OnboardingWorkspaceTabCard
 import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.core.icon
-import eu.darken.butler.workspace.core.label
 
 @Composable
 internal fun WorkspacesPage(
@@ -86,12 +80,7 @@ internal fun WorkspacesPage(
                     message = stringResource(R.string.onboarding_workspaces_message),
                     subtitleAlpha = 0.8f,
                     icon = {
-                        Icon(
-                            imageVector = Icons.TwoTone.Tab,
-                            contentDescription = null,
-                            modifier = Modifier.size(96.dp),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
+                        OnboardingMultiPaneMockup()
                         Spacer(modifier = Modifier.height(24.dp))
                     }
                 )
@@ -106,70 +95,30 @@ internal fun WorkspacesPage(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        OnboardingInfoCard(
-                            title = Workspace.Type.EXPLORER.label.asComposable(),
+                        OnboardingWorkspaceTabCard(
+                            modifier = Modifier.weight(1f),
+                            type = Workspace.Type.EXPLORER,
                             description = stringResource(R.string.onboarding_workspaces_explorer_description),
-                            layout = CardLayout.Vertical,
-                            fixedHeight = 140.dp,
-                            modifier = Modifier.weight(1f),
-                            icon = {
-                                Icon(
-                                    imageVector = Workspace.Type.EXPLORER.icon,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(32.dp),
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                            }
                         )
-                        OnboardingInfoCard(
-                            title = Workspace.Type.SEARCHER.label.asComposable(),
-                            description = stringResource(R.string.onboarding_workspaces_searcher_description),
-                            layout = CardLayout.Vertical,
-                            fixedHeight = 140.dp,
+                        OnboardingWorkspaceTabCard(
                             modifier = Modifier.weight(1f),
-                            icon = {
-                                Icon(
-                                    imageVector = Workspace.Type.SEARCHER.icon,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(32.dp),
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                            }
+                            type = Workspace.Type.SEARCHER,
+                            description = stringResource(R.string.onboarding_workspaces_searcher_description),
                         )
                     }
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        OnboardingInfoCard(
-                            title = Workspace.Type.EDITOR.label.asComposable(),
+                        OnboardingWorkspaceTabCard(
+                            modifier = Modifier.weight(1f),
+                            type = Workspace.Type.EDITOR,
                             description = stringResource(R.string.onboarding_workspaces_editor_description),
-                            layout = CardLayout.Vertical,
-                            fixedHeight = 140.dp,
-                            modifier = Modifier.weight(1f),
-                            icon = {
-                                Icon(
-                                    imageVector = Workspace.Type.EDITOR.icon,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(32.dp),
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                            }
                         )
-                        OnboardingInfoCard(
-                            title = Workspace.Type.APPS.label.asComposable(),
-                            description = stringResource(R.string.onboarding_workspaces_apps_description),
-                            layout = CardLayout.Vertical,
-                            fixedHeight = 140.dp,
+                        OnboardingWorkspaceTabCard(
                             modifier = Modifier.weight(1f),
-                            icon = {
-                                Icon(
-                                    imageVector = Workspace.Type.APPS.icon,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(32.dp),
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                            }
+                            type = Workspace.Type.APPS,
+                            description = stringResource(R.string.onboarding_workspaces_apps_description),
                         )
                     }
                 }
@@ -221,5 +170,26 @@ internal fun WorkspacesPage(
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspacesPagePreview() {
+    WorkspacesPage()
+}
+
+@Preview(showBackground = true, name = "Narrow", widthDp = 320)
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspacesPageNarrowPreview() {
+    WorkspacesPage()
+}
+
+@Preview(showBackground = true, name = "Large font", fontScale = 1.5f)
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspacesPageLargeFontPreview() {
+    WorkspacesPage()
+}
+
+@Preview(showBackground = true, name = "RTL", locale = "ar")
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspacesPageRtlPreview() {
     WorkspacesPage()
 }
