@@ -11,7 +11,10 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.issue.Issue
+import eu.darken.butler.explorer.core.ExplorerNavigation
+import eu.darken.butler.explorer.core.engine.BrowsingAbortedException
 import eu.darken.butler.explorer.ui.explorer.dialogs.AddDeviceStorageSheet
+import eu.darken.butler.explorer.ui.explorer.dialogs.BrowsingAbortedDialog
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogHost
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
@@ -61,6 +64,7 @@ fun ExplorerWorkspaceOverlaysHost(
         cancelConfirmationFor = cancelConfirmation,
         issue = issueState.takeIf { showIssueSheet },
         showAddStorageSheet = showAddStorageSheet,
+        navigationError = state?.error,
         vm = vm,
     )
 
@@ -82,6 +86,7 @@ fun ExplorerWorkspaceOverlays(
     cancelConfirmationFor: Operation.Id? = null,
     issue: Issue? = null,
     showAddStorageSheet: Boolean = false,
+    navigationError: Throwable? = null,
     vm: ExplorerWorkspaceViewModel? = null,
 ) {
     val paneInsets = design.paneInsets()
@@ -129,6 +134,15 @@ fun ExplorerWorkspaceOverlays(
         )
     }
 
+    // A cancelled load with nothing to fall back to: the page shows no error card for it, this
+    // dialog is the whole answer to it.
+    (navigationError as? BrowsingAbortedException)?.let { aborted ->
+        BrowsingAbortedDialog(
+            onRetry = { vm?.navigate(aborted.target) },
+            onDismiss = { vm?.dismissNavigationError() },
+        )
+    }
+
     CancelOperationConfirmationHost(
         pendingId = cancelConfirmationFor,
         operations = operationsState?.operations,
@@ -153,6 +167,15 @@ private fun ExplorerWorkspaceOverlaysCreateItemPreview() {
 private fun ExplorerWorkspaceOverlaysRenamePreview() {
     ExplorerWorkspaceOverlays(
         dialogState = ExplorerDialogState.Rename(LocalPath.build("/storage/emulated/0/DCIM", "Photos")),
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ExplorerWorkspaceOverlaysBrowsingAbortedPreview() {
+    ExplorerWorkspaceOverlays(
+        navigationError = BrowsingAbortedException(ExplorerNavigation.Target.Home),
     )
 }
 

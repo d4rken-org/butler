@@ -32,6 +32,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.archive.ArchiveNotSeekableException
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerViewStyle
+import eu.darken.butler.explorer.core.engine.BrowsingAbortedException
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
 import eu.darken.butler.explorer.ui.explorer.dnd.validateDropDestination
@@ -170,8 +171,9 @@ internal fun ExplorerReadyContent(
             }
         }
 
-        // Error card (floating below top bar stack)
-        state.error?.let { error ->
+        // Error card (floating below top bar stack). A cancelled load is answered by the aborted
+        // dialog in the overlay slot instead, so it must not raise a card of its own.
+        state.error?.takeIf { it !is BrowsingAbortedException }?.let { error ->
             if (error is ArchiveNotSeekableException) {
                 val archiveBusy by (vm?.archiveActionBusy ?: remember { MutableStateFlow(false) }).collectAsState()
                 ArchiveAccessErrorCard(

@@ -2,11 +2,16 @@ package eu.darken.butler.explorer.ui.explorer
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.explorer.core.ExplorerNavigation
+import eu.darken.butler.explorer.core.engine.BrowsingAbortedException
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
 import eu.darken.butler.workspace.ui.dialogs.PaneBoundAlertDialogDefaults
 import eu.darken.butler.workspace.ui.modal.PaneLayerHost
@@ -45,5 +50,35 @@ class ExplorerWorkspaceOverlaysTest : ComposeTest() {
 
         composeTestRule.onNodeWithTag(PaneBoundAlertDialogDefaults.SURFACE_TEST_TAG).assertIsDisplayed()
         composeTestRule.onNode(hasSetTextAction()).assertIsDisplayed()
+    }
+
+    @Test
+    fun `an aborted load renders the aborted dialog`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = true) {
+                    ExplorerWorkspaceOverlays(
+                        navigationError = BrowsingAbortedException(ExplorerNavigation.Target.Home),
+                    )
+                }
+            }
+        }
+
+        composeTestRule.onAllNodesWithTag(PaneBoundAlertDialogDefaults.SURFACE_TEST_TAG).assertCountEquals(1)
+        composeTestRule.onNodeWithText("Operation aborted").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Retry").assertIsDisplayed()
+    }
+
+    @Test
+    fun `an ordinary navigation error raises no dialog here`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = true) {
+                    ExplorerWorkspaceOverlays(navigationError = RuntimeException("nope"))
+                }
+            }
+        }
+
+        composeTestRule.onNodeWithTag(PaneBoundAlertDialogDefaults.SURFACE_TEST_TAG).assertDoesNotExist()
     }
 }
