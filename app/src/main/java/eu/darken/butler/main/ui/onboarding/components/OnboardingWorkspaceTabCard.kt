@@ -21,6 +21,8 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.style.TextAlign
@@ -38,6 +40,7 @@ import eu.darken.butler.workspace.core.label
 import eu.darken.butler.workspace.ui.manager.rows.preview.WorkspaceMockPreview
 
 private val PreviewBodyHeight = 84.dp
+private val PreviewBodyFadeHeight = 16.dp
 
 @Composable
 fun OnboardingWorkspaceTabCard(
@@ -98,6 +101,20 @@ fun OnboardingWorkspaceTabCard(
                     ) {
                         WorkspaceMockPreview(type = type)
                     }
+
+                    // Some mocks render taller than the fixed body height, the fade lets the last
+                    // row dissolve into the background so the cut reads as deliberate, not sliced.
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxWidth()
+                            .height(PreviewBodyFadeHeight)
+                            .background(
+                                Brush.verticalGradient(
+                                    listOf(Color.Transparent, MaterialTheme.colorScheme.surface),
+                                ),
+                            ),
+                    )
                 }
             }
         }
