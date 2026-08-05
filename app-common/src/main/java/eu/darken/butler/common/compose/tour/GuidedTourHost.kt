@@ -49,6 +49,15 @@ import kotlinx.coroutines.flow.StateFlow
 
 internal const val MISSING_TARGET_GRACE_MS = 600L
 
+/** Keys the tour's key shield lets reach the content below it. Everything else is consumed. */
+private val KEY_SHIELD_PASSTHROUGH = setOf(
+    Key.Back,
+    Key.Escape,
+    Key.VolumeUp,
+    Key.VolumeDown,
+    Key.VolumeMute,
+)
+
 /**
  * How the current step should lay itself out.
  *
@@ -115,19 +124,15 @@ fun GuidedTourHost(
     CompositionLocalProvider(LocalTourTargetRegistry provides registry) {
         Box(
             modifier.onPreviewKeyEvent { event ->
-                // clickProtection only consumes pointer events; on TV the D-pad would still reach
-                // (and activate!) focusable content under the scrim. Swallow navigation/confirm
-                // keys at the root (an ancestor of all content) unless focus is in the bubble.
-                // Keyed on the session, not the resolved layout, so the Pending grace window is
-                // covered too. BACK stays untouched (previous step / exit confirm via BackHandler).
+                // clickProtection only consumes pointer events; a D-pad or hardware keyboard would
+                // still reach (and activate!) focusable content under the scrim. Swallow everything
+                // at the root (an ancestor of all content) unless focus is in the bubble; only the
+                // pass-through set below stays usable. Keyed on the session, not the resolved
+                // layout, so the Pending grace window is covered too. BACK stays untouched
+                // (previous step / exit confirm via BackHandler), and the volume keys must keep
+                // working — a tour that deadens volume control would be its own regression.
                 if (!keyShieldActive || bubbleHasFocus) return@onPreviewKeyEvent false
-                when (event.key) {
-                    Key.DirectionUp, Key.DirectionDown, Key.DirectionLeft, Key.DirectionRight,
-                    Key.DirectionCenter, Key.Enter, Key.NumPadEnter,
-                        -> true
-
-                    else -> false
-                }
+                event.key !in KEY_SHIELD_PASSTHROUGH
             },
         ) {
             content()

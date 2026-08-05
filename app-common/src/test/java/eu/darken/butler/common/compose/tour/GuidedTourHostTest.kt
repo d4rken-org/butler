@@ -5,16 +5,24 @@ import androidx.activity.OnBackPressedDispatcherOwner
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent as ComposeKeyEvent
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsFocused
@@ -445,6 +453,31 @@ class GuidedTourHostTest : ComposeTest() {
         underlyingClicks shouldBe 0
     }
 
+    @Test
+    fun `keyboard keys are consumed during the pending-target grace window`() {
+        // A hardware keyboard is not covered by clickProtection: without the shield, Tab traverses
+        // focus into the content, Space activates it and characters type into it.
+        val sessionFlow = MutableStateFlow<TourSession?>(TourSession(protectedDef, 0))
+        val received = mutableListOf<Key>()
+        composeTestRule.setHostContent(sessionFlow) { KeyProbe(received) }
+        composeTestRule.pressKey(NativeKeyEvent.KEYCODE_TAB)
+        composeTestRule.pressKey(NativeKeyEvent.KEYCODE_SPACE)
+        composeTestRule.pressKey(NativeKeyEvent.KEYCODE_A)
+        received shouldBe emptyList()
+    }
+
+    @Test
+    fun `volume keys reach the content through the shield`() {
+        // Consuming these would leave volume control dead for as long as a tour is up.
+        val sessionFlow = MutableStateFlow<TourSession?>(TourSession(protectedDef, 0))
+        val received = mutableListOf<Key>()
+        composeTestRule.setHostContent(sessionFlow) { KeyProbe(received) }
+        composeTestRule.pressKey(NativeKeyEvent.KEYCODE_VOLUME_UP)
+        composeTestRule.pressKey(NativeKeyEvent.KEYCODE_VOLUME_DOWN)
+        received.contains(Key.VolumeUp) shouldBe true
+        received.contains(Key.VolumeDown) shouldBe true
+    }
+
     // Back presses are dispatched through the REAL OnBackPressedDispatcherOwner captured from
     // inside the composition (the test activity). A custom LocalOnBackPressedDispatcherOwner
     // was unreliable under Robolectric; the real owner dispatches fine.
@@ -572,6 +605,26 @@ class GuidedTourHostTest : ComposeTest() {
         composeTestRule.onAllNodesWithText("Skip the tour?").assertCountEquals(0)
         composeTestRule.onNodeWithText("Body of step 2").assertExists()
     }
+}
+
+/**
+ * Focused content that records every key event reaching it. Key events travel the focused node's
+ * path, so anything the host's root shield consumes never lands here.
+ */
+@Composable
+private fun KeyProbe(received: MutableList<Key>) {
+    val focusRequester = remember { FocusRequester() }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .focusRequester(focusRequester)
+            .focusable()
+            .onKeyEvent { event ->
+                received += event.key
+                false
+            },
+    )
+    LaunchedEffect(Unit) { focusRequester.requestFocus() }
 }
 
 private fun ComposeContentTestRule.setHostContent(
