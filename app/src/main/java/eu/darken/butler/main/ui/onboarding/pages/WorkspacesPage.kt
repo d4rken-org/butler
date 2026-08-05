@@ -30,17 +30,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.R
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
-import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.main.ui.onboarding.components.OnboardingContentWrapper
 import eu.darken.butler.main.ui.onboarding.components.OnboardingMultiPaneMockup
 import eu.darken.butler.main.ui.onboarding.components.OnboardingPageHeader
 import eu.darken.butler.main.ui.onboarding.components.OnboardingWorkspaceTabCard
 import eu.darken.butler.workspace.core.Workspace
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 
 @Composable
 internal fun WorkspacesPage(
@@ -81,11 +80,11 @@ internal fun WorkspacesPage(
                     subtitleAlpha = 0.8f,
                     icon = {
                         OnboardingMultiPaneMockup()
-                        Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
                     }
                 )
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
                 Column(
                     modifier = Modifier.fillMaxWidth(),

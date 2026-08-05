@@ -17,12 +17,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
-import eu.darken.butler.common.compose.PreviewWrapper
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 
 @Composable
 fun OnboardingPageHeader(
@@ -31,7 +30,7 @@ fun OnboardingPageHeader(
     modifier: Modifier = Modifier,
     icon: @Composable () -> Unit = {},
     subtitleAlpha: Float = 1f,
-    spacingAfterTitle: Dp = 16.dp,
+    spacingAfterTitle: Dp = 8.dp,
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
