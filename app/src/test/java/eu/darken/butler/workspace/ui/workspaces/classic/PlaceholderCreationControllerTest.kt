@@ -1,12 +1,15 @@
 package eu.darken.butler.workspace.ui.workspaces.classic
 
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.interaction.DragInteraction
 import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -17,8 +20,10 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
+import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.ui.pagerFriendlyHorizontalScroll
 import eu.darken.butler.workspace.core.Workspace
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -162,6 +167,84 @@ class PlaceholderCreationControllerTest : ComposeTest() {
         created shouldBe 1
         controller!!.creationState shouldBe PlaceholderCreationState.Creating
     }
+
+    /**
+     * Drives a real touch swipe that STARTS on horizontally scrollable page content, the case the
+     * plain-Box harness above can't reach.
+     *
+     * @param contentWidthDp width of the content inside the scroll container. Narrower than the
+     *   viewport leaves [ScrollState.maxValue] at 0 (nothing to scroll); much wider makes it scroll.
+     */
+    private fun swipeOverScrollableContent(
+        contentWidthDp: Int,
+        block: (pagerState: PagerState, scrollState: ScrollState, created: () -> Int) -> Unit,
+    ) {
+        var created = 0
+        var pagerState: PagerState? = null
+        var scrollState: ScrollState? = null
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                ControllerHarness(
+                    workspaces = listOf(info(idA), info(idB)),
+                    isInteractionBlocked = false,
+                    hasBlockingDialog = false,
+                    interactions = null, // the pager's own interaction stream, not a synthetic one
+                    scrollCommand = 1 to 1, // park on the last real tab (programmatic, no token)
+                    onCreate = { created++ },
+                    onPagerState = { pagerState = it },
+                    onController = { },
+                ) {
+                    val pageScroll = rememberScrollState()
+                    LaunchedEffect(pageScroll) { scrollState = pageScroll }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .pagerFriendlyHorizontalScroll(pageScroll, isWorkspaceFocused = true),
+                    ) {
+                        Box(modifier = Modifier.width(contentWidthDp.dp))
+                    }
+                }
+            }
+        }
+        composeTestRule.waitForIdle()
+        pagerState!!.currentPage shouldBe 1
+
+        composeTestRule.onNodeWithTag(PAGER_TAG).performTouchInput { swipeLeft() }
+        composeTestRule.waitForIdle()
+
+        block(pagerState!!, scrollState!!) { created }
+    }
+
+    @Test
+    fun `swipe starting on unscrollable page content still creates`() = swipeOverScrollableContent(
+        // Narrower than the viewport, so there is nothing to scroll.
+        contentWidthDp = 1,
+    ) { pagerState, scrollState, created ->
+        // Regression guard: horizontalScroll() used to claim this drag despite having nothing to
+        // scroll, then forward it to the pager as NESTED scroll. The page turned, but the pager's
+        // own drag handler never ran, so no DragInteraction was emitted and the gesture token
+        // never armed - the settle was declined and no workspace was created.
+        scrollState.maxValue shouldBe 0
+        pagerState.currentPage shouldBe 2
+
+        composeTestRule.mainClock.advanceTimeBy(300)
+        created() shouldBe 1
+    }
+
+    @Test
+    fun `swipe starting on scrollable page content scrolls it instead of turning the page`() =
+        swipeOverScrollableContent(
+            // Far wider than the viewport, so the content owns the gesture.
+            contentWidthDp = 4000,
+        ) { pagerState, scrollState, created ->
+            (scrollState.maxValue > 0) shouldBe true
+            (scrollState.value > 0) shouldBe true
+            pagerState.currentPage shouldBe 1
+
+            composeTestRule.mainClock.advanceTimeBy(300)
+            created() shouldBe 0
+        }
 
     @Test
     fun `list shrink stranding pager on placeholder does not create`() = runHarness(
@@ -437,6 +520,7 @@ private fun ControllerHarness(
     onCreate: () -> Unit,
     onPagerState: (PagerState) -> Unit,
     onController: (PlaceholderCreationController) -> Unit,
+    pageContent: @Composable () -> Unit = { Box(modifier = Modifier.fillMaxSize()) },
 ) {
     val pagerState = rememberPagerState(pageCount = { workspaces.size + 1 })
     LaunchedEffect(pagerState) { onPagerState(pagerState) }
@@ -462,7 +546,7 @@ private fun ControllerHarness(
             .fillMaxSize()
             .testTag(PAGER_TAG),
     ) {
-        Box(modifier = Modifier.fillMaxSize())
+        pageContent()
     }
 }
 
