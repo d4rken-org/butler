@@ -4,6 +4,11 @@ import android.app.Activity
 import androidx.lifecycle.SavedStateHandle
 import eu.darken.butler.common.WebpageTool
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.compose.tour.GuidedTourController
+import eu.darken.butler.common.compose.tour.TourDefinition
+import eu.darken.butler.common.compose.tour.TourId
+import eu.darken.butler.common.compose.tour.TourSession
+import eu.darken.butler.common.compose.tour.TourStep
 import eu.darken.butler.common.datastore.DataStoreValue
 import eu.darken.butler.common.debug.bugreport.BugReportRepo
 import eu.darken.butler.common.error.ErrorReportTool
@@ -100,12 +105,21 @@ class WorkspacesViewModelReviewCardTest : BaseTest() {
         locale = Locale.ENGLISH,
     )
 
+    private fun tourSession() = TourSession(
+        definition = TourDefinition(
+            id = TourId("test.tour"),
+            steps = listOf(TourStep(stepId = "step", body = "Let me show you around".toCaString())),
+        ),
+        stepIndex = 0,
+    )
+
     private fun vm(
         infos: List<Workspace.Info> = emptyList(),
         paneCount: Int = 1,
         isManagerOverlayVisible: Boolean = false,
         motd: MotdState? = null,
         confirmations: Map<String, PendingWorkspaceConfirmation> = emptyMap(),
+        tourSession: TourSession? = null,
         reviewState: kotlinx.coroutines.flow.Flow<ReviewTool.State> = flowOf(
             ReviewTool.State(shouldAskForReview = true),
         ),
@@ -144,6 +158,9 @@ class WorkspacesViewModelReviewCardTest : BaseTest() {
         val bugReportRepo = mockk<BugReportRepo>(relaxed = true).apply {
             every { hasUnseenCrashes } returns flowOf(false)
         }
+        val guidedTourController = mockk<GuidedTourController>(relaxed = true).apply {
+            every { session } returns MutableStateFlow(tourSession)
+        }
 
         return WorkspacesViewModel(
             dispatchers = TestDispatcherProvider(),
@@ -159,6 +176,7 @@ class WorkspacesViewModelReviewCardTest : BaseTest() {
             bugReportRepo = bugReportRepo,
             openInNewTabsUseCase = mockk<OpenInNewTabsUseCase>(relaxed = true),
             reviewTool = reviewTool,
+            guidedTourController = guidedTourController,
             pageHosts = emptyMap(),
             scrollPositions = mockk<WorkspaceScrollPositions>(relaxed = true),
             barCollapseStates = mockk<WorkspaceBarCollapseStates>(relaxed = true),
@@ -249,6 +267,21 @@ class WorkspacesViewModelReviewCardTest : BaseTest() {
         // Single-pane promotes pane-local chains to the full-screen slot, so paneLocalModalChains is
         // empty here - the card would still be asked for behind a modal that covers the screen.
         vm.settledState()!!.showReviewCard shouldBe false
+    }
+
+    @Test fun `an active guided tour suppresses the review card`() = runTest2(context = testDispatcher) {
+        val vm = vm(tourSession = tourSession())
+        advanceUntilIdle()
+
+        // A tour scrims the whole screen, so the card would sit underneath it dimmed and untappable.
+        vm.settledState()!!.showReviewCard shouldBe false
+    }
+
+    @Test fun `no guided tour session shows the review card`() = runTest2(context = testDispatcher) {
+        val vm = vm(tourSession = null)
+        advanceUntilIdle()
+
+        vm.settledState()!!.showReviewCard shouldBe true
     }
 
     @Test fun `dismissing the card delegates to the review tool`() = runTest2(context = testDispatcher) {

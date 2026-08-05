@@ -5,6 +5,7 @@ import android.content.Intent
 import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.darken.butler.common.WebpageTool
+import eu.darken.butler.common.compose.tour.GuidedTourController
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.bugreport.BugReportRepo
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
@@ -73,6 +74,7 @@ class WorkspacesViewModel @Inject constructor(
     private val bugReportRepo: BugReportRepo,
     private val openInNewTabsUseCase: OpenInNewTabsUseCase,
     private val reviewTool: ReviewTool,
+    private val guidedTourController: GuidedTourController,
     val pageHosts: Map<Workspace.Type, @JvmSuppressWildcards WorkspacePageHostEntry>,
     val scrollPositions: WorkspaceScrollPositions,
     val barCollapseStates: WorkspaceBarCollapseStates,
@@ -253,7 +255,8 @@ class WorkspacesViewModel @Inject constructor(
         sessionManager.state,
         _managerDialogs,
         reviewState,
-    ) { repoState, upgradeInfo, swipeGesturesEnabled, onDemandWorkspaceCreation, uiState, motd, restorationState, dialogs, review ->
+        guidedTourController.session,
+    ) { repoState, upgradeInfo, swipeGesturesEnabled, onDemandWorkspaceCreation, uiState, motd, restorationState, dialogs, review, tourSession ->
         val base = State(
             state = repoState,
             focusedWorkspace = uiState.focusedWorkspaceId,
@@ -270,12 +273,14 @@ class WorkspacesViewModel @Inject constructor(
         // Asking for a favor is the lowest-priority surface there is: anything that asks the user
         // for a decision, or covers the screen, has to win over it. Both modal buckets have to be
         // checked: single-pane layouts promote pane-local chains to the full-screen slot, so either
-        // one alone would miss a layout.
+        // one alone would miss a layout. A guided tour scrims the whole screen, so the card would
+        // render dimmed and untappable underneath it.
         val isQuiet = motd == null &&
             !uiState.isManagerOverlayVisible &&
             dialogs.isEmpty() &&
             base.fullScreenModalWorkspace == null &&
-            base.paneLocalModalChains.isEmpty()
+            base.paneLocalModalChains.isEmpty() &&
+            tourSession == null
 
         base.copy(showReviewCard = review.shouldAskForReview && isQuiet)
     }.asStateFlow()
