@@ -83,36 +83,12 @@ fun WorkspacePreview(
                                     targetState = type,
                                     label = "WorkspacePreview"
                                 ) { workspaceType ->
-                                    when (workspaceType) {
-                                        Workspace.Type.EXPLORER -> ExplorerMockPreview()
-                                        Workspace.Type.SEARCHER -> SearcherMockPreview()
-                                        Workspace.Type.EDITOR -> EditorMockPreview()
-                                        Workspace.Type.TEMPLATES -> TemplatesMockPreview()
-                                        Workspace.Type.APPS -> AppsMockPreview()
-                                        Workspace.Type.APP_DETAILS -> AppsMockPreview()
-                                        Workspace.Type.SAVER -> EditorMockPreview()
-                                        Workspace.Type.DEVELOPER -> DeveloperMockPreview()
-                                        Workspace.Type.HISTORY -> DeveloperMockPreview()
-                                        Workspace.Type.BUG_REPORT -> DeveloperMockPreview()
-                                        Workspace.Type.VIEWER -> ExplorerMockPreview()
-                                    }
+                                    WorkspaceMockPreview(type = workspaceType)
                                 }
                             }
                         )
                     } else {
-                        when (type) {
-                            Workspace.Type.EXPLORER -> ExplorerMockPreview()
-                            Workspace.Type.SEARCHER -> SearcherMockPreview()
-                            Workspace.Type.EDITOR -> EditorMockPreview()
-                            Workspace.Type.TEMPLATES -> TemplatesMockPreview()
-                            Workspace.Type.APPS -> AppsMockPreview()
-                            Workspace.Type.APP_DETAILS -> AppsMockPreview()
-                            Workspace.Type.SAVER -> EditorMockPreview()
-                            Workspace.Type.DEVELOPER -> DeveloperMockPreview()
-                            Workspace.Type.HISTORY -> DeveloperMockPreview()
-                            Workspace.Type.BUG_REPORT -> DeveloperMockPreview()
-                            Workspace.Type.VIEWER -> ExplorerMockPreview()
-                        }
+                        WorkspaceMockPreview(type = type)
                     }
                 }
 
