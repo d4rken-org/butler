@@ -36,14 +36,17 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.ButlerTip
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.tour.guidedTourTarget
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.ui.manager.LocalWorkspaceButtonProvider
+import eu.darken.butler.workspace.ui.workspaces.tour.FirstTabTour
 import kotlin.time.Duration.Companion.seconds
 
 @Composable
 internal fun EmptyClassicWorkspaceContent(
     modifier: Modifier = Modifier,
     isUpgraded: Boolean,
+    isTourTarget: Boolean = false,
 ) {
     val workspaceActionHandler = LocalWorkspaceButtonProvider.current
     Column(
@@ -99,7 +102,15 @@ internal fun EmptyClassicWorkspaceContent(
                 // Create workspace card (primary action)
                 Card(
                     onClick = { workspaceActionHandler?.executeWorkspaceAction(WorkspaceAction.Create()) },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .then(
+                            if (isTourTarget) {
+                                Modifier.guidedTourTarget(FirstTabTour.CREATE_TAB_TARGET)
+                            } else {
+                                Modifier
+                            },
+                        ),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
                 ) {
                     Row(

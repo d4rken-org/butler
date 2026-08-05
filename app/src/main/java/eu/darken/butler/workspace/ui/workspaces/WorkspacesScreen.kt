@@ -28,6 +28,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.tour.LocalGuidedTourController
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.main.ui.motd.MotdCard
@@ -52,6 +53,7 @@ import eu.darken.butler.workspace.ui.manager.rememberWindowSizeInfo
 import eu.darken.butler.workspace.ui.scroll.LocalWorkspaceScrollPositions
 import eu.darken.butler.workspace.ui.workspaces.adaptive.DividerPositions
 import eu.darken.butler.workspace.ui.workspaces.classic.ClassicWorkspaceContainer
+import eu.darken.butler.workspace.ui.workspaces.tour.FirstTabTour
 import kotlin.uuid.Uuid
 
 @Composable
@@ -115,6 +117,23 @@ fun WorkspaceScreen(
         onScreenAction(WorkspaceScreenAction.SetPaneCount(design.maxPanes))
     }
 
+    // Restoration starts with an empty tabWorkspaces even when the user has saved tabs, so the
+    // isRestoring guard is what keeps the tour off a restoring session. tabWorkspaces.isEmpty()
+    // gates BOTH layouts: an empty pane next to an occupied one is not "no tabs yet".
+    val firstTabTourEligible = !state.isRestoring && state.tabWorkspaces.isEmpty()
+    // With zero tabs every pane is empty, so the first one is always the one to tag - no scan needed.
+    val firstTabTourPaneNumber: Int? = if (!firstTabTourEligible || design.isSingle) null else 1
+
+    val tourController = LocalGuidedTourController.current
+    var tourStartAttempted by remember { mutableStateOf(false) }
+    LaunchedEffect(firstTabTourEligible, isOverlayVisible) {
+        // Starting under the manager overlay would anchor on a card the user cannot see.
+        if (!firstTabTourEligible || isOverlayVisible || tourStartAttempted) return@LaunchedEffect
+        // tryStart is atomic: `attempted` is only set when the start actually took, so a transient
+        // block (another tour active) cannot permanently suppress this one.
+        tourStartAttempted = tourController.tryStart(FirstTabTour.definition)
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         // Main workspace content
         if (!design.isSingle) {
@@ -147,6 +166,7 @@ fun WorkspaceScreen(
                 // A full-screen modal covers every pane, so none of them may stay focus- or
                 // back-active underneath it. Classic already guards this via its own container.
                 fullScreenModalVisible = state.fullScreenModalWorkspace != null,
+                firstTabTourPaneNumber = firstTabTourPaneNumber,
                 onShareError = onShareError,
             )
         } else {
@@ -160,6 +180,7 @@ fun WorkspaceScreen(
                 onConfirmManagerDialog = onConfirmManagerDialog,
                 bannerStates = bannerStates,
                 onDismissBanner = onDismissBanner,
+                isFirstTabTourTarget = firstTabTourEligible,
                 onShareError = onShareError,
             )
         }

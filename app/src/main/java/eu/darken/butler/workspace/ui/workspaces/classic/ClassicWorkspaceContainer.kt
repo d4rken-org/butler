@@ -45,6 +45,7 @@ internal fun ClassicWorkspaceContainer(
     onConfirmManagerDialog: (ManagerDialog.WorkspaceTargeted) -> Unit,
     bannerStates: Map<Workspace.Id, eu.darken.butler.workspace.ui.feedback.BannerState>,
     onDismissBanner: (Workspace.Id) -> Unit,
+    isFirstTabTourTarget: Boolean = false,
     onShareError: (Workspace.Id, Throwable) -> Unit,
 ) {
     val workspaceActionHandler = LocalWorkspaceButtonProvider.current
@@ -148,6 +149,7 @@ internal fun ClassicWorkspaceContainer(
                     .paneHorizontalInsetPadding(design.paneEdges)
                     .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Vertical)),
                 isUpgraded = state.isUpgraded,
+                isTourTarget = isFirstTabTourTarget,
             )
         }
 

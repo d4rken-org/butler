@@ -33,8 +33,10 @@ import eu.darken.butler.common.compose.ButlerTip
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.Preview2Tablet
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.tour.guidedTourTarget
 import eu.darken.butler.workspace.ui.insets.paneInsets
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign.*
+import eu.darken.butler.workspace.ui.workspaces.tour.FirstTabTour
 
 @Composable
 internal fun EmptyAdaptiveWorkspaceContent(
@@ -42,6 +44,7 @@ internal fun EmptyAdaptiveWorkspaceContent(
     paneNumber: Int,
     paneEdges: PaneEdges = PaneEdges.All,
     isUpgraded: Boolean = false,
+    isTourTarget: Boolean = false,
     onAddWorkspace: (() -> Unit)? = null,
 ) {
     // Vertical only - horizontal insets are applied by the pane host.
@@ -91,7 +94,14 @@ internal fun EmptyAdaptiveWorkspaceContent(
                 Card(
                     onClick = onAddWorkspace,
                     modifier = Modifier
-                        .fillMaxWidth(),
+                        .fillMaxWidth()
+                        .then(
+                            if (isTourTarget) {
+                                Modifier.guidedTourTarget(FirstTabTour.CREATE_TAB_TARGET)
+                            } else {
+                                Modifier
+                            },
+                        ),
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
                     ),

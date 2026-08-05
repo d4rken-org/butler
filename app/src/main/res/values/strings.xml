@@ -309,6 +309,10 @@
     <string name="workspace_classic_empty_tabs_closed">No open tabs. Ready when you are.</string>
     <string name="workspace_classic_empty_tip">Tip: Tap “Create tab” and pick a tool — Explorer, Searcher, Editor, and more.</string>
 
+    <!-- Workspace > Guided tour -->
+    <string name="tour_first_tab_title">Start with a tab</string>
+    <string name="tour_first_tab_body">Butler works in tabs, like a browser: each one is a tool of its own — Explorer, Searcher, Editor, and more. This card creates your first tab. Tap Done, then give it a try.</string>
+
     <string name="workspace_creating_placeholder">Creating tab…</string>
     <string name="workspace_ondemand_swipe_title">Swipe to create new tab</string>
 

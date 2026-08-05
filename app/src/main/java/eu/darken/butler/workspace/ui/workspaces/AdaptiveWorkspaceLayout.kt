@@ -55,6 +55,8 @@ fun AdaptiveWorkspaceLayout(
     isUpgraded: Boolean = false,
     isOverlayVisible: Boolean = false,
     fullScreenModalVisible: Boolean = false,
+    /** The pane whose empty content anchors the first-tab tour, or `null` when it isn't running. */
+    firstTabTourPaneNumber: Int? = null,
     onShareError: (Workspace.Id, Throwable) -> Unit,
 ) {
     val dragDropState = remember { DragDropState() }
@@ -219,6 +221,7 @@ fun AdaptiveWorkspaceLayout(
                             paneNumber = paneNumber,
                             paneEdges = paneDesign.paneEdges,
                             isUpgraded = isUpgraded,
+                            isTourTarget = paneNumber == firstTabTourPaneNumber,
                             onAddWorkspace = {
                                 onScreenAction(WorkspaceScreenAction.CreateForPane(paneNumber - 1))
                             },
