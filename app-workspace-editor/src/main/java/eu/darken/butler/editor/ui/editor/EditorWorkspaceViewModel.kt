@@ -37,10 +37,12 @@ import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import eu.darken.butler.workspace.core.handleResult
 import eu.darken.butler.workspace.core.launchPicker
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -57,6 +59,7 @@ import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
 
 @HiltViewModel(assistedFactory = EditorWorkspaceViewModel.Factory::class)
@@ -106,11 +109,11 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             ) { state, contentPath -> WorkspaceSnapshot(ws, state, contentPath) }
         }
 
-    // Bumped whenever a field-originated edit (typing/backspace) is gated behind the large-edit
-    // confirm dialog. LazyTextEditor applies its edit to the hidden field optimistically before
-    // dispatching, so a gated (unapplied) edit would leave the field diverged from the engine;
-    // observing this signal makes the field revert to engine content. Only fires on the rare
-    // oversized gate - normal typing never bumps it.
+    // Bumped whenever a field-originated edit (typing/backspace) does NOT reach the document:
+    // gated behind the large-edit confirm dialog, or rejected by the engine (stale positions from
+    // a diverged field). LazyTextEditor applies its edit to the hidden field optimistically before
+    // dispatching, so an unapplied edit would leave the field diverged from the engine; observing
+    // this signal makes the field revert to engine content. Normal typing never bumps it.
     private val _editResyncSignal = MutableStateFlow(0)
 
     val state: Flow<State> = combine(
@@ -193,6 +196,10 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     // Pulsed on every user edit; sampled to poll backing availability while actively typing.
     private val editActivity = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
+    // Declared before the init block that starts the consumer - property initialization is ordered.
+    private val editCommands = Channel<EditCommand>(Channel.UNLIMITED)
+    private val enqueuedRevision = AtomicLong(0L)
+
     /**
      * Append/EOF edits need no original bytes, so they can't trip the buffer's read backstop, and
      * the resumed-page external-change poll is coarse (15s). Sampling edit activity checks the
@@ -208,6 +215,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     }
 
     init {
+        consumeEditCommands()
         observeEditActivityForAvailability()
 
         // Dismissed backup/long-lines notices belong to ONE path: any path change (open,
@@ -436,27 +444,136 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         getWorkspace().revealMoreColumns(forward)
     }
 
-    fun insertText(text: String) = launch { guardedInsertText(text) }
+    /**
+     * One ordered edit pipeline for every text mutation.
+     *
+     * Each entry point used to `launch` its own coroutine on the multi-threaded Default dispatcher,
+     * so two edits dispatched back-to-back (Enter, then a character) could reach the engine's mutex
+     * in the wrong order and the character would resolve against the pre-Enter document. Entry
+     * points now enqueue SYNCHRONOUSLY and a single consumer drains the channel, so arrival order
+     * at the engine equals UI-event order.
+     */
+    private sealed interface EditCommand {
+        /** Enqueue order; a rejection only resyncs the field when no newer command is queued. */
+        val revision: Long
+
+        data class Replace(
+            override val revision: Long,
+            val start: TextPosition,
+            val end: TextPosition,
+            val text: String,
+            val caret: TextPosition,
+        ) : EditCommand
+
+        data class Insert(
+            override val revision: Long,
+            val text: String,
+            /** Completed with whether the insert was applied; null for fire-and-forget inserts. */
+            val applied: CompletableDeferred<Boolean>? = null,
+        ) : EditCommand
+
+        data class DeleteSelection(override val revision: Long, val gated: Boolean) : EditCommand
+        data class DeleteAtCursor(override val revision: Long, val count: Int) : EditCommand
+        data class DeleteForward(override val revision: Long) : EditCommand
+        data class Undo(override val revision: Long) : EditCommand
+        data class Redo(override val revision: Long) : EditCommand
+    }
+
+    /** Must stay non-suspending: enqueueing from inside a coroutine would reintroduce the reordering. */
+    private fun enqueue(command: (Long) -> EditCommand) {
+        editCommands.trySend(command(enqueuedRevision.incrementAndGet()))
+    }
+
+    private fun consumeEditCommands() = vmScope.launch {
+        for (command in editCommands) {
+            try {
+                execute(command)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                // Per-command catch: one failed edit must not tear down the pipeline
+                log(tag, ERROR) { "Edit command failed: $command - ${e.asLog()}" }
+                errorEvents.emit(e)
+            }
+        }
+    }
+
+    private suspend fun execute(command: EditCommand) {
+        when (command) {
+            is EditCommand.Replace -> {
+                // Typing/backspace over an oversized selection replaces it non-undoably (materializing
+                // it for undo would OOM). The field already applied the edit locally, so a deferred
+                // gate bumps the resync signal to revert it; on confirm we replay the replace.
+                val replay: suspend () -> Boolean = {
+                    performReplaceText(command.start, command.end, command.text, command.caret)
+                }
+                if (deferIfOversized(fromField = true) { replay() }) return
+                // A rejected edit (stale field positions) leaves the field diverged too
+                if (!replay()) signalFieldResync(command.revision)
+            }
+            is EditCommand.Insert -> {
+                try {
+                    val deferred = deferIfOversized { performInsertText(command.text) }
+                    if (!deferred) performInsertText(command.text)
+                    command.applied?.complete(!deferred)
+                } catch (e: Throwable) {
+                    command.applied?.completeExceptionally(e)
+                    throw e
+                }
+            }
+            is EditCommand.DeleteSelection -> {
+                if (command.gated && deferIfOversized { performDeleteSelection() }) return
+                performDeleteSelection()
+            }
+            is EditCommand.DeleteAtCursor -> {
+                // Over an oversized selection this deletes non-undoably; confirm and replay as a
+                // selection delete. A plain backspace (no selection) is never gated.
+                if (deferIfOversized { performDeleteSelection() }) return
+                editActivity.tryEmit(Unit)
+                getWorkspace().deleteAtCursor(command.count)
+            }
+            is EditCommand.DeleteForward -> {
+                if (deferIfOversized { performDeleteSelection() }) return
+                editActivity.tryEmit(Unit)
+                getWorkspace().deleteForward()
+            }
+            is EditCommand.Undo -> getWorkspace().undo()
+            is EditCommand.Redo -> getWorkspace().redo()
+        }
+    }
+
+    /**
+     * Reverts the hidden field to engine content after an edit that never landed - but ONLY for the
+     * newest enqueued command. Older rejections are superseded by input still queued behind them
+     * (which resolves against the same stale positions and is dropped too), so the last one triggers
+     * the single resync instead of an early one rebuilding the field over newer input.
+     */
+    private fun signalFieldResync(revision: Long) {
+        if (revision != enqueuedRevision.get()) return
+        _editResyncSignal.update { it + 1 }
+    }
+
+    fun insertText(text: String) = enqueue { EditCommand.Insert(it, text) }
 
     private suspend fun performInsertText(text: String) {
         editActivity.tryEmit(Unit)
         getWorkspace().insertText(text)
     }
 
-    fun replaceText(start: TextPosition, end: TextPosition, text: String, caret: TextPosition) = launch {
-        // Typing/backspace over an oversized selection replaces it non-undoably (materializing it
-        // for undo would OOM). The field already applied the edit locally, so a deferred gate bumps
-        // the resync signal to revert it; on confirm we replay the replace.
-        if (deferIfOversized(fromField = true) { performReplaceText(start, end, text, caret) }) return@launch
-        performReplaceText(start, end, text, caret)
-    }
+    fun replaceText(start: TextPosition, end: TextPosition, text: String, caret: TextPosition) =
+        enqueue { EditCommand.Replace(it, start, end, text, caret) }
 
-    private suspend fun performReplaceText(start: TextPosition, end: TextPosition, text: String, caret: TextPosition) {
+    private suspend fun performReplaceText(
+        start: TextPosition,
+        end: TextPosition,
+        text: String,
+        caret: TextPosition,
+    ): Boolean {
         editActivity.tryEmit(Unit)
-        getWorkspace().replaceText(start, end, text, caret)
+        return getWorkspace().replaceText(start, end, text, caret)
     }
 
-    fun deleteSelection() = launch { performDeleteSelection() }
+    fun deleteSelection() = enqueue { EditCommand.DeleteSelection(it, gated = false) }
 
     private suspend fun performDeleteSelection() {
         editActivity.tryEmit(Unit)
@@ -480,6 +597,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
      * (confirm an edit that would actually be undoable) - the safe direction; it never skips a genuine
      * non-undoable edit. [fromField] edits already mutated the hidden field locally, so a gate bumps
      * [_editResyncSignal] to revert it to engine content.
+     *
+     * Runs inside the edit-command consumer, so it stays ordered against the edits it gates.
      */
     private suspend fun deferIfOversized(fromField: Boolean = false, onConfirm: suspend () -> Unit): Boolean {
         if (!getWorkspace().selectionExceedsUndoThreshold()) return false
@@ -492,9 +611,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         return true
     }
 
-    fun requestDeleteSelection() = launch {
-        if (!deferIfOversized { performDeleteSelection() }) performDeleteSelection()
-    }
+    fun requestDeleteSelection() = enqueue { EditCommand.DeleteSelection(it, gated = true) }
 
     fun confirmLargeDelete() {
         val action = pendingOversizedEdit.getAndSet(null) ?: return
@@ -508,25 +625,18 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         dialogsController.dismissLargeDeleteConfirmDialog()
     }
 
-    fun deleteAtCursor(count: Int) = launch {
-        // Over an oversized selection this deletes non-undoably; confirm and replay as a selection
-        // delete. A plain backspace (no selection) is never gated.
-        if (deferIfOversized { performDeleteSelection() }) return@launch
-        editActivity.tryEmit(Unit)
-        getWorkspace().deleteAtCursor(count)
-    }
+    fun deleteAtCursor(count: Int) = enqueue { EditCommand.DeleteAtCursor(it, count) }
 
-    fun deleteForward() = launch {
-        if (deferIfOversized { performDeleteSelection() }) return@launch
-        editActivity.tryEmit(Unit)
-        getWorkspace().deleteForward()
-    }
+    fun deleteForward() = enqueue { EditCommand.DeleteForward(it) }
 
-    /** Insert (e.g. paste) guarded by the oversized-selection gate. Returns false when deferred. */
+    /**
+     * Insert (e.g. paste) guarded by the oversized-selection gate. Returns false when deferred.
+     * Goes through the same queue as every other mutation, awaiting its command's outcome.
+     */
     private suspend fun guardedInsertText(text: String): Boolean {
-        if (deferIfOversized { performInsertText(text) }) return false
-        performInsertText(text)
-        return true
+        val applied = CompletableDeferred<Boolean>()
+        enqueue { EditCommand.Insert(it, text, applied) }
+        return applied.await()
     }
 
     fun moveCursor(direction: CursorDirection, extendSelection: Boolean) = launch {
@@ -549,13 +659,9 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         getWorkspace().goToLine(lineNumber)
     }
 
-    fun undo() = launch {
-        getWorkspace().undo()
-    }
+    fun undo() = enqueue { EditCommand.Undo(it) }
 
-    fun redo() = launch {
-        getWorkspace().redo()
-    }
+    fun redo() = enqueue { EditCommand.Redo(it) }
 
     fun clearError() = launch {
         getWorkspace().clearError()

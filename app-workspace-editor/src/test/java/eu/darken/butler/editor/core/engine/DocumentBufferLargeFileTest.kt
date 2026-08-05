@@ -100,7 +100,8 @@ class DocumentBufferLargeFileTest : BaseTest() {
         content.toByteArray().size shouldBeGreaterThan 6_000_000
         val (_, buffer) = openLargeBuffer(tempDir, content)
 
-        buffer.totalLines.value shouldBe LINE_COUNT.toLong()
+        // +1: the trailing break separates a final empty line
+        buffer.totalLines.value shouldBe LINE_COUNT.toLong() + 1
         buffer.totalLength.value shouldBe content.length.toLong()
     }
 

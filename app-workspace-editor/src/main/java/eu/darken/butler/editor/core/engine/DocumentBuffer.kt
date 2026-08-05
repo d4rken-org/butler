@@ -1505,11 +1505,16 @@ class DocumentBuffer @AssistedInject constructor(
         return true
     }
 
+    /**
+     * Line breaks are SEPARATORS, matching the piece table ([PieceTable.lineOfOffset] returns
+     * [PieceTable.totalLineBreaks] at the document end): a document ending in a break has a
+     * trailing empty line and it must be counted, or the cursor after pressing Enter at EOF has
+     * no line to land on.
+     */
     private fun refreshStats() {
         val table = pieceTable ?: return
         _totalLength.value = table.totalCharLength
-        val lines = table.totalLineBreaks + (if (table.endsWithBreak) 0L else 1L)
-        _totalLines.value = lines.coerceAtLeast(1L)
+        _totalLines.value = (table.totalLineBreaks + 1L).coerceAtLeast(1L)
     }
 
     private fun updateModified() {

@@ -673,21 +673,24 @@ class EditorEngine @AssistedInject constructor(
      * This is the path all soft-keyboard input flows through. To keep one keystroke = one undo entry, pure
      * inserts and pure deletes are routed to the buffer's single-op methods; only genuine replacements
      * (e.g. autocorrect) use the composite delete+insert path.
+     *
+     * Returns true when the edit was applied (or was a deliberate no-op), false on EVERY rejection -
+     * the caller uses that to resync the hidden field, which already applied the edit optimistically.
      */
     suspend fun replaceText(
         start: TextPosition,
         end: TextPosition,
         text: String,
         caret: TextPosition,
-    ) = stateMutex.withLock {
+    ): Boolean = stateMutex.withLock {
         val currentState = _state.value as? EditorState.Loaded
         if (currentState == null) {
             log(tag, WARN) { "Cannot replace text - no file open" }
-            return@withLock
+            return@withLock false
         }
         currentState.editabilityError()?.let {
             log(tag, VERBOSE) { "replaceText rejected: ${it.message}" }
-            return@withLock
+            return@withLock false
         }
         val buffer = currentState.resources.textBuffer
         val newText = matchDocumentLineEnding(text, buffer)
@@ -700,11 +703,19 @@ class EditorEngine @AssistedInject constructor(
         try {
             startOffset = buffer.findOffset(start.line, start.column)
             endOffset = buffer.findOffset(end.line, end.column)
+            // findOffset CLAMPS an out-of-range column, so a stale field position would silently
+            // edit at the line end instead of being rejected - and a stale deletion whose endpoints
+            // both clamp to the same offset would masquerade as the deliberate no-op below. Checked
+            // BEFORE the no-op short-circuit for exactly that reason.
+            if (!buffer.columnIsRepresentable(start) || !buffer.columnIsRepresentable(end)) {
+                log(tag, WARN) { "replaceText: column out of range ($start..$end), dropping edit" }
+                return@withLock false
+            }
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             log(tag, WARN) { "replaceText: position resolve failed, dropping edit - ${e.message}" }
-            return@withLock
+            return@withLock false
         }
         var lowPos: TextPosition
         var highPos: TextPosition
@@ -720,7 +731,7 @@ class EditorEngine @AssistedInject constructor(
         if (isEmptyRange && newText.isEmpty()) {
             // Pure no-op: the field never emits this (computeTextEdit returns null when text is unchanged),
             // so there is nothing to edit and no cursor/selection state to disturb.
-            return@withLock
+            return@withLock true
         }
 
         // Only keystroke-SIZED edits coalesce (<= 2 UTF-16 units covers surrogate-pair input):
@@ -759,12 +770,23 @@ class EditorEngine @AssistedInject constructor(
                 _state.value = currentState.copy(isModified = true)
                 invalidateSearchResults()
                 refreshVisibleContent()
+                true
             },
             onFailure = { e ->
                 log(tag, ERROR) { "Failed to replace text - ${e.asLog()}" }
                 _error.value = e
+                false
             },
         )
+    }
+
+    /**
+     * Whether [position]'s column addresses a real spot on its line - i.e. whether
+     * [DocumentBuffer.findOffset] would resolve it exactly instead of clamping it.
+     */
+    private suspend fun DocumentBuffer.columnIsRepresentable(position: TextPosition): Boolean {
+        val length = getLineLength(position.line).getOrElse { return false }
+        return position.column >= 0 && position.column <= length
     }
 
     /** Resolves [caret] (line/column from the visible field) to a buffer offset and sets it as the cursor. */
@@ -1782,9 +1804,10 @@ class EditorEngine @AssistedInject constructor(
                         // auto-save and the unsaved-changes close warning act on stale state
                         _state.value = currentState.copy(isModified = buffer.isModified.value)
                         invalidateSearchResults()
-                        refreshVisibleContent()
 
-                        // Update cursor position based on undone operation
+                        // Cursor BEFORE the refresh: refreshVisibleContent(ensureCursor = true) grows
+                        // the loaded window to cover the cursor line, so a stale cursor would leave
+                        // the new line unloaded and the field diverged from the engine.
                         result.getOrNull()?.let { operation ->
                             val newCursorPosition = when (operation) {
                                 is EditOperation.Insert -> operation.position
@@ -1794,6 +1817,7 @@ class EditorEngine @AssistedInject constructor(
                             _cursorPosition.value = newCursorPosition
                             _selectionRange.value = null
                         }
+                        refreshVisibleContent()
                     }
                     result
                 } catch (e: Exception) {
@@ -1823,9 +1847,8 @@ class EditorEngine @AssistedInject constructor(
                         // save-point crossings
                         _state.value = currentState.copy(isModified = buffer.isModified.value)
                         invalidateSearchResults()
-                        refreshVisibleContent()
 
-                        // Update cursor position based on redone operation
+                        // See undo(): the cursor must be published before the window refresh
                         result.getOrNull()?.let { operation ->
                             val newCursorPosition = when (operation) {
                                 is EditOperation.Insert -> computeEndPosition(operation.position, operation.text)
@@ -1835,6 +1858,7 @@ class EditorEngine @AssistedInject constructor(
                             _cursorPosition.value = newCursorPosition
                             _selectionRange.value = null
                         }
+                        refreshVisibleContent()
                     }
                     result
                 } catch (e: Exception) {

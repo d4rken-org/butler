@@ -121,10 +121,58 @@ class EditorEngineReplaceTextTest : DocumentBufferTestBase() {
         // (findOffset(line=8, total=2) threw IndexOutOfBoundsException). It must be a no-op now.
         val engine = createEngine("first line\nsecond line")
 
-        engine.replaceText(start = pos(8, 0), end = pos(8, 0), text = "\n", caret = pos(9, 0))
+        engine.replaceText(start = pos(8, 0), end = pos(8, 0), text = "\n", caret = pos(9, 0)) shouldBe false
 
         engine.fullContent() shouldBe "first line\nsecond line"
         (engine.state.value as EditorState.Loaded).isModified shouldBe false
+    }
+
+    @Test
+    fun `out-of-range column from a diverged field is dropped, not clamped`() = runTest {
+        // findOffset clamps the column, so without an explicit check this insert would silently
+        // land at the end of the line instead of being rejected.
+        val engine = createEngine("abc\ndef")
+
+        engine.replaceText(start = pos(0, 7), end = pos(0, 7), text = "X", caret = pos(0, 8)) shouldBe false
+
+        engine.fullContent() shouldBe "abc\ndef"
+        (engine.state.value as EditorState.Loaded).isModified shouldBe false
+    }
+
+    @Test
+    fun `a stale deletion whose endpoints both clamp is dropped, not reported as a no-op`() = runTest {
+        val engine = createEngine("abc\ndef")
+
+        engine.replaceText(start = pos(0, 5), end = pos(0, 9), text = "", caret = pos(0, 5)) shouldBe false
+
+        engine.fullContent() shouldBe "abc\ndef"
+        (engine.state.value as EditorState.Loaded).isModified shouldBe false
+    }
+
+    @Test
+    fun `pressing enter at the end of the document leaves the caret on the new line`() = runTest {
+        val engine = createEngine("Hello")
+
+        engine.replaceText(start = pos(0, 5), end = pos(0, 5), text = "\n", caret = pos(1, 0)) shouldBe true
+
+        engine.fullContent() shouldBe "Hello\n"
+        engine.totalLines.value shouldBe 2L
+        engine.cursorPosition.value.line shouldBe 1L
+        engine.cursorPosition.value.column shouldBe 0
+        // Both lines must be loaded, or the field and the engine diverge permanently
+        engine.visibleContent.value.text shouldBe "Hello\n"
+    }
+
+    @Test
+    fun `typing after an end-of-document newline still reaches the document`() = runTest {
+        // The reported bug: after Enter the caret snapped back to line 0 and every later keystroke
+        // resolved against a line the buffer did not have, so typing looked dead.
+        val engine = createEngine("Hello")
+        engine.replaceText(start = pos(0, 5), end = pos(0, 5), text = "\n", caret = pos(1, 0)) shouldBe true
+
+        engine.replaceText(start = pos(1, 0), end = pos(1, 0), text = "X", caret = pos(1, 1)) shouldBe true
+
+        engine.fullContent() shouldBe "Hello\nX"
     }
 
     @Test

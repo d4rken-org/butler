@@ -64,7 +64,7 @@ class EditorWorkspaceViewModelDeleteGateTest : BaseTest() {
             coEvery { deleteSelection() } returns Result.success("")
             coEvery { deleteAtCursor(any()) } returns Result.success("")
             coEvery { deleteForward() } returns Unit
-            coEvery { replaceText(any(), any(), any(), any()) } returns Unit
+            coEvery { replaceText(any(), any(), any(), any()) } returns true
             coEvery { insertText(any()) } returns Unit
             coEvery { selectionExceedsUndoThreshold() } returns (
                 selection != null &&
