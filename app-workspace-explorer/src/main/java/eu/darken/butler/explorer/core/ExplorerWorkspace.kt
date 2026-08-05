@@ -189,6 +189,15 @@ class ExplorerWorkspace @AssistedInject constructor(
 
     private val navigationRequests = MutableSharedFlow<ExplorerNavigation>(replay = 1)
 
+    /** Navigation state as it was when [target]'s content last settled: what a cancel rolls back to. */
+    private data class StableNav(
+        val target: ExplorerNavigation.Target,
+        val historyIndex: Int,
+        val navigationHistory: List<ExplorerNavigation.Target>,
+    )
+
+    @Volatile private var stableNav: StableNav? = null
+
     sealed interface State {
         data object Initializing : State
 
@@ -233,6 +242,7 @@ class ExplorerWorkspace @AssistedInject constructor(
                         refreshId = engineState.refreshId,
                     )
                 }
+                rememberStableNavigation(engineState)
             }
             .launchIn(scope)
 
@@ -303,18 +313,16 @@ class ExplorerWorkspace @AssistedInject constructor(
             is ExplorerNavigation.Back -> {
                 val readyState = _state.value as? State.Ready ?: return
                 if (readyState.historyIndex > 0) {
-                    val targetLocation = readyState.navigationHistory[readyState.historyIndex - 1]
-                    loadTarget(targetLocation, addToHistory = false)
-                    updateReady { copy(historyIndex = historyIndex - 1) }
+                    val newIndex = readyState.historyIndex - 1
+                    goToHistoryEntry(readyState.navigationHistory[newIndex], newIndex)
                 }
             }
 
             is ExplorerNavigation.Forward -> {
                 val readyState = _state.value as? State.Ready ?: return
                 if (readyState.historyIndex < readyState.navigationHistory.size - 1) {
-                    val targetLocation = readyState.navigationHistory[readyState.historyIndex + 1]
-                    loadTarget(targetLocation, addToHistory = false)
-                    updateReady { copy(historyIndex = historyIndex + 1) }
+                    val newIndex = readyState.historyIndex + 1
+                    goToHistoryEntry(readyState.navigationHistory[newIndex], newIndex)
                 }
             }
 
@@ -325,15 +333,105 @@ class ExplorerWorkspace @AssistedInject constructor(
 
             is ExplorerNavigation.Cancel -> {
                 log(tag, INFO) { "Navigation cancel request processed" }
-                updateReady { copy(currentLocation = null, error = null, isRefreshing = false) }
+                when (val result = browsingEngine.cancelLoad()) {
+                    // The engine republished whatever is needed, it arrives via its location flow.
+                    is BrowsingEngine.CancelResult.NoLoadRunning -> log(tag) { "Nothing was loading" }
+                    is BrowsingEngine.CancelResult.RefreshCancelled -> log(tag, INFO) { "Refresh cancelled" }
+                    is BrowsingEngine.CancelResult.NavigationRestored -> restoreStableNavigation(result.target)
+                    is BrowsingEngine.CancelResult.NothingToRestore -> {
+                        // Only reachable while nothing ever settled here, so this is the state from
+                        // before the initial load: the aborted target must not stay in the history,
+                        // or the dialog's retry would append a duplicate and make "back" lead to
+                        // the very target the user just aborted.
+                        log(tag, INFO) { "Aborted before anything settled, resetting navigation state" }
+                        updateReady {
+                            copy(
+                                currentTarget = null,
+                                navigationHistory = emptyList(),
+                                historyIndex = 0,
+                            )
+                        }
+                    }
+                }
             }
         }
     }
 
-    private suspend fun loadTarget(target: ExplorerNavigation.Target, addToHistory: Boolean) {
+    /**
+     * Pairs settled content with the navigation state it belongs to.
+     *
+     * The target match matters: a settle emission and a new navigation can race, and pairing one
+     * target's content with another target's history would restore an inconsistent tab on cancel.
+     */
+    private fun rememberStableNavigation(engineState: BrowsingEngine.State) {
+        if (engineState.location?.isLoading != false || engineState.error != null) return
+        val target = engineState.target ?: return
+        val readyState = _state.value as? State.Ready ?: return
+        if (readyState.currentTarget != target) return
+        stableNav = StableNav(
+            target = target,
+            historyIndex = readyState.historyIndex,
+            navigationHistory = readyState.navigationHistory,
+        )
+    }
+
+    /**
+     * Puts the tab back on [restoredTarget], the target whose content the engine put back on screen.
+     *
+     * Without a matching snapshot the history is repaired deterministically instead, so target,
+     * history and content stay consistent in every interleaving.
+     */
+    private fun restoreStableNavigation(restoredTarget: ExplorerNavigation.Target) {
+        log(tag, INFO) { "restoreStableNavigation($restoredTarget)" }
+        val snapshot = stableNav?.takeIf { it.target == restoredTarget }
+        if (snapshot != null) {
+            updateReady {
+                copy(
+                    currentTarget = snapshot.target,
+                    historyIndex = snapshot.historyIndex,
+                    navigationHistory = snapshot.navigationHistory,
+                )
+            }
+            return
+        }
+        log(tag, WARN) { "No navigation snapshot for $restoredTarget, repairing the history" }
+        updateReady {
+            val index = navigationHistory.lastIndexOf(restoredTarget)
+            if (index != -1) {
+                copy(
+                    currentTarget = restoredTarget,
+                    navigationHistory = navigationHistory.take(index + 1),
+                    historyIndex = index,
+                )
+            } else {
+                copy(
+                    currentTarget = restoredTarget,
+                    navigationHistory = listOf(restoredTarget),
+                    historyIndex = 0,
+                )
+            }
+        }
+    }
+
+    /**
+     * Moves along the existing history. Target and index are written together and before the load
+     * starts: a settle collected between two separate writes would be paired with the index of the
+     * entry the tab just left, and a cancel would then restore that mismatched pair.
+     */
+    private suspend fun goToHistoryEntry(target: ExplorerNavigation.Target, index: Int) {
+        log(tag, INFO) { "goToHistoryEntry($target, $index)" }
+        updateReady { copy(currentTarget = target, historyIndex = index) }
+        loadTarget(target, addToHistory = false, updateCurrentTarget = false)
+    }
+
+    private suspend fun loadTarget(
+        target: ExplorerNavigation.Target,
+        addToHistory: Boolean,
+        updateCurrentTarget: Boolean = true,
+    ) {
         log(tag, INFO) { "loadTarget($target, $addToHistory)" }
 
-        updateReady { copy(currentTarget = target) }
+        if (updateCurrentTarget) updateReady { copy(currentTarget = target) }
 
         if (addToHistory) {
             log(tag) { "loadTarget(): Updating history" }

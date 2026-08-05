@@ -455,6 +455,8 @@
 
     <!-- Navigation Error Messages -->
     <string name="explorer_navigation_error_title">Navigation failed</string>
+    <string name="explorer_aborted_dialog_title">Operation aborted</string>
+    <string name="explorer_aborted_dialog_message">Loading was cancelled before anything could be shown.</string>
     <string name="explorer_archive_unbrowsable_title">Archive can\'t be browsed here</string>
     <string name="explorer_archive_unbrowsable_msg">\"%1$s\" is on storage that only supports sequential reading, but browsing an archive requires random access. Extract the archive here, or download a local copy to browse it.</string>
     <string name="explorer_archive_unbrowsable_extract_action">Extract archive</string>
