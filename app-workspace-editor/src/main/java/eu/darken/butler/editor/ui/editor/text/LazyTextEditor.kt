@@ -3,7 +3,6 @@ package eu.darken.butler.editor.ui.editor.text
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -74,7 +73,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.ui.blockHorizontalScrollPropagation
+import eu.darken.butler.common.ui.pagerFriendlyHorizontalScroll
 import eu.darken.butler.editor.core.engine.SearchResult
 import eu.darken.butler.editor.core.engine.TextPosition
 import eu.darken.butler.editor.core.syntax.Token
@@ -764,8 +763,7 @@ private fun DualColumnEditorContent(
             } else {
                 Modifier
                     .fillMaxSize()
-                    .blockHorizontalScrollPropagation(horizontalScrollState, enabled = isWorkspaceFocused)
-                    .horizontalScroll(horizontalScrollState)
+                    .pagerFriendlyHorizontalScroll(horizontalScrollState, isWorkspaceFocused = isWorkspaceFocused)
             }
 
             LazyColumn(

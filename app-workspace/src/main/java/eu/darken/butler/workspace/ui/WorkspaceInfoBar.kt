@@ -1,6 +1,5 @@
 package eu.darken.butler.workspace.ui
 
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -23,7 +22,7 @@ import eu.darken.butler.common.compose.ButlerChipDefaults
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.ui.blockHorizontalScrollPropagation
+import eu.darken.butler.common.ui.pagerFriendlyHorizontalScroll
 
 @Composable
 fun WorkspaceInfoBar(
@@ -41,8 +40,7 @@ fun WorkspaceInfoBar(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .blockHorizontalScrollPropagation(scrollState, enabled = isWorkspaceFocused)
-            .horizontalScroll(scrollState),
+            .pagerFriendlyHorizontalScroll(scrollState, isWorkspaceFocused = isWorkspaceFocused),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
