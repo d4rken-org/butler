@@ -149,19 +149,21 @@ private fun MockPane(
             .fillMaxHeight()
             .background(MaterialTheme.colorScheme.surface),
     ) {
-        // Same reason as the tab card: the mock rows must not grow with the system font scale
+        // Same reason as the tab card: nothing in the mockup may grow with the system font scale.
+        // This covers the badge too - its digit sits in a fixed 18dp circle and gets clipped at
+        // large font scales.
         CompositionLocalProvider(
             LocalDensity provides Density(LocalDensity.current.density, fontScale = 1f),
         ) {
             WorkspaceMockPreview(type = type)
-        }
 
-        PaneBadge(
-            paneNumber = paneNumber,
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(3.dp),
-        )
+            PaneBadge(
+                paneNumber = paneNumber,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(3.dp),
+            )
+        }
     }
 }
 
