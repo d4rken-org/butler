@@ -5,4 +5,10 @@
     <string name="workspace_templates_choose_subtitle">Select a tab type. How can I help?</string>
     <string name="workspace_templates_name_tab_action">Name this tab</string>
     <string name="workspace_templates_name_tab_clear_content_desc">Clear custom name</string>
+
+    <!-- Guided tour -->
+    <string name="tour_templates_picker_title">Pick a tool</string>
+    <string name="tour_templates_picker_body">This is the tab picker — choose what this tab should be. Explorer browses files, Searcher finds them, Editor changes them. Picking one turns this tab into that tool.</string>
+    <string name="tour_templates_butler_button_title">Your tabs live here</string>
+    <string name="tour_templates_butler_button_body">The Butler button opens the tab manager: create, close and organize your tabs from there.</string>
 </resources>
