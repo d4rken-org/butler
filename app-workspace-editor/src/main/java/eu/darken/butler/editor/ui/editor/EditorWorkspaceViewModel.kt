@@ -37,7 +37,6 @@ import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import eu.darken.butler.workspace.core.handleResult
 import eu.darken.butler.workspace.core.launchPicker
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
@@ -80,8 +79,16 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     private val doLaunch: (suspend CoroutineScope.() -> Unit) -> Unit = { block -> launch(block = block) }
 
     private val searchController = EditorSearchController(vmScope, doLaunch, ::getWorkspace, tag)
-    private val clipboardController =
-        EditorClipboardController(id, doLaunch, ::getWorkspace, ::guardedInsertText, clipboardHelper, clipboardRepo, tag)
+    private val clipboardController = EditorClipboardController(
+        id = id,
+        doLaunch = doLaunch,
+        enqueueClipboardOp = ::enqueueClipboardOp,
+        workspace = ::getWorkspace,
+        guardedInsert = ::performGuardedInsert,
+        clipboardHelper = clipboardHelper,
+        clipboardRepo = clipboardRepo,
+        tag = tag,
+    )
     private val dialogsController = EditorDialogsController(doLaunch, ::getWorkspace)
 
     private var openFileJob: Job? = null
@@ -199,6 +206,15 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     // Declared before the init block that starts the consumer - property initialization is ordered.
     private val editCommands = Channel<EditCommand>(Channel.UNLIMITED)
     private val enqueuedRevision = AtomicLong(0L)
+
+    // Revision of the newest enqueued Replace. Only Replace commands can reject and leave the field
+    // diverged, so only they may hold back the resync - Undo/paste/delete queued behind a rejection
+    // must not suppress it.
+    private val latestReplaceRevision = AtomicLong(0L)
+
+    // Set when a Replace is rejected, cleared when the resync is emitted. Touched only by the single
+    // edit-command consumer, so it needs no synchronization.
+    private var resyncPending = false
 
     /**
      * Append/EOF edits need no original bytes, so they can't trip the buffer's read backstop, and
@@ -454,7 +470,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
      * at the engine equals UI-event order.
      */
     private sealed interface EditCommand {
-        /** Enqueue order; a rejection only resyncs the field when no newer command is queued. */
+        /** Enqueue order; a rejected [Replace] only resyncs the field when no newer one is queued. */
         val revision: Long
 
         data class Replace(
@@ -465,23 +481,27 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             val caret: TextPosition,
         ) : EditCommand
 
-        data class Insert(
-            override val revision: Long,
-            val text: String,
-            /** Completed with whether the insert was applied; null for fire-and-forget inserts. */
-            val applied: CompletableDeferred<Boolean>? = null,
-        ) : EditCommand
+        data class Insert(override val revision: Long, val text: String) : EditCommand
 
         data class DeleteSelection(override val revision: Long, val gated: Boolean) : EditCommand
         data class DeleteAtCursor(override val revision: Long, val count: Int) : EditCommand
         data class DeleteForward(override val revision: Long) : EditCommand
         data class Undo(override val revision: Long) : EditCommand
         data class Redo(override val revision: Long) : EditCommand
+
+        /** Replay of an edit the user confirmed in the large-edit dialog; the gate already ran. */
+        data class Confirmed(override val revision: Long, val action: suspend () -> Unit) : EditCommand
+
+        /** Clipboard retrieval + document mutation as one unit, so neither can be overtaken. */
+        data class Clipboard(override val revision: Long, val op: suspend () -> Unit) : EditCommand
     }
 
     /** Must stay non-suspending: enqueueing from inside a coroutine would reintroduce the reordering. */
     private fun enqueue(command: (Long) -> EditCommand) {
-        editCommands.trySend(command(enqueuedRevision.incrementAndGet()))
+        val created = command(enqueuedRevision.incrementAndGet())
+        // Only Replace revisions gate the resync; concurrent enqueues may assign out of order
+        if (created is EditCommand.Replace) latestReplaceRevision.updateAndGet { maxOf(it, created.revision) }
+        editCommands.trySend(created)
     }
 
     private fun consumeEditCommands() = vmScope.launch {
@@ -507,20 +527,19 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
                 val replay: suspend () -> Boolean = {
                     performReplaceText(command.start, command.end, command.text, command.caret)
                 }
-                if (deferIfOversized(fromField = true) { replay() }) return
-                // A rejected edit (stale field positions) leaves the field diverged too
-                if (!replay()) signalFieldResync(command.revision)
-            }
-            is EditCommand.Insert -> {
-                try {
-                    val deferred = deferIfOversized { performInsertText(command.text) }
-                    if (!deferred) performInsertText(command.text)
-                    command.applied?.complete(!deferred)
-                } catch (e: Throwable) {
-                    command.applied?.completeExceptionally(e)
-                    throw e
+                if (deferIfOversized(fromField = true) { replay() }) {
+                    // The gate reverted the field itself, which also settles an earlier rejection
+                    resyncPending = false
+                } else if (!replay()) {
+                    // A rejected edit (stale field positions) leaves the field diverged too
+                    resyncPending = true
+                }
+                if (command.revision == latestReplaceRevision.get() && resyncPending) {
+                    resyncPending = false
+                    _editResyncSignal.update { it + 1 }
                 }
             }
+            is EditCommand.Insert -> performGuardedInsert(command.text)
             is EditCommand.DeleteSelection -> {
                 if (command.gated && deferIfOversized { performDeleteSelection() }) return
                 performDeleteSelection()
@@ -539,18 +558,10 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             }
             is EditCommand.Undo -> getWorkspace().undo()
             is EditCommand.Redo -> getWorkspace().redo()
+            // The gate already ran before the dialog; re-running it would defer the confirmed edit again
+            is EditCommand.Confirmed -> command.action()
+            is EditCommand.Clipboard -> command.op()
         }
-    }
-
-    /**
-     * Reverts the hidden field to engine content after an edit that never landed - but ONLY for the
-     * newest enqueued command. Older rejections are superseded by input still queued behind them
-     * (which resolves against the same stale positions and is dropped too), so the last one triggers
-     * the single resync instead of an early one rebuilding the field over newer input.
-     */
-    private fun signalFieldResync(revision: Long) {
-        if (revision != enqueuedRevision.get()) return
-        _editResyncSignal.update { it + 1 }
     }
 
     fun insertText(text: String) = enqueue { EditCommand.Insert(it, text) }
@@ -615,8 +626,9 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
 
     fun confirmLargeDelete() {
         val action = pendingOversizedEdit.getAndSet(null) ?: return
+        // Enqueued before the dialog closes: typing right after confirming must land behind the replay
+        enqueue { EditCommand.Confirmed(it, action) }
         dialogsController.dismissLargeDeleteConfirmDialog()
-        launch { action() }
     }
 
     /** Cancel the pending oversized edit without applying it. */
@@ -631,13 +643,19 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
 
     /**
      * Insert (e.g. paste) guarded by the oversized-selection gate. Returns false when deferred.
-     * Goes through the same queue as every other mutation, awaiting its command's outcome.
+     *
+     * Runs INSIDE the edit-command consumer (as an [EditCommand.Insert] or from a clipboard op), so
+     * it must never enqueue and wait: the consumer that would have to run the enqueued command is
+     * the one calling this.
      */
-    private suspend fun guardedInsertText(text: String): Boolean {
-        val applied = CompletableDeferred<Boolean>()
-        enqueue { EditCommand.Insert(it, text, applied) }
-        return applied.await()
+    private suspend fun performGuardedInsert(text: String): Boolean {
+        if (deferIfOversized { performInsertText(text) }) return false
+        performInsertText(text)
+        return true
     }
+
+    /** Runs a clipboard op - retrieval included - inside the ordered pipeline. */
+    private fun enqueueClipboardOp(op: suspend () -> Unit) = enqueue { EditCommand.Clipboard(it, op) }
 
     fun moveCursor(direction: CursorDirection, extendSelection: Boolean) = launch {
         getWorkspace().moveCursor(direction, extendSelection)

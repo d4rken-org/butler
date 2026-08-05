@@ -47,6 +47,9 @@ class EditorClipboardControllerTest : BaseTest() {
     /** Mirrors ViewModel3's error handler: thrown controller errors surface here, not as crashes. */
     private val surfacedErrors = mutableListOf<Throwable>()
 
+    /** Ops the controller routed onto the ViewModel's ordered edit queue instead of a bare launch. */
+    private val queuedOps = mutableListOf<suspend () -> Unit>()
+
     private fun mockWorkspace(
         selection: String = "selected text",
         copyResult: Result<String> = Result.success(selection),
@@ -76,6 +79,8 @@ class EditorClipboardControllerTest : BaseTest() {
         mockk<ClipboardRepo>().apply {
             every { state } returns MutableStateFlow(ClipboardRepo.State(entries = entries))
             coEvery { add(any()) } just Runs
+            coEvery { remove(any()) } just Runs
+            coEvery { clear() } just Runs
         }
 
     private fun CoroutineScope.controller(
@@ -90,6 +95,18 @@ class EditorClipboardControllerTest : BaseTest() {
             launch {
                 try {
                     block()
+                } catch (e: Exception) {
+                    surfacedErrors += e
+                }
+            }
+        },
+        // Stands in for the ViewModel's edit-command consumer: records the op and runs it with the
+        // same per-command error catch, so failures surface instead of crashing the pipeline.
+        enqueueClipboardOp = { op ->
+            queuedOps += op
+            launch {
+                try {
+                    op()
                 } catch (e: Exception) {
                     surfacedErrors += e
                 }
@@ -127,6 +144,28 @@ class EditorClipboardControllerTest : BaseTest() {
         runCurrent()
 
         coVerify { workspace.deleteSelection() }
+    }
+
+    @Test
+    fun `only document-mutating operations use the edit queue`() = runTest {
+        val controller = controller()
+        val clip = ClipboardClip.Text(origin = workspaceId, content = "clip text")
+
+        // Copy and clipboard management mutate no document - queueing them would stall real edits
+        controller.copyToClipboard()
+        controller.copyToButlerClipboard()
+        controller.removeClipboardEntry(clip)
+        controller.clearAllClipboard()
+        runCurrent()
+        queuedOps shouldHaveSize 0
+
+        controller.cutToClipboard()
+        controller.cutToButlerClipboard()
+        controller.pasteFromClipboard()
+        controller.pasteFromClipboard(clip)
+        controller.pasteFromClipboardFile(path("notes.txt"))
+        runCurrent()
+        queuedOps shouldHaveSize 5
     }
 
     // ==================== System clipboard size guard ====================

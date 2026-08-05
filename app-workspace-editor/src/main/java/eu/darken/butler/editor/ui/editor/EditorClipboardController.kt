@@ -29,10 +29,16 @@ import kotlinx.coroutines.flow.map
  */
 class EditorClipboardController(
     private val id: Workspace.Id,
+    // For operations that never touch the document; using the edit queue for those would stall it.
     private val doLaunch: (suspend CoroutineScope.() -> Unit) -> Unit,
+    // Runs a document-mutating op on the ViewModel's ordered edit queue. Clipboard/file retrieval is
+    // done INSIDE the op, so a keystroke typed while it runs can't overtake the resulting mutation -
+    // at the cost of the queue waiting for that retrieval.
+    private val enqueueClipboardOp: (suspend () -> Unit) -> Unit,
     private val workspace: suspend () -> EditorWorkspace,
     // Inserts text guarded by the oversized-selection confirm gate; returns false when the edit was
-    // deferred behind the confirm dialog (so paste success isn't logged prematurely).
+    // deferred behind the confirm dialog (so paste success isn't logged prematurely). Only callable
+    // from inside an enqueued op - it applies the insert directly instead of enqueueing it.
     private val guardedInsert: suspend (String) -> Boolean,
     private val clipboardHelper: SystemClipboardHelper,
     private val clipboardRepo: ClipboardRepo,
@@ -66,15 +72,15 @@ class EditorClipboardController(
         log(tag) { "Copied ${text.length} characters to system clipboard" }
     }
 
-    fun cutToClipboard() = doLaunch {
+    fun cutToClipboard() = enqueueClipboardOp {
         val ws = workspace()
-        val text = extractSelection(maxChars = MAX_SYSTEM_CLIPBOARD_CHARS) ?: return@doLaunch
+        val text = extractSelection(maxChars = MAX_SYSTEM_CLIPBOARD_CHARS) ?: return@enqueueClipboardOp
         // Any copy refusal or write failure throws above/inside, so the delete never runs
         copyToSystemClipboard(text)
         ws.deleteSelection().getOrElse { e ->
             // The engine surfaced the failure via its error banner; the copy already succeeded
             log(tag, ERROR) { "Cut copied but failed to delete - ${e.asLog()}" }
-            return@doLaunch
+            return@enqueueClipboardOp
         }
         log(tag) { "Cut ${text.length} characters to system clipboard" }
     }
@@ -86,14 +92,14 @@ class EditorClipboardController(
     }
 
     /** Cuts selection to Butler clipboard only (for long-press action). */
-    fun cutToButlerClipboard() = doLaunch {
+    fun cutToButlerClipboard() = enqueueClipboardOp {
         val ws = workspace()
-        val text = extractSelection(maxChars = BUTLER_CLIPBOARD_PREFILTER_CHARS) ?: return@doLaunch
+        val text = extractSelection(maxChars = BUTLER_CLIPBOARD_PREFILTER_CHARS) ?: return@enqueueClipboardOp
         // Deleting after a rejected copy (size cap throws) would silently drop the text
         addToButlerClipboard(text)
         ws.deleteSelection().getOrElse { e ->
             log(tag, ERROR) { "Cut copied but failed to delete - ${e.asLog()}" }
-            return@doLaunch
+            return@enqueueClipboardOp
         }
         log(tag) { "Cut ${text.length} characters to Butler clipboard" }
     }
@@ -136,7 +142,7 @@ class EditorClipboardController(
         log(tag, INFO) { "Added ${text.length} characters to Butler clipboard" }
     }
 
-    fun pasteFromClipboard() = doLaunch {
+    fun pasteFromClipboard() = enqueueClipboardOp {
         val text = clipboardHelper.getClipboardText()
         if (text != null) {
             if (guardedInsert(text)) log(tag) { "Pasted ${text.length} characters from clipboard" }
@@ -145,7 +151,7 @@ class EditorClipboardController(
         }
     }
 
-    fun pasteFromClipboard(clip: ClipboardClip) = doLaunch {
+    fun pasteFromClipboard(clip: ClipboardClip) = enqueueClipboardOp {
         log(tag) { "pasteFromClipboard($clip)" }
         when (clip) {
             is ClipboardClip.Text -> {
@@ -165,7 +171,7 @@ class EditorClipboardController(
     }
 
     /** Paste content from a file in the Butler clipboard into the editor. */
-    fun pasteFromClipboardFile(path: APath<*>) = doLaunch {
+    fun pasteFromClipboardFile(path: APath<*>) = enqueueClipboardOp {
         pasteFileContent(path)
     }
 

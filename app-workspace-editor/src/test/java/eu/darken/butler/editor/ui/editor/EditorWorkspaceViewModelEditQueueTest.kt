@@ -1,11 +1,16 @@
 package eu.darken.butler.editor.ui.editor
 
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.local.LocalPathLookup
+import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.editor.core.EditorWorkspace
 import eu.darken.butler.editor.core.engine.TextPosition
+import eu.darken.butler.editor.ui.editor.elements.EditorActionBarItem
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote
+import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.every
@@ -26,6 +31,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import testhelpers.coroutine.TestDispatcherProvider
+import java.io.File
 
 /**
  * The serialized edit pipeline: every text mutation is enqueued synchronously and drained by a
@@ -154,4 +160,101 @@ class EditorWorkspaceViewModelEditQueueTest : BaseTest() {
         releaseY.complete(Unit)
         vm.state.first { it.editResyncSignal == 1 }
     }
+
+    @Test
+    fun `a command that is not a replace does not suppress the resync`() = runTest {
+        // Only a Replace can resolve against the field's stale positions, so only a newer Replace may
+        // hold back the revert - an Undo (or paste, delete) queued behind the rejection must not.
+        val startedX = CompletableDeferred<Unit>()
+        val releaseX = CompletableDeferred<Unit>()
+        val workspace = makeWorkspace().apply {
+            coEvery { replaceText(any(), any(), any(), any()) } coAnswers {
+                startedX.complete(Unit)
+                releaseX.await()
+                false
+            }
+            coEvery { undo() } returns Result.success(null)
+        }
+        val vm = makeViewModel(workspace)
+
+        vm.replaceText(pos, pos, "X", pos)
+        startedX.await()
+        vm.undo()
+        releaseX.complete(Unit)
+
+        vm.state.first { it.editResyncSignal == 1 }
+    }
+
+    // ==================== Clipboard operations ====================
+
+    @Test
+    fun `a cut's deletion is ordered against a later keystroke`() = runTest {
+        val applied = mutableListOf<String>()
+        val deleteStarted = CompletableDeferred<Unit>()
+        val releaseDelete = CompletableDeferred<Unit>()
+        val workspace = makeWorkspace().apply {
+            coEvery { copySelection(any()) } returns Result.success("cut me")
+            coEvery { deleteSelection() } coAnswers {
+                deleteStarted.complete(Unit)
+                releaseDelete.await()
+                applied += "cut"
+                Result.success("cut me")
+            }
+            coEvery { replaceText(any(), any(), any(), any()) } coAnswers { applied += arg<String>(2); true }
+        }
+        val vm = makeViewModel(workspace)
+
+        vm.executeAction(EditorActionBarItem.Cut)
+        deleteStarted.await()
+        vm.replaceText(pos, pos, "X", pos)
+        releaseDelete.complete(Unit)
+        vm.insertText("sentinel")
+        drained.await()
+
+        applied shouldBe listOf("cut", "X")
+    }
+
+    @Test
+    fun `a paste whose retrieval suspends still applies before a later keystroke`() = runTest {
+        val applied = mutableListOf<String>()
+        val readStarted = CompletableDeferred<Unit>()
+        val releaseRead = CompletableDeferred<Unit>()
+        val workspace = makeWorkspace().apply {
+            coEvery { readFileContent(any()) } coAnswers {
+                readStarted.complete(Unit)
+                releaseRead.await()
+                Result.success("pasted")
+            }
+            coEvery { insertText(any()) } answers {
+                val text = arg<String>(0)
+                applied += text
+                if (text == "sentinel") drained.complete(Unit)
+            }
+            coEvery { replaceText(any(), any(), any(), any()) } coAnswers { applied += arg<String>(2); true }
+        }
+        val vm = makeViewModel(workspace)
+
+        // File retrieval runs inside the queued op, so the keystroke can't jump ahead of the insert
+        vm.onPageAction(EditorPageAction.Clipboard.Paste(pathsClip("notes.txt")))
+        readStarted.await()
+        vm.replaceText(pos, pos, "X", pos)
+        releaseRead.complete(Unit)
+        vm.insertText("sentinel")
+        drained.await()
+
+        applied shouldBe listOf("pasted", "X", "sentinel")
+    }
+
+    private fun pathsClip(name: String) = ClipboardClip.Paths(
+        origin = workspaceId,
+        mode = ClipboardClip.Paths.Mode.COPY,
+        paths = listOf(
+            LocalPathLookup(
+                lookedUp = LocalPath.build(File("/tmp/queue-test", name)),
+                fileType = FileType.FILE,
+                size = null,
+                modifiedAt = null,
+            ),
+        ),
+    )
 }
