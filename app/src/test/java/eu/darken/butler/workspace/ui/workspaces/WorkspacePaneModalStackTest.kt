@@ -91,7 +91,6 @@ class WorkspacePaneModalStackTest : ComposeTest() {
         host: WorkspacePageHostEntry,
         childModals: List<WorkspacePaneInfo>,
         activeWorkspaceId: Workspace.Id?,
-        tabInfo: WorkspacePaneInfo = tab,
         onCloseWorkspace: (Workspace.Id) -> Unit = {},
         pageHosts: Map<Workspace.Type, WorkspacePageHostEntry> =
             mapOf(Workspace.Type.EXPLORER to host),
@@ -103,7 +102,7 @@ class WorkspacePaneModalStackTest : ComposeTest() {
                 Box(modifier = Modifier.size(width = 400.dp, height = 700.dp)) {
                     WorkspacePane(
                         modifier = Modifier.fillMaxSize(),
-                        info = tabInfo,
+                        info = tab,
                         design = design,
                         paneFocused = true,
                         onRequestPaneFocus = {},
