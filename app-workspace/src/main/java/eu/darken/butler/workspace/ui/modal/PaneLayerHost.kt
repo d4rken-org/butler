@@ -35,11 +35,16 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceDesign.PaneEdges
  * @param paneFocused whether this pane is the focused one. Accepts either occupant of the pane —
  *        the parent workspace or its pane-local child modal — because a child modal's id can never
  *        become the globally focused workspace id.
+ * @param backActive whether system Back may be dispatched to this pane. Separate from [paneFocused]
+ *        because a pane can be the focused one while not being on screen — the classic pager parks
+ *        on its trailing placeholder page without focus leaving the last tab. Defaults to
+ *        [paneFocused], so a layout that cannot park off its panes needs no extra wiring.
  */
 @Composable
 fun PaneLayerHost(
     modifier: Modifier = Modifier,
     paneFocused: Boolean,
+    backActive: Boolean = paneFocused,
     paneEdges: PaneEdges = LocalPaneEdges.current,
     content: @Composable BoxScope.() -> Unit,
 ) {
@@ -49,6 +54,10 @@ fun PaneLayerHost(
         LocalPaneLayerState provides layerState,
         LocalPaneFocused provides paneFocused,
         LocalLayerActive provides paneFocused,
+        // Provided only here and inherited unchanged through every PaneLayer: PaneLayer recomputes
+        // and overrides LocalLayerActive for its subtree, so a value narrowed there would be
+        // discarded by every nested dialog and sheet.
+        LocalPaneBackActive provides backActive,
         LocalPaneLayerRank provides PaneLayerRank.CONTENT,
         LocalPaneEdges provides paneEdges,
         // Shared dialogs from app-common (ErrorDialog above all) become pane-bound inside a pane

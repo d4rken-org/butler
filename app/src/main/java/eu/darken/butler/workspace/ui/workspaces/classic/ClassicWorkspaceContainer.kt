@@ -15,6 +15,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -24,11 +25,13 @@ import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
 import eu.darken.butler.workspace.ui.insets.paneHorizontalInsetPadding
 import eu.darken.butler.workspace.ui.manager.LocalWorkspaceButtonProvider
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
 import eu.darken.butler.workspace.ui.workspaces.WorkspacePane
 import eu.darken.butler.workspace.ui.workspaces.WorkspaceScreenAction
 import eu.darken.butler.workspace.ui.workspaces.WorkspaceSwitchIndicator
 import eu.darken.butler.workspace.ui.workspaces.WorkspacesViewModel
 import eu.darken.butler.workspace.ui.workspaces.asPaneInfo
+import kotlinx.coroutines.launch
 
 // Stable key for the on-demand-creation placeholder page (last index when enabled).
 // Distinct from any Workspace.Id so the pager preserves identity across list churn.
@@ -70,7 +73,7 @@ internal fun ClassicWorkspaceContainer(
     // doesn't trigger spurious pager scrolls when an unrelated workspace updates.
     val tabIds = state.tabWorkspaces.map { it.id }
 
-    rememberPagerFocusCoordinator(
+    val coordinator = rememberPagerFocusCoordinator(
         pagerState = pagerState,
         tabIds = tabIds,
         focused = state.focused,
@@ -82,6 +85,44 @@ internal fun ClassicWorkspaceContainer(
     )
 
     val hasBlockingDialog = managerDialogs.any { it.isBlocking }
+
+    val scope = rememberCoroutineScope()
+    val backTarget = state.focused?.takeIf { it in tabIds }
+    val backTargetPage = backTarget?.let(tabIds::indexOf) ?: -1
+    // Deliberately the same expression the focused pane is handed as `backActive` below. The
+    // handler underneath is armed only while this is false, so the two can never both consume the
+    // same press — that mutual exclusivity is the entire argument for the gate's shape, and it
+    // breaks the moment these two drift apart.
+    val focusedPaneBackEligible = backTargetPage >= 0 && pagerState.isSettledOnPage(backTargetPage)
+    // Only GLOBAL blocking dialogs, unlike hasBlockingDialog above: a WorkspaceTargeted dialog
+    // renders inside a pane, and while the pager sits on the placeholder that pane is off screen,
+    // so its own back handler is already disarmed. Counting it here would leave nothing at all
+    // handling back.
+    val hasGlobalBlockingDialog = managerDialogs.any { it.isBlocking && it is ManagerDialog.Global }
+    val isOnPlaceholder = state.tabWorkspaces.isNotEmpty() &&
+        effectivePageCount > state.tabWorkspaces.size &&
+        pagerState.settledPage >= state.tabWorkspaces.size
+
+    // Covers every press the focused pane cannot take: parked on the trailing placeholder, mid-move,
+    // and the few frames between a swipe settling and focus catching up with it. Without it back
+    // falls through to the app-root "press again to exit" prompt during those windows.
+    // WorkspaceBackHandler rather than a raw BackHandler on purpose (RawBackHandlerBanTest): there
+    // is no enclosing PaneLayerHost here, so both of its locals sit at their `true` defaults and it
+    // behaves as an ordinary handler.
+    WorkspaceBackHandler(
+        enabled = backTarget != null &&
+            !focusedPaneBackEligible &&
+            !isOverlayVisible &&
+            state.fullScreenModalWorkspace == null &&
+            !hasGlobalBlockingDialog,
+    ) {
+        // On the placeholder and at rest: return to the focused tab. Otherwise the pager is
+        // mid-move or focus has not caught up with a settle yet — swallow the press rather than
+        // let it reach the app-root exit prompt, and let the user press again once things settle.
+        if (isOnPlaceholder && !pagerState.isScrollInProgress) {
+            backTarget?.let { scope.launch { coordinator.scrollToWorkspace(pagerState, tabIds, it) } }
+        }
+    }
 
     val creationController = rememberPlaceholderCreationController(
         pagerState = pagerState,
@@ -122,6 +163,11 @@ internal fun ClassicWorkspaceContainer(
                         info = paneInfo,
                         design = design,
                         paneFocused = isFocused,
+                        // Back must not reach a page the pager is not resting on. Parked on the
+                        // trailing placeholder, focus legitimately stays on the last tab, so
+                        // without this the off-screen Explorer's back-at-root handler consumes
+                        // back and closes that tab.
+                        backActive = isFocused && pagerState.isSettledOnPage(page),
                         activeWorkspaceId = paneInfo.id.takeIf { isFocused },
                         onRequestPaneFocus = {
                             onWorkspaceScreenAction(WorkspaceScreenAction.Select(paneInfo.id))

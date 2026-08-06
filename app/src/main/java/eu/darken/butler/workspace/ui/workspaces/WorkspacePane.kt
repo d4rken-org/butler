@@ -31,6 +31,9 @@ import eu.darken.butler.workspace.ui.modal.PaneLayerRank
  *
  * @param paneFocused whether this pane is the focused one — true for any occupant, because a
  *        pane-local modal's id can never become the globally focused workspace id.
+ * @param backActive whether system Back may be dispatched into this pane. Defaults to
+ *        [paneFocused]; a pager-driven layout narrows it, because its focused pane can be scrolled
+ *        off screen while focus stays put.
  * @param activeWorkspaceId the workspace the user is actually talking to: the deepest occupant of
  *        a focused pane, or null while the pane is unfocused. Deliberately *not* compared against
  *        the globally focused id — a picker opened via `launchPicker` never becomes the focused
@@ -47,6 +50,7 @@ fun WorkspacePane(
     info: WorkspacePaneInfo,
     design: WorkspaceDesign,
     paneFocused: Boolean,
+    backActive: Boolean = paneFocused,
     onRequestPaneFocus: () -> Unit,
     managerDialogStates: Map<Workspace.Id, ManagerDialog.WorkspaceTargeted>,
     onDismissManagerDialog: (Workspace.Id) -> Unit,
@@ -71,6 +75,7 @@ fun WorkspacePane(
             // are applied to the content and the modal surfaces inside instead.
             modifier = modifier,
             paneFocused = paneFocused,
+            backActive = backActive,
             paneEdges = paneEdges,
         ) {
             CompositionLocalProvider(

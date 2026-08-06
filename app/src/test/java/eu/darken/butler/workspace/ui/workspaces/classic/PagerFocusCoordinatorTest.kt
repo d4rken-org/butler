@@ -19,6 +19,7 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.Workspace
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.CompletableDeferred
 import org.junit.Test
 import testhelpers.ComposeTest
 import kotlin.uuid.ExperimentalUuidApi
@@ -331,6 +332,103 @@ class PagerFocusCoordinatorTest : ComposeTest() {
         capturedState!!.currentPage shouldBe 1
         settled shouldBe listOf(idB)
     }
+
+    /**
+     * The gate that decides whether a pane may consume system back.
+     *
+     * `settledPage` alone is not enough: it keeps naming the OUTGOING page for the whole fling, so
+     * a back handler gated on it would still reach the tab being swiped away — the data-loss bug,
+     * merely narrowed to a timing window. [isSettledOnPage] additionally requires the pager to be
+     * idle.
+     *
+     * The scroll session is held open through [PagerState.scroll] — the very API a gesture and a
+     * fling both scroll through — rather than caught at a guessed point of an animation, so the
+     * case depends on no timing at all. The `isScrollInProgress` assertion keeps it non-vacuous: a
+     * session that never opened fails the case instead of asserting nothing.
+     */
+    @Test
+    fun `isSettledOnPage is false while a scroll session is open`() {
+        var capturedState: PagerState? = null
+        val workspaces = listOf(info(idA), info(idB), info(idC))
+        var gate by mutableStateOf<CompletableDeferred<Unit>?>(null)
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                TestHarness(
+                    workspaces = workspaces,
+                    focused = idA,
+                    onSettled = { },
+                    onPagerState = { capturedState = it },
+                    heldScrollGate = gate,
+                )
+            }
+        }
+        composeTestRule.waitForIdle()
+        val pagerState = capturedState!!
+        pagerState.isSettledOnPage(0) shouldBe true
+
+        val release = CompletableDeferred<Unit>()
+        gate = release
+        composeTestRule.waitForIdle()
+
+        pagerState.isScrollInProgress shouldBe true
+        // The conjunction is the point: settledPage still names the page the pager came from, so it
+        // cannot be the only input to the gate.
+        pagerState.settledPage shouldBe 0
+        pagerState.isSettledOnPage(0) shouldBe false
+
+        release.complete(Unit)
+        composeTestRule.waitForIdle()
+
+        pagerState.isSettledOnPage(0) shouldBe true
+    }
+
+    /**
+     * Programmatic scrolls can overlap: the back handler on the trailing placeholder launches one
+     * from its own scope, alongside the coordinator's focus sync. `animateScrollToPage` goes
+     * through Compose's `MutatorMutex`, so the second cancels the first — and with a plain boolean
+     * flag the finishing one would clear it out from under the other, letting the resulting settle
+     * be reported as a user swipe.
+     */
+    @Test
+    fun `a settle during an overlapping programmatic scroll is not reported as a swipe`() {
+        var capturedState: PagerState? = null
+        var capturedCoordinator: PagerFocusCoordinatorState? = null
+        val workspaces = listOf(info(idA), info(idB), info(idC))
+        val settled = mutableListOf<Workspace.Id>()
+        var gate by mutableStateOf<CompletableDeferred<Unit>?>(null)
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                TestHarness(
+                    workspaces = workspaces,
+                    focused = idA,
+                    onSettled = { settled.add(it) },
+                    onPagerState = { capturedState = it },
+                    onCoordinator = { capturedCoordinator = it },
+                    overlappingScrollTo = 1,
+                    overlappingScrollGate = gate,
+                )
+            }
+        }
+        composeTestRule.waitForIdle()
+        capturedState!!.currentPage shouldBe 0
+
+        val release = CompletableDeferred<Unit>()
+        gate = release
+        composeTestRule.waitForIdle()
+
+        // Inner scroll done, outer still in flight.
+        capturedState!!.currentPage shouldBe 1
+        capturedCoordinator!!.isAnimatingProgrammatically shouldBe true
+        settled shouldBe emptyList()
+
+        release.complete(Unit)
+        composeTestRule.waitForIdle()
+
+        capturedCoordinator!!.isAnimatingProgrammatically shouldBe false
+        settled shouldBe emptyList()
+    }
 }
 
 private const val COORD_PAGER_TAG = "coordinatorPager"
@@ -342,11 +440,15 @@ private fun TestHarness(
     onSettled: (Workspace.Id) -> Unit,
     onPagerState: (PagerState) -> Unit,
     trailingPages: Int = 0,
+    onCoordinator: (PagerFocusCoordinatorState) -> Unit = {},
+    overlappingScrollTo: Int? = null,
+    overlappingScrollGate: CompletableDeferred<Unit>? = null,
+    heldScrollGate: CompletableDeferred<Unit>? = null,
 ) {
     val pagerState = rememberPagerState(pageCount = { workspaces.size + trailingPages })
     LaunchedEffect(pagerState) { onPagerState(pagerState) }
 
-    rememberPagerFocusCoordinator(
+    val coordinator = rememberPagerFocusCoordinator(
         pagerState = pagerState,
         tabIds = workspaces.map { it.id },
         focused = focused,
@@ -354,6 +456,24 @@ private fun TestHarness(
         isOverlayVisible = false,
         onSettled = onSettled,
     )
+    LaunchedEffect(coordinator) { onCoordinator(coordinator) }
+
+    // An open scroll session, held for as long as the gate is: exactly what a drag or a fling holds
+    // while the pager is moving, minus the movement and the timing.
+    LaunchedEffect(heldScrollGate) {
+        val gate = heldScrollGate ?: return@LaunchedEffect
+        pagerState.scroll { gate.await() }
+    }
+
+    // An inner programmatic scroll that runs to completion while the outer one is still open.
+    LaunchedEffect(overlappingScrollGate) {
+        val gate = overlappingScrollGate ?: return@LaunchedEffect
+        val page = overlappingScrollTo ?: return@LaunchedEffect
+        coordinator.asProgrammaticScroll {
+            coordinator.asProgrammaticScroll { pagerState.animateScrollToPage(page) }
+            gate.await()
+        }
+    }
 
     HorizontalPager(
         state = pagerState,

@@ -18,8 +18,14 @@ import kotlinx.coroutines.flow.first
 private val TAG = logTag("Workspace", "Container", "Classic", "PagerCoord")
 
 class PagerFocusCoordinatorState internal constructor() {
-    var isAnimatingProgrammatically: Boolean = false
-        internal set
+    // A depth counter, not a flag: animateScrollToPage goes through Compose's MutatorMutex, so a
+    // second programmatic scroll cancels the first — whose finally would then clear a flag the
+    // still-running second scroll depends on, and its settle would be misread as a user swipe.
+    private var programmaticScrollDepth: Int = 0
+
+    val isAnimatingProgrammatically: Boolean
+        get() = programmaticScrollDepth > 0
+
     internal var lastSyncedFocusId: Workspace.Id? = null
     internal var lastUserSwipeFocusId: Workspace.Id? = null
 
@@ -27,7 +33,43 @@ class PagerFocusCoordinatorState internal constructor() {
     // being reported as a user swipe — during a clamp, focus is stale/null, so the usual
     // settledId != focused guard can't suppress the echo.
     internal var pendingClampPage: Int? = null
+
+    internal suspend fun <R> asProgrammaticScroll(block: suspend () -> R): R {
+        programmaticScrollDepth++
+        try {
+            return block()
+        } finally {
+            programmaticScrollDepth--
+        }
+    }
+
+    /**
+     * Scrolls the pager back onto [id]'s page.
+     *
+     * Takes a [Workspace.Id] rather than a page index because a caller's index is resolved at
+     * composition time: tabs closing or reordering while the animation runs would make it name a
+     * different workspace, or fall out of range.
+     */
+    suspend fun scrollToWorkspace(pagerState: PagerState, tabIds: List<Workspace.Id>, id: Workspace.Id) {
+        val page = tabIds.indexOf(id)
+        if (page < 0 || pagerState.currentPage == page) return
+        log(TAG, VERBOSE) { "scrollToWorkspace($id) -> page $page" }
+        asProgrammaticScroll { pagerState.animateScrollToPage(page) }
+    }
 }
+
+/**
+ * Whether the pager is at rest on [page].
+ *
+ * Idle *and* settled, both parts load-bearing. `settledPage` alone stays on the outgoing page for
+ * the whole fling, so a Back pressed mid-swipe would still reach the tab being swiped away.
+ * Requiring the pager to be idle means no pane consumes Back while the pager is moving, in either
+ * direction. `targetPage` and `currentPage` are unusable here: the former reverses on an aborted
+ * drag, the latter flips at the drag's half-way point and back, so either would make
+ * back-eligibility follow a finger that has not committed to anything.
+ */
+internal fun PagerState.isSettledOnPage(page: Int): Boolean =
+    !isScrollInProgress && settledPage == page
 
 /**
  * Coordinates a [PagerState] with externally-driven workspace focus.
@@ -39,9 +81,10 @@ class PagerFocusCoordinatorState internal constructor() {
  *   trigger spurious pager scrolls.
  * - Defers — rather than drops — focus changes that arrive while the pager is
  *   mid-scroll. Applies after the scroll settles.
- * - Wraps every programmatic scroll in `try/finally` so
+ * - Wraps every programmatic scroll in
+ *   [PagerFocusCoordinatorState.asProgrammaticScroll], so
  *   [PagerFocusCoordinatorState.isAnimatingProgrammatically] is always reset,
- *   even on cancellation.
+ *   even on cancellation, and survives overlapping scrolls.
  * - Owns ALL programmatic pager movement, including the clamp back into the
  *   real-tab range after a list shrink strands the pager on the trailing
  *   placeholder page. Nothing else may scroll this pager.
@@ -109,8 +152,7 @@ fun rememberPagerFocusCoordinator(
         val isFirstSyncForFocus = coordinator.lastSyncedFocusId != desiredId
         val shouldSkipAnimation = isRestoring || isFirstSyncForFocus || isOverlayVisible
 
-        coordinator.isAnimatingProgrammatically = true
-        try {
+        coordinator.asProgrammaticScroll {
             if (shouldSkipAnimation) {
                 log(TAG, VERBOSE) {
                     "Jump to page $targetIndex (restoring=$isRestoring, " +
@@ -121,8 +163,6 @@ fun rememberPagerFocusCoordinator(
                 log(TAG, VERBOSE) { "Animate to page $targetIndex" }
                 pagerState.animateScrollToPage(targetIndex)
             }
-        } finally {
-            coordinator.isAnimatingProgrammatically = false
         }
         coordinator.lastSyncedFocusId = desiredId
     }
@@ -203,14 +243,13 @@ private suspend fun clampToLastRealPage(
 
     log(TAG, VERBOSE) { "Clamping pager from page ${pagerState.currentPage} to last real page $lastReal" }
     coordinator.pendingClampPage = lastReal
-    coordinator.isAnimatingProgrammatically = true
-    try {
-        pagerState.scrollToPage(lastReal)
-    } catch (e: CancellationException) {
-        // Clamp aborted (focus arrived, keys changed) — the marked settle may never happen.
-        coordinator.pendingClampPage = null
-        throw e
-    } finally {
-        coordinator.isAnimatingProgrammatically = false
+    coordinator.asProgrammaticScroll {
+        try {
+            pagerState.scrollToPage(lastReal)
+        } catch (e: CancellationException) {
+            // Clamp aborted (focus arrived, keys changed) — the marked settle may never happen.
+            coordinator.pendingClampPage = null
+            throw e
+        }
     }
 }

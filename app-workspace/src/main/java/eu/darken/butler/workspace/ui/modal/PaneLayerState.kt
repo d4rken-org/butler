@@ -109,6 +109,18 @@ val LocalPaneLayerState = compositionLocalOf<PaneLayerState?> { null }
 /** Whether the enclosing pane is the focused one; independent of which layer within it is on top. */
 val LocalPaneFocused = compositionLocalOf { true }
 
+/**
+ * Whether this pane is the one system Back should be dispatched to.
+ *
+ * Distinct from [LocalPaneFocused]/[LocalLayerActive] on purpose: a pane can legitimately be the
+ * focused one while not being on screen — the classic pager parks on its trailing new-tab
+ * placeholder without focus moving off the last tab — and a back handler armed for a page the user
+ * is not looking at consumes Back and acts on the wrong workspace.
+ *
+ * Defaults to true: outside a pager-driven pane there is nothing to withhold.
+ */
+val LocalPaneBackActive = compositionLocalOf { true }
+
 /** Rank a layer registers at when it doesn't pick one explicitly. */
 val LocalPaneLayerRank = compositionLocalOf { PaneLayerRank.CONTENT }
 
