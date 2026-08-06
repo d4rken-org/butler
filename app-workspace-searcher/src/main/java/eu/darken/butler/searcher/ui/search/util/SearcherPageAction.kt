@@ -357,9 +357,4 @@ sealed interface SearcherPageAction {
      * Delegates to existing [SearcherActionBarItem] for domain operations
      */
     data class WorkspaceAction(val action: SearcherActionBarItem) : SearcherPageAction
-
-    /**
-     * Long-press variant of [WorkspaceAction] (e.g. Delete long-press forces permanent delete)
-     */
-    data class WorkspaceActionLongClick(val action: SearcherActionBarItem) : SearcherPageAction
 }

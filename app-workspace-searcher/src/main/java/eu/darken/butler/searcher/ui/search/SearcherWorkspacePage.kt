@@ -754,9 +754,6 @@ fun SearcherWorkspacePage(
                                 else -> onPageAction(SearcherPageAction.WorkspaceAction(searcherAction))
                             }
                         },
-                        onActionLongClick = { action ->
-                            onPageAction(SearcherPageAction.WorkspaceActionLongClick(action as SearcherActionBarItem))
-                        },
                     )
                 }
             },
