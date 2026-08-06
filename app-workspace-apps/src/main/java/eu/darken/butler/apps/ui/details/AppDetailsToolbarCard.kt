@@ -9,13 +9,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.ArrowBack
 import androidx.compose.material.icons.twotone.Android
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.Search
-import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -42,6 +40,9 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.TintedAsyncImage
 import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.common.CutoutCard
+import eu.darken.butler.workspace.ui.common.CutoutCardDefaults
+import eu.darken.butler.workspace.ui.common.CutoutMode
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 
@@ -80,18 +81,27 @@ fun AppDetailsToolbarCard(
         label = "iconSize"
     )
 
-    Card(
+    CutoutCard(
         modifier = modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-        shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-        )
+        ),
+        // Workspace button: a tab on a single-pane layout, on every sub-screen of it
+        cutoutContent = if (design.isSingle && !isModal) {
+            {
+                WorkspaceButton(
+                    buttonSize = 40.dp,
+                    currentWorkspaceId = currentWorkspaceId,
+                )
+            }
+        } else null,
+        cutoutMode = CutoutMode.FullHeight,
+        cutoutAlignment = Alignment.CenterVertically,
+        gapDistance = if (isCollapsed) CutoutCardDefaults.GapDistanceCollapsed else CutoutCardDefaults.GapDistanceExpanded,
+        contentPadding = CutoutCardDefaults.contentPadding(cardPadding),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(cardPadding),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             // Back button (modal close or sub-screen navigation)
@@ -180,15 +190,6 @@ fun AppDetailsToolbarCard(
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }
-            }
-
-            // Workspace button: a tab on a single-pane layout, on every sub-screen of it
-            if (design.isSingle && !isModal) {
-                Spacer(modifier = Modifier.width(8.dp))
-                WorkspaceButton(
-                    buttonSize = 40.dp,
-                    currentWorkspaceId = currentWorkspaceId,
-                )
             }
         }
     }
