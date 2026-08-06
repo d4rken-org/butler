@@ -1443,13 +1443,15 @@ class EditorEngine @AssistedInject constructor(
             newText = matchDocumentLineEnding(replacement, buffer)
         }
 
-        buffer.replaceMatches(
-            listOf(DocumentBuffer.MatchReplacement(match.position.offset, match.matchText, newText)),
-            expectedVersion = expandedVersion,
-        ).getOrElse { return Result.failure(it) }
-
         val replacementEnd = match.position.offset + newText.length
-        refreshAfterMutation(cursorOffset = replacementEnd)
+        // Commit and state update under ONE hold: see [replaceAll]
+        stateMutex.withLock {
+            buffer.replaceMatches(
+                listOf(DocumentBuffer.MatchReplacement(match.position.offset, match.matchText, newText)),
+                expectedVersion = expandedVersion,
+            ).getOrElse { return Result.failure(it) }
+            refreshAfterMutationLocked(cursorOffset = replacementEnd)
+        }
 
         val results = search(query, options).getOrElse { emptyList() }
         val nextIndex = results.indexOfFirst { it.position.offset >= replacementEnd }
@@ -1547,30 +1549,41 @@ class EditorEngine @AssistedInject constructor(
 
         if (replacements.isEmpty()) return Result.success(ReplaceAllOutcome(0, undoable = true))
 
-        val stats = buffer.replaceMatches(replacements, expectedVersion = expectedVersion)
-            .getOrElse { return Result.failure(it) }
-
-        refreshAfterMutation(cursorOffset = null)
+        // The COMMIT and the state update it implies (cleared selection, moved cursor, refreshed
+        // window) are one transaction under [stateMutex]. Committing outside it and updating state
+        // after would let the mutation land while an edit holds the lock: that edit's target
+        // offsets were resolved against the pre-replace document, and the selection it re-reads on
+        // a version conflict is exactly the one this update has not been able to clear yet - so a
+        // length-shifting replacement would make it edit unrelated text. The scan/precompute above
+        // deliberately stays OUTSIDE the lock so typing never queues behind a whole-document pass.
+        val stats = stateMutex.withLock {
+            buffer.replaceMatches(replacements, expectedVersion = expectedVersion)
+                .getOrElse { return Result.failure(it) }
+                .also { refreshAfterMutationLocked(cursorOffset = null) }
+        }
         search(query, options)
 
         return Result.success(ReplaceAllOutcome(stats.count, stats.undoable))
     }
 
-    /** Post-mutation UI refresh shared by the replace operations; one lock, no interleaving. */
+    /** Post-mutation UI refresh; takes [stateMutex] itself. Callers already holding it use the Locked variant. */
     private suspend fun refreshAfterMutation(cursorOffset: Long?) {
-        stateMutex.withLock {
-            val currentState = _state.value as? EditorState.Loaded ?: return@withLock
-            val buffer = currentState.resources.textBuffer
-            _totalLines.value = buffer.totalLines.value
-            // Read the flag from the buffer instead of assuming true: an undo/redo/save that
-            // interleaved between the buffer mutation and this refresh must not be overwritten
-            _state.value = currentState.copy(isModified = buffer.isModified.value)
-            _selectionRange.value = null
-            selectionAnchor = null
-            cursorOffset?.let { _cursorPosition.value = buffer.findPosition(it) }
-            invalidateSearchResults()
-            refreshVisibleContent()
-        }
+        stateMutex.withLock { refreshAfterMutationLocked(cursorOffset) }
+    }
+
+    /** Body of [refreshAfterMutation]; [stateMutex] must be held (convention like [refreshVisibleContent]). */
+    private suspend fun refreshAfterMutationLocked(cursorOffset: Long?) {
+        val currentState = _state.value as? EditorState.Loaded ?: return
+        val buffer = currentState.resources.textBuffer
+        _totalLines.value = buffer.totalLines.value
+        // Read the flag from the buffer instead of assuming true: an undo/redo/save that
+        // interleaved between the buffer mutation and this refresh must not be overwritten
+        _state.value = currentState.copy(isModified = buffer.isModified.value)
+        _selectionRange.value = null
+        selectionAnchor = null
+        cursorOffset?.let { _cursorPosition.value = buffer.findPosition(it) }
+        invalidateSearchResults()
+        refreshVisibleContent()
     }
 
     /**

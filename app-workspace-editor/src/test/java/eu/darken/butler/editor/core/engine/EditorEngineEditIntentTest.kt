@@ -1,5 +1,6 @@
 package eu.darken.butler.editor.core.engine
 
+import eu.darken.butler.editor.core.engine.text.WindowedSearch
 import eu.darken.butler.editor.core.sources.EditorDataSource
 import eu.darken.butler.editor.core.sources.InMemoryDataSource
 import eu.darken.butler.workspace.core.Workspace
@@ -8,9 +9,13 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.mockk
 import io.mockk.spyk
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.yield
 import okio.Source
 import org.junit.jupiter.api.Test
 import testhelpers.coroutine.TestDispatcherProvider
@@ -281,6 +286,55 @@ class EditorEngineEditIntentTest : EditorEngineTestBase() {
 
         interleaveOnce.get() shouldBe false
         engine.fullContent() shouldBe "Howdy World!"
+    }
+
+    @Test
+    fun `a length-shifting replace-all cannot land inside an intent's resolution`() = runTest {
+        // The retry re-reads the selection, but a search replacement's own state update (which
+        // clears the selection) waits on stateMutex - so a replacement that SHIFTS everything after
+        // it must not be able to commit while an intent holds that lock, or the retry would apply
+        // the pre-shift offsets to the post-shift document and remove unrelated text.
+        val releaseReplace = CompletableDeferred<Unit>()
+        val gateOnce = AtomicBoolean(true)
+        val engine = createSpiedEngine("AAAAA Hello World END") { buffer ->
+            // Releases the parked replacement exactly between the intent's resolution and its splice
+            coEvery { buffer.getStructuralVersion() } coAnswers {
+                val version = callOriginal()
+                if (gateOnce.compareAndSet(true, false)) {
+                    releaseReplace.complete(Unit)
+                    // Let the released replacement run as far as it can on this dispatcher
+                    repeat(YIELDS_FOR_PARKED_REPLACE) { yield() }
+                }
+                version
+            }
+        }
+        // Parks the replacement in its scan - past its entry lock, before its commit, holding no
+        // lock of its own (the search seam reads outside the buffer mutex by design)
+        engine.textBuffer!!.windowedSearchFactory = { readText ->
+            WindowedSearch(readText = { start, end -> releaseReplace.await(); readText(start, end) })
+        }
+        // Select "World", which sits AFTER the text the replacement shortens
+        engine.setSelection(
+            TextPosition(offset = 12, line = 0, column = 12),
+            TextPosition(offset = 17, line = 0, column = 17),
+        )
+        backgroundScope.launch { engine.replaceAll("AAAAA", SearchOptions(), "AA") }
+        runCurrent()
+
+        engine.performDeleteSelection()
+            .shouldBeInstanceOf<EditorEngine.EditOutcome.Applied>().removedText shouldBe "World"
+
+        // Without the fix the replacement commits inside that window and the retry resolves the
+        // pre-shift offsets against the shifted document, removing "ld EN" instead
+        engine.fullContent() shouldBe "AAAAA Hello  END"
+        // What the replacement does afterwards is its own business: it either commits behind the
+        // lock or aborts because the intent invalidated its scan. Both are consistent outcomes -
+        // this test is about it not landing mid-resolution.
+    }
+
+    companion object {
+        /** Enough scheduler turns for a parked coroutine to finish, if it is not blocked on a lock. */
+        private const val YIELDS_FOR_PARKED_REPLACE = 100
     }
 
     // ==================== Harnesses ====================
