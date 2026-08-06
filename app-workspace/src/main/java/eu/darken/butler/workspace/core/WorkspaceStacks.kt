@@ -89,14 +89,17 @@ class WorkspaceStacks(private val infos: List<Workspace.Info>) {
     }
 
     /**
-     * The chains actually on screen for the given focus and layout, split by how they are rendered.
+     * The chains actually on screen for the given focus, split by how they are rendered.
      *
-     * Selection is deliberately not an input: a full-screen chain covers every pane regardless of
-     * what is selected (see [preferred]), and a pane-local chain only shows when its own tab is
-     * selected, which its root id already tells the caller.
+     * The layout is deliberately not an input: a pane-local chain stacks inside its own tab at any
+     * pane count - on a phone that tab is the pager page it belongs to.
+     *
+     * Selection is not an input either: a full-screen chain covers every pane regardless of what is
+     * selected (see [preferred]), and a pane-local chain only shows when its own tab is selected,
+     * which its root id already tells the caller.
      */
-    fun renderedChains(focusedId: Workspace.Id?, isMultiPane: Boolean): RenderedWorkspaceStacks {
-        val (fullScreen, paneLocal) = chains.partition { it.isFullScreen(isMultiPane) }
+    fun renderedChains(focusedId: Workspace.Id?): RenderedWorkspaceStacks {
+        val (fullScreen, paneLocal) = chains.partition { it.isFullScreen }
         return RenderedWorkspaceStacks(
             fullScreen = fullScreen.preferred(focusedId),
             paneLocal = paneLocal
@@ -137,13 +140,14 @@ data class WorkspaceStackChain(
     val memberIds: Set<Workspace.Id> get() = modals.mapTo(mutableSetOf(root.id)) { it.id }
 
     /**
-     * True when this chain renders as a Dialog covering all panes: any member asks for FULL_SCREEN
-     * (so a pane-local descendant of a full-screen parent still renders full-screen), or its leaf is
-     * PANE_LOCAL on a single-pane layout - phones have no pane to scope a modal to.
+     * True when this chain renders as a Dialog covering all panes: any member asks for FULL_SCREEN,
+     * so a pane-local descendant of a full-screen parent still renders full-screen.
+     *
+     * Independent of the pane count on purpose: a purely pane-local chain stacks inside its owning
+     * tab everywhere, and on a single-pane layout that tab is the pager page it belongs to.
      */
-    fun isFullScreen(isMultiPane: Boolean): Boolean =
-        modals.any { it.modalPresentation == Workspace.ModalPresentationMode.FULL_SCREEN } ||
-            (leaf.modalPresentation == Workspace.ModalPresentationMode.PANE_LOCAL && !isMultiPane)
+    val isFullScreen: Boolean
+        get() = modals.any { it.modalPresentation == Workspace.ModalPresentationMode.FULL_SCREEN }
 }
 
 /**

@@ -41,6 +41,7 @@ import eu.darken.butler.workspace.core.WorkspaceSettings
 import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import eu.darken.butler.workspace.core.session.SessionRestorationException
 import eu.darken.butler.workspace.ui.WorkspacePageManager
+import eu.darken.butler.workspace.ui.WorkspaceVisibilityTracker
 import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
 import eu.darken.butler.workspace.ui.feedback.BannerState
 import eu.darken.butler.workspace.ui.floatingbar.WorkspaceBarCollapseStates
@@ -78,6 +79,7 @@ class WorkspacesViewModel @Inject constructor(
     val pageHosts: Map<Workspace.Type, @JvmSuppressWildcards WorkspacePageHostEntry>,
     val scrollPositions: WorkspaceScrollPositions,
     val barCollapseStates: WorkspaceBarCollapseStates,
+    val pagerVisibility: WorkspaceVisibilityTracker,
 ) : ViewModel4(dispatchers, logTag("Workspace", "Screen", "VM")) {
 
     private val hiddenMotdIds = MutableStateFlow<Set<Uuid>>(emptySet())
@@ -273,9 +275,9 @@ class WorkspacesViewModel @Inject constructor(
 
         // Asking for a favor is the lowest-priority surface there is: anything that asks the user
         // for a decision, or covers the screen, has to win over it. Both modal buckets have to be
-        // checked: single-pane layouts promote pane-local chains to the full-screen slot, so either
-        // one alone would miss a layout. A guided tour scrims the whole screen, so the card would
-        // render dimmed and untappable underneath it.
+        // checked: a chain lands in exactly one of them, so either one alone would miss a case.
+        // A guided tour scrims the whole screen, so the card would render dimmed and untappable
+        // underneath it.
         val isQuiet = motd == null &&
             !uiState.isManagerOverlayVisible &&
             dialogs.isEmpty() &&
@@ -530,9 +532,6 @@ class WorkspacesViewModel @Inject constructor(
         val focused: Workspace.Id?
             get() = focusedWorkspace
 
-        val current: Workspace.Info?
-            get() = tabWorkspaces.firstOrNull { it.id == focused }
-
         /**
          * Every pane assignment, including indices this layout does not render. Pane assignment
          * reads this so moving a workspace between panes does not silently drop the arrangement a
@@ -554,9 +553,6 @@ class WorkspacesViewModel @Inject constructor(
         val all: List<Workspace.Info>
             get() = state.infos
 
-        private val isMultiPane: Boolean
-            get() = currentPaneCount > 1
-
         /**
          * Workspaces that should render in panes/tabs.
          * Only includes normal workspaces (not sub-workspaces).
@@ -571,10 +567,7 @@ class WorkspacesViewModel @Inject constructor(
          * let a rendered modal be treated as unseen.
          */
         private val renderedStacks: RenderedWorkspaceStacks by lazy {
-            WorkspaceStacks(state.infos).renderedChains(
-                focusedId = focusedWorkspace,
-                isMultiPane = isMultiPane,
-            )
+            WorkspaceStacks(state.infos).renderedChains(focusedId = focusedWorkspace)
         }
 
         /**
@@ -591,10 +584,20 @@ class WorkspacesViewModel @Inject constructor(
          * Modal chains that render inside their owning tab's pane, keyed by that tab.
          *
          * Each value is nearest-tab-first, so a pane can stack it directly: index 0 sits on the
-         * tab's own workspace, index 1 on that, and so on. Empty on single-pane layouts, which
-         * promote the same chains to [fullScreenModalWorkspace].
+         * tab's own workspace, index 1 on that, and so on. Independent of the pane count - on a
+         * single-pane layout the owning tab is the pager page the chain stacks inside.
          */
         val paneLocalModalChains: Map<Workspace.Id, List<Workspace.Info>>
             get() = renderedStacks.paneLocal.mapValues { (_, chain) -> chain.modals }
+
+        /**
+         * The tab that owns [focused], i.e. the pager page / pane the user is working in. Null when
+         * nothing is focused or the focused id's caller chain is dangling or cyclic.
+         *
+         * The raw [focused] id is not usable for anything keyed on tabs: a stacked child never
+         * appears in [tabWorkspaces], so looking it up there yields nothing.
+         */
+        val focusedRootId: Workspace.Id?
+            get() = focusedWorkspace?.let { WorkspaceStacks(state.infos).rootOf(it)?.id }
     }
 }

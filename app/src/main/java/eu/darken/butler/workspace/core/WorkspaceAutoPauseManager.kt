@@ -7,6 +7,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.workspace.ui.WorkspacePageManager
+import eu.darken.butler.workspace.ui.WorkspaceVisibilityTracker
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
@@ -34,6 +35,10 @@ import kotlin.time.Instant
  *
  * Timestamps are wall clock, so background and Doze time count: the first evaluation after the
  * process wakes up pauses everything that went stale meanwhile.
+ *
+ * On a single-pane layout what the user sees is decided by the pager, not by pane assignments, so
+ * [WorkspaceVisibilityTracker] is consulted too - both for what is on screen right now and for
+ * sightings that happened between two evaluations.
  */
 @Singleton
 class WorkspaceAutoPauseManager(
@@ -42,6 +47,7 @@ class WorkspaceAutoPauseManager(
     private val workspaceRepo: WorkspaceRepo,
     private val workspacePageManager: WorkspacePageManager,
     private val workspacePauseGate: WorkspacePauseGate,
+    private val pagerVisibility: WorkspaceVisibilityTracker,
     private val clock: Clock,
 ) {
 
@@ -51,7 +57,16 @@ class WorkspaceAutoPauseManager(
         workspaceRepo: WorkspaceRepo,
         workspacePageManager: WorkspacePageManager,
         workspacePauseGate: WorkspacePauseGate,
-    ) : this(appScope, workspaceSettings, workspaceRepo, workspacePageManager, workspacePauseGate, Clock.System)
+        pagerVisibility: WorkspaceVisibilityTracker,
+    ) : this(
+        appScope,
+        workspaceSettings,
+        workspaceRepo,
+        workspacePageManager,
+        workspacePauseGate,
+        pagerVisibility,
+        Clock.System,
+    )
 
     /** When each hidden-but-live workspace last left the screen. Only touched by the eval loop. */
     private val idleSince = mutableMapOf<Workspace.Id, Instant>()
@@ -78,6 +93,17 @@ class WorkspaceAutoPauseManager(
             while (true) {
                 delay(TICK_INTERVAL)
                 trigger.trySend(Unit)
+            }
+        }
+
+        // The last line of defence for the swipe case: a page becoming visible in the frames right
+        // after a release finished - too late for the backstop in pause() to have seen it - would
+        // otherwise leave the user settling on a paused placeholder, since a settle only selects.
+        appScope.launch {
+            pagerVisibility.reappeared.collect { id ->
+                if (workspaceRepo.state.first().infos.none { it.id == id && it.isPaused }) return@collect
+                log(TAG, INFO) { "$id came back on screen right after being paused, resuming it" }
+                workspaceRepo.execute(WorkspaceAction.Resume(id))
             }
         }
     }
@@ -108,7 +134,12 @@ class WorkspaceAutoPauseManager(
         val infos = workspaceRepo.state.first().infos
         val now = clock.now()
 
-        idleSince.keys.retainAll(infos.map { it.id }.toSet())
+        val liveIds = infos.map { it.id }.toSet()
+        idleSince.keys.retainAll(liveIds)
+        // A just-paused record only has to survive until the unit is evaluated again; keeping it
+        // longer would let a much later publication resume a unit that was legitimately released.
+        pagerVisibility.forget(liveIds)
+        pagerVisibility.retirePaused(liveIds)
 
         val stacks = WorkspaceStacks(infos)
         val visibleIds = stacks.visibleUnitIds(pageState)
@@ -175,24 +206,37 @@ class WorkspaceAutoPauseManager(
      */
     private suspend fun pause(id: Workspace.Id) =
         workspacePauseGate.withLease(workspaceRepo.peekOwnershipRoot(id)) {
+            // Taken before the release, so a page that becomes visible and hidden again while the
+            // release runs is still caught: the tracker conflates its visible SET, never the
+            // per-tab generation these stamps compare against.
+            val unitIds = workspaceRepo.peekStacks().unitOf(id)?.map { it.id } ?: listOf(id)
+            val stampsBeforeRelease = pagerVisibility.seenStamps(unitIds)
+
             when (val result = workspaceRepo.execute(WorkspaceAction.Pause(id))) {
                 is WorkspaceAction.Pause.Result.Success -> {
                     result.pausedIds.forEach { idleSince.remove(it) }
                     log(TAG, INFO) { "Auto-paused ${result.pausedIds}" }
+                    // Armed before the checks below, not after: a publication landing in between
+                    // would fall into exactly the gap the record exists to close.
+                    pagerVisibility.guardPaused(result.id)
                     // Backstop for anything that put this unit back on screen while we paused: a
-                    // focus/selection change, a layout collapse promoting its modal to the
-                    // full-screen fallback, or a tab manager opening. Visibility is judged exactly
-                    // like in evaluate(), transitively over whole units and including the rendered
-                    // fallback - the raw selection/focus map would miss the promotion. Both the
-                    // member list and the topology come from post-swap sources: the repo resolved
-                    // them under its own lock, while workspaceRepo.state can still lag the swap.
+                    // focus/selection change, a swipe bringing its page in, or a tab manager
+                    // opening. Visibility is judged exactly like in evaluate(), transitively over
+                    // whole units and including the rendered fallback - the raw selection/focus map
+                    // would miss both. Both the member list and the topology come from post-swap
+                    // sources: the repo resolved them under its own lock, while workspaceRepo.state
+                    // can still lag the swap.
                     val pageState = workspacePageManager.state.value
                     val visibleIds = workspaceRepo.peekStacks().visibleUnitIds(pageState)
-                    if (result.pausedIds.any { it in visibleIds }) {
-                        log(TAG, INFO) { "${result.id} became visible while pausing, resuming it right away" }
-                        workspaceRepo.execute(WorkspaceAction.Resume(result.id))
-                    } else if (pageState.isManagerOverlayVisible) {
-                        log(TAG, INFO) { "Tab manager opened while pausing ${result.id}, resuming it right away" }
+                    val reason = when {
+                        result.pausedIds.any { it in visibleIds } -> "became visible while pausing"
+                        pagerVisibility.wasSeenSince(stampsBeforeRelease) -> "was on screen while pausing"
+                        pageState.isManagerOverlayVisible -> "tab manager opened while pausing"
+                        else -> null
+                    }
+                    if (reason != null) {
+                        log(TAG, INFO) { "${result.id} $reason, resuming it right away" }
+                        pagerVisibility.retirePaused(listOf(result.id))
                         workspaceRepo.execute(WorkspaceAction.Resume(result.id))
                     }
                 }
@@ -219,19 +263,19 @@ class WorkspaceAutoPauseManager(
      * visible, and so does every member of a visible tab's stack.
      *
      * Selections and focus alone are NOT enough. The renderer falls back to the newest full-screen
-     * chain when focus points at no chain at all, so a modal (and on single-pane layouts every modal
-     * is full-screen) can be the thing the user is looking at while neither it nor its tab is
-     * selected or focused. Classifying that stack as idle would pause a workspace out from under the
-     * user, which is why the rendered chains are seeded here rather than approximated.
+     * chain when focus points at no chain at all, so a full-screen modal can be the thing the user
+     * is looking at while neither it nor its tab is selected or focused. Classifying that stack as
+     * idle would pause a workspace out from under the user, which is why the rendered chains are
+     * seeded here rather than approximated.
      */
     private fun WorkspaceStacks.visibleUnitIds(pageState: WorkspacePageManager.State): Set<Workspace.Id> {
-        val rendered = renderedChains(
-            focusedId = pageState.focusedWorkspaceId,
-            isMultiPane = pageState.currentPaneCount > 1,
-        )
+        val rendered = renderedChains(focusedId = pageState.focusedWorkspaceId)
         // Pane-local chains need no seed of their own: they only render inside their own tab's pane,
-        // and a tab occupying a pane is already a selection seed.
-        val seeds = pageState.visibleWorkspaceIds() + rendered.fullScreen?.memberIds.orEmpty()
+        // and a tab occupying a pane is already a selection seed. The pager's published pages are a
+        // seed of their own though - mid-swipe they name tabs that no assignment does yet.
+        val seeds = pageState.visibleWorkspaceIds() +
+            rendered.fullScreen?.memberIds.orEmpty() +
+            pagerVisibility.visibleIds()
         return seeds.flatMapTo(mutableSetOf()) { seed ->
             unitOf(seed)?.map { it.id } ?: listOf(seed)
         }

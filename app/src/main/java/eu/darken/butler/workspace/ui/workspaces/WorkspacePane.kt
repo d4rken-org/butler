@@ -1,11 +1,15 @@
 package eu.darken.butler.workspace.ui.workspaces
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
@@ -21,6 +25,7 @@ import eu.darken.butler.workspace.ui.modal.LocalWorkspaceIsPaneModal
 import eu.darken.butler.workspace.ui.modal.PaneLayer
 import eu.darken.butler.workspace.ui.modal.PaneLayerHost
 import eu.darken.butler.workspace.ui.modal.PaneLayerRank
+import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
 
 /**
  * Everything that can occupy a single workspace pane, stacked bottom to top.
@@ -29,8 +34,9 @@ import eu.darken.butler.workspace.ui.modal.PaneLayerRank
  * and every entry of [childModals] adds one tier on top of it, nearest-tab-first. The stack is
  * therefore as deep as the modal chain, not capped at one child.
  *
- * @param paneFocused whether this pane is the focused one — true for any occupant, because a
- *        pane-local modal's id can never become the globally focused workspace id.
+ * @param paneFocused whether this pane is the focused one — true for any occupant. A pane-local
+ *        modal's id can itself be the globally focused one (`createAndFocus`, tab-manager
+ *        selection), so callers resolve focus through the chain's owning tab, not this pane's id.
  * @param backActive whether system Back may be dispatched into this pane. Defaults to
  *        [paneFocused]; a pager-driven layout narrows it, because its focused pane can be scrolled
  *        off screen while focus stays put.
@@ -150,21 +156,49 @@ private fun BoxScope.WorkspaceLayers(
             rank = PaneLayerRank.contentAt(depth),
             modal = contentIsModal,
         ) {
-            WorkspaceOverlayContainer(
-                // Page content and banner are what the user reads, so they get the horizontal insets
-                modifier = Modifier.paneHorizontalInsetPadding(paneEdges),
-                workspaceId = info.id,
-                bannerStates = bannerStates,
-                onDismissBanner = onDismissBanner,
-                paneEdges = paneEdges,
+            // Composed BEFORE the page, so any handler the page installs outranks this one in
+            // BackHandler's LIFO order. It exists because "the page always handles back" does not
+            // hold at every moment: App Details registers nothing until its state emits, the
+            // Explorer nothing until its picker state exists, the Viewer reads its caller as null
+            // on the first frames, and a paused workspace composes no typed page host at all.
+            // Emits no layout, so it does not disturb the surface below.
+            WorkspaceBackHandler(enabled = contentIsModal) { onCloseWorkspace(info.id) }
+
+            Box(
+                modifier = if (contentIsModal) {
+                    Modifier
+                        .fillMaxSize()
+                        // A stacked child covers its parent, so it owes the parent an opaque
+                        // surface across the FULL pane - inset strips next to a cutout or side
+                        // navigation bar included - and a hit-test boundary, or a transparent
+                        // region (initializing/paused placeholder, letterboxed image) would let
+                        // taps land on the workspace underneath.
+                        .background(MaterialTheme.colorScheme.surface)
+                        // Hit-testable but consuming nothing: the covered layer is a sibling and
+                        // therefore stops receiving events, while the pager is an ancestor and
+                        // keeps seeing the down and the horizontal motion. Consuming the down
+                        // would also block it, and swiping between tabs would die here.
+                        .pointerInput(Unit) {}
+                } else {
+                    Modifier.fillMaxSize()
+                },
             ) {
-                WorkspaceMapper(
-                    info = info,
-                    design = design,
-                    onShareError = { error -> onShareError(info.id, error) },
-                    onCloseWorkspace = { onCloseWorkspace(info.id) },
-                    onResumeWorkspace = { onResumeWorkspace(info.id) },
-                )
+                WorkspaceOverlayContainer(
+                    // Page content and banner are what the user reads, so they get the horizontal insets
+                    modifier = Modifier.paneHorizontalInsetPadding(paneEdges),
+                    workspaceId = info.id,
+                    bannerStates = bannerStates,
+                    onDismissBanner = onDismissBanner,
+                    paneEdges = paneEdges,
+                ) {
+                    WorkspaceMapper(
+                        info = info,
+                        design = design,
+                        onShareError = { error -> onShareError(info.id, error) },
+                        onCloseWorkspace = { onCloseWorkspace(info.id) },
+                        onResumeWorkspace = { onResumeWorkspace(info.id) },
+                    )
+                }
             }
         }
 

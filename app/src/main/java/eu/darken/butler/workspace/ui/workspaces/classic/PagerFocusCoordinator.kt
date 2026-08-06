@@ -92,7 +92,8 @@ internal fun PagerState.isSettledOnPage(page: Int): Boolean =
  * @param pagerState the pager being driven
  * @param tabIds stable list of currently-displayed workspace IDs (placeholder
  *     pages excluded)
- * @param focused the workspace the VM currently has focused
+ * @param focused the OWNING TAB of the workspace the VM has focused, never a raw child id: pages
+ *     are keyed by tab, so a stacked child would resolve to no page and the sync would wait forever
  * @param isRestoring true during session restoration; suppresses animation
  * @param isOverlayVisible true when an overlay covers the pager; suppresses animation
  * @param onSettled invoked once when the user's swipe settles on a tab whose

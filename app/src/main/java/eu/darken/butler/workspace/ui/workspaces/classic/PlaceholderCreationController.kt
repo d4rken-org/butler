@@ -58,9 +58,14 @@ class PlaceholderCreationController internal constructor() {
 
     // Plumbing refreshed via SideEffect by rememberPlaceholderCreationController().
     internal var currentTabIds: List<Workspace.Id> = emptyList()
+    internal var creationEnabled: Boolean = true
     internal var onCreate: () -> Unit = {}
 
     fun onPlaceholderClick() {
+        if (!creationEnabled) {
+            log(TAG, VERBOSE) { "Manual click declined: the current tab owns a result-returning child" }
+            return
+        }
         when (creationState) {
             PlaceholderCreationState.Idle,
             PlaceholderCreationState.Visiting,
@@ -101,6 +106,10 @@ class PlaceholderCreationController internal constructor() {
  * screen-action path; the pre-rework behavior (any count change ended Creating) was strictly
  * looser.
  *
+ * @param creationEnabled false while the tab the pager is on owns a child that must not be swiped
+ *     away from (a picker, the Saver). The container also drops the placeholder page entirely; this
+ *     is the defensive half, covering the paths that create without consulting the pager — the
+ *     manual click above all, which fires from Idle/Visiting/Blocked alike.
  * @param interactions test seam; defaults to the pager's own interaction stream
  */
 @Composable
@@ -111,11 +120,13 @@ fun rememberPlaceholderCreationController(
     isInteractionBlocked: Boolean,
     hasBlockingDialog: Boolean,
     onCreateRequested: () -> Unit,
+    creationEnabled: Boolean = true,
     interactions: Flow<Interaction> = pagerState.interactionSource.interactions,
 ): PlaceholderCreationController {
     val controller = remember { PlaceholderCreationController() }
     SideEffect {
         controller.currentTabIds = tabIds
+        controller.creationEnabled = creationEnabled
         controller.onCreate = onCreateRequested
     }
 
@@ -123,6 +134,7 @@ fun rememberPlaceholderCreationController(
     val currentOnDemand by rememberUpdatedState(onDemandEnabled)
     val currentBlocked by rememberUpdatedState(isInteractionBlocked)
     val currentDialog by rememberUpdatedState(hasBlockingDialog)
+    val currentCreationEnabled by rememberUpdatedState(creationEnabled)
 
     val settledPage by remember { derivedStateOf { pagerState.settledPage } }
     val isScrolling by remember { derivedStateOf { pagerState.isScrollInProgress } }
@@ -157,7 +169,7 @@ fun rememberPlaceholderCreationController(
     // the user's finger, so require a fresh swipe. A list mutation also disarms an armed Visiting —
     // the transition effect below can't catch mutations that leave the pager on the placeholder
     // (same-size reorders, shrinks that hand the index straight to the placeholder).
-    LaunchedEffect(tabIds, onDemandEnabled, isInteractionBlocked, hasBlockingDialog) {
+    LaunchedEffect(tabIds, onDemandEnabled, isInteractionBlocked, hasBlockingDialog, creationEnabled) {
         controller.gestureArmed = false
         if (controller.creationState == PlaceholderCreationState.Visiting) {
             log(TAG, VERBOSE) { "Workspace list or environment changed while Visiting, resetting to Idle" }
@@ -191,9 +203,10 @@ fun rememberPlaceholderCreationController(
                 controller.gestureArmed = false
 
                 if (!onPlaceholder) return@collectLatest
-                if (!currentOnDemand || currentBlocked || currentDialog) {
+                if (!currentOnDemand || currentBlocked || currentDialog || !currentCreationEnabled) {
                     log(TAG, VERBOSE) {
-                        "Settle declined: onDemand=$currentOnDemand blocked=$currentBlocked dialog=$currentDialog"
+                        "Settle declined: onDemand=$currentOnDemand blocked=$currentBlocked " +
+                            "dialog=$currentDialog creationEnabled=$currentCreationEnabled"
                     }
                     return@collectLatest
                 }
@@ -215,7 +228,7 @@ fun rememberPlaceholderCreationController(
                 !pagerState.isScrollInProgress &&
                 currentTabCount > 0 &&
                 pagerState.settledPage >= currentTabCount &&
-                currentOnDemand && !currentBlocked && !currentDialog
+                currentOnDemand && !currentBlocked && !currentDialog && currentCreationEnabled
         }
             .distinctUntilChanged()
             .collectLatest { eligible ->
@@ -236,6 +249,7 @@ fun rememberPlaceholderCreationController(
         onDemandEnabled,
         isInteractionBlocked,
         hasBlockingDialog,
+        creationEnabled,
         controller.creationState,
     ) {
         val isOnPlaceholder = tabIds.isNotEmpty() && settledPage >= tabIds.size
@@ -245,7 +259,7 @@ fun rememberPlaceholderCreationController(
             // Visiting entry is gesture-gated in the settle evaluator above
             is PlaceholderCreationState.Idle -> current
             is PlaceholderCreationState.Visiting -> when {
-                !onDemandEnabled || isInteractionBlocked || hasBlockingDialog -> {
+                !onDemandEnabled || isInteractionBlocked || hasBlockingDialog || !creationEnabled -> {
                     log(TAG, VERBOSE) { "Placeholder no longer eligible, resetting to Idle" }
                     PlaceholderCreationState.Idle
                 }

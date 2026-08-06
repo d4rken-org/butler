@@ -186,9 +186,10 @@ class WorkspacePageManager @Inject constructor(
     ) {
         log(TAG) { "handleWorkspaceSelection: workspaceId=$workspaceId, sourceWorkspaceId=$sourceWorkspaceId" }
 
-        // Check if this is a sub-workspace (modal) - they only get focus, not pane assignment.
-        // Wait for the workspace to appear in state before checking isSubWorkspace to avoid
-        // acting on stale state (new workspaces may not have emitted their info flow yet).
+        // A sub-workspace (modal) never occupies a pane itself - the pane its OWNING TAB occupies is
+        // where it renders. Wait for the workspace to appear in state before checking
+        // isSubWorkspace to avoid acting on stale state (new workspaces may not have emitted their
+        // info flow yet).
         val repoInfos = workspaceRemote.state
             .first { repoState -> repoState.infos.any { it.id == workspaceId } }
             .infos
@@ -196,11 +197,44 @@ class WorkspacePageManager @Inject constructor(
         val isSubWorkspace = workspaceInfo?.isSubWorkspace == true
 
         if (isSubWorkspace) {
-            log(TAG) { "Sub-workspace selected, only updating focus (not pane selections)" }
-            _state.update { state ->
-                state.copy(
+            // Focus stays on the child - that is what the caller asked for - but its root has to be
+            // in a pane the layout renders, or the selection keeps naming a different tab: Classic
+            // would show the child's page while pane 0 says otherwise, and Adaptive renders only
+            // assigned roots, so the child would vanish on the next layout change. Auto-fill cannot
+            // rescue it either, which is why the root's MRU is stamped alongside the child's.
+            val rootId = WorkspaceStacks(repoInfos).rootOf(workspaceId)?.id
+            log(TAG) { "Sub-workspace $workspaceId selected, placing its root $rootId" }
+            val now = Clock.System.now()
+            _state.update { currentState ->
+                val accessTimes = currentState.workspaceAccessTimes + (workspaceId to now) +
+                    listOfNotNull(rootId?.let { it to now })
+
+                // Dangling or cyclic ownership: there is no tab to place. The UI resolves such a
+                // focus to its own fallback rather than to something invented here.
+                if (rootId == null) {
+                    return@update currentState.copy(
+                        focusedWorkspaceId = workspaceId,
+                        workspaceAccessTimes = accessTimes,
+                    )
+                }
+
+                val newSelections = when {
+                    currentState.visiblePaneAssignments.containsValue(rootId) -> {
+                        currentState.selectedWorkspaces
+                    }
+                    currentState.currentPaneCount > 1 -> assignPane(
+                        currentState = currentState,
+                        workspaceId = rootId,
+                        sourcePaneIndex = currentState.paneOf(sourceWorkspaceId, repoInfos),
+                        allowEviction = true,
+                    )
+                    else -> mapOf(0 to rootId)
+                }
+
+                currentState.copy(
                     focusedWorkspaceId = workspaceId,
-                    workspaceAccessTimes = state.workspaceAccessTimes + (workspaceId to Clock.System.now()),
+                    selectedWorkspaces = newSelections,
+                    workspaceAccessTimes = accessTimes,
                 )
             }
             return
@@ -390,8 +424,8 @@ class WorkspacePageManager @Inject constructor(
      * new selections, so setSelectedWorkspaces keeps it). Intermediate emissions between the two
      * steps also fed pager/focus races in the UI.
      *
-     * For normal (pane-rendered) workspaces only — sub-workspace focus goes through
-     * [handleWorkspaceSelection], which focuses without pane assignment.
+     * For normal (pane-rendered) workspaces only — a sub-workspace goes through
+     * [handleWorkspaceSelection], which focuses the child but assigns its owning tab.
      */
     fun setLayout(selections: Map<Int, Workspace.Id>, focusedId: Workspace.Id?) {
         _state.update { currentState ->

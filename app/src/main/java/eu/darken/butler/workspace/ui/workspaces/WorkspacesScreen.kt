@@ -36,6 +36,7 @@ import eu.darken.butler.main.ui.motd.MotdCard
 import eu.darken.butler.main.ui.review.ReviewCard
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.LocalWorkspacePageHosts
+import eu.darken.butler.workspace.ui.LocalWorkspacePagerVisibility
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
@@ -190,6 +191,7 @@ fun WorkspaceScreen(
                 onConfirmManagerDialog = onConfirmManagerDialog,
                 bannerStates = bannerStates,
                 onDismissBanner = onDismissBanner,
+                paneLocalModalChains = state.paneLocalModalChains,
                 isFirstTabTourTarget = firstTabTourEligible,
                 firstTabTourRequester = createTabRequester,
                 onShareError = onShareError,
@@ -243,7 +245,7 @@ fun WorkspaceScreen(
         }
     }
 
-    // Full-screen modal workspace overlay (pickers, settings dialogs, detail views on phones)
+    // Full-screen modal workspace overlay (anything asking for FULL_SCREEN presentation)
     state.fullScreenModalWorkspace?.let { fullScreenModal ->
         WorkspaceModalDialog(
             workspace = fullScreenModal,
@@ -344,6 +346,7 @@ fun WorkspacesScreenHost(
         LocalWorkspacePageHosts provides vm.pageHosts,
         LocalWorkspaceScrollPositions provides vm.scrollPositions,
         LocalWorkspaceBarCollapseStates provides vm.barCollapseStates,
+        LocalWorkspacePagerVisibility provides vm.pagerVisibility,
     ) {
         state?.let { state ->
             WorkspaceScreen(

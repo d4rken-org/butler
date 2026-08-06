@@ -142,9 +142,7 @@ interface Workspace<ArgT : Workspace.Arguments> {
          * Always render as full-screen modal overlay, regardless of device layout.
          * Used for picker workspaces that require focused user interaction across entire screen.
          *
-         * Rendering:
-         * - Phone (single-pane): Dialog overlay covering entire screen
-         * - Tablet (multi-pane): Dialog overlay covering all panes
+         * Rendering: a Dialog covering the whole window, at any pane count.
          */
         FULL_SCREEN,
 
@@ -152,9 +150,8 @@ interface Workspace<ArgT : Workspace.Arguments> {
          * Render as overlay local to parent's pane.
          * Used for detail/informational workspaces opened from a specific parent workspace.
          *
-         * Rendering:
-         * - Phone (single-pane): Dialog overlay covering entire screen
-         * - Tablet (multi-pane): Box overlay covering only the parent's pane
+         * Rendering: a Box stacked on the parent's pane, at any pane count. On a single-pane
+         * layout that pane is the pager page the parent's tab occupies.
          *
          * Example: Clicking an app in Apps workspace opens AppDetails as overlay within Apps pane.
          */
@@ -170,7 +167,7 @@ interface Workspace<ArgT : Workspace.Arguments> {
      * - Child workspaces are typically rendered as modals (presentation controlled by [modalPresentation])
      *
      * Example: AppsWorkspace creates AppDetailsWorkspace with [callerWorkspaceId] = apps workspace ID.
-     * The app details renders as overlay within the Apps pane on tablets, or full-screen on phones.
+     * The app details renders as an overlay stacked inside the Apps pane, whatever the layout.
      *
      * @see callerWorkspaceId
      * @see modalPresentation
@@ -217,8 +214,8 @@ interface Workspace<ArgT : Workspace.Arguments> {
      * [ModalPresentationMode.PANE_LOCAL] by default, so a picker launched from a pane stays inside
      * that pane and leaves the rest of the screen usable. A caller that genuinely needs the whole
      * screen — because the choice is about the app rather than about one pane's content — passes
-     * [ModalPresentationMode.FULL_SCREEN] explicitly. Single-pane layouts promote either to a
-     * full-screen dialog anyway.
+     * [ModalPresentationMode.FULL_SCREEN] explicitly. The pane count does not change either: a
+     * pane-local picker stacks inside its owning tab on a phone too.
      *
      * Example: SearcherWorkspace creates ExplorerPickerWorkspace to select a directory.
      * The Explorer picker renders inside the Searcher's pane, returns the selected path, then closes.
@@ -284,7 +281,7 @@ interface Workspace<ArgT : Workspace.Arguments> {
          *
          * This property is passed from Arguments and determines how the modal should render:
          * - FULL_SCREEN: Always full-screen Dialog overlay covering all panes
-         * - PANE_LOCAL: Box overlay within parent's pane on tablets, Dialog on phones
+         * - PANE_LOCAL: Box overlay stacked within the parent's pane, at any pane count
          *
          * @see ModalPresentationMode
          */
@@ -325,7 +322,7 @@ interface Workspace<ArgT : Workspace.Arguments> {
          * This is a derived property used by the UI layer to determine rendering.
          * The actual presentation depends on [modalPresentation]:
          * - FULL_SCREEN → Always render as Dialog overlay covering all panes
-         * - PANE_LOCAL → Render as Box overlay within parent's pane on tablets, Dialog on phones
+         * - PANE_LOCAL → Render as Box overlay stacked within the parent's pane
          * - `false` (not a sub-workspace) → Render as normal workspace tab
          *
          * Domain layer sets [callerWorkspaceId], UI layer derives presentation from

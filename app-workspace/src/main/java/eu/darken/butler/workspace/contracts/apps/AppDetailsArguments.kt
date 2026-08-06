@@ -12,8 +12,8 @@ import kotlinx.serialization.Transient
  * Implements ArgumentsWithCaller to support modal rendering when callerWorkspaceId is set.
  *
  * This is a detail/informational workspace (not a picker), so it defaults to PANE_LOCAL
- * presentation mode, allowing it to render as an overlay within the parent's pane on tablets
- * while appearing as a full-screen modal on phones.
+ * presentation mode: it stacks inside the pane its caller occupies, which on a single-pane layout
+ * is the pager page of the caller's tab.
  *
  * @param installId Identity of the app to display details for: package plus user handle, so the
  * same package installed in a work profile is a distinct tab.

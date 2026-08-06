@@ -36,14 +36,11 @@ import eu.darken.butler.workspace.ui.modal.PaneLayerHost
 import eu.darken.butler.workspace.ui.modal.PaneLayerRank
 
 /**
- * Full-screen Dialog overlay for displaying sub-workspaces that require full-screen presentation.
+ * Full-screen Dialog overlay for sub-workspaces that ask for [Workspace.ModalPresentationMode
+ * .FULL_SCREEN], plus anything stacked on one of those.
  *
- * This component handles two scenarios:
- * 1. **FULL_SCREEN modals** - Always render as Dialog (pickers, settings dialogs)
- * 2. **PANE_LOCAL modals on single-pane devices** - Render as Dialog on phones (fall back from pane-local)
- *
- * On multi-pane devices (tablets), PANE_LOCAL modals render as Box overlays within their parent's
- * pane and do NOT use this Dialog component.
+ * PANE_LOCAL modals never reach this component at any pane count - they stack inside the pane their
+ * caller occupies, which on a single-pane layout is that tab's pager page.
  *
  * @param workspace The workspace to display
  * @param design The workspace design/layout configuration from the parent screen
@@ -133,7 +130,6 @@ fun WorkspaceModalDialog(
  * The page goes through [WorkspaceMapper] rather than straight to the page host, for the same reason
  * a pane does: a modal can be paused now (a tab is released together with its opted-in children), and
  * a paused id has no instance behind it - its typed ViewModel would wait on `retrieve()` forever.
- * Single-pane layouts promote every chain to this dialog, so this is the phone path.
  */
 @Composable
 fun WorkspaceModalContent(

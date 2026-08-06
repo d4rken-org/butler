@@ -33,8 +33,9 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceDesign.PaneEdges
  * the modal surfaces inside can pad themselves.
  *
  * @param paneFocused whether this pane is the focused one. Accepts either occupant of the pane —
- *        the parent workspace or its pane-local child modal — because a child modal's id can never
- *        become the globally focused workspace id.
+ *        the parent workspace or its pane-local child modal: a child modal CAN hold the global focus
+ *        (`createAndFocus` and a tab-manager selection both put it there), so the caller resolves
+ *        focus through the owning tab rather than comparing this pane's own id.
  * @param backActive whether system Back may be dispatched to this pane. Separate from [paneFocused]
  *        because a pane can be the focused one while not being on screen — the classic pager parks
  *        on its trailing placeholder page without focus leaving the last tab. Defaults to
