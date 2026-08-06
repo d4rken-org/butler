@@ -429,6 +429,59 @@ class PagerFocusCoordinatorTest : ComposeTest() {
         capturedCoordinator!!.isAnimatingProgrammatically shouldBe false
         settled shouldBe emptyList()
     }
+
+    /**
+     * One swipe is two scroll episodes — the drag, then the fling/snap after it — and both settle on
+     * the same page, so a settle is only reported when the page actually changed. That record has to
+     * follow programmatic movement too: a jump can flip isScrollInProgress on and off without
+     * snapshotFlow observing it, so if the record were only kept for settles that pass the
+     * scroll gate, the pager would move without it and the swipe back would look like a repeat.
+     *
+     * The user's route: swipe to a tab, pick the previous one from the tab manager, swipe again.
+     */
+    @Test
+    fun `a swipe back onto a page left programmatically is reported again`() {
+        var capturedState: PagerState? = null
+        var focused by mutableStateOf<Workspace.Id?>(idA)
+        val workspaces = listOf(info(idA), info(idB), info(idC))
+        val settled = mutableListOf<Workspace.Id>()
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                TestHarness(
+                    workspaces = workspaces,
+                    focused = focused,
+                    onSettled = {
+                        settled.add(it)
+                        focused = it
+                    },
+                    onPagerState = { capturedState = it },
+                )
+            }
+        }
+        composeTestRule.waitForIdle()
+        capturedState!!.currentPage shouldBe 0
+
+        composeTestRule.onNodeWithTag(COORD_PAGER_TAG).performTouchInput { swipeLeft() }
+        composeTestRule.waitForIdle()
+        capturedState!!.currentPage shouldBe 1
+        settled shouldBe listOf(idB)
+
+        // Selected from the tab manager: focus moves without a gesture, and the coordinator jumps
+        // the pager back rather than animating it.
+        composeTestRule.runOnIdle { focused = idA }
+        composeTestRule.waitForIdle()
+        capturedState!!.currentPage shouldBe 0
+        settled shouldBe listOf(idB)
+
+        composeTestRule.onNodeWithTag(COORD_PAGER_TAG).performTouchInput { swipeLeft() }
+        composeTestRule.waitForIdle()
+
+        // Page and focus must not part ways: swallowing this leaves tab B on screen with tab A
+        // focused, and everything keyed on focus then acts on the workspace the user cannot see.
+        capturedState!!.currentPage shouldBe 1
+        settled shouldBe listOf(idB, idB)
+    }
 }
 
 private const val COORD_PAGER_TAG = "coordinatorPager"

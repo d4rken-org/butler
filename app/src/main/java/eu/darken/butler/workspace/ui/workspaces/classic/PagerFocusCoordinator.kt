@@ -176,8 +176,9 @@ fun rememberPagerFocusCoordinator(
         // Requiring a scroll to have been observed since the restart keeps that re-report from
         // masquerading as a swipe and overwriting externally-set focus.
         var sawScroll = false
-        // Also a LOCAL var, and for the same reason: after a restart nothing has been reported yet,
-        // so the first settle must be free to report. See the de-duplication below.
+        // Where the pager currently rests, tracked independently of whether that settle was
+        // reported. Also a LOCAL var, and for the same reason: after a restart nothing has been
+        // reported yet, so the first settle must be free to report.
         var lastSettledPage: Int? = null
         snapshotFlow { pagerState.settledPage to pagerState.isScrollInProgress }
             .distinctUntilChanged()
@@ -199,8 +200,21 @@ fun rememberPagerFocusCoordinator(
                 if (clampPage != null && settled == clampPage) {
                     coordinator.pendingClampPage = null
                     sawScroll = false
+                    lastSettledPage = settled
                     return@collect
                 }
+
+                // De-duplication is decided and recorded BEFORE the sawScroll gate, for the same
+                // reason the clamp marker is consumed before it: a programmatic jump can flip
+                // isScrollInProgress on and off without snapshotFlow ever observing `true`, so its
+                // settle arrives with sawScroll still false. Recorded behind the gate, the pager
+                // would move without the record following it, and the next genuine swipe back onto
+                // the page it left would be mistaken for a duplicate and never reported - page and
+                // focus would then disagree, and later actions would target the wrong workspace.
+                //
+                // Only the *reporting* stays gated on sawScroll, further down.
+                val duplicatePage = settled == lastSettledPage
+                lastSettledPage = settled
 
                 if (!sawScroll) return@collect
                 sawScroll = false
@@ -215,12 +229,7 @@ fun rememberPagerFocusCoordinator(
                 // episodes — the drag, then the fling/snap that follows it — and both settle on the
                 // same page. Keyed on the pair alone they are distinct events, so the destination
                 // was reported twice and the whole selection path ran twice per swipe.
-                //
-                // Recorded for every settle that gets this far, not only for the ones that go on to
-                // be reported: a programmatic move parks the pager on a page too, and forgetting
-                // that would swallow the user's next swipe back onto the page they left.
-                if (settled == lastSettledPage) return@collect
-                lastSettledPage = settled
+                if (duplicatePage) return@collect
 
                 if (coordinator.isAnimatingProgrammatically) return@collect
                 if (settled !in tabIds.indices) return@collect
