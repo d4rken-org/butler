@@ -1012,9 +1012,11 @@ class EditorEngine @AssistedInject constructor(
     /**
      * Deletes exactly the range [snapshot] was copied from, as a verified patch: both the document
      * version and the text at the offset are re-checked, and a divergence fails with
-     * [StaleMatchException] without mutating anything. The failure is returned only - it must not
+     * [StaleMatchException] without mutating anything. That conflict is returned only - it must not
      * raise the error banner, because a cut whose document moved legitimately deletes nothing and
-     * its clipboard write already succeeded.
+     * its clipboard write already succeeded. Any OTHER failure (e.g. the backing file became
+     * unreadable) does raise the banner: the clipboard already changed, so a silent no-delete would
+     * leave the user with no sign that the cut half-executed.
      */
     suspend fun applyCut(snapshot: CutSnapshot): Result<String> {
         val buffer = stateMutex.withLock {
@@ -1028,7 +1030,16 @@ class EditorEngine @AssistedInject constructor(
             listOf(DocumentBuffer.MatchReplacement(snapshot.startOffset, snapshot.text, "")),
             expectedVersion = snapshot.expectedVersion,
         ).getOrElse {
-            log(tag, WARN) { "Cut deletion rejected, the document moved on: ${it.asLog()}" }
+            when (it) {
+                is CancellationException -> throw it
+                is StaleMatchException -> log(tag, WARN) {
+                    "Cut deletion rejected, the document moved on: ${it.asLog()}"
+                }
+                else -> {
+                    stateMutex.withLock { _error.value = it }
+                    log(tag, ERROR) { "Cut deletion failed - ${it.asLog()}" }
+                }
+            }
             return Result.failure(it)
         }
 

@@ -2,15 +2,20 @@ package eu.darken.butler.editor.core.engine
 
 import eu.darken.butler.common.datastore.DataStoreValue
 import eu.darken.butler.editor.core.EditorSettings
+import eu.darken.butler.editor.core.sources.EditorDataSource
 import eu.darken.butler.editor.core.sources.InMemoryDataSource
 import eu.darken.butler.workspace.core.Workspace
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import io.kotest.matchers.types.shouldNotBeInstanceOf
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
+import okio.Source
 import org.junit.jupiter.api.Test
+import java.io.FileNotFoundException
 import kotlin.random.Random
 import testhelpers.coroutine.TestDispatcherProvider
 
@@ -34,6 +39,29 @@ class EditorEngineCopySelectionTest : DocumentBufferTestBase() {
         return settings
     }
 
+    /** Wraps the engine's data source so its byte reads can be broken after the document loaded. */
+    private class BreakableSource(private val delegate: EditorDataSource) : EditorDataSource {
+        var failWith: (() -> Throwable)? = null
+        override val contentSource: StateFlow<ContentSource> = delegate.contentSource
+        override suspend fun open() = delegate.open()
+        override suspend fun getSize(): Long = delegate.getSize()
+        override suspend fun close() = delegate.close()
+        override suspend fun getMeta(): EditorDataSource.Meta {
+            failWith?.let { throw it() }
+            return delegate.getMeta()
+        }
+
+        override suspend fun openByteSource(offset: Long): Source {
+            failWith?.let { throw it() }
+            return delegate.openByteSource(offset)
+        }
+
+        override suspend fun commit(writer: suspend (EditorDataSource.CommitContext) -> Unit) =
+            delegate.commit(writer)
+    }
+
+    private lateinit var breakableSource: BreakableSource
+
     private suspend fun createEngine(content: String): EditorEngine {
         val inMemoryDataSourceFactory = object : InMemoryDataSource.Factory {
             override fun create(workspaceId: Workspace.Id, initialContent: String) =
@@ -42,7 +70,7 @@ class EditorEngineCopySelectionTest : DocumentBufferTestBase() {
         val documentBufferFactory = object : DocumentBuffer.Factory {
             override fun create(
                 workspaceId: Workspace.Id,
-                dataSource: eu.darken.butler.editor.core.sources.EditorDataSource,
+                dataSource: EditorDataSource,
                 maxUndoStackSize: Int,
                 maxUndoMemoryBytes: Long,
                 blockSize: Int,
@@ -50,7 +78,15 @@ class EditorEngineCopySelectionTest : DocumentBufferTestBase() {
                 staleSampleRandom: Random,
                 timeSource: kotlin.time.TimeSource,
                 maxDisplayLineChars: Int,
-            ) = DocumentBuffer(workspaceId, dataSource, maxUndoStackSize, maxUndoMemoryBytes, blockSize, true, staleSampleRandom)
+            ) = DocumentBuffer(
+                workspaceId,
+                BreakableSource(dataSource).also { breakableSource = it },
+                maxUndoStackSize,
+                maxUndoMemoryBytes,
+                blockSize,
+                true,
+                staleSampleRandom,
+            )
         }
         val engine = EditorEngine(
             workspaceId = workspaceId,
@@ -181,6 +217,29 @@ class EditorEngineCopySelectionTest : DocumentBufferTestBase() {
         engine.documentText() shouldBe "ABCHello World"
         // A conflicted cut is a normal outcome, not something to raise a banner for
         engine.error.value shouldBe null
+    }
+
+    @Test
+    fun `a cut failing for a non-stale reason raises the error banner`() = runTest {
+        // The clipboard write already happened - a delete that fails for anything other than a
+        // conflict must be visible, otherwise the cut half-executes silently
+        val engine = createEngine("Hello World")
+        engine.setSelection(
+            start = TextPosition(offset = 6, line = 0, column = 6),
+            end = TextPosition(offset = 11, line = 0, column = 11),
+        )
+        val snapshot = engine.prepareCut().getOrThrow()
+
+        // The verify pass reads from the warm decode cache; the mutation's charToByte reads the
+        // backing bytes directly and trips the failure
+        engine.documentText()
+        breakableSource.failWith = { FileNotFoundException("open failed: ENOENT (No such file or directory)") }
+
+        val result = engine.applyCut(snapshot)
+
+        result.isFailure shouldBe true
+        result.exceptionOrNull().shouldNotBeInstanceOf<StaleMatchException>()
+        engine.error.value shouldBe result.exceptionOrNull()
     }
 
     @Test
