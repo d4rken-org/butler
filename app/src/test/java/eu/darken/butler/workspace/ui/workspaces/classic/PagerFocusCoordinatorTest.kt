@@ -11,6 +11,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeLeft
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.Workspace
@@ -26,6 +30,8 @@ class PagerFocusCoordinatorTest : ComposeTest() {
     private val idA = Workspace.Id(Uuid.random())
     private val idB = Workspace.Id(Uuid.random())
     private val idC = Workspace.Id(Uuid.random())
+    private val idD = Workspace.Id(Uuid.random())
+    private val idE = Workspace.Id(Uuid.random())
 
     private fun info(id: Workspace.Id, ops: Int = 0) = Workspace.Info(
         id = id,
@@ -201,7 +207,91 @@ class PagerFocusCoordinatorTest : ComposeTest() {
         capturedState!!.currentPage shouldBe 0
         settled shouldBe emptyList()
     }
+
+    @Test
+    fun `tab list change without pager movement does not report a swipe`() {
+        var capturedState: PagerState? = null
+        var workspaces by mutableStateOf(listOf(info(idA), info(idB), info(idC), info(idD)))
+        var focused by mutableStateOf<Workspace.Id?>(idC)
+        val settled = mutableListOf<Workspace.Id>()
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                TestHarness(
+                    workspaces = workspaces,
+                    focused = focused,
+                    onSettled = { settled.add(it) },
+                    onPagerState = { capturedState = it },
+                )
+            }
+        }
+        composeTestRule.waitForIdle()
+        capturedState!!.currentPage shouldBe 2
+
+        // Tab-limit recovery: the oldest tab is closed and a new one created in one operation.
+        // Focus moves to the new workspace before the list carries it, and the close shifts every
+        // remaining tab one index down — so the page the pager is parked on now holds a DIFFERENT
+        // workspace than before, without the pager having moved. That must not look like a swipe.
+        focused = idE
+        workspaces = listOf(info(idB), info(idC), info(idD))
+        composeTestRule.waitForIdle()
+
+        capturedState!!.currentPage shouldBe 2
+        settled shouldBe emptyList()
+    }
+
+    @Test
+    fun `user swipe reports the swiped-to workspace`() {
+        var capturedState: PagerState? = null
+        val workspaces = listOf(info(idA), info(idB), info(idC))
+        val settled = mutableListOf<Workspace.Id>()
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                TestHarness(
+                    workspaces = workspaces,
+                    focused = idA,
+                    onSettled = { settled.add(it) },
+                    onPagerState = { capturedState = it },
+                )
+            }
+        }
+        composeTestRule.waitForIdle()
+        capturedState!!.currentPage shouldBe 0
+
+        composeTestRule.onNodeWithTag(COORD_PAGER_TAG).performTouchInput { swipeLeft() }
+        composeTestRule.waitForIdle()
+
+        capturedState!!.currentPage shouldBe 1
+        settled shouldBe listOf(idB)
+    }
+
+    @Test
+    fun `initial composition without a scroll does not report a swipe`() {
+        var capturedState: PagerState? = null
+        val workspaces = listOf(info(idA), info(idB), info(idC))
+        val settled = mutableListOf<Workspace.Id>()
+
+        // No focus to sync to, so the pager never moves. Its resting settle emission is not a
+        // gesture and must not select the workspace that happens to sit at the current page.
+        composeTestRule.setContent {
+            PreviewWrapper {
+                TestHarness(
+                    workspaces = workspaces,
+                    focused = null,
+                    onSettled = { settled.add(it) },
+                    onPagerState = { capturedState = it },
+                )
+            }
+        }
+        composeTestRule.waitForIdle()
+
+        capturedState!!.currentPage shouldBe 0
+        settled shouldBe emptyList()
+    }
 }
+
+private const val COORD_PAGER_TAG = "coordinatorPager"
 
 @Composable
 private fun TestHarness(
@@ -225,7 +315,9 @@ private fun TestHarness(
 
     HorizontalPager(
         state = pagerState,
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .testTag(COORD_PAGER_TAG),
     ) {
         Box(modifier = Modifier.fillMaxSize())
     }

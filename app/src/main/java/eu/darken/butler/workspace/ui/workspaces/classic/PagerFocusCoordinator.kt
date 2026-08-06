@@ -13,9 +13,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 
 private val TAG = logTag("Workspace", "Container", "Classic", "PagerCoord")
 
@@ -130,11 +128,22 @@ fun rememberPagerFocusCoordinator(
     }
 
     LaunchedEffect(pagerState, tabIds) {
+        // Deliberately a LOCAL var, not coordinator state: it must reset on every restart of this
+        // effect. A tabIds change restarts the effect, and the fresh snapshotFlow immediately
+        // re-emits the CURRENT settledPage — the pager never moved, but tabIds[settled] may now
+        // resolve to a different workspace (limit recovery removes and adds a tab in one step).
+        // Requiring a scroll to have been observed since the restart keeps that re-report from
+        // masquerading as a swipe and overwriting externally-set focus.
+        var sawScroll = false
         snapshotFlow { pagerState.settledPage to pagerState.isScrollInProgress }
-            .filter { (_, scrolling) -> !scrolling }
-            .map { (settled, _) -> settled }
             .distinctUntilChanged()
-            .collect { settled ->
+            .collect { (settled, scrolling) ->
+                if (scrolling) {
+                    sawScroll = true
+                    return@collect
+                }
+                if (!sawScroll) return@collect
+
                 // One-shot: whatever settle follows a clamp consumes the marker, so a stale
                 // marker can never swallow a later genuine swipe to the same page.
                 val clampPage = coordinator.pendingClampPage
