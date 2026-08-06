@@ -451,12 +451,18 @@ class WorkspacesViewModel @Inject constructor(
         workspaceRepo.resolveConfirmation(dialogState.id, confirmed = false)
     }
 
-    fun onCloseOldestFromLimitDialog() {
+    fun onCloseOldestFromLimitDialog() = launch {
         log(tag) { "onCloseOldestFromLimitDialog()" }
         val dialogState = _managerDialogs.value
             .filterIsInstance<ManagerDialog.Global.WorkspaceLimitReached>()
-            .firstOrNull() ?: return
-        workspaceRepo.resolveLimitByClosingOldest(dialogState.id)
+            .firstOrNull() ?: return@launch
+        // The recovery runs on the repo's app scope, so awaiting it here can be cancelled without
+        // aborting it half-way; only the reporting is tied to this screen.
+        val error = workspaceRepo.resolveLimitByClosingOldest(dialogState.id).await()
+        if (error != null) {
+            log(tag, ERROR) { "Limit recovery failed: ${error.asLog()}" }
+            errorEvents.emit(error)
+        }
     }
 
     fun onUpgradeFromLimitDialog() {

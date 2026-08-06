@@ -15,7 +15,10 @@ import eu.darken.butler.upgrade.isProForUi
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.usage.WorkspaceUsageRepo
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -72,7 +75,12 @@ class WorkspaceRepo @Inject constructor(
         .setupCommonEventHandlers(TAG, enabled = Bugs.isDebug) { "PendingConfirmations" }
         .replayingShare(appScope)
 
-    private val pendingActions = ConcurrentHashMap<String, suspend () -> Unit>()
+    /**
+     * Work parked behind a dialog, run under [lock] once the user resolves it. The result is the
+     * failure to show the user, or null when there is nothing to report - only limit recovery
+     * ([resolveLimitByClosingOldest]) has a caller waiting for it, the rest always park null.
+     */
+    private val pendingActions = ConcurrentHashMap<String, suspend () -> Throwable?>()
 
     /**
      * Normalized user-set name, or null when the input clears it. Single source of truth for what a
@@ -316,16 +324,21 @@ class WorkspaceRepo @Inject constructor(
      * Resolves a free-tier limit dialog through its neutral action: closes the tab the dialog named
      * and completes the create that was blocked. A no-op when nothing was parked for
      * [confirmationId] - the dialog is dismissed either way, exactly like [resolveConfirmation].
+     *
+     * The returned [Deferred] completes with the failure to show the user, or null when the recovery
+     * worked. The recovery itself deliberately runs on the uncancellable [appScope]: awaiting the
+     * result may be cancelled (configuration change, screen gone), the work in between closing the
+     * victim and committing the replacement may not.
      */
-    fun resolveLimitByClosingOldest(confirmationId: String) {
+    fun resolveLimitByClosingOldest(confirmationId: String): Deferred<Throwable?> {
         log(TAG, INFO) { "resolveLimitByClosingOldest($confirmationId)" }
         _pendingConfirmations.update { it - confirmationId }
         val retry = pendingActions.remove(confirmationId)
         if (retry == null) {
             log(TAG, WARN) { "No blocked create parked for $confirmationId, nothing to recover" }
-            return
+            return CompletableDeferred(null)
         }
-        appScope.launch {
+        return appScope.async {
             lock.withLock { retry() }
         }
     }
@@ -364,7 +377,7 @@ class WorkspaceRepo @Inject constructor(
                 // Check workspace limit for non-pro users
                 if (!canCreateWorkspace(action, isPro)) {
                     log(TAG, INFO) { "Workspace limit reached, showing upgrade dialog" }
-                    val limitRetry: (suspend (Workspace.Id) -> Unit)? = if (action.allowLimitRecovery) {
+                    val limitRetry: (suspend (Workspace.Id) -> Throwable?)? = if (action.allowLimitRecovery) {
                         { victimId -> recoverFromLimit(action, isPro, victimId) }
                     } else {
                         null
@@ -490,6 +503,7 @@ class WorkspaceRepo @Inject constructor(
 
                     pendingActions[confirmationId] = {
                         finalizeBatch(pendingCreates, preResolved, deferredDupes, isPro, action.sourceWorkspaceId)
+                        null
                     }
 
                     _pendingConfirmations.update {
@@ -562,6 +576,7 @@ class WorkspaceRepo @Inject constructor(
 
                     pendingActions[confirmationId] = {
                         executeClose(action.id)
+                        null
                     }
 
                     _pendingConfirmations.update {
@@ -1055,7 +1070,7 @@ class WorkspaceRepo @Inject constructor(
      * with `skipLimitCheck`, so the counted count can legitimately sit ABOVE the limit, and freeing
      * one slot out of two would promise something the retry cannot deliver.
      */
-    private fun postLimitDialog(retry: (suspend (Workspace.Id) -> Unit)? = null) {
+    private fun postLimitDialog(retry: (suspend (Workspace.Id) -> Throwable?)? = null) {
         val confirmationId = Uuid.random().toString()
         val currentCount = countedTabCount()
 
@@ -1097,18 +1112,22 @@ class WorkspaceRepo @Inject constructor(
      * [isPro] is the value sampled when the create was made, matching [finalizeBatch]: an entitlement
      * change while the dialog was open is not re-read (reading it suspends and must not happen under
      * [lock], and the upgrade action dismisses this dialog anyway).
+     *
+     * Returns the failure to surface to the user, or null when there is nothing to report - the
+     * recovery runs behind a dialog the user just dismissed, so a silent failure would look like the
+     * create simply never happened (and, past the close, would have cost them a tab).
      */
     private suspend fun recoverFromLimit(
         action: WorkspaceAction.Create,
         isPro: Boolean,
         victimId: Workspace.Id,
-    ) {
+    ): Throwable? {
         log(TAG, INFO) { "recoverFromLimit($action, victim=$victimId)" }
 
         (findExistingSingleton(action) ?: findExistingContentMatch(action))?.let { existingId ->
             log(TAG, INFO) { "Blocked create of ${action.type} is open as $existingId now, selecting it" }
             _events.emit(WorkspaceEvent.SelectionRequested(existingId, action.sourceWorkspaceId))
-            return
+            return null
         }
 
         val needsClose = !canCreateWorkspace(action, isPro)
@@ -1118,11 +1137,11 @@ class WorkspaceRepo @Inject constructor(
             // again for whatever is closable now.
             if (victim == null || !isLimitRecoveryVictim(victim, peekStacks())) {
                 log(TAG, WARN) { "$victimId is no longer closable, asking again" }
-                val retry: suspend (Workspace.Id) -> Unit = { newVictimId ->
+                val retry: suspend (Workspace.Id) -> Throwable? = { newVictimId ->
                     recoverFromLimit(action, isPro, newVictimId)
                 }
                 postLimitDialog(retry = retry)
-                return
+                return null
             }
         } else {
             log(TAG, INFO) { "A slot freed up meanwhile, creating without closing anything" }
@@ -1133,7 +1152,7 @@ class WorkspaceRepo @Inject constructor(
         } catch (e: Exception) {
             log(TAG, ERROR) { "Limit recovery could not build ${action.type}, closing nothing: ${e.asLog()}" }
             Bugs.report(e)
-            return
+            return e
         }
 
         var committedId: Workspace.Id? = null
@@ -1162,7 +1181,9 @@ class WorkspaceRepo @Inject constructor(
                 }
             }
             Bugs.report(e)
+            return e
         }
+        return null
     }
 
     /**

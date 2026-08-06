@@ -860,6 +860,19 @@ class WorkspaceRepoTest : BaseTest() {
     }
 
     @Test
+    fun `a failing recovery hands the failure to the caller`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo(isPro = false)
+        repo.fillWithReadyTabs()
+        repo.createRecoverable(type = Workspace.Type.SEARCHER)
+        val boom = IllegalStateException("Factory exploded")
+        nextCreateFailure = boom
+
+        val failure = repo.resolveLimitByClosingOldest(repo.limitConfirmation().id).await()
+
+        failure shouldBeSameInstanceAs boom
+    }
+
+    @Test
     fun `a failing release during recovery still completes the create`() = runTest(UnconfinedTestDispatcher()) {
         val repo = createRepo(isPro = false)
         val ids = repo.fillWithReadyTabs()
