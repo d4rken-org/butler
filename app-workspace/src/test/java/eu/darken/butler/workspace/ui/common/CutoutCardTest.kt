@@ -5,10 +5,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.requiredHeightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
-import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -25,6 +25,7 @@ class CutoutCardTest : ComposeTest() {
 
     private val cardTag = "card"
     private val contentTag = "content"
+    private val cutoutTag = "cutout"
 
     @Test
     fun `content is vertically centered when a min height is enforced without a cutout`() {
@@ -119,11 +120,64 @@ class CutoutCardTest : ComposeTest() {
         }
 
         val card = composeTestRule.onNodeWithTag(cardTag).getUnclippedBoundsInRoot()
-        // CutoutCard subcomposes the content twice (measure pass + render pass), only the
-        // rendered one is placed and therefore has resolved bounds.
-        val content = composeTestRule.onAllNodesWithTag(contentTag)[0].getUnclippedBoundsInRoot()
+        val content = composeTestRule.onNodeWithTag(contentTag).getUnclippedBoundsInRoot()
 
         (card.bottom - card.top) shouldBe 40.dp
         (content.top - card.top) shouldBe (card.bottom - content.bottom)
+    }
+
+    @Test
+    fun `cutout content is top aligned by default`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                CutoutCard(
+                    modifier = Modifier.testTag(cardTag),
+                    cutoutContent = {
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .testTag(cutoutTag),
+                        )
+                    },
+                    cutoutMode = CutoutMode.FullHeight,
+                    contentPadding = CutoutCardDefaults.contentPadding(6.dp),
+                ) {
+                    Box(modifier = Modifier.size(80.dp))
+                }
+            }
+        }
+
+        val card = composeTestRule.onNodeWithTag(cardTag).getUnclippedBoundsInRoot()
+        val cutout = composeTestRule.onNodeWithTag(cutoutTag).getUnclippedBoundsInRoot()
+
+        cutout.top shouldBe card.top
+    }
+
+    @Test
+    fun `cutout content can be vertically centered`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                CutoutCard(
+                    modifier = Modifier.testTag(cardTag),
+                    cutoutContent = {
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .testTag(cutoutTag),
+                        )
+                    },
+                    cutoutMode = CutoutMode.FullHeight,
+                    cutoutAlignment = Alignment.CenterVertically,
+                    contentPadding = CutoutCardDefaults.contentPadding(6.dp),
+                ) {
+                    Box(modifier = Modifier.size(80.dp))
+                }
+            }
+        }
+
+        val card = composeTestRule.onNodeWithTag(cardTag).getUnclippedBoundsInRoot()
+        val cutout = composeTestRule.onNodeWithTag(cutoutTag).getUnclippedBoundsInRoot()
+
+        (cutout.top - card.top) shouldBe (card.bottom - cutout.bottom)
     }
 }

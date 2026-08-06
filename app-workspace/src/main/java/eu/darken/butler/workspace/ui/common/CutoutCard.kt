@@ -65,6 +65,8 @@ enum class CutoutMode {
  * @param cutoutMode Controls the cutout rendering mode. [CutoutMode.Auto] (default) selects based
  *                   on content height, [CutoutMode.Corner] forces notch shape, [CutoutMode.FullHeight]
  *                   forces the card-beside-button layout.
+ * @param cutoutAlignment Vertical alignment of the cutout content next to the card. Only applies in
+ *                        full-height mode, corner mode always pins the content into the top-right notch.
  * @param gapDistance Gap between cutout content and card content. In corner mode, this gap is
  *                    applied to both the left and bottom edges of the cutout. In full-height mode,
  *                    only the horizontal gap (left of cutout) is applied since the cutout spans
@@ -84,6 +86,7 @@ fun CutoutCard(
     elevation: CardElevation = CardDefaults.cardElevation(defaultElevation = CutoutCardDefaults.ElevationDp),
     cutoutContent: (@Composable () -> Unit)? = null,
     cutoutMode: CutoutMode = CutoutMode.Auto,
+    cutoutAlignment: Alignment.Vertical = Alignment.Top,
     contentPadding: PaddingValues = CutoutCardDefaults.contentPadding(),
     gapDistance: Dp = CutoutCardDefaults.GapDistanceExpanded,
     content: @Composable CutoutCardScope.() -> Unit,
@@ -141,21 +144,23 @@ fun CutoutCard(
         val cardMinHeightPx = maxOf(constraints.minHeight, cutoutContentHeight)
         val cardMinHeightDp = with(density) { cardMinHeightPx.toDp() }
 
-        // Phase 2: Measure content as it would appear in full-height mode
-        // to determine if it extends enough below the cutout to justify corner mode
-        val fullHeightCardWidth = (constraints.maxWidth - cutoutWidth).coerceAtLeast(0)
-        val fullHeightScope = CutoutCardScopeImpl(cutoutWidth = 0.dp, cutoutHeight = 0.dp)
-        val contentMeasurePlaceable = subcompose("content-measure") {
-            Column(modifier = Modifier.padding(contentPadding)) {
-                fullHeightScope.content()
-            }
-        }.first().measure(constraints.copy(minWidth = 0, maxWidth = fullHeightCardWidth))
-
-        val minHeightForCornerMode = cutoutHeight * 2
         val useFullHeightMode = when (cutoutMode) {
             CutoutMode.FullHeight -> true
             CutoutMode.Corner -> false
-            CutoutMode.Auto -> contentMeasurePlaceable.height < minHeightForCornerMode
+            // Only Auto has to measure the content as it would appear in full-height mode, to see
+            // whether it extends enough below the cutout to justify corner mode.
+            CutoutMode.Auto -> {
+                val fullHeightCardWidth = (constraints.maxWidth - cutoutWidth).coerceAtLeast(0)
+                val fullHeightScope = CutoutCardScopeImpl(cutoutWidth = 0.dp, cutoutHeight = 0.dp)
+                val contentMeasurePlaceable = subcompose("content-measure") {
+                    Column(modifier = Modifier.padding(contentPadding)) {
+                        fullHeightScope.content()
+                    }
+                }.first().measure(constraints.copy(minWidth = 0, maxWidth = fullHeightCardWidth))
+
+                val minHeightForCornerMode = cutoutHeight * 2
+                contentMeasurePlaceable.height < minHeightForCornerMode
+            }
         }
 
         // In full-height mode the card width is already reduced by cutoutWidth,
@@ -225,10 +230,12 @@ fun CutoutCard(
             // Place the card
             cardPlaceable.placeRelative(0, 0)
 
-            // Place cutout content - always top-aligned for consistent appearance
+            // Place cutout content - corner mode stays pinned to the top, because
+            // CutoutTopRightCornerShape draws its notch there and content drifting out of the
+            // notch would render on top of the card.
             cutoutPlaceable?.placeRelative(
                 x = totalWidth - cutoutContentWidth,
-                y = 0,
+                y = if (useFullHeightMode) cutoutAlignment.align(cutoutContentHeight, cardPlaceable.height) else 0,
             )
         }
     }
