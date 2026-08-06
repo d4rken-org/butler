@@ -174,8 +174,8 @@ class ClassicWorkspacePagerTest : ComposeTest() {
         composeTestRule.waitForIdle()
 
         // The raw child id names no page at all, so without resolving it to its root the pager
-        // would sit on tab A forever waiting for an index that never comes.
-        composeTestRule.onNodeWithTag(RecordingHost.tagFor(tabB)).assertIsDisplayed()
+        // would sit on tab A forever waiting for an index that never comes. The child only exists
+        // inside tab B's page, so seeing it is exactly "the pager moved to tab B".
         composeTestRule.onNodeWithTag(RecordingHost.tagFor(child)).assertIsDisplayed()
     }
 

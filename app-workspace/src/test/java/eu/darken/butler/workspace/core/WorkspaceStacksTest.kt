@@ -9,10 +9,9 @@ import testhelpers.BaseTest
 /**
  * The ownership walk everything that renders, pauses or focuses a workspace agrees on.
  *
- * Presentation is decided here and nowhere else: only an explicit [Workspace.ModalPresentationMode
- * .FULL_SCREEN] member makes a chain cover the screen, and the pane count is deliberately not an
- * input - a pane-local chain stacks inside its owning tab on a phone exactly as it does in a tablet
- * pane.
+ * Presentation is decided here and nowhere else: only an explicit FULL_SCREEN member makes a chain
+ * cover the screen, and the pane count is deliberately not an input - a pane-local chain stacks
+ * inside its owning tab on a phone exactly as it does in a tablet pane.
  */
 class WorkspaceStacksTest : BaseTest() {
 

@@ -10,7 +10,7 @@ Butler supports **modal workspaces** - workspaces that render as full-screen ove
 
 A **sub-workspace** is a workspace created by another workspace to return a result (e.g., Explorer picker launched by Searcher). Sub-workspaces:
 
-- Render as full-screen modals that block background interaction
+- Stack on top of the pane their caller occupies, blocking interaction with it. On a single-pane layout that pane is the caller's pager page — the pane count never changes the presentation. Only `ModalPresentationMode.FULL_SCREEN` renders as a window-covering Dialog.
 - Maintain full workspace capabilities (navigation, operations, permissions)
 - Automatically close when their parent workspace closes
 - Return results via `WorkspaceEvent.PickerResult`
@@ -121,7 +121,7 @@ val modalWorkspace: Workspace.Info?
     get() = state.infos.firstOrNull { it.isSubWorkspace }  // Modal overlay
 ```
 
-**No workspace code changes needed** - the UI layer uses `Workspace.Info.isSubWorkspace` (derived from `callerWorkspaceId != null`) to decide rendering.
+**No workspace code changes needed** - the UI layer uses `Workspace.Info.isSubWorkspace` (derived from `callerWorkspaceId != null`) to decide rendering. `WorkspaceStacks` resolves the ownership chains and splits them into pane-local stacks (keyed by the owning tab) and full-screen ones.
 
 ## Parent-Child Lifecycle
 

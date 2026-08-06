@@ -36,8 +36,8 @@ import eu.darken.butler.workspace.ui.modal.PaneLayerHost
 import eu.darken.butler.workspace.ui.modal.PaneLayerRank
 
 /**
- * Full-screen Dialog overlay for sub-workspaces that ask for [Workspace.ModalPresentationMode
- * .FULL_SCREEN], plus anything stacked on one of those.
+ * Full-screen Dialog overlay for sub-workspaces that ask for FULL_SCREEN presentation, plus
+ * anything stacked on one of those. See [Workspace.ModalPresentationMode].
  *
  * PANE_LOCAL modals never reach this component at any pane count - they stack inside the pane their
  * caller occupies, which on a single-pane layout is that tab's pager page.
