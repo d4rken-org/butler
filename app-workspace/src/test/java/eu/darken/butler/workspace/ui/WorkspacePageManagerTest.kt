@@ -526,6 +526,44 @@ class WorkspacePageManagerTest : BaseTest() {
         after.focusedWorkspaceId shouldBe target
     }
 
+    /**
+     * Explicitly NOT about the pager double-settle: eviction lives in assignPane, which is only
+     * reachable from handleWorkspaceSelection - the sub-workspace/manager path a swipe never takes -
+     * and the Classic phone layout is single-pane anyway. Kept as page-manager hardening that
+     * nothing else currently pins: a repeated selection must not move the eviction victim.
+     */
+    @Test
+    fun `all panes full still evicts the least recently used pane after a repeated selection`() = runTest {
+        val pane0 = Workspace.Id()
+        val pane1 = Workspace.Id()
+        val pane2 = Workspace.Id()
+        val pane3 = Workspace.Id()
+        val target = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(pane0, pane1, pane2, pane3, target).map { createWorkspaceInfo(id = it) },
+        )
+        pageManager.setPaneCount(4)
+        pageManager.handleWorkspaceSelection(pane0)
+        pageManager.handleWorkspaceSelection(pane1)
+        pageManager.handleWorkspaceSelection(pane2)
+        pageManager.handleWorkspaceSelection(pane3)
+        // Selecting what is already selected and focused: only its MRU stamp is refreshed.
+        pageManager.handleWorkspaceSelection(pane3)
+
+        pageManager.handleWorkspaceSelection(target, sourceWorkspaceId = pane0)
+
+        val after = pageManager.state.value
+        // Unchanged by the duplicate: pane 0 is the protected source, pane 1 the oldest of the rest.
+        after.selectedWorkspaces shouldBe mapOf(
+            0 to pane0,
+            1 to target,
+            2 to pane2,
+            3 to pane3,
+        )
+        after.focusedWorkspaceId shouldBe target
+    }
+
     /** A modal occupies no pane of its own, so the raw id would protect nothing. */
     @Test
     fun `a modal source protects the pane of the tab that owns it`() = runTest {
@@ -1056,6 +1094,84 @@ class WorkspacePageManagerTest : BaseTest() {
         testScope.testScheduler.advanceUntilIdle()
 
         pageManager.state.value.focusedWorkspaceId shouldBe ws1
+    }
+
+    /** Keys by recency, most recent first. Deliberately an order, not the raw stamps - see below. */
+    private fun WorkspacePageManager.State.mruRank(): List<Workspace.Id> =
+        workspaceAccessTimes.entries.sortedByDescending { it.value }.map { it.key }
+
+    /**
+     * A tab swipe settles into setLayout, and one swipe used to apply the identical layout twice.
+     * The invariant pinned here: a repeated identical apply preserves focus, pane assignment and MRU
+     * rank, while permitting a timestamp refresh. It is deliberately NOT a strict-equality claim over
+     * workspaceAccessTimes - the second apply legitimately re-stamps the focused workspace with a
+     * later Clock.System.now().
+     */
+    @Test
+    fun `a repeated layout apply leaves selections, focus and MRU rank unchanged`() = runTest {
+        val ws1 = Workspace.Id()
+        val ws2 = Workspace.Id()
+        val ws3 = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(
+                createWorkspaceInfo(id = ws1),
+                createWorkspaceInfo(id = ws2),
+                createWorkspaceInfo(id = ws3),
+            )
+        )
+
+        pageManager.setPaneCount(1)
+        // Definite access order: ws1 oldest, ws3 newest.
+        pageManager.setLayout(mapOf(0 to ws1), focusedId = ws1)
+        pageManager.setLayout(mapOf(0 to ws2), focusedId = ws2)
+        pageManager.setLayout(mapOf(0 to ws3), focusedId = ws3)
+
+        val before = pageManager.state.value
+
+        pageManager.setLayout(mapOf(0 to ws3), focusedId = ws3)
+
+        val after = pageManager.state.value
+        after.selectedWorkspaces shouldBe before.selectedWorkspaces
+        after.focusedWorkspaceId shouldBe before.focusedWorkspaceId
+        after.mruRank() shouldBe before.mruRank()
+    }
+
+    @Test
+    fun `a repeated layout apply does not change the MRU successor when that tab closes`() = runTest {
+        val ws1 = Workspace.Id()
+        val ws2 = Workspace.Id()
+        val ws3 = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(
+                createWorkspaceInfo(id = ws1),
+                createWorkspaceInfo(id = ws2),
+                createWorkspaceInfo(id = ws3),
+            )
+        )
+
+        pageManager.setPaneCount(1)
+        pageManager.setLayout(mapOf(0 to ws1), focusedId = ws1)
+        pageManager.setLayout(mapOf(0 to ws2), focusedId = ws2)
+        pageManager.setLayout(mapOf(0 to ws3), focusedId = ws3)
+        // The duplicate has to sit on the tab that closes: handleWorkspaceClosed drops the closing
+        // workspace from the successor candidates, so duplicating a survivor could not fail here.
+        pageManager.setLayout(mapOf(0 to ws3), focusedId = ws3)
+
+        eventsFlow.emit(WorkspaceEvent.Closed(workspaceId = ws3, callerWorkspaceId = null))
+        testScope.testScheduler.advanceUntilIdle()
+
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(
+                createWorkspaceInfo(id = ws1),
+                createWorkspaceInfo(id = ws2),
+            )
+        )
+        testScope.testScheduler.advanceUntilIdle()
+
+        // The extra stamp only touched ws3, so the surviving MRU is still ws2.
+        pageManager.state.value.focusedWorkspaceId shouldBe ws2
     }
 
     private fun recordScroll(id: Workspace.Id, slot: String = "list") {
