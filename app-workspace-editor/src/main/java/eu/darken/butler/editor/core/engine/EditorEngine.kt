@@ -708,6 +708,12 @@ class EditorEngine @AssistedInject constructor(
      * Applies a field-originated edit as a verified transaction: the delta's token must still match
      * the document, and the range it claims to replace must still hold exactly its old text.
      *
+     * Old-text verification is modulo line-break FORM: the field joins its window lines with '\n'
+     * regardless of what the document holds ("\r\n", or a lone '\r' in CR/mixed documents), so the
+     * comparison canonicalizes every break on both sides. What is then handed to the buffer is the
+     * document's own slice, so its check stays byte-exact and atomic with the version check - an
+     * edit interleaving between the read and the mutation fails the version check.
+     *
      * This is the path all soft-keyboard input flows through. A divergence (foreign mutation, stale
      * field positions, moved window) returns [MutationResult.Conflict] with a fresh snapshot and
      * mutates nothing - the field rebuilds from it. Rejections never raise the error banner.
@@ -729,9 +735,8 @@ class EditorEngine @AssistedInject constructor(
             return@withLock MutationResult.Conflict(captureWindowSnapshotLocked())
         }
         val buffer = currentState.resources.textBuffer
-        // Both sides are normalized: the field joins window lines with '\n' while a CRLF document
-        // holds "\r\n", so offset math and old-text verification must see the same string.
-        val oldText = matchDocumentLineEnding(delta.oldText, buffer)
+        // Inserted text conforms to the document's ending so editing can't turn a uniform file
+        // MIXED; the removed text is verified against the document's own slice below instead.
         val newText = matchDocumentLineEnding(delta.newText, buffer)
 
         val startOffset: Long
@@ -748,10 +753,14 @@ class EditorEngine @AssistedInject constructor(
             return@withLock MutationResult.Conflict(captureWindowSnapshotLocked())
         }
         // findOffset CLAMPS an out-of-range column, so a stale field position would otherwise edit
-        // silently at the line end. The resolved span must match the text the field claims to
-        // replace; anything else means the field and the document disagree.
-        if (endOffset - startOffset != oldText.length.toLong()) {
-            log(tag, WARN) { "applyFieldDelta: span diverged (${endOffset - startOffset} vs ${oldText.length})" }
+        // silently at the line end. The document's slice must be the text the field claims to
+        // replace (breaks canonicalized); anything else means the field and the document disagree.
+        val documentSlice = buffer.getText(startOffset, endOffset).getOrElse { e ->
+            log(tag, VERBOSE) { "applyFieldDelta: reading the replaced range failed - ${e.message}" }
+            return@withLock MutationResult.Conflict(captureWindowSnapshotLocked())
+        }
+        if (documentSlice.canonicalBreaks() != delta.oldText.canonicalBreaks()) {
+            log(tag, WARN) { "applyFieldDelta: the replaced range diverged from the field" }
             return@withLock MutationResult.Conflict(captureWindowSnapshotLocked())
         }
         if (startOffset == endOffset && newText.isEmpty()) {
@@ -767,7 +776,7 @@ class EditorEngine @AssistedInject constructor(
         log(tag, VERBOSE) { "applyFieldDelta $startOffset..$endOffset -> ${newText.take(50)} (caret=${delta.caret})" }
         val outcome = buffer.applyMutation(
             expectedVersion = delta.token.structuralVersion,
-            patches = listOf(DocumentBuffer.VerifiedPatch(startOffset, endOffset, oldText, newText)),
+            patches = listOf(DocumentBuffer.VerifiedPatch(startOffset, endOffset, documentSlice, newText)),
             undoPolicy = if (keystrokeSized) DocumentBuffer.UndoPolicy.COALESCE else DocumentBuffer.UndoPolicy.SEPARATE,
         ).getOrElse { e ->
             if (e is StaleMatchException) {
@@ -2049,6 +2058,15 @@ class EditorEngine @AssistedInject constructor(
         // Idempotent break normalizer: "\r\n" matches before its parts, so already-conforming
         // text (e.g. regex group captures of CRLF document content) is never double-converted
         private val LINE_BREAK_REGEX = Regex("\r\n|\r|\n")
+
+        /**
+         * Every break form reduced to '\n'. Comparing a field delta's old text to the document's
+         * slice has to ignore break FORM: the display window joins lines with '\n' whatever the
+         * document holds, so a CR or mixed document would otherwise reject every edit spanning a
+         * line break.
+         */
+        private fun String.canonicalBreaks(): String =
+            if (contains('\r')) LINE_BREAK_REGEX.replace(this, "\n") else this
 
         /**
          * Expands `$N` group references with Kotlin `Regex.replace` semantics: `\$` is a
