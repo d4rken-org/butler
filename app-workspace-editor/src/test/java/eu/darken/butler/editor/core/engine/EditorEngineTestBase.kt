@@ -73,4 +73,37 @@ abstract class EditorEngineTestBase : DocumentBufferTestBase() {
         engine.initialize().getOrThrow()
         return engine
     }
+
+    /** Position with a placeholder offset, exactly what the hidden field sends. */
+    protected fun pos(line: Long, column: Int) = TextPosition(offset = 0, line = line, column = column)
+
+    /**
+     * Dispatches a field edit the way [eu.darken.butler.editor.ui.editor.text.EditorInputSession]
+     * does: against the token of the currently published window, unless [token] overrides it.
+     * [oldText] is what the FIELD holds for the replaced range - window lines joined by '\n'.
+     */
+    protected suspend fun EditorEngine.applyDelta(
+        start: TextPosition,
+        end: TextPosition = start,
+        oldText: String = "",
+        newText: String = "",
+        caret: TextPosition,
+        token: EditorEngine.DocumentToken? = null,
+    ): EditorEngine.MutationResult = applyFieldDelta(
+        EditorEngine.FieldDelta(
+            token = token ?: visibleContent.value.token!!,
+            start = start,
+            end = end,
+            oldText = oldText,
+            newText = newText,
+            caret = caret,
+        ),
+    )
+
+    /** Whole document content, straight from the buffer. */
+    protected suspend fun EditorEngine.fullContent(): String {
+        val loaded = state.value as EditorState.Loaded
+        val buffer = loaded.resources.textBuffer
+        return buffer.getText(0, buffer.totalLength.value).getOrThrow()
+    }
 }

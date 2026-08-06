@@ -7,46 +7,80 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.click
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.junit4.ComposeContentTestRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextReplacement
+import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.text.TextRange
+import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.editor.core.engine.EditorEngine
 import eu.darken.butler.editor.core.engine.TextPosition
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.junit.Test
 import testhelpers.ComposeTest
-import eu.darken.butler.common.compose.PreviewWrapper
+import kotlin.uuid.Uuid
 
 /**
- * Regression tests for the hidden-field input arbitration (the `isUserEditing` ownership model):
- * typed input must reach the engine as single contiguous ReplaceRange edits, the engine echo
- * must converge with the field, and rapid input must not drop characters. This state machine
- * was fixed once before (dropped autocorrect/IME input) and had no composable-level coverage.
+ * Regression tests for the hidden-field input protocol: typed input must reach the engine as single
+ * contiguous deltas mapped through the window the field last rebased on, a burst typed before the
+ * first acknowledgement must still land where the user typed it, and rapid input must not drop
+ * characters. This state machine was fixed once before (dropped autocorrect/IME input) and had no
+ * composable-level coverage.
  */
 class LazyTextEditorInputTest : ComposeTest() {
 
-    private data class ReplaceEvent(
-        val start: TextPosition,
-        val end: TextPosition,
-        val inserted: String,
-        val caret: TextPosition,
-    )
-
     /**
-     * Minimal engine stand-in: applies each ReplaceRange to a plain string and echoes it back
-     * as the new content, exactly like EditorEngine echoes buffer state into currentContent.
+     * Minimal engine stand-in: applies each delta to a plain string, echoes the display window back
+     * and hands out a fresh token, like the engine's verified-mutation path does.
+     *
+     * [cap] mirrors the display cap (each line is echoed truncated) and [anchor] the horizontal
+     * window anchor for lines over it - the two cases where the echoed window can never equal the
+     * field text again.
      */
-    private class FakeEngine(initial: String) {
+    private class FakeEngine(
+        initial: String,
+        private val cap: Int = Int.MAX_VALUE,
+        private val anchor: Int = 0,
+    ) {
         var content = initial
-        val events = mutableListOf<ReplaceEvent>()
+            private set
+        val deltas = mutableListOf<SessionDelta>()
+        private val epoch = Uuid.random()
+        private var version = 0L
+
+        val token: EditorEngine.DocumentToken get() = EditorEngine.DocumentToken(epoch, version)
+
+        private fun lines() = content.split('\n')
+
+        private fun startColumn(line: String): Int =
+            if (line.length > cap) anchor.coerceAtMost(line.length - cap) else 0
+
+        private fun slice(line: String): String = line.drop(startColumn(line)).take(cap)
+
+        fun displayText(): String = lines().joinToString("\n") { slice(it) }
+
+        fun startColumns(): Map<Long, Long> = lines()
+            .mapIndexedNotNull { index, line ->
+                startColumn(line).takeIf { it > 0 }?.let { index.toLong() to it.toLong() }
+            }
+            .toMap()
+
+        fun truncatedLines(): Map<Long, Long> = lines()
+            .mapIndexedNotNull { index, line ->
+                val hidden = line.length - startColumn(line) - slice(line).length
+                hidden.takeIf { it > 0 }?.let { index.toLong() to it.toLong() }
+            }
+            .toMap()
 
         private fun flatOffset(lines: List<String>, position: TextPosition): Int {
             var offset = 0
@@ -54,49 +88,74 @@ class LazyTextEditorInputTest : ComposeTest() {
             return offset + position.column
         }
 
-        fun apply(event: ReplaceEvent): String {
-            events += event
-            val lines = content.split('\n')
-            val start = flatOffset(lines, event.start)
-            val end = flatOffset(lines, event.end)
+        /** Applies the delta against the FULL content, like the engine resolving line/column. */
+        fun apply(delta: SessionDelta): EditorEngine.MutationResult {
+            deltas += delta
+            val lines = lines()
+            val start = flatOffset(lines, delta.start)
+            val end = flatOffset(lines, delta.end)
             val (from, to) = if (start <= end) start to end else end to start
-            content = content.substring(0, from) + event.inserted + content.substring(to)
-            return content
+            content = content.substring(0, from) + delta.newText + content.substring(to)
+            version += 1
+            return EditorEngine.MutationResult.Applied(token)
         }
     }
 
     /**
-     * [echoDelayMs] > 0 defers the engine echo like the real launched edit round-trip does -
-     * the window the isUserEditing arbitration exists to protect. 0 echoes synchronously.
+     * [echoDelayMs] > 0 defers the echo AND the acknowledgement like the real round-trip does -
+     * the window the input session exists to protect. 0 echoes synchronously.
      */
     private fun ComposeContentTestRule.setEditor(
         engine: FakeEngine,
         readOnly: Boolean = false,
         echoDelayMs: Long = 0L,
+        initialCursor: TextPosition = TextPosition(0, 0, 0),
+        externalCursor: MutableState<TextPosition?> = mutableStateOf(null),
     ) {
         setContent {
             PreviewWrapper {
-                var content by remember { mutableStateOf(engine.content) }
-                var cursor by remember { mutableStateOf(TextPosition(0, 0, 0)) }
+                var display by remember { mutableStateOf(engine.displayText()) }
+                var truncated by remember { mutableStateOf(engine.truncatedLines()) }
+                var startCols by remember { mutableStateOf(engine.startColumns()) }
+                var windowToken by remember { mutableStateOf(engine.token) }
+                var cursor by remember { mutableStateOf(initialCursor) }
                 val scope = rememberCoroutineScope()
+                // Engine-authoritative cursor moves driven from the test body
+                val pendingExternal = externalCursor.value
+                LaunchedEffect(pendingExternal) {
+                    if (pendingExternal != null) cursor = pendingExternal
+                }
                 LazyTextEditor(
-                    content = content,
-                    totalLines = content.split('\n').size.toLong(),
+                    content = display,
+                    totalLines = display.split('\n').size.toLong(),
                     cursorPosition = cursor,
                     selection = null,
-                    visibleRange = 0L..(content.split('\n').size.toLong() - 1),
+                    visibleRange = 0L..(display.split('\n').size.toLong() - 1),
+                    truncatedLines = truncated,
+                    startColumns = startCols,
+                    windowToken = windowToken,
+                    windowRangeStart = 0L,
                     readOnly = readOnly,
-                    onTextReplace = { start, end, inserted, caret ->
-                        val echoed = engine.apply(ReplaceEvent(start, end, inserted, caret))
+                    onEnqueueDelta = { delta ->
+                        val result = engine.apply(delta)
+                        val publish = {
+                            display = engine.displayText()
+                            truncated = engine.truncatedLines()
+                            startCols = engine.startColumns()
+                            windowToken = engine.token
+                            cursor = delta.caret
+                        }
                         if (echoDelayMs > 0) {
+                            val outcome = CompletableDeferred<EditorEngine.MutationResult>()
                             scope.launch {
                                 delay(echoDelayMs)
-                                content = engine.content
-                                cursor = caret
+                                publish()
+                                outcome.complete(result)
                             }
+                            outcome
                         } else {
-                            content = echoed
-                            cursor = caret
+                            publish()
+                            CompletableDeferred(result)
                         }
                     },
                     onCursorPositionChange = { cursor = it },
@@ -109,16 +168,23 @@ class LazyTextEditorInputTest : ComposeTest() {
         }
     }
 
+    private fun ComposeContentTestRule.fieldText(): String = onNodeWithTag(EDITOR_INPUT_TEST_TAG)
+        .fetchSemanticsNode().config[SemanticsProperties.EditableText].text
+
+    private fun ComposeContentTestRule.fieldSelection(): TextRange = onNodeWithTag(EDITOR_INPUT_TEST_TAG)
+        .fetchSemanticsNode().config[SemanticsProperties.TextSelectionRange]
+
     @Test
-    fun `typed input reaches the engine and the echo converges`() {
+    fun `typed input reaches the engine and the field converges`() {
         val engine = FakeEngine("hello world")
         composeTestRule.setEditor(engine)
 
         composeTestRule.onNodeWithTag(EDITOR_INPUT_TEST_TAG).performTextInput("abc")
         composeTestRule.waitForIdle()
 
-        engine.events.shouldNotBeEmpty()
+        engine.deltas.shouldNotBeEmpty()
         engine.content shouldBe "abchello world"
+        composeTestRule.fieldText() shouldBe "abchello world"
     }
 
     @Test
@@ -136,9 +202,9 @@ class LazyTextEditorInputTest : ComposeTest() {
     }
 
     @Test
-    fun `input landing before the engine echo is not clobbered`() {
-        // The echo lags each edit like the real launched round-trip; typing continues while
-        // stale content flows back - the field must stay authoritative until it converges
+    fun `input landing before the acknowledgement is not clobbered`() {
+        // The echo and the ack both lag each edit like the real round-trip; typing continues while
+        // stale content flows back - the field stays authoritative until its deltas are acked
         val engine = FakeEngine("base")
         composeTestRule.setEditor(engine, echoDelayMs = 50L)
 
@@ -151,7 +217,7 @@ class LazyTextEditorInputTest : ComposeTest() {
     }
 
     @Test
-    fun `autocorrect-style replacement arrives as a single contiguous edit`() {
+    fun `autocorrect-style replacement arrives as a single contiguous delta`() {
         val engine = FakeEngine("teh cat")
         composeTestRule.setEditor(engine)
 
@@ -160,9 +226,10 @@ class LazyTextEditorInputTest : ComposeTest() {
         composeTestRule.waitForIdle()
 
         engine.content shouldBe "the cat"
-        // The diff must be contiguous: exactly one replace event for the changed region
-        engine.events.size shouldBe 1
-        engine.events.single().inserted shouldBe "he"
+        // The diff must be contiguous: exactly one delta for the changed region
+        engine.deltas.size shouldBe 1
+        engine.deltas.single().newText shouldBe "he"
+        engine.deltas.single().oldText shouldBe "eh"
     }
 
     @Test
@@ -174,7 +241,7 @@ class LazyTextEditorInputTest : ComposeTest() {
         composeTestRule.waitForIdle()
 
         engine.content shouldBe "Xfirst\nsecond\nthird"
-        engine.events.single().start.line shouldBe 0L
+        engine.deltas.single().start.line shouldBe 0L
     }
 
     @Test
@@ -187,92 +254,77 @@ class LazyTextEditorInputTest : ComposeTest() {
         composeTestRule.onNodeWithTag(EDITOR_INPUT_TEST_TAG)
             .assert(hasSetTextAction().not())
 
-        engine.events.shouldBeEmpty()
+        engine.deltas.shouldBeEmpty()
         engine.content shouldBe "locked content"
+    }
+
+    // ==================== Local mapping across unacknowledged edits ====================
+
+    @Test
+    fun `a character typed after an unacknowledged newline lands on the new line`() {
+        // Nothing has been acknowledged yet, so only the session's own local mapping knows that the
+        // caret moved to line 1 - mapping through the engine window would send the character to
+        // (line 0, column 1) and the document would end up reading "ab\n".
+        val engine = FakeEngine("")
+        composeTestRule.setEditor(engine, echoDelayMs = 200L)
+
+        val field = composeTestRule.onNodeWithTag(EDITOR_INPUT_TEST_TAG)
+        field.performTextInput("a")
+        field.performTextInput("\n")
+        field.performTextInput("b")
+
+        composeTestRule.waitUntil(timeoutMillis = 10_000) { engine.deltas.size == 3 }
+        val third = engine.deltas.last()
+        third.start.line shouldBe 1L
+        third.start.column shouldBe 0
+        composeTestRule.waitUntil(timeoutMillis = 10_000) { engine.content == "a\nb" }
+    }
+
+    @Test
+    fun `the same holds on a horizontally windowed line`() {
+        // Line 0 is windowed at column 6, so field column 0 is engine column 6: the newline's
+        // successor must map to the NEW line at column 0, not to line 0 column 7.
+        val engine = FakeEngine("0123456789ABCDEF", cap = 6, anchor = 6)
+        composeTestRule.setEditor(engine, echoDelayMs = 200L, initialCursor = TextPosition(0, 0, 6))
+        composeTestRule.waitForIdle()
+
+        val field = composeTestRule.onNodeWithTag(EDITOR_INPUT_TEST_TAG)
+        field.performTextInput("\n")
+        field.performTextInput("b")
+
+        composeTestRule.waitUntil(timeoutMillis = 10_000) { engine.deltas.size == 2 }
+        engine.deltas.first().start.line shouldBe 0L
+        engine.deltas.first().start.column shouldBe 6
+        engine.deltas.last().start.line shouldBe 1L
+        engine.deltas.last().start.column shouldBe 0
+    }
+
+    @Test
+    fun `a tap mid-burst places the next character at the tapped position`() {
+        // The tap's engine round-trip is queued behind the unacknowledged keystroke, so the field
+        // caret has to move locally or the next character lands where the caret was before the tap.
+        val engine = FakeEngine("abcdef")
+        composeTestRule.setEditor(engine, echoDelayMs = 200L, initialCursor = TextPosition(0, 0, 6))
+        composeTestRule.waitForIdle()
+
+        val field = composeTestRule.onNodeWithTag(EDITOR_INPUT_TEST_TAG)
+        field.performTextInput("X")
+        composeTestRule.onNodeWithTag(EDITOR_CONTENT_TEST_TAG).performTouchInput { click(topLeft) }
+        field.performTextInput("Y")
+
+        composeTestRule.waitUntil(timeoutMillis = 10_000) { engine.deltas.size == 2 }
+        engine.deltas.last().start.column shouldBe 0
     }
 
     // ==================== Display-cap arbitration ====================
 
-    /**
-     * [FakeEngine] variant echoing DISPLAY-CAPPED slices like the real engine does for lines
-     * over the cap: the echo shows at most [cap] chars per line plus a truncation map, while
-     * edits apply against the FULL content.
-     */
-    private class CappedFakeEngine(initial: String, val cap: Int) {
-        var content = initial
-        val events = mutableListOf<ReplaceEvent>()
-
-        fun displayText(): String = content.split('\n').joinToString("\n") { it.take(cap) }
-
-        fun truncatedLines(): Map<Long, Long> = content.split('\n')
-            .mapIndexedNotNull { index, line ->
-                if (line.length > cap) index.toLong() to (line.length - cap).toLong() else null
-            }
-            .toMap()
-
-        private fun flatOffset(lines: List<String>, position: TextPosition): Int {
-            var offset = 0
-            for (line in 0 until position.line.toInt()) offset += lines[line].length + 1
-            return offset + position.column
-        }
-
-        fun apply(event: ReplaceEvent) {
-            events += event
-            // Resolve line/column against the FULL content like the real engine's findOffset;
-            // field columns are within the visible prefix, so they're valid on the full line
-            val lines = content.split('\n')
-            val start = flatOffset(lines, event.start)
-            val end = flatOffset(lines, event.end)
-            val (from, to) = if (start <= end) start to end else end to start
-            content = content.substring(0, from) + event.inserted + content.substring(to)
-        }
-    }
-
-    private fun ComposeContentTestRule.setCappedEditor(
-        engine: CappedFakeEngine,
-        initialCursor: TextPosition = TextPosition(0, 0, 0),
-        externalCursor: MutableState<TextPosition?> = mutableStateOf(null),
-    ) {
-        setContent {
-            PreviewWrapper {
-                var display by remember { mutableStateOf(engine.displayText()) }
-                var truncated by remember { mutableStateOf(engine.truncatedLines()) }
-                var cursor by remember { mutableStateOf(initialCursor) }
-                // Engine-authoritative cursor moves driven from the test body
-                val pendingExternal = externalCursor.value
-                LaunchedEffect(pendingExternal) {
-                    if (pendingExternal != null) cursor = pendingExternal
-                }
-                LazyTextEditor(
-                    content = display,
-                    totalLines = display.split('\n').size.toLong(),
-                    cursorPosition = cursor,
-                    selection = null,
-                    visibleRange = 0L..(display.split('\n').size.toLong() - 1),
-                    truncatedLines = truncated,
-                    onTextReplace = { start, end, inserted, caret ->
-                        engine.apply(ReplaceEvent(start, end, inserted, caret))
-                        display = engine.displayText()
-                        truncated = engine.truncatedLines()
-                        cursor = caret
-                    },
-                    onCursorPositionChange = { cursor = it },
-                    onSelectionChange = {},
-                    onVisibleRangeChange = {},
-                    onCursorMove = { _, _ -> },
-                    onForwardDelete = {},
-                )
-            }
-        }
-    }
-
     @Test
-    fun `typing at the cap boundary does not wedge authority`() {
+    fun `typing at the cap boundary keeps the field usable`() {
         // 15-char single line, cap 10: field shows "xxxxxxxxxx"; typing at col 10 appends into
         // the hidden region - the echo's TEXT never changes, only its truncation count
-        val engine = CappedFakeEngine("x".repeat(15), cap = 10)
+        val engine = FakeEngine("x".repeat(15), cap = 10)
         val externalCursor = mutableStateOf<TextPosition?>(null)
-        composeTestRule.setCappedEditor(
+        composeTestRule.setEditor(
             engine,
             initialCursor = TextPosition(0, 0, 10),
             externalCursor = externalCursor,
@@ -283,19 +335,16 @@ class LazyTextEditorInputTest : ComposeTest() {
         composeTestRule.waitForIdle()
 
         engine.content shouldBe "x".repeat(10) + "Z" + "x".repeat(5)
-        // Authority must have been released (capped-projection convergence): a subsequent
-        // engine-authoritative caret move must reach the field
+        // The delta was acknowledged, so an engine-authoritative caret move reaches the field again
         externalCursor.value = TextPosition(0, 0, 3)
         composeTestRule.waitForIdle()
-        val selection = composeTestRule.onNodeWithTag(EDITOR_INPUT_TEST_TAG)
-            .fetchSemanticsNode().config[SemanticsProperties.TextSelectionRange]
-        selection shouldBe TextRange(3)
+        composeTestRule.fieldSelection() shouldBe TextRange(3)
     }
 
     @Test
-    fun `prefix delete on a truncated line releases authority and rebuilds the field`() {
-        val engine = CappedFakeEngine("abcdefghijklmno", cap = 10)
-        composeTestRule.setCappedEditor(engine, initialCursor = TextPosition(0, 0, 1))
+    fun `prefix delete on a truncated line rebuilds the field from the new window`() {
+        val engine = FakeEngine("abcdefghijklmno", cap = 10)
+        composeTestRule.setEditor(engine, initialCursor = TextPosition(0, 0, 1))
         composeTestRule.waitForIdle()
 
         // Replace the field content minus its first char: diffs to a pure prefix-delete
@@ -303,27 +352,25 @@ class LazyTextEditorInputTest : ComposeTest() {
         composeTestRule.waitForIdle()
 
         engine.content shouldBe "bcdefghijklmno"
-        engine.events.single().inserted shouldBe ""
-        // The echo pulled a hidden char into view; release must have rebuilt the field to it
-        val fieldText = composeTestRule.onNodeWithTag(EDITOR_INPUT_TEST_TAG)
-            .fetchSemanticsNode().config[SemanticsProperties.EditableText].text
-        fieldText shouldBe "bcdefghijk"
+        engine.deltas.single().newText shouldBe ""
+        // The echo pulled a hidden char into view; the new window rebased and rebuilt the field
+        composeTestRule.fieldText() shouldBe "bcdefghijk"
     }
 
     @Test
-    fun `prefix typing on a truncated line produces correct ReplaceRange events`() {
-        val engine = CappedFakeEngine("0123456789ABCDE", cap = 10)
-        composeTestRule.setCappedEditor(engine, initialCursor = TextPosition(0, 0, 2))
+    fun `prefix typing on a truncated line produces correct deltas`() {
+        val engine = FakeEngine("0123456789ABCDE", cap = 10)
+        composeTestRule.setEditor(engine, initialCursor = TextPosition(0, 0, 2))
         composeTestRule.waitForIdle()
 
         composeTestRule.onNodeWithTag(EDITOR_INPUT_TEST_TAG).performTextInput("XY")
         composeTestRule.waitForIdle()
 
         engine.content shouldBe "01XY23456789ABCDE"
-        val event = engine.events.single()
-        event.start.line shouldBe 0L
-        event.start.column shouldBe 2
-        event.end.column shouldBe 2
-        event.inserted shouldBe "XY"
+        val delta = engine.deltas.first()
+        delta.start.line shouldBe 0L
+        delta.start.column shouldBe 2
+        delta.end.column shouldBe 2
+        delta.newText shouldBe "XY"
     }
 }

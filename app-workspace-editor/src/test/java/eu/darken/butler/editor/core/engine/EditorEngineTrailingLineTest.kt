@@ -1,6 +1,7 @@
 package eu.darken.butler.editor.core.engine
 
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -13,18 +14,12 @@ import org.junit.jupiter.params.provider.ValueSource
  */
 class EditorEngineTrailingLineTest : EditorEngineTestBase() {
 
-    private fun pos(line: Long, column: Int) = TextPosition(offset = 0, line = line, column = column)
-
-    private suspend fun EditorEngine.fullContent(): String {
-        val loaded = this.state.value as EditorState.Loaded
-        return loaded.resources.textBuffer.getText(0, loaded.resources.textBuffer.totalLength.value).getOrThrow()
-    }
-
     @Test
     fun `undo and redo of an end-of-document newline keep cursor, range and content in step`() = runTest {
         val engine = createEngine("Hello")
 
-        engine.replaceText(start = pos(0, 5), end = pos(0, 5), text = "\n", caret = pos(1, 0)) shouldBe true
+        engine.applyDelta(start = pos(0, 5), newText = "\n", caret = pos(1, 0))
+            .shouldBeInstanceOf<EditorEngine.MutationResult.Applied>()
         engine.totalLines.value shouldBe 2L
         engine.cursorPosition.value.line shouldBe 1L
         engine.visibleRange.value.last shouldBe 1L
@@ -52,8 +47,9 @@ class EditorEngineTrailingLineTest : EditorEngineTestBase() {
         val engine = createEngine("Hello$terminator")
         engine.totalLines.value shouldBe 2L
 
-        // Backspace the trailing break away
-        engine.replaceText(start = pos(0, 5), end = pos(1, 0), text = "", caret = pos(0, 5)) shouldBe true
+        // Backspace the trailing break away; the field always reports it as '\n'
+        engine.applyDelta(start = pos(0, 5), end = pos(1, 0), oldText = "\n", caret = pos(0, 5))
+            .shouldBeInstanceOf<EditorEngine.MutationResult.Applied>()
         engine.totalLines.value shouldBe 1L
         engine.visibleContent.value.text shouldBe "Hello"
 

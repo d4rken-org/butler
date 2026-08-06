@@ -252,7 +252,7 @@ class EditorEngineCopySelectionTest : DocumentBufferTestBase() {
             end = TextPosition(offset = 6, line = 0, column = 6),
         )
 
-        engine.deleteSelection().getOrThrow() shouldBe "World"
+        engine.deleteSelection().shouldBeInstanceOf<EditorEngine.EditOutcome.Applied>().removedText shouldBe "World"
         val state = engine.state.value as EditorState.Loaded
         state.resources.textBuffer.getText(0, state.resources.textBuffer.totalLength.value)
             .getOrThrow() shouldBe "Hello "

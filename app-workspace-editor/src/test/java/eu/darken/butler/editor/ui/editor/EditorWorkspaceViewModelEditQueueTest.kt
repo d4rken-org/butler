@@ -8,12 +8,14 @@ import eu.darken.butler.editor.core.EditorWorkspace
 import eu.darken.butler.editor.core.engine.EditorEngine
 import eu.darken.butler.editor.core.engine.TextPosition
 import eu.darken.butler.editor.ui.editor.elements.EditorActionBarItem
+import eu.darken.butler.editor.ui.editor.text.SessionDelta
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -22,7 +24,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -34,18 +35,25 @@ import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import testhelpers.coroutine.TestDispatcherProvider
 import java.io.File
+import kotlin.uuid.Uuid
 
 /**
  * The serialized edit pipeline: every text mutation is enqueued synchronously and drained by a
  * single consumer, so an edit that suspends cannot let the next one overtake it (Enter followed by
- * a character used to be able to resolve against the pre-Enter document). Rejections resync the
- * hidden field, but only when no newer input is still queued behind them.
+ * a character used to be able to resolve against the pre-Enter document).
+ *
+ * Field deltas additionally CHAIN: the first of a generation carries the token of the window it was
+ * computed against, its successors are applied against the token the previous acknowledgement
+ * returned, and once one is rejected the rest of that generation is discarded without ever reaching
+ * the document.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class EditorWorkspaceViewModelEditQueueTest : BaseTest() {
 
     private val workspaceId = Workspace.Id()
-    private val pos = TextPosition(0, 0, 0)
+    private val epoch = Uuid.random()
+
+    private fun token(version: Long) = EditorEngine.DocumentToken(epoch, version)
 
     @BeforeEach
     fun setup() {
@@ -60,6 +68,12 @@ class EditorWorkspaceViewModelEditQueueTest : BaseTest() {
     /** Completed by a sentinel insert: the consumer is sequential, so everything before it is done. */
     private val drained = CompletableDeferred<Unit>()
 
+    private val emptySnapshot = EditorEngine.WindowSnapshot(
+        content = EditorEngine.VisibleContent(),
+        cursor = TextPosition.ZERO,
+        selection = null,
+    )
+
     private fun makeWorkspace(): EditorWorkspace = mockk<EditorWorkspace>().apply {
         every { info } returns MutableStateFlow(
             Workspace.Info(id = workspaceId, type = Workspace.Type.EDITOR, title = "test".toCaString()),
@@ -67,8 +81,8 @@ class EditorWorkspaceViewModelEditQueueTest : BaseTest() {
         every { state } returns MutableStateFlow<EditorWorkspace.State>(
             EditorWorkspace.State.Ready(EditorWorkspace.EditorState(maxUndoableEditChars = 1_000_000L)),
         )
-        coEvery { selectionExceedsUndoThreshold() } returns false
-        coEvery { insertText(any()) } answers { drained.complete(Unit); Unit }
+        coEvery { insertText(any()) } answers { drained.complete(Unit); EditorEngine.EditOutcome.Applied() }
+        coEvery { captureWindowSnapshot() } returns emptySnapshot
     }
 
     private fun makeViewModel(workspace: EditorWorkspace): EditorWorkspaceViewModel {
@@ -90,26 +104,40 @@ class EditorWorkspaceViewModelEditQueueTest : BaseTest() {
         )
     }
 
+    private fun delta(
+        text: String,
+        generation: Long = 1L,
+        snapshotToken: EditorEngine.DocumentToken? = null,
+    ) = SessionDelta(
+        start = TextPosition.ZERO,
+        end = TextPosition.ZERO,
+        oldText = "",
+        newText = text,
+        caret = TextPosition.ZERO,
+        generation = generation,
+        snapshotToken = snapshotToken,
+    )
+
     @Test
     fun `a suspending edit cannot be overtaken by the next one`() = runTest {
         val applied = mutableListOf<String>()
         val newlineStarted = CompletableDeferred<Unit>()
         val releaseNewline = CompletableDeferred<Unit>()
         val workspace = makeWorkspace().apply {
-            coEvery { replaceText(any(), any(), any(), any()) } coAnswers {
-                val text = arg<String>(2)
+            coEvery { applyFieldDelta(any()) } coAnswers {
+                val text = firstArg<EditorEngine.FieldDelta>().newText
                 if (text == "\n") {
                     newlineStarted.complete(Unit)
                     releaseNewline.await()
                 }
                 applied += text
-                true
+                EditorEngine.MutationResult.Applied(token(applied.size.toLong()))
             }
         }
         val vm = makeViewModel(workspace)
 
-        vm.replaceText(pos, pos, "\n", pos)
-        vm.replaceText(pos, pos, "X", pos)
+        vm.enqueueFieldDelta(delta("\n", snapshotToken = token(0)))
+        vm.enqueueFieldDelta(delta("X"))
 
         newlineStarted.await()
         releaseNewline.complete(Unit)
@@ -120,71 +148,114 @@ class EditorWorkspaceViewModelEditQueueTest : BaseTest() {
     }
 
     @Test
-    fun `a rejected field edit resyncs the field`() = runTest {
+    fun `a second keystroke enqueued before a paste keeps its place in the queue`() = runTest {
+        val applied = mutableListOf<String>()
+        val firstStarted = CompletableDeferred<Unit>()
+        val releaseFirst = CompletableDeferred<Unit>()
         val workspace = makeWorkspace().apply {
-            coEvery { replaceText(any(), any(), any(), any()) } returns false
-        }
-        val vm = makeViewModel(workspace)
-
-        vm.replaceText(pos, pos, "X", pos)
-
-        vm.state.first { it.editResyncSignal == 1 }
-    }
-
-    @Test
-    fun `only the newest rejection resyncs the field`() = runTest {
-        // Both edits are dropped, but the first is superseded by input already queued behind it -
-        // resyncing on it would rebuild the field over the newer keystroke.
-        val startedX = CompletableDeferred<Unit>()
-        val releaseX = CompletableDeferred<Unit>()
-        val startedY = CompletableDeferred<Unit>()
-        val releaseY = CompletableDeferred<Unit>()
-        val workspace = makeWorkspace().apply {
-            coEvery { replaceText(any(), any(), any(), any()) } coAnswers {
-                when (arg<String>(2)) {
-                    "X" -> { startedX.complete(Unit); releaseX.await() }
-                    else -> { startedY.complete(Unit); releaseY.await() }
+            coEvery { applyFieldDelta(any()) } coAnswers {
+                val text = firstArg<EditorEngine.FieldDelta>().newText
+                if (text == "a") {
+                    firstStarted.complete(Unit)
+                    releaseFirst.await()
                 }
-                false
+                applied += text
+                EditorEngine.MutationResult.Applied(token(applied.size.toLong()))
+            }
+            coEvery { insertText(any()) } answers {
+                val text = firstArg<String>()
+                applied += text
+                if (text == "sentinel") drained.complete(Unit)
+                EditorEngine.EditOutcome.Applied()
             }
         }
         val vm = makeViewModel(workspace)
 
-        vm.replaceText(pos, pos, "X", pos)
-        vm.replaceText(pos, pos, "Y", pos)
+        vm.enqueueFieldDelta(delta("a", snapshotToken = token(0)))
+        firstStarted.await()
+        // Typed while the first keystroke is still in flight, then a paste on top of it
+        vm.enqueueFieldDelta(delta("b"))
+        vm.insertText("pasted")
+        releaseFirst.complete(Unit)
+        vm.insertText("sentinel")
+        drained.await()
 
-        startedX.await()
-        releaseX.complete(Unit)
-        // Y having started means X's command finished, resync decision included
-        startedY.await()
-        vm.state.first().editResyncSignal shouldBe 0
-
-        releaseY.complete(Unit)
-        vm.state.first { it.editResyncSignal == 1 }
+        applied shouldBe listOf("a", "b", "pasted", "sentinel")
     }
 
     @Test
-    fun `a command that is not a replace does not suppress the resync`() = runTest {
-        // Only a Replace can resolve against the field's stale positions, so only a newer Replace may
-        // hold back the revert - an Undo (or paste, delete) queued behind the rejection must not.
-        val startedX = CompletableDeferred<Unit>()
-        val releaseX = CompletableDeferred<Unit>()
+    fun `successors chain on the token their predecessor returned`() = runTest {
+        val tokens = mutableListOf<EditorEngine.DocumentToken>()
         val workspace = makeWorkspace().apply {
-            coEvery { replaceText(any(), any(), any(), any()) } coAnswers {
-                startedX.complete(Unit)
-                releaseX.await()
-                false
+            coEvery { applyFieldDelta(any()) } answers {
+                val delta = firstArg<EditorEngine.FieldDelta>()
+                tokens += delta.token
+                EditorEngine.MutationResult.Applied(token(delta.token.structuralVersion + 1))
             }
-            coEvery { undo() } returns Result.success(null)
         }
         val vm = makeViewModel(workspace)
 
-        vm.replaceText(pos, pos, "X", pos)
-        startedX.await()
-        vm.undo()
-        releaseX.complete(Unit)
+        vm.enqueueFieldDelta(delta("a", snapshotToken = token(40))).await()
+        vm.enqueueFieldDelta(delta("b")).await()
+        vm.enqueueFieldDelta(delta("c")).await()
 
-        vm.state.first { it.editResyncSignal == 1 }
+        tokens shouldBe listOf(token(40), token(41), token(42))
+    }
+
+    @Test
+    fun `a conflict discards the rest of its generation without touching the document`() = runTest {
+        val seen = mutableListOf<String>()
+        val workspace = makeWorkspace().apply {
+            coEvery { applyFieldDelta(any()) } answers {
+                seen += firstArg<EditorEngine.FieldDelta>().newText
+                EditorEngine.MutationResult.Conflict(emptySnapshot)
+            }
+        }
+        val vm = makeViewModel(workspace)
+
+        val first = vm.enqueueFieldDelta(delta("a", snapshotToken = token(40)))
+        val second = vm.enqueueFieldDelta(delta("b"))
+
+        first.await().shouldBeInstanceOf<EditorEngine.MutationResult.Conflict>()
+        // The descendant completes as a conflict too, but never reaches the engine
+        second.await().shouldBeInstanceOf<EditorEngine.MutationResult.Conflict>()
+        seen shouldBe listOf("a")
+    }
+
+    @Test
+    fun `a fresh generation after a conflict is applied again`() = runTest {
+        val seen = mutableListOf<String>()
+        val workspace = makeWorkspace().apply {
+            coEvery { applyFieldDelta(any()) } answers {
+                val delta = firstArg<EditorEngine.FieldDelta>()
+                seen += delta.newText
+                if (delta.newText == "a") {
+                    EditorEngine.MutationResult.Conflict(emptySnapshot)
+                } else {
+                    EditorEngine.MutationResult.Applied(token(99))
+                }
+            }
+        }
+        val vm = makeViewModel(workspace)
+
+        vm.enqueueFieldDelta(delta("a", generation = 1L, snapshotToken = token(40))).await()
+        // The field rebuilt from the conflict snapshot and started a new lineage
+        vm.enqueueFieldDelta(delta("b", generation = 2L, snapshotToken = token(50)))
+            .await().shouldBeInstanceOf<EditorEngine.MutationResult.Applied>()
+
+        seen shouldBe listOf("a", "b")
+    }
+
+    @Test
+    fun `a delta with no token to chain on conflicts instead of guessing`() = runTest {
+        val workspace = makeWorkspace().apply {
+            coEvery { applyFieldDelta(any()) } returns EditorEngine.MutationResult.Applied(token(1))
+        }
+        val vm = makeViewModel(workspace)
+
+        // No snapshot token and no predecessor: nothing to apply it against
+        vm.enqueueFieldDelta(delta("x", generation = 5L))
+            .await().shouldBeInstanceOf<EditorEngine.MutationResult.Conflict>()
     }
 
     // ==================== Clipboard operations ====================
@@ -206,13 +277,16 @@ class EditorWorkspaceViewModelEditQueueTest : BaseTest() {
                 applied += "cut"
                 Result.success("cut me")
             }
-            coEvery { replaceText(any(), any(), any(), any()) } coAnswers { applied += arg<String>(2); true }
+            coEvery { applyFieldDelta(any()) } answers {
+                applied += firstArg<EditorEngine.FieldDelta>().newText
+                EditorEngine.MutationResult.Applied(token(1))
+            }
         }
         val vm = makeViewModel(workspace)
 
         vm.executeAction(EditorActionBarItem.Cut)
         deleteStarted.await()
-        vm.replaceText(pos, pos, "X", pos)
+        vm.enqueueFieldDelta(delta("X", snapshotToken = token(0)))
         releaseDelete.complete(Unit)
         vm.insertText("sentinel")
         drained.await()
@@ -234,20 +308,21 @@ class EditorWorkspaceViewModelEditQueueTest : BaseTest() {
                 Result.success("pasted")
             }
             coEvery { insertText(any()) } answers {
-                val text = arg<String>(0)
+                val text = firstArg<String>()
                 applied += text
                 if (text == "sentinel") drained.complete(Unit)
+                EditorEngine.EditOutcome.Applied()
             }
-            coEvery { replaceText(any(), any(), any(), any()) } coAnswers {
+            coEvery { applyFieldDelta(any()) } coAnswers {
                 typingStarted.complete(Unit)
                 releaseTyping.await()
-                applied += arg<String>(2)
-                true
+                applied += firstArg<EditorEngine.FieldDelta>().newText
+                EditorEngine.MutationResult.Applied(token(1))
             }
         }
         val vm = makeViewModel(workspace)
 
-        vm.replaceText(pos, pos, "X", pos)
+        vm.enqueueFieldDelta(delta("X", snapshotToken = token(0)))
         typingStarted.await()
 
         vm.onPageAction(EditorPageAction.Clipboard.Paste(pathsClip("notes.txt")))
@@ -260,6 +335,41 @@ class EditorWorkspaceViewModelEditQueueTest : BaseTest() {
         drained.await()
 
         applied shouldBe listOf("X", "pasted", "sentinel")
+    }
+
+    // ==================== Navigation ordering ====================
+
+    @Test
+    fun `a tap is ordered against the keystroke typed before it`() = runTest {
+        // Navigation shares the queue, so a character typed before a tap can never be applied
+        // after the caret moved.
+        val order = mutableListOf<String>()
+        val typingStarted = CompletableDeferred<Unit>()
+        val releaseTyping = CompletableDeferred<Unit>()
+        val workspace = makeWorkspace().apply {
+            coEvery { applyFieldDelta(any()) } coAnswers {
+                typingStarted.complete(Unit)
+                releaseTyping.await()
+                order += "type"
+                EditorEngine.MutationResult.Applied(token(1))
+            }
+            coEvery { setCursorPosition(any()) } answers { order += "tap" }
+            coEvery { insertText(any()) } answers {
+                order += "sentinel"
+                drained.complete(Unit)
+                EditorEngine.EditOutcome.Applied()
+            }
+        }
+        val vm = makeViewModel(workspace)
+
+        vm.enqueueFieldDelta(delta("X", snapshotToken = token(0)))
+        typingStarted.await()
+        vm.setCursorPosition(TextPosition(offset = 0, line = 3, column = 2))
+        releaseTyping.complete(Unit)
+        vm.insertText("sentinel")
+        drained.await()
+
+        order shouldBe listOf("type", "tap", "sentinel")
     }
 
     private fun pathsClip(name: String) = ClipboardClip.Paths(

@@ -5,6 +5,7 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.editor.core.EditorWorkspace
+import eu.darken.butler.editor.core.engine.EditorEngine
 import eu.darken.butler.editor.core.PasteFileReader
 import eu.darken.butler.editor.core.PasteTooLargeException
 import eu.darken.butler.editor.core.engine.ClipboardCapacityException
@@ -76,7 +77,7 @@ class EditorClipboardControllerTest : BaseTest() {
             coEvery { copySelection(any()) } returns copyResult
             coEvery { prepareCut(any()) } returns copyResult.map { snapshot(it) }
             coEvery { applyCut(any()) } answers { deleteResult ?: Result.success(firstArg<CutSnapshot>().text) }
-            coEvery { insertText(any()) } returns Unit
+            coEvery { insertText(any()) } returns EditorEngine.EditOutcome.Applied()
             coEvery { readFileContent(any()) } returns Result.success("file content")
         }
     }

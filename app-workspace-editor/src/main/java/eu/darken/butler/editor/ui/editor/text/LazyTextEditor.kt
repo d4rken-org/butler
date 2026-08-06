@@ -93,6 +93,9 @@ private val tag = logTag("Editor", "LazyTextEditor")
 /** Semantics tag for the hidden input field, used by Compose regression tests. */
 const val EDITOR_INPUT_TEST_TAG = "editor.input.field"
 
+/** Semantics tag for the tappable text area, used by Compose regression tests. */
+internal const val EDITOR_CONTENT_TEST_TAG = "editor.content.lines"
+
 @Composable
 fun LazyTextEditor(
     modifier: Modifier = Modifier,
@@ -512,16 +515,20 @@ private fun DualColumnEditorContent(
             ?.let { TextRange(it) }
 
         if (session.matchesWindow(token, windowRangeStart, visibleLines, startColumns)) {
-            // Same window, only the caret/selection can have moved.
+            // Same window as the session rebased on, so only the caret/selection can have moved.
+            // A field text that differs from it means an acknowledged own edit whose republication
+            // is still in flight (the ack reaches the session before the new window is composed);
+            // rebuilding from the pre-edit window here would flicker the keystroke away, and the
+            // republication that follows carries a new token and rebases anyway.
+            if (textFieldValue.text != currentContent) return@LaunchedEffect
             val newSelection = computeFieldSelectionSync(
                 fieldText = textFieldValue.text,
                 fieldSelection = textFieldValue.selection,
                 engineContent = currentContent,
                 mappedSelection = mappedSelection,
             )
-            if (newSelection != null) {
-                textFieldValue = TextFieldValue(text = currentContent, selection = newSelection)
-            }
+            // Keep the value (and its composition), move the caret only.
+            if (newSelection != null) textFieldValue = textFieldValue.copy(selection = newSelection)
             return@LaunchedEffect
         }
 
@@ -759,6 +766,7 @@ private fun DualColumnEditorContent(
                 state = contentListState,
                 contentPadding = contentPadding,
                 modifier = modifier
+                    .testTag(EDITOR_CONTENT_TEST_TAG)
                     .then(contentModifier)
                     // charWidthPx/tabSize feed the hit-testing math below: the gesture scope must
                     // restart when they change or taps keep using stale metrics

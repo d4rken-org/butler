@@ -1,13 +1,14 @@
 package eu.darken.butler.editor.core.engine
 
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 
 /**
- * The in-place visible-content fast paths patch ONE display line, so any edit carrying a line
- * break must fall through to a full refresh. A lone '\r' is such a break in CR and MIXED
- * documents (which [EditorEngine.matchDocumentLineEnding] hands to the buffer verbatim).
+ * Edits carrying a lone '\r' - a real line break in CR and MIXED documents, which the engine hands
+ * to the buffer verbatim - must leave the published window describing the NEW line structure, not a
+ * '\r' spliced into the line that was edited.
  */
 class EditorEngineLineBreakFastPathTest : EditorEngineTestBase() {
 
@@ -48,7 +49,7 @@ class EditorEngineLineBreakFastPathTest : EditorEngineTestBase() {
 
         // Cursor at the start of line 1, backspacing over the '\r' that separates the lines
         engine.setCursorPosition(TextPosition(offset = 0, line = 1, column = 0))
-        engine.deleteAtCursor(1).getOrThrow() shouldBe "\r"
+        engine.deleteAtCursor(1).shouldBeInstanceOf<EditorEngine.EditOutcome.Applied>().removedText shouldBe "\r"
 
         engine.totalLines.value shouldBe 1L
         engine.cursorPosition.value.line shouldBe 0L

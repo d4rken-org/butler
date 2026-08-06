@@ -2,7 +2,9 @@ package eu.darken.butler.editor.ui.editor
 
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.editor.core.EditorWorkspace
+import eu.darken.butler.editor.core.engine.EditorEngine
 import eu.darken.butler.editor.core.engine.TextPosition
+import eu.darken.butler.editor.ui.editor.text.SessionDelta
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote
@@ -26,17 +28,21 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import testhelpers.coroutine.TestDispatcherProvider
+import kotlin.uuid.Uuid
 
 /**
- * The action-bar Delete gate: a selection larger than the (non-undoable) threshold must confirm
- * before deleting; a smaller one deletes directly. The size test is ABSOLUTE, so a reversed
- * selection is measured correctly.
+ * The large-edit gate as the ViewModel sees it: the ENGINE decides (it resolves the span atomically
+ * with the operation) and hands back an immutable prepared edit; the ViewModel only stashes it,
+ * shows the dialog, and submits it on confirm. A field delta is never gated - its span is
+ * window-bounded and therefore always undoable.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class EditorWorkspaceViewModelDeleteGateTest : BaseTest() {
 
     private val workspaceId = Workspace.Id()
     private val threshold = 1_000_000L
+    private val epoch = Uuid.random()
+    private val token = EditorEngine.DocumentToken(epoch, structuralVersion = 7L)
 
     @BeforeEach
     fun setup() {
@@ -48,6 +54,18 @@ class EditorWorkspaceViewModelDeleteGateTest : BaseTest() {
         Dispatchers.resetMain()
     }
 
+    private fun prepared(selection: Pair<TextPosition, TextPosition>, replacement: String) =
+        EditorEngine.PreparedMutation(
+            token = token,
+            startOffset = minOf(selection.first.offset, selection.second.offset),
+            endOffset = maxOf(selection.first.offset, selection.second.offset),
+            replacement = replacement,
+        )
+
+    /**
+     * Engine stand-in: gates exactly like [EditorEngine.oversizedGate] - the selection's own span,
+     * measured absolute, strictly above the threshold.
+     */
     private fun makeWorkspace(selection: Pair<TextPosition, TextPosition>?): EditorWorkspace =
         mockk<EditorWorkspace>().apply {
             every { info } returns MutableStateFlow(
@@ -61,20 +79,25 @@ class EditorWorkspaceViewModelDeleteGateTest : BaseTest() {
                     ),
                 ),
             )
-            coEvery { deleteSelection() } returns Result.success("")
-            coEvery { deleteAtCursor(any()) } returns Result.success("")
-            coEvery { deleteForward() } returns Unit
-            coEvery { replaceText(any(), any(), any(), any()) } returns true
-            coEvery { insertText(any()) } returns Unit
-            coEvery { selectionExceedsUndoThreshold() } returns (
-                selection != null &&
-                    kotlin.math.abs(selection.second.offset - selection.first.offset) > threshold
-                )
+            val oversized = selection != null &&
+                kotlin.math.abs(selection.second.offset - selection.first.offset) > threshold
+
+            fun gated(replacement: String): EditorEngine.EditOutcome = when {
+                oversized -> EditorEngine.EditOutcome.RequiresConfirmation(prepared(selection!!, replacement))
+                else -> EditorEngine.EditOutcome.Applied()
+            }
+
+            coEvery { deleteSelection() } answers { gated("") }
+            coEvery { deleteAtCursor(any()) } answers { gated("") }
+            coEvery { deleteForward() } answers { gated("") }
+            coEvery { insertText(any()) } answers { gated(firstArg()) }
+            coEvery { applyFieldDelta(any()) } returns EditorEngine.MutationResult.Applied(token)
+            coEvery { submitPrepared(any()) } returns EditorEngine.MutationResult.Applied(token)
         }
 
     private val hugeSelection = TextPosition(0, 0, 0) to TextPosition(threshold + 1, 0, 0)
+    private val exactSelection = TextPosition(0, 0, 0) to TextPosition(threshold, 0, 0)
     private val smallSelection = TextPosition(0, 0, 0) to TextPosition(500, 0, 500)
-    private val pos = TextPosition(0, 0, 0)
 
     private fun makeViewModel(workspace: EditorWorkspace): EditorWorkspaceViewModel {
         val remote = mockk<WorkspaceRemote> {
@@ -96,25 +119,36 @@ class EditorWorkspaceViewModelDeleteGateTest : BaseTest() {
     }
 
     @Test
-    fun `above threshold shows confirm dialog and does not delete`() = runTest {
-        val workspace = makeWorkspace(TextPosition(0, 0, 0) to TextPosition(threshold + 1, 0, 0))
+    fun `above threshold shows confirm dialog and applies nothing`() = runTest {
+        val workspace = makeWorkspace(hugeSelection)
         val vm = makeViewModel(workspace)
 
         vm.requestDeleteSelection()
 
         vm.state.first().showLargeDeleteConfirmDialog shouldBe true
-        coVerify(exactly = 0) { workspace.deleteSelection() }
+        coVerify(exactly = 0) { workspace.submitPrepared(any()) }
     }
 
     @Test
     fun `below threshold deletes directly without a dialog`() = runTest {
-        val workspace = makeWorkspace(TextPosition(0, 0, 0) to TextPosition(500, 0, 500))
+        val workspace = makeWorkspace(smallSelection)
         val vm = makeViewModel(workspace)
 
         vm.requestDeleteSelection()
 
         vm.state.first().showLargeDeleteConfirmDialog shouldBe false
         coVerify(exactly = 1) { workspace.deleteSelection() }
+    }
+
+    @Test
+    fun `a selection of exactly the threshold is not gated`() = runTest {
+        // The gate triggers on span > threshold: an edit AT the budget is still undoable
+        val workspace = makeWorkspace(exactSelection)
+        val vm = makeViewModel(workspace)
+
+        vm.requestDeleteSelection()
+
+        vm.state.first().showLargeDeleteConfirmDialog shouldBe false
     }
 
     @Test
@@ -126,41 +160,57 @@ class EditorWorkspaceViewModelDeleteGateTest : BaseTest() {
         vm.requestDeleteSelection()
 
         vm.state.first().showLargeDeleteConfirmDialog shouldBe true
-        coVerify(exactly = 0) { workspace.deleteSelection() }
     }
 
     @Test
-    fun `confirming the dialog deletes and dismisses`() = runTest {
-        val workspace = makeWorkspace(TextPosition(0, 0, 0) to TextPosition(threshold + 1, 0, 0))
+    fun `confirming the dialog submits exactly the prepared edit and dismisses`() = runTest {
+        val workspace = makeWorkspace(hugeSelection)
         val vm = makeViewModel(workspace)
 
         vm.requestDeleteSelection()
         vm.confirmLargeDelete()
 
         vm.state.first().showLargeDeleteConfirmDialog shouldBe false
-        coVerify(exactly = 1) { workspace.deleteSelection() }
+        coVerify(exactly = 1) { workspace.submitPrepared(prepared(hugeSelection, "")) }
+    }
+
+    @Test
+    fun `a confirmed edit whose document moved on mutates nothing`() = runTest {
+        val workspace = makeWorkspace(hugeSelection).apply {
+            coEvery { submitPrepared(any()) } returns EditorEngine.MutationResult.Conflict(
+                EditorEngine.WindowSnapshot(EditorEngine.VisibleContent(), TextPosition.ZERO, null),
+            )
+        }
+        val vm = makeViewModel(workspace)
+
+        vm.requestDeleteSelection()
+        vm.confirmLargeDelete()
+
+        // The stale token is rejected inside the engine; the ViewModel just closes the dialog
+        vm.state.first().showLargeDeleteConfirmDialog shouldBe false
+        coVerify(exactly = 1) { workspace.submitPrepared(any()) }
     }
 
     @Test
     fun `backspace over a huge selection confirms instead of deleting`() = runTest {
-        val workspace = makeWorkspace(TextPosition(0, 0, 0) to TextPosition(threshold + 1, 0, 0))
+        val workspace = makeWorkspace(hugeSelection)
         val vm = makeViewModel(workspace)
 
         vm.deleteAtCursor(1)
 
         vm.state.first().showLargeDeleteConfirmDialog shouldBe true
-        coVerify(exactly = 0) { workspace.deleteAtCursor(any()) }
+        coVerify(exactly = 0) { workspace.submitPrepared(any()) }
     }
 
     @Test
     fun `forward-delete over a huge selection confirms instead of deleting`() = runTest {
-        val workspace = makeWorkspace(TextPosition(0, 0, 0) to TextPosition(threshold + 1, 0, 0))
+        val workspace = makeWorkspace(hugeSelection)
         val vm = makeViewModel(workspace)
 
         vm.deleteForward()
 
         vm.state.first().showLargeDeleteConfirmDialog shouldBe true
-        coVerify(exactly = 0) { workspace.deleteForward() }
+        coVerify(exactly = 0) { workspace.submitPrepared(any()) }
     }
 
     @Test
@@ -174,59 +224,32 @@ class EditorWorkspaceViewModelDeleteGateTest : BaseTest() {
         coVerify(exactly = 1) { workspace.deleteAtCursor(1) }
     }
 
-    // ==================== Replace / typing over a huge selection ====================
+    // ==================== Field deltas are never gated ====================
 
     @Test
-    fun `typing over a huge selection confirms instead of replacing`() = runTest {
+    fun `typing over a huge selection replaces directly instead of confirming`() = runTest {
+        // A field delta only ever replaces a window-bounded range, which is always undoable, so
+        // the gate must not fire for it - deliberate change from the previous selection-based gate.
         val workspace = makeWorkspace(hugeSelection)
         val vm = makeViewModel(workspace)
 
-        vm.replaceText(pos, pos, "x", pos)
-
-        val state = vm.state.first()
-        state.showLargeDeleteConfirmDialog shouldBe true
-        // Field-originated gate must bump the resync signal so the hidden field reverts.
-        state.editResyncSignal shouldBe 1
-        coVerify(exactly = 0) { workspace.replaceText(any(), any(), any(), any()) }
-    }
-
-    @Test
-    fun `confirming a huge type-over replays the replace`() = runTest {
-        val workspace = makeWorkspace(hugeSelection)
-        val vm = makeViewModel(workspace)
-
-        vm.replaceText(pos, pos, "x", pos)
-        vm.confirmLargeDelete()
+        vm.enqueueFieldDelta(fieldDelta("x")).await()
 
         vm.state.first().showLargeDeleteConfirmDialog shouldBe false
-        coVerify(exactly = 1) { workspace.replaceText(pos, pos, "x", pos) }
+        coVerify(exactly = 1) { workspace.applyFieldDelta(any()) }
     }
 
-    @Test
-    fun `typing below the threshold replaces directly`() = runTest {
-        val workspace = makeWorkspace(smallSelection)
-        val vm = makeViewModel(workspace)
-
-        vm.replaceText(pos, pos, "x", pos)
-
-        val state = vm.state.first()
-        state.showLargeDeleteConfirmDialog shouldBe false
-        state.editResyncSignal shouldBe 0
-        coVerify(exactly = 1) { workspace.replaceText(pos, pos, "x", pos) }
-    }
+    // ==================== Paste / stash lifecycle ====================
 
     @Test
-    fun `insert over a huge selection defers without bumping the field resync`() = runTest {
+    fun `insert over a huge selection defers behind the dialog`() = runTest {
         val workspace = makeWorkspace(hugeSelection)
         val vm = makeViewModel(workspace)
 
-        // Paste-style insert is programmatic (not field-originated): gated, but no resync bump.
         vm.insertText("x")
 
-        val state = vm.state.first()
-        state.showLargeDeleteConfirmDialog shouldBe true
-        state.editResyncSignal shouldBe 0
-        coVerify(exactly = 0) { workspace.insertText(any()) }
+        vm.state.first().showLargeDeleteConfirmDialog shouldBe true
+        coVerify(exactly = 0) { workspace.submitPrepared(any()) }
     }
 
     @Test
@@ -234,12 +257,12 @@ class EditorWorkspaceViewModelDeleteGateTest : BaseTest() {
         val workspace = makeWorkspace(hugeSelection)
         val vm = makeViewModel(workspace)
 
-        vm.replaceText(pos, pos, "x", pos)
+        vm.insertText("x")
         vm.onPageAction(EditorPageAction.Dialog.DismissLargeDeleteConfirm)
         vm.confirmLargeDelete()
 
         vm.state.first().showLargeDeleteConfirmDialog shouldBe false
-        coVerify(exactly = 0) { workspace.replaceText(any(), any(), any(), any()) }
+        coVerify(exactly = 0) { workspace.submitPrepared(any()) }
     }
 
     @Test
@@ -247,24 +270,22 @@ class EditorWorkspaceViewModelDeleteGateTest : BaseTest() {
         val workspace = makeWorkspace(hugeSelection)
         val vm = makeViewModel(workspace)
 
-        vm.replaceText(pos, pos, "first", pos)
-        vm.replaceText(pos, pos, "second", pos)
+        vm.insertText("first")
+        vm.insertText("second")
         vm.confirmLargeDelete()
 
         // The first edit is the one the user reviewed; the second must not replace it.
-        coVerify(exactly = 1) { workspace.replaceText(pos, pos, "first", pos) }
-        coVerify(exactly = 0) { workspace.replaceText(pos, pos, "second", pos) }
+        coVerify(exactly = 1) { workspace.submitPrepared(prepared(hugeSelection, "first")) }
+        coVerify(exactly = 0) { workspace.submitPrepared(prepared(hugeSelection, "second")) }
     }
 
-    @Test
-    fun `a delete gate does not bump the field resync signal`() = runTest {
-        val workspace = makeWorkspace(hugeSelection)
-        val vm = makeViewModel(workspace)
-
-        vm.requestDeleteSelection()
-
-        val state = vm.state.first()
-        state.showLargeDeleteConfirmDialog shouldBe true
-        state.editResyncSignal shouldBe 0
-    }
+    private fun fieldDelta(text: String) = SessionDelta(
+        start = TextPosition.ZERO,
+        end = TextPosition.ZERO,
+        oldText = "",
+        newText = text,
+        caret = TextPosition.ZERO,
+        generation = 1L,
+        snapshotToken = token,
+    )
 }

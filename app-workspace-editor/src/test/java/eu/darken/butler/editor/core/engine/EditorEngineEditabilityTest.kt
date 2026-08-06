@@ -117,9 +117,18 @@ class EditorEngineEditabilityTest : BaseTest() {
         val engine = createEngine(LocalPath.build(file), canWrite = false)
 
         engine.insertText("X")
-        engine.replaceText(TextPosition(0, 0, 0), TextPosition(0, 0, 0), "X", TextPosition(1, 0, 1))
-        engine.deleteForward().isFailure.shouldBeTrue()
-        engine.deleteAtCursor(1).isFailure.shouldBeTrue()
+        engine.applyFieldDelta(
+            EditorEngine.FieldDelta(
+                token = engine.visibleContent.value.token!!,
+                start = TextPosition(0, 0, 0),
+                end = TextPosition(0, 0, 0),
+                oldText = "",
+                newText = "X",
+                caret = TextPosition(1, 0, 1),
+            ),
+        ).shouldBeInstanceOf<EditorEngine.MutationResult.Failed>()
+        engine.deleteForward().shouldBeInstanceOf<EditorEngine.EditOutcome.Failed>()
+        engine.deleteAtCursor(1).shouldBeInstanceOf<EditorEngine.EditOutcome.Failed>()
 
         engine.textBuffer!!.getFullText().getOrThrow() shouldBe "original"
         engine.isModified.first() shouldBe false
@@ -136,7 +145,8 @@ class EditorEngineEditabilityTest : BaseTest() {
         source.isLikelyBinary.shouldBeTrue()
 
         engine.insertText("X")
-        engine.deleteForward().exceptionOrNull().shouldBeInstanceOf<ReadOnlyFileException>()
+        engine.deleteForward().shouldBeInstanceOf<EditorEngine.EditOutcome.Failed>()
+            .error.shouldBeInstanceOf<ReadOnlyFileException>()
 
         // Even a direct buffer edit cannot reach the disk
         val buffer = engine.textBuffer!!

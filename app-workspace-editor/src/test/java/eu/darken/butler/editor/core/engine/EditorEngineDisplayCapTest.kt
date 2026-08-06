@@ -2,6 +2,7 @@ package eu.darken.butler.editor.core.engine
 
 import eu.darken.butler.editor.ui.editor.text.CursorDirection
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 
@@ -81,7 +82,7 @@ class EditorEngineDisplayCapTest : EditorEngineTestBase() {
         val engine = createEngine(content, displayLineCap = cap)
         engine.setCursorPosition(TextPosition(offset = 0, line = 0, column = 14))
 
-        engine.deleteAtCursor(1).getOrThrow() shouldBe "D"
+        engine.deleteAtCursor(1).shouldBeInstanceOf<EditorEngine.EditOutcome.Applied>().removedText shouldBe "D"
 
         engine.textBuffer!!.getTextForLine(0).getOrThrow() shouldBe "0123456789ABCEF"
     }
