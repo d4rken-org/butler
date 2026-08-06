@@ -47,8 +47,8 @@ class EditorClipboardControllerTest : BaseTest() {
     /** Mirrors ViewModel3's error handler: thrown controller errors surface here, not as crashes. */
     private val surfacedErrors = mutableListOf<Throwable>()
 
-    /** Ops the controller routed onto the ViewModel's ordered edit queue instead of a bare launch. */
-    private val queuedOps = mutableListOf<suspend () -> Unit>()
+    /** Deletes the controller routed onto the ViewModel's ordered edit queue instead of the workspace. */
+    private var queuedDeletes = 0
 
     private fun mockWorkspace(
         selection: String = "selected text",
@@ -79,8 +79,6 @@ class EditorClipboardControllerTest : BaseTest() {
         mockk<ClipboardRepo>().apply {
             every { state } returns MutableStateFlow(ClipboardRepo.State(entries = entries))
             coEvery { add(any()) } just Runs
-            coEvery { remove(any()) } just Runs
-            coEvery { clear() } just Runs
         }
 
     private fun CoroutineScope.controller(
@@ -100,20 +98,11 @@ class EditorClipboardControllerTest : BaseTest() {
                 }
             }
         },
-        // Stands in for the ViewModel's edit-command consumer: records the op and runs it with the
-        // same per-command error catch, so failures surface instead of crashing the pipeline.
-        enqueueClipboardOp = { op ->
-            queuedOps += op
-            launch {
-                try {
-                    op()
-                } catch (e: Exception) {
-                    surfacedErrors += e
-                }
-            }
-        },
         workspace = { workspace },
         guardedInsert = guardedInsert,
+        // Stands in for the ViewModel's queued delete command: counts the trip through the queue and
+        // then applies it on the workspace, like the edit-command consumer does.
+        deleteSelection = { queuedDeletes++; workspace.deleteSelection() },
         clipboardHelper = helper,
         clipboardRepo = repo,
         tag = "test",
@@ -147,25 +136,21 @@ class EditorClipboardControllerTest : BaseTest() {
     }
 
     @Test
-    fun `only document-mutating operations use the edit queue`() = runTest {
+    fun `both cut variants delete through the edit queue`() = runTest {
         val controller = controller()
-        val clip = ClipboardClip.Text(origin = workspaceId, content = "clip text")
 
-        // Copy and clipboard management mutate no document - queueing them would stall real edits
+        // A copy mutates no document, so it never reaches the queue
         controller.copyToClipboard()
         controller.copyToButlerClipboard()
-        controller.removeClipboardEntry(clip)
-        controller.clearAllClipboard()
         runCurrent()
-        queuedOps shouldHaveSize 0
+        queuedDeletes shouldBe 0
 
+        // The deletion must stay ordered against typing, so it goes through the ViewModel's queue
+        // instead of being applied on the workspace directly
         controller.cutToClipboard()
         controller.cutToButlerClipboard()
-        controller.pasteFromClipboard()
-        controller.pasteFromClipboard(clip)
-        controller.pasteFromClipboardFile(path("notes.txt"))
         runCurrent()
-        queuedOps shouldHaveSize 5
+        queuedDeletes shouldBe 2
     }
 
     // ==================== System clipboard size guard ====================

@@ -15,7 +15,6 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.validation.FilenameValidator
-import eu.darken.butler.common.flow.combine as combineMany
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.editor.core.EditorWorkspace
@@ -38,6 +37,7 @@ import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import eu.darken.butler.workspace.core.handleResult
 import eu.darken.butler.workspace.core.launchPicker
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
@@ -83,9 +83,9 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     private val clipboardController = EditorClipboardController(
         id = id,
         doLaunch = doLaunch,
-        enqueueClipboardOp = ::enqueueClipboardOp,
         workspace = ::getWorkspace,
-        guardedInsert = ::performGuardedInsert,
+        guardedInsert = ::guardedInsertText,
+        deleteSelection = ::enqueueDeleteSelection,
         clipboardHelper = clipboardHelper,
         clipboardRepo = clipboardRepo,
         tag = tag,
@@ -124,24 +124,15 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     // this signal makes the field revert to engine content. Normal typing never bumps it.
     private val _editResyncSignal = MutableStateFlow(0)
 
-    // Reference count of clipboard ops that are queued or running. Incremented SYNCHRONOUSLY in
-    // [enqueueClipboardOp], so it is already nonzero before any keystroke that follows the paste
-    // gesture can be enqueued. Clipboard retrieval happens inside the queued op, so the queue can
-    // sit in that op for a while - and a field edit enqueued meanwhile carries positions captured
-    // from the pre-paste document, which frequently stay representable and thus pass the engine's
-    // column check instead of being rejected. The field is made read-only while this is nonzero.
-    private val _clipboardMutationPending = MutableStateFlow(0)
-
-    val state: Flow<State> = combineMany(
+    val state: Flow<State> = combine(
         workspaceWithState,
         dialogsController.state,
         searchController.state,
         clipboardController.hasSystemClipboardContent,
         _editResyncSignal,
-        _clipboardMutationPending,
-    ) { (workspace, wsState, contentPath), dialogs, search, hasClipboardContent, editResyncSignal, clipboardPending ->
+    ) { (workspace, wsState, contentPath), dialogs, search, hasClipboardContent, editResyncSignal ->
         // Only emit Ready states - Init/Error are handled globally by WorkspaceMapper
-        val readyState = wsState as? EditorWorkspace.State.Ready ?: return@combineMany null
+        val readyState = wsState as? EditorWorkspace.State.Ready ?: return@combine null
 
         val editorState = readyState.editor
 
@@ -201,7 +192,6 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             maxUndoableEditChars = editorState.maxUndoableEditChars,
             showLargeDeleteConfirmDialog = dialogs.showLargeDeleteConfirmDialog,
             editResyncSignal = editResyncSignal,
-            isClipboardBusy = clipboardPending > 0,
         )
     }.filterNotNull()
 
@@ -492,9 +482,20 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             val caret: TextPosition,
         ) : EditCommand
 
-        data class Insert(override val revision: Long, val text: String) : EditCommand
+        data class Insert(
+            override val revision: Long,
+            val text: String,
+            /** Completed with whether the insert was applied; null for fire-and-forget inserts. */
+            val applied: CompletableDeferred<Boolean>? = null,
+        ) : EditCommand
 
-        data class DeleteSelection(override val revision: Long, val gated: Boolean) : EditCommand
+        data class DeleteSelection(
+            override val revision: Long,
+            val gated: Boolean,
+            /** Completed with the engine's result; null for fire-and-forget deletes. */
+            val outcome: CompletableDeferred<Result<String>>? = null,
+        ) : EditCommand
+
         data class DeleteAtCursor(override val revision: Long, val count: Int) : EditCommand
         data class DeleteForward(override val revision: Long) : EditCommand
         data class Undo(override val revision: Long) : EditCommand
@@ -502,9 +503,6 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
 
         /** Replay of an edit the user confirmed in the large-edit dialog; the gate already ran. */
         data class Confirmed(override val revision: Long, val action: suspend () -> Unit) : EditCommand
-
-        /** Clipboard retrieval + document mutation as one unit, so neither can be overtaken. */
-        data class Clipboard(override val revision: Long, val op: suspend () -> Unit) : EditCommand
     }
 
     /** Must stay non-suspending: enqueueing from inside a coroutine would reintroduce the reordering. */
@@ -522,8 +520,10 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                // Per-command catch: one failed edit must not tear down the pipeline
-                log(tag, ERROR) { "Edit command failed: $command - ${e.asLog()}" }
+                // Per-command catch: one failed edit must not tear down the pipeline. Identified by
+                // kind and revision only - a command's payload is document text.
+                val label = "${command::class.simpleName}#${command.revision}"
+                log(tag, ERROR) { "Edit command failed: $label - ${e.asLog()}" }
                 errorEvents.emit(e)
             }
         }
@@ -550,10 +550,26 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
                     _editResyncSignal.update { it + 1 }
                 }
             }
-            is EditCommand.Insert -> performGuardedInsert(command.text)
+            is EditCommand.Insert -> {
+                try {
+                    // Evaluated outside the safe call: that would skip the insert for a null deferred
+                    val applied = performGuardedInsert(command.text)
+                    command.applied?.complete(applied)
+                } catch (e: Throwable) {
+                    command.applied?.completeExceptionally(e)
+                    throw e
+                }
+            }
             is EditCommand.DeleteSelection -> {
+                // Only the ungated variant carries an outcome, so the gate can't strand a waiter
                 if (command.gated && deferIfOversized { performDeleteSelection() }) return
-                performDeleteSelection()
+                try {
+                    val result = performDeleteSelection()
+                    command.outcome?.complete(result)
+                } catch (e: Throwable) {
+                    command.outcome?.completeExceptionally(e)
+                    throw e
+                }
             }
             is EditCommand.DeleteAtCursor -> {
                 // Over an oversized selection this deletes non-undoably; confirm and replay as a
@@ -571,17 +587,6 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             is EditCommand.Redo -> getWorkspace().redo()
             // The gate already ran before the dialog; re-running it would defer the confirmed edit again
             is EditCommand.Confirmed -> command.action()
-            is EditCommand.Clipboard -> {
-                try {
-                    command.op()
-                    // The field was read-only across the op, so it never saw the mutation; rebuild
-                    // it from engine content before input is handed back.
-                    _editResyncSignal.update { it + 1 }
-                } finally {
-                    // Also on failure - otherwise a throwing op would leave the editor mute
-                    _clipboardMutationPending.update { it - 1 }
-                }
-            }
         }
     }
 
@@ -592,20 +597,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         getWorkspace().insertText(text)
     }
 
-    /**
-     * A field edit carries positions captured from the content the field was showing. While a
-     * clipboard mutation is pending that content is about to change, so the edit must not enter the
-     * queue - the field is already read-only via [State.isClipboardBusy], but events dispatched
-     * before that recomposition lands still arrive here. Reject them and resync the field instead.
-     */
-    fun replaceText(start: TextPosition, end: TextPosition, text: String, caret: TextPosition) {
-        if (_clipboardMutationPending.value > 0) {
-            log(tag, WARN) { "Dropping field edit while a clipboard op is pending: $text" }
-            _editResyncSignal.update { it + 1 }
-            return
-        }
+    fun replaceText(start: TextPosition, end: TextPosition, text: String, caret: TextPosition) =
         enqueue { EditCommand.Replace(it, start, end, text, caret) }
-    }
 
     private suspend fun performReplaceText(
         start: TextPosition,
@@ -619,9 +612,19 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
 
     fun deleteSelection() = enqueue { EditCommand.DeleteSelection(it, gated = false) }
 
-    private suspend fun performDeleteSelection() {
+    /**
+     * Enqueues an ungated selection delete and awaits the engine's result, so a cut can do its
+     * clipboard write outside the queue while the deletion it produces stays ordered with typing.
+     */
+    private suspend fun enqueueDeleteSelection(): Result<String> {
+        val outcome = CompletableDeferred<Result<String>>()
+        enqueue { EditCommand.DeleteSelection(it, gated = false, outcome = outcome) }
+        return outcome.await()
+    }
+
+    private suspend fun performDeleteSelection(): Result<String> {
         editActivity.tryEmit(Unit)
-        getWorkspace().deleteSelection()
+        return getWorkspace().deleteSelection()
     }
 
     // Deferred edit stashed behind the large-edit confirm dialog; replayed by [confirmLargeDelete],
@@ -676,26 +679,22 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
 
     /**
      * Insert (e.g. paste) guarded by the oversized-selection gate. Returns false when deferred.
-     *
-     * Runs INSIDE the edit-command consumer (as an [EditCommand.Insert] or from a clipboard op), so
-     * it must never enqueue and wait: the consumer that would have to run the enqueued command is
-     * the one calling this.
+     * Goes through the same queue as every other mutation, awaiting its command's outcome.
+     */
+    private suspend fun guardedInsertText(text: String): Boolean {
+        val applied = CompletableDeferred<Boolean>()
+        enqueue { EditCommand.Insert(it, text, applied) }
+        return applied.await()
+    }
+
+    /**
+     * The inline body of an [EditCommand.Insert], run by the consumer. It must never enqueue and
+     * wait: the consumer that would have to run the enqueued command is the one calling this.
      */
     private suspend fun performGuardedInsert(text: String): Boolean {
         if (deferIfOversized { performInsertText(text) }) return false
         performInsertText(text)
         return true
-    }
-
-    /**
-     * Runs a clipboard op - retrieval included - inside the ordered pipeline.
-     *
-     * The pending count is raised here rather than in the consumer: the increment has to happen
-     * before the gesture returns to the UI, so a keystroke arriving right after it already sees it.
-     */
-    private fun enqueueClipboardOp(op: suspend () -> Unit) {
-        _clipboardMutationPending.update { it + 1 }
-        enqueue { EditCommand.Clipboard(it, op) }
     }
 
     fun moveCursor(direction: CursorDirection, extendSelection: Boolean) = launch {
@@ -905,12 +904,6 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val showLargeDeleteConfirmDialog: Boolean = false,
         /** Increments when a field edit is gated behind the confirm dialog; signals the text field to revert to engine content. */
         val editResyncSignal: Int = 0,
-        /**
-         * A clipboard mutation is queued or running. Kept apart from [isReadOnly] on purpose: that
-         * one also disables saving in the toolbar, which a paste must not do. Only the text field
-         * ORs it in.
-         */
-        val isClipboardBusy: Boolean = false,
     ) {
         val isLoading: Boolean get() = progress != null
         val hasFile: Boolean get() = contentSource is ContentSource.File

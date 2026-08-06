@@ -11,25 +11,20 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.jupiter.api.AfterEach
@@ -38,18 +33,12 @@ import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import testhelpers.coroutine.TestDispatcherProvider
 import java.io.File
-import java.io.IOException
-import kotlin.time.Duration.Companion.seconds
 
 /**
  * The serialized edit pipeline: every text mutation is enqueued synchronously and drained by a
  * single consumer, so an edit that suspends cannot let the next one overtake it (Enter followed by
  * a character used to be able to resolve against the pre-Enter document). Rejections resync the
  * hidden field, but only when no newer input is still queued behind them.
- *
- * Clipboard ops are the exception to "queue it and it will be applied": they mutate the document
- * from inside the queue, so a field edit raised while one is pending has stale positions and is
- * dropped rather than queued behind it.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class EditorWorkspaceViewModelEditQueueTest : BaseTest() {
@@ -81,11 +70,7 @@ class EditorWorkspaceViewModelEditQueueTest : BaseTest() {
         coEvery { insertText(any()) } answers { drained.complete(Unit); Unit }
     }
 
-    private fun makeViewModel(
-        workspace: EditorWorkspace,
-        // Defaults to Unconfined; pass a scheduler-backed dispatcher when the test needs virtual time
-        dispatcher: CoroutineDispatcher? = null,
-    ): EditorWorkspaceViewModel {
+    private fun makeViewModel(workspace: EditorWorkspace): EditorWorkspaceViewModel {
         val remote = mockk<WorkspaceRemote> {
             every { events } returns emptyFlow()
             every { state } returns emptyFlow()
@@ -95,7 +80,7 @@ class EditorWorkspaceViewModelEditQueueTest : BaseTest() {
         }
         return EditorWorkspaceViewModel(
             id = workspaceId,
-            dispatchers = TestDispatcherProvider(dispatcher),
+            dispatchers = TestDispatcherProvider(),
             workspaceProvider = provider,
             workspaceRemote = remote,
             clipboardHelper = mockk(relaxed = true),
@@ -204,7 +189,9 @@ class EditorWorkspaceViewModelEditQueueTest : BaseTest() {
     // ==================== Clipboard operations ====================
 
     @Test
-    fun `a keystroke during a pending cut is dropped, and input resumes after it`() = runTest {
+    fun `a cut's deletion is ordered against a later keystroke`() = runTest {
+        // The clipboard write happens outside the queue, but the deletion it ends in is enqueued,
+        // so a keystroke typed after it can't resolve against the not-yet-cut document.
         val applied = mutableListOf<String>()
         val deleteStarted = CompletableDeferred<Unit>()
         val releaseDelete = CompletableDeferred<Unit>()
@@ -222,29 +209,25 @@ class EditorWorkspaceViewModelEditQueueTest : BaseTest() {
 
         vm.executeAction(EditorActionBarItem.Cut)
         deleteStarted.await()
-        // Positions taken from the not-yet-cut document; queueing it behind the cut would misapply it
         vm.replaceText(pos, pos, "X", pos)
         releaseDelete.complete(Unit)
-
-        vm.state.first { !it.isClipboardBusy }
-        vm.replaceText(pos, pos, "Y", pos)
         vm.insertText("sentinel")
         drained.await()
 
-        applied shouldBe listOf("cut", "Y")
+        applied shouldBe listOf("cut", "X")
     }
 
     @Test
-    fun `a keystroke during a pending paste is dropped and resyncs the field`() = runTest {
-        // The keystroke's positions were captured from the pre-paste document and often stay
-        // representable afterwards, so the engine's column check would let them through.
+    fun `a paste's insertion goes through the queue`() = runTest {
+        // File retrieval runs outside the queue, but the insert it produces is enqueued: while an
+        // earlier edit is still running, the paste cannot reach the engine ahead of it.
         val applied = mutableListOf<String>()
-        val readStarted = CompletableDeferred<Unit>()
-        val releaseRead = CompletableDeferred<Unit>()
+        val readDone = CompletableDeferred<Unit>()
+        val typingStarted = CompletableDeferred<Unit>()
+        val releaseTyping = CompletableDeferred<Unit>()
         val workspace = makeWorkspace().apply {
             coEvery { readFileContent(any()) } coAnswers {
-                readStarted.complete(Unit)
-                releaseRead.await()
+                readDone.complete(Unit)
                 Result.success("pasted")
             }
             coEvery { insertText(any()) } answers {
@@ -252,73 +235,28 @@ class EditorWorkspaceViewModelEditQueueTest : BaseTest() {
                 applied += text
                 if (text == "sentinel") drained.complete(Unit)
             }
-            coEvery { replaceText(any(), any(), any(), any()) } coAnswers { applied += arg<String>(2); true }
+            coEvery { replaceText(any(), any(), any(), any()) } coAnswers {
+                typingStarted.complete(Unit)
+                releaseTyping.await()
+                applied += arg<String>(2)
+                true
+            }
         }
         val vm = makeViewModel(workspace)
 
-        vm.onPageAction(EditorPageAction.Clipboard.Paste(pathsClip("notes.txt")))
-        readStarted.await()
-        vm.state.first().isClipboardBusy shouldBe true
-
         vm.replaceText(pos, pos, "X", pos)
-        vm.state.first { it.editResyncSignal == 1 }
+        typingStarted.await()
 
-        releaseRead.complete(Unit)
+        vm.onPageAction(EditorPageAction.Clipboard.Paste(pathsClip("notes.txt")))
+        readDone.await()
+        // The file was read, but its insert waits behind the edit the consumer is still running
+        applied.shouldBeEmpty()
+
+        releaseTyping.complete(Unit)
         vm.insertText("sentinel")
         drained.await()
 
-        applied shouldBe listOf("pasted", "sentinel")
-    }
-
-    @Test
-    fun `a throwing clipboard op re-enables input`() = runTest {
-        val applied = mutableListOf<String>()
-        val workspace = makeWorkspace().apply {
-            coEvery { readFileContent(any()) } returns Result.failure(IOException("nope"))
-            coEvery { insertText(any()) } answers {
-                val text = arg<String>(0)
-                applied += text
-                if (text == "sentinel") drained.complete(Unit)
-            }
-            coEvery { replaceText(any(), any(), any(), any()) } coAnswers { applied += arg<String>(2); true }
-        }
-        val vm = makeViewModel(workspace)
-
-        vm.onPageAction(EditorPageAction.Clipboard.Paste(pathsClip("notes.txt")))
-        vm.errorEvents.first().shouldBeInstanceOf<IOException>()
-
-        vm.state.first().isClipboardBusy shouldBe false
-        vm.replaceText(pos, pos, "X", pos)
-        vm.insertText("sentinel")
-        drained.await()
-
-        applied shouldBe listOf("X", "sentinel")
-    }
-
-    @Test
-    fun `a file read that never returns fails without starving the queue`() = runTest {
-        val applied = mutableListOf<String>()
-        val workspace = makeWorkspace().apply {
-            coEvery { readFileContent(any()) } coAnswers { awaitCancellation() }
-            coEvery { insertText(any()) } answers {
-                val text = arg<String>(0)
-                applied += text
-                if (text == "sentinel") drained.complete(Unit)
-            }
-        }
-        // Scheduler-backed so the read timeout elapses in virtual instead of wall-clock time
-        val vm = makeViewModel(workspace, StandardTestDispatcher(testScheduler))
-
-        vm.onPageAction(EditorPageAction.Clipboard.Paste(pathsClip("notes.txt")))
-        advanceTimeBy(31.seconds)
-        runCurrent()
-
-        vm.errorEvents.first().shouldBeInstanceOf<IOException>()
-
-        // The consumer survived the failed command
-        vm.insertText("sentinel")
-        runCurrent()
-        applied shouldBe listOf("sentinel")
+        applied shouldBe listOf("X", "pasted", "sentinel")
     }
 
     private fun pathsClip(name: String) = ClipboardClip.Paths(

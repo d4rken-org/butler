@@ -22,9 +22,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.withTimeoutOrNull
-import java.io.IOException
-import kotlin.time.Duration.Companion.seconds
 
 /**
  * System- and Butler-clipboard routing for the editor. Extracted from the ViewModel so the
@@ -32,17 +29,15 @@ import kotlin.time.Duration.Companion.seconds
  */
 class EditorClipboardController(
     private val id: Workspace.Id,
-    // For operations that never touch the document; using the edit queue for those would stall it.
     private val doLaunch: (suspend CoroutineScope.() -> Unit) -> Unit,
-    // Runs a document-mutating op on the ViewModel's ordered edit queue. Clipboard/file retrieval is
-    // done INSIDE the op, so a keystroke typed while it runs can't overtake the resulting mutation -
-    // at the cost of the queue waiting for that retrieval.
-    private val enqueueClipboardOp: (suspend () -> Unit) -> Unit,
     private val workspace: suspend () -> EditorWorkspace,
     // Inserts text guarded by the oversized-selection confirm gate; returns false when the edit was
-    // deferred behind the confirm dialog (so paste success isn't logged prematurely). Only callable
-    // from inside an enqueued op - it applies the insert directly instead of enqueueing it.
+    // deferred behind the confirm dialog (so paste success isn't logged prematurely). Enqueues on the
+    // ViewModel's ordered edit queue and awaits the outcome.
     private val guardedInsert: suspend (String) -> Boolean,
+    // Deletes the selection through the same ordered queue, awaiting the engine's result, so a cut's
+    // deletion can't be overtaken by a keystroke typed after it.
+    private val deleteSelection: suspend () -> Result<String>,
     private val clipboardHelper: SystemClipboardHelper,
     private val clipboardRepo: ClipboardRepo,
     private val tag: String,
@@ -75,15 +70,14 @@ class EditorClipboardController(
         log(tag) { "Copied ${text.length} characters to system clipboard" }
     }
 
-    fun cutToClipboard() = enqueueClipboardOp {
-        val ws = workspace()
-        val text = extractSelection(maxChars = MAX_SYSTEM_CLIPBOARD_CHARS) ?: return@enqueueClipboardOp
+    fun cutToClipboard() = doLaunch {
+        val text = extractSelection(maxChars = MAX_SYSTEM_CLIPBOARD_CHARS) ?: return@doLaunch
         // Any copy refusal or write failure throws above/inside, so the delete never runs
         copyToSystemClipboard(text)
-        ws.deleteSelection().getOrElse { e ->
+        deleteSelection().getOrElse { e ->
             // The engine surfaced the failure via its error banner; the copy already succeeded
             log(tag, ERROR) { "Cut copied but failed to delete - ${e.asLog()}" }
-            return@enqueueClipboardOp
+            return@doLaunch
         }
         log(tag) { "Cut ${text.length} characters to system clipboard" }
     }
@@ -95,14 +89,13 @@ class EditorClipboardController(
     }
 
     /** Cuts selection to Butler clipboard only (for long-press action). */
-    fun cutToButlerClipboard() = enqueueClipboardOp {
-        val ws = workspace()
-        val text = extractSelection(maxChars = BUTLER_CLIPBOARD_PREFILTER_CHARS) ?: return@enqueueClipboardOp
+    fun cutToButlerClipboard() = doLaunch {
+        val text = extractSelection(maxChars = BUTLER_CLIPBOARD_PREFILTER_CHARS) ?: return@doLaunch
         // Deleting after a rejected copy (size cap throws) would silently drop the text
         addToButlerClipboard(text)
-        ws.deleteSelection().getOrElse { e ->
+        deleteSelection().getOrElse { e ->
             log(tag, ERROR) { "Cut copied but failed to delete - ${e.asLog()}" }
-            return@enqueueClipboardOp
+            return@doLaunch
         }
         log(tag) { "Cut ${text.length} characters to Butler clipboard" }
     }
@@ -145,7 +138,7 @@ class EditorClipboardController(
         log(tag, INFO) { "Added ${text.length} characters to Butler clipboard" }
     }
 
-    fun pasteFromClipboard() = enqueueClipboardOp {
+    fun pasteFromClipboard() = doLaunch {
         val text = clipboardHelper.getClipboardText()
         if (text != null) {
             if (guardedInsert(text)) log(tag) { "Pasted ${text.length} characters from clipboard" }
@@ -154,7 +147,7 @@ class EditorClipboardController(
         }
     }
 
-    fun pasteFromClipboard(clip: ClipboardClip) = enqueueClipboardOp {
+    fun pasteFromClipboard(clip: ClipboardClip) = doLaunch {
         log(tag) { "pasteFromClipboard($clip)" }
         when (clip) {
             is ClipboardClip.Text -> {
@@ -174,7 +167,7 @@ class EditorClipboardController(
     }
 
     /** Paste content from a file in the Butler clipboard into the editor. */
-    fun pasteFromClipboardFile(path: APath<*>) = enqueueClipboardOp {
+    fun pasteFromClipboardFile(path: APath<*>) = doLaunch {
         pasteFileContent(path)
     }
 
@@ -182,16 +175,10 @@ class EditorClipboardController(
      * Shared paste-from-file path: failures (file too large, binary content, I/O) throw so they
      * reach the launching coroutine's error handler and become visible - they were silently
      * logged before.
-     *
-     * The read runs on the ordered edit queue, so a provider that never answers (unresponsive SAF
-     * or network mount) would stall every later edit and the editor would go mute. Bound it and
-     * fail as a plain I/O error - a [kotlinx.coroutines.CancellationException] would tear down the
-     * queue's consumer instead of being reported per-command.
      */
     private suspend fun pasteFileContent(path: APath<*>) {
         log(tag) { "pasteFileContent($path)" }
-        val content = withTimeoutOrNull(FILE_READ_TIMEOUT) { workspace().readFileContent(path).getOrThrow() }
-            ?: throw IOException("Timed out after $FILE_READ_TIMEOUT reading ${path.name}")
+        val content = workspace().readFileContent(path).getOrThrow()
         if (guardedInsert(content)) log(tag, INFO) { "Pasted ${content.length} characters from file: ${path.name}" }
     }
 
@@ -229,9 +216,6 @@ class EditorClipboardController(
     }
 
     companion object {
-        /** Upper bound for a paste-from-file read; it blocks the whole edit queue while it runs. */
-        val FILE_READ_TIMEOUT = 30.seconds
-
         /**
          * System-clipboard cap in UTF-16 units (~500KB in the parcel) - comfortable margin under
          * the ~1MB binder transaction limit that makes setPrimaryClip throw.

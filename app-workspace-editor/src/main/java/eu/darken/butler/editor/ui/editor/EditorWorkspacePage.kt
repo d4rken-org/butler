@@ -334,9 +334,7 @@ fun EditorWorkspacePage(
                     highlightedLines = state.highlightedLines,
                     showLineNumbers = state.showLineNumbers,
                     wordWrap = state.wordWrap,
-                    // A pending clipboard op is about to rewrite the document, so field edits made
-                    // against the current content can't be applied - block input until it settles
-                    readOnly = state.isReadOnly || state.isClipboardBusy,
+                    readOnly = state.isReadOnly,
                     fontSize = state.fontSize,
                     tabSize = state.tabSize,
                     searchResults = state.searchResults,
