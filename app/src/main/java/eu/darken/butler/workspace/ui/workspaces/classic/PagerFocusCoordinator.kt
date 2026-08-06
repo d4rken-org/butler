@@ -176,6 +176,9 @@ fun rememberPagerFocusCoordinator(
         // Requiring a scroll to have been observed since the restart keeps that re-report from
         // masquerading as a swipe and overwriting externally-set focus.
         var sawScroll = false
+        // Also a LOCAL var, and for the same reason: after a restart nothing has been reported yet,
+        // so the first settle must be free to report. See the de-duplication below.
+        var lastSettledPage: Int? = null
         snapshotFlow { pagerState.settledPage to pagerState.isScrollInProgress }
             .distinctUntilChanged()
             .collect { (settled, scrolling) ->
@@ -207,6 +210,17 @@ fun rememberPagerFocusCoordinator(
                 if (clampPage != null) {
                     coordinator.pendingClampPage = null
                 }
+
+                // De-duplicated per PAGE, not per (page, scrolling) pair: one swipe is two scroll
+                // episodes — the drag, then the fling/snap that follows it — and both settle on the
+                // same page. Keyed on the pair alone they are distinct events, so the destination
+                // was reported twice and the whole selection path ran twice per swipe.
+                //
+                // Recorded for every settle that gets this far, not only for the ones that go on to
+                // be reported: a programmatic move parks the pager on a page too, and forgetting
+                // that would swallow the user's next swipe back onto the page they left.
+                if (settled == lastSettledPage) return@collect
+                lastSettledPage = settled
 
                 if (coordinator.isAnimatingProgrammatically) return@collect
                 if (settled !in tabIds.indices) return@collect
