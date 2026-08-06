@@ -70,17 +70,6 @@ sealed interface EditorPageAction {
         /** Delete characters at cursor position (backspace) */
         data class DeleteAtCursor(val count: Int) : Edit
 
-        /**
-         * Replace the [start]..[end] range with [text] and place the cursor at [caret].
-         * This is the single-region edit that soft-keyboard input (typing, autocorrect, IME) produces.
-         */
-        data class ReplaceRange(
-            val start: TextPosition,
-            val end: TextPosition,
-            val text: String,
-            val caret: TextPosition,
-        ) : Edit
-
         /** Delete character after cursor position (forward delete) */
         data object ForwardDelete : Edit
 

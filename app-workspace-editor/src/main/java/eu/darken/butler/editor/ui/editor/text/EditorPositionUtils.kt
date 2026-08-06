@@ -197,55 +197,6 @@ internal fun positionToFlatOffset(
 }
 
 /**
- * Convergence check between the hidden field text and the engine's display-capped echo, used to
- * release typing authority (`isUserEditing`). Plain equality is impossible once the display cap
- * bites: editing a truncated line makes the field and the capped engine echo differ permanently
- * (boundary-append keeps the typed char only in the field; a prefix delete pulls a hidden char
- * into the engine echo; a newline split reveals hidden content on a NEW line the field shows as
- * empty/short). Requiring exact equality there wedges authority forever and all engine-
- * authoritative caret syncs get skipped.
- *
- * Cap-agnostic rule - converged iff the line counts match AND per line:
- *  - exact equality; or
- *  - prefix-consistency (one string is a prefix of the other) for cap-affected lines: lines
- *    truncated in the CURRENT echo ([engineTruncatedLines]), plus - because a line split only
- *    ever pushes revealed hidden content DOWN - every line at/below the first line that was
- *    truncated when authority was taken ([priorTruncatedLines]).
- *
- * Exact equality stays required for unaffected lines so a mid-burst stale echo (field ahead of
- * the engine) never releases prematurely there. Within cap-affected lines a mid-burst release
- * is possible but lossless: edits are already dispatched, the release rebuild is transient and
- * the next echo resyncs. Callers must additionally gate on the visible content having CHANGED
- * since authority was taken - repeated-char lines make prefix-consistency against a STALE echo
- * trivially true.
- */
-internal fun contentsConverged(
-    fieldText: String,
-    engineText: String,
-    visibleRangeStart: Long,
-    engineTruncatedLines: Map<Long, Long>,
-    priorTruncatedLines: Map<Long, Long>,
-): Boolean {
-    if (fieldText == engineText) return true
-    if (engineTruncatedLines.isEmpty() && priorTruncatedLines.isEmpty()) return false
-    val fieldLines = fieldText.split('\n')
-    val engineLines = engineText.split('\n')
-    if (fieldLines.size != engineLines.size) return false
-    val firstPriorTruncated = priorTruncatedLines.keys.minOrNull()
-    for (i in fieldLines.indices) {
-        val field = fieldLines[i]
-        val engine = engineLines[i]
-        if (field == engine) continue
-        val absoluteLine = visibleRangeStart + i
-        val capAffected = engineTruncatedLines.containsKey(absoluteLine) ||
-            (firstPriorTruncated != null && absoluteLine >= firstPriorTruncated)
-        if (!capAffected) return false
-        if (!field.startsWith(engine) && !engine.startsWith(field)) return false
-    }
-    return true
-}
-
-/**
  * Decides how the hidden field should be synced FROM authoritative engine state (when the user is not
  * actively typing). Returns the selection to apply to a rebuilt [TextFieldValue], or null to leave the
  * field untouched.

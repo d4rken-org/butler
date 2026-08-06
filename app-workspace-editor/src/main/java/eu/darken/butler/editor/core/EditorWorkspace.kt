@@ -55,7 +55,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
@@ -271,6 +270,8 @@ class EditorWorkspace @AssistedInject constructor(
                 currentContent = visibleContent.text,
                 truncatedLines = visibleContent.truncatedLines,
                 startColumns = visibleContent.startColumns,
+                windowToken = visibleContent.token,
+                windowRangeStart = visibleContent.rangeStart,
                 cursorPosition = cursorPosition,
                 selectionRange = selectionRange,
                 searchQuery = searchQuery,
@@ -613,22 +614,6 @@ class EditorWorkspace @AssistedInject constructor(
     private fun currentEngine(): EditorEngine =
         _engine.value ?: throw IllegalStateException("No engine available")
 
-    /**
-     * Authoritative "would editing the current selection be non-undoable?" preflight for the confirm
-     * gate. Reads the engine's live [EditorEngine.selectionRange] directly rather than the async
-     * [state] projection, so a selection set moments earlier (e.g. Select-All immediately followed by
-     * paste/delete) is seen before the projected state emits - otherwise the gate could read a stale
-     * (small/absent) selection and skip confirmation while the engine performs the huge, history-
-     * clearing edit. Returns false when no file is open, there is no selection, or the span is within
-     * the undoable threshold.
-     */
-    suspend fun selectionExceedsUndoThreshold(): Boolean {
-        val engine = _engine.value ?: return false
-        val selection = engine.selectionRange.value ?: return false
-        val threshold = engine.maxUndoableEditChars.first() ?: return false
-        return kotlin.math.abs(selection.second.offset - selection.first.offset) > threshold
-    }
-
     suspend fun saveFile() {
         // TODO: Wrap as an Operation submitted via OperationsManager so editor saves appear in
         // the global Operation History (kind = SAVE, intendedPaths = [filePath]). Same applies to
@@ -712,9 +697,16 @@ class EditorWorkspace @AssistedInject constructor(
     suspend fun selectAll() = currentEngine().selectAll()
 
     suspend fun insertText(text: String) = currentEngine().insertText(text)
-    /** False when the engine rejected the edit; the caller must resync the optimistic field state. */
-    suspend fun replaceText(start: TextPosition, end: TextPosition, text: String, caret: TextPosition): Boolean =
-        currentEngine().replaceText(start, end, text, caret)
+
+    /** Applies a verified field edit; [EditorEngine.MutationResult.Conflict] means nothing changed. */
+    suspend fun applyFieldDelta(delta: EditorEngine.FieldDelta) = currentEngine().applyFieldDelta(delta)
+
+    /** Applies an oversized edit the user confirmed; a stale token mutates nothing. */
+    suspend fun submitPrepared(prepared: EditorEngine.PreparedMutation) = currentEngine().submitPrepared(prepared)
+
+    /** Window, cursor and selection as one value - what a conflicted field rebuilds from. */
+    suspend fun captureWindowSnapshot() = currentEngine().captureWindowSnapshot()
+
     suspend fun setCursorPosition(position: TextPosition) = currentEngine().setCursorPosition(position)
     suspend fun setSelection(start: TextPosition, end: TextPosition) = currentEngine().setSelection(start, end)
     suspend fun updateVisibleRange(startLine: Long, endLine: Long) =
@@ -727,9 +719,9 @@ class EditorWorkspace @AssistedInject constructor(
         currentEngine().moveCursor(direction, extendSelection)
     }
 
-    suspend fun deleteForward() {
+    suspend fun deleteForward(): EditorEngine.EditOutcome {
         log(tag) { "deleteForward()" }
-        currentEngine().deleteForward()
+        return currentEngine().deleteForward()
     }
 
     fun clearError() = _engine.value?.clearError()
@@ -768,6 +760,10 @@ class EditorWorkspace @AssistedInject constructor(
         val truncatedLines: Map<Long, Long> = emptyMap(),
         /** Absolute line number -> chars hidden BEFORE the window (the window's anchor column). */
         val startColumns: Map<Long, Long> = emptyMap(),
+        /** Identity of the document state [currentContent] was read at; null before the first load. */
+        val windowToken: EditorEngine.DocumentToken? = null,
+        /** First absolute line of [currentContent], captured together with [windowToken]. */
+        val windowRangeStart: Long = 0L,
         val cursorPosition: TextPosition = TextPosition.ZERO,
         val selectionRange: Pair<TextPosition, TextPosition>? = null,
         val searchQuery: String = "",

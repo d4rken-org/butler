@@ -380,7 +380,18 @@ class DocumentBuffer @AssistedInject constructor(
         startLine: Long,
         endLine: Long,
         columnAnchors: Map<Long, Long> = emptyMap(),
-    ): Result<DisplayWindow> = bufferMutex.withLock {
+    ): Result<DisplayWindow> = getDisplayRangeWithVersion(startLine, endLine, columnAnchors).map { it.first }
+
+    /**
+     * [getDisplayRange] plus the [structuralVersion] the window was read at, both under ONE lock
+     * hold: the input session maps its edits against this exact pairing, and a window paired with
+     * a version read separately could map an edit onto a document that already moved.
+     */
+    suspend fun getDisplayRangeWithVersion(
+        startLine: Long,
+        endLine: Long,
+        columnAnchors: Map<Long, Long> = emptyMap(),
+    ): Result<Pair<DisplayWindow, Long>> = bufferMutex.withLock {
         if (startLine < 0 || endLine >= _totalLines.value || startLine > endLine) {
             return@withLock Result.failure(IndexOutOfBoundsException("Invalid line range: $startLine-$endLine"))
         }
@@ -396,7 +407,7 @@ class DocumentBuffer @AssistedInject constructor(
             if (slice.hiddenChars > 0) truncatedLines[lineNumber] = slice.hiddenChars
             if (slice.startColumn > 0) startColumns[lineNumber] = slice.startColumn
         }
-        Result.success(DisplayWindow(result.toString(), truncatedLines, startColumns))
+        Result.success(DisplayWindow(result.toString(), truncatedLines, startColumns) to structuralVersion)
     }
 
     suspend fun getLineSlice(lineNumber: Long, anchorColumn: Long = 0L): Result<LineSlice> = bufferMutex.withLock {
@@ -715,69 +726,215 @@ class DocumentBuffer @AssistedInject constructor(
     )
 
     /**
-     * Applies all [replacements] as ONE undo step. Every target is verified against the live
-     * document BEFORE anything mutates - any divergence fails with [StaleMatchException] and
-     * the document is untouched. Application runs back-to-front so earlier offsets stay valid.
+     * A single verified replacement in flat offsets: [expectedOldText] must still occupy
+     * [startOffset] until [endOffset] when the patch is applied, and the invariant
+     * `endOffset == startOffset + expectedOldText.length` must hold.
+     *
+     * Patches are ALWAYS recorded and undoable. Callers keep their spans under
+     * [maxUndoableEditChars] (field deltas are window-bounded and never come close); a patch whose
+     * old text exceeds that budget fails cleanly instead of materializing it - the deliberately
+     * unrecorded path is [applyOversizedReplace].
      */
-    suspend fun replaceMatches(
-        replacements: List<MatchReplacement>,
-        expectedVersion: Long? = null,
-    ): Result<ReplaceStats> = bufferMutex.withLock {
+    data class VerifiedPatch(
+        val startOffset: Long,
+        val endOffset: Long,
+        val expectedOldText: String,
+        val newText: String,
+    )
+
+    /** How a mutation joins the undo history: merge into the current typing run, or stand alone. */
+    enum class UndoPolicy { COALESCE, SEPARATE }
+
+    data class MutationOutcome(
+        /** The [structuralVersion] the document reached, read inside the same lock hold. */
+        val newVersion: Long,
+        /** False when the recorded entry was immediately evicted by the undo memory cap. */
+        val undoable: Boolean,
+    )
+
+    /**
+     * Applies all [patches] as ONE undo step. [expectedVersion] (when non-null) and every patch's
+     * old text are verified against the live document BEFORE anything mutates - any divergence
+     * fails with [StaleMatchException] and the document is untouched. Application runs
+     * back-to-front so earlier offsets stay valid.
+     *
+     * A single patch is normalized to the narrowest operation (pure insert / pure delete /
+     * delete+insert) so one keystroke stays one undo step; [UndoPolicy.COALESCE] additionally
+     * merges keystroke-sized patches into the current typing run.
+     */
+    suspend fun applyMutation(
+        expectedVersion: Long?,
+        patches: List<VerifiedPatch>,
+        undoPolicy: UndoPolicy,
+    ): Result<MutationOutcome> = bufferMutex.withLock {
         try {
-            if (replacements.isEmpty()) return@withLock Result.success(ReplaceStats(0, undoable = true))
             if (expectedVersion != null && expectedVersion != structuralVersion) {
-                // The replacement texts were computed from a stale snapshot (context-sensitive
-                // regex results can be invalidated even when oldText still matches)
+                // The request was computed from a stale snapshot (context-sensitive regex results
+                // can be invalidated even when oldText still matches)
                 return@withLock Result.failure(StaleMatchException())
             }
+            if (patches.isEmpty()) {
+                return@withLock Result.success(MutationOutcome(structuralVersion, undoable = true))
+            }
             val table = table()
-            val sorted = replacements.sortedByDescending { it.startOffset }
+            val sorted = patches.sortedByDescending { it.startOffset }
 
             // Verify pass: all-or-nothing before the first mutation
             var previousStart = Long.MAX_VALUE
-            for (replacement in sorted) {
-                val end = replacement.startOffset + replacement.oldText.length
-                if (replacement.startOffset < 0 || end > table.totalCharLength || end > previousStart) {
+            for (patch in sorted) {
+                if (patch.endOffset != patch.startOffset + patch.expectedOldText.length) {
+                    return@withLock Result.failure(
+                        IllegalArgumentException("Patch range does not match its old text: $patch"),
+                    )
+                }
+                if (patch.expectedOldText.length > maxUndoableEditChars) {
+                    return@withLock Result.failure(
+                        IllegalArgumentException("Patch exceeds the undoable edit budget: $maxUndoableEditChars"),
+                    )
+                }
+                if (patch.startOffset < 0 || patch.endOffset > table.totalCharLength ||
+                    patch.endOffset > previousStart
+                ) {
                     return@withLock Result.failure(StaleMatchException())
                 }
-                if (table.read(replacement.startOffset, end) != replacement.oldText) {
+                if (table.read(patch.startOffset, patch.endOffset) != patch.expectedOldText) {
                     return@withLock Result.failure(StaleMatchException())
                 }
-                previousStart = replacement.startOffset
+                previousStart = patch.startOffset
             }
 
-            breakUndoRunLocked()
             val ops = mutableListOf<EditOperation>()
             // Snapshot before the first mutation: a mid-batch original read can fail (the backing
-            // file vanished), and applying N replacements is otherwise non-atomic - an earlier
-            // replacement would land with no undo entry. Roll back fully on any failure.
+            // file vanished), and applying N patches is otherwise non-atomic - an earlier patch
+            // would land with no undo entry. Roll back fully on any failure.
             val checkpoint = table.checkpoint()
             try {
-                for (replacement in sorted) {
-                    val end = replacement.startOffset + replacement.oldText.length
-                    val line = table.lineOfOffset(replacement.startOffset)
-                    val column = (replacement.startOffset - table.lineStartOffset(line)).toInt()
-                    table.delete(replacement.startOffset, end)
-                    if (replacement.newText.isNotEmpty()) {
-                        table.insert(replacement.startOffset, replacement.newText)
-                    }
-                    ops += EditOperation.Replace(
-                        TextPosition(replacement.startOffset, line, column),
-                        replacement.oldText,
-                        replacement.newText,
-                    )
+                for (patch in sorted) {
+                    val line = table.lineOfOffset(patch.startOffset)
+                    val column = (patch.startOffset - table.lineStartOffset(line)).toInt()
+                    val position = TextPosition(patch.startOffset, line, column)
+                    if (patch.expectedOldText.isNotEmpty()) table.delete(patch.startOffset, patch.endOffset)
+                    if (patch.newText.isNotEmpty()) table.insert(patch.startOffset, patch.newText)
+                    ops += operationsFor(patch, position, normalize = patches.size == 1)
                 }
             } catch (e: Exception) {
                 table.restore(checkpoint)
                 throw e
             }
-            commitNewEdit(ops)
+            if (ops.isEmpty()) {
+                // A single patch that neither removed nor inserted anything: nothing to record
+                return@withLock Result.success(MutationOutcome(structuralVersion, undoable = true))
+            }
+            val keystrokeSized = patches.size == 1 &&
+                patches.first().newText.length <= 2 &&
+                (patches.first().endOffset - patches.first().startOffset) <= 2
+            if (undoPolicy == UndoPolicy.COALESCE && keystrokeSized && ops.size == 1) {
+                commitNewEdit(ops.single(), coalesce = true)
+            } else {
+                breakUndoRunLocked()
+                commitNewEdit(ops)
+            }
             // The lone-entry guard keeps an oversized composite until the NEXT edit; report
             // honestly whether this step is still on the stack
             val undoable = undoStack.peekLast()?.generationAfter == currentGeneration
-            Result.success(ReplaceStats(replacements.size, undoable))
+            Result.success(MutationOutcome(structuralVersion, undoable))
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
-            log(tag, ERROR) { "replaceMatches failed - ${e.asLog()}" }
+            log(tag, ERROR) { "applyMutation failed - ${e.asLog()}" }
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Undo operations for an applied patch. A lone patch is normalized so a keystroke stays one
+     * op (and can coalesce); a batch keeps composite [EditOperation.Replace] entries.
+     */
+    private fun operationsFor(
+        patch: VerifiedPatch,
+        position: TextPosition,
+        normalize: Boolean,
+    ): List<EditOperation> {
+        if (!normalize) return listOf(EditOperation.Replace(position, patch.expectedOldText, patch.newText))
+        val removed = patch.expectedOldText
+        val inserted = patch.newText
+        return when {
+            removed.isEmpty() && inserted.isEmpty() -> emptyList()
+            removed.isEmpty() -> listOf(EditOperation.Insert(position, inserted))
+            inserted.isEmpty() -> listOf(EditOperation.Delete(position, removed.length, removed))
+            else -> listOf(
+                EditOperation.Delete(position, removed.length, removed),
+                EditOperation.Insert(position, inserted),
+            )
+        }
+    }
+
+    /**
+     * Applies all [replacements] as ONE undo step; see [applyMutation] for the verification
+     * contract.
+     */
+    suspend fun replaceMatches(
+        replacements: List<MatchReplacement>,
+        expectedVersion: Long? = null,
+    ): Result<ReplaceStats> {
+        if (replacements.isEmpty()) return Result.success(ReplaceStats(0, undoable = true))
+        val patches = replacements.map {
+            VerifiedPatch(
+                startOffset = it.startOffset,
+                endOffset = it.startOffset + it.oldText.length,
+                expectedOldText = it.oldText,
+                newText = it.newText,
+            )
+        }
+        return applyMutation(expectedVersion, patches, UndoPolicy.SEPARATE)
+            .map { ReplaceStats(replacements.size, it.undoable) }
+    }
+
+    /**
+     * Replaces [startOffset]..[endOffset] with [newText] WITHOUT reading the removed span into
+     * memory and WITHOUT an undo entry (history is cleared instead) - the transient String for a
+     * 100MB single-line replace would OOM. [expectedVersion] is re-checked under the same lock, so
+     * a request prepared before a confirmation dialog can never mutate a document that moved on.
+     *
+     * Deliberately takes NO [PieceTable.checkpoint]: a checkpoint snapshots the whole add buffer,
+     * which is the very allocation this path exists to avoid. Rollback is self-contained instead -
+     * the insert runs before the delete, so a failed delete only has to drop the added piece.
+     */
+    suspend fun applyOversizedReplace(
+        expectedVersion: Long,
+        startOffset: Long,
+        endOffset: Long,
+        newText: String,
+    ): Result<MutationOutcome> = bufferMutex.withLock {
+        try {
+            if (expectedVersion != structuralVersion) return@withLock Result.failure(StaleMatchException())
+            val table = table()
+            if (startOffset < 0 || startOffset > endOffset || endOffset > table.totalCharLength) {
+                return@withLock Result.failure(
+                    IllegalArgumentException("Replace range out of bounds: $startOffset-$endOffset"),
+                )
+            }
+            if (newText.isNotEmpty()) table.insert(startOffset, newText)
+            try {
+                withContext(NonCancellable) {
+                    table.delete(startOffset + newText.length, endOffset + newText.length)
+                }
+            } catch (e: Exception) {
+                // Delete failed after the insert ran; roll the insert back (deletes only the
+                // just-inserted Added piece - clean boundaries, no original reads).
+                if (newText.isNotEmpty()) {
+                    withContext(NonCancellable) {
+                        table.delete(startOffset, startOffset + newText.length)
+                    }
+                }
+                throw e
+            }
+            discardHistoryForUnrecordedEdit()
+            Result.success(MutationOutcome(structuralVersion, undoable = false))
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Failed oversized replace from $startOffset to $endOffset - ${e.asLog()}" }
             Result.failure(e)
         }
     }
