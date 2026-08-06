@@ -116,7 +116,7 @@ class EditorEngineContentStreamTest : DocumentBufferTestBase() {
     fun `writeContentTo streams the edited buffer content, not the stale original`() = runTest {
         val engine = createEngine(content = "Hello")
         engine.setCursorPosition(TextPosition(offset = 5, line = 0, column = 5))
-        engine.insertText(" World")
+        engine.performInsert(" World")
 
         engine.streamedBytes().decodeToString() shouldBe "Hello World"
     }
@@ -136,7 +136,7 @@ class EditorEngineContentStreamTest : DocumentBufferTestBase() {
         val file = File(tempDir, "bom.txt").apply { writeBytes(bom + "中文 content".toByteArray()) }
         val engine = createEngine(filePath = LocalPath.build(file), gateway = createReadOnlyGateway())
         engine.setCursorPosition(TextPosition(offset = 0, line = 0, column = 0))
-        engine.insertText("é😀 ")
+        engine.performInsert("é😀 ")
 
         engine.streamedBytes().toList() shouldBe (bom + "é😀 中文 content".toByteArray()).toList()
     }

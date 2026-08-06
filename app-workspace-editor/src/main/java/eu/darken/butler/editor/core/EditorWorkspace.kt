@@ -68,6 +68,7 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
 import eu.darken.butler.editor.core.sources.AtomicFileWriter
 import java.nio.charset.Charset
+import kotlin.uuid.Uuid
 
 
 class EditorWorkspace @AssistedInject constructor(
@@ -687,16 +688,15 @@ class EditorWorkspace @AssistedInject constructor(
         currentEngine().replaceAll(query, options, replacement)
 
     suspend fun goToLine(lineNumber: Long) = currentEngine().goToLine(lineNumber)
-    suspend fun undo() = currentEngine().undo()
-    suspend fun redo() = currentEngine().redo()
-    suspend fun deleteSelection() = currentEngine().deleteSelection()
-    suspend fun deleteAtCursor(count: Int) = currentEngine().deleteAtCursor(count)
+    suspend fun undo(epoch: Uuid? = null) = currentEngine().undo(epoch)
+    suspend fun redo(epoch: Uuid? = null) = currentEngine().redo(epoch)
     suspend fun copySelection(maxChars: Long? = null) = currentEngine().copySelection(maxChars)
     suspend fun prepareCut(maxChars: Long? = null) = currentEngine().prepareCut(maxChars)
     suspend fun applyCut(snapshot: EditorEngine.CutSnapshot) = currentEngine().applyCut(snapshot)
     suspend fun selectAll() = currentEngine().selectAll()
 
-    suspend fun insertText(text: String) = currentEngine().insertText(text)
+    /** Applies an edit whose target the engine resolves atomically; [epoch] pins it to one document. */
+    suspend fun performEdit(intent: EditorEngine.EditIntent, epoch: Uuid) = currentEngine().performEdit(intent, epoch)
 
     /** Applies a verified field edit; [EditorEngine.MutationResult.Conflict] means nothing changed. */
     suspend fun applyFieldDelta(delta: EditorEngine.FieldDelta) = currentEngine().applyFieldDelta(delta)
@@ -717,11 +717,6 @@ class EditorWorkspace @AssistedInject constructor(
     suspend fun moveCursor(direction: CursorDirection, extendSelection: Boolean) {
         log(tag) { "moveCursor(direction=$direction, extendSelection=$extendSelection)" }
         currentEngine().moveCursor(direction, extendSelection)
-    }
-
-    suspend fun deleteForward(): EditorEngine.EditOutcome {
-        log(tag) { "deleteForward()" }
-        return currentEngine().deleteForward()
     }
 
     fun clearError() = _engine.value?.clearError()

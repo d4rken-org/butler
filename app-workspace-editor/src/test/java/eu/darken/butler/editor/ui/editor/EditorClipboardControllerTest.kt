@@ -79,7 +79,7 @@ class EditorClipboardControllerTest : BaseTest() {
             coEvery { copySelection(any()) } returns copyResult
             coEvery { prepareCut(any()) } returns copyResult.map { snapshot(it) }
             coEvery { applyCut(any()) } answers { deleteResult ?: Result.success(firstArg<CutSnapshot>().text) }
-            coEvery { insertText(any()) } returns EditorEngine.EditOutcome.Applied()
+            coEvery { performEdit(any(), any()) } returns EditorEngine.EditOutcome.Applied()
             coEvery { readFileContent(any()) } returns Result.success("file content")
         }
     }
@@ -100,8 +100,12 @@ class EditorClipboardControllerTest : BaseTest() {
         workspace: EditorWorkspace = mockWorkspace(),
         helper: SystemClipboardHelper = mockk(relaxed = true),
         repo: ClipboardRepo = mockRepo(),
-        // Default forwards to the workspace (undeferred), matching the pre-gate paste behavior.
-        guardedInsert: suspend (String) -> Boolean = { text -> workspace.insertText(text); true },
+        // Default mirrors the ViewModel's guarded insert: the intent goes to the engine and only
+        // an APPLIED outcome counts as pasted.
+        guardedInsert: suspend (String) -> Boolean = { text ->
+            workspace.performEdit(EditorEngine.EditIntent.InsertAtCursor(text), epoch) is
+                EditorEngine.EditOutcome.Applied
+        },
     ) = EditorClipboardController(
         id = workspaceId,
         doLaunch = { block ->
@@ -360,7 +364,7 @@ class EditorClipboardControllerTest : BaseTest() {
         controller.pasteFromClipboard(clip)
         runCurrent()
 
-        coVerify { workspace.insertText("clip text") }
+        coVerify { workspace.performEdit(EditorEngine.EditIntent.InsertAtCursor("clip text"), epoch) }
     }
 
     @Test
@@ -375,7 +379,7 @@ class EditorClipboardControllerTest : BaseTest() {
         runCurrent()
 
         inserted shouldBe listOf("huge clip")
-        coVerify(exactly = 0) { workspace.insertText(any()) }
+        coVerify(exactly = 0) { workspace.performEdit(any(), any()) }
     }
 
     @Test
@@ -392,7 +396,7 @@ class EditorClipboardControllerTest : BaseTest() {
         runCurrent()
 
         coVerify { workspace.readFileContent(match { it.name == "notes.txt" }) }
-        coVerify { workspace.insertText("file content") }
+        coVerify { workspace.performEdit(EditorEngine.EditIntent.InsertAtCursor("file content"), epoch) }
     }
 
     @Test
@@ -407,7 +411,7 @@ class EditorClipboardControllerTest : BaseTest() {
         controller.pasteFromClipboardFile(path("big.txt"))
         runCurrent()
 
-        coVerify(exactly = 0) { workspace.insertText(any()) }
+        coVerify(exactly = 0) { workspace.performEdit(any(), any()) }
         surfacedErrors.single().shouldBeInstanceOf<PasteTooLargeException>()
     }
 
@@ -424,7 +428,7 @@ class EditorClipboardControllerTest : BaseTest() {
         controller.pasteFromClipboard(clip)
         runCurrent()
 
-        coVerify(exactly = 0) { workspace.insertText(any()) }
+        coVerify(exactly = 0) { workspace.performEdit(any(), any()) }
     }
 
     @Test

@@ -22,7 +22,7 @@ class EditorEngineOversizedDeleteTest : EditorEngineTestBase() {
         val engine = createEngine("A".repeat(overThreshold), undoMaxMemoryBytes = 100)
         engine.selectAll()
 
-        val gate = engine.insertText("x").shouldBeInstanceOf<EditorEngine.EditOutcome.RequiresConfirmation>()
+        val gate = engine.performInsert("x").shouldBeInstanceOf<EditorEngine.EditOutcome.RequiresConfirmation>()
         // Nothing has happened yet - the dialog is up and the document is untouched
         engine.getFullContent() shouldBe "A".repeat(overThreshold)
 
@@ -43,7 +43,7 @@ class EditorEngineOversizedDeleteTest : EditorEngineTestBase() {
             end = TextPosition(offset = 11, line = 0, column = 11),
         )
 
-        engine.insertText("Kotlin").shouldBeInstanceOf<EditorEngine.EditOutcome.Applied>()
+        engine.performInsert("Kotlin").shouldBeInstanceOf<EditorEngine.EditOutcome.Applied>()
 
         engine.getFullContent() shouldBe "Hello Kotlin"
         engine.canUndo.first() shouldBe true
@@ -55,7 +55,7 @@ class EditorEngineOversizedDeleteTest : EditorEngineTestBase() {
         val engine = createEngine("A".repeat(overThreshold), undoMaxMemoryBytes = 100)
         engine.selectAll()
 
-        val gate = engine.deleteSelection().shouldBeInstanceOf<EditorEngine.EditOutcome.RequiresConfirmation>()
+        val gate = engine.performDeleteSelection().shouldBeInstanceOf<EditorEngine.EditOutcome.RequiresConfirmation>()
         engine.getFullContent() shouldBe "A".repeat(overThreshold)
 
         engine.submitPrepared(gate.prepared).shouldBeInstanceOf<EditorEngine.MutationResult.Applied>()
@@ -69,11 +69,11 @@ class EditorEngineOversizedDeleteTest : EditorEngineTestBase() {
     fun `a confirmed edit whose document moved on mutates nothing`() = runTest {
         val engine = createEngine("A".repeat(overThreshold), undoMaxMemoryBytes = 100)
         engine.selectAll()
-        val gate = engine.deleteSelection().shouldBeInstanceOf<EditorEngine.EditOutcome.RequiresConfirmation>()
+        val gate = engine.performDeleteSelection().shouldBeInstanceOf<EditorEngine.EditOutcome.RequiresConfirmation>()
 
         // Something else edited the document while the confirmation dialog was up
         engine.setCursorPosition(TextPosition(offset = 0, line = 0, column = 0))
-        engine.insertText("Z").shouldBeInstanceOf<EditorEngine.EditOutcome.Applied>()
+        engine.performInsert("Z").shouldBeInstanceOf<EditorEngine.EditOutcome.Applied>()
 
         engine.submitPrepared(gate.prepared).shouldBeInstanceOf<EditorEngine.MutationResult.Conflict>()
 

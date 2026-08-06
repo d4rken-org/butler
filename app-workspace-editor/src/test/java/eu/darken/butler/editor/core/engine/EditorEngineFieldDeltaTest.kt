@@ -42,7 +42,7 @@ class EditorEngineFieldDeltaTest : EditorEngineTestBase() {
 
         // Something else moved the document (paste, undo, replace-all, ...)
         engine.setCursorPosition(pos(0, 5))
-        engine.insertText(" world")
+        engine.performInsert(" world")
 
         val conflict = engine.applyDelta(pos(0, 5), newText = "X", caret = pos(0, 6), token = snapshotToken)
             .shouldBeInstanceOf<EditorEngine.MutationResult.Conflict>()
@@ -171,12 +171,12 @@ class EditorEngineFieldDeltaTest : EditorEngineTestBase() {
         assertFresh("after load")
 
         engine.setCursorPosition(pos(0, 0))
-        engine.insertText("X")
-        assertFresh("after insertText")
+        engine.performInsert("X")
+        assertFresh("after an insert intent")
 
         engine.setCursorPosition(pos(0, 2))
-        engine.deleteAtCursor(1)
-        assertFresh("after deleteAtCursor")
+        engine.performDeleteForward()
+        assertFresh("after a forward-delete intent")
 
         engine.undo()
         assertFresh("after undo")
@@ -207,7 +207,7 @@ class EditorEngineFieldDeltaTest : EditorEngineTestBase() {
         // chained to a version the document has moved past, and every later keystroke conflicts.
         val engine = createEngine("hello")
         engine.setCursorPosition(pos(0, 5))
-        engine.insertText("!")
+        engine.performInsert("!")
 
         engine.applyDelta(pos(0, 6), newText = "X", caret = pos(0, 7))
             .shouldBeInstanceOf<EditorEngine.MutationResult.Applied>()

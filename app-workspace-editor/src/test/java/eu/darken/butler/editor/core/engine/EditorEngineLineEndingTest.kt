@@ -123,7 +123,7 @@ class EditorEngineLineEndingTest : BaseTest() {
         val engine = createEngine(file)
 
         engine.setCursorPosition(TextPosition(offset = 5, line = 0, column = 5))
-        engine.insertText("\n")
+        engine.performInsert("\n")
         engine.saveFile().getOrThrow()
 
         file.readText() shouldBe "line1\r\n\r\nline2"
@@ -138,7 +138,7 @@ class EditorEngineLineEndingTest : BaseTest() {
         val engine = createEngine(file)
 
         engine.setCursorPosition(TextPosition(offset = 5, line = 0, column = 5))
-        engine.insertText("\n")
+        engine.performInsert("\n")
         engine.fullText() shouldBe "line1\r\n\r\nline2"
 
         engine.undo()
@@ -172,7 +172,7 @@ class EditorEngineLineEndingTest : BaseTest() {
         val engine = createEngine(file)
 
         engine.setCursorPosition(TextPosition(offset = 5, line = 0, column = 5))
-        engine.insertText("X\nY\r\nZ\rW")
+        engine.performInsert("X\nY\r\nZ\rW")
 
         engine.fullText() shouldBe "line1X\r\nY\r\nZ\r\nW\r\nline2"
     }
@@ -183,7 +183,7 @@ class EditorEngineLineEndingTest : BaseTest() {
         val engine = createEngine(file)
 
         engine.setCursorPosition(TextPosition(offset = 5, line = 0, column = 5))
-        engine.insertText("P\r\nQ")
+        engine.performInsert("P\r\nQ")
 
         engine.fullText() shouldBe "alphaP\nQ\nbeta"
     }
@@ -194,7 +194,7 @@ class EditorEngineLineEndingTest : BaseTest() {
         val engine = createEngine(file)
 
         engine.setCursorPosition(TextPosition(offset = 1, line = 0, column = 1))
-        engine.insertText("\n")
+        engine.performInsert("\n")
 
         engine.fullText() shouldBe "a\n\nb\r\nc"
     }
@@ -229,7 +229,7 @@ class EditorEngineLineEndingTest : BaseTest() {
         val file = File(tempDir, "doc.txt").apply { writeText("alpha\nbeta") }
         val engine = createEngine(file)
         engine.setCursorPosition(TextPosition(offset = 5, line = 0, column = 5))
-        engine.insertText("X")
+        engine.performInsert("X")
 
         engine.convertLineEndings(LineEnding.CRLF).getOrThrow()
 
@@ -254,7 +254,7 @@ class EditorEngineLineEndingTest : BaseTest() {
         val file = File(tempDir, "doc.txt").apply { writeText("a\r\nb") }
         val engine = createEngine(file)
         engine.setCursorPosition(TextPosition(offset = 1, line = 0, column = 1))
-        engine.insertText("X")
+        engine.performInsert("X")
         engine.canUndo.first() shouldBe true
 
         engine.convertLineEndings(LineEnding.LF).getOrThrow()
@@ -322,7 +322,7 @@ class EditorEngineLineEndingTest : BaseTest() {
         engine.setCursorPosition(TextPosition(offset = 3, line = 1, column = 0))
 
         engine.convertLineEndings(LineEnding.LF).getOrThrow()
-        engine.deleteForward()
+        engine.performDeleteForward()
 
         engine.fullText() shouldBe "a\nc"
     }

@@ -120,7 +120,7 @@ class EditorEngineReplaceOpsTest : BaseTest() {
         val options = SearchOptions(caseSensitive = true)
         val match = engine.search("cat", options).getOrThrow().single()
         // Document changes after the search
-        engine.insertText("XXX ")
+        engine.performInsert("XXX ")
 
         val result = engine.replaceCurrent("cat", options, match, "bird")
 
@@ -347,7 +347,7 @@ class EditorEngineReplaceOpsTest : BaseTest() {
         )
         engine.initialize().getOrThrow()
         // A first edit occupies the stack so eviction has an older victim
-        engine.insertText("seed ")
+        engine.performInsert("seed ")
 
         val outcome = engine.replaceAll("cat", SearchOptions(caseSensitive = true), "dog").getOrThrow()
 
@@ -358,7 +358,7 @@ class EditorEngineReplaceOpsTest : BaseTest() {
         engine.textBuffer!!.canUndo().shouldBeTrue()
 
         // ...but the NEXT edit evicts it under the memory cap, so the step is gone afterwards
-        engine.insertText("x")
+        engine.performInsert("x")
         engine.undo().getOrThrow()
         engine.textBuffer!!.canUndo().shouldBeFalse()
     }

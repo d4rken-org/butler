@@ -162,7 +162,7 @@ class EditorWorkspaceSaveAsTest : BaseTest() {
             workspace.state.first {
                 (it as? EditorWorkspace.State.Ready)?.editor?.contentSource is ContentSource.File
             }
-            workspace.insertText("X")
+            workspace.performInsert("X")
             workspace.state.first { (it as? EditorWorkspace.State.Ready)?.editor?.isModified == true }
 
             workspace.saveFileAs(path).isSuccess shouldBe true
@@ -182,7 +182,7 @@ class EditorWorkspaceSaveAsTest : BaseTest() {
             workspace.state.first {
                 (it as? EditorWorkspace.State.Ready)?.editor?.contentSource is ContentSource.File
             }
-            workspace.insertText("X")
+            workspace.performInsert("X")
             workspace.state.first { (it as? EditorWorkspace.State.Ready)?.editor?.isModified == true }
 
             workspace.saveFileAs(LocalPath.build(target)).isSuccess shouldBe true
@@ -210,7 +210,7 @@ class EditorWorkspaceSaveAsTest : BaseTest() {
             workspace.state.first {
                 (it as? EditorWorkspace.State.Ready)?.editor?.contentSource is ContentSource.File
             }
-            workspace.insertText("X")
+            workspace.performInsert("X")
             workspace.state.first { (it as? EditorWorkspace.State.Ready)?.editor?.isModified == true }
 
             workspace.saveFileAs(LocalPath.build(target)).isFailure shouldBe true
@@ -237,7 +237,7 @@ class EditorWorkspaceSaveAsTest : BaseTest() {
             workspace.state.first {
                 (it as? EditorWorkspace.State.Ready)?.editor?.contentSource is ContentSource.File
             }
-            workspace.insertText("X")
+            workspace.performInsert("X")
             workspace.state.first { (it as? EditorWorkspace.State.Ready)?.editor?.isModified == true }
 
             workspace.saveFileAs(LocalPath.build(target)).isSuccess shouldBe true
@@ -256,7 +256,7 @@ class EditorWorkspaceSaveAsTest : BaseTest() {
         val workspace = createWorkspace(null, createMockGateway(), initialContent = "scratch content")
         try {
             workspace.state.first { it is EditorWorkspace.State.Ready }
-            workspace.insertText("X")
+            workspace.performInsert("X")
             workspace.state.first { (it as? EditorWorkspace.State.Ready)?.editor?.isModified == true }
 
             workspace.saveFileAs(LocalPath.build(target)).isSuccess shouldBe true

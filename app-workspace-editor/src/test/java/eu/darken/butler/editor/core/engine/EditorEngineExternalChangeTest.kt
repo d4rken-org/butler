@@ -170,7 +170,7 @@ class EditorEngineExternalChangeTest : BaseTest() {
         val engine = createEngine(filePath = LocalPath.build(file), gateway = createMockGateway())
 
         engine.setCursorPosition(TextPosition(offset = 0, line = 0, column = 0))
-        engine.insertText("X")
+        engine.performInsert("X")
         file.writeText("externally grown content")
 
         val result = engine.saveFile()
@@ -212,7 +212,7 @@ class EditorEngineExternalChangeTest : BaseTest() {
         file.writeText("original")
         file.setLastModified(originalModified)
         engine.setCursorPosition(TextPosition(offset = 0, line = 0, column = 0))
-        engine.insertText("X")
+        engine.performInsert("X")
         engine.saveFile().getOrThrow()
 
         engine.externalChange.value.shouldBeNull()
@@ -224,7 +224,7 @@ class EditorEngineExternalChangeTest : BaseTest() {
         val engine = createEngine(content = "draft")
 
         engine.setCursorPosition(TextPosition(offset = 0, line = 0, column = 0))
-        engine.insertText("X")
+        engine.performInsert("X")
         engine.checkExternalChange()
 
         engine.externalChange.value.shouldBeNull()
@@ -253,7 +253,7 @@ class EditorEngineExternalChangeTest : BaseTest() {
 
         val scratchEngine = createEngine(content = "draft")
         scratchEngine.setCursorPosition(TextPosition(offset = 0, line = 0, column = 0))
-        scratchEngine.insertText("X")
+        scratchEngine.performInsert("X")
         val scratchSink = Buffer()
         scratchEngine.writeContentTo(scratchSink)
         scratchSink.readUtf8() shouldBe "Xdraft"

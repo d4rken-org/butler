@@ -159,7 +159,7 @@ class EditorWorkspaceDiscardTest : BaseTest() {
         val workspace = createWorkspace(LocalPath.build(file), createMockGateway())
         try {
             workspace.awaitFileLoaded()
-            workspace.insertText("DISCARD ME ")
+            workspace.performInsert("DISCARD ME ")
             workspace.awaitModified()
 
             workspace.closeFile()
@@ -177,7 +177,7 @@ class EditorWorkspaceDiscardTest : BaseTest() {
         val workspace = createWorkspace(LocalPath.build(file), createMockGateway())
         try {
             workspace.awaitFileLoaded()
-            workspace.insertText("DISCARD ME ")
+            workspace.performInsert("DISCARD ME ")
             workspace.awaitModified()
 
             workspace.reopenWithCharset("ISO-8859-1")
@@ -200,7 +200,7 @@ class EditorWorkspaceDiscardTest : BaseTest() {
         val workspace = createWorkspace(LocalPath.build(file), createMockGateway())
 
         workspace.awaitFileLoaded()
-        workspace.insertText("KEEP ME ")
+        workspace.performInsert("KEEP ME ")
         workspace.awaitModified()
 
         workspace.release()

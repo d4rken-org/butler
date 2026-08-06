@@ -201,7 +201,7 @@ class EditorWorkspaceContentPathTest : BaseTest() {
         val workspace = createWorkspace(LocalPath.build(file), createMockGateway())
         try {
             workspace.awaitFileLoaded()
-            workspace.insertText("X")
+            workspace.performInsert("X")
             workspace.state.first { (it as? EditorWorkspace.State.Ready)?.editor?.isModified == true }
 
             workspace.saveFileAs(LocalPath.build(target)).isSuccess shouldBe true

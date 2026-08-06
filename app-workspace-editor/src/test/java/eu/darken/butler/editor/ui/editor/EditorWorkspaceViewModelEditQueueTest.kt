@@ -16,6 +16,7 @@ import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import io.mockk.MockKAnswerScope
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -79,11 +80,17 @@ class EditorWorkspaceViewModelEditQueueTest : BaseTest() {
             Workspace.Info(id = workspaceId, type = Workspace.Type.EDITOR, title = "test".toCaString()),
         )
         every { state } returns MutableStateFlow<EditorWorkspace.State>(
-            EditorWorkspace.State.Ready(EditorWorkspace.EditorState(maxUndoableEditChars = 1_000_000L)),
+            EditorWorkspace.State.Ready(
+                EditorWorkspace.EditorState(maxUndoableEditChars = 1_000_000L, windowToken = token(0)),
+            ),
         )
-        coEvery { insertText(any()) } answers { drained.complete(Unit); EditorEngine.EditOutcome.Applied() }
+        coEvery { performEdit(any(), any()) } answers { drained.complete(Unit); EditorEngine.EditOutcome.Applied() }
         coEvery { captureWindowSnapshot() } returns emptySnapshot
     }
+
+    /** The text of an insert intent the ViewModel handed to the workspace. */
+    private fun MockKAnswerScope<*, *>.insertedText(): String =
+        (firstArg<EditorEngine.EditIntent>() as EditorEngine.EditIntent.InsertAtCursor).text
 
     private fun makeViewModel(workspace: EditorWorkspace): EditorWorkspaceViewModel {
         val remote = mockk<WorkspaceRemote> {
@@ -162,8 +169,8 @@ class EditorWorkspaceViewModelEditQueueTest : BaseTest() {
                 applied += text
                 EditorEngine.MutationResult.Applied(token(applied.size.toLong()))
             }
-            coEvery { insertText(any()) } answers {
-                val text = firstArg<String>()
+            coEvery { performEdit(any(), any()) } answers {
+                val text = insertedText()
                 applied += text
                 if (text == "sentinel") drained.complete(Unit)
                 EditorEngine.EditOutcome.Applied()
@@ -307,8 +314,8 @@ class EditorWorkspaceViewModelEditQueueTest : BaseTest() {
                 readDone.complete(Unit)
                 Result.success("pasted")
             }
-            coEvery { insertText(any()) } answers {
-                val text = firstArg<String>()
+            coEvery { performEdit(any(), any()) } answers {
+                val text = insertedText()
                 applied += text
                 if (text == "sentinel") drained.complete(Unit)
                 EditorEngine.EditOutcome.Applied()
@@ -354,7 +361,7 @@ class EditorWorkspaceViewModelEditQueueTest : BaseTest() {
                 EditorEngine.MutationResult.Applied(token(1))
             }
             coEvery { setCursorPosition(any()) } answers { order += "tap" }
-            coEvery { insertText(any()) } answers {
+            coEvery { performEdit(any(), any()) } answers {
                 order += "sentinel"
                 drained.complete(Unit)
                 EditorEngine.EditOutcome.Applied()

@@ -209,7 +209,7 @@ class EditorEngineCopySelectionTest : DocumentBufferTestBase() {
         val snapshot = engine.prepareCut().getOrThrow()
 
         engine.setCursorPosition(TextPosition(offset = 0, line = 0, column = 0))
-        engine.insertText("ABC")
+        engine.performInsert("ABC")
 
         val result = engine.applyCut(snapshot)
 
@@ -252,7 +252,7 @@ class EditorEngineCopySelectionTest : DocumentBufferTestBase() {
             end = TextPosition(offset = 6, line = 0, column = 6),
         )
 
-        engine.deleteSelection().shouldBeInstanceOf<EditorEngine.EditOutcome.Applied>().removedText shouldBe "World"
+        engine.performDeleteSelection().shouldBeInstanceOf<EditorEngine.EditOutcome.Applied>().removedText shouldBe "World"
         val state = engine.state.value as EditorState.Loaded
         state.resources.textBuffer.getText(0, state.resources.textBuffer.totalLength.value)
             .getOrThrow() shouldBe "Hello "
