@@ -15,31 +15,31 @@ import eu.darken.butler.workspace.R
 import kotlin.time.Instant
 
 @Composable
-fun TrashMoveFailedIssueSheet(
-    issue: PathActionIssue.TrashMoveFailed,
-    onResolution: (PathActionIssue.TrashMoveFailed.Resolution) -> Unit,
+fun TrashNotSupportedIssueSheet(
+    issue: PathActionIssue.TrashNotSupported,
+    onResolution: (PathActionIssue.TrashNotSupported.Resolution) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     DeleteSkipCancelIssueBody(
         modifier = modifier,
         title = issue.title.asComposable(),
         description = issue.description.asComposable(),
-        items = issue.failedItems,
-        itemsLabelRes = R.string.workspace_issue_trash_move_failed_items_label,
-        moreItemsRes = R.string.workspace_issue_trash_move_failed_more_items,
-        onDeletePermanently = { onResolution(PathActionIssue.TrashMoveFailed.Resolution.DeletePermanently) },
-        onSkip = { onResolution(PathActionIssue.TrashMoveFailed.Resolution.Skip) },
-        onCancel = { onResolution(PathActionIssue.TrashMoveFailed.Resolution.Cancel()) },
+        items = issue.untrashableItems,
+        itemsLabelRes = R.string.workspace_issue_trash_not_supported_items_label,
+        moreItemsRes = R.string.workspace_issue_trash_not_supported_more_items,
+        onDeletePermanently = { onResolution(PathActionIssue.TrashNotSupported.Resolution.DeletePermanently) },
+        onSkip = { onResolution(PathActionIssue.TrashNotSupported.Resolution.Skip) },
+        onCancel = { onResolution(PathActionIssue.TrashNotSupported.Resolution.Cancel()) },
     )
 }
 
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
-private fun TrashMoveFailedIssueSheetPreview() {
-    TrashMoveFailedIssueSheet(
-        issue = PathActionIssue.TrashMoveFailed(
-            failedItems = listOf(
+private fun TrashNotSupportedIssueSheetPreview() {
+    TrashNotSupportedIssueSheet(
+        issue = PathActionIssue.TrashNotSupported(
+            untrashableItems = listOf(
                 LocalPathLookup(
                     lookedUp = LocalPath.build("/storage/emulated/0/Download/file1.txt"),
                     fileType = FileType.FILE,
@@ -55,26 +55,6 @@ private fun TrashMoveFailedIssueSheetPreview() {
                     target = null,
                 ),
             ),
-        ),
-        onResolution = {},
-    )
-}
-
-@Preview2
-@ComposePreviewWrapper(ButlerPreviewWrapper::class)
-@Composable
-private fun TrashMoveFailedIssueSheetManyItemsPreview() {
-    TrashMoveFailedIssueSheet(
-        issue = PathActionIssue.TrashMoveFailed(
-            failedItems = (1..10).map { i ->
-                LocalPathLookup(
-                    lookedUp = LocalPath.build("/storage/emulated/0/Download/file$i.txt"),
-                    fileType = FileType.FILE,
-                    size = 1024L * i,
-                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 3600000L * i),
-                    target = null,
-                )
-            },
         ),
         onResolution = {},
     )

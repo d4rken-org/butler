@@ -34,6 +34,9 @@
     <string name="path_action_trash_move_failed_title">Failed to move to Trash</string>
     <string name="path_action_trash_move_failed_description">%1$d items could not be moved to trash.</string>
 
+    <string name="path_action_trash_not_supported_title">Trash not supported</string>
+    <string name="path_action_trash_not_supported_description">%1$d items are on storage that doesn\'t support the trash.</string>
+
     <string name="path_action_archive_password_title">Password required</string>
     <string name="path_action_archive_password_description">\"%1$s\" is encrypted. Enter the password to read its contents.</string>
     <string name="path_action_archive_password_wrong_description">The password for \"%1$s\" was incorrect. Try again.</string>

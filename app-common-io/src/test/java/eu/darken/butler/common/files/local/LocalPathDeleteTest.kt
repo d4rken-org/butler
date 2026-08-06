@@ -393,6 +393,7 @@ class LocalPathDeleteTest : BaseTest() {
                         is PathActionIssue.InsufficientSpace -> throw NotImplementedError()
                         is PathActionIssue.PathAlreadyExists -> throw NotImplementedError()
                         is PathActionIssue.TrashMoveFailed -> throw NotImplementedError()
+                        is PathActionIssue.TrashNotSupported -> throw NotImplementedError()
                         is PathActionIssue.TrashSizeLimitExceeded -> throw NotImplementedError()
                         is PathActionIssue.ArchivePasswordRequired -> throw NotImplementedError()
                     }
@@ -450,6 +451,7 @@ class LocalPathDeleteTest : BaseTest() {
                     is PathActionIssue.InsufficientSpace -> throw NotImplementedError()
                     is PathActionIssue.PathAlreadyExists -> throw NotImplementedError()
                     is PathActionIssue.TrashMoveFailed -> throw NotImplementedError()
+                    is PathActionIssue.TrashNotSupported -> throw NotImplementedError()
                     is PathActionIssue.TrashSizeLimitExceeded -> throw NotImplementedError()
                         is PathActionIssue.ArchivePasswordRequired -> throw NotImplementedError()
                 }
@@ -972,6 +974,7 @@ class LocalPathDeleteTest : BaseTest() {
                     is PathActionIssue.InsufficientSpace -> throw NotImplementedError()
                     is PathActionIssue.PathAlreadyExists -> throw NotImplementedError()
                     is PathActionIssue.TrashMoveFailed -> throw NotImplementedError()
+                    is PathActionIssue.TrashNotSupported -> throw NotImplementedError()
                     is PathActionIssue.TrashSizeLimitExceeded -> throw NotImplementedError()
                         is PathActionIssue.ArchivePasswordRequired -> throw NotImplementedError()
                 }
