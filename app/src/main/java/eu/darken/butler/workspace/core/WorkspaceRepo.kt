@@ -1132,6 +1132,18 @@ class WorkspaceRepo @Inject constructor(
 
         val needsClose = !canCreateWorkspace(action, isPro)
         if (needsClose) {
+            // Restore creates with skipLimitCheck, so the counted count can have grown past limit + 1
+            // while the dialog was up - closing one tab would no longer be enough, and committing
+            // anyway would leave the user above the cap. postLimitDialog's own gate then offers no
+            // close action for the fresh dialog.
+            if (countedTabCount() - 1 >= FREE_TIER_WORKSPACE_LIMIT) {
+                log(TAG, WARN) { "Closing one tab no longer frees a slot, asking again" }
+                val retry: suspend (Workspace.Id) -> Throwable? = { newVictimId ->
+                    recoverFromLimit(action, isPro, newVictimId)
+                }
+                postLimitDialog(retry = retry)
+                return null
+            }
             val victim = _workspaces.value.firstOrNull { it.id == victimId }
             // No substitution: the user consented to closing THIS tab, so a fresh dialog has to ask
             // again for whatever is closable now.

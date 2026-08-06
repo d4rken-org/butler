@@ -586,6 +586,16 @@ class WorkspaceRepoTest : BaseTest() {
         count: Int = WorkspaceRepo.FREE_TIER_WORKSPACE_LIMIT,
     ): List<Workspace.Id> = (1..count).map { createReadyTab() }
 
+    /** A restored tab: [WorkspaceAction.Create.skipLimitCheck] lets the counted count exceed the tier. */
+    private suspend fun WorkspaceRepo.createRestoredReadyTab(
+        type: Workspace.Type = Workspace.Type.EXPLORER,
+    ): Workspace.Id {
+        val result = execute(
+            WorkspaceAction.Create(type = type, arguments = FakeArguments(type), skipLimitCheck = true)
+        )
+        return (result as WorkspaceAction.Create.Result.Success).newId.also { fake(it).markReady() }
+    }
+
     private suspend fun WorkspaceRepo.limitConfirmation(): PendingWorkspaceConfirmation =
         pendingConfirmations.first().values.single {
             it.data is PendingWorkspaceConfirmation.ConfirmationData.WorkspaceLimitReached
@@ -858,6 +868,30 @@ class WorkspaceRepoTest : BaseTest() {
         repo.workspaceIds() shouldBe ids
         repo.countedTabs() shouldBe WorkspaceRepo.FREE_TIER_WORKSPACE_LIMIT
     }
+
+    /**
+     * Sufficiency is re-checked at resolve time, not just when the offer is made: restores keep
+     * creating past the quota, so by now closing one tab may free nothing.
+     */
+    @Test
+    fun `a count that outgrew the limit while the dialog was up closes nothing`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo(isPro = false)
+            val ids = repo.fillWithReadyTabs()
+            repo.createRecoverable(type = Workspace.Type.SEARCHER)
+                .shouldBeInstanceOf<WorkspaceAction.Create.Result.LimitReached>()
+            repo.limitDialog().closableId shouldBe ids[0]
+
+            val restored = listOf(repo.createRestoredReadyTab(), repo.createRestoredReadyTab())
+            repo.resolveLimitByClosingOldest(repo.limitConfirmation().id)
+
+            fake(ids[0]).released shouldBe false
+            repo.workspaceIds() shouldBe ids + restored
+            repo.countedTabs() shouldBe WorkspaceRepo.FREE_TIER_WORKSPACE_LIMIT + 2
+            createdWorkspaces.none { it.type == Workspace.Type.SEARCHER } shouldBe true
+            // The fresh dialog offers no close either - one slot still would not be enough
+            repo.limitDialog().closableId shouldBe null
+        }
 
     @Test
     fun `a failing recovery hands the failure to the caller`() = runTest(UnconfinedTestDispatcher()) {
