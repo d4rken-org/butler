@@ -19,6 +19,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.MockKAnswerScope
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CompletableDeferred
@@ -443,6 +444,32 @@ class EditorWorkspaceViewModelEditQueueTest : BaseTest() {
 
         // Neither the insert nor the undo touched the document that replaced theirs
         applied shouldBe listOf("sentinel")
+    }
+
+    @Test
+    fun `an unstamped undo is dropped instead of reverting whatever is open`() = runTest {
+        // Nothing was loaded when the undo was enqueued, so it has no document to name. Executing
+        // it anyway would revert whichever document the engine handed over to in the meantime.
+        val applied = mutableListOf<String>()
+        wsState.value = EditorWorkspace.State.Ready(
+            EditorWorkspace.EditorState(maxUndoableEditChars = 1_000_000L, windowToken = null),
+        )
+        val workspace = epochCheckingWorkspace(applied)
+        val vm = makeViewModel(workspace)
+
+        vm.undo()
+        vm.redo()
+
+        // A document arrives after they were queued; the drained sentinel proves both ran first
+        wsState.value = EditorWorkspace.State.Ready(
+            EditorWorkspace.EditorState(maxUndoableEditChars = 1_000_000L, windowToken = token(0)),
+        )
+        vm.insertText("sentinel")
+        drained.await()
+
+        applied shouldBe listOf("sentinel")
+        coVerify(exactly = 0) { workspace.undo(any()) }
+        coVerify(exactly = 0) { workspace.redo(any()) }
     }
 
     private fun pathsClip(name: String) = ClipboardClip.Paths(

@@ -141,7 +141,7 @@ class EditorEngineLineEndingTest : BaseTest() {
         engine.performInsert("\n")
         engine.fullText() shouldBe "line1\r\n\r\nline2"
 
-        engine.undo()
+        engine.performUndo()
 
         engine.fullText() shouldBe "line1\r\nline2"
         engine.isModified.first() shouldBe false
@@ -261,7 +261,7 @@ class EditorEngineLineEndingTest : BaseTest() {
 
         engine.canUndo.first() shouldBe false
         engine.canRedo.first() shouldBe false
-        engine.undo()
+        engine.performUndo()
         engine.fullText() shouldBe "aX\nb"
     }
 

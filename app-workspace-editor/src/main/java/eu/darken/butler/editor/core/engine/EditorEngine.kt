@@ -1821,14 +1821,15 @@ class EditorEngine @AssistedInject constructor(
     }
 
     /**
-     * Steps back one committed transaction. [expectedEpoch] (when non-null) pins the request to ONE
-     * document: an undo queued before a file switch must not revert the document that replaced it.
-     * A mismatch is a banner-less no-op, like every other epoch rejection.
+     * Steps back one committed transaction. [expectedEpoch] pins the request to ONE document: an
+     * undo queued before a file switch must not revert the document that replaced it. A mismatch is
+     * a banner-less no-op, like every other epoch rejection. Mandatory by design - an "unstamped"
+     * undo would be exactly the request that cannot tell those two documents apart.
      */
-    suspend fun undo(expectedEpoch: Uuid? = null): Result<EditOperation?> = stateMutex.withLock {
+    suspend fun undo(expectedEpoch: Uuid): Result<EditOperation?> = stateMutex.withLock {
         return when (val currentState = _state.value) {
             is EditorState.Loaded -> {
-                if (expectedEpoch != null && expectedEpoch != engineEpoch) {
+                if (expectedEpoch != engineEpoch) {
                     log(tag, INFO) { "undo dropped, it belongs to a different document" }
                     return Result.success(null)
                 }
@@ -1874,10 +1875,10 @@ class EditorEngine @AssistedInject constructor(
     }
 
     /** See [undo]: [expectedEpoch] keeps a queued redo from re-applying into another document. */
-    suspend fun redo(expectedEpoch: Uuid? = null): Result<EditOperation?> = stateMutex.withLock {
+    suspend fun redo(expectedEpoch: Uuid): Result<EditOperation?> = stateMutex.withLock {
         return when (val currentState = _state.value) {
             is EditorState.Loaded -> {
-                if (expectedEpoch != null && expectedEpoch != engineEpoch) {
+                if (expectedEpoch != engineEpoch) {
                     log(tag, INFO) { "redo dropped, it belongs to a different document" }
                     return Result.success(null)
                 }

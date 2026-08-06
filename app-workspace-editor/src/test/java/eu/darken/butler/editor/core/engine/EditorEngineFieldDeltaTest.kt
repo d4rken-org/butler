@@ -103,7 +103,7 @@ class EditorEngineFieldDeltaTest : EditorEngineTestBase() {
         }
 
         engine.fullContent() shouldBe "abc"
-        engine.undo().getOrThrow()
+        engine.performUndo().getOrThrow()
         engine.fullContent() shouldBe ""
     }
 
@@ -178,10 +178,10 @@ class EditorEngineFieldDeltaTest : EditorEngineTestBase() {
         engine.performDeleteForward()
         assertFresh("after a forward-delete intent")
 
-        engine.undo()
+        engine.performUndo()
         assertFresh("after undo")
 
-        engine.redo()
+        engine.performRedo()
         assertFresh("after redo")
 
         // The post-save rebase bumps the version too; without a republish here every later delta

@@ -143,11 +143,11 @@ class EditorEngineIntegrationTest : DocumentBufferTestBase() {
         engine.performInsert("22")
         buffer.isModified.value shouldBe true
 
-        engine.undo().isSuccess shouldBe true
+        engine.performUndo().isSuccess shouldBe true
         buffer.isModified.value shouldBe false
         buffer.getFullText().getOrThrow() shouldBe "11base"
 
-        engine.undo().isSuccess shouldBe true
+        engine.performUndo().isSuccess shouldBe true
         buffer.isModified.value shouldBe true
         buffer.getFullText().getOrThrow() shouldBe "base"
 
@@ -166,10 +166,10 @@ class EditorEngineIntegrationTest : DocumentBufferTestBase() {
 
         // The Loaded state's isModified is a snapshot: undo/redo must refresh it or auto-save
         // and the unsaved-changes close warning act on stale state
-        engine.undo().isSuccess shouldBe true
+        engine.performUndo().isSuccess shouldBe true
         engine.isModified.first() shouldBe true
 
-        engine.redo().isSuccess shouldBe true
+        engine.performRedo().isSuccess shouldBe true
         engine.isModified.first() shouldBe false
     }
 

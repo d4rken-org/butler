@@ -174,11 +174,11 @@ class EditorEngineEditIntentTest : EditorEngineTestBase() {
         engine.performInsert("Kotlin").shouldBeInstanceOf<EditorEngine.EditOutcome.Applied>()
         engine.fullContent() shouldBe "Hello Kotlin"
 
-        engine.undo().getOrThrow()
+        engine.performUndo().getOrThrow()
         engine.fullContent() shouldBe "Hello World"
         engine.canUndo.first() shouldBe false
 
-        engine.redo().getOrThrow()
+        engine.performRedo().getOrThrow()
         engine.fullContent() shouldBe "Hello Kotlin"
     }
 

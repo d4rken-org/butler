@@ -625,8 +625,14 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
                     throw e
                 }
             }
-            is EditCommand.Undo -> getWorkspace().undo(command.epoch)
-            is EditCommand.Redo -> getWorkspace().redo(command.epoch)
+            // Same rule as an Edit intent: without a document to aim at there is nothing to revert,
+            // and applying it to whatever is open now would revert the wrong document
+            is EditCommand.Undo -> command.epoch
+                ?.let { getWorkspace().undo(it) }
+                ?: log(tag, INFO) { "Dropping undo, no document was loaded when it was enqueued" }
+            is EditCommand.Redo -> command.epoch
+                ?.let { getWorkspace().redo(it) }
+                ?: log(tag, INFO) { "Dropping redo, no document was loaded when it was enqueued" }
             is EditCommand.Confirmed -> performConfirmedEdit(command.prepared)
             is EditCommand.Navigate -> executeNavigation(command)
         }

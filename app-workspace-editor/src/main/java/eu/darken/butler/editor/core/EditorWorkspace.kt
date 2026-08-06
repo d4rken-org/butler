@@ -688,8 +688,8 @@ class EditorWorkspace @AssistedInject constructor(
         currentEngine().replaceAll(query, options, replacement)
 
     suspend fun goToLine(lineNumber: Long) = currentEngine().goToLine(lineNumber)
-    suspend fun undo(epoch: Uuid? = null) = currentEngine().undo(epoch)
-    suspend fun redo(epoch: Uuid? = null) = currentEngine().redo(epoch)
+    suspend fun undo(epoch: Uuid) = currentEngine().undo(epoch)
+    suspend fun redo(epoch: Uuid) = currentEngine().redo(epoch)
     suspend fun copySelection(maxChars: Long? = null) = currentEngine().copySelection(maxChars)
     suspend fun prepareCut(maxChars: Long? = null) = currentEngine().prepareCut(maxChars)
     suspend fun applyCut(snapshot: EditorEngine.CutSnapshot) = currentEngine().applyCut(snapshot)

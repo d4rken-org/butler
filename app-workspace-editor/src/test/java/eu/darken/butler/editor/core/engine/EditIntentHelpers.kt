@@ -18,3 +18,7 @@ internal suspend fun EditorEngine.performDeleteSelection(): EditorEngine.EditOut
 
 internal suspend fun EditorEngine.performDeleteForward(): EditorEngine.EditOutcome =
     performEdit(EditorEngine.EditIntent.DeleteForward, currentEpoch)
+
+internal suspend fun EditorEngine.performUndo(): Result<EditOperation?> = undo(currentEpoch)
+
+internal suspend fun EditorEngine.performRedo(): Result<EditOperation?> = redo(currentEpoch)

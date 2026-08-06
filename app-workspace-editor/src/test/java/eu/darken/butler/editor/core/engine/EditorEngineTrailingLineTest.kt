@@ -25,13 +25,13 @@ class EditorEngineTrailingLineTest : EditorEngineTestBase() {
         engine.visibleRange.value.last shouldBe 1L
         engine.visibleContent.value.text shouldBe "Hello\n"
 
-        engine.undo().getOrThrow()
+        engine.performUndo().getOrThrow()
         engine.totalLines.value shouldBe 1L
         engine.cursorPosition.value.line shouldBe 0L
         engine.visibleRange.value.last shouldBe 0L
         engine.visibleContent.value.text shouldBe "Hello"
 
-        engine.redo().getOrThrow()
+        engine.performRedo().getOrThrow()
         engine.totalLines.value shouldBe 2L
         engine.cursorPosition.value.line shouldBe 1L
         engine.visibleRange.value.last shouldBe 1L
@@ -53,7 +53,7 @@ class EditorEngineTrailingLineTest : EditorEngineTestBase() {
         engine.totalLines.value shouldBe 1L
         engine.visibleContent.value.text shouldBe "Hello"
 
-        engine.undo().getOrThrow()
+        engine.performUndo().getOrThrow()
         engine.totalLines.value shouldBe 2L
         engine.cursorPosition.value.line shouldBe 1L
         engine.cursorPosition.value.column shouldBe 0

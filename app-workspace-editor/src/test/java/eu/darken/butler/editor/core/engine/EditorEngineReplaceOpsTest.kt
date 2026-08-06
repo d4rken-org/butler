@@ -110,7 +110,7 @@ class EditorEngineReplaceOpsTest : BaseTest() {
         engine.replaceCurrent("cat", options, match, "bird").getOrThrow()
         engine.fullText() shouldBe "bird dog"
 
-        engine.undo().getOrThrow()
+        engine.performUndo().getOrThrow()
         engine.fullText() shouldBe "cat dog"
     }
 
@@ -208,10 +208,10 @@ class EditorEngineReplaceOpsTest : BaseTest() {
         engine.replaceAll("one", options, "1").getOrThrow()
         engine.fullText() shouldBe "1 two 1 two 1"
 
-        engine.undo().getOrThrow()
+        engine.performUndo().getOrThrow()
         engine.fullText() shouldBe content
 
-        engine.redo().getOrThrow()
+        engine.performRedo().getOrThrow()
         engine.fullText() shouldBe "1 two 1 two 1"
     }
 
@@ -359,7 +359,7 @@ class EditorEngineReplaceOpsTest : BaseTest() {
 
         // ...but the NEXT edit evicts it under the memory cap, so the step is gone afterwards
         engine.performInsert("x")
-        engine.undo().getOrThrow()
+        engine.performUndo().getOrThrow()
         engine.textBuffer!!.canUndo().shouldBeFalse()
     }
 
