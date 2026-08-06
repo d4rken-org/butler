@@ -8,6 +8,7 @@ import eu.darken.butler.upgrade.core.OurSku
 import eu.darken.butler.upgrade.core.UpgradeRepoGplay
 import eu.darken.butler.upgrade.core.billing.BillingData
 import eu.darken.butler.upgrade.core.billing.GplayServiceUnavailableException
+import eu.darken.butler.upgrade.core.billing.OfferUnavailableBillingException
 import eu.darken.butler.upgrade.core.billing.Sku
 import eu.darken.butler.main.ui.settings.DestinationSettingsContactForm
 import io.kotest.matchers.booleans.shouldBeTrue
@@ -180,6 +181,67 @@ class UpgradeViewModelTest : BaseTest() {
         advanceUntilIdle()
 
         coVerify(exactly = 2) { repo.querySkus(any()) }
+    }
+
+    @Test
+    fun `both product types unavailable surfaces the merchandising error, not a connectivity one`() = runTest2(
+        context = testDispatcher,
+    ) {
+        // Play answered OK and simply has no sellable offer here (region, account eligibility,
+        // pulled product). Reporting that as "can't connect to Google Play" tells the user to
+        // clear Play's cache and reboot, which cannot help.
+        val repo = mockRepo()
+        coEvery { repo.querySkus(OurSku.Iap.PRO_UPGRADE) } throws
+            OfferUnavailableBillingException(OurSku.Iap.PRO_UPGRADE, null)
+        coEvery { repo.querySkus(OurSku.Sub.PRO_UPGRADE) } throws
+            OfferUnavailableBillingException(OurSku.Sub.PRO_UPGRADE, null)
+        val vm = buildVm(repo)
+
+        val unavailableState = async { vm.state.first { it is UpgradeUiState.Unavailable } }
+        val forwardedError = async { vm.errorEvents.first() }
+        advanceUntilIdle()
+
+        forwardedError.await().shouldBeInstanceOf<OfferUnavailableBillingException>()
+        val state = unavailableState.await().shouldBeInstanceOf<UpgradeUiState.Unavailable>()
+        state.error.shouldBeInstanceOf<OfferUnavailableBillingException>()
+    }
+
+    @Test
+    fun `a mixed failure keeps the conservative connectivity error`() = runTest2(
+        context = testDispatcher,
+    ) {
+        // One sku failed for a non-merchandising reason: a real Play problem can't be ruled out,
+        // so the conservative "can't reach Play" copy stays.
+        val repo = mockRepo()
+        coEvery { repo.querySkus(OurSku.Iap.PRO_UPGRADE) } throws
+            OfferUnavailableBillingException(OurSku.Iap.PRO_UPGRADE, null)
+        coEvery { repo.querySkus(OurSku.Sub.PRO_UPGRADE) } throws IllegalStateException("Play unavailable")
+        val vm = buildVm(repo)
+
+        val unavailableState = async { vm.state.first { it is UpgradeUiState.Unavailable } }
+        val forwardedError = async { vm.errorEvents.first() }
+        advanceUntilIdle()
+
+        forwardedError.await().shouldBeInstanceOf<GplayServiceUnavailableException>()
+        val state = unavailableState.await().shouldBeInstanceOf<UpgradeUiState.Unavailable>()
+        state.error.shouldBeInstanceOf<GplayServiceUnavailableException>()
+    }
+
+    @Test
+    fun `a connectivity failure on both product types stays a connectivity error`() = runTest2(
+        context = testDispatcher,
+    ) {
+        val repo = mockRepo()
+        coEvery { repo.querySkus(any()) } throws IllegalStateException("Play unavailable")
+        val vm = buildVm(repo)
+
+        val unavailableState = async { vm.state.first { it is UpgradeUiState.Unavailable } }
+        val forwardedError = async { vm.errorEvents.first() }
+        advanceUntilIdle()
+
+        forwardedError.await().shouldBeInstanceOf<GplayServiceUnavailableException>()
+        val state = unavailableState.await().shouldBeInstanceOf<UpgradeUiState.Unavailable>()
+        state.error.shouldBeInstanceOf<GplayServiceUnavailableException>()
     }
 
     @Test
