@@ -269,6 +269,41 @@ class EditorInputSessionTest : BaseTest() {
     }
 
     @Test
+    fun `a later invalidation clears a rebuild payload nobody consumed`() = runTest {
+        val recorder = Recorder()
+        val session = EditorInputSession(TestScope(testScheduler), recorder.enqueue)
+        session.rebaseOn("")
+        session.type("", "a")
+
+        recorder.outcomes.single().complete(EditorEngine.MutationResult.Conflict(emptySnapshot))
+        runCurrent()
+        // Before the field got around to rebuilding, the lineage was abandoned again: that payload
+        // describes a state this invalidation has already left behind.
+        session.cancelPending()
+
+        session.consumePendingRebuild().shouldBeNull()
+    }
+
+    @Test
+    fun `an acknowledgement records the version the field has reached`() = runTest {
+        val recorder = Recorder()
+        val session = EditorInputSession(TestScope(testScheduler), recorder.enqueue)
+        session.rebaseOn("", version = 40L)
+        session.lastAckedVersion.shouldBeNull()
+
+        session.type("", "a")
+        session.type("a", "ab")
+        recorder.outcomes[0].complete(EditorEngine.MutationResult.Applied(token(41)))
+        recorder.outcomes[1].complete(EditorEngine.MutationResult.Applied(token(42)))
+        runCurrent()
+
+        // Lets the field recognise a republication that is older than what it already applied
+        session.lastAckedVersion shouldBe 42L
+        session.rebaseOn("ab", version = 42L)
+        session.lastAckedVersion.shouldBeNull()
+    }
+
+    @Test
     fun `cancelling bumps the revision so the field re-evaluates`() = runTest {
         val recorder = Recorder()
         val session = EditorInputSession(TestScope(testScheduler), recorder.enqueue)

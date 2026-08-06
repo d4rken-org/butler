@@ -168,6 +168,59 @@ class LazyTextEditorInputTest : ComposeTest() {
         }
     }
 
+    /**
+     * Full manual control over window publication and delta outcomes: the interleavings below are
+     * exactly the ones a fake engine cannot produce, because it publishes and acknowledges together.
+     */
+    private class ManualHost(initialText: String) {
+        private val epoch = Uuid.random()
+        val content = mutableStateOf(initialText)
+        val token = mutableStateOf<EditorEngine.DocumentToken?>(EditorEngine.DocumentToken(epoch, 0L))
+        val cursor = mutableStateOf(TextPosition(0, 0, initialText.length))
+        val deltas = mutableListOf<SessionDelta>()
+        val outcomes = mutableListOf<CompletableDeferred<EditorEngine.MutationResult>>()
+
+        fun tokenAt(version: Long) = EditorEngine.DocumentToken(epoch, version)
+
+        fun publish(text: String, version: Long, cursorColumn: Int = text.length) {
+            content.value = text
+            token.value = tokenAt(version)
+            cursor.value = TextPosition(0, 0, cursorColumn)
+        }
+
+        fun snapshot(text: String, version: Long, cursorColumn: Int = text.length) = EditorEngine.WindowSnapshot(
+            content = EditorEngine.VisibleContent(text = text, rangeStart = 0L, token = tokenAt(version)),
+            cursor = TextPosition(0, 0, cursorColumn),
+            selection = null,
+        )
+    }
+
+    private fun ComposeContentTestRule.setManualEditor(host: ManualHost) {
+        setContent {
+            PreviewWrapper {
+                val text = host.content.value
+                LazyTextEditor(
+                    content = text,
+                    totalLines = text.split('\n').size.toLong(),
+                    cursorPosition = host.cursor.value,
+                    selection = null,
+                    visibleRange = 0L..(text.split('\n').size.toLong() - 1),
+                    windowToken = host.token.value,
+                    windowRangeStart = 0L,
+                    onEnqueueDelta = { delta ->
+                        host.deltas += delta
+                        CompletableDeferred<EditorEngine.MutationResult>().also { host.outcomes += it }
+                    },
+                    onCursorPositionChange = {},
+                    onSelectionChange = {},
+                    onVisibleRangeChange = {},
+                    onCursorMove = { _, _ -> },
+                    onForwardDelete = {},
+                )
+            }
+        }
+    }
+
     private fun ComposeContentTestRule.fieldText(): String = onNodeWithTag(EDITOR_INPUT_TEST_TAG)
         .fetchSemanticsNode().config[SemanticsProperties.EditableText].text
 
@@ -314,6 +367,73 @@ class LazyTextEditorInputTest : ComposeTest() {
 
         composeTestRule.waitUntil(timeoutMillis = 10_000) { engine.deltas.size == 2 }
         engine.deltas.last().start.column shouldBe 0
+    }
+
+    // ==================== Stale windows and stale rebuilds ====================
+
+    @Test
+    fun `a rebuild snapshot older than the composed window is discarded`() {
+        val host = ManualHost("AB")
+        composeTestRule.setManualEditor(host)
+        composeTestRule.waitForIdle()
+        composeTestRule.fieldText() shouldBe "AB"
+
+        // Typed, dispatched, outcome still pending
+        composeTestRule.onNodeWithTag(EDITOR_INPUT_TEST_TAG).performTextInput("X")
+        composeTestRule.waitForIdle()
+        host.deltas.size shouldBe 1
+
+        // A queued paste advanced the document and ITS window is composed first
+        composeTestRule.runOnIdle { host.publish("AB!", version = 2L) }
+        composeTestRule.waitForIdle()
+
+        // Only now does the keystroke come back conflicted, carrying a snapshot of the state at
+        // the time of the rejection - one version behind what the field already shows
+        composeTestRule.runOnIdle {
+            host.outcomes.single().complete(
+                EditorEngine.MutationResult.Conflict(host.snapshot("AB", version = 1L)),
+            )
+        }
+        composeTestRule.waitForIdle()
+
+        // Rebuilding from that payload would strand the field a version behind with nothing left to
+        // re-trigger the sync: every later keystroke would chain on V1 and be dropped.
+        composeTestRule.fieldText() shouldBe "AB!"
+        composeTestRule.onNodeWithTag(EDITOR_INPUT_TEST_TAG).performTextInput("Y")
+        composeTestRule.waitForIdle()
+        host.deltas.last().snapshotToken shouldBe host.tokenAt(2L)
+    }
+
+    @Test
+    fun `an intermediate window from an earlier acknowledgement does not erase in-flight input`() {
+        val host = ManualHost("")
+        composeTestRule.setManualEditor(host)
+        composeTestRule.waitForIdle()
+
+        val field = composeTestRule.onNodeWithTag(EDITOR_INPUT_TEST_TAG)
+        field.performTextInput("a")
+        field.performTextInput("b")
+        composeTestRule.waitForIdle()
+        host.deltas.size shouldBe 2
+        composeTestRule.fieldText() shouldBe "ab"
+
+        // The first keystroke is acknowledged and its window - newer than what the session rebased
+        // on, but one character behind the field - is composed while the second is still in flight
+        composeTestRule.runOnIdle {
+            host.outcomes[0].complete(EditorEngine.MutationResult.Applied(host.tokenAt(1L)))
+        }
+        composeTestRule.waitForIdle()
+        composeTestRule.runOnIdle { host.publish("a", version = 1L, cursorColumn = 1) }
+        composeTestRule.waitForIdle()
+
+        // Now the second acknowledgement lands: the session goes idle while that intermediate
+        // window is the composed one. Rebasing on it would rebuild the field to "a".
+        composeTestRule.runOnIdle {
+            host.outcomes[1].complete(EditorEngine.MutationResult.Applied(host.tokenAt(2L)))
+        }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.fieldText() shouldBe "ab"
     }
 
     // ==================== Display-cap arbitration ====================

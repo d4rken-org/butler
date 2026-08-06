@@ -79,6 +79,7 @@ internal class EditorInputSession(
     private var firstOfGeneration = true
     private var unackedCount = 0
     private var pendingRebuild: EditorEngine.WindowSnapshot? = null
+    private var ackedVersion: Long? = null
 
     private val _state = MutableStateFlow(0L)
 
@@ -93,6 +94,13 @@ internal class EditorInputSession(
     val hasUnackedWork: Boolean get() = unackedCount > 0
 
     val token: EditorEngine.DocumentToken? get() = snapshot?.token
+
+    /**
+     * Document version of the newest acknowledged delta since the last rebase, or null while
+     * nothing has been acknowledged. A published window OLDER than this is an intermediate
+     * republication the field has already moved past.
+     */
+    val lastAckedVersion: Long? get() = ackedVersion
 
     private data class Pending(
         val generation: Long,
@@ -135,6 +143,7 @@ internal class EditorInputSession(
         generation = nextGeneration()
         firstOfGeneration = true
         unackedCount = 0
+        ackedVersion = null
     }
 
     /** True when the session is already rebased on exactly this window. */
@@ -225,6 +234,7 @@ internal class EditorInputSession(
         when (result) {
             is EditorEngine.MutationResult.Applied -> {
                 unackedCount = (unackedCount - 1).coerceAtLeast(0)
+                ackedVersion = maxOf(ackedVersion ?: Long.MIN_VALUE, result.token.structuralVersion)
                 bumpRevision()
             }
             is EditorEngine.MutationResult.Conflict -> {
@@ -245,7 +255,10 @@ internal class EditorInputSession(
         snapshot = null
         localLines = emptyList()
         localStartColumns = emptyMap()
-        if (rebuildFrom != null) pendingRebuild = rebuildFrom
+        ackedVersion = null
+        // Assigned unconditionally: a payload from an earlier invalidation describes a state this
+        // one has already left behind, so a null must CLEAR it rather than preserve it.
+        pendingRebuild = rebuildFrom
         bumpRevision()
     }
 

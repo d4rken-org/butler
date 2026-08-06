@@ -485,7 +485,18 @@ private fun DualColumnEditorContent(
         selection,
         sessionRevision,
     ) {
-        val rebuild = session.consumePendingRebuild()
+        // A rebuild payload describes the document as it was when the delta was REJECTED. A paste
+        // or undo queued behind that delta can move the document on before this effect runs, so the
+        // payload is only authoritative while the composed window has not passed it - rebuilding to
+        // an older state would strand the field on a version that nothing re-triggers a sync for,
+        // and every later keystroke would chain on it and be dropped.
+        val rebuild = session.consumePendingRebuild()?.takeIf { candidate ->
+            val rebuildToken = candidate.content.token ?: return@takeIf false
+            windowToken == null || (
+                windowToken.engineEpoch == rebuildToken.engineEpoch &&
+                    windowToken.structuralVersion <= rebuildToken.structuralVersion
+                )
+        }
         if (rebuild != null) {
             val rebuildLines = rebuild.content.text.split('\n')
             val rebuildStart = rebuild.content.rangeStart
@@ -529,6 +540,20 @@ private fun DualColumnEditorContent(
             )
             // Keep the value (and its composition), move the caret only.
             if (newSelection != null) textFieldValue = textFieldValue.copy(selection = newSelection)
+            return@LaunchedEffect
+        }
+
+        // A window OLDER than the newest acknowledgement is an INTERMEDIATE republication: within a
+        // burst the acks can arrive before their windows are composed, so the composed one can sit
+        // between the session's snapshot and the field's text. Rebasing on it would rebuild the
+        // field to a state its own applied edits have already passed - erasing the characters still
+        // in flight and restarting the IME connection mid-burst. Every applied delta republishes,
+        // so the window that matches is on its way.
+        val ackedVersion = session.lastAckedVersion
+        if (ackedVersion != null &&
+            token.engineEpoch == session.token?.engineEpoch &&
+            token.structuralVersion < ackedVersion
+        ) {
             return@LaunchedEffect
         }
 
