@@ -111,12 +111,19 @@ internal fun ClassicWorkspaceContainer(
         snapPositionalThreshold = 0.5f,
     )
 
-    // The one answer to "which tab is the user in", for the pager, pane focus, creation blocking and
-    // the switch indicator alike. Focus itself is not usable: it can sit on a stacked child, which
-    // owns no page. rootOf() returns null for a dangling or cyclic chain and nothing repairs such a
-    // focus on its own, hence the fallbacks. settledPage, never currentPage — the latter moves
-    // mid-gesture and would hand the placeholder's index out as a tab.
-    val effectiveRootId: Workspace.Id? = state.focusedRootId?.takeIf { it in tabIds }
+    // The tab that owns whatever holds focus. The raw focused id is not usable for this: it can be
+    // a stacked child, which owns no page of its own. Null when nothing is focused or the chain is
+    // dangling/cyclic — deliberately NOT widened by the fallbacks below, because "some page is
+    // focused" and "the pager has to be somewhere" are different questions, and answering the first
+    // one with a fallback would let a page consume Back while nothing is focused at all.
+    val focusedRootId = state.focusedRootId?.takeIf { it in tabIds }
+
+    // Where the PAGER is, which unlike focus can never be nothing. Same answer as focusedRootId
+    // whenever that resolves; the fallbacks only cover a focus that names no tab, which nothing
+    // repairs on its own. Drives pager coordination, creation blocking and the switch indicator.
+    // settledPage, never currentPage — the latter moves mid-gesture and would hand the
+    // placeholder's index out as a tab.
+    val effectiveRootId: Workspace.Id? = focusedRootId
         ?: state.visibleSelected[0]?.id?.takeIf { it in tabIds }
         ?: state.tabWorkspaces.getOrNull(pagerState.settledPage)?.id
         ?: tabIds.firstOrNull()
@@ -249,7 +256,7 @@ internal fun ClassicWorkspaceContainer(
                     // like the tab manager overlay does.
                     val focusSuppressed = isOverlayVisible || state.fullScreenModalWorkspace != null
                     val paneIsFocused = !focusSuppressed &&
-                        (effectiveRootId == tabInfo.id || chain.any { it.id == state.focused })
+                        (focusedRootId == tabInfo.id || chain.any { it.id == state.focused })
                     // Deepest layer is the active one; global focus can sit on a covered ancestor
                     // (launchPicker never moves it).
                     val activeId = (chain.lastOrNull()?.id ?: tabInfo.id).takeIf { paneIsFocused }

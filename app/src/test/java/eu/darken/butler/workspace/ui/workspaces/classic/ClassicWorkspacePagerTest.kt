@@ -280,6 +280,49 @@ class ClassicWorkspacePagerTest : ComposeTest() {
     }
 
     /**
+     * The mirror image, and the point at which the stack meets `LocalPaneBackActive`: a pane can be
+     * the focused one while the pager rests somewhere else, and a stacked child on that off-screen
+     * page must not answer Back — it would close a workspace the user is not looking at.
+     *
+     * The fallback handler gets this for free by going through `WorkspaceBackHandler`, which is
+     * gated on the local the pane host publishes; nothing about it is re-implemented here. The
+     * `closes its stacked child` case above is the non-vacuous half: the very same handler does
+     * answer once the pager is settled on its page.
+     */
+    @Test
+    fun `back does not reach a stacked child on an off-screen page`() {
+        val host = RecordingHost()
+        val buttons = RecordingButtonProvider()
+        val infos = listOf(tab(tabA), tab(tabB), paneLocalChild(child, caller = tabA))
+        var dispatcher: OnBackPressedDispatcher? = null
+
+        composeTestRule.setContent {
+            dispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
+            CompositionLocalProvider(LocalWorkspaceButtonProvider provides buttons) {
+                Container(
+                    state(infos, focused = child, selected = mapOf(0 to tabA)),
+                    host,
+                    WorkspaceVisibilityTracker(),
+                    // Swallowed, so focus never follows the swipe: the pager rests on tab B while
+                    // the child on tab A still holds focus.
+                    onAction = {},
+                )
+            }
+        }
+        composeTestRule.waitForIdle()
+        composeTestRule.onNodeWithTag(RecordingHost.tagFor(child)).assertIsDisplayed()
+
+        composeTestRule.onRoot().performTouchInput { swipeLeft() }
+        composeTestRule.waitForIdle()
+        composeTestRule.onNodeWithTag(RecordingHost.tagFor(tabB)).assertIsDisplayed()
+
+        composeTestRule.runOnIdle { dispatcher!!.onBackPressed() }
+        composeTestRule.waitForIdle()
+
+        buttons.actions shouldBe emptyList()
+    }
+
+    /**
      * The child's pointer barrier participates in hit testing so nothing leaks through to the page
      * it covers — but it must consume nothing, because the pager is an ancestor and a consumed down
      * would end tab swiping wherever a child is open.
