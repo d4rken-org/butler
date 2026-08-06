@@ -1293,6 +1293,7 @@ class WorkspaceRepo @Inject constructor(
                     arguments = createRequest.arguments,
                     idToReplace = createRequest.replace,
                     existingId = createRequest.id,
+                    createdAt = createRequest.createdAt,
                 )
                 // Captured before the emit below can suspend, matching the single-create path
                 val usedAt = Clock.System.now()

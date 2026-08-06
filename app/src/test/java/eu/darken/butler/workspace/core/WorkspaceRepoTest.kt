@@ -239,7 +239,13 @@ class WorkspaceRepoTest : BaseTest() {
     private fun createReq(
         type: Workspace.Type,
         id: Workspace.Id? = null,
-    ): WorkspaceAction.Create = WorkspaceAction.Create(type = type, arguments = FakeArguments(type), id = id)
+        createdAt: Instant? = null,
+    ): WorkspaceAction.Create = WorkspaceAction.Create(
+        type = type,
+        arguments = FakeArguments(type),
+        id = id,
+        createdAt = createdAt,
+    )
 
     private suspend fun WorkspaceRepo.createBatch(
         vararg requests: WorkspaceAction.Create,
@@ -935,13 +941,20 @@ class WorkspaceRepoTest : BaseTest() {
     }
 
     @Test
-    fun `batch creates are stamped too`() = runTest(UnconfinedTestDispatcher()) {
-        val repo = createRepo()
+    fun `batch creates are stamped too, with the supplied instant when there is one`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val restored = Instant.fromEpochSeconds(2468)
 
-        repo.createBatch(createReq(Workspace.Type.EXPLORER), createReq(Workspace.Type.SEARCHER))
+            repo.createBatch(
+                createReq(Workspace.Type.EXPLORER, createdAt = restored),
+                createReq(Workspace.Type.SEARCHER),
+            )
 
-        createdWorkspaces.forEach { repo.peekCreatedAt(it.id) shouldNotBe null }
-    }
+            createdWorkspaces.forEach { repo.peekCreatedAt(it.id) shouldNotBe null }
+            val stamped = createdWorkspaces.single { it.type == Workspace.Type.EXPLORER }
+            repo.peekCreatedAt(stamped.id) shouldBe restored
+        }
 
     @Test
     fun `a paused registration keeps the persisted creation time`() = runTest(UnconfinedTestDispatcher()) {
