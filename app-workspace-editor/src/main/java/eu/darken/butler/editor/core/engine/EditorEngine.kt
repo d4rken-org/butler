@@ -201,8 +201,9 @@ class EditorEngine @AssistedInject constructor(
      * '\r' or "\r\n" from foreign clipboards) into "\r\n"; LF documents turn pasted "\r\n"/'\r'
      * into '\n'. Applied at the mutation entry points BEFORE any offset math - the buffer, undo
      * ops, and cursor/replacement-end calculations must all see the same string. CR documents
-     * are excluded (cursor line math handles a bare '\r' via [endPositionOf], but the in-place
-     * visible-content fast path is still '\n'-based); MIXED has no ending to conform to.
+     * are excluded (a bare '\r' is handled end-to-end: cursor line math via [endPositionOf], the
+     * in-place visible-content fast paths via [containsLineBreak]); MIXED has no ending to
+     * conform to.
      */
     private fun matchDocumentLineEnding(text: String, buffer: DocumentBuffer): String {
         val target = when (buffer.lineEnding.value) {
@@ -628,7 +629,7 @@ class EditorEngine @AssistedInject constructor(
                         invalidateSearchResults()
 
                         // Update visible content - use in-place update for small edits
-                        if (insert.length <= 10 && !insert.contains('\n')) {
+                        if (insert.length <= 10 && !insert.containsLineBreak()) {
                             val cursorLine = correctedPosition.line
                             val visible = _visibleContent.value
                             val visibleStart = _visibleRange.value.first
@@ -908,7 +909,9 @@ class EditorEngine @AssistedInject constructor(
                         invalidateSearchResults()
 
                         // Update visible content - use in-place update for small single-line deletes
-                        if (actualCount <= 10 && !deletedText.contains('\n') && startPosition.line == endPosition.line) {
+                        if (actualCount <= 10 && !deletedText.containsLineBreak() &&
+                            startPosition.line == endPosition.line
+                        ) {
                             val cursorLine = startPosition.line
                             val visible = _visibleContent.value
                             val visibleStart = _visibleRange.value.first

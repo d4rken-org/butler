@@ -16,6 +16,13 @@ data class TextPosition(
 }
 
 /**
+ * True when the text carries ANY line break. A lone '\r' counts: it is a break for the buffer
+ * (see [endPositionOf]), so single-line fast paths and typing-run coalescing must reject it
+ * exactly like '\n'.
+ */
+internal fun CharSequence.containsLineBreak(): Boolean = any { it == '\n' || it == '\r' }
+
+/**
  * End of [text] when it is placed at [start]. [endOffset] stays the caller's business - the insert,
  * replace and undo/redo paths anchor it differently - only the line/column walk is shared.
  *
