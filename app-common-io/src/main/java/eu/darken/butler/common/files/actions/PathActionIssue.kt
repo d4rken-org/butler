@@ -185,6 +185,27 @@ sealed interface PathActionIssue : Issue {
         }
     }
 
+    data class TrashNotSupported(
+        override val id: Issue.Id = Issue.Id(),
+        val untrashableItems: List<APathLookup<out APath<*>>>,
+    ) : PathActionIssue {
+        override val title: CaString = caString {
+            getString(eu.darken.butler.common.io.R.string.path_action_trash_not_supported_title)
+        }
+        override val description: CaString = caString {
+            getString(
+                eu.darken.butler.common.io.R.string.path_action_trash_not_supported_description,
+                untrashableItems.size,
+            )
+        }
+
+        sealed interface Resolution : PathActionIssue.Resolution {
+            data object DeletePermanently : Resolution
+            data object Skip : Resolution
+            data class Cancel(val error: Exception? = null) : Resolution
+        }
+    }
+
     data class TrashMoveFailed(
         override val id: Issue.Id = Issue.Id(),
         val failedItems: List<APathLookup<out APath<*>>>,

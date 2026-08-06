@@ -63,6 +63,9 @@ fun SelectableFileRow(
             ),
         colors = CardDefaults.cardColors(
             containerColor = backgroundColor,
+            // The selected container is an alpha tint that matches no color role, so the derived
+            // content color would fall back to LocalContentColor (black), not onSurface.
+            contentColor = MaterialTheme.colorScheme.onSurface,
         ),
         shape = RoundedCornerShape(8.dp),
     ) {

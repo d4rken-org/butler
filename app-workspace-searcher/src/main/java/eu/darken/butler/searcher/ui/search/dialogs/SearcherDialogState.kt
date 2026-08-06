@@ -10,7 +10,7 @@ sealed interface SearcherDialogState {
     data object None : SearcherDialogState
     data class DeleteConfirmation(
         val paths: Set<APath<*>>,
-        val forcePermDelete: Boolean = false,
+        val initialPermanentDelete: Boolean = false,
     ) : SearcherDialogState
 
     data object ClearHistoryConfirmation : SearcherDialogState

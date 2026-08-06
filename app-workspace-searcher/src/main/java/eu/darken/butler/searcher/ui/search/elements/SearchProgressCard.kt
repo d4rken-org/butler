@@ -5,6 +5,7 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -44,6 +45,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
@@ -103,13 +105,34 @@ fun SearchProgressCard(
                 failedCount = targetProgress.count { it.status == SearchEngine.SearchTargetProgress.Status.ERROR },
                 limitReached = limitReached,
                 accessErrorCount = accessErrorCount,
-                hasOtherPartial = hasOtherPartial,
-                onAccessErrorsClick = onAccessErrorsClick,
                 isExpanded = isExpanded,
                 onExpandClick = { isExpanded = !isExpanded },
                 onCancelClick = onCancel,
                 onClearClick = onClear
             )
+
+            // Access errors get their own full-width strip rather than a caption line inside the
+            // header: the header itself is clickable (expand/collapse), so a small nested target
+            // there loses near-misses to the expander. The container tint marks the actionable
+            // variant — the softer "partial" note (degraded content reads, nothing to open) shares
+            // the slot untinted and without a chevron. Both are suppressed while the whole search
+            // is in an ERROR state, which the header icon already conveys.
+            if (searchStatus != SearcherWorkspace.State.SearchStatus.ERROR) {
+                when {
+                    accessErrorCount > 0 -> SearchProgressWarningRow(
+                        text = pluralStringResource(
+                            R.plurals.searcher_progress_items_inaccessible_count,
+                            accessErrorCount,
+                            accessErrorCount,
+                        ),
+                        onClick = onAccessErrorsClick,
+                    )
+                    hasOtherPartial -> SearchProgressWarningRow(
+                        text = stringResource(R.string.searcher_progress_items_partial),
+                        onClick = null,
+                    )
+                }
+            }
 
             // Expandable per-path list
             AnimatedVisibility(
@@ -183,8 +206,6 @@ private fun SearchProgressHeader(
     failedCount: Int,
     limitReached: Boolean,
     accessErrorCount: Int,
-    hasOtherPartial: Boolean,
-    onAccessErrorsClick: () -> Unit,
     isExpanded: Boolean,
     onExpandClick: () -> Unit,
     onCancelClick: () -> Unit,
@@ -294,38 +315,6 @@ private fun SearchProgressHeader(
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            // Access errors (items that couldn't be read) get a concrete count that opens the
-            // detail sheet (paths + how to unlock); the softer "partial" case (degraded content
-            // reads) keeps a plain neutral note. Suppressed while the whole search is in an ERROR
-            // state, which is already shown by the header icon.
-            val notErrored = searchStatus != SearcherWorkspace.State.SearchStatus.ERROR
-            when {
-                accessErrorCount > 0 && notErrored -> Row(
-                    modifier = Modifier.clickable(onClick = onAccessErrorsClick),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = pluralStringResource(
-                            R.plurals.searcher_progress_items_inaccessible_count,
-                            accessErrorCount,
-                            accessErrorCount,
-                        ),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.error,
-                    )
-                    Icon(
-                        imageVector = Icons.TwoTone.ChevronRight,
-                        contentDescription = stringResource(eu.darken.butler.common.R.string.general_show_details_action),
-                        modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.error,
-                    )
-                }
-                hasOtherPartial && notErrored -> Text(
-                    text = stringResource(R.string.searcher_progress_items_partial),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.error,
-                )
-            }
         }
 
         IconButton(onClick = onExpandClick) {
@@ -355,6 +344,70 @@ private fun SearchProgressHeader(
     }
 }
 
+/**
+ * Full-width strip below the progress header. When [onClick] is set the row is the affordance for
+ * the access-errors detail sheet: tinted container, trailing chevron, button semantics and a 48dp
+ * minimum height. Without [onClick] it is a plain notice sharing the same slot.
+ */
+@Composable
+private fun SearchProgressWarningRow(
+    text: String,
+    onClick: (() -> Unit)?,
+    modifier: Modifier = Modifier,
+) {
+    val contentColor = if (onClick != null) {
+        MaterialTheme.colorScheme.onErrorContainer
+    } else {
+        MaterialTheme.colorScheme.error
+    }
+
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .then(
+                if (onClick != null) {
+                    Modifier
+                        .heightIn(min = 48.dp)
+                        .background(MaterialTheme.colorScheme.errorContainer)
+                        .clickable(
+                            onClick = onClick,
+                            role = Role.Button,
+                            onClickLabel = stringResource(eu.darken.butler.common.R.string.general_show_details_action),
+                        )
+                } else {
+                    Modifier
+                },
+            )
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            imageVector = Icons.TwoTone.Error,
+            contentDescription = null,
+            modifier = Modifier.size(20.dp),
+            tint = contentColor,
+        )
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            color = contentColor,
+            modifier = Modifier.weight(1f),
+        )
+
+        if (onClick != null) {
+            Icon(
+                imageVector = Icons.TwoTone.ChevronRight,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+                tint = contentColor,
+            )
+        }
+    }
+}
+
 @Composable
 private fun SearchPathProgressRow(
     path: String,
@@ -364,17 +417,22 @@ private fun SearchPathProgressRow(
     exception: Throwable?,
     onErrorClick: (() -> Unit)?,
 ) {
-    val rowModifier =
-        if (status == SearchEngine.SearchTargetProgress.Status.ERROR && exception != null && onErrorClick != null) {
-            Modifier
-                .fillMaxWidth()
-                .clickable(onClick = onErrorClick)
-                .padding(horizontal = 16.dp, vertical = 4.dp)
-        } else {
-            Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 4.dp)
-        }
+    val isInteractive =
+        status == SearchEngine.SearchTargetProgress.Status.ERROR && exception != null && onErrorClick != null
+    val rowModifier = if (isInteractive) {
+        Modifier
+            .fillMaxWidth()
+            .clickable(
+                onClick = onErrorClick,
+                role = Role.Button,
+                onClickLabel = stringResource(eu.darken.butler.common.R.string.general_show_details_action),
+            )
+            .padding(horizontal = 16.dp, vertical = 4.dp)
+    } else {
+        Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp)
+    }
 
     Row(
         modifier = rowModifier,
@@ -456,6 +514,16 @@ private fun SearchPathProgressRow(
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
+
+        // Rows that open the error details say so — without it the row is silently tappable
+        if (isInteractive) {
+            Icon(
+                imageVector = Icons.TwoTone.ChevronRight,
+                contentDescription = null,
+                modifier = Modifier.size(16.dp),
+                tint = MaterialTheme.colorScheme.error,
+            )
+        }
     }
 }
 
@@ -468,12 +536,14 @@ private fun createSearchTargetProgress(
     exception: Throwable? = null,
     accessErrorCount: Int = 0,
     errorPaths: List<String> = emptyList(),
+    errorCount: Int = 0,
 ) = SearchEngine.SearchTargetProgress(
     target = SearchTarget.Path.from(LocalPath.build(path)),
     itemsScanned = scanned,
     resultsFound = found,
     status = status,
     exception = exception,
+    errorCount = errorCount,
     accessErrorCount = if (accessErrorCount > 0) accessErrorCount else errorPaths.size,
     accessErrorPaths = errorPaths.map { LocalPath.build(it) },
 )
@@ -680,8 +750,8 @@ private fun SearchProgressCardSinglePathPreview() {
 }
 
 // Mirrors the reported bug: a single location that completed ("Done") but couldn't read items
-// inside it. The header shows the warning icon and the tappable "2 items couldn't be accessed ›"
-// line that opens the access-errors sheet.
+// inside it. The header shows the warning icon and the tinted, full-width "2 items couldn't be
+// accessed ›" strip that opens the access-errors sheet.
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
@@ -701,6 +771,32 @@ private fun SearchProgressCardSingleLocationAccessErrorsPreview() {
         ),
         overallProgress = createSearchProgress(143, 0),
         resultCount = 0,
+        searchStatus = SearcherWorkspace.State.SearchStatus.COMPLETED,
+        onCancel = {},
+        onClear = {},
+        onErrorClick = { _, _ -> },
+        initiallyExpanded = true
+    )
+}
+
+// The softer sibling of the strip above: items were reached but not fully searched. Shares the
+// slot, but stays untinted and chevron-less because there is no detail sheet to open.
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun SearchProgressCardPartialOnlyPreview() {
+    SearchProgressCard(
+        targetProgress = listOf(
+            createSearchTargetProgress(
+                SearchEngine.SearchTargetProgress.Status.COMPLETED,
+                "/storage/emulated/0",
+                143,
+                7,
+                errorCount = 3,
+            ),
+        ),
+        overallProgress = createSearchProgress(143, 7),
+        resultCount = 7,
         searchStatus = SearcherWorkspace.State.SearchStatus.COMPLETED,
         onCancel = {},
         onClear = {},

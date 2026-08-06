@@ -6,9 +6,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.ContentCopy
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -23,6 +28,7 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.rememberClipboardCopy
+import eu.darken.butler.common.R as CommonR
 import eu.darken.butler.common.DateTimeStyle
 import eu.darken.butler.common.formatDateTime
 import eu.darken.butler.common.formatFileSize
@@ -46,7 +52,7 @@ fun AppInformationFields(
         InfoField(
             label = stringResource(R.string.apps_package_name_label),
             value = app.packageName,
-            onLongClick = {
+            onCopy = {
                 copy(app.packageName)
             }
         )
@@ -62,7 +68,7 @@ fun AppInformationFields(
                     modifier = Modifier.weight(1f),
                     label = stringResource(R.string.apps_version_label),
                     value = "${app.versionName} (${app.versionCode})",
-                    onLongClick = {
+                    onCopy = {
                         copy("${app.versionName} (${app.versionCode})")
                     }
                 )
@@ -181,22 +187,28 @@ fun AppInformationFields(
     }
 }
 
+/**
+ * [onCopy] fields are copyable by tap or long press; the trailing icon is a decorative hint only —
+ * the whole field is the touch target.
+ */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun InfoField(
     label: String,
     value: String,
     modifier: Modifier = Modifier,
-    onLongClick: (() -> Unit)? = null,
+    onCopy: (() -> Unit)? = null,
 ) {
+    val copyLabel = stringResource(CommonR.string.general_copy_action)
     Column(
         modifier = modifier
             .fillMaxWidth()
             .then(
-                if (onLongClick != null) {
+                if (onCopy != null) {
                     Modifier.combinedClickable(
-                        onClick = {},
-                        onLongClick = onLongClick
+                        onClickLabel = copyLabel,
+                        onClick = onCopy,
+                        onLongClick = onCopy,
                     )
                 } else {
                     Modifier
@@ -210,11 +222,25 @@ private fun InfoField(
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
             letterSpacing = 0.5.sp
         )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Normal,
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Text(
+                modifier = Modifier.weight(1f, fill = false),
+                text = value,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Normal,
+            )
+            if (onCopy != null) {
+                Icon(
+                    imageVector = Icons.TwoTone.ContentCopy,
+                    contentDescription = null,
+                    modifier = Modifier.size(14.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
     }
 }
 

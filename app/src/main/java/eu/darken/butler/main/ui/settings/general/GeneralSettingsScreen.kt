@@ -12,6 +12,7 @@ import androidx.compose.material.icons.twotone.Image
 import androidx.compose.material.icons.twotone.Notifications
 import androidx.compose.material.icons.twotone.Palette
 import androidx.compose.material.icons.twotone.PushPin
+import androidx.compose.material.icons.twotone.School
 import androidx.compose.material.icons.twotone.Translate
 import androidx.compose.material.icons.twotone.Update
 import androidx.compose.material3.Icon
@@ -69,6 +70,7 @@ fun GeneralSettingsScreen(
     onDocumentsProviderEnabledChange: (Boolean) -> Unit,
     onNavigateToPreviews: () -> Unit,
     onNavigateToShortcuts: () -> Unit,
+    onResetGuidedTours: () -> Unit,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -274,6 +276,23 @@ fun GeneralSettingsScreen(
             }
 
             item {
+                SettingsBaseItem(
+                    icon = Icons.TwoTone.School,
+                    title = stringResource(R.string.tour_settings_reset_title),
+                    subtitle = stringResource(R.string.tour_settings_reset_subtitle),
+                    onClick = {
+                        onResetGuidedTours()
+                        scope.launch {
+                            snackbarHostState.showSnackbar(
+                                message = context.getString(R.string.tour_settings_reset_done),
+                            )
+                        }
+                    },
+                )
+                SettingsDivider()
+            }
+
+            item {
                 SettingsSwitchItem(
                     icon = Icons.TwoTone.Update,
                     title = stringResource(R.string.updater_check_enabled_setting_title),
@@ -355,6 +374,7 @@ private fun GeneralSettingsScreenPreview() {
         onDocumentsProviderEnabledChange = {},
         onNavigateToPreviews = {},
         onNavigateToShortcuts = {},
+        onResetGuidedTours = {},
         onUpgradeButler = {},
     )
 }
@@ -381,6 +401,7 @@ fun GeneralSettingsScreenHost(vm: GeneralSettingsViewModel = hiltViewModel()) {
             onDocumentsProviderEnabledChange = { vm.updateDocumentsProviderEnabled(it) },
             onNavigateToPreviews = { vm.navigateToPreviews() },
             onNavigateToShortcuts = { vm.navigateToShortcuts() },
+            onResetGuidedTours = { vm.resetGuidedTours() },
             onUpgradeButler = { vm.upgradeButler() },
         )
     }

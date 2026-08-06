@@ -329,6 +329,14 @@ class RawBackHandlerBanTest : BaseTest() {
                 to Exemption(2, "Outside the workspace tree"),
             // The manager overlay's own dismisser — the handler all of the above protects.
             OVERLAY_DISMISSER to Exemption(2, "The tab manager overlay dismisser"),
+            // The guided-tour host. Mounted at window level in MainActivity, wrapping the whole
+            // NavDisplay, and it registers only while a tour session is actually running — with no
+            // tour up there is no handler at all, so the overlay dismisser is untouched. While a
+            // tour IS up, outranking the content is the point (back steps the tour backwards), and
+            // the tour cannot start behind the manager overlay: both trigger sites gate on the
+            // overlay being gone, and click protection keeps the user from opening it mid-tour.
+            "app-common/src/main/java/eu/darken/butler/common/compose/tour/GuidedTourHost.kt"
+                to Exemption(2, "Window-level tour host, only registered while a tour runs"),
         )
 
         /** The declaration in its host plus the host's single call. */

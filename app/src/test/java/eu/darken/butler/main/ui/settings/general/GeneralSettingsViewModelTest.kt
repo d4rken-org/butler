@@ -1,5 +1,6 @@
 package eu.darken.butler.main.ui.settings.general
 
+import eu.darken.butler.common.compose.tour.GuidedTourController
 import eu.darken.butler.common.datastore.DataStoreValue
 import eu.darken.butler.common.locale.LocaleManager
 import eu.darken.butler.common.theming.ThemeColor
@@ -48,6 +49,7 @@ class GeneralSettingsViewModelTest : BaseTest() {
     private lateinit var documentsProviderSettings: DocumentsProviderSettings
 
     private val localeManager: LocaleManager = mockk(relaxed = true)
+    private val guidedTourController: GuidedTourController = mockk(relaxed = true)
     private lateinit var upgradeRepo: UpgradeRepo
 
     @BeforeEach
@@ -87,6 +89,7 @@ class GeneralSettingsViewModelTest : BaseTest() {
     private fun createViewModel() = GeneralSettingsViewModel(
         dispatcherProvider = TestDispatcherProvider(),
         generalSettings = generalSettings,
+        guidedTourController = guidedTourController,
         localeManager = localeManager,
         motdSettings = motdSettings,
         documentsProviderSettings = documentsProviderSettings,

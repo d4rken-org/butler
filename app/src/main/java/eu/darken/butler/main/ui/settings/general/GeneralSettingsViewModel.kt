@@ -2,6 +2,7 @@ package eu.darken.butler.main.ui.settings.general
 
 import android.annotation.SuppressLint
 import dagger.hilt.android.lifecycle.HiltViewModel
+import eu.darken.butler.common.compose.tour.GuidedTourController
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.log
@@ -32,6 +33,7 @@ class GeneralSettingsViewModel
 constructor(
     dispatcherProvider: DispatcherProvider,
     private val generalSettings: GeneralSettings,
+    private val guidedTourController: GuidedTourController,
     private val localeManager: LocaleManager,
     private val motdSettings: MotdSettings,
     private val documentsProviderSettings: DocumentsProviderSettings,
@@ -109,6 +111,12 @@ constructor(
     fun updateDocumentsProviderEnabled(enabled: Boolean) = launch {
         log(tag) { "updateDocumentsProviderEnabled($enabled)" }
         documentsProviderSettings.isEnabled.value(enabled)
+    }
+
+    /** The only way back once the user picked "Disable all tours" from a tour's exit confirm. */
+    fun resetGuidedTours() = launch {
+        log(tag) { "resetGuidedTours()" }
+        guidedTourController.reset()
     }
 
     fun upgradeButler() = launch {

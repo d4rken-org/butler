@@ -924,27 +924,6 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         hideQuickActions()
     }
 
-    private fun onActionLongClick(action: SearcherActionBarItem) {
-        log(TAG) { "onActionLongClick(${action.javaClass.simpleName})" }
-        when (action) {
-            is SearcherActionBarItem.Delete -> {
-                vmScope.launch {
-                    val paths = action.results.map { it.path }.toSet()
-                    dialogEvents.emit(
-                        SearcherDialogEvent.ShowDeleteConfirmation(
-                            paths = paths,
-                            forcePermDelete = true,
-                        )
-                    )
-                }
-            }
-            else -> {
-                // Other actions don't support long-press, delegate to regular action
-                onAction(action)
-            }
-        }
-    }
-
     /**
      * Routes a single result to the workspace type that fits it - the same classification the
      * multi-select path uses, so a text file reaches the Editor instead of a Viewer that can only
@@ -1102,7 +1081,10 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         log(TAG) { "handleDialogEvent($event)" }
         when (event) {
             is SearcherDialogEvent.ShowDeleteConfirmation -> {
-                dialogStateFlow.value = SearcherDialogState.DeleteConfirmation(event.paths, event.forcePermDelete)
+                dialogStateFlow.value = SearcherDialogState.DeleteConfirmation(
+                    paths = event.paths,
+                    initialPermanentDelete = event.initialPermanentDelete,
+                )
             }
             is SearcherDialogEvent.Dismiss -> {
                 dialogStateFlow.value = SearcherDialogState.None
@@ -1462,7 +1444,6 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
             // Workspace actions (delegate to existing handler)
             is SearcherPageAction.WorkspaceAction -> onAction(action.action)
-            is SearcherPageAction.WorkspaceActionLongClick -> onActionLongClick(action.action)
         }
     }
 

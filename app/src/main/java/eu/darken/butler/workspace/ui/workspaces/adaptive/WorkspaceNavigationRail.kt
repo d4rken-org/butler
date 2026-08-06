@@ -74,6 +74,7 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.systemBarsWithOptionalCutout
+import eu.darken.butler.common.compose.tour.guidedTourTarget
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.icon
@@ -82,6 +83,7 @@ import eu.darken.butler.workspace.ui.manager.PaneLayoutGlyph
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.manager.paneCells
+import eu.darken.butler.workspace.ui.tour.WorkspaceTourTargets
 import eu.darken.butler.workspace.ui.workspaces.WorkspacePaneInfo
 import eu.darken.butler.workspace.ui.workspaces.asPaneInfo
 import sh.calvin.reorderable.ReorderableItem
@@ -241,8 +243,12 @@ fun WorkspaceNavigationRail(
     }
 
     WorkspaceRailContainer(modifier = modifier) {
+        // Unconditional: the rail exists once per screen, and only in multi-pane - where the
+        // Templates page renders no Butler button of its own.
         WorkspaceButton(
-            modifier = Modifier.padding(vertical = RailSectionPadding),
+            modifier = Modifier
+                .padding(vertical = RailSectionPadding)
+                .guidedTourTarget(WorkspaceTourTargets.BUTLER_BUTTON),
             currentWorkspaceId = focusedId,
         )
 

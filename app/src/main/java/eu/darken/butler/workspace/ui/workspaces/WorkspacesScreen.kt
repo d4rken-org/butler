@@ -1,11 +1,13 @@
 package eu.darken.butler.workspace.ui.workspaces
 
+import android.app.Activity
 import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -27,9 +29,11 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.tour.LocalGuidedTourController
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.main.ui.motd.MotdCard
+import eu.darken.butler.main.ui.review.ReviewCard
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.LocalWorkspacePageHosts
 import eu.darken.butler.workspace.core.WorkspaceAction
@@ -50,6 +54,7 @@ import eu.darken.butler.workspace.ui.manager.rememberWindowSizeInfo
 import eu.darken.butler.workspace.ui.scroll.LocalWorkspaceScrollPositions
 import eu.darken.butler.workspace.ui.workspaces.adaptive.DividerPositions
 import eu.darken.butler.workspace.ui.workspaces.classic.ClassicWorkspaceContainer
+import eu.darken.butler.workspace.ui.workspaces.tour.FirstTabTour
 import kotlin.uuid.Uuid
 
 @Composable
@@ -59,10 +64,13 @@ fun WorkspaceScreen(
     managerDialogStates: Map<Workspace.Id, ManagerDialog.WorkspaceTargeted>,
     managerDialogs: List<ManagerDialog> = emptyList(),
     isOverlayVisible: Boolean = false,
+    reviewActivity: Activity? = null,
     onScreenAction: (WorkspaceScreenAction) -> Unit,
     onHideMotd: (Uuid) -> Unit = {},
     onDismissMotd: (Uuid) -> Unit = {},
     onMotdLinkClick: (String) -> Unit = {},
+    onReviewDismiss: () -> Unit = {},
+    onReviewNow: (Activity) -> Unit = {},
     onDismissBanner: (Workspace.Id) -> Unit = {},
     onDismissManagerDialog: (Workspace.Id) -> Unit = {},
     onConfirmManagerDialog: (ManagerDialog.WorkspaceTargeted) -> Unit = {},
@@ -110,6 +118,31 @@ fun WorkspaceScreen(
         onScreenAction(WorkspaceScreenAction.SetPaneCount(design.maxPanes))
     }
 
+    // Restoration starts with an empty tabWorkspaces even when the user has saved tabs, so the
+    // isRestoring guard is what keeps the tour off a restoring session. tabWorkspaces.isEmpty()
+    // gates BOTH layouts: an empty pane next to an occupied one is not "no tabs yet".
+    val firstTabTourEligible = !state.isRestoring && state.tabWorkspaces.isEmpty()
+    // With zero tabs every pane is empty, so the first one is always the one to tag - no scan needed.
+    val firstTabTourPaneNumber: Int? = if (!firstTabTourEligible || design.isSingle) null else 1
+
+    // Both empty-state surfaces scroll vertically, so on a short viewport the create/add-tab card
+    // starts below the fold with no bounds to anchor on. The tour's prepareTarget brings it in
+    // before the step is published.
+    val createTabRequester = remember { BringIntoViewRequester() }
+
+    val tourController = LocalGuidedTourController.current
+    val firstTabTourDefinition = remember(createTabRequester) {
+        FirstTabTour.definition(prepareCreateTab = { createTabRequester.bringIntoView() })
+    }
+    var tourStartAttempted by remember { mutableStateOf(false) }
+    LaunchedEffect(firstTabTourEligible, isOverlayVisible) {
+        // Starting under the manager overlay would anchor on a card the user cannot see.
+        if (!firstTabTourEligible || isOverlayVisible || tourStartAttempted) return@LaunchedEffect
+        // tryStart is atomic: `attempted` is only set when the start actually took, so a transient
+        // block (another tour active) cannot permanently suppress this one.
+        tourStartAttempted = tourController.tryStart(firstTabTourDefinition)
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         // Main workspace content
         if (!design.isSingle) {
@@ -142,6 +175,8 @@ fun WorkspaceScreen(
                 // A full-screen modal covers every pane, so none of them may stay focus- or
                 // back-active underneath it. Classic already guards this via its own container.
                 fullScreenModalVisible = state.fullScreenModalWorkspace != null,
+                firstTabTourPaneNumber = firstTabTourPaneNumber,
+                firstTabTourRequester = createTabRequester,
                 onShareError = onShareError,
             )
         } else {
@@ -155,6 +190,8 @@ fun WorkspaceScreen(
                 onConfirmManagerDialog = onConfirmManagerDialog,
                 bannerStates = bannerStates,
                 onDismissBanner = onDismissBanner,
+                isFirstTabTourTarget = firstTabTourEligible,
+                firstTabTourRequester = createTabRequester,
                 onShareError = onShareError,
             )
         }
@@ -166,6 +203,19 @@ fun WorkspaceScreen(
                 onHide = { onHideMotd(motd.id) },
                 onMarkAsRead = onDismissMotd,
                 onLinkClick = onMotdLinkClick,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .statusBarsPadding()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+            )
+        }
+
+        // Review overlay, gated to a quiet screen by the ViewModel
+        if (state.showReviewCard) {
+            ReviewCard(
+                activity = reviewActivity,
+                onDismiss = onReviewDismiss,
+                onReview = onReviewNow,
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .statusBarsPadding()
@@ -248,6 +298,7 @@ fun WorkspacesScreenHost(
     NavigationEventHandler(vm, workspaceButtonVm, managerVm)
 
     val context = LocalContext.current
+    val activity = context as? Activity
     val focusManager = LocalFocusManager.current
     val bannerStatesRaw by vm.bannerStates.collectAsState(initial = emptyMap())
     val bannerStates = bannerStatesRaw ?: emptyMap()
@@ -301,10 +352,13 @@ fun WorkspacesScreenHost(
                 managerDialogStates = managerDialogStates,
                 managerDialogs = managerDialogs,
                 isOverlayVisible = pageManagerState.isManagerOverlayVisible,
+                reviewActivity = activity,
                 onScreenAction = { vm.executeScreenAction(it) },
                 onHideMotd = { vm.hideMotd(it) },
                 onDismissMotd = { vm.dismissMotd(it) },
                 onMotdLinkClick = { vm.openMotdLink(it) },
+                onReviewDismiss = { vm.reviewDismiss() },
+                onReviewNow = { vm.reviewNow(it) },
                 onDismissBanner = { vm.dismissBanner(it) },
                 onDismissManagerDialog = { vm.dismissManagerDialog(it) },
                 onConfirmManagerDialog = { vm.confirmManagerDialog(it) },

@@ -34,6 +34,8 @@ class DeveloperWorkspaceTemplate(
 
     override val availability: Flow<Boolean> = developerSettings.isDeveloperModeUnlocked.flow
 
+    override val accent: WorkspaceTemplate.Accent = WorkspaceTemplate.Accent.TERTIARY
+
     @Module
     @InstallIn(SingletonComponent::class)
     object TemplateModule {

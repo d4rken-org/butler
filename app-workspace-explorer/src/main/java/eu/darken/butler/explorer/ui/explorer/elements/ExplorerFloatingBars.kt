@@ -202,7 +202,6 @@ internal fun FloatingBarScope.ExplorerBottomBars(
         WorkspaceActionBar(
             actions = state.availableActions,
             onActionClick = { action -> vm?.executeAction(action as ExplorerActionBarItem) },
-            onActionLongClick = { action -> vm?.executeActionLongClick(action as ExplorerActionBarItem) },
         )
     }
 }

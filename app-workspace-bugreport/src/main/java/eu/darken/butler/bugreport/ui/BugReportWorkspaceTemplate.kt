@@ -36,6 +36,8 @@ data class BugReportWorkspaceTemplate(
     override val availability: Flow<Boolean>
         get() = flowOf(BuildConfigWrap.BUILD_TYPE != BuildConfigWrap.BuildType.RELEASE)
 
+    override val accent: WorkspaceTemplate.Accent = WorkspaceTemplate.Accent.TERTIARY
+
     @Module
     @InstallIn(SingletonComponent::class)
     object TemplateModule {

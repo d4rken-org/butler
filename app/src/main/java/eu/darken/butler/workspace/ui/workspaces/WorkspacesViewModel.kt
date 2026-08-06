@@ -1,12 +1,15 @@
 package eu.darken.butler.workspace.ui.workspaces
 
+import android.app.Activity
 import android.content.Intent
 import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.darken.butler.common.WebpageTool
+import eu.darken.butler.common.compose.tour.GuidedTourController
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.bugreport.BugReportRepo
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.ErrorReportTool
@@ -14,6 +17,7 @@ import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.upgrade
+import eu.darken.butler.common.review.ReviewTool
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.main.core.motd.MotdRepo
 import eu.darken.butler.main.core.motd.MotdState
@@ -42,8 +46,10 @@ import eu.darken.butler.workspace.ui.feedback.BannerState
 import eu.darken.butler.workspace.ui.floatingbar.WorkspaceBarCollapseStates
 import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPositions
 import eu.darken.butler.workspace.ui.session.WorkspaceSessionManager
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onEach
@@ -67,6 +73,8 @@ class WorkspacesViewModel @Inject constructor(
     private val errorReportTool: ErrorReportTool,
     private val bugReportRepo: BugReportRepo,
     private val openInNewTabsUseCase: OpenInNewTabsUseCase,
+    private val reviewTool: ReviewTool,
+    private val guidedTourController: GuidedTourController,
     val pageHosts: Map<Workspace.Type, @JvmSuppressWildcards WorkspacePageHostEntry>,
     val scrollPositions: WorkspaceScrollPositions,
     val barCollapseStates: WorkspaceBarCollapseStates,
@@ -228,6 +236,15 @@ class WorkspacesViewModel @Inject constructor(
         motd?.takeIf { it.id !in hiddenIds }
     }
 
+    // The review tool shares its state on AppScope, so a failure there can never reach a collector
+    // side handler. This one only keeps a broken review pipeline from taking the workspace state
+    // (and with it the whole screen) down with it.
+    private val reviewState = reviewTool.state.catch { e ->
+        if (e is CancellationException) throw e
+        log(tag, ERROR) { "Review state failed: ${e.asLog()}" }
+        emit(ReviewTool.State())
+    }
+
     val state = combine(
         workspaceRepo.state,
         upgradeRepo.upgradeInfo,
@@ -236,8 +253,11 @@ class WorkspacesViewModel @Inject constructor(
         workspacePageManager.state,
         visibleMotd,
         sessionManager.state,
-    ) { repoState, upgradeInfo, swipeGesturesEnabled, onDemandWorkspaceCreation, uiState, motd, restorationState ->
-        State(
+        _managerDialogs,
+        reviewState,
+        guidedTourController.session,
+    ) { repoState, upgradeInfo, swipeGesturesEnabled, onDemandWorkspaceCreation, uiState, motd, restorationState, dialogs, review, tourSession ->
+        val base = State(
             state = repoState,
             focusedWorkspace = uiState.focusedWorkspaceId,
             selectedWorkspaces = uiState.selectedWorkspaces,
@@ -249,6 +269,20 @@ class WorkspacesViewModel @Inject constructor(
             currentPaneCount = uiState.currentPaneCount,
             isRestoring = restorationState == WorkspaceSessionManager.State.Restoring,
         )
+
+        // Asking for a favor is the lowest-priority surface there is: anything that asks the user
+        // for a decision, or covers the screen, has to win over it. Both modal buckets have to be
+        // checked: single-pane layouts promote pane-local chains to the full-screen slot, so either
+        // one alone would miss a layout. A guided tour scrims the whole screen, so the card would
+        // render dimmed and untappable underneath it.
+        val isQuiet = motd == null &&
+            !uiState.isManagerOverlayVisible &&
+            dialogs.isEmpty() &&
+            base.fullScreenModalWorkspace == null &&
+            base.paneLocalModalChains.isEmpty() &&
+            tourSession == null
+
+        base.copy(showReviewCard = review.shouldAskForReview && isQuiet)
     }.asStateFlow()
 
     fun executeScreenAction(action: WorkspaceScreenAction) = launch {
@@ -378,6 +412,16 @@ class WorkspacesViewModel @Inject constructor(
         webpageTool.open(url)
     }
 
+    fun reviewNow(activity: Activity) = launch {
+        log(tag) { "reviewNow($activity)" }
+        reviewTool.reviewNow(activity)
+    }
+
+    fun reviewDismiss() = launch {
+        log(tag) { "reviewDismiss()" }
+        reviewTool.dismiss()
+    }
+
     fun dismissManagerDialog(workspaceId: Workspace.Id) = launch {
         log(tag) { "dismissManagerDialog($workspaceId)" }
         val dialogState = _managerDialogs.value
@@ -460,6 +504,7 @@ class WorkspacesViewModel @Inject constructor(
         val motd: MotdState? = null,
         val currentPaneCount: Int = 1,
         val isRestoring: Boolean = false,
+        val showReviewCard: Boolean = false,
     ) {
         val portraitPanelMode: WorkspacePanelMode
             get() = state.portraitPanelMode

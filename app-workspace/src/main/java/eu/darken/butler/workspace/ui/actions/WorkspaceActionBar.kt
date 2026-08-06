@@ -1,9 +1,8 @@
 package eu.darken.butler.workspace.ui.actions
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -32,9 +31,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipAnchorPosition
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -65,20 +70,22 @@ import eu.darken.butler.workspace.ui.modal.DismissWhenPaneUnfocused
  *
  * @param actions List of actions to display
  * @param onActionClick Callback when an action is clicked
- * @param onActionLongClick Callback when an action is long-pressed (for actions with supportsLongPress=true)
  * @param modifier Modifier to apply to the action bar
  */
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun WorkspaceActionBar(
     actions: List<WorkspaceActionBarItem>,
     onActionClick: (WorkspaceActionBarItem) -> Unit,
-    onActionLongClick: (WorkspaceActionBarItem) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     BoxWithConstraints(modifier = modifier) {
+        val context = LocalContext.current
         val availableWidth = maxWidth
         val visibleActions = actions.filter { it.isVisible }
+
+        // Actions that always live in the overflow menu, they never take part in the width budget
+        val forcedActions = visibleActions.filter { it.forceOverflow }
+        val budgetedActions = visibleActions.filter { !it.forceOverflow }
 
         // Calculate space budget:
         // - Horizontal padding: 16dp (8dp * 2)
@@ -93,7 +100,7 @@ fun WorkspaceActionBar(
         // How many actions can we fit WITHOUT overflow?
         val maxActionsWithoutOverflow = (spaceForActions / actionButtonWidth).toInt()
 
-        val needsOverflow = visibleActions.size > maxActionsWithoutOverflow
+        val needsOverflow = budgetedActions.size > maxActionsWithoutOverflow || forcedActions.isNotEmpty()
 
         // If we need overflow, reserve space for the overflow button
         val maxVisibleActions = if (needsOverflow) {
@@ -103,11 +110,11 @@ fun WorkspaceActionBar(
         }
 
         // Split actions by priority (PRIMARY vs SECONDARY)
-        val primaryActions = visibleActions.filter { it.group == WorkspaceActionBarItem.Group.PRIMARY }
-        val secondaryActions = visibleActions.filter { it.group == WorkspaceActionBarItem.Group.SECONDARY }
+        val primaryActions = budgetedActions.filter { it.group == WorkspaceActionBarItem.Group.PRIMARY }
+        val secondaryActions = budgetedActions.filter { it.group == WorkspaceActionBarItem.Group.SECONDARY }
 
         // Priority-aware splitting: prefer showing PRIMARY actions
-        val (displayedActions, overflowActions) = if (needsOverflow) {
+        val (displayedActions, budgetedOverflowActions) = if (needsOverflow) {
             if (primaryActions.size <= maxVisibleActions) {
                 // All primary fit, fill remaining space with secondary
                 val secondaryToShow = secondaryActions.take(maxVisibleActions - primaryActions.size)
@@ -117,8 +124,9 @@ fun WorkspaceActionBar(
                 primaryActions.take(maxVisibleActions) to (primaryActions.drop(maxVisibleActions) + secondaryActions)
             }
         } else {
-            visibleActions to emptyList()
+            budgetedActions to emptyList()
         }
+        val overflowActions = budgetedOverflowActions + forcedActions
 
         Card(
             modifier = Modifier
@@ -143,47 +151,54 @@ fun WorkspaceActionBar(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 displayedActions.forEach { action ->
-                    Box(
-                        modifier = Modifier.size(48.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
+                    // Keyed so tooltip state can't migrate between actions when the list reorders
+                    key(action) {
                         Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .combinedClickable(
-                                    enabled = action.isEnabled,
-                                    onClick = { onActionClick(action) },
-                                    onLongClick = if (action.supportsLongPress) {
-                                        { onActionLongClick(action) }
-                                    } else {
-                                        null
-                                    },
-                                ),
+                            modifier = Modifier.size(48.dp),
                             contentAlignment = Alignment.Center,
                         ) {
-                            Icon(
-                                imageVector = action.icon,
-                                contentDescription = action.label.get(LocalContext.current),
-                                tint = when {
-                                    !action.isEnabled -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                                    action.isDestructive -> MaterialTheme.colorScheme.error
-                                    else -> LocalContentColor.current
-                                },
-                            )
-                        }
-
-                        if (action.badge) {
-                            Box(
-                                modifier = Modifier
-                                    .align(Alignment.TopEnd)
-                                    .offset(x = (-8).dp, y = 8.dp)
-                                    .size(8.dp)
-                                    .background(
-                                        color = MaterialTheme.colorScheme.primary,
-                                        shape = CircleShape
+                            // Outside the clickable, so disabled actions still show their label on hold
+                            TooltipBox(
+                                positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
+                                    TooltipAnchorPosition.Above,
+                                ),
+                                tooltip = { PlainTooltip { Text(action.label.get(context)) } },
+                                state = rememberTooltipState(),
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .clip(CircleShape)
+                                        .clickable(
+                                            enabled = action.isEnabled,
+                                            onClick = { onActionClick(action) },
+                                        ),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Icon(
+                                        imageVector = action.icon,
+                                        contentDescription = action.label.get(context),
+                                        tint = when {
+                                            !action.isEnabled -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                                            action.isDestructive -> MaterialTheme.colorScheme.error
+                                            else -> LocalContentColor.current
+                                        },
                                     )
-                            )
+                                }
+                            }
+
+                            if (action.badge) {
+                                Box(
+                                    modifier = Modifier
+                                        .align(Alignment.TopEnd)
+                                        .offset(x = (-8).dp, y = 8.dp)
+                                        .size(8.dp)
+                                        .background(
+                                            color = MaterialTheme.colorScheme.primary,
+                                            shape = CircleShape
+                                        )
+                                )
+                            }
                         }
                     }
                 }

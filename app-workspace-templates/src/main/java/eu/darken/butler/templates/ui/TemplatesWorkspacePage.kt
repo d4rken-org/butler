@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Add
@@ -29,6 +30,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,22 +58,30 @@ import eu.darken.butler.common.compose.ColoredTitleText
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
+import eu.darken.butler.common.compose.tour.LocalGuidedTourController
+import eu.darken.butler.common.compose.tour.guidedTourTarget
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.navigation.settings
 import androidx.compose.runtime.collectAsState
 import eu.darken.butler.templates.R
 import eu.darken.butler.templates.ui.preview.TemplatesMockDataProvider
+import eu.darken.butler.templates.ui.tour.TemplatesTour
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.ui.insets.paneInsets
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.modal.LocalLayerActive
 import eu.darken.butler.workspace.ui.scroll.rememberWorkspaceLazyListState
 import eu.darken.butler.workspace.ui.template.WorkspaceTemplate
+import eu.darken.butler.workspace.ui.tour.WorkspaceTourTargets
 
 object TemplatesWorkspacePageDefaults {
     const val SETTINGS_CARD_TEST_TAG = "templates.settingsCard"
+
+    /** Template cards follow the header and the tab-name row, so the first one is the third item. */
+    const val FIRST_TEMPLATE_ITEM_INDEX = 2
 }
 
 @Composable
@@ -87,11 +97,34 @@ fun TemplatesWorkspacePageHost(
 
     val state by vm.state.collectAsState(initial = null)
 
+    // Hoisted so the tour's prepareTarget hook can scroll the first template card into composition
+    // before the step is published.
+    val listState = rememberWorkspaceLazyListState(id, slot = TemplatesScrollSlots.LIST)
+
+    val tourController = LocalGuidedTourController.current
+    val tourDefinition = remember(listState) {
+        TemplatesTour.definition(
+            prepareFirstTemplate = {
+                listState.scrollToItem(TemplatesWorkspacePageDefaults.FIRST_TEMPLATE_ITEM_INDEX)
+            },
+        )
+    }
+    // LocalLayerActive, not LocalWorkspaceFocused: a dialog open over this page leaves the pane
+    // focused, and the tour must not start behind it.
+    val layerActive = LocalLayerActive.current
+    val hasTemplates = state?.templates?.isNotEmpty() == true
+    var tourStartAttempted by remember { mutableStateOf(false) }
+    LaunchedEffect(layerActive, hasTemplates) {
+        if (!layerActive || !hasTemplates || tourStartAttempted) return@LaunchedEffect
+        tourStartAttempted = tourController.tryStart(tourDefinition)
+    }
+
     state?.let { state ->
         TemplatesWorkspacePage(
             workspaceId = id,
             design = design,
             state = state,
+            listState = listState,
             onNavToSettings = { vm.navTo(Nav.Main.settings()) },
             onCreateWorkspace = { vm.createWorkspace(it) },
             onRename = { vm.renameWorkspace(it) },
@@ -105,6 +138,7 @@ fun TemplatesWorkspacePage(
     workspaceId: Workspace.Id,
     design: WorkspaceDesign = WorkspaceDesign(),
     state: TemplatesWorkspaceViewModel.State,
+    listState: LazyListState = rememberWorkspaceLazyListState(workspaceId, slot = TemplatesScrollSlots.LIST),
     onNavToSettings: () -> Unit,
     onCreateWorkspace: (WorkspaceAction.Create) -> Unit = {},
     onRename: (String?) -> Unit = {},
@@ -122,7 +156,9 @@ fun TemplatesWorkspacePage(
     // Dynamically measured settings card height for content padding
     var settingsCardHeight by remember { mutableStateOf(96.dp) } // Initial estimate
 
-    val listState = rememberWorkspaceLazyListState(workspaceId, slot = TemplatesScrollSlots.LIST)
+    // The pager composes neighbouring pages, so two adjacent Templates tabs would otherwise both
+    // register the same tour anchors.
+    val isLayerActive = LocalLayerActive.current
 
     Box(modifier = Modifier.fillMaxSize()) {
         // Scrollable content
@@ -169,6 +205,7 @@ fun TemplatesWorkspacePage(
                 TemplateCard(
                     template = template,
                     isFirstItem = isFirstItem,
+                    isTourTarget = isFirstItem && isLayerActive,
                     onClick = {
                         onCreateWorkspace(
                             WorkspaceAction.Create(
@@ -271,7 +308,14 @@ fun TemplatesWorkspacePage(
             WorkspaceButton(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(top = statusBarInset + 16.dp, end = 16.dp),
+                    .padding(top = statusBarInset + 16.dp, end = 16.dp)
+                    .then(
+                        if (isLayerActive) {
+                            Modifier.guidedTourTarget(WorkspaceTourTargets.BUTLER_BUTTON)
+                        } else {
+                            Modifier
+                        },
+                    ),
                 buttonSize = 48.dp,
                 currentWorkspaceId = workspaceId,
             )
@@ -341,12 +385,60 @@ private fun TabNameRow(
     }
 }
 
+private data class TemplateCardColors(
+    val iconContainer: Color,
+    val icon: Color,
+    val title: Color,
+    val subtitle: Color,
+    val trailing: Color,
+)
+
+/**
+ * The accent is deliberately subordinate to the featured styling: a template that sorts first
+ * always renders as the featured card, even if it declares an accent.
+ */
+@Composable
+private fun templateCardColors(
+    isFeatured: Boolean,
+    accent: WorkspaceTemplate.Accent,
+): TemplateCardColors = when {
+    isFeatured -> TemplateCardColors(
+        iconContainer = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+        icon = MaterialTheme.colorScheme.onPrimaryContainer,
+        title = MaterialTheme.colorScheme.onPrimaryContainer,
+        subtitle = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
+        trailing = MaterialTheme.colorScheme.onPrimaryContainer,
+    )
+    accent == WorkspaceTemplate.Accent.TERTIARY -> TemplateCardColors(
+        iconContainer = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f),
+        icon = MaterialTheme.colorScheme.onTertiaryContainer,
+        title = MaterialTheme.colorScheme.onTertiaryContainer,
+        subtitle = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.8f),
+        trailing = MaterialTheme.colorScheme.onTertiaryContainer,
+    )
+    else -> TemplateCardColors(
+        iconContainer = MaterialTheme.colorScheme.surfaceVariant,
+        icon = MaterialTheme.colorScheme.onSurfaceVariant,
+        title = MaterialTheme.colorScheme.onSurface,
+        subtitle = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+        trailing = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+    )
+}
+
 @Composable
 private fun TemplateCard(
     template: WorkspaceTemplate,
     isFirstItem: Boolean,
+    isTourTarget: Boolean = false,
     onClick: () -> Unit
 ) {
+    val colors = templateCardColors(isFeatured = isFirstItem, accent = template.accent)
+    val tourModifier = if (isTourTarget) {
+        Modifier.guidedTourTarget(TemplatesTour.FIRST_TEMPLATE_TARGET)
+    } else {
+        Modifier
+    }
+
     val cardContent = @Composable {
         Row(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
@@ -356,11 +448,7 @@ private fun TemplateCard(
                 modifier = Modifier
                     .size(40.dp)
                     .background(
-                        color = if (isFirstItem) {
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
-                        } else {
-                            MaterialTheme.colorScheme.surfaceVariant
-                        },
+                        color = colors.iconContainer,
                         shape = CircleShape
                     ),
                 contentAlignment = Alignment.Center
@@ -368,11 +456,7 @@ private fun TemplateCard(
                 Icon(
                     imageVector = template.icon,
                     contentDescription = null,
-                    tint = if (isFirstItem) {
-                        MaterialTheme.colorScheme.onPrimaryContainer
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    },
+                    tint = colors.icon,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -385,20 +469,12 @@ private fun TemplateCard(
                 Text(
                     text = template.title.asComposable(),
                     style = MaterialTheme.typography.titleMedium,
-                    color = if (isFirstItem) {
-                        MaterialTheme.colorScheme.onPrimaryContainer
-                    } else {
-                        MaterialTheme.colorScheme.onSurface
-                    }
+                    color = colors.title,
                 )
                 Text(
                     text = template.subtitle.asComposable(),
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (isFirstItem) {
-                        MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-                    } else {
-                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                    },
+                    color = colors.subtitle,
                     modifier = Modifier.padding(top = 2.dp)
                 )
             }
@@ -406,29 +482,37 @@ private fun TemplateCard(
             Icon(
                 imageVector = Icons.TwoTone.Add,
                 contentDescription = null,
-                tint = if (isFirstItem) {
-                    MaterialTheme.colorScheme.onPrimaryContainer
-                } else {
-                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                },
+                tint = colors.trailing,
                 modifier = Modifier.size(20.dp)
             )
         }
     }
 
-    if (isFirstItem) {
-        ElevatedCard(
+    when {
+        isFirstItem -> ElevatedCard(
             onClick = onClick,
             modifier = Modifier
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .then(tourModifier),
             colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
             elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp)
         ) { cardContent() }
-    } else {
-        Card(
+        // Plain Card, not ElevatedCard: the elevation stays the featured card's distinguishing trait.
+        template.accent == WorkspaceTemplate.Accent.TERTIARY -> Card(
             onClick = onClick,
             modifier = Modifier
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .then(tourModifier),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+            )
+        ) { cardContent() }
+        else -> Card(
+            onClick = onClick,
+            modifier = Modifier
+                .fillMaxWidth()
+                .then(tourModifier),
             colors = CardDefaults.cardColors()
         ) { cardContent() }
     }
@@ -474,6 +558,18 @@ private fun TemplatesWorkspacePageNamedPreview() {
     TemplatesWorkspacePage(
         workspaceId = workspaceId,
         state = TemplatesMockDataProvider.createMockState(workspaceId, customTitle = "Holiday photos"),
+        onNavToSettings = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun TemplatesWorkspacePageWithToolingPreview() {
+    val workspaceId = Workspace.Id()
+    TemplatesWorkspacePage(
+        workspaceId = workspaceId,
+        state = TemplatesMockDataProvider.createMockState(workspaceId, includeTooling = true),
         onNavToSettings = {},
     )
 }

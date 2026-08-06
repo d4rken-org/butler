@@ -5,7 +5,7 @@ import eu.darken.butler.common.files.APath
 sealed interface SearcherDialogEvent {
     data class ShowDeleteConfirmation(
         val paths: Set<APath<*>>,
-        val forcePermDelete: Boolean = false,
+        val initialPermanentDelete: Boolean = false,
     ) : SearcherDialogEvent
 
     data object Dismiss : SearcherDialogEvent

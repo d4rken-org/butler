@@ -748,24 +748,13 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         when (action) {
             EditorActionBarItem.Copy -> clipboardController.copyToClipboard()
             EditorActionBarItem.Cut -> clipboardController.cutToClipboard()
+            EditorActionBarItem.CopyToButlerClipboard -> clipboardController.copyToButlerClipboard()
+            EditorActionBarItem.CutToButlerClipboard -> clipboardController.cutToButlerClipboard()
             EditorActionBarItem.Paste -> clipboardController.pasteFromClipboard()
             EditorActionBarItem.Delete -> requestDeleteSelection()
             EditorActionBarItem.SelectAll -> selectAll()
             EditorActionBarItem.GoToLine -> dialogsController.showGoToLineDialog()
             EditorActionBarItem.Search -> searchController.showSearchBar()
-        }
-    }
-
-    /**
-     * Handles long-press on action bar buttons.
-     * Copy/Cut long press copies/cuts to Butler clipboard.
-     */
-    fun executeActionLongClick(action: EditorActionBarItem) {
-        when (action) {
-            EditorActionBarItem.Copy -> clipboardController.copyToButlerClipboard()
-            EditorActionBarItem.Cut -> clipboardController.cutToButlerClipboard()
-            else -> { /* Other actions don't have long press behavior */
-            }
         }
     }
 
@@ -968,6 +957,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             get() = buildList {
                 if (hasSelection) add(EditorActionBarItem.Copy)
                 if (hasSelection && !isReadOnly) add(EditorActionBarItem.Cut)
+                if (hasSelection) add(EditorActionBarItem.CopyToButlerClipboard)
+                if (hasSelection && !isReadOnly) add(EditorActionBarItem.CutToButlerClipboard)
                 if (hasSelection && !isReadOnly) add(EditorActionBarItem.Delete)
                 if (hasSystemClipboardContent && !isReadOnly) add(EditorActionBarItem.Paste)
                 if (hasContent || currentContent.isNotEmpty()) add(EditorActionBarItem.SelectAll)

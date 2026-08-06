@@ -13,13 +13,11 @@ fun EditorActionBar(
     modifier: Modifier = Modifier,
     actions: List<EditorActionBarItem>,
     onActionClick: (EditorActionBarItem) -> Unit,
-    onActionLongClick: (EditorActionBarItem) -> Unit = {},
 ) {
     WorkspaceActionBar(
         modifier = modifier,
         actions = actions,
         onActionClick = { action -> onActionClick(action as EditorActionBarItem) },
-        onActionLongClick = { action -> onActionLongClick(action as EditorActionBarItem) },
     )
 }
 

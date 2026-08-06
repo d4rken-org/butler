@@ -58,9 +58,9 @@ class ExplorerDialogControllerTest : BaseTest() {
         val controller = controller()
         val items = setOf(path("a"), path("b"))
 
-        controller.handle(ExplorerDialogEvent.ShowDeleteConfirmation(items, forcePermDelete = true))
+        controller.handle(ExplorerDialogEvent.ShowDeleteConfirmation(items, initialPermanentDelete = true))
 
-        controller.current() shouldBe ExplorerDialogState.DeleteConfirmation(items, forcePermDelete = true)
+        controller.current() shouldBe ExplorerDialogState.DeleteConfirmation(items, initialPermanentDelete = true)
     }
 
     @Test

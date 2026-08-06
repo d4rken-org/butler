@@ -84,13 +84,13 @@ class EditorClipboardController(
         log(tag) { "Cut ${cut.text.length} characters to system clipboard" }
     }
 
-    /** Copies selection to Butler clipboard only (for long-press action). */
+    /** Copies selection to Butler clipboard only (for the CopyToButlerClipboard action). */
     fun copyToButlerClipboard() = doLaunch {
         val text = extractSelection(maxChars = BUTLER_CLIPBOARD_PREFILTER_CHARS) ?: return@doLaunch
         addToButlerClipboard(text)
     }
 
-    /** Cuts selection to Butler clipboard only (for long-press action). */
+    /** Cuts selection to Butler clipboard only (for the CutToButlerClipboard action). */
     fun cutToButlerClipboard() = doLaunch {
         val cut = prepareCut(maxChars = BUTLER_CLIPBOARD_PREFILTER_CHARS) ?: return@doLaunch
         // Deleting after a rejected copy (size cap throws) would silently drop the text
