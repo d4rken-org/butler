@@ -650,6 +650,57 @@ class WorkspacePageManagerTest : BaseTest() {
         pageManager.state.value.selectedWorkspaces shouldBe mapOf(0 to pane0, 1 to pane1)
     }
 
+    /**
+     * A replace races the stale-ID cleanup observer: when the repo publishes the replacement before
+     * the Created event is handled, cleanup has already dropped the old workspace from its pane and
+     * nulled focus. The replace then falls through to the "not in any pane" branch, which still owes
+     * the new workspace the focus the create asked for - otherwise the tab opens unfocused and the
+     * first typed characters go nowhere.
+     */
+    @Test
+    fun `a replace whose old workspace was already cleaned up still auto-focuses`() = runTest {
+        val old = Workspace.Id()
+        val replacement = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(infos = listOf(createWorkspaceInfo(id = old)))
+        pageManager.setPaneCount(1)
+        pageManager.handleWorkspaceSelection(old)
+
+        // Cleanup wins the race: the old workspace is gone from the repo before Created arrives
+        stateFlow.value = WorkspaceRemote.State(infos = listOf(createWorkspaceInfo(id = replacement)))
+        pageManager.state.value.focusedWorkspaceId shouldBe null
+        pageManager.state.value.selectedWorkspaces shouldBe emptyMap()
+
+        eventsFlow.emit(
+            WorkspaceEvent.Created(workspaceId = replacement, replacedId = old, autoFocus = true)
+        )
+        testScope.testScheduler.advanceUntilIdle()
+
+        val after = pageManager.state.value
+        after.focusedWorkspaceId shouldBe replacement
+        after.selectedWorkspaces shouldBe mapOf(0 to replacement)
+    }
+
+    @Test
+    fun `a cleaned-up replace without auto-focus still takes the vacant focus`() = runTest {
+        val old = Workspace.Id()
+        val replacement = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(infos = listOf(createWorkspaceInfo(id = old)))
+        pageManager.setPaneCount(1)
+        pageManager.handleWorkspaceSelection(old)
+
+        stateFlow.value = WorkspaceRemote.State(infos = listOf(createWorkspaceInfo(id = replacement)))
+
+        eventsFlow.emit(
+            WorkspaceEvent.Created(workspaceId = replacement, replacedId = old, autoFocus = false)
+        )
+        testScope.testScheduler.advanceUntilIdle()
+
+        // Nothing else is focused after cleanup, so the fallback focuses the new workspace
+        pageManager.state.value.focusedWorkspaceId shouldBe replacement
+    }
+
     @Test
     fun `selecting already-selected workspace just updates focus`() = runTest {
         val workspace1 = Workspace.Id()

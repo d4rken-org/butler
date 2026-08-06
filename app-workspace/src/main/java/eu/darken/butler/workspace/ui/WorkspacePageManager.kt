@@ -530,46 +530,78 @@ class WorkspacePageManager @Inject constructor(
                         workspaceAccessTimes = updatedAccessTimes,
                     )
                 } else {
+                    // The replaced workspace holds no pane - typically because the stale-ID cleanup
+                    // observer already dropped it. Placing the new workspace is not enough then: the
+                    // create asked for focus and cleanup may have nulled it, so run the same focus
+                    // policy a plain create gets.
                     log(TAG) { "Replaced workspace $replacedId was not in any pane, treating as new workspace" }
-                    assignToEmptyPaneInternal(currentState, workspaceId, sourcePaneIndex)
-                        .copy(workspaceAccessTimes = updatedAccessTimes)
+                    applyCreationFocusPolicy(
+                        currentState = assignToEmptyPaneInternal(currentState, workspaceId, sourcePaneIndex)
+                            .copy(workspaceAccessTimes = updatedAccessTimes),
+                        preAssignmentState = currentState,
+                        workspaceId = workspaceId,
+                        sourcePaneIndex = sourcePaneIndex,
+                        autoFocus = autoFocus,
+                    )
                 }
             } else {
                 // New workspace, not a replacement
                 if (!currentState.selectedWorkspaces.containsValue(workspaceId)) {
                     log(TAG) { "New workspace $workspaceId, assigning to empty pane (autoFocus=$autoFocus)" }
-                    val newState = assignToEmptyPaneInternal(currentState, workspaceId, sourcePaneIndex)
-                        .copy(workspaceAccessTimes = updatedAccessTimes)
-
-                    // Auto-focus if requested or if no workspace is focused
-                    if (autoFocus) {
-                        log(TAG) { "Auto-focusing new workspace $workspaceId" }
-                        // A focused workspace with no pane is invisible, so this branch - unlike the
-                        // background creates above - may evict to make room for it.
-                        val newSelections = when {
-                            currentState.currentPaneCount == 1 -> mapOf(0 to workspaceId)
-                            else -> assignPane(
-                                currentState = currentState,
-                                workspaceId = workspaceId,
-                                sourcePaneIndex = sourcePaneIndex,
-                                allowEviction = true,
-                            )
-                        }
-                        newState.copy(
-                            focusedWorkspaceId = workspaceId,
-                            selectedWorkspaces = newSelections,
-                        )
-                    } else if (newState.focusedWorkspaceId == null) {
-                        log(TAG) { "No focused workspace, setting focus to $workspaceId" }
-                        newState.copy(focusedWorkspaceId = workspaceId)
-                    } else {
-                        newState
-                    }
+                    applyCreationFocusPolicy(
+                        currentState = assignToEmptyPaneInternal(currentState, workspaceId, sourcePaneIndex)
+                            .copy(workspaceAccessTimes = updatedAccessTimes),
+                        preAssignmentState = currentState,
+                        workspaceId = workspaceId,
+                        sourcePaneIndex = sourcePaneIndex,
+                        autoFocus = autoFocus,
+                    )
                 } else {
                     log(TAG) { "Workspace $workspaceId already assigned to a pane" }
                     currentState.copy(workspaceAccessTimes = updatedAccessTimes)
                 }
             }
+        }
+    }
+
+    /**
+     * Focus for a create that was just placed by [assignToEmptyPaneInternal]: [currentState] is the
+     * placed state, [preAssignmentState] the one it was derived from (what eviction has to reason
+     * about, since the placement itself must not count as an occupant).
+     *
+     * Shared by the plain create and the replace fallback - a replace whose old workspace already
+     * lost its pane is a new workspace in every way, including its claim to focus.
+     */
+    private fun applyCreationFocusPolicy(
+        currentState: State,
+        preAssignmentState: State,
+        workspaceId: Workspace.Id,
+        sourcePaneIndex: Int?,
+        autoFocus: Boolean,
+    ): State {
+        // Auto-focus if requested or if no workspace is focused
+        return if (autoFocus) {
+            log(TAG) { "Auto-focusing new workspace $workspaceId" }
+            // A focused workspace with no pane is invisible, so this branch - unlike the
+            // background creates above - may evict to make room for it.
+            val newSelections = when {
+                preAssignmentState.currentPaneCount == 1 -> mapOf(0 to workspaceId)
+                else -> assignPane(
+                    currentState = preAssignmentState,
+                    workspaceId = workspaceId,
+                    sourcePaneIndex = sourcePaneIndex,
+                    allowEviction = true,
+                )
+            }
+            currentState.copy(
+                focusedWorkspaceId = workspaceId,
+                selectedWorkspaces = newSelections,
+            )
+        } else if (currentState.focusedWorkspaceId == null) {
+            log(TAG) { "No focused workspace, setting focus to $workspaceId" }
+            currentState.copy(focusedWorkspaceId = workspaceId)
+        } else {
+            currentState
         }
     }
 
