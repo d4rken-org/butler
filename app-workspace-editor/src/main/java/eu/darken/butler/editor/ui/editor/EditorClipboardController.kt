@@ -12,6 +12,7 @@ import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.editor.core.EditorWorkspace
 import eu.darken.butler.editor.core.engine.ClipboardCapacityException
 import eu.darken.butler.editor.core.engine.ContentSource
+import eu.darken.butler.editor.core.engine.EditorEngine
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
@@ -32,8 +33,13 @@ class EditorClipboardController(
     private val doLaunch: (suspend CoroutineScope.() -> Unit) -> Unit,
     private val workspace: suspend () -> EditorWorkspace,
     // Inserts text guarded by the oversized-selection confirm gate; returns false when the edit was
-    // deferred behind the confirm dialog (so paste success isn't logged prematurely).
+    // deferred behind the confirm dialog (so paste success isn't logged prematurely). Enqueues on the
+    // ViewModel's ordered edit queue and awaits the outcome.
     private val guardedInsert: suspend (String) -> Boolean,
+    // Deletes a captured cut through the same ordered queue, awaiting the engine's result: the
+    // deletion can't be overtaken by a keystroke typed after it, and it removes exactly the range
+    // that was copied even if the selection moved while it waited.
+    private val deleteCut: suspend (EditorEngine.CutSnapshot) -> Result<String>,
     private val clipboardHelper: SystemClipboardHelper,
     private val clipboardRepo: ClipboardRepo,
     private val tag: String,
@@ -67,35 +73,33 @@ class EditorClipboardController(
     }
 
     fun cutToClipboard() = doLaunch {
-        val ws = workspace()
-        val text = extractSelection(maxChars = MAX_SYSTEM_CLIPBOARD_CHARS) ?: return@doLaunch
+        val cut = prepareCut(maxChars = MAX_SYSTEM_CLIPBOARD_CHARS) ?: return@doLaunch
         // Any copy refusal or write failure throws above/inside, so the delete never runs
-        copyToSystemClipboard(text)
-        ws.deleteSelection().getOrElse { e ->
-            // The engine surfaced the failure via its error banner; the copy already succeeded
+        copyToSystemClipboard(cut.text)
+        deleteCut(cut).getOrElse { e ->
+            // A document that moved on deletes nothing; the copy already succeeded
             log(tag, ERROR) { "Cut copied but failed to delete - ${e.asLog()}" }
             return@doLaunch
         }
-        log(tag) { "Cut ${text.length} characters to system clipboard" }
+        log(tag) { "Cut ${cut.text.length} characters to system clipboard" }
     }
 
-    /** Copies selection to Butler clipboard only (for long-press action). */
+    /** Copies selection to Butler clipboard only (for the CopyToButlerClipboard action). */
     fun copyToButlerClipboard() = doLaunch {
         val text = extractSelection(maxChars = BUTLER_CLIPBOARD_PREFILTER_CHARS) ?: return@doLaunch
         addToButlerClipboard(text)
     }
 
-    /** Cuts selection to Butler clipboard only (for long-press action). */
+    /** Cuts selection to Butler clipboard only (for the CutToButlerClipboard action). */
     fun cutToButlerClipboard() = doLaunch {
-        val ws = workspace()
-        val text = extractSelection(maxChars = BUTLER_CLIPBOARD_PREFILTER_CHARS) ?: return@doLaunch
+        val cut = prepareCut(maxChars = BUTLER_CLIPBOARD_PREFILTER_CHARS) ?: return@doLaunch
         // Deleting after a rejected copy (size cap throws) would silently drop the text
-        addToButlerClipboard(text)
-        ws.deleteSelection().getOrElse { e ->
+        addToButlerClipboard(cut.text)
+        deleteCut(cut).getOrElse { e ->
             log(tag, ERROR) { "Cut copied but failed to delete - ${e.asLog()}" }
             return@doLaunch
         }
-        log(tag) { "Cut ${text.length} characters to Butler clipboard" }
+        log(tag) { "Cut ${cut.text.length} characters to Butler clipboard" }
     }
 
     /**
@@ -104,10 +108,21 @@ class EditorClipboardController(
      */
     private suspend fun extractSelection(maxChars: Long): String? =
         workspace().copySelection(maxChars).getOrElse { e ->
-            if (e is ClipboardCapacityException) throw e
-            log(tag, ERROR) { "Failed to extract selection - ${e.asLog()}" }
+            handleExtractFailure(e)
             null
         }
+
+    /** [extractSelection] plus the range/version identity the cut's deletion is verified against. */
+    private suspend fun prepareCut(maxChars: Long): EditorEngine.CutSnapshot? =
+        workspace().prepareCut(maxChars).getOrElse { e ->
+            handleExtractFailure(e)
+            null
+        }
+
+    private fun handleExtractFailure(e: Throwable) {
+        if (e is ClipboardCapacityException) throw e
+        log(tag, ERROR) { "Failed to extract selection - ${e.asLog()}" }
+    }
 
     /** The char cap is a heuristic; setPrimaryClip can still fail across the binder for large clips. */
     private fun copyToSystemClipboard(text: String) {

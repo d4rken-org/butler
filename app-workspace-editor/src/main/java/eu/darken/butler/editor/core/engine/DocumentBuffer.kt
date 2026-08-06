@@ -1451,7 +1451,7 @@ class DocumentBuffer @AssistedInject constructor(
     /**
      * Merges a keystroke edit into the current typing run's top entry. Runs merge only while
      * uninterrupted: same anchor entry, within [COALESCE_WINDOW] of the previous keystroke, no
-     * newline, capped at [COALESCE_MAX_CHARS], and never across the saved checkpoint (merging
+     * line break, capped at [COALESCE_MAX_CHARS], and never across the saved checkpoint (merging
      * over it would make "undo back to saved" unreachable).
      */
     private fun tryCoalesce(operation: EditOperation): Boolean {
@@ -1464,9 +1464,9 @@ class DocumentBuffer @AssistedInject constructor(
         val merged: EditOperation? = when {
             operation is EditOperation.Insert && single is EditOperation.Insert -> {
                 val contiguous = single.position.offset + single.text.length == operation.position.offset
-                // A newline ends a run on BOTH sides: it neither joins the previous run nor
-                // accumulates the following one
-                val clean = !operation.text.contains('\n') && !single.text.contains('\n')
+                // A line break (a lone '\r' included) ends a run on BOTH sides: it neither joins
+                // the previous run nor accumulates the following one
+                val clean = !operation.text.containsLineBreak() && !single.text.containsLineBreak()
                 val withinCap = single.text.length + operation.text.length <= COALESCE_MAX_CHARS
                 if (contiguous && clean && withinCap) {
                     EditOperation.Insert(single.position, single.text + operation.text)
@@ -1475,7 +1475,7 @@ class DocumentBuffer @AssistedInject constructor(
             operation is EditOperation.Delete && single is EditOperation.Delete -> {
                 // Backspace run: the new deletion ends exactly where the previous one started
                 val contiguous = operation.position.offset + operation.length == single.position.offset
-                val clean = !operation.deletedText.contains('\n') && !single.deletedText.contains('\n')
+                val clean = !operation.deletedText.containsLineBreak() && !single.deletedText.containsLineBreak()
                 val withinCap = single.deletedText.length + operation.deletedText.length <= COALESCE_MAX_CHARS
                 if (contiguous && clean && withinCap) {
                     EditOperation.Delete(
@@ -1505,11 +1505,16 @@ class DocumentBuffer @AssistedInject constructor(
         return true
     }
 
+    /**
+     * Line breaks are SEPARATORS, matching the piece table ([PieceTable.lineOfOffset] returns
+     * [PieceTable.totalLineBreaks] at the document end): a document ending in a break has a
+     * trailing empty line and it must be counted, or the cursor after pressing Enter at EOF has
+     * no line to land on.
+     */
     private fun refreshStats() {
         val table = pieceTable ?: return
         _totalLength.value = table.totalCharLength
-        val lines = table.totalLineBreaks + (if (table.endsWithBreak) 0L else 1L)
-        _totalLines.value = lines.coerceAtLeast(1L)
+        _totalLines.value = (table.totalLineBreaks + 1L).coerceAtLeast(1L)
     }
 
     private fun updateModified() {
@@ -1521,15 +1526,8 @@ class DocumentBuffer @AssistedInject constructor(
         _canRedo.value = redoStack.isNotEmpty()
     }
 
-    private fun insertEndPosition(position: TextPosition, text: String): TextPosition = TextPosition(
-        offset = position.offset + text.length,
-        line = position.line + text.count { it == '\n' },
-        column = if (text.contains('\n')) {
-            text.length - text.lastIndexOf('\n') - 1
-        } else {
-            position.column + text.length
-        },
-    )
+    private fun insertEndPosition(position: TextPosition, text: String): TextPosition =
+        endPositionOf(position, text, endOffset = position.offset + text.length)
 
     /**
      * Estimates the memory footprint of an EditOperation in bytes.

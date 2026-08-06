@@ -32,16 +32,17 @@ class DocumentBufferReadTest : DocumentBufferTestBase() {
         val content = "line1\nline2\nline3\n"
         val buffer = createBuffer(content)
 
-        // Then: Should count 3 lines (not 4 with empty line)
-        buffer.totalLines.value shouldBe 3L
+        // Then: The trailing break separates a 4th, empty line
+        buffer.totalLines.value shouldBe 4L
 
         // And: Lines should be accessible
         buffer.getTextForLine(0).getOrThrow() shouldBe "line1"
         buffer.getTextForLine(1).getOrThrow() shouldBe "line2"
         buffer.getTextForLine(2).getOrThrow() shouldBe "line3"
+        buffer.getTextForLine(3).getOrThrow() shouldBe ""
 
-        // And: No 4th line should exist
-        buffer.getTextForLine(3).isFailure shouldBe true
+        // And: No 5th line should exist
+        buffer.getTextForLine(4).isFailure shouldBe true
     }
 
     @Test
@@ -79,32 +80,34 @@ class DocumentBufferReadTest : DocumentBufferTestBase() {
         val content = "\n\n\n"
         val buffer = createBuffer(content)
 
-        // Then: Should count 3 lines (3 newlines = 3 empty lines)
-        buffer.totalLines.value shouldBe 3L
+        // Then: 3 separators bound 4 empty lines
+        buffer.totalLines.value shouldBe 4L
 
         // And: All lines should be empty
         buffer.getTextForLine(0).getOrThrow() shouldBe ""
         buffer.getTextForLine(1).getOrThrow() shouldBe ""
         buffer.getTextForLine(2).getOrThrow() shouldBe ""
+        buffer.getTextForLine(3).getOrThrow() shouldBe ""
     }
 
     // ==================== P0 Tests: split() Bug (Content Display) ====================
 
     @Test
-    fun `getLineFromChunk handles content ending with newline without empty element`() = runTest {
+    fun `getLineFromChunk handles content ending with newline`() = runTest {
         // Given: Content ending with newline
         val content = "line1\nline2\n"
         val buffer = createBuffer(content)
 
-        // Then: Should have 2 lines (not 3 with empty element from split)
-        buffer.totalLines.value shouldBe 2L
+        // Then: 2 separators bound 3 lines, the last one empty
+        buffer.totalLines.value shouldBe 3L
 
         // And: Lines should have correct content
         buffer.getTextForLine(0).getOrThrow() shouldBe "line1"
         buffer.getTextForLine(1).getOrThrow() shouldBe "line2"
+        buffer.getTextForLine(2).getOrThrow() shouldBe ""
 
-        // And: No 3rd line exists
-        buffer.getTextForLine(2).isFailure shouldBe true
+        // And: No 4th line exists
+        buffer.getTextForLine(3).isFailure shouldBe true
     }
 
     @Test
@@ -134,14 +137,15 @@ class DocumentBufferReadTest : DocumentBufferTestBase() {
     }
 
     @Test
-    fun `single newline creates one empty line`() = runTest {
+    fun `single newline creates two empty lines`() = runTest {
         // Given: Content with just a newline
         val content = "\n"
         val buffer = createBuffer(content)
 
-        // Then: One empty line before the newline
-        buffer.totalLines.value shouldBe 1L
+        // Then: One empty line on each side of the separator
+        buffer.totalLines.value shouldBe 2L
         buffer.getTextForLine(0).getOrThrow() shouldBe ""
+        buffer.getTextForLine(1).getOrThrow() shouldBe ""
     }
 
     // ==================== P0 Tests: Complete Reads (Accuracy) ====================
@@ -154,8 +158,8 @@ class DocumentBufferReadTest : DocumentBufferTestBase() {
         val content = lines.joinToString("\n") + "\n"
         val buffer = createBuffer(content)
 
-        // Then: All lines counted (not just 10%)
-        buffer.totalLines.value shouldBe 1000L
+        // Then: All lines counted (not just 10%), plus the trailing break's empty line
+        buffer.totalLines.value shouldBe 1001L
 
         // And: Sample lines have correct content
         buffer.getTextForLine(0).getOrThrow() shouldBe "Line 1"
@@ -426,8 +430,8 @@ class DocumentBufferReadTest : DocumentBufferTestBase() {
         val content = "$line1\n$line2\n$line3\n"
         val buffer = createBuffer(content, blockSize = 1024)
 
-        // Then: All lines counted correctly
-        buffer.totalLines.value shouldBe 3L
+        // Then: All lines counted correctly, plus the trailing break's empty line
+        buffer.totalLines.value shouldBe 4L
 
         // And: Each line accessible
         buffer.getTextForLine(0).getOrThrow() shouldBe line1

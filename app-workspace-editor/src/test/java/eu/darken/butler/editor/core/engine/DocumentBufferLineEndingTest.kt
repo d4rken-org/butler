@@ -89,8 +89,8 @@ class DocumentBufferLineEndingTest : DocumentBufferTestBase() {
         // When: Buffer is initialized
         val lineCount = buffer.totalLines.value
 
-        // Then: Correct line count (3 lines)
-        lineCount shouldBe 3
+        // Then: 3 separators bound 4 lines, the last one empty
+        lineCount shouldBe 4
     }
 
     @Test
@@ -115,8 +115,8 @@ class DocumentBufferLineEndingTest : DocumentBufferTestBase() {
         // When: Buffer is initialized
         val lineCount = buffer.totalLines.value
 
-        // Then: Correct line count (3 lines)
-        lineCount shouldBe 3
+        // Then: 3 separators bound 4 lines, the last one empty
+        lineCount shouldBe 4
     }
 
     @Test

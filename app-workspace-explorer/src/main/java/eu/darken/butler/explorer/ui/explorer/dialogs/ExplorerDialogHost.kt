@@ -37,7 +37,7 @@ fun ExplorerDialogHost(
             DeleteConfirmationDialog(
                 items = dialogState.items,
                 trashEnabled = trashEnabled,
-                forcePermDelete = dialogState.forcePermDelete,
+                initialPermanentDelete = dialogState.initialPermanentDelete,
                 onDismiss = { vm?.dismissDialog() },
                 onConfirm = { items, forcePermDelete ->
                     vm?.onDeleteConfirmed(items, forcePermDelete)

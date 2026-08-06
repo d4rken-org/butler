@@ -59,6 +59,19 @@ fun ReviewCard(
     var isVisible by remember { mutableStateOf(true) }
     val scope = rememberCoroutineScope()
 
+    // The card only disappears with the next state emission (or, for a dismiss, once the local hide
+    // below is through), so the tap targets need a latch. It is asymmetric on purpose: the harmful
+    // orderings are a dismiss after a review (which overwrites the review bookkeeping with a
+    // snooze) and a review after a dismiss. A repeated review tap is harmless, the tool's
+    // single-flight lock absorbs it, and blocking it here would leave a dead card whenever a Play
+    // request fails and nothing gets persisted.
+    // Plain remember, not rememberSaveable (deviation from sd-maid-se): the dismissal only reaches
+    // the host after the composition-scoped 350ms hide delay, so a recreation inside that window
+    // loses the dismissal. Saveable latches would survive it and restore a visible card with both
+    // actions dead; with plain remember the card comes back fully usable.
+    var dismissLocked by remember { mutableStateOf(false) }
+    var fullyLatched by remember { mutableStateOf(false) }
+
     AnimatedVisibility(
         visible = isVisible,
         enter = slideInVertically(
@@ -114,15 +127,20 @@ fun ReviewCard(
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     // Dismissing always persists, so the card can hide right away and report back
-                    // once the exit animation is through.
+                    // once the exit animation is through. The latches close before that: during the
+                    // hide the review button is still composed and would otherwise stay tappable.
                     TextButton(
                         onClick = {
+                            if (fullyLatched || dismissLocked) return@TextButton
+                            dismissLocked = true
+                            fullyLatched = true
                             scope.launch {
                                 isVisible = false
                                 delay(350)
                                 onDismiss()
                             }
                         },
+                        enabled = !fullyLatched && !dismissLocked,
                     ) {
                         Text(text = stringResource(R.string.review_app_dismiss_action))
                     }
@@ -133,9 +151,11 @@ fun ReviewCard(
                     Button(
                         onClick = {
                             val target = activity ?: return@Button
+                            if (fullyLatched) return@Button
+                            dismissLocked = true
                             onReview(target)
                         },
-                        enabled = activity != null,
+                        enabled = activity != null && !fullyLatched,
                     ) {
                         Text(text = stringResource(R.string.review_app_review_action))
                     }

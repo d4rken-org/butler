@@ -19,7 +19,7 @@ sealed interface ExplorerDialogState {
 
     data class DeleteConfirmation(
         val items: Set<APath<*>>,
-        val forcePermDelete: Boolean = false,
+        val initialPermanentDelete: Boolean = false,
     ) : ExplorerDialogState
 
     data class RemoveLocationConfirmation(val items: List<ExplorerItem.Storage.SAF>) : ExplorerDialogState

@@ -37,10 +37,12 @@ import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import eu.darken.butler.workspace.core.handleResult
 import eu.darken.butler.workspace.core.launchPicker
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -57,6 +59,7 @@ import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
 
 @HiltViewModel(assistedFactory = EditorWorkspaceViewModel.Factory::class)
@@ -77,8 +80,16 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     private val doLaunch: (suspend CoroutineScope.() -> Unit) -> Unit = { block -> launch(block = block) }
 
     private val searchController = EditorSearchController(vmScope, doLaunch, ::getWorkspace, tag)
-    private val clipboardController =
-        EditorClipboardController(id, doLaunch, ::getWorkspace, ::guardedInsertText, clipboardHelper, clipboardRepo, tag)
+    private val clipboardController = EditorClipboardController(
+        id = id,
+        doLaunch = doLaunch,
+        workspace = ::getWorkspace,
+        guardedInsert = ::guardedInsertText,
+        deleteCut = ::enqueueVerifiedDelete,
+        clipboardHelper = clipboardHelper,
+        clipboardRepo = clipboardRepo,
+        tag = tag,
+    )
     private val dialogsController = EditorDialogsController(doLaunch, ::getWorkspace)
 
     private var openFileJob: Job? = null
@@ -106,11 +117,11 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             ) { state, contentPath -> WorkspaceSnapshot(ws, state, contentPath) }
         }
 
-    // Bumped whenever a field-originated edit (typing/backspace) is gated behind the large-edit
-    // confirm dialog. LazyTextEditor applies its edit to the hidden field optimistically before
-    // dispatching, so a gated (unapplied) edit would leave the field diverged from the engine;
-    // observing this signal makes the field revert to engine content. Only fires on the rare
-    // oversized gate - normal typing never bumps it.
+    // Bumped whenever a field-originated edit (typing/backspace) does NOT reach the document:
+    // gated behind the large-edit confirm dialog, or rejected by the engine (stale positions from
+    // a diverged field). LazyTextEditor applies its edit to the hidden field optimistically before
+    // dispatching, so an unapplied edit would leave the field diverged from the engine; observing
+    // this signal makes the field revert to engine content. Normal typing never bumps it.
     private val _editResyncSignal = MutableStateFlow(0)
 
     val state: Flow<State> = combine(
@@ -193,6 +204,19 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     // Pulsed on every user edit; sampled to poll backing availability while actively typing.
     private val editActivity = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
+    // Declared before the init block that starts the consumer - property initialization is ordered.
+    private val editCommands = Channel<EditCommand>(Channel.UNLIMITED)
+    private val enqueuedRevision = AtomicLong(0L)
+
+    // Revision of the newest enqueued Replace. Only Replace commands can reject and leave the field
+    // diverged, so only they may hold back the resync - Undo/paste/delete queued behind a rejection
+    // must not suppress it.
+    private val latestReplaceRevision = AtomicLong(0L)
+
+    // Set when a Replace is rejected, cleared when the resync is emitted. Touched only by the single
+    // edit-command consumer, so it needs no synchronization.
+    private var resyncPending = false
+
     /**
      * Append/EOF edits need no original bytes, so they can't trip the buffer's read backstop, and
      * the resumed-page external-change poll is coarse (15s). Sampling edit activity checks the
@@ -208,6 +232,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     }
 
     init {
+        consumeEditCommands()
         observeEditActivityForAvailability()
 
         // Dismissed backup/long-lines notices belong to ONE path: any path change (open,
@@ -436,31 +461,183 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         getWorkspace().revealMoreColumns(forward)
     }
 
-    fun insertText(text: String) = launch { guardedInsertText(text) }
+    /**
+     * One ordered edit pipeline for every text mutation.
+     *
+     * Each entry point used to `launch` its own coroutine on the multi-threaded Default dispatcher,
+     * so two edits dispatched back-to-back (Enter, then a character) could reach the engine's mutex
+     * in the wrong order and the character would resolve against the pre-Enter document. Entry
+     * points now enqueue SYNCHRONOUSLY and a single consumer drains the channel, so arrival order
+     * at the engine equals UI-event order.
+     */
+    private sealed interface EditCommand {
+        /** Enqueue order; a rejected [Replace] only resyncs the field when no newer one is queued. */
+        val revision: Long
+
+        data class Replace(
+            override val revision: Long,
+            val start: TextPosition,
+            val end: TextPosition,
+            val text: String,
+            val caret: TextPosition,
+        ) : EditCommand
+
+        data class Insert(
+            override val revision: Long,
+            val text: String,
+            /** Completed with whether the insert was applied; null for fire-and-forget inserts. */
+            val applied: CompletableDeferred<Boolean>? = null,
+        ) : EditCommand
+
+        data class DeleteSelection(override val revision: Long, val gated: Boolean) : EditCommand
+
+        /**
+         * A cut's deletion: it carries the range and document version its clipboard copy was taken
+         * from, so it can only ever remove that range - "whatever is selected now" would be a
+         * different selection by the time the queue reaches it.
+         */
+        data class VerifiedDelete(
+            override val revision: Long,
+            val snapshot: EditorEngine.CutSnapshot,
+            val outcome: CompletableDeferred<Result<String>>,
+        ) : EditCommand
+
+        data class DeleteAtCursor(override val revision: Long, val count: Int) : EditCommand
+        data class DeleteForward(override val revision: Long) : EditCommand
+        data class Undo(override val revision: Long) : EditCommand
+        data class Redo(override val revision: Long) : EditCommand
+
+        /** Replay of an edit the user confirmed in the large-edit dialog; the gate already ran. */
+        data class Confirmed(override val revision: Long, val action: suspend () -> Unit) : EditCommand
+    }
+
+    /** Must stay non-suspending: enqueueing from inside a coroutine would reintroduce the reordering. */
+    private fun enqueue(command: (Long) -> EditCommand) {
+        val created = command(enqueuedRevision.incrementAndGet())
+        // Only Replace revisions gate the resync; concurrent enqueues may assign out of order
+        if (created is EditCommand.Replace) latestReplaceRevision.updateAndGet { maxOf(it, created.revision) }
+        editCommands.trySend(created)
+    }
+
+    private fun consumeEditCommands() = vmScope.launch {
+        for (command in editCommands) {
+            try {
+                execute(command)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                // Per-command catch: one failed edit must not tear down the pipeline. Identified by
+                // kind and revision only - a command's payload is document text.
+                val label = "${command::class.simpleName}#${command.revision}"
+                log(tag, ERROR) { "Edit command failed: $label - ${e.asLog()}" }
+                errorEvents.emit(e)
+            }
+        }
+    }
+
+    private suspend fun execute(command: EditCommand) {
+        when (command) {
+            is EditCommand.Replace -> {
+                // Typing/backspace over an oversized selection replaces it non-undoably (materializing
+                // it for undo would OOM). The field already applied the edit locally, so a deferred
+                // gate bumps the resync signal to revert it; on confirm we replay the replace.
+                val replay: suspend () -> Boolean = {
+                    performReplaceText(command.start, command.end, command.text, command.caret)
+                }
+                if (deferIfOversized(fromField = true) { replay() }) {
+                    // The gate reverted the field itself, which also settles an earlier rejection
+                    resyncPending = false
+                } else if (!replay()) {
+                    // A rejected edit (stale field positions) leaves the field diverged too
+                    resyncPending = true
+                }
+                if (command.revision == latestReplaceRevision.get() && resyncPending) {
+                    resyncPending = false
+                    _editResyncSignal.update { it + 1 }
+                }
+            }
+            is EditCommand.Insert -> {
+                try {
+                    // Evaluated outside the safe call: that would skip the insert for a null deferred
+                    val applied = performGuardedInsert(command.text)
+                    command.applied?.complete(applied)
+                } catch (e: Throwable) {
+                    command.applied?.completeExceptionally(e)
+                    throw e
+                }
+            }
+            is EditCommand.DeleteSelection -> {
+                if (command.gated && deferIfOversized { performDeleteSelection() }) return
+                performDeleteSelection()
+            }
+            is EditCommand.VerifiedDelete -> {
+                try {
+                    command.outcome.complete(performVerifiedDelete(command.snapshot))
+                } catch (e: Throwable) {
+                    command.outcome.completeExceptionally(e)
+                    throw e
+                }
+            }
+            is EditCommand.DeleteAtCursor -> {
+                // Over an oversized selection this deletes non-undoably; confirm and replay as a
+                // selection delete. A plain backspace (no selection) is never gated.
+                if (deferIfOversized { performDeleteSelection() }) return
+                editActivity.tryEmit(Unit)
+                getWorkspace().deleteAtCursor(command.count)
+            }
+            is EditCommand.DeleteForward -> {
+                if (deferIfOversized { performDeleteSelection() }) return
+                editActivity.tryEmit(Unit)
+                getWorkspace().deleteForward()
+            }
+            is EditCommand.Undo -> getWorkspace().undo()
+            is EditCommand.Redo -> getWorkspace().redo()
+            // The gate already ran before the dialog; re-running it would defer the confirmed edit again
+            is EditCommand.Confirmed -> command.action()
+        }
+    }
+
+    fun insertText(text: String) = enqueue { EditCommand.Insert(it, text) }
 
     private suspend fun performInsertText(text: String) {
         editActivity.tryEmit(Unit)
         getWorkspace().insertText(text)
     }
 
-    fun replaceText(start: TextPosition, end: TextPosition, text: String, caret: TextPosition) = launch {
-        // Typing/backspace over an oversized selection replaces it non-undoably (materializing it
-        // for undo would OOM). The field already applied the edit locally, so a deferred gate bumps
-        // the resync signal to revert it; on confirm we replay the replace.
-        if (deferIfOversized(fromField = true) { performReplaceText(start, end, text, caret) }) return@launch
-        performReplaceText(start, end, text, caret)
+    fun replaceText(start: TextPosition, end: TextPosition, text: String, caret: TextPosition) =
+        enqueue { EditCommand.Replace(it, start, end, text, caret) }
+
+    private suspend fun performReplaceText(
+        start: TextPosition,
+        end: TextPosition,
+        text: String,
+        caret: TextPosition,
+    ): Boolean {
+        editActivity.tryEmit(Unit)
+        return getWorkspace().replaceText(start, end, text, caret)
     }
 
-    private suspend fun performReplaceText(start: TextPosition, end: TextPosition, text: String, caret: TextPosition) {
-        editActivity.tryEmit(Unit)
-        getWorkspace().replaceText(start, end, text, caret)
+    fun deleteSelection() = enqueue { EditCommand.DeleteSelection(it, gated = false) }
+
+    /**
+     * Enqueues a cut's verified deletion and awaits the engine's result, so a cut can do its
+     * clipboard write outside the queue while the deletion it produces stays ordered with typing -
+     * and still removes exactly the range that was copied, whatever the selection has become.
+     */
+    private suspend fun enqueueVerifiedDelete(snapshot: EditorEngine.CutSnapshot): Result<String> {
+        val outcome = CompletableDeferred<Result<String>>()
+        enqueue { EditCommand.VerifiedDelete(it, snapshot, outcome) }
+        return outcome.await()
     }
 
-    fun deleteSelection() = launch { performDeleteSelection() }
-
-    private suspend fun performDeleteSelection() {
+    private suspend fun performDeleteSelection(): Result<String> {
         editActivity.tryEmit(Unit)
-        getWorkspace().deleteSelection()
+        return getWorkspace().deleteSelection()
+    }
+
+    private suspend fun performVerifiedDelete(snapshot: EditorEngine.CutSnapshot): Result<String> {
+        editActivity.tryEmit(Unit)
+        return getWorkspace().applyCut(snapshot)
     }
 
     // Deferred edit stashed behind the large-edit confirm dialog; replayed by [confirmLargeDelete],
@@ -480,6 +657,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
      * (confirm an edit that would actually be undoable) - the safe direction; it never skips a genuine
      * non-undoable edit. [fromField] edits already mutated the hidden field locally, so a gate bumps
      * [_editResyncSignal] to revert it to engine content.
+     *
+     * Runs inside the edit-command consumer, so it stays ordered against the edits it gates.
      */
     private suspend fun deferIfOversized(fromField: Boolean = false, onConfirm: suspend () -> Unit): Boolean {
         if (!getWorkspace().selectionExceedsUndoThreshold()) return false
@@ -492,14 +671,13 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         return true
     }
 
-    fun requestDeleteSelection() = launch {
-        if (!deferIfOversized { performDeleteSelection() }) performDeleteSelection()
-    }
+    fun requestDeleteSelection() = enqueue { EditCommand.DeleteSelection(it, gated = true) }
 
     fun confirmLargeDelete() {
         val action = pendingOversizedEdit.getAndSet(null) ?: return
+        // Enqueued before the dialog closes: typing right after confirming must land behind the replay
+        enqueue { EditCommand.Confirmed(it, action) }
         dialogsController.dismissLargeDeleteConfirmDialog()
-        launch { action() }
     }
 
     /** Cancel the pending oversized edit without applying it. */
@@ -508,22 +686,25 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         dialogsController.dismissLargeDeleteConfirmDialog()
     }
 
-    fun deleteAtCursor(count: Int) = launch {
-        // Over an oversized selection this deletes non-undoably; confirm and replay as a selection
-        // delete. A plain backspace (no selection) is never gated.
-        if (deferIfOversized { performDeleteSelection() }) return@launch
-        editActivity.tryEmit(Unit)
-        getWorkspace().deleteAtCursor(count)
-    }
+    fun deleteAtCursor(count: Int) = enqueue { EditCommand.DeleteAtCursor(it, count) }
 
-    fun deleteForward() = launch {
-        if (deferIfOversized { performDeleteSelection() }) return@launch
-        editActivity.tryEmit(Unit)
-        getWorkspace().deleteForward()
-    }
+    fun deleteForward() = enqueue { EditCommand.DeleteForward(it) }
 
-    /** Insert (e.g. paste) guarded by the oversized-selection gate. Returns false when deferred. */
+    /**
+     * Insert (e.g. paste) guarded by the oversized-selection gate. Returns false when deferred.
+     * Goes through the same queue as every other mutation, awaiting its command's outcome.
+     */
     private suspend fun guardedInsertText(text: String): Boolean {
+        val applied = CompletableDeferred<Boolean>()
+        enqueue { EditCommand.Insert(it, text, applied) }
+        return applied.await()
+    }
+
+    /**
+     * The inline body of an [EditCommand.Insert], run by the consumer. It must never enqueue and
+     * wait: the consumer that would have to run the enqueued command is the one calling this.
+     */
+    private suspend fun performGuardedInsert(text: String): Boolean {
         if (deferIfOversized { performInsertText(text) }) return false
         performInsertText(text)
         return true
@@ -549,13 +730,9 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         getWorkspace().goToLine(lineNumber)
     }
 
-    fun undo() = launch {
-        getWorkspace().undo()
-    }
+    fun undo() = enqueue { EditCommand.Undo(it) }
 
-    fun redo() = launch {
-        getWorkspace().redo()
-    }
+    fun redo() = enqueue { EditCommand.Redo(it) }
 
     fun clearError() = launch {
         getWorkspace().clearError()
@@ -571,24 +748,13 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         when (action) {
             EditorActionBarItem.Copy -> clipboardController.copyToClipboard()
             EditorActionBarItem.Cut -> clipboardController.cutToClipboard()
+            EditorActionBarItem.CopyToButlerClipboard -> clipboardController.copyToButlerClipboard()
+            EditorActionBarItem.CutToButlerClipboard -> clipboardController.cutToButlerClipboard()
             EditorActionBarItem.Paste -> clipboardController.pasteFromClipboard()
             EditorActionBarItem.Delete -> requestDeleteSelection()
             EditorActionBarItem.SelectAll -> selectAll()
             EditorActionBarItem.GoToLine -> dialogsController.showGoToLineDialog()
             EditorActionBarItem.Search -> searchController.showSearchBar()
-        }
-    }
-
-    /**
-     * Handles long-press on action bar buttons.
-     * Copy/Cut long press copies/cuts to Butler clipboard.
-     */
-    fun executeActionLongClick(action: EditorActionBarItem) {
-        when (action) {
-            EditorActionBarItem.Copy -> clipboardController.copyToButlerClipboard()
-            EditorActionBarItem.Cut -> clipboardController.cutToButlerClipboard()
-            else -> { /* Other actions don't have long press behavior */
-            }
         }
     }
 
@@ -791,6 +957,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             get() = buildList {
                 if (hasSelection) add(EditorActionBarItem.Copy)
                 if (hasSelection && !isReadOnly) add(EditorActionBarItem.Cut)
+                if (hasSelection) add(EditorActionBarItem.CopyToButlerClipboard)
+                if (hasSelection && !isReadOnly) add(EditorActionBarItem.CutToButlerClipboard)
                 if (hasSelection && !isReadOnly) add(EditorActionBarItem.Delete)
                 if (hasSystemClipboardContent && !isReadOnly) add(EditorActionBarItem.Paste)
                 if (hasContent || currentContent.isNotEmpty()) add(EditorActionBarItem.SelectAll)

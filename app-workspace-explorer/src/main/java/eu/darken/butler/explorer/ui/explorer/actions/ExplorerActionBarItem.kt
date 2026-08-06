@@ -158,7 +158,6 @@ sealed interface ExplorerActionBarItem : WorkspaceActionBarItem {
             override val icon = if (trashEnabled) Icons.TwoTone.Delete else Icons.TwoTone.DeleteForever
             override val label = R.string.explorer_action_delete.toCaString()
             override val isDestructive = !trashEnabled
-            override val supportsLongPress = trashEnabled
         }
 
         data class Share(

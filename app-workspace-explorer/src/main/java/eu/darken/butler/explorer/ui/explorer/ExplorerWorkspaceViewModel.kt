@@ -695,7 +695,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun clearFocus() = focus.clear()
 
-    fun deleteFocusedItem(forcePermDelete: Boolean = false) = launch {
+    fun deleteFocusedItem(initialPermanentDelete: Boolean = false) = launch {
         val stateSnap = getState()
         val focusedIndex = stateSnap.focusedItemIndex ?: return@launch
         val focusedItem = stateSnap.items?.getOrNull(focusedIndex) as? ExplorerItem.Lookup ?: return@launch
@@ -703,11 +703,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         // Archive contents are read-only; the keyboard-shortcut path bypasses action-bar gating.
         if (focusedItem.path is ArchivePath) return@launch
 
-        log(tag) { "deleteFocusedItem(forcePermDelete=$forcePermDelete): ${focusedItem.lookup.name}" }
+        log(tag) { "deleteFocusedItem(initialPermanentDelete=$initialPermanentDelete): ${focusedItem.lookup.name}" }
         dialogEvents.emit(
             ExplorerDialogEvent.ShowDeleteConfirmation(
                 items = setOf(focusedItem.lookup.lookedUp),
-                forcePermDelete = forcePermDelete,
+                initialPermanentDelete = initialPermanentDelete,
             )
         )
     }
@@ -730,7 +730,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             dialogEvents.emit(
                 ExplorerDialogEvent.ShowDeleteConfirmation(
                     items = pathsToDelete,
-                    forcePermDelete = true,
+                    initialPermanentDelete = true,
                 )
             )
         }
@@ -1253,38 +1253,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val completed = getWorkspace().execute(command)
         if (completed.error == null) {
             completed.report?.affectedPaths?.map { it.path }?.let { revealItems(it) }
-        }
-    }
-
-    fun executeActionLongClick(action: ExplorerActionBarItem) = launch {
-        log(tag) { "executeActionLongClick($action)" }
-        when (action) {
-            is ExplorerActionBarItem.Directory.Delete -> {
-                log(tag) { "longPress deleteSelectedItems(): ${selection.selectedItems.value.size} items (forcePermDelete)" }
-                val selectedItems = selection.selectedItems.value
-                if (selectedItems.isNotEmpty()) {
-                    val currentLocation = getState().currentLocation
-                    if (currentLocation is ExplorerLocation.Directory) {
-                        val pathsToDelete = selectedItems
-                            .filterIsInstance<ExplorerItem.Lookup>()
-                            .map { it.lookup.lookedUp }
-                            .toSet()
-
-                        if (pathsToDelete.isNotEmpty()) {
-                            dialogEvents.emit(
-                                ExplorerDialogEvent.ShowDeleteConfirmation(
-                                    items = pathsToDelete,
-                                    forcePermDelete = true,
-                                )
-                            )
-                        }
-                    }
-                }
-            }
-            else -> {
-                // Other actions don't support long-press, delegate to regular click
-                executeAction(action)
-            }
         }
     }
 

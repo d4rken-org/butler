@@ -9,6 +9,8 @@ import eu.darken.butler.editor.core.PasteFileReader
 import eu.darken.butler.editor.core.PasteTooLargeException
 import eu.darken.butler.editor.core.engine.ClipboardCapacityException
 import eu.darken.butler.editor.core.engine.ContentSource
+import eu.darken.butler.editor.core.engine.EditorEngine.CutSnapshot
+import eu.darken.butler.editor.core.engine.StaleMatchException
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
@@ -47,6 +49,12 @@ class EditorClipboardControllerTest : BaseTest() {
     /** Mirrors ViewModel3's error handler: thrown controller errors surface here, not as crashes. */
     private val surfacedErrors = mutableListOf<Throwable>()
 
+    /** Deletes the controller routed onto the ViewModel's ordered edit queue instead of the workspace. */
+    private var queuedDeletes = 0
+
+    /** Result the queued verified delete reports back; overridden to simulate a conflicted cut. */
+    private var deleteResult: Result<String>? = null
+
     private fun mockWorkspace(
         selection: String = "selected text",
         copyResult: Result<String> = Result.success(selection),
@@ -66,11 +74,14 @@ class EditorClipboardControllerTest : BaseTest() {
         return mockk<EditorWorkspace>().apply {
             every { state } returns wsState
             coEvery { copySelection(any()) } returns copyResult
-            coEvery { deleteSelection() } returns Result.success(selection)
+            coEvery { prepareCut(any()) } returns copyResult.map { snapshot(it) }
+            coEvery { applyCut(any()) } answers { deleteResult ?: Result.success(firstArg<CutSnapshot>().text) }
             coEvery { insertText(any()) } returns Unit
             coEvery { readFileContent(any()) } returns Result.success("file content")
         }
     }
+
+    private fun snapshot(text: String) = CutSnapshot(text = text, startOffset = 0L, expectedVersion = 1L)
 
     private fun mockRepo(entries: List<ClipboardClip> = emptyList()): ClipboardRepo =
         mockk<ClipboardRepo>().apply {
@@ -97,6 +108,9 @@ class EditorClipboardControllerTest : BaseTest() {
         },
         workspace = { workspace },
         guardedInsert = guardedInsert,
+        // Stands in for the ViewModel's queued verified-delete command: counts the trip through the
+        // queue and then applies it on the workspace, like the edit-command consumer does.
+        deleteCut = { snapshot -> queuedDeletes++; workspace.applyCut(snapshot) },
         clipboardHelper = helper,
         clipboardRepo = repo,
         tag = "test",
@@ -115,7 +129,7 @@ class EditorClipboardControllerTest : BaseTest() {
 
         coVerify { helper.copyToClipboard("hello") }
         controller.hasSystemClipboardContent.value shouldBe true
-        coVerify(exactly = 0) { workspace.deleteSelection() }
+        coVerify(exactly = 0) { workspace.applyCut(any()) }
     }
 
     @Test
@@ -126,7 +140,56 @@ class EditorClipboardControllerTest : BaseTest() {
         controller.cutToClipboard()
         runCurrent()
 
-        coVerify { workspace.deleteSelection() }
+        coVerify { workspace.applyCut(any()) }
+    }
+
+    @Test
+    fun `both cut variants delete through the edit queue`() = runTest {
+        val controller = controller()
+
+        // A copy mutates no document, so it never reaches the queue
+        controller.copyToClipboard()
+        controller.copyToButlerClipboard()
+        runCurrent()
+        queuedDeletes shouldBe 0
+
+        // The deletion must stay ordered against typing, so it goes through the ViewModel's queue
+        // instead of being applied on the workspace directly
+        controller.cutToClipboard()
+        controller.cutToButlerClipboard()
+        runCurrent()
+        queuedDeletes shouldBe 2
+    }
+
+    @Test
+    fun `cut hands the captured snapshot to the queued delete`() = runTest {
+        // The delete must carry the copied range, not re-resolve "the current selection" later
+        val captured = mutableListOf<CutSnapshot>()
+        val workspace = mockWorkspace(selection = "hello").apply {
+            coEvery { applyCut(any()) } answers { captured += firstArg<CutSnapshot>(); Result.success("hello") }
+        }
+        val controller = controller(workspace)
+
+        controller.cutToClipboard()
+        runCurrent()
+
+        captured.single().text shouldBe "hello"
+        coVerify { workspace.prepareCut(EditorClipboardController.MAX_SYSTEM_CLIPBOARD_CHARS) }
+    }
+
+    @Test
+    fun `a cut whose delete is rejected keeps the clipboard copy and raises no error`() = runTest {
+        // The document moved on while the delete waited: deleting nothing is a legitimate outcome
+        val workspace = mockWorkspace(selection = "hello")
+        val helper = mockk<SystemClipboardHelper>(relaxed = true)
+        deleteResult = Result.failure(StaleMatchException())
+        val controller = controller(workspace, helper)
+
+        controller.cutToClipboard()
+        runCurrent()
+
+        coVerify { helper.copyToClipboard("hello") }
+        surfacedErrors shouldHaveSize 0
     }
 
     // ==================== System clipboard size guard ====================
@@ -157,7 +220,7 @@ class EditorClipboardControllerTest : BaseTest() {
         controller.cutToClipboard()
         runCurrent()
 
-        coVerify(exactly = 0) { workspace.deleteSelection() }
+        coVerify(exactly = 0) { workspace.applyCut(any()) }
         surfacedErrors.single().shouldBeInstanceOf<ClipboardCapacityException>()
     }
 
@@ -173,7 +236,7 @@ class EditorClipboardControllerTest : BaseTest() {
         controller.cutToClipboard()
         runCurrent()
 
-        coVerify(exactly = 0) { workspace.deleteSelection() }
+        coVerify(exactly = 0) { workspace.applyCut(any()) }
         controller.hasSystemClipboardContent.value shouldBe false
         surfacedErrors.single().shouldBeInstanceOf<ClipboardCapacityException>()
     }
@@ -244,7 +307,7 @@ class EditorClipboardControllerTest : BaseTest() {
 
         coVerify(exactly = 0) { repo.add(any()) }
         // Nothing was clipped, so nothing may be deleted - otherwise the text is silently lost
-        coVerify(exactly = 0) { workspace.deleteSelection() }
+        coVerify(exactly = 0) { workspace.applyCut(any()) }
         surfacedErrors.single().shouldBeInstanceOf<ClipboardCapacityException>()
     }
 
@@ -260,7 +323,7 @@ class EditorClipboardControllerTest : BaseTest() {
         runCurrent()
 
         coVerify(exactly = 0) { repo.add(any()) }
-        coVerify(exactly = 0) { workspace.deleteSelection() }
+        coVerify(exactly = 0) { workspace.applyCut(any()) }
         surfacedErrors.single().shouldBeInstanceOf<ClipboardCapacityException>()
     }
 

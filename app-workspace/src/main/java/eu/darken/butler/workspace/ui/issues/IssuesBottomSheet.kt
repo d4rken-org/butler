@@ -70,6 +70,10 @@ fun IssuesBottomSheet(
                     issue = issue,
                     onResolution = onResolution,
                 )
+                is PathActionIssue.TrashNotSupported -> TrashNotSupportedIssueSheet(
+                    issue = issue,
+                    onResolution = onResolution,
+                )
                 is PathActionIssue.ArchivePasswordRequired -> ArchivePasswordIssueSheet(
                     issue = issue,
                     onResolution = onResolution,
@@ -112,6 +116,27 @@ private fun IssuesBottomSheetPreview() {
             totalSize = 3L * 1024 * 1024 * 1024,
             itemCount = 5,
             trashMaxSize = 2L * 1024 * 1024 * 1024,
+        ),
+        onResolution = {},
+        onDismiss = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun IssuesBottomSheetTrashNotSupportedPreview() {
+    IssuesBottomSheet(
+        issue = PathActionIssue.TrashNotSupported(
+            untrashableItems = listOf(
+                LocalPathLookup(
+                    lookedUp = LocalPath.build("/storage/emulated/0/Download/file.txt"),
+                    fileType = FileType.FILE,
+                    size = 1024L,
+                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 3600000),
+                    target = null,
+                ),
+            ),
         ),
         onResolution = {},
         onDismiss = {},

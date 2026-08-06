@@ -134,6 +134,8 @@
     <string name="workspace_dialog_delete_more_items">… and %1$d more</string>
     <string name="workspace_dialog_delete_warning">This action cannot be undone.</string>
     <string name="workspace_dialog_delete_permanently_action">Delete Permanently</string>
+    <string name="workspace_dialog_delete_permanently_toggle">Delete permanently instead</string>
+    <string name="workspace_dialog_delete_partial_trash_notice">Some items can\'t be moved to trash and will be handled separately.</string>
 
     <!-- Trash Dialog -->
     <string name="workspace_dialog_trash_title_single">Move to Trash?</string>
@@ -255,6 +257,8 @@
     <string name="workspace_issue_archive_password_unlock">Unlock</string>
     <string name="workspace_issue_trash_move_failed_items_label">Failed items</string>
     <string name="workspace_issue_trash_move_failed_more_items">… and %1$d more items</string>
+    <string name="workspace_issue_trash_not_supported_items_label">Affected items</string>
+    <string name="workspace_issue_trash_not_supported_more_items">… and %1$d more items</string>
     <string name="workspace_issue_apply_all">Apply to all remaining issues</string>
     <string name="workspace_issue_rename_new_name">New name</string>
     <string name="workspace_issue_rename_dialog_title_new">Rename incoming file</string>

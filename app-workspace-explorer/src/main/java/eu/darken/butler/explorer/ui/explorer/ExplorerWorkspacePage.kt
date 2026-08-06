@@ -218,7 +218,7 @@ fun ExplorerWorkspacePage(
                     if (state.selectionState.selectedItems.isNotEmpty()) {
                         vm?.permanentDeleteSelectedItems()
                     } else {
-                        vm?.deleteFocusedItem(forcePermDelete = true)
+                        vm?.deleteFocusedItem(initialPermanentDelete = true)
                     }
                 },
             )

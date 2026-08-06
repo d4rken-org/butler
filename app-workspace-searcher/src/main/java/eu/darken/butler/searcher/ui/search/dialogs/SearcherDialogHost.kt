@@ -43,7 +43,7 @@ fun SearcherDialogHost(
             DeleteConfirmationDialog(
                 items = dialogState.paths,
                 trashEnabled = trashEnabled,
-                forcePermDelete = dialogState.forcePermDelete,
+                initialPermanentDelete = dialogState.initialPermanentDelete,
                 onDismiss = onDismiss,
                 onConfirm = onDeleteConfirmed,
             )

@@ -707,10 +707,13 @@ class EditorWorkspace @AssistedInject constructor(
     suspend fun deleteSelection() = currentEngine().deleteSelection()
     suspend fun deleteAtCursor(count: Int) = currentEngine().deleteAtCursor(count)
     suspend fun copySelection(maxChars: Long? = null) = currentEngine().copySelection(maxChars)
+    suspend fun prepareCut(maxChars: Long? = null) = currentEngine().prepareCut(maxChars)
+    suspend fun applyCut(snapshot: EditorEngine.CutSnapshot) = currentEngine().applyCut(snapshot)
     suspend fun selectAll() = currentEngine().selectAll()
 
     suspend fun insertText(text: String) = currentEngine().insertText(text)
-    suspend fun replaceText(start: TextPosition, end: TextPosition, text: String, caret: TextPosition) =
+    /** False when the engine rejected the edit; the caller must resync the optimistic field state. */
+    suspend fun replaceText(start: TextPosition, end: TextPosition, text: String, caret: TextPosition): Boolean =
         currentEngine().replaceText(start, end, text, caret)
     suspend fun setCursorPosition(position: TextPosition) = currentEngine().setCursorPosition(position)
     suspend fun setSelection(start: TextPosition, end: TextPosition) = currentEngine().setSelection(start, end)

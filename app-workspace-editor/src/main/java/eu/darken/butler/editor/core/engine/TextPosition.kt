@@ -14,3 +14,41 @@ data class TextPosition(
         val ZERO = TextPosition(0, 0, 0)
     }
 }
+
+/**
+ * True when the text carries ANY line break. A lone '\r' counts: it is a break for the buffer
+ * (see [endPositionOf]), so single-line fast paths and typing-run coalescing must reject it
+ * exactly like '\n'.
+ */
+internal fun CharSequence.containsLineBreak(): Boolean = any { it == '\n' || it == '\r' }
+
+/**
+ * End of [text] when it is placed at [start]. [endOffset] stays the caller's business - the insert,
+ * replace and undo/redo paths anchor it differently - only the line/column walk is shared.
+ *
+ * "\r\n", a lone "\r" and a lone "\n" each count as exactly ONE break (CRLF consumed as a single
+ * break, not two): the buffer exposes a trailing empty line for all three, so an LF-only scan
+ * leaves the cursor a line short on any text carrying a lone CR. That cursor is published before
+ * the window refresh, so the line it should have landed on would never load.
+ */
+internal fun endPositionOf(start: TextPosition, text: String, endOffset: Long): TextPosition {
+    var line = start.line
+    var column = start.column
+    var index = 0
+    while (index < text.length) {
+        when (text[index]) {
+            '\r' -> {
+                line++
+                column = 0
+                if (index + 1 < text.length && text[index + 1] == '\n') index++
+            }
+            '\n' -> {
+                line++
+                column = 0
+            }
+            else -> column++
+        }
+        index++
+    }
+    return TextPosition(offset = endOffset, line = line, column = column)
+}

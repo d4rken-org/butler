@@ -102,6 +102,33 @@ class DocumentBufferCoalescingTest : BaseTest() {
     }
 
     @Test
+    fun `a carriage return breaks the typing run`() = runTest {
+        val buffer = createBuffer()
+        buffer.typeAt(0, "line")
+        buffer.typeAt(4, "\r")
+        buffer.typeAt(5, "next")
+
+        buffer.undo().getOrThrow()
+        buffer.getFullText().getOrThrow() shouldBe "line\r"
+        buffer.undo().getOrThrow()
+        buffer.getFullText().getOrThrow() shouldBe "line"
+    }
+
+    @Test
+    fun `a backspaced carriage return breaks the backspace run`() = runTest {
+        val buffer = createBuffer("a\rb")
+        buffer.backspaceAt(3)
+        buffer.backspaceAt(2)
+        buffer.backspaceAt(1)
+        buffer.getFullText().getOrThrow() shouldBe ""
+
+        buffer.undo().getOrThrow()
+        buffer.getFullText().getOrThrow() shouldBe "a"
+        buffer.undo().getOrThrow()
+        buffer.getFullText().getOrThrow() shouldBe "a\r"
+    }
+
+    @Test
     fun `a cursor jump breaks the typing run`() = runTest {
         val buffer = createBuffer()
         buffer.typeAt(0, "ab")
