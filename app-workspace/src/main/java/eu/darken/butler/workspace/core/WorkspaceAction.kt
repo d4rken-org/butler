@@ -2,6 +2,7 @@ package eu.darken.butler.workspace.core
 
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.workspace.contracts.templates.TemplatesArguments
+import kotlin.time.Instant
 
 sealed interface WorkspaceAction {
     data class Create(
@@ -22,6 +23,22 @@ sealed interface WorkspaceAction {
          * today's first-empty-pane behaviour.
          */
         val sourceWorkspaceId: Workspace.Id? = null,
+        /**
+         * When this workspace came into existence. Null (the default) stamps the moment the repo
+         * commits it; session restore passes the persisted value so "oldest tab" keeps meaning the
+         * tab the user opened first instead of degenerating to restore order after every app start.
+         */
+        val createdAt: Instant? = null,
+        /**
+         * Opts this create into the limit dialog's "close the oldest tab" action: when the free-tier
+         * limit blocks it, the request is retained and replayed once the user frees a slot.
+         *
+         * Off by default because a repo-level replay cannot reproduce every caller's completion
+         * semantics — a caller that assigns the new workspace to a specific pane, or deliberately
+         * creates in the background, would lose that. Only callers whose follow-up is exactly
+         * "select the new (or already open) workspace" may set it, see `createAndFocus`.
+         */
+        val allowLimitRecovery: Boolean = false,
     ) : WorkspaceAction {
         sealed interface Result : WorkspaceAction.Result {
             data class Success(val newId: Workspace.Id) : Result
@@ -49,6 +66,8 @@ sealed interface WorkspaceAction {
         val id: Workspace.Id,
         val type: Workspace.Type,
         val arguments: Workspace.Arguments,
+        /** Persisted creation time of the restored workspace, see [Create.createdAt]. */
+        val createdAt: Instant? = null,
     ) : WorkspaceAction {
         sealed interface Result : WorkspaceAction.Result {
             data class Success(val newId: Workspace.Id) : Result

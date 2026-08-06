@@ -28,11 +28,17 @@ data class PendingWorkspaceConfirmation(
 
         /**
          * Notification when workspace limit is reached for non-pro users.
-         * User can choose to upgrade or dismiss.
+         * User can choose to upgrade, dismiss, or close the oldest closable tab to make room.
+         *
+         * [closableId] and [closableTitle] are both set or both null. The id is bound here rather
+         * than recomputed when the user taps: the dialog names a tab, and re-picking the oldest one
+         * at click time could close a different tab than the one the user agreed to.
          */
         data class WorkspaceLimitReached(
             val currentCount: Int,
             val limit: Int,
+            val closableId: Workspace.Id? = null,
+            val closableTitle: CaString? = null,
         ) : ConfirmationData
     }
 }

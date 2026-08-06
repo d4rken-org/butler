@@ -58,6 +58,15 @@ class WorkspaceRepo @Inject constructor(
     // the next upstream emission. Mutated only while holding [lock].
     private val _customTitles = MutableStateFlow<Map<Workspace.Id, String>>(emptyMap())
 
+    /**
+     * When each open workspace came into existence, the ordering key for "oldest tab". Written only
+     * while holding [lock], but read without it ([peekCreatedAt] is non-suspending and session
+     * saving calls it outside the lock), so it is an immutable map replaced wholesale rather than a
+     * mutable one.
+     */
+    @Volatile
+    private var createdAtById: Map<Workspace.Id, Instant> = emptyMap()
+
     private val _pendingConfirmations = MutableStateFlow<Map<String, PendingWorkspaceConfirmation>>(emptyMap())
     val pendingConfirmations: Flow<Map<String, PendingWorkspaceConfirmation>> = _pendingConfirmations
         .setupCommonEventHandlers(TAG, enabled = Bugs.isDebug) { "PendingConfirmations" }
@@ -128,14 +137,33 @@ class WorkspaceRepo @Inject constructor(
         arguments: Workspace.Arguments,
         idToReplace: Workspace.Id? = null,
         existingId: Workspace.Id? = null,
+        createdAt: Instant? = null,
     ): Workspace.Id {
         log(TAG) { "create($type, $arguments, $idToReplace, existingId=$existingId)" }
-        val wip = _workspaces.value.toMutableList()
+        return commitWorkspace(
+            newWorkspace = buildWorkspace(type, arguments, idToReplace, existingId),
+            idToReplace = idToReplace,
+            createdAt = createdAt,
+        )
+    }
 
+    /**
+     * Instantiates a workspace without touching any repo state — the only half of creation that can
+     * throw, split off so a failing factory can never leave a half-applied mutation behind (limit
+     * recovery builds the replacement BEFORE closing anything). Must be called while holding [lock];
+     * the instance it returns is owned by the caller until [commitWorkspace] takes it, so an
+     * abandoned one has to be released.
+     */
+    private fun buildWorkspace(
+        type: Workspace.Type,
+        arguments: Workspace.Arguments,
+        idToReplace: Workspace.Id?,
+        existingId: Workspace.Id?,
+    ): Workspace<out Workspace.Arguments> {
         // Honoring a caller-supplied id (single create and batch) must never append a duplicate id —
         // that would break retrieve/close/reorder and event targeting. Reusing the id of the tab being
         // replaced is the one legitimate collision.
-        if (existingId != null && existingId != idToReplace && wip.any { it.id == existingId }) {
+        if (existingId != null && existingId != idToReplace && _workspaces.value.any { it.id == existingId }) {
             throw IllegalStateException("Cannot create workspace with id $existingId: already in use")
         }
 
@@ -146,6 +174,34 @@ class WorkspaceRepo @Inject constructor(
             id = existingId ?: Workspace.Id(),
             arguments = arguments
         ) as Workspace<out Workspace.Arguments>
+
+        if (Bugs.isDebug) {
+            val expected = arguments as? Workspace.ArgumentsWithCaller
+            val seeded = newWorkspace.info.value
+            val expectedModal = expected?.modalPresentation ?: Workspace.ModalPresentationMode.PANE_LOCAL
+            if (seeded.callerWorkspaceId != expected?.callerWorkspaceId || seeded.modalPresentation != expectedModal) {
+                log(TAG, ERROR) {
+                    "Info seed mismatch for ${newWorkspace.id}: " +
+                        "seeded=(${seeded.callerWorkspaceId}, ${seeded.modalPresentation}), " +
+                        "expected=(${expected?.callerWorkspaceId}, $expectedModal). " +
+                        "Lifecycle decisions read info.value — fix the workspace's initial Info."
+                }
+            }
+        }
+
+        return newWorkspace
+    }
+
+    /**
+     * Publishes an instance built by [buildWorkspace]: replace-or-append, creation timestamp, orphan
+     * cleanup. Must be called while holding [lock].
+     */
+    private suspend fun commitWorkspace(
+        newWorkspace: Workspace<out Workspace.Arguments>,
+        idToReplace: Workspace.Id?,
+        createdAt: Instant?,
+    ): Workspace.Id {
+        val wip = _workspaces.value.toMutableList()
         if (idToReplace != null) {
             val index = wip.indexOfFirst { it.id == idToReplace }
             if (index == -1) throw IllegalStateException("Tab not found")
@@ -156,6 +212,8 @@ class WorkspaceRepo @Inject constructor(
             operationsManager.removeWorkspace(replaced.id)
             // Same leak guard as executeClose: the replaced instance's claims die with it
             contentClaims.entries.removeAll { (_, owner) -> owner == replaced.id }
+            // The slot's age belongs to the instance, not to the tab: a morph is a new workspace
+            createdAtById = createdAtById - idToReplace
             // A custom name belongs to the tab slot, not the instance: the Templates->X morph keeps
             // the name the user gave the tab. Migrated before publishing the new list so the infos
             // combine can never pair the new workspace with a stale title.
@@ -170,6 +228,10 @@ class WorkspaceRepo @Inject constructor(
             wip.add(newWorkspace)
         }
 
+        // Before the publish: create() returns to its caller only after the list was published, so a
+        // save observing that emission must already see the timestamp.
+        createdAtById = createdAtById + (newWorkspace.id to (createdAt ?: Clock.System.now()))
+
         _workspaces.value = wip
 
         if (idToReplace != null && newWorkspace.id != idToReplace) {
@@ -177,20 +239,6 @@ class WorkspaceRepo @Inject constructor(
             _workspaces.value
                 .filter { it.info.value.callerWorkspaceId == idToReplace }
                 .forEach { executeClose(it.id) }
-        }
-
-        if (Bugs.isDebug) {
-            val expected = arguments as? Workspace.ArgumentsWithCaller
-            val seeded = newWorkspace.info.value
-            val expectedModal = expected?.modalPresentation ?: Workspace.ModalPresentationMode.PANE_LOCAL
-            if (seeded.callerWorkspaceId != expected?.callerWorkspaceId || seeded.modalPresentation != expectedModal) {
-                log(TAG, ERROR) {
-                    "Info seed mismatch for ${newWorkspace.id}: " +
-                        "seeded=(${seeded.callerWorkspaceId}, ${seeded.modalPresentation}), " +
-                        "expected=(${expected?.callerWorkspaceId}, $expectedModal). " +
-                        "Lifecycle decisions read info.value — fix the workspace's initial Info."
-                }
-            }
         }
 
         return newWorkspace.id
@@ -233,6 +281,13 @@ class WorkspaceRepo @Inject constructor(
     fun peek(id: Workspace.Id): Workspace<out Workspace.Arguments>? = _workspaces.value.singleOrNull { it.id == id }
 
     /**
+     * When [id] was created, or null when it is unknown. Survives a pause/resume round-trip - the
+     * map is keyed by id and [executeResume] only swaps the instance in its list slot - so session
+     * saving can persist the true creation instant instead of the instant of the first save.
+     */
+    fun peekCreatedAt(id: Workspace.Id): Instant? = createdAtById[id]
+
+    /**
      * Ownership topology of the current workspace list, read straight off the backing state for the
      * same reason as [peek]: [state] is an asynchronous share whose replay cache can lag a swap, and
      * acting on a stale topology is what leaves a live modal over a released owner.
@@ -254,6 +309,24 @@ class WorkspaceRepo @Inject constructor(
             appScope.launch {
                 lock.withLock { action() }
             }
+        }
+    }
+
+    /**
+     * Resolves a free-tier limit dialog through its neutral action: closes the tab the dialog named
+     * and completes the create that was blocked. A no-op when nothing was parked for
+     * [confirmationId] - the dialog is dismissed either way, exactly like [resolveConfirmation].
+     */
+    fun resolveLimitByClosingOldest(confirmationId: String) {
+        log(TAG, INFO) { "resolveLimitByClosingOldest($confirmationId)" }
+        _pendingConfirmations.update { it - confirmationId }
+        val retry = pendingActions.remove(confirmationId)
+        if (retry == null) {
+            log(TAG, WARN) { "No blocked create parked for $confirmationId, nothing to recover" }
+            return
+        }
+        appScope.launch {
+            lock.withLock { retry() }
         }
     }
 
@@ -291,7 +364,13 @@ class WorkspaceRepo @Inject constructor(
                 // Check workspace limit for non-pro users
                 if (!canCreateWorkspace(action, isPro)) {
                     log(TAG, INFO) { "Workspace limit reached, showing upgrade dialog" }
-                    postLimitDialog()
+                    postLimitDialog(
+                        retry = if (!action.allowLimitRecovery) {
+                            null
+                        } else {
+                            { victimId -> recoverFromLimit(action, isPro, victimId) }
+                        }
+                    )
                     return@withLock WorkspaceAction.Create.Result.LimitReached
                 }
 
@@ -300,6 +379,7 @@ class WorkspaceRepo @Inject constructor(
                     arguments = action.arguments,
                     idToReplace = action.replace,
                     existingId = action.id,
+                    createdAt = action.createdAt,
                 )
                 trackUsage(action, Clock.System.now())
                 log(TAG) { "New workspace created with ID $newId, emitting event" }
@@ -346,6 +426,7 @@ class WorkspaceRepo @Inject constructor(
                         title = display?.title ?: action.type.label,
                         subtitle = display?.subtitle,
                     )
+                    createdAtById = createdAtById + (paused.id to (action.createdAt ?: Clock.System.now()))
                     _workspaces.value = _workspaces.value + paused
                     _events.emit(
                         WorkspaceEvent.Created(
@@ -548,6 +629,7 @@ class WorkspaceRepo @Inject constructor(
                 _workspaces.value = emptyList()
                 contentClaims.clear()
                 _customTitles.value = emptyMap()
+                createdAtById = emptyMap()
                 _events.emit(WorkspaceEvent.AllClosed)
 
                 WorkspaceAction.CloseAll.Result
@@ -923,9 +1005,68 @@ class WorkspaceRepo @Inject constructor(
         return existingId
     }
 
-    private fun postLimitDialog() {
+    /**
+     * True when closing [workspace] to make room for a blocked create would not destroy anything the
+     * user still needs. Deliberately stricter than [pauseRefusal]: a pause is reversible, this is not.
+     *
+     * Must be called while holding [lock]; [stacks] is the ownership topology of the same snapshot.
+     */
+    private fun isLimitRecoveryVictim(workspace: Workspace<*>, stacks: WorkspaceStacks): Boolean {
+        val info = workspace.info.value
+        // Same candidate set the quota counts: closing anything else would not free a slot
+        if (info.isSubWorkspace || workspace.type.isQuotaExempt) return false
+        // Close() turns these into a second confirmation stacked on the limit dialog; closing them
+        // silently is data loss
+        if (info.hasUnsavedChanges) return false
+        if (info.operationCount > 0 || info.attentionCount > 0) return false
+        // Zero counters while setup is still running says nothing about what would be lost
+        if (info.lifecycleState is Workspace.LifecycleState.Initializing) return false
+        // An open-transition in flight, exactly as pauseRefusal treats it
+        if (contentClaims.values.any { it == workspace.id }) return false
+        // Close() auto-closes children: closing the tab that owns the modal the user is standing in
+        // would destroy the very context this action exists to rescue. A unit of one is just the tab.
+        if (stacks.unitOf(workspace.id)?.size != 1) return false
+        return true
+    }
+
+    /**
+     * The counted tab that has been open longest and may be closed without losing anything, or null
+     * when no tab qualifies. Ties (identical timestamps, e.g. a batch) break on list order so the
+     * choice is deterministic. Must be called while holding [lock].
+     */
+    private fun findOldestClosableTab(): Workspace.Id? {
+        val stacks = peekStacks()
+        return _workspaces.value
+            .withIndex()
+            .filter { (_, workspace) -> isLimitRecoveryVictim(workspace, stacks) }
+            .minWithOrNull(
+                compareBy<IndexedValue<Workspace<*>>> { (_, workspace) ->
+                    createdAtById[workspace.id] ?: Instant.DISTANT_PAST
+                }.thenBy { it.index }
+            )
+            ?.value?.id
+    }
+
+    /**
+     * Surfaces the free-tier limit dialog. [retry] is the blocked create, replayed with the victim
+     * the dialog names once the user picks "close the oldest tab"; passing null (batches) offers no
+     * such action.
+     *
+     * The action is only offered when closing that tab actually unblocks the create: restore creates
+     * with `skipLimitCheck`, so the counted count can legitimately sit ABOVE the limit, and freeing
+     * one slot out of two would promise something the retry cannot deliver.
+     */
+    private fun postLimitDialog(retry: (suspend (Workspace.Id) -> Unit)? = null) {
         val confirmationId = Uuid.random().toString()
         val currentCount = countedTabCount()
+
+        val victim = retry?.let { recovery ->
+            if (currentCount - 1 >= FREE_TIER_WORKSPACE_LIMIT) return@let null
+            val victimId = findOldestClosableTab() ?: return@let null
+            val candidate = _workspaces.value.firstOrNull { it.id == victimId } ?: return@let null
+            pendingActions[confirmationId] = { recovery(victimId) }
+            candidate
+        }
 
         _pendingConfirmations.update {
             it + (confirmationId to PendingWorkspaceConfirmation(
@@ -934,8 +1075,90 @@ class WorkspaceRepo @Inject constructor(
                 data = PendingWorkspaceConfirmation.ConfirmationData.WorkspaceLimitReached(
                     currentCount = currentCount,
                     limit = FREE_TIER_WORKSPACE_LIMIT,
+                    closableId = victim?.id,
+                    closableTitle = victim?.info?.value?.withCustomTitle(_customTitles.value)?.displayTitle,
                 ),
             ))
+        }
+    }
+
+    /**
+     * Replays a create that the free-tier limit blocked, closing [victimId] to make room. Reproduces
+     * `createAndFocus` - the only entry point that opts in ([WorkspaceAction.Create.allowLimitRecovery])
+     * - including its AlreadyOpen branch, so a recovered create is indistinguishable from one that
+     * was never blocked.
+     *
+     * Must be called while holding [lock]: it drives the internal paths directly instead of
+     * [execute], whose non-reentrant mutex would deadlock permanently here.
+     *
+     * Nothing is destroyed before the replacement exists, and the order of the checks mirrors the
+     * normal create path (dedup before quota): re-opening something that is meanwhile open must never
+     * cost the user a tab.
+     *
+     * [isPro] is the value sampled when the create was made, matching [finalizeBatch]: an entitlement
+     * change while the dialog was open is not re-read (reading it suspends and must not happen under
+     * [lock], and the upgrade action dismisses this dialog anyway).
+     */
+    private suspend fun recoverFromLimit(
+        action: WorkspaceAction.Create,
+        isPro: Boolean,
+        victimId: Workspace.Id,
+    ) {
+        log(TAG, INFO) { "recoverFromLimit($action, victim=$victimId)" }
+
+        (findExistingSingleton(action) ?: findExistingContentMatch(action))?.let { existingId ->
+            log(TAG, INFO) { "Blocked create of ${action.type} is open as $existingId now, selecting it" }
+            _events.emit(WorkspaceEvent.SelectionRequested(existingId, action.sourceWorkspaceId))
+            return
+        }
+
+        val needsClose = !canCreateWorkspace(action, isPro)
+        if (needsClose) {
+            val victim = _workspaces.value.firstOrNull { it.id == victimId }
+            // No substitution: the user consented to closing THIS tab, so a fresh dialog has to ask
+            // again for whatever is closable now.
+            if (victim == null || !isLimitRecoveryVictim(victim, peekStacks())) {
+                log(TAG, WARN) { "$victimId is no longer closable, asking again" }
+                postLimitDialog(retry = { newVictimId -> recoverFromLimit(action, isPro, newVictimId) })
+                return
+            }
+        } else {
+            log(TAG, INFO) { "A slot freed up meanwhile, creating without closing anything" }
+        }
+
+        val built = try {
+            buildWorkspace(action.type, action.arguments, action.replace, action.id)
+        } catch (e: Exception) {
+            log(TAG, ERROR) { "Limit recovery could not build ${action.type}, closing nothing: ${e.asLog()}" }
+            Bugs.report(e)
+            return
+        }
+
+        var committedId: Workspace.Id? = null
+        try {
+            if (needsClose) executeClose(victimId)
+            committedId = commitWorkspace(built, action.replace, action.createdAt)
+            trackUsage(action, Clock.System.now())
+            _events.emit(
+                WorkspaceEvent.Created(
+                    workspaceId = committedId,
+                    replacedId = action.replace,
+                    autoFocus = action.autoFocus,
+                    sourceWorkspaceId = action.sourceWorkspaceId,
+                )
+            )
+            _events.emit(WorkspaceEvent.SelectionRequested(committedId, action.sourceWorkspaceId))
+        } catch (e: Exception) {
+            log(TAG, ERROR) { "Limit recovery failed after building ${built.id}: ${e.asLog()}" }
+            if (committedId == null) {
+                // Never published, so nothing will ever release it for us
+                try {
+                    built.release()
+                } catch (releaseError: Exception) {
+                    log(TAG, ERROR) { "Releasing the abandoned ${built.id} failed: ${releaseError.asLog()}" }
+                }
+            }
+            Bugs.report(e)
         }
     }
 
@@ -1118,12 +1341,19 @@ class WorkspaceRepo @Inject constructor(
         val closingWorkspace = _workspaces.value.find { it.id == workspaceId }
         val callerWorkspaceId = closingWorkspace?.info?.value?.callerWorkspaceId
 
-        closingWorkspace?.release()
+        // A stuck release must not abort the close half-way: everything below still has to happen,
+        // or the workspace stays listed while its instance is already (partially) torn down.
+        try {
+            closingWorkspace?.release()
+        } catch (e: Exception) {
+            log(TAG, ERROR) { "release() of $workspaceId failed, closing it anyway: ${e.asLog()}" }
+        }
         closingWorkspace?.let { operationsManager.removeWorkspace(it.id) }
         // Leak guard: a claimant that closes mid-open must not block its path forever
         contentClaims.entries.removeAll { (_, owner) -> owner == workspaceId }
         // A custom name must never outlive its tab and leak onto a workspace reusing the id
         _customTitles.update { it - workspaceId }
+        createdAtById = createdAtById - workspaceId
         _workspaces.value = _workspaces.value.filter { it.id != workspaceId }
         _events.emit(WorkspaceEvent.Closed(workspaceId = workspaceId, callerWorkspaceId = callerWorkspaceId))
     }

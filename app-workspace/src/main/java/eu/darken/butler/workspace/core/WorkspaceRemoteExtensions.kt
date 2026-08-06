@@ -93,6 +93,10 @@ suspend fun WorkspaceRemote.launchPicker(
  * Creates a new workspace and requests UI focus/selection for it.
  * Convenience function for the common pattern of creating a workspace and switching to it.
  *
+ * Opts into limit recovery ([WorkspaceAction.Create.allowLimitRecovery]): "create it, then select
+ * it" is exactly what the repo replays after the user frees a slot from the limit dialog, so the
+ * outcome of a recovered create is indistinguishable from a call that was never blocked.
+ *
  * @param type The type of workspace to create
  * @param arguments Optional workspace-specific arguments
  * @param sourceWorkspaceId Workspace this was invoked from, used as a pane placement hint
@@ -109,6 +113,7 @@ suspend fun WorkspaceRemote.createAndFocus(
             type = type,
             arguments = arguments,
             sourceWorkspaceId = sourceWorkspaceId,
+            allowLimitRecovery = true,
         )
     ) as WorkspaceAction.Create.Result
 

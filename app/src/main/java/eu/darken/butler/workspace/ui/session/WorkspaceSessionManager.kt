@@ -450,9 +450,12 @@ class WorkspaceSessionManager @Inject constructor(
                     )
 
                     if (lastSavedWorkspaces[info.id] != saveKey) {
-                        // Preserve original createdAt for existing workspaces
+                        // The repo knows when the tab was actually created; the stored value is only
+                        // the instant of its FIRST save, which collapses every tab created between
+                        // two debounced saves onto one timestamp. Pre-existing rows keep theirs
+                        // (still monotonic in save order), so no migration is needed.
                         val existingEntity = storage.dao.getWorkspaceById(info.id)
-                        val createdAt = existingEntity?.createdAt ?: now
+                        val createdAt = workspaceRepo.peekCreatedAt(info.id) ?: existingEntity?.createdAt ?: now
 
                         storage.dao.upsertWorkspace(
                             WorkspaceInstanceEntity(
@@ -487,6 +490,11 @@ class WorkspaceSessionManager @Inject constructor(
         val type: Workspace.Type,
         val arguments: Workspace.Arguments,
         val customTitle: String?,
+        /**
+         * Persisted creation time, handed back to the repo so tab age survives a restart instead of
+         * collapsing onto the restore instant for every tab.
+         */
+        val createdAt: Instant,
     )
 
     private suspend fun restoreSession(): List<Workspace.Id> {
@@ -638,6 +646,7 @@ class WorkspaceSessionManager @Inject constructor(
                         type = type,
                         arguments = arguments,
                         customTitle = entity.customTitle,
+                        createdAt = entity.createdAt,
                     )
                 )
                 if (type.isSingleton) seenSingletonTypes.add(type)
@@ -658,6 +667,7 @@ class WorkspaceSessionManager @Inject constructor(
                 autoFocus = false,
                 id = candidate.id,
                 skipLimitCheck = true,
+                createdAt = candidate.createdAt,
             )
         )
         (result is WorkspaceAction.Create.Result.Success).also {
@@ -675,6 +685,7 @@ class WorkspaceSessionManager @Inject constructor(
                 id = candidate.id,
                 type = candidate.type,
                 arguments = candidate.arguments,
+                createdAt = candidate.createdAt,
             )
         )
         (result is WorkspaceAction.RegisterPaused.Result.Success).also {
