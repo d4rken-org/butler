@@ -1,6 +1,7 @@
 package eu.darken.butler.editor.ui.editor
 
 import eu.darken.butler.common.SystemClipboardHelper
+import eu.darken.butler.common.debug.logging.Logging
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
@@ -10,6 +11,7 @@ import eu.darken.butler.editor.core.PasteFileReader
 import eu.darken.butler.editor.core.PasteTooLargeException
 import eu.darken.butler.editor.core.engine.ClipboardCapacityException
 import eu.darken.butler.editor.core.engine.ContentSource
+import eu.darken.butler.editor.core.engine.ReadOnlyFileException
 import eu.darken.butler.editor.core.engine.EditorEngine.CutSnapshot
 import eu.darken.butler.editor.core.engine.StaleMatchException
 import eu.darken.butler.workspace.core.Workspace
@@ -365,6 +367,33 @@ class EditorClipboardControllerTest : BaseTest() {
         runCurrent()
 
         coVerify { workspace.performEdit(EditorEngine.EditIntent.InsertAtCursor("clip text"), epoch) }
+    }
+
+    @Test
+    fun `a paste the engine refused is never reported as pasted`() = runTest {
+        // Read-only / backing-lost document: the guarded insert completes FALSE, so the controller
+        // must not log a success for text that never reached the document
+        val workspace = mockWorkspace().apply {
+            coEvery { performEdit(any(), any()) } returns EditorEngine.EditOutcome.Failed(
+                ReadOnlyFileException("File is read-only"),
+            )
+        }
+        val controller = controller(workspace)
+        val logged = CapturingLogger().also { Logging.install(it) }
+
+        controller.pasteFromClipboard(ClipboardClip.Text(origin = workspaceId, content = "clip text"))
+        runCurrent()
+        Logging.remove(logged)
+
+        coVerify(exactly = 1) { workspace.performEdit(EditorEngine.EditIntent.InsertAtCursor("clip text"), epoch) }
+        logged.messages.none { it.contains("Pasted") } shouldBe true
+    }
+
+    private class CapturingLogger : Logging.Logger {
+        val messages = mutableListOf<String>()
+        override fun log(priority: Logging.Priority, tag: String, message: String, metaData: Map<String, Any>?) {
+            messages += message
+        }
     }
 
     @Test
