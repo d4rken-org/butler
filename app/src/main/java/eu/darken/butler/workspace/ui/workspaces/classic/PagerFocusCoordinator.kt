@@ -142,15 +142,31 @@ fun rememberPagerFocusCoordinator(
                     sawScroll = true
                     return@collect
                 }
-                if (!sawScroll) return@collect
 
-                // One-shot: whatever settle follows a clamp consumes the marker, so a stale
-                // marker can never swallow a later genuine swipe to the same page.
+                // Consumed BEFORE the sawScroll gate, and only when the settled page actually IS
+                // the clamp target: scrollToPage may flip isScrollInProgress on and off without
+                // suspending, and snapshotFlow's conflating channel may skip the `true` state
+                // entirely — so the clamp's own settle can arrive with sawScroll still false. If
+                // the gate ran first, the marker would survive and swallow a later genuine swipe
+                // back to that page. The equality check is what makes early consumption safe: an
+                // unrelated pre-clamp settle must not consume a marker whose settle is still
+                // in flight, which is what a blind reorder would have allowed.
                 val clampPage = coordinator.pendingClampPage
+                if (clampPage != null && settled == clampPage) {
+                    coordinator.pendingClampPage = null
+                    sawScroll = false
+                    return@collect
+                }
+
+                if (!sawScroll) return@collect
+                sawScroll = false
+
+                // A genuine settle elsewhere means the marked clamp settle will never be reported;
+                // drop the marker so it cannot go stale.
                 if (clampPage != null) {
                     coordinator.pendingClampPage = null
-                    if (settled == clampPage) return@collect
                 }
+
                 if (coordinator.isAnimatingProgrammatically) return@collect
                 if (settled !in tabIds.indices) return@collect
 

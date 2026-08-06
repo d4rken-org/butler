@@ -289,6 +289,48 @@ class PagerFocusCoordinatorTest : ComposeTest() {
         capturedState!!.currentPage shouldBe 0
         settled shouldBe emptyList()
     }
+
+    @Test
+    fun `swipe back to a previously clamped page still reports a swipe`() {
+        var capturedState: PagerState? = null
+        var workspaces by mutableStateOf(listOf(info(idA), info(idB), info(idC)))
+        var focused by mutableStateOf<Workspace.Id?>(idC)
+        val settled = mutableListOf<Workspace.Id>()
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                TestHarness(
+                    workspaces = workspaces,
+                    focused = focused,
+                    trailingPages = 1,
+                    onSettled = { settled.add(it) },
+                    onPagerState = { capturedState = it },
+                )
+            }
+        }
+        composeTestRule.waitForIdle()
+        capturedState!!.currentPage shouldBe 2
+
+        // Clamp: the list shrinks while focus still points at the removed workspace, so the
+        // pager is corrected from page 2 to page 1.
+        workspaces = listOf(info(idA), info(idB))
+        composeTestRule.waitForIdle()
+        capturedState!!.currentPage shouldBe 1
+
+        // Focus resolves elsewhere and moves the pager off the clamped page.
+        focused = idA
+        composeTestRule.waitForIdle()
+        capturedState!!.currentPage shouldBe 0
+        settled shouldBe emptyList()
+
+        // Swiping back onto the formerly clamped page is a real gesture — a leftover clamp
+        // marker must not swallow it.
+        composeTestRule.onNodeWithTag(COORD_PAGER_TAG).performTouchInput { swipeLeft() }
+        composeTestRule.waitForIdle()
+
+        capturedState!!.currentPage shouldBe 1
+        settled shouldBe listOf(idB)
+    }
 }
 
 private const val COORD_PAGER_TAG = "coordinatorPager"
