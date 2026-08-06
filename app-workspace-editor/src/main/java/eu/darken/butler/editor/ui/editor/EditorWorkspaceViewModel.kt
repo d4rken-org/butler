@@ -85,7 +85,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         doLaunch = doLaunch,
         workspace = ::getWorkspace,
         guardedInsert = ::guardedInsertText,
-        deleteSelection = ::enqueueDeleteSelection,
+        deleteCut = ::enqueueVerifiedDelete,
         clipboardHelper = clipboardHelper,
         clipboardRepo = clipboardRepo,
         tag = tag,
@@ -489,11 +489,17 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             val applied: CompletableDeferred<Boolean>? = null,
         ) : EditCommand
 
-        data class DeleteSelection(
+        data class DeleteSelection(override val revision: Long, val gated: Boolean) : EditCommand
+
+        /**
+         * A cut's deletion: it carries the range and document version its clipboard copy was taken
+         * from, so it can only ever remove that range - "whatever is selected now" would be a
+         * different selection by the time the queue reaches it.
+         */
+        data class VerifiedDelete(
             override val revision: Long,
-            val gated: Boolean,
-            /** Completed with the engine's result; null for fire-and-forget deletes. */
-            val outcome: CompletableDeferred<Result<String>>? = null,
+            val snapshot: EditorEngine.CutSnapshot,
+            val outcome: CompletableDeferred<Result<String>>,
         ) : EditCommand
 
         data class DeleteAtCursor(override val revision: Long, val count: Int) : EditCommand
@@ -561,13 +567,14 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
                 }
             }
             is EditCommand.DeleteSelection -> {
-                // Only the ungated variant carries an outcome, so the gate can't strand a waiter
                 if (command.gated && deferIfOversized { performDeleteSelection() }) return
+                performDeleteSelection()
+            }
+            is EditCommand.VerifiedDelete -> {
                 try {
-                    val result = performDeleteSelection()
-                    command.outcome?.complete(result)
+                    command.outcome.complete(performVerifiedDelete(command.snapshot))
                 } catch (e: Throwable) {
-                    command.outcome?.completeExceptionally(e)
+                    command.outcome.completeExceptionally(e)
                     throw e
                 }
             }
@@ -613,18 +620,24 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     fun deleteSelection() = enqueue { EditCommand.DeleteSelection(it, gated = false) }
 
     /**
-     * Enqueues an ungated selection delete and awaits the engine's result, so a cut can do its
-     * clipboard write outside the queue while the deletion it produces stays ordered with typing.
+     * Enqueues a cut's verified deletion and awaits the engine's result, so a cut can do its
+     * clipboard write outside the queue while the deletion it produces stays ordered with typing -
+     * and still removes exactly the range that was copied, whatever the selection has become.
      */
-    private suspend fun enqueueDeleteSelection(): Result<String> {
+    private suspend fun enqueueVerifiedDelete(snapshot: EditorEngine.CutSnapshot): Result<String> {
         val outcome = CompletableDeferred<Result<String>>()
-        enqueue { EditCommand.DeleteSelection(it, gated = false, outcome = outcome) }
+        enqueue { EditCommand.VerifiedDelete(it, snapshot, outcome) }
         return outcome.await()
     }
 
     private suspend fun performDeleteSelection(): Result<String> {
         editActivity.tryEmit(Unit)
         return getWorkspace().deleteSelection()
+    }
+
+    private suspend fun performVerifiedDelete(snapshot: EditorEngine.CutSnapshot): Result<String> {
+        editActivity.tryEmit(Unit)
+        return getWorkspace().applyCut(snapshot)
     }
 
     // Deferred edit stashed behind the large-edit confirm dialog; replayed by [confirmLargeDelete],

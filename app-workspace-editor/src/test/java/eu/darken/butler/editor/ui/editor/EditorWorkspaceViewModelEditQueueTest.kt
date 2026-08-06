@@ -5,6 +5,7 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.editor.core.EditorWorkspace
+import eu.darken.butler.editor.core.engine.EditorEngine
 import eu.darken.butler.editor.core.engine.TextPosition
 import eu.darken.butler.editor.ui.editor.elements.EditorActionBarItem
 import eu.darken.butler.workspace.core.Workspace
@@ -196,8 +197,10 @@ class EditorWorkspaceViewModelEditQueueTest : BaseTest() {
         val deleteStarted = CompletableDeferred<Unit>()
         val releaseDelete = CompletableDeferred<Unit>()
         val workspace = makeWorkspace().apply {
-            coEvery { copySelection(any()) } returns Result.success("cut me")
-            coEvery { deleteSelection() } coAnswers {
+            coEvery { prepareCut(any()) } returns Result.success(
+                EditorEngine.CutSnapshot(text = "cut me", startOffset = 0L, expectedVersion = 1L),
+            )
+            coEvery { applyCut(any()) } coAnswers {
                 deleteStarted.complete(Unit)
                 releaseDelete.await()
                 applied += "cut"

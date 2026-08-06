@@ -119,6 +119,70 @@ class EditorEngineCopySelectionTest : DocumentBufferTestBase() {
         engine.copySelection(maxChars = 5).getOrThrow() shouldBe "World"
     }
 
+    // ==================== Verified cut ====================
+
+    private suspend fun EditorEngine.documentText(): String {
+        val state = state.value as EditorState.Loaded
+        return state.resources.textBuffer.getText(0, state.resources.textBuffer.totalLength.value).getOrThrow()
+    }
+
+    @Test
+    fun `an undisturbed cut deletes exactly the copied range`() = runTest {
+        val engine = createEngine("Hello World")
+        engine.setSelection(
+            start = TextPosition(offset = 6, line = 0, column = 6),
+            end = TextPosition(offset = 11, line = 0, column = 11),
+        )
+
+        val snapshot = engine.prepareCut().getOrThrow()
+        snapshot.text shouldBe "World"
+
+        engine.applyCut(snapshot).getOrThrow() shouldBe "World"
+        engine.documentText() shouldBe "Hello "
+        engine.cursorPosition.value.offset shouldBe 6
+        engine.selectionRange.value shouldBe null
+    }
+
+    @Test
+    fun `a cut deletes what it copied, not what is selected when it runs`() = runTest {
+        // The deletion runs behind the ordered edit queue; by then the selection may sit elsewhere
+        val engine = createEngine("Hello World")
+        engine.setSelection(
+            start = TextPosition(offset = 0, line = 0, column = 0),
+            end = TextPosition(offset = 5, line = 0, column = 5),
+        )
+        val snapshot = engine.prepareCut().getOrThrow()
+
+        engine.setSelection(
+            start = TextPosition(offset = 6, line = 0, column = 6),
+            end = TextPosition(offset = 11, line = 0, column = 11),
+        )
+        engine.applyCut(snapshot).getOrThrow() shouldBe "Hello"
+
+        engine.documentText() shouldBe " World"
+    }
+
+    @Test
+    fun `a cut whose document moved on deletes nothing and raises no error`() = runTest {
+        // e.g. the cut's delete waited behind a slow paste that changed the document underneath it
+        val engine = createEngine("Hello World")
+        engine.setSelection(
+            start = TextPosition(offset = 6, line = 0, column = 6),
+            end = TextPosition(offset = 11, line = 0, column = 11),
+        )
+        val snapshot = engine.prepareCut().getOrThrow()
+
+        engine.setCursorPosition(TextPosition(offset = 0, line = 0, column = 0))
+        engine.insertText("ABC")
+
+        val result = engine.applyCut(snapshot)
+
+        result.exceptionOrNull().shouldBeInstanceOf<StaleMatchException>()
+        engine.documentText() shouldBe "ABCHello World"
+        // A conflicted cut is a normal outcome, not something to raise a banner for
+        engine.error.value shouldBe null
+    }
+
     @Test
     fun `reversed selection deletes correctly (cut parity with copy)`() = runTest {
         // Copy and delete must agree on normalization - otherwise a reversed-selection cut

@@ -953,12 +953,30 @@ class EditorEngine @AssistedInject constructor(
     }
 
     /**
+     * A selection captured for a cut: the copied [text], the offset it starts at, and the
+     * structural version it was read from. [applyCut] re-verifies both, so the deletion can only
+     * ever remove the range this snapshot was taken from.
+     */
+    data class CutSnapshot(
+        val text: String,
+        val startOffset: Long,
+        val expectedVersion: Long,
+    )
+
+    /**
      * Extracts the selection, refusing BEFORE materialization when it exceeds [maxChars] (UTF-16
      * units). The check shares [stateMutex] with the read, so it can never race a selection
      * change. Callers pick char caps that numerically approximate their clipboard's byte
      * capacity - the refusal's [ClipboardCapacityException.limitBytes] is displayed as a size.
      */
-    suspend fun copySelection(maxChars: Long? = null): Result<String> = stateMutex.withLock {
+    suspend fun copySelection(maxChars: Long? = null): Result<String> = prepareCut(maxChars).map { it.text }
+
+    /**
+     * [copySelection] plus the range and document version the text came from, all captured under
+     * one [stateMutex] hold. Cut needs that identity: its deletion runs later (behind the ordered
+     * edit queue), by which time the selection may have moved somewhere else entirely.
+     */
+    suspend fun prepareCut(maxChars: Long? = null): Result<CutSnapshot> = stateMutex.withLock {
         return when (val currentState = _state.value) {
             is EditorState.Loaded -> {
                 val selection = _selectionRange.value ?: return Result.failure(
@@ -974,7 +992,9 @@ class EditorEngine @AssistedInject constructor(
                         return Result.failure(ClipboardCapacityException(limitBytes = maxChars))
                     }
                     log(tag) { "Copying selection: ${selection.first} to ${selection.second}" }
-                    currentState.resources.textBuffer.getText(start, end)
+                    val buffer = currentState.resources.textBuffer
+                    val version = buffer.getStructuralVersion()
+                    buffer.getText(start, end).map { CutSnapshot(it, start, version) }
                 } catch (e: Exception) {
                     log(tag, ERROR) { "Failed to copy selection - ${e.asLog()}" }
                     _error.value = e
@@ -987,6 +1007,33 @@ class EditorEngine @AssistedInject constructor(
                 Result.failure(error)
             }
         }
+    }
+
+    /**
+     * Deletes exactly the range [snapshot] was copied from, as a verified patch: both the document
+     * version and the text at the offset are re-checked, and a divergence fails with
+     * [StaleMatchException] without mutating anything. The failure is returned only - it must not
+     * raise the error banner, because a cut whose document moved legitimately deletes nothing and
+     * its clipboard write already succeeded.
+     */
+    suspend fun applyCut(snapshot: CutSnapshot): Result<String> {
+        val buffer = stateMutex.withLock {
+            val loaded = _state.value as? EditorState.Loaded
+                ?: return Result.failure(IllegalStateException("Cannot delete selection - no file open"))
+            loaded.editabilityError()?.let { return Result.failure(it) }
+            loaded.resources.textBuffer
+        }
+
+        buffer.replaceMatches(
+            listOf(DocumentBuffer.MatchReplacement(snapshot.startOffset, snapshot.text, "")),
+            expectedVersion = snapshot.expectedVersion,
+        ).getOrElse {
+            log(tag, WARN) { "Cut deletion rejected, the document moved on: ${it.asLog()}" }
+            return Result.failure(it)
+        }
+
+        refreshAfterMutation(cursorOffset = snapshot.startOffset)
+        return Result.success(snapshot.text)
     }
 
     suspend fun selectAll(): Result<Pair<TextPosition, TextPosition>> = stateMutex.withLock {
