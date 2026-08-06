@@ -4,10 +4,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.KeyboardArrowRight
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -48,6 +51,10 @@ fun ComponentsSummary(
                     SummaryCountRow(stringResource(R.string.apps_components_receivers_label), data.receivers.size)
                     SummaryCountRow(stringResource(R.string.apps_components_providers_label), data.providers.size)
 
+                    HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
+
+                    // Same trailing geometry as SummaryCountRow (count, 4.dp gap, 24.dp slot), so
+                    // the totals column lines up with the per-type counts above it.
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -58,18 +65,19 @@ fun ComponentsSummary(
                     ) {
                         Text(
                             text = stringResource(R.string.apps_components_view_all_action),
-                            style = MaterialTheme.typography.labelLarge,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.weight(1f),
                         )
                         Text(
-                            text = stringResource(R.string.apps_components_total_label, data.total),
-                            style = MaterialTheme.typography.bodySmall,
+                            text = data.total.toString(),
+                            style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Icon(
                             imageVector = Icons.AutoMirrored.TwoTone.KeyboardArrowRight,
                             contentDescription = null,
+                            modifier = Modifier.size(24.dp),
                             tint = MaterialTheme.colorScheme.primary,
                         )
                     }
@@ -89,19 +97,22 @@ private fun SummaryCountRow(
         modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             text = label,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.weight(1f),
         )
         Text(
             text = count.toString(),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+        // Stands in for the action row's chevron so both rows end their count at the same edge.
+        Spacer(modifier = Modifier.size(24.dp))
     }
 }
 

@@ -21,11 +21,12 @@ class AppDetailsToolbarCardTest : ComposeTest() {
     fun `toolbar shows app name but not package name`() {
         composeTestRule.setContent {
             PreviewWrapper {
+                // A modal overview: no sub-screen to go back from, and no workspace button — the
+                // switcher's animated mascot never idles under Robolectric.
                 AppDetailsToolbarCard(
                     app = AppsMockDataProvider.Presets.chrome,
                     design = WorkspaceDesign(),
-                    // Provide a back handler so the workspace switcher (which needs a provider) is hidden.
-                    onBackClick = {},
+                    isModal = true,
                 )
             }
         }
@@ -38,9 +39,11 @@ class AppDetailsToolbarCardTest : ComposeTest() {
     fun `toolbar shows the app name alongside a subtitle`() {
         composeTestRule.setContent {
             PreviewWrapper {
+                // The Components sub-screen of a modal: its back button returns to the overview.
                 AppDetailsToolbarCard(
                     app = AppsMockDataProvider.Presets.chrome,
                     design = WorkspaceDesign(),
+                    isModal = true,
                     subtitle = "Components",
                     onBackClick = {},
                 )
@@ -59,6 +62,7 @@ class AppDetailsToolbarCardTest : ComposeTest() {
                 AppDetailsToolbarCard(
                     app = AppsMockDataProvider.Presets.chrome,
                     design = WorkspaceDesign(),
+                    isModal = true,
                     subtitle = "Components",
                     onBackClick = {},
                     searchActive = searchActive,
@@ -84,6 +88,7 @@ class AppDetailsToolbarCardTest : ComposeTest() {
                 AppDetailsToolbarCard(
                     app = AppsMockDataProvider.Presets.chrome,
                     design = WorkspaceDesign(),
+                    isModal = true,
                     subtitle = "Components",
                     onBackClick = {},
                 )

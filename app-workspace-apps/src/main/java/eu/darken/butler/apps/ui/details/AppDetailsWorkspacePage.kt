@@ -304,6 +304,7 @@ fun AppDetailsWorkspacePage(
                         AppDetailsToolbarCard(
                             app = state.app,
                             design = design,
+                            isModal = isModal,
                             collapsedFraction = collapsedFraction,
                             subtitle = stringResource(R.string.apps_details_section_components),
                             onBackClick = { onPageAction(AppDetailsPageAction.NavigateToTab(DetailTab.OVERVIEW)) },
@@ -324,6 +325,7 @@ fun AppDetailsWorkspacePage(
                         AppDetailsToolbarCard(
                             app = state.app,
                             design = design,
+                            isModal = isModal,
                             collapsedFraction = collapsedFraction,
                             onBackClick = if (isModal) {
                                 { onPageAction(AppDetailsPageAction.Close) }

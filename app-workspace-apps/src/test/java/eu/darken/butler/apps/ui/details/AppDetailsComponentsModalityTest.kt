@@ -63,6 +63,9 @@ class AppDetailsComponentsModalityTest : ComposeTest() {
                             state = AppDetailsWorkspace.State(
                                 app = AppsMockDataProvider.Presets.chrome,
                                 selectedTab = DetailTab.COMPONENTS,
+                                // Stacked on its caller, as App Details is on a phone. Also keeps
+                                // the workspace button out, whose mascot never idles here.
+                                callerWorkspaceId = Workspace.Id(),
                             ),
                             componentsState = ComponentsUiState.Ready(
                                 ComponentsData(activities = listOf(activity)),

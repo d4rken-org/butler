@@ -25,6 +25,13 @@ import testhelpers.ComposeTest
 
 class AppDetailsWorkspacePageTest : ComposeTest() {
 
+    /**
+     * App Details stacked on its caller, which is how it opens on a phone. Also what keeps the
+     * toolbar's workspace button out of these fixtures: its animated mascot never goes idle under
+     * Robolectric, so any assertion that waits for idle would hang.
+     */
+    private val stackedOnCaller = Workspace.Id()
+
     @Test
     fun `components route shows components title and back returns to overview`() {
         val actions = mutableListOf<AppDetailsPageAction>()
@@ -35,6 +42,7 @@ class AppDetailsWorkspacePageTest : ComposeTest() {
                     state = AppDetailsWorkspace.State(
                         app = AppsMockDataProvider.Presets.chrome,
                         selectedTab = DetailTab.COMPONENTS,
+                        callerWorkspaceId = stackedOnCaller,
                     ),
                     workspaceId = Workspace.Id(),
                     onPageAction = { actions += it },
@@ -82,6 +90,7 @@ class AppDetailsWorkspacePageTest : ComposeTest() {
                     state = AppDetailsWorkspace.State(
                         app = AppsMockDataProvider.Presets.chrome,
                         selectedTab = DetailTab.COMPONENTS,
+                        callerWorkspaceId = stackedOnCaller,
                     ),
                     componentsState = ComponentsUiState.Ready(previewComponentsData),
                     selectedComponentKeys = selectedComponentKeys,
@@ -138,6 +147,7 @@ class AppDetailsWorkspacePageTest : ComposeTest() {
                         state = AppDetailsWorkspace.State(
                             app = AppsMockDataProvider.Presets.chrome,
                             selectedTab = DetailTab.COMPONENTS,
+                            callerWorkspaceId = stackedOnCaller,
                         ),
                         componentsState = ComponentsUiState.Ready(previewComponentsData),
                         selectedComponentKeys = previewComponentsData.activities.map { it.key }.toSet(),
@@ -174,6 +184,7 @@ class AppDetailsWorkspacePageTest : ComposeTest() {
                     state = AppDetailsWorkspace.State(
                         app = AppsMockDataProvider.Presets.chrome,
                         selectedTab = DetailTab.COMPONENTS,
+                        callerWorkspaceId = stackedOnCaller,
                     ),
                     componentsState = ComponentsUiState.Ready(previewComponentsData),
                     selectedComponentKeys = selectedKeys,

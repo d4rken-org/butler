@@ -50,6 +50,12 @@ fun AppDetailsToolbarCard(
     modifier: Modifier = Modifier,
     app: AppInfo?,
     design: WorkspaceDesign,
+    /**
+     * Whether this workspace is stacked on another one rather than owning a tab. Required so every
+     * call site states it: the workspace button opens the tab manager, which is meaningless for a
+     * modal, and deriving it from [onBackClick] would silently flip whenever a sub-screen adds one.
+     */
+    isModal: Boolean,
     collapsedFraction: Float = 0f,
     subtitle: String? = null,
     onBackClick: (() -> Unit)? = null,
@@ -176,8 +182,8 @@ fun AppDetailsToolbarCard(
                 }
             }
 
-            // Workspace button (no back button shown, single pane)
-            if (onBackClick == null && design.isSingle) {
+            // Workspace button: a tab on a single-pane layout, on every sub-screen of it
+            if (design.isSingle && !isModal) {
                 Spacer(modifier = Modifier.width(8.dp))
                 WorkspaceButton(
                     buttonSize = 40.dp,
@@ -195,6 +201,7 @@ private fun AppDetailsToolbarCardExpandedPreview() {
     AppDetailsToolbarCard(
         app = AppsMockDataProvider.Presets.chrome,
         design = WorkspaceDesign(),
+        isModal = false,
         collapsedFraction = 0f,
         modifier = Modifier.padding(16.dp)
     )
@@ -207,6 +214,7 @@ private fun AppDetailsToolbarCardCollapsedPreview() {
     AppDetailsToolbarCard(
         app = AppsMockDataProvider.Presets.largeApp,
         design = WorkspaceDesign(),
+        isModal = false,
         collapsedFraction = 1f,
         modifier = Modifier.padding(16.dp)
     )
@@ -219,6 +227,24 @@ private fun AppDetailsToolbarCardSubtitlePreview() {
     AppDetailsToolbarCard(
         app = AppsMockDataProvider.Presets.chrome,
         design = WorkspaceDesign(),
+        isModal = true,
+        collapsedFraction = 0f,
+        subtitle = stringResource(R.string.apps_details_section_components),
+        onBackClick = {},
+        onSearchToggle = {},
+        modifier = Modifier.padding(16.dp)
+    )
+}
+
+/** The components sub-screen of a workspace that owns a tab: back button and workspace button. */
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun AppDetailsToolbarCardComponentsInTabPreview() {
+    AppDetailsToolbarCard(
+        app = AppsMockDataProvider.Presets.chrome,
+        design = WorkspaceDesign(),
+        isModal = false,
         collapsedFraction = 0f,
         subtitle = stringResource(R.string.apps_details_section_components),
         onBackClick = {},
@@ -234,6 +260,7 @@ private fun AppDetailsToolbarCardSearchActivePreview() {
     AppDetailsToolbarCard(
         app = AppsMockDataProvider.Presets.chrome,
         design = WorkspaceDesign(),
+        isModal = true,
         collapsedFraction = 0f,
         subtitle = stringResource(R.string.apps_details_section_components),
         onBackClick = {},
@@ -251,6 +278,7 @@ private fun AppDetailsToolbarCardModalPreview() {
     AppDetailsToolbarCard(
         app = AppsMockDataProvider.Presets.disabledApp,
         design = WorkspaceDesign(),
+        isModal = true,
         collapsedFraction = 0f,
         onBackClick = {},
         modifier = Modifier.padding(16.dp)

@@ -64,6 +64,7 @@
     <string name="apps_size_label">Size</string>
     <string name="apps_size_chip_desc">App size: %1$s</string>
     <string name="apps_size_permission_hint">App sizes require usage access</string>
+    <string name="apps_size_permission_body">Android only reports app, data and cache sizes to apps that hold the Usage access permission. Grant it to see this app\'s storage breakdown.</string>
 
     <!-- App Details -->
     <string name="apps_details_storage_locations_label">Storage locations</string>
@@ -171,8 +172,7 @@
     <string name="apps_components_empty">No components found</string>
     <string name="apps_components_no_matches">No components match “%1$s”</string>
     <string name="apps_components_and_more">…and %d more</string>
-    <string name="apps_components_view_all_action">View all</string>
-    <string name="apps_components_total_label">%1$d components</string>
+    <string name="apps_components_view_all_action">View all components</string>
     <string name="apps_components_loading">Loading components…</string>
     <string name="apps_components_error">Could not load components</string>
     <string name="apps_components_launch_failed">Could not launch activity</string>

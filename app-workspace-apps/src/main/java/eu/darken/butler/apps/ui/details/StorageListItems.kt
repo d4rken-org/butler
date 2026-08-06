@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Folder
 import androidx.compose.material.icons.twotone.Storage
+import androidx.compose.material.icons.twotone.Warning
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -83,7 +84,9 @@ fun StorageListItems(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
-                    val totalSize = app?.totalSize ?: 0L
+                    // Without usage access the breakdown below is replaced by the setup block, so a
+                    // grand total from a stale cache would be left hanging above nothing.
+                    val totalSize = if (sizesAvailable) app?.totalSize ?: 0L else 0L
                     if (totalSize > 0) {
                         Text(
                             text = formatFileSize(totalSize),
@@ -95,19 +98,49 @@ fun StorageListItems(
                 }
 
                 when {
-                    !hasSizeData && isLoadingSize -> {
-                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                    // Takes precedence over cached sizes: without usage access Android stops
+                    // reporting them, so whatever is still cached is stale and the user needs the
+                    // setup path rather than numbers that will never update.
+                    !sizesAvailable -> {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(
+                                imageVector = Icons.TwoTone.Warning,
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp),
+                                tint = MaterialTheme.colorScheme.error,
+                            )
+                            Text(
+                                text = stringResource(CommonR.string.setup_required_card_title),
+                                style = MaterialTheme.typography.titleSmall,
+                                color = MaterialTheme.colorScheme.error,
+                            )
+                        }
+
+                        Text(
+                            text = stringResource(R.string.apps_size_permission_body),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp),
+                        )
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End,
+                        ) {
+                            TextButton(onClick = onOpenSetup) {
+                                Text(stringResource(CommonR.string.setup_required_card_setup_action))
+                            }
+                        }
                     }
 
-                    !hasSizeData && !sizesAvailable -> {
-                        Text(
-                            text = stringResource(R.string.apps_size_permission_hint),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        TextButton(onClick = onOpenSetup) {
-                            Text(stringResource(CommonR.string.general_open_setup_action))
-                        }
+                    !hasSizeData && isLoadingSize -> {
+                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                     }
 
                     else -> {
@@ -271,6 +304,19 @@ private fun StorageListItemsNoUsageAccessPreview() {
         onBrowsePath = {},
         onOpenSetup = {},
         app = AppsMockDataProvider.createMockAppInfo(appSize = null, dataSize = null, cacheSize = null),
+        sizesAvailable = false,
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun StorageListItemsNoUsageAccessWithCachedSizesPreview() {
+    StorageListItems(
+        availablePaths = emptyList(),
+        onBrowsePath = {},
+        onOpenSetup = {},
+        app = AppsMockDataProvider.Presets.chrome,
         sizesAvailable = false,
     )
 }

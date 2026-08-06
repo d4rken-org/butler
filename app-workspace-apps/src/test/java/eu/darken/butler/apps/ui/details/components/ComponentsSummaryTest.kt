@@ -1,6 +1,7 @@
 package eu.darken.butler.apps.ui.details.components
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import eu.darken.butler.apps.core.details.components.ComponentEntry
@@ -52,10 +53,31 @@ class ComponentsSummaryTest : ComposeTest() {
         }
 
         composeTestRule.onNodeWithText("Activities").assertIsDisplayed()
-        composeTestRule.onNodeWithText("View all").assertIsDisplayed()
-        composeTestRule.onNodeWithText("View all").performClick()
+        composeTestRule.onNodeWithText("View all components").assertIsDisplayed()
+        composeTestRule.onNodeWithText("View all components").performClick()
 
         viewAll shouldBe 1
+    }
+
+    /**
+     * The per-type rows and the action row have differently sized labels, so the counts may only
+     * line up if both rows reserve the same trailing geometry (count, gap, 24dp chevron slot).
+     */
+    @Test
+    fun `the total lines up with the per-type counts`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                ComponentsSummary(
+                    state = ComponentsUiState.Ready(sampleData),
+                    onViewAll = {},
+                )
+            }
+        }
+
+        val activitiesCount = composeTestRule.onNodeWithText("2").getUnclippedBoundsInRoot().left
+        val total = composeTestRule.onNodeWithText("3").getUnclippedBoundsInRoot().left
+
+        total shouldBe activitiesCount
     }
 
     @Test
@@ -70,7 +92,7 @@ class ComponentsSummaryTest : ComposeTest() {
         }
 
         composeTestRule.onNodeWithText("Could not load components").assertIsDisplayed()
-        composeTestRule.onNodeWithText("View all").assertDoesNotExist()
+        composeTestRule.onNodeWithText("View all components").assertDoesNotExist()
     }
 
     @Test
@@ -85,6 +107,6 @@ class ComponentsSummaryTest : ComposeTest() {
         }
 
         composeTestRule.onNodeWithText("No components found").assertIsDisplayed()
-        composeTestRule.onNodeWithText("View all").assertDoesNotExist()
+        composeTestRule.onNodeWithText("View all components").assertDoesNotExist()
     }
 }
