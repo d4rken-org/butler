@@ -914,6 +914,40 @@ class WorkspaceAutoPauseManagerTest : BaseTest() {
             order shouldBe listOf("pause-in-flight", "capture", "pause-still-in-flight")
         }
 
+    /**
+     * Runs one idle pass over a visible tab and a hidden one, applying the pager's layout
+     * [applyCount] times, and names whichever of the two ended up paused. [setup] gives each run its
+     * own repo/page manager/tracker, so the two runs cannot leak state into each other.
+     */
+    private suspend fun pausedAfterIdlePass(applyCount: Int): List<String> {
+        setup()
+        val visibleId = createTab()
+        val hiddenId = createTab()
+        repeat(applyCount) { pageManager.setLayout(mapOf(0 to visibleId), focusedId = visibleId) }
+
+        val manager = createManager()
+        manager.evaluateNow()
+        elapse(3.hours)
+        manager.evaluateNow()
+
+        return listOfNotNull(
+            "visible".takeIf { isPaused(visibleId) },
+            "hidden".takeIf { isPaused(hiddenId) },
+        )
+    }
+
+    @Test
+    fun `a repeated layout apply does not change the auto-pause candidate`() = runTest(UnconfinedTestDispatcher()) {
+        // The manager never reads workspaceAccessTimes - it goes by its own idleSince map, the
+        // pager's seen stamps, the visible unit ids and lifecycle/pause state. So the extra MRU
+        // stamp a repeated apply writes must not reach candidate selection.
+        val once = pausedAfterIdlePass(applyCount = 1)
+        val twice = pausedAfterIdlePass(applyCount = 2)
+
+        once shouldBe listOf("hidden")
+        twice shouldBe once
+    }
+
     @Test
     fun `idle bookkeeping alone does not touch the page manager state`() = runTest(UnconfinedTestDispatcher()) {
         createTab()
