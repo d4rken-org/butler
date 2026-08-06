@@ -5,12 +5,14 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.trash.TrashManager
 import eu.darken.butler.common.trash.TrashSettings
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -19,12 +21,14 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Duration.Companion.days
 
 class CoreDeleteExecutorTest : BaseTest() {
@@ -432,19 +436,9 @@ class CoreDeleteExecutorTest : BaseTest() {
 
     @Test
     fun `execute - supports non-LocalPath but skips trash`() = runTest {
-        // Given - Using a custom path type that's not LocalPath (using SAFPath as example)
-        val customPath = mockk<eu.darken.butler.common.files.SAFPath> {
-            every { path } returns "/custom/path"
-            every { name } returns "path"
-            every { segments } returns listOf("custom", "path")
-            every { parent } returns null
-        }
-
-        val customLookup = mockk<APathLookup<APath<*>>> {
-            every { lookedUp } returns customPath
-            every { fileType } returns FileType.FILE
-            every { size } returns 512L
-        }
+        // Given - Using a path type the trash can't hold
+        val customPath = safPath("saf.txt")
+        val customLookup = safLookup(customPath)
 
         // Enable trash - but it should be skipped for non-LocalPath
         every { trashSettings.enabled.flow } returns flowOf(true)
@@ -459,7 +453,7 @@ class CoreDeleteExecutorTest : BaseTest() {
 
         val config = CoreDeleteExecutor.Config(
             tag = "Test",
-            onIssue = { PathActionIssue.UnknownError.Resolution.Skip() },
+            onIssue = { PathActionIssue.TrashNotSupported.Resolution.DeletePermanently },
             onPathsRemoved = {},
         )
 
@@ -475,5 +469,319 @@ class CoreDeleteExecutorTest : BaseTest() {
 
         // Verify trash was NOT called (unsupported path type)
         coVerify(exactly = 0) { trashManager.moveToTrash(any()) }
+    }
+
+    // ==================== Trash capability partitioning ====================
+
+    private fun safPath(name: String) = SAFPath.build(
+        "content://com.android.externalstorage.documents/tree/primary%3ADownload",
+        name,
+    )
+
+    private fun safLookup(path: SAFPath): APathLookup<APath<*>> = mockk {
+        every { lookedUp } returns path
+        every { fileType } returns FileType.FILE
+        every { size } returns 512L
+    }
+
+    @Test
+    fun `execute - local only selection never raises TrashNotSupported`() = runTest {
+        val localPath = LocalPath.build("/test.txt")
+        val localLookup = createTestLookup("/test.txt")
+
+        every { trashSettings.enabled.flow } returns flowOf(true)
+        coEvery { gatewaySwitch.du(any<APath<*>>(), any()) } returns 1024L
+        every { trashManager.moveToTrash(any()) } returns flowOf(
+            TrashManager.TrashMoveState.Completed(
+                report = TrashManager.TrashMoveReport(
+                    movedToTrash = setOf(localLookup),
+                    failedToMove = emptySet(),
+                    bytesMoved = 1024L,
+                )
+            )
+        )
+
+        val issues = mutableListOf<PathActionIssue>()
+        val config = CoreDeleteExecutor.Config(
+            tag = "Test",
+            onIssue = { issue ->
+                issues.add(issue)
+                PathActionIssue.UnknownError.Resolution.Skip()
+            },
+            onPathsRemoved = {},
+        )
+
+        executor.execute(targets = setOf(localPath), config = config).toList()
+
+        issues.filterIsInstance<PathActionIssue.TrashNotSupported>().shouldBeEmpty()
+    }
+
+    @Test
+    fun `execute - mixed selection raises TrashNotSupported for the untrashable part only`() = runTest {
+        val localPath = LocalPath.build("/local.txt")
+        val localLookup = createTestLookup("/local.txt")
+        val safFile = safPath("saf.txt")
+        val safFileLookup = safLookup(safFile)
+
+        every { trashSettings.enabled.flow } returns flowOf(true)
+        coEvery { gatewaySwitch.du(localPath, any()) } returns 1024L
+        coEvery { gatewaySwitch.lookup(safFile, any()) } returns safFileLookup
+        every { trashManager.moveToTrash(any()) } returns flowOf(
+            TrashManager.TrashMoveState.Completed(
+                report = TrashManager.TrashMoveReport(
+                    movedToTrash = setOf(localLookup),
+                    failedToMove = emptySet(),
+                    bytesMoved = 1024L,
+                )
+            )
+        )
+        val deletedTargets = slot<Set<APath<*>>>()
+        coEvery { gatewaySwitch.delete(capture(deletedTargets), any()) } returns flowOf(
+            DeleteAction.State.Completed<APath<*>, APathLookup<APath<*>>>(
+                deleted = setOf(safFileLookup),
+                skipped = emptySet(),
+            )
+        )
+
+        val removedPaths = mutableListOf<Set<APathLookup<*>>>()
+        var issueReceived: PathActionIssue? = null
+        val config = CoreDeleteExecutor.Config(
+            tag = "Test",
+            onIssue = { issue ->
+                issueReceived = issue
+                PathActionIssue.TrashNotSupported.Resolution.DeletePermanently
+            },
+            onPathsRemoved = { removedPaths.add(it) },
+        )
+
+        val states = executor.execute(targets = setOf(localPath, safFile), config = config).toList()
+
+        issueReceived.shouldBeInstanceOf<PathActionIssue.TrashNotSupported>()
+        (issueReceived as PathActionIssue.TrashNotSupported).untrashableItems shouldBe listOf(safFileLookup)
+
+        // Only the trashable subset is sized and trashed, only the untrashable one is deleted
+        coVerify(exactly = 0) { gatewaySwitch.du(safFile, any()) }
+        coVerify { trashManager.moveToTrash(listOf(localPath)) }
+        deletedTargets.captured shouldBe setOf(safFile)
+
+        removedPaths shouldBe listOf(setOf(localLookup), setOf(safFileLookup))
+
+        val result = (states.last() as CoreDeleteExecutor.State.Completed).result
+        result.trashed shouldBe setOf(localLookup)
+        result.deleted shouldBe setOf(safFileLookup)
+    }
+
+    @Test
+    fun `execute - skipping the untrashable part still trashes the local items`() = runTest {
+        val localPath = LocalPath.build("/local.txt")
+        val localLookup = createTestLookup("/local.txt")
+        val safFile = safPath("saf.txt")
+        val safFileLookup = safLookup(safFile)
+
+        every { trashSettings.enabled.flow } returns flowOf(true)
+        coEvery { gatewaySwitch.du(localPath, any()) } returns 1024L
+        coEvery { gatewaySwitch.lookup(safFile, any()) } returns safFileLookup
+        every { trashManager.moveToTrash(any()) } returns flowOf(
+            TrashManager.TrashMoveState.Completed(
+                report = TrashManager.TrashMoveReport(
+                    movedToTrash = setOf(localLookup),
+                    failedToMove = emptySet(),
+                    bytesMoved = 1024L,
+                )
+            )
+        )
+
+        val removedPaths = mutableListOf<Set<APathLookup<*>>>()
+        val config = CoreDeleteExecutor.Config(
+            tag = "Test",
+            onIssue = { PathActionIssue.TrashNotSupported.Resolution.Skip },
+            onPathsRemoved = { removedPaths.add(it) },
+        )
+
+        val states = executor.execute(targets = setOf(localPath, safFile), config = config).toList()
+
+        coVerify { trashManager.moveToTrash(listOf(localPath)) }
+        coVerify(exactly = 0) { gatewaySwitch.delete(any<Set<APath<*>>>(), any()) }
+        removedPaths shouldBe listOf(setOf(localLookup))
+
+        val result = (states.last() as CoreDeleteExecutor.State.Completed).result
+        result.trashed shouldBe setOf(localLookup)
+        result.skipped shouldBe setOf(safFileLookup)
+        result.deleted.shouldBeEmpty()
+    }
+
+    @Test
+    fun `execute - cancelling the untrashable prompt leaves everything untouched`() = runTest {
+        val localPath = LocalPath.build("/local.txt")
+        val safFile = safPath("saf.txt")
+        val safFileLookup = safLookup(safFile)
+
+        every { trashSettings.enabled.flow } returns flowOf(true)
+        coEvery { gatewaySwitch.du(any<APath<*>>(), any()) } returns 1024L
+        coEvery { gatewaySwitch.lookup(safFile, any()) } returns safFileLookup
+
+        val removedPaths = mutableListOf<Set<APathLookup<*>>>()
+        val config = CoreDeleteExecutor.Config(
+            tag = "Test",
+            onIssue = { PathActionIssue.TrashNotSupported.Resolution.Cancel() },
+            onPathsRemoved = { removedPaths.add(it) },
+        )
+
+        shouldThrow<CancellationException> {
+            executor.execute(targets = setOf(localPath, safFile), config = config).toList()
+        }
+
+        coVerify(exactly = 0) { trashManager.moveToTrash(any()) }
+        coVerify(exactly = 0) { gatewaySwitch.delete(any<Set<APath<*>>>(), any()) }
+        removedPaths.shouldBeEmpty()
+    }
+
+    @Test
+    fun `execute - all untrashable selection does not size or touch the trash`() = runTest {
+        val safFile = safPath("saf.txt")
+        val safFileLookup = safLookup(safFile)
+
+        every { trashSettings.enabled.flow } returns flowOf(true)
+        coEvery { gatewaySwitch.lookup(safFile, any()) } returns safFileLookup
+        val deletedTargets = slot<Set<APath<*>>>()
+        coEvery { gatewaySwitch.delete(capture(deletedTargets), any()) } returns flowOf(
+            DeleteAction.State.Completed<APath<*>, APathLookup<APath<*>>>(
+                deleted = setOf(safFileLookup),
+                skipped = emptySet(),
+            )
+        )
+
+        val config = CoreDeleteExecutor.Config(
+            tag = "Test",
+            onIssue = { PathActionIssue.TrashNotSupported.Resolution.DeletePermanently },
+            onPathsRemoved = {},
+        )
+
+        executor.execute(targets = setOf(safFile), config = config).toList()
+
+        coVerify(exactly = 0) { gatewaySwitch.du(any<APath<*>>(), any()) }
+        coVerify(exactly = 0) { trashManager.moveToTrash(any()) }
+        deletedTargets.captured shouldBe setOf(safFile)
+    }
+
+    @Test
+    fun `execute - a size-limit escalation cannot resurrect skipped untrashable items`() = runTest {
+        val localPath1 = LocalPath.build("/big1.txt")
+        val localPath2 = LocalPath.build("/big2.txt")
+        val localLookup1 = createTestLookup("/big1.txt", size = 600 * 1048576L)
+        val localLookup2 = createTestLookup("/big2.txt", size = 600 * 1048576L)
+        val safFile = safPath("saf.txt")
+        val safFileLookup = safLookup(safFile)
+
+        every { trashSettings.enabled.flow } returns flowOf(true)
+        coEvery { gatewaySwitch.du(localPath1, any()) } returns 600 * 1048576L
+        coEvery { gatewaySwitch.du(localPath2, any()) } returns 600 * 1048576L
+        coEvery { gatewaySwitch.lookup(safFile, any()) } returns safFileLookup
+        val deletedTargets = slot<Set<APath<*>>>()
+        coEvery { gatewaySwitch.delete(capture(deletedTargets), any()) } returns flowOf(
+            DeleteAction.State.Completed<APath<*>, APathLookup<APath<*>>>(
+                deleted = setOf(localLookup1, localLookup2),
+                skipped = emptySet(),
+            )
+        )
+
+        var sizeIssue: PathActionIssue.TrashSizeLimitExceeded? = null
+        val config = CoreDeleteExecutor.Config(
+            tag = "Test",
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.TrashNotSupported -> PathActionIssue.TrashNotSupported.Resolution.Skip
+                    is PathActionIssue.TrashSizeLimitExceeded -> {
+                        sizeIssue = issue
+                        PathActionIssue.TrashSizeLimitExceeded.Resolution.DeletePermanently
+                    }
+                    else -> PathActionIssue.UnknownError.Resolution.Skip()
+                }
+            },
+            onPathsRemoved = {},
+        )
+
+        executor.execute(targets = setOf(localPath1, localPath2, safFile), config = config).toList()
+
+        // The size prompt only ever covers the trashable subset
+        sizeIssue!!.itemCount shouldBe 2
+        sizeIssue!!.totalSize shouldBe 1200 * 1048576L
+        deletedTargets.captured shouldBe setOf(localPath1, localPath2)
+    }
+
+    @Test
+    fun `execute - a trash exception cannot resurrect skipped untrashable items`() = runTest {
+        val localPath = LocalPath.build("/local.txt")
+        val localLookup = createTestLookup("/local.txt")
+        val safFile = safPath("saf.txt")
+        val safFileLookup = safLookup(safFile)
+
+        every { trashSettings.enabled.flow } returns flowOf(true)
+        coEvery { gatewaySwitch.du(localPath, any()) } returns 1024L
+        coEvery { gatewaySwitch.lookup(safFile, any()) } returns safFileLookup
+
+        @Suppress("UNCHECKED_CAST")
+        coEvery { gatewaySwitch.lookup(localPath, any()) } returns localLookup as APathLookup<APath<*>>
+        every { trashManager.moveToTrash(any()) } returns kotlinx.coroutines.flow.flow {
+            throw Exception("Trash error")
+        }
+        val deletedTargets = slot<Set<APath<*>>>()
+        coEvery { gatewaySwitch.delete(capture(deletedTargets), any()) } returns flowOf(
+            DeleteAction.State.Completed<APath<*>, APathLookup<APath<*>>>(
+                deleted = setOf(localLookup),
+                skipped = emptySet(),
+            )
+        )
+
+        val config = CoreDeleteExecutor.Config(
+            tag = "Test",
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.TrashNotSupported -> PathActionIssue.TrashNotSupported.Resolution.Skip
+                    is PathActionIssue.TrashMoveFailed -> PathActionIssue.TrashMoveFailed.Resolution.DeletePermanently
+                    else -> PathActionIssue.UnknownError.Resolution.Skip()
+                }
+            },
+            onPathsRemoved = {},
+        )
+
+        executor.execute(targets = setOf(localPath, safFile), config = config).toList()
+
+        deletedTargets.captured shouldBe setOf(localPath)
+    }
+
+    @Test
+    fun `execute - cancelling a failed trash move propagates instead of re-prompting`() = runTest {
+        val localPath = LocalPath.build("/local.txt")
+        val localLookup = createTestLookup("/local.txt")
+
+        every { trashSettings.enabled.flow } returns flowOf(true)
+        coEvery { gatewaySwitch.du(any<APath<*>>(), any()) } returns 1024L
+        every { trashManager.moveToTrash(any()) } returns flowOf(
+            TrashManager.TrashMoveState.Completed(
+                report = TrashManager.TrashMoveReport(
+                    movedToTrash = emptySet(),
+                    failedToMove = setOf(localLookup),
+                    bytesMoved = 0L,
+                )
+            )
+        )
+
+        var issueCount = 0
+        val config = CoreDeleteExecutor.Config(
+            tag = "Test",
+            onIssue = {
+                issueCount++
+                PathActionIssue.TrashMoveFailed.Resolution.Cancel()
+            },
+            onPathsRemoved = {},
+        )
+
+        shouldThrow<CancellationException> {
+            executor.execute(targets = setOf(localPath), config = config).toList()
+        }
+
+        issueCount shouldBe 1
+        coVerify(exactly = 0) { gatewaySwitch.delete(any<Set<APath<*>>>(), any()) }
     }
 }
