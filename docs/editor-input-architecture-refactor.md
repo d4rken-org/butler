@@ -56,8 +56,10 @@ implements the required contract on one write path:
 - both checks happen before the first mutation, all-or-nothing.
 
 `structuralVersion` is bumped on every mutation and published as `structuralVersionFlow`. The typing
-path has none of this: `replaceText` takes bare `(line, column)` and silently clamps an out-of-range
-column, so a stale edit lands quietly instead of being rejected.
+path has none of this: `replaceText` takes bare `(line, column)`, and while `findOffset` still clamps
+an out-of-range column, `replaceText` now rejects unrepresentable columns outright — but it still has
+no document-version or old-text handshake, so a stale edit whose positions happen to be
+representable lands quietly instead of being rejected.
 
 The refactor is largely a matter of generalising the contract one write path already honours.
 
