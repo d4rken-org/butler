@@ -1,5 +1,6 @@
 package eu.darken.butler.workspace.ui
 
+import androidx.lifecycle.SavedStateHandle
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceEvent
@@ -127,6 +128,197 @@ class WorkspacePageManagerTest : BaseTest() {
         // Focus is visible: the newly focused workspace occupies a pane (pane 0 is replaced).
         state.selectedWorkspaces.containsValue(created) shouldBe true
         state.selectedWorkspaces[0] shouldBe created
+    }
+
+    /**
+     * Selecting a child from the tab manager focuses the child but has to put its OWNING TAB on
+     * screen: the classic pager renders the child inside that tab's page, and the adaptive layout
+     * renders only assigned roots. Leaving the assignment alone would make the selection name a
+     * different tab than the one the user is looking at - and make the child vanish on the next
+     * layout change.
+     */
+    @Test
+    fun `selecting an off-screen child brings its root into a pane`() = runTest {
+        val visibleTab = Workspace.Id()
+        val offScreenTab = Workspace.Id()
+        val child = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(
+                createWorkspaceInfo(id = visibleTab),
+                createWorkspaceInfo(id = offScreenTab),
+                createWorkspaceInfo(id = child, callerWorkspaceId = offScreenTab),
+            )
+        )
+
+        pageManager.setPaneCount(1)
+        pageManager.handleWorkspaceSelection(visibleTab)
+
+        pageManager.handleWorkspaceSelection(child)
+
+        // Focus stays on the child - that is what was selected - but pane 0 now names its tab
+        pageManager.state.value.focusedWorkspaceId shouldBe child
+        pageManager.state.value.selectedWorkspaces shouldBe mapOf(0 to offScreenTab)
+    }
+
+    @Test
+    fun `selecting a child stamps its root's MRU too`() = runTest {
+        val visibleTab = Workspace.Id()
+        val offScreenTab = Workspace.Id()
+        val child = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(
+                createWorkspaceInfo(id = visibleTab),
+                createWorkspaceInfo(id = offScreenTab),
+                createWorkspaceInfo(id = child, callerWorkspaceId = offScreenTab),
+            )
+        )
+
+        pageManager.setPaneCount(1)
+        pageManager.handleWorkspaceSelection(visibleTab)
+        pageManager.handleWorkspaceSelection(child)
+
+        // Without the root's own stamp, auto-fill would rank the tab the user is working in last
+        pageManager.state.value.workspaceAccessTimes[offScreenTab] shouldNotBe null
+        pageManager.state.value.workspaceAccessTimes[child] shouldNotBe null
+    }
+
+    @Test
+    fun `a child's root survives a widening layout`() = runTest {
+        val visibleTab = Workspace.Id()
+        val offScreenTab = Workspace.Id()
+        val child = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(
+                createWorkspaceInfo(id = visibleTab),
+                createWorkspaceInfo(id = offScreenTab),
+                createWorkspaceInfo(id = child, callerWorkspaceId = offScreenTab),
+            )
+        )
+
+        pageManager.setPaneCount(1)
+        pageManager.handleWorkspaceSelection(visibleTab)
+        pageManager.handleWorkspaceSelection(child)
+
+        // A rotation into two panes: the adaptive layout renders assigned roots only, so the focused
+        // child would disappear if its tab were not among them.
+        pageManager.setPaneCount(2)
+
+        pageManager.state.value.visiblePaneAssignments.values shouldContain offScreenTab
+        pageManager.state.value.focusedWorkspaceId shouldBe child
+    }
+
+    @Test
+    fun `a child's root is placed in a pane on multi-pane layouts too`() = runTest {
+        val paneA = Workspace.Id()
+        val paneB = Workspace.Id()
+        val offScreenTab = Workspace.Id()
+        val child = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(
+                createWorkspaceInfo(id = paneA),
+                createWorkspaceInfo(id = paneB),
+                createWorkspaceInfo(id = offScreenTab),
+                createWorkspaceInfo(id = child, callerWorkspaceId = offScreenTab),
+            )
+        )
+
+        pageManager.setPaneCount(2)
+        pageManager.handleWorkspaceSelection(paneA)
+        pageManager.handleWorkspaceSelection(paneB)
+
+        pageManager.handleWorkspaceSelection(child)
+
+        // Both panes were taken, so this evicts exactly as a manager selection of the tab would
+        pageManager.state.value.visiblePaneAssignments.values shouldContain offScreenTab
+        pageManager.state.value.focusedWorkspaceId shouldBe child
+    }
+
+    @Test
+    fun `selecting a child whose root is already visible leaves the panes alone`() = runTest {
+        val paneA = Workspace.Id()
+        val paneB = Workspace.Id()
+        val child = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(
+                createWorkspaceInfo(id = paneA),
+                createWorkspaceInfo(id = paneB),
+                createWorkspaceInfo(id = child, callerWorkspaceId = paneA),
+            )
+        )
+
+        pageManager.setPaneCount(2)
+        pageManager.handleWorkspaceSelection(paneA)
+        pageManager.handleWorkspaceSelection(paneB)
+        val before = pageManager.state.value.selectedWorkspaces.toMap()
+
+        pageManager.handleWorkspaceSelection(child)
+
+        pageManager.state.value.selectedWorkspaces shouldBe before
+        pageManager.state.value.focusedWorkspaceId shouldBe child
+    }
+
+    @Test
+    fun `a dangling child is focused without being placed anywhere`() = runTest {
+        val visibleTab = Workspace.Id()
+        val orphan = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(
+                createWorkspaceInfo(id = visibleTab),
+                // Its caller is gone, so there is no tab to place. The UI falls back on its own.
+                createWorkspaceInfo(id = orphan, callerWorkspaceId = Workspace.Id()),
+            )
+        )
+
+        pageManager.setPaneCount(1)
+        pageManager.handleWorkspaceSelection(visibleTab)
+
+        pageManager.handleWorkspaceSelection(orphan)
+
+        pageManager.state.value.selectedWorkspaces shouldBe mapOf(0 to visibleTab)
+        pageManager.state.value.focusedWorkspaceId shouldBe orphan
+    }
+
+    @Test
+    fun `a recreated page manager restores the child's root, not the previous tab`() = runTest {
+        val visibleTab = Workspace.Id()
+        val offScreenTab = Workspace.Id()
+        val child = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(
+                createWorkspaceInfo(id = visibleTab),
+                createWorkspaceInfo(id = offScreenTab),
+                createWorkspaceInfo(id = child, callerWorkspaceId = offScreenTab),
+            )
+        )
+
+        pageManager.setPaneCount(1)
+        pageManager.handleWorkspaceSelection(visibleTab)
+        pageManager.handleWorkspaceSelection(child)
+
+        // What the ViewModel mirrors into the SavedStateHandle every time the state changes
+        val saved = pageManager.state.value
+        val savedStateHandle = mockk<SavedStateHandle> {
+            every { get<WorkspacePageManager.State>("workspaceUIState") } returns saved
+        }
+
+        val recreated = WorkspacePageManager(
+            appScope = testScope,
+            workspaceRemote = workspaceRemote,
+            scrollPositions = scrollPositions,
+            barCollapseStates = barCollapseStates,
+            viewPrefs = viewPrefs,
+        )
+        recreated.initializeFromSavedState(savedStateHandle)
+
+        recreated.state.value.selectedWorkspaces shouldBe mapOf(0 to offScreenTab)
+        recreated.state.value.focusedWorkspaceId shouldBe child
     }
 
     @Test

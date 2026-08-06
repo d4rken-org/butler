@@ -387,6 +387,73 @@ class PlaceholderCreationControllerTest : ComposeTest() {
         controller!!.creationState shouldBe PlaceholderCreationState.Creating
     }
 
+    /**
+     * The container drops the placeholder page while the current tab owes its child a result, but
+     * that alone is not enough: the manual click creates straight from Idle/Visiting/Blocked without
+     * ever consulting the pager, so it needs the flag too.
+     */
+    @Test
+    fun `manual click is declined while creation is disabled`() {
+        var created = 0
+        var controller: PlaceholderCreationController? = null
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                ControllerHarness(
+                    workspaces = listOf(info(idA), info(idB)),
+                    isInteractionBlocked = false,
+                    hasBlockingDialog = false,
+                    interactions = null,
+                    scrollCommand = 1 to 2,
+                    onCreate = { created++ },
+                    onPagerState = { },
+                    onController = { controller = it },
+                    creationEnabled = false,
+                )
+            }
+        }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.runOnIdle { controller!!.onPlaceholderClick() }
+        composeTestRule.waitForIdle()
+
+        created shouldBe 0
+        controller!!.creationState shouldBe PlaceholderCreationState.Idle
+    }
+
+    @Test
+    fun `a settle on the placeholder is declined while creation is disabled`() {
+        val interactions = MutableSharedFlow<Interaction>(extraBufferCapacity = 8)
+        var created = 0
+        var controller: PlaceholderCreationController? = null
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                ControllerHarness(
+                    workspaces = listOf(info(idA), info(idB)),
+                    isInteractionBlocked = false,
+                    hasBlockingDialog = false,
+                    interactions = interactions,
+                    scrollCommand = 1 to 2,
+                    onCreate = { created++ },
+                    onPagerState = { },
+                    onController = { controller = it },
+                    creationEnabled = false,
+                )
+            }
+        }
+        composeTestRule.waitForIdle()
+
+        interactions.tryEmit(DragInteraction.Start()) shouldBe true
+        composeTestRule.waitForIdle()
+        interactions.tryEmit(DragInteraction.Stop(DragInteraction.Start())) shouldBe true
+        composeTestRule.waitForIdle()
+        composeTestRule.mainClock.advanceTimeBy(2000)
+
+        created shouldBe 0
+        controller!!.creationState shouldBe PlaceholderCreationState.Idle
+    }
+
     @Test
     fun `limit dialog flow reaches Blocked and click retries`() = runHarness(
         initialWorkspaces = listOf(info(idA), info(idB)),
@@ -520,6 +587,7 @@ private fun ControllerHarness(
     onCreate: () -> Unit,
     onPagerState: (PagerState) -> Unit,
     onController: (PlaceholderCreationController) -> Unit,
+    creationEnabled: Boolean = true,
     pageContent: @Composable () -> Unit = { Box(modifier = Modifier.fillMaxSize()) },
 ) {
     val pagerState = rememberPagerState(pageCount = { workspaces.size + 1 })
@@ -532,6 +600,7 @@ private fun ControllerHarness(
         isInteractionBlocked = isInteractionBlocked,
         hasBlockingDialog = hasBlockingDialog,
         onCreateRequested = onCreate,
+        creationEnabled = creationEnabled,
         interactions = interactions ?: pagerState.interactionSource.interactions,
     )
     LaunchedEffect(controller) { onController(controller) }

@@ -2,6 +2,10 @@ package eu.darken.butler.workspace.ui.workspaces
 
 import androidx.activity.OnBackPressedDispatcher
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.rememberScrollableState
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
@@ -13,6 +17,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.test.click
+import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeUp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -83,15 +91,19 @@ class WorkspacePaneModalStackTest : ComposeTest() {
         host: WorkspacePageHostEntry,
         childModals: List<WorkspacePaneInfo>,
         activeWorkspaceId: Workspace.Id?,
+        tabInfo: WorkspacePaneInfo = tab,
+        onCloseWorkspace: (Workspace.Id) -> Unit = {},
+        pageHosts: Map<Workspace.Type, WorkspacePageHostEntry> =
+            mapOf(Workspace.Type.EXPLORER to host),
     ) {
         PreviewWrapper {
             CompositionLocalProvider(
-                LocalWorkspacePageHosts provides mapOf(Workspace.Type.EXPLORER to host),
+                LocalWorkspacePageHosts provides pageHosts,
             ) {
                 Box(modifier = Modifier.size(width = 400.dp, height = 700.dp)) {
                     WorkspacePane(
                         modifier = Modifier.fillMaxSize(),
-                        info = tab,
+                        info = tabInfo,
                         design = design,
                         paneFocused = true,
                         onRequestPaneFocus = {},
@@ -101,7 +113,7 @@ class WorkspacePaneModalStackTest : ComposeTest() {
                         bannerStates = emptyMap(),
                         onDismissBanner = {},
                         onShareError = { _, _ -> },
-                        onCloseWorkspace = {},
+                        onCloseWorkspace = onCloseWorkspace,
                         onResumeWorkspace = {},
                         childModals = childModals,
                         activeWorkspaceId = activeWorkspaceId,
@@ -232,6 +244,155 @@ class WorkspacePaneModalStackTest : ComposeTest() {
         host.focused[modalC.id] shouldBe true
     }
 
+    /**
+     * The stack-level fallback. "The page always owns back" does not hold at every moment: App
+     * Details registers nothing until its state emits, the Explorer nothing until its picker state
+     * exists, and a paused workspace composes no typed page host at all — while the child still
+     * covers its parent and back has to get the user out of it.
+     */
+    @Test
+    fun `back closes a child whose page registers no handler`() {
+        val closed = mutableListOf<Workspace.Id>()
+        var dispatcher: OnBackPressedDispatcher? = null
+
+        composeTestRule.setContent {
+            dispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
+            Pane(
+                host = RecordingHost(),
+                childModals = listOf(modalA),
+                activeWorkspaceId = modalA.id,
+                onCloseWorkspace = { closed += it },
+                // No page host at all for this type, exactly like a paused workspace's slot
+                pageHosts = emptyMap(),
+            )
+        }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.runOnIdle { dispatcher!!.onBackPressed() }
+        composeTestRule.waitForIdle()
+
+        closed shouldBe listOf(modalA.id)
+    }
+
+    @Test
+    fun `back closes a paused child`() {
+        val closed = mutableListOf<Workspace.Id>()
+        val paused = modalA.copy(lifecycleState = Workspace.LifecycleState.Paused())
+        var dispatcher: OnBackPressedDispatcher? = null
+
+        composeTestRule.setContent {
+            dispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
+            Pane(
+                host = RecordingHost(),
+                childModals = listOf(paused),
+                activeWorkspaceId = paused.id,
+                onCloseWorkspace = { closed += it },
+            )
+        }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.runOnIdle { dispatcher!!.onBackPressed() }
+        composeTestRule.waitForIdle()
+
+        closed shouldBe listOf(modalA.id)
+    }
+
+    /** The fallback is composed before the page, so a page that does handle back still wins. */
+    @Test
+    fun `a page handler outranks the fallback`() {
+        val host = RecordingHost()
+        val closed = mutableListOf<Workspace.Id>()
+        var dispatcher: OnBackPressedDispatcher? = null
+
+        composeTestRule.setContent {
+            dispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
+            Pane(
+                host = host,
+                childModals = listOf(modalA),
+                activeWorkspaceId = modalA.id,
+                onCloseWorkspace = { closed += it },
+            )
+        }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.runOnIdle { dispatcher!!.onBackPressed() }
+        composeTestRule.waitForIdle()
+
+        host.backReceipts shouldBe listOf(modalA.id)
+        closed shouldBe emptyList()
+    }
+
+    /** A root pane is not a modal, so the fallback must stay inert there. */
+    @Test
+    fun `back does not close the pane's own workspace`() {
+        val closed = mutableListOf<Workspace.Id>()
+        var dispatcher: OnBackPressedDispatcher? = null
+
+        composeTestRule.setContent {
+            dispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
+            Pane(
+                host = RecordingHost(),
+                childModals = emptyList(),
+                activeWorkspaceId = tab.id,
+                onCloseWorkspace = { closed += it },
+                pageHosts = emptyMap(),
+            )
+        }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.runOnIdle { dispatcher!!.onBackPressed() }
+        composeTestRule.waitForIdle()
+
+        closed shouldBe emptyList()
+    }
+
+    /**
+     * The Dialog used to supply a window-level input boundary. Without it, a child's blank space -
+     * an initializing/paused placeholder, a letterboxed image - would pass taps and drags straight
+     * to the workspace it covers.
+     */
+    @Test
+    fun `a tap or vertical drag in the child's blank space does not reach the covered page`() {
+        val host = TouchableHost()
+        // A child whose page draws nothing at all, so only the barrier stands between the finger
+        // and the workspace underneath - the initializing/paused placeholders and the Viewer's
+        // transparent root are the real cases.
+        val hollowChild = modalA.copy(type = Workspace.Type.APP_DETAILS)
+        var chain by mutableStateOf(emptyList<WorkspacePaneInfo>())
+
+        composeTestRule.setContent {
+            Pane(
+                host = host,
+                childModals = chain,
+                activeWorkspaceId = chain.lastOrNull()?.id ?: tab.id,
+                pageHosts = mapOf(
+                    Workspace.Type.EXPLORER to host,
+                    Workspace.Type.APP_DETAILS to HollowHost,
+                ),
+            )
+        }
+        composeTestRule.waitForIdle()
+
+        // Control: with nothing stacked the very same gestures do reach the page, so the assertions
+        // below cannot pass for want of a target.
+        composeTestRule.onRoot().performTouchInput { click(center) }
+        composeTestRule.onRoot().performTouchInput { swipeUp() }
+        composeTestRule.waitForIdle()
+        host.clicks shouldBe listOf(tab.id)
+        host.verticalDrags shouldBe listOf(tab.id)
+
+        composeTestRule.runOnIdle { chain = listOf(hollowChild) }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onRoot().performTouchInput { click(center) }
+        composeTestRule.onRoot().performTouchInput { swipeUp() }
+        composeTestRule.waitForIdle()
+
+        // Still only what the control produced
+        host.clicks shouldBe listOf(tab.id)
+        host.verticalDrags shouldBe listOf(tab.id)
+    }
+
     companion object {
         private fun paneInfo(name: String) = WorkspacePaneInfo(
             id = Workspace.Id(),
@@ -239,5 +400,39 @@ class WorkspacePaneModalStackTest : ComposeTest() {
             lifecycleState = Workspace.LifecycleState.Ready,
             title = name.toCaString(),
         )
+    }
+
+    /** A page that is clickable and vertically scrollable across its whole surface. */
+    private class TouchableHost : WorkspacePageHostEntry {
+        val clicks = mutableListOf<Workspace.Id>()
+        val verticalDrags = mutableListOf<Workspace.Id>()
+
+        @Composable
+        override fun Content(id: Workspace.Id, design: WorkspaceDesign) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clickable { clicks += id }
+                    .scrollable(
+                        orientation = Orientation.Vertical,
+                        state = rememberScrollableState { delta ->
+                            if (verticalDrags.lastOrNull() != id) verticalDrags += id
+                            delta
+                        },
+                    ),
+            )
+        }
+
+        @Composable
+        override fun Overlays(id: Workspace.Id, design: WorkspaceDesign) = Unit
+    }
+
+    /** A page that draws and consumes nothing, like a workspace that has no content yet. */
+    private object HollowHost : WorkspacePageHostEntry {
+        @Composable
+        override fun Content(id: Workspace.Id, design: WorkspaceDesign) = Unit
+
+        @Composable
+        override fun Overlays(id: Workspace.Id, design: WorkspaceDesign) = Unit
     }
 }

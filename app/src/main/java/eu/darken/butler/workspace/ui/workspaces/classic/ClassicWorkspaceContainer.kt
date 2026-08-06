@@ -48,6 +48,21 @@ import kotlinx.coroutines.launch
 // Distinct from any Workspace.Id so the pager preserves identity across list churn.
 private const val PLACEHOLDER_PAGE_KEY = "classic-pager-placeholder"
 
+/**
+ * Whether a new tab may be created out from under [rootId].
+ *
+ * Swiping BETWEEN existing tabs stays allowed for every child type - only leaving a tab that owes
+ * its child a result (a picker, the Saver) for a brand-new one is a way to strand that result.
+ *
+ * The whole ownership unit is consulted rather than the rendered chain: a sibling branch can be
+ * composed out and still be waiting. `pausableAsChild` rather than `isPausable` - the latter flips
+ * transiently during a package operation, which has nothing to do with owing a result.
+ */
+internal fun WorkspaceStacks.creationAllowedFor(rootId: Workspace.Id?): Boolean {
+    val unit = rootId?.let { unitOf(it) } ?: return true
+    return unit.none { it.isSubWorkspace && !it.pausableAsChild }
+}
+
 @Composable
 internal fun ClassicWorkspaceContainer(
     design: WorkspaceDesign = WorkspaceDesign(),
@@ -76,16 +91,6 @@ internal fun ClassicWorkspaceContainer(
 
     val stacks = remember(state.all) { WorkspaceStacks(state.all) }
 
-    // Swiping BETWEEN tabs stays allowed for every child type; only creating a NEW tab out from
-    // under a result-returning child is not. The whole ownership unit is consulted rather than the
-    // rendered chain: a sibling branch can be composed out and still be waiting for its result.
-    // pausableAsChild rather than isPausable — the latter flips transiently during a package
-    // operation, which would disable creation for reasons that have nothing to do with results.
-    fun creationAllowedFor(rootId: Workspace.Id?): Boolean {
-        val unit = rootId?.let { stacks.unitOf(it) } ?: return true
-        return unit.none { it.isSubWorkspace && !it.pausableAsChild }
-    }
-
     // Resolved below, once the pager exists. The page count has to know which root is current, and
     // resolving that falls back to the pager's own settled page — reading it through this holder
     // keeps the two out of a composition-order cycle. Null (only the very first frame) means
@@ -95,7 +100,7 @@ internal fun ClassicWorkspaceContainer(
 
     val pagerState = rememberPagerState(
         pageCount = {
-            val hasPlaceholder = placeholderAllowed && creationAllowedFor(currentRootIdHolder.value)
+            val hasPlaceholder = placeholderAllowed && stacks.creationAllowedFor(currentRootIdHolder.value)
             state.tabWorkspaces.size + if (hasPlaceholder) 1 else 0
         },
     )
@@ -210,7 +215,7 @@ internal fun ClassicWorkspaceContainer(
         hasBlockingDialog = hasBlockingDialog,
         // Dropping the page is the primary block; this covers the paths that create without
         // consulting the pager at all, the manual click above all.
-        creationEnabled = creationAllowedFor(effectiveRootId),
+        creationEnabled = stacks.creationAllowedFor(effectiveRootId),
         onCreateRequested = { onWorkspaceScreenAction(WorkspaceScreenAction.CreateOnDemand) },
     )
 

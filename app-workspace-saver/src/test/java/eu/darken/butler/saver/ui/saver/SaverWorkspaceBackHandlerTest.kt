@@ -23,9 +23,10 @@ import org.junit.Test
 import testhelpers.ComposeTest
 
 /**
- * A pane-local saver has no dialog window to supply back handling, so the page has to own it —
- * but only there. The full-screen modal renders inside a real Dialog that already consumes back,
- * and the ACTION_SEND share entry point is a normal tab; both must leave back alone.
+ * A pane-local saver stacks inside its caller's pane at any pane count, with no dialog window to
+ * supply back handling, so the page has to own it — but only there. A saver asking for FULL_SCREEN
+ * renders inside a real Dialog that already consumes back, and the ACTION_SEND share entry point is
+ * a normal tab; both must leave back alone.
  */
 class SaverWorkspaceBackHandlerTest : ComposeTest() {
 
@@ -83,8 +84,8 @@ class SaverWorkspaceBackHandlerTest : ComposeTest() {
     }
 
     /**
-     * On the single-pane path the modal saver is hosted by a real Dialog, which handles back via its
-     * own dismiss request. The page must stay out of it - a second consumer closes the workspace
+     * A saver asking for FULL_SCREEN presentation is hosted by a real Dialog, which handles back via
+     * its own dismiss request. The page must stay out of it - a second consumer closes the workspace
      * twice and the second close lands on an already-removed workspace, throwing tab navigation off.
      */
     @Test
