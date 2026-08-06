@@ -62,6 +62,10 @@ class ComponentsSummaryTest : ComposeTest() {
     /**
      * The per-type rows and the action row have differently sized labels, so the counts may only
      * line up if both rows reserve the same trailing geometry (count, gap, 24dp chevron slot).
+     *
+     * Both sides are queried on the UNMERGED tree: the action row is `clickable`, which merges its
+     * descendants, so in the merged tree "3" resolves to the whole row and its bounds would be
+     * compared against a text's.
      */
     @Test
     fun `the total lines up with the per-type counts`() {
@@ -74,8 +78,12 @@ class ComponentsSummaryTest : ComposeTest() {
             }
         }
 
-        val activitiesCount = composeTestRule.onNodeWithText("2").getUnclippedBoundsInRoot().left
-        val total = composeTestRule.onNodeWithText("3").getUnclippedBoundsInRoot().left
+        val activitiesCount = composeTestRule
+            .onNodeWithText("2", useUnmergedTree = true)
+            .getUnclippedBoundsInRoot().left
+        val total = composeTestRule
+            .onNodeWithText("3", useUnmergedTree = true)
+            .getUnclippedBoundsInRoot().left
 
         total shouldBe activitiesCount
     }

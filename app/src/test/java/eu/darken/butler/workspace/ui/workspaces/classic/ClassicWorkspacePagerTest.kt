@@ -289,25 +289,26 @@ class ClassicWorkspacePagerTest : ComposeTest() {
         val host = RecordingHost()
         val infos = listOf(tab(tabA), tab(tabB), paneLocalChild(child, caller = tabA))
         val actions = mutableListOf<WorkspaceScreenAction>()
-        var current by mutableStateOf(state(infos, focused = child, selected = mapOf(0 to tabA)))
 
         composeTestRule.setContent {
-            Container(current, host, WorkspaceVisibilityTracker(), onAction = { actions += it })
+            Container(
+                state(infos, focused = child, selected = mapOf(0 to tabA)),
+                host,
+                WorkspaceVisibilityTracker(),
+                onAction = { actions += it },
+            )
         }
         composeTestRule.waitForIdle()
         composeTestRule.onNodeWithTag(RecordingHost.tagFor(child)).assertIsDisplayed()
 
         composeTestRule.onRoot().performTouchInput { swipeLeft() }
         composeTestRule.waitForIdle()
-        composeTestRule.runOnIdle {
-            // What the real screen does with the settle the swipe reports
-            actions.filterIsInstance<WorkspaceScreenAction.Select>().lastOrNull()?.let {
-                current = state(infos, focused = it.id, selected = mapOf(0 to it.id))
-            }
-        }
-        composeTestRule.waitForIdle()
 
-        actions.filterIsInstance<WorkspaceScreenAction.Select>().map { it.id } shouldBe listOf(tabB)
+        // Two selections, in this order: the finger going down asks for the pane it landed in to be
+        // focused (always the pane's own tab, never the child stacked on it), and the gesture then
+        // settles on the next page. The second one is what proves the drag reached the pager.
+        actions.filterIsInstance<WorkspaceScreenAction.Select>()
+            .map { it.id } shouldBe listOf(tabA, tabB)
         composeTestRule.onNodeWithTag(RecordingHost.tagFor(tabB)).assertIsDisplayed()
     }
 
