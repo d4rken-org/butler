@@ -1102,7 +1102,10 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         log(TAG) { "handleDialogEvent($event)" }
         when (event) {
             is SearcherDialogEvent.ShowDeleteConfirmation -> {
-                dialogStateFlow.value = SearcherDialogState.DeleteConfirmation(event.paths, event.forcePermDelete)
+                dialogStateFlow.value = SearcherDialogState.DeleteConfirmation(
+                    paths = event.paths,
+                    initialPermanentDelete = event.initialPermanentDelete,
+                )
             }
             is SearcherDialogEvent.Dismiss -> {
                 dialogStateFlow.value = SearcherDialogState.None

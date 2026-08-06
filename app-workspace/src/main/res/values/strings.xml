@@ -134,6 +134,8 @@
     <string name="workspace_dialog_delete_more_items">… and %1$d more</string>
     <string name="workspace_dialog_delete_warning">This action cannot be undone.</string>
     <string name="workspace_dialog_delete_permanently_action">Delete Permanently</string>
+    <string name="workspace_dialog_delete_permanently_toggle">Delete permanently instead</string>
+    <string name="workspace_dialog_delete_partial_trash_notice">Some items can\'t be moved to trash and will be handled separately.</string>
 
     <!-- Trash Dialog -->
     <string name="workspace_dialog_trash_title_single">Move to Trash?</string>

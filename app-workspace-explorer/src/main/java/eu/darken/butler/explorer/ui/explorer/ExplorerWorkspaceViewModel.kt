@@ -695,7 +695,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun clearFocus() = focus.clear()
 
-    fun deleteFocusedItem(forcePermDelete: Boolean = false) = launch {
+    fun deleteFocusedItem(initialPermanentDelete: Boolean = false) = launch {
         val stateSnap = getState()
         val focusedIndex = stateSnap.focusedItemIndex ?: return@launch
         val focusedItem = stateSnap.items?.getOrNull(focusedIndex) as? ExplorerItem.Lookup ?: return@launch
@@ -703,11 +703,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         // Archive contents are read-only; the keyboard-shortcut path bypasses action-bar gating.
         if (focusedItem.path is ArchivePath) return@launch
 
-        log(tag) { "deleteFocusedItem(forcePermDelete=$forcePermDelete): ${focusedItem.lookup.name}" }
+        log(tag) { "deleteFocusedItem(initialPermanentDelete=$initialPermanentDelete): ${focusedItem.lookup.name}" }
         dialogEvents.emit(
             ExplorerDialogEvent.ShowDeleteConfirmation(
                 items = setOf(focusedItem.lookup.lookedUp),
-                forcePermDelete = forcePermDelete,
+                initialPermanentDelete = initialPermanentDelete,
             )
         )
     }
@@ -730,7 +730,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             dialogEvents.emit(
                 ExplorerDialogEvent.ShowDeleteConfirmation(
                     items = pathsToDelete,
-                    forcePermDelete = true,
+                    initialPermanentDelete = true,
                 )
             )
         }

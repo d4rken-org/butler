@@ -51,7 +51,10 @@ class ExplorerDialogController(
                 dialogStateFlow.value = ExplorerDialogState.CreateItem
             }
             is ExplorerDialogEvent.ShowDeleteConfirmation -> {
-                dialogStateFlow.value = ExplorerDialogState.DeleteConfirmation(event.items, event.forcePermDelete)
+                dialogStateFlow.value = ExplorerDialogState.DeleteConfirmation(
+                    items = event.items,
+                    initialPermanentDelete = event.initialPermanentDelete,
+                )
             }
             is ExplorerDialogEvent.ShowRename -> {
                 dialogStateFlow.value = ExplorerDialogState.Rename(event.item)
