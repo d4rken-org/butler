@@ -269,7 +269,7 @@ class EditorWorkspaceViewModelEditQueueTest : BaseTest() {
         val releaseDelete = CompletableDeferred<Unit>()
         val workspace = makeWorkspace().apply {
             coEvery { prepareCut(any()) } returns Result.success(
-                EditorEngine.CutSnapshot(text = "cut me", startOffset = 0L, expectedVersion = 1L),
+                EditorEngine.CutSnapshot(text = "cut me", startOffset = 0L, token = token(1)),
             )
             coEvery { applyCut(any()) } coAnswers {
                 deleteStarted.complete(Unit)

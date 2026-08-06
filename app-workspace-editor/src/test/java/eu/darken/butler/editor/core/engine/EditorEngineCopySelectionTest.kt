@@ -257,4 +257,42 @@ class EditorEngineCopySelectionTest : DocumentBufferTestBase() {
         state.resources.textBuffer.getText(0, state.resources.textBuffer.totalLength.value)
             .getOrThrow() shouldBe "Hello "
     }
+
+    // ==================== Cut across a document switch ====================
+
+    @Test
+    fun `a cut prepared on another document deletes nothing here`() = runTest {
+        // The tab switched files while the cut's deletion waited in the queue. Structural versions
+        // restart per buffer, so without the epoch the range could match the new document by chance.
+        val source = createEngine("Hello World")
+        source.setSelection(
+            start = TextPosition(offset = 6, line = 0, column = 6),
+            end = TextPosition(offset = 11, line = 0, column = 11),
+        )
+        val snapshot = source.prepareCut().getOrThrow()
+
+        val switched = createEngine("Hello World")
+        val result = switched.applyCut(snapshot)
+
+        result.exceptionOrNull().shouldBeInstanceOf<StaleMatchException>()
+        switched.documentText() shouldBe "Hello World"
+        switched.error.value shouldBe null
+    }
+
+    @Test
+    fun `a foreign cut is refused before the document guards even apply`() = runTest {
+        // Epoch first: whatever the current engine is doing (empty, loading, read-only), a snapshot
+        // from another document must be rejected as a conflict, not as "no file open"
+        val source = createEngine("Hello World")
+        source.setSelection(
+            start = TextPosition(offset = 0, line = 0, column = 0),
+            end = TextPosition(offset = 5, line = 0, column = 5),
+        )
+        val snapshot = source.prepareCut().getOrThrow()
+
+        val empty = createEngine("Hello World")
+        empty.release()
+
+        empty.applyCut(snapshot).exceptionOrNull().shouldBeInstanceOf<StaleMatchException>()
+    }
 }

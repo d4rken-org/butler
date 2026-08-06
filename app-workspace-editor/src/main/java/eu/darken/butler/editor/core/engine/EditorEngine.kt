@@ -1023,14 +1023,14 @@ class EditorEngine @AssistedInject constructor(
     }
 
     /**
-     * A selection captured for a cut: the copied [text], the offset it starts at, and the
-     * structural version it was read from. [applyCut] re-verifies both, so the deletion can only
-     * ever remove the range this snapshot was taken from.
+     * A selection captured for a cut: the copied [text], the offset it starts at, and the document
+     * identity it was read from. [applyCut] re-verifies both halves of the [token], so the deletion
+     * can only ever remove the range this snapshot was taken from, in the document it came from.
      */
     data class CutSnapshot(
         val text: String,
         val startOffset: Long,
-        val expectedVersion: Long,
+        val token: DocumentToken,
     )
 
     /**
@@ -1063,8 +1063,12 @@ class EditorEngine @AssistedInject constructor(
                     }
                     log(tag) { "Copying selection: ${selection.first} to ${selection.second}" }
                     val buffer = currentState.resources.textBuffer
-                    val version = buffer.getStructuralVersion()
-                    buffer.getText(start, end).map { CutSnapshot(it, start, version) }
+                    // Text and version in ONE buffer hold: read separately, a replace-all landing
+                    // between them would stamp the new text with the old version, and the cut's
+                    // deletion would then be rejected forever
+                    buffer.getTextWithVersion(start, end).map { (text, version) ->
+                        CutSnapshot(text, start, DocumentToken(engineEpoch, version))
+                    }
                 } catch (e: Exception) {
                     log(tag, ERROR) { "Failed to copy selection - ${e.asLog()}" }
                     _error.value = e
@@ -1087,8 +1091,16 @@ class EditorEngine @AssistedInject constructor(
      * its clipboard write already succeeded. Any OTHER failure (e.g. the backing file became
      * unreadable) does raise the banner: the clipboard already changed, so a silent no-delete would
      * leave the user with no sign that the cut half-executed.
+     *
+     * The epoch is checked FIRST, before the document guards: a cut prepared on another engine must
+     * mutate nothing whatever this engine is currently doing (loading, empty, read-only) - structural
+     * versions restart per buffer, so its range could otherwise match here by coincidence.
      */
     suspend fun applyCut(snapshot: CutSnapshot): Result<String> {
+        if (snapshot.token.engineEpoch != engineEpoch) {
+            log(tag, WARN) { "Cut deletion rejected, it belongs to a different document" }
+            return Result.failure(StaleMatchException())
+        }
         val buffer = stateMutex.withLock {
             val loaded = _state.value as? EditorState.Loaded
                 ?: return Result.failure(IllegalStateException("Cannot delete selection - no file open"))
@@ -1098,7 +1110,7 @@ class EditorEngine @AssistedInject constructor(
 
         buffer.replaceMatches(
             listOf(DocumentBuffer.MatchReplacement(snapshot.startOffset, snapshot.text, "")),
-            expectedVersion = snapshot.expectedVersion,
+            expectedVersion = snapshot.token.structuralVersion,
         ).getOrElse {
             when (it) {
                 is CancellationException -> throw it

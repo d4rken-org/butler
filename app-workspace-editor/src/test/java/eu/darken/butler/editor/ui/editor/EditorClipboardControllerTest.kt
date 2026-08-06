@@ -33,10 +33,12 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import java.io.File
+import kotlin.uuid.Uuid
 
 class EditorClipboardControllerTest : BaseTest() {
 
     private val workspaceId = Workspace.Id()
+    private val epoch = Uuid.random()
 
     private fun path(name: String) = LocalPath.build(File("/tmp/clip-test", name))
 
@@ -82,7 +84,11 @@ class EditorClipboardControllerTest : BaseTest() {
         }
     }
 
-    private fun snapshot(text: String) = CutSnapshot(text = text, startOffset = 0L, expectedVersion = 1L)
+    private fun snapshot(text: String) = CutSnapshot(
+        text = text,
+        startOffset = 0L,
+        token = EditorEngine.DocumentToken(epoch, structuralVersion = 1L),
+    )
 
     private fun mockRepo(entries: List<ClipboardClip> = emptyList()): ClipboardRepo =
         mockk<ClipboardRepo>().apply {
