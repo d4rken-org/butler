@@ -1,5 +1,7 @@
 package eu.darken.butler.workspace.ui.error
 
+import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import eu.darken.butler.common.ca.toCaString
@@ -20,6 +22,7 @@ class ErrorCardGuardTest : ComposeTest() {
 
     private class TestError(
         private val onFix: () -> Unit,
+        private val fixErrorMessage: String? = null,
     ) : RuntimeException("boom"), HasLocalizedError {
         override fun getLocalizedError(context: LocalizedErrorContext) = LocalizedError(
             throwable = this,
@@ -27,6 +30,7 @@ class ErrorCardGuardTest : ComposeTest() {
             description = BODY.toCaString(),
             fixActionLabel = FIX.toCaString(),
             fixAction = onFix,
+            fixActionErrorMessage = fixErrorMessage?.toCaString(),
         )
     }
 
@@ -60,10 +64,54 @@ class ErrorCardGuardTest : ComposeTest() {
         composeTestRule.onNodeWithText(FIX).assertExists()
     }
 
+    @Test
+    fun `a throwing fix action with its own message shows it inline on the card`() {
+        // The card has no exit, so the failure has nowhere else to go: swallowing it into the log
+        // left the user tapping a button that silently did nothing.
+        composeTestRule.setContent {
+            PreviewWrapper {
+                ErrorCard(
+                    title = TITLE,
+                    error = TestError(
+                        onFix = { throw IllegalStateException("fix action exploded") },
+                        fixErrorMessage = FIX_ERROR,
+                    ),
+                    onShareError = {},
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText(FIX).performClick()
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNodeWithText(FIX_ERROR).assertExists()
+        composeTestRule.onNodeWithText(FIX).assertExists()
+    }
+
+    @Test
+    fun `a fix action without its own message leaves the card as it was`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                ErrorCard(
+                    title = TITLE,
+                    error = TestError(onFix = { throw IllegalStateException("fix action exploded") }),
+                    onShareError = {},
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText(FIX).performClick()
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onAllNodesWithText(FIX_ERROR).assertCountEquals(0)
+        composeTestRule.onNodeWithText(BODY).assertExists()
+    }
+
     companion object {
         private const val TITLE = "Navigation failed"
         private const val LABEL = "Access denied"
         private const val BODY = "Something went wrong"
         private const val FIX = "Grant access"
+        private const val FIX_ERROR = "Fixing it did not work"
     }
 }

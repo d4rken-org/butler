@@ -5,7 +5,9 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.provider.Settings
 import eu.darken.butler.R
+import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.error.LocalizedErrorContext
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import org.junit.Test
@@ -20,7 +22,8 @@ import testhelpers.TestApplication
 
 /**
  * The error dialog's "Google Play" button runs on an activity context: it has to stay inside the
- * caller's task, and a device where the launch is refused must get a toast, not a crash.
+ * caller's task, and a device where the launch is refused must get the failure reported through the
+ * dialog (which can show the full message), not a clipped toast and not a crash.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(application = TestApplication::class, sdk = [34])
@@ -48,12 +51,15 @@ class GplayFixActionTest : BaseTest() {
         ),
     ).fixAction.shouldNotBeNull()
 
-    private fun assertToastInsteadOfCrash(activity: Activity) {
-        fixActionOf(activity).invoke()
-
-        ShadowToast.getTextOfLatestToast() shouldBe
-            activity.getString(R.string.upgrades_gplay_not_installed_message)
-    }
+    private fun errorMessageOf(activity: Activity?): CaString? = GplayServiceUnavailableException(
+        RuntimeException("Play hiccup"),
+    ).getLocalizedError(
+        LocalizedErrorContext(
+            activity = activity,
+            navController = null,
+            permissionFixResolver = null,
+        ),
+    ).fixActionErrorMessage
 
     @Test
     fun `the fix action opens Google Play's app info inside the current task`() {
@@ -70,12 +76,37 @@ class GplayFixActionTest : BaseTest() {
     }
 
     @Test
-    fun `a denied launch shows the not-installed toast instead of crashing`() {
-        assertToastInsteadOfCrash(activityOf(DeniedLaunchActivity::class.java))
+    fun `a denied launch reports through the dialog instead of a toast`() {
+        val activity = activityOf(DeniedLaunchActivity::class.java)
+
+        shouldThrow<SecurityException> { fixActionOf(activity).invoke() }
+
+        // A toast caps at 2 lines and clipped this message — the dialog/card renders it inline.
+        ShadowToast.getLatestToast() shouldBe null
     }
 
     @Test
-    fun `an unresolvable launch shows the not-installed toast instead of crashing`() {
-        assertToastInsteadOfCrash(activityOf(UnresolvedLaunchActivity::class.java))
+    fun `an unresolvable launch reports through the dialog instead of a toast`() {
+        val activity = activityOf(UnresolvedLaunchActivity::class.java)
+
+        shouldThrow<ActivityNotFoundException> { fixActionOf(activity).invoke() }
+
+        ShadowToast.getLatestToast() shouldBe null
+    }
+
+    @Test
+    fun `the failure message travels with the error for the dialog to show`() {
+        val activity = activityOf(Activity::class.java)
+
+        val message = errorMessageOf(activity).shouldNotBeNull()
+
+        message.get(activity) shouldBe activity.getString(R.string.upgrades_gplay_not_installed_message)
+    }
+
+    @Test
+    fun `the failure message is present even without an activity to launch from`() {
+        // Butler's LocalizedErrorContext carries a nullable activity: the copy belongs to the error,
+        // not to the dispatch context that happens to be able to build a fix action.
+        errorMessageOf(null).shouldNotBeNull()
     }
 }

@@ -28,6 +28,8 @@ data class LocalizedError(
     val description: CaString,
     val fixActionLabel: CaString? = null,
     val fixAction: (() -> Unit)? = null,
+    /** Shown inline in the error dialog/card if the fix action fails, instead of a length-capped toast. */
+    val fixActionErrorMessage: CaString? = null,
     val infoActionLabel: CaString? = null,
     val infoAction: (() -> Unit)? = null,
 ) {

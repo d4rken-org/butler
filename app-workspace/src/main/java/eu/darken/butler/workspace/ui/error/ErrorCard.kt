@@ -47,6 +47,7 @@ import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
+import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -99,6 +100,10 @@ fun ErrorCard(
     val bodyText = localized.description.get(context)
     val fixLabel = localized.fixActionLabel?.get(context)
     val fixAction = localized.fixAction
+
+    // Keyed on the throwable, not the LocalizedError: the latter is rebuilt (with fresh action
+    // lambdas, so never equal) on every recomposition, which would wipe the message immediately.
+    var actionError by remember(error) { mutableStateOf<CaString?>(null) }
 
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -159,6 +164,16 @@ fun ErrorCard(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface,
             )
+
+            // A failed fix action that ships its own copy shows it here, in full: a Toast caps at
+            // 2 lines and clipped this kind of message.
+            actionError?.let {
+                Text(
+                    text = it.get(context),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
 
             // Technical details section
             Card(
@@ -256,8 +271,13 @@ fun ErrorCard(
                         onClick = {
                             try {
                                 fixAction()
+                                actionError = null
                             } catch (e: Exception) {
                                 log(TAG, ERROR) { "Error action failed: ${e.asLog()}" }
+                                // Per-dispatch, not read off the error: fixActionErrorMessage
+                                // describes only this action's failure. Without one the card
+                                // behaves exactly as before — log and stay put.
+                                actionError = localized.fixActionErrorMessage
                             }
                         },
                         modifier = Modifier.weight(1f),
