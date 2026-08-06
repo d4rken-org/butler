@@ -171,11 +171,11 @@ class EditorEngineFieldDeltaBasicsTest : EditorEngineTestBase() {
         afterReplace shouldBe "the quick"
 
         // Undo all the way back (a genuine replace is delete+insert, so this may take more than one step).
-        while (engine.canUndo()) engine.undo()
+        while (engine.canUndo()) engine.performUndo()
         engine.fullContent() shouldBe original
 
         // Redo all the way forward.
-        while (engine.canRedo()) engine.redo()
+        while (engine.canRedo()) engine.performRedo()
         engine.fullContent() shouldBe afterReplace
     }
 
@@ -204,7 +204,7 @@ class EditorEngineFieldDeltaBasicsTest : EditorEngineTestBase() {
         engine.fullContent() shouldBe "abXcd"
 
         engine.canUndo() shouldBe true
-        engine.undo()
+        engine.performUndo()
         engine.fullContent() shouldBe "abcd"
         engine.canUndo() shouldBe false
     }

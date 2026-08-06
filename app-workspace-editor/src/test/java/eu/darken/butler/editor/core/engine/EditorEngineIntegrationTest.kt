@@ -136,18 +136,18 @@ class EditorEngineIntegrationTest : DocumentBufferTestBase() {
         val buffer = engine.textBuffer!!
 
         engine.setCursorPosition(TextPosition(0, 0, 0))
-        engine.insertText("11")
+        engine.performInsert("11")
         engine.saveFile().isSuccess shouldBe true
         buffer.isModified.value shouldBe false
 
-        engine.insertText("22")
+        engine.performInsert("22")
         buffer.isModified.value shouldBe true
 
-        engine.undo().isSuccess shouldBe true
+        engine.performUndo().isSuccess shouldBe true
         buffer.isModified.value shouldBe false
         buffer.getFullText().getOrThrow() shouldBe "11base"
 
-        engine.undo().isSuccess shouldBe true
+        engine.performUndo().isSuccess shouldBe true
         buffer.isModified.value shouldBe true
         buffer.getFullText().getOrThrow() shouldBe "base"
 
@@ -160,16 +160,16 @@ class EditorEngineIntegrationTest : DocumentBufferTestBase() {
         val engine = createEngine(content = "base")
 
         engine.setCursorPosition(TextPosition(0, 0, 0))
-        engine.insertText("11")
+        engine.performInsert("11")
         engine.saveFile().isSuccess shouldBe true
         engine.isModified.first() shouldBe false
 
         // The Loaded state's isModified is a snapshot: undo/redo must refresh it or auto-save
         // and the unsaved-changes close warning act on stale state
-        engine.undo().isSuccess shouldBe true
+        engine.performUndo().isSuccess shouldBe true
         engine.isModified.first() shouldBe true
 
-        engine.redo().isSuccess shouldBe true
+        engine.performRedo().isSuccess shouldBe true
         engine.isModified.first() shouldBe false
     }
 
@@ -197,7 +197,7 @@ class EditorEngineIntegrationTest : DocumentBufferTestBase() {
         engine.searchState.value.results.size shouldBe 2
 
         engine.setCursorPosition(TextPosition(0, 0, 0))
-        engine.insertText("X")
+        engine.performInsert("X")
 
         engine.searchState.value.results.size shouldBe 0
     }
@@ -215,7 +215,7 @@ class EditorEngineIntegrationTest : DocumentBufferTestBase() {
         published.results.map { it.position.offset } shouldBe listOf(0L, 4L, 8L)
 
         engine.setCursorPosition(TextPosition(0, 0, 0))
-        engine.insertText("X")
+        engine.performInsert("X")
 
         engine.searchState.value shouldBe EditorEngine.SearchState()
     }
@@ -239,7 +239,7 @@ class EditorEngineIntegrationTest : DocumentBufferTestBase() {
 
         val engine = createEngine(filePath = LocalPath.build(file))
         engine.setCursorPosition(TextPosition(0, 0, 0))
-        engine.insertText("X")
+        engine.performInsert("X")
 
         val streamed = Buffer().also { engine.writeContentTo(it) }.readByteArray()
         streamed shouldBe "Xhello world".toByteArray()

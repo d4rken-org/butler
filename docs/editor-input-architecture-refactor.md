@@ -1,10 +1,14 @@
-# Editor input architecture — proposed refactor
+# Editor input architecture — refactor
 
-> **Status: proposal, not implemented.** This describes a design the editor does *not* currently
-> have. It came out of the review of the Enter-at-end-of-document fix
+> **Status: implemented (2026-08-06), in two runs.** Run 1 landed the verified-transaction core:
+> `DocumentToken`, `applyMutation`, `applyFieldDelta`, `EditorInputSession`, and the oversized
+> confirmation as a `PreparedMutation`. Run 2 landed the epoch-safe cut and the conversion of the
+> remaining mutation APIs to explicit intents. The migration steps below carry per-step outcomes;
+> where the outcome differs from the original proposal, that is called out.
+>
+> The design came out of the review of the Enter-at-end-of-document fix
 > (`fix/editor-enter-and-toolbar-polish`), where eight review findings across three fix rounds all
-> turned out to be symptoms of the same two structural gaps. Nothing here is a description of how
-> the code works today.
+> turned out to be symptoms of the same two structural gaps.
 
 ## Why
 
@@ -192,12 +196,48 @@ selection state.
    `_editResyncSignal` from `EditorWorkspaceViewModel`.
 5. Convert cut, paste, delete and the oversized confirmation to prepared transactions. Remove public
    engine mutation APIs that accept only text or consult the current cursor/selection.
+
+   *Outcome:* the oversized confirmation became an immutable `PreparedMutation` in run 1. Run 2
+   converted the rest: `CutSnapshot` carries a full `DocumentToken` (epoch included), and
+   `insertText`/`deleteSelection`/`deleteAtCursor`/`deleteForward` collapsed into
+   `performEdit(EditIntent, expectedEpoch)`. `deleteAtCursor` was deleted outright — no production
+   caller constructed it, because backspace reaches the engine as a field delta.
+
 6. **Remove the global `EditCommand` queue last.** Until every caller uses verified requests, that
    queue is still containing real races — dismantling it first re-opens them.
+
+   *Outcome: the queue was RETAINED*, as the design doc's optional "engine mutation actor". Version
+   checks detect reordering but do not preserve intent, and navigation (taps, arrow keys) has no
+   version to check at all — it must stay ordered against the edits around it, which only a shared
+   queue gives. What changed is its contents, which now satisfy the actor contract in full:
+   - Every variant is data. `Edit` carries an `EditIntent` plus an epoch; `Confirmed` a
+     `PreparedMutation`; `VerifiedDelete` a `CutSnapshot`; `FieldDelta` a token-chained delta;
+     `Navigate` explicit positions; `Undo`/`Redo` are semantic and epoch-stamped.
+   - No clipboard or file retrieval, no dialog waits, no `suspend () -> Unit` closures run inside
+     the consumer — those effects finish first and hand in the data they produced.
+   - Target resolution is atomic *at the engine*: `performEdit` reads cursor and selection under
+     `stateMutex` together with the mutation, rather than the caller reading them earlier. That is
+     what makes a late-executing command correct instead of merely ordered.
+
 7. Replace queue-order tests with protocol invariants: accepted transactions match their token and
    old text; conflicts leave content untouched; a field sequence converges to the same text as
    applying its local deltas; a foreign mutation invalidates all descendants of the old generation;
    async cut/confirm results can never mutate a different range.
+
+   *Outcome:* delivered as `DocumentBufferMutationTest` (verification, single-read replace,
+   rollback, atomic read-with-version), `EditorEngineFieldDeltaTest` /
+   `EditorEngineFieldDeltaBasicsTest` (token chaining, conflicts, convergence),
+   `EditorEngineEditIntentTest` (intent resolution, gating boundary, epoch rejection, retry on an
+   interleaved replacement), `EditorEngineOversizedDeleteTest`, `EditorEngineCopySelectionTest`
+   (cut across a document switch), and `EditorWorkspaceViewModelEditQueueTest` (ordering plus
+   epoch stamping across a file switch). The queue-order tests were kept, since the queue was.
+
+## Behaviour changes worth knowing
+
+- **Inserting over a selection is one undo step.** It used to reach the buffer as a delete followed
+  by an insert, recorded as two entries, so the first undo after pasting over a selection restored
+  neither the old nor the new text. `applyVersionedReplace` commits both operations in a single
+  undo entry.
 
 ## Alternatives considered and rejected
 

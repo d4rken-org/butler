@@ -6,6 +6,7 @@ import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.editor.core.EditorWorkspace
 import eu.darken.butler.editor.core.engine.EditorEngine
+import eu.darken.butler.editor.core.engine.StaleMatchException
 import eu.darken.butler.editor.core.engine.TextPosition
 import eu.darken.butler.editor.ui.editor.elements.EditorActionBarItem
 import eu.darken.butler.editor.ui.editor.text.SessionDelta
@@ -16,7 +17,9 @@ import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import io.mockk.MockKAnswerScope
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CompletableDeferred
@@ -74,16 +77,28 @@ class EditorWorkspaceViewModelEditQueueTest : BaseTest() {
         selection = null,
     )
 
+    /** The document the workspace currently holds; swapped to simulate a file switch. */
+    private val wsState = MutableStateFlow<EditorWorkspace.State>(
+        EditorWorkspace.State.Ready(
+            EditorWorkspace.EditorState(maxUndoableEditChars = 1_000_000L, windowToken = token(0)),
+        ),
+    )
+
+    private val currentEpoch: Uuid
+        get() = ((wsState.value as EditorWorkspace.State.Ready).editor.windowToken)!!.engineEpoch
+
     private fun makeWorkspace(): EditorWorkspace = mockk<EditorWorkspace>().apply {
         every { info } returns MutableStateFlow(
             Workspace.Info(id = workspaceId, type = Workspace.Type.EDITOR, title = "test".toCaString()),
         )
-        every { state } returns MutableStateFlow<EditorWorkspace.State>(
-            EditorWorkspace.State.Ready(EditorWorkspace.EditorState(maxUndoableEditChars = 1_000_000L)),
-        )
-        coEvery { insertText(any()) } answers { drained.complete(Unit); EditorEngine.EditOutcome.Applied() }
+        every { state } returns wsState
+        coEvery { performEdit(any(), any()) } answers { drained.complete(Unit); EditorEngine.EditOutcome.Applied() }
         coEvery { captureWindowSnapshot() } returns emptySnapshot
     }
+
+    /** The text of an insert intent the ViewModel handed to the workspace. */
+    private fun MockKAnswerScope<*, *>.insertedText(): String =
+        (firstArg<EditorEngine.EditIntent>() as EditorEngine.EditIntent.InsertAtCursor).text
 
     private fun makeViewModel(workspace: EditorWorkspace): EditorWorkspaceViewModel {
         val remote = mockk<WorkspaceRemote> {
@@ -162,8 +177,8 @@ class EditorWorkspaceViewModelEditQueueTest : BaseTest() {
                 applied += text
                 EditorEngine.MutationResult.Applied(token(applied.size.toLong()))
             }
-            coEvery { insertText(any()) } answers {
-                val text = firstArg<String>()
+            coEvery { performEdit(any(), any()) } answers {
+                val text = insertedText()
                 applied += text
                 if (text == "sentinel") drained.complete(Unit)
                 EditorEngine.EditOutcome.Applied()
@@ -269,7 +284,7 @@ class EditorWorkspaceViewModelEditQueueTest : BaseTest() {
         val releaseDelete = CompletableDeferred<Unit>()
         val workspace = makeWorkspace().apply {
             coEvery { prepareCut(any()) } returns Result.success(
-                EditorEngine.CutSnapshot(text = "cut me", startOffset = 0L, expectedVersion = 1L),
+                EditorEngine.CutSnapshot(text = "cut me", startOffset = 0L, token = token(1)),
             )
             coEvery { applyCut(any()) } coAnswers {
                 deleteStarted.complete(Unit)
@@ -307,8 +322,8 @@ class EditorWorkspaceViewModelEditQueueTest : BaseTest() {
                 readDone.complete(Unit)
                 Result.success("pasted")
             }
-            coEvery { insertText(any()) } answers {
-                val text = firstArg<String>()
+            coEvery { performEdit(any(), any()) } answers {
+                val text = insertedText()
                 applied += text
                 if (text == "sentinel") drained.complete(Unit)
                 EditorEngine.EditOutcome.Applied()
@@ -354,7 +369,7 @@ class EditorWorkspaceViewModelEditQueueTest : BaseTest() {
                 EditorEngine.MutationResult.Applied(token(1))
             }
             coEvery { setCursorPosition(any()) } answers { order += "tap" }
-            coEvery { insertText(any()) } answers {
+            coEvery { performEdit(any(), any()) } answers {
                 order += "sentinel"
                 drained.complete(Unit)
                 EditorEngine.EditOutcome.Applied()
@@ -370,6 +385,91 @@ class EditorWorkspaceViewModelEditQueueTest : BaseTest() {
         drained.await()
 
         order shouldBe listOf("type", "tap", "sentinel")
+    }
+
+    // ==================== Epoch stamping across a file switch ====================
+
+    /**
+     * Engine stand-in that enforces the epoch like the real one: a command stamped for the previous
+     * document is a no-op, so [applied] shows what actually reached the CURRENT document.
+     */
+    private fun epochCheckingWorkspace(applied: MutableList<String>): EditorWorkspace =
+        makeWorkspace().apply {
+            coEvery { performEdit(any(), any()) } answers {
+                if (secondArg<Uuid>() != currentEpoch) {
+                    EditorEngine.EditOutcome.Failed(StaleMatchException())
+                } else {
+                    val text = insertedText()
+                    applied += text
+                    if (text == "sentinel") drained.complete(Unit)
+                    EditorEngine.EditOutcome.Applied()
+                }
+            }
+            coEvery { undo(any()) } answers {
+                if (firstArg<Uuid?>() == currentEpoch) applied += "undo"
+                Result.success(null)
+            }
+        }
+
+    @Test
+    fun `an edit enqueued before a file switch never reaches the new document`() = runTest {
+        val applied = mutableListOf<String>()
+        val typingStarted = CompletableDeferred<Unit>()
+        val releaseTyping = CompletableDeferred<Unit>()
+        val workspace = epochCheckingWorkspace(applied).apply {
+            coEvery { applyFieldDelta(any()) } coAnswers {
+                typingStarted.complete(Unit)
+                releaseTyping.await()
+                EditorEngine.MutationResult.Applied(token(1))
+            }
+        }
+        val vm = makeViewModel(workspace)
+
+        // Block the consumer, then queue an edit and an undo against the document open right now
+        vm.enqueueFieldDelta(delta("X", snapshotToken = token(0)))
+        typingStarted.await()
+        vm.insertText("stale")
+        vm.undo()
+
+        // The tab switched files while both waited in the queue
+        wsState.value = EditorWorkspace.State.Ready(
+            EditorWorkspace.EditorState(
+                maxUndoableEditChars = 1_000_000L,
+                windowToken = EditorEngine.DocumentToken(Uuid.random(), structuralVersion = 0L),
+            ),
+        )
+        releaseTyping.complete(Unit)
+        vm.insertText("sentinel")
+        drained.await()
+
+        // Neither the insert nor the undo touched the document that replaced theirs
+        applied shouldBe listOf("sentinel")
+    }
+
+    @Test
+    fun `an unstamped undo is dropped instead of reverting whatever is open`() = runTest {
+        // Nothing was loaded when the undo was enqueued, so it has no document to name. Executing
+        // it anyway would revert whichever document the engine handed over to in the meantime.
+        val applied = mutableListOf<String>()
+        wsState.value = EditorWorkspace.State.Ready(
+            EditorWorkspace.EditorState(maxUndoableEditChars = 1_000_000L, windowToken = null),
+        )
+        val workspace = epochCheckingWorkspace(applied)
+        val vm = makeViewModel(workspace)
+
+        vm.undo()
+        vm.redo()
+
+        // A document arrives after they were queued; the drained sentinel proves both ran first
+        wsState.value = EditorWorkspace.State.Ready(
+            EditorWorkspace.EditorState(maxUndoableEditChars = 1_000_000L, windowToken = token(0)),
+        )
+        vm.insertText("sentinel")
+        drained.await()
+
+        applied shouldBe listOf("sentinel")
+        coVerify(exactly = 0) { workspace.undo(any()) }
+        coVerify(exactly = 0) { workspace.redo(any()) }
     }
 
     private fun pathsClip(name: String) = ClipboardClip.Paths(

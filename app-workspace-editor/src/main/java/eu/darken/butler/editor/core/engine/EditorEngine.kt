@@ -573,95 +573,6 @@ class EditorEngine @AssistedInject constructor(
         val observedMeta: EditorDataSource.Meta?,
     )
 
-    suspend fun insertText(text: String): EditOutcome = stateMutex.withLock {
-        when (val currentState = _state.value) {
-            is EditorState.Loaded -> {
-                currentState.editabilityError()?.let {
-                    log(tag, VERBOSE) { "insertText rejected: ${it.message}" }
-                    return@withLock EditOutcome.Failed(it)
-                }
-                val buffer = currentState.resources.textBuffer
-                val insert = matchDocumentLineEnding(text, buffer)
-
-                // Replace an existing selection atomically through the buffer so the oversized-edit
-                // guard (and its history clearing) covers the WHOLE delete+insert as one unit: a
-                // separate delete-then-insert would leave a misleading partial undo after a
-                // non-undoable selection delete (undo would only revert the insert).
-                val selection = _selectionRange.value?.normalized()
-                if (selection != null) {
-                    oversizedGate(buffer, selection, insert)?.let { return@withLock it }
-                    try {
-                        return@withLock buffer.replaceText(selection.first, selection.second, insert).fold(
-                            onSuccess = { editEnd ->
-                                _selectionRange.value = null
-                                selectionAnchor = null
-                                _cursorPosition.value = editEnd
-                                _state.value = currentState.copy(isModified = true)
-                                _totalLines.value = buffer.totalLines.value
-                                invalidateSearchResults()
-                                refreshVisibleContent()
-                                EditOutcome.Applied()
-                            },
-                            onFailure = { e ->
-                                log(tag, ERROR) { "Failed to replace selection on insert - ${e.asLog()}" }
-                                _error.value = e
-                                EditOutcome.Failed(e)
-                            },
-                        )
-                    } catch (e: CancellationException) {
-                        throw e
-                    } catch (e: Exception) {
-                        log(tag, ERROR) { "Failed to insert over selection - ${e.asLog()}" }
-                        _error.value = e
-                        return@withLock EditOutcome.Failed(e)
-                    }
-                }
-
-                // Use current cursor position
-                val cursorPos = _cursorPosition.value
-
-                // Recalculate correct offset from line/column via the buffer
-                // UI may send placeholder offset=0 with virtual scrolling
-                val correctedOffset = buffer.findOffset(
-                    cursorPos.line,
-                    cursorPos.column
-                )
-
-                val correctedPosition = TextPosition(
-                    offset = correctedOffset,
-                    line = cursorPos.line,
-                    column = cursorPos.column
-                )
-
-                log(tag, VERBOSE) { "Inserting text at position $correctedPosition: ${insert.take(50)}..." }
-
-                buffer.insertText(correctedPosition, insert).fold(
-                    onSuccess = { newPosition ->
-                        log(tag, VERBOSE) { "Text inserted successfully, new position: $newPosition" }
-                        _cursorPosition.value = newPosition
-                        _state.value = currentState.copy(isModified = true)
-                        _totalLines.value = buffer.totalLines.value
-                        invalidateSearchResults()
-                        // Always a full re-read: an in-place window patch would publish new text
-                        // under the PREVIOUS token and every field delta mapped against it would
-                        // then be rejected as stale.
-                        refreshVisibleContent()
-                        EditOutcome.Applied()
-                    },
-                    onFailure = { e ->
-                        log(tag, ERROR) { "Failed to insert text - ${e.asLog()}" }
-                        _error.value = e
-                        EditOutcome.Failed(e)
-                    },
-                )
-            }
-            else -> {
-                log(tag, WARN) { "Cannot insert text - no file open" }
-                EditOutcome.Failed(IllegalStateException("Cannot insert text - no file open"))
-            }
-        }
-    }
-
     /**
      * A single contiguous edit computed by the hidden input field against the window identified by
      * [token]: it replaces [start]..[end] (line/column, placeholder offsets resolved here) - which
@@ -825,6 +736,18 @@ class EditorEngine @AssistedInject constructor(
         val replacement: String,
     )
 
+    /**
+     * What a non-field edit MEANS, as data. The engine resolves it against the live cursor and
+     * selection inside its own lock, so the intent stays valid however long it waited in the edit
+     * queue - unlike the old text-and-count APIs, which described a target the caller had measured
+     * earlier and could no longer vouch for.
+     */
+    sealed interface EditIntent {
+        data class InsertAtCursor(val text: String) : EditIntent
+        data object DeleteSelection : EditIntent
+        data object DeleteForward : EditIntent
+    }
+
     /** Outcome of a mutation that can be gated behind the oversized-edit confirmation. */
     sealed interface EditOutcome {
         /** The mutation ran (or was a legitimate no-op); [removedText] is empty when not materialized. */
@@ -834,33 +757,6 @@ class EditorEngine @AssistedInject constructor(
         data class RequiresConfirmation(val prepared: PreparedMutation) : EditOutcome
 
         data class Failed(val error: Throwable) : EditOutcome
-    }
-
-    /**
-     * Gates a transaction that consumes the WHOLE [selection]: applying it would clear undo history
-     * (materializing the removed span for undo would OOM). Derived from the resolved span under
-     * [stateMutex] together with the operation itself, so it can never race a selection change.
-     * Returns null when the edit is within the undoable budget and may proceed.
-     *
-     * Field deltas are deliberately NOT gated: their span is window-bounded, far below the
-     * threshold, so the replace they perform is always undoable.
-     */
-    private suspend fun oversizedGate(
-        buffer: DocumentBuffer,
-        selection: Pair<TextPosition, TextPosition>,
-        replacement: String,
-    ): EditOutcome.RequiresConfirmation? {
-        val start = selection.first.offset
-        val end = selection.second.offset
-        if (end - start <= buffer.maxUndoableEditChars) return null
-        val prepared = PreparedMutation(
-            token = DocumentToken(engineEpoch, buffer.getStructuralVersion()),
-            startOffset = start,
-            endOffset = end,
-            replacement = replacement,
-        )
-        log(tag, INFO) { "Edit over ${end - start} chars needs confirmation (not undoable)" }
-        return EditOutcome.RequiresConfirmation(prepared)
     }
 
     /**
@@ -911,126 +807,138 @@ class EditorEngine @AssistedInject constructor(
         if (first.offset <= second.offset) this else second to first
 
     /**
-     * Deletes the current selection if one exists. Must be called within stateMutex.withLock.
-     * Returns null when there is no selection.
+     * Applies an [intent] whose target this engine resolves ITSELF, under [stateMutex] and against
+     * the live cursor/selection - the request carries no coordinates that could have gone stale
+     * while it waited in the edit queue. [expectedEpoch] pins it to ONE document: an edit enqueued
+     * before a file switch is dropped instead of landing in whatever is open now.
+     *
+     * Rejections are deliberately banner-less: a stale epoch is the normal consequence of switching
+     * files, and an uneditable document is already visible as such in the UI.
      */
-    private suspend fun deleteSelectionIfPresent(currentState: EditorState.Loaded): EditOutcome? {
-        val selection = _selectionRange.value?.normalized() ?: return null
-        val buffer = currentState.resources.textBuffer
-        oversizedGate(buffer, selection, replacement = "")?.let { return it }
-
-        val result = buffer.deleteText(selection.first, selection.second)
-        return result.fold(
-            onSuccess = { deletedText ->
-                _selectionRange.value = null
-                _cursorPosition.value = selection.first
-                _state.value = currentState.copy(isModified = true)
-                _totalLines.value = buffer.totalLines.value
-                invalidateSearchResults()
-                refreshVisibleContent()
-                EditOutcome.Applied(deletedText)
-            },
-            onFailure = { e ->
-                _error.value = e
-                EditOutcome.Failed(e)
-            },
-        )
-    }
-
-    suspend fun deleteSelection(): EditOutcome = stateMutex.withLock {
-        return when (val currentState = _state.value) {
-            is EditorState.Loaded -> {
-                currentState.editabilityError()?.let { return EditOutcome.Failed(it) }
-                try {
-                    deleteSelectionIfPresent(currentState)
-                        ?: EditOutcome.Failed(IllegalStateException("No selection to delete"))
-                } catch (e: CancellationException) {
-                    throw e
-                } catch (e: Exception) {
-                    log(tag, ERROR) { "Failed to delete selection - ${e.asLog()}" }
-                    _error.value = e
-                    EditOutcome.Failed(e)
-                }
-            }
-            else -> {
-                val error = IllegalStateException("Cannot delete selection - no file open")
-                log(tag, WARN) { error.message ?: "Unknown error" }
-                EditOutcome.Failed(error)
-            }
+    suspend fun performEdit(intent: EditIntent, expectedEpoch: Uuid): EditOutcome = stateMutex.withLock {
+        val currentState = _state.value as? EditorState.Loaded
+        if (currentState == null) {
+            val error = IllegalStateException("Cannot edit - no file open")
+            log(tag, WARN) { error.message ?: "Unknown error" }
+            return@withLock EditOutcome.Failed(error)
         }
-    }
-
-    suspend fun deleteAtCursor(count: Int): EditOutcome = stateMutex.withLock {
-        return when (val currentState = _state.value) {
-            is EditorState.Loaded -> {
-                currentState.editabilityError()?.let { return EditOutcome.Failed(it) }
-                // If there's a selection, delete it instead of backspace (standard behavior)
-                deleteSelectionIfPresent(currentState)?.let { return it }
-
-                if (count <= 0) {
-                    return EditOutcome.Applied()
-                }
-
-                val cursorPos = _cursorPosition.value
-
-                // Calculate start position, clamped to 0
-                val startOffset = (cursorPos.offset - count).coerceAtLeast(0L)
-                val actualCount = (cursorPos.offset - startOffset).toInt()
-
-                if (actualCount <= 0) {
-                    // Nothing to delete (cursor at start of document)
-                    return EditOutcome.Applied()
-                }
-
-                try {
-                    val buffer = currentState.resources.textBuffer
-                    // Find the line/column for start position
-                    val startPosition = buffer.findPosition(startOffset)
-                    val endPosition = cursorPos
-
-                    log(tag, VERBOSE) { "Deleting $actualCount characters at cursor: $startPosition to $endPosition" }
-
-                    buffer.deleteText(startPosition, endPosition).fold(
-                        onSuccess = { deletedText ->
-                            _cursorPosition.value = startPosition
-                            _state.value = currentState.copy(isModified = true)
-                            _totalLines.value = buffer.totalLines.value
-                            invalidateSearchResults()
-                            // Always a full re-read: an in-place window patch would publish new
-                            // text under the PREVIOUS token (see insertText).
-                            refreshVisibleContent()
-                            EditOutcome.Applied(deletedText)
-                        },
-                        onFailure = { e ->
-                            _error.value = e
-                            EditOutcome.Failed(e)
-                        },
-                    )
-                } catch (e: CancellationException) {
-                    throw e
-                } catch (e: Exception) {
-                    log(tag, ERROR) { "Failed to delete at cursor - ${e.asLog()}" }
-                    _error.value = e
-                    EditOutcome.Failed(e)
-                }
-            }
-            else -> {
-                val error = IllegalStateException("Cannot delete at cursor - no file open")
-                log(tag, WARN) { error.message ?: "Unknown error" }
-                EditOutcome.Failed(error)
-            }
+        if (expectedEpoch != engineEpoch) {
+            log(tag, INFO) { "performEdit dropped, $intent belongs to a different document" }
+            return@withLock EditOutcome.Failed(StaleMatchException())
+        }
+        currentState.editabilityError()?.let {
+            log(tag, VERBOSE) { "performEdit rejected: ${it.message}" }
+            return@withLock EditOutcome.Failed(it)
+        }
+        try {
+            performEditLocked(currentState, intent)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Failed to perform $intent - ${e.asLog()}" }
+            _error.value = e
+            EditOutcome.Failed(e)
         }
     }
 
     /**
-     * A selection captured for a cut: the copied [text], the offset it starts at, and the
-     * structural version it was read from. [applyCut] re-verifies both, so the deletion can only
-     * ever remove the range this snapshot was taken from.
+     * Resolve, gate, apply. Resolution and application are re-run on a version conflict: search
+     * replacements commit OUTSIDE [stateMutex], so one can land between the version read and the
+     * splice - retrying resolves against the fresh document instead of dropping the user's edit.
+     */
+    private suspend fun performEditLocked(currentState: EditorState.Loaded, intent: EditIntent): EditOutcome {
+        val buffer = currentState.resources.textBuffer
+        repeat(MAX_EDIT_ATTEMPTS) {
+            val selection = _selectionRange.value?.normalized()
+            val startOffset: Long
+            val endOffset: Long
+            if (selection != null) {
+                // Every intent consumes the whole selection first - standard editor behavior
+                startOffset = selection.first.offset
+                endOffset = selection.second.offset
+            } else when (intent) {
+                is EditIntent.InsertAtCursor -> {
+                    // Re-resolved from line/column: the field sends a placeholder offset with
+                    // virtual scrolling, so the raw cursor offset is not trustworthy here
+                    val cursor = _cursorPosition.value
+                    startOffset = buffer.findOffset(cursor.line, cursor.column)
+                    endOffset = startOffset
+                }
+                EditIntent.DeleteForward -> {
+                    val cursor = _cursorPosition.value
+                    if (cursor.offset >= buffer.totalLength.value) {
+                        // Accepted, just with nothing to remove - it still ends a shift-selection
+                        selectionAnchor = null
+                        return EditOutcome.Applied()
+                    }
+                    startOffset = cursor.offset
+                    endOffset = cursor.offset + 1
+                }
+                EditIntent.DeleteSelection ->
+                    return EditOutcome.Failed(IllegalStateException("No selection to delete"))
+            }
+            val replacement = when (intent) {
+                is EditIntent.InsertAtCursor -> matchDocumentLineEnding(intent.text, buffer)
+                else -> ""
+            }
+            val version = buffer.getStructuralVersion()
+
+            if (endOffset - startOffset > buffer.maxUndoableEditChars) {
+                // Applying this would clear undo history (materializing the removed span for undo
+                // would OOM), so it is resolved into an immutable request the user confirms - and
+                // nothing mutates until then. Only selection-consuming edits can get this large.
+                log(tag, INFO) { "Edit over ${endOffset - startOffset} chars needs confirmation (not undoable)" }
+                return EditOutcome.RequiresConfirmation(
+                    PreparedMutation(
+                        token = DocumentToken(engineEpoch, version),
+                        startOffset = startOffset,
+                        endOffset = endOffset,
+                        replacement = replacement,
+                    ),
+                )
+            }
+
+            val removedText = buffer.applyVersionedReplace(version, startOffset, endOffset, replacement).fold(
+                onSuccess = { (_, removed) -> removed },
+                onFailure = { e ->
+                    if (e !is StaleMatchException) throw e
+                    log(tag) { "performEdit conflicted with a concurrent mutation, resolving again" }
+                    return@repeat
+                },
+            )
+
+            _totalLines.value = buffer.totalLines.value
+            _cursorPosition.value = when {
+                intent is EditIntent.InsertAtCursor -> buffer.findPosition(startOffset + replacement.length)
+                // A consumed selection collapses to its start; a plain forward-delete stays put
+                selection != null -> selection.first
+                else -> _cursorPosition.value
+            }
+            if (selection != null) _selectionRange.value = null
+            // Dropped for EVERY accepted intent, not just the ones consuming a selection: the anchor
+            // belongs to the shift-selection the user was building, and an edit ends it. A surviving
+            // anchor would make the next Shift+Arrow extend from wherever that selection started.
+            selectionAnchor = null
+            _state.value = currentState.copy(isModified = true)
+            invalidateSearchResults()
+            // Always a full re-read: an in-place window patch would publish new text under the
+            // PREVIOUS token, and every field delta mapped against it would be rejected as stale.
+            refreshVisibleContent()
+            return EditOutcome.Applied(if (intent is EditIntent.InsertAtCursor) "" else removedText)
+        }
+        log(tag, WARN) { "Gave up on $intent after $MAX_EDIT_ATTEMPTS attempts, the document kept moving" }
+        return EditOutcome.Failed(StaleMatchException())
+    }
+
+    /**
+     * A selection captured for a cut: the copied [text], the offset it starts at, and the document
+     * identity it was read from. [applyCut] re-verifies both halves of the [token], so the deletion
+     * can only ever remove the range this snapshot was taken from, in the document it came from.
      */
     data class CutSnapshot(
         val text: String,
         val startOffset: Long,
-        val expectedVersion: Long,
+        val token: DocumentToken,
     )
 
     /**
@@ -1063,8 +971,12 @@ class EditorEngine @AssistedInject constructor(
                     }
                     log(tag) { "Copying selection: ${selection.first} to ${selection.second}" }
                     val buffer = currentState.resources.textBuffer
-                    val version = buffer.getStructuralVersion()
-                    buffer.getText(start, end).map { CutSnapshot(it, start, version) }
+                    // Text and version in ONE buffer hold: read separately, a replace-all landing
+                    // between them would stamp the new text with the old version, and the cut's
+                    // deletion would then be rejected forever
+                    buffer.getTextWithVersion(start, end).map { (text, version) ->
+                        CutSnapshot(text, start, DocumentToken(engineEpoch, version))
+                    }
                 } catch (e: Exception) {
                     log(tag, ERROR) { "Failed to copy selection - ${e.asLog()}" }
                     _error.value = e
@@ -1087,8 +999,16 @@ class EditorEngine @AssistedInject constructor(
      * its clipboard write already succeeded. Any OTHER failure (e.g. the backing file became
      * unreadable) does raise the banner: the clipboard already changed, so a silent no-delete would
      * leave the user with no sign that the cut half-executed.
+     *
+     * The epoch is checked FIRST, before the document guards: a cut prepared on another engine must
+     * mutate nothing whatever this engine is currently doing (loading, empty, read-only) - structural
+     * versions restart per buffer, so its range could otherwise match here by coincidence.
      */
     suspend fun applyCut(snapshot: CutSnapshot): Result<String> {
+        if (snapshot.token.engineEpoch != engineEpoch) {
+            log(tag, WARN) { "Cut deletion rejected, it belongs to a different document" }
+            return Result.failure(StaleMatchException())
+        }
         val buffer = stateMutex.withLock {
             val loaded = _state.value as? EditorState.Loaded
                 ?: return Result.failure(IllegalStateException("Cannot delete selection - no file open"))
@@ -1098,7 +1018,7 @@ class EditorEngine @AssistedInject constructor(
 
         buffer.replaceMatches(
             listOf(DocumentBuffer.MatchReplacement(snapshot.startOffset, snapshot.text, "")),
-            expectedVersion = snapshot.expectedVersion,
+            expectedVersion = snapshot.token.structuralVersion,
         ).getOrElse {
             when (it) {
                 is CancellationException -> throw it
@@ -1443,42 +1363,6 @@ class EditorEngine @AssistedInject constructor(
         return this.isLetterOrDigit() || this == '_'
     }
 
-    suspend fun deleteForward(): EditOutcome = stateMutex.withLock {
-        val currentState = _state.value as? EditorState.Loaded
-            ?: return EditOutcome.Failed(IllegalStateException("Cannot delete forward - no file open"))
-
-        currentState.editabilityError()?.let { return EditOutcome.Failed(it) }
-        // If there's a selection, delete it instead of forward-delete (standard behavior)
-        deleteSelectionIfPresent(currentState)?.let { return it }
-
-        val buffer = currentState.resources.textBuffer
-        val cursorPos = _cursorPosition.value
-        val totalLength = buffer.totalLength.value
-
-        if (cursorPos.offset >= totalLength) {
-            return EditOutcome.Applied() // Nothing to delete at end
-        }
-
-        // Delete 1 character forward (from cursor to cursor+1)
-        val endPosition = buffer.findPosition(cursorPos.offset + 1)
-
-        log(tag, VERBOSE) { "Forward delete at $cursorPos to $endPosition" }
-
-        return buffer.deleteText(cursorPos, endPosition).fold(
-            onSuccess = { deletedText ->
-                _state.value = currentState.copy(isModified = true)
-                _totalLines.value = buffer.totalLines.value
-                invalidateSearchResults()
-                refreshVisibleContent()
-                EditOutcome.Applied(deletedText)
-            },
-            onFailure = { e ->
-                _error.value = e
-                EditOutcome.Failed(e)
-            },
-        )
-    }
-
     /**
      * The scan itself runs OUTSIDE [stateMutex] so typing never queues behind a whole-document
      * search. Results are published only if this is still the LATEST search request (a newer
@@ -1564,13 +1448,15 @@ class EditorEngine @AssistedInject constructor(
             newText = matchDocumentLineEnding(replacement, buffer)
         }
 
-        buffer.replaceMatches(
-            listOf(DocumentBuffer.MatchReplacement(match.position.offset, match.matchText, newText)),
-            expectedVersion = expandedVersion,
-        ).getOrElse { return Result.failure(it) }
-
         val replacementEnd = match.position.offset + newText.length
-        refreshAfterMutation(cursorOffset = replacementEnd)
+        // Commit and state update under ONE hold: see [replaceAll]
+        stateMutex.withLock {
+            buffer.replaceMatches(
+                listOf(DocumentBuffer.MatchReplacement(match.position.offset, match.matchText, newText)),
+                expectedVersion = expandedVersion,
+            ).getOrElse { return Result.failure(it) }
+            refreshAfterMutationLocked(cursorOffset = replacementEnd)
+        }
 
         val results = search(query, options).getOrElse { emptyList() }
         val nextIndex = results.indexOfFirst { it.position.offset >= replacementEnd }
@@ -1668,30 +1554,41 @@ class EditorEngine @AssistedInject constructor(
 
         if (replacements.isEmpty()) return Result.success(ReplaceAllOutcome(0, undoable = true))
 
-        val stats = buffer.replaceMatches(replacements, expectedVersion = expectedVersion)
-            .getOrElse { return Result.failure(it) }
-
-        refreshAfterMutation(cursorOffset = null)
+        // The COMMIT and the state update it implies (cleared selection, moved cursor, refreshed
+        // window) are one transaction under [stateMutex]. Committing outside it and updating state
+        // after would let the mutation land while an edit holds the lock: that edit's target
+        // offsets were resolved against the pre-replace document, and the selection it re-reads on
+        // a version conflict is exactly the one this update has not been able to clear yet - so a
+        // length-shifting replacement would make it edit unrelated text. The scan/precompute above
+        // deliberately stays OUTSIDE the lock so typing never queues behind a whole-document pass.
+        val stats = stateMutex.withLock {
+            buffer.replaceMatches(replacements, expectedVersion = expectedVersion)
+                .getOrElse { return Result.failure(it) }
+                .also { refreshAfterMutationLocked(cursorOffset = null) }
+        }
         search(query, options)
 
         return Result.success(ReplaceAllOutcome(stats.count, stats.undoable))
     }
 
-    /** Post-mutation UI refresh shared by the replace operations; one lock, no interleaving. */
+    /** Post-mutation UI refresh; takes [stateMutex] itself. Callers already holding it use the Locked variant. */
     private suspend fun refreshAfterMutation(cursorOffset: Long?) {
-        stateMutex.withLock {
-            val currentState = _state.value as? EditorState.Loaded ?: return@withLock
-            val buffer = currentState.resources.textBuffer
-            _totalLines.value = buffer.totalLines.value
-            // Read the flag from the buffer instead of assuming true: an undo/redo/save that
-            // interleaved between the buffer mutation and this refresh must not be overwritten
-            _state.value = currentState.copy(isModified = buffer.isModified.value)
-            _selectionRange.value = null
-            selectionAnchor = null
-            cursorOffset?.let { _cursorPosition.value = buffer.findPosition(it) }
-            invalidateSearchResults()
-            refreshVisibleContent()
-        }
+        stateMutex.withLock { refreshAfterMutationLocked(cursorOffset) }
+    }
+
+    /** Body of [refreshAfterMutation]; [stateMutex] must be held (convention like [refreshVisibleContent]). */
+    private suspend fun refreshAfterMutationLocked(cursorOffset: Long?) {
+        val currentState = _state.value as? EditorState.Loaded ?: return
+        val buffer = currentState.resources.textBuffer
+        _totalLines.value = buffer.totalLines.value
+        // Read the flag from the buffer instead of assuming true: an undo/redo/save that
+        // interleaved between the buffer mutation and this refresh must not be overwritten
+        _state.value = currentState.copy(isModified = buffer.isModified.value)
+        _selectionRange.value = null
+        selectionAnchor = null
+        cursorOffset?.let { _cursorPosition.value = buffer.findPosition(it) }
+        invalidateSearchResults()
+        refreshVisibleContent()
     }
 
     /**
@@ -1928,9 +1825,19 @@ class EditorEngine @AssistedInject constructor(
         }
     }
 
-    suspend fun undo(): Result<EditOperation?> = stateMutex.withLock {
+    /**
+     * Steps back one committed transaction. [expectedEpoch] pins the request to ONE document: an
+     * undo queued before a file switch must not revert the document that replaced it. A mismatch is
+     * a banner-less no-op, like every other epoch rejection. Mandatory by design - an "unstamped"
+     * undo would be exactly the request that cannot tell those two documents apart.
+     */
+    suspend fun undo(expectedEpoch: Uuid): Result<EditOperation?> = stateMutex.withLock {
         return when (val currentState = _state.value) {
             is EditorState.Loaded -> {
+                if (expectedEpoch != engineEpoch) {
+                    log(tag, INFO) { "undo dropped, it belongs to a different document" }
+                    return Result.success(null)
+                }
                 currentState.editabilityError()?.let { return Result.failure(it) }
                 try {
                     val result = currentState.resources.textBuffer.undo()
@@ -1972,9 +1879,14 @@ class EditorEngine @AssistedInject constructor(
         }
     }
 
-    suspend fun redo(): Result<EditOperation?> = stateMutex.withLock {
+    /** See [undo]: [expectedEpoch] keeps a queued redo from re-applying into another document. */
+    suspend fun redo(expectedEpoch: Uuid): Result<EditOperation?> = stateMutex.withLock {
         return when (val currentState = _state.value) {
             is EditorState.Loaded -> {
+                if (expectedEpoch != engineEpoch) {
+                    log(tag, INFO) { "redo dropped, it belongs to a different document" }
+                    return Result.success(null)
+                }
                 currentState.editabilityError()?.let { return Result.failure(it) }
                 try {
                     val result = currentState.resources.textBuffer.redo()
@@ -2055,6 +1967,13 @@ class EditorEngine @AssistedInject constructor(
     }
 
     companion object {
+        /**
+         * How often [performEdit] re-resolves against a document that moved under it. A conflict
+         * needs a search replacement to commit in exactly that window, so three attempts is a
+         * generous bound - the cap only exists so a pathological replace-all loop cannot spin.
+         */
+        private const val MAX_EDIT_ATTEMPTS = 3
+
         // Idempotent break normalizer: "\r\n" matches before its parts, so already-conforming
         // text (e.g. regex group captures of CRLF document content) is never double-converted
         private val LINE_BREAK_REGEX = Regex("\r\n|\r|\n")

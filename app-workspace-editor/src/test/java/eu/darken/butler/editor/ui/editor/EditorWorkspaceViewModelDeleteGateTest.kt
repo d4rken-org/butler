@@ -63,7 +63,7 @@ class EditorWorkspaceViewModelDeleteGateTest : BaseTest() {
         )
 
     /**
-     * Engine stand-in: gates exactly like [EditorEngine.oversizedGate] - the selection's own span,
+     * Engine stand-in: gates exactly like [EditorEngine.performEdit] - the selection's own span,
      * measured absolute, strictly above the threshold.
      */
     private fun makeWorkspace(selection: Pair<TextPosition, TextPosition>?): EditorWorkspace =
@@ -76,21 +76,22 @@ class EditorWorkspaceViewModelDeleteGateTest : BaseTest() {
                     EditorWorkspace.EditorState(
                         selectionRange = selection,
                         maxUndoableEditChars = threshold,
+                        // What the ViewModel stamps its mutation commands with
+                        windowToken = token,
                     ),
                 ),
             )
             val oversized = selection != null &&
                 kotlin.math.abs(selection.second.offset - selection.first.offset) > threshold
 
-            fun gated(replacement: String): EditorEngine.EditOutcome = when {
-                oversized -> EditorEngine.EditOutcome.RequiresConfirmation(prepared(selection!!, replacement))
-                else -> EditorEngine.EditOutcome.Applied()
+            coEvery { performEdit(any(), any()) } answers {
+                val intent = firstArg<EditorEngine.EditIntent>()
+                val replacement = (intent as? EditorEngine.EditIntent.InsertAtCursor)?.text ?: ""
+                when {
+                    oversized -> EditorEngine.EditOutcome.RequiresConfirmation(prepared(selection!!, replacement))
+                    else -> EditorEngine.EditOutcome.Applied()
+                }
             }
-
-            coEvery { deleteSelection() } answers { gated("") }
-            coEvery { deleteAtCursor(any()) } answers { gated("") }
-            coEvery { deleteForward() } answers { gated("") }
-            coEvery { insertText(any()) } answers { gated(firstArg()) }
             coEvery { applyFieldDelta(any()) } returns EditorEngine.MutationResult.Applied(token)
             coEvery { submitPrepared(any()) } returns EditorEngine.MutationResult.Applied(token)
         }
@@ -137,7 +138,7 @@ class EditorWorkspaceViewModelDeleteGateTest : BaseTest() {
         vm.requestDeleteSelection()
 
         vm.state.first().showLargeDeleteConfirmDialog shouldBe false
-        coVerify(exactly = 1) { workspace.deleteSelection() }
+        coVerify(exactly = 1) { workspace.performEdit(EditorEngine.EditIntent.DeleteSelection, epoch) }
     }
 
     @Test
@@ -192,17 +193,6 @@ class EditorWorkspaceViewModelDeleteGateTest : BaseTest() {
     }
 
     @Test
-    fun `backspace over a huge selection confirms instead of deleting`() = runTest {
-        val workspace = makeWorkspace(hugeSelection)
-        val vm = makeViewModel(workspace)
-
-        vm.deleteAtCursor(1)
-
-        vm.state.first().showLargeDeleteConfirmDialog shouldBe true
-        coVerify(exactly = 0) { workspace.submitPrepared(any()) }
-    }
-
-    @Test
     fun `forward-delete over a huge selection confirms instead of deleting`() = runTest {
         val workspace = makeWorkspace(hugeSelection)
         val vm = makeViewModel(workspace)
@@ -214,14 +204,14 @@ class EditorWorkspaceViewModelDeleteGateTest : BaseTest() {
     }
 
     @Test
-    fun `plain backspace without a selection is not gated`() = runTest {
+    fun `a forward-delete without a selection is not gated`() = runTest {
         val workspace = makeWorkspace(selection = null)
         val vm = makeViewModel(workspace)
 
-        vm.deleteAtCursor(1)
+        vm.deleteForward()
 
         vm.state.first().showLargeDeleteConfirmDialog shouldBe false
-        coVerify(exactly = 1) { workspace.deleteAtCursor(1) }
+        coVerify(exactly = 1) { workspace.performEdit(EditorEngine.EditIntent.DeleteForward, epoch) }
     }
 
     // ==================== Field deltas are never gated ====================

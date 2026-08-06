@@ -61,6 +61,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
+import kotlin.uuid.Uuid
 
 @HiltViewModel(assistedFactory = EditorWorkspaceViewModel.Factory::class)
 class EditorWorkspaceViewModel @AssistedInject constructor(
@@ -229,6 +230,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
 
     init {
         consumeEditCommands()
+        observeEngineEpoch()
         observeEditActivityForAvailability()
 
         // Dismissed backup/long-lines notices belong to ONE path: any path change (open,
@@ -458,13 +460,27 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     }
 
     /**
-     * One ordered edit pipeline for every text mutation.
+     * One ordered edit pipeline for every text mutation - the design doc's "engine mutation actor".
      *
      * Each entry point used to `launch` its own coroutine on the multi-threaded Default dispatcher,
      * so two edits dispatched back-to-back (Enter, then a character) could reach the engine's mutex
      * in the wrong order and the character would resolve against the pre-Enter document. Entry
      * points now enqueue SYNCHRONOUSLY and a single consumer drains the channel, so arrival order
      * at the engine equals UI-event order.
+     *
+     * **Actor contract.** Every variant is pure data, resolved before it is enqueued or resolved
+     * atomically inside the engine - never in between:
+     * - [FieldDelta] is a token-chained delta; its predecessor's acknowledgement supplies the token.
+     * - [Edit] carries an [EditorEngine.EditIntent] plus the epoch it was typed against; the ENGINE
+     *   resolves cursor and selection under its own lock.
+     * - [Confirmed] carries an immutable [EditorEngine.PreparedMutation], [VerifiedDelete] a
+     *   [EditorEngine.CutSnapshot] - both re-verified against their token before anything moves.
+     * - [Navigate] carries explicit positions; [Undo]/[Redo] are semantic and epoch-stamped.
+     *
+     * What the queue must NEVER contain: clipboard or file retrieval, dialog waits, arbitrary
+     * `suspend () -> Unit` closures, or a command that discovers its target by reading mutable
+     * cursor/selection state OUTSIDE the engine's atomic resolution. Those effects run before
+     * enqueueing and hand in the data they produced.
      */
     private sealed interface EditCommand {
         /** Enqueue order, for diagnostics. */
@@ -481,14 +497,17 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             val outcome: CompletableDeferred<EditorEngine.MutationResult>,
         ) : EditCommand
 
-        data class Insert(
+        /**
+         * A mutation stated as an intent plus the document it was meant for. [epoch] is null when
+         * nothing was loaded at enqueue time - such a command is dropped rather than guessed at.
+         */
+        data class Edit(
             override val revision: Long,
-            val text: String,
-            /** Completed with whether the insert was applied; null for fire-and-forget inserts. */
+            val intent: EditorEngine.EditIntent,
+            val epoch: Uuid?,
+            /** Completed with whether the edit was APPLIED; null for fire-and-forget edits. */
             val applied: CompletableDeferred<Boolean>? = null,
         ) : EditCommand
-
-        data class DeleteSelection(override val revision: Long) : EditCommand
 
         /**
          * A cut's deletion: it carries the range and document version its clipboard copy was taken
@@ -501,10 +520,12 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             val outcome: CompletableDeferred<Result<String>>,
         ) : EditCommand
 
-        data class DeleteAtCursor(override val revision: Long, val count: Int) : EditCommand
-        data class DeleteForward(override val revision: Long) : EditCommand
-        data class Undo(override val revision: Long) : EditCommand
-        data class Redo(override val revision: Long) : EditCommand
+        /**
+         * Semantic, not spatial: "revert the latest committed transaction". Epoch-stamped all the
+         * same - an undo queued before a file switch must not revert the document that replaced it.
+         */
+        data class Undo(override val revision: Long, val epoch: Uuid?) : EditCommand
+        data class Redo(override val revision: Long, val epoch: Uuid?) : EditCommand
 
         /** An edit the user confirmed in the large-edit dialog; resolved before the dialog opened. */
         data class Confirmed(
@@ -541,6 +562,25 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         editCommands.trySend(command(enqueuedRevision.incrementAndGet()))
     }
 
+    /** Stamps the intent with the document that was open when the user triggered it. */
+    private fun enqueueEdit(intent: EditorEngine.EditIntent) = enqueue { EditCommand.Edit(it, intent, cachedEpoch) }
+
+    /**
+     * Epoch of the currently open document, cached so mutation commands can be stamped from the
+     * non-suspending enqueue path. Volatile: enqueueing happens on the UI thread while the collector
+     * below runs on the VM scope.
+     */
+    @Volatile
+    private var cachedEpoch: Uuid? = null
+
+    private fun observeEngineEpoch() {
+        workspaceWithState
+            .map { (_, wsState) -> (wsState as? EditorWorkspace.State.Ready)?.editor?.windowToken?.engineEpoch }
+            .distinctUntilChanged()
+            .onEach { cachedEpoch = it }
+            .launchIn(vmScope)
+    }
+
     private fun consumeEditCommands() = vmScope.launch {
         for (command in editCommands) {
             try {
@@ -567,17 +607,16 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
                     throw e
                 }
             }
-            is EditCommand.Insert -> {
+            is EditCommand.Edit -> {
                 try {
-                    // Evaluated outside the safe call: that would skip the insert for a null deferred
-                    val applied = performInsertText(command.text)
+                    // Evaluated outside the safe call: that would skip the edit for a null deferred
+                    val applied = performEdit(command.intent, command.epoch)
                     command.applied?.complete(applied)
                 } catch (e: Throwable) {
                     command.applied?.completeExceptionally(e)
                     throw e
                 }
             }
-            is EditCommand.DeleteSelection -> performDeleteSelection()
             is EditCommand.VerifiedDelete -> {
                 try {
                     command.outcome.complete(performVerifiedDelete(command.snapshot))
@@ -586,18 +625,14 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
                     throw e
                 }
             }
-            is EditCommand.DeleteAtCursor -> {
-                editActivity.tryEmit(Unit)
-                // Backspace over an oversized selection deletes it non-undoably; the engine gates
-                // that and hands back the prepared edit for confirmation.
-                gateIfNeeded(getWorkspace().deleteAtCursor(command.count))
-            }
-            is EditCommand.DeleteForward -> {
-                editActivity.tryEmit(Unit)
-                gateIfNeeded(getWorkspace().deleteForward())
-            }
-            is EditCommand.Undo -> getWorkspace().undo()
-            is EditCommand.Redo -> getWorkspace().redo()
+            // Same rule as an Edit intent: without a document to aim at there is nothing to revert,
+            // and applying it to whatever is open now would revert the wrong document
+            is EditCommand.Undo -> command.epoch
+                ?.let { getWorkspace().undo(it) }
+                ?: log(tag, INFO) { "Dropping undo, no document was loaded when it was enqueued" }
+            is EditCommand.Redo -> command.epoch
+                ?.let { getWorkspace().redo(it) }
+                ?: log(tag, INFO) { "Dropping redo, no document was loaded when it was enqueued" }
             is EditCommand.Confirmed -> performConfirmedEdit(command.prepared)
             is EditCommand.Navigate -> executeNavigation(command)
         }
@@ -666,12 +701,23 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         return outcome
     }
 
-    fun insertText(text: String) = enqueue { EditCommand.Insert(it, text) }
+    fun insertText(text: String) = enqueueEdit(EditorEngine.EditIntent.InsertAtCursor(text))
 
-    /** Returns false when the insert was gated behind the large-edit confirmation. */
-    private suspend fun performInsertText(text: String): Boolean {
+    /**
+     * Runs one intent against the document it was stamped for. True ONLY when the engine applied
+     * it: a gated (confirmation-pending), refused (read-only) or dropped (file switched) edit must
+     * not be reported as done - paste logs its success on this.
+     */
+    private suspend fun performEdit(intent: EditorEngine.EditIntent, epoch: Uuid?): Boolean {
+        if (epoch == null) {
+            // Nothing was loaded when this was enqueued; there is no document to apply it to
+            log(tag, INFO) { "Dropping $intent, no document was loaded when it was enqueued" }
+            return false
+        }
         editActivity.tryEmit(Unit)
-        return !gateIfNeeded(getWorkspace().insertText(text))
+        val outcome = getWorkspace().performEdit(intent, epoch)
+        gateIfNeeded(outcome)
+        return outcome is EditorEngine.EditOutcome.Applied
     }
 
     /**
@@ -683,11 +729,6 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val outcome = CompletableDeferred<Result<String>>()
         enqueue { EditCommand.VerifiedDelete(it, snapshot, outcome) }
         return outcome.await()
-    }
-
-    private suspend fun performDeleteSelection() {
-        editActivity.tryEmit(Unit)
-        gateIfNeeded(getWorkspace().deleteSelection())
     }
 
     private suspend fun performVerifiedDelete(snapshot: EditorEngine.CutSnapshot): Result<String> {
@@ -730,7 +771,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun requestDeleteSelection() = enqueue { EditCommand.DeleteSelection(it) }
+    fun requestDeleteSelection() = enqueueEdit(EditorEngine.EditIntent.DeleteSelection)
 
     fun confirmLargeDelete() {
         val prepared = pendingOversizedEdit.getAndSet(null) ?: return
@@ -745,17 +786,16 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         dialogsController.dismissLargeDeleteConfirmDialog()
     }
 
-    fun deleteAtCursor(count: Int) = enqueue { EditCommand.DeleteAtCursor(it, count) }
-
-    fun deleteForward() = enqueue { EditCommand.DeleteForward(it) }
+    fun deleteForward() = enqueueEdit(EditorEngine.EditIntent.DeleteForward)
 
     /**
-     * Insert (e.g. paste) guarded by the oversized-selection gate. Returns false when deferred.
+     * Insert (e.g. paste) guarded by the oversized-selection gate. False when the engine did not
+     * apply it - deferred behind the confirm dialog, refused, or aimed at a document that is gone.
      * Goes through the same queue as every other mutation, awaiting its command's outcome.
      */
     private suspend fun guardedInsertText(text: String): Boolean {
         val applied = CompletableDeferred<Boolean>()
-        enqueue { EditCommand.Insert(it, text, applied) }
+        enqueue { EditCommand.Edit(it, EditorEngine.EditIntent.InsertAtCursor(text), cachedEpoch, applied) }
         return applied.await()
     }
 
@@ -771,9 +811,9 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
 
     fun goToLine(lineNumber: Long) = enqueue { EditCommand.Navigate.GoToLine(it, lineNumber) }
 
-    fun undo() = enqueue { EditCommand.Undo(it) }
+    fun undo() = enqueue { EditCommand.Undo(it, cachedEpoch) }
 
-    fun redo() = enqueue { EditCommand.Redo(it) }
+    fun redo() = enqueue { EditCommand.Redo(it, cachedEpoch) }
 
     fun clearError() = launch {
         getWorkspace().clearError()
@@ -822,7 +862,6 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
 
             // Edit actions
             is EditorPageAction.Edit.InsertText -> insertText(action.text)
-            is EditorPageAction.Edit.DeleteAtCursor -> deleteAtCursor(action.count)
             is EditorPageAction.Edit.ForwardDelete -> deleteForward()
             is EditorPageAction.Edit.Undo -> undo()
             is EditorPageAction.Edit.Redo -> redo()

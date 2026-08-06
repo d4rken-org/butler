@@ -1,6 +1,7 @@
 package eu.darken.butler.editor.ui.editor
 
 import eu.darken.butler.common.SystemClipboardHelper
+import eu.darken.butler.common.debug.logging.Logging
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
@@ -10,6 +11,7 @@ import eu.darken.butler.editor.core.PasteFileReader
 import eu.darken.butler.editor.core.PasteTooLargeException
 import eu.darken.butler.editor.core.engine.ClipboardCapacityException
 import eu.darken.butler.editor.core.engine.ContentSource
+import eu.darken.butler.editor.core.engine.ReadOnlyFileException
 import eu.darken.butler.editor.core.engine.EditorEngine.CutSnapshot
 import eu.darken.butler.editor.core.engine.StaleMatchException
 import eu.darken.butler.workspace.core.Workspace
@@ -33,10 +35,12 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import java.io.File
+import kotlin.uuid.Uuid
 
 class EditorClipboardControllerTest : BaseTest() {
 
     private val workspaceId = Workspace.Id()
+    private val epoch = Uuid.random()
 
     private fun path(name: String) = LocalPath.build(File("/tmp/clip-test", name))
 
@@ -77,12 +81,16 @@ class EditorClipboardControllerTest : BaseTest() {
             coEvery { copySelection(any()) } returns copyResult
             coEvery { prepareCut(any()) } returns copyResult.map { snapshot(it) }
             coEvery { applyCut(any()) } answers { deleteResult ?: Result.success(firstArg<CutSnapshot>().text) }
-            coEvery { insertText(any()) } returns EditorEngine.EditOutcome.Applied()
+            coEvery { performEdit(any(), any()) } returns EditorEngine.EditOutcome.Applied()
             coEvery { readFileContent(any()) } returns Result.success("file content")
         }
     }
 
-    private fun snapshot(text: String) = CutSnapshot(text = text, startOffset = 0L, expectedVersion = 1L)
+    private fun snapshot(text: String) = CutSnapshot(
+        text = text,
+        startOffset = 0L,
+        token = EditorEngine.DocumentToken(epoch, structuralVersion = 1L),
+    )
 
     private fun mockRepo(entries: List<ClipboardClip> = emptyList()): ClipboardRepo =
         mockk<ClipboardRepo>().apply {
@@ -94,8 +102,12 @@ class EditorClipboardControllerTest : BaseTest() {
         workspace: EditorWorkspace = mockWorkspace(),
         helper: SystemClipboardHelper = mockk(relaxed = true),
         repo: ClipboardRepo = mockRepo(),
-        // Default forwards to the workspace (undeferred), matching the pre-gate paste behavior.
-        guardedInsert: suspend (String) -> Boolean = { text -> workspace.insertText(text); true },
+        // Default mirrors the ViewModel's guarded insert: the intent goes to the engine and only
+        // an APPLIED outcome counts as pasted.
+        guardedInsert: suspend (String) -> Boolean = { text ->
+            workspace.performEdit(EditorEngine.EditIntent.InsertAtCursor(text), epoch) is
+                EditorEngine.EditOutcome.Applied
+        },
     ) = EditorClipboardController(
         id = workspaceId,
         doLaunch = { block ->
@@ -354,7 +366,34 @@ class EditorClipboardControllerTest : BaseTest() {
         controller.pasteFromClipboard(clip)
         runCurrent()
 
-        coVerify { workspace.insertText("clip text") }
+        coVerify { workspace.performEdit(EditorEngine.EditIntent.InsertAtCursor("clip text"), epoch) }
+    }
+
+    @Test
+    fun `a paste the engine refused is never reported as pasted`() = runTest {
+        // Read-only / backing-lost document: the guarded insert completes FALSE, so the controller
+        // must not log a success for text that never reached the document
+        val workspace = mockWorkspace().apply {
+            coEvery { performEdit(any(), any()) } returns EditorEngine.EditOutcome.Failed(
+                ReadOnlyFileException("File is read-only"),
+            )
+        }
+        val controller = controller(workspace)
+        val logged = CapturingLogger().also { Logging.install(it) }
+
+        controller.pasteFromClipboard(ClipboardClip.Text(origin = workspaceId, content = "clip text"))
+        runCurrent()
+        Logging.remove(logged)
+
+        coVerify(exactly = 1) { workspace.performEdit(EditorEngine.EditIntent.InsertAtCursor("clip text"), epoch) }
+        logged.messages.none { it.contains("Pasted") } shouldBe true
+    }
+
+    private class CapturingLogger : Logging.Logger {
+        val messages = mutableListOf<String>()
+        override fun log(priority: Logging.Priority, tag: String, message: String, metaData: Map<String, Any>?) {
+            messages += message
+        }
     }
 
     @Test
@@ -369,7 +408,7 @@ class EditorClipboardControllerTest : BaseTest() {
         runCurrent()
 
         inserted shouldBe listOf("huge clip")
-        coVerify(exactly = 0) { workspace.insertText(any()) }
+        coVerify(exactly = 0) { workspace.performEdit(any(), any()) }
     }
 
     @Test
@@ -386,7 +425,7 @@ class EditorClipboardControllerTest : BaseTest() {
         runCurrent()
 
         coVerify { workspace.readFileContent(match { it.name == "notes.txt" }) }
-        coVerify { workspace.insertText("file content") }
+        coVerify { workspace.performEdit(EditorEngine.EditIntent.InsertAtCursor("file content"), epoch) }
     }
 
     @Test
@@ -401,7 +440,7 @@ class EditorClipboardControllerTest : BaseTest() {
         controller.pasteFromClipboardFile(path("big.txt"))
         runCurrent()
 
-        coVerify(exactly = 0) { workspace.insertText(any()) }
+        coVerify(exactly = 0) { workspace.performEdit(any(), any()) }
         surfacedErrors.single().shouldBeInstanceOf<PasteTooLargeException>()
     }
 
@@ -418,7 +457,7 @@ class EditorClipboardControllerTest : BaseTest() {
         controller.pasteFromClipboard(clip)
         runCurrent()
 
-        coVerify(exactly = 0) { workspace.insertText(any()) }
+        coVerify(exactly = 0) { workspace.performEdit(any(), any()) }
     }
 
     @Test

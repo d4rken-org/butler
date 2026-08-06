@@ -1,10 +1,16 @@
 package eu.darken.butler.editor.core.engine
 
+import eu.darken.butler.editor.core.engine.text.BlockIndexBuilder
+import eu.darken.butler.editor.core.sources.EditorDataSource
+import eu.darken.butler.editor.core.sources.InMemoryDataSource
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
+import okio.Source
 import org.junit.jupiter.api.Test
+import java.io.FileNotFoundException
 
 /**
  * The verified-mutation primitive: [DocumentBuffer.applyMutation] must be all-or-nothing. Every
@@ -263,5 +269,192 @@ class DocumentBufferMutationTest : DocumentBufferTestBase() {
 
         result.exceptionOrNull().shouldBeInstanceOf<IllegalArgumentException>()
         buffer.text() shouldBe "Hello"
+    }
+
+    // ==================== Versioned replace (explicit-intent edits) ====================
+
+    @Test
+    fun `applyVersionedReplace refuses a stale version without mutating`() = runTest {
+        val buffer = createBuffer("Hello World")
+        val version = buffer.getStructuralVersion()
+
+        val result = buffer.applyVersionedReplace(
+            expectedVersion = version + 1,
+            startOffset = 6L,
+            endOffset = 11L,
+            newText = "Kotlin",
+        )
+
+        result.exceptionOrNull().shouldBeInstanceOf<StaleMatchException>()
+        buffer.text() shouldBe "Hello World"
+        buffer.getStructuralVersion() shouldBe version
+    }
+
+    @Test
+    fun `applyVersionedReplace returns exactly the span it removed`() = runTest {
+        // Single materialization: the caller's removed text IS the undo entry's text, never a
+        // second read of the (already mutated) document
+        val buffer = createBuffer("Hello World")
+        val expected = buffer.getText(6L, 11L).getOrThrow()
+
+        val (outcome, removed) = buffer.applyVersionedReplace(
+            expectedVersion = buffer.getStructuralVersion(),
+            startOffset = 6L,
+            endOffset = 11L,
+            newText = "Kotlin",
+        ).getOrThrow()
+
+        removed shouldBe expected
+        removed shouldBe "World"
+        buffer.text() shouldBe "Hello Kotlin"
+        outcome.newVersion shouldBe buffer.getStructuralVersion()
+        outcome.undoable shouldBe true
+    }
+
+    @Test
+    fun `a versioned replace over a selection is ONE undo step`() = runTest {
+        // Deliberate change: the old delete-then-insert recorded two entries, so undoing a paste
+        // over a selection restored the selected text only on the SECOND undo
+        val buffer = createBuffer("Hello World")
+
+        buffer.applyVersionedReplace(
+            expectedVersion = buffer.getStructuralVersion(),
+            startOffset = 6L,
+            endOffset = 11L,
+            newText = "Kotlin",
+        ).getOrThrow()
+
+        buffer.undo().getOrThrow()
+        buffer.text() shouldBe "Hello World"
+        buffer.canUndo() shouldBe false
+
+        buffer.redo().getOrThrow()
+        buffer.text() shouldBe "Hello Kotlin"
+    }
+
+    @Test
+    fun `a versioned insert and delete each record their narrowest operation`() = runTest {
+        val buffer = createBuffer("Hello")
+
+        buffer.applyVersionedReplace(
+            expectedVersion = buffer.getStructuralVersion(),
+            startOffset = 5L,
+            endOffset = 5L,
+            newText = " World",
+        ).getOrThrow().second shouldBe ""
+        buffer.text() shouldBe "Hello World"
+
+        val (_, removed) = buffer.applyVersionedReplace(
+            expectedVersion = buffer.getStructuralVersion(),
+            startOffset = 0L,
+            endOffset = 6L,
+            newText = "",
+        ).getOrThrow()
+        removed shouldBe "Hello "
+        buffer.text() shouldBe "World"
+
+        buffer.undo().getOrThrow()
+        buffer.text() shouldBe "Hello World"
+        buffer.undo().getOrThrow()
+        buffer.text() shouldBe "Hello"
+    }
+
+    @Test
+    fun `a versioned replace beyond the undoable budget is refused instead of materialized`() = runTest {
+        val oversized = DocumentBuffer.MIN_UNDOABLE_EDIT_CHARS.toInt() + 1
+        val buffer = createFlooredBuffer("A".repeat(oversized))
+
+        val result = buffer.applyVersionedReplace(
+            expectedVersion = buffer.getStructuralVersion(),
+            startOffset = 0L,
+            endOffset = oversized.toLong(),
+            newText = "x",
+        )
+
+        result.exceptionOrNull().shouldBeInstanceOf<IllegalArgumentException>()
+        buffer.totalLength.value shouldBe oversized.toLong()
+    }
+
+    @Test
+    fun `an out-of-bounds versioned replace is refused without mutating`() = runTest {
+        val buffer = createBuffer("Hello")
+
+        val result = buffer.applyVersionedReplace(
+            expectedVersion = buffer.getStructuralVersion(),
+            startOffset = 0L,
+            endOffset = 500L,
+            newText = "x",
+        )
+
+        result.exceptionOrNull().shouldBeInstanceOf<IllegalArgumentException>()
+        buffer.text() shouldBe "Hello"
+    }
+
+    @Test
+    fun `a failure mid-splice rolls the document back`() = runTest {
+        val source = BreakableSource(InMemoryDataSource(workspaceId, "Hello World").also { it.open() })
+        val buffer = DocumentBuffer(
+            workspaceId = workspaceId,
+            dataSource = source,
+            maxUndoStackSize = 100,
+            maxUndoMemoryBytes = 10_485_760,
+            blockSize = BlockIndexBuilder.DEFAULT_BLOCK_SIZE,
+            assertions = true,
+        )
+        buffer.initialize().getOrThrow()
+        // Warm the decode cache so the removed-span read succeeds and the failure lands on the
+        // splice itself (its offset mapping reads the backing bytes directly)
+        buffer.text() shouldBe "Hello World"
+        source.failWith = { FileNotFoundException("open failed: ENOENT (No such file or directory)") }
+
+        val result = buffer.applyVersionedReplace(
+            expectedVersion = buffer.getStructuralVersion(),
+            startOffset = 6L,
+            endOffset = 11L,
+            newText = "Kotlin",
+        )
+
+        result.isFailure shouldBe true
+        source.failWith = null
+        buffer.text() shouldBe "Hello World"
+        buffer.canUndo() shouldBe false
+    }
+
+    // ==================== Atomic read ====================
+
+    @Test
+    fun `getTextWithVersion pairs the slice with the version it was read at`() = runTest {
+        val buffer = createBuffer("Hello World")
+
+        val (text, version) = buffer.getTextWithVersion(0L, 5L).getOrThrow()
+
+        text shouldBe "Hello"
+        version shouldBe buffer.getStructuralVersion()
+        // The pairing is what makes it usable as an identity: replaying it against the moved
+        // document must be rejected, never applied to a same-looking range
+        buffer.applyVersionedReplace(version, 0L, 5L, "Hi").isSuccess shouldBe true
+        buffer.applyVersionedReplace(version, 0L, 2L, "Yo")
+            .exceptionOrNull().shouldBeInstanceOf<StaleMatchException>()
+    }
+
+    /** Fails byte reads on demand, so a splice can be broken after the document loaded. */
+    private class BreakableSource(private val delegate: EditorDataSource) : EditorDataSource {
+        var failWith: (() -> Throwable)? = null
+        override val contentSource: StateFlow<ContentSource> = delegate.contentSource
+        override suspend fun open() = delegate.open()
+        override suspend fun getSize(): Long = delegate.getSize()
+        override suspend fun close() = delegate.close()
+        override suspend fun getMeta(): EditorDataSource.Meta {
+            failWith?.let { throw it() }
+            return delegate.getMeta()
+        }
+
+        override suspend fun openByteSource(offset: Long): Source {
+            failWith?.let { throw it() }
+            return delegate.openByteSource(offset)
+        }
+
+        override suspend fun commit(writer: suspend (EditorDataSource.CommitContext) -> Unit) =
+            delegate.commit(writer)
     }
 }

@@ -67,9 +67,6 @@ sealed interface EditorPageAction {
         /** Insert text at current cursor position */
         data class InsertText(val text: String) : Edit
 
-        /** Delete characters at cursor position (backspace) */
-        data class DeleteAtCursor(val count: Int) : Edit
-
         /** Delete character after cursor position (forward delete) */
         data object ForwardDelete : Edit
 

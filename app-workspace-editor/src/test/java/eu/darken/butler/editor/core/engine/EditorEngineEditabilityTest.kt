@@ -116,7 +116,7 @@ class EditorEngineEditabilityTest : BaseTest() {
         val file = File(tempDir, "readonly.txt").apply { writeText("original") }
         val engine = createEngine(LocalPath.build(file), canWrite = false)
 
-        engine.insertText("X")
+        engine.performInsert("X").shouldBeInstanceOf<EditorEngine.EditOutcome.Failed>()
         engine.applyFieldDelta(
             EditorEngine.FieldDelta(
                 token = engine.visibleContent.value.token!!,
@@ -127,8 +127,8 @@ class EditorEngineEditabilityTest : BaseTest() {
                 caret = TextPosition(1, 0, 1),
             ),
         ).shouldBeInstanceOf<EditorEngine.MutationResult.Failed>()
-        engine.deleteForward().shouldBeInstanceOf<EditorEngine.EditOutcome.Failed>()
-        engine.deleteAtCursor(1).shouldBeInstanceOf<EditorEngine.EditOutcome.Failed>()
+        engine.performDeleteForward().shouldBeInstanceOf<EditorEngine.EditOutcome.Failed>()
+        engine.performDeleteSelection().shouldBeInstanceOf<EditorEngine.EditOutcome.Failed>()
 
         engine.textBuffer!!.getFullText().getOrThrow() shouldBe "original"
         engine.isModified.first() shouldBe false
@@ -144,8 +144,8 @@ class EditorEngineEditabilityTest : BaseTest() {
         val source = engine.contentSource.first() as ContentSource.File
         source.isLikelyBinary.shouldBeTrue()
 
-        engine.insertText("X")
-        engine.deleteForward().shouldBeInstanceOf<EditorEngine.EditOutcome.Failed>()
+        engine.performInsert("X")
+        engine.performDeleteForward().shouldBeInstanceOf<EditorEngine.EditOutcome.Failed>()
             .error.shouldBeInstanceOf<ReadOnlyFileException>()
 
         // Even a direct buffer edit cannot reach the disk

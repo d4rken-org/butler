@@ -5,6 +5,7 @@ import eu.darken.butler.editor.core.EditorSettings
 import eu.darken.butler.editor.core.sources.InMemoryDataSource
 import eu.darken.butler.workspace.core.Workspace
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf
@@ -13,12 +14,12 @@ import org.junit.jupiter.api.Test
 import kotlin.random.Random
 import testhelpers.coroutine.TestDispatcherProvider
 /**
- * Tests for selection-aware editing behavior in EditorEngine.
+ * Selection-aware editing: EVERY intent consumes the whole selection first.
  *
  * Verifies that:
- * - insertText() replaces selection with new text
- * - deleteAtCursor() deletes selection instead of backspacing
- * - deleteForward() deletes selection instead of forward-deleting
+ * - InsertAtCursor replaces the selection with the new text
+ * - DeleteSelection removes it and collapses the cursor onto its start
+ * - DeleteForward deletes the selection instead of forward-deleting one char
  */
 class EditorEngineSelectionEditTest : DocumentBufferTestBase() {
 
@@ -93,7 +94,7 @@ class EditorEngineSelectionEditTest : DocumentBufferTestBase() {
         )
 
         // When: Type "Kotlin"
-        engine.insertText("Kotlin")
+        engine.performInsert("Kotlin")
 
         // Then: "World" is replaced with "Kotlin"
         engine.getFullContent() shouldBe "Hello Kotlin"
@@ -113,7 +114,7 @@ class EditorEngineSelectionEditTest : DocumentBufferTestBase() {
         )
 
         // When: Type "X"
-        engine.insertText("X")
+        engine.performInsert("X")
 
         // Then: Selected text is replaced
         engine.getFullContent() shouldBe "Line X\nLine 3"
@@ -127,17 +128,17 @@ class EditorEngineSelectionEditTest : DocumentBufferTestBase() {
         engine.setCursorPosition(TextPosition(offset = 5, line = 0, column = 5))
 
         // When: Type " there"
-        engine.insertText(" there")
+        engine.performInsert(" there")
 
         // Then: Text is inserted at cursor position
         engine.getFullContent() shouldBe "Hello there World"
         engine.selectionRange.value shouldBe null
     }
 
-    // ==================== deleteAtCursor() with Selection ====================
+    // ==================== DeleteSelection intent ====================
 
     @Test
-    fun `deleteAtCursor with selection deletes selection instead of backspace`() = runTest {
+    fun `DeleteSelection removes the selection and collapses the cursor onto its start`() = runTest {
         // Given: Content with selection
         val engine = createEngine("Hello World")
 
@@ -147,10 +148,8 @@ class EditorEngineSelectionEditTest : DocumentBufferTestBase() {
             end = TextPosition(offset = 11, line = 0, column = 11),
         )
 
-        // When: Press backspace (count is ignored when selection exists)
-        engine.deleteAtCursor(1)
+        engine.performDeleteSelection()
 
-        // Then: Selection is deleted, not the character before cursor
         engine.getFullContent() shouldBe "Hello "
         // And: Cursor is at selection start
         engine.cursorPosition.value.offset shouldBe 6L
@@ -159,7 +158,7 @@ class EditorEngineSelectionEditTest : DocumentBufferTestBase() {
     }
 
     @Test
-    fun `deleteAtCursor with multi-line selection deletes all selected text`() = runTest {
+    fun `DeleteSelection with a multi-line selection deletes all selected text`() = runTest {
         // Given: Multi-line content with selection across lines
         val engine = createEngine("Line 1\nLine 2\nLine 3")
 
@@ -169,8 +168,7 @@ class EditorEngineSelectionEditTest : DocumentBufferTestBase() {
             end = TextPosition(offset = 14, line = 2, column = 0),
         )
 
-        // When: Press backspace
-        engine.deleteAtCursor(1)
+        engine.performDeleteSelection()
 
         // Then: Selected line is deleted
         engine.getFullContent() shouldBe "Line 1\nLine 3"
@@ -178,19 +176,19 @@ class EditorEngineSelectionEditTest : DocumentBufferTestBase() {
     }
 
     @Test
-    fun `deleteAtCursor without selection performs normal backspace`() = runTest {
-        // Given: Content with cursor at position 5 (after "Hello")
+    fun `DeleteSelection without a selection has nothing to delete`() = runTest {
+        // The intent names its target; without a selection there is none to resolve
         val engine = createEngine("Hello World")
         engine.setCursorPosition(TextPosition(offset = 5, line = 0, column = 5))
 
-        // When: Press backspace
-        engine.deleteAtCursor(1)
+        engine.performDeleteSelection()
+            .shouldBeInstanceOf<EditorEngine.EditOutcome.Failed>()
+            .error.shouldBeInstanceOf<IllegalStateException>()
 
-        // Then: Character before cursor is deleted
-        engine.getFullContent() shouldBe "Hell World"
+        engine.getFullContent() shouldBe "Hello World"
     }
 
-    // ==================== deleteForward() with Selection ====================
+    // ==================== DeleteForward intent with Selection ====================
 
     @Test
     fun `deleteForward with selection deletes selection instead of forward-delete`() = runTest {
@@ -204,7 +202,7 @@ class EditorEngineSelectionEditTest : DocumentBufferTestBase() {
         )
 
         // When: Press Delete key
-        engine.deleteForward()
+        engine.performDeleteForward()
 
         // Then: Selection is deleted
         engine.getFullContent() shouldBe " World"
@@ -221,7 +219,7 @@ class EditorEngineSelectionEditTest : DocumentBufferTestBase() {
         engine.setCursorPosition(TextPosition(offset = 5, line = 0, column = 5))
 
         // When: Press Delete key
-        engine.deleteForward()
+        engine.performDeleteForward()
 
         // Then: Character after cursor (space) is deleted
         engine.getFullContent() shouldBe "HelloWorld"
@@ -241,7 +239,7 @@ class EditorEngineSelectionEditTest : DocumentBufferTestBase() {
         )
 
         // When: Type replacement
-        engine.insertText("Hi")
+        engine.performInsert("Hi")
 
         // Then: Text is replaced correctly
         engine.getFullContent() shouldBe "Hi World"
@@ -260,7 +258,7 @@ class EditorEngineSelectionEditTest : DocumentBufferTestBase() {
         )
 
         // When: Delete selection
-        engine.deleteAtCursor(1)
+        engine.performDeleteSelection()
 
         // Then: Text at end is deleted
         engine.getFullContent() shouldBe "Hello "

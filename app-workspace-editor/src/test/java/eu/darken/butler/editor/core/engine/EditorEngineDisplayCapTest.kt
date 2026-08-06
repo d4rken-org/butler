@@ -60,7 +60,7 @@ class EditorEngineDisplayCapTest : EditorEngineTestBase() {
         engine.setCursorPosition(TextPosition(offset = 0, line = 0, column = 0))
         engine.moveCursor(CursorDirection.LINE_END, extendSelection = false)
 
-        engine.insertText("Z")
+        engine.performInsert("Z")
 
         // Z lands at the true line end, not the old cap boundary
         engine.textBuffer!!.getTextForLine(0).getOrThrow() shouldBe "0123456789ABCDEFZ"
@@ -79,10 +79,16 @@ class EditorEngineDisplayCapTest : EditorEngineTestBase() {
 
     @Test
     fun `backspace past the cap removes the real preceding char`() = runTest {
+        // Backspace is a field delta (the hidden field diffs it); columns stay RAW past the cap
         val engine = createEngine(content, displayLineCap = cap)
         engine.setCursorPosition(TextPosition(offset = 0, line = 0, column = 14))
 
-        engine.deleteAtCursor(1).shouldBeInstanceOf<EditorEngine.EditOutcome.Applied>().removedText shouldBe "D"
+        engine.applyDelta(
+            start = pos(0, 13),
+            end = pos(0, 14),
+            oldText = "D",
+            caret = pos(0, 13),
+        ).shouldBeInstanceOf<EditorEngine.MutationResult.Applied>()
 
         engine.textBuffer!!.getTextForLine(0).getOrThrow() shouldBe "0123456789ABCEF"
     }
@@ -118,7 +124,7 @@ class EditorEngineDisplayCapTest : EditorEngineTestBase() {
         engine.goToLine(2).getOrThrow()
 
         engine.moveCursor(CursorDirection.LINE_END, extendSelection = false)
-        engine.insertText("Z")
+        engine.performInsert("Z")
 
         engine.textBuffer!!.getTextForLine(2).getOrThrow() shouldBe "x".repeat(50) + "Z"
     }
@@ -140,7 +146,7 @@ class EditorEngineDisplayCapTest : EditorEngineTestBase() {
         val engine = createEngine(content, displayLineCap = cap)
         engine.setCursorPosition(TextPosition(offset = 0, line = 0, column = 2))
 
-        engine.insertText("xy")
+        engine.performInsert("xy")
 
         // Full refresh (not an in-place patch): display matches the capped re-read
         engine.textBuffer!!.getTextForLine(0).getOrThrow() shouldBe "01xy23456789ABCDEF"
@@ -153,7 +159,7 @@ class EditorEngineDisplayCapTest : EditorEngineTestBase() {
         val engine = createEngine("hello world\nsecond", displayLineCap = cap * 10)
         engine.setCursorPosition(TextPosition(offset = 0, line = 0, column = 5))
 
-        engine.deleteAtCursor(1)
+        engine.applyDelta(start = pos(0, 4), end = pos(0, 5), oldText = "o", caret = pos(0, 4))
 
         engine.visibleContent.value.text shouldBe "hell world\nsecond"
         engine.visibleContent.value.truncatedLines shouldBe emptyMap()

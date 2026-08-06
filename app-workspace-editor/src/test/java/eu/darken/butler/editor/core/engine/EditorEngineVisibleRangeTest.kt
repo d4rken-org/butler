@@ -58,7 +58,7 @@ class EditorEngineVisibleRangeTest : EditorEngineTestBase() {
         engine.updateVisibleRange(100, 150)
 
         engine.setCursorPosition(TextPosition(offset = 0, line = 120, column = 0))
-        engine.insertText("XX")
+        engine.performInsert("XX")
 
         engine.visibleContent.value.text.lineSequence().first { it.contains("120") } shouldBe "XXLine 120 content"
     }

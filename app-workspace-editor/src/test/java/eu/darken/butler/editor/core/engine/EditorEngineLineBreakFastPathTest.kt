@@ -19,7 +19,7 @@ class EditorEngineLineBreakFastPathTest : EditorEngineTestBase() {
         engine.visibleContent.value.text shouldBe "Hello\nWorld"
 
         engine.setCursorPosition(TextPosition(offset = 0, line = 0, column = 5))
-        engine.insertText("\r")
+        engine.performInsert("\r")
 
         engine.totalLines.value shouldBe 3L
         engine.cursorPosition.value.line shouldBe 1L
@@ -35,7 +35,7 @@ class EditorEngineLineBreakFastPathTest : EditorEngineTestBase() {
         engine.visibleContent.value.text shouldBe "a\nb\nc"
 
         engine.setCursorPosition(TextPosition(offset = 0, line = 1, column = 1))
-        engine.insertText("X\rY")
+        engine.performInsert("X\rY")
 
         engine.totalLines.value shouldBe 4L
         engine.cursorPosition.value.line shouldBe 2L
@@ -47,9 +47,15 @@ class EditorEngineLineBreakFastPathTest : EditorEngineTestBase() {
         val engine = createEngine("ab\rcd")
         engine.totalLines.value shouldBe 2L
 
-        // Cursor at the start of line 1, backspacing over the '\r' that separates the lines
+        // Cursor at the start of line 1, backspacing over the '\r' that separates the lines. The
+        // field joins its window lines with '\n' whatever the document holds, so that is its oldText.
         engine.setCursorPosition(TextPosition(offset = 0, line = 1, column = 0))
-        engine.deleteAtCursor(1).shouldBeInstanceOf<EditorEngine.EditOutcome.Applied>().removedText shouldBe "\r"
+        engine.applyDelta(
+            start = pos(0, 2),
+            end = pos(1, 0),
+            oldText = "\n",
+            caret = pos(0, 2),
+        ).shouldBeInstanceOf<EditorEngine.MutationResult.Applied>()
 
         engine.totalLines.value shouldBe 1L
         engine.cursorPosition.value.line shouldBe 0L

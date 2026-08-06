@@ -177,7 +177,7 @@ class EditorWorkspaceLifecycleTest : BaseTest() {
         )
         try {
             workspace.awaitFile("doc.txt")
-            workspace.insertText("X")
+            workspace.performInsert("X")
 
             runCatching { workspace.openFile(LocalPath.build(File(tempDir, "missing.txt"))) }
                 .isFailure.shouldBeTrue()
@@ -284,7 +284,7 @@ class EditorWorkspaceLifecycleTest : BaseTest() {
         )
         try {
             workspace.awaitFile("doc.txt")
-            workspace.insertText("X")
+            workspace.performInsert("X")
 
             withTimeout(10_000) {
                 while (file.readText() != "Xoriginal") delay(50)
@@ -304,7 +304,7 @@ class EditorWorkspaceLifecycleTest : BaseTest() {
         )
         try {
             workspace.awaitFile("doc.txt")
-            workspace.insertText("X")
+            workspace.performInsert("X")
 
             delay(500)
             file.readText() shouldBe "original"
@@ -368,7 +368,7 @@ class EditorWorkspaceLifecycleTest : BaseTest() {
                     (it as? EditorWorkspace.State.Ready)?.editor?.contentSource is ContentSource.Memory
                 }
             }
-            workspace.insertText("X")
+            workspace.performInsert("X")
             withTimeout(10_000) {
                 workspace.state.first { (it as? EditorWorkspace.State.Ready)?.editor?.isModified == true }
             }
@@ -446,7 +446,7 @@ class EditorWorkspaceLifecycleTest : BaseTest() {
             )
             try {
                 workspace.awaitFile("doc.txt")
-                workspace.insertText("X")
+                workspace.performInsert("X")
 
                 file.writeText("externally changed content")
                 workspace.checkExternalChange()
@@ -490,7 +490,7 @@ class EditorWorkspaceLifecycleTest : BaseTest() {
                 }
             }
 
-            workspace.insertText("X")
+            workspace.performInsert("X")
             withTimeout(10_000) {
                 workspace.state.first { (it as? EditorWorkspace.State.Ready)?.editor?.isModified == true }
             }
