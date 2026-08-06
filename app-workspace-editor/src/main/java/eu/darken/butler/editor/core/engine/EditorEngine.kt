@@ -1933,17 +1933,32 @@ class EditorEngine @AssistedInject constructor(
         }
     }
 
+    /**
+     * End of [text] when placed at [start]. "\r\n", a lone "\r" and a lone "\n" each count as
+     * exactly ONE break: the buffer exposes a trailing empty line for all three, so an LF-only
+     * scan would leave the cursor a line short on a CR-only document - and since undo/redo
+     * publish the cursor before the window refresh, that line would never load.
+     */
     private fun computeEndPosition(start: TextPosition, text: String): TextPosition {
-        val newlineCount = text.count { it == '\n' }
-        return TextPosition(
-            offset = start.offset + text.length,
-            line = start.line + newlineCount,
-            column = if (newlineCount > 0) {
-                text.length - text.lastIndexOf('\n') - 1
-            } else {
-                start.column + text.length
-            },
-        )
+        var line = start.line
+        var column = start.column
+        var index = 0
+        while (index < text.length) {
+            when (text[index]) {
+                '\r' -> {
+                    line++
+                    column = 0
+                    if (index + 1 < text.length && text[index + 1] == '\n') index++
+                }
+                '\n' -> {
+                    line++
+                    column = 0
+                }
+                else -> column++
+            }
+            index++
+        }
+        return TextPosition(offset = start.offset + text.length, line = line, column = column)
     }
 
     fun canUndo(): Boolean {

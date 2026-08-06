@@ -3,6 +3,8 @@ package eu.darken.butler.editor.core.engine
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 
 /**
  * The document's trailing empty line as the engine sees it: undo/redo across an end-of-document
@@ -42,12 +44,15 @@ class EditorEngineTrailingLineTest : EditorEngineTestBase() {
         engine.fullContent() shouldBe "Hello\n"
     }
 
-    @Test
-    fun `undo of a deleted end-of-document newline restores cursor, range and content`() = runTest {
-        val engine = createEngine("Hello\n")
+    @ParameterizedTest
+    @ValueSource(strings = ["\n", "\r\n", "\r"])
+    fun `undo of a deleted end-of-document break restores cursor, range and content`(
+        terminator: String,
+    ) = runTest {
+        val engine = createEngine("Hello$terminator")
         engine.totalLines.value shouldBe 2L
 
-        // Backspace the trailing newline away
+        // Backspace the trailing break away
         engine.replaceText(start = pos(0, 5), end = pos(1, 0), text = "", caret = pos(0, 5)) shouldBe true
         engine.totalLines.value shouldBe 1L
         engine.visibleContent.value.text shouldBe "Hello"
@@ -55,9 +60,10 @@ class EditorEngineTrailingLineTest : EditorEngineTestBase() {
         engine.undo().getOrThrow()
         engine.totalLines.value shouldBe 2L
         engine.cursorPosition.value.line shouldBe 1L
+        engine.cursorPosition.value.column shouldBe 0
         engine.visibleRange.value.last shouldBe 1L
         engine.visibleContent.value.text shouldBe "Hello\n"
-        engine.fullContent() shouldBe "Hello\n"
+        engine.fullContent() shouldBe "Hello$terminator"
     }
 
     @Test
