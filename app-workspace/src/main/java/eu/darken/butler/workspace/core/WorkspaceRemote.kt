@@ -20,8 +20,16 @@ interface WorkspaceRemote {
         val portraitPanelMode: WorkspacePanelMode = WorkspacePanelMode.AUTO,
         val landscapePanelMode: WorkspacePanelMode = WorkspacePanelMode.AUTO,
     ) {
+        /**
+         * Open tabs, i.e. what the Butler button's badge shows. Excludes stacked sub-workspaces:
+         * they occupy no tab of their own and do not count toward the free-tier limit either, so
+         * counting them would make the badge contradict the limit the user runs into.
+         *
+         * Deliberately NOT narrowed the way the limit's own count is: quota-exempt types (Developer,
+         * Bug Report) are real tabs the user can switch to, they are merely exempt from the cap.
+         */
         val workspaceCount: Int
-            get() = infos.size
+            get() = infos.count { !it.isSubWorkspace }
         val operationCount: Int
             get() = infos.sumOf { it.operationCount }
         val attentionCount: Int
