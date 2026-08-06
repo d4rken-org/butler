@@ -304,6 +304,22 @@ class DocumentBuffer @AssistedInject constructor(
         }
     }
 
+    /**
+     * [getText] plus the [structuralVersion] the slice was read at, both under ONE lock hold: a
+     * caller that pairs a separately read version with the text can hand out a snapshot describing
+     * a document state that never existed (mutations bypassing the engine's stateMutex - e.g.
+     * search-and-replace - can land between two separate reads).
+     */
+    suspend fun getTextWithVersion(startOffset: Long, endOffset: Long): Result<Pair<String, Long>> =
+        bufferMutex.withLock {
+            try {
+                Result.success(table().read(startOffset, endOffset) to structuralVersion)
+            } catch (e: Exception) {
+                log(tag, ERROR) { "Failed to get text for range: $startOffset-$endOffset - ${e.asLog()}" }
+                Result.failure(e)
+            }
+        }
+
     suspend fun getFullText(): Result<String> = bufferMutex.withLock {
         try {
             Result.success(table().readAll())
@@ -866,6 +882,76 @@ class DocumentBuffer @AssistedInject constructor(
                 EditOperation.Delete(position, removed.length, removed),
                 EditOperation.Insert(position, inserted),
             )
+        }
+    }
+
+    /**
+     * Replaces [startOffset]..[endOffset] with [newText] as ONE undo step, verified against
+     * [expectedVersion] inside the SAME lock hold: a mutation landing between the caller's version
+     * read and this call fails with [StaleMatchException] and the document stays untouched.
+     *
+     * Unlike [applyMutation] the caller does not know the removed text - it is read here, exactly
+     * ONCE, and returned. That single materialization is the point: the removed span feeds both the
+     * undo entry and the caller's result (backspace/cut report what they removed), and reading it
+     * twice - or verifying it against a copy - would double the transient allocation this path is
+     * budgeted for. Spans above [maxUndoableEditChars] are refused; that is
+     * [applyOversizedReplace]'s job.
+     *
+     * The recorded operation is normalized like a single [applyMutation] patch (pure insert / pure
+     * delete / delete+insert in one entry), and the typing run is broken first: this path is never
+     * a keystroke.
+     */
+    suspend fun applyVersionedReplace(
+        expectedVersion: Long,
+        startOffset: Long,
+        endOffset: Long,
+        newText: String,
+    ): Result<Pair<MutationOutcome, String>> = bufferMutex.withLock {
+        try {
+            if (expectedVersion != structuralVersion) return@withLock Result.failure(StaleMatchException())
+            val table = table()
+            if (startOffset < 0 || startOffset > endOffset || endOffset > table.totalCharLength) {
+                return@withLock Result.failure(
+                    IllegalArgumentException("Replace range out of bounds: $startOffset-$endOffset"),
+                )
+            }
+            if (endOffset - startOffset > maxUndoableEditChars) {
+                return@withLock Result.failure(
+                    IllegalArgumentException("Replace exceeds the undoable edit budget: $maxUndoableEditChars"),
+                )
+            }
+            val line = table.lineOfOffset(startOffset)
+            val position = TextPosition(startOffset, line, (startOffset - table.lineStartOffset(line)).toInt())
+            val removedText = table.read(startOffset, endOffset)
+            // Snapshot before the first mutation: a mid-splice original read can fail (the backing
+            // file vanished) and must not leave a half-applied edit with no undo entry.
+            val checkpoint = table.checkpoint()
+            try {
+                if (removedText.isNotEmpty()) table.delete(startOffset, endOffset)
+                if (newText.isNotEmpty()) table.insert(startOffset, newText)
+            } catch (e: Exception) {
+                table.restore(checkpoint)
+                throw e
+            }
+            val ops = operationsFor(
+                VerifiedPatch(startOffset, endOffset, removedText, newText),
+                position,
+                normalize = true,
+            )
+            if (ops.isEmpty()) {
+                return@withLock Result.success(MutationOutcome(structuralVersion, undoable = true) to removedText)
+            }
+            breakUndoRunLocked()
+            commitNewEdit(ops)
+            // The lone-entry guard keeps an oversized entry until the NEXT edit; report honestly
+            // whether this step is still on the stack
+            val undoable = undoStack.peekLast()?.generationAfter == currentGeneration
+            Result.success(MutationOutcome(structuralVersion, undoable) to removedText)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            log(tag, ERROR) { "applyVersionedReplace failed for $startOffset-$endOffset - ${e.asLog()}" }
+            Result.failure(e)
         }
     }
 
