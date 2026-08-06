@@ -264,6 +264,7 @@ fun EditorWorkspacePage(
                     animation = BarAnimation.Slide(),
                 ) {
                     EditorSearchBar(
+                        visible = state.isSearchBarVisible,
                         searchQuery = state.searchQueryInput,
                         searchResults = state.searchResults,
                         searchTruncated = state.searchTruncated,

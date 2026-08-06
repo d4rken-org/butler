@@ -40,6 +40,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.pluralStringResource
@@ -66,6 +67,7 @@ import eu.darken.butler.workspace.ui.modal.DismissWhenPaneUnfocused
 @Composable
 fun EditorSearchBar(
     modifier: Modifier = Modifier,
+    visible: Boolean,
     searchQuery: TextFieldValue,
     searchResults: List<SearchResult>,
     currentIndex: Int,
@@ -96,13 +98,18 @@ fun EditorSearchBar(
     val focusRequester = remember { FocusRequester() }
     val isWorkspaceFocused = LocalWorkspaceFocused.current
 
-    // Auto-focus the search input when the search bar appears and workspace is focused
-    LaunchedEffect(isWorkspaceFocused) {
-        if (isWorkspaceFocused) focusRequester.requestFocus()
+    // FloatingBarStack keeps hidden bars composed and only skips placing them, so a hidden bar must
+    // not be focusable: an invisible query field would otherwise hold the IME binding and swallow
+    // text typed into the editor. canFocus on the card governs every descendant and releases a
+    // focused one when it flips false.
+    LaunchedEffect(visible, isWorkspaceFocused) {
+        if (visible && isWorkspaceFocused) focusRequester.requestFocus()
     }
 
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .focusProperties { canFocus = visible && isWorkspaceFocused },
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
@@ -404,6 +411,7 @@ fun EditorSearchBar(
 @Composable
 private fun EditorSearchBarEmptyPreview() {
     EditorSearchBar(
+        visible = true,
         searchQuery = TextFieldValue(""),
         searchResults = emptyList(),
         currentIndex = 0,
@@ -425,6 +433,7 @@ private fun EditorSearchBarEmptyPreview() {
 @Composable
 private fun EditorSearchBarWithQueryPreview() {
     EditorSearchBar(
+        visible = true,
         searchQuery = TextFieldValue("test"),
         searchResults = emptyList(),
         currentIndex = 0,
@@ -446,6 +455,7 @@ private fun EditorSearchBarWithQueryPreview() {
 @Composable
 private fun EditorSearchBarWithResultsPreview() {
     EditorSearchBar(
+        visible = true,
         searchQuery = TextFieldValue("test"),
         searchResults = List(10) {
             SearchResult(
@@ -472,6 +482,7 @@ private fun EditorSearchBarWithResultsPreview() {
 @Composable
 private fun EditorSearchBarTruncatedPreview() {
     EditorSearchBar(
+        visible = true,
         searchQuery = TextFieldValue("e"),
         searchResults = List(100) {
             SearchResult(
@@ -499,6 +510,7 @@ private fun EditorSearchBarTruncatedPreview() {
 @Composable
 private fun EditorSearchBarWithOptionsPreview() {
     EditorSearchBar(
+        visible = true,
         searchQuery = TextFieldValue("Test"),
         searchResults = List(5) {
             SearchResult(
