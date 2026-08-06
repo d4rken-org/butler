@@ -71,6 +71,9 @@ class WorkspaceAutoPauseManager(
     /** When each hidden-but-live workspace last left the screen. Only touched by the eval loop. */
     private val idleSince = mutableMapOf<Workspace.Id, Instant>()
 
+    /** Pager sighting stamps as of the previous pass, so this one can spot what happened between. */
+    private var lastSeenStamps: Map<Workspace.Id, Long> = emptyMap()
+
     // Conflated: the ticker and onAppForegrounded() both only offer work, so the single consumer
     // below can never run two evaluations concurrently and bursts collapse into one pass.
     private val trigger = Channel<Unit>(Channel.CONFLATED)
@@ -141,8 +144,19 @@ class WorkspaceAutoPauseManager(
         pagerVisibility.forget(liveIds)
         pagerVisibility.retirePaused(liveIds)
 
+        // Sightings since the previous pass, not just what is on screen right now. Evaluation is
+        // sampled (a one-minute ticker plus foreground events) while swipes are not: a page that
+        // came in and went out again between two passes was looked at, and no set-valued snapshot
+        // can say so afterwards. Unseen ids stamp 0, so the first pass spares whatever the pager
+        // has ever published - conservative in exactly the right direction.
+        val seenStamps = pagerVisibility.seenStamps(liveIds)
+        val seenSinceLastPass = seenStamps
+            .filter { (id, stamp) -> stamp != 0L && lastSeenStamps[id] != stamp }
+            .keys
+        lastSeenStamps = seenStamps
+
         val stacks = WorkspaceStacks(infos)
-        val visibleIds = stacks.visibleUnitIds(pageState)
+        val visibleIds = stacks.visibleUnitIds(pageState, extraSeeds = seenSinceLastPass)
 
         val candidates = mutableListOf<Workspace.Id>()
         infos.forEach { info ->
@@ -268,14 +282,18 @@ class WorkspaceAutoPauseManager(
      * idle would pause a workspace out from under the user, which is why the rendered chains are
      * seeded here rather than approximated.
      */
-    private fun WorkspaceStacks.visibleUnitIds(pageState: WorkspacePageManager.State): Set<Workspace.Id> {
+    private fun WorkspaceStacks.visibleUnitIds(
+        pageState: WorkspacePageManager.State,
+        extraSeeds: Set<Workspace.Id> = emptySet(),
+    ): Set<Workspace.Id> {
         val rendered = renderedChains(focusedId = pageState.focusedWorkspaceId)
         // Pane-local chains need no seed of their own: they only render inside their own tab's pane,
         // and a tab occupying a pane is already a selection seed. The pager's published pages are a
         // seed of their own though - mid-swipe they name tabs that no assignment does yet.
         val seeds = pageState.visibleWorkspaceIds() +
             rendered.fullScreen?.memberIds.orEmpty() +
-            pagerVisibility.visibleIds()
+            pagerVisibility.visibleIds() +
+            extraSeeds
         return seeds.flatMapTo(mutableSetOf()) { seed ->
             unitOf(seed)?.map { it.id } ?: listOf(seed)
         }

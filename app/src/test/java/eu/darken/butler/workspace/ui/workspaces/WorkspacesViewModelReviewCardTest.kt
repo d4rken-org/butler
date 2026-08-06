@@ -24,6 +24,7 @@ import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.WorkspaceSettings
 import eu.darken.butler.workspace.ui.WorkspacePageManager
+import eu.darken.butler.workspace.ui.WorkspaceVisibilityTracker
 import eu.darken.butler.workspace.ui.floatingbar.WorkspaceBarCollapseStates
 import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPositions
 import eu.darken.butler.workspace.ui.session.WorkspaceSessionManager
@@ -180,6 +181,7 @@ class WorkspacesViewModelReviewCardTest : BaseTest() {
             pageHosts = emptyMap(),
             scrollPositions = mockk<WorkspaceScrollPositions>(relaxed = true),
             barCollapseStates = mockk<WorkspaceBarCollapseStates>(relaxed = true),
+            pagerVisibility = WorkspaceVisibilityTracker(),
         )
     }
 
@@ -257,17 +259,39 @@ class WorkspacesViewModelReviewCardTest : BaseTest() {
                 workspaceInfo(
                     id = picker,
                     caller = explorer,
-                    modalPresentation = Workspace.ModalPresentationMode.PANE_LOCAL,
+                    modalPresentation = Workspace.ModalPresentationMode.FULL_SCREEN,
                 ),
             ),
             paneCount = 1,
         )
         advanceUntilIdle()
 
-        // Single-pane promotes pane-local chains to the full-screen slot, so paneLocalModalChains is
-        // empty here - the card would still be asked for behind a modal that covers the screen.
+        // The other bucket: this chain lands in fullScreenModalWorkspace, not in the pane-local map,
+        // so checking only one of the two would let the card render under a covering modal.
         vm.settledState()!!.showReviewCard shouldBe false
     }
+
+    @Test fun `a pane-local modal chain suppresses the review card in single pane too`() =
+        runTest2(context = testDispatcher) {
+            val explorer = Workspace.Id()
+            val details = Workspace.Id()
+            val vm = vm(
+                infos = listOf(
+                    workspaceInfo(explorer),
+                    workspaceInfo(
+                        id = details,
+                        caller = explorer,
+                        modalPresentation = Workspace.ModalPresentationMode.PANE_LOCAL,
+                    ),
+                ),
+                paneCount = 1,
+            )
+            advanceUntilIdle()
+
+            // It stacks inside its tab's page rather than covering the screen, but it still owns
+            // everything the user is looking at.
+            vm.settledState()!!.showReviewCard shouldBe false
+        }
 
     @Test fun `an active guided tour suppresses the review card`() = runTest2(context = testDispatcher) {
         val vm = vm(tourSession = tourSession())

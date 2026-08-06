@@ -158,7 +158,7 @@ class WorkspacesViewModelStateTest : BaseTest() {
     }
 
     @Test
-    fun `fullScreenModalWorkspace - returns PANE_LOCAL modal in single pane as dialog`() {
+    fun `fullScreenModalWorkspace - excludes PANE_LOCAL modal in single pane`() {
         val explorer = Workspace.Id()
         val details = Workspace.Id()
 
@@ -174,8 +174,9 @@ class WorkspacesViewModelStateTest : BaseTest() {
             currentPaneCount = 1,
         )
 
-        // In single pane, PANE_LOCAL modals render as full-screen dialog
-        state.fullScreenModalWorkspace?.id shouldBe details
+        // A single-pane layout has one pane, not none: the chain stacks inside its owning tab's page
+        state.fullScreenModalWorkspace shouldBe null
+        state.paneLocalModalChains[explorer]?.map { it.id } shouldBe listOf(details)
     }
 
     @Test
@@ -383,7 +384,7 @@ class WorkspacesViewModelStateTest : BaseTest() {
     // region paneLocalModalChains tests
 
     @Test
-    fun `paneLocalModalChains - empty in single pane mode`() {
+    fun `paneLocalModalChains - maps parent to child in single pane mode`() {
         val explorer = Workspace.Id()
         val details = Workspace.Id()
 
@@ -399,8 +400,8 @@ class WorkspacesViewModelStateTest : BaseTest() {
             currentPaneCount = 1,
         )
 
-        // In single pane, the chain map is empty (modals render as dialog instead)
-        state.paneLocalModalChains shouldBe emptyMap()
+        state.paneLocalModalChains.size shouldBe 1
+        state.paneLocalModalChains[explorer]?.map { it.id } shouldBe listOf(details)
     }
 
     @Test
@@ -593,10 +594,74 @@ class WorkspacesViewModelStateTest : BaseTest() {
 
     // endregion
 
+    // region focusedRootId
+
+    @Test
+    fun `focusedRootId - a focused tab is its own root`() {
+        val tab = Workspace.Id()
+
+        val state = createState(
+            infos = listOf(createWorkspaceInfo(id = tab)),
+            focusedWorkspace = tab,
+        )
+
+        state.focusedRootId shouldBe tab
+    }
+
+    @Test
+    fun `focusedRootId - a focused child resolves to the tab that owns it`() {
+        val tab = Workspace.Id()
+        val details = Workspace.Id()
+        val saver = Workspace.Id()
+
+        val state = createState(
+            infos = listOf(
+                createWorkspaceInfo(id = tab),
+                paneLocalModal(id = details, caller = tab),
+                paneLocalModal(id = saver, caller = details),
+            ),
+            // A tab-manager selection or createAndFocus puts focus on the child itself
+            focusedWorkspace = saver,
+        )
+
+        // The raw id names no tab at all, which is what makes resolving through the chain necessary
+        state.tabWorkspaces.map { it.id } shouldContainExactly listOf(tab)
+        state.focusedRootId shouldBe tab
+    }
+
+    @Test
+    fun `focusedRootId - null without focus`() {
+        val state = createState(infos = listOf(createWorkspaceInfo()))
+
+        state.focusedRootId shouldBe null
+    }
+
+    @Test
+    fun `focusedRootId - null for a dangling or cyclic chain`() {
+        val orphan = Workspace.Id()
+        val a = Workspace.Id()
+        val b = Workspace.Id()
+
+        createState(
+            infos = listOf(paneLocalModal(id = orphan, caller = Workspace.Id())),
+            focusedWorkspace = orphan,
+        ).focusedRootId shouldBe null
+
+        createState(
+            infos = listOf(
+                paneLocalModal(id = a, caller = b),
+                paneLocalModal(id = b, caller = a),
+            ),
+            focusedWorkspace = a,
+        ).focusedRootId shouldBe null
+    }
+
+    // endregion
+
     // region chain resolution guards
 
     @Test
-    fun `single pane promotes a deep pane-local chain to one full-screen dialog`() {
+    fun `single pane stacks a deep pane-local chain under its root tab`() {
         val tab = Workspace.Id()
         val first = Workspace.Id()
         val second = Workspace.Id()
@@ -612,8 +677,9 @@ class WorkspacesViewModelStateTest : BaseTest() {
             currentPaneCount = 1,
         )
 
-        state.paneLocalModalChains shouldBe emptyMap()
-        state.fullScreenModalWorkspace?.id shouldBe third
+        state.fullScreenModalWorkspace shouldBe null
+        state.paneLocalModalChains.keys shouldBe setOf(tab)
+        state.paneLocalModalChains[tab]?.map { it.id } shouldBe listOf(first, second, third)
     }
 
     @Test

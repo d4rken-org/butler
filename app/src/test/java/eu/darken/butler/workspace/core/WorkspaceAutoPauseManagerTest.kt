@@ -5,6 +5,7 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import eu.darken.butler.workspace.ui.WorkspacePageManager
+import eu.darken.butler.workspace.ui.WorkspaceVisibilityTracker
 import eu.darken.butler.workspace.ui.floatingbar.WorkspaceBarCollapseStates
 import eu.darken.butler.workspace.ui.restore.WorkspaceViewPrefs
 import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPositions
@@ -127,11 +128,15 @@ class WorkspaceAutoPauseManagerTest : BaseTest() {
     private lateinit var repo: WorkspaceRepo
     private lateinit var pageManager: WorkspacePageManager
     private lateinit var pauseGate: WorkspacePauseGate
+    private lateinit var pagerVisibility: WorkspaceVisibilityTracker
+    private lateinit var pagerToken: Any
 
     @BeforeEach
     fun setup() {
         createdWorkspaces.clear()
         pauseGate = WorkspacePauseGate()
+        pagerVisibility = WorkspaceVisibilityTracker()
+        pagerToken = pagerVisibility.claim()
         enabledState.value = true
         timeoutState.value = 2.hours
         failNextEvaluation = false
@@ -185,8 +190,18 @@ class WorkspaceAutoPauseManagerTest : BaseTest() {
         workspaceRepo = repo,
         workspacePageManager = pageManager,
         workspacePauseGate = pauseGate,
+        pagerVisibility = pagerVisibility,
         clock = clock,
     )
+
+    /**
+     * Stands in for the classic container's publisher. Deliberately does not pump the scheduler:
+     * some call sites run inside a release, where re-entering the scheduler would be a lie about
+     * what a real frame does.
+     */
+    private fun publishVisible(vararg ids: Workspace.Id) {
+        pagerVisibility.publish(pagerToken, ids.toSet())
+    }
 
     private fun WorkspaceAutoPauseManager.evaluateNow() {
         onAppForegrounded()
@@ -195,6 +210,18 @@ class WorkspaceAutoPauseManagerTest : BaseTest() {
 
     private suspend fun createTab(type: Workspace.Type = Workspace.Type.EXPLORER): Workspace.Id {
         val result = repo.execute(WorkspaceAction.Create(type = type, arguments = FakeArguments(type)))
+        scope.testScheduler.runCurrent()
+        return (result as WorkspaceAction.Create.Result.Success).newId
+    }
+
+    private suspend fun createFullScreenChild(caller: Workspace.Id): Workspace.Id {
+        val type = Workspace.Type.APP_DETAILS
+        val result = repo.execute(
+            WorkspaceAction.Create(
+                type = type,
+                arguments = FakeChildArguments(type, caller, Workspace.ModalPresentationMode.FULL_SCREEN),
+            )
+        )
         scope.testScheduler.runCurrent()
         return (result as WorkspaceAction.Create.Result.Success).newId
     }
@@ -392,9 +419,9 @@ class WorkspaceAutoPauseManagerTest : BaseTest() {
     }
 
     /**
-     * A pane-local overlay of an unselected tab, on a layout with panes: the only way a stack can be
-     * off screen while it exists. Single-pane promotes every chain to the full-screen dialog, which
-     * renders even when focus points elsewhere - see the fallback test below.
+     * A pane-local overlay of an unselected tab: it renders inside that tab's pane, so while the tab
+     * is off screen the whole stack is. The pane count is incidental - two panes just make it easy
+     * to leave a third tab unassigned.
      */
     private suspend fun createHiddenStack(): Pair<Workspace.Id, Workspace.Id> {
         pageManager.setPaneCount(2)
@@ -437,14 +464,14 @@ class WorkspaceAutoPauseManagerTest : BaseTest() {
         }
 
     @Test
-    fun `a rendered modal stack is never paused, even when an unrelated tab holds focus`() =
+    fun `a rendered full-screen modal stack is never paused, even when an unrelated tab holds focus`() =
         runTest(UnconfinedTestDispatcher()) {
             val focusedId = createTab()
             val modalOwnerId = createTab()
             val idleId = createTab()
-            val overlayId = createChild(caller = modalOwnerId)
-            // Single pane: the overlay renders as a full-screen dialog. Focus points at a tab with no
-            // chain at all, so the renderer falls back to the newest chain - which is this one.
+            val overlayId = createFullScreenChild(caller = modalOwnerId)
+            // The overlay covers every pane. Focus points at a tab with no chain at all, so the
+            // renderer falls back to the newest chain - which is this one.
             pageManager.setLayout(mapOf(0 to focusedId), focusedId = focusedId)
             val manager = createManager()
 
@@ -459,11 +486,31 @@ class WorkspaceAutoPauseManagerTest : BaseTest() {
         }
 
     @Test
-    fun `closing an overlay restarts its tab's idle clock instead of pausing it right away`() =
+    fun `a pane-local stack of an off-screen tab is paused with it`() =
         runTest(UnconfinedTestDispatcher()) {
             val focusedId = createTab()
             val modalOwnerId = createTab()
             val overlayId = createChild(caller = modalOwnerId)
+            // It stacks inside its own tab's page, so it is exactly as off screen as that tab is.
+            pageManager.setLayout(mapOf(0 to focusedId), focusedId = focusedId)
+            val manager = createManager()
+
+            manager.evaluateNow()
+            elapse(3.hours)
+            manager.evaluateNow()
+
+            isPaused(modalOwnerId) shouldBe true
+            isPaused(overlayId) shouldBe true
+            isPaused(focusedId) shouldBe false
+        }
+
+    @Test
+    fun `closing an overlay restarts its tab's idle clock instead of pausing it right away`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val focusedId = createTab()
+            val modalOwnerId = createTab()
+            // Full-screen, so the stack is on screen the whole time although its tab is not selected
+            val overlayId = createFullScreenChild(caller = modalOwnerId)
             pageManager.setLayout(mapOf(0 to focusedId), focusedId = focusedId)
             val manager = createManager()
 
@@ -597,24 +644,22 @@ class WorkspaceAutoPauseManagerTest : BaseTest() {
         }
 
     @Test
-    fun `a stack the renderer promotes to full-screen while being paused is resumed right away`() =
+    fun `a stack the pager swipes onto the screen while being paused is resumed right away`() =
         runTest(UnconfinedTestDispatcher()) {
             val (hiddenId, overlayId) = createHiddenStack()
             val manager = createManager()
             manager.evaluateNow()
 
-            // A rotation collapsing the panes: this unselected tab's pane-local overlay becomes the
-            // full-screen dialog, so the user is looking at the very stack being released
-            fake(hiddenId).whileCapturingArguments = { pageManager.setPaneCount(1) }
+            // The user starts swiping toward this tab: its page is on screen long before any
+            // selection or focus names it, and that is the whole reason the tracker exists.
+            fake(hiddenId).whileCapturingArguments = { publishVisible(hiddenId) }
 
             elapse(3.hours)
             manager.evaluateNow()
 
-            // Nothing moved selection or focus onto the stack; only the fallback renders it
+            // Nothing moved selection or focus onto the stack; only the published page did
             val pageState = pageManager.state.value
-            pageState.selectedWorkspaces
-                .filterKeys { it in 0 until pageState.currentPaneCount }
-                .values.contains(hiddenId) shouldBe false
+            pageState.visiblePaneAssignments.values.contains(hiddenId) shouldBe false
             pageState.focusedWorkspaceId shouldNotBe hiddenId
             pageState.focusedWorkspaceId shouldNotBe overlayId
 
@@ -624,6 +669,135 @@ class WorkspaceAutoPauseManagerTest : BaseTest() {
             createdWorkspaces.count { it.id == hiddenId } shouldBe 2
             createdWorkspaces.count { it.id == overlayId } shouldBe 2
         }
+
+    @Test
+    fun `a page seen and hidden again during the release is resumed`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val visibleId = createTab()
+            val hiddenId = createTab()
+            pageManager.setLayout(mapOf(0 to visibleId), focusedId = visibleId)
+            val manager = createManager()
+            manager.evaluateNow()
+            elapse(3.hours)
+
+            // A drag that starts and is abandoned while the release runs: by the time the backstop
+            // reads the visible set it names the origin page again, so only the generation stamps
+            // taken before the release can still tell that this page was on screen.
+            fake(hiddenId).whileCapturingArguments = {
+                publishVisible(visibleId, hiddenId)
+                publishVisible(visibleId)
+            }
+
+            manager.evaluateNow()
+
+            isPaused(hiddenId) shouldBe false
+            createdWorkspaces.count { it.id == hiddenId } shouldBe 2
+        }
+
+    @Test
+    fun `a page glimpsed between two evaluations is not treated as unseen`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val visibleId = createTab()
+            val hiddenId = createTab()
+            pageManager.setLayout(mapOf(0 to visibleId), focusedId = visibleId)
+            val manager = createManager()
+            manager.evaluateNow()
+            elapse(3.hours)
+
+            // A complete drag that started and ended between two ticks: by the time the evaluation
+            // runs, the visible set names the origin page again. Only the generation stamp still
+            // remembers that this workspace was on screen in between.
+            publishVisible(visibleId, hiddenId)
+            publishVisible(visibleId)
+
+            manager.evaluateNow()
+
+            isPaused(hiddenId) shouldBe false
+        }
+
+    @Test
+    fun `a page published right after the backstop is resumed`() = runTest(UnconfinedTestDispatcher()) {
+        val visibleId = createTab()
+        val hiddenId = createTab()
+        pageManager.setLayout(mapOf(0 to visibleId), focusedId = visibleId)
+        publishVisible(visibleId)
+        val manager = createManager()
+        manager.evaluateNow()
+        elapse(3.hours)
+
+        manager.evaluateNow()
+        isPaused(hiddenId) shouldBe true
+
+        // The frame after the release finished: the swipe brings the page in, and nothing else
+        // would ever undo the pause - a settle only selects, it never resumes.
+        publishVisible(visibleId, hiddenId)
+        scope.testScheduler.runCurrent()
+
+        isPaused(hiddenId) shouldBe false
+        createdWorkspaces.count { it.id == hiddenId } shouldBe 2
+    }
+
+    @Test
+    fun `a page published long after the pause is not resumed`() = runTest(UnconfinedTestDispatcher()) {
+        val visibleId = createTab()
+        val hiddenId = createTab()
+        pageManager.setLayout(mapOf(0 to visibleId), focusedId = visibleId)
+        publishVisible(visibleId)
+        val manager = createManager()
+        manager.evaluateNow()
+        elapse(3.hours)
+
+        manager.evaluateNow()
+        isPaused(hiddenId) shouldBe true
+
+        // The just-paused record is retired once the unit has been evaluated again, so a much later
+        // publication cannot wake a workspace that was legitimately released.
+        manager.evaluateNow()
+        publishVisible(visibleId, hiddenId)
+        scope.testScheduler.runCurrent()
+
+        isPaused(hiddenId) shouldBe true
+    }
+
+    @Test
+    fun `the visible set from the pager keeps a workspace alive`() = runTest(UnconfinedTestDispatcher()) {
+        val visibleId = createTab()
+        val neighbourId = createTab()
+        pageManager.setLayout(mapOf(0 to visibleId), focusedId = visibleId)
+        val manager = createManager()
+        manager.evaluateNow()
+
+        // A fling passing over a neighbour: it is neither the current nor the target page, and no
+        // selection ever names it, but it is on screen.
+        publishVisible(visibleId, neighbourId)
+
+        elapse(3.hours)
+        manager.evaluateNow()
+
+        isPaused(neighbourId) shouldBe false
+    }
+
+    @Test
+    fun `a released publisher stops keeping workspaces alive`() = runTest(UnconfinedTestDispatcher()) {
+        val visibleId = createTab()
+        val hiddenId = createTab()
+        pageManager.setLayout(mapOf(0 to visibleId), focusedId = visibleId)
+        val manager = createManager()
+        manager.evaluateNow()
+        publishVisible(visibleId, hiddenId)
+        // Consumes the sighting, so what follows can only be carried by the live set
+        manager.evaluateNow()
+
+        // Leaving for a multi-pane layout disposes the container; the assignments the adaptive
+        // layout goes by must not be second-guessed by a set nobody publishes any more.
+        pagerVisibility.release(pagerToken)
+
+        manager.evaluateNow()
+        elapse(3.hours)
+        manager.evaluateNow()
+
+        isPaused(hiddenId) shouldBe true
+    }
 
     @Test
     fun `the tab manager opening mid-pass spares the remaining candidates`() =
