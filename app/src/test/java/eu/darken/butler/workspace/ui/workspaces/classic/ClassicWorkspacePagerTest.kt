@@ -13,6 +13,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeLeft
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.Workspace
@@ -274,6 +277,38 @@ class ClassicWorkspacePagerTest : ComposeTest() {
         composeTestRule.waitForIdle()
 
         buttons.actions shouldBe listOf(WorkspaceAction.Close(child))
+    }
+
+    /**
+     * The child's pointer barrier participates in hit testing so nothing leaks through to the page
+     * it covers — but it must consume nothing, because the pager is an ancestor and a consumed down
+     * would end tab swiping wherever a child is open.
+     */
+    @Test
+    fun `a horizontal swipe over a stacked child still turns the page`() {
+        val host = RecordingHost()
+        val infos = listOf(tab(tabA), tab(tabB), paneLocalChild(child, caller = tabA))
+        val actions = mutableListOf<WorkspaceScreenAction>()
+        var current by mutableStateOf(state(infos, focused = child, selected = mapOf(0 to tabA)))
+
+        composeTestRule.setContent {
+            Container(current, host, WorkspaceVisibilityTracker(), onAction = { actions += it })
+        }
+        composeTestRule.waitForIdle()
+        composeTestRule.onNodeWithTag(RecordingHost.tagFor(child)).assertIsDisplayed()
+
+        composeTestRule.onRoot().performTouchInput { swipeLeft() }
+        composeTestRule.waitForIdle()
+        composeTestRule.runOnIdle {
+            // What the real screen does with the settle the swipe reports
+            actions.filterIsInstance<WorkspaceScreenAction.Select>().lastOrNull()?.let {
+                current = state(infos, focused = it.id, selected = mapOf(0 to it.id))
+            }
+        }
+        composeTestRule.waitForIdle()
+
+        actions.filterIsInstance<WorkspaceScreenAction.Select>().map { it.id } shouldBe listOf(tabB)
+        composeTestRule.onNodeWithTag(RecordingHost.tagFor(tabB)).assertIsDisplayed()
     }
 
     @Test
