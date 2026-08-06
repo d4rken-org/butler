@@ -34,8 +34,10 @@ import eu.darken.butler.editor.ui.editor.elements.EditorBannerGroup
 import eu.darken.butler.editor.ui.editor.elements.EditorInfoBar
 import eu.darken.butler.editor.ui.editor.elements.EditorLoadingOverlay
 import eu.darken.butler.editor.ui.editor.elements.EditorSearchBar
+import eu.darken.butler.editor.core.engine.EditorEngine
 import eu.darken.butler.editor.ui.editor.elements.EditorToolbarCard
 import eu.darken.butler.editor.ui.editor.text.LazyTextEditor
+import eu.darken.butler.editor.ui.editor.text.SessionDelta
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
 import eu.darken.butler.workspace.ui.clipboard.bar.ClipboardBar
@@ -47,6 +49,8 @@ import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
 import eu.darken.butler.workspace.ui.insets.rememberPaneFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
@@ -88,6 +92,9 @@ fun EditorWorkspacePageHost(
         mainStateSource = vm.state,
         clipboardStateSource = vm.clipboard,
         onPageAction = vm::onPageAction,
+        // Direct reference, not an EditorPageAction: the field chains its next keystroke on this
+        // edit's acknowledgement, so the call has to hand back a Deferred.
+        onEnqueueDelta = vm::enqueueFieldDelta,
         onActionExecute = vm::executeAction,
     )
 }
@@ -99,6 +106,9 @@ fun EditorWorkspacePage(
     mainStateSource: Flow<EditorWorkspaceViewModel.State>,
     clipboardStateSource: Flow<ClipboardDisplayState> = flowOf(ClipboardDisplayState()),
     onPageAction: (EditorPageAction) -> Unit,
+    onEnqueueDelta: (SessionDelta) -> Deferred<EditorEngine.MutationResult> = {
+        CompletableDeferred(EditorEngine.MutationResult.Failed(IllegalStateException("No editor attached")))
+    },
     onActionExecute: (EditorActionBarItem) -> Unit = {},
 ) {
     // Page is hidden by WorkspaceMapper during Init/Error states, so nothing to render until Ready
@@ -328,6 +338,8 @@ fun EditorWorkspacePage(
                     visibleRange = state.visibleRange,
                     truncatedLines = state.truncatedLines,
                     startColumns = state.startColumns,
+                    windowToken = state.windowToken,
+                    windowRangeStart = state.windowRangeStart,
                     highlightedLines = state.highlightedLines,
                     showLineNumbers = state.showLineNumbers,
                     wordWrap = state.wordWrap,
@@ -337,9 +349,7 @@ fun EditorWorkspacePage(
                     searchResults = state.searchResults,
                     currentSearchResultIndex = state.currentSearchResultIndex,
                     scrollTrigger = state.scrollTrigger,
-                    onTextReplace = { start, end, inserted, caret ->
-                        onPageAction(EditorPageAction.Edit.ReplaceRange(start, end, inserted, caret))
-                    },
+                    onEnqueueDelta = onEnqueueDelta,
                     onCursorPositionChange = { position ->
                         onPageAction(EditorPageAction.Navigation.SetCursor(position))
                     },
@@ -360,7 +370,6 @@ fun EditorWorkspacePage(
                         onPageAction(EditorPageAction.Navigation.MoveCursor(direction, extendSelection))
                     },
                     onForwardDelete = { onPageAction(EditorPageAction.Edit.ForwardDelete) },
-                    resyncSignal = state.editResyncSignal,
                     modifier = Modifier
                         .fillMaxSize()
                         .nestedScroll(topBarStackState.nestedScrollConnection)

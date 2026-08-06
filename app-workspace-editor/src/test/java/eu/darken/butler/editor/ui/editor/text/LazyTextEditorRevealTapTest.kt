@@ -1,6 +1,7 @@
 package eu.darken.butler.editor.ui.editor.text
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -10,11 +11,14 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.editor.core.engine.EditorEngine
 import eu.darken.butler.editor.core.engine.TextPosition
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.CompletableDeferred
 import org.junit.Test
 import testhelpers.ComposeTest
+import kotlin.uuid.Uuid
 
 /**
  * Tap-to-reveal on the truncation marker chips, tested through the REAL editor gesture stack:
@@ -23,6 +27,8 @@ import testhelpers.ComposeTest
  * hidden-field edit authority ([LazyTextEditorInputTest] covers the arbitration itself).
  */
 class LazyTextEditorRevealTapTest : ComposeTest() {
+
+    private val engineEpoch = Uuid.random()
 
     /**
      * Engine stand-in with the sliding window: display shows each long line's [cap]-sized window
@@ -81,6 +87,7 @@ class LazyTextEditorRevealTapTest : ComposeTest() {
                 var truncated by remember { mutableStateOf(engine.truncatedLines()) }
                 var startCols by remember { mutableStateOf(engine.startColumns()) }
                 var cursor by remember { mutableStateOf(initialCursor) }
+                var version by remember { mutableLongStateOf(0L) }
                 LazyTextEditor(
                     content = display,
                     totalLines = display.split('\n').size.toLong(),
@@ -89,12 +96,19 @@ class LazyTextEditorRevealTapTest : ComposeTest() {
                     visibleRange = 0L..(display.split('\n').size.toLong() - 1),
                     truncatedLines = truncated,
                     startColumns = startCols,
-                    onTextReplace = { start, _, inserted, caret ->
-                        engine.applyInsert(start, inserted)
+                    windowToken = EditorEngine.DocumentToken(engineEpoch, version),
+                    onEnqueueDelta = { delta ->
+                        engine.applyInsert(delta.start, delta.newText)
                         display = engine.displayText()
                         truncated = engine.truncatedLines()
                         startCols = engine.startColumns()
-                        cursor = caret
+                        cursor = delta.caret
+                        version += 1
+                        CompletableDeferred(
+                            EditorEngine.MutationResult.Applied(
+                                EditorEngine.DocumentToken(engineEpoch, version),
+                            ),
+                        )
                     },
                     onCursorPositionChange = {
                         cursorChanges += it
@@ -108,6 +122,7 @@ class LazyTextEditorRevealTapTest : ComposeTest() {
                         display = engine.displayText()
                         truncated = engine.truncatedLines()
                         startCols = engine.startColumns()
+                        version += 1
                     },
                     onCursorMove = { _, _ -> },
                     onForwardDelete = {},

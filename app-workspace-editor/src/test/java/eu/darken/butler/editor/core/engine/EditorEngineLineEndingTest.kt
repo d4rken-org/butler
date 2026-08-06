@@ -148,15 +148,19 @@ class EditorEngineLineEndingTest : BaseTest() {
     }
 
     @Test
-    fun `IME replace path conforms the enter key in a CRLF document`(@TempDir tempDir: File) = runTest {
+    fun `the field delta path conforms the enter key in a CRLF document`(@TempDir tempDir: File) = runTest {
         val file = File(tempDir, "doc.txt").apply { writeText("line1\r\nline2") }
         val engine = createEngine(file)
 
-        engine.replaceText(
-            start = TextPosition(offset = 0, line = 0, column = 5),
-            end = TextPosition(offset = 0, line = 0, column = 5),
-            text = "\n",
-            caret = TextPosition(offset = 0, line = 1, column = 0),
+        engine.applyFieldDelta(
+            EditorEngine.FieldDelta(
+                token = engine.visibleContent.value.token!!,
+                start = TextPosition(offset = 0, line = 0, column = 5),
+                end = TextPosition(offset = 0, line = 0, column = 5),
+                oldText = "",
+                newText = "\n",
+                caret = TextPosition(offset = 0, line = 1, column = 0),
+            ),
         )
 
         engine.fullText() shouldBe "line1\r\n\r\nline2"

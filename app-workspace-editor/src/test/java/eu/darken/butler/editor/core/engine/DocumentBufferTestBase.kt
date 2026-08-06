@@ -22,6 +22,7 @@ abstract class DocumentBufferTestBase : BaseTest() {
         content: String,
         blockSize: Int = BlockIndexBuilder.DEFAULT_BLOCK_SIZE,
         maxDisplayLineChars: Int = DocumentBuffer.MAX_DISPLAY_LINE_CHARS,
+        maxUndoMemoryBytes: Long = 10_485_760,
     ): DocumentBuffer {
         val dataSource = InMemoryDataSource(workspaceId, content)
         dataSource.open()
@@ -30,7 +31,7 @@ abstract class DocumentBufferTestBase : BaseTest() {
             workspaceId = workspaceId,
             dataSource = dataSource,
             maxUndoStackSize = 100,
-            maxUndoMemoryBytes = 10_485_760,
+            maxUndoMemoryBytes = maxUndoMemoryBytes,
             blockSize = blockSize,
             assertions = true,
             maxDisplayLineChars = maxDisplayLineChars,

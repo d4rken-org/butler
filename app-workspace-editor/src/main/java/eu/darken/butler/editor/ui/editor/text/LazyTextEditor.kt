@@ -25,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
@@ -74,11 +75,14 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.ui.pagerFriendlyHorizontalScroll
+import eu.darken.butler.editor.core.engine.EditorEngine
 import eu.darken.butler.editor.core.engine.SearchResult
 import eu.darken.butler.editor.core.engine.TextPosition
 import eu.darken.butler.editor.core.syntax.Token
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
@@ -88,6 +92,9 @@ private val tag = logTag("Editor", "LazyTextEditor")
 
 /** Semantics tag for the hidden input field, used by Compose regression tests. */
 const val EDITOR_INPUT_TEST_TAG = "editor.input.field"
+
+/** Semantics tag for the tappable text area, used by Compose regression tests. */
+internal const val EDITOR_CONTENT_TEST_TAG = "editor.content.lines"
 
 @Composable
 fun LazyTextEditor(
@@ -100,6 +107,10 @@ fun LazyTextEditor(
     visibleRange: LongRange,
     truncatedLines: Map<Long, Long> = emptyMap(),
     startColumns: Map<Long, Long> = emptyMap(),
+    /** Identity of the document state [content] was read at; null before the first window load. */
+    windowToken: EditorEngine.DocumentToken? = null,
+    /** First absolute line of [content], captured together with [windowToken]. */
+    windowRangeStart: Long = 0L,
     highlightedLines: Map<Long, List<Token>> = emptyMap(),
     showLineNumbers: Boolean = true,
     wordWrap: Boolean = false,
@@ -109,14 +120,13 @@ fun LazyTextEditor(
     searchResults: List<SearchResult> = emptyList(),
     currentSearchResultIndex: Int = 0,
     scrollTrigger: Int = 0,
-    onTextReplace: (start: TextPosition, end: TextPosition, inserted: String, caret: TextPosition) -> Unit,
+    onEnqueueDelta: (SessionDelta) -> Deferred<EditorEngine.MutationResult>,
     onCursorPositionChange: (TextPosition) -> Unit,
     onSelectionChange: (Pair<TextPosition, TextPosition>?) -> Unit,
     onVisibleRangeChange: (LongRange) -> Unit,
     onRevealMoreColumns: (Boolean) -> Unit = {},
     onCursorMove: (CursorDirection, Boolean) -> Unit,
     onForwardDelete: () -> Unit,
-    resyncSignal: Int = 0,
 ) {
     // Create a map of visible line content indexed by line number
     val visibleLineContent = remember(content, visibleRange) {
@@ -332,6 +342,8 @@ fun LazyTextEditor(
         visibleRange = visibleRange,
         truncatedLines = truncatedLines,
         startColumns = startColumns,
+        windowToken = windowToken,
+        windowRangeStart = windowRangeStart,
         highlightedLines = highlightedLines,
         cursorPosition = cursorPosition,
         selection = selection,
@@ -348,12 +360,11 @@ fun LazyTextEditor(
         textLayouts = textLayouts,
         searchResultsByLine = searchResultsByLine,
         currentSearchResultIndex = currentSearchResultIndex,
-        onTextReplace = onTextReplace,
+        onEnqueueDelta = onEnqueueDelta,
         onCursorPositionChange = onCursorPositionChange,
         onSelectionChange = onSelectionChange,
         onCursorMove = onCursorMove,
         onForwardDelete = onForwardDelete,
-        resyncSignal = resyncSignal,
         // Disarm the pan-at-edge reveal: after a tap slides the window the scroll can still sit at
         // max, and an armed edge effect would immediately fire a second slide.
         onRevealTap = { forward ->
@@ -372,6 +383,8 @@ private fun DualColumnEditorContent(
     visibleRange: LongRange,
     truncatedLines: Map<Long, Long>,
     startColumns: Map<Long, Long>,
+    windowToken: EditorEngine.DocumentToken?,
+    windowRangeStart: Long,
     highlightedLines: Map<Long, List<Token>>,
     cursorPosition: TextPosition,
     selection: Pair<TextPosition, TextPosition>?,
@@ -388,12 +401,11 @@ private fun DualColumnEditorContent(
     textLayouts: MutableMap<Long, TextLayoutResult>,
     searchResultsByLine: Map<Long, List<Pair<Int, SearchResult>>>,
     currentSearchResultIndex: Int,
-    onTextReplace: (start: TextPosition, end: TextPosition, inserted: String, caret: TextPosition) -> Unit,
+    onEnqueueDelta: (SessionDelta) -> Deferred<EditorEngine.MutationResult>,
     onCursorPositionChange: (TextPosition) -> Unit,
     onSelectionChange: (Pair<TextPosition, TextPosition>?) -> Unit,
     onCursorMove: (CursorDirection, Boolean) -> Unit,
     onForwardDelete: () -> Unit,
-    resyncSignal: Int = 0,
     onRevealTap: (forward: Boolean) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
@@ -414,15 +426,18 @@ private fun DualColumnEditorContent(
 
     var textFieldValue by remember { mutableStateOf(TextFieldValue("")) }
     var isFocused by remember { mutableStateOf(false) }
-    var isUserEditing by remember { mutableStateOf(false) }
 
-    // Engine echo (text + trailing-hidden map + window-anchor map) captured when typing authority was
-    // taken: convergence checks against the display-capped echo only run once the echo has CHANGED from
-    // this - repeated-char lines would make prefix-consistency against a STALE echo trivially true. The
-    // window-anchor map (startColumns) is frozen too so a mid-typing horizontal slide is detectable.
-    var authorityEcho by remember {
-        mutableStateOf<Triple<String, Map<Long, Long>, Map<Long, Long>>?>(null)
+    // The field's lineage: it holds the window every dispatched delta was mapped against, evolves
+    // that mapping locally per keystroke, and reports back when a delta is acknowledged or
+    // conflicted. Callbacks are read latest so the long-lived session never dispatches through a
+    // stale one.
+    val sessionScope = rememberCoroutineScope()
+    val currentEnqueueDelta by rememberUpdatedState(onEnqueueDelta)
+    val session = remember(sessionScope) {
+        EditorInputSession(sessionScope) { delta -> currentEnqueueDelta(delta) }
     }
+    val sessionRevision by session.state.collectAsState()
+
     var lastTapTime by remember { mutableLongStateOf(0L) }
     var lastTapPosition by remember { mutableStateOf<Offset?>(null) }
     var tapCount by remember { mutableIntStateOf(0) }
@@ -452,63 +467,97 @@ private fun DualColumnEditorContent(
             .joinToString("\n") { it.value }
     }
 
-    // Ownership model arbitrated by isUserEditing:
-    //  - While the user is typing (isUserEditing): the hidden field is authoritative. We skip syncing so
-    //    we never clobber in-flight input (incl. IME composition). Authority is released once the engine
-    //    echo has caught up with the field: exact text match, or - because a display-truncated line's
-    //    capped echo can never equal the field again - capped-projection convergence (contentsConverged),
-    //    gated on the echo having changed since authority was taken. On a capped release the field is
-    //    REBUILT from the echo with the caret clamped into its line; mid-burst that rebuild is transient
-    //    and lossless (edits are already dispatched, the next echo resyncs).
-    //  - Otherwise (tap, arrows, undo/redo, programmatic): the engine is authoritative. Rebuild the field
-    //    text and map the field selection from the engine cursor/selection so the IME composes in the
-    //    right place.
-    LaunchedEffect(currentContent, truncatedLines, startColumns, visibleRange, cursorPosition, selection) {
-        if (isUserEditing) {
-            val prior = authorityEcho
-            val echoChanged = prior == null || prior.first != currentContent ||
-                prior.second != truncatedLines || prior.third != startColumns
-            // A horizontal window slide (startColumns changed) makes the frozen field and the current
-            // engine echo window-misaligned, so plain/prefix convergence can't fire. Release authority
-            // and rebuild the field from the current window instead - transient and lossless mid-burst,
-            // exactly like the capped-projection release below (edits are already dispatched).
-            val windowSlid = prior != null && prior.third != startColumns
-            val converged = textFieldValue.text == currentContent || windowSlid || (
-                echoChanged && contentsConverged(
-                    fieldText = textFieldValue.text,
-                    engineText = currentContent,
-                    visibleRangeStart = visibleRange.first,
-                    engineTruncatedLines = truncatedLines,
-                    priorTruncatedLines = prior?.second ?: emptyMap(),
+    // Ownership model arbitrated by the input session:
+    //  - A conflicted (or failed) generation hands back an authoritative snapshot: rebuild the field
+    //    from THAT payload, never from the composed state, which may be older than the rejection.
+    //  - While deltas are unacknowledged the field is authoritative and the window stays pinned: any
+    //    sync would clobber in-flight input (IME composition included).
+    //  - Once idle, an own edit that came back acknowledged is recognised by the rebuilt text being
+    //    identical, so the field is never rebuilt for its own echo; anything else (tap, arrows,
+    //    undo/redo, scroll, foreign edit) rebases the session and syncs the field from the engine.
+    LaunchedEffect(
+        currentContent,
+        truncatedLines,
+        startColumns,
+        windowRangeStart,
+        windowToken,
+        cursorPosition,
+        selection,
+        sessionRevision,
+    ) {
+        // A rebuild payload describes the document as it was when the delta was REJECTED. A paste
+        // or undo queued behind that delta can move the document on before this effect runs, so the
+        // payload is only authoritative while the composed window has not passed it - rebuilding to
+        // an older state would strand the field on a version that nothing re-triggers a sync for,
+        // and every later keystroke would chain on it and be dropped.
+        val rebuild = session.consumePendingRebuild()?.takeIf { candidate ->
+            val rebuildToken = candidate.content.token ?: return@takeIf false
+            windowToken == null || (
+                windowToken.engineEpoch == rebuildToken.engineEpoch &&
+                    windowToken.structuralVersion <= rebuildToken.structuralVersion
                 )
-                )
-            if (converged) {
-                val priorStartColumns = prior?.third ?: startColumns
-                isUserEditing = false
-                authorityEcho = null
-                if (textFieldValue.text != currentContent) {
-                    val oldLines = textFieldValue.text.split('\n')
-                    val newLines = currentContent.split('\n')
-                    val caret = flatOffsetToPosition(
-                        oldLines, visibleRange.first, textFieldValue.selection.end, priorStartColumns,
-                    )
-                    val caretOffset = positionToFlatOffset(newLines, visibleRange.first, caret, startColumns)
-                        ?: currentContent.length
-                    textFieldValue = TextFieldValue(text = currentContent, selection = TextRange(caretOffset))
-                }
-            }
+        }
+        if (rebuild != null) {
+            val rebuildLines = rebuild.content.text.split('\n')
+            val rebuildStart = rebuild.content.rangeStart
+            val rebuildAnchors = rebuild.content.startColumns
+            val mapped = rebuild.selection?.let { (start, end) ->
+                val s = positionToFlatOffset(rebuildLines, rebuildStart, start, rebuildAnchors)
+                val e = positionToFlatOffset(rebuildLines, rebuildStart, end, rebuildAnchors)
+                if (s != null && e != null) TextRange(s, e) else null
+            } ?: positionToFlatOffset(rebuildLines, rebuildStart, rebuild.cursor, rebuildAnchors)
+                ?.let { TextRange(it) }
+            textFieldValue = TextFieldValue(
+                text = rebuild.content.text,
+                selection = mapped ?: TextRange(textFieldValue.selection.end.coerceIn(0, rebuild.content.text.length)),
+            )
+            rebuild.content.token?.let { session.rebase(it, rebuildStart, rebuildLines, rebuildAnchors) }
+            return@LaunchedEffect
+        }
+        if (session.hasUnackedWork) return@LaunchedEffect
+        val token = windowToken ?: return@LaunchedEffect
+
+        val visibleLines = currentContent.split('\n')
+        val mappedSelection: TextRange? = selection?.let { (start, end) ->
+            val s = positionToFlatOffset(visibleLines, windowRangeStart, start, startColumns)
+            val e = positionToFlatOffset(visibleLines, windowRangeStart, end, startColumns)
+            if (s != null && e != null) TextRange(s, e) else null
+        } ?: positionToFlatOffset(visibleLines, windowRangeStart, cursorPosition, startColumns)
+            ?.let { TextRange(it) }
+
+        if (session.matchesWindow(token, windowRangeStart, visibleLines, startColumns)) {
+            // Same window as the session rebased on, so only the caret/selection can have moved.
+            // A field text that differs from it means an acknowledged own edit whose republication
+            // is still in flight (the ack reaches the session before the new window is composed);
+            // rebuilding from the pre-edit window here would flicker the keystroke away, and the
+            // republication that follows carries a new token and rebases anyway.
+            if (textFieldValue.text != currentContent) return@LaunchedEffect
+            val newSelection = computeFieldSelectionSync(
+                fieldText = textFieldValue.text,
+                fieldSelection = textFieldValue.selection,
+                engineContent = currentContent,
+                mappedSelection = mappedSelection,
+            )
+            // Keep the value (and its composition), move the caret only.
+            if (newSelection != null) textFieldValue = textFieldValue.copy(selection = newSelection)
             return@LaunchedEffect
         }
 
-        val visibleLines = currentContent.split('\n')
-        val rangeStart = visibleRange.first
+        // A window OLDER than the newest acknowledgement is an INTERMEDIATE republication: within a
+        // burst the acks can arrive before their windows are composed, so the composed one can sit
+        // between the session's snapshot and the field's text. Rebasing on it would rebuild the
+        // field to a state its own applied edits have already passed - erasing the characters still
+        // in flight and restarting the IME connection mid-burst. Every applied delta republishes,
+        // so the window that matches is on its way.
+        val ackedVersion = session.lastAckedVersion
+        if (ackedVersion != null &&
+            token.engineEpoch == session.token?.engineEpoch &&
+            token.structuralVersion < ackedVersion
+        ) {
+            return@LaunchedEffect
+        }
 
-        val mappedSelection: TextRange? = selection?.let { (start, end) ->
-            val s = positionToFlatOffset(visibleLines, rangeStart, start, startColumns)
-            val e = positionToFlatOffset(visibleLines, rangeStart, end, startColumns)
-            if (s != null && e != null) TextRange(s, e) else null
-        } ?: positionToFlatOffset(visibleLines, rangeStart, cursorPosition, startColumns)?.let { TextRange(it) }
-
+        session.rebase(token, windowRangeStart, visibleLines, startColumns)
         val newSelection = computeFieldSelectionSync(
             fieldText = textFieldValue.text,
             fieldSelection = textFieldValue.selection,
@@ -516,32 +565,21 @@ private fun DualColumnEditorContent(
             mappedSelection = mappedSelection,
         )
         if (newSelection != null) {
-            textFieldValue = TextFieldValue(text = currentContent, selection = newSelection)
+            textFieldValue = if (textFieldValue.text == currentContent) {
+                // An acknowledged own edit: keep the value (and its composition), remap only.
+                textFieldValue.copy(selection = newSelection)
+            } else {
+                TextFieldValue(text = currentContent, selection = newSelection)
+            }
         }
     }
 
     // When the document flips read-only mid-edit (e.g. the backing file vanished), the field's
     // in-flight local text is now unappliable and would otherwise linger on screen while the
-    // engine stays behind. Hand authority back to the engine and rebuild from its content.
+    // engine stays behind. Abandon the lineage and rebuild from engine content.
     LaunchedEffect(readOnly) {
-        if (readOnly && isUserEditing) {
-            isUserEditing = false
-            authorityEcho = null
-            val caret = textFieldValue.selection.end.coerceIn(0, currentContent.length)
-            textFieldValue = TextFieldValue(text = currentContent, selection = TextRange(caret))
-        }
-    }
-
-    // The engine gated a field-originated edit behind the large-edit confirm dialog (too large to
-    // undo). The field already applied that edit optimistically, so its local text no longer matches
-    // the (unchanged) engine content and the echo can never converge. Hand authority back to the
-    // engine and rebuild from its content, exactly like the read-only flip above. Bumps only on the
-    // rare oversized gate; a confirmed edit then flows back through the normal engine-authoritative
-    // path once applied.
-    LaunchedEffect(resyncSignal) {
-        if (isUserEditing) {
-            isUserEditing = false
-            authorityEcho = null
+        if (readOnly) {
+            session.cancelPending()
             val caret = textFieldValue.selection.end.coerceIn(0, currentContent.length)
             textFieldValue = TextFieldValue(text = currentContent, selection = TextRange(caret))
         }
@@ -599,33 +637,16 @@ private fun DualColumnEditorContent(
             readOnly = readOnly,
             onValueChange = { newValue ->
                 val oldText = textFieldValue.text
-                val newText = newValue.text
 
                 // The field is authoritative while editing: keep the new value verbatim so its selection
                 // and IME composition are preserved.
                 textFieldValue = newValue
 
                 // Diff the change into a single contiguous region (covers append, prepend, mid-insert,
-                // delete, equal-length/autocorrect replace, and predictive rewrites).
-                val edit = computeTextEdit(oldText, newText)
-                if (edit != null) {
-                    if (!isUserEditing) {
-                        isUserEditing = true
-                        authorityEcho = Triple(currentContent, truncatedLines, startColumns)
-                    }
-                    // The field is window-relative to the window it was last built from (frozen in the
-                    // echo while editing); map its offsets back to absolute engine columns through it.
-                    val fieldStartColumns = authorityEcho?.third ?: startColumns
-                    val rangeStart = visibleRange.first
-                    val oldLines = oldText.split('\n')
-                    val newLines = newText.split('\n')
-                    val start = flatOffsetToPosition(oldLines, rangeStart, edit.start, fieldStartColumns)
-                    val end = flatOffsetToPosition(oldLines, rangeStart, edit.end, fieldStartColumns)
-                    // Forward the resulting caret (mapped from the field selection in the NEW text) so the
-                    // engine cursor lands exactly where the IME caret is and the echo maps back unchanged.
-                    val caret = flatOffsetToPosition(newLines, rangeStart, newValue.selection.end, fieldStartColumns)
-                    onTextReplace(start, end, edit.inserted, caret)
-                }
+                // delete, equal-length/autocorrect replace, and predictive rewrites). The session maps
+                // it through the window it last rebased on, evolved by every unacknowledged edit since.
+                val edit = computeTextEdit(oldText, newValue.text)
+                if (edit != null) session.onFieldEdit(oldText, edit, newValue)
             },
             modifier = Modifier
                 .testTag(EDITOR_INPUT_TEST_TAG)
@@ -770,6 +791,7 @@ private fun DualColumnEditorContent(
                 state = contentListState,
                 contentPadding = contentPadding,
                 modifier = modifier
+                    .testTag(EDITOR_CONTENT_TEST_TAG)
                     .then(contentModifier)
                     // charWidthPx/tabSize feed the hit-testing math below: the gesture scope must
                     // restart when they change or taps keep using stale metrics
@@ -825,6 +847,13 @@ private fun DualColumnEditorContent(
                                             // Single tap: Place cursor
                                             // Selection is cleared automatically by setCursorPosition in the engine
                                             onCursorPositionChange(result.position)
+                                            // Move the field caret NOW as well: the engine's answer is
+                                            // ordered behind any keystroke still unacknowledged, so a
+                                            // character typed right after the tap would otherwise land
+                                            // where the caret was before it.
+                                            session.localOffsetFor(result.position)?.let { offset ->
+                                                textFieldValue = textFieldValue.copy(selection = TextRange(offset))
+                                            }
                                         }
                                         2 -> {
                                             // Double tap: Select word
@@ -1051,7 +1080,7 @@ private fun LazyTextEditorPreview() {
         wordWrap = false,
         fontSize = 14,
         tabSize = 4,
-        onTextReplace = { _, _, _, _ -> },
+        onEnqueueDelta = { CompletableDeferred(EditorEngine.MutationResult.Failed(NotImplementedError())) },
         onCursorPositionChange = {},
         onSelectionChange = {},
         onVisibleRangeChange = {},

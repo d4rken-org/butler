@@ -43,6 +43,7 @@ import java.nio.charset.Charset
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.coroutineContext
 import kotlin.math.abs
+import kotlin.uuid.Uuid
 
 class EditorEngine @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
@@ -65,15 +66,34 @@ class EditorEngine @AssistedInject constructor(
     val state: StateFlow<EditorState> = _state.asStateFlow()
 
     /**
+     * Identity of a document state: [structuralVersion] restarts whenever the buffer is replaced
+     * (reload, Save-As, encoding switch), so [engineEpoch] pins it to ONE engine instance - a
+     * request queued against one document can never be accepted against another.
+     */
+    data class DocumentToken(
+        val engineEpoch: Uuid,
+        val structuralVersion: Long,
+    )
+
+    private val engineEpoch: Uuid = Uuid.random()
+
+    /**
      * The visible window's display text plus its per-line hidden-char maps as ONE value: independent
      * flows could pair capped text with a stale map mid-combine (SearchState precedent). Both maps are
      * keyed by ABSOLUTE line number, non-zero entries only. [truncatedLines] is the trailing-hidden
      * count per line; [startColumns] is the leading-hidden count (the window's anchor column).
+     *
+     * [rangeStart] (the window's first absolute line) and [token] belong to the SAME value for the
+     * same reason: the input session maps its edits through this triple, and pairing the text with a
+     * separately published range or version would map an edit onto the wrong line or document.
+     * [token] is null only before the first window has been read.
      */
     data class VisibleContent(
         val text: String = "",
         val truncatedLines: Map<Long, Long> = emptyMap(),
         val startColumns: Map<Long, Long> = emptyMap(),
+        val rangeStart: Long = 0L,
+        val token: DocumentToken? = null,
     )
 
     private val _visibleContent = MutableStateFlow(VisibleContent())
@@ -201,9 +221,8 @@ class EditorEngine @AssistedInject constructor(
      * '\r' or "\r\n" from foreign clipboards) into "\r\n"; LF documents turn pasted "\r\n"/'\r'
      * into '\n'. Applied at the mutation entry points BEFORE any offset math - the buffer, undo
      * ops, and cursor/replacement-end calculations must all see the same string. CR documents
-     * are excluded (a bare '\r' is handled end-to-end: cursor line math via [endPositionOf], the
-     * in-place visible-content fast paths via [containsLineBreak]); MIXED has no ending to
-     * conform to.
+     * are excluded (a bare '\r' is handled end-to-end, e.g. cursor line math via [endPositionOf]);
+     * MIXED has no ending to conform to.
      */
     private fun matchDocumentLineEnding(text: String, buffer: DocumentBuffer): String {
         val target = when (buffer.lineEnding.value) {
@@ -332,9 +351,9 @@ class EditorEngine @AssistedInject constructor(
             if (endLine >= 0) {
                 _visibleRange.value = 0L..endLine
                 currentCoroutineContext().ensureActive()
-                val contentResult = resources.textBuffer.getDisplayRange(0, endLine)
-                contentResult.getOrNull()?.let { window ->
-                    _visibleContent.value = VisibleContent(window.text, window.truncatedLines, window.startColumns)
+                val contentResult = resources.textBuffer.getDisplayRangeWithVersion(0, endLine)
+                contentResult.getOrNull()?.let { (window, version) ->
+                    _visibleContent.value = window.toVisibleContent(rangeStart = 0L, version = version)
                 }
             } else {
                 _visibleRange.value = 0L..0L
@@ -411,6 +430,9 @@ class EditorEngine @AssistedInject constructor(
                         _state.value = currentState.copy(isModified = false)
                         // The rebase re-baselined against the on-disk state
                         _externalChange.value = null
+                        // The rebase bumped the buffer version: without republishing the window
+                        // (and its token) every later field delta would conflict forever
+                        refreshVisibleContent()
                     }
                     result
                 } catch (e: Exception) {
@@ -551,12 +573,12 @@ class EditorEngine @AssistedInject constructor(
         val observedMeta: EditorDataSource.Meta?,
     )
 
-    suspend fun insertText(text: String) = stateMutex.withLock {
+    suspend fun insertText(text: String): EditOutcome = stateMutex.withLock {
         when (val currentState = _state.value) {
             is EditorState.Loaded -> {
                 currentState.editabilityError()?.let {
                     log(tag, VERBOSE) { "insertText rejected: ${it.message}" }
-                    return@withLock
+                    return@withLock EditOutcome.Failed(it)
                 }
                 val buffer = currentState.resources.textBuffer
                 val insert = matchDocumentLineEnding(text, buffer)
@@ -567,8 +589,9 @@ class EditorEngine @AssistedInject constructor(
                 // non-undoable selection delete (undo would only revert the insert).
                 val selection = _selectionRange.value?.normalized()
                 if (selection != null) {
+                    oversizedGate(buffer, selection, insert)?.let { return@withLock it }
                     try {
-                        buffer.replaceText(selection.first, selection.second, insert).fold(
+                        return@withLock buffer.replaceText(selection.first, selection.second, insert).fold(
                             onSuccess = { editEnd ->
                                 _selectionRange.value = null
                                 selectionAnchor = null
@@ -577,10 +600,12 @@ class EditorEngine @AssistedInject constructor(
                                 _totalLines.value = buffer.totalLines.value
                                 invalidateSearchResults()
                                 refreshVisibleContent()
+                                EditOutcome.Applied()
                             },
                             onFailure = { e ->
                                 log(tag, ERROR) { "Failed to replace selection on insert - ${e.asLog()}" }
                                 _error.value = e
+                                EditOutcome.Failed(e)
                             },
                         )
                     } catch (e: CancellationException) {
@@ -588,8 +613,8 @@ class EditorEngine @AssistedInject constructor(
                     } catch (e: Exception) {
                         log(tag, ERROR) { "Failed to insert over selection - ${e.asLog()}" }
                         _error.value = e
+                        return@withLock EditOutcome.Failed(e)
                     }
-                    return@withLock
                 }
 
                 // Use current cursor position
@@ -610,184 +635,170 @@ class EditorEngine @AssistedInject constructor(
 
                 log(tag, VERBOSE) { "Inserting text at position $correctedPosition: ${insert.take(50)}..." }
 
-                val result = buffer.insertText(correctedPosition, insert)
-
-                result.fold(
+                buffer.insertText(correctedPosition, insert).fold(
                     onSuccess = { newPosition ->
                         log(tag, VERBOSE) { "Text inserted successfully, new position: $newPosition" }
-
-                        // Update cursor position from result
                         _cursorPosition.value = newPosition
-
-                        // Mark as modified
                         _state.value = currentState.copy(isModified = true)
-
-                        // Update total lines from text buffer
-                        _totalLines.value = currentState.resources.textBuffer.totalLines.value
-
-                        // Invalidate search results (positions are now stale)
+                        _totalLines.value = buffer.totalLines.value
                         invalidateSearchResults()
-
-                        // Update visible content - use in-place update for small edits
-                        if (insert.length <= 10 && !insert.containsLineBreak()) {
-                            val cursorLine = correctedPosition.line
-                            val visible = _visibleContent.value
-                            val visibleStart = _visibleRange.value.first
-                            val lines = visible.text.split('\n').toMutableList()
-                            // Index into the loaded window; bounded by the window size, safe to narrow
-                            val lineIndex = (cursorLine - visibleStart).toInt()
-                            // Truncated lines (and patches that would cross the cap) bypass to a
-                            // full refresh: an in-place patch diverges from the capped re-read
-                            val cap = currentState.resources.textBuffer.maxDisplayLineChars
-                            if (cursorLine in _visibleRange.value && lineIndex in lines.indices &&
-                                !visible.truncatedLines.containsKey(cursorLine) &&
-                                !visible.startColumns.containsKey(cursorLine) &&
-                                lines[lineIndex].length + insert.length <= cap
-                            ) {
-                                val line = lines[lineIndex]
-                                val col = correctedPosition.column.coerceAtMost(line.length)
-                                lines[lineIndex] = line.substring(0, col) + insert + line.substring(col)
-                                _visibleContent.value = visible.copy(text = lines.joinToString("\n"))
-                            } else {
-                                refreshVisibleContent()
-                            }
-                        } else {
-                            refreshVisibleContent()
-                        }
+                        // Always a full re-read: an in-place window patch would publish new text
+                        // under the PREVIOUS token and every field delta mapped against it would
+                        // then be rejected as stale.
+                        refreshVisibleContent()
+                        EditOutcome.Applied()
                     },
                     onFailure = { e ->
                         log(tag, ERROR) { "Failed to insert text - ${e.asLog()}" }
                         _error.value = e
-                    }
+                        EditOutcome.Failed(e)
+                    },
                 )
             }
             else -> {
                 log(tag, WARN) { "Cannot insert text - no file open" }
+                EditOutcome.Failed(IllegalStateException("Cannot insert text - no file open"))
             }
         }
     }
 
     /**
-     * Applies a single contiguous edit: replaces the [start]..[end] range (line/column positions from the
-     * visible field, placeholder offsets resolved here) with [text], then places the cursor at [caret].
-     *
-     * This is the path all soft-keyboard input flows through. To keep one keystroke = one undo entry, pure
-     * inserts and pure deletes are routed to the buffer's single-op methods; only genuine replacements
-     * (e.g. autocorrect) use the composite delete+insert path.
-     *
-     * Returns true when the edit was applied (or was a deliberate no-op), false on EVERY rejection -
-     * the caller uses that to resync the hidden field, which already applied the edit optimistically.
+     * A single contiguous edit computed by the hidden input field against the window identified by
+     * [token]: it replaces [start]..[end] (line/column, placeholder offsets resolved here) - which
+     * must still hold [oldText] - with [newText], then places the cursor at [caret].
      */
-    suspend fun replaceText(
-        start: TextPosition,
-        end: TextPosition,
-        text: String,
-        caret: TextPosition,
-    ): Boolean = stateMutex.withLock {
+    data class FieldDelta(
+        val token: DocumentToken,
+        val start: TextPosition,
+        val end: TextPosition,
+        val oldText: String,
+        val newText: String,
+        val caret: TextPosition,
+    )
+
+    /** Window, cursor and selection captured together; what a field rebuilds itself from. */
+    data class WindowSnapshot(
+        val content: VisibleContent,
+        val cursor: TextPosition,
+        val selection: Pair<TextPosition, TextPosition>?,
+    )
+
+    /**
+     * Outcome of a verified mutation. [Conflict] is an expected synchronization result (the
+     * document moved between the snapshot and the edit), NOT an error: it carries the authoritative
+     * state to rebuild from and must never raise the error banner.
+     */
+    sealed interface MutationResult {
+        data class Applied(val token: DocumentToken) : MutationResult
+        data class Conflict(val snapshot: WindowSnapshot) : MutationResult
+        data class Failed(val error: Throwable) : MutationResult
+    }
+
+    /** Reads the current window, cursor and selection as one value. */
+    suspend fun captureWindowSnapshot(): WindowSnapshot = stateMutex.withLock { captureWindowSnapshotLocked() }
+
+    private suspend fun captureWindowSnapshotLocked(): WindowSnapshot {
+        // Re-read rather than trusting the last publication: this is what a conflicted field
+        // rebuilds from, so it must describe the document as it is right now.
+        refreshVisibleContent()
+        return WindowSnapshot(_visibleContent.value, _cursorPosition.value, _selectionRange.value)
+    }
+
+    /**
+     * Applies a field-originated edit as a verified transaction: the delta's token must still match
+     * the document, and the range it claims to replace must still hold exactly its old text.
+     *
+     * Old-text verification is modulo line-break FORM: the field joins its window lines with '\n'
+     * regardless of what the document holds ("\r\n", or a lone '\r' in CR/mixed documents), so the
+     * comparison canonicalizes every break on both sides. What is then handed to the buffer is the
+     * document's own slice, so its check stays byte-exact and atomic with the version check - an
+     * edit interleaving between the read and the mutation fails the version check.
+     *
+     * This is the path all soft-keyboard input flows through. A divergence (foreign mutation, stale
+     * field positions, moved window) returns [MutationResult.Conflict] with a fresh snapshot and
+     * mutates nothing - the field rebuilds from it. Rejections never raise the error banner.
+     */
+    suspend fun applyFieldDelta(delta: FieldDelta): MutationResult = stateMutex.withLock {
         val currentState = _state.value as? EditorState.Loaded
         if (currentState == null) {
-            log(tag, WARN) { "Cannot replace text - no file open" }
-            return@withLock false
+            log(tag, WARN) { "Cannot apply field delta - no file open" }
+            return@withLock MutationResult.Failed(IllegalStateException("Cannot apply field delta - no file open"))
         }
         currentState.editabilityError()?.let {
-            log(tag, VERBOSE) { "replaceText rejected: ${it.message}" }
-            return@withLock false
+            // Banner-less by design: the read-only state is already visible in the UI and a banner
+            // per swallowed keystroke would be noise.
+            log(tag, VERBOSE) { "applyFieldDelta rejected: ${it.message}" }
+            return@withLock MutationResult.Failed(it)
+        }
+        if (delta.token.engineEpoch != engineEpoch) {
+            log(tag, WARN) { "applyFieldDelta: delta belongs to a different document" }
+            return@withLock MutationResult.Conflict(captureWindowSnapshotLocked())
         }
         val buffer = currentState.resources.textBuffer
-        val newText = matchDocumentLineEnding(text, buffer)
+        // Inserted text conforms to the document's ending so editing can't turn a uniform file
+        // MIXED; the removed text is verified against the document's own slice below instead.
+        val newText = matchDocumentLineEnding(delta.newText, buffer)
 
-        // Resolve flat offsets from line/column - UI sends placeholder offset=0 with virtual scrolling.
-        // The field can diverge from the buffer (e.g. failed edits accumulate locally) and hand us a
-        // line past the document; dropping the edit beats an uncaught IndexOutOfBounds from findOffset.
         val startOffset: Long
         val endOffset: Long
         try {
-            startOffset = buffer.findOffset(start.line, start.column)
-            endOffset = buffer.findOffset(end.line, end.column)
-            // findOffset CLAMPS an out-of-range column, so a stale field position would silently
-            // edit at the line end instead of being rejected - and a stale deletion whose endpoints
-            // both clamp to the same offset would masquerade as the deliberate no-op below. Checked
-            // BEFORE the no-op short-circuit for exactly that reason.
-            if (!buffer.columnIsRepresentable(start) || !buffer.columnIsRepresentable(end)) {
-                log(tag, WARN) { "replaceText: column out of range ($start..$end), dropping edit" }
-                return@withLock false
-            }
+            val first = buffer.findOffset(delta.start.line, delta.start.column)
+            val second = buffer.findOffset(delta.end.line, delta.end.column)
+            startOffset = minOf(first, second)
+            endOffset = maxOf(first, second)
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            log(tag, WARN) { "replaceText: position resolve failed, dropping edit - ${e.message}" }
-            return@withLock false
+            log(tag, VERBOSE) { "applyFieldDelta: position resolve failed - ${e.message}" }
+            return@withLock MutationResult.Conflict(captureWindowSnapshotLocked())
         }
-        var lowPos: TextPosition
-        var highPos: TextPosition
-        if (startOffset <= endOffset) {
-            lowPos = TextPosition(startOffset, start.line, start.column)
-            highPos = TextPosition(endOffset, end.line, end.column)
-        } else {
-            lowPos = TextPosition(endOffset, end.line, end.column)
-            highPos = TextPosition(startOffset, start.line, start.column)
+        // findOffset CLAMPS an out-of-range column, so a stale field position would otherwise edit
+        // silently at the line end. The document's slice must be the text the field claims to
+        // replace (breaks canonicalized); anything else means the field and the document disagree.
+        val documentSlice = buffer.getText(startOffset, endOffset).getOrElse { e ->
+            log(tag, VERBOSE) { "applyFieldDelta: reading the replaced range failed - ${e.message}" }
+            return@withLock MutationResult.Conflict(captureWindowSnapshotLocked())
         }
-
-        val isEmptyRange = lowPos.offset == highPos.offset
-        if (isEmptyRange && newText.isEmpty()) {
-            // Pure no-op: the field never emits this (computeTextEdit returns null when text is unchanged),
-            // so there is nothing to edit and no cursor/selection state to disturb.
-            return@withLock true
+        if (documentSlice.canonicalBreaks() != delta.oldText.canonicalBreaks()) {
+            log(tag, WARN) { "applyFieldDelta: the replaced range diverged from the field" }
+            return@withLock MutationResult.Conflict(captureWindowSnapshotLocked())
+        }
+        if (startOffset == endOffset && newText.isEmpty()) {
+            // Pure no-op: nothing to edit and no cursor/selection state to disturb.
+            return@withLock MutationResult.Applied(delta.token)
         }
 
         // Only keystroke-SIZED edits coalesce (<= 2 UTF-16 units covers surrogate-pair input):
         // platform paste and IME batch commits arrive through this same diff path as large pure
         // inserts and must neither join a typing run nor anchor one
-        val keystrokeSized = newText.length <= 2 && (highPos.offset - lowPos.offset) <= 2
+        val keystrokeSized = newText.length <= 2 && (endOffset - startOffset) <= 2
 
-        // Horizontal chunking makes the hidden field window-relative, so the IME caret already
-        // expresses the real edit position (flatOffsetToPosition re-adds the line's window anchor).
-        // The old boundary-redirect - which reinterpreted a keystroke at the truncation marker as
-        // hidden-region input - is therefore obsolete: every caret is directly addressable.
-        @Suppress("UNUSED_VARIABLE")
-        val redirected = false
-
-        log(tag, VERBOSE) { "replaceText $lowPos..$highPos -> ${newText.take(50)} (caret=$caret, redirected=$redirected)" }
-        val result: Result<TextPosition> = when {
-            // Keystroke-sized inserts/deletes merge into the current typing run (one undo
-            // steps back over the run, not one character)
-            isEmptyRange -> buffer.insertText(lowPos, newText, coalesce = keystrokeSized) // pure insert
-            newText.isEmpty() -> buffer.deleteText(lowPos, highPos, coalesce = keystrokeSized).map { lowPos } // pure delete
-            else -> buffer.replaceText(lowPos, highPos, newText) // genuine replace (delete + insert)
+        log(tag, VERBOSE) { "applyFieldDelta $startOffset..$endOffset -> ${newText.take(50)} (caret=${delta.caret})" }
+        val outcome = buffer.applyMutation(
+            expectedVersion = delta.token.structuralVersion,
+            patches = listOf(DocumentBuffer.VerifiedPatch(startOffset, endOffset, documentSlice, newText)),
+            undoPolicy = if (keystrokeSized) DocumentBuffer.UndoPolicy.COALESCE else DocumentBuffer.UndoPolicy.SEPARATE,
+        ).getOrElse { e ->
+            if (e is StaleMatchException) {
+                log(tag) { "applyFieldDelta conflicted, the document moved on" }
+                return@withLock MutationResult.Conflict(captureWindowSnapshotLocked())
+            }
+            log(tag, ERROR) { "Failed to apply field delta - ${e.asLog()}" }
+            _error.value = e
+            return@withLock MutationResult.Failed(e)
         }
 
-        result.fold(
-            onSuccess = { editEnd ->
-                _totalLines.value = buffer.totalLines.value
-                if (redirected) {
-                    // The field caret cannot express hidden-region positions; place the cursor
-                    // from the actual edit (after the insert / at the delete start)
-                    _cursorPosition.value = editEnd
-                } else {
-                    updateCursorFromCaret(buffer, caret)
-                }
-                _selectionRange.value = null
-                selectionAnchor = null
-                _state.value = currentState.copy(isModified = true)
-                invalidateSearchResults()
-                refreshVisibleContent()
-                true
-            },
-            onFailure = { e ->
-                log(tag, ERROR) { "Failed to replace text - ${e.asLog()}" }
-                _error.value = e
-                false
-            },
-        )
-    }
-
-    /**
-     * Whether [position]'s column addresses a real spot on its line - i.e. whether
-     * [DocumentBuffer.findOffset] would resolve it exactly instead of clamping it.
-     */
-    private suspend fun DocumentBuffer.columnIsRepresentable(position: TextPosition): Boolean {
-        val length = getLineLength(position.line).getOrElse { return false }
-        return position.column >= 0 && position.column <= length
+        _totalLines.value = buffer.totalLines.value
+        updateCursorFromCaret(buffer, delta.caret)
+        _selectionRange.value = null
+        selectionAnchor = null
+        _state.value = currentState.copy(isModified = true)
+        invalidateSearchResults()
+        refreshVisibleContent()
+        // The post-commit version read INSIDE the buffer lock: a foreign mutation landing between
+        // the commit and this refresh surfaces as a Conflict on the NEXT delta instead of silently
+        // being adopted.
+        MutationResult.Applied(DocumentToken(engineEpoch, outcome.newVersion))
     }
 
     /** Resolves [caret] (line/column from the visible field) to a buffer offset and sets it as the cursor. */
@@ -803,83 +814,161 @@ class EditorEngine @AssistedInject constructor(
     }
 
     /**
-     * Deletes the current selection if one exists.
-     * Must be called within stateMutex.withLock.
-     * @return Pair of (selection was deleted, deleted text result). If no selection, returns (false, null).
+     * An immutable, fully resolved replacement that is too large to apply undoably. Stashed while
+     * the confirmation dialog is up and submitted via [submitPrepared]; its [token] is re-verified
+     * there, so a document that moved in the meantime is never mutated.
      */
+    data class PreparedMutation(
+        val token: DocumentToken,
+        val startOffset: Long,
+        val endOffset: Long,
+        val replacement: String,
+    )
+
+    /** Outcome of a mutation that can be gated behind the oversized-edit confirmation. */
+    sealed interface EditOutcome {
+        /** The mutation ran (or was a legitimate no-op); [removedText] is empty when not materialized. */
+        data class Applied(val removedText: String = "") : EditOutcome
+
+        /** Too large to apply undoably: nothing was mutated, the user has to confirm [prepared]. */
+        data class RequiresConfirmation(val prepared: PreparedMutation) : EditOutcome
+
+        data class Failed(val error: Throwable) : EditOutcome
+    }
+
+    /**
+     * Gates a transaction that consumes the WHOLE [selection]: applying it would clear undo history
+     * (materializing the removed span for undo would OOM). Derived from the resolved span under
+     * [stateMutex] together with the operation itself, so it can never race a selection change.
+     * Returns null when the edit is within the undoable budget and may proceed.
+     *
+     * Field deltas are deliberately NOT gated: their span is window-bounded, far below the
+     * threshold, so the replace they perform is always undoable.
+     */
+    private suspend fun oversizedGate(
+        buffer: DocumentBuffer,
+        selection: Pair<TextPosition, TextPosition>,
+        replacement: String,
+    ): EditOutcome.RequiresConfirmation? {
+        val start = selection.first.offset
+        val end = selection.second.offset
+        if (end - start <= buffer.maxUndoableEditChars) return null
+        val prepared = PreparedMutation(
+            token = DocumentToken(engineEpoch, buffer.getStructuralVersion()),
+            startOffset = start,
+            endOffset = end,
+            replacement = replacement,
+        )
+        log(tag, INFO) { "Edit over ${end - start} chars needs confirmation (not undoable)" }
+        return EditOutcome.RequiresConfirmation(prepared)
+    }
+
+    /**
+     * Applies a [prepared] oversized replacement the user confirmed. The token is re-checked inside
+     * the buffer lock: a document that moved on yields [MutationResult.Conflict] and mutates
+     * nothing.
+     */
+    suspend fun submitPrepared(prepared: PreparedMutation): MutationResult = stateMutex.withLock {
+        val currentState = _state.value as? EditorState.Loaded
+            ?: return@withLock MutationResult.Failed(IllegalStateException("Cannot apply edit - no file open"))
+        currentState.editabilityError()?.let { return@withLock MutationResult.Failed(it) }
+        if (prepared.token.engineEpoch != engineEpoch) {
+            log(tag, WARN) { "submitPrepared: prepared edit belongs to a different document" }
+            return@withLock MutationResult.Conflict(captureWindowSnapshotLocked())
+        }
+        val buffer = currentState.resources.textBuffer
+        buffer.applyOversizedReplace(
+            expectedVersion = prepared.token.structuralVersion,
+            startOffset = prepared.startOffset,
+            endOffset = prepared.endOffset,
+            newText = prepared.replacement,
+        ).fold(
+            onSuccess = { outcome ->
+                _selectionRange.value = null
+                selectionAnchor = null
+                _cursorPosition.value = buffer.findPosition(prepared.startOffset + prepared.replacement.length)
+                _state.value = currentState.copy(isModified = true)
+                _totalLines.value = buffer.totalLines.value
+                invalidateSearchResults()
+                refreshVisibleContent()
+                MutationResult.Applied(DocumentToken(engineEpoch, outcome.newVersion))
+            },
+            onFailure = { e ->
+                if (e is StaleMatchException) {
+                    log(tag, WARN) { "Confirmed edit rejected, the document moved on" }
+                    MutationResult.Conflict(captureWindowSnapshotLocked())
+                } else {
+                    log(tag, ERROR) { "Failed to apply confirmed edit - ${e.asLog()}" }
+                    _error.value = e
+                    MutationResult.Failed(e)
+                }
+            },
+        )
+    }
+
     /** [setSelection] stores the received order; buffer ranges and cursor placement need start <= end. */
     private fun Pair<TextPosition, TextPosition>.normalized(): Pair<TextPosition, TextPosition> =
         if (first.offset <= second.offset) this else second to first
 
-    private suspend fun deleteSelectionIfPresent(
-        currentState: EditorState.Loaded,
-    ): Pair<Boolean, Result<String>?> {
-        val selection = _selectionRange.value?.normalized() ?: return false to null
+    /**
+     * Deletes the current selection if one exists. Must be called within stateMutex.withLock.
+     * Returns null when there is no selection.
+     */
+    private suspend fun deleteSelectionIfPresent(currentState: EditorState.Loaded): EditOutcome? {
+        val selection = _selectionRange.value?.normalized() ?: return null
+        val buffer = currentState.resources.textBuffer
+        oversizedGate(buffer, selection, replacement = "")?.let { return it }
 
-        val result = currentState.resources.textBuffer.deleteText(selection.first, selection.second)
-        if (result.isSuccess) {
-            _selectionRange.value = null
-            _cursorPosition.value = selection.first
-            _state.value = currentState.copy(isModified = true)
-            _totalLines.value = currentState.resources.textBuffer.totalLines.value
-            invalidateSearchResults()
-            refreshVisibleContent()
-        } else {
-            _error.value = result.exceptionOrNull()
-        }
-        return true to result
+        val result = buffer.deleteText(selection.first, selection.second)
+        return result.fold(
+            onSuccess = { deletedText ->
+                _selectionRange.value = null
+                _cursorPosition.value = selection.first
+                _state.value = currentState.copy(isModified = true)
+                _totalLines.value = buffer.totalLines.value
+                invalidateSearchResults()
+                refreshVisibleContent()
+                EditOutcome.Applied(deletedText)
+            },
+            onFailure = { e ->
+                _error.value = e
+                EditOutcome.Failed(e)
+            },
+        )
     }
 
-    suspend fun deleteSelection(): Result<String> = stateMutex.withLock {
+    suspend fun deleteSelection(): EditOutcome = stateMutex.withLock {
         return when (val currentState = _state.value) {
             is EditorState.Loaded -> {
-                currentState.editabilityError()?.let { return Result.failure(it) }
-                val selection = _selectionRange.value?.normalized() ?: return Result.failure(
-                    IllegalStateException("No selection to delete")
-                )
-
+                currentState.editabilityError()?.let { return EditOutcome.Failed(it) }
                 try {
-                    val result = currentState.resources.textBuffer.deleteText(selection.first, selection.second)
-                    if (result.isSuccess) {
-                        _selectionRange.value = null
-                        _cursorPosition.value = selection.first
-                        _state.value = currentState.copy(isModified = true)
-                        _totalLines.value = currentState.resources.textBuffer.totalLines.value
-                        // Invalidate search results (positions are now stale)
-                        invalidateSearchResults()
-                        refreshVisibleContent()
-                    } else {
-                        _error.value = result.exceptionOrNull()
-                    }
-                    result
+                    deleteSelectionIfPresent(currentState)
+                        ?: EditOutcome.Failed(IllegalStateException("No selection to delete"))
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
                     log(tag, ERROR) { "Failed to delete selection - ${e.asLog()}" }
                     _error.value = e
-                    Result.failure(e)
+                    EditOutcome.Failed(e)
                 }
             }
             else -> {
                 val error = IllegalStateException("Cannot delete selection - no file open")
                 log(tag, WARN) { error.message ?: "Unknown error" }
-                Result.failure(error)
+                EditOutcome.Failed(error)
             }
         }
     }
 
-    suspend fun deleteAtCursor(count: Int): Result<String> = stateMutex.withLock {
+    suspend fun deleteAtCursor(count: Int): EditOutcome = stateMutex.withLock {
         return when (val currentState = _state.value) {
             is EditorState.Loaded -> {
-                currentState.editabilityError()?.let { return Result.failure(it) }
+                currentState.editabilityError()?.let { return EditOutcome.Failed(it) }
                 // If there's a selection, delete it instead of backspace (standard behavior)
-                val (hadSelection, deleteResult) = deleteSelectionIfPresent(currentState)
-                if (hadSelection) {
-                    return deleteResult ?: Result.success("")
-                }
+                deleteSelectionIfPresent(currentState)?.let { return it }
 
                 if (count <= 0) {
-                    return Result.success("")
+                    return EditOutcome.Applied()
                 }
 
                 val cursorPos = _cursorPosition.value
@@ -890,67 +979,45 @@ class EditorEngine @AssistedInject constructor(
 
                 if (actualCount <= 0) {
                     // Nothing to delete (cursor at start of document)
-                    return Result.success("")
+                    return EditOutcome.Applied()
                 }
 
                 try {
+                    val buffer = currentState.resources.textBuffer
                     // Find the line/column for start position
-                    val startPosition = currentState.resources.textBuffer.findPosition(startOffset)
+                    val startPosition = buffer.findPosition(startOffset)
                     val endPosition = cursorPos
 
                     log(tag, VERBOSE) { "Deleting $actualCount characters at cursor: $startPosition to $endPosition" }
 
-                    val result = currentState.resources.textBuffer.deleteText(startPosition, endPosition)
-                    if (result.isSuccess) {
-                        val deletedText = result.getOrNull() ?: ""
-                        _cursorPosition.value = startPosition
-                        _state.value = currentState.copy(isModified = true)
-                        _totalLines.value = currentState.resources.textBuffer.totalLines.value
-                        invalidateSearchResults()
-
-                        // Update visible content - use in-place update for small single-line deletes
-                        if (actualCount <= 10 && !deletedText.containsLineBreak() &&
-                            startPosition.line == endPosition.line
-                        ) {
-                            val cursorLine = startPosition.line
-                            val visible = _visibleContent.value
-                            val visibleStart = _visibleRange.value.first
-                            val lines = visible.text.split('\n').toMutableList()
-                            // Index into the loaded window; bounded by the window size, safe to narrow
-                            val lineIndex = (cursorLine - visibleStart).toInt()
-                            // A delete on a truncated OR horizontally-windowed line pulls hidden chars
-                            // into view / patches at the wrong local column, so bypass to a full refresh.
-                            if (cursorLine in _visibleRange.value && lineIndex in lines.indices &&
-                                !visible.truncatedLines.containsKey(cursorLine) &&
-                                !visible.startColumns.containsKey(cursorLine)
-                            ) {
-                                val line = lines[lineIndex]
-                                val startCol = startPosition.column.coerceAtMost(line.length)
-                                val endCol = endPosition.column.coerceAtMost(line.length)
-                                lines[lineIndex] = line.substring(0, startCol) + line.substring(endCol)
-                                _visibleContent.value = visible.copy(text = lines.joinToString("\n"))
-                            } else {
-                                refreshVisibleContent()
-                            }
-                        } else {
+                    buffer.deleteText(startPosition, endPosition).fold(
+                        onSuccess = { deletedText ->
+                            _cursorPosition.value = startPosition
+                            _state.value = currentState.copy(isModified = true)
+                            _totalLines.value = buffer.totalLines.value
+                            invalidateSearchResults()
+                            // Always a full re-read: an in-place window patch would publish new
+                            // text under the PREVIOUS token (see insertText).
                             refreshVisibleContent()
-                        }
-                    } else {
-                        _error.value = result.exceptionOrNull()
-                    }
-                    result
+                            EditOutcome.Applied(deletedText)
+                        },
+                        onFailure = { e ->
+                            _error.value = e
+                            EditOutcome.Failed(e)
+                        },
+                    )
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
                     log(tag, ERROR) { "Failed to delete at cursor - ${e.asLog()}" }
                     _error.value = e
-                    Result.failure(e)
+                    EditOutcome.Failed(e)
                 }
             }
             else -> {
                 val error = IllegalStateException("Cannot delete at cursor - no file open")
                 log(tag, WARN) { error.message ?: "Unknown error" }
-                Result.failure(error)
+                EditOutcome.Failed(error)
             }
         }
     }
@@ -1376,39 +1443,40 @@ class EditorEngine @AssistedInject constructor(
         return this.isLetterOrDigit() || this == '_'
     }
 
-    suspend fun deleteForward(): Result<String> = stateMutex.withLock {
+    suspend fun deleteForward(): EditOutcome = stateMutex.withLock {
         val currentState = _state.value as? EditorState.Loaded
-            ?: return Result.failure(IllegalStateException("Cannot delete forward - no file open"))
+            ?: return EditOutcome.Failed(IllegalStateException("Cannot delete forward - no file open"))
 
-        currentState.editabilityError()?.let { return Result.failure(it) }
+        currentState.editabilityError()?.let { return EditOutcome.Failed(it) }
         // If there's a selection, delete it instead of forward-delete (standard behavior)
-        val (hadSelection, deleteResult) = deleteSelectionIfPresent(currentState)
-        if (hadSelection) {
-            return deleteResult ?: Result.success("")
-        }
+        deleteSelectionIfPresent(currentState)?.let { return it }
 
+        val buffer = currentState.resources.textBuffer
         val cursorPos = _cursorPosition.value
-        val totalLength = currentState.resources.textBuffer.totalLength.value
+        val totalLength = buffer.totalLength.value
 
         if (cursorPos.offset >= totalLength) {
-            return Result.success("") // Nothing to delete at end
+            return EditOutcome.Applied() // Nothing to delete at end
         }
 
         // Delete 1 character forward (from cursor to cursor+1)
-        val endPosition = currentState.resources.textBuffer.findPosition(cursorPos.offset + 1)
+        val endPosition = buffer.findPosition(cursorPos.offset + 1)
 
         log(tag, VERBOSE) { "Forward delete at $cursorPos to $endPosition" }
 
-        val result = currentState.resources.textBuffer.deleteText(cursorPos, endPosition)
-        if (result.isSuccess) {
-            _state.value = currentState.copy(isModified = true)
-            _totalLines.value = currentState.resources.textBuffer.totalLines.value
-            invalidateSearchResults()
-            refreshVisibleContent()
-        } else {
-            _error.value = result.exceptionOrNull()
-        }
-        return result
+        return buffer.deleteText(cursorPos, endPosition).fold(
+            onSuccess = { deletedText ->
+                _state.value = currentState.copy(isModified = true)
+                _totalLines.value = buffer.totalLines.value
+                invalidateSearchResults()
+                refreshVisibleContent()
+                EditOutcome.Applied(deletedText)
+            },
+            onFailure = { e ->
+                _error.value = e
+                EditOutcome.Failed(e)
+            },
+        )
     }
 
     /**
@@ -1783,11 +1851,11 @@ class EditorEngine @AssistedInject constructor(
 
         try {
             currentCoroutineContext().ensureActive()
-            val contentResult =
-                currentState.resources.textBuffer.getDisplayRange(range.first, range.last, columnAnchorsFor(range))
+            val contentResult = currentState.resources.textBuffer
+                .getDisplayRangeWithVersion(range.first, range.last, columnAnchorsFor(range))
             contentResult.fold(
-                onSuccess = { window ->
-                    _visibleContent.value = VisibleContent(window.text, window.truncatedLines, window.startColumns)
+                onSuccess = { (window, version) ->
+                    _visibleContent.value = window.toVisibleContent(range.first, version)
                     log(tag) { "Refreshed visible content for range: ${range.first}..${range.last}" }
                 },
                 onFailure = { e ->
@@ -1798,6 +1866,15 @@ class EditorEngine @AssistedInject constructor(
             log(tag, ERROR) { "Error refreshing visible content - ${e.asLog()}" }
         }
     }
+
+    /** Pairs a freshly read window with the line it starts at and the version it was read at (D1). */
+    private fun DocumentBuffer.DisplayWindow.toVisibleContent(rangeStart: Long, version: Long) = VisibleContent(
+        text = text,
+        truncatedLines = truncatedLines,
+        startColumns = startColumns,
+        rangeStart = rangeStart,
+        token = DocumentToken(engineEpoch, version),
+    )
 
     suspend fun updateVisibleRange(startLine: Long, endLine: Long) = stateMutex.withLock {
         updateVisibleRangeLocked(startLine, endLine)
@@ -1835,10 +1912,10 @@ class EditorEngine @AssistedInject constructor(
             // Load content for the new visible range (keep the current horizontal anchor).
             try {
                 val contentResult = currentState.resources.textBuffer
-                    .getDisplayRange(constrainedStart, constrainedEnd, columnAnchorsFor(newRange))
+                    .getDisplayRangeWithVersion(constrainedStart, constrainedEnd, columnAnchorsFor(newRange))
                 contentResult.fold(
-                    onSuccess = { window ->
-                        _visibleContent.value = VisibleContent(window.text, window.truncatedLines, window.startColumns)
+                    onSuccess = { (window, version) ->
+                        _visibleContent.value = window.toVisibleContent(constrainedStart, version)
                         log(tag) { "Loaded content for range: $constrainedStart..$constrainedEnd" }
                     },
                     onFailure = { e ->
@@ -1981,6 +2058,15 @@ class EditorEngine @AssistedInject constructor(
         // Idempotent break normalizer: "\r\n" matches before its parts, so already-conforming
         // text (e.g. regex group captures of CRLF document content) is never double-converted
         private val LINE_BREAK_REGEX = Regex("\r\n|\r|\n")
+
+        /**
+         * Every break form reduced to '\n'. Comparing a field delta's old text to the document's
+         * slice has to ignore break FORM: the display window joins lines with '\n' whatever the
+         * document holds, so a CR or mixed document would otherwise reject every edit spanning a
+         * line break.
+         */
+        private fun String.canonicalBreaks(): String =
+            if (contains('\r')) LINE_BREAK_REGEX.replace(this, "\n") else this
 
         /**
          * Expands `$N` group references with Kotlin `Regex.replace` semantics: `\$` is a
