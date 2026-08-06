@@ -182,26 +182,31 @@ class AppSizeResolutionE2ETest : BaseTest() {
         engine.state.value.filteredApps.single().appSize shouldBe 150L
     }
 
+    private fun detailsWorkspace(
+        dispatcherProvider: TestDispatcherProvider,
+        cache: AppSizeCache,
+    ) = AppDetailsWorkspace(
+        id = Workspace.Id(),
+        creationArguments = AppDetailsArguments(installId = installId),
+        context = context,
+        dispatcherProvider = dispatcherProvider,
+        pkgRepo = pkgRepo,
+        pkgOps = pkgOps,
+        appSizeCache = cache,
+        rootManager = mockk<eu.darken.butler.common.root.RootManager> {
+            every { useRoot } returns flowOf(false)
+        },
+        adbManager = mockk<eu.darken.butler.common.adb.AdbManager> {
+            every { useAdb } returns flowOf(false)
+        },
+        workspaceRemote = mockk(relaxed = true),
+    )
+
     @Test
     fun `opening app details measures that app`() = runTest {
         stubSizes()
         val dispatcherProvider = TestDispatcherProvider(StandardTestDispatcher(testScheduler))
-        val workspace = AppDetailsWorkspace(
-            id = Workspace.Id(),
-            creationArguments = AppDetailsArguments(installId = installId),
-            context = context,
-            dispatcherProvider = dispatcherProvider,
-            pkgRepo = pkgRepo,
-            pkgOps = pkgOps,
-            appSizeCache = createCache(dispatcherProvider),
-            rootManager = mockk<eu.darken.butler.common.root.RootManager> {
-                every { useRoot } returns flowOf(false)
-            },
-            adbManager = mockk<eu.darken.butler.common.adb.AdbManager> {
-                every { useAdb } returns flowOf(false)
-            },
-            workspaceRemote = mockk(relaxed = true),
-        )
+        val workspace = detailsWorkspace(dispatcherProvider, createCache(dispatcherProvider))
         advanceUntilIdle()
 
         coVerify(exactly = 1) { pkgOps.querySizeStats(installId, any()) }
@@ -211,5 +216,37 @@ class AppSizeResolutionE2ETest : BaseTest() {
         state.app?.dataSize shouldBe 30L
         state.app?.cacheSize shouldBe 20L
         state.app?.totalSize shouldBe 150L
+    }
+
+    /**
+     * Usage access revoked while Butler is already running, on an app whose size is already
+     * measured. Nothing on the details screen re-reads the permission on its own, and the size
+     * collector returns early once the app has been attempted — so unless entering the screen
+     * re-derives it first, the card keeps showing numbers Android no longer updates instead of the
+     * setup block, for the rest of the process.
+     */
+    @Test
+    fun `usage access revoked at runtime surfaces the setup state on a measured app`() = runTest {
+        stubSizes()
+        val dispatcherProvider = TestDispatcherProvider(StandardTestDispatcher(testScheduler))
+        val cache = createCache(dispatcherProvider)
+
+        val measured = detailsWorkspace(dispatcherProvider, cache)
+        advanceUntilIdle()
+        measured.state.first().let {
+            it.sizesAvailable shouldBe true
+            it.app?.totalSize shouldBe 150L
+        }
+
+        // Revoked outside Butler: no setup-state emission, no revision bump, none of the paths that
+        // already call refreshAvailability().
+        setUsageAccess(granted = false)
+        advanceUntilIdle()
+
+        // Re-entering the screen is all the user does, and the size is already cached.
+        val reopened = detailsWorkspace(dispatcherProvider, cache)
+        advanceUntilIdle()
+
+        reopened.state.first().sizesAvailable shouldBe false
     }
 }

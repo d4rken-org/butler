@@ -342,10 +342,15 @@ class AppDetailsWorkspace @AssistedInject constructor(
             ) { app, snapshot, isAvailable ->
                 Triple(app, snapshot, isAvailable)
             }.collectLatest { (app, snapshot, _) ->
-                // isAvailable stays in the combine so a false->true flip re-triggers, but it is
-                // deliberately not checked here: resolve() re-derives the permission on entry, so
-                // gating on the cached flag would latch this screen off for the whole process.
-                if (app == null || app.installId in snapshot.attempted) return@collectLatest
+                if (app == null) return@collectLatest
+                // Ahead of the attempted-check, not inside resolve(): once a size has been measured
+                // this collector returns early forever, so a permission revoked afterwards would
+                // never be re-derived and the card would keep showing numbers Android no longer
+                // updates instead of the setup block. isAvailable stays in the combine so the
+                // flip re-triggers here; the flag itself is deliberately not a gate, which would
+                // latch the screen off for the whole process.
+                appSizeCache.refreshAvailability()
+                if (app.installId in snapshot.attempted) return@collectLatest
                 log(tag) { "Resolving size for ${app.packageName}" }
                 _sizeLoading.value = true
                 try {

@@ -104,7 +104,11 @@ class WorkspaceAutoPauseManager(
         // otherwise leave the user settling on a paused placeholder, since a settle only selects.
         appScope.launch {
             pagerVisibility.reappeared.collect { id ->
-                if (workspaceRepo.state.first().infos.none { it.id == id && it.isPaused }) return@collect
+                // Peeked, not read from the exported flow: that one lags the pause swap, so right
+                // after the backstop it still reports Ready - and this is a one-shot event, the
+                // just-paused record is already gone, so discarding it leaves the tab paused
+                // underneath the user with nothing left to retry.
+                if (workspaceRepo.peek(id)?.info?.value?.isPaused != true) return@collect
                 log(TAG, INFO) { "$id came back on screen right after being paused, resuming it" }
                 workspaceRepo.execute(WorkspaceAction.Resume(id))
             }
@@ -194,7 +198,7 @@ class WorkspaceAutoPauseManager(
                 log(TAG, INFO) { "Tab manager opened mid-pass, skipping the remaining candidates" }
                 return
             }
-            pause(candidate)
+            pause(candidate, seenStamps)
         }
     }
 
@@ -218,13 +222,16 @@ class WorkspaceAutoPauseManager(
      * covered by the same key. The lease covers the backstop resume too, so a capture waiting on it
      * never observes the brief paused window of a unit we are about to wake up again.
      */
-    private suspend fun pause(id: Workspace.Id) =
+    private suspend fun pause(id: Workspace.Id, seenStamps: Map<Workspace.Id, Long>) =
         workspacePauseGate.withLease(workspaceRepo.peekOwnershipRoot(id)) {
-            // Taken before the release, so a page that becomes visible and hidden again while the
-            // release runs is still caught: the tracker conflates its visible SET, never the
-            // per-tab generation these stamps compare against.
+            // Carried over from the evaluation rather than sampled again here: a sighting landing
+            // between the two samples would be in neither guard - too late for seenSinceLastPass,
+            // already folded into a fresh sample - and the tab the user just swiped across would be
+            // released as unseen. The tracker conflates its visible SET, never these per-tab
+            // generations, so comparing them after the release still catches a page that came and
+            // went while it ran.
             val unitIds = workspaceRepo.peekStacks().unitOf(id)?.map { it.id } ?: listOf(id)
-            val stampsBeforeRelease = pagerVisibility.seenStamps(unitIds)
+            val stampsBeforeRelease = unitIds.associateWith { seenStamps[it] ?: 0L }
 
             when (val result = workspaceRepo.execute(WorkspaceAction.Pause(id))) {
                 is WorkspaceAction.Pause.Result.Success -> {

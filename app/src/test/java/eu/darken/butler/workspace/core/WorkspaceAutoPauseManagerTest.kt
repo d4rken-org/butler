@@ -560,6 +560,43 @@ class WorkspaceAutoPauseManagerTest : BaseTest() {
             isPaused(pickerId) shouldBe false
         }
 
+    /**
+     * The window between the evaluation deciding to release something and the release actually
+     * starting: a pause queues behind whatever holds the unit's lease, and the user keeps swiping
+     * meanwhile. Sampling the stamps again once the lease is granted would fold that sighting into
+     * the "before" value, leaving it in neither guard.
+     */
+    @Test
+    fun `a sighting between the evaluation and the release is not lost`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val visibleId = createTab()
+            val hiddenId = createTab()
+            pageManager.setLayout(mapOf(0 to visibleId), focusedId = visibleId)
+            val manager = createManager()
+            manager.evaluateNow()
+            elapse(3.hours)
+
+            // Stands in for a preview capture holding the unit's lease
+            val captureDone = CompletableDeferred<Unit>()
+            val capture = launch { pauseGate.withLease(hiddenId) { captureDone.await() } }
+
+            manager.evaluateNow()
+            isPaused(hiddenId) shouldBe false
+
+            // A complete swipe across the queued-for-release tab. It is not on screen any more by
+            // the time the release runs, so only the generation stamp still remembers it.
+            publishVisible(visibleId, hiddenId)
+            publishVisible(visibleId)
+
+            captureDone.complete(Unit)
+            capture.join()
+            scope.testScheduler.runCurrent()
+
+            isPaused(hiddenId) shouldBe false
+            // Released and undone, not merely spared
+            createdWorkspaces.count { it.id == hiddenId } shouldBe 2
+        }
+
     @Test
     fun `nothing is paused while the tab manager overlay is visible`() = runTest(UnconfinedTestDispatcher()) {
         createTab()
