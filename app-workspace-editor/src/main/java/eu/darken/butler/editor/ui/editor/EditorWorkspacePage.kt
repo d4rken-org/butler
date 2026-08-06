@@ -89,7 +89,6 @@ fun EditorWorkspacePageHost(
         clipboardStateSource = vm.clipboard,
         onPageAction = vm::onPageAction,
         onActionExecute = vm::executeAction,
-        onActionLongClick = vm::executeActionLongClick,
     )
 }
 
@@ -101,7 +100,6 @@ fun EditorWorkspacePage(
     clipboardStateSource: Flow<ClipboardDisplayState> = flowOf(ClipboardDisplayState()),
     onPageAction: (EditorPageAction) -> Unit,
     onActionExecute: (EditorActionBarItem) -> Unit = {},
-    onActionLongClick: (EditorActionBarItem) -> Unit = {},
 ) {
     // Page is hidden by WorkspaceMapper during Init/Error states, so nothing to render until Ready
     // StateFlow check: use current value as initial for single-frame renderers (screenshot tests, previews)
@@ -304,7 +302,6 @@ fun EditorWorkspacePage(
                     EditorActionBar(
                         actions = state.availableActions,
                         onActionClick = onActionExecute,
-                        onActionLongClick = onActionLongClick,
                     )
                 }
             },

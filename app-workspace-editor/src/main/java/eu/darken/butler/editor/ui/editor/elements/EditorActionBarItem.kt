@@ -31,23 +31,39 @@ sealed interface EditorActionBarItem : WorkspaceActionBarItem {
     override val badge: Boolean get() = false
 
     /**
-     * Copy selected text to clipboard.
-     * Long press copies to Butler clipboard.
+     * Copy selected text to the system clipboard
      */
     data object Copy : EditorActionBarItem {
         override val icon = Icons.TwoTone.ContentCopy
         override val label = R.string.general_copy_action.toCaString()
-        override val supportsLongPress = true
     }
 
     /**
-     * Cut selected text to clipboard.
-     * Long press cuts to Butler clipboard.
+     * Cut selected text to the system clipboard
      */
     data object Cut : EditorActionBarItem {
         override val icon = Icons.TwoTone.ContentCut
         override val label = R.string.general_cut_action.toCaString()
-        override val supportsLongPress = true
+    }
+
+    /**
+     * Copy selected text to Butler's own clipboard, always a labelled overflow row
+     */
+    data object CopyToButlerClipboard : EditorActionBarItem {
+        override val icon = Icons.TwoTone.ContentCopy
+        override val label =
+            eu.darken.butler.editor.R.string.editor_action_copy_to_butler_clipboard.toCaString()
+        override val forceOverflow = true
+    }
+
+    /**
+     * Cut selected text to Butler's own clipboard, always a labelled overflow row
+     */
+    data object CutToButlerClipboard : EditorActionBarItem {
+        override val icon = Icons.TwoTone.ContentCut
+        override val label =
+            eu.darken.butler.editor.R.string.editor_action_cut_to_butler_clipboard.toCaString()
+        override val forceOverflow = true
     }
 
     /**

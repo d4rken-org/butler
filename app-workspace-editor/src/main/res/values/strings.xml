@@ -29,6 +29,8 @@
     <string name="editor_action_next">Next</string>
     <string name="editor_action_copy">Copy</string>
     <string name="editor_action_cut">Cut</string>
+    <string name="editor_action_copy_to_butler_clipboard">Copy to Butler clipboard</string>
+    <string name="editor_action_cut_to_butler_clipboard">Cut to Butler clipboard</string>
     <string name="editor_action_paste">Paste</string>
     <string name="editor_action_select_all">Select all</string>
     <string name="editor_action_delete">Delete</string>
