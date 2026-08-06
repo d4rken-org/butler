@@ -35,6 +35,11 @@ fun WorkspaceLimitDialog(
     closableTitle: CaString? = null,
     onCloseOldest: () -> Unit = {},
 ) {
+    val closeOldestLabel = if (closableTitle == null) {
+        null
+    } else {
+        stringResource(R.string.workspace_limit_close_oldest_action, closableTitle.get(LocalContext.current))
+    }
     ButlerAlertDialog(
         onDismissRequest = onDismiss,
         icon = {
@@ -64,17 +69,14 @@ fun WorkspaceLimitDialog(
                 Text(text = stringResource(CommonR.string.general_dismiss_action))
             }
         },
-        neutralButton = closableTitle?.let { title ->
+        neutralButton = if (closeOldestLabel != null) {
             {
                 TextButton(onClick = onCloseOldest) {
-                    Text(
-                        text = stringResource(
-                            R.string.workspace_limit_close_oldest_action,
-                            title.get(LocalContext.current),
-                        )
-                    )
+                    Text(text = closeOldestLabel)
                 }
             }
+        } else {
+            null
         },
     )
 }
