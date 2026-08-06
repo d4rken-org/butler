@@ -14,7 +14,11 @@ interface WorkspaceActionBarItem {
     val isDestructive: Boolean get() = false
     val group: Group get() = Group.PRIMARY
     val badge: Boolean get() = false
-    val supportsLongPress: Boolean get() = false
+
+    /**
+     * Items that must render as a labelled overflow menu row regardless of available width
+     */
+    val forceOverflow: Boolean get() = false
 
     enum class Group {
         /**
