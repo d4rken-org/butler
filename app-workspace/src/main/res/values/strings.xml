@@ -336,6 +336,7 @@
     <!-- Workspace Limit -->
     <string name="workspace_limit_reached_title">Tab Limit Reached</string>
     <string name="workspace_limit_reached_message">Free users can have up to %1$d tabs open at a time. Upgrade to Butler Pro for unlimited tabs!</string>
+    <string name="workspace_limit_close_oldest_action">Close \"%1$s\"</string>
 
     <!-- Restore operation -->
     <string name="workspace_operation_restore_title">Trash restore</string>

@@ -17,11 +17,15 @@ sealed interface ManagerDialog {
     sealed interface Global : ManagerDialog {
         /**
          * Dialog shown when non-pro users reach the workspace limit.
+         *
+         * [closableTitle] names the tab the dialog offers to close to make room for the blocked
+         * create; null when no tab may be closed for it and the action is not offered.
          */
         data class WorkspaceLimitReached(
             override val id: String,
             val currentCount: Int,
             val limit: Int,
+            val closableTitle: CaString? = null,
         ) : Global {
             override val isBlocking: Boolean = true
         }

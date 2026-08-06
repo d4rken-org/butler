@@ -129,6 +129,7 @@ class WorkspacesViewModel @Inject constructor(
                                 id = confirmationId,
                                 currentCount = data.currentCount,
                                 limit = data.limit,
+                                closableTitle = data.closableTitle,
                             )
                         }
                         is PendingWorkspaceConfirmation.ConfirmationData.BatchWorkspaceCreation -> {
@@ -448,6 +449,14 @@ class WorkspacesViewModel @Inject constructor(
             .filterIsInstance<ManagerDialog.Global.WorkspaceLimitReached>()
             .firstOrNull() ?: return
         workspaceRepo.resolveConfirmation(dialogState.id, confirmed = false)
+    }
+
+    fun onCloseOldestFromLimitDialog() {
+        log(tag) { "onCloseOldestFromLimitDialog()" }
+        val dialogState = _managerDialogs.value
+            .filterIsInstance<ManagerDialog.Global.WorkspaceLimitReached>()
+            .firstOrNull() ?: return
+        workspaceRepo.resolveLimitByClosingOldest(dialogState.id)
     }
 
     fun onUpgradeFromLimitDialog() {

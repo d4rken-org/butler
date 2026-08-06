@@ -403,6 +403,8 @@ fun WorkspacesScreenHost(
                 limit = dialogState.limit,
                 onDismiss = { vm.dismissWorkspaceLimitDialog() },
                 onUpgrade = { vm.onUpgradeFromLimitDialog() },
+                closableTitle = dialogState.closableTitle,
+                onCloseOldest = { vm.onCloseOldestFromLimitDialog() },
             )
         }
     }
