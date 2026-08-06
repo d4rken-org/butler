@@ -1256,38 +1256,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun executeActionLongClick(action: ExplorerActionBarItem) = launch {
-        log(tag) { "executeActionLongClick($action)" }
-        when (action) {
-            is ExplorerActionBarItem.Directory.Delete -> {
-                log(tag) { "longPress deleteSelectedItems(): ${selection.selectedItems.value.size} items (forcePermDelete)" }
-                val selectedItems = selection.selectedItems.value
-                if (selectedItems.isNotEmpty()) {
-                    val currentLocation = getState().currentLocation
-                    if (currentLocation is ExplorerLocation.Directory) {
-                        val pathsToDelete = selectedItems
-                            .filterIsInstance<ExplorerItem.Lookup>()
-                            .map { it.lookup.lookedUp }
-                            .toSet()
-
-                        if (pathsToDelete.isNotEmpty()) {
-                            dialogEvents.emit(
-                                ExplorerDialogEvent.ShowDeleteConfirmation(
-                                    items = pathsToDelete,
-                                    forcePermDelete = true,
-                                )
-                            )
-                        }
-                    }
-                }
-            }
-            else -> {
-                // Other actions don't support long-press, delegate to regular click
-                executeAction(action)
-            }
-        }
-    }
-
     // File action handlers
     /**
      * Routes a single file to the workspace type that fits it - the same classification the
