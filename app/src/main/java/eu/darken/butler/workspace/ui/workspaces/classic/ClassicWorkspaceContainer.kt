@@ -174,7 +174,11 @@ internal fun ClassicWorkspaceContainer(
     val hasBlockingDialog = managerDialogs.any { it.isBlocking }
 
     val scope = rememberCoroutineScope()
-    val backTarget = state.focused?.takeIf { it in tabIds }
+    // The owning tab, not the raw focused id: focus can sit on a stacked child, which names no page
+    // at all. Taking the raw id would leave this handler disarmed whenever a child holds focus,
+    // while that child's own handlers are already disarmed for being off screen — so a press on the
+    // placeholder would reach the app-root exit prompt instead of coming back to the tab.
+    val backTarget = focusedRootId
     val backTargetPage = backTarget?.let(tabIds::indexOf) ?: -1
     // Deliberately the same expression the focused pane is handed as `backActive` below. The
     // handler underneath is armed only while this is false, so the two can never both consume the

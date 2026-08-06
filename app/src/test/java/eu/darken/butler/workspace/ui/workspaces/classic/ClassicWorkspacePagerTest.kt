@@ -1,6 +1,8 @@
 package eu.darken.butler.workspace.ui.workspaces.classic
 
+import android.content.Context
 import androidx.activity.OnBackPressedDispatcher
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,10 +14,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
+import androidx.test.core.app.ApplicationProvider
+import eu.darken.butler.R
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.Workspace
@@ -58,6 +64,10 @@ class ClassicWorkspacePagerTest : ComposeTest() {
     private val tabB = Workspace.Id()
     private val child = Workspace.Id()
 
+    private val placeholderTitle: String
+        get() = ApplicationProvider.getApplicationContext<Context>()
+            .getString(R.string.workspace_ondemand_swipe_title)
+
     private fun tab(id: Workspace.Id) = Workspace.Info(
         id = id,
         type = Workspace.Type.EXPLORER,
@@ -79,6 +89,7 @@ class ClassicWorkspacePagerTest : ComposeTest() {
         infos: List<Workspace.Info>,
         focused: Workspace.Id?,
         selected: Map<Int, Workspace.Id>,
+        onDemandCreation: Boolean = false,
     ) = WorkspacesViewModel.State(
         state = WorkspaceRemote.State(infos = infos),
         focusedWorkspace = focused,
@@ -89,7 +100,7 @@ class ClassicWorkspacePagerTest : ComposeTest() {
         ).visiblePaneAssignments,
         isUpgraded = true,
         swipeGesturesEnabled = true,
-        onDemandWorkspaceCreation = false,
+        onDemandWorkspaceCreation = onDemandCreation,
         currentPaneCount = 1,
     )
 
@@ -133,6 +144,7 @@ class ClassicWorkspacePagerTest : ComposeTest() {
         host: RecordingHost,
         visibility: WorkspaceVisibilityTracker,
         onAction: (WorkspaceScreenAction) -> Unit,
+        onReachedAppRoot: () -> Unit = {},
     ) {
         PreviewWrapper {
             CompositionLocalProvider(
@@ -142,6 +154,12 @@ class ClassicWorkspacePagerTest : ComposeTest() {
                 ),
                 LocalWorkspacePagerVisibility provides visibility,
             ) {
+                // Stands in for MainActivity's press-back-again-to-exit prompt: registered above
+                // everything else, so it only runs once nothing in the workspace tree consumed the
+                // press. A raw handler on purpose - that is what the real one is, and its LIFO
+                // position is the whole point.
+                BackHandler(enabled = true) { onReachedAppRoot() }
+
                 ClassicWorkspaceContainer(
                     state = state,
                     onWorkspaceScreenAction = onAction,
@@ -294,6 +312,7 @@ class ClassicWorkspacePagerTest : ComposeTest() {
         val host = RecordingHost()
         val buttons = RecordingButtonProvider()
         val infos = listOf(tab(tabA), tab(tabB), paneLocalChild(child, caller = tabA))
+        var reachedAppRoot = false
         var dispatcher: OnBackPressedDispatcher? = null
 
         composeTestRule.setContent {
@@ -306,6 +325,7 @@ class ClassicWorkspacePagerTest : ComposeTest() {
                     // Swallowed, so focus never follows the swipe: the pager rests on tab B while
                     // the child on tab A still holds focus.
                     onAction = {},
+                    onReachedAppRoot = { reachedAppRoot = true },
                 )
             }
         }
@@ -320,6 +340,58 @@ class ClassicWorkspacePagerTest : ComposeTest() {
         composeTestRule.waitForIdle()
 
         buttons.actions shouldBe emptyList()
+        // Not closing the child is only half of it: the press has to be absorbed rather than fall
+        // through, or a second one exits the app from under an open child.
+        reachedAppRoot shouldBe false
+    }
+
+    /**
+     * The placeholder case with a stacked child holding focus. Both back handlers that could answer
+     * are keyed on the tab: the child's page handlers are disarmed for being off screen, so the
+     * container's is the only one left — and it can only find that tab by resolving the focused
+     * child to its owning root, because a child id names no page.
+     *
+     * App Details is `pausableAsChild`, so unlike a picker it does not withdraw the placeholder,
+     * which is what makes this reachable at all.
+     */
+    @Test
+    fun `back on the placeholder returns to the tab owning the focused child`() {
+        val host = RecordingHost()
+        val buttons = RecordingButtonProvider()
+        val infos = listOf(tab(tabA), tab(tabB), paneLocalChild(child, caller = tabB))
+        var reachedAppRoot = false
+        var dispatcher: OnBackPressedDispatcher? = null
+
+        composeTestRule.setContent {
+            dispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
+            CompositionLocalProvider(LocalWorkspaceButtonProvider provides buttons) {
+                Container(
+                    state(infos, focused = child, selected = mapOf(0 to tabB), onDemandCreation = true),
+                    host,
+                    WorkspaceVisibilityTracker(),
+                    onAction = {},
+                    onReachedAppRoot = { reachedAppRoot = true },
+                )
+            }
+        }
+        composeTestRule.waitForIdle()
+        composeTestRule.onNodeWithTag(RecordingHost.tagFor(child)).assertIsDisplayed()
+
+        // Tab B is the last tab, so one swipe parks the pager on the trailing placeholder.
+        composeTestRule.onRoot().performTouchInput { swipeLeft() }
+        composeTestRule.waitForIdle()
+        composeTestRule.onNodeWithText(placeholderTitle, useUnmergedTree = true).assertIsDisplayed()
+        // Not assertDoesNotExist: the page has to still be composed off screen, or "nothing
+        // answered back" would hold merely because there was nothing left to answer.
+        composeTestRule.onNodeWithTag(RecordingHost.tagFor(child)).assertIsNotDisplayed()
+
+        composeTestRule.runOnIdle { dispatcher!!.onBackPressed() }
+        composeTestRule.waitForIdle()
+
+        // Back on the placeholder returns to the owning tab, with its child still stacked on it.
+        composeTestRule.onNodeWithTag(RecordingHost.tagFor(child)).assertIsDisplayed()
+        buttons.actions shouldBe emptyList()
+        reachedAppRoot shouldBe false
     }
 
     /**
