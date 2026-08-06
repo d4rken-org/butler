@@ -364,13 +364,12 @@ class WorkspaceRepo @Inject constructor(
                 // Check workspace limit for non-pro users
                 if (!canCreateWorkspace(action, isPro)) {
                     log(TAG, INFO) { "Workspace limit reached, showing upgrade dialog" }
-                    postLimitDialog(
-                        retry = if (!action.allowLimitRecovery) {
-                            null
-                        } else {
-                            { victimId -> recoverFromLimit(action, isPro, victimId) }
-                        }
-                    )
+                    val limitRetry: (suspend (Workspace.Id) -> Unit)? = if (action.allowLimitRecovery) {
+                        { victimId -> recoverFromLimit(action, isPro, victimId) }
+                    } else {
+                        null
+                    }
+                    postLimitDialog(retry = limitRetry)
                     return@withLock WorkspaceAction.Create.Result.LimitReached
                 }
 
@@ -1119,7 +1118,10 @@ class WorkspaceRepo @Inject constructor(
             // again for whatever is closable now.
             if (victim == null || !isLimitRecoveryVictim(victim, peekStacks())) {
                 log(TAG, WARN) { "$victimId is no longer closable, asking again" }
-                postLimitDialog(retry = { newVictimId -> recoverFromLimit(action, isPro, newVictimId) })
+                val retry: suspend (Workspace.Id) -> Unit = { newVictimId ->
+                    recoverFromLimit(action, isPro, newVictimId)
+                }
+                postLimitDialog(retry = retry)
                 return
             }
         } else {
@@ -1137,17 +1139,18 @@ class WorkspaceRepo @Inject constructor(
         var committedId: Workspace.Id? = null
         try {
             if (needsClose) executeClose(victimId)
-            committedId = commitWorkspace(built, action.replace, action.createdAt)
+            val newId = commitWorkspace(built, action.replace, action.createdAt)
+            committedId = newId
             trackUsage(action, Clock.System.now())
             _events.emit(
                 WorkspaceEvent.Created(
-                    workspaceId = committedId,
+                    workspaceId = newId,
                     replacedId = action.replace,
                     autoFocus = action.autoFocus,
                     sourceWorkspaceId = action.sourceWorkspaceId,
                 )
             )
-            _events.emit(WorkspaceEvent.SelectionRequested(committedId, action.sourceWorkspaceId))
+            _events.emit(WorkspaceEvent.SelectionRequested(newId, action.sourceWorkspaceId))
         } catch (e: Exception) {
             log(TAG, ERROR) { "Limit recovery failed after building ${built.id}: ${e.asLog()}" }
             if (committedId == null) {

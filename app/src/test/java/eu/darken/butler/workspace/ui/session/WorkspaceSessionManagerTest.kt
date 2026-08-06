@@ -304,6 +304,10 @@ class WorkspaceSessionManagerTest : BaseTest() {
             // Mock repo state
             every { workspaceRepo.state } returns repoStateFlow
 
+            // Default: the repo knows no creation time, so the stored one (if any) is kept
+            every { workspaceRepo.peekCreatedAt(any()) } returns null
+            coEvery { storage.dao.getWorkspaceById(any()) } returns null
+
             // Mock factory for serialization (uses args identity for distinct hashes)
             @Suppress("UNCHECKED_CAST")
             mockFactory = mockk<WorkspaceFactory<Workspace.Arguments>>()
@@ -379,6 +383,46 @@ class WorkspaceSessionManagerTest : BaseTest() {
                 it.customTitle shouldBe "Holiday photos"
             }
         }
+
+        /**
+         * The stored value is only the instant of the row's FIRST save, so every tab created between
+         * two debounced saves collapses onto one timestamp. The repo's is the real creation time.
+         */
+        @Test
+        fun `the repo's creation time wins over the stored one`() = runTest {
+            val actuallyCreatedAt = Instant.fromEpochSeconds(1_000)
+            every { workspaceRepo.peekCreatedAt(wsIdA) } returns actuallyCreatedAt
+            coEvery { storage.dao.getWorkspaceById(wsIdA) } returns
+                entityFor(wsIdA, createdAt = Instant.fromEpochSeconds(9_000))
+
+            repoStateFlow.value = WorkspaceRemote.State(infos = listOf(makeInfo(wsIdA)))
+            sessionManager.saveSession()
+
+            upsertedEntities.single().createdAt shouldBe actuallyCreatedAt
+        }
+
+        /** Pre-existing rows predate the tracking and must keep what they have; no migration. */
+        @Test
+        fun `a row the repo has no creation time for keeps its stored one`() = runTest {
+            val storedCreatedAt = Instant.fromEpochSeconds(9_000)
+            coEvery { storage.dao.getWorkspaceById(wsIdA) } returns
+                entityFor(wsIdA, createdAt = storedCreatedAt)
+
+            repoStateFlow.value = WorkspaceRemote.State(infos = listOf(makeInfo(wsIdA)))
+            sessionManager.saveSession()
+
+            upsertedEntities.single().createdAt shouldBe storedCreatedAt
+        }
+
+        private fun entityFor(id: Workspace.Id, createdAt: Instant) = WorkspaceInstanceEntity(
+            workspaceId = id,
+            sessionId = DEFAULT_SESSION_ID,
+            type = Workspace.Type.EXPLORER,
+            orderIndex = 0,
+            createdAt = createdAt,
+            lastModified = createdAt,
+            arguments = "{}",
+        )
 
         @Test
         fun `a title-only change triggers an upsert`() = runTest {
@@ -737,12 +781,13 @@ class WorkspaceSessionManagerTest : BaseTest() {
             tag: String,
             type: Workspace.Type = Workspace.Type.EXPLORER,
             customTitle: String? = null,
+            createdAt: Instant = Instant.DISTANT_PAST,
         ) = WorkspaceInstanceEntity(
             workspaceId = id,
             sessionId = DEFAULT_SESSION_ID,
             type = type,
             orderIndex = orderIndex,
-            createdAt = Instant.DISTANT_PAST,
+            createdAt = createdAt,
             lastModified = Instant.DISTANT_PAST,
             arguments = JsonPrimitive(tag).toString(),
             customTitle = customTitle,
@@ -805,6 +850,30 @@ class WorkspaceSessionManagerTest : BaseTest() {
                 manager.state.value shouldBe WorkspaceSessionManager.State.Restored(listOf(idA))
                 createAttempts shouldBe listOf(idA)
                 workspaceIds() shouldBe listOf(idA)
+            }
+
+        /**
+         * Without this the repo stamps every restored tab with the restore instant, and "oldest tab"
+         * degenerates to tab order after any app restart.
+         */
+        @Test
+        fun `the persisted creation time is handed to eager and paused restores`() =
+            runTest(UnconfinedTestDispatcher()) {
+                val eagerCreatedAt = Instant.fromEpochSeconds(1_000)
+                val pausedCreatedAt = Instant.fromEpochSeconds(2_000)
+                savedSession(
+                    focusedId = idA,
+                    entities = listOf(
+                        entity(idA, 0, "a", createdAt = eagerCreatedAt),
+                        entity(idB, 1, "b", createdAt = pausedCreatedAt),
+                    ),
+                )
+
+                createManager()
+                restoreScope.testScheduler.runCurrent()
+
+                repo.peekCreatedAt(idA) shouldBe eagerCreatedAt
+                repo.peekCreatedAt(idB) shouldBe pausedCreatedAt
             }
 
         @Test
