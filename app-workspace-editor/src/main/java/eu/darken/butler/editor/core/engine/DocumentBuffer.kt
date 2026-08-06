@@ -1526,15 +1526,8 @@ class DocumentBuffer @AssistedInject constructor(
         _canRedo.value = redoStack.isNotEmpty()
     }
 
-    private fun insertEndPosition(position: TextPosition, text: String): TextPosition = TextPosition(
-        offset = position.offset + text.length,
-        line = position.line + text.count { it == '\n' },
-        column = if (text.contains('\n')) {
-            text.length - text.lastIndexOf('\n') - 1
-        } else {
-            position.column + text.length
-        },
-    )
+    private fun insertEndPosition(position: TextPosition, text: String): TextPosition =
+        endPositionOf(position, text, endOffset = position.offset + text.length)
 
     /**
      * Estimates the memory footprint of an EditOperation in bytes.

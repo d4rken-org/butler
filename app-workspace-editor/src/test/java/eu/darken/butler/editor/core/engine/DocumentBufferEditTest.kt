@@ -4,6 +4,8 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 
 /**
  * Tests for DocumentBuffer edit operations including insert, delete,
@@ -106,6 +108,49 @@ class DocumentBufferEditTest : DocumentBufferTestBase() {
         // Then: Returns new position after inserted text
         val newPosition = result.getOrThrow()
         newPosition.offset shouldBe 14L  // 5 + 9 (" INSERTED".length)
+    }
+
+    /**
+     * The insert-path mirror of the delete/undo case in EditorEngineTrailingLineTest: a lone '\r'
+     * is a break for the buffer (pasted from a foreign clipboard, or kept verbatim in a CR-only /
+     * MIXED document), so the returned cursor - published straight to the engine - has to land on
+     * the line the break opened, not on the line the insert started on.
+     */
+    @ParameterizedTest
+    @ValueSource(strings = ["\n", "\r\n", "\r"])
+    fun `insertText returns a cursor past every kind of break`(terminator: String) = runTest {
+        val buffer = createBuffer("Hello")
+
+        val result = buffer.insertText(TextPosition(offset = 5L, line = 0, column = 5), "one${terminator}two")
+
+        val newPosition = result.getOrThrow()
+        newPosition.offset shouldBe (5 + 3 + terminator.length + 3).toLong()
+        newPosition.line shouldBe 1L
+        newPosition.column shouldBe 3
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["\n", "\r\n", "\r"])
+    fun `insertText returns a cursor past several breaks`(terminator: String) = runTest {
+        val buffer = createBuffer("Hello")
+
+        val result = buffer.insertText(TextPosition(offset = 5L, line = 0, column = 5), "a${terminator}b${terminator}c")
+
+        val newPosition = result.getOrThrow()
+        newPosition.line shouldBe 2L
+        newPosition.column shouldBe 1
+    }
+
+    /** Mixed endings in one inserted string: each of the three forms is exactly ONE break. */
+    @Test
+    fun `insertText counts mixed breaks in one inserted string`() = runTest {
+        val buffer = createBuffer("Hello")
+
+        val result = buffer.insertText(TextPosition(offset = 5L, line = 0, column = 5), "a\rb\r\nc\nd")
+
+        val newPosition = result.getOrThrow()
+        newPosition.line shouldBe 3L
+        newPosition.column shouldBe 1
     }
 
     // ==================== Basic Delete Operations ====================

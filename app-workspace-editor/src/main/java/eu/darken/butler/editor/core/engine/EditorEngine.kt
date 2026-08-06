@@ -201,8 +201,8 @@ class EditorEngine @AssistedInject constructor(
      * '\r' or "\r\n" from foreign clipboards) into "\r\n"; LF documents turn pasted "\r\n"/'\r'
      * into '\n'. Applied at the mutation entry points BEFORE any offset math - the buffer, undo
      * ops, and cursor/replacement-end calculations must all see the same string. CR documents
-     * are excluded (a bare '\r' would break the '\n'-based line math: insertEndPosition, the
-     * in-place visible-content fast path); MIXED has no ending to conform to.
+     * are excluded (cursor line math handles a bare '\r' via [endPositionOf], but the in-place
+     * visible-content fast path is still '\n'-based); MIXED has no ending to conform to.
      */
     private fun matchDocumentLineEnding(text: String, buffer: DocumentBuffer): String {
         val target = when (buffer.lineEnding.value) {
@@ -1933,33 +1933,8 @@ class EditorEngine @AssistedInject constructor(
         }
     }
 
-    /**
-     * End of [text] when placed at [start]. "\r\n", a lone "\r" and a lone "\n" each count as
-     * exactly ONE break: the buffer exposes a trailing empty line for all three, so an LF-only
-     * scan would leave the cursor a line short on a CR-only document - and since undo/redo
-     * publish the cursor before the window refresh, that line would never load.
-     */
-    private fun computeEndPosition(start: TextPosition, text: String): TextPosition {
-        var line = start.line
-        var column = start.column
-        var index = 0
-        while (index < text.length) {
-            when (text[index]) {
-                '\r' -> {
-                    line++
-                    column = 0
-                    if (index + 1 < text.length && text[index + 1] == '\n') index++
-                }
-                '\n' -> {
-                    line++
-                    column = 0
-                }
-                else -> column++
-            }
-            index++
-        }
-        return TextPosition(offset = start.offset + text.length, line = line, column = column)
-    }
+    private fun computeEndPosition(start: TextPosition, text: String): TextPosition =
+        endPositionOf(start, text, endOffset = start.offset + text.length)
 
     fun canUndo(): Boolean {
         val currentState = _state.value
