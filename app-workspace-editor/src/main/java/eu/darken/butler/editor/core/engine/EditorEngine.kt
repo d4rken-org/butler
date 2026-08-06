@@ -866,7 +866,11 @@ class EditorEngine @AssistedInject constructor(
                 }
                 EditIntent.DeleteForward -> {
                     val cursor = _cursorPosition.value
-                    if (cursor.offset >= buffer.totalLength.value) return EditOutcome.Applied()
+                    if (cursor.offset >= buffer.totalLength.value) {
+                        // Accepted, just with nothing to remove - it still ends a shift-selection
+                        selectionAnchor = null
+                        return EditOutcome.Applied()
+                    }
                     startOffset = cursor.offset
                     endOffset = cursor.offset + 1
                 }
@@ -910,10 +914,11 @@ class EditorEngine @AssistedInject constructor(
                 selection != null -> selection.first
                 else -> _cursorPosition.value
             }
-            if (selection != null) {
-                _selectionRange.value = null
-                selectionAnchor = null
-            }
+            if (selection != null) _selectionRange.value = null
+            // Dropped for EVERY accepted intent, not just the ones consuming a selection: the anchor
+            // belongs to the shift-selection the user was building, and an edit ends it. A surviving
+            // anchor would make the next Shift+Arrow extend from wherever that selection started.
+            selectionAnchor = null
             _state.value = currentState.copy(isModified = true)
             invalidateSearchResults()
             // Always a full re-read: an in-place window patch would publish new text under the

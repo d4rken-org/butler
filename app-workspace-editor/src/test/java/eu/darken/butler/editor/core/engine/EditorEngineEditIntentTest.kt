@@ -3,6 +3,7 @@ package eu.darken.butler.editor.core.engine
 import eu.darken.butler.editor.core.engine.text.WindowedSearch
 import eu.darken.butler.editor.core.sources.EditorDataSource
 import eu.darken.butler.editor.core.sources.InMemoryDataSource
+import eu.darken.butler.editor.ui.editor.text.CursorDirection
 import eu.darken.butler.workspace.core.Workspace
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -157,6 +158,27 @@ class EditorEngineEditIntentTest : EditorEngineTestBase() {
 
         engine.fullContent() shouldBe "a\r\nc"
         engine.totalLines.value shouldBe 2L
+    }
+
+    @Test
+    fun `an accepted intent ends the shift-selection anchor`() = runTest {
+        // The anchor outlives a cleared selection by design (setCursorPosition keeps it), so an
+        // edit has to drop it - otherwise the next Shift+Arrow extends from where the user's
+        // PREVIOUS selection started instead of from the caret.
+        val engine = createEngine("Hello World")
+        engine.setCursorPosition(TextPosition(offset = 5, line = 0, column = 5))
+        engine.moveCursor(CursorDirection.LEFT, extendSelection = true)
+        engine.selectionRange.value?.first?.offset shouldBe 4L
+
+        engine.setCursorPosition(TextPosition(offset = 11, line = 0, column = 11))
+        engine.performInsert("X").shouldBeInstanceOf<EditorEngine.EditOutcome.Applied>()
+
+        engine.moveCursor(CursorDirection.LEFT, extendSelection = true)
+
+        // Anchored at the post-insert caret (11..12), not at the stale offset 5
+        val selection = engine.selectionRange.value
+        selection?.first?.offset shouldBe 11L
+        selection?.second?.offset shouldBe 12L
     }
 
     // ==================== Undo semantics ====================
