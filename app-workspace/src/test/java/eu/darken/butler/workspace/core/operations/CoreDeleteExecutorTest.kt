@@ -678,9 +678,11 @@ class CoreDeleteExecutorTest : BaseTest() {
         coEvery { gatewaySwitch.du(localPath2, any()) } returns 600 * 1048576L
         coEvery { gatewaySwitch.lookup(safFile, any()) } returns safFileLookup
         val deletedTargets = slot<Set<APath<*>>>()
+
+        @Suppress("UNCHECKED_CAST")
         coEvery { gatewaySwitch.delete(capture(deletedTargets), any()) } returns flowOf(
-            DeleteAction.State.Completed<APath<*>, APathLookup<APath<*>>>(
-                deleted = setOf(localLookup1, localLookup2),
+            DeleteAction.State.Completed(
+                deleted = setOf(localLookup1 as APathLookup<APath<*>>, localLookup2 as APathLookup<APath<*>>),
                 skipped = emptySet(),
             )
         )
