@@ -41,7 +41,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -53,7 +52,7 @@ import eu.darken.butler.common.compose.ButlerMascot
 import eu.darken.butler.common.compose.ButlerMascotMode
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.R as CommonR
+import eu.darken.butler.common.compose.brandTitle
 
 // Shared upgrade-screen primitives used by both the gplay and foss upgrade screens, mirroring
 // SD Maid SE's upgrade design system: a centered, max-width scrolling column of tonal "section"
@@ -88,26 +87,17 @@ internal object UpgradeScreenTags {
     const val HERO = "upgrade_hero"
 }
 
-// "Butler" + the flavor postfix, the postfix highlighted while the upgrade is active. Composed from
-// TWO resources (the app name and the postfix), never by locating a substring inside a combined
-// name: localized upgrade words reorder, and RTL layouts make substring math wrong. Butler's own
-// identity keeps its primary-colored base either way.
+// "Butler" + the flavor postfix, the postfix highlighted while the upgrade is active. The word
+// order, separator and punctuation come from the flavor's title template so translators own them
+// (see brandTitle) — never from locating a substring inside a combined name, which silently styles
+// the wrong word once a locale reorders the two.
 @Composable
-internal fun upgradeScreenTitle(upgraded: Boolean): AnnotatedString = buildAnnotatedString {
-    pushStyle(SpanStyle(color = MaterialTheme.colorScheme.primary))
-    append(stringResource(CommonR.string.app_name))
-    append(" ")
-    pop()
-    // The highlighted postfix is what says "you have this" — a user who hasn't upgraded gets the
-    // same words in one plain color instead of the earned styling.
-    pushStyle(
-        SpanStyle(
-            color = if (upgraded) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary,
-        )
-    )
-    append(stringResource(R.string.app_name_upgrade_postfix))
-    pop()
-}
+internal fun upgradeScreenTitle(upgraded: Boolean): AnnotatedString = brandTitle(
+    // Unconditional: this title names the flavor even when the screen is showing the free state.
+    // The free state differs by the postfix wearing the plain color, not by losing the word.
+    includeQualifier = true,
+    highlightQualifier = upgraded,
+)
 
 // Marker char for brand-title splicing: formatted into the translated pattern via the normal
 // Android format path (so %1$s vs %s, argument reordering, and %% all behave), then replaced

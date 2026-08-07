@@ -38,8 +38,8 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import eu.darken.butler.R
 import eu.darken.butler.common.ButlerLinks
+import eu.darken.butler.common.compose.ButlerAppTitle
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
-import eu.darken.butler.common.compose.ColoredTitleText
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
@@ -130,9 +130,8 @@ fun SettingsIndexScreen(
                     Column {
                         Text(stringResource(R.string.settings_label))
                         if (state.isUpgraded) {
-                            ColoredTitleText(
-                                fullTitle = stringResource(eu.darken.butler.common.R.string.app_name_upgraded),
-                                postfix = stringResource(eu.darken.butler.common.R.string.app_name_upgrade_postfix),
+                            ButlerAppTitle(
+                                isUpgraded = true,
                                 style = MaterialTheme.typography.bodyMedium,
                             )
                         } else {

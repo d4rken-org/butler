@@ -87,7 +87,9 @@ class UpgradeScreenTest : ComposeTest() {
 
         val base = rendered.spanStyles[0]
         base.item.color shouldBe capturedPrimary
-        rendered.text.substring(base.start, base.end) shouldBe "${context.getString(CommonR.string.app_name)} "
+        // The name only — the separator belongs to the translator's title template now, so it sits
+        // outside both spans instead of trailing inside this one.
+        rendered.text.substring(base.start, base.end) shouldBe context.getString(CommonR.string.app_name)
 
         val postfix = context.getString(R.string.app_name_upgrade_postfix)
         val highlight = rendered.spanStyles[1]

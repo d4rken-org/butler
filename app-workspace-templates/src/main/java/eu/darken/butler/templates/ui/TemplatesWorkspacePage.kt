@@ -51,10 +51,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import eu.darken.butler.common.Slogans
+import eu.darken.butler.common.compose.ButlerAppTitle
 import eu.darken.butler.common.compose.ButlerMascot
 import eu.darken.butler.common.compose.ButlerMascotMode
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
-import eu.darken.butler.common.compose.ColoredTitleText
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
@@ -268,19 +268,10 @@ fun TemplatesWorkspacePage(
                         )
 
                         Column(modifier = Modifier.weight(1f)) {
-                            if (state.isUpgraded) {
-                                ColoredTitleText(
-                                    fullTitle = stringResource(eu.darken.butler.common.R.string.app_name_upgraded),
-                                    postfix = stringResource(eu.darken.butler.common.R.string.app_name_upgrade_postfix),
-                                    style = MaterialTheme.typography.titleMedium,
-                                )
-                            } else {
-                                Text(
-                                    text = stringResource(eu.darken.butler.common.R.string.app_name),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.primary,
-                                )
-                            }
+                            ButlerAppTitle(
+                                isUpgraded = state.isUpgraded,
+                                style = MaterialTheme.typography.titleMedium,
+                            )
                             Text(
                                 text = slogan.get(LocalContext.current),
                                 style = MaterialTheme.typography.bodyMedium,
