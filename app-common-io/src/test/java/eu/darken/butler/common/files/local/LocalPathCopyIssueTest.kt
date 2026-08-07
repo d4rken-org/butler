@@ -9,7 +9,6 @@ import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.OwnershipResolver
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
-import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.should
@@ -267,9 +266,11 @@ class LocalPathCopyIssueTest : BaseTest() {
 
         // A permission-classified write failure maps to InsufficientPermission, which offers no Retry
         issues shouldHaveSize 1
-        val issue = issues.single().shouldBeInstanceOf<PathActionIssue.InsufficientPermission>()
-        issue.source?.lookedUp shouldBe sourcePath
-        issue.destinationPath shouldBe destFilePath
+        issues.forEach {
+            val permission = it.shouldBeInstanceOf<PathActionIssue.InsufficientPermission>()
+            permission.source?.lookedUp shouldBe sourcePath
+            permission.destinationPath shouldBe destFilePath
+        }
 
         result.skipped shouldContainPath sourcePath
         result.copied.shouldBeEmpty()
@@ -285,6 +286,7 @@ class LocalPathCopyIssueTest : BaseTest() {
         val file2 = File(sourceFolder, "file2.txt").apply { writeText("content2") }
         val file3 = File(sourceFolder, "file3.txt").apply { writeText("content3") }
         val paths = listOf(file1, file2, file3).map { LocalPath.build(it) }
+        val destPaths = listOf(file1, file2, file3).map { LocalPath.build(File(destFolder, it.name)) }
 
         // Every source read fails with a permission-classified error
         val spyOps = spyk(ops)
@@ -313,7 +315,11 @@ class LocalPathCopyIssueTest : BaseTest() {
 
         // Only the first issue reaches the handler - the stored resolution covers the other two
         issuesEncountered shouldHaveSize 1
-        issuesEncountered.single().shouldBeInstanceOf<PathActionIssue.InsufficientPermission>()
+        issuesEncountered.forEach {
+            val permission = it.shouldBeInstanceOf<PathActionIssue.InsufficientPermission>()
+            permission.source?.lookedUp shouldBe paths[0]
+            permission.destinationPath shouldBe destPaths[0]
+        }
 
         result.skipped.map { it.lookedUp } shouldContainExactlyInAnyOrder paths
         result.copied.shouldBeEmpty()
@@ -329,6 +335,7 @@ class LocalPathCopyIssueTest : BaseTest() {
         val sourceFile = File(sourceFolder, "file.txt")
         sourceFile.writeText("content")
         val sourcePath = LocalPath.build(sourceFile)
+        val destFilePath = LocalPath.build(File(destFolder, "file.txt"))
 
         // The source read fails twice, then succeeds for real
         val spyOps = spyk(ops)
@@ -357,8 +364,10 @@ class LocalPathCopyIssueTest : BaseTest() {
         issues.forEach {
             val unknown = it.shouldBeInstanceOf<PathActionIssue.UnknownError>()
             unknown.canRetry shouldBe true
+            unknown.source?.lookedUp shouldBe sourcePath
+            unknown.destinationPath shouldBe destFilePath
         }
-        result.copied shouldContainPath (sourcePath to LocalPath.build(File(destFolder, "file.txt")))
+        result.copied shouldContainPath (sourcePath to destFilePath)
         result.skipped.shouldBeEmpty()
         result.copiedBytes shouldBe "content".length.toLong()
         File(destFolder, "file.txt").readText() shouldBe "content"
@@ -372,6 +381,7 @@ class LocalPathCopyIssueTest : BaseTest() {
         val healthy = File(sourceFolder, "healthy.txt").apply { writeText("healthy content") }
         val failingPath = LocalPath.build(failing)
         val healthyPath = LocalPath.build(healthy)
+        val failingDestPath = LocalPath.build(File(destFolder, "failing.txt"))
 
         // Only the first source fails, and it keeps failing
         val spyOps = spyk(ops)
@@ -392,7 +402,11 @@ class LocalPathCopyIssueTest : BaseTest() {
 
         // Skip retires the failing item and lets the rest of the batch through
         issues shouldHaveSize 1
-        issues.single().shouldBeInstanceOf<PathActionIssue.UnknownError>()
+        issues.forEach {
+            val unknown = it.shouldBeInstanceOf<PathActionIssue.UnknownError>()
+            unknown.source?.lookedUp shouldBe failingPath
+            unknown.destinationPath shouldBe failingDestPath
+        }
 
         result.skipped shouldContainPath failingPath
         result.copied.toPathPairs().map { it.first } shouldBe listOf(healthyPath)
@@ -410,6 +424,7 @@ class LocalPathCopyIssueTest : BaseTest() {
         val file2 = File(sourceFolder, "file2.txt").apply { writeText("content2") }
         val path1 = LocalPath.build(file1)
         val path2 = LocalPath.build(file2)
+        val dest1 = LocalPath.build(File(destFolder, "file1.txt"))
 
         // Copy processes the batch in input order, so file1 fails before file2 is ever touched
         val spyOps = spyk(ops)
@@ -434,7 +449,11 @@ class LocalPathCopyIssueTest : BaseTest() {
         }
 
         issues shouldHaveSize 1
-        issues.single().shouldBeInstanceOf<PathActionIssue.UnknownError>()
+        issues.forEach {
+            val unknown = it.shouldBeInstanceOf<PathActionIssue.UnknownError>()
+            unknown.source?.lookedUp shouldBe path1
+            unknown.destinationPath shouldBe dest1
+        }
         states.none { it is CopyAction.State.Completed } shouldBe true
         // The unprocessed item was never attempted
         coVerify(exactly = 0) { spyOps.openInputStream(path2) }
@@ -1297,37 +1316,44 @@ class LocalPathCopyIssueTest : BaseTest() {
         parentDir.mkdir()
         childFile.writeText("content")
 
-        // Make directory unreadable to trigger permission error during scan
-        parentDir.setReadable(false)
+        val parentPath = LocalPath.build(parentDir)
 
-        try {
-            // When
-            val result = LocalPath.build(parentDir).copy(
-                ops,
-                LocalPath.build(destFolder),
-                onIssue = { issue ->
-                    when (issue) {
-                        is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Skip()
-                        is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
-                        else -> TODO("Unexpected issue type: $issue")
-                    }
+        // setReadable(false) is not a reliable barrier (a privileged test process reads through it),
+        // so fail the directory listing outright.
+        val spyOps = spyk(ops)
+        coEvery { spyOps.listFiles(parentPath) } throws SecurityException("injected scan failure")
+
+        val issues = mutableListOf<PathActionIssue>()
+
+        // When
+        val result = parentPath.copy(
+            spyOps,
+            LocalPath.build(destFolder),
+            onIssue = { issue ->
+                issues.add(issue)
+                when (issue) {
+                    // handleScanError() maps everything except RouteUnavailableException to a
+                    // retryable UnknownError, even a permission-flavoured SecurityException
+                    is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
+                    else -> throw AssertionError("Unexpected issue: $issue")
                 }
-            )
-
-            // Then - Directory should be ONLY in skipped, NOT in copied
-            val finalResult =
-                result.last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
-            finalResult.copied.map { it.first.lookedUp } shouldNotBe setOf(LocalPath.build(parentDir))
-            finalResult.skipped.map { it.lookedUp } shouldContain LocalPath.build(parentDir)
-
-            // Destination should not have the directory or child
-            File(destFolder, "parent").exists() shouldBe false
-            File(destFolder, "parent/child.txt").exists() shouldBe false
-        } finally {
-            // Restore permissions for cleanup
-            if (parentDir.exists()) {
-                parentDir.setReadable(true)
             }
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+
+        // Then - handleScanError() carries no source and reports the scanned path as destination
+        issues shouldHaveSize 1
+        issues.forEach {
+            val unknown = it.shouldBeInstanceOf<PathActionIssue.UnknownError>()
+            unknown.source shouldBe null
+            unknown.destinationPath shouldBe parentPath
         }
+
+        // The directory is ONLY in skipped, never in copied
+        result.copied.shouldBeEmpty()
+        result.skipped.map { it.lookedUp } shouldBe listOf(parentPath)
+
+        // Destination should not have the directory or child
+        File(destFolder, "parent").exists() shouldBe false
+        File(destFolder, "parent/child.txt").exists() shouldBe false
     }
 }

@@ -8,7 +8,6 @@ import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.metadata.OwnershipResolver
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
-import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.should
@@ -692,9 +691,11 @@ class LocalPathMoveIssueTest : BaseTest() {
 
         // A permission-classified write failure maps to InsufficientPermission, which offers no Retry
         issues shouldHaveSize 1
-        val issue = issues.single().shouldBeInstanceOf<PathActionIssue.InsufficientPermission>()
-        issue.source?.lookedUp shouldBe sourcePath
-        issue.destinationPath shouldBe destFilePath
+        issues.forEach {
+            val permission = it.shouldBeInstanceOf<PathActionIssue.InsufficientPermission>()
+            permission.source?.lookedUp shouldBe sourcePath
+            permission.destinationPath shouldBe destFilePath
+        }
 
         result.skippedFiles shouldContainPath sourcePath
         result.movedFiles.shouldBeEmpty()
@@ -737,7 +738,11 @@ class LocalPathMoveIssueTest : BaseTest() {
 
         // Only the first issue reaches the handler - the stored resolution covers the other two
         issuesEncountered shouldHaveSize 1
-        issuesEncountered.single().shouldBeInstanceOf<PathActionIssue.InsufficientPermission>()
+        issuesEncountered.forEach {
+            val permission = it.shouldBeInstanceOf<PathActionIssue.InsufficientPermission>()
+            permission.source?.lookedUp shouldBe paths[0]
+            permission.destinationPath shouldBe destPaths[0]
+        }
 
         result.skippedFiles.map { it.lookedUp } shouldContainExactlyInAnyOrder paths
         result.movedFiles.shouldBeEmpty()
@@ -784,6 +789,8 @@ class LocalPathMoveIssueTest : BaseTest() {
         issues.forEach {
             val unknown = it.shouldBeInstanceOf<PathActionIssue.UnknownError>()
             unknown.canRetry shouldBe true
+            unknown.source?.lookedUp shouldBe sourcePath
+            unknown.destinationPath shouldBe destFilePath
         }
         result.movedFiles shouldContainPath (sourcePath to destFilePath)
         result.skippedFiles.shouldBeEmpty()
@@ -829,7 +836,11 @@ class LocalPathMoveIssueTest : BaseTest() {
         }
 
         issues shouldHaveSize 1
-        issues.single().shouldBeInstanceOf<PathActionIssue.UnknownError>()
+        issues.forEach {
+            val unknown = it.shouldBeInstanceOf<PathActionIssue.UnknownError>()
+            unknown.source?.lookedUp shouldBe path1
+            unknown.destinationPath shouldBe dest1
+        }
         states.none { it is MoveAction.State.Completed } shouldBe true
         // The unprocessed item was never attempted
         coVerify(exactly = 0) { spyOps.move(path2, dest2) }
@@ -938,7 +949,11 @@ class LocalPathMoveIssueTest : BaseTest() {
 
         // Then - Skip retires the failing item and lets the rest of the batch through
         issues shouldHaveSize 1
-        issues.single().shouldBeInstanceOf<PathActionIssue.UnknownError>()
+        issues.forEach {
+            val unknown = it.shouldBeInstanceOf<PathActionIssue.UnknownError>()
+            unknown.source?.lookedUp shouldBe path2
+            unknown.destinationPath shouldBe dest2
+        }
 
         result.skippedFiles.map { it.lookedUp } shouldBe listOf(path2)
         result.movedFiles.toPathPairs().map { it.first } shouldContainExactlyInAnyOrder listOf(path1, path3)
@@ -1122,42 +1137,50 @@ class LocalPathMoveIssueTest : BaseTest() {
         parentDir.mkdir()
         childFile.writeText("content")
 
-        // Make directory unreadable to trigger permission error during scan
-        parentDir.setReadable(false)
+        val parentPath = LocalPath.build(parentDir)
 
-        try {
-            // When
-            val result = LocalPath.build(parentDir).move(
-                ops,
-                LocalPath.build(destFolder),
-                options = MoveAction.Options(attemptAtomicMove = false),
-                onIssue = { issue ->
-                    when (issue) {
-                        is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Skip()
-                        is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
-                        else -> TODO("Unexpected issue type: $issue")
-                    }
+        // setReadable(false) is not a reliable barrier (a privileged test process reads through it),
+        // so fail the directory listing outright.
+        val spyOps = spyk(ops)
+        coEvery { spyOps.listFiles(parentPath) } throws SecurityException("injected scan failure")
+
+        val issues = mutableListOf<PathActionIssue>()
+
+        // When
+        val result = parentPath.move(
+            spyOps,
+            LocalPath.build(destFolder),
+            options = MoveAction.Options(attemptAtomicMove = false),
+            onIssue = { issue ->
+                issues.add(issue)
+                when (issue) {
+                    // handleScanError() maps everything except RouteUnavailableException to a
+                    // retryable UnknownError, even a permission-flavoured SecurityException
+                    is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
+                    else -> throw AssertionError("Unexpected issue: $issue")
                 }
-            )
-
-            // Then - Directory should be ONLY in skipped, NOT in moved
-            val finalResult =
-                result.last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
-            finalResult.movedFiles.map { it.first.lookedUp } shouldNotBe setOf(LocalPath.build(parentDir))
-            finalResult.skippedFiles.map { it.lookedUp } shouldContain LocalPath.build(parentDir)
-
-            // Source should still exist (move was skipped)
-            parentDir.exists() shouldBe true
-            childFile.exists() shouldBe true
-
-            // Destination should not have the directory or child
-            File(destFolder, "parent").exists() shouldBe false
-            File(destFolder, "parent/child.txt").exists() shouldBe false
-        } finally {
-            // Restore permissions for cleanup
-            if (parentDir.exists()) {
-                parentDir.setReadable(true)
             }
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+
+        // Then - handleScanError() carries no source and reports the scanned path as destination
+        issues shouldHaveSize 1
+        issues.forEach {
+            val unknown = it.shouldBeInstanceOf<PathActionIssue.UnknownError>()
+            unknown.canRetry shouldBe true
+            unknown.source shouldBe null
+            unknown.destinationPath shouldBe parentPath
         }
+
+        // The directory is ONLY in skipped, never in moved
+        result.movedFiles.shouldBeEmpty()
+        result.skippedFiles.map { it.lookedUp } shouldBe listOf(parentPath)
+
+        // Source should still exist (move was skipped)
+        parentDir.exists() shouldBe true
+        childFile.exists() shouldBe true
+
+        // Destination should not have the directory or child
+        File(destFolder, "parent").exists() shouldBe false
+        File(destFolder, "parent/child.txt").exists() shouldBe false
     }
 }
