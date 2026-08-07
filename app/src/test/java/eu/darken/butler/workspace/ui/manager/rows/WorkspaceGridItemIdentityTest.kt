@@ -45,12 +45,14 @@ class WorkspaceGridItemIdentityTest : ComposeTest() {
         customTitle: String? = null,
         isPaused: Boolean = false,
     ) {
+        val id = Workspace.Id()
         composeTestRule.setContent {
             PreviewWrapper {
                 WorkspaceGridItem(
                     reorderableScope = TestReorderableScope,
                     workspace = WorkspaceManagerViewModel.WorkspaceItem(
-                        id = Workspace.Id(),
+                        id = id,
+                        topId = id,
                         type = Workspace.Type.EXPLORER,
                         title = customTitle?.toCaString() ?: autoTitle,
                         autoTitle = autoTitle,

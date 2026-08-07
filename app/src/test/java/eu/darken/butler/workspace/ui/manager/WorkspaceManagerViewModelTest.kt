@@ -202,8 +202,8 @@ class WorkspaceManagerViewModelTest : BaseTest() {
             items.single { it.id == pausableWithOverlayId }.canPause shouldBe true
             // A busy overlay keeps its whole tab awake
             items.single { it.id == idA }.canPause shouldBe false
-            // Children never offer Pause themselves; they go down with their owner
-            items.single { it.id == goodOverlay.id }.canPause shouldBe false
+            // A resolvable overlay is collapsed into its tab's card, so it has no card of its own
+            items.none { it.id == goodOverlay.id } shouldBe true
         }
 
         repoState.value = WorkspaceRemote.State(
@@ -241,8 +241,110 @@ class WorkspaceManagerViewModelTest : BaseTest() {
         pageState.value = WorkspacePageManager.State(focusedWorkspaceId = idA)
 
         val items = items()
+        // The cycle is one recovery unit, so it gets a single card keyed on its first member
+        items.none { it.id == cycleB } shouldBe true
         items.single { it.id == cycleA }.canPause shouldBe false
-        items.single { it.id == cycleB }.canPause shouldBe false
         items.single { it.id == orphan }.canPause shouldBe false
     }
+
+    @Test
+    fun `a tab with an overlay is one card, wearing the overlay's identity`() = runTest {
+        val overlay = childInfo(caller = idA, pausableAsChild = true).copy(
+            title = "Butler".toCaString(),
+            subtitle = "eu.darken.butler".toCaString(),
+        )
+        repoState.value = WorkspaceRemote.State(infos = listOf(readyInfo(idA), overlay))
+        pageState.value = WorkspacePageManager.State(
+            focusedWorkspaceId = overlay.id,
+            selectedWorkspaces = mapOf(0 to idA),
+        )
+
+        val items = items()
+
+        items.map { it.id } shouldBe listOf(idA)
+        items.single().let {
+            it.topId shouldBe overlay.id
+            it.type shouldBe Workspace.Type.APP_DETAILS
+            it.autoTitle shouldBe overlay.title
+            it.subtitle shouldBe overlay.subtitle
+            it.stackDepth shouldBe 1
+            // Focus sits on the overlay, but the pane holds the tab
+            it.isFocused shouldBe true
+            it.isSelected shouldBe true
+            it.paneNumber shouldBe 0
+        }
+    }
+
+    @Test
+    fun `a custom tab name survives the collapse while the identity stays the overlay's`() = runTest {
+        val overlay = childInfo(caller = idA, pausableAsChild = true)
+        repoState.value = WorkspaceRemote.State(
+            infos = listOf(readyInfo(idA).copy(customTitle = "Holiday photos"), overlay),
+        )
+
+        items().single().let {
+            it.customTitle shouldBe "Holiday photos"
+            it.type shouldBe Workspace.Type.APP_DETAILS
+            it.autoTitle shouldBe overlay.title
+        }
+    }
+
+    @Test
+    fun `the card carries the counts of the whole unit`() = runTest {
+        val overlay = childInfo(caller = idA, pausableAsChild = true).copy(
+            operationCount = 2,
+            attentionCount = 3,
+        )
+        repoState.value = WorkspaceRemote.State(
+            infos = listOf(readyInfo(idA).copy(operationCount = 1, attentionCount = 4), overlay),
+        )
+
+        items().single().let {
+            it.operationCount shouldBe 3
+            it.attentionCount shouldBe 7
+        }
+    }
+
+    @Test
+    fun `an orphan subtree becomes a single recovery card`() = runTest {
+        val orphan = readyInfo(Workspace.Id()).copy(callerWorkspaceId = Workspace.Id())
+        val descendant = readyInfo(Workspace.Id()).copy(callerWorkspaceId = orphan.id)
+        repoState.value = WorkspaceRemote.State(infos = listOf(readyInfo(idA), orphan, descendant))
+
+        val items = items()
+
+        items.map { it.id } shouldBe listOf(idA, orphan.id)
+        items.single { it.id == orphan.id }.let {
+            it.isRecovery shouldBe true
+            it.isSubWorkspace shouldBe true
+            it.stackDepth shouldBe 0
+            it.canPause shouldBe false
+        }
+    }
+
+    @Test
+    fun `selecting a tab focuses whatever is on top of it right now`() = runTest(UnconfinedTestDispatcher()) {
+        val overlay = childInfo(caller = idA, pausableAsChild = true)
+        repoState.value = WorkspaceRemote.State(infos = listOf(readyInfo(idA), overlay))
+        // Stands in for the page manager having processed the selection, which it does before the
+        // manager closes itself
+        pageState.value = WorkspacePageManager.State(focusedWorkspaceId = overlay.id)
+
+        createViewModel().selectWorkspace(idA)
+
+        coVerify(exactly = 1) { workspacePageManager.selectWorkspaceFromManager(overlay.id) }
+        coVerify(exactly = 1) { workspacePageManager.hideManagerOverlay() }
+    }
+
+    @Test
+    fun `a tap on a tab whose overlay already closed selects the tab itself`() =
+        runTest(UnconfinedTestDispatcher()) {
+            repoState.value = WorkspaceRemote.State(infos = listOf(readyInfo(idA)))
+            pageState.value = WorkspacePageManager.State(focusedWorkspaceId = idA)
+
+            createViewModel().selectWorkspace(idA)
+
+            coVerify(exactly = 1) { workspacePageManager.selectWorkspaceFromManager(idA) }
+            coVerify(exactly = 1) { workspacePageManager.hideManagerOverlay() }
+        }
 }

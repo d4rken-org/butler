@@ -236,6 +236,18 @@ class WorkspaceRepoTest : BaseTest() {
         return (result as WorkspaceAction.Create.Result.Success).newId
     }
 
+    /** Creates a sub-workspace under a chosen id, the only way to build ownership that cannot resolve. */
+    private suspend fun WorkspaceRepo.createSubWorkspaceWithId(
+        id: Workspace.Id,
+        caller: Workspace.Id,
+        type: Workspace.Type = Workspace.Type.EXPLORER,
+    ): Workspace.Id {
+        val result = execute(
+            WorkspaceAction.Create(type = type, arguments = FakePickerArguments(type, caller), id = id)
+        )
+        return (result as WorkspaceAction.Create.Result.Success).newId
+    }
+
     private fun createReq(
         type: Workspace.Type,
         id: Workspace.Id? = null,
@@ -280,6 +292,64 @@ class WorkspaceRepoTest : BaseTest() {
         fake(childId).released shouldBe true
         fake(grandchildId).released shouldBe true
         repo.retrieve(grandchildId).first() shouldBe null
+    }
+
+    @Test
+    fun `closing either member of a caller cycle takes both down`() = runTest(UnconfinedTestDispatcher()) {
+        val first = Workspace.Id()
+        val second = Workspace.Id()
+
+        listOf(first, second).forEach { closed ->
+            val repo = createRepo()
+            // Nothing validates caller ids at creation time, so a cycle is reachable - and the close
+            // recursion only removes a member after its children went, so it has to guard itself
+            repo.createSubWorkspaceWithId(id = first, caller = second)
+            repo.createSubWorkspaceWithId(id = second, caller = first)
+
+            repo.execute(WorkspaceAction.Close(closed))
+
+            repo.state.first().infos shouldHaveSize 0
+        }
+    }
+
+    @Test
+    fun `closing a self-referencing workspace terminates`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val id = Workspace.Id()
+        repo.createSubWorkspaceWithId(id = id, caller = id)
+
+        repo.execute(WorkspaceAction.Close(id))
+
+        repo.state.first().infos shouldHaveSize 0
+    }
+
+    @Test
+    fun `a unit order expands to the full list, members staying with their owner`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val first = repo.createTab()
+            val second = repo.createTab()
+            val overlay = repo.createSubWorkspace(caller = first)
+            val nested = repo.createSubWorkspace(caller = overlay)
+
+            repo.execute(WorkspaceAction.Reorder(listOf(second, first)))
+                .shouldBeInstanceOf<WorkspaceAction.Reorder.Result>().success shouldBe true
+
+            repo.workspaceIds() shouldBe listOf(second, first, overlay, nested)
+        }
+
+    @Test
+    fun `a reorder that omits a unit is refused and changes nothing`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val first = repo.createTab()
+        val second = repo.createTab()
+        repo.createSubWorkspace(caller = first)
+        val before = repo.workspaceIds()
+
+        repo.execute(WorkspaceAction.Reorder(listOf(second)))
+            .shouldBeInstanceOf<WorkspaceAction.Reorder.Result>().success shouldBe false
+
+        repo.workspaceIds() shouldBe before
     }
 
     @Test

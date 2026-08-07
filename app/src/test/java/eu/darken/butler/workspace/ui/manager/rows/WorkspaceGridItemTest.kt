@@ -48,16 +48,24 @@ class WorkspaceGridItemTest : ComposeTest() {
         isSubWorkspace: Boolean = false,
         isPaused: Boolean = false,
         canPause: Boolean = false,
-    ) = WorkspaceManagerViewModel.WorkspaceItem(
-        id = Workspace.Id(),
-        type = Workspace.Type.EXPLORER,
-        title = "/sdcard/Download".toCaString(),
-        autoTitle = "/sdcard/Download".toCaString(),
-        subtitle = null,
-        isSubWorkspace = isSubWorkspace,
-        isPaused = isPaused,
-        canPause = canPause,
-    )
+        isRecovery: Boolean = false,
+        stackDepth: Int = 0,
+    ): WorkspaceManagerViewModel.WorkspaceItem {
+        val id = Workspace.Id()
+        return WorkspaceManagerViewModel.WorkspaceItem(
+            id = id,
+            topId = id,
+            type = Workspace.Type.EXPLORER,
+            title = "/sdcard/Download".toCaString(),
+            autoTitle = "/sdcard/Download".toCaString(),
+            subtitle = null,
+            isSubWorkspace = isSubWorkspace,
+            isRecovery = isRecovery,
+            isPaused = isPaused,
+            canPause = canPause,
+            stackDepth = stackDepth,
+        )
+    }
 
     @Test
     fun `the overflow menu triggers rename without selecting or closing`() {
@@ -273,6 +281,83 @@ class WorkspaceGridItemTest : ComposeTest() {
 
         composeTestRule.onNodeWithText("Resume").assertExists()
         composeTestRule.onAllNodesWithText("Pause").assertCountEquals(0)
+    }
+
+    @Test
+    fun `the stack badge only shows when something is stacked on the tab`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                WorkspaceGridItem(
+                    reorderableScope = noopReorderableScope,
+                    workspace = item(stackDepth = 2),
+                    onClose = {},
+                    onSelect = {},
+                    livePreview = false,
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithContentDescription("Stacked on this tab").assertExists()
+    }
+
+    @Test
+    fun `a plain tab card has no stack badge`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                WorkspaceGridItem(
+                    reorderableScope = noopReorderableScope,
+                    workspace = item(),
+                    onClose = {},
+                    onSelect = {},
+                    livePreview = false,
+                )
+            }
+        }
+
+        composeTestRule.onAllNodesWithContentDescription("Stacked on this tab").assertCountEquals(0)
+    }
+
+    @Test
+    fun `tapping a card selects it`() {
+        var selected = 0
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                WorkspaceGridItem(
+                    reorderableScope = noopReorderableScope,
+                    workspace = item(),
+                    onClose = {},
+                    onSelect = { selected++ },
+                    livePreview = false,
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText("/sdcard/Download").performClick()
+
+        selected shouldBe 1
+    }
+
+    /** A recovery card stands in for a workspace no pane renders, so there is nothing to select. */
+    @Test
+    fun `a recovery card cannot be selected`() {
+        var selected = 0
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                WorkspaceGridItem(
+                    reorderableScope = noopReorderableScope,
+                    workspace = item(isSubWorkspace = true, isRecovery = true),
+                    onClose = {},
+                    onSelect = { selected++ },
+                    livePreview = false,
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText("/sdcard/Download").performClick()
+
+        selected shouldBe 0
     }
 
     private fun SemanticsNode.contentDescriptions(): List<String> =

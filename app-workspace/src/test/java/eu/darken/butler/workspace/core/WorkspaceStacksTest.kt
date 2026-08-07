@@ -155,6 +155,114 @@ class WorkspaceStacksTest : BaseTest() {
     }
 
     @Test
+    fun `unitOwners lists the tabs, in list order`() {
+        val first = Workspace.Id()
+        val second = Workspace.Id()
+        val modal = Workspace.Id()
+
+        val stacks = WorkspaceStacks(listOf(info(first), info(modal, caller = first), info(second)))
+
+        stacks.unitOwners.map { it.id } shouldContainExactly listOf(first, second)
+    }
+
+    @Test
+    fun `an orphan subtree gets a single owner, not one per member`() {
+        val tab = Workspace.Id()
+        val orphan = Workspace.Id()
+        val descendant = Workspace.Id()
+
+        val stacks = WorkspaceStacks(
+            listOf(info(tab), info(orphan, caller = Workspace.Id()), info(descendant, caller = orphan)),
+        )
+
+        stacks.unitOwners.map { it.id } shouldContainExactly listOf(tab, orphan)
+        stacks.recoveryUnits.keys shouldBe setOf(orphan)
+        stacks.recoveryUnits[orphan]!!.map { it.id } shouldContainExactly listOf(orphan, descendant)
+    }
+
+    @Test
+    fun `a cycle is one recovery unit, keyed on its first member`() {
+        val a = Workspace.Id()
+        val b = Workspace.Id()
+
+        val stacks = WorkspaceStacks(listOf(info(a, caller = b), info(b, caller = a)))
+
+        stacks.unitOwners.map { it.id } shouldContainExactly listOf(a)
+        stacks.recoveryUnits[a]!!.map { it.id } shouldContainExactly listOf(a, b)
+    }
+
+    @Test
+    fun `ownerOf names the card a workspace is listed under`() {
+        val tab = Workspace.Id()
+        val modal = Workspace.Id()
+        val orphan = Workspace.Id()
+        val descendant = Workspace.Id()
+        val unknown = Workspace.Id()
+
+        val stacks = WorkspaceStacks(
+            listOf(
+                info(tab),
+                info(modal, caller = tab),
+                info(orphan, caller = Workspace.Id()),
+                info(descendant, caller = orphan),
+            ),
+        )
+
+        stacks.ownerOf(modal) shouldBe tab
+        stacks.ownerOf(descendant) shouldBe orphan
+        stacks.ownerOf(unknown) shouldBe unknown
+    }
+
+    @Test
+    fun `topChainByRoot follows focus into a branch, else takes the newest`() {
+        val tab = Workspace.Id()
+        val older = Workspace.Id()
+        val newer = Workspace.Id()
+        val infos = listOf(info(tab), info(older, caller = tab), info(newer, caller = tab))
+
+        WorkspaceStacks(infos).topChainByRoot(focusedId = older)[tab]!!.leaf.id shouldBe older
+        WorkspaceStacks(infos).topChainByRoot(focusedId = tab)[tab]!!.leaf.id shouldBe newer
+    }
+
+    @Test
+    fun `topChainByRoot prefers a full-screen sibling over a newer pane-local one`() {
+        val tab = Workspace.Id()
+        val fullScreen = Workspace.Id()
+        val paneLocal = Workspace.Id()
+
+        val stacks = WorkspaceStacks(
+            listOf(
+                info(tab),
+                info(fullScreen, caller = tab, presentation = Workspace.ModalPresentationMode.FULL_SCREEN),
+                info(paneLocal, caller = tab),
+            ),
+        )
+
+        stacks.topChainByRoot(focusedId = null)[tab]!!.leaf.id shouldBe fullScreen
+    }
+
+    @Test
+    fun `topChainByRoot has no entry for a tab with nothing stacked on it`() {
+        val tab = Workspace.Id()
+
+        WorkspaceStacks(listOf(info(tab))).topChainByRoot(focusedId = tab) shouldBe emptyMap()
+    }
+
+    @Test
+    fun `topChainByRoot reports the leaf and the depth of a three-deep chain`() {
+        val tab = Workspace.Id()
+        val first = Workspace.Id()
+        val second = Workspace.Id()
+
+        val chain = WorkspaceStacks(
+            listOf(info(tab), info(first, caller = tab), info(second, caller = first)),
+        ).topChainByRoot(focusedId = null)[tab]!!
+
+        chain.leaf.id shouldBe second
+        chain.modals.size shouldBe 2
+    }
+
+    @Test
     fun `a chain running into a cycle is dropped instead of looping`() {
         val leaf = Workspace.Id()
         val a = Workspace.Id()
