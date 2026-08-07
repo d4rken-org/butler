@@ -61,8 +61,7 @@ class AppDetailsToolbarCardTest : ComposeTest() {
             PreviewWrapper {
                 AppDetailsToolbarCard(
                     app = AppsMockDataProvider.Presets.chrome,
-                    design = WorkspaceDesign(),
-                    isModal = true,
+                    design = multiPane,
                     collapsedFraction = 1f,
                     subtitle = "Components",
                     onBackClick = {},
@@ -80,8 +79,7 @@ class AppDetailsToolbarCardTest : ComposeTest() {
             PreviewWrapper {
                 AppDetailsToolbarCard(
                     app = AppsMockDataProvider.Presets.chrome,
-                    design = WorkspaceDesign(),
-                    isModal = true,
+                    design = multiPane,
                     subtitle = "Components",
                     onBackClick = {},
                     backContentDescription = "Back to app details",

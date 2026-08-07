@@ -25,12 +25,16 @@ import testhelpers.ComposeTest
 
 class AppDetailsWorkspacePageTest : ComposeTest() {
 
-    /**
-     * App Details stacked on its caller, which is how it opens on a phone. Also what keeps the
-     * toolbar's workspace button out of these fixtures: its animated mascot never goes idle under
-     * Robolectric, so any assertion that waits for idle would hang.
-     */
+    /** App Details stacked on its caller, which is how it opens on a phone. */
     private val stackedOnCaller = Workspace.Id()
+
+    /**
+     * What keeps the toolbar's workspace button out of these fixtures: its animated mascot never
+     * goes idle under Robolectric, so any assertion that waits for idle would hang. Being stacked
+     * no longer suppresses the button - only a multi-pane layout does, because there the navigation
+     * rail carries it instead.
+     */
+    private val multiPane = WorkspaceDesign(layout = WorkspaceDesign.Layout.DUAL_VERTICAL)
 
     @Test
     fun `components route shows components title and back returns to overview`() {
@@ -38,7 +42,7 @@ class AppDetailsWorkspacePageTest : ComposeTest() {
         composeTestRule.setContent {
             PreviewWrapper {
                 AppDetailsWorkspacePage(
-                    design = WorkspaceDesign(),
+                    design = multiPane,
                     state = AppDetailsWorkspace.State(
                         app = AppsMockDataProvider.Presets.chrome,
                         selectedTab = DetailTab.COMPONENTS,
@@ -61,11 +65,11 @@ class AppDetailsWorkspacePageTest : ComposeTest() {
         composeTestRule.setContent {
             PreviewWrapper {
                 AppDetailsWorkspacePage(
-                    design = WorkspaceDesign(),
+                    design = multiPane,
                     state = AppDetailsWorkspace.State(
                         app = AppsMockDataProvider.Presets.chrome,
                         selectedTab = DetailTab.OVERVIEW,
-                        // Modal so the toolbar renders a back button instead of the workspace switcher.
+                        // Modal so the toolbar renders a back button.
                         callerWorkspaceId = Workspace.Id(),
                     ),
                     workspaceId = Workspace.Id(),
@@ -86,7 +90,7 @@ class AppDetailsWorkspacePageTest : ComposeTest() {
         composeTestRule.setContent {
             PreviewWrapper {
                 AppDetailsWorkspacePage(
-                    design = WorkspaceDesign(),
+                    design = multiPane,
                     state = AppDetailsWorkspace.State(
                         app = AppsMockDataProvider.Presets.chrome,
                         selectedTab = DetailTab.COMPONENTS,
@@ -143,7 +147,7 @@ class AppDetailsWorkspacePageTest : ComposeTest() {
             PreviewWrapper {
                 key(remountKey) {
                     AppDetailsWorkspacePage(
-                        design = WorkspaceDesign(),
+                        design = multiPane,
                         state = AppDetailsWorkspace.State(
                             app = AppsMockDataProvider.Presets.chrome,
                             selectedTab = DetailTab.COMPONENTS,
@@ -180,7 +184,7 @@ class AppDetailsWorkspacePageTest : ComposeTest() {
         composeTestRule.setContent {
             PreviewWrapper {
                 AppDetailsWorkspacePage(
-                    design = WorkspaceDesign(),
+                    design = multiPane,
                     state = AppDetailsWorkspace.State(
                         app = AppsMockDataProvider.Presets.chrome,
                         selectedTab = DetailTab.COMPONENTS,

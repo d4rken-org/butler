@@ -234,7 +234,6 @@ private fun AppDetailsToolbarCardComponentsCollapsedPreview() {
     AppDetailsToolbarCard(
         app = AppsMockDataProvider.Presets.chrome,
         design = WorkspaceDesign(),
-        isModal = false,
         collapsedFraction = 1f,
         subtitle = stringResource(R.string.apps_details_section_components),
         onBackClick = {},
