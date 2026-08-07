@@ -13,6 +13,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -117,12 +118,31 @@ fun WorkspaceButtonMenu(
         )
 
         if (currentWorkspaceId != null) {
+            // Closes the whole ownership unit, not just the workspace the button sits in: the user
+            // sees a tab and the overlays stacked on it as one thing, so closing only the top
+            // overlay would leave behind the very tab this row names. Same target as the manager's
+            // card, which has always closed the unit.
+            val unit = state?.unitsByMember?.get(currentWorkspaceId)
+            val closeTargetId = unit?.ownerId ?: currentWorkspaceId
             MenuCategoryHeader(text = stringResource(R.string.workspace_button_menu_category_current_tab))
             LongClickableDropdownMenuItem(
-                text = stringResource(R.string.workspace_button_menu_close_current_action),
+                text = if (unit != null && unit.size > 1) {
+                    pluralStringResource(
+                        R.plurals.workspace_button_menu_close_current_stack_action,
+                        unit.size,
+                        unit.size,
+                    )
+                } else {
+                    stringResource(R.string.workspace_button_menu_close_current_action)
+                },
                 onClick = {
                     onDismissRequest()
-                    provider?.executeWorkspaceAction(WorkspaceAction.Close(currentWorkspaceId))
+                    provider?.executeWorkspaceAction(
+                        WorkspaceAction.Close(
+                            id = closeTargetId,
+                            sourceWorkspaceId = currentWorkspaceId,
+                        )
+                    )
                 },
                 onLongClick = {
                     onDismissRequest()

@@ -17,16 +17,18 @@ import testhelpers.ComposeTest
 
 class AppDetailsToolbarCardTest : ComposeTest() {
 
+    // Every case renders multi-pane on purpose: that is the branch without a workspace button, and
+    // the switcher's animated mascot never idles under Robolectric.
+    private val multiPane = WorkspaceDesign(layout = WorkspaceDesign.Layout.DUAL_VERTICAL)
+
     @Test
     fun `toolbar shows app name but not package name`() {
         composeTestRule.setContent {
             PreviewWrapper {
-                // A modal overview: no sub-screen to go back from, and no workspace button — the
-                // switcher's animated mascot never idles under Robolectric.
+                // An overview: no sub-screen to go back from.
                 AppDetailsToolbarCard(
                     app = AppsMockDataProvider.Presets.chrome,
-                    design = WorkspaceDesign(),
-                    isModal = true,
+                    design = multiPane,
                 )
             }
         }
@@ -39,11 +41,10 @@ class AppDetailsToolbarCardTest : ComposeTest() {
     fun `toolbar joins app name and subtitle into one line`() {
         composeTestRule.setContent {
             PreviewWrapper {
-                // The Components sub-screen of a modal: its back button returns to the overview.
+                // The Components sub-screen: its back button returns to the overview.
                 AppDetailsToolbarCard(
                     app = AppsMockDataProvider.Presets.chrome,
-                    design = WorkspaceDesign(),
-                    isModal = true,
+                    design = multiPane,
                     subtitle = "Components",
                     onBackClick = {},
                 )
@@ -109,8 +110,7 @@ class AppDetailsToolbarCardTest : ComposeTest() {
             PreviewWrapper {
                 AppDetailsToolbarCard(
                     app = AppsMockDataProvider.Presets.chrome,
-                    design = WorkspaceDesign(),
-                    isModal = true,
+                    design = multiPane,
                     subtitle = "Components",
                     onBackClick = {},
                     searchActive = searchActive,
@@ -135,8 +135,7 @@ class AppDetailsToolbarCardTest : ComposeTest() {
             PreviewWrapper {
                 AppDetailsToolbarCard(
                     app = AppsMockDataProvider.Presets.chrome,
-                    design = WorkspaceDesign(),
-                    isModal = true,
+                    design = multiPane,
                     subtitle = "Components",
                     onBackClick = {},
                 )

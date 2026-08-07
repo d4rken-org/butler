@@ -61,12 +61,6 @@ fun AppDetailsToolbarCard(
     modifier: Modifier = Modifier,
     app: AppInfo?,
     design: WorkspaceDesign,
-    /**
-     * Whether this workspace is stacked on another one rather than owning a tab. Required so every
-     * call site states it: the workspace button opens the tab manager, which is meaningless for a
-     * modal, and deriving it from [onBackClick] would silently flip whenever a sub-screen adds one.
-     */
-    isModal: Boolean,
     collapsedFraction: Float = 0f,
     subtitle: String? = null,
     onBackClick: (() -> Unit)? = null,
@@ -96,8 +90,11 @@ fun AppDetailsToolbarCard(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
         ),
-        // Workspace button: a tab on a single-pane layout, on every sub-screen of it
-        cutoutContent = if (design.isSingle && !isModal) {
+        // Workspace button: single-pane only, the navigation rail carries it otherwise. Stacked
+        // overlays get it too - the tab underneath stays swipeable and the manager renders the
+        // overlay as the face of its owning tab's card, so the switcher is neither unreachable nor
+        // meaningless there.
+        cutoutContent = if (design.isSingle) {
             {
                 WorkspaceButton(
                     buttonSize = if (isCollapsed) WorkspaceButtonDefaults.sizeCompact else WorkspaceButtonDefaults.sizeDefault,
@@ -212,7 +209,6 @@ private fun AppDetailsToolbarCardExpandedPreview() {
     AppDetailsToolbarCard(
         app = AppsMockDataProvider.Presets.chrome,
         design = WorkspaceDesign(),
-        isModal = false,
         collapsedFraction = 0f,
         modifier = Modifier.padding(16.dp)
     )
@@ -225,7 +221,6 @@ private fun AppDetailsToolbarCardCollapsedPreview() {
     AppDetailsToolbarCard(
         app = AppsMockDataProvider.Presets.largeApp,
         design = WorkspaceDesign(),
-        isModal = false,
         collapsedFraction = 1f,
         modifier = Modifier.padding(16.dp)
     )
@@ -255,24 +250,6 @@ private fun AppDetailsToolbarCardSubtitlePreview() {
     AppDetailsToolbarCard(
         app = AppsMockDataProvider.Presets.chrome,
         design = WorkspaceDesign(),
-        isModal = true,
-        collapsedFraction = 0f,
-        subtitle = stringResource(R.string.apps_details_section_components),
-        onBackClick = {},
-        onSearchToggle = {},
-        modifier = Modifier.padding(16.dp)
-    )
-}
-
-/** The components sub-screen of a workspace that owns a tab: back button and workspace button. */
-@Preview2
-@ComposePreviewWrapper(ButlerPreviewWrapper::class)
-@Composable
-private fun AppDetailsToolbarCardComponentsInTabPreview() {
-    AppDetailsToolbarCard(
-        app = AppsMockDataProvider.Presets.chrome,
-        design = WorkspaceDesign(),
-        isModal = false,
         collapsedFraction = 0f,
         subtitle = stringResource(R.string.apps_details_section_components),
         onBackClick = {},
@@ -288,7 +265,6 @@ private fun AppDetailsToolbarCardSearchActivePreview() {
     AppDetailsToolbarCard(
         app = AppsMockDataProvider.Presets.chrome,
         design = WorkspaceDesign(),
-        isModal = true,
         collapsedFraction = 0f,
         subtitle = stringResource(R.string.apps_details_section_components),
         onBackClick = {},
@@ -299,16 +275,29 @@ private fun AppDetailsToolbarCardSearchActivePreview() {
     )
 }
 
+/** Stacked on the workspace that opened it: back button closes the overlay, button still shown. */
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
-private fun AppDetailsToolbarCardModalPreview() {
+private fun AppDetailsToolbarCardStackedPreview() {
     AppDetailsToolbarCard(
         app = AppsMockDataProvider.Presets.disabledApp,
         design = WorkspaceDesign(),
-        isModal = true,
         collapsedFraction = 0f,
         onBackClick = {},
+        modifier = Modifier.padding(16.dp)
+    )
+}
+
+/** Multi-pane: no workspace button, the navigation rail carries it. */
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun AppDetailsToolbarCardMultiPanePreview() {
+    AppDetailsToolbarCard(
+        app = AppsMockDataProvider.Presets.chrome,
+        design = WorkspaceDesign(layout = WorkspaceDesign.Layout.DUAL_VERTICAL),
+        collapsedFraction = 0f,
         modifier = Modifier.padding(16.dp)
     )
 }

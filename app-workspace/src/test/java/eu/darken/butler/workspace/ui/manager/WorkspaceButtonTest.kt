@@ -344,8 +344,9 @@ class WorkspaceButtonTest : ComposeTest() {
         composeTestRule.onNodeWithText("Close current tab").assertDoesNotExist()
     }
 
+    /** No unit entry means the snapshot never saw this id; closing it alone still beats doing nothing. */
     @Test
-    fun `close current closes exactly the current workspace`() {
+    fun `close current falls back to the current workspace when its unit is unknown`() {
         val currentId = Workspace.Id()
         val provider = RecordingButtonProvider(WorkspaceButtonViewModel.State(workspaceCount = 2))
         setContent(provider, currentWorkspaceId = currentId)
@@ -353,7 +354,52 @@ class WorkspaceButtonTest : ComposeTest() {
         openMenu()
         composeTestRule.onNodeWithText("Close current tab").performClick()
 
-        provider.actions shouldBe listOf(WorkspaceAction.Close(currentId))
+        provider.actions shouldBe listOf(
+            WorkspaceAction.Close(id = currentId, sourceWorkspaceId = currentId)
+        )
+    }
+
+    @Test
+    fun `close current closes the whole stack, not the overlay it was opened from`() {
+        val ownerId = Workspace.Id()
+        val overlayId = Workspace.Id()
+        val provider = RecordingButtonProvider(
+            WorkspaceButtonViewModel.State(
+                workspaceCount = 2,
+                unitsByMember = mapOf(
+                    overlayId to WorkspaceButtonViewModel.StackUnit(ownerId = ownerId, size = 2),
+                ),
+            )
+        )
+        setContent(provider, currentWorkspaceId = overlayId)
+
+        openMenu()
+        composeTestRule.onNodeWithText("Close current tab (2 workspaces)").performClick()
+
+        // sourceWorkspaceId stays the overlay: a close confirmation is hosted in its target's pane
+        // layer, so anchoring it to the owner would hide it under the overlay that asked for it.
+        provider.actions shouldBe listOf(
+            WorkspaceAction.Close(id = ownerId, sourceWorkspaceId = overlayId)
+        )
+    }
+
+    @Test
+    fun `a tab with nothing stacked on it keeps the plain close label`() {
+        val ownerId = Workspace.Id()
+        val provider = RecordingButtonProvider(
+            WorkspaceButtonViewModel.State(
+                workspaceCount = 1,
+                unitsByMember = mapOf(
+                    ownerId to WorkspaceButtonViewModel.StackUnit(ownerId = ownerId, size = 1),
+                ),
+            )
+        )
+        setContent(provider, currentWorkspaceId = ownerId)
+
+        openMenu()
+
+        composeTestRule.onNodeWithText("Close current tab").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Close current tab (1 workspace)").assertDoesNotExist()
     }
 
     @Test

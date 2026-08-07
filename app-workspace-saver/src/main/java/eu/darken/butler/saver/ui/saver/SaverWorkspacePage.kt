@@ -203,6 +203,7 @@ private fun SingleFileModeContent(
             callerPackage = state.callerPackage,
             createdAt = state.createdAt,
             workspaceId = workspaceId,
+            design = design,
             isModal = state.isModal,
             onBack = { vm?.onClose() },
         )
@@ -284,6 +285,7 @@ private fun BatchModeContent(
             callerPackage = state.callerPackage,
             createdAt = state.createdAt,
             workspaceId = workspaceId,
+            design = design,
             isModal = state.isModal,
             onBack = { vm?.onClose() },
         )

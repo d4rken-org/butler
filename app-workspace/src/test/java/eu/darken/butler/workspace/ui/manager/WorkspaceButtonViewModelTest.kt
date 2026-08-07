@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
@@ -173,6 +174,67 @@ class WorkspaceButtonViewModelTest : BaseTest() {
 
         states.filterNotNull().last().recentItems.map { it.type } shouldBe listOf(Workspace.Type.EXPLORER)
     }
+
+    private fun info(id: Workspace.Id, caller: Workspace.Id? = null) = Workspace.Info(
+        id = id,
+        type = Workspace.Type.EXPLORER,
+        title = "Explorer".toCaString(),
+        callerWorkspaceId = caller,
+    )
+
+    private fun TestScope.unitsFor(
+        infos: List<Workspace.Info>,
+    ): Map<Workspace.Id, WorkspaceButtonViewModel.StackUnit> {
+        every { workspaceRemote.state } returns flowOf(WorkspaceRemote.State(infos = infos))
+        val states = mutableListOf<WorkspaceButtonViewModel.State?>()
+        createVM().state.onEach { states += it }.launchIn(backgroundScope)
+        return states.filterNotNull().last().unitsByMember
+    }
+
+    @Test
+    fun `every member of a stack resolves to the owning tab and the full unit size`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val root = Workspace.Id()
+            val child = Workspace.Id()
+            val grandchild = Workspace.Id()
+
+            val units = unitsFor(
+                listOf(info(root), info(child, caller = root), info(grandchild, caller = child)),
+            )
+
+            val expected = WorkspaceButtonViewModel.StackUnit(ownerId = root, size = 3)
+            units[root] shouldBe expected
+            units[child] shouldBe expected
+            units[grandchild] shouldBe expected
+        }
+
+    @Test
+    fun `sibling tabs stay separate units`() = runTest(UnconfinedTestDispatcher()) {
+        val first = Workspace.Id()
+        val second = Workspace.Id()
+
+        val units = unitsFor(listOf(info(first), info(second)))
+
+        units[first] shouldBe WorkspaceButtonViewModel.StackUnit(ownerId = first, size = 1)
+        units[second] shouldBe WorkspaceButtonViewModel.StackUnit(ownerId = second, size = 1)
+    }
+
+    @Test
+    fun `a workspace whose owner cannot be resolved falls back to closing itself`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val orphan = Workspace.Id()
+            val child = Workspace.Id()
+
+            // The orphan names a caller that no longer exists, so its recovery unit is keyed on
+            // whichever member comes first - which is not necessarily one the others hang off.
+            // Promising a unit close here could leave the sibling open.
+            val units = unitsFor(
+                listOf(info(child, caller = orphan), info(orphan, caller = Workspace.Id())),
+            )
+
+            units[orphan] shouldBe WorkspaceButtonViewModel.StackUnit(ownerId = orphan, size = 1)
+            units[child] shouldBe WorkspaceButtonViewModel.StackUnit(ownerId = child, size = 1)
+        }
 
     @Test
     fun `state is emitted before template availability resolves`() = runTest(UnconfinedTestDispatcher()) {
