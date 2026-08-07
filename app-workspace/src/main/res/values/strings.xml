@@ -362,7 +362,6 @@
     <string name="workspace_limit_blocker_awaiting_result">Finish the open picker first</string>
     <string name="workspace_limit_blocker_unavailable">Can\'t be closed right now</string>
     <string name="workspace_limit_stacked_content_desc">Closing this tab also closes what is stacked on it</string>
-    <string name="workspace_limit_pro_title">Butler Pro</string>
     <string name="workspace_limit_pro_description">Open as many tabs as you like.</string>
 
     <!-- Restore operation -->

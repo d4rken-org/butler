@@ -32,6 +32,7 @@ import eu.darken.butler.common.compose.ButlerIcon
 import eu.darken.butler.common.compose.ButlerIconVariant
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.brandTitleText
 import eu.darken.butler.common.ui.dialogs.ButlerAlertDialog
 import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.Workspace
@@ -223,7 +224,7 @@ private fun UpgradeOffer(
             )
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = stringResource(R.string.workspace_limit_pro_title),
+                    text = brandTitleText(includeQualifier = true),
                     style = MaterialTheme.typography.titleSmall,
                 )
                 Text(
