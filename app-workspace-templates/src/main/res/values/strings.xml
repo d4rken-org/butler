@@ -8,7 +8,7 @@
 
     <!-- Guided tour -->
     <string name="tour_templates_picker_title">Pick a tool</string>
-    <string name="tour_templates_picker_body">This is the tab picker — choose what this tab should be. Explorer browses files, Searcher finds them, Editor changes them. Picking one turns this tab into that tool.</string>
+    <string name="tour_templates_picker_body">This is the tab picker, choose what this tab should be. Picking one turns this tab into that tool.</string>
     <string name="tour_templates_butler_button_title">Your tabs live here</string>
-    <string name="tour_templates_butler_button_body">Tap the Butler button for the tab menu: create a new tab, close the current one, or open the full tab manager.</string>
+    <string name="tour_templates_butler_button_body">Tap the Butler button for the tab menu: Create a new tab, close the current one, or open the full tab manager.</string>
 </resources>
