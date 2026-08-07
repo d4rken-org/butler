@@ -2,6 +2,7 @@ package eu.darken.butler.workspace.ui.manager
 
 import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.darken.butler.common.ca.CaString
+import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
@@ -57,29 +58,39 @@ class WorkspaceManagerViewModel @Inject constructor(
         quickCreateItems,
     ) { repoState, showBadge, showFabLongPressHint, livePreview, pageManagerState, filterOps, filterAtt, quickCreate ->
         val stacks = WorkspaceStacks(repoState.infos)
+        val focusedId = pageManagerState.focusedWorkspaceId
+        val topChains = stacks.topChainByRoot(focusedId)
+        val membersByOwner = repoState.infos.groupBy { stacks.ownerOf(it.id) }
         // Pane chips describe where a workspace is on screen, so they follow the layout's own panes
         // rather than the raw selection map, which retains indices from wider layouts.
         val visibleAssignments = pageManagerState.visiblePaneAssignments
         State(
-            workspaces = repoState.infos.map { info ->
-                val panePosition = visibleAssignments.entries
-                    .find { it.value == info.id }?.key
-                val isFocused = pageManagerState.focusedWorkspaceId == info.id
+            workspaces = stacks.unitOwners.map { owner ->
+                val chain = topChains[owner.id]
+                val top = chain?.leaf ?: owner
+                // Counts belong to the unit, not to one member: an overlay's running operation or
+                // attention badge is the tab's, and the manager's filters read these per card.
+                val members = membersByOwner[owner.id].orEmpty().ifEmpty { listOf(owner) }
                 WorkspaceItem(
-                    id = info.id,
-                    type = info.type,
-                    title = info.displayTitle,
-                    subtitle = info.subtitle,
-                    isFocused = isFocused,
-                    isSelected = visibleAssignments.values.contains(info.id),
-                    paneNumber = panePosition,
-                    operationCount = info.operationCount,
-                    attentionCount = info.attentionCount,
-                    autoTitle = info.title,
-                    customTitle = info.customTitle,
-                    isSubWorkspace = info.isSubWorkspace,
-                    isPaused = info.isPaused,
-                    canPause = info.canBePausedManually(stacks, pageManagerState.focusedWorkspaceId),
+                    id = owner.id,
+                    topId = top.id,
+                    type = top.type,
+                    title = owner.customTitle?.toCaString() ?: top.title,
+                    subtitle = top.subtitle,
+                    autoTitle = top.title,
+                    customTitle = owner.customTitle,
+                    // A pane holds tabs, so pane and selection state are the owner's; focus may sit
+                    // anywhere in the unit
+                    isFocused = members.any { it.id == focusedId },
+                    isSelected = visibleAssignments.values.contains(owner.id),
+                    paneNumber = visibleAssignments.entries.find { it.value == owner.id }?.key,
+                    operationCount = members.sumOf { it.operationCount },
+                    attentionCount = members.sumOf { it.attentionCount },
+                    isSubWorkspace = owner.isSubWorkspace,
+                    isRecovery = stacks.recoveryUnits.containsKey(owner.id),
+                    isPaused = owner.isPaused,
+                    canPause = owner.canBePausedManually(stacks, focusedId),
+                    stackDepth = chain?.modals?.size ?: 0,
                 )
             },
             useLivePreview = livePreview,
@@ -150,6 +161,7 @@ class WorkspaceManagerViewModel @Inject constructor(
         workspaceRepo.execute(WorkspaceAction.Resume(id))
     }
 
+    /** The cards are unit owners, so this is a unit order; the repo expands it to the full list. */
     fun reorderWorkspaces(workspaceIds: List<Workspace.Id>) = launch {
         workspaceRepo.execute(WorkspaceAction.Reorder(workspaceIds))
     }
@@ -159,15 +171,28 @@ class WorkspaceManagerViewModel @Inject constructor(
         workspaceRepo.execute(WorkspaceAction.Rename(id, customTitle))
     }
 
+    /**
+     * The card names a tab; what has to be focused is whatever sits on top of it *now*. Resolving
+     * here rather than baking a leaf id into the card is what keeps a tap from naming an overlay that
+     * closed while the manager was open: selectWorkspaceFromManager suspends until the id exists in
+     * the repo, so a vanished leaf would hang the tap and leave the manager stuck open.
+     *
+     * The topology comes from peekStacks, not from the shared state flow: that flow's replay cache
+     * can lag a swap and name a leaf the repo has already dropped, which is exactly the hang this
+     * resolution exists to avoid - the tap would do nothing and the manager would never close.
+     */
     fun selectWorkspace(id: Workspace.Id) = launch {
         log(tag) { "selectWorkspace($id)" }
+        val stacks = workspaceRepo.peekStacks()
+        val focusedId = workspacePageManager.state.value.focusedWorkspaceId
+        val target = stacks.topChainByRoot(focusedId)[id]?.leaf?.id ?: id
         // Emit selection event to notify the parent screen
-        workspacePageManager.selectWorkspaceFromManager(id)
+        workspacePageManager.selectWorkspaceFromManager(target)
 
         // Wait for selection to be processed before navigating back
         // This ensures pager animation can complete without being interrupted
         val selectionProcessed = withTimeoutOrNull(500.milliseconds) {
-            workspacePageManager.state.first { it.focusedWorkspaceId == id }
+            workspacePageManager.state.first { it.focusedWorkspaceId == target }
         }
 
         if (selectionProcessed == null) {
@@ -263,8 +288,14 @@ class WorkspaceManagerViewModel @Inject constructor(
             }
     }
 
+    /**
+     * One card per ownership unit: [id] is the tab everything acts on - close, rename, pause,
+     * resume, reorder - while the identity shown is the workspace currently on top of that tab.
+     */
     data class WorkspaceItem(
         val id: Workspace.Id,
+        /** The workspace whose content the card previews: the top of the stack, else the tab itself. */
+        val topId: Workspace.Id,
         val type: Workspace.Type,
         /** The resolved display title: the custom name when set, otherwise the automatic title. */
         val title: CaString,
@@ -278,11 +309,19 @@ class WorkspaceManagerViewModel @Inject constructor(
         val attentionCount: Int = 0,
         val customTitle: String? = null,
         /**
-         * Modal pickers show up as cards but are excluded from session persistence, so renaming one
-         * would silently not survive a restart - the card hides its rename affordance.
+         * A stacked workspace only ever gets a card of its own when its ownership cannot be resolved
+         * ([isRecovery]). Sub-workspaces are excluded from session persistence, so renaming one would
+         * silently not survive a restart - such a card hides its rename affordance.
          */
         val isSubWorkspace: Boolean = false,
+        /**
+         * True for a card standing in for an unresolvable ownership component. It has no tab to
+         * place, so selecting it would focus something no pane renders - the card only offers Close.
+         */
+        val isRecovery: Boolean = false,
         val isPaused: Boolean = false,
         val canPause: Boolean = false,
+        /** How many sub-workspaces are stacked on this tab; 0 for a plain tab. Drives the stack badge. */
+        val stackDepth: Int = 0,
     )
 }

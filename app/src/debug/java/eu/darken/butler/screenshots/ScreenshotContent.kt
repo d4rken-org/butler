@@ -405,6 +405,7 @@ private fun WorkspaceManagerBody() {
             workspaces = listOf(
                 WorkspaceManagerViewModel.WorkspaceItem(
                     id = ID_EXPLORER_DIRECTORY,
+                    topId = ID_EXPLORER_DIRECTORY,
                     type = Workspace.Type.EXPLORER,
                     title = "/storage/emulated/0/Download".toCaString(),
                     autoTitle = "/storage/emulated/0/Download".toCaString(),
@@ -415,6 +416,7 @@ private fun WorkspaceManagerBody() {
                 ),
                 WorkspaceManagerViewModel.WorkspaceItem(
                     id = ID_EXPLORER_HOME,
+                    topId = ID_EXPLORER_HOME,
                     type = Workspace.Type.EXPLORER,
                     title = "Project files".toCaString(),
                     autoTitle = "/storage/emulated/0/Projects/butler".toCaString(),
@@ -423,6 +425,7 @@ private fun WorkspaceManagerBody() {
                 ),
                 WorkspaceManagerViewModel.WorkspaceItem(
                     id = ID_SEARCHER,
+                    topId = ID_SEARCHER,
                     type = Workspace.Type.SEARCHER,
                     title = "*.log".toCaString(),
                     autoTitle = "*.log".toCaString(),
@@ -431,6 +434,7 @@ private fun WorkspaceManagerBody() {
                 ),
                 WorkspaceManagerViewModel.WorkspaceItem(
                     id = ID_EDITOR,
+                    topId = ID_EDITOR,
                     type = Workspace.Type.EDITOR,
                     title = "build.gradle.kts".toCaString(),
                     autoTitle = "build.gradle.kts".toCaString(),
@@ -439,6 +443,7 @@ private fun WorkspaceManagerBody() {
                 ),
                 WorkspaceManagerViewModel.WorkspaceItem(
                     id = ID_APPS,
+                    topId = ID_APPS,
                     type = Workspace.Type.APPS,
                     title = WorkspaceR.string.workspace_apps_label.toCaString(),
                     autoTitle = WorkspaceR.string.workspace_apps_label.toCaString(),
@@ -446,6 +451,7 @@ private fun WorkspaceManagerBody() {
                 ),
                 WorkspaceManagerViewModel.WorkspaceItem(
                     id = ID_EXPLORER_SDCARD,
+                    topId = ID_EXPLORER_SDCARD,
                     type = Workspace.Type.EXPLORER,
                     title = "/storage/1A2B-3C4D/Backups".toCaString(),
                     autoTitle = "/storage/1A2B-3C4D/Backups".toCaString(),
@@ -455,6 +461,7 @@ private fun WorkspaceManagerBody() {
                 ),
                 WorkspaceManagerViewModel.WorkspaceItem(
                     id = ID_SEARCHER_MEDIA,
+                    topId = ID_SEARCHER_MEDIA,
                     type = Workspace.Type.SEARCHER,
                     title = "IMG_2026".toCaString(),
                     autoTitle = "IMG_2026".toCaString(),

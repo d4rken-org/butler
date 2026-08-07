@@ -251,8 +251,14 @@ sealed interface WorkspaceAction {
         data object Result : WorkspaceAction.Result
     }
 
+    /**
+     * Reorders the open workspaces. [ownerIds] is a UNIT order - one id per ownership unit, which is
+     * what every surface that offers reordering lists - and the repo expands it against the current
+     * topology, keeping each unit's members adjacent to their owner and in their existing relative
+     * order. An order that does not cover every unit is refused.
+     */
     data class Reorder(
-        val workspaceIds: List<Workspace.Id>,
+        val ownerIds: List<Workspace.Id>,
     ) : WorkspaceAction {
         data class Result(
             val success: Boolean,

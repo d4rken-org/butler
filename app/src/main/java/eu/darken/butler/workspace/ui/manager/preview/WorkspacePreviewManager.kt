@@ -129,9 +129,17 @@ class WorkspacePreviewManager @Inject constructor(
 
         log(TAG) { "Manual invalidation requested: workspaceId=$focusedId, livePreviewEnabled=$livePreviewEnabled" }
 
-        if (livePreviewEnabled && focusedId != null) {
-            invalidatePreviewCache(focusedId)
-        }
+        if (!livePreviewEnabled || focusedId == null) return
+
+        // The manager previews what is on top of the focused tab, which is not always the focused
+        // workspace - launching a picker never moves global focus. Scoped to the focused unit on
+        // purpose: every unit's top would re-capture every stacked tab on each manager open, and a
+        // capture is a full offscreen page composition.
+        // peekStacks, not the shared state flow: that flow's replay cache can lag a swap, and a stale
+        // topology invalidates the wrong top id - leaving exactly the stale thumbnail this prevents.
+        val stacks = workspaceRepo.peekStacks()
+        val topId = stacks.topChainByRoot(focusedId)[stacks.ownerOf(focusedId)]?.leaf?.id
+        setOfNotNull(focusedId, topId).forEach { invalidatePreviewCache(it) }
     }
 
     private fun invalidatePreviewCache(workspaceId: Workspace.Id) {

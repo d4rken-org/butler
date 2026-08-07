@@ -28,6 +28,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.preview.WorkspacePreviewModel
 import eu.darken.butler.workspace.ui.manager.rows.PaneBadge
+import eu.darken.butler.workspace.ui.manager.rows.StackBadge
 import eu.darken.butler.workspace.ui.manager.rows.WorkspacePreviewInfoBar
 
 @Composable
@@ -38,6 +39,7 @@ fun WorkspacePreview(
     livePreview: Boolean = true,
     paneNumber: Int? = null,
     shouldShowBadge: Boolean = false,
+    stackDepth: Int = 0,
     contentAlpha: Float = 1f,
     overlay: @Composable BoxScope.() -> Unit = {},
 ) {
@@ -104,6 +106,14 @@ fun WorkspacePreview(
                     .padding(8.dp)
             )
         }
+
+        if (stackDepth > 0) {
+            StackBadge(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(8.dp)
+            )
+        }
     }
 }
 
@@ -162,6 +172,26 @@ private fun WorkspacePreviewWithInfoBarPreview() {
             modifier = Modifier.align(Alignment.BottomStart),
             primary = "Trash".toCaString(),
             secondary = "Recover deleted files".toCaString(),
+        )
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspacePreviewStackedPreview() {
+    WorkspacePreview(
+        workspaceId = Workspace.Id(),
+        type = Workspace.Type.APP_DETAILS,
+        livePreview = false,
+        shouldShowBadge = true,
+        paneNumber = 0,
+        stackDepth = 1,
+    ) {
+        WorkspacePreviewInfoBar(
+            modifier = Modifier.align(Alignment.BottomStart),
+            primary = "Butler".toCaString(),
+            secondary = "eu.darken.butler".toCaString(),
         )
     }
 }

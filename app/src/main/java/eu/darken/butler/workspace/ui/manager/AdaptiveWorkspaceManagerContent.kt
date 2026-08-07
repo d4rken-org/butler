@@ -71,12 +71,16 @@ fun AdaptiveWorkspaceManagerContent(
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AdaptiveWorkspaceManagerContentListPreview() {
+    val templatesId = Workspace.Id()
+    val explorerId = Workspace.Id()
+    val searcherId = Workspace.Id()
     Box(modifier = Modifier.size(400.dp, 800.dp)) {
         AdaptiveWorkspaceManagerContent(
             state = WorkspaceManagerViewModel.State(
                 workspaces = listOf(
                     WorkspaceManagerViewModel.WorkspaceItem(
-                        id = Workspace.Id(),
+                        id = templatesId,
+                        topId = templatesId,
                         type = Workspace.Type.TEMPLATES,
                         title = "New".toCaString(),
                         autoTitle = "New".toCaString(),
@@ -86,7 +90,8 @@ private fun AdaptiveWorkspaceManagerContentListPreview() {
                         paneNumber = 0,
                     ),
                     WorkspaceManagerViewModel.WorkspaceItem(
-                        id = Workspace.Id(),
+                        id = explorerId,
+                        topId = explorerId,
                         type = Workspace.Type.EXPLORER,
                         title = "/storage/emulated/0/Download".toCaString(),
                         autoTitle = "/storage/emulated/0/Download".toCaString(),
@@ -94,7 +99,8 @@ private fun AdaptiveWorkspaceManagerContentListPreview() {
                         paneNumber = null,
                     ),
                     WorkspaceManagerViewModel.WorkspaceItem(
-                        id = Workspace.Id(),
+                        id = searcherId,
+                        topId = searcherId,
                         type = Workspace.Type.SEARCHER,
                         title = "report".toCaString(),
                         autoTitle = "report".toCaString(),
@@ -120,12 +126,17 @@ private fun AdaptiveWorkspaceManagerContentListPreview() {
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AdaptiveWorkspaceManagerContentGridPreview() {
+    val templatesId = Workspace.Id()
+    val explorerId = Workspace.Id()
+    val searcherId = Workspace.Id()
+    val editorId = Workspace.Id()
     Box(modifier = Modifier.size(800.dp, 600.dp)) {
         AdaptiveWorkspaceManagerContent(
             state = WorkspaceManagerViewModel.State(
                 workspaces = listOf(
                     WorkspaceManagerViewModel.WorkspaceItem(
-                        id = Workspace.Id(),
+                        id = templatesId,
+                        topId = templatesId,
                         type = Workspace.Type.TEMPLATES,
                         title = "New".toCaString(),
                         autoTitle = "New".toCaString(),
@@ -135,7 +146,8 @@ private fun AdaptiveWorkspaceManagerContentGridPreview() {
                         paneNumber = 0,
                     ),
                     WorkspaceManagerViewModel.WorkspaceItem(
-                        id = Workspace.Id(),
+                        id = explorerId,
+                        topId = explorerId,
                         type = Workspace.Type.EXPLORER,
                         title = "Trash".toCaString(),
                         autoTitle = "Trash".toCaString(),
@@ -144,7 +156,8 @@ private fun AdaptiveWorkspaceManagerContentGridPreview() {
                         paneNumber = 1,
                     ),
                     WorkspaceManagerViewModel.WorkspaceItem(
-                        id = Workspace.Id(),
+                        id = searcherId,
+                        topId = searcherId,
                         type = Workspace.Type.SEARCHER,
                         title = "*.log".toCaString(),
                         autoTitle = "*.log".toCaString(),
@@ -152,7 +165,8 @@ private fun AdaptiveWorkspaceManagerContentGridPreview() {
                         paneNumber = null,
                     ),
                     WorkspaceManagerViewModel.WorkspaceItem(
-                        id = Workspace.Id(),
+                        id = editorId,
+                        topId = editorId,
                         type = Workspace.Type.EDITOR,
                         title = "build.gradle.kts".toCaString(),
                         autoTitle = "build.gradle.kts".toCaString(),
