@@ -1,6 +1,8 @@
 <resources>
     <string name="app_name">Butler</string>
     <string name="app_name_subtitle">File explorer extraordinaire</string>
+    <!-- Upgraded app title. %1$s is the app name, %2$s the tier qualifier ("Pro" or "FOSS", depending on the build). Reorder or repunctuate for your language; both placeholders must appear exactly once. -->
+    <string name="app_name_upgraded_template">%1$s %2$s</string>
 
     <string name="butler_icon_description">Butler app icon</string>
     <string name="butler_mascot_description">Butler mascot</string>
