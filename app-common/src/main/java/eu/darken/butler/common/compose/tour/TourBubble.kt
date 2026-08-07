@@ -492,7 +492,7 @@ private fun StepContent(
                     icon = Icons.TwoTone.Close,
                     contentDescription = stringResource(R.string.tour_action_cancel),
                 )
-                if (session.stepIndex > 0) {
+                if (!session.isFirst) {
                     Spacer(Modifier.width(4.dp))
                     Button(
                         onClick = onPrevious,
@@ -547,7 +547,16 @@ private fun StepContent(
                     .align(Alignment.CenterStart)
                     .fillMaxHeight()
                     .width(mascotWidth),
-                variant = ButlerMascotMode.Static.Normal(),
+                // Wave once on the opening step, then hold the neutral pose. The bubble's job is to
+                // point at the target, so a permanent second motion source beside the body text
+                // would compete with it - the greeting is curated to the moment instead. Speed
+                // matches the welcome screen so the two read as the same character. Stepping back to
+                // the opening step replays the wave, which re-greets on the way back and is fine.
+                variant = if (session.isFirst) {
+                    ButlerMascotMode.Animated.Greeting(loop = false, speed = 1.2f)
+                } else {
+                    ButlerMascotMode.Static.Normal()
+                },
             )
         }
     }

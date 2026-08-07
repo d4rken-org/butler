@@ -37,5 +37,6 @@ data class TourSession(
     val stepIndex: Int,
 ) {
     val currentStep: TourStep get() = definition.steps[stepIndex]
+    val isFirst: Boolean get() = stepIndex == 0
     val isLast: Boolean get() = stepIndex == definition.steps.lastIndex
 }

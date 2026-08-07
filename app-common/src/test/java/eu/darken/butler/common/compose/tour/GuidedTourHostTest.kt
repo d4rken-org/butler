@@ -27,6 +27,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.junit4.ComposeContentTestRule
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
@@ -102,6 +103,22 @@ class GuidedTourHostTest : ComposeTest() {
         }
         composeTestRule.onNodeWithText("Body of step 1").assertExists()
         composeTestRule.onNodeWithContentDescription("Next").assertExists()
+    }
+
+    @Test
+    fun `mascot greets on the opening step and settles on later ones`() {
+        val sessionFlow = MutableStateFlow<TourSession?>(TourSession(protectedDef, 0))
+        composeTestRule.setHostContent(
+            sessionFlow,
+            preregister = mapOf("first" to targetRect, "second" to targetRect),
+        ) {
+            Text("CONTENT_MARKER")
+        }
+        composeTestRule.onNodeWithContentDescription("Butler mascot waving hello").assertExists()
+
+        sessionFlow.value = TourSession(protectedDef, 1)
+        composeTestRule.onNodeWithContentDescription("Butler mascot").assertExists()
+        composeTestRule.onAllNodesWithContentDescription("Butler mascot waving hello").assertCountEquals(0)
     }
 
     @Test

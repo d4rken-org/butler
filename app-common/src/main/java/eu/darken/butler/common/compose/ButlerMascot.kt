@@ -211,11 +211,22 @@ fun ButlerMascot(
                         }
                     }
 
-                    LottieAnimation(
-                        composition = animatable.composition,
-                        progress = { animatable.progress },
-                        modifier = semanticsModifier,
-                    )
+                    // Compositions parse off the main thread, so the animatable has none for the
+                    // first frames and LottieAnimation would draw nothing - a hole wherever the
+                    // mascot is sized. Hold the neutral pose until it resolves, as RandomCycling does.
+                    if (animatable.composition != null) {
+                        LottieAnimation(
+                            composition = animatable.composition,
+                            progress = { animatable.progress },
+                            modifier = semanticsModifier,
+                        )
+                    } else {
+                        Image(
+                            painter = painterResource(id = R.drawable.mascot_normal),
+                            contentDescription = animatedDescription,
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    }
                 }
             }
         }
