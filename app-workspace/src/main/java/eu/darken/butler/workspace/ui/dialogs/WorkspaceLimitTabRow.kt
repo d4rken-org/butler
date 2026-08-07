@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.Layers
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -80,14 +82,31 @@ fun WorkspaceLimitTabRow(
             tint = contentColor,
         )
         Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = candidate.title.get(context),
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium,
-                color = contentColor,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Text(
+                    modifier = Modifier.weight(1f, fill = false),
+                    text = candidate.title.get(context),
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium,
+                    color = contentColor,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                if (candidate.stackDepth > 0) {
+                    // The row names what is on TOP of the tab, so this marks that there is more
+                    // underneath and that closing takes all of it - the tab manager marks the same
+                    // thing with the same icon on its cards.
+                    Icon(
+                        modifier = Modifier.size(16.dp),
+                        imageVector = Icons.TwoTone.Layers,
+                        contentDescription = stringResource(R.string.workspace_limit_stacked_content_desc),
+                        tint = contentColor,
+                    )
+                }
+            }
             Text(
                 text = candidate.secondaryLine(),
                 style = MaterialTheme.typography.bodySmall,
@@ -128,7 +147,8 @@ private val WorkspaceLimitCandidate.Blocker.labelRes: Int
         WorkspaceLimitCandidate.Blocker.BUSY -> R.string.workspace_limit_blocker_busy
         WorkspaceLimitCandidate.Blocker.NEEDS_ATTENTION -> R.string.workspace_limit_blocker_attention
         WorkspaceLimitCandidate.Blocker.LOADING -> R.string.workspace_limit_blocker_loading
-        WorkspaceLimitCandidate.Blocker.HAS_MODAL -> R.string.workspace_limit_blocker_modal
+        WorkspaceLimitCandidate.Blocker.AWAITING_RESULT -> R.string.workspace_limit_blocker_awaiting_result
+        WorkspaceLimitCandidate.Blocker.UNAVAILABLE -> R.string.workspace_limit_blocker_unavailable
     }
 
 @Preview2
@@ -167,6 +187,32 @@ private fun WorkspaceLimitTabRowPreview() {
                     subtitle = "/sdcard/Documents".toCaString(),
                     openedAt = Clock.System.now() - 30.minutes,
                     blocker = WorkspaceLimitCandidate.Blocker.UNSAVED_CHANGES,
+                ),
+                selected = false,
+                onToggle = {},
+            )
+            // An Apps tab with an app's details open: named by what is on top, marked as a stack
+            WorkspaceLimitTabRow(
+                candidate = WorkspaceLimitCandidate(
+                    id = Workspace.Id(),
+                    type = Workspace.Type.APP_DETAILS,
+                    title = "Ad privacy".toCaString(),
+                    subtitle = "com.google.android.adservices.api".toCaString(),
+                    openedAt = Clock.System.now() - 1.hours,
+                    stackDepth = 1,
+                ),
+                selected = false,
+                onToggle = {},
+            )
+            WorkspaceLimitTabRow(
+                candidate = WorkspaceLimitCandidate(
+                    id = Workspace.Id(),
+                    type = Workspace.Type.EXPLORER,
+                    title = "Select a folder".toCaString(),
+                    subtitle = "/sdcard".toCaString(),
+                    openedAt = Clock.System.now() - 10.minutes,
+                    stackDepth = 1,
+                    blocker = WorkspaceLimitCandidate.Blocker.AWAITING_RESULT,
                 ),
                 selected = false,
                 onToggle = {},

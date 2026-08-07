@@ -1,6 +1,7 @@
 package eu.darken.butler.workspace.core
 
 import eu.darken.butler.common.ca.CaString
+import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.files.APath
@@ -69,6 +70,19 @@ class WorkspaceRepo @Inject constructor(
      */
     @Volatile
     private var createdAtById: Map<Workspace.Id, Instant> = emptyMap()
+
+    /**
+     * Workspaces that owe their caller a result ([Workspace.ArgumentsForResult]) - pickers. Closing
+     * one cancels a result the caller's ViewModel is still collecting, so the limit dialog refuses
+     * any tab with one in its stack.
+     *
+     * Snapshotted from the creation arguments rather than projected onto [Workspace.Info]: live
+     * workspaces rebuild their Info from scratch on every emission (ExplorerWorkspace does), so a
+     * flag carried there would survive only until the first state change. Written under [lock] and
+     * replaced wholesale, matching [createdAtById].
+     */
+    @Volatile
+    private var resultReturningIds: Set<Workspace.Id> = emptySet()
 
     private val _pendingConfirmations = MutableStateFlow<Map<String, PendingWorkspaceConfirmation>>(emptyMap())
     val pendingConfirmations: Flow<Map<String, PendingWorkspaceConfirmation>> = _pendingConfirmations
@@ -160,6 +174,7 @@ class WorkspaceRepo @Inject constructor(
             newWorkspace = buildWorkspace(type, arguments, idToReplace, existingId),
             idToReplace = idToReplace,
             createdAt = createdAt,
+            returnsResult = arguments is Workspace.ArgumentsForResult,
         )
     }
 
@@ -216,6 +231,7 @@ class WorkspaceRepo @Inject constructor(
         newWorkspace: Workspace<out Workspace.Arguments>,
         idToReplace: Workspace.Id?,
         createdAt: Instant?,
+        returnsResult: Boolean,
     ): Workspace.Id {
         val wip = _workspaces.value.toMutableList()
         if (idToReplace != null) {
@@ -230,6 +246,7 @@ class WorkspaceRepo @Inject constructor(
             contentClaims.entries.removeAll { (_, owner) -> owner == replaced.id }
             // The slot's age belongs to the instance, not to the tab: a morph is a new workspace
             createdAtById = createdAtById - idToReplace
+            resultReturningIds = resultReturningIds - idToReplace
             // A custom name belongs to the tab slot, not the instance: the Templates->X morph keeps
             // the name the user gave the tab. Migrated before publishing the new list so the infos
             // combine can never pair the new workspace with a stale title.
@@ -247,6 +264,11 @@ class WorkspaceRepo @Inject constructor(
         // Before the publish: create() returns to its caller only after the list was published, so a
         // save observing that emission must already see the timestamp.
         createdAtById = createdAtById + (newWorkspace.id to (createdAt ?: Clock.System.now()))
+        resultReturningIds = if (returnsResult) {
+            resultReturningIds + newWorkspace.id
+        } else {
+            resultReturningIds - newWorkspace.id
+        }
 
         _workspaces.value = wip
 
@@ -671,6 +693,7 @@ class WorkspaceRepo @Inject constructor(
                 contentClaims.clear()
                 _customTitles.value = emptyMap()
                 createdAtById = emptyMap()
+                resultReturningIds = emptySet()
                 // Every pending confirmation asks about tabs that no longer exist. Left behind, a
                 // limit dialog would survive with its blocked create still parked and re-open a tab
                 // moments after the user emptied the session.
@@ -1058,12 +1081,21 @@ class WorkspaceRepo @Inject constructor(
     }
 
     /**
-     * Why closing [workspace] to make room for a blocked create would destroy something the user
-     * still needs, or null when it is safe to close. Deliberately stricter than [pauseRefusal]: a
-     * pause is reversible, this is not.
+     * Why closing the tab [workspace] roots would destroy something the user still needs, or null
+     * when it is safe to close. Deliberately stricter than [pauseRefusal]: a pause is reversible,
+     * this is not.
      *
      * Reports a reason rather than a bare boolean because the limit dialog lists the blocked tabs
      * too - "why can't I close that one" is the whole point of showing them.
+     *
+     * Answers for the whole ownership unit, not just the root. [WorkspaceAction.Close] auto-closes
+     * children, so a drill-down that is busy or dirty is destroyed by closing the tab it sits on -
+     * asking only the root would happily close a tab whose stacked child holds unsaved work.
+     *
+     * A stacked child is not a blocker in itself: an Apps tab with an app's details open is a tab
+     * with a detail view, and closing it is exactly what the user picked. Only a workspace that owes
+     * its caller a result ([Workspace.ArgumentsForResult] - a picker) is, because its result
+     * collector lives in the caller's ViewModel and closing the unit cancels it silently.
      *
      * Must be called while holding [lock]; [stacks] is the ownership topology of the same snapshot.
      */
@@ -1071,7 +1103,26 @@ class WorkspaceRepo @Inject constructor(
         workspace: Workspace<*>,
         stacks: WorkspaceStacks,
     ): WorkspaceLimitCandidate.Blocker? {
-        val info = workspace.info.value
+        // A counted root should always resolve; when it does not there is no safe set to act on and
+        // no honest reason to give, so refuse without inventing one.
+        val unit = stacks.unitOf(workspace.id) ?: run {
+            log(TAG, WARN) { "Counted tab ${workspace.id} has no resolvable unit, refusing to close it" }
+            return WorkspaceLimitCandidate.Blocker.UNAVAILABLE
+        }
+        // Scanned across the unit before anything else: owing a result is a structural fact, so it
+        // outranks a transient state anywhere in the stack. Otherwise an initializing root would
+        // explain an open picker as "still loading".
+        if (unit.any { it.id in resultReturningIds }) return WorkspaceLimitCandidate.Blocker.AWAITING_RESULT
+        return unit.firstNotNullOfOrNull { memberCloseBlocker(it) }
+    }
+
+    /**
+     * The same question asked of a single workspace, with no view of the rest of its unit. Used both
+     * to build [limitCloseBlocker]'s answer and to re-ask it about each member while a unit is being
+     * torn down. Must be called while holding [lock].
+     */
+    private fun memberCloseBlocker(info: Workspace.Info): WorkspaceLimitCandidate.Blocker? {
+        if (info.id in resultReturningIds) return WorkspaceLimitCandidate.Blocker.AWAITING_RESULT
         // Close() turns these into a second confirmation stacked on the limit dialog; closing them
         // silently is data loss
         if (info.hasUnsavedChanges) return WorkspaceLimitCandidate.Blocker.UNSAVED_CHANGES
@@ -1082,11 +1133,33 @@ class WorkspaceRepo @Inject constructor(
             return WorkspaceLimitCandidate.Blocker.LOADING
         }
         // An open-transition in flight, exactly as pauseRefusal treats it
-        if (contentClaims.values.any { it == workspace.id }) return WorkspaceLimitCandidate.Blocker.BUSY
-        // Close() auto-closes children: closing the tab that owns the modal the user is standing in
-        // would destroy the very context this action exists to rescue. A unit of one is just the tab.
-        if (stacks.unitOf(workspace.id)?.size != 1) return WorkspaceLimitCandidate.Blocker.HAS_MODAL
+        if (contentClaims.values.any { it == info.id }) return WorkspaceLimitCandidate.Blocker.BUSY
         return null
+    }
+
+    /**
+     * Closes a whole tab for limit recovery, re-asking each member whether it is still safe
+     * immediately before that member is released. Returns true when the tab itself went, i.e. when a
+     * slot was actually freed.
+     *
+     * [executeClose] on the root would take the stack down in one recursive sweep, and every
+     * `release()` in it suspends - long enough for a sibling to pick up unsaved changes that the
+     * up-front check could not have seen. So the walk goes deepest-first and stops at the first
+     * member that refuses: what is already closed is what the user consented to, and the tab they
+     * would have lost stays open instead.
+     */
+    private suspend fun closeUnitForRecovery(rootId: Workspace.Id): Boolean {
+        val members = peekStacks().unitOf(rootId) ?: return false
+        for (member in members.asReversed()) {
+            val live = _workspaces.value.firstOrNull { it.id == member.id } ?: continue
+            val blocker = memberCloseBlocker(live.info.value)
+            if (blocker != null) {
+                log(TAG, WARN) { "${member.id} turned $blocker mid-close, leaving ${rootId} open" }
+                return false
+            }
+            executeClose(member.id)
+        }
+        return true
     }
 
     /**
@@ -1094,12 +1167,21 @@ class WorkspaceRepo @Inject constructor(
      * to close in. Ties (identical timestamps, e.g. a batch) break on list order so the list is
      * deterministic. Blocked tabs are included, carrying their reason.
      *
+     * Each entry is a whole tab: identified and aged by its ownership root, but NAMED by whatever is
+     * on top of it, because that is what the user is looking at. The tab manager's cards resolve the
+     * same way.
+     *
+     * The branch is picked without a focus hint ([WorkspaceStacks.topChainByRoot] falls back to the
+     * newest), since focus lives in the UI layer. That only differs from what is on screen when one
+     * tab holds two sibling branches, and both die with the tab either way.
+     *
      * Restricted to what the quota counts: closing anything else would not free a slot, so listing
      * it would promise something the retry cannot deliver. Must be called while holding [lock].
      */
     private fun limitCandidates(): List<WorkspaceLimitCandidate> {
         val stacks = peekStacks()
         val titles = _customTitles.value
+        val topByRoot = stacks.topChainByRoot(focusedId = null)
         return _workspaces.value
             .withIndex()
             .filter { (_, workspace) -> workspace.isCountedTab }
@@ -1109,13 +1191,18 @@ class WorkspaceRepo @Inject constructor(
                 }.thenBy { it.index }
             )
             .map { (_, workspace) ->
-                val info = workspace.info.value.withCustomTitle(titles)
+                val root = workspace.info.value.withCustomTitle(titles)
+                val chain = topByRoot[workspace.id]
+                // The automatic name describes what is on top; a name the user typed belongs to the
+                // tab itself and outranks it, exactly as the tab manager's cards resolve it.
+                val top = chain?.leaf ?: root
                 WorkspaceLimitCandidate(
                     id = workspace.id,
-                    type = workspace.type,
-                    title = info.displayTitle,
-                    subtitle = info.subtitle,
+                    type = top.type,
+                    title = root.customTitle?.toCaString() ?: top.title,
+                    subtitle = top.subtitle,
                     openedAt = createdAtById[workspace.id] ?: Instant.DISTANT_PAST,
+                    stackDepth = chain?.modals?.size ?: 0,
                     blocker = limitCloseBlocker(workspace, stacks),
                 )
             }
@@ -1233,30 +1320,30 @@ class WorkspaceRepo @Inject constructor(
 
         var committedId: Workspace.Id? = null
         try {
-            // Re-checked per victim rather than once up front: buildWorkspace and every executeClose
-            // suspend, and Workspace.info is owned by the workspace, not by [lock] - a tab can pick up
-            // unsaved changes while the tab before it is still closing. Skipping one is recoverable,
-            // closing one that just turned dirty is not.
+            // Re-checked per member rather than once up front: buildWorkspace and every release()
+            // suspend, and Workspace.info is owned by the workspace, not by [lock] - a tab or one of
+            // its stacked children can pick up unsaved changes while an earlier one is closing.
+            // Skipping one is recoverable, closing one that just turned dirty is not.
             var closed = 0
             for (victim in victims) {
-                val blocker = limitCloseBlocker(victim, peekStacks())
-                if (blocker != null) {
-                    log(TAG, WARN) { "${victim.id} turned $blocker while closing, leaving it open" }
-                    continue
-                }
-                executeClose(victim.id)
-                closed++
+                if (closeUnitForRecovery(victim.id)) closed++
             }
-            if (closed < victims.size && countedTabCount() >= FREE_TIER_WORKSPACE_LIMIT) {
-                // Fewer slots freed than the sufficiency check assumed. The tabs the user picked and
-                // that were still safe are gone - they consented to that - but committing now would
-                // put them over the cap, so the remainder goes back to a fresh dialog.
+            // The live count decides, not the bookkeeping: whatever the reason fewer slots came free,
+            // committing on a cap that is still full is what must not happen. The tabs the user
+            // picked and that were still safe are gone - they consented to that - but the create goes
+            // back to a fresh dialog.
+            if (countedTabCount() >= FREE_TIER_WORKSPACE_LIMIT) {
                 log(TAG, WARN) { "Only $closed of ${victims.size} tabs could be closed, asking again" }
                 built.release()
                 postLimitDialog(retry = { newVictimIds -> recoverFromLimit(action, isPro, newVictimIds) })
                 return null
             }
-            val newId = commitWorkspace(built, action.replace, action.createdAt)
+            val newId = commitWorkspace(
+                newWorkspace = built,
+                idToReplace = action.replace,
+                createdAt = action.createdAt,
+                returnsResult = action.arguments is Workspace.ArgumentsForResult,
+            )
             committedId = newId
             trackUsage(action, Clock.System.now())
             _events.emit(
@@ -1487,6 +1574,7 @@ class WorkspaceRepo @Inject constructor(
         // A custom name must never outlive its tab and leak onto a workspace reusing the id
         _customTitles.update { it - workspaceId }
         createdAtById = createdAtById - workspaceId
+        resultReturningIds = resultReturningIds - workspaceId
         _workspaces.value = _workspaces.value.filter { it.id != workspaceId }
         _events.emit(WorkspaceEvent.Closed(workspaceId = workspaceId, callerWorkspaceId = callerWorkspaceId))
     }

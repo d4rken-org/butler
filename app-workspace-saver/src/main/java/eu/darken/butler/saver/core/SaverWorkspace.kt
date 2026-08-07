@@ -199,6 +199,15 @@ class SaverWorkspace @AssistedInject constructor(
             lifecycleState = Workspace.LifecycleState.Ready,
             operationCount = operationCount,
             attentionCount = attentionCount,
+            // The shared content only exists inside this tab until it is written somewhere: until
+            // then, closing the tab discards what the user handed to Butler. Same reasoning as
+            // [isPausable] below, said in the vocabulary the close paths understand.
+            //
+            // A finished save is not the same as a successful one: SaveFilesOperation collects
+            // per-file failures into the report and still completes, so a run that saved nothing at
+            // all arrives here as Success. Those sources are still only in this tab. Skipped files
+            // are not counted - the user chose to drop those.
+            hasUnsavedChanges = saveState !is SaveState.Success || saveState.report.errors.isNotEmpty(),
             // A transient export flow: filename edits and save progress live only in this instance,
             // never in the arguments, so releasing it would silently drop the user's export.
             isPausable = false,
@@ -207,10 +216,16 @@ class SaverWorkspace @AssistedInject constructor(
         )
     }.stateInWorkspace(
         scope = scope,
+        // The seed is what the close paths read synchronously before the first combine emission, so
+        // it has to state the tab's standing truth rather than the defaults: a Saver holds unsaved
+        // content from the moment it exists, and never becomes pausable.
         initial = initialInfo(
             title = seedDisplay?.title ?: type.label,
             subtitle = seedDisplay?.subtitle,
             arguments = creationArguments,
+        ).copy(
+            hasUnsavedChanges = true,
+            isPausable = false,
         ),
     )
 

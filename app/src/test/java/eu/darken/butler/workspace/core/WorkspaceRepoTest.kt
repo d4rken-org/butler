@@ -779,25 +779,225 @@ class WorkspaceRepoTest : BaseTest() {
         repo.closableIds() shouldBe ids.drop(1)
     }
 
+    /**
+     * A drill-down is not a dialog: an Apps tab with an app's details open is a tab with a detail
+     * view, and closing the tab is exactly what the user picked from the list.
+     */
     @Test
-    fun `a tab owning a live sub-workspace is listed but never closable`() = runTest(UnconfinedTestDispatcher()) {
+    fun `a tab with an informational drill-down stays closable`() = runTest(UnconfinedTestDispatcher()) {
         val repo = createRepo(isPro = false)
         val ids = repo.fillWithReadyTabs()
-        // Closing it would auto-close the modal the user is standing in
+        repo.createReadyChild(caller = ids[0])
+
+        repo.createRecoverable()
+
+        repo.blockerFor(ids[0]) shouldBe null
+        repo.closableIds() shouldBe ids
+    }
+
+    /** The row names what the user is looking at, which is the top of the stack, not the tab's root. */
+    @Test
+    fun `a stacked tab is named by the top of its stack`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo(isPro = false)
+        val ids = repo.fillWithReadyTabs()
+        repo.createReadyChild(caller = ids[0], type = Workspace.Type.APP_DETAILS)
+
+        repo.createRecoverable()
+
+        val stacked = repo.limitDialog().candidates.single { it.id == ids[0] }
+        stacked.type shouldBe Workspace.Type.APP_DETAILS
+        stacked.stackDepth shouldBe 1
+        stacked.title.get(context) shouldBe "Fake APP_DETAILS"
+        // A plain tab still names itself and carries no badge
+        val plain = repo.limitDialog().candidates.single { it.id == ids[1] }
+        plain.type shouldBe Workspace.Type.EXPLORER
+        plain.stackDepth shouldBe 0
+        plain.title.get(context) shouldBe "Fake EXPLORER"
+    }
+
+    /** A name the user typed belongs to the tab, so it outranks whatever is stacked on top of it. */
+    @Test
+    fun `a renamed tab keeps its custom title over the top of the stack`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo(isPro = false)
+            val ids = repo.fillWithReadyTabs()
+            repo.createReadyChild(caller = ids[0], type = Workspace.Type.APP_DETAILS)
+            repo.rename(ids[0], "My apps")
+
+            repo.createRecoverable()
+
+            val stacked = repo.limitDialog().candidates.single { it.id == ids[0] }
+            stacked.title.get(context) shouldBe "My apps"
+            // Still identifies as the stacked content in every other respect
+            stacked.type shouldBe Workspace.Type.APP_DETAILS
+            stacked.stackDepth shouldBe 1
+        }
+
+    /**
+     * A picker owes its caller a result that no longer has anywhere to go once the tab is closed.
+     * The picker here is deliberately left un-ready: owing a result must outrank the transient
+     * "still loading", or a freshly opened picker would explain itself with the wrong reason.
+     */
+    @Test
+    fun `a tab with an open picker is listed but never closable`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo(isPro = false)
+        val ids = repo.fillWithReadyTabs()
         repo.createSubWorkspace(caller = ids[0])
 
         repo.createRecoverable()
 
-        repo.blockerFor(ids[0]) shouldBe WorkspaceLimitCandidate.Blocker.HAS_MODAL
+        repo.blockerFor(ids[0]) shouldBe WorkspaceLimitCandidate.Blocker.AWAITING_RESULT
         repo.closableIds() shouldBe ids.drop(1)
     }
 
-    /** The sub-workspace itself is not a counted tab, so it never shows up as something to close. */
+    /**
+     * The regression that lifting the blanket stacked-tab refusal could have introduced: Close()
+     * takes the whole stack down, so a root that looks idle is not safe when its child is not.
+     */
     @Test
-    fun `a sub-workspace is not listed at all`() = runTest(UnconfinedTestDispatcher()) {
+    fun `a tab whose stacked child is dirty is blocked by the child`() = runTest(UnconfinedTestDispatcher()) {
         val repo = createRepo(isPro = false)
         val ids = repo.fillWithReadyTabs()
-        val sub = repo.createSubWorkspace(caller = ids[0])
+        val child = repo.createReadyChild(caller = ids[0])
+        markDirty(child)
+
+        repo.createRecoverable()
+
+        repo.blockerFor(ids[0]) shouldBe WorkspaceLimitCandidate.Blocker.UNSAVED_CHANGES
+        repo.closableIds() shouldBe ids.drop(1)
+    }
+
+    @Test
+    fun `a tab whose stacked child is busy is blocked by the child`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo(isPro = false)
+        val ids = repo.fillWithReadyTabs()
+        val child = repo.createReadyChild(caller = ids[0])
+        fake(child).info.update { it.copy(operationCount = 1) }
+
+        repo.createRecoverable()
+
+        repo.blockerFor(ids[0]) shouldBe WorkspaceLimitCandidate.Blocker.BUSY
+        repo.closableIds() shouldBe ids.drop(1)
+    }
+
+    @Test
+    fun `a tab whose stacked child needs attention is blocked by the child`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo(isPro = false)
+            val ids = repo.fillWithReadyTabs()
+            val child = repo.createReadyChild(caller = ids[0])
+            fake(child).info.update { it.copy(attentionCount = 1) }
+
+            repo.createRecoverable()
+
+            repo.blockerFor(ids[0]) shouldBe WorkspaceLimitCandidate.Blocker.NEEDS_ATTENTION
+            repo.closableIds() shouldBe ids.drop(1)
+        }
+
+    @Test
+    fun `a tab whose stacked child is still initializing is blocked by the child`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo(isPro = false)
+            val ids = repo.fillWithReadyTabs()
+            // Created but never marked ready
+            repo.execute(
+                WorkspaceAction.Create(
+                    type = Workspace.Type.APP_DETAILS,
+                    arguments = FakeChildArguments(Workspace.Type.APP_DETAILS, ids[0], true),
+                )
+            )
+
+            repo.createRecoverable()
+
+            repo.blockerFor(ids[0]) shouldBe WorkspaceLimitCandidate.Blocker.LOADING
+            repo.closableIds() shouldBe ids.drop(1)
+        }
+
+    @Test
+    fun `a tab whose stacked child holds a content claim is blocked by the child`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo(isPro = false)
+            val ids = repo.fillWithReadyTabs()
+            val child = repo.createReadyChild(caller = ids[0])
+            repo.execute(WorkspaceAction.ClaimContentPath(Workspace.Type.EXPLORER, pathA, child))
+
+            repo.createRecoverable()
+
+            repo.blockerFor(ids[0]) shouldBe WorkspaceLimitCandidate.Blocker.BUSY
+            repo.closableIds() shouldBe ids.drop(1)
+        }
+
+    /**
+     * Owing a result is structural, so it has to outrank a transient state anywhere else in the
+     * unit - otherwise an initializing root would explain an open picker as "still loading".
+     */
+    @Test
+    fun `an open picker outranks an initializing root`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo(isPro = false)
+        // A root that never became ready, with a picker stacked on it
+        val loadingRoot = repo.createTab()
+        val rest = repo.fillWithReadyTabs(WorkspaceRepo.FREE_TIER_WORKSPACE_LIMIT - 1)
+        repo.createSubWorkspace(caller = loadingRoot)
+
+        repo.createRecoverable()
+
+        repo.blockerFor(loadingRoot) shouldBe WorkspaceLimitCandidate.Blocker.AWAITING_RESULT
+        repo.closableIds() shouldBe rest
+    }
+
+    /**
+     * The intra-unit version of the mid-close race: the tab is torn down member by member, and every
+     * release suspends, so a sibling child can turn dirty while the first one is closing. Closing it
+     * anyway would destroy work inside a tab the user only agreed to close while it was safe.
+     */
+    @Test
+    fun `a stacked child that turns dirty mid-close leaves its tab open`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo(isPro = false)
+            val ids = repo.fillWithReadyTabs()
+            val childA = repo.createReadyChild(caller = ids[0])
+            val childB = repo.createReadyChild(caller = ids[0])
+            repo.createRecoverable(type = Workspace.Type.SEARCHER)
+            // Releasing one child dirties its sibling, which the up-front check could not have seen
+            fake(childB).whileReleasing = { markDirty(childA) }
+
+            repo.resolveLimit(ids[0])
+
+            // The tab and the child that turned dirty both survive
+            fake(childA).released shouldBe false
+            repo.retrieve(ids[0]).first() shouldNotBe null
+            // The replacement is built before anything is closed, so it exists but must be abandoned
+            val abandoned = createdWorkspaces.single { it.type == Workspace.Type.SEARCHER }
+            abandoned.released shouldBe true
+            repo.retrieve(abandoned.id).first() shouldBe null
+            repo.countedTabs() shouldBe WorkspaceRepo.FREE_TIER_WORKSPACE_LIMIT
+        }
+
+    /** Closing a stacked tab frees exactly one slot: only its root ever counted against the quota. */
+    @Test
+    fun `closing a stacked tab takes the whole stack and frees one slot`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo(isPro = false)
+        val ids = repo.fillWithReadyTabs()
+        val child = repo.createReadyChild(caller = ids[0])
+        repo.createRecoverable(type = Workspace.Type.SEARCHER)
+
+        repo.resolveLimit(ids[0])
+
+        repo.retrieve(ids[0]).first() shouldBe null
+        repo.retrieve(child).first() shouldBe null
+        createdWorkspaces.count { it.type == Workspace.Type.SEARCHER } shouldBe 1
+        repo.countedTabs() shouldBe WorkspaceRepo.FREE_TIER_WORKSPACE_LIMIT
+    }
+
+    /**
+     * The sub-workspace is never its own row: it is part of the tab it sits on, which is the thing
+     * that gets closed. It lends that row its name, not a second entry.
+     */
+    @Test
+    fun `a sub-workspace is not listed as its own row`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo(isPro = false)
+        val ids = repo.fillWithReadyTabs()
+        val sub = repo.createReadyChild(caller = ids[0])
 
         repo.createRecoverable()
 
