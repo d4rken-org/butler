@@ -1,6 +1,7 @@
 package eu.darken.butler.common.files.local
 
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
@@ -9,6 +10,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -1172,22 +1174,41 @@ class LocalPathCopyTest : BaseTest() {
     fun `copy file with null size succeeds and uses 0L for byte tracking`(@TempDir tempDir: File) = runTest {
         val sourceFolder = File(tempDir, "source").apply { mkdirs() }
         val destFolder = File(tempDir, "dest").apply { mkdirs() }
-        // Given - File that would have null size in partial lookup scenario (e.g., "/" on Android)
+        // Given - a source whose lookup reports no size, as a partial lookup does (e.g. "/" on Android)
         val sourceFile = File(sourceFolder, "restricted.txt")
         sourceFile.writeText("content")
-        sourceFile.length()
+        val sourcePath = LocalPath.build(sourceFile)
 
-        // When - Copy operation should handle potential null sizes in metadata gracefully
-        val result = LocalPath.build(sourceFile).copy(ops, LocalPath.build(destFolder))
+        // preserveAttributes defaults to true, so the scan looks the source up with MAX
+        val nullSizeLookup = ops.lookup(sourcePath, LookupOptions.MAX).copy(size = null)
+        val spyOps = spyk(ops)
+        coEvery { spyOps.lookup(sourcePath, LookupOptions.MAX) } returns nullSizeLookup
+
+        val states = mutableListOf<CopyAction.State<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>>()
+
+        // When
+        val result = sourcePath.copy(spyOps, LocalPath.build(destFolder))
+            .onEach { states.add(it) }
             .last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
-        // Then - file copied successfully despite potential null size metadata
+        // Then - file copied successfully despite the missing size metadata
         val destFile = File(destFolder, "restricted.txt")
         destFile.exists() shouldBe true
         destFile.readText() shouldBe "content"
-        result.copied shouldContainPath (LocalPath.build(sourceFile) to LocalPath.build(destFile))
+        result.copied shouldContainPath (sourcePath to LocalPath.build(destFile))
+        result.copied shouldHaveSize 1
+        result.copied.single().first.size shouldBe null
 
-        // Verify byte tracking reports the bytes actually streamed, not the 0L progress fallback
+        // Progress totals fall back to 0L because the size was never known
+        val activeStates =
+            states.filterIsInstance<CopyAction.State.Active<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>>()
+        activeStates.shouldNotBeEmpty()
+        activeStates.forEach {
+            it.totalBytes shouldBe 0L
+            it.currentFileSize shouldBe 0L
+        }
+
+        // ... while byte tracking still reports the bytes actually streamed
         result.copiedBytes shouldBe "content".length.toLong()
     }
 

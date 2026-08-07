@@ -1,10 +1,10 @@
 package eu.darken.butler.common.files.local
 
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
-import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.OwnershipResolver
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
@@ -15,7 +15,9 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import io.mockk.coEvery
 import io.mockk.mockk
+import io.mockk.spyk
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assumptions.assumeTrue
@@ -1284,33 +1286,31 @@ class LocalPathDeleteTest : BaseTest() {
 
     @Test
     fun `delete file with null size completes successfully`(@TempDir tempDir: File) = runTest {
-        // Given - Create a lookup with null size (simulates partial lookup from "/" scenario)
+        // Given - a target whose lookup reports no size, as a partial lookup does (e.g. "/" on Android)
         val testFile = File(tempDir, "restricted.txt")
         testFile.writeText("content")
+        val targetPath = LocalPath.build(testFile)
 
-        // Create a stub lookup with null size
-        LocalPathLookup(
-            lookedUp = LocalPath.build(testFile),
-            fileType = FileType.FILE,
-            size = null,  // Null size due to permission error
-            modifiedAt = kotlin.time.Instant.fromEpochMilliseconds(System.currentTimeMillis()),
-            error = "Permission denied"
-        )
+        // The delete scan looks the target up with BASE
+        val nullSizeLookup = ops.lookup(targetPath, LookupOptions.BASE).copy(size = null)
+        val spyOps = spyk(ops)
+        coEvery { spyOps.lookup(targetPath, LookupOptions.BASE) } returns nullSizeLookup
 
         // When - operation should handle null size gracefully
-        val result = LocalPath.build(testFile).delete(ops).last() as DeleteAction.State.Completed
+        val result = targetPath.delete(spyOps).last() as DeleteAction.State.Completed
 
         // Then - file deleted successfully despite null size in metadata
-        result.deleted.map { it.lookedUp } shouldContain LocalPath.build(testFile)
+        result.deleted.map { it.lookedUp } shouldBe listOf(targetPath)
+        result.deleted.single().size shouldBe null
         testFile.exists() shouldBe false
 
-        // Verify progress tracking accounted for the file's real size, not the 0L fallback
-        result.bytesTotal shouldBe "content".length.toLong()
+        // Byte tracking falls back to 0L because the size was never known
+        result.bytesTotal shouldBe 0L
     }
 
     @Test
     fun `delete multiple files with mixed null and non-null sizes`(@TempDir tempDir: File) = runTest {
-        // Given - Three files with different size scenarios
+        // Given - Three files, one of which looks up without a size
         val file1 = File(tempDir, "file1.txt")
         val file2 = File(tempDir, "file2.txt")
         val file3 = File(tempDir, "file3.txt")
@@ -1319,12 +1319,16 @@ class LocalPathDeleteTest : BaseTest() {
         file2.writeText("x".repeat(50))   // 50 bytes
         file3.writeText("x".repeat(75))   // 75 bytes
 
-        // When - delete all files (some may have null sizes in real "/" scenario)
-        val result = listOf(
-            LocalPath.build(file1),
-            LocalPath.build(file2),
-            LocalPath.build(file3)
-        ).delete(ops).last() as DeleteAction.State.Completed
+        val path1 = LocalPath.build(file1)
+        val path2 = LocalPath.build(file2)
+        val path3 = LocalPath.build(file3)
+
+        val spyOps = spyk(ops)
+        coEvery { spyOps.lookup(path2, LookupOptions.BASE) } returns
+            ops.lookup(path2, LookupOptions.BASE).copy(size = null)
+
+        // When
+        val result = listOf(path1, path2, path3).delete(spyOps).last() as DeleteAction.State.Completed
 
         // Then - all files deleted successfully
         result.deleted shouldHaveSize 3
@@ -1332,7 +1336,12 @@ class LocalPathDeleteTest : BaseTest() {
         file2.exists() shouldBe false
         file3.exists() shouldBe false
 
-        // Verify bytesTotal calculated correctly (nulls treated as 0)
-        result.bytesTotal shouldBe 225L
+        // The null size is reported as null, not coerced, and bytesTotal simply omits it
+        result.deleted.associate { it.lookedUp to it.size } shouldBe mapOf(
+            path1 to 100L,
+            path2 to null,
+            path3 to 75L,
+        )
+        result.bytesTotal shouldBe 175L
     }
 }
