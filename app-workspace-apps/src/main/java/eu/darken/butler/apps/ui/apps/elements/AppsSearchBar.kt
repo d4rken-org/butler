@@ -37,8 +37,13 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 
+/**
+ * The bare input: no background, no padding, no icons. Hosts that already draw a surface around it
+ * inline this instead of [AppsSearchBar], so the field doesn't end up as a card inside a card with
+ * both paddings stacking.
+ */
 @Composable
-fun AppsSearchBar(
+fun AppsSearchField(
     modifier: Modifier = Modifier,
     query: TextFieldValue,
     onQueryChange: (TextFieldValue) -> Unit,
@@ -51,10 +56,50 @@ fun AppsSearchBar(
     val focusRequester = remember { FocusRequester() }
 
     // Keyed on the flag rather than Unit, so a false -> true flip in a surviving composition (the
-    // toolbar swapping its title column for the search input) still opens the keyboard.
+    // toolbar swapping its title for the search input) still opens the keyboard.
     LaunchedEffect(autoFocus) {
         if (autoFocus) runCatching { focusRequester.requestFocus() }
     }
+
+    BasicTextField(
+        value = query,
+        onValueChange = onQueryChange,
+        modifier = modifier.focusRequester(focusRequester),
+        textStyle = MaterialTheme.typography.bodyMedium.copy(
+            color = colors.onSurface
+        ),
+        cursorBrush = SolidColor(colors.primary),
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+        keyboardActions = KeyboardActions(onDone = {
+            keyboardController?.hide()
+        }),
+        singleLine = true,
+        interactionSource = interactionSource,
+        decorationBox = { innerTextField ->
+            Box {
+                if (query.text.isEmpty()) {
+                    Text(
+                        text = hint,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = colors.onSurfaceVariant.copy(alpha = 0.6f),
+                    )
+                }
+                innerTextField()
+            }
+        }
+    )
+}
+
+/** [AppsSearchField] on its own surface, for hosts that need a standalone search box. */
+@Composable
+fun AppsSearchBar(
+    modifier: Modifier = Modifier,
+    query: TextFieldValue,
+    onQueryChange: (TextFieldValue) -> Unit,
+    hint: String = stringResource(R.string.apps_search_hint),
+    autoFocus: Boolean = false,
+) {
+    val colors = MaterialTheme.colorScheme
 
     Surface(
         modifier = modifier.fillMaxWidth(),
@@ -77,35 +122,12 @@ fun AppsSearchBar(
                 )
             }
 
-            // Text field
-            BasicTextField(
-                value = query,
-                onValueChange = onQueryChange,
-                modifier = Modifier
-                    .weight(1f)
-                    .focusRequester(focusRequester),
-                textStyle = MaterialTheme.typography.bodyMedium.copy(
-                    color = colors.onSurface
-                ),
-                cursorBrush = SolidColor(colors.primary),
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(onDone = {
-                    keyboardController?.hide()
-                }),
-                singleLine = true,
-                interactionSource = interactionSource,
-                decorationBox = { innerTextField ->
-                    Box {
-                        if (query.text.isEmpty()) {
-                            Text(
-                                text = hint,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = colors.onSurfaceVariant.copy(alpha = 0.6f),
-                            )
-                        }
-                        innerTextField()
-                    }
-                }
+            AppsSearchField(
+                modifier = Modifier.weight(1f),
+                query = query,
+                onQueryChange = onQueryChange,
+                hint = hint,
+                autoFocus = autoFocus,
             )
 
             // Trailing icon - clear button when query is not empty

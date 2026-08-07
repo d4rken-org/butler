@@ -1,8 +1,6 @@
 package eu.darken.butler.apps.ui.details
 
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -32,7 +30,7 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.apps.R
 import eu.darken.butler.apps.core.details.AppInfo
-import eu.darken.butler.apps.ui.apps.elements.AppsSearchBar
+import eu.darken.butler.apps.ui.apps.elements.AppsSearchField
 import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
@@ -46,6 +44,17 @@ import eu.darken.butler.workspace.ui.common.CutoutMode
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonDefaults
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+
+/**
+ * Expanded sizing budget. The card is a full-height cutout card, so it renders exactly as tall as
+ * the workspace button beside it as long as its own content stays within
+ * `WorkspaceButtonDefaults.sizeDefault - 2 * ExpandedContentPadding` (48 - 16 = 32dp). Every element
+ * in the row is sized against that budget, including the search field, which is why it is inlined
+ * rather than boxed.
+ */
+private val ExpandedContentPadding = 8.dp
+private val ControlSize = 32.dp
+private val ControlIconSize = 20.dp
 
 @Composable
 fun AppDetailsToolbarCard(
@@ -73,23 +82,13 @@ fun AppDetailsToolbarCard(
     val isCollapsed = collapsedFraction > 0.5f
 
     val cardPadding by animateDpAsState(
-        targetValue = if (isCollapsed) CutoutCardDefaults.ContentPaddingCollapsed else CutoutCardDefaults.ContentPaddingExpanded,
+        targetValue = if (isCollapsed) CutoutCardDefaults.ContentPaddingCollapsed else ExpandedContentPadding,
         label = "cardPadding"
     )
 
     val iconSize by animateDpAsState(
-        targetValue = if (isCollapsed) 24.dp else 40.dp,
+        targetValue = if (isCollapsed) 24.dp else 32.dp,
         label = "iconSize"
-    )
-
-    val controlSize by animateDpAsState(
-        targetValue = if (isCollapsed) 32.dp else 40.dp,
-        label = "controlSize"
-    )
-
-    val controlIconSize by animateDpAsState(
-        targetValue = if (isCollapsed) 20.dp else 24.dp,
-        label = "controlIconSize"
     )
 
     CutoutCard(
@@ -115,97 +114,84 @@ fun AppDetailsToolbarCard(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // Back button (modal close or sub-screen navigation)
-            if (onBackClick != null) {
-                IconButton(
-                    onClick = onBackClick,
-                    modifier = Modifier.size(controlSize)
-                ) {
+            // While searching, the back button and app icon give way to the input - the close button
+            // is the way back out, and it restores both.
+            if (!searchActive) {
+                // Back button (modal close or sub-screen navigation)
+                if (onBackClick != null) {
+                    IconButton(
+                        onClick = onBackClick,
+                        modifier = Modifier.size(ControlSize)
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.TwoTone.ArrowBack,
+                            contentDescription = backContentDescription
+                                ?: stringResource(R.string.appdetails_back_generic_action),
+                            modifier = Modifier.size(ControlIconSize),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                } else {
+                    // Add padding in pane mode
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+
+                // App icon
+                if (app != null) {
+                    TintedAsyncImage(
+                        model = app.install,
+                        contentDescription = app.label.asComposable(),
+                        modifier = Modifier.size(iconSize)
+                    )
+                } else {
                     Icon(
-                        imageVector = Icons.AutoMirrored.TwoTone.ArrowBack,
-                        contentDescription = backContentDescription
-                            ?: stringResource(R.string.appdetails_back_generic_action),
-                        modifier = Modifier.size(controlIconSize),
+                        imageVector = Icons.TwoTone.Android,
+                        contentDescription = null,
+                        modifier = Modifier.size(iconSize),
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }
-            } else {
-                // Add padding in pane mode
-                Spacer(modifier = Modifier.width(8.dp))
-            }
-
-            // App icon
-            if (app != null) {
-                TintedAsyncImage(
-                    model = app.install,
-                    contentDescription = app.label.asComposable(),
-                    modifier = Modifier.size(iconSize)
-                )
-            } else {
-                Icon(
-                    imageVector = Icons.TwoTone.Android,
-                    contentDescription = null,
-                    modifier = Modifier.size(iconSize),
-                    tint = MaterialTheme.colorScheme.primary
-                )
             }
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            // App name plus optional sub-screen subtitle, replaced by the search input while active.
-            // Collapsing only affects padding, icon size and title lines — it must never drop the
+            // App name and optional sub-screen subtitle on a single line, replaced by the search
+            // input while active. Collapsing only shrinks paddings and type - it must never drop the
             // search field, because CollapseOnScroll never hides the bar itself.
             if (searchActive) {
-                AppsSearchBar(
+                // Bare field, not AppsSearchBar: its surface inside the card would be a card in a
+                // card, stacking both paddings and pushing the toolbar past the workspace button.
+                AppsSearchField(
                     modifier = Modifier.weight(1f),
                     query = searchQuery,
                     onQueryChange = onSearchQueryChange,
                     hint = searchHint ?: stringResource(R.string.apps_components_search_hint),
                     autoFocus = true,
                 )
-            } else if (isCollapsed) {
-                // Collapsed: title and subtitle share one line, so the bar keeps the same height as
-                // the other workspaces' collapsed toolbars instead of staying two lines tall.
+            } else {
                 Text(
                     modifier = Modifier.weight(1f),
                     text = listOfNotNull(app?.label?.get(context)?.takeIf { it.isNotBlank() }, subtitle)
                         .joinToString(" · "),
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = if (isCollapsed) {
+                        MaterialTheme.typography.bodyMedium
+                    } else {
+                        MaterialTheme.typography.titleMedium
+                    },
+                    fontWeight = if (isCollapsed) null else FontWeight.SemiBold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
-            } else {
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = app?.label?.get(context) ?: "",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    subtitle?.let {
-                        Text(
-                            text = it,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                }
             }
 
             if (onSearchToggle != null) {
                 IconButton(
                     onClick = onSearchToggle,
-                    modifier = Modifier.size(controlSize)
+                    modifier = Modifier.size(ControlSize)
                 ) {
                     Icon(
                         imageVector = if (searchActive) Icons.TwoTone.Close else Icons.TwoTone.Search,
-                        modifier = Modifier.size(controlIconSize),
+                        modifier = Modifier.size(ControlIconSize),
                         contentDescription = if (searchActive) {
                             stringResource(eu.darken.butler.common.R.string.general_close_action)
                         } else {

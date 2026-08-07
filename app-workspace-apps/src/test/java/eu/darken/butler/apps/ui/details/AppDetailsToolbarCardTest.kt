@@ -36,7 +36,7 @@ class AppDetailsToolbarCardTest : ComposeTest() {
     }
 
     @Test
-    fun `toolbar shows the app name alongside a subtitle`() {
+    fun `toolbar joins app name and subtitle into one line`() {
         composeTestRule.setContent {
             PreviewWrapper {
                 // The Components sub-screen of a modal: its back button returns to the overview.
@@ -50,8 +50,8 @@ class AppDetailsToolbarCardTest : ComposeTest() {
             }
         }
 
-        composeTestRule.onNodeWithText("Chrome").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Components").assertIsDisplayed()
+        // One line in both states: stacking them would push the bar past the workspace button.
+        composeTestRule.onNodeWithText("Chrome · Components").assertIsDisplayed()
     }
 
     @Test
@@ -69,8 +69,37 @@ class AppDetailsToolbarCardTest : ComposeTest() {
             }
         }
 
-        // One line keeps the collapsed bar at the same height as the other workspaces' toolbars.
         composeTestRule.onNodeWithText("Chrome · Components").assertIsDisplayed()
+    }
+
+    @Test
+    fun `an open search field hides the back button`() {
+        composeTestRule.setContent {
+            var searchActive by remember { mutableStateOf(false) }
+            PreviewWrapper {
+                AppDetailsToolbarCard(
+                    app = AppsMockDataProvider.Presets.chrome,
+                    design = WorkspaceDesign(),
+                    isModal = true,
+                    subtitle = "Components",
+                    onBackClick = {},
+                    backContentDescription = "Back to app details",
+                    searchActive = searchActive,
+                    searchQuery = TextFieldValue(),
+                    onSearchToggle = { searchActive = !searchActive },
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithContentDescription("Back to app details").assertIsDisplayed()
+
+        // The back arrow and the app icon step aside to make room for the query; closing the search
+        // is what brings them back.
+        composeTestRule.onNodeWithContentDescription("Search components").performClick()
+        composeTestRule.onNodeWithContentDescription("Back to app details").assertDoesNotExist()
+
+        composeTestRule.onNodeWithContentDescription("Close").performClick()
+        composeTestRule.onNodeWithContentDescription("Back to app details").assertIsDisplayed()
     }
 
     @Test
