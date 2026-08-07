@@ -12,10 +12,14 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.types.shouldBeInstanceOf
+import io.mockk.coEvery
 import io.mockk.mockk
+import io.mockk.spyk
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.test.runTest
+import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import testhelpers.BaseTest
@@ -191,23 +195,26 @@ class LocalPathCopyTest : BaseTest() {
 
         targetFile.writeText("target content")
 
-        try {
-            // Create symlink with relative path
+        // Setup-only assumption: only symlink CREATION may be unavailable on the host. Everything
+        // below is unconditional, so the copy behaviour can never silently go unexercised.
+        val symlinkCreated = runCatching {
             Files.createSymbolicLink(symlink.toPath(), java.nio.file.Paths.get("target.txt"))
+        }.isSuccess
+        assumeTrue(symlinkCreated, "Host filesystem does not support symlink creation")
+        Files.isSymbolicLink(symlink.toPath()) shouldBe true
 
-            if (Files.isSymbolicLink(symlink.toPath())) {
-                // When
-                val result = LocalPath.build(symlink).copy(ops, LocalPath.build(destFolder))
-                    .last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+        // When
+        val result = LocalPath.build(symlink).copy(ops, LocalPath.build(destFolder))
+            .last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
-                // Then
-                File(destFolder, "symlink").exists() shouldBe true
-                // Symlink should be copied as a symlink (implementation dependent)
-                result.copied.size shouldBe 1
-            }
-        } catch (_: Exception) {
-            // Symlink creation may fail on some systems - skip test gracefully
-        }
+        // Then - the link itself is copied and still points at the original target, which was
+        // neither followed nor duplicated into the destination
+        val copiedLink = File(destFolder, "symlink")
+        Files.isSymbolicLink(copiedLink.toPath()) shouldBe true
+        Files.readSymbolicLink(copiedLink.toPath()).toFile() shouldBe targetFile
+        File(destFolder, "target.txt").exists() shouldBe false
+        result.copied shouldHaveSize 1
+        result.skipped.shouldBeEmpty()
     }
 
     @Test
@@ -583,22 +590,23 @@ class LocalPathCopyTest : BaseTest() {
     fun `handle read-only source files gracefully`(@TempDir tempDir: File) = runTest {
         val sourceFolder = File(tempDir, "source").apply { mkdirs() }
         val destFolder = File(tempDir, "dest").apply { mkdirs() }
-        // Given
+        // Given - a source file the owner may read but not write
         val sourceFile = File(sourceFolder, "readonly.txt")
         sourceFile.writeText("readonly content")
+        sourceFile.setReadOnly() shouldBe true
 
-        try {
-            sourceFile.setReadOnly()
+        // When
+        val result = LocalPath.build(sourceFile).copy(ops, LocalPath.build(destFolder))
+            .last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
-            // When - should succeed or handle gracefully
-            val result = LocalPath.build(sourceFile).copy(ops, LocalPath.build(destFolder))
-                .last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
-
-            // Then - should complete without crashing
-            result.copiedBytes should { it >= 0 }
-        } catch (e: SecurityException) {
-            // Expected on some systems
-        }
+        // Then - read-only is not a read barrier, so the copy completes in full
+        result.copied shouldContainPath (
+            LocalPath.build(sourceFile) to LocalPath.build(File(destFolder, "readonly.txt"))
+            )
+        result.skipped.shouldBeEmpty()
+        result.copiedBytes shouldBe "readonly content".length.toLong()
+        File(destFolder, "readonly.txt").readText() shouldBe "readonly content"
+        sourceFile.exists() shouldBe true
     }
 
     // ============ ISSUE HANDLING - UNKNOWN ERRORS ============
@@ -661,24 +669,29 @@ class LocalPathCopyTest : BaseTest() {
 
         val readOnlyParent = File(tempDir, "readonly-parent")
         readOnlyParent.mkdirs()
-        readOnlyParent.setReadOnly()
 
         val destinationInReadOnly = File(readOnlyParent, "dest-folder")
+        val destinationPath = LocalPath.build(destinationInReadOnly)
 
-        try {
-            // When/Then
-            val exception = shouldThrow<WriteException> {
-                LocalPath.build(sourceFile).copy(ops, LocalPath.build(destinationInReadOnly)).last()
-            }
+        // setReadOnly() is not a reliable barrier (a privileged test process writes through it), so
+        // inject exactly the failure a real EACCES produces inside LocalFileSystemOps.
+        val spyOps = spyk(ops)
+        coEvery { spyOps.openOutputStream(destinationPath, append = false) } throws WriteException(
+            path = destinationPath,
+            cause = java.nio.file.AccessDeniedException(destinationPath.path),
+        )
 
-            // Verify the exception is about the destination path
-            exception.path shouldBe LocalPath.build(destinationInReadOnly)
-            // Verify it's an IO error (permission or creation failure)
-            exception.cause shouldNotBe null
-        } finally {
-            // Cleanup - restore write permissions
-            readOnlyParent.setWritable(true)
+        // When/Then - with no issue handler the failure must surface unchanged, not be swallowed
+        val exception = shouldThrow<WriteException> {
+            LocalPath.build(sourceFile).copy(spyOps, destinationPath).last()
         }
+
+        // Verify the exception is about the destination path
+        exception.path shouldBe destinationPath
+        // Verify it's an IO error (permission or creation failure)
+        exception.cause.shouldBeInstanceOf<java.nio.file.AccessDeniedException>()
+        destinationInReadOnly.exists() shouldBe false
+        sourceFile.readText() shouldBe "content"
     }
 
     @Test
@@ -1174,10 +1187,8 @@ class LocalPathCopyTest : BaseTest() {
         destFile.readText() shouldBe "content"
         result.copied shouldContainPath (LocalPath.build(sourceFile) to LocalPath.build(destFile))
 
-        // Verify byte tracking used appropriate fallback (actual size or 0L for null)
-        result.copiedBytes should { it >= 0L }
-        // In real scenario with null size, copiedBytes would be actualSize (from stream copy)
-        // but progress tracking during transfer would use 0L fallback
+        // Verify byte tracking reports the bytes actually streamed, not the 0L progress fallback
+        result.copiedBytes shouldBe "content".length.toLong()
     }
 
     @Test

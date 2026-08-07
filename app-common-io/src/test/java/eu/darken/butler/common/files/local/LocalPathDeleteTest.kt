@@ -11,7 +11,6 @@ import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
-import io.kotest.matchers.longs.shouldBeGreaterThanOrEqual
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -19,6 +18,7 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.mockk
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.test.runTest
+import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import testhelpers.BaseTest
@@ -225,24 +225,18 @@ class LocalPathDeleteTest : BaseTest() {
 
     @Test
     fun `handle read-only files gracefully`(@TempDir tempDir: File) = runTest {
-        // Given
+        // Given - a read-only file inside a writable directory
         val readOnlyFile = File(tempDir, "readonly.txt")
         readOnlyFile.writeText("readonly content")
+        readOnlyFile.setReadOnly() shouldBe true
 
-        // Note: On many systems, setting read-only doesn't prevent deletion by owner
-        // This test mainly verifies the code doesn't crash with permission issues
-        try {
-            readOnlyFile.setReadOnly()
+        // When
+        val result = listOf(LocalPath.build(readOnlyFile)).delete(ops).last() as DeleteAction.State.Completed
 
-            // When
-            val result = listOf(LocalPath.build(readOnlyFile)).delete(ops).last() as DeleteAction.State.Completed
-
-            // Then - depending on system, file may or may not be deleted
-            // The important thing is that it doesn't throw an exception
-            result.deleted.size shouldBe if (readOnlyFile.exists()) 0 else 1
-        } catch (e: SecurityException) {
-            // Expected on some systems
-        }
+        // Then - unlink is governed by the parent directory, so the read-only bit does not block it
+        result.deleted.map { it.lookedUp } shouldBe listOf(LocalPath.build(readOnlyFile))
+        result.skipped.shouldBeEmpty()
+        readOnlyFile.exists() shouldBe false
     }
 
     @Test
@@ -253,21 +247,23 @@ class LocalPathDeleteTest : BaseTest() {
 
         targetFile.writeText("target content")
 
-        try {
-            // Create symlink (may not work on all systems/permissions)
+        // Setup-only assumption: only symlink CREATION may be unavailable on the host. Everything
+        // below is unconditional, so the delete behaviour can never silently go unexercised.
+        val symlinkCreated = runCatching {
             Files.createSymbolicLink(symlink.toPath(), targetFile.toPath())
+        }.isSuccess
+        assumeTrue(symlinkCreated, "Host filesystem does not support symlink creation")
+        Files.isSymbolicLink(symlink.toPath()) shouldBe true
 
-            // Only proceed if symlink was actually created
-            if (Files.isSymbolicLink(symlink.toPath())) {
-                // When - the key thing is that deletion doesn't crash
-                listOf(LocalPath.build(symlink)).delete(ops).last()
+        // When
+        val result = listOf(LocalPath.build(symlink)).delete(ops).last() as DeleteAction.State.Completed
 
-                // Then - target should remain intact
-                targetFile.exists() shouldBe true // Target should remain intact
-            }
-        } catch (e: Exception) {
-            // Symlink creation or operations may fail on some systems - skip test gracefully
-        }
+        // Then - only the link is unlinked, the target it points at survives untouched
+        result.deleted.map { it.lookedUp } shouldBe listOf(LocalPath.build(symlink))
+        result.skipped.shouldBeEmpty()
+        Files.exists(symlink.toPath(), LinkOption.NOFOLLOW_LINKS) shouldBe false
+        targetFile.exists() shouldBe true
+        targetFile.readText() shouldBe "target content"
     }
 
     @Test
@@ -359,13 +355,14 @@ class LocalPathDeleteTest : BaseTest() {
         val testFile = File(tempDir, "test.txt")
         testFile.writeText("content")
 
-        // When - no onIssue callback provided, should continue with other files
+        // When - no onIssue callback provided
         val result =
             listOf(LocalPath.build(testFile)).delete(ops, onIssue = null).last() as DeleteAction.State.Completed
 
-        // Then - should not crash and complete normally
-        // File should be deleted if permissions allow, or operation continues gracefully
-        result.deleted should { it.size >= 0 }
+        // Then - the no-handler path still performs the deletion
+        result.deleted.map { it.lookedUp } shouldBe listOf(LocalPath.build(testFile))
+        result.skipped.shouldBeEmpty()
+        testFile.exists() shouldBe false
     }
 
     // ============ RECURSIVE FLAG TESTS ============
@@ -757,24 +754,26 @@ class LocalPathDeleteTest : BaseTest() {
 
         targetFile.writeText("target content")
 
-        try {
+        // Setup-only assumption: only symlink CREATION may be unavailable on the host. Everything
+        // below is unconditional, so the delete behaviour can never silently go unexercised.
+        val symlinkCreated = runCatching {
             Files.createSymbolicLink(symlink.toPath(), targetFile.toPath())
+        }.isSuccess
+        assumeTrue(symlinkCreated, "Host filesystem does not support symlink creation")
+        Files.isSymbolicLink(symlink.toPath()) shouldBe true
 
-            // Only proceed if symlink was actually created
-            if (Files.isSymbolicLink(symlink.toPath())) {
-                // When - delete existing symlink and missing symlink with various flag combinations
-                val result = listOf(
-                    LocalPath.build(symlink),
-                    LocalPath.build(nonExistentSymlink)
-                ).delete(ops, recursive = true, ignoreMissing = true).last() as DeleteAction.State.Completed
+        // When - delete existing symlink and missing symlink with various flag combinations
+        val result = listOf(
+            LocalPath.build(symlink),
+            LocalPath.build(nonExistentSymlink)
+        ).delete(ops, recursive = true, ignoreMissing = true).last() as DeleteAction.State.Completed
 
-                // Then - should delete symlink but ignore missing one, target should remain
-                result.deleted.map { it.lookedUp } shouldContain LocalPath.build(symlink)
-                targetFile.exists() shouldBe true // Target should remain intact
-            }
-        } catch (e: Exception) {
-            // Symlink creation may fail on some systems - skip test gracefully
-        }
+        // Then - the link goes, the missing entry is ignored rather than reported, target remains
+        result.deleted.map { it.lookedUp } shouldBe listOf(LocalPath.build(symlink))
+        result.skipped.shouldBeEmpty()
+        Files.exists(symlink.toPath(), LinkOption.NOFOLLOW_LINKS) shouldBe false
+        targetFile.exists() shouldBe true
+        targetFile.readText() shouldBe "target content"
     }
 
     @Test
@@ -1305,8 +1304,8 @@ class LocalPathDeleteTest : BaseTest() {
         result.deleted.map { it.lookedUp } shouldContain LocalPath.build(testFile)
         testFile.exists() shouldBe false
 
-        // Verify progress tracking used 0L fallback for null size
-        result.bytesTotal.shouldBeGreaterThanOrEqual(0L)
+        // Verify progress tracking accounted for the file's real size, not the 0L fallback
+        result.bytesTotal shouldBe "content".length.toLong()
     }
 
     @Test
@@ -1334,7 +1333,6 @@ class LocalPathDeleteTest : BaseTest() {
         file3.exists() shouldBe false
 
         // Verify bytesTotal calculated correctly (nulls treated as 0)
-        // Total should be approximately 225 bytes (100+50+75)
-        result.bytesTotal.shouldBeGreaterThanOrEqual(0L)
+        result.bytesTotal shouldBe 225L
     }
 }

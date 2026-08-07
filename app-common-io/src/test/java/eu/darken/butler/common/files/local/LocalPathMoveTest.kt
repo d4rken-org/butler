@@ -918,17 +918,22 @@ class LocalPathMoveTest : BaseTest() {
     fun `handle read-only source files gracefully`(@TempDir tempDir: File) = runTest {
         val sourceFolder = File(tempDir, "source").apply { mkdirs() }
         val destFolder = File(tempDir, "dest").apply { mkdirs() }
-        // Given
+        // Given - a source file the owner may read but not write
         val sourceFile = File(sourceFolder, "readonly.txt")
         sourceFile.writeText("readonly content")
+        sourceFile.setReadOnly() shouldBe true
 
         // When
         val result = LocalPath.build(sourceFile).move(ops, LocalPath.build(destFolder))
             .last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
-        // Then - should succeed even if file was read-only
-        File(destFolder, "readonly.txt").exists() shouldBe true
-        result.movedFiles shouldHaveSize 1
+        // Then - a rename is governed by the parent directory, so read-only does not block the move
+        result.movedFiles shouldContainPath (
+            LocalPath.build(sourceFile) to LocalPath.build(File(destFolder, "readonly.txt"))
+            )
+        result.skippedFiles.shouldBeEmpty()
+        File(destFolder, "readonly.txt").readText() shouldBe "readonly content"
+        sourceFile.exists() shouldBe false
     }
 
     // ============ VERIFICATION TESTS ============
@@ -1178,8 +1183,9 @@ class LocalPathMoveTest : BaseTest() {
         lastProgress!!.currentDestination shouldNotBe null
         lastProgress!!.primaryProgress shouldNotBe null
         lastProgress!!.secondaryProgress shouldNotBe null
-        lastProgress!!.movedBytes should { it >= 0 }
-        lastProgress!!.totalBytes should { it >= 0 }
+        // The final Active sample reports the whole file as transferred
+        lastProgress!!.movedBytes shouldBe 1000L
+        lastProgress!!.totalBytes shouldBe 1000L
     }
 
     @Test
@@ -1396,12 +1402,7 @@ class LocalPathMoveTest : BaseTest() {
 
         result.movedFiles shouldContainPath (LocalPath.build(sourceFile) to LocalPath.build(destFile))
 
-        // Verify byte tracking used appropriate fallback
-        // In atomic move scenario: bytesMoved = lookup.size ?: 0L (would be 0L for null)
-        // In copy+delete fallback: bytesMoved = actual bytes copied (real size)
-        result.bytesMoved should { it >= 0L }
-
-        // Note: Progress tracking during move uses `?: 0L` fallback for null sizes
-        // This ensures progress reporting doesn't crash with NullPointerException
+        // Verify byte tracking reports the real size, not the 0L progress fallback
+        result.bytesMoved shouldBe "content".length.toLong()
     }
 }

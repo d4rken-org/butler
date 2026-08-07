@@ -3,21 +3,34 @@ package eu.darken.butler.common.files.local
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.files.errors.PathPermissionDeniedException
+import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.OwnershipResolver
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.types.shouldBeInstanceOf
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.spyk
 import kotlinx.coroutines.flow.last
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import testhelpers.BaseTest
 import testhelpers.shouldContainPath
+import testhelpers.toPathPairs
 import java.io.File
+import java.io.IOException
+import kotlin.coroutines.cancellation.CancellationException
 
 class LocalPathCopyIssueTest : BaseTest() {
 
@@ -226,117 +239,150 @@ class LocalPathCopyIssueTest : BaseTest() {
     fun `handle write-protected destination`(@TempDir tempDir: File) = runTest {
         val sourceFolder = File(tempDir, "source").apply { mkdirs() }
         val destFolder = File(tempDir, "dest").apply { mkdirs() }
-        // This test is system-dependent and may not trigger issues on all systems
-        // It mainly verifies the code doesn't crash with permission issues
         val sourceFile = File(sourceFolder, "file.txt")
         sourceFile.writeText("content")
+        val sourcePath = LocalPath.build(sourceFile)
+        val destFilePath = LocalPath.build(File(destFolder, "file.txt"))
 
-        try {
-            destFolder.setReadOnly()
+        // setReadOnly() is not a reliable barrier (a privileged test process writes through it), so
+        // inject exactly the failure a real EACCES produces inside LocalFileSystemOps.
+        val spyOps = spyk(ops)
+        coEvery { spyOps.openOutputStream(destFilePath, append = false) } throws WriteException(
+            path = destFilePath,
+            cause = java.nio.file.AccessDeniedException(destFilePath.path),
+        )
 
-            val result = LocalPath.build(sourceFile).copy(
-                ops,
-                LocalPath.build(destFolder),
-                onIssue = { issue ->
-                    when (issue) {
-                        is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Skip()
-                        is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
-                        else -> throw AssertionError("Unexpected issue: $issue")
-                    }
+        val issues = mutableListOf<PathActionIssue>()
+        val result = sourcePath.copy(
+            spyOps,
+            LocalPath.build(destFolder),
+            onIssue = { issue ->
+                issues.add(issue)
+                when (issue) {
+                    is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Skip()
+                    else -> throw AssertionError("Unexpected issue: $issue")
                 }
-            ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+            }
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
-            result.copiedBytes should { it >= 0 }
-        } catch (e: Exception) {
-            // Expected on systems where read-only doesn't prevent writes
-            // or where permission errors manifest differently
-        }
+        // A permission-classified write failure maps to InsufficientPermission, which offers no Retry
+        issues shouldHaveSize 1
+        val issue = issues.single().shouldBeInstanceOf<PathActionIssue.InsufficientPermission>()
+        issue.source?.lookedUp shouldBe sourcePath
+        issue.destinationPath shouldBe destFilePath
+
+        result.skipped shouldContainPath sourcePath
+        result.copied.shouldBeEmpty()
+        result.copiedBytes shouldBe 0L
+        File(destFolder, "file.txt").exists() shouldBe false
     }
 
     @Test
     fun `insufficient permission with apply to all`(@TempDir tempDir: File) = runTest {
         val sourceFolder = File(tempDir, "source").apply { mkdirs() }
         val destFolder = File(tempDir, "dest").apply { mkdirs() }
-        // This test verifies the "Apply to All" mechanism for permission issues
-        // Actual permission errors may not occur on all systems
-        val file1 = File(sourceFolder, "file1.txt")
-        val file2 = File(sourceFolder, "file2.txt")
-        file1.writeText("content1")
-        file2.writeText("content2")
+        val file1 = File(sourceFolder, "file1.txt").apply { writeText("content1") }
+        val file2 = File(sourceFolder, "file2.txt").apply { writeText("content2") }
+        val file3 = File(sourceFolder, "file3.txt").apply { writeText("content3") }
+        val paths = listOf(file1, file2, file3).map { LocalPath.build(it) }
 
-        try {
-            file1.setReadOnly()
-            file2.setReadOnly()
-
-            val issuesEncountered = mutableListOf<PathActionIssue>()
-
-            listOf(LocalPath.build(file1), LocalPath.build(file2)).copy(
-                ops,
-                LocalPath.build(destFolder),
-                onIssue = { issue ->
-                    issuesEncountered.add(issue)
-                    when (issue) {
-                        is PathActionIssue.InsufficientPermission ->
-                            PathActionIssue.InsufficientPermission.Resolution.Skip(applyToAll = true)
-
-                        else -> throw AssertionError("Unexpected issue: $issue")
-                    }
-                }
-            ).last()
-
-            // If issues were encountered, verify "Apply to All" behavior
-            if (issuesEncountered.isNotEmpty()) {
-                issuesEncountered shouldHaveSize 1
-            }
-        } catch (e: SecurityException) {
-            // Expected on some systems where read-only doesn't prevent copying
+        // Every source read fails with a permission-classified error
+        val spyOps = spyk(ops)
+        paths.forEach { path ->
+            coEvery { spyOps.openInputStream(path) } throws PathPermissionDeniedException(
+                path = path,
+                operation = "read",
+                reason = PathPermissionDeniedException.Reason.ACCESS_DENIED,
+            )
         }
-    }
 
-    @Test
-    fun `handle unknown errors with retry resolution`(@TempDir tempDir: File) = runTest {
-        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
-        val destFolder = File(tempDir, "dest").apply { mkdirs() }
-        // This test verifies retry mechanism works
-        val sourceFile = File(sourceFolder, "file.txt")
-        sourceFile.writeText("content")
-
-        var attemptCount = 0
-
-        val result = LocalPath.build(sourceFile).copy(
-            ops,
+        val issuesEncountered = mutableListOf<PathActionIssue>()
+        val result = paths.copy(
+            spyOps,
             LocalPath.build(destFolder),
             onIssue = { issue ->
+                issuesEncountered.add(issue)
                 when (issue) {
-                    is PathActionIssue.UnknownError -> {
-                        attemptCount++
-                        if (attemptCount == 1) {
-                            PathActionIssue.UnknownError.Resolution.Retry
-                        } else {
-                            PathActionIssue.UnknownError.Resolution.Skip()
-                        }
-                    }
+                    is PathActionIssue.InsufficientPermission ->
+                        PathActionIssue.InsufficientPermission.Resolution.Skip(applyToAll = true)
 
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
         ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
-        // Result depends on whether errors actually occurred
-        result.copiedBytes should { it >= 0 }
+        // Only the first issue reaches the handler - the stored resolution covers the other two
+        issuesEncountered shouldHaveSize 1
+        issuesEncountered.single().shouldBeInstanceOf<PathActionIssue.InsufficientPermission>()
+
+        result.skipped.map { it.lookedUp } shouldContainExactlyInAnyOrder paths
+        result.copied.shouldBeEmpty()
+        // Every source was still attempted exactly once; apply-to-all suppresses the prompt, not the work
+        paths.forEach { path -> coVerify(exactly = 1) { spyOps.openInputStream(path) } }
+        destFolder.list()!!.toList().shouldBeEmpty()
+    }
+
+    @Test
+    fun `handle unknown errors with retry resolution`(@TempDir tempDir: File) = runTest {
+        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+        val destFolder = File(tempDir, "dest").apply { mkdirs() }
+        val sourceFile = File(sourceFolder, "file.txt")
+        sourceFile.writeText("content")
+        val sourcePath = LocalPath.build(sourceFile)
+
+        // The source read fails twice, then succeeds for real
+        val spyOps = spyk(ops)
+        var attempts = 0
+        coEvery { spyOps.openInputStream(sourcePath) } coAnswers {
+            attempts++
+            if (attempts <= 2) throw IOException("injected transfer failure") else callOriginal()
+        }
+
+        val issues = mutableListOf<PathActionIssue>()
+        val result = sourcePath.copy(
+            spyOps,
+            LocalPath.build(destFolder),
+            onIssue = { issue ->
+                issues.add(issue)
+                when (issue) {
+                    is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Retry
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+
+        // Two failures, two prompts, three attempts, then the real copy lands
+        attempts shouldBe 3
+        issues shouldHaveSize 2
+        issues.forEach {
+            val unknown = it.shouldBeInstanceOf<PathActionIssue.UnknownError>()
+            unknown.canRetry shouldBe true
+        }
+        result.copied shouldContainPath (sourcePath to LocalPath.build(File(destFolder, "file.txt")))
+        result.skipped.shouldBeEmpty()
+        result.copiedBytes shouldBe "content".length.toLong()
+        File(destFolder, "file.txt").readText() shouldBe "content"
     }
 
     @Test
     fun `handle unknown errors with skip resolution`(@TempDir tempDir: File) = runTest {
         val sourceFolder = File(tempDir, "source").apply { mkdirs() }
         val destFolder = File(tempDir, "dest").apply { mkdirs() }
-        val sourceFile = File(sourceFolder, "file.txt")
-        sourceFile.writeText("content")
+        val failing = File(sourceFolder, "failing.txt").apply { writeText("failing content") }
+        val healthy = File(sourceFolder, "healthy.txt").apply { writeText("healthy content") }
+        val failingPath = LocalPath.build(failing)
+        val healthyPath = LocalPath.build(healthy)
 
-        val result = LocalPath.build(sourceFile).copy(
-            ops,
+        // Only the first source fails, and it keeps failing
+        val spyOps = spyk(ops)
+        coEvery { spyOps.openInputStream(failingPath) } throws IOException("injected transfer failure")
+
+        val issues = mutableListOf<PathActionIssue>()
+        val result = listOf(failingPath, healthyPath).copy(
+            spyOps,
             LocalPath.build(destFolder),
             onIssue = { issue ->
+                issues.add(issue)
                 when (issue) {
                     is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
                     else -> throw AssertionError("Unexpected issue: $issue")
@@ -344,37 +390,56 @@ class LocalPathCopyIssueTest : BaseTest() {
             }
         ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
-        result.copiedBytes should { it >= 0 }
+        // Skip retires the failing item and lets the rest of the batch through
+        issues shouldHaveSize 1
+        issues.single().shouldBeInstanceOf<PathActionIssue.UnknownError>()
+
+        result.skipped shouldContainPath failingPath
+        result.copied.toPathPairs().map { it.first } shouldBe listOf(healthyPath)
+        result.copiedBytes shouldBe "healthy content".length.toLong()
+        File(destFolder, "failing.txt").exists() shouldBe false
+        File(destFolder, "healthy.txt").readText() shouldBe "healthy content"
+        failing.readText() shouldBe "failing content"
     }
 
     @Test
     fun `handle unknown errors with cancel resolution`(@TempDir tempDir: File) = runTest {
         val sourceFolder = File(tempDir, "source").apply { mkdirs() }
         val destFolder = File(tempDir, "dest").apply { mkdirs() }
-        val file1 = File(sourceFolder, "file1.txt")
-        val file2 = File(sourceFolder, "file2.txt")
-        file1.writeText("content1")
-        file2.writeText("content2")
+        val file1 = File(sourceFolder, "file1.txt").apply { writeText("content1") }
+        val file2 = File(sourceFolder, "file2.txt").apply { writeText("content2") }
+        val path1 = LocalPath.build(file1)
+        val path2 = LocalPath.build(file2)
 
-        var issueCount = 0
+        // Copy processes the batch in input order, so file1 fails before file2 is ever touched
+        val spyOps = spyk(ops)
+        coEvery { spyOps.openInputStream(path1) } throws IOException("injected transfer failure")
 
-        listOf(LocalPath.build(file1), LocalPath.build(file2)).copy(
-            ops,
-            LocalPath.build(destFolder),
-            onIssue = { issue ->
-                issueCount++
-                when (issue) {
-                    is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Cancel()
-                    is PathActionIssue.PathAlreadyExists -> PathActionIssue.PathAlreadyExists.Resolution.Cancel()
-                    else -> throw AssertionError("Unexpected issue: $issue")
+        val issues = mutableListOf<PathActionIssue>()
+        val states = mutableListOf<CopyAction.State<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>>()
+
+        // Cancel has no emitted state - PathOperationIssueResolver signals it by throwing
+        shouldThrow<CancellationException> {
+            listOf(path1, path2).copy(
+                spyOps,
+                LocalPath.build(destFolder),
+                onIssue = { issue ->
+                    issues.add(issue)
+                    when (issue) {
+                        is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Cancel()
+                        else -> throw AssertionError("Unexpected issue: $issue")
+                    }
                 }
-            }
-        ).last()
-
-        // If issues were encountered, operation should have been cancelled
-        if (issueCount > 0) {
-            issueCount shouldBe 1
+            ).toList(states)
         }
+
+        issues shouldHaveSize 1
+        issues.single().shouldBeInstanceOf<PathActionIssue.UnknownError>()
+        states.none { it is CopyAction.State.Completed } shouldBe true
+        // The unprocessed item was never attempted
+        coVerify(exactly = 0) { spyOps.openInputStream(path2) }
+        File(destFolder, "file1.txt").exists() shouldBe false
+        File(destFolder, "file2.txt").exists() shouldBe false
     }
 
     @Test

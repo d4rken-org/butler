@@ -3,21 +3,34 @@ package eu.darken.butler.common.files.local
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.files.errors.PathPermissionDeniedException
+import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.metadata.OwnershipResolver
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.types.shouldBeInstanceOf
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.spyk
 import kotlinx.coroutines.flow.last
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import testhelpers.BaseTest
 import testhelpers.shouldContainPath
+import testhelpers.toPathPairs
 import java.io.File
+import java.io.IOException
 import java.nio.file.Files
+import kotlin.coroutines.cancellation.CancellationException
 
 class LocalPathMoveIssueTest : BaseTest() {
 
@@ -650,85 +663,132 @@ class LocalPathMoveIssueTest : BaseTest() {
     fun `handle write-protected destination`(@TempDir tempDir: File) = runTest {
         val sourceFolder = File(tempDir, "source").apply { mkdirs() }
         val destFolder = File(tempDir, "dest").apply { mkdirs() }
-        // This test is system-dependent and may not trigger issues on all systems
-        // It mainly verifies the code doesn't crash with permission issues
         val sourceFile = File(sourceFolder, "file.txt")
         sourceFile.writeText("content")
+        val sourcePath = LocalPath.build(sourceFile)
+        val destFilePath = LocalPath.build(File(destFolder, "file.txt"))
 
-        try {
-            LocalPath.build(sourceFile).move(
-                ops,
-                LocalPath.build(destFolder),
-                options = MoveAction.Options(attemptAtomicMove = false),
-                onIssue = { issue ->
-                    when (issue) {
-                        is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Skip()
-                        is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
-                        else -> throw AssertionError("Unexpected issue: $issue")
-                    }
+        // setReadOnly() is not a reliable barrier (a privileged test process writes through it), so
+        // inject exactly the failure a real EACCES produces inside LocalFileSystemOps.
+        val spyOps = spyk(ops)
+        coEvery { spyOps.move(sourcePath, destFilePath) } throws WriteException(
+            path = destFilePath,
+            cause = java.nio.file.AccessDeniedException(destFilePath.path),
+        )
+
+        val issues = mutableListOf<PathActionIssue>()
+        val result = sourcePath.move(
+            spyOps,
+            LocalPath.build(destFolder),
+            options = MoveAction.Options(attemptAtomicMove = false),
+            onIssue = { issue ->
+                issues.add(issue)
+                when (issue) {
+                    is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Skip()
+                    else -> throw AssertionError("Unexpected issue: $issue")
                 }
-            ).last()
-        } catch (_: Exception) {
-            // Expected on systems where read-only doesn't prevent writes
-            // or where permission errors manifest differently
-        }
+            }
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+
+        // A permission-classified write failure maps to InsufficientPermission, which offers no Retry
+        issues shouldHaveSize 1
+        val issue = issues.single().shouldBeInstanceOf<PathActionIssue.InsufficientPermission>()
+        issue.source?.lookedUp shouldBe sourcePath
+        issue.destinationPath shouldBe destFilePath
+
+        result.skippedFiles shouldContainPath sourcePath
+        result.movedFiles.shouldBeEmpty()
+        File(destFolder, "file.txt").exists() shouldBe false
+        sourceFile.readText() shouldBe "content"
     }
 
     @Test
     fun `insufficient permission with apply to all`(@TempDir tempDir: File) = runTest {
         val sourceFolder = File(tempDir, "source").apply { mkdirs() }
         val destFolder = File(tempDir, "dest").apply { mkdirs() }
-        // This test verifies the "Apply to All" mechanism for permission issues
-        // Actual permission errors may not occur on all systems
-        val file1 = File(sourceFolder, "file1.txt")
-        val file2 = File(sourceFolder, "file2.txt")
-        file1.writeText("content1")
-        file2.writeText("content2")
+        val files = (1..3).map { i -> File(sourceFolder, "file$i.txt").apply { writeText("content$i") } }
+        val paths = files.map { LocalPath.build(it) }
+        val destPaths = files.map { LocalPath.build(File(destFolder, it.name)) }
 
-        try {
-            listOf(LocalPath.build(file1), LocalPath.build(file2)).move(
-                ops,
-                LocalPath.build(destFolder),
-                options = MoveAction.Options(attemptAtomicMove = false),
-                onIssue = { issue ->
-                    when (issue) {
-                        is PathActionIssue.InsufficientPermission ->
-                            PathActionIssue.InsufficientPermission.Resolution.Skip(applyToAll = true)
-                        else -> throw AssertionError("Unexpected issue: $issue")
-                    }
-                }
-            ).last()
-        } catch (_: Exception) {
-            // Expected on some systems where read-only doesn't prevent moving
+        // Every move fails with a permission-classified error
+        val spyOps = spyk(ops)
+        paths.forEachIndexed { index, path ->
+            coEvery { spyOps.move(path, destPaths[index]) } throws PathPermissionDeniedException(
+                path = destPaths[index],
+                operation = "move",
+                reason = PathPermissionDeniedException.Reason.ACCESS_DENIED,
+            )
         }
+
+        val issuesEncountered = mutableListOf<PathActionIssue>()
+        val result = paths.move(
+            spyOps,
+            LocalPath.build(destFolder),
+            options = MoveAction.Options(attemptAtomicMove = false),
+            onIssue = { issue ->
+                issuesEncountered.add(issue)
+                when (issue) {
+                    is PathActionIssue.InsufficientPermission ->
+                        PathActionIssue.InsufficientPermission.Resolution.Skip(applyToAll = true)
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+
+        // Only the first issue reaches the handler - the stored resolution covers the other two
+        issuesEncountered shouldHaveSize 1
+        issuesEncountered.single().shouldBeInstanceOf<PathActionIssue.InsufficientPermission>()
+
+        result.skippedFiles.map { it.lookedUp } shouldContainExactlyInAnyOrder paths
+        result.movedFiles.shouldBeEmpty()
+        // Every source was still attempted exactly once; apply-to-all suppresses the prompt, not the work
+        paths.forEachIndexed { index, path -> coVerify(exactly = 1) { spyOps.move(path, destPaths[index]) } }
+        files.forEach { it.exists() shouldBe true }
+        destFolder.list()!!.toList().shouldBeEmpty()
     }
 
     @Test
     fun `handle unknown errors with retry resolution`(@TempDir tempDir: File) = runTest {
         val sourceFolder = File(tempDir, "source").apply { mkdirs() }
         val destFolder = File(tempDir, "dest").apply { mkdirs() }
-        // This test verifies retry mechanism works
         val sourceFile = File(sourceFolder, "file.txt")
         sourceFile.writeText("content")
+        val sourcePath = LocalPath.build(sourceFile)
+        val destFilePath = LocalPath.build(File(destFolder, "file.txt"))
 
-        var retryCount = 0
-        try {
-            LocalPath.build(sourceFile).move(
-                ops,
-                LocalPath.build(destFolder),
-                options = MoveAction.Options(attemptAtomicMove = false),
-                onIssue = { issue ->
-                    if (issue is PathActionIssue.UnknownError && retryCount < 2) {
-                        retryCount++
-                        PathActionIssue.UnknownError.Resolution.Retry
-                    } else {
-                        PathActionIssue.UnknownError.Resolution.Skip()
-                    }
-                }
-            ).last()
-        } catch (_: Exception) {
-            // Expected - this test just verifies retry mechanism doesn't crash
+        // The move fails twice, then succeeds for real
+        val spyOps = spyk(ops)
+        var attempts = 0
+        coEvery { spyOps.move(sourcePath, destFilePath) } coAnswers {
+            attempts++
+            if (attempts <= 2) throw IOException("injected move failure") else callOriginal()
         }
+
+        val issues = mutableListOf<PathActionIssue>()
+        val result = sourcePath.move(
+            spyOps,
+            LocalPath.build(destFolder),
+            options = MoveAction.Options(attemptAtomicMove = false),
+            onIssue = { issue ->
+                issues.add(issue)
+                when (issue) {
+                    is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Retry
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+
+        // Two failures, two prompts, three attempts, then the real move lands
+        attempts shouldBe 3
+        issues shouldHaveSize 2
+        issues.forEach {
+            val unknown = it.shouldBeInstanceOf<PathActionIssue.UnknownError>()
+            unknown.canRetry shouldBe true
+        }
+        result.movedFiles shouldContainPath (sourcePath to destFilePath)
+        result.skippedFiles.shouldBeEmpty()
+        File(destFolder, "file.txt").readText() shouldBe "content"
+        sourceFile.exists() shouldBe false
     }
 
     @Test
@@ -740,29 +800,42 @@ class LocalPathMoveIssueTest : BaseTest() {
         file1.writeText("content1")
         file2.writeText("content2")
 
-        var issueCount = 0
-        try {
-            listOf(LocalPath.build(file1), LocalPath.build(file2)).move(
-                ops,
+        val path1 = LocalPath.build(file1)
+        val path2 = LocalPath.build(file2)
+        val dest1 = LocalPath.build(File(destFolder, "file1.txt"))
+        val dest2 = LocalPath.build(File(destFolder, "file2.txt"))
+
+        // Move processes the batch in input order, so file1 fails before file2 is ever touched
+        val spyOps = spyk(ops)
+        coEvery { spyOps.move(path1, dest1) } throws IOException("injected move failure")
+
+        val issues = mutableListOf<PathActionIssue>()
+        val states = mutableListOf<MoveAction.State<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>>()
+
+        // Cancel has no emitted state - PathOperationIssueResolver signals it by throwing
+        shouldThrow<CancellationException> {
+            listOf(path1, path2).move(
+                spyOps,
                 LocalPath.build(destFolder),
                 options = MoveAction.Options(attemptAtomicMove = false),
                 onIssue = { issue ->
-                    issueCount++
+                    issues.add(issue)
                     when (issue) {
                         is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Cancel()
-                        is PathActionIssue.PathAlreadyExists -> PathActionIssue.PathAlreadyExists.Resolution.Cancel()
                         else -> throw AssertionError("Unexpected issue: $issue")
                     }
                 }
-            ).last()
-        } catch (_: Exception) {
-            // Expected - cancel may throw
+            ).toList(states)
         }
 
-        // If issues were encountered, operation should have been cancelled
-        if (issueCount > 0) {
-            issueCount shouldBe 1
-        }
+        issues shouldHaveSize 1
+        issues.single().shouldBeInstanceOf<PathActionIssue.UnknownError>()
+        states.none { it is MoveAction.State.Completed } shouldBe true
+        // The unprocessed item was never attempted
+        coVerify(exactly = 0) { spyOps.move(path2, dest2) }
+        file1.exists() shouldBe true
+        file2.exists() shouldBe true
+        destFolder.list()!!.toList().shouldBeEmpty()
     }
 
     @Test
@@ -835,39 +908,44 @@ class LocalPathMoveIssueTest : BaseTest() {
     fun `handle unknown errors with skip resolution`(@TempDir tempDir: File) = runTest {
         val sourceFolder = File(tempDir, "source").apply { mkdirs() }
         val destFolder = File(tempDir, "dest").apply { mkdirs() }
-        // Given - file that might cause issues
-        val file1 = File(sourceFolder, "file1.txt")
-        val file2 = File(sourceFolder, "file2.txt")
-        val file3 = File(sourceFolder, "file3.txt")
+        // Given - three sources, only the middle one fails and it keeps failing
+        val file1 = File(sourceFolder, "file1.txt").apply { writeText("content1") }
+        val file2 = File(sourceFolder, "file2.txt").apply { writeText("content2") }
+        val file3 = File(sourceFolder, "file3.txt").apply { writeText("content3") }
+        val path1 = LocalPath.build(file1)
+        val path2 = LocalPath.build(file2)
+        val path3 = LocalPath.build(file3)
+        val dest2 = LocalPath.build(File(destFolder, "file2.txt"))
 
-        file1.writeText("content1")
-        file2.writeText("content2")
-        file3.writeText("content3")
+        val spyOps = spyk(ops)
+        coEvery { spyOps.move(path2, dest2) } throws IOException("injected move failure")
 
-        var issueCount = 0
+        val issues = mutableListOf<PathActionIssue>()
 
         // When - move with skip resolution for unknown errors
-        val result = listOf(
-            LocalPath.build(file1),
-            LocalPath.build(file2),
-            LocalPath.build(file3)
-        ).move(
-            ops,
+        val result = listOf(path1, path2, path3).move(
+            spyOps,
             LocalPath.build(destFolder),
             options = MoveAction.Options(attemptAtomicMove = false),
             onIssue = { issue ->
-                issueCount++
+                issues.add(issue)
                 when (issue) {
                     is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
-                    is PathActionIssue.PathAlreadyExists -> PathActionIssue.PathAlreadyExists.Resolution.Skip()
-                    is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Skip()
                     else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
         ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
-        // Then - should complete successfully (skip any issues)
-        result.movedFiles.size + result.skippedFiles.size shouldBe 3
+        // Then - Skip retires the failing item and lets the rest of the batch through
+        issues shouldHaveSize 1
+        issues.single().shouldBeInstanceOf<PathActionIssue.UnknownError>()
+
+        result.skippedFiles.map { it.lookedUp } shouldBe listOf(path2)
+        result.movedFiles.toPathPairs().map { it.first } shouldContainExactlyInAnyOrder listOf(path1, path3)
+        file2.readText() shouldBe "content2"
+        File(destFolder, "file1.txt").readText() shouldBe "content1"
+        File(destFolder, "file2.txt").exists() shouldBe false
+        File(destFolder, "file3.txt").readText() shouldBe "content3"
     }
 
     @Test
