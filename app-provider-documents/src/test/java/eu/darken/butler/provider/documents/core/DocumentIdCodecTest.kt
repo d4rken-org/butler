@@ -5,7 +5,6 @@ import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.serialization.SerializationIOModule
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
 import io.kotest.matchers.string.shouldStartWith
@@ -50,7 +49,6 @@ class DocumentIdCodecTest : BaseTest() {
             val path = LocalPath.build("/storage/test file (1) [copy].txt")
             val encoded = codec.encode(path)
 
-            encoded shouldNotBe null
             encoded.split("|").size shouldBe 2
         }
 
@@ -59,7 +57,6 @@ class DocumentIdCodecTest : BaseTest() {
             val path = LocalPath.build("/storage/emulated/0/文件/ファイル.txt")
             val encoded = codec.encode(path)
 
-            encoded shouldNotBe null
             encoded shouldContain "|"
         }
 
@@ -69,7 +66,7 @@ class DocumentIdCodecTest : BaseTest() {
             val path = LocalPath.build(longPath)
             val encoded = codec.encode(path)
 
-            encoded shouldNotBe null
+            codec.decode(encoded) shouldBe path
         }
 
         @Test
@@ -87,7 +84,6 @@ class DocumentIdCodecTest : BaseTest() {
             val path = LocalPath.build("/")
             val encoded = codec.encode(path)
 
-            encoded shouldNotBe null
             encoded shouldStartWith "local|"
         }
     }
@@ -261,8 +257,7 @@ class DocumentIdCodecTest : BaseTest() {
             val encoded1 = codec.encode(path1)
             val encoded2 = codec.encode(path2)
 
-            encoded1 shouldNotBe null
-            encoded2 shouldNotBe null
+            encoded1 shouldBe encoded2
         }
 
         @Test
@@ -270,7 +265,6 @@ class DocumentIdCodecTest : BaseTest() {
             val path = LocalPath.build("/")
             val encoded = codec.encode(path)
 
-            encoded shouldNotBe null
             encoded shouldStartWith "local|"
         }
     }

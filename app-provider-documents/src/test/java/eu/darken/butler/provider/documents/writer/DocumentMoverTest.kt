@@ -252,7 +252,9 @@ class DocumentMoverTest {
         // Then
         val uriSlot = slot<Uri>()
         verify { contentResolver.notifyChange(capture(uriSlot), null) }
-        uriSlot.captured.toString() shouldNotBe null
+        uriSlot.captured.authority shouldBe "eu.darken.butler.test.documents"
+        uriSlot.captured.toString() shouldBe
+            "content://eu.darken.butler.test.documents/document/$targetParentId/children"
     }
 
     @Test
@@ -276,7 +278,6 @@ class DocumentMoverTest {
         val result = mover.copyDocument(sourceId, targetParentId)
 
         // Then
-        result shouldNotBe null
         result shouldBe "local|copiedId"
     }
 
@@ -462,7 +463,6 @@ class DocumentMoverTest {
         val result = mover.moveDocument(sourceId, sourceParentId, targetParentId)
 
         // Then
-        result shouldNotBe null
         result shouldBe "local|movedId"
     }
 }

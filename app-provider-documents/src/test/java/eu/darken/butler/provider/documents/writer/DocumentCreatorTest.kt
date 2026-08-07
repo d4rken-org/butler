@@ -11,7 +11,6 @@ import eu.darken.butler.provider.documents.core.DocumentIdCodec
 import eu.darken.butler.provider.documents.core.writer.DocumentCreator
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -261,27 +260,6 @@ class DocumentCreatorTest {
         // Then
         result shouldBe createdId
         coVerify { gatewaySwitch.createFile(childPath, createParents = false) }
-    }
-
-    @Test
-    fun `createDocument returns non-null document ID`() = runTest {
-        // Given
-        val parentId = "local|base64parent"
-        val parentPath = LocalPath.build("/storage/emulated/0/Documents")
-        val mimeType = "text/plain"
-        val displayName = "test.txt"
-
-        every { codec.decode(parentId) } returns parentPath
-        coEvery { gatewaySwitch.exists(any()) } returns false
-        coEvery { gatewaySwitch.createFile(any(), any()) } returns Unit
-        every { codec.encode(parentPath) } returns parentId
-        every { codec.encode(parentPath.child(displayName)) } returns "local|base64created"
-
-        // When
-        val result = creator.createDocument(parentId, mimeType, displayName)
-
-        // Then
-        result shouldNotBe null
     }
 
     @Test

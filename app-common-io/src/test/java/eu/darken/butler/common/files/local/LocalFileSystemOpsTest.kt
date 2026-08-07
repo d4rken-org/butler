@@ -7,9 +7,7 @@ import eu.darken.butler.common.files.errors.PathAlreadyExistsException
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.metadata.FileType
-import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.OwnershipResolver
-import eu.darken.butler.common.files.metadata.Permissions
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
@@ -622,31 +620,6 @@ class LocalFileSystemOpsTest : BaseTest() {
 
         result shouldBe true
         testFile.lastModified() shouldBe 1000000000L
-    }
-
-    @Test
-    fun `setPermissions updates file permissions`(@TempDir tempDir: File) = runTest {
-        val testFile = File(tempDir, "perms.txt").apply { createNewFile() }
-        val path = LocalPath.build(testFile)
-        val permissions = Permissions(mode = 0b110100100) // rw-r--r--
-
-        fileSystemOps.setPermissions(path, permissions)
-
-        // Result depends on platform support
-        // On supported systems: result shouldBe true
-        // On unsupported systems: result shouldBe false
-    }
-
-    @Test
-    fun `setOwnership updates file ownership`(@TempDir tempDir: File) = runTest {
-        val testFile = File(tempDir, "owner.txt").apply { createNewFile() }
-        val path = LocalPath.build(testFile)
-        val ownership = Ownership(userId = 1000, groupId = 1000)
-
-        fileSystemOps.setOwnership(path, ownership)
-
-        // Result depends on privileges (typically requires root)
-        // result will be false without elevated privileges
     }
 
     @Test

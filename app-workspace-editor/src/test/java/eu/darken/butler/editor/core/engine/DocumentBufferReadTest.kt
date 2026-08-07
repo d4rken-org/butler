@@ -400,9 +400,8 @@ class DocumentBufferReadTest : DocumentBufferTestBase() {
         val content = "test content"
         val buffer = createBuffer(content)
 
-        // Then: Content source should be available (Memory for in-memory source)
-        // This is OK - just verify it doesn't crash
-        buffer.contentSource.value // Returns ContentSource.Memory for InMemoryDataSource
+        // Then: The in-memory source is reported as Memory, sized by the content it holds
+        buffer.contentSource.value shouldBe ContentSource.Memory(size = 12L)
     }
 
     // ==================== P1 Tests: Chunk Boundary Cases (With Small Chunks) ====================

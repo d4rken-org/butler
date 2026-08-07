@@ -5,7 +5,6 @@ import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.provider.documents.R
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.kotest.matchers.types.shouldBeInstanceOf
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 
@@ -45,36 +44,12 @@ class DocumentRootTest : BaseTest() {
 
     @Test
     fun `Butler root has title from string resource`() {
-        val title = ProviderLocation.Root.Butler.title
-        title.shouldBeInstanceOf<CaString>()
-        title shouldNotBe CaString.EMPTY
+        ProviderLocation.Root.Butler.title shouldNotBe CaString.EMPTY
     }
 
     @Test
     fun `Butler root has summary from string resource`() {
-        val summary = ProviderLocation.Root.Butler.summary
-        summary shouldNotBe null
-        summary.shouldBeInstanceOf<CaString>()
-        summary shouldNotBe CaString.EMPTY
-    }
-
-    @Test
-    fun `Butler root is a ProviderLocation Root instance`() {
-        val root: ProviderLocation.Root = ProviderLocation.Root.Butler
-        root.shouldBeInstanceOf<ProviderLocation.Root>()
-    }
-
-    @Test
-    fun `sealed interface has only Butler implementation in Phase 1`() {
-        // This test documents that Phase 1 has only one root
-        // If future phases add more roots, this test will need updating
-        val root: ProviderLocation.Root = ProviderLocation.Root.Butler
-        when (root) {
-            ProviderLocation.Root.Butler -> {
-                // Expected - only implementation in Phase 1
-            }
-            // No else needed - sealed interface exhaustiveness
-        }
+        ProviderLocation.Root.Butler.summary shouldNotBe CaString.EMPTY
     }
 
     @Test

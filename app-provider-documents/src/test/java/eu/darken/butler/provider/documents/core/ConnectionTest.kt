@@ -4,7 +4,6 @@ import android.provider.DocumentsContract.Document.*
 import eu.darken.butler.common.ca.CaString
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.kotest.matchers.types.shouldBeInstanceOf
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 
@@ -33,36 +32,12 @@ class ConnectionTest : BaseTest() {
 
     @Test
     fun `Device home has title from string resource`() {
-        val title = ProviderLocation.Home.Device.title
-        title.shouldBeInstanceOf<CaString>()
-        title shouldNotBe CaString.EMPTY
+        ProviderLocation.Home.Device.title shouldNotBe CaString.EMPTY
     }
 
     @Test
     fun `Device home has summary from string resource`() {
-        val summary = ProviderLocation.Home.Device.summary
-        summary shouldNotBe null
-        summary.shouldBeInstanceOf<CaString>()
-        summary shouldNotBe CaString.EMPTY
-    }
-
-    @Test
-    fun `Device home is a ProviderLocation Home instance`() {
-        val home: ProviderLocation.Home = ProviderLocation.Home.Device
-        home.shouldBeInstanceOf<ProviderLocation.Home>()
-    }
-
-    @Test
-    fun `sealed interface has only Device implementation in Phase 1`() {
-        // This test documents that Phase 1 has only one home
-        // If future phases add more homes (SSH, FTP), this test will need updating
-        val home: ProviderLocation.Home = ProviderLocation.Home.Device
-        when (home) {
-            ProviderLocation.Home.Device -> {
-                // Expected - only implementation in Phase 1
-            }
-            // No else needed - sealed interface exhaustiveness
-        }
+        ProviderLocation.Home.Device.summary shouldNotBe CaString.EMPTY
     }
 
     @Test
