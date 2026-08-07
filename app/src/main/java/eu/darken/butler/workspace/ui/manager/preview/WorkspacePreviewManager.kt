@@ -15,7 +15,6 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.WorkspaceSettings
-import eu.darken.butler.workspace.core.WorkspaceStacks
 import eu.darken.butler.workspace.core.preview.WorkspacePreviewModel
 import eu.darken.butler.workspace.ui.WorkspacePageManager
 import eu.darken.butler.workspace.ui.session.WorkspaceSessionManager
@@ -24,7 +23,6 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -137,7 +135,9 @@ class WorkspacePreviewManager @Inject constructor(
         // workspace - launching a picker never moves global focus. Scoped to the focused unit on
         // purpose: every unit's top would re-capture every stacked tab on each manager open, and a
         // capture is a full offscreen page composition.
-        val stacks = WorkspaceStacks(workspaceRepo.state.first().infos)
+        // peekStacks, not the shared state flow: that flow's replay cache can lag a swap, and a stale
+        // topology invalidates the wrong top id - leaving exactly the stale thumbnail this prevents.
+        val stacks = workspaceRepo.peekStacks()
         val topId = stacks.topChainByRoot(focusedId)[stacks.ownerOf(focusedId)]?.leaf?.id
         setOfNotNull(focusedId, topId).forEach { invalidatePreviewCache(it) }
     }

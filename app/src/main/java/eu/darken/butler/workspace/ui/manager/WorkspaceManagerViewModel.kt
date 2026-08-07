@@ -176,10 +176,14 @@ class WorkspaceManagerViewModel @Inject constructor(
      * here rather than baking a leaf id into the card is what keeps a tap from naming an overlay that
      * closed while the manager was open: selectWorkspaceFromManager suspends until the id exists in
      * the repo, so a vanished leaf would hang the tap and leave the manager stuck open.
+     *
+     * The topology comes from peekStacks, not from the shared state flow: that flow's replay cache
+     * can lag a swap and name a leaf the repo has already dropped, which is exactly the hang this
+     * resolution exists to avoid - the tap would do nothing and the manager would never close.
      */
     fun selectWorkspace(id: Workspace.Id) = launch {
         log(tag) { "selectWorkspace($id)" }
-        val stacks = WorkspaceStacks(workspaceRepo.state.first().infos)
+        val stacks = workspaceRepo.peekStacks()
         val focusedId = workspacePageManager.state.value.focusedWorkspaceId
         val target = stacks.topChainByRoot(focusedId)[id]?.leaf?.id ?: id
         // Emit selection event to notify the parent screen

@@ -7,6 +7,7 @@ import eu.darken.butler.workspace.core.WorkspacePauseGate
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.WorkspaceSettings
+import eu.darken.butler.workspace.core.WorkspaceStacks
 import eu.darken.butler.workspace.ui.WorkspacePageManager
 import io.kotest.matchers.shouldBe
 import io.mockk.coVerify
@@ -45,6 +46,8 @@ class WorkspaceManagerViewModelTest : BaseTest() {
             every { state } returns repoState
             // Pause leases are keyed on the ownership root; the flat topologies here are their own
             every { peekOwnershipRoot(any()) } answers { firstArg() }
+            // selectWorkspace resolves the stack top synchronously, so ownership stays real here
+            every { peekStacks() } answers { WorkspaceStacks(repoState.value.infos) }
         }
         workspaceSettings = mockk(relaxed = true) {
             every { showTipBadgeExplanation } returns mockk { every { flow } returns flowOf(false) }
