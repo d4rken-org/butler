@@ -207,11 +207,17 @@ class APathExtensionTest : BaseTest() {
             modifiedAt = Instant.fromEpochMilliseconds(0),
         )
 
-        file1.matches(file2) shouldBe false
-        file2.matches(file1) shouldBe false
+        file1.isAncestorOf(file2) shouldBe false
+        file2.isAncestorOf(file1) shouldBe false
 
-        lookup1.matches(lookup2) shouldBe false
-        lookup2.matches(lookup1) shouldBe false
+        file1.isAncestorOf(lookup2) shouldBe false
+        file2.isAncestorOf(lookup1) shouldBe false
+
+        lookup1.isAncestorOf(lookup2) shouldBe false
+        lookup2.isAncestorOf(lookup1) shouldBe false
+
+        lookup1.isAncestorOf(file2) shouldBe false
+        lookup2.isAncestorOf(file1) shouldBe false
     }
 
     @Test fun `isDescendantOf operator - LocalPath`() {
@@ -310,13 +316,17 @@ class APathExtensionTest : BaseTest() {
             modifiedAt = Instant.fromEpochMilliseconds(0),
         )
 
-        file1.matches(file2) shouldBe false
+        file1.isDescendantOf(file2) shouldBe false
+        file2.isDescendantOf(file1) shouldBe false
 
-        file2.matches(file1) shouldBe false
+        file1.isDescendantOf(lookup2) shouldBe false
+        file2.isDescendantOf(lookup1) shouldBe false
 
-        lookup1.matches(lookup2) shouldBe false
+        lookup1.isDescendantOf(lookup2) shouldBe false
+        lookup2.isDescendantOf(lookup1) shouldBe false
 
-        lookup2.matches(lookup1) shouldBe false
+        lookup1.isDescendantOf(file2) shouldBe false
+        lookup2.isDescendantOf(file1) shouldBe false
     }
 
     @Test fun `isDescendantOfOrSelf operator - LocalPath`() {
@@ -621,11 +631,17 @@ class APathExtensionTest : BaseTest() {
             modifiedAt = Instant.fromEpochMilliseconds(0),
         )
 
-        file1.matches(file2)
-        file2.matches(file1)
+        file1.isParentOf(file2) shouldBe false
+        file2.isParentOf(file1) shouldBe false
 
-        lookup1.matches(lookup2)
-        lookup2.matches(lookup1)
+        file1.isParentOf(lookup2) shouldBe false
+        file2.isParentOf(lookup1) shouldBe false
+
+        lookup1.isParentOf(lookup2) shouldBe false
+        lookup2.isParentOf(lookup1) shouldBe false
+
+        lookup1.isParentOf(file2) shouldBe false
+        lookup2.isParentOf(file1) shouldBe false
     }
 
     @Test fun `isChildOf operator - LocalPath`() {
@@ -724,11 +740,17 @@ class APathExtensionTest : BaseTest() {
             modifiedAt = Instant.fromEpochMilliseconds(0),
         )
 
-        file1.isChildOf(file2)
-        file2.isChildOf(file1)
+        file1.isChildOf(file2) shouldBe false
+        file2.isChildOf(file1) shouldBe false
 
-        lookup1.isChildOf(lookup2)
-        lookup2.isChildOf(lookup1)
+        file1.isChildOf(lookup2) shouldBe false
+        file2.isChildOf(lookup1) shouldBe false
+
+        lookup1.isChildOf(lookup2) shouldBe false
+        lookup2.isChildOf(lookup1) shouldBe false
+
+        lookup1.isChildOf(file2) shouldBe false
+        lookup2.isChildOf(file1) shouldBe false
     }
 
 
@@ -828,11 +850,17 @@ class APathExtensionTest : BaseTest() {
             modifiedAt = Instant.fromEpochMilliseconds(0),
         )
 
-        file1.startsWith(file2)
-        file2.startsWith(file1)
+        file1.startsWith(file2) shouldBe false
+        file2.startsWith(file1) shouldBe false
 
-        lookup1.startsWith(lookup2)
-        lookup2.startsWith(lookup1)
+        file1.startsWith(lookup2) shouldBe false
+        file2.startsWith(lookup1) shouldBe false
+
+        lookup1.startsWith(lookup2) shouldBe false
+        lookup2.startsWith(lookup1) shouldBe false
+
+        lookup1.startsWith(file2) shouldBe false
+        lookup2.startsWith(file1) shouldBe false
     }
 
     @Test fun `remove prefix - LocalPath`() {
@@ -908,16 +936,48 @@ class APathExtensionTest : BaseTest() {
         val prefix: APath<*> = LocalPath.build("pre", "fix")
         val pre: APath<*> = SAFPath.build(treeUri, "pre")
 
+        val prefixLookup: APathLookup<*> = LocalPathLookup(
+            lookedUp = LocalPath.build("pre", "fix"),
+            fileType = FileType.FILE,
+            size = 16,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
+            target = null,
+        )
+        val preLookup: APathLookup<*> = SAFPathLookup(
+            lookedUp = SAFPath.build(treeUri, "pre"),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
+        )
+
         prefix.removePrefix(prefix) shouldBe segs()
 
         shouldThrow<IllegalArgumentException> {
+            prefix.removePrefix(pre)
+        }
+        shouldThrow<IllegalArgumentException> {
             pre.removePrefix(prefix)
         }
+
         shouldThrow<IllegalArgumentException> {
-            prefix.removePrefix(pre) shouldBe segs("pre")
+            prefix.removePrefix(preLookup)
         }
         shouldThrow<IllegalArgumentException> {
-            prefix.removePrefix(pre) shouldBe segs("pre", "fix")
+            pre.removePrefix(prefixLookup)
+        }
+
+        shouldThrow<IllegalArgumentException> {
+            prefixLookup.removePrefix(preLookup)
+        }
+        shouldThrow<IllegalArgumentException> {
+            preLookup.removePrefix(prefixLookup)
+        }
+
+        shouldThrow<IllegalArgumentException> {
+            prefixLookup.removePrefix(pre)
+        }
+        shouldThrow<IllegalArgumentException> {
+            preLookup.removePrefix(prefix)
         }
     }
 
@@ -994,14 +1054,46 @@ class APathExtensionTest : BaseTest() {
         val prefix: APath<*> = LocalPath.build("prefix", "overlap", "folder")
         val pre: APath<*> = SAFPath.build(treeUri, "prefix", "overlap")
 
+        val prefixLookup: APathLookup<*> = LocalPathLookup(
+            lookedUp = LocalPath.build("prefix", "overlap", "folder"),
+            fileType = FileType.FILE,
+            size = 16,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
+            target = null,
+        )
+        val preLookup: APathLookup<*> = SAFPathLookup(
+            lookedUp = SAFPath.build(treeUri, "prefix", "overlap"),
+            fileType = FileType.FILE,
+            size = 0L,
+            modifiedAt = Instant.fromEpochMilliseconds(0),
+        )
+
+        shouldThrow<IllegalArgumentException> {
+            prefix.removePrefix(pre, overlap = 1)
+        }
         shouldThrow<IllegalArgumentException> {
             pre.removePrefix(prefix, overlap = 1)
         }
+
         shouldThrow<IllegalArgumentException> {
-            prefix.removePrefix(pre, overlap = 1)
+            prefix.removePrefix(preLookup, overlap = 1)
         }
         shouldThrow<IllegalArgumentException> {
-            prefix.removePrefix(pre, overlap = 1)
+            pre.removePrefix(prefixLookup, overlap = 1)
+        }
+
+        shouldThrow<IllegalArgumentException> {
+            prefixLookup.removePrefix(preLookup, overlap = 1)
+        }
+        shouldThrow<IllegalArgumentException> {
+            preLookup.removePrefix(prefixLookup, overlap = 1)
+        }
+
+        shouldThrow<IllegalArgumentException> {
+            prefixLookup.removePrefix(pre, overlap = 1)
+        }
+        shouldThrow<IllegalArgumentException> {
+            preLookup.removePrefix(prefix, overlap = 1)
         }
     }
 
