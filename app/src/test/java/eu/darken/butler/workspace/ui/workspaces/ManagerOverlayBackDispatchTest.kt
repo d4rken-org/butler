@@ -49,7 +49,7 @@ class ManagerOverlayBackDispatchTest : ComposeTest() {
 
     private enum class Container { CLASSIC, ADAPTIVE }
 
-    /** Stands in for a page whose top-level back closes the tab, as ExplorerWorkspacePage's does. */
+    /** Stands in for a page whose top-level back consumes the press and closes its tab — the worst case for the dispatch order under test. */
     private class ClosingPageHost(private val onCloseTab: () -> Unit) : WorkspacePageHostEntry {
 
         @Composable

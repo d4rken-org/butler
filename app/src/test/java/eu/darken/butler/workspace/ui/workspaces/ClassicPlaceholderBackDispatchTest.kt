@@ -72,7 +72,7 @@ class ClassicPlaceholderBackDispatchTest : ComposeTest() {
         get() = ApplicationProvider.getApplicationContext<Context>()
             .getString(R.string.workspace_ondemand_swipe_title)
 
-    /** Stands in for a page whose top-level back closes the tab, as ExplorerWorkspacePage's does. */
+    /** Stands in for a page whose top-level back consumes the press and closes its tab — the worst case for the dispatch order under test. */
     private class ClosingPageHost(private val onCloseTab: (Workspace.Id) -> Unit) : WorkspacePageHostEntry {
 
         @Composable

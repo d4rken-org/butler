@@ -166,7 +166,6 @@ fun ExplorerWorkspacePage(
         isSelectionMode = state.selectionState.isSelectionMode,
         onGoBack = { vm?.goBack() },
         onCancelPicker = { vm?.cancelPicker() },
-        onCloseWorkspace = { vm?.closeWorkspace() },
         onClearSelection = { vm?.clearSelection() },
     )
 
@@ -447,42 +446,29 @@ private fun ExplorerRevealEffect(
 }
 
 @Composable
-private fun ExplorerBackHandlers(
+internal fun ExplorerBackHandlers(
     hasPickerConfig: Boolean,
     useBackButtonForNavigation: Boolean,
     canGoBack: Boolean,
     isSelectionMode: Boolean,
     onGoBack: () -> Unit,
     onCancelPicker: () -> Unit,
-    onCloseWorkspace: () -> Unit,
     onClearSelection: () -> Unit,
 ) {
-    // Handle back button for picker mode
-    if (hasPickerConfig) {
-        WorkspaceBackHandler(enabled = true) {
-            if (canGoBack) {
-                onGoBack()
-            } else {
-                onCancelPicker()
-            }
+    // One handler, explicit priority: separate handlers would rank by BackHandler's LIFO
+    // registration order, which conditional composition perturbs - the picker branch appears only
+    // once picker state exists and would then outrank an already-registered selection handler.
+    // `enabled` is exactly the disjunction of the `when` guards below; keep them in sync or back
+    // gets consumed with nothing to do.
+    WorkspaceBackHandler(
+        enabled = isSelectionMode || hasPickerConfig || (useBackButtonForNavigation && canGoBack),
+    ) {
+        when {
+            isSelectionMode -> onClearSelection()
+            hasPickerConfig && canGoBack -> onGoBack()
+            hasPickerConfig -> onCancelPicker()
+            else -> onGoBack()
         }
-    }
-
-    // Handle back button for navigation history (when setting enabled).
-    // At the top-level (can't go back) the tab closes, matching the setting's description.
-    if (useBackButtonForNavigation && !hasPickerConfig) {
-        WorkspaceBackHandler(enabled = true) {
-            if (canGoBack) {
-                onGoBack()
-            } else {
-                onCloseWorkspace()
-            }
-        }
-    }
-
-    // Handle back button for selection mode - clear selection first
-    WorkspaceBackHandler(enabled = isSelectionMode) {
-        onClearSelection()
     }
 }
 

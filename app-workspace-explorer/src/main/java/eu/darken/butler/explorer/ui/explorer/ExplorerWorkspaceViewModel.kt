@@ -1867,8 +1867,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun goBack() = navigation.goBack()
 
-    fun closeWorkspace() = chrome.closeWorkspace()
-
     fun revealItems(paths: List<APath<*>>, highlight: Boolean = true) = navigation.revealItems(paths, highlight)
 
     @AssistedFactory
