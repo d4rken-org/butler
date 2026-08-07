@@ -83,6 +83,10 @@
     <string name="workspace_button_menu_category_current_tab">This tab</string>
     <string name="workspace_button_menu_manager_action">Tab manager</string>
     <string name="workspace_button_menu_close_current_action">Close current tab</string>
+    <plurals name="workspace_button_menu_close_current_stack_action">
+        <item quantity="one">Close current tab (%d workspace)</item>
+        <item quantity="other">Close current tab (%d workspaces)</item>
+    </plurals>
     <string name="workspace_button_menu_settings_action">Settings</string>
 
     <!-- Workspace Manager Actions -->

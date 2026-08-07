@@ -603,7 +603,9 @@ class WorkspaceRepo @Inject constructor(
                     _pendingConfirmations.update {
                         it + (confirmationId to PendingWorkspaceConfirmation(
                             id = confirmationId,
-                            sourceWorkspaceId = action.id,
+                            // Anchors the dialog to the workspace the close was invoked from, which
+                            // is the overlay on top when a unit is closed from one of its children.
+                            sourceWorkspaceId = action.sourceWorkspaceId ?: action.id,
                             data = PendingWorkspaceConfirmation.ConfirmationData.WorkspaceCloseConfirmation(
                                 workspaceId = action.id,
                                 workspaceTitle = workspaceInfo.displayTitle,

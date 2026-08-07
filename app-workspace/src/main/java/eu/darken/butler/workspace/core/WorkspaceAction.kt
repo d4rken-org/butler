@@ -244,9 +244,20 @@ sealed interface WorkspaceAction {
         data object Result : WorkspaceAction.Result
     }
 
+    /**
+     * Closes [id] and, recursively, everything it owns.
+     *
+     * @param sourceWorkspaceId the workspace the close was invoked from, when that is not [id]
+     * itself - closing a whole unit from one of its overlays is the case that needs it. A close
+     * confirmation is hosted in its target workspace's pane layer, so it must be anchored to the
+     * workspace the user is actually looking at; anchoring it to [id] would compose the dialog
+     * underneath the overlay that asked for the close, leaving it invisible and the close pending.
+     * Null means the invoking workspace is [id].
+     */
     data class Close(
         val id: Workspace.Id,
         val requireConfirmation: Boolean = false,
+        val sourceWorkspaceId: Workspace.Id? = null,
     ) : WorkspaceAction {
         data object Result : WorkspaceAction.Result
     }

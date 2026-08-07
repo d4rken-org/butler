@@ -11,6 +11,7 @@ import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceRemote
+import eu.darken.butler.workspace.core.WorkspaceStacks
 import eu.darken.butler.workspace.contracts.templates.TemplatesArguments
 import eu.darken.butler.workspace.core.createAndFocus
 import eu.darken.butler.workspace.core.usage.WorkspaceUsageRepo
@@ -57,12 +58,24 @@ class WorkspaceButtonViewModel @Inject constructor(
         workspaceRemote.state,
         recentItems,
     ) { remoteState, recent ->
+        val stacks = WorkspaceStacks(remoteState.infos)
         State(
             workspaceCount = remoteState.workspaceCount,
             operationsCount = remoteState.operationCount,
             attentionCount = remoteState.attentionCount,
             hasUnsavedChanges = remoteState.infos.any { info -> info.hasUnsavedChanges },
             recentItems = recent,
+            unitsByMember = remoteState.infos.associate { info ->
+                // Only resolvable units get unit semantics. A recovery unit is keyed on its first
+                // member in list order, which is not necessarily one the others hang off, so
+                // closing it can leave siblings open - and the count would have promised otherwise.
+                // Those fall back to closing themselves, which is what this row did before.
+                val members = stacks.unitOf(info.id)
+                info.id to StackUnit(
+                    ownerId = members?.firstOrNull()?.id ?: info.id,
+                    size = members?.size ?: 1,
+                )
+            },
         )
     }.asStateFlow()
 
@@ -102,6 +115,21 @@ class WorkspaceButtonViewModel @Inject constructor(
         val attentionCount: Int = 0,
         val hasUnsavedChanges: Boolean = false,
         val recentItems: List<QuickCreateItem> = emptyList(),
+        /**
+         * The ownership unit each open workspace belongs to, keyed by member. The menu's close acts
+         * on whole units: a tab and the overlays stacked on it are one thing to the user, so it has
+         * to take the stack down like the manager's card does.
+         */
+        val unitsByMember: Map<Workspace.Id, StackUnit> = emptyMap(),
+    )
+
+    /**
+     * @param ownerId the tab the unit belongs to - closing it closes every member.
+     * @param size members in the unit, the tab included; 1 means a tab with nothing stacked on it.
+     */
+    data class StackUnit(
+        val ownerId: Workspace.Id,
+        val size: Int,
     )
 
     companion object {
