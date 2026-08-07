@@ -31,7 +31,13 @@ android {
         }
         //noinspection WrongGradleMethod
         tasks.withType<Test> {
-            useJUnitPlatform()
+            useJUnitPlatform {
+                // Manual benchmarks stay out of normal runs. An excluded tag removes the
+                // descriptor from the test plan entirely, unlike @Disabled which reports as
+                // skipped and would permanently occupy CI's worker-death heuristic.
+                // Opt in with -PrunEditorBenchmarks.
+                if (!project.hasProperty("runEditorBenchmarks")) excludeTags("manual-benchmark")
+            }
             setupTestLogging()
             setupTestJvm()
         }
