@@ -44,6 +44,7 @@ import eu.darken.butler.common.pkgs.toPkgId
 import eu.darken.butler.saver.R
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
+import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.cancellation.CancellationException
@@ -56,6 +57,7 @@ internal fun SaverHeader(
     callerPackage: Pkg.Id?,
     createdAt: Instant?,
     workspaceId: Workspace.Id,
+    design: WorkspaceDesign,
     isModal: Boolean = false,
     onBack: () -> Unit = {},
 ) {
@@ -77,8 +79,8 @@ internal fun SaverHeader(
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            // The workspace button (tabs/manager) is meaningless inside a modal export overlay.
-            if (!isModal) {
+            // Single-pane only: the navigation rail already carries one on every other layout.
+            if (design.isSingle) {
                 WorkspaceButton(currentWorkspaceId = workspaceId)
             }
         }
@@ -183,6 +185,7 @@ private fun SaverHeaderKnownCallerPreview() {
             callerPackage = "org.telegram.messenger".toPkgId(),
             createdAt = Instant.fromEpochMilliseconds(1_752_000_000_000),
             workspaceId = Workspace.Id(),
+            design = WorkspaceDesign(),
         )
     }
 }
@@ -197,6 +200,7 @@ private fun SaverHeaderUnknownCallerPreview() {
             callerPackage = null,
             createdAt = Instant.fromEpochMilliseconds(1_752_000_000_000),
             workspaceId = Workspace.Id(),
+            design = WorkspaceDesign(),
         )
     }
 }
@@ -211,7 +215,24 @@ private fun SaverHeaderModalPreview() {
             callerPackage = null,
             createdAt = null,
             workspaceId = Workspace.Id(),
+            design = WorkspaceDesign(),
             isModal = true,
+        )
+    }
+}
+
+/** Multi-pane: no workspace button, the navigation rail carries it. */
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun SaverHeaderMultiPanePreview() {
+    PreviewWrapper {
+        SaverHeader(
+            callerLabel = "Telegram",
+            callerPackage = "org.telegram.messenger".toPkgId(),
+            createdAt = Instant.fromEpochMilliseconds(1_752_000_000_000),
+            workspaceId = Workspace.Id(),
+            design = WorkspaceDesign(layout = WorkspaceDesign.Layout.DUAL_VERTICAL),
         )
     }
 }
