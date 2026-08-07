@@ -1,6 +1,7 @@
 package eu.darken.butler.apps.ui.details
 
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -48,11 +49,20 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 /**
  * Expanded sizing budget. The card is a full-height cutout card, so it renders exactly as tall as
  * the workspace button beside it as long as its own content stays within
- * `WorkspaceButtonDefaults.sizeDefault - 2 * ExpandedContentPadding` (48 - 16 = 32dp). Every element
- * in the row is sized against that budget, including the search field, which is why it is inlined
- * rather than boxed.
+ * `WorkspaceButtonDefaults.sizeDefault - 2 * <padding>`. Every element is sized against that budget,
+ * including the search field, which is why it is inlined rather than boxed.
+ *
+ * Two paddings, because the title row has two shapes:
+ * - Single line (overview, open search): 8dp padding leaves 32dp, which is the control size.
+ * - App name over sub-screen subtitle: 6dp padding leaves 36dp, which is `titleSmall` (20dp line
+ *   height) over `bodySmall` (16dp). The title drops one step off `titleMedium` to make room.
+ *
+ * The 48dp cap holds at the default font scale. The two-line variant scales two line heights instead
+ * of one, so it outgrows the button earlier than the single-line one did - no padding budget can
+ * absorb a second scaled line, and clamping it would clip text for users who enlarged the font.
  */
 private val ExpandedContentPadding = 8.dp
+private val ExpandedContentPaddingTwoLine = 6.dp
 private val ControlSize = 32.dp
 private val ControlIconSize = 20.dp
 
@@ -74,10 +84,22 @@ fun AppDetailsToolbarCard(
 ) {
     val context = LocalContext.current
     val isCollapsed = collapsedFraction > 0.5f
+    val title = app?.label?.get(context)?.takeIf { it.isNotBlank() }
+    // Only a sub-screen with a named app has two things to say; everything else is one line.
+    val isTwoLine = !isCollapsed && !searchActive && title != null && subtitle != null
 
-    val cardPadding by animateDpAsState(
+    val horizontalPadding by animateDpAsState(
         targetValue = if (isCollapsed) CutoutCardDefaults.ContentPaddingCollapsed else ExpandedContentPadding,
-        label = "cardPadding"
+        label = "horizontalPadding"
+    )
+
+    val verticalPadding by animateDpAsState(
+        targetValue = when {
+            isCollapsed -> CutoutCardDefaults.ContentPaddingCollapsed
+            isTwoLine -> ExpandedContentPaddingTwoLine
+            else -> ExpandedContentPadding
+        },
+        label = "verticalPadding"
     )
 
     val iconSize by animateDpAsState(
@@ -105,7 +127,10 @@ fun AppDetailsToolbarCard(
         cutoutMode = CutoutMode.FullHeight,
         cutoutAlignment = Alignment.CenterVertically,
         gapDistance = if (isCollapsed) CutoutCardDefaults.GapDistanceCollapsed else CutoutCardDefaults.GapDistanceExpanded,
-        contentPadding = CutoutCardDefaults.contentPadding(cardPadding),
+        contentPadding = CutoutCardDefaults.contentPadding(
+            horizontal = horizontalPadding,
+            vertical = verticalPadding,
+        ),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -152,9 +177,10 @@ fun AppDetailsToolbarCard(
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            // App name and optional sub-screen subtitle on a single line, replaced by the search
-            // input while active. Collapsing only shrinks paddings and type - it must never drop the
-            // search field, because CollapseOnScroll never hides the bar itself.
+            // App name over the sub-screen subtitle, joined onto one line where there is no room for
+            // two (collapsed), and replaced by the search input while active. Collapsing only
+            // shrinks paddings and type - it must never drop the search field, because
+            // CollapseOnScroll never hides the bar itself.
             if (searchActive) {
                 // Bare field, not AppsSearchBar: its surface inside the card would be a card in a
                 // card, stacking both paddings and pushing the toolbar past the workspace button.
@@ -165,11 +191,27 @@ fun AppDetailsToolbarCard(
                     hint = searchHint ?: stringResource(R.string.apps_components_search_hint),
                     autoFocus = true,
                 )
+            } else if (isTwoLine) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = title.orEmpty(),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        text = subtitle.orEmpty(),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             } else {
                 Text(
                     modifier = Modifier.weight(1f),
-                    text = listOfNotNull(app?.label?.get(context)?.takeIf { it.isNotBlank() }, subtitle)
-                        .joinToString(" · "),
+                    text = listOfNotNull(title, subtitle).joinToString(" · "),
                     style = if (isCollapsed) {
                         MaterialTheme.typography.bodyMedium
                     } else {

@@ -38,7 +38,7 @@ class AppDetailsToolbarCardTest : ComposeTest() {
     }
 
     @Test
-    fun `toolbar joins app name and subtitle into one line`() {
+    fun `toolbar stacks app name over subtitle`() {
         composeTestRule.setContent {
             PreviewWrapper {
                 // The Components sub-screen: its back button returns to the overview.
@@ -51,8 +51,26 @@ class AppDetailsToolbarCardTest : ComposeTest() {
             }
         }
 
-        // One line in both states: stacking them would push the bar past the workspace button.
-        composeTestRule.onNodeWithText("Chrome · Components").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Chrome").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Components").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Chrome · Components").assertDoesNotExist()
+    }
+
+    @Test
+    fun `toolbar without an app name keeps the subtitle on one line`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                // Nothing to stack the subtitle under before the app resolves.
+                AppDetailsToolbarCard(
+                    app = null,
+                    design = multiPane,
+                    subtitle = "Components",
+                    onBackClick = {},
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText("Components").assertIsDisplayed()
     }
 
     @Test
@@ -69,6 +87,7 @@ class AppDetailsToolbarCardTest : ComposeTest() {
             }
         }
 
+        // Collapsed has room for one line only, so the two are joined there.
         composeTestRule.onNodeWithText("Chrome · Components").assertIsDisplayed()
     }
 
