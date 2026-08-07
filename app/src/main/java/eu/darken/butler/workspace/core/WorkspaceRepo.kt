@@ -599,22 +599,26 @@ class WorkspaceRepo @Inject constructor(
                 WorkspaceAction.Close.Result
             }
             is WorkspaceAction.Reorder -> {
-                log(TAG, INFO) { "Reordering workspaces: ${action.workspaceIds}" }
+                log(TAG, INFO) { "Reordering workspaces: ${action.ownerIds}" }
 
+                // Every surface that reorders lists one entry per ownership unit, so what arrives is
+                // a unit order. Expanding here - inside the lock, against the current topology - is
+                // what keeps a drag from being rejected because a create or close landed between the
+                // snapshot and the drop.
                 val current = _workspaces.value
                 log(TAG) { "BEFORE re-order:\n${current.joinToString("\n")}" }
-                val reordered = action.workspaceIds.mapNotNull { id ->
-                    current.find { it.id == id }
-                }
-                log(TAG) { "AFTER re-order:\n${reordered.joinToString("\n")}" }
+                val stacks = peekStacks()
+                val membersByOwner = current.groupBy { stacks.ownerOf(it.id) }
+                val expanded = action.ownerIds.flatMap { membersByOwner[it].orEmpty() }
+                log(TAG) { "AFTER re-order:\n${expanded.joinToString("\n")}" }
 
-                if (reordered.size != current.size) {
-                    log(TAG, ERROR) { "Reorder failed: size mismatch. Expected ${current.size}, got ${reordered.size}" }
+                if (expanded.size != current.size) {
+                    log(TAG, ERROR) { "Reorder failed: ${action.ownerIds} does not cover every unit" }
                     return WorkspaceAction.Reorder.Result(false)
                 }
 
-                _workspaces.value = reordered
-                _events.emit(WorkspaceEvent.Reordered(workspaceIds = action.workspaceIds))
+                _workspaces.value = expanded
+                _events.emit(WorkspaceEvent.Reordered(workspaceIds = expanded.map { it.id }))
 
                 WorkspaceAction.Reorder.Result(true)
             }
@@ -1357,7 +1361,17 @@ class WorkspaceRepo @Inject constructor(
         )
     }
 
-    private suspend fun executeClose(workspaceId: Workspace.Id) {
+    private suspend fun executeClose(
+        workspaceId: Workspace.Id,
+        visited: MutableSet<Workspace.Id> = mutableSetOf(),
+    ) {
+        // Caller ids are not validated at creation time, so a cycle is reachable; without this the
+        // recursion below never terminates, because a member is only removed after its children close.
+        if (!visited.add(workspaceId)) {
+            log(TAG, WARN) { "Cyclic ownership: $workspaceId already closing, not recursing" }
+            return
+        }
+
         // Cancel any pending confirmations for this workspace
         _pendingConfirmations.value
             .filter { (_, confirmation) -> confirmation.sourceWorkspaceId == workspaceId }
@@ -1371,7 +1385,7 @@ class WorkspaceRepo @Inject constructor(
         val childWorkspaces = _workspaces.value.filter { it.info.value.callerWorkspaceId == workspaceId }
         if (childWorkspaces.isNotEmpty()) {
             log(TAG) { "Auto-closing ${childWorkspaces.size} child workspace(s)" }
-            childWorkspaces.forEach { executeClose(it.id) }
+            childWorkspaces.forEach { executeClose(it.id, visited) }
         }
 
         // Get caller workspace ID before removal (for returning to caller)

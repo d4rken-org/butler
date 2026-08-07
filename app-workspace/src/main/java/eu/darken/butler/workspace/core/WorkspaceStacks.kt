@@ -53,6 +53,61 @@ class WorkspaceStacks(private val infos: List<Workspace.Info>) {
     }
 
     /**
+     * The workspaces whose ownership cannot be resolved - a caller id naming nothing, or a cycle -
+     * grouped into connected components over the caller relation and keyed by the member that comes
+     * first in workspace order. Nothing validates caller ids at creation time, so these are
+     * reachable; dropping them would leave workspaces open that no surface can list or close, while
+     * listing each separately would offer several cards for what one close already takes down.
+     *
+     * The set is closed under the relation: a descendant of an unresolvable workspace runs into the
+     * same dead end, and an ancestor that resolved would make its descendants resolve too.
+     */
+    val recoveryUnits: Map<Workspace.Id, List<Workspace.Info>> by lazy {
+        val unresolvable = infos.filter { it.isSubWorkspace && rootOf(it.id) == null }
+        val unresolvableIds = unresolvable.mapTo(mutableSetOf()) { it.id }
+        val order = infos.withIndex().associate { (index, info) -> info.id to index }
+
+        val assigned = mutableSetOf<Workspace.Id>()
+        val units = mutableMapOf<Workspace.Id, List<Workspace.Info>>()
+
+        unresolvable.forEach { seed ->
+            if (!assigned.add(seed.id)) return@forEach
+
+            val component = mutableListOf(seed)
+            var index = 0
+            while (index < component.size) {
+                val current = component[index++]
+                val neighbours = childrenOf[current.id].orEmpty() +
+                    listOfNotNull(current.callerWorkspaceId?.let { byId[it] })
+                neighbours.forEach { neighbour ->
+                    if (neighbour.id in unresolvableIds && assigned.add(neighbour.id)) component += neighbour
+                }
+            }
+
+            val members = component.sortedBy { order.getValue(it.id) }
+            units[members.first().id] = members
+        }
+
+        units
+    }
+
+    private val recoveryOwnerById: Map<Workspace.Id, Workspace.Id> by lazy {
+        recoveryUnits.flatMap { (owner, members) -> members.map { it.id to owner } }.toMap()
+    }
+
+    /**
+     * The unit owner [id] is listed under: its ownership root, or - when ownership cannot be
+     * resolved - the representative of its recovery unit. Falls back to [id] for an id this snapshot
+     * never saw.
+     */
+    fun ownerOf(id: Workspace.Id): Workspace.Id = rootOf(id)?.id ?: recoveryOwnerById[id] ?: id
+
+    /** One entry per unit, in workspace order: every tab, plus one representative per recovery unit. */
+    val unitOwners: List<Workspace.Info> by lazy {
+        infos.filter { !it.isSubWorkspace || recoveryUnits.containsKey(it.id) }
+    }
+
+    /**
      * Every modal chain currently open, one entry per chain leaf, fully validated.
      *
      * A chain is only kept when walking its callers upward terminates at a workspace that exists and
@@ -108,6 +163,25 @@ class WorkspaceStacks(private val infos: List<Workspace.Info>) {
                 .toMap(),
         )
     }
+
+    /**
+     * The chain currently on top of each root, keyed by root id: full-screen siblings first (they
+     * cover their pane-local siblings on that tab), then the one focus points into, else the newest.
+     * Roots with no modal have no entry.
+     *
+     * Deliberately different from [renderedChains], which collapses all full-screen chains to a
+     * single global winner: the tab manager lists tabs independently, so each root's own top is the
+     * right answer for that tab's card.
+     */
+    fun topChainByRoot(focusedId: Workspace.Id?): Map<Workspace.Id, WorkspaceStackChain> = chains
+        .groupBy { it.root.id }
+        .mapNotNull { (rootId, candidates) ->
+            // renderedChains partitions before picking, so grouping by root alone would let a card
+            // name a pane-local leaf while a full-screen sibling is what actually covers that tab.
+            val pool = candidates.filter { it.isFullScreen }.ifEmpty { candidates }
+            pool.preferred(focusedId)?.let { rootId to it }
+        }
+        .toMap()
 
     /**
      * The chain the user is working in: the one focus points into, else the newest.

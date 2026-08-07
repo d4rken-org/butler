@@ -192,11 +192,15 @@ fun WorkspaceManagerScreen(
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspaceManagerScreenPreview() {
+    val templatesId = Workspace.Id()
+    val explorerId = Workspace.Id()
+    val searcherId = Workspace.Id()
     WorkspaceManagerScreen(
         state = WorkspaceManagerViewModel.State(
             workspaces = listOf(
                 WorkspaceManagerViewModel.WorkspaceItem(
-                    id = Workspace.Id(),
+                    id = templatesId,
+                    topId = templatesId,
                     type = Workspace.Type.TEMPLATES,
                     title = "New".toCaString(),
                     autoTitle = "New".toCaString(),
@@ -206,7 +210,8 @@ private fun WorkspaceManagerScreenPreview() {
                     paneNumber = 0,
                 ),
                 WorkspaceManagerViewModel.WorkspaceItem(
-                    id = Workspace.Id(),
+                    id = explorerId,
+                    topId = explorerId,
                     type = Workspace.Type.EXPLORER,
                     title = "/storage/emulated/0/Download".toCaString(),
                     autoTitle = "/storage/emulated/0/Download".toCaString(),
@@ -215,7 +220,8 @@ private fun WorkspaceManagerScreenPreview() {
                     paneNumber = 1,
                 ),
                 WorkspaceManagerViewModel.WorkspaceItem(
-                    id = Workspace.Id(),
+                    id = searcherId,
+                    topId = searcherId,
                     type = Workspace.Type.SEARCHER,
                     title = "report".toCaString(),
                     autoTitle = "report".toCaString(),

@@ -181,12 +181,15 @@ fun WorkspaceManagerGridLayout(
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspaceManagerGridLayoutPreview() {
+    val templatesId = Workspace.Id()
+    val explorerId = Workspace.Id()
     Box(modifier = Modifier.size(600.dp, 500.dp)) {
         WorkspaceManagerGridLayout(
             state = WorkspaceManagerViewModel.State(
                 workspaces = listOf(
                     WorkspaceManagerViewModel.WorkspaceItem(
-                        id = Workspace.Id(),
+                        id = templatesId,
+                        topId = templatesId,
                         type = Workspace.Type.TEMPLATES,
                         title = "New".toCaString(),
                         autoTitle = "New".toCaString(),
@@ -195,7 +198,8 @@ private fun WorkspaceManagerGridLayoutPreview() {
                         isSelected = true,
                     ),
                     WorkspaceManagerViewModel.WorkspaceItem(
-                        id = Workspace.Id(),
+                        id = explorerId,
+                        topId = explorerId,
                         type = Workspace.Type.EXPLORER,
                         title = "/storage/emulated/0/Download".toCaString(),
                         autoTitle = "/storage/emulated/0/Download".toCaString(),
@@ -222,12 +226,17 @@ private fun WorkspaceManagerGridLayoutPreview() {
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspaceManagerGridLayoutTabletPreview() {
+    val templatesId = Workspace.Id()
+    val explorerId = Workspace.Id()
+    val searcherId = Workspace.Id()
+    val editorId = Workspace.Id()
     Box(modifier = Modifier.size(900.dp, 600.dp)) {
         WorkspaceManagerGridLayout(
             state = WorkspaceManagerViewModel.State(
                 workspaces = listOf(
                     WorkspaceManagerViewModel.WorkspaceItem(
-                        id = Workspace.Id(),
+                        id = templatesId,
+                        topId = templatesId,
                         type = Workspace.Type.TEMPLATES,
                         title = "New".toCaString(),
                         autoTitle = "New".toCaString(),
@@ -237,7 +246,8 @@ private fun WorkspaceManagerGridLayoutTabletPreview() {
                         paneNumber = 0,
                     ),
                     WorkspaceManagerViewModel.WorkspaceItem(
-                        id = Workspace.Id(),
+                        id = explorerId,
+                        topId = explorerId,
                         type = Workspace.Type.EXPLORER,
                         title = "Trash".toCaString(),
                         autoTitle = "Trash".toCaString(),
@@ -246,7 +256,8 @@ private fun WorkspaceManagerGridLayoutTabletPreview() {
                         paneNumber = 1,
                     ),
                     WorkspaceManagerViewModel.WorkspaceItem(
-                        id = Workspace.Id(),
+                        id = searcherId,
+                        topId = searcherId,
                         type = Workspace.Type.SEARCHER,
                         title = "*.log".toCaString(),
                         autoTitle = "*.log".toCaString(),
@@ -254,7 +265,8 @@ private fun WorkspaceManagerGridLayoutTabletPreview() {
                         paneNumber = null,
                     ),
                     WorkspaceManagerViewModel.WorkspaceItem(
-                        id = Workspace.Id(),
+                        id = editorId,
+                        topId = editorId,
                         type = Workspace.Type.EDITOR,
                         title = "build.gradle.kts".toCaString(),
                         autoTitle = "build.gradle.kts".toCaString(),
@@ -305,19 +317,23 @@ private fun WorkspaceManagerGridLayoutEmptyPreview() {
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspaceManagerGridLayoutWithExplanationsPreview() {
+    val explorerId = Workspace.Id()
+    val searcherId = Workspace.Id()
     Box(modifier = Modifier.size(900.dp, 700.dp)) {
         WorkspaceManagerGridLayout(
             state = WorkspaceManagerViewModel.State(
                 workspaces = listOf(
                     WorkspaceManagerViewModel.WorkspaceItem(
-                        id = Workspace.Id(),
+                        id = explorerId,
+                        topId = explorerId,
                         type = Workspace.Type.EXPLORER,
                         title = "/storage/emulated/0/Download".toCaString(),
                         autoTitle = "/storage/emulated/0/Download".toCaString(),
                         subtitle = null,
                     ),
                     WorkspaceManagerViewModel.WorkspaceItem(
-                        id = Workspace.Id(),
+                        id = searcherId,
+                        topId = searcherId,
                         type = Workspace.Type.SEARCHER,
                         title = "report".toCaString(),
                         autoTitle = "report".toCaString(),

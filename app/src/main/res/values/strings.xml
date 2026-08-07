@@ -355,6 +355,7 @@
     <string name="workspace_row_more_options_content_desc">More options</string>
     <string name="workspace_row_pause_action">Pause</string>
     <string name="workspace_row_resume_action">Resume</string>
+    <string name="workspace_row_stacked_content_desc">Stacked on this tab</string>
 
     <!-- Settings Index -->
     <string name="workspace_settings_subtitle">Configure tab behavior.</string>

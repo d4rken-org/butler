@@ -117,7 +117,9 @@ fun WorkspaceGridItem(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onSelect() },
+                    // A recovery card stands in for a workspace no pane renders, so there is nothing
+                    // to select - it only offers Close.
+                    .then(if (workspace.isRecovery) Modifier else Modifier.clickable { onSelect() }),
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 Row(
@@ -249,11 +251,13 @@ fun WorkspaceGridItem(
                 Box(modifier = Modifier.fillMaxWidth()) {
                     WorkspacePreview(
                         modifier = Modifier.fillMaxWidth(),
-                        workspaceId = workspace.id,
+                        // The card collapses a whole stack, so it previews what is on top of the tab
+                        workspaceId = workspace.topId,
                         type = workspace.type,
                         livePreview = livePreview,
                         paneNumber = workspace.paneNumber,
                         shouldShowBadge = workspace.paneNumber != null && currentPaneCount > 1,
+                        stackDepth = workspace.stackDepth,
                         contentAlpha = if (workspace.isPaused) 0.4f else 1f,
                     ) {
                         WorkspacePreviewInfoBar(
@@ -304,11 +308,13 @@ private fun createMockReorderableScope() = object : sh.calvin.reorderable.Reorde
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspaceGridItemPreview() {
+    val id = Workspace.Id()
     WorkspaceGridItem(
         modifier = Modifier.padding(16.dp),
         reorderableScope = createMockReorderableScope(),
         workspace = WorkspaceManagerViewModel.WorkspaceItem(
-            id = Workspace.Id(),
+            id = id,
+            topId = id,
             type = Workspace.Type.EXPLORER,
             title = "/storage/emulated/0/Download/MyFile/Somepath/that/is/very/long/tooLong".toCaString(),
             autoTitle = "/storage/emulated/0/Download/MyFile/Somepath/that/is/very/long/tooLong".toCaString(),
@@ -329,10 +335,12 @@ private fun WorkspaceGridItemInfoBarVariantsPreview() {
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         // Both bar lines
+        val editorId = Workspace.Id()
         WorkspaceGridItem(
             reorderableScope = createMockReorderableScope(),
             workspace = WorkspaceManagerViewModel.WorkspaceItem(
-                id = Workspace.Id(),
+                id = editorId,
+                topId = editorId,
                 type = Workspace.Type.EDITOR,
                 title = "build.gradle.kts".toCaString(),
                 autoTitle = "build.gradle.kts".toCaString(),
@@ -344,10 +352,12 @@ private fun WorkspaceGridItemInfoBarVariantsPreview() {
         )
 
         // Primary only
+        val explorerId = Workspace.Id()
         WorkspaceGridItem(
             reorderableScope = createMockReorderableScope(),
             workspace = WorkspaceManagerViewModel.WorkspaceItem(
-                id = Workspace.Id(),
+                id = explorerId,
+                topId = explorerId,
                 type = Workspace.Type.EXPLORER,
                 title = "Home".toCaString(),
                 autoTitle = "Home".toCaString(),
@@ -359,10 +369,12 @@ private fun WorkspaceGridItemInfoBarVariantsPreview() {
         )
 
         // Neither - no bar at all, card height is unchanged
+        val saverId = Workspace.Id()
         WorkspaceGridItem(
             reorderableScope = createMockReorderableScope(),
             workspace = WorkspaceManagerViewModel.WorkspaceItem(
-                id = Workspace.Id(),
+                id = saverId,
+                topId = saverId,
                 type = Workspace.Type.SAVER,
                 title = "".toCaString(),
                 autoTitle = "".toCaString(),
@@ -379,11 +391,13 @@ private fun WorkspaceGridItemInfoBarVariantsPreview() {
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspaceGridItemCustomNamePreview() {
+    val id = Workspace.Id()
     WorkspaceGridItem(
         modifier = Modifier.padding(16.dp),
         reorderableScope = createMockReorderableScope(),
         workspace = WorkspaceManagerViewModel.WorkspaceItem(
-            id = Workspace.Id(),
+            id = id,
+            topId = id,
             type = Workspace.Type.EXPLORER,
             title = "Holiday photos".toCaString(),
             autoTitle = "/storage/emulated/0/DCIM/Camera".toCaString(),
@@ -400,11 +414,13 @@ private fun WorkspaceGridItemCustomNamePreview() {
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspaceGridItemSearcherPreview() {
+    val id = Workspace.Id()
     WorkspaceGridItem(
         modifier = Modifier.padding(16.dp),
         reorderableScope = createMockReorderableScope(),
         workspace = WorkspaceManagerViewModel.WorkspaceItem(
-            id = Workspace.Id(),
+            id = id,
+            topId = id,
             type = Workspace.Type.SEARCHER,
             title = "*.log".toCaString(),
             autoTitle = "*.log".toCaString(),
@@ -420,11 +436,13 @@ private fun WorkspaceGridItemSearcherPreview() {
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspaceGridItemDraggingPreview() {
+    val id = Workspace.Id()
     WorkspaceGridItem(
         modifier = Modifier.padding(16.dp),
         reorderableScope = createMockReorderableScope(),
         workspace = WorkspaceManagerViewModel.WorkspaceItem(
-            id = Workspace.Id(),
+            id = id,
+            topId = id,
             type = Workspace.Type.SEARCHER,
             title = "*.log".toCaString(),
             autoTitle = "*.log".toCaString(),
@@ -446,10 +464,12 @@ private fun WorkspaceGridItemFocusStatesPreview() {
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         // Focused workspace in pane 1 - SHOWS BADGE (multi-pane mode)
+        val focusedId = Workspace.Id()
         WorkspaceGridItem(
             reorderableScope = createMockReorderableScope(),
             workspace = WorkspaceManagerViewModel.WorkspaceItem(
-                id = Workspace.Id(),
+                id = focusedId,
+                topId = focusedId,
                 type = Workspace.Type.EXPLORER,
                 title = "/storage/emulated/0/Download".toCaString(),
                 autoTitle = "/storage/emulated/0/Download".toCaString(),
@@ -467,10 +487,12 @@ private fun WorkspaceGridItemFocusStatesPreview() {
         )
 
         // Selected but not focused in pane 2 - SHOWS BADGE
+        val selectedId = Workspace.Id()
         WorkspaceGridItem(
             reorderableScope = createMockReorderableScope(),
             workspace = WorkspaceManagerViewModel.WorkspaceItem(
-                id = Workspace.Id(),
+                id = selectedId,
+                topId = selectedId,
                 type = Workspace.Type.SEARCHER,
                 title = "report".toCaString(),
                 autoTitle = "report".toCaString(),
@@ -488,10 +510,12 @@ private fun WorkspaceGridItemFocusStatesPreview() {
         )
 
         // Normal workspace - NO BADGE (not selected)
+        val idleId = Workspace.Id()
         WorkspaceGridItem(
             reorderableScope = createMockReorderableScope(),
             workspace = WorkspaceManagerViewModel.WorkspaceItem(
-                id = Workspace.Id(),
+                id = idleId,
+                topId = idleId,
                 type = Workspace.Type.EDITOR,
                 title = "notes.md".toCaString(),
                 autoTitle = "notes.md".toCaString(),
@@ -519,10 +543,12 @@ private fun WorkspaceGridItemAttentionPreview() {
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         // Workspace needs attention
+        val attentionId = Workspace.Id()
         WorkspaceGridItem(
             reorderableScope = createMockReorderableScope(),
             workspace = WorkspaceManagerViewModel.WorkspaceItem(
-                id = Workspace.Id(),
+                id = attentionId,
+                topId = attentionId,
                 type = Workspace.Type.EXPLORER,
                 title = "/storage/emulated/0/Download".toCaString(),
                 autoTitle = "/storage/emulated/0/Download".toCaString(),
@@ -535,10 +561,12 @@ private fun WorkspaceGridItemAttentionPreview() {
         )
 
         // Normal workspace for comparison
+        val calmId = Workspace.Id()
         WorkspaceGridItem(
             reorderableScope = createMockReorderableScope(),
             workspace = WorkspaceManagerViewModel.WorkspaceItem(
-                id = Workspace.Id(),
+                id = calmId,
+                topId = calmId,
                 type = Workspace.Type.EXPLORER,
                 title = "Trash".toCaString(),
                 autoTitle = "Trash".toCaString(),
@@ -561,10 +589,12 @@ private fun WorkspaceGridItemPauseStatesPreview() {
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         // Live and pausable - the pause action sits in the overflow menu, so the header looks idle
+        val liveId = Workspace.Id()
         WorkspaceGridItem(
             reorderableScope = createMockReorderableScope(),
             workspace = WorkspaceManagerViewModel.WorkspaceItem(
-                id = Workspace.Id(),
+                id = liveId,
+                topId = liveId,
                 type = Workspace.Type.EXPLORER,
                 title = "/storage/emulated/0/Download".toCaString(),
                 autoTitle = "/storage/emulated/0/Download".toCaString(),
@@ -577,10 +607,12 @@ private fun WorkspaceGridItemPauseStatesPreview() {
         )
 
         // Paused - dimmed thumbnail and chip, but the info bar stays fully legible
+        val pausedId = Workspace.Id()
         WorkspaceGridItem(
             reorderableScope = createMockReorderableScope(),
             workspace = WorkspaceManagerViewModel.WorkspaceItem(
-                id = Workspace.Id(),
+                id = pausedId,
+                topId = pausedId,
                 type = Workspace.Type.SEARCHER,
                 title = "*.log".toCaString(),
                 autoTitle = "*.log".toCaString(),
@@ -593,10 +625,12 @@ private fun WorkspaceGridItemPauseStatesPreview() {
         )
 
         // Busy - neither pausable nor paused, so the overflow menu only offers rename
+        val busyId = Workspace.Id()
         WorkspaceGridItem(
             reorderableScope = createMockReorderableScope(),
             workspace = WorkspaceManagerViewModel.WorkspaceItem(
-                id = Workspace.Id(),
+                id = busyId,
+                topId = busyId,
                 type = Workspace.Type.EDITOR,
                 title = "notes.md".toCaString(),
                 autoTitle = "notes.md".toCaString(),
@@ -608,4 +642,52 @@ private fun WorkspaceGridItemPauseStatesPreview() {
             livePreview = false,
         )
     }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspaceGridItemStackedPreview() {
+    // The tab is an Apps workspace, but what sits on top of it is an app's details page - so that is
+    // what the card names and previews, with the badge marking the stack underneath.
+    WorkspaceGridItem(
+        modifier = Modifier.padding(16.dp),
+        reorderableScope = createMockReorderableScope(),
+        workspace = WorkspaceManagerViewModel.WorkspaceItem(
+            id = Workspace.Id(),
+            topId = Workspace.Id(),
+            type = Workspace.Type.APP_DETAILS,
+            title = "Butler".toCaString(),
+            autoTitle = "Butler".toCaString(),
+            subtitle = "eu.darken.butler".toCaString(),
+            stackDepth = 1,
+        ),
+        onClose = {},
+        onSelect = {},
+        livePreview = false,
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspaceGridItemRecoveryPreview() {
+    val id = Workspace.Id()
+    WorkspaceGridItem(
+        modifier = Modifier.padding(16.dp),
+        reorderableScope = createMockReorderableScope(),
+        workspace = WorkspaceManagerViewModel.WorkspaceItem(
+            id = id,
+            topId = id,
+            type = Workspace.Type.EXPLORER,
+            title = "Pick a folder".toCaString(),
+            autoTitle = "Pick a folder".toCaString(),
+            subtitle = null,
+            isSubWorkspace = true,
+            isRecovery = true,
+        ),
+        onClose = {},
+        onSelect = {},
+        livePreview = false,
+    )
 }
