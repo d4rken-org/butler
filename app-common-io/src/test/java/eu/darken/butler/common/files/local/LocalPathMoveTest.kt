@@ -672,35 +672,18 @@ class LocalPathMoveTest : BaseTest() {
     // ============ EDGE CASES ============
 
     @Test
-    fun `move works without onProgress callback`(@TempDir tempDir: File) = runTest {
+    fun `move works without onProgress or onIssue callbacks`(@TempDir tempDir: File) = runTest {
         val sourceFolder = File(tempDir, "source").apply { mkdirs() }
         val destFolder = File(tempDir, "dest").apply { mkdirs() }
         // Given
         val sourceFile = File(sourceFolder, "file.txt")
         sourceFile.writeText("Content")
 
-        // When - no onProgress callback provided
+        // When - neither callback provided, no conflicts
         val result = LocalPath.build(sourceFile).move(ops, LocalPath.build(destFolder))
             .last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
         // Then - should still work
-        File(destFolder, "file.txt").exists() shouldBe true
-        result.movedFiles shouldHaveSize 1
-    }
-
-    @Test
-    fun `move works without onIssue callback when no conflicts`(@TempDir tempDir: File) = runTest {
-        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
-        val destFolder = File(tempDir, "dest").apply { mkdirs() }
-        // Given
-        val sourceFile = File(sourceFolder, "file.txt")
-        sourceFile.writeText("Content")
-
-        // When - no onIssue callback provided, no conflicts
-        val result = LocalPath.build(sourceFile).move(ops, LocalPath.build(destFolder))
-            .last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
-
-        // Then
         File(destFolder, "file.txt").exists() shouldBe true
         result.movedFiles shouldHaveSize 1
     }

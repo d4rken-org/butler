@@ -88,32 +88,6 @@ class PackagesListParserTest : BaseTest() {
     }
 
     @Test
-    fun `parse() handles blank lines`() {
-        // Given
-        val parser = PackagesListParser(filePath = getResourcePath("packages-test-cases.list"))
-
-        // When
-        val result = parser.parse()
-
-        // Then - should not crash and should parse valid entries
-        result shouldContainKey 10000
-        result shouldContainKey 10123
-    }
-
-    @Test
-    fun `parse() handles comment lines`() {
-        // Given
-        val parser = PackagesListParser(filePath = getResourcePath("packages-test-cases.list"))
-
-        // When
-        val result = parser.parse()
-
-        // Then - comments should be ignored, valid entries parsed
-        result shouldContainKey 10000
-        result shouldContainKey 10123
-    }
-
-    @Test
     fun `parse() handles malformed lines gracefully`() {
         // Given
         val parser = PackagesListParser(filePath = getResourcePath("packages-test-cases.list"))

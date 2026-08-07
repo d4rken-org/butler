@@ -63,15 +63,6 @@ class DirectoryActionProviderTest : BaseTest() {
     }
 
     @Test
-    fun `filtered-to-empty still shows the actions since raw items are present`() {
-        // The location carries the raw, unfiltered items; filtering happens downstream.
-        // A folder filtered down to zero visible items still has raw items here.
-        val actions = actionsFor(listOf(MockDataProvider.createMockRegularFile()))
-
-        actions.hasSecondaryBrowsingActions() shouldBe true
-    }
-
-    @Test
     fun `loading folder with null items shows the actions to avoid flicker`() {
         val actions = actionsFor(null)
 

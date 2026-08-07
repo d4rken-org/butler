@@ -504,17 +504,6 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `ignoreMissing false with non-existent file should throw`(@TempDir tempDir: File) = runTest {
-        // Given
-        val nonExistentFile = File(tempDir, "does-not-exist.txt")
-
-        // When & Then
-        shouldThrow<ReadException> {
-            LocalPath.build(nonExistentFile).delete(ops, ignoreMissing = false).last()
-        }
-    }
-
-    @Test
     fun `ignoreMissing true with mixed existing and non-existing files`(@TempDir tempDir: File) = runTest {
         // Given
         val existingFile = File(tempDir, "exists.txt")

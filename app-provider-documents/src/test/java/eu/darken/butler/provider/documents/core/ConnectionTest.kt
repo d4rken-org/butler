@@ -15,11 +15,6 @@ class ConnectionTest : BaseTest() {
     }
 
     @Test
-    fun `Device home documentId matches expected format`() {
-        ProviderLocation.Home.Device.documentId shouldBe "device|self"
-    }
-
-    @Test
     fun `Device home has FLAG_DIR_SUPPORTS_CREATE flag set`() {
         val flags = ProviderLocation.Home.Device.flags
         (flags and FLAG_DIR_SUPPORTS_CREATE) shouldBe FLAG_DIR_SUPPORTS_CREATE

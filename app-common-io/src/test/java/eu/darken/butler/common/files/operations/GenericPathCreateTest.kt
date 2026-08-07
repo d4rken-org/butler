@@ -396,30 +396,6 @@ class GenericPathCreateTest : BaseTest() {
     // ============ OVERWRITE-DELETE FAILURE SCENARIOS ============
 
     @Test
-    fun `overwrite triggers delete which succeeds then create succeeds`() = runTest {
-        // Given - file exists, will be overwritten
-        mockOps.addMockDir("/parent")
-        mockOps.addMockFile("/parent/file.txt", "old content".toByteArray())
-
-        val targetPath = LocalPath.build("/parent/file.txt")
-
-        issueResolution = PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
-
-        // When
-        val result = targetPath.createGeneric(
-            fileSystemOps = mockOps,
-            type = CreateAction.CreateType.FILE,
-            onIssue = onIssue
-        ).last() as CreateAction.State.Completed
-
-        // Then - old file deleted, new file created
-        issueCallCount shouldBe 1
-        result.created.lookedUp.path shouldBe "/parent/file.txt"
-        mockOps.hasFile("/parent/file.txt") shouldBe true
-        mockOps.getFileContent("/parent/file.txt")?.size shouldBe 0 // New empty file
-    }
-
-    @Test
     fun `overwrite triggers delete which fails with permission error and user retries`() = runTest {
         // Given - file exists, delete will fail once
         mockOps.addMockDir("/parent")

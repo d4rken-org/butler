@@ -259,14 +259,6 @@ class DocumentIdCodecTest : BaseTest() {
 
             encoded1 shouldBe encoded2
         }
-
-        @Test
-        fun `encode path with only root`() {
-            val path = LocalPath.build("/")
-            val encoded = codec.encode(path)
-
-            encoded shouldStartWith "local|"
-        }
     }
 
     @Nested

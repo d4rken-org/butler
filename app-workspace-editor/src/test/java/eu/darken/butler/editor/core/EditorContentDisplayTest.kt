@@ -75,21 +75,9 @@ class EditorContentDisplayTest {
     }
 
     @Test
-    fun `a cancelled open drops the file name`() {
-        // Cancelling clears the tab's claim while the engine still names the file it targeted;
-        // the tab is a scratch buffer now, and a session save persists it as one
-        val display = editorContentDisplay(
-            contentSource = ContentSource.Memory(size = 0L),
-            identityPath = null,
-            scratchTitle = scratchTitle,
-        )
-
-        display.title!!.get(context) shouldBe "Shopping list"
-        display.subtitle shouldBe null
-    }
-
-    @Test
     fun `a real scratch buffer uses the scratch name`() {
+        // Also covers a cancelled open: cancelling clears the tab's claim, so the tab becomes an
+        // ordinary scratch buffer with no identity path - the same inputs as a real scratch buffer
         val display = editorContentDisplay(
             contentSource = ContentSource.Memory(size = 0L),
             identityPath = null,

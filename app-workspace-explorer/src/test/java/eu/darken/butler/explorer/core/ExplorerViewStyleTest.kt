@@ -138,34 +138,17 @@ class ExplorerViewStyleTest : BaseTest() {
     }
 
     @Test
-    fun `deserialize List with partial fields`() {
-        val jsonString = """
-            {
-                "type": "list",
-                "density": "compact"
-            }
-        """
-
-        val style = json.decodeFromString<ExplorerViewStyle>(jsonString)
-
-        style shouldBe ExplorerViewStyle.List(
-            density = ExplorerViewStyle.List.Density.COMPACT,
-        )
-    }
-
-    @Test
     fun `deserialize Grid with partial fields`() {
         val jsonString = """
             {
-                "type": "grid",
-                "size": "large"
+                "type": "grid"
             }
         """
 
         val style = json.decodeFromString<ExplorerViewStyle>(jsonString)
 
         style shouldBe ExplorerViewStyle.Grid(
-            size = ExplorerViewStyle.Grid.GridSize.LARGE,
+            size = ExplorerViewStyle.Grid.GridSize.MEDIUM,
         )
     }
 

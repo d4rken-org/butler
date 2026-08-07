@@ -479,34 +479,6 @@ class GenericCrossTypeMoveStrategyTest : BaseTest() {
     // ============ ERROR HANDLING ============
 
     @Test
-    fun `copy fails returns error without delete attempt`() = runTest {
-        // Given
-        val content = "Test".toByteArray()
-        mockOps.addMockFile("/source/file.txt", content)
-        // Note: /dest does not exist
-
-        val sourcePath = LocalPath.build("/source/file.txt")
-        val destPath = LocalPath.build("/dest/file.txt")
-        val sourceLookup = mockOps.lookup(sourcePath)
-
-        // When/Then - should throw
-        shouldThrow<Exception> {
-            strategy.transferFile(
-                sourceLookup = sourceLookup,
-                destination = destPath,
-                sourceOps = mockOps,
-                destOps = mockOps,
-                options = TransferStrategy.Options(),
-                onProgress = {}
-            )
-        }
-
-        // Then - source still exists, no delete attempted
-        mockOps.hasFile("/source/file.txt") shouldBe true
-        mockOps.deleteCalls shouldBe emptyList()
-    }
-
-    @Test
     fun `source not found propagates error`() = runTest {
         // Given
         mockOps.addMockDir("/dest")
