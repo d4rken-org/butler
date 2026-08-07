@@ -10,22 +10,6 @@ import testhelpers.BaseTest
 class ConnectionTest : BaseTest() {
 
     @Test
-    fun `Device home has correct documentId`() {
-        ProviderLocation.Home.Device.documentId shouldBe "device|self"
-    }
-
-    @Test
-    fun `Device home has FLAG_DIR_SUPPORTS_CREATE flag set`() {
-        val flags = ProviderLocation.Home.Device.flags
-        (flags and FLAG_DIR_SUPPORTS_CREATE) shouldBe FLAG_DIR_SUPPORTS_CREATE
-    }
-
-    @Test
-    fun `Device home has valid icon resource ID`() {
-        ProviderLocation.Home.Device.icon shouldBe eu.darken.butler.provider.documents.R.drawable.devices_24px
-    }
-
-    @Test
     fun `Device home has title from string resource`() {
         ProviderLocation.Home.Device.title shouldNotBe CaString.EMPTY
     }
@@ -36,7 +20,7 @@ class ConnectionTest : BaseTest() {
     }
 
     @Test
-    fun `Device home properties are stable and unchanging`() {
+    fun `Device home wire format is stable`() {
         // Document IDs must be STABLE - this test ensures no accidental changes
         val device = ProviderLocation.Home.Device
 

@@ -118,38 +118,6 @@ class RootQueryHandlerTest {
     }
 
     @Test
-    fun `queryRoots Butler root has correct document ID`() = runTest {
-        val cursor = handler.queryRoots(null)
-
-        cursor.moveToFirst() shouldBe true
-
-        val documentIdIndex = cursor.getColumnIndex(DocumentsContract.Root.COLUMN_DOCUMENT_ID)
-        cursor.getString(documentIdIndex) shouldBe "butler"
-    }
-
-    @Test
-    fun `queryRoots Butler root has correct apiRootId`() = runTest {
-        val cursor = handler.queryRoots(null)
-
-        cursor.moveToFirst() shouldBe true
-
-        val rootIdIndex = cursor.getColumnIndex(DocumentsContract.Root.COLUMN_ROOT_ID)
-        cursor.getString(rootIdIndex) shouldBe "butler"
-    }
-
-    @Test
-    fun `queryRoots root document ID matches apiRootId`() = runTest {
-        val cursor = handler.queryRoots(null)
-
-        cursor.moveToFirst() shouldBe true
-
-        val rootIdIndex = cursor.getColumnIndex(DocumentsContract.Root.COLUMN_ROOT_ID)
-        val documentIdIndex = cursor.getColumnIndex(DocumentsContract.Root.COLUMN_DOCUMENT_ID)
-
-        cursor.getString(rootIdIndex) shouldBe cursor.getString(documentIdIndex)
-    }
-
-    @Test
     fun `queryRoots returns empty cursor when provider is disabled`() = runTest {
         // Create handler with disabled settings
         val disabledIsEnabledValue: DataStoreValue<Boolean> = mockk()

@@ -114,7 +114,7 @@ class DocumentQueryHandlerTest {
         val nameIndex = cursor.getColumnIndex(COLUMN_DISPLAY_NAME)
         val mimeIndex = cursor.getColumnIndex(COLUMN_MIME_TYPE)
 
-        cursor.getString(docIdIndex) shouldBe "butler"
+        cursor.getString(docIdIndex) shouldBe ProviderLocation.Root.Butler.rootDocumentId
         cursor.getString(nameIndex) shouldNotBe null
         cursor.getString(mimeIndex) shouldBe MIME_TYPE_DIR
     }
@@ -130,7 +130,7 @@ class DocumentQueryHandlerTest {
         val nameIndex = cursor.getColumnIndex(COLUMN_DISPLAY_NAME)
         val mimeIndex = cursor.getColumnIndex(COLUMN_MIME_TYPE)
 
-        cursor.getString(docIdIndex) shouldBe "device|self"
+        cursor.getString(docIdIndex) shouldBe ProviderLocation.Home.Device.documentId
         cursor.getString(nameIndex) shouldNotBe null
         cursor.getString(mimeIndex) shouldBe MIME_TYPE_DIR
     }
@@ -177,7 +177,7 @@ class DocumentQueryHandlerTest {
         val docIdIndex = cursor.getColumnIndex(COLUMN_DOCUMENT_ID)
         val nameIndex = cursor.getColumnIndex(COLUMN_DISPLAY_NAME)
 
-        cursor.getString(docIdIndex) shouldBe "device|self"
+        cursor.getString(docIdIndex) shouldBe ProviderLocation.Home.Device.documentId
         cursor.getString(nameIndex) shouldNotBe null
     }
 
