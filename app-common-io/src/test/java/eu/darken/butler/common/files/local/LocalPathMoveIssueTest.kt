@@ -21,6 +21,7 @@ import io.mockk.spyk
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
+import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import testhelpers.BaseTest
@@ -239,14 +240,17 @@ class LocalPathMoveIssueTest : BaseTest() {
         targetFile.writeText("target")
 
         val sourceLink = File(sourceFolder, "item.txt")
-        Files.createSymbolicLink(sourceLink.toPath(), java.nio.file.Paths.get("target.txt"))
+
+        // Setup-only assumption: only symlink CREATION may be unavailable on the host. Everything
+        // below is unconditional, so the move behaviour can never silently go unexercised.
+        val symlinkCreated = runCatching {
+            Files.createSymbolicLink(sourceLink.toPath(), java.nio.file.Paths.get("target.txt"))
+        }.isSuccess
+        assumeTrue(symlinkCreated, "Host filesystem does not support symlink creation")
+        Files.isSymbolicLink(sourceLink.toPath()) shouldBe true
 
         val destFile = File(destFolder, "item.txt")
         destFile.writeText("existing file")
-
-        if (!Files.isSymbolicLink(sourceLink.toPath())) {
-            return@runTest
-        }
 
         // When - move with overwrite resolution
         val result = LocalPath.build(sourceLink).move(

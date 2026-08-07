@@ -965,12 +965,14 @@ class LocalPathDeleteTest : BaseTest() {
         targetFile.writeText("target content")
 
         val symlinkFile = File(tempDir, "link.txt")
-        Files.createSymbolicLink(symlinkFile.toPath(), java.nio.file.Paths.get("target.txt"))
 
-        // Only proceed if symlink was actually created
-        if (!Files.isSymbolicLink(symlinkFile.toPath())) {
-            return@runTest
-        }
+        // Setup-only assumption: only symlink CREATION may be unavailable on the host. Everything
+        // below is unconditional, so the delete behaviour can never silently go unexercised.
+        val symlinkCreated = runCatching {
+            Files.createSymbolicLink(symlinkFile.toPath(), java.nio.file.Paths.get("target.txt"))
+        }.isSuccess
+        assumeTrue(symlinkCreated, "Host filesystem does not support symlink creation")
+        Files.isSymbolicLink(symlinkFile.toPath()) shouldBe true
 
         // When - delete the symlink
         val result = LocalPath.build(symlinkFile).delete(ops).last() as DeleteAction.State.Completed
@@ -987,16 +989,13 @@ class LocalPathDeleteTest : BaseTest() {
         // Given - symlink pointing to non-existent target
         val brokenLink = File(tempDir, "brokenLink")
 
-        // Create symlink to non-existent file
-        Files.createSymbolicLink(
-            brokenLink.toPath(),
-            java.nio.file.Paths.get("nonexistent.txt")
-        )
-
-        // Only proceed if symlink was actually created
-        if (!Files.isSymbolicLink(brokenLink.toPath())) {
-            return@runTest
-        }
+        // Setup-only assumption: only symlink CREATION may be unavailable on the host. Everything
+        // below is unconditional, so the delete behaviour can never silently go unexercised.
+        val symlinkCreated = runCatching {
+            Files.createSymbolicLink(brokenLink.toPath(), java.nio.file.Paths.get("nonexistent.txt"))
+        }.isSuccess
+        assumeTrue(symlinkCreated, "Host filesystem does not support symlink creation")
+        Files.isSymbolicLink(brokenLink.toPath()) shouldBe true
 
         // When - delete broken symlink
         val result = LocalPath.build(brokenLink).delete(ops).last() as DeleteAction.State.Completed
@@ -1020,11 +1019,14 @@ class LocalPathDeleteTest : BaseTest() {
         targetFile.writeText("target content")
 
         val symlinkFile = File(sourceDir, "link.txt")
-        Files.createSymbolicLink(symlinkFile.toPath(), java.nio.file.Paths.get("target.txt"))
 
-        if (!Files.isSymbolicLink(symlinkFile.toPath())) {
-            return@runTest // Skip if symlinks not supported
-        }
+        // Setup-only assumption: only symlink CREATION may be unavailable on the host. Everything
+        // below is unconditional, so the delete behaviour can never silently go unexercised.
+        val symlinkCreated = runCatching {
+            Files.createSymbolicLink(symlinkFile.toPath(), java.nio.file.Paths.get("target.txt"))
+        }.isSuccess
+        assumeTrue(symlinkCreated, "Host filesystem does not support symlink creation")
+        Files.isSymbolicLink(symlinkFile.toPath()) shouldBe true
 
         // When - delete the entire directory
         val result = LocalPath.build(sourceDir).delete(ops).last() as DeleteAction.State.Completed
@@ -1049,16 +1051,13 @@ class LocalPathDeleteTest : BaseTest() {
 
         val linkDir = File(tempDir, "linkDir")
 
-        // Create symlink with relative path
-        Files.createSymbolicLink(
-            linkDir.toPath(),
-            java.nio.file.Paths.get("targetDir")
-        )
-
-        // Only proceed if symlink was actually created
-        if (!Files.isSymbolicLink(linkDir.toPath())) {
-            return@runTest
-        }
+        // Setup-only assumption: only symlink CREATION may be unavailable on the host. Everything
+        // below is unconditional, so the delete behaviour can never silently go unexercised.
+        val symlinkCreated = runCatching {
+            Files.createSymbolicLink(linkDir.toPath(), java.nio.file.Paths.get("targetDir"))
+        }.isSuccess
+        assumeTrue(symlinkCreated, "Host filesystem does not support symlink creation")
+        Files.isSymbolicLink(linkDir.toPath()) shouldBe true
 
         // When - delete the symlink directory (non-recursive)
         val result = LocalPath.build(linkDir).delete(ops, recursive = false).last() as DeleteAction.State.Completed
@@ -1077,14 +1076,16 @@ class LocalPathDeleteTest : BaseTest() {
         targetFile.writeText("target content")
 
         val link1 = File(tempDir, "link1.txt")
-        Files.createSymbolicLink(link1.toPath(), targetFile.toPath())
-
         val link2 = File(tempDir, "link2.txt")
-        Files.createSymbolicLink(link2.toPath(), link1.toPath())
 
-        if (!Files.isSymbolicLink(link2.toPath())) {
-            return@runTest
-        }
+        // Setup-only assumption: only symlink CREATION may be unavailable on the host. Everything
+        // below is unconditional, so the delete behaviour can never silently go unexercised.
+        val symlinkCreated = runCatching {
+            Files.createSymbolicLink(link1.toPath(), targetFile.toPath())
+            Files.createSymbolicLink(link2.toPath(), link1.toPath())
+        }.isSuccess
+        assumeTrue(symlinkCreated, "Host filesystem does not support symlink creation")
+        Files.isSymbolicLink(link2.toPath()) shouldBe true
 
         // When - delete link2
         val result = LocalPath.build(link2).delete(ops).last() as DeleteAction.State.Completed
@@ -1107,13 +1108,15 @@ class LocalPathDeleteTest : BaseTest() {
         val link2 = File(tempDir, "link2.txt")
         val link3 = File(tempDir, "link3.txt")
 
-        Files.createSymbolicLink(link1.toPath(), java.nio.file.Paths.get("target.txt"))
-        Files.createSymbolicLink(link2.toPath(), java.nio.file.Paths.get("target.txt"))
-        Files.createSymbolicLink(link3.toPath(), java.nio.file.Paths.get("target.txt"))
-
-        if (!Files.isSymbolicLink(link1.toPath())) {
-            return@runTest
-        }
+        // Setup-only assumption: only symlink CREATION may be unavailable on the host. Everything
+        // below is unconditional, so the delete behaviour can never silently go unexercised.
+        val symlinkCreated = runCatching {
+            Files.createSymbolicLink(link1.toPath(), java.nio.file.Paths.get("target.txt"))
+            Files.createSymbolicLink(link2.toPath(), java.nio.file.Paths.get("target.txt"))
+            Files.createSymbolicLink(link3.toPath(), java.nio.file.Paths.get("target.txt"))
+        }.isSuccess
+        assumeTrue(symlinkCreated, "Host filesystem does not support symlink creation")
+        Files.isSymbolicLink(link1.toPath()) shouldBe true
 
         // When - delete all symlinks
         val result = listOf(
@@ -1139,14 +1142,14 @@ class LocalPathDeleteTest : BaseTest() {
         File(targetDir, "file.txt").writeText("content")
 
         val linkDir = File(tempDir, "linkDir")
-        Files.createSymbolicLink(
-            linkDir.toPath(),
-            java.nio.file.Paths.get("realDir")
-        )
 
-        if (!Files.isSymbolicLink(linkDir.toPath())) {
-            return@runTest
-        }
+        // Setup-only assumption: only symlink CREATION may be unavailable on the host. Everything
+        // below is unconditional, so the delete behaviour can never silently go unexercised.
+        val symlinkCreated = runCatching {
+            Files.createSymbolicLink(linkDir.toPath(), java.nio.file.Paths.get("realDir"))
+        }.isSuccess
+        assumeTrue(symlinkCreated, "Host filesystem does not support symlink creation")
+        Files.isSymbolicLink(linkDir.toPath()) shouldBe true
 
         // When - delete both the symlink and the target directory
         val result = listOf(
@@ -1166,13 +1169,15 @@ class LocalPathDeleteTest : BaseTest() {
         val link1 = File(tempDir, "link1")
         val link2 = File(tempDir, "link2")
 
-        // Create circular reference
-        Files.createSymbolicLink(link1.toPath(), java.nio.file.Paths.get("link2"))
-        Files.createSymbolicLink(link2.toPath(), java.nio.file.Paths.get("link1"))
-
-        if (!Files.isSymbolicLink(link1.toPath()) || !Files.isSymbolicLink(link2.toPath())) {
-            return@runTest
-        }
+        // Setup-only assumption: only symlink CREATION may be unavailable on the host. Everything
+        // below is unconditional, so the delete behaviour can never silently go unexercised.
+        val symlinkCreated = runCatching {
+            Files.createSymbolicLink(link1.toPath(), java.nio.file.Paths.get("link2"))
+            Files.createSymbolicLink(link2.toPath(), java.nio.file.Paths.get("link1"))
+        }.isSuccess
+        assumeTrue(symlinkCreated, "Host filesystem does not support symlink creation")
+        Files.isSymbolicLink(link1.toPath()) shouldBe true
+        Files.isSymbolicLink(link2.toPath()) shouldBe true
 
         // When - delete both symlinks
         val result = listOf(
@@ -1190,14 +1195,14 @@ class LocalPathDeleteTest : BaseTest() {
     fun `delete symlink with ignoreMissing when target missing`(@TempDir tempDir: File) = runTest {
         // Given - symlink with missing target
         val brokenLink = File(tempDir, "brokenLink")
-        Files.createSymbolicLink(
-            brokenLink.toPath(),
-            java.nio.file.Paths.get("missing.txt")
-        )
 
-        if (!Files.isSymbolicLink(brokenLink.toPath())) {
-            return@runTest
-        }
+        // Setup-only assumption: only symlink CREATION may be unavailable on the host. Everything
+        // below is unconditional, so the delete behaviour can never silently go unexercised.
+        val symlinkCreated = runCatching {
+            Files.createSymbolicLink(brokenLink.toPath(), java.nio.file.Paths.get("missing.txt"))
+        }.isSuccess
+        assumeTrue(symlinkCreated, "Host filesystem does not support symlink creation")
+        Files.isSymbolicLink(brokenLink.toPath()) shouldBe true
 
         // When - delete with ignoreMissing=true
         val result =

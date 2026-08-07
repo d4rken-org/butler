@@ -857,16 +857,13 @@ class LocalPathCopyTest : BaseTest() {
         targetFile.writeText("target content")
         val linkFile = File(sourceFolder, "link.txt")
 
-        // Create symlink with relative path
-        Files.createSymbolicLink(
-            linkFile.toPath(),
-            java.nio.file.Paths.get("target.txt")
-        )
-
-        // Only proceed if symlink was actually created
-        if (!Files.isSymbolicLink(linkFile.toPath())) {
-            return@runTest
-        }
+        // Setup-only assumption: only symlink CREATION may be unavailable on the host. Everything
+        // below is unconditional, so the copy behaviour can never silently go unexercised.
+        val symlinkCreated = runCatching {
+            Files.createSymbolicLink(linkFile.toPath(), java.nio.file.Paths.get("target.txt"))
+        }.isSuccess
+        assumeTrue(symlinkCreated, "Host filesystem does not support symlink creation")
+        Files.isSymbolicLink(linkFile.toPath()) shouldBe true
 
         val sourcePath = LocalPath.build(linkFile)
         val destPath = LocalPath.build(destFolder)
@@ -892,16 +889,13 @@ class LocalPathCopyTest : BaseTest() {
         targetFile.writeText("target content")
         val linkFile = File(sourceFolder, "link.txt")
 
-        // Create symlink with relative path
-        Files.createSymbolicLink(
-            linkFile.toPath(),
-            java.nio.file.Paths.get("target.txt")
-        )
-
-        // Only proceed if symlink was actually created
-        if (!Files.isSymbolicLink(linkFile.toPath())) {
-            return@runTest
-        }
+        // Setup-only assumption: only symlink CREATION may be unavailable on the host. Everything
+        // below is unconditional, so the copy behaviour can never silently go unexercised.
+        val symlinkCreated = runCatching {
+            Files.createSymbolicLink(linkFile.toPath(), java.nio.file.Paths.get("target.txt"))
+        }.isSuccess
+        assumeTrue(symlinkCreated, "Host filesystem does not support symlink creation")
+        Files.isSymbolicLink(linkFile.toPath()) shouldBe true
 
         val sourcePath = LocalPath.build(linkFile)
         val destPath = LocalPath.build(destFolder)
@@ -932,16 +926,13 @@ class LocalPathCopyTest : BaseTest() {
 
         val linkDir = File(sourceFolder, "linkDir")
 
-        // Create symlink with relative path
-        Files.createSymbolicLink(
-            linkDir.toPath(),
-            java.nio.file.Paths.get("targetDir")
-        )
-
-        // Only proceed if symlink was actually created
-        if (!Files.isSymbolicLink(linkDir.toPath())) {
-            return@runTest
-        }
+        // Setup-only assumption: only symlink CREATION may be unavailable on the host. Everything
+        // below is unconditional, so the copy behaviour can never silently go unexercised.
+        val symlinkCreated = runCatching {
+            Files.createSymbolicLink(linkDir.toPath(), java.nio.file.Paths.get("targetDir"))
+        }.isSuccess
+        assumeTrue(symlinkCreated, "Host filesystem does not support symlink creation")
+        Files.isSymbolicLink(linkDir.toPath()) shouldBe true
 
         val sourcePath = LocalPath.build(linkDir)
         val destPath = LocalPath.build(destFolder)
@@ -970,16 +961,13 @@ class LocalPathCopyTest : BaseTest() {
 
             val linkDir = File(sourceFolder, "linkDir")
 
-            // Create symlink with relative path
-            Files.createSymbolicLink(
-                linkDir.toPath(),
-                java.nio.file.Paths.get("targetDir")
-            )
-
-            // Only proceed if symlink was actually created
-            if (!Files.isSymbolicLink(linkDir.toPath())) {
-                return@runTest
-            }
+            // Setup-only assumption: only symlink CREATION may be unavailable on the host. Everything
+            // below is unconditional, so the copy behaviour can never silently go unexercised.
+            val symlinkCreated = runCatching {
+                Files.createSymbolicLink(linkDir.toPath(), java.nio.file.Paths.get("targetDir"))
+            }.isSuccess
+            assumeTrue(symlinkCreated, "Host filesystem does not support symlink creation")
+            Files.isSymbolicLink(linkDir.toPath()) shouldBe true
 
             val sourcePath = LocalPath.build(linkDir)
             val destPath = LocalPath.build(destFolder)
@@ -1011,16 +999,13 @@ class LocalPathCopyTest : BaseTest() {
         // Given - symlink pointing to non-existent target
         val brokenLink = File(sourceFolder, "brokenLink")
 
-        // Create symlink to non-existent file
-        Files.createSymbolicLink(
-            brokenLink.toPath(),
-            java.nio.file.Paths.get("nonexistent.txt")
-        )
-
-        // Only proceed if symlink was actually created
-        if (!Files.isSymbolicLink(brokenLink.toPath())) {
-            return@runTest
-        }
+        // Setup-only assumption: only symlink CREATION may be unavailable on the host. Everything
+        // below is unconditional, so the copy behaviour can never silently go unexercised.
+        val symlinkCreated = runCatching {
+            Files.createSymbolicLink(brokenLink.toPath(), java.nio.file.Paths.get("nonexistent.txt"))
+        }.isSuccess
+        assumeTrue(symlinkCreated, "Host filesystem does not support symlink creation")
+        Files.isSymbolicLink(brokenLink.toPath()) shouldBe true
 
         val sourcePath = LocalPath.build(brokenLink)
         val destPath = LocalPath.build(destFolder)
@@ -1046,16 +1031,13 @@ class LocalPathCopyTest : BaseTest() {
         // Given - symlink pointing to non-existent target
         val brokenLink = File(sourceFolder, "brokenLink")
 
-        // Create symlink to non-existent file
-        Files.createSymbolicLink(
-            brokenLink.toPath(),
-            java.nio.file.Paths.get("nonexistent.txt")
-        )
-
-        // Only proceed if symlink was actually created
-        if (!Files.isSymbolicLink(brokenLink.toPath())) {
-            return@runTest
-        }
+        // Setup-only assumption: only symlink CREATION may be unavailable on the host. Everything
+        // below is unconditional, so the copy behaviour can never silently go unexercised.
+        val symlinkCreated = runCatching {
+            Files.createSymbolicLink(brokenLink.toPath(), java.nio.file.Paths.get("nonexistent.txt"))
+        }.isSuccess
+        assumeTrue(symlinkCreated, "Host filesystem does not support symlink creation")
+        Files.isSymbolicLink(brokenLink.toPath()) shouldBe true
 
         val sourcePath = LocalPath.build(brokenLink)
         val destPath = LocalPath.build(destFolder)
@@ -1080,24 +1062,18 @@ class LocalPathCopyTest : BaseTest() {
         val realFile = File(realDir, "realFile.txt")
         realFile.writeText("nested content")
 
-        // Create symlink to file inside directory
         val linkToFile = File(realDir, "linkToFile")
-        Files.createSymbolicLink(
-            linkToFile.toPath(),
-            java.nio.file.Paths.get("realFile.txt")
-        )
-
-        // Create symlink to directory
         val linkToDir = File(sourceFolder, "linkToDir")
-        Files.createSymbolicLink(
-            linkToDir.toPath(),
-            java.nio.file.Paths.get("realDir")
-        )
 
-        // Only proceed if symlinks were actually created
-        if (!Files.isSymbolicLink(linkToDir.toPath()) || !Files.isSymbolicLink(linkToFile.toPath())) {
-            return@runTest
-        }
+        // Setup-only assumption: only symlink CREATION may be unavailable on the host. Everything
+        // below is unconditional, so the copy behaviour can never silently go unexercised.
+        val symlinkCreated = runCatching {
+            Files.createSymbolicLink(linkToFile.toPath(), java.nio.file.Paths.get("realFile.txt"))
+            Files.createSymbolicLink(linkToDir.toPath(), java.nio.file.Paths.get("realDir"))
+        }.isSuccess
+        assumeTrue(symlinkCreated, "Host filesystem does not support symlink creation")
+        Files.isSymbolicLink(linkToFile.toPath()) shouldBe true
+        Files.isSymbolicLink(linkToDir.toPath()) shouldBe true
 
         val sourcePath = LocalPath.build(linkToDir)
         val destPath = LocalPath.build(destFolder)
@@ -1138,15 +1114,14 @@ class LocalPathCopyTest : BaseTest() {
         File(subdir2, "deep.txt").writeText("deep content")
 
         val linkToDir = File(sourceFolder, "linkToDir")
-        Files.createSymbolicLink(
-            linkToDir.toPath(),
-            java.nio.file.Paths.get("targetDir")
-        )
 
-        // Only proceed if symlink was actually created
-        if (!Files.isSymbolicLink(linkToDir.toPath())) {
-            return@runTest
-        }
+        // Setup-only assumption: only symlink CREATION may be unavailable on the host. Everything
+        // below is unconditional, so the copy behaviour can never silently go unexercised.
+        val symlinkCreated = runCatching {
+            Files.createSymbolicLink(linkToDir.toPath(), java.nio.file.Paths.get("targetDir"))
+        }.isSuccess
+        assumeTrue(symlinkCreated, "Host filesystem does not support symlink creation")
+        Files.isSymbolicLink(linkToDir.toPath()) shouldBe true
 
         val sourcePath = LocalPath.build(linkToDir)
         val destPath = LocalPath.build(destFolder)
