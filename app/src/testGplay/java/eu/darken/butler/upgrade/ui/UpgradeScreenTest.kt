@@ -36,11 +36,11 @@ class UpgradeScreenTest : ComposeTest() {
 
     private fun appNameWithPostfixedHeroBody(bodyRes: Int): String = context.getString(
         bodyRes,
-        "${context.getString(CommonR.string.app_name)} ${context.getString(R.string.app_name_upgrade_postfix)}",
+        "${context.getString(CommonR.string.app_name)} ${context.getString(CommonR.string.app_name_upgrade_postfix)}",
     )
 
     private val brand: String
-        get() = "${context.getString(CommonR.string.app_name)} ${context.getString(R.string.app_name_upgrade_postfix)}"
+        get() = "${context.getString(CommonR.string.app_name)} ${context.getString(CommonR.string.app_name_upgrade_postfix)}"
 
     private val acquisitionTitle: String
         get() = context.getString(R.string.upgrade_screen_title_template, brand)
@@ -91,7 +91,7 @@ class UpgradeScreenTest : ComposeTest() {
         // outside both spans instead of trailing inside this one.
         rendered.text.substring(base.start, base.end) shouldBe context.getString(CommonR.string.app_name)
 
-        val postfix = context.getString(R.string.app_name_upgrade_postfix)
+        val postfix = context.getString(CommonR.string.app_name_upgrade_postfix)
         val highlight = rendered.spanStyles[1]
         highlight.item.color shouldBe capturedTertiary
         rendered.text.substring(highlight.start, highlight.end) shouldBe postfix
@@ -502,7 +502,7 @@ class UpgradeScreenTest : ComposeTest() {
         composeTestRule.onAllNodesWithTag(UpgradeScreenTags.MANAGE_SUB).assertCountEquals(1)
         composeTestRule.onAllNodesWithTag(UpgradeScreenTags.SUBSCRIPTION).assertCountEquals(0)
         composeTestRule.onAllNodesWithText(context.getString(R.string.upgrade_screen_owned_sub_renewing_body)).assertCountEquals(1)
-        composeTestRule.onAllNodesWithText("${context.getString(CommonR.string.app_name)} ${context.getString(R.string.app_name_upgrade_postfix)}").assertCountEquals(1)
+        composeTestRule.onAllNodesWithText("${context.getString(CommonR.string.app_name)} ${context.getString(CommonR.string.app_name_upgrade_postfix)}").assertCountEquals(1)
         // The congrats hero names the variant.
         composeTestRule.onAllNodesWithTag(UpgradeScreenTags.OWNED_HERO).assertCountEquals(1)
         composeTestRule.onAllNodesWithText(appNameWithPostfixedHeroBody(R.string.upgrade_screen_owned_hero_sub_body))
@@ -602,7 +602,7 @@ class UpgradeScreenTest : ComposeTest() {
         // must not undercut the calm quiet stage with its own restore CTA.
         composeTestRule.onAllNodesWithTag(UpgradeScreenTags.RESTORE).assertCountEquals(0)
         // Grace users are still Pro: neutral status title, not the acquisition pitch title.
-        composeTestRule.onAllNodesWithText("${context.getString(CommonR.string.app_name)} ${context.getString(R.string.app_name_upgrade_postfix)}").assertCountEquals(1)
+        composeTestRule.onAllNodesWithText("${context.getString(CommonR.string.app_name)} ${context.getString(CommonR.string.app_name_upgrade_postfix)}").assertCountEquals(1)
         // A young episode is treated as a blip: calm status only — no offers, no sales pitch.
         // The offers return with the aged (diagnostics) stage.
         composeTestRule.onAllNodesWithTag(UpgradeScreenTags.SUBSCRIPTION).assertCountEquals(0)
