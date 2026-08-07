@@ -3,16 +3,13 @@ package eu.darken.butler.common.files.local
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.files.errors.PathPermissionDeniedException
 import eu.darken.butler.common.files.metadata.OwnershipResolver
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
-import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
-import io.kotest.matchers.collections.shouldNotBeEmpty
-import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -24,10 +21,11 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import testhelpers.BaseTest
+import testhelpers.TestClock
 import java.io.File
 import java.io.IOException
-import java.nio.file.Files
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.time.Duration.Companion.seconds
 
 class LocalPathDeleteIssueTest : BaseTest() {
 
@@ -38,70 +36,53 @@ class LocalPathDeleteIssueTest : BaseTest() {
 
     @Test
     fun `issue handling - skip resolution with apply to all`(@TempDir tempDir: File) = runTest {
-        // Given
-        val file1 = File(tempDir, "file1.txt")
-        val file2 = File(tempDir, "file2.txt")
-        val file3 = File(tempDir, "file3.txt")
+        // Given - three targets whose deletion fails with a permission-classified error
+        val file1 = File(tempDir, "file1.txt").apply { writeText("content1") }
+        val file2 = File(tempDir, "file2.txt").apply { writeText("content2") }
+        val file3 = File(tempDir, "file3.txt").apply { writeText("content3") }
+        val paths = listOf(LocalPath.build(file1), LocalPath.build(file2), LocalPath.build(file3))
 
-        // Create files but remove write permission to simulate permission errors
-        file1.writeText("content1")
-        file2.writeText("content2")
-        file3.writeText("content3")
-
-        // Make them read-only (may not work on all systems, but won't crash)
-        file1.setReadOnly()
-        file2.setReadOnly()
-        file3.setReadOnly()
+        // setReadOnly() is not a reliable barrier (unlink is governed by the parent directory), so
+        // inject exactly the failure a real EACCES produces inside LocalFileSystemOps.
+        val spyOps = spyk(ops)
+        paths.forEach { path ->
+            coEvery { spyOps.delete(path, recursive = false) } throws PathPermissionDeniedException(
+                path = path,
+                operation = "delete",
+                reason = PathPermissionDeniedException.Reason.ACCESS_DENIED,
+            )
+        }
 
         val issuesEncountered = mutableListOf<PathActionIssue>()
-        var firstIssueHandled = false
 
         // When
-        val result = listOf(LocalPath.build(file1), LocalPath.build(file2), LocalPath.build(file3)).delete(
-            ops,
+        val result = paths.delete(
+            spyOps,
             onIssue = { issue ->
                 issuesEncountered.add(issue)
+                when (issue) {
+                    is PathActionIssue.InsufficientPermission ->
+                        PathActionIssue.InsufficientPermission.Resolution.Skip(applyToAll = true)
 
-                if (!firstIssueHandled) {
-                    firstIssueHandled = true
-                    // First issue: Skip with "Apply to All"
-                    when (issue) {
-                        is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Skip(
-                            applyToAll = true
-                        )
-                        is PathActionIssue.UnknownError -> PathActionIssue.InsufficientPermission.Resolution.Skip(
-                            applyToAll = true
-                        )
-                        is PathActionIssue.InsufficientSpace -> throw NotImplementedError()
-                        is PathActionIssue.PathAlreadyExists -> throw NotImplementedError()
-                        is PathActionIssue.TrashMoveFailed -> throw NotImplementedError()
-                        is PathActionIssue.TrashNotSupported -> throw NotImplementedError()
-                        is PathActionIssue.TrashSizeLimitExceeded -> throw NotImplementedError()
-                        is PathActionIssue.ArchivePasswordRequired -> throw NotImplementedError()
-                    }
-                } else {
-                    // Subsequent issues should not occur due to "Apply to All"
-                    throw AssertionError("Should not encounter more issues with Apply to All")
+                    else -> throw AssertionError("Unexpected issue: $issue")
                 }
             }
         ).last() as DeleteAction.State.Completed
 
-        // Then
-        // On many systems, read-only files can still be deleted by the owner
-        // So this test validates the mechanism works when issues do occur
-        if (issuesEncountered.isNotEmpty()) {
-            // If issues were encountered, validate "Apply to All" behavior
-            issuesEncountered shouldHaveSize 1
-            // Files should still exist due to skip resolution
-            file1.exists() shouldBe true
-            file2.exists() shouldBe true
-            file3.exists() shouldBe true
-            result.deleted.shouldBeEmpty()
-        } else {
-            // If no issues occurred (files were successfully deleted)
-            // This is also valid behavior - the test verifies no crashes occur
-            result.deleted shouldHaveSize 3
-        }
+        // Then - only the first processed target reaches the handler. GenericPathDelete queues via
+        // deferredDeletions.addFirst, which reverses the top-level order, so file3 is that target.
+        issuesEncountered shouldHaveSize 1
+        val issue = issuesEncountered.single().shouldBeInstanceOf<PathActionIssue.InsufficientPermission>()
+        issue.source?.lookedUp shouldBe paths[2]
+        issue.destinationPath shouldBe paths[2]
+
+        result.deleted.shouldBeEmpty()
+        result.skipped.map { it.lookedUp } shouldContainExactlyInAnyOrder paths
+        // Every target was still attempted exactly once; apply-to-all suppresses the prompt, not the work
+        paths.forEach { path -> coVerify(exactly = 1) { spyOps.delete(path, recursive = false) } }
+        file1.exists() shouldBe true
+        file2.exists() shouldBe true
+        file3.exists() shouldBe true
     }
 
     @Test
@@ -139,7 +120,11 @@ class LocalPathDeleteIssueTest : BaseTest() {
         // Then - exactly one extra attempt was made, and Skip ends the loop instead of spinning
         attempts shouldBe 2
         issues shouldHaveSize 2
-        issues.forEach { it.shouldBeInstanceOf<PathActionIssue.UnknownError>() }
+        issues.forEach {
+            val unknown = it.shouldBeInstanceOf<PathActionIssue.UnknownError>()
+            unknown.source?.lookedUp shouldBe targetPath
+            unknown.destinationPath shouldBe targetPath
+        }
         result.deleted.shouldBeEmpty()
         result.skipped.map { it.lookedUp } shouldBe listOf(targetPath)
         testFile.exists() shouldBe true
@@ -180,7 +165,11 @@ class LocalPathDeleteIssueTest : BaseTest() {
         }
 
         issues shouldHaveSize 1
-        issues.single().shouldBeInstanceOf<PathActionIssue.UnknownError>()
+        issues.forEach {
+            val unknown = it.shouldBeInstanceOf<PathActionIssue.UnknownError>()
+            unknown.source?.lookedUp shouldBe path2
+            unknown.destinationPath shouldBe path2
+        }
         states.none { it is DeleteAction.State.Completed } shouldBe true
         // The unprocessed item was never attempted
         coVerify(exactly = 0) { spyOps.delete(path1, recursive = false) }
@@ -222,8 +211,11 @@ class LocalPathDeleteIssueTest : BaseTest() {
 
         // Then - the failing file is skipped while the directory tree is deleted post-order
         issues shouldHaveSize 1
-        val issue = issues.single().shouldBeInstanceOf<PathActionIssue.UnknownError>()
-        issue.source?.lookedUp shouldBe regularPath
+        issues.forEach {
+            val unknown = it.shouldBeInstanceOf<PathActionIssue.UnknownError>()
+            unknown.source?.lookedUp shouldBe regularPath
+            unknown.destinationPath shouldBe regularPath
+        }
 
         result.deleted.map { it.lookedUp } shouldContainExactlyInAnyOrder listOf(dirFilePath, directoryPath)
         result.skipped.map { it.lookedUp } shouldBe listOf(regularPath)
@@ -240,33 +232,40 @@ class LocalPathDeleteIssueTest : BaseTest() {
         parentDir.mkdir()
         childFile.writeText("content")
 
-        // Make directory unreadable to trigger permission error during scan
-        parentDir.setReadable(false)
+        val parentPath = LocalPath.build(parentDir)
 
-        var issueReceived = false
+        // setReadable(false) is not a reliable barrier (a privileged test process reads through it),
+        // so fail the directory listing outright.
+        val spyOps = spyk(ops)
+        coEvery { spyOps.listFiles(parentPath) } throws SecurityException("injected scan failure")
 
-        try {
-            // When
-            val result = LocalPath.build(parentDir).delete(
-                ops,
-                onIssue = { issue ->
-                    issueReceived = true
-                    when (issue) {
-                        is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Skip()
-                        is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
-                        else -> TODO("Unexpected issue type: $issue")
-                    }
+        val issues = mutableListOf<PathActionIssue>()
+
+        // When
+        val result = parentPath.delete(
+            spyOps,
+            onIssue = { issue ->
+                issues.add(issue)
+                when (issue) {
+                    is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
+                    else -> throw AssertionError("Unexpected issue: $issue")
                 }
-            ).last() as DeleteAction.State.Completed
+            }
+        ).last() as DeleteAction.State.Completed
 
-            // Then - Directory should be ONLY in skipped, NOT in deleted
-            result.deleted.map { it.lookedUp } shouldNotBe LocalPath.build(parentDir)
-            result.skipped.map { it.lookedUp } shouldContain LocalPath.build(parentDir)
-            issueReceived shouldBe true
-        } finally {
-            // Restore permissions for cleanup
-            parentDir.setReadable(true)
+        // Then - handleScanError() carries no source and reports the scanned path as destination
+        issues shouldHaveSize 1
+        issues.forEach {
+            val unknown = it.shouldBeInstanceOf<PathActionIssue.UnknownError>()
+            unknown.source shouldBe null
+            unknown.destinationPath shouldBe parentPath
         }
+
+        // The directory is ONLY in skipped, never in deleted
+        result.deleted.shouldBeEmpty()
+        result.skipped.map { it.lookedUp } shouldBe listOf(parentPath)
+        parentDir.exists() shouldBe true
+        childFile.exists() shouldBe true
     }
 
     @Test
@@ -308,8 +307,12 @@ class LocalPathDeleteIssueTest : BaseTest() {
         // UnknownError, even a permission-flavoured one, so the retry path is reachable here
         scanAttempts shouldBe 2
         issues shouldHaveSize 1
-        val issue = issues.single().shouldBeInstanceOf<PathActionIssue.UnknownError>()
-        issue.canRetry shouldBe true
+        issues.forEach {
+            val unknown = it.shouldBeInstanceOf<PathActionIssue.UnknownError>()
+            unknown.canRetry shouldBe true
+            unknown.source shouldBe null
+            unknown.destinationPath shouldBe parentPath
+        }
 
         result.deleted.map { it.lookedUp } shouldContainExactlyInAnyOrder listOf(parentPath, childPath)
         result.skipped.shouldBeEmpty()
@@ -328,158 +331,148 @@ class LocalPathDeleteIssueTest : BaseTest() {
         dir2.mkdir()
         dir3.mkdir()
 
-        File(dir1, "child1.txt").writeText("content1")
-        File(dir2, "child2.txt").writeText("content2")
-        File(dir3, "child3.txt").writeText("content3")
+        val child1 = File(dir1, "child1.txt").apply { writeText("content1") }
+        val child2 = File(dir2, "child2.txt").apply { writeText("content2") }
+        val child3 = File(dir3, "child3.txt").apply { writeText("content3") }
 
-        // Make all directories unreadable
-        dir1.setReadable(false)
-        dir2.setReadable(false)
-        dir3.setReadable(false)
+        val dirPaths = listOf(dir1, dir2, dir3).map { LocalPath.build(it) }
 
-        var issueCount = 0
-
-        try {
-            // When
-            val result = listOf(
-                LocalPath.build(dir1),
-                LocalPath.build(dir2),
-                LocalPath.build(dir3)
-            ).delete(
-                ops,
-                onIssue = { issue ->
-                    issueCount++
-                    when (issue) {
-                        is PathActionIssue.InsufficientPermission -> {
-                            PathActionIssue.InsufficientPermission.Resolution.Skip(applyToAll = true)
-                        }
-                        is PathActionIssue.UnknownError -> {
-                            PathActionIssue.UnknownError.Resolution.Skip(applyToAll = true)
-                        }
-                        else -> TODO("Unexpected issue type: $issue")
-                    }
-                }
-            ).last() as DeleteAction.State.Completed
-
-            // Then - Only 1 issue callback (not 3) due to applyToAll
-            issueCount shouldBe 1
-
-            // All 3 directories in skipped
-            result.skipped.size shouldBe 3
-            result.skipped.map { it.lookedUp } shouldContain LocalPath.build(dir1)
-            result.skipped.map { it.lookedUp } shouldContain LocalPath.build(dir2)
-            result.skipped.map { it.lookedUp } shouldContain LocalPath.build(dir3)
-
-            // All directories still exist
-            dir1.exists() shouldBe true
-            dir2.exists() shouldBe true
-            dir3.exists() shouldBe true
-        } finally {
-            // Restore permissions for cleanup
-            dir1.setReadable(true)
-            dir2.setReadable(true)
-            dir3.setReadable(true)
+        // setReadable(false) is not a reliable barrier (a privileged test process reads through it),
+        // so fail each directory listing outright.
+        val spyOps = spyk(ops)
+        dirPaths.forEach { path ->
+            coEvery { spyOps.listFiles(path) } throws SecurityException("injected scan failure")
         }
+
+        val issues = mutableListOf<PathActionIssue>()
+
+        // When
+        val result = dirPaths.delete(
+            spyOps,
+            onIssue = { issue ->
+                issues.add(issue)
+                when (issue) {
+                    // handleScanError() maps everything except RouteUnavailableException to a
+                    // retryable UnknownError, even a permission-flavoured SecurityException
+                    is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip(applyToAll = true)
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        ).last() as DeleteAction.State.Completed
+
+        // Then - Only 1 issue callback (not 3) due to applyToAll, raised by the first scanned dir
+        issues shouldHaveSize 1
+        issues.forEach {
+            val unknown = it.shouldBeInstanceOf<PathActionIssue.UnknownError>()
+            unknown.source shouldBe null
+            unknown.destinationPath shouldBe dirPaths[0]
+        }
+
+        // All 3 directories in skipped, nothing deleted
+        result.skipped.map { it.lookedUp } shouldContainExactlyInAnyOrder dirPaths
+        result.deleted.shouldBeEmpty()
+
+        // Apply-to-all suppresses the prompt, not the work
+        dirPaths.forEach { path -> coVerify(exactly = 1) { spyOps.listFiles(path) } }
+
+        // Disk state is unchanged
+        dir1.exists() shouldBe true
+        dir2.exists() shouldBe true
+        dir3.exists() shouldBe true
+        child1.exists() shouldBe true
+        child2.exists() shouldBe true
+        child3.exists() shouldBe true
     }
 
     @Test
     fun `multiple targets with error in one should continue with others`(@TempDir tempDir: File) = runTest {
         // Given - Three targets: A (succeeds), B (fails), C (succeeds)
-        val targetA = File(tempDir, "targetA.txt")
-        val targetB = File(tempDir, "targetB.txt")
-        val targetC = File(tempDir, "targetC.txt")
+        val targetA = File(tempDir, "targetA.txt").apply { writeText("content A") }
+        val targetB = File(tempDir, "targetB.txt").apply { writeText("content B") }
+        val targetC = File(tempDir, "targetC.txt").apply { writeText("content C") }
 
-        targetA.writeText("content A")
-        targetB.writeText("content B")
-        targetC.writeText("content C")
+        val targetAPath = LocalPath.build(targetA)
+        val targetBPath = LocalPath.build(targetB)
+        val targetCPath = LocalPath.build(targetC)
 
-        // Make targetB read-only to potentially trigger issues
-        targetB.setReadOnly()
+        // setReadOnly() is not a reliable barrier (unlink is governed by the parent directory), so
+        // fail only B's deletion.
+        val spyOps = spyk(ops)
+        coEvery { spyOps.delete(targetBPath, recursive = false) } throws IOException("injected delete failure")
 
-        var issueCount = 0
+        val issues = mutableListOf<PathActionIssue>()
 
-        try {
-            // When
-            val result = listOf(
-                LocalPath.build(targetA),
-                LocalPath.build(targetB),
-                LocalPath.build(targetC)
-            ).delete(
-                ops,
-                onIssue = { issue ->
-                    issueCount++
-                    when (issue) {
-                        is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Skip()
-                        is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
-                        else -> TODO("Unexpected issue: $issue")
-                    }
+        // When
+        val result = listOf(targetAPath, targetBPath, targetCPath).delete(
+            spyOps,
+            onIssue = { issue ->
+                issues.add(issue)
+                when (issue) {
+                    is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
+                    else -> throw AssertionError("Unexpected issue: $issue")
                 }
-            ).last() as DeleteAction.State.Completed
-
-            // Then - If B had an issue, A and C should still be deleted
-            if (issueCount > 0) {
-                // B had permission issue and was skipped
-                result.deleted.map { it.lookedUp } shouldContain LocalPath.build(targetA)
-                result.deleted.map { it.lookedUp } shouldContain LocalPath.build(targetC)
-                result.skipped.map { it.lookedUp } shouldContain LocalPath.build(targetB)
-                targetB.exists() shouldBe true
-            } else {
-                // All succeeded (read-only doesn't prevent deletion on this system)
-                result.deleted shouldHaveSize 3
             }
+        ).last() as DeleteAction.State.Completed
 
-            // A and C should always be deleted
-            targetA.exists() shouldBe false
-            targetC.exists() shouldBe false
-        } finally {
-            // Cleanup
-            targetB.setWritable(true)
+        // Then - B is skipped and the rest of the batch still goes through
+        issues shouldHaveSize 1
+        issues.forEach {
+            val unknown = it.shouldBeInstanceOf<PathActionIssue.UnknownError>()
+            unknown.source?.lookedUp shouldBe targetBPath
+            unknown.destinationPath shouldBe targetBPath
         }
+
+        result.deleted.map { it.lookedUp } shouldContainExactlyInAnyOrder listOf(targetAPath, targetCPath)
+        result.skipped.map { it.lookedUp } shouldBe listOf(targetBPath)
+        targetA.exists() shouldBe false
+        targetB.exists() shouldBe true
+        targetC.exists() shouldBe false
     }
 
     @Test
     fun `deleted and skipped sets are always mutually exclusive`(@TempDir tempDir: File) = runTest {
-        // Given - Complex nested structure with various scenarios
-        val dirA = File(tempDir, "dirA")
-        val dirB = File(dirA, "dirB")
-        val fileInA = File(dirA, "fileA.txt")
-        val fileInB = File(dirB, "fileB.txt")
-        val standaloneFile = File(tempDir, "standalone.txt")
+        // Given - one target that deletes cleanly and one whose deletion always fails
+        val healthyFile = File(tempDir, "healthy.txt").apply { writeText("healthy") }
+        val failingFile = File(tempDir, "failing.txt").apply { writeText("failing") }
 
-        dirA.mkdir()
-        dirB.mkdir()
-        fileInA.writeText("content A")
-        fileInB.writeText("content B")
-        standaloneFile.writeText("standalone")
+        val healthyPath = LocalPath.build(healthyFile)
+        val failingPath = LocalPath.build(failingFile)
 
-        // Make one file read-only to potentially trigger skip
-        fileInB.setReadOnly()
+        // setReadOnly() is not a reliable barrier (unlink is governed by the parent directory), so
+        // fail only the one deletion that has to end up in skipped.
+        val spyOps = spyk(ops)
+        coEvery { spyOps.delete(failingPath, recursive = false) } throws IOException("injected delete failure")
 
-        try {
-            // When
-            val result = listOf(
-                LocalPath.build(dirA),
-                LocalPath.build(standaloneFile)
-            ).delete(
-                ops,
-                onIssue = { issue ->
-                    when (issue) {
-                        is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Skip()
-                        is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
-                        else -> throw NotImplementedError()
-                    }
+        val issues = mutableListOf<PathActionIssue>()
+
+        // When
+        val result = listOf(healthyPath, failingPath).delete(
+            spyOps,
+            onIssue = { issue ->
+                issues.add(issue)
+                when (issue) {
+                    is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
+                    else -> throw AssertionError("Unexpected issue: $issue")
                 }
-            ).last() as DeleteAction.State.Completed
+            }
+        ).last() as DeleteAction.State.Completed
 
-            // Then - Verify mutual exclusivity (this is the critical test for the bug we fixed)
-            val deletedPaths = result.deleted.map { it.lookedUp }.toSet()
-            val skippedPaths = result.skipped.map { it.lookedUp }.toSet()
-            val intersection = deletedPaths.intersect(skippedPaths)
-
-            intersection.shouldBeEmpty()
-        } finally {
-            fileInB.setWritable(true)
+        // Then - both sets are populated and disjoint (the bug this test pins)
+        issues shouldHaveSize 1
+        issues.forEach {
+            val unknown = it.shouldBeInstanceOf<PathActionIssue.UnknownError>()
+            unknown.source?.lookedUp shouldBe failingPath
+            unknown.destinationPath shouldBe failingPath
         }
+
+        val deletedPaths = result.deleted.map { it.lookedUp }.toSet()
+        val skippedPaths = result.skipped.map { it.lookedUp }.toSet()
+        deletedPaths shouldBe setOf(healthyPath)
+        skippedPaths shouldBe setOf(failingPath)
+        deletedPaths.intersect(skippedPaths).shouldBeEmpty()
+
+        healthyFile.exists() shouldBe false
+        failingFile.exists() shouldBe true
     }
 
     @Test
@@ -513,7 +506,11 @@ class LocalPathDeleteIssueTest : BaseTest() {
         // Then - two failures, two prompts, exactly three attempts, then the file is really gone
         attempts shouldBe 3
         issues shouldHaveSize 2
-        issues.forEach { it.shouldBeInstanceOf<PathActionIssue.UnknownError>() }
+        issues.forEach {
+            val unknown = it.shouldBeInstanceOf<PathActionIssue.UnknownError>()
+            unknown.source?.lookedUp shouldBe targetPath
+            unknown.destinationPath shouldBe targetPath
+        }
         result.deleted.map { it.lookedUp } shouldBe listOf(targetPath)
         result.skipped.shouldBeEmpty()
         testFile.exists() shouldBe false
@@ -524,42 +521,39 @@ class LocalPathDeleteIssueTest : BaseTest() {
         // Given
         val testFile = File(tempDir, "test.txt")
         testFile.writeText("content")
+        val targetPath = LocalPath.build(testFile)
 
-        // Make file unreadable AND unwritable to maximize chance of permission error
-        testFile.setReadOnly()
-        testFile.setReadable(false)
+        // setReadOnly() is not a reliable barrier (unlink is governed by the parent directory), so
+        // fail the deletion outright.
+        val spyOps = spyk(ops)
+        coEvery { spyOps.delete(targetPath, recursive = false) } throws IOException("injected delete failure")
 
-        var issueEncountered = false
+        val issues = mutableListOf<PathActionIssue>()
 
-        try {
-            // When
-            val result = LocalPath.build(testFile).delete(
-                ops,
-                onIssue = { issue ->
-                    issueEncountered = true
-                    when (issue) {
-                        is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Skip()
-                        is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
-                        else -> throw NotImplementedError()
-                    }
+        // When
+        val result = targetPath.delete(
+            spyOps,
+            onIssue = { issue ->
+                issues.add(issue)
+                when (issue) {
+                    is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
+                    else -> throw AssertionError("Unexpected issue: $issue")
                 }
-            ).last() as DeleteAction.State.Completed
-
-            // Then
-            if (issueEncountered) {
-                // File should be ONLY in skipped
-                result.skipped.map { it.lookedUp } shouldContain LocalPath.build(testFile)
-                result.deleted.map { it.lookedUp } shouldNotBe LocalPath.build(testFile)
-                testFile.exists() shouldBe true
-            } else {
-                // System allowed deletion despite permissions
-                result.deleted shouldHaveSize 1
             }
-        } finally {
-            // Restore permissions for cleanup
-            testFile.setReadable(true)
-            testFile.setWritable(true)
+        ).last() as DeleteAction.State.Completed
+
+        // Then - Skip retires the item after a single attempt, and it lands only in skipped
+        issues shouldHaveSize 1
+        issues.forEach {
+            val unknown = it.shouldBeInstanceOf<PathActionIssue.UnknownError>()
+            unknown.source?.lookedUp shouldBe targetPath
+            unknown.destinationPath shouldBe targetPath
         }
+        coVerify(exactly = 1) { spyOps.delete(targetPath, recursive = false) }
+
+        result.skipped.map { it.lookedUp } shouldBe listOf(targetPath)
+        result.deleted.shouldBeEmpty()
+        testFile.exists() shouldBe true
     }
 
     @Test
@@ -594,10 +588,13 @@ class LocalPathDeleteIssueTest : BaseTest() {
 
         // Then - a non-permission delete failure becomes a retryable UnknownError carrying the target
         issues shouldHaveSize 1
-        val issue = issues.single().shouldBeInstanceOf<PathActionIssue.UnknownError>()
-        issue.canRetry shouldBe true
-        issue.canSkip shouldBe true
-        issue.source?.lookedUp shouldBe targetPath
+        issues.forEach {
+            val unknown = it.shouldBeInstanceOf<PathActionIssue.UnknownError>()
+            unknown.canRetry shouldBe true
+            unknown.canSkip shouldBe true
+            unknown.source?.lookedUp shouldBe targetPath
+            unknown.destinationPath shouldBe targetPath
+        }
 
         attempts shouldBe 2
         result.deleted.map { it.lookedUp } shouldBe listOf(targetPath)
@@ -607,65 +604,45 @@ class LocalPathDeleteIssueTest : BaseTest() {
 
     @Test
     fun `delete retry resolution allows multiple retry attempts`(@TempDir tempDir: File) = runTest {
-        // This test verifies that retry functionality is implemented and works correctly.
-        // It simulates a scenario where retry is requested and validates the behavior.
-
-        // Given - File that exists
+        // Given - the deletion fails twice before the real filesystem call is allowed through
         val testFile = File(tempDir, "retrytest.txt")
         testFile.writeText("content")
+        val targetPath = LocalPath.build(testFile)
 
-        var retryCount = 0
-        var firstAttemptFailed = false
-
-        // When - Simulate permission error on first attempt, success on retry
-        testFile.setReadOnly()
-
-        try {
-            LocalPath.build(testFile).delete(
-                ops,
-                onIssue = { issue ->
-                    retryCount++
-                    when (issue) {
-                        is PathActionIssue.UnknownError -> {
-                            if (retryCount == 1) {
-                                firstAttemptFailed = true
-                                // Restore permissions before retry
-                                testFile.setWritable(true)
-                                PathActionIssue.UnknownError.Resolution.Retry
-                            } else {
-                                // Should succeed on retry
-                                PathActionIssue.UnknownError.Resolution.Skip()
-                            }
-                        }
-                        is PathActionIssue.InsufficientPermission -> {
-                            if (retryCount == 1) {
-                                firstAttemptFailed = true
-                                // Restore permissions before retry
-                                testFile.setWritable(true)
-                                // InsufficientPermission doesn't have Retry, use Skip
-                                PathActionIssue.InsufficientPermission.Resolution.Skip()
-                            } else {
-                                PathActionIssue.InsufficientPermission.Resolution.Skip()
-                            }
-                        }
-                        else -> TODO("Unexpected issue: $issue")
-                    }
-                }
-            ).last() as DeleteAction.State.Completed
-
-            // Then - Verify retry mechanism exists and works
-            // On systems where read-only doesn't prevent deletion, the file will be deleted without issues
-            // On systems where it does, retry mechanism should have been triggered
-            if (firstAttemptFailed) {
-                // Retry mechanism was triggered
-                retryCount should { it >= 1 }
-            }
-
-            // File should be deleted in either case
-            testFile.exists() shouldBe false
-        } finally {
-            testFile.setWritable(true)
+        // setReadOnly() is not a reliable barrier (unlink is governed by the parent directory), so
+        // fail the delete twice and let the third attempt hit the real filesystem.
+        val spyOps = spyk(ops)
+        var attempts = 0
+        coEvery { spyOps.delete(targetPath, recursive = false) } coAnswers {
+            attempts++
+            if (attempts <= 2) throw IOException("injected delete failure") else callOriginal()
         }
+
+        val issues = mutableListOf<PathActionIssue>()
+
+        // When - Retry every time
+        val result = targetPath.delete(
+            spyOps,
+            onIssue = { issue ->
+                issues.add(issue)
+                when (issue) {
+                    is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Retry
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        ).last() as DeleteAction.State.Completed
+
+        // Then - the handler really drove two retries and the third attempt deleted the file
+        attempts shouldBe 3
+        issues shouldHaveSize 2
+        issues.forEach {
+            val unknown = it.shouldBeInstanceOf<PathActionIssue.UnknownError>()
+            unknown.source?.lookedUp shouldBe targetPath
+            unknown.destinationPath shouldBe targetPath
+        }
+        result.deleted.map { it.lookedUp } shouldBe listOf(targetPath)
+        result.skipped.shouldBeEmpty()
+        testFile.exists() shouldBe false
     }
 
     @Test
@@ -700,6 +677,9 @@ class LocalPathDeleteIssueTest : BaseTest() {
 
         listOf(path1, path2, path3).delete(
             spyOps,
+            // A frozen clock would throttle everything after the first report down to a single
+            // sample, leaving zipWithNext() empty and the monotonicity check vacuous
+            progressClock = TestClock(autoAdvance = 1.seconds),
             onIssue = { issue ->
                 issues.add(issue)
                 when (issue) {
@@ -723,12 +703,16 @@ class LocalPathDeleteIssueTest : BaseTest() {
         // Then - the retry really happened and every file still ended up deleted
         attempts shouldBe 2
         issues shouldHaveSize 1
-        issues.single().shouldBeInstanceOf<PathActionIssue.UnknownError>()
+        issues.forEach {
+            val unknown = it.shouldBeInstanceOf<PathActionIssue.UnknownError>()
+            unknown.source?.lookedUp shouldBe path2
+            unknown.destinationPath shouldBe path2
+        }
         completed!!.deleted.map { it.lookedUp } shouldContainExactlyInAnyOrder listOf(path1, path2, path3)
         completed!!.skipped.shouldBeEmpty()
 
         // ... and the re-queued item never rewound the progress counter
-        progressValues.shouldNotBeEmpty()
+        (progressValues.size > 1) shouldBe true
         progressValues.zipWithNext().forEach { (previous, next) -> (next >= previous) shouldBe true }
     }
 }
