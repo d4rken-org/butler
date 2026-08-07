@@ -2,6 +2,7 @@ package eu.darken.butler.workspace.ui.dialogs
 
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.WorkspaceLimitCandidate
 
 /**
  * Unified representation of manager-level dialogs.
@@ -18,14 +19,18 @@ sealed interface ManagerDialog {
         /**
          * Dialog shown when non-pro users reach the workspace limit.
          *
-         * [closableTitle] names the tab the dialog offers to close to make room for the blocked
-         * create; null when no tab may be closed for it and the action is not offered.
+         * [candidates] are the open tabs the dialog offers to close to make room for the blocked
+         * create, oldest first; empty when there is no create to replay. [canRecover] false means
+         * they are shown for information only - closing all of them still would not free a slot.
+         * [minToClose] is how many have to be selected before the confirm action does anything.
          */
         data class WorkspaceLimitReached(
             override val id: String,
             val currentCount: Int,
             val limit: Int,
-            val closableTitle: CaString? = null,
+            val candidates: List<WorkspaceLimitCandidate> = emptyList(),
+            val canRecover: Boolean = false,
+            val minToClose: Int = 1,
         ) : Global {
             override val isBlocking: Boolean = true
         }

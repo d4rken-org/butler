@@ -402,13 +402,19 @@ fun WorkspacesScreenHost(
 
         // WorkspaceLimitDialog renders above everything - visible over both workspace and manager
         workspaceLimitDialog?.let { dialogState ->
-            WorkspaceLimitDialog(
-                limit = dialogState.limit,
-                onDismiss = { vm.dismissWorkspaceLimitDialog() },
-                onUpgrade = { vm.onUpgradeFromLimitDialog() },
-                closableTitle = dialogState.closableTitle,
-                onCloseOldest = { vm.onCloseOldestFromLimitDialog() },
-            )
+            // Keyed on the confirmation: a recovery that no longer fits re-posts a fresh dialog, and
+            // it must not inherit the tab ticks the user made against the previous tab list.
+            key(dialogState.id) {
+                WorkspaceLimitDialog(
+                    limit = dialogState.limit,
+                    onDismiss = { vm.dismissWorkspaceLimitDialog() },
+                    onUpgrade = { vm.onUpgradeFromLimitDialog() },
+                    candidates = dialogState.candidates,
+                    canRecover = dialogState.canRecover,
+                    minToClose = dialogState.minToClose,
+                    onCloseSelected = { vm.onCloseSelectedFromLimitDialog(it) },
+                )
+            }
         }
     }
 }

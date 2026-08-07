@@ -76,11 +76,19 @@ class WorkspaceRepo @Inject constructor(
         .replayingShare(appScope)
 
     /**
-     * Work parked behind a dialog, run under [lock] once the user resolves it. The result is the
-     * failure to show the user, or null when there is nothing to report - only limit recovery
-     * ([resolveLimitByClosingOldest]) has a caller waiting for it, the rest always park null.
+     * Work parked behind a dialog, run under [lock] once the user resolves it. These always report
+     * null: nothing waits on their outcome.
      */
     private val pendingActions = ConcurrentHashMap<String, suspend () -> Throwable?>()
+
+    /**
+     * Creates parked behind the free-tier limit dialog, replayed under [lock] with the tabs the user
+     * picked. Separate from [pendingActions] because the argument is only known once the user has
+     * made a selection, and because [resolveLimitByClosing] has a caller waiting for the failure to
+     * report.
+     */
+    private val pendingLimitRecoveries =
+        ConcurrentHashMap<String, suspend (Set<Workspace.Id>) -> Throwable?>()
 
     /**
      * Normalized user-set name, or null when the input clears it. Single source of truth for what a
@@ -309,9 +317,22 @@ class WorkspaceRepo @Inject constructor(
      */
     fun peekOwnershipRoot(id: Workspace.Id): Workspace.Id = peekStacks().rootOf(id)?.id ?: id
 
+    /**
+     * Drops every open confirmation and the work parked behind it, without running any of it. The
+     * three stores are one unit: a confirmation the user can no longer see must not keep a create or
+     * a close alive that could fire later.
+     */
+    private fun discardAllConfirmations() {
+        _pendingConfirmations.value = emptyMap()
+        pendingActions.clear()
+        pendingLimitRecoveries.clear()
+    }
+
     fun resolveConfirmation(confirmationId: String, confirmed: Boolean) {
         log(TAG, INFO) { "resolveConfirmation($confirmationId, confirmed=$confirmed)" }
         _pendingConfirmations.update { it - confirmationId }
+        // Dismissing a limit dialog drops its parked create too, or it would outlive the dialog
+        pendingLimitRecoveries.remove(confirmationId)
         val action = pendingActions.remove(confirmationId)
         if (confirmed && action != null) {
             appScope.launch {
@@ -321,25 +342,25 @@ class WorkspaceRepo @Inject constructor(
     }
 
     /**
-     * Resolves a free-tier limit dialog through its neutral action: closes the tab the dialog named
-     * and completes the create that was blocked. A no-op when nothing was parked for
-     * [confirmationId] - the dialog is dismissed either way, exactly like [resolveConfirmation].
+     * Resolves a free-tier limit dialog by closing the tabs the user picked and completing the
+     * create that was blocked. A no-op when nothing was parked for [confirmationId] - the dialog is
+     * dismissed either way, exactly like [resolveConfirmation].
      *
      * The returned [Deferred] completes with the failure to show the user, or null when the recovery
      * worked. The recovery itself deliberately runs on the uncancellable [appScope]: awaiting the
      * result may be cancelled (configuration change, screen gone), the work in between closing the
-     * victim and committing the replacement may not.
+     * victims and committing the replacement may not.
      */
-    fun resolveLimitByClosingOldest(confirmationId: String): Deferred<Throwable?> {
-        log(TAG, INFO) { "resolveLimitByClosingOldest($confirmationId)" }
+    fun resolveLimitByClosing(confirmationId: String, victims: Set<Workspace.Id>): Deferred<Throwable?> {
+        log(TAG, INFO) { "resolveLimitByClosing($confirmationId, $victims)" }
         _pendingConfirmations.update { it - confirmationId }
-        val retry = pendingActions.remove(confirmationId)
+        val retry = pendingLimitRecoveries.remove(confirmationId)
         if (retry == null) {
             log(TAG, WARN) { "No blocked create parked for $confirmationId, nothing to recover" }
             return CompletableDeferred(null)
         }
         return appScope.async {
-            lock.withLock { retry() }
+            lock.withLock { retry(victims) }
         }
     }
 
@@ -377,8 +398,8 @@ class WorkspaceRepo @Inject constructor(
                 // Check workspace limit for non-pro users
                 if (!canCreateWorkspace(action, isPro)) {
                     log(TAG, INFO) { "Workspace limit reached, showing upgrade dialog" }
-                    val limitRetry: (suspend (Workspace.Id) -> Throwable?)? = if (action.allowLimitRecovery) {
-                        { victimId -> recoverFromLimit(action, isPro, victimId) }
+                    val limitRetry: (suspend (Set<Workspace.Id>) -> Throwable?)? = if (action.allowLimitRecovery) {
+                        { victimIds -> recoverFromLimit(action, isPro, victimIds) }
                     } else {
                         null
                     }
@@ -648,6 +669,10 @@ class WorkspaceRepo @Inject constructor(
                 contentClaims.clear()
                 _customTitles.value = emptyMap()
                 createdAtById = emptyMap()
+                // Every pending confirmation asks about tabs that no longer exist. Left behind, a
+                // limit dialog would survive with its blocked create still parked and re-open a tab
+                // moments after the user emptied the session.
+                discardAllConfirmations()
                 _events.emit(WorkspaceEvent.AllClosed)
 
                 WorkspaceAction.CloseAll.Result
@@ -928,8 +953,15 @@ class WorkspaceRepo @Inject constructor(
      * Number of open tab workspaces that count toward [FREE_TIER_WORKSPACE_LIMIT]: excludes modal
      * sub-workspaces and quota-exempt types ([Workspace.Type.isQuotaExempt]).
      */
-    private fun countedTabCount(): Int =
-        _workspaces.value.count { !it.info.value.isSubWorkspace && !it.type.isQuotaExempt }
+    private fun countedTabCount(): Int = _workspaces.value.count { it.isCountedTab }
+
+    /**
+     * True when this workspace occupies one of the free tier's slots. The single definition of that
+     * set: the quota counts it, the limit dialog lists it, and only it may be closed to free a slot -
+     * closing anything else would leave the count exactly where it was.
+     */
+    private val Workspace<*>.isCountedTab: Boolean
+        get() = !info.value.isSubWorkspace && !type.isQuotaExempt
 
     /**
      * Debug-only invariant check: [WorkspaceAction.Create.type] must match its [arguments] type.
@@ -1024,67 +1056,88 @@ class WorkspaceRepo @Inject constructor(
     }
 
     /**
-     * True when closing [workspace] to make room for a blocked create would not destroy anything the
-     * user still needs. Deliberately stricter than [pauseRefusal]: a pause is reversible, this is not.
+     * Why closing [workspace] to make room for a blocked create would destroy something the user
+     * still needs, or null when it is safe to close. Deliberately stricter than [pauseRefusal]: a
+     * pause is reversible, this is not.
+     *
+     * Reports a reason rather than a bare boolean because the limit dialog lists the blocked tabs
+     * too - "why can't I close that one" is the whole point of showing them.
      *
      * Must be called while holding [lock]; [stacks] is the ownership topology of the same snapshot.
      */
-    private fun isLimitRecoveryVictim(workspace: Workspace<*>, stacks: WorkspaceStacks): Boolean {
+    private fun limitCloseBlocker(
+        workspace: Workspace<*>,
+        stacks: WorkspaceStacks,
+    ): WorkspaceLimitCandidate.Blocker? {
         val info = workspace.info.value
-        // Same candidate set the quota counts: closing anything else would not free a slot
-        if (info.isSubWorkspace || workspace.type.isQuotaExempt) return false
         // Close() turns these into a second confirmation stacked on the limit dialog; closing them
         // silently is data loss
-        if (info.hasUnsavedChanges) return false
-        if (info.operationCount > 0 || info.attentionCount > 0) return false
+        if (info.hasUnsavedChanges) return WorkspaceLimitCandidate.Blocker.UNSAVED_CHANGES
+        if (info.attentionCount > 0) return WorkspaceLimitCandidate.Blocker.NEEDS_ATTENTION
+        if (info.operationCount > 0) return WorkspaceLimitCandidate.Blocker.BUSY
         // Zero counters while setup is still running says nothing about what would be lost
-        if (info.lifecycleState is Workspace.LifecycleState.Initializing) return false
+        if (info.lifecycleState is Workspace.LifecycleState.Initializing) {
+            return WorkspaceLimitCandidate.Blocker.LOADING
+        }
         // An open-transition in flight, exactly as pauseRefusal treats it
-        if (contentClaims.values.any { it == workspace.id }) return false
+        if (contentClaims.values.any { it == workspace.id }) return WorkspaceLimitCandidate.Blocker.BUSY
         // Close() auto-closes children: closing the tab that owns the modal the user is standing in
         // would destroy the very context this action exists to rescue. A unit of one is just the tab.
-        if (stacks.unitOf(workspace.id)?.size != 1) return false
-        return true
+        if (stacks.unitOf(workspace.id)?.size != 1) return WorkspaceLimitCandidate.Blocker.HAS_MODAL
+        return null
     }
 
     /**
-     * The counted tab that has been open longest and may be closed without losing anything, or null
-     * when no tab qualifies. Ties (identical timestamps, e.g. a batch) break on list order so the
-     * choice is deterministic. Must be called while holding [lock].
+     * Every counted tab the limit dialog may offer, oldest first - the order the user is most likely
+     * to close in. Ties (identical timestamps, e.g. a batch) break on list order so the list is
+     * deterministic. Blocked tabs are included, carrying their reason.
+     *
+     * Restricted to what the quota counts: closing anything else would not free a slot, so listing
+     * it would promise something the retry cannot deliver. Must be called while holding [lock].
      */
-    private fun findOldestClosableTab(): Workspace.Id? {
+    private fun limitCandidates(): List<WorkspaceLimitCandidate> {
         val stacks = peekStacks()
+        val titles = _customTitles.value
         return _workspaces.value
             .withIndex()
-            .filter { (_, workspace) -> isLimitRecoveryVictim(workspace, stacks) }
-            .minWithOrNull(
+            .filter { (_, workspace) -> workspace.isCountedTab }
+            .sortedWith(
                 compareBy<IndexedValue<Workspace<*>>> { (_, workspace) ->
                     createdAtById[workspace.id] ?: Instant.DISTANT_PAST
                 }.thenBy { it.index }
             )
-            ?.value?.id
+            .map { (_, workspace) ->
+                val info = workspace.info.value.withCustomTitle(titles)
+                WorkspaceLimitCandidate(
+                    id = workspace.id,
+                    type = workspace.type,
+                    title = info.displayTitle,
+                    subtitle = info.subtitle,
+                    openedAt = createdAtById[workspace.id] ?: Instant.DISTANT_PAST,
+                    blocker = limitCloseBlocker(workspace, stacks),
+                )
+            }
     }
 
     /**
-     * Surfaces the free-tier limit dialog. [retry] is the blocked create, replayed with the victim
-     * the dialog names once the user picks "close the oldest tab"; passing null (batches) offers no
-     * such action.
+     * Surfaces the free-tier limit dialog. [retry] is the blocked create, replayed with the tabs the
+     * user picked in the dialog; passing null (batches) offers no such action and posts a bare
+     * notice.
      *
-     * The action is only offered when closing that tab actually unblocks the create: restore creates
-     * with `skipLimitCheck`, so the counted count can legitimately sit ABOVE the limit, and freeing
-     * one slot out of two would promise something the retry cannot deliver.
+     * The recovery is only parked when closing every closable tab actually unblocks the create:
+     * restore creates with `skipLimitCheck`, so the counted count can legitimately sit ABOVE the
+     * limit, and freeing fewer slots than that overshoot would promise something the retry cannot
+     * deliver. The tabs are still listed in that case - read-only, so the user can at least see what
+     * is holding the slots - which is why `canRecover` is tracked separately from the list.
      */
-    private fun postLimitDialog(retry: (suspend (Workspace.Id) -> Throwable?)? = null) {
+    private fun postLimitDialog(retry: (suspend (Set<Workspace.Id>) -> Throwable?)? = null) {
         val confirmationId = Uuid.random().toString()
         val currentCount = countedTabCount()
 
-        val victim = retry?.let { recovery ->
-            if (currentCount - 1 >= FREE_TIER_WORKSPACE_LIMIT) return@let null
-            val victimId = findOldestClosableTab() ?: return@let null
-            val candidate = _workspaces.value.firstOrNull { it.id == victimId } ?: return@let null
-            pendingActions[confirmationId] = { recovery(victimId) }
-            candidate
-        }
+        val candidates = if (retry == null) emptyList() else limitCandidates()
+        val canRecover = retry != null &&
+            currentCount - candidates.count { it.isClosable } < FREE_TIER_WORKSPACE_LIMIT
+        if (retry != null && canRecover) pendingLimitRecoveries[confirmationId] = retry
 
         _pendingConfirmations.update {
             it + (confirmationId to PendingWorkspaceConfirmation(
@@ -1093,18 +1146,21 @@ class WorkspaceRepo @Inject constructor(
                 data = PendingWorkspaceConfirmation.ConfirmationData.WorkspaceLimitReached(
                     currentCount = currentCount,
                     limit = FREE_TIER_WORKSPACE_LIMIT,
-                    closableId = victim?.id,
-                    closableTitle = victim?.info?.value?.withCustomTitle(_customTitles.value)?.displayTitle,
+                    candidates = candidates,
+                    canRecover = canRecover,
                 ),
             ))
         }
     }
 
     /**
-     * Replays a create that the free-tier limit blocked, closing [victimId] to make room. Reproduces
-     * `createAndFocus` - the only entry point that opts in ([WorkspaceAction.Create.allowLimitRecovery])
-     * - including its AlreadyOpen branch, so a recovered create is indistinguishable from one that
-     * was never blocked.
+     * Replays a create that the free-tier limit blocked, closing [victimIds] to make room. Reproduces
+     * `createAndFocus` - including its AlreadyOpen branch - so a recovered create is indistinguishable
+     * from one that was never blocked.
+     *
+     * Every caller that opts in ([WorkspaceAction.Create.allowLimitRecovery]) therefore gets
+     * create-and-focus semantics on recovery, even the tab manager's "Add tab", whose unblocked path
+     * does not focus what it creates. Landing on the tab you just freed room for is the point.
      *
      * Must be called while holding [lock]: it drives the internal paths directly instead of
      * [execute], whose non-reentrant mutex would deadlock permanently here.
@@ -1124,9 +1180,9 @@ class WorkspaceRepo @Inject constructor(
     private suspend fun recoverFromLimit(
         action: WorkspaceAction.Create,
         isPro: Boolean,
-        victimId: Workspace.Id,
+        victimIds: Set<Workspace.Id>,
     ): Throwable? {
-        log(TAG, INFO) { "recoverFromLimit($action, victim=$victimId)" }
+        log(TAG, INFO) { "recoverFromLimit($action, victims=$victimIds)" }
 
         (findExistingSingleton(action) ?: findExistingContentMatch(action))?.let { existingId ->
             log(TAG, INFO) { "Blocked create of ${action.type} is open as $existingId now, selecting it" }
@@ -1135,26 +1191,28 @@ class WorkspaceRepo @Inject constructor(
         }
 
         val needsClose = !canCreateWorkspace(action, isPro)
+        // Only what the user picked and what is still safe to close. Dropping some of the selection
+        // is fine - it is a subset of what they consented to - but substituting a tab they did not
+        // pick never is, so a short selection sends them back to a fresh dialog instead.
+        // isCountedTab is re-checked, not assumed from the dialog: this is reached through the public
+        // resolveLimitByClosing, so the set is whatever a caller passed. Closing an uncounted
+        // workspace would free no slot while the sufficiency check below believed it had.
+        val victims = if (needsClose) {
+            val stacks = peekStacks()
+            _workspaces.value.filter {
+                it.id in victimIds && it.isCountedTab && limitCloseBlocker(it, stacks) == null
+            }
+        } else {
+            emptyList()
+        }
         if (needsClose) {
             // Restore creates with skipLimitCheck, so the counted count can have grown past limit + 1
-            // while the dialog was up - closing one tab would no longer be enough, and committing
-            // anyway would leave the user above the cap. postLimitDialog's own gate then offers no
-            // close action for the fresh dialog.
-            if (countedTabCount() - 1 >= FREE_TIER_WORKSPACE_LIMIT) {
-                log(TAG, WARN) { "Closing one tab no longer frees a slot, asking again" }
-                val retry: suspend (Workspace.Id) -> Throwable? = { newVictimId ->
-                    recoverFromLimit(action, isPro, newVictimId)
-                }
-                postLimitDialog(retry = retry)
-                return null
-            }
-            val victim = _workspaces.value.firstOrNull { it.id == victimId }
-            // No substitution: the user consented to closing THIS tab, so a fresh dialog has to ask
-            // again for whatever is closable now.
-            if (victim == null || !isLimitRecoveryVictim(victim, peekStacks())) {
-                log(TAG, WARN) { "$victimId is no longer closable, asking again" }
-                val retry: suspend (Workspace.Id) -> Throwable? = { newVictimId ->
-                    recoverFromLimit(action, isPro, newVictimId)
+            // while the dialog was up, and tabs can have turned dirty or busy meanwhile. Committing
+            // anyway would leave the user above the cap.
+            if (countedTabCount() - victims.size >= FREE_TIER_WORKSPACE_LIMIT) {
+                log(TAG, WARN) { "Closing ${victims.size} of ${victimIds.size} tabs no longer frees a slot, asking again" }
+                val retry: suspend (Set<Workspace.Id>) -> Throwable? = { newVictimIds ->
+                    recoverFromLimit(action, isPro, newVictimIds)
                 }
                 postLimitDialog(retry = retry)
                 return null
@@ -1173,7 +1231,29 @@ class WorkspaceRepo @Inject constructor(
 
         var committedId: Workspace.Id? = null
         try {
-            if (needsClose) executeClose(victimId)
+            // Re-checked per victim rather than once up front: buildWorkspace and every executeClose
+            // suspend, and Workspace.info is owned by the workspace, not by [lock] - a tab can pick up
+            // unsaved changes while the tab before it is still closing. Skipping one is recoverable,
+            // closing one that just turned dirty is not.
+            var closed = 0
+            for (victim in victims) {
+                val blocker = limitCloseBlocker(victim, peekStacks())
+                if (blocker != null) {
+                    log(TAG, WARN) { "${victim.id} turned $blocker while closing, leaving it open" }
+                    continue
+                }
+                executeClose(victim.id)
+                closed++
+            }
+            if (closed < victims.size && countedTabCount() >= FREE_TIER_WORKSPACE_LIMIT) {
+                // Fewer slots freed than the sufficiency check assumed. The tabs the user picked and
+                // that were still safe are gone - they consented to that - but committing now would
+                // put them over the cap, so the remainder goes back to a fresh dialog.
+                log(TAG, WARN) { "Only $closed of ${victims.size} tabs could be closed, asking again" }
+                built.release()
+                postLimitDialog(retry = { newVictimIds -> recoverFromLimit(action, isPro, newVictimIds) })
+                return null
+            }
             val newId = commitWorkspace(built, action.replace, action.createdAt)
             committedId = newId
             trackUsage(action, Clock.System.now())

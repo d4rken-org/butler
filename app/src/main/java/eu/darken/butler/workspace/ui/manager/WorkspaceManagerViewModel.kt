@@ -207,7 +207,13 @@ class WorkspaceManagerViewModel @Inject constructor(
     fun createWorkspace(type: Workspace.Type, arguments: Workspace.Arguments? = null) = launch {
         log(tag) { "createWorkspace($type)" }
         val args = arguments ?: type.defaultArguments ?: return@launch
-        when (val result = workspaceRepo.execute(WorkspaceAction.Create(type, args))) {
+        // Opts into limit recovery: this is the most obvious way to run into the free-tier cap, so it
+        // has to be a place the limit dialog can offer tabs to close rather than only an upgrade.
+        // A recovered create focuses the new tab (the repo replays createAndFocus semantics), which an
+        // unblocked create from here does not - resolving the dialog is the one case where landing on
+        // what you just made is the point.
+        val request = WorkspaceAction.Create(type, args, allowLimitRecovery = true)
+        when (val result = workspaceRepo.execute(request)) {
             is WorkspaceAction.Create.Result.Success -> {
                 log(tag) { "Workspace created: ${result.newId}" }
             }

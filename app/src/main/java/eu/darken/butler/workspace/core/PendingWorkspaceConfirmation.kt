@@ -28,17 +28,29 @@ data class PendingWorkspaceConfirmation(
 
         /**
          * Notification when workspace limit is reached for non-pro users.
-         * User can choose to upgrade, dismiss, or close the oldest closable tab to make room.
+         * User can choose to upgrade, dismiss, or close tabs to make room.
          *
-         * [closableId] and [closableTitle] are both set or both null. The id is bound here rather
-         * than recomputed when the user taps: the dialog names a tab, and re-picking the oldest one
-         * at click time could close a different tab than the one the user agreed to.
+         * [candidates] are the open tabs the dialog lists, oldest first, each carrying whether it may
+         * be closed. Bound here rather than recomputed when the user taps: the dialog names specific
+         * tabs, and re-picking at click time could close a different tab than the one they agreed to.
+         * Empty when there is no blocked create to replay (batch creates), which reduces the dialog
+         * to a plain notice.
+         *
+         * [canRecover] is false when the tabs are listed for information only - a session restore can
+         * push the count so far past [limit] that closing everything closable still would not free a
+         * slot, and offering the action would promise something the replay cannot deliver.
          */
         data class WorkspaceLimitReached(
             val currentCount: Int,
             val limit: Int,
-            val closableId: Workspace.Id? = null,
-            val closableTitle: CaString? = null,
-        ) : ConfirmationData
+            val candidates: List<WorkspaceLimitCandidate> = emptyList(),
+            val canRecover: Boolean = false,
+        ) : ConfirmationData {
+            /**
+             * How many tabs have to go before the blocked create fits. Normally 1; a restore
+             * overshoot can require more.
+             */
+            val minToClose: Int get() = (currentCount - limit + 1).coerceAtLeast(1)
+        }
     }
 }

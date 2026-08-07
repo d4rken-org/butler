@@ -12,6 +12,7 @@ import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.usage.WorkspaceUsageRepo
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -104,6 +105,9 @@ class WorkspaceRepoTest : BaseTest() {
         /** Runs inside [createArguments], for exercising state changes while it suspends. */
         var whileCapturingArguments: (suspend () -> Unit)? = null
 
+        /** Runs inside [release], for exercising state changes while a close is in flight. */
+        var whileReleasing: (suspend () -> Unit)? = null
+
         override val info = MutableStateFlow(
             Workspace.Info(
                 id = id,
@@ -126,6 +130,7 @@ class WorkspaceRepoTest : BaseTest() {
 
         override suspend fun release() {
             released = true
+            whileReleasing?.invoke()
             releaseError?.let { throw it }
         }
 
@@ -683,8 +688,19 @@ class WorkspaceRepoTest : BaseTest() {
     private suspend fun WorkspaceRepo.countedTabs(): Int =
         state.first().infos.count { !it.isSubWorkspace && !it.type.isQuotaExempt }
 
+    /** The tabs the dialog offers to close, in the order it lists them. */
+    private suspend fun WorkspaceRepo.closableIds(): List<Workspace.Id> =
+        limitDialog().candidates.filter { it.isClosable }.map { it.id }
+
+    private suspend fun WorkspaceRepo.blockerFor(id: Workspace.Id): WorkspaceLimitCandidate.Blocker? =
+        limitDialog().candidates.single { it.id == id }.blocker
+
+    /** Resolves the open limit dialog by closing exactly [victims], as the dialog's confirm action does. */
+    private suspend fun WorkspaceRepo.resolveLimit(vararg victims: Workspace.Id) =
+        resolveLimitByClosing(limitConfirmation().id, victims.toSet())
+
     @Test
-    fun `the offered tab is the oldest one, not the first in the list`() = runTest(UnconfinedTestDispatcher()) {
+    fun `the offered tabs are listed oldest first, not in list order`() = runTest(UnconfinedTestDispatcher()) {
         val repo = createRepo(isPro = false)
         val newest = repo.createReadyTabAt(Instant.fromEpochSeconds(500))
         val oldest = repo.createReadyTabAt(Instant.fromEpochSeconds(100))
@@ -699,55 +715,59 @@ class WorkspaceRepoTest : BaseTest() {
 
         repo.createRecoverable().shouldBeInstanceOf<WorkspaceAction.Create.Result.LimitReached>()
 
-        repo.limitDialog().closableId shouldBe oldest
+        repo.closableIds() shouldBe listOf(oldest, middle, newest) + rest
     }
 
     @Test
-    fun `a tab with unsaved changes is never offered`() = runTest(UnconfinedTestDispatcher()) {
+    fun `a tab with unsaved changes is listed but never closable`() = runTest(UnconfinedTestDispatcher()) {
         val repo = createRepo(isPro = false)
         val ids = repo.fillWithReadyTabs()
         markDirty(ids[0])
 
         repo.createRecoverable()
 
-        repo.limitDialog().closableId shouldBe ids[1]
+        repo.blockerFor(ids[0]) shouldBe WorkspaceLimitCandidate.Blocker.UNSAVED_CHANGES
+        repo.closableIds() shouldBe ids.drop(1)
     }
 
     @Test
-    fun `a busy tab is never offered`() = runTest(UnconfinedTestDispatcher()) {
+    fun `a busy tab is listed but never closable`() = runTest(UnconfinedTestDispatcher()) {
         val repo = createRepo(isPro = false)
         val ids = repo.fillWithReadyTabs()
         fake(ids[0]).info.update { it.copy(operationCount = 1) }
 
         repo.createRecoverable()
 
-        repo.limitDialog().closableId shouldBe ids[1]
+        repo.blockerFor(ids[0]) shouldBe WorkspaceLimitCandidate.Blocker.BUSY
+        repo.closableIds() shouldBe ids.drop(1)
     }
 
     @Test
-    fun `a tab needing attention is never offered`() = runTest(UnconfinedTestDispatcher()) {
+    fun `a tab needing attention is listed but never closable`() = runTest(UnconfinedTestDispatcher()) {
         val repo = createRepo(isPro = false)
         val ids = repo.fillWithReadyTabs()
         fake(ids[0]).info.update { it.copy(attentionCount = 1) }
 
         repo.createRecoverable()
 
-        repo.limitDialog().closableId shouldBe ids[1]
+        repo.blockerFor(ids[0]) shouldBe WorkspaceLimitCandidate.Blocker.NEEDS_ATTENTION
+        repo.closableIds() shouldBe ids.drop(1)
     }
 
     @Test
-    fun `a tab holding a content claim is never offered`() = runTest(UnconfinedTestDispatcher()) {
+    fun `a tab holding a content claim is listed but never closable`() = runTest(UnconfinedTestDispatcher()) {
         val repo = createRepo(isPro = false)
         val ids = repo.fillWithReadyTabs()
         repo.execute(WorkspaceAction.ClaimContentPath(Workspace.Type.EXPLORER, pathA, ids[0]))
 
         repo.createRecoverable()
 
-        repo.limitDialog().closableId shouldBe ids[1]
+        repo.blockerFor(ids[0]) shouldBe WorkspaceLimitCandidate.Blocker.BUSY
+        repo.closableIds() shouldBe ids.drop(1)
     }
 
     @Test
-    fun `a tab that is still initializing is never offered`() = runTest(UnconfinedTestDispatcher()) {
+    fun `a tab that is still initializing is listed but never closable`() = runTest(UnconfinedTestDispatcher()) {
         val repo = createRepo(isPro = false)
         // Zero counters while setup is still running say nothing about what closing would cost
         val initializing = repo.createTab()
@@ -755,11 +775,12 @@ class WorkspaceRepoTest : BaseTest() {
 
         repo.createRecoverable()
 
-        repo.limitDialog().closableId shouldBe ids[1]
+        repo.blockerFor(ids[0]) shouldBe WorkspaceLimitCandidate.Blocker.LOADING
+        repo.closableIds() shouldBe ids.drop(1)
     }
 
     @Test
-    fun `a tab owning a live sub-workspace is never offered`() = runTest(UnconfinedTestDispatcher()) {
+    fun `a tab owning a live sub-workspace is listed but never closable`() = runTest(UnconfinedTestDispatcher()) {
         val repo = createRepo(isPro = false)
         val ids = repo.fillWithReadyTabs()
         // Closing it would auto-close the modal the user is standing in
@@ -767,11 +788,25 @@ class WorkspaceRepoTest : BaseTest() {
 
         repo.createRecoverable()
 
-        repo.limitDialog().closableId shouldBe ids[1]
+        repo.blockerFor(ids[0]) shouldBe WorkspaceLimitCandidate.Blocker.HAS_MODAL
+        repo.closableIds() shouldBe ids.drop(1)
+    }
+
+    /** The sub-workspace itself is not a counted tab, so it never shows up as something to close. */
+    @Test
+    fun `a sub-workspace is not listed at all`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo(isPro = false)
+        val ids = repo.fillWithReadyTabs()
+        val sub = repo.createSubWorkspace(caller = ids[0])
+
+        repo.createRecoverable()
+
+        repo.limitDialog().candidates.map { it.id } shouldBe ids
+        repo.limitDialog().candidates.none { it.id == sub } shouldBe true
     }
 
     @Test
-    fun `no closable tab means no offer and nothing to resolve`() = runTest(UnconfinedTestDispatcher()) {
+    fun `no closable tab still lists them, offers nothing and parks nothing`() = runTest(UnconfinedTestDispatcher()) {
         val repo = createRepo(isPro = false)
         val ids = repo.fillWithReadyTabs()
         ids.forEach { markDirty(it) }
@@ -779,17 +814,23 @@ class WorkspaceRepoTest : BaseTest() {
         repo.createRecoverable()
 
         val dialog = repo.limitDialog()
-        dialog.closableId shouldBe null
-        dialog.closableTitle shouldBe null
+        // Listed anyway: seeing what holds the slots beats being told a bare number
+        dialog.candidates.map { it.id } shouldBe ids
+        dialog.candidates.all { it.blocker == WorkspaceLimitCandidate.Blocker.UNSAVED_CHANGES } shouldBe true
+        dialog.canRecover shouldBe false
 
-        // Nothing was parked, so the neutral action cannot fire behind the UI's back
-        repo.resolveLimitByClosingOldest(repo.pendingConfirmations.first().keys.single())
+        // Nothing was parked, so the confirm action cannot fire behind the UI's back
+        repo.resolveLimit(ids[0])
         createdWorkspaces shouldHaveSize WorkspaceRepo.FREE_TIER_WORKSPACE_LIMIT
         ids.forEach { repo.retrieve(it).first() shouldNotBe null }
     }
 
+    /**
+     * A restore overshoot does not withhold the offer any more - it raises the price. One tab would
+     * not be enough, so the dialog asks for as many as it takes.
+     */
     @Test
-    fun `above the limit the offer is withheld because one slot would not be enough`() =
+    fun `above the limit the offer asks for more than one tab`() =
         runTest(UnconfinedTestDispatcher()) {
             val repo = createRepo(isPro = false)
             // Session restore bypasses the limit, so the counted count can legitimately exceed it
@@ -806,8 +847,32 @@ class WorkspaceRepoTest : BaseTest() {
 
             repo.createRecoverable().shouldBeInstanceOf<WorkspaceAction.Create.Result.LimitReached>()
 
-            repo.limitDialog().closableId shouldBe null
+            val dialog = repo.limitDialog()
+            dialog.canRecover shouldBe true
+            dialog.currentCount shouldBe WorkspaceRepo.FREE_TIER_WORKSPACE_LIMIT + 1
+            dialog.minToClose shouldBe 2
         }
+
+    /** Too few tabs closable for it to help: listed for information, but nothing on offer. */
+    @Test
+    fun `too little closable withholds the offer entirely`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo(isPro = false)
+        // 7 counted tabs of which only 2 may go: 5 would remain, which is still the whole quota
+        val stuck = repo.fillWithReadyTabs()
+        stuck.forEach { markDirty(it) }
+        val free = listOf(repo.createRestoredReadyTab(), repo.createRestoredReadyTab())
+
+        repo.createRecoverable().shouldBeInstanceOf<WorkspaceAction.Create.Result.LimitReached>()
+
+        val dialog = repo.limitDialog()
+        dialog.candidates.map { it.id } shouldBe stuck + free
+        dialog.candidates.filter { it.isClosable }.map { it.id } shouldBe free
+        dialog.canRecover shouldBe false
+
+        // Nothing parked, so confirming closes nothing
+        repo.resolveLimit(free[0], free[1])
+        repo.workspaceIds() shouldBe stuck + free
+    }
 
     @Test
     fun `a create that did not opt in gets no recovery offer`() = runTest(UnconfinedTestDispatcher()) {
@@ -817,21 +882,25 @@ class WorkspaceRepoTest : BaseTest() {
         repo.execute(createReq(Workspace.Type.EXPLORER))
             .shouldBeInstanceOf<WorkspaceAction.Create.Result.LimitReached>()
 
-        repo.limitDialog().closableId shouldBe null
+        val dialog = repo.limitDialog()
+        dialog.candidates.shouldBeEmpty()
+        dialog.canRecover shouldBe false
     }
 
     @Test
-    fun `a batch-triggered limit dialog carries no closable tab`() = runTest(UnconfinedTestDispatcher()) {
+    fun `a batch-triggered limit dialog lists no tabs`() = runTest(UnconfinedTestDispatcher()) {
         val repo = createRepo(isPro = false)
         repo.fillWithReadyTabs()
 
         repo.createBatch(createReq(Workspace.Type.EXPLORER))
 
-        repo.limitDialog().closableId shouldBe null
+        val dialog = repo.limitDialog()
+        dialog.candidates.shouldBeEmpty()
+        dialog.canRecover shouldBe false
     }
 
     @Test
-    fun `resolving closes the offered tab, completes the create and selects it`() =
+    fun `resolving closes the picked tab, completes the create and selects it`() =
         runTest(UnconfinedTestDispatcher()) {
             val repo = createRepo(isPro = false)
             val events = mutableListOf<WorkspaceEvent>()
@@ -840,7 +909,7 @@ class WorkspaceRepoTest : BaseTest() {
             repo.createRecoverable(type = Workspace.Type.SEARCHER)
                 .shouldBeInstanceOf<WorkspaceAction.Create.Result.LimitReached>()
 
-            repo.resolveLimitByClosingOldest(repo.limitConfirmation().id)
+            repo.resolveLimit(ids[0])
 
             fake(ids[0]).released shouldBe true
             repo.retrieve(ids[0]).first() shouldBe null
@@ -852,6 +921,130 @@ class WorkspaceRepoTest : BaseTest() {
             repo.pendingConfirmations.first() shouldBe emptyMap()
         }
 
+    /** The whole point of the redesign: one dialog, several tabs gone. */
+    @Test
+    fun `resolving closes every tab the user picked`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo(isPro = false)
+        val ids = repo.fillWithReadyTabs()
+        repo.createRecoverable(type = Workspace.Type.SEARCHER)
+            .shouldBeInstanceOf<WorkspaceAction.Create.Result.LimitReached>()
+
+        repo.resolveLimit(ids[0], ids[2], ids[4])
+
+        listOf(ids[0], ids[2], ids[4]).forEach {
+            fake(it).released shouldBe true
+            repo.retrieve(it).first() shouldBe null
+        }
+        listOf(ids[1], ids[3]).forEach { repo.retrieve(it).first() shouldNotBe null }
+        // Three closed, one created
+        repo.countedTabs() shouldBe WorkspaceRepo.FREE_TIER_WORKSPACE_LIMIT - 2
+        createdWorkspaces.count { it.type == Workspace.Type.SEARCHER } shouldBe 1
+    }
+
+    /**
+     * [WorkspaceRepo.resolveLimitByClosing] is public, so the victim set is whatever a caller passed.
+     * Closing an uncounted workspace would free no slot while the sufficiency check believed it had,
+     * committing the create with the user still at the cap.
+     */
+    @Test
+    fun `a victim that is not a counted tab is refused, not closed`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo(isPro = false)
+        repo.fillWithReadyTabs()
+        // Quota-exempt but otherwise perfectly closable: a ready root tab with no children, so only
+        // the counted-tab guard stands between it and being closed for a slot it does not occupy.
+        val exempt = repo.createReadyTab(type = Workspace.Type.DEVELOPER)
+        repo.createRecoverable(type = Workspace.Type.SEARCHER)
+
+        repo.resolveLimit(exempt)
+
+        fake(exempt).released shouldBe false
+        repo.retrieve(exempt).first() shouldNotBe null
+        createdWorkspaces.none { it.type == Workspace.Type.SEARCHER } shouldBe true
+        repo.countedTabs() shouldBe WorkspaceRepo.FREE_TIER_WORKSPACE_LIMIT
+    }
+
+    @Test
+    fun `closing all tabs drops the limit dialog and its parked create`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo(isPro = false)
+        val ids = repo.fillWithReadyTabs()
+        repo.createRecoverable(type = Workspace.Type.SEARCHER)
+            .shouldBeInstanceOf<WorkspaceAction.Create.Result.LimitReached>()
+        val confirmationId = repo.limitConfirmation().id
+
+        repo.execute(WorkspaceAction.CloseAll)
+
+        repo.pendingConfirmations.first() shouldBe emptyMap()
+        // The parked create must not survive to re-open a tab into the session the user just emptied
+        repo.resolveLimitByClosing(confirmationId, ids.toSet())
+        createdWorkspaces.none { it.type == Workspace.Type.SEARCHER } shouldBe true
+    }
+
+    /**
+     * A tab's dirtiness is owned by the workspace, not by the repo lock, so it can change while an
+     * earlier victim is still closing. Validating the set once up front and then closing blindly
+     * would discard that tab's unsaved work.
+     */
+    @Test
+    fun `a tab that turns dirty mid-close is left alone`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo(isPro = false)
+        val ids = repo.fillWithReadyTabs()
+        repo.createRecoverable(type = Workspace.Type.SEARCHER)
+        // ids[1] picks up unsaved changes while ids[0] is being released
+        fake(ids[0]).whileReleasing = { markDirty(ids[1]) }
+
+        repo.resolveLimit(ids[0], ids[1])
+
+        fake(ids[0]).released shouldBe true
+        fake(ids[1]).released shouldBe false
+        repo.retrieve(ids[1]).first() shouldNotBe null
+        // One slot was still freed, so the blocked create goes through
+        createdWorkspaces.count { it.type == Workspace.Type.SEARCHER } shouldBe 1
+    }
+
+    /**
+     * Same race, but now the survivor was the only slot that mattered: nothing may be committed on
+     * top of a cap that is still full, so the user is asked again instead.
+     */
+    @Test
+    fun `losing the only needed victim mid-close commits nothing and re-asks`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo(isPro = false)
+            val ids = repo.fillWithReadyTabs()
+            repo.createRecoverable(type = Workspace.Type.SEARCHER)
+            // A restore pushes the count up, so both picked tabs are needed to get back under the cap
+            val restored = repo.createRestoredReadyTab()
+            fake(ids[0]).whileReleasing = { markDirty(ids[1]) }
+
+            repo.resolveLimit(ids[0], ids[1])
+
+            fake(ids[1]).released shouldBe false
+            // The replacement is built before anything is closed, so this path builds one and then
+            // has to abandon it: it must never reach the repo, and it must not leak either.
+            repo.workspaceIds() shouldBe ids.drop(1) + restored
+            createdWorkspaces.single { it.type == Workspace.Type.SEARCHER }.released shouldBe true
+            // Asked again for what is still closable, rather than silently doing nothing
+            repo.limitDialog().canRecover shouldBe true
+        }
+
+    /**
+     * Closing fewer tabs than picked is safe - it is a subset of what the user consented to - so one
+     * tab turning dirty does not throw away the rest of their choice.
+     */
+    @Test
+    fun `a picked tab that stopped being closable is skipped, the rest still go`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo(isPro = false)
+            val ids = repo.fillWithReadyTabs()
+            repo.createRecoverable(type = Workspace.Type.SEARCHER)
+
+            markDirty(ids[0])
+            repo.resolveLimit(ids[0], ids[1])
+
+            fake(ids[0]).released shouldBe false
+            fake(ids[1]).released shouldBe true
+            createdWorkspaces.count { it.type == Workspace.Type.SEARCHER } shouldBe 1
+        }
+
     /**
      * The retry runs on the repo's own non-reentrant mutex. Going back through the public [execute]
      * would deadlock it permanently, so the repo has to stay usable afterwards.
@@ -859,10 +1052,10 @@ class WorkspaceRepoTest : BaseTest() {
     @Test
     fun `resolving does not deadlock the repo`() = runTest(UnconfinedTestDispatcher()) {
         val repo = createRepo(isPro = false)
-        repo.fillWithReadyTabs()
+        val ids = repo.fillWithReadyTabs()
         repo.createRecoverable(type = Workspace.Type.SEARCHER)
 
-        repo.resolveLimitByClosingOldest(repo.limitConfirmation().id)
+        repo.resolveLimit(ids[0])
 
         withTimeout(10.seconds) {
             repo.execute(WorkspaceAction.Reorder(repo.workspaceIds()))
@@ -870,22 +1063,26 @@ class WorkspaceRepoTest : BaseTest() {
         }
     }
 
+    /**
+     * The whole selection can evaporate, not just shrink. Substituting a tab the user never picked
+     * is what a fresh dialog exists to prevent.
+     */
     @Test
-    fun `a victim that stopped being closable is not substituted but re-offered`() =
+    fun `a selection that went entirely unclosable is not substituted but re-offered`() =
         runTest(UnconfinedTestDispatcher()) {
             val repo = createRepo(isPro = false)
             val ids = repo.fillWithReadyTabs()
             repo.createRecoverable(type = Workspace.Type.SEARCHER)
-            repo.limitDialog().closableId shouldBe ids[0]
+            repo.closableIds() shouldBe ids
 
-            // The named tab goes dirty while the dialog is up
+            // The picked tab goes dirty while the dialog is up
             markDirty(ids[0])
-            repo.resolveLimitByClosingOldest(repo.limitConfirmation().id)
+            repo.resolveLimit(ids[0])
 
             fake(ids[0]).released shouldBe false
             createdWorkspaces.none { it.type == Workspace.Type.SEARCHER } shouldBe true
-            // A fresh dialog names the tab that IS closable now, so the user consents to that one
-            repo.limitDialog().closableId shouldBe ids[1]
+            // A fresh dialog lists what IS closable now, so the user consents to those
+            repo.closableIds() shouldBe ids.drop(1)
         }
 
     @Test
@@ -896,7 +1093,7 @@ class WorkspaceRepoTest : BaseTest() {
             repo.createRecoverable(type = Workspace.Type.SEARCHER)
 
             repo.execute(WorkspaceAction.Close(ids.last()))
-            repo.resolveLimitByClosingOldest(repo.limitConfirmation().id)
+            repo.resolveLimit(ids[0])
 
             fake(ids[0]).released shouldBe false
             repo.retrieve(ids[0]).first() shouldNotBe null
@@ -923,7 +1120,7 @@ class WorkspaceRepoTest : BaseTest() {
             repo.execute(WorkspaceAction.Close(ids.last()))
             val holderId = repo.createContentTab(pathA)
 
-            repo.resolveLimitByClosingOldest(repo.limitConfirmation().id)
+            repo.resolveLimit(ids[0])
 
             fake(ids[0]).released shouldBe false
             createdWorkspaces.count { it.type == Workspace.Type.EDITOR } shouldBe 1
@@ -937,7 +1134,7 @@ class WorkspaceRepoTest : BaseTest() {
         repo.createRecoverable(type = Workspace.Type.SEARCHER)
         nextCreateFailure = IllegalStateException("Factory exploded")
 
-        repo.resolveLimitByClosingOldest(repo.limitConfirmation().id)
+        repo.resolveLimit(ids[0])
 
         // Nothing is built, so nothing is destroyed
         fake(ids[0]).released shouldBe false
@@ -947,7 +1144,7 @@ class WorkspaceRepoTest : BaseTest() {
 
     /**
      * Sufficiency is re-checked at resolve time, not just when the offer is made: restores keep
-     * creating past the quota, so by now closing one tab may free nothing.
+     * creating past the quota, so by now the picked tabs may free nothing.
      */
     @Test
     fun `a count that outgrew the limit while the dialog was up closes nothing`() =
@@ -956,28 +1153,36 @@ class WorkspaceRepoTest : BaseTest() {
             val ids = repo.fillWithReadyTabs()
             repo.createRecoverable(type = Workspace.Type.SEARCHER)
                 .shouldBeInstanceOf<WorkspaceAction.Create.Result.LimitReached>()
-            repo.limitDialog().closableId shouldBe ids[0]
+            repo.limitDialog().minToClose shouldBe 1
 
             val restored = listOf(repo.createRestoredReadyTab(), repo.createRestoredReadyTab())
-            repo.resolveLimitByClosingOldest(repo.limitConfirmation().id)
+            repo.resolveLimit(ids[0])
 
             fake(ids[0]).released shouldBe false
             repo.workspaceIds() shouldBe ids + restored
             repo.countedTabs() shouldBe WorkspaceRepo.FREE_TIER_WORKSPACE_LIMIT + 2
             createdWorkspaces.none { it.type == Workspace.Type.SEARCHER } shouldBe true
-            // The fresh dialog offers no close either - one slot still would not be enough
-            repo.limitDialog().closableId shouldBe null
+            // The fresh dialog asks for the count it now takes - one tab is no longer enough
+            val reposted = repo.limitDialog()
+            reposted.canRecover shouldBe true
+            reposted.minToClose shouldBe 3
+            reposted.candidates.map { it.id } shouldBe ids + restored
+
+            // And closing that many actually completes the create the user was blocked on
+            repo.resolveLimit(ids[0], ids[1], ids[2])
+            createdWorkspaces.count { it.type == Workspace.Type.SEARCHER } shouldBe 1
+            repo.countedTabs() shouldBe WorkspaceRepo.FREE_TIER_WORKSPACE_LIMIT
         }
 
     @Test
     fun `a failing recovery hands the failure to the caller`() = runTest(UnconfinedTestDispatcher()) {
         val repo = createRepo(isPro = false)
-        repo.fillWithReadyTabs()
+        val ids = repo.fillWithReadyTabs()
         repo.createRecoverable(type = Workspace.Type.SEARCHER)
         val boom = IllegalStateException("Factory exploded")
         nextCreateFailure = boom
 
-        val failure = repo.resolveLimitByClosingOldest(repo.limitConfirmation().id).await()
+        val failure = repo.resolveLimit(ids[0]).await()
 
         failure shouldBeSameInstanceAs boom
     }
@@ -989,7 +1194,7 @@ class WorkspaceRepoTest : BaseTest() {
         repo.createRecoverable(type = Workspace.Type.SEARCHER)
         fake(ids[0]).releaseError = IllegalStateException("Engine stuck")
 
-        repo.resolveLimitByClosingOldest(repo.limitConfirmation().id)
+        repo.resolveLimit(ids[0])
 
         repo.retrieve(ids[0]).first() shouldBe null
         createdWorkspaces.count { it.type == Workspace.Type.SEARCHER } shouldBe 1

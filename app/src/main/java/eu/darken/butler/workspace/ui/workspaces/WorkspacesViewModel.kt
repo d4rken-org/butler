@@ -131,7 +131,9 @@ class WorkspacesViewModel @Inject constructor(
                                 id = confirmationId,
                                 currentCount = data.currentCount,
                                 limit = data.limit,
-                                closableTitle = data.closableTitle,
+                                candidates = data.candidates,
+                                canRecover = data.canRecover,
+                                minToClose = data.minToClose,
                             )
                         }
                         is PendingWorkspaceConfirmation.ConfirmationData.BatchWorkspaceCreation -> {
@@ -453,14 +455,14 @@ class WorkspacesViewModel @Inject constructor(
         workspaceRepo.resolveConfirmation(dialogState.id, confirmed = false)
     }
 
-    fun onCloseOldestFromLimitDialog() = launch {
-        log(tag) { "onCloseOldestFromLimitDialog()" }
+    fun onCloseSelectedFromLimitDialog(victims: Set<Workspace.Id>) = launch {
+        log(tag) { "onCloseSelectedFromLimitDialog($victims)" }
         val dialogState = _managerDialogs.value
             .filterIsInstance<ManagerDialog.Global.WorkspaceLimitReached>()
             .firstOrNull() ?: return@launch
         // The recovery runs on the repo's app scope, so awaiting it here can be cancelled without
         // aborting it half-way; only the reporting is tied to this screen.
-        val error = workspaceRepo.resolveLimitByClosingOldest(dialogState.id).await()
+        val error = workspaceRepo.resolveLimitByClosing(dialogState.id, victims).await()
         if (error != null) {
             log(tag, ERROR) { "Limit recovery failed: ${error.asLog()}" }
             errorEvents.emit(error)
