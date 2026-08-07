@@ -55,6 +55,25 @@ class AppDetailsToolbarCardTest : ComposeTest() {
     }
 
     @Test
+    fun `collapsed toolbar joins app name and subtitle into one line`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                AppDetailsToolbarCard(
+                    app = AppsMockDataProvider.Presets.chrome,
+                    design = WorkspaceDesign(),
+                    isModal = true,
+                    collapsedFraction = 1f,
+                    subtitle = "Components",
+                    onBackClick = {},
+                )
+            }
+        }
+
+        // One line keeps the collapsed bar at the same height as the other workspaces' toolbars.
+        composeTestRule.onNodeWithText("Chrome · Components").assertIsDisplayed()
+    }
+
+    @Test
     fun `toggling search replaces the title with the input`() {
         composeTestRule.setContent {
             var searchActive by remember { mutableStateOf(false) }

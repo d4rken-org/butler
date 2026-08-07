@@ -44,6 +44,7 @@ import eu.darken.butler.workspace.ui.common.CutoutCard
 import eu.darken.butler.workspace.ui.common.CutoutCardDefaults
 import eu.darken.butler.workspace.ui.common.CutoutMode
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
+import eu.darken.butler.workspace.ui.manager.WorkspaceButtonDefaults
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 
 @Composable
@@ -72,13 +73,23 @@ fun AppDetailsToolbarCard(
     val isCollapsed = collapsedFraction > 0.5f
 
     val cardPadding by animateDpAsState(
-        targetValue = if (isCollapsed) 6.dp else 8.dp,
+        targetValue = if (isCollapsed) CutoutCardDefaults.ContentPaddingCollapsed else CutoutCardDefaults.ContentPaddingExpanded,
         label = "cardPadding"
     )
 
     val iconSize by animateDpAsState(
-        targetValue = if (isCollapsed) 36.dp else 40.dp,
+        targetValue = if (isCollapsed) 24.dp else 40.dp,
         label = "iconSize"
+    )
+
+    val controlSize by animateDpAsState(
+        targetValue = if (isCollapsed) 32.dp else 40.dp,
+        label = "controlSize"
+    )
+
+    val controlIconSize by animateDpAsState(
+        targetValue = if (isCollapsed) 20.dp else 24.dp,
+        label = "controlIconSize"
     )
 
     CutoutCard(
@@ -90,7 +101,7 @@ fun AppDetailsToolbarCard(
         cutoutContent = if (design.isSingle && !isModal) {
             {
                 WorkspaceButton(
-                    buttonSize = 40.dp,
+                    buttonSize = if (isCollapsed) WorkspaceButtonDefaults.sizeCompact else WorkspaceButtonDefaults.sizeDefault,
                     currentWorkspaceId = currentWorkspaceId,
                 )
             }
@@ -108,12 +119,13 @@ fun AppDetailsToolbarCard(
             if (onBackClick != null) {
                 IconButton(
                     onClick = onBackClick,
-                    modifier = Modifier.size(40.dp)
+                    modifier = Modifier.size(controlSize)
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.TwoTone.ArrowBack,
                         contentDescription = backContentDescription
                             ?: stringResource(R.string.appdetails_back_generic_action),
+                        modifier = Modifier.size(controlIconSize),
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }
@@ -127,7 +139,7 @@ fun AppDetailsToolbarCard(
                 TintedAsyncImage(
                     model = app.install,
                     contentDescription = app.label.asComposable(),
-                    modifier = Modifier.size(40.dp)
+                    modifier = Modifier.size(iconSize)
                 )
             } else {
                 Icon(
@@ -151,6 +163,17 @@ fun AppDetailsToolbarCard(
                     hint = searchHint ?: stringResource(R.string.apps_components_search_hint),
                     autoFocus = true,
                 )
+            } else if (isCollapsed) {
+                // Collapsed: title and subtitle share one line, so the bar keeps the same height as
+                // the other workspaces' collapsed toolbars instead of staying two lines tall.
+                Text(
+                    modifier = Modifier.weight(1f),
+                    text = listOfNotNull(app?.label?.get(context)?.takeIf { it.isNotBlank() }, subtitle)
+                        .joinToString(" · "),
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
             } else {
                 Column(
                     modifier = Modifier.weight(1f),
@@ -160,7 +183,7 @@ fun AppDetailsToolbarCard(
                         text = app?.label?.get(context) ?: "",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
-                        maxLines = if (isCollapsed) 1 else 2,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
                     subtitle?.let {
@@ -178,10 +201,11 @@ fun AppDetailsToolbarCard(
             if (onSearchToggle != null) {
                 IconButton(
                     onClick = onSearchToggle,
-                    modifier = Modifier.size(40.dp)
+                    modifier = Modifier.size(controlSize)
                 ) {
                     Icon(
                         imageVector = if (searchActive) Icons.TwoTone.Close else Icons.TwoTone.Search,
+                        modifier = Modifier.size(controlIconSize),
                         contentDescription = if (searchActive) {
                             stringResource(eu.darken.butler.common.R.string.general_close_action)
                         } else {
@@ -217,6 +241,23 @@ private fun AppDetailsToolbarCardCollapsedPreview() {
         design = WorkspaceDesign(),
         isModal = false,
         collapsedFraction = 1f,
+        modifier = Modifier.padding(16.dp)
+    )
+}
+
+/** The components sub-screen while scrolled: back button, joined title and search toggle. */
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun AppDetailsToolbarCardComponentsCollapsedPreview() {
+    AppDetailsToolbarCard(
+        app = AppsMockDataProvider.Presets.chrome,
+        design = WorkspaceDesign(),
+        isModal = false,
+        collapsedFraction = 1f,
+        subtitle = stringResource(R.string.apps_details_section_components),
+        onBackClick = {},
+        onSearchToggle = {},
         modifier = Modifier.padding(16.dp)
     )
 }
