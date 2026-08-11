@@ -1,0 +1,26 @@
+name: Thumbnail images
+
+# Shrinks oversized screenshots in issues and comments into clickable
+# thumbnails. The logic lives in d4rken-org/.github so every app repo shares
+# one copy; this stub only supplies the triggers, because workflow_call cannot
+# be triggered by issue_comment directly.
+#
+# The shared workflow splits into an unprivileged parsing job and a privileged
+# job that only makes the API call, so issues:write below is the ceiling, not
+# what the parsing half receives.
+#
+# Add <!-- no-thumbnail --> to a body to opt it out.
+
+on:
+  issue_comment:
+    types: [created, edited]
+  issues:
+    types: [opened, edited]
+
+permissions: {}
+
+jobs:
+  thumbnail:
+    permissions:
+      issues: write
+    uses: d4rken-org/.github/.github/workflows/thumbnail-images.yml@94e36d9a67a887e24338f95fd0429925cea21c98
