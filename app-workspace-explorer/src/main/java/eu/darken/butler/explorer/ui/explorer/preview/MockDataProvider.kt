@@ -566,8 +566,8 @@ object MockDataProvider {
         displayName = R.string.explorer_navigation_device.toCaString(),
         displayIcon = Icons.TwoTone.PhoneAndroid,
         target = ExplorerNavigation.Target.Device,
-        // Same shape as HomeLocationLoader's "${Build.MODEL} (Android ${Build.VERSION.SDK_INT})".
-        subtitle = caString { "Nimbus P9 (Android 36)" },
+        // Same shape as HomeLocationLoader's "${Build.MODEL} (Android ${Build.VERSION.RELEASE}, API ${Build.VERSION.SDK_INT})".
+        subtitle = caString { "Nimbus P9 (Android 16, API 36)" },
     )
 
     fun createTrashShortcut(

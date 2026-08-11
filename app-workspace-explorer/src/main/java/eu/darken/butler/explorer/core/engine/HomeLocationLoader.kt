@@ -68,7 +68,7 @@ class HomeLocationLoader @AssistedInject constructor(
                     displayIcon = Icons.TwoTone.PhoneAndroid,
                     displayName = R.string.explorer_navigation_device.toCaString(),
                     target = ExplorerNavigation.Target.Device,
-                    subtitle = caString { "${Build.MODEL} (Android ${Build.VERSION.SDK_INT})" },
+                    subtitle = caString { "${Build.MODEL} (Android ${Build.VERSION.RELEASE}, API ${Build.VERSION.SDK_INT})" },
                 )
             )
 
