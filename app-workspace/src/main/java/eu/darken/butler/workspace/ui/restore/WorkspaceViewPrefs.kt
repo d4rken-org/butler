@@ -31,6 +31,15 @@ class WorkspaceViewPrefs @Inject constructor() : WorkspaceSlotRegistry<JsonEleme
         .map { peekFor(id, slot) }
         .distinctUntilChanged()
 
+    /**
+     * Current payload of [slot], read synchronously.
+     *
+     * For state a workspace has to have at construction time - a restored tab's page is composed as
+     * soon as it is registered, so a value that only arrives with the first flow emission would be
+     * one frame too late.
+     */
+    fun current(id: Workspace.Id, slot: String): JsonElement? = peekFor(id, slot)
+
     companion object {
         const val MAX_SLOTS_PER_WORKSPACE = 8
         private val TAG = logTag("Workspace", "ViewPrefs")
