@@ -754,6 +754,11 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         selectionState.update { it.toggleSelection(result) }
     }
 
+    private fun setSelection(resultIds: Set<String>) {
+        log(TAG) { "Setting selection to ${resultIds.size} results" }
+        selectionState.update { it.setSelection(resultIds) }
+    }
+
     private fun selectAll() {
         log(TAG) { "Selecting all results" }
         selectionState.update { it.selectAll() }
@@ -1357,6 +1362,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             }
             is SearcherPageAction.Results.EnterSelectionMode -> enterSelectionMode(action.item)
             is SearcherPageAction.Results.ToggleSelection -> toggleSelection(action.item)
+            is SearcherPageAction.Results.SetSelection -> setSelection(action.resultIds)
             is SearcherPageAction.Results.ExitSelectionMode -> deselectAll()
             is SearcherPageAction.Results.HideQuickActions -> hideQuickActions()
 

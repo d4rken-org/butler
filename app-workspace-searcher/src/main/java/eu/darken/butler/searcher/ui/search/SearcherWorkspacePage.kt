@@ -39,6 +39,8 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.OnValueChange
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.dragselect.gridDragSelect
+import eu.darken.butler.common.compose.dragselect.listDragSelect
 import eu.darken.butler.common.keyboard.KeyboardShortcut
 import eu.darken.butler.common.keyboard.keyboardShortcuts
 import eu.darken.butler.common.navigation.NavigationEventHandler
@@ -395,7 +397,17 @@ fun SearcherWorkspacePage(
                         modifier = Modifier
                             .fillMaxSize()
                             .nestedScroll(topBarStackState.nestedScrollConnection)
-                            .nestedScroll(bottomBarStackState.nestedScrollConnection),
+                            .nestedScroll(bottomBarStackState.nestedScrollConnection)
+                            .listDragSelect(
+                                state = listState,
+                                orderedKeys = { currentState.resultKeys() },
+                                currentSelection = { currentState.selectionState.selectedResultIds },
+                                onSelectionChange = { onPageAction(SearcherPageAction.Results.SetSelection(it)) },
+                                // Every result is draggable - SearcherDragPayloadFactory has no
+                                // per-item null case - so the pane/selection test is exact and no
+                                // press ends up owned by neither gesture.
+                                enabled = { !dragsToOtherPanes || !currentState.selectionState.isSelectionMode },
+                            ),
                         verticalArrangement = Arrangement.spacedBy(
                             when (style.density) {
                                 SearcherViewStyle.List.Density.COMPACT -> 4.dp
@@ -469,7 +481,12 @@ fun SearcherWorkspacePage(
                                                 }
                                             },
                                             onLongPress = {
-                                                dragSource?.startDrag()
+                                                // The first long press belongs to drag-select; the
+                                                // cross-pane drag starts from a long press made
+                                                // while a selection already exists.
+                                                if (currentState.selectionState.isSelectionMode) {
+                                                    dragSource?.startDrag()
+                                                }
                                                 wrappedOnEnterSelectionMode(item.searchItem)
                                             },
                                         )
@@ -526,7 +543,14 @@ fun SearcherWorkspacePage(
                         modifier = Modifier
                             .fillMaxSize()
                             .nestedScroll(topBarStackState.nestedScrollConnection)
-                            .nestedScroll(bottomBarStackState.nestedScrollConnection),
+                            .nestedScroll(bottomBarStackState.nestedScrollConnection)
+                            .gridDragSelect(
+                                state = gridState,
+                                orderedKeys = { currentState.resultKeys() },
+                                currentSelection = { currentState.selectionState.selectedResultIds },
+                                onSelectionChange = { onPageAction(SearcherPageAction.Results.SetSelection(it)) },
+                                enabled = { !dragsToOtherPanes || !currentState.selectionState.isSelectionMode },
+                            ),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         contentPadding = contentPaddingValues
@@ -583,7 +607,11 @@ fun SearcherWorkspacePage(
                                         }
                                     },
                                     onLongPress = {
-                                        dragSource?.startDrag()
+                                        // See the list branch: only a long press with a selection
+                                        // already active arms the cross-pane drag.
+                                        if (currentState.selectionState.isSelectionMode) {
+                                            dragSource?.startDrag()
+                                        }
                                         wrappedOnEnterSelectionMode(item.searchItem)
                                     },
                                     previewsSettled = previewsSettled,
@@ -763,6 +791,14 @@ fun SearcherWorkspacePage(
 
     // Dialogs and sheets live in the page host's overlay slot, see SearcherWorkspaceOverlays
 }
+
+/**
+ * The keys a drag may sweep over, in display order. Errors and placeholder cards are not results
+ * and therefore not selectable; the range simply spans them.
+ */
+private fun SearcherWorkspaceViewModel.State.Ready.resultKeys(): List<String> = listItems
+    .filterIsInstance<SearchListItem.Result>()
+    .map { it.searchItem.resultKey }
 
 @Composable
 fun SearcherWorkspacePageHost(
