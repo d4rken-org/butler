@@ -6,6 +6,7 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.serialization.SerializationIOModule
 import eu.darken.butler.explorer.core.ExplorerSettings
+import eu.darken.butler.explorer.core.ExplorerTabViewStore
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.FileTypeFilter
 import eu.darken.butler.explorer.core.FilterState
@@ -50,8 +51,16 @@ class ExplorerViewSettingsControllerTest : BaseTest() {
     private val dirA = LocalPath.build("/sdcard/A")
     private val dirB = LocalPath.build("/sdcard/B")
 
-    private val styleStore = mockDataStoreValue(initialStyle).apply {
-        coEvery { update(any()) } returns DataStoreValue.Updated(initialStyle, initialStyle)
+    /** Stateful, because a new tab has to open with the style the previous one last wrote. */
+    private val globalStyle = MutableStateFlow<ExplorerViewStyle>(initialStyle)
+    private val styleStore = mockk<DataStoreValue<ExplorerViewStyle>>().apply {
+        every { flow } returns globalStyle
+        coEvery { update(any()) } answers {
+            val old = globalStyle.value
+            val new = firstArg<(ExplorerViewStyle) -> ExplorerViewStyle?>().invoke(old) ?: old
+            globalStyle.value = new
+            DataStoreValue.Updated(old, new)
+        }
     }
     private val sortStore = mockDataStoreValue(initialSort).apply {
         coEvery { update(any()) } returns DataStoreValue.Updated(initialSort, initialSort)
@@ -59,6 +68,7 @@ class ExplorerViewSettingsControllerTest : BaseTest() {
 
     private val viewPrefs = WorkspaceViewPrefs()
     private val tabSortStore = ExplorerTabSortStore(viewPrefs, json)
+    private val tabViewStore = ExplorerTabViewStore(viewPrefs, json)
 
     private fun mockSettings(): ExplorerSettings = mockk<ExplorerSettings>().apply {
         every { defaultViewStyle } returns styleStore
@@ -92,12 +102,14 @@ class ExplorerViewSettingsControllerTest : BaseTest() {
         settings: ExplorerSettings = mockSettings(),
         rules: FolderSortRulesRepo = mockRules(),
         location: Flow<ExplorerLocation?> = flowOf(null),
+        tabId: Workspace.Id = workspaceId,
     ) = ExplorerViewSettingsController(
         explorerSettings = settings,
         folderSortRules = rules,
         tabSortStore = tabSortStore,
+        tabViewStore = tabViewStore,
         json = json,
-        workspaceId = workspaceId,
+        workspaceId = tabId,
         currentLocation = location,
         scope = backgroundScope,
         doLaunch = { block -> backgroundScope.launch { block() } },
@@ -205,8 +217,10 @@ class ExplorerViewSettingsControllerTest : BaseTest() {
         controller.updateViewStyle(grid)
 
         controller.viewStyle.value shouldBe grid
+        tabViewStore.currentViewStyle(workspaceId) shouldBe grid
         runCurrent()
         coVerify { styleStore.update(any()) }
+        globalStyle.value shouldBe grid
     }
 
     @Test
@@ -216,9 +230,78 @@ class ExplorerViewSettingsControllerTest : BaseTest() {
 
         controller.applyFilterState(filter)
         controller.filterState.value shouldBe filter
+        tabViewStore.currentFilter(workspaceId) shouldBe filter
 
         controller.resetFilters()
         controller.filterState.value shouldBe FilterState()
+        viewPrefs.current(workspaceId, ExplorerTabViewStore.SLOT_FILTER) shouldBe null
+    }
+
+    /** A restored tab has to look like it did before the process died, from its very first state. */
+    @Test
+    fun `a restored tab starts with its own style and filters`() = runTest {
+        val restoredFilter = FilterState(excludePattern = "tmp", fileTypeFilter = FileTypeFilter.FOLDERS_ONLY)
+        val restoredStyle = ExplorerViewStyle.Grid(size = ExplorerViewStyle.Grid.GridSize.LARGE)
+        tabViewStore.setViewStyle(workspaceId, restoredStyle)
+        tabViewStore.setFilter(workspaceId, restoredFilter)
+
+        val controller = controller()
+
+        controller.viewStyle.value shouldBe restoredStyle
+        controller.filterState.value shouldBe restoredFilter
+    }
+
+    @Test
+    fun `a tab without stored preferences starts on the global default`() = runTest {
+        val controller = controller()
+
+        controller.viewStyle.value shouldBe initialStyle
+        controller.filterState.value shouldBe FilterState()
+    }
+
+    @Test
+    fun `one tab's view style does not follow another's`() = runTest {
+        val tabA = Workspace.Id()
+        val tabB = Workspace.Id()
+        val grid = ExplorerViewStyle.Grid()
+        val controllerA = controller(tabId = tabA)
+        val controllerB = controller(tabId = tabB)
+
+        controllerB.updateViewStyle(grid)
+
+        controllerA.viewStyle.value shouldBe initialStyle
+        controllerB.viewStyle.value shouldBe grid
+
+        // What a process death plus session restore does to the registry
+        val restored = viewPrefs.snapshot()
+        viewPrefs.clear()
+        viewPrefs.restore(restored)
+
+        controller(tabId = tabA).viewStyle.value shouldBe initialStyle
+        controller(tabId = tabB).viewStyle.value shouldBe grid
+    }
+
+    /** The global default still tracks the last used style, so a new tab opens the way the user left off. */
+    @Test
+    fun `a new tab opens with the last used style`() = runTest {
+        val grid = ExplorerViewStyle.Grid()
+        val controllerB = controller(tabId = Workspace.Id())
+
+        controllerB.updateViewStyle(grid)
+        runCurrent()
+
+        controller(tabId = Workspace.Id()).viewStyle.value shouldBe grid
+    }
+
+    /** A tab that materialized its style must not be restyled by a later change of the default. */
+    @Test
+    fun `a global default change does not restyle an open tab`() = runTest {
+        val controller = controller()
+
+        globalStyle.value = ExplorerViewStyle.Grid()
+
+        controller.viewStyle.value shouldBe initialStyle
+        tabViewStore.currentViewStyle(workspaceId) shouldBe initialStyle
     }
 
     /** Nothing may render before the sort is known, or items would appear under the wrong order. */

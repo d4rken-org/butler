@@ -8,6 +8,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.explorer.core.ExplorerSettings
+import eu.darken.butler.explorer.core.ExplorerTabViewStore
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.FileTypeFilter
 import eu.darken.butler.explorer.core.FilterState
@@ -44,6 +45,7 @@ class ExplorerViewSettingsController(
     private val explorerSettings: ExplorerSettings,
     private val folderSortRules: FolderSortRulesRepo,
     private val tabSortStore: ExplorerTabSortStore,
+    private val tabViewStore: ExplorerTabViewStore,
     private val json: Json,
     private val workspaceId: Workspace.Id,
     currentLocation: Flow<ExplorerLocation?>,
@@ -51,11 +53,19 @@ class ExplorerViewSettingsController(
     private val doLaunch: (suspend CoroutineScope.() -> Unit) -> Unit,
 ) {
 
-    private val viewStyleFlow = MutableStateFlow<ExplorerViewStyle>(explorerSettings.defaultViewStyle.valueBlocking)
+    private val viewStyleFlow = MutableStateFlow<ExplorerViewStyle>(
+        tabViewStore.currentViewStyle(workspaceId) ?: explorerSettings.defaultViewStyle.valueBlocking,
+    )
     val viewStyle: StateFlow<ExplorerViewStyle> = viewStyleFlow
 
-    private val filterStateFlow = MutableStateFlow(FilterState())
+    private val filterStateFlow = MutableStateFlow(tabViewStore.currentFilter(workspaceId))
     val filterState: StateFlow<FilterState> = filterStateFlow
+
+    init {
+        // Materializes the style at tab creation, so a later change of the global default cannot
+        // retroactively restyle a tab the user already has open.
+        tabViewStore.ensureViewStyle(workspaceId, viewStyleFlow.value)
+    }
 
     /**
      * [locationKey] is the [ExplorerLocation.locationId] the resolution was computed for.
@@ -144,6 +154,7 @@ class ExplorerViewSettingsController(
 
     fun updateViewStyle(style: ExplorerViewStyle) {
         viewStyleFlow.value = style
+        tabViewStore.setViewStyle(workspaceId, style)
         doLaunch {
             explorerSettings.defaultViewStyle.value(style)
         }
@@ -151,10 +162,12 @@ class ExplorerViewSettingsController(
 
     fun applyFilterState(state: FilterState) {
         filterStateFlow.value = state
+        tabViewStore.setFilter(workspaceId, state)
     }
 
     fun resetFilters() {
         filterStateFlow.value = FilterState()
+        tabViewStore.setFilter(workspaceId, FilterState())
     }
 
     fun applyFilters(
@@ -162,6 +175,12 @@ class ExplorerViewSettingsController(
         filterState: FilterState,
         useRegexPatterns: Boolean,
     ): List<ExplorerItem> {
+        // Compiled once per pass rather than per item; a pattern that does not compile matches nothing
+        val hasExclude = filterState.excludePattern.isNotBlank()
+        val excludeRegex = if (hasExclude) PatternMatcher.compile(filterState.excludePattern, useRegexPatterns) else null
+        val hasInclude = filterState.includePattern.isNotBlank()
+        val includeRegex = if (hasInclude) PatternMatcher.compile(filterState.includePattern, useRegexPatterns) else null
+
         return items.filter { item ->
             val itemName = when (item) {
                 is ExplorerItem.Path -> item.path.name
@@ -171,19 +190,13 @@ class ExplorerViewSettingsController(
             }
 
             // Apply exclude pattern first
-            if (filterState.excludePattern.isNotBlank()) {
-                val excludeRegex = PatternMatcher.toRegexPattern(filterState.excludePattern, useRegexPatterns)
-                if (PatternMatcher.matches(itemName, excludeRegex)) {
-                    return@filter false
-                }
+            if (hasExclude && PatternMatcher.matches(itemName, excludeRegex)) {
+                return@filter false
             }
 
             // Apply include pattern
-            if (filterState.includePattern.isNotBlank()) {
-                val includeRegex = PatternMatcher.toRegexPattern(filterState.includePattern, useRegexPatterns)
-                if (!PatternMatcher.matches(itemName, includeRegex)) {
-                    return@filter false
-                }
+            if (hasInclude && !PatternMatcher.matches(itemName, includeRegex)) {
+                return@filter false
             }
 
             // Apply file type filter

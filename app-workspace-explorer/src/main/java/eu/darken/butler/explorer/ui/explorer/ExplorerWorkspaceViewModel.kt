@@ -42,6 +42,7 @@ import eu.darken.butler.explorer.core.DefaultStartLocation
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.ExplorerSettings
+import eu.darken.butler.explorer.core.ExplorerTabViewStore
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.ExplorerWorkspace
 import eu.darken.butler.explorer.core.FileIntentHelper
@@ -156,6 +157,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val storageEnvironment: StorageEnvironment,
     private val folderSortRules: FolderSortRulesRepo,
     private val tabSortStore: ExplorerTabSortStore,
+    private val tabViewStore: ExplorerTabViewStore,
     private val json: Json,
     chromeFactory: WorkspacePageChrome.Factory,
 ) : ViewModel4(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page")) {
@@ -281,6 +283,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         explorerSettings = explorerSettings,
         folderSortRules = folderSortRules,
         tabSortStore = tabSortStore,
+        tabViewStore = tabViewStore,
         json = json,
         workspaceId = id,
         currentLocation = workspaceReadyState.map { it?.currentLocation },
