@@ -18,7 +18,11 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.dragselect.listDragSelect
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.ui.explorer.dragselect.explorerDragSelectClaims
+import eu.darken.butler.explorer.ui.explorer.dragselect.explorerDragSelectItems
+import eu.darken.butler.explorer.ui.explorer.dragselect.explorerDragSelectKeys
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
 import eu.darken.butler.explorer.ui.explorer.items.ExplorerItemRenderer
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
@@ -42,9 +46,16 @@ internal fun ExplorerListContent(
     // Skeletons must never attach to the persisted scroll state: restore readiness would fire
     // against placeholder content and the recorder would persist the resulting clamp.
     val skeletonListState = rememberLazyListState()
+    val effectiveListState = if (state.items == null) skeletonListState else listState
     LazyColumn(
-        state = if (state.items == null) skeletonListState else listState,
-        modifier = modifier,
+        state = effectiveListState,
+        modifier = modifier.listDragSelect(
+            state = effectiveListState,
+            orderedKeys = { explorerDragSelectKeys(state) },
+            currentSelection = { state.selectionState.selectedItems.mapTo(mutableSetOf()) { it.id } },
+            onSelectionChange = { ids -> vm?.setSelection(explorerDragSelectItems(state, ids)) },
+            enabled = { id -> explorerDragSelectClaims(state, id, dragPayloadFactory) },
+        ),
         verticalArrangement = Arrangement.spacedBy(4.dp),
         contentPadding = contentPadding,
     ) {

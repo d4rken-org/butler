@@ -59,8 +59,8 @@ fun ExplorerItemRenderer(
         Modifier
     }
 
-    // The long-press that already selects also arms the drag - the pointer is still down when it
-    // fires, which is what the platform needs to pick up the drag. A null payload means no drag.
+    // The long press arms the drag while the pointer is still down, which is what the platform needs
+    // to pick up the drag. A null payload means no drag.
     val dragSource = dragPayloadFactory?.let { factory -> rememberWorkspaceDragSource { factory(item) } }
 
     Box(modifier = focusModifier.then(dragSource?.modifier ?: Modifier)) {
@@ -73,7 +73,9 @@ fun ExplorerItemRenderer(
             showSelection = showSelection,
             onItemClick = onItemClick,
             onItemLongClick = {
-                dragSource?.startDrag()
+                // The first long press belongs to drag-select; the cross-pane drag starts from a
+                // long press made while a selection already exists.
+                if (state.selectionState.isSelectionMode) dragSource?.startDrag()
                 onItemLongClick(it)
             },
             onNavigate = onNavigate,
@@ -155,8 +157,9 @@ private fun ItemContent(
             val storageShowSelection = state.selectionState.selectedItems.isNotEmpty() &&
                 item in state.selectionState.selectableItems
             val decorations = decorationsFor(item, state)
-            // Once a selection exists, only taps change it - the long press is the drag gesture.
-            val onLongClick = { if (!state.selectionState.isSelectionMode) onToggleSelection(item) }
+            // Same entry point as every other item type: it guards against a live selection instead
+            // of the composed one, so it can't race the drag session's own selection update.
+            val onLongClick = { onItemLongClick(item) }
             when (viewStyle) {
                 is ExplorerViewStyle.List -> StorageRow(
                     item = item,

@@ -651,6 +651,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun toggleItemSelection(item: ExplorerItem) = selection.toggle(item)
 
+    fun setSelection(items: Set<ExplorerItem>) = selection.set(items)
+
     fun onItemClick(item: ExplorerItem) = selection.onItemClick(item)
 
     fun onItemLongClick(item: ExplorerItem) = selection.onItemLongClick(item)
