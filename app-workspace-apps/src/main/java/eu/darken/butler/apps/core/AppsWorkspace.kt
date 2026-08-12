@@ -268,6 +268,10 @@ class AppsWorkspace @AssistedInject constructor(
         appsEngine.selectApps(installIds)
     }
 
+    suspend fun setSelection(installIds: Set<InstallId>) {
+        appsEngine.setSelection(installIds)
+    }
+
     suspend fun refresh() {
         appsEngine.refresh(showIndicator = true)
     }

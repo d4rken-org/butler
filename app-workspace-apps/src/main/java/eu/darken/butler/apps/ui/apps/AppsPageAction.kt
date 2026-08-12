@@ -3,6 +3,7 @@ package eu.darken.butler.apps.ui.apps
 import androidx.compose.ui.text.input.TextFieldValue
 import eu.darken.butler.apps.core.engine.AppItem
 import eu.darken.butler.apps.ui.apps.elements.AppsActionBarItem
+import eu.darken.butler.common.pkgs.features.InstallId
 import eu.darken.butler.workspace.contracts.apps.AppTag
 import eu.darken.butler.workspace.contracts.apps.SortSettings
 import eu.darken.butler.workspace.contracts.apps.TagFilterConfig
@@ -45,7 +46,6 @@ sealed interface AppsPageAction {
     sealed interface Apps : AppsPageAction {
         data object Refresh : Apps
         data class Click(val app: AppItem) : Apps
-        data class LongClick(val app: AppItem) : Apps
     }
 
     /**
@@ -53,6 +53,9 @@ sealed interface AppsPageAction {
      */
     sealed interface Selection : AppsPageAction {
         data object Clear : Selection
+
+        /** Replace the selection, e.g. with the range a drag has swept over */
+        data class SetSelection(val installIds: Set<InstallId>) : Selection
         data object SelectUserApps : Selection
         data object SelectSystemApps : Selection
     }

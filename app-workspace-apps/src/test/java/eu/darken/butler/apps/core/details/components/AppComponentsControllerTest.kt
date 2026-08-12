@@ -334,7 +334,7 @@ class AppComponentsControllerTest : BaseTest() {
     }
 
     @Test
-    fun `a long press enters multi-selection instead of opening the sheet`() = runTest {
+    fun `a dragged selection does not open the sheet`() = runTest {
         val loader = mockk<AppComponentsLoader>()
         coEvery { loader.load(any()) } returns data
         coEvery { loader.resolveEnabledStates(any()) } returns emptyMap()
@@ -344,7 +344,7 @@ class AppComponentsControllerTest : BaseTest() {
         controller.onComponentsRouteActive(true)
         runCurrent()
 
-        controller.onItemLongClick(activity)
+        controller.setSelection(setOf(activity.key))
         runCurrent()
 
         controller.selectedComponents.value shouldBe listOf(activity)
@@ -368,7 +368,7 @@ class AppComponentsControllerTest : BaseTest() {
         controller.selectedComponents.value shouldBe emptyList()
 
         controller.dismiss()
-        controller.onItemLongClick(activity)
+        controller.setSelection(setOf(activity.key))
         controller.onItemClick(service)
         runCurrent()
         controller.selectedComponents.value shouldBe listOf(activity, service)
@@ -389,7 +389,7 @@ class AppComponentsControllerTest : BaseTest() {
 
         controller.onAppChanged(appInfo())
         controller.onComponentsRouteActive(true)
-        controller.onItemLongClick(activity)
+        controller.setSelection(setOf(activity.key))
         runCurrent()
         controller.selectedComponents.value shouldBe listOf(activity)
 
@@ -408,7 +408,7 @@ class AppComponentsControllerTest : BaseTest() {
 
         controller.onAppChanged(appInfo())
         controller.onComponentsRouteActive(true)
-        controller.onItemLongClick(activity)
+        controller.setSelection(setOf(activity.key))
         runCurrent()
 
         controller.onComponentsRouteActive(false)
@@ -429,7 +429,7 @@ class AppComponentsControllerTest : BaseTest() {
 
         controller.onAppChanged(appInfo())
         controller.onComponentsRouteActive(true)
-        controller.onItemLongClick(activity)
+        controller.setSelection(setOf(activity.key))
         runCurrent()
 
         controller.selectedComponents.value.single().enabledState shouldBe ComponentEnabledState.ENABLED

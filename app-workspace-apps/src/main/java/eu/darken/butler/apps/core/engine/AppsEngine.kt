@@ -208,6 +208,13 @@ class AppsEngine @AssistedInject constructor(
         _selectedAppIds.update { it + installIds }
     }
 
+    // Replaces the whole selection, ids pass through unfiltered: what a drag no longer covers is
+    // deselected, while selections hidden by the current search/tag filter ride along in the caller's set.
+    suspend fun setSelection(installIds: Set<InstallId>) = withContext(dispatcherProvider.Default) {
+        log(tag) { "Setting selection to ${installIds.size} apps" }
+        _selectedAppIds.value = installIds
+    }
+
     suspend fun refresh(showIndicator: Boolean = false) = withContext(dispatcherProvider.IO) {
         if (!showIndicator) {
             log(tag) { "Refreshing package data (silent)" }

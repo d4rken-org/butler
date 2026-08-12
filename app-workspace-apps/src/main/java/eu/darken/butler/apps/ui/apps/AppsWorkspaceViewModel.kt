@@ -43,6 +43,7 @@ import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.createAndFocus
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -52,6 +53,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.receiveAsFlow
 
 @HiltViewModel(assistedFactory = AppsWorkspaceViewModel.Factory::class)
 class AppsWorkspaceViewModel @AssistedInject constructor(
@@ -81,6 +84,20 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
 
     private val searchQueryFlow = MutableStateFlow(TextFieldValue(""))
     private val dialogStateFlow = MutableStateFlow<AppsDialogState>(AppsDialogState.None)
+
+    /**
+     * Selection ranges from a drag arrive faster than the round trip through the workspace, and a
+     * launch-per-event coroutine that hops dispatchers can land them out of order - a stale, larger
+     * range would then overwrite a retreat. A conflated channel with a single sequential collector
+     * may drop intermediate ranges, but never the last one.
+     */
+    private val selectionRequests = Channel<Set<InstallId>>(Channel.CONFLATED)
+
+    init {
+        selectionRequests.receiveAsFlow()
+            .onEach { getWorkspace().setSelection(it) }
+            .launchInViewModel()
+    }
 
     sealed interface State {
         data object Initializing : State
@@ -205,14 +222,9 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    private fun onAppLongClick(item: AppItem) = launch {
-        log(tag) { "onAppLongClick(${item.packageName})" }
-        // Once a selection exists the long press belongs to the drag gesture, taps do the selecting.
-        if (workspaceReadyState.filterNotNull().first().isMultiSelectMode) {
-            log(tag, DEBUG) { "onAppLongClick() ignored, selection is active" }
-            return@launch
-        }
-        toggleAppSelection(item.pkg.installId)
+    private fun onSetSelection(installIds: Set<InstallId>) {
+        log(tag) { "onSetSelection(): ${installIds.size} apps" }
+        selectionRequests.trySend(installIds)
     }
 
     private suspend fun toggleAppSelection(installId: InstallId) {
@@ -440,10 +452,10 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
             // App interactions
             is AppsPageAction.Apps.Refresh -> onRefresh()
             is AppsPageAction.Apps.Click -> handleAppClick(action.app)
-            is AppsPageAction.Apps.LongClick -> onAppLongClick(action.app)
 
             // Selection
             is AppsPageAction.Selection.Clear -> onClearSelection()
+            is AppsPageAction.Selection.SetSelection -> onSetSelection(action.installIds)
             is AppsPageAction.Selection.SelectUserApps -> onSelectUserApps()
             is AppsPageAction.Selection.SelectSystemApps -> onSelectSystemApps()
 

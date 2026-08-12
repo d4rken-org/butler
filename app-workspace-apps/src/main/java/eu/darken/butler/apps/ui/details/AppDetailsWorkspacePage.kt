@@ -49,6 +49,7 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.dragselect.listDragSelect
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.navigation.NavigationEventHandler
@@ -80,7 +81,7 @@ sealed interface AppDetailsPageAction {
     data class ExportApk(val app: AppInfo) : AppDetailsPageAction
     data class ShareApk(val app: AppInfo) : AppDetailsPageAction
     data class SelectComponent(val entry: ComponentEntry) : AppDetailsPageAction
-    data class LongPressComponent(val entry: ComponentEntry) : AppDetailsPageAction
+    data class SetComponentSelection(val keys: Set<String>) : AppDetailsPageAction
     data class ComponentAction(val item: ComponentsActionBarItem) : AppDetailsPageAction
     data object ClearComponentSelection : AppDetailsPageAction
     data class SetComponentEnabled(val entry: ComponentEntry, val enabled: Boolean) : AppDetailsPageAction
@@ -129,7 +130,7 @@ fun AppDetailsWorkspacePageHost(
                     is AppDetailsPageAction.ExportApk -> vm.onExportApk(action.app)
                     is AppDetailsPageAction.ShareApk -> vm.onShareApk(action.app)
                     is AppDetailsPageAction.SelectComponent -> vm.onComponentSelected(action.entry)
-                    is AppDetailsPageAction.LongPressComponent -> vm.onComponentLongPressed(action.entry)
+                    is AppDetailsPageAction.SetComponentSelection -> vm.onComponentSelectionChanged(action.keys)
                     is AppDetailsPageAction.ComponentAction -> vm.onComponentAction(action.item)
                     is AppDetailsPageAction.ClearComponentSelection -> vm.clearComponentSelection()
                     is AppDetailsPageAction.SetComponentEnabled -> vm.onSetComponentEnabled(action.entry, action.enabled)
@@ -256,12 +257,21 @@ fun AppDetailsWorkspacePage(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.surface)
     ) {
+        val activeListState = if (showComponents) componentsListState else overviewListState
         LazyColumn(
-            state = if (showComponents) componentsListState else overviewListState,
+            state = activeListState,
             modifier = Modifier
                 .fillMaxSize()
                 .nestedScroll(topBarStackState.nestedScrollConnection)
-                .nestedScroll(bottomBarStackState.nestedScrollConnection),
+                .nestedScroll(bottomBarStackState.nestedScrollConnection)
+                .listDragSelect(
+                    state = activeListState,
+                    // Group headers are not entries, the range simply spans them.
+                    orderedKeys = { filteredComponents.all.map { entry -> entry.key } },
+                    currentSelection = { selectedComponentKeys },
+                    onSelectionChange = { onPageAction(AppDetailsPageAction.SetComponentSelection(it)) },
+                    enabled = { showComponents },
+                ),
             contentPadding = contentPadding,
             // Cards on the overview are spaced apart; the flat component list stays dense.
             verticalArrangement = Arrangement.spacedBy(if (showComponents) 0.dp else 8.dp),
@@ -274,7 +284,10 @@ fun AppDetailsWorkspacePage(
                         query = query,
                         onComponentClick = { onPageAction(AppDetailsPageAction.SelectComponent(it)) },
                         selectedKeys = selectedComponentKeys,
-                        onComponentLongClick = { onPageAction(AppDetailsPageAction.LongPressComponent(it)) },
+                        // The long press belongs to the drag selection, which owns the whole
+                        // gesture; kept non-null so releasing it can't fall through to onClick and
+                        // so the press still gives haptic feedback.
+                        onComponentLongClick = {},
                     )
                 } else {
                     overviewItems(

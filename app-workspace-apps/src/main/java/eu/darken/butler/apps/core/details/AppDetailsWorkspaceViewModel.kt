@@ -147,9 +147,9 @@ class AppDetailsWorkspaceViewModel @AssistedInject constructor(
         componentsController.onItemClick(entry)
     }
 
-    fun onComponentLongPressed(entry: ComponentEntry) {
-        log(tag) { "onComponentLongPressed(${entry.key})" }
-        componentsController.onItemLongClick(entry)
+    fun onComponentSelectionChanged(keys: Set<String>) {
+        log(tag) { "onComponentSelectionChanged(${keys.size} keys)" }
+        componentsController.setSelection(keys)
     }
 
     fun clearComponentSelection() {
