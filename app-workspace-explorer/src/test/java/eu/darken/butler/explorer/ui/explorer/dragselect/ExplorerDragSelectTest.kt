@@ -114,6 +114,17 @@ class ExplorerDragSelectTest : BaseTest() {
     }
 
     @Test
+    fun `an unselected draggable item is claimed while another item is selected`() {
+        // Long-pressing an unselected item in selection mode extends the selection, it must never
+        // start the cross-pane drag even though its payload factory would produce a payload.
+        val selected = file("a.jpg")
+        val anchor = file("b.jpg")
+        val state = state(items = listOf(selected, anchor), selected = setOf(selected))
+
+        explorerDragSelectClaims(state, anchor.id, payloadFactory(state)) shouldBe true
+    }
+
+    @Test
     fun `an item the payload factory refuses is still claimed in selection mode`() {
         // Storage volumes and other non-lookup items never produce a payload - without evaluating
         // the factory they would end up owned by neither gesture.

@@ -73,9 +73,11 @@ fun ExplorerItemRenderer(
             showSelection = showSelection,
             onItemClick = onItemClick,
             onItemLongClick = {
-                // The first long press belongs to drag-select; the cross-pane drag starts from a
-                // long press made while a selection already exists.
-                if (state.selectionState.isSelectionMode) dragSource?.startDrag()
+                // The cross-pane drag starts only from an already selected item; long-pressing an
+                // unselected item in selection mode extends the selection instead.
+                if (state.selectionState.isSelectionMode && it in state.selectionState.selectedItems) {
+                    dragSource?.startDrag()
+                }
                 onItemLongClick(it)
             },
             onNavigate = onNavigate,

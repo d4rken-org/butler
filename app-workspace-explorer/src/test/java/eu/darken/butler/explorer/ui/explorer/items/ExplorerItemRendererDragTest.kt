@@ -14,9 +14,10 @@ import testhelpers.ComposeTest
 
 /**
  * The first long press belongs to drag-select, so it must not start a platform drag; only a long
- * press made while a selection already exists arms one. Whether the press changes the selection is
- * decided by the selection controller, which every item type - storage volumes included - is routed
- * to instead of toggling from the composition's own (stale within the frame) selection state.
+ * press on an already-selected item arms one - pressing an unselected item in selection mode extends
+ * the selection instead. Whether the press changes the selection is decided by the selection
+ * controller, which every item type - storage volumes included - is routed to instead of toggling
+ * from the composition's own (stale within the frame) selection state.
  */
 class ExplorerItemRendererDragTest : ComposeTest() {
 
@@ -29,8 +30,8 @@ class ExplorerItemRendererDragTest : ComposeTest() {
     private var longClicks = 0
 
     @Test
-    fun `long pressing a row arms the drag while a selection exists`() {
-        renderItem(item = file, selectedItems = setOf(otherFile))
+    fun `long pressing an already-selected row arms the drag`() {
+        renderItem(item = file, selectedItems = setOf(file, otherFile))
 
         composeTestRule.onNodeWithText(FILE_NAME).performTouchInput { longClick() }
 
@@ -38,6 +39,21 @@ class ExplorerItemRendererDragTest : ComposeTest() {
         // the untouched selection can't be a silently missed gesture.
         composeTestRule.runOnIdle {
             payloadRequests shouldBe 1
+            longClicks shouldBe 1
+            toggles shouldBe 0
+        }
+    }
+
+    @Test
+    fun `long pressing an unselected row does not arm the drag even while a selection exists`() {
+        renderItem(item = file, selectedItems = setOf(otherFile))
+
+        composeTestRule.onNodeWithText(FILE_NAME).performTouchInput { longClick() }
+
+        // An unselected item in selection mode is claimed by drag-select to extend the selection,
+        // never by the cross-pane drag.
+        composeTestRule.runOnIdle {
+            payloadRequests shouldBe 0
             longClicks shouldBe 1
             toggles shouldBe 0
         }

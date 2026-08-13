@@ -21,6 +21,9 @@ fun explorerDragSelectKeys(state: ExplorerWorkspaceViewModel.State): List<String
  * The payload factory is evaluated for the pressed item rather than merely tested for presence: it
  * returns null for pickers and for items that can't be dragged at all (storage volumes, trash
  * roots), and those presses would otherwise end up owned by neither gesture.
+ *
+ * In selection mode an unselected anchor is always claimed by drag-select, so long-pressing it
+ * extends the selection; only an already selected anchor may fall through to the cross-pane drag.
  */
 fun explorerDragSelectClaims(
     state: ExplorerWorkspaceViewModel.State,
@@ -30,6 +33,7 @@ fun explorerDragSelectClaims(
     if (state.pickerConfig?.selection?.isMultiSelect == false) return false
     if (!state.selectionState.isSelectionMode) return true
     val anchor = state.items?.firstOrNull { it.id == anchorId } ?: return true
+    if (anchor !in state.selectionState.selectedItems) return true
     return dragPayloadFactory?.invoke(anchor) == null
 }
 
