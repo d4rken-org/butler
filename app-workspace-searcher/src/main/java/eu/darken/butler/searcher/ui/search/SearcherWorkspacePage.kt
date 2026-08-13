@@ -405,8 +405,14 @@ fun SearcherWorkspacePage(
                                 onSelectionChange = { onPageAction(SearcherPageAction.Results.SetSelection(it)) },
                                 // Every result is draggable - SearcherDragPayloadFactory has no
                                 // per-item null case - so the pane/selection test is exact and no
-                                // press ends up owned by neither gesture.
-                                enabled = { !dragsToOtherPanes || !currentState.selectionState.isSelectionMode },
+                                // press ends up owned by neither gesture. In selection mode an
+                                // unselected item is still claimed by drag-select, only already
+                                // selected items fall through to the cross-pane drag.
+                                enabled = { key ->
+                                    !dragsToOtherPanes ||
+                                        !currentState.selectionState.isSelectionMode ||
+                                        key !in currentState.selectionState.selectedResultIds
+                                },
                             ),
                         verticalArrangement = Arrangement.spacedBy(
                             when (style.density) {
@@ -481,10 +487,12 @@ fun SearcherWorkspacePage(
                                                 }
                                             },
                                             onLongPress = {
-                                                // The first long press belongs to drag-select; the
-                                                // cross-pane drag starts from a long press made
-                                                // while a selection already exists.
-                                                if (currentState.selectionState.isSelectionMode) {
+                                                // The cross-pane drag starts only from an already
+                                                // selected item; long-pressing an unselected item
+                                                // in selection mode extends the selection instead.
+                                                if (currentState.selectionState.isSelectionMode &&
+                                                    item.searchItem.resultKey in currentState.selectionState.selectedResultIds
+                                                ) {
                                                     dragSource?.startDrag()
                                                 }
                                                 wrappedOnEnterSelectionMode(item.searchItem)
@@ -549,7 +557,12 @@ fun SearcherWorkspacePage(
                                 orderedKeys = { currentState.resultKeys() },
                                 currentSelection = { currentState.selectionState.selectedResultIds },
                                 onSelectionChange = { onPageAction(SearcherPageAction.Results.SetSelection(it)) },
-                                enabled = { !dragsToOtherPanes || !currentState.selectionState.isSelectionMode },
+                                enabled = { key ->
+                                    !dragsToOtherPanes ||
+                                        !currentState.selectionState.isSelectionMode ||
+                                        key !in currentState.selectionState.selectedResultIds
+                                },
+                                contentPadding = contentPaddingValues,
                             ),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -607,9 +620,11 @@ fun SearcherWorkspacePage(
                                         }
                                     },
                                     onLongPress = {
-                                        // See the list branch: only a long press with a selection
-                                        // already active arms the cross-pane drag.
-                                        if (currentState.selectionState.isSelectionMode) {
+                                        // See the list branch: only a long press on an already
+                                        // selected item arms the cross-pane drag.
+                                        if (currentState.selectionState.isSelectionMode &&
+                                            item.searchItem.resultKey in currentState.selectionState.selectedResultIds
+                                        ) {
                                             dragSource?.startDrag()
                                         }
                                         wrappedOnEnterSelectionMode(item.searchItem)
