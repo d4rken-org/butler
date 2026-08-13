@@ -24,12 +24,13 @@ import testhelpers.coroutine.TestDispatcherProvider
  */
 class AppsDragSelectionOrderTest : BaseTest() {
 
-    private val ids = listOf(
+    private val apps = listOf(
         AppsMockDataProvider.Presets.chromeItem,
         AppsMockDataProvider.Presets.settingsItem,
         AppsMockDataProvider.Presets.notesItem,
         AppsMockDataProvider.Presets.disabledAppItem,
-    ).map { it.pkg.installId }
+    )
+    private val ids = apps.map { it.pkg.installId }
 
     @Test
     fun `a burst of ranges ends on the last one, never on an overtaken larger range`() = runTest {
@@ -57,6 +58,68 @@ class AppsDragSelectionOrderTest : BaseTest() {
 
         // The overtaken middle range may be dropped, the last one never is.
         applied shouldBe listOf(first, retreated)
+    }
+
+    @Test
+    fun `a clear that follows a range is never overtaken by it`() = runTest {
+        val applied = mutableListOf<String>()
+        val completions = Channel<Unit>(Channel.UNLIMITED)
+        val workspace = mockk<AppsWorkspace>(relaxed = true)
+        coEvery { workspace.setSelection(any()) } coAnswers {
+            val requested = firstArg<Set<InstallId>>()
+            completions.receive()
+            applied += "set(${requested.size})"
+        }
+        coEvery { workspace.clearSelection() } coAnswers {
+            completions.receive()
+            applied += "clear"
+        }
+        val vm = createVM(workspace)
+
+        // The second range is still queued when the clear arrives - it must not land after it and
+        // bring the selection the user just gave back.
+        vm.onPageAction(AppsPageAction.Selection.SetSelection(setOf(ids[0], ids[1])))
+        vm.onPageAction(AppsPageAction.Selection.SetSelection(ids.toSet()))
+        vm.onPageAction(AppsPageAction.Selection.Clear)
+
+        repeat(3) { completions.send(Unit) }
+
+        applied shouldBe listOf("set(2)", "set(4)", "clear")
+    }
+
+    @Test
+    fun `a tap queued behind a burst of ranges lands after them`() = runTest {
+        val applied = mutableListOf<String>()
+        val completions = Channel<Unit>(Channel.UNLIMITED)
+        val workspace = mockk<AppsWorkspace>(relaxed = true)
+        every { workspace.state } returns flowOf(
+            AppsWorkspace.State.Ready(
+                apps = apps,
+                filteredApps = apps,
+                selectedAppIds = setOf(ids[0]),
+            )
+        )
+        coEvery { workspace.setSelection(any()) } coAnswers {
+            val requested = firstArg<Set<InstallId>>()
+            completions.receive()
+            applied += "set(${requested.size})"
+        }
+        coEvery { workspace.selectApp(any(), any()) } coAnswers {
+            val selected = secondArg<Boolean>()
+            completions.receive()
+            applied += "toggle(${firstArg<InstallId>()}=$selected)"
+        }
+        val vm = createVM(workspace)
+
+        vm.onPageAction(AppsPageAction.Selection.SetSelection(setOf(ids[0], ids[1])))
+        vm.onPageAction(AppsPageAction.Selection.SetSelection(setOf(ids[0], ids[1], ids[2])))
+        vm.onPageAction(AppsPageAction.Selection.SetSelection(ids.toSet()))
+        // A tap while the selection is active toggles - it must not be discarded by the burst.
+        vm.onPageAction(AppsPageAction.Apps.Click(apps[1]))
+
+        repeat(3) { completions.send(Unit) }
+
+        applied shouldBe listOf("set(2)", "set(4)", "toggle(${ids[1]}=true)")
     }
 
     private fun createVM(workspace: AppsWorkspace): AppsWorkspaceViewModel {

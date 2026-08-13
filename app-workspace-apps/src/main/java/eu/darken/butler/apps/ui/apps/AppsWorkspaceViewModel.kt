@@ -85,18 +85,77 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
     private val searchQueryFlow = MutableStateFlow(TextFieldValue(""))
     private val dialogStateFlow = MutableStateFlow<AppsDialogState>(AppsDialogState.None)
 
+    private sealed interface SelectionOp {
+        data class SetSelection(val installIds: Set<InstallId>) : SelectionOp
+        data class Toggle(val installId: InstallId) : SelectionOp
+        data object Clear : SelectionOp
+        data object SelectAll : SelectionOp
+        data object SelectUserApps : SelectionOp
+        data object SelectSystemApps : SelectionOp
+    }
+
     /**
-     * Selection ranges from a drag arrive faster than the round trip through the workspace, and a
-     * launch-per-event coroutine that hops dispatchers can land them out of order - a stale, larger
-     * range would then overwrite a retreat. A conflated channel with a single sequential collector
-     * may drop intermediate ranges, but never the last one.
+     * Every selection mutation, no matter which gesture produced it, is applied by this one
+     * sequential worker. A launch-per-event coroutine that hops dispatchers can land them out of
+     * order - a stale, larger drag range would then overwrite the retreat that followed it, or
+     * reinstate a selection the user just cleared.
      */
-    private val selectionRequests = Channel<Set<InstallId>>(Channel.CONFLATED)
+    private val selectionOpsLock = Any()
+    private val selectionOps = ArrayDeque<SelectionOp>()
+    private val selectionOpsSignal = Channel<Unit>(Channel.CONFLATED)
 
     init {
-        selectionRequests.receiveAsFlow()
-            .onEach { getWorkspace().setSelection(it) }
+        selectionOpsSignal.receiveAsFlow()
+            .onEach {
+                while (true) {
+                    val op = synchronized(selectionOpsLock) { selectionOps.removeFirstOrNull() } ?: break
+                    applySelectionOp(op)
+                }
+            }
             .launchInViewModel()
+    }
+
+    /**
+     * Queued synchronously so the caller's order is the applied order. Only a trailing
+     * [SelectionOp.SetSelection] that a newer one overtook is dropped - a drag may skip intermediate
+     * ranges, but never the last one, and no other op is ever discarded.
+     */
+    private fun submitSelectionOp(op: SelectionOp) {
+        synchronized(selectionOpsLock) {
+            if (op is SelectionOp.SetSelection && selectionOps.lastOrNull() is SelectionOp.SetSelection) {
+                selectionOps.removeLast()
+            }
+            selectionOps.addLast(op)
+        }
+        selectionOpsSignal.trySend(Unit)
+    }
+
+    private suspend fun applySelectionOp(op: SelectionOp) {
+        val workspace = getWorkspace()
+        when (op) {
+            is SelectionOp.SetSelection -> workspace.setSelection(op.installIds)
+
+            is SelectionOp.Toggle -> {
+                val readyState = workspaceReadyState.filterNotNull().first()
+                workspace.selectApp(op.installId, op.installId !in readyState.selectedAppIds)
+            }
+
+            SelectionOp.Clear -> workspace.clearSelection()
+
+            SelectionOp.SelectAll -> workspace.selectAll()
+
+            SelectionOp.SelectUserApps -> {
+                val ids = getReadyState().apps.filter { !it.isSystemApp }.map { it.pkg.installId }.toSet()
+                log(tag) { "Selecting ${ids.size} user apps" }
+                workspace.selectApps(ids)
+            }
+
+            SelectionOp.SelectSystemApps -> {
+                val ids = getReadyState().apps.filter { it.isSystemApp }.map { it.pkg.installId }.toSet()
+                log(tag) { "Selecting ${ids.size} system apps" }
+                workspace.selectApps(ids)
+            }
+        }
     }
 
     sealed interface State {
@@ -224,14 +283,12 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
 
     private fun onSetSelection(installIds: Set<InstallId>) {
         log(tag) { "onSetSelection(): ${installIds.size} apps" }
-        selectionRequests.trySend(installIds)
+        submitSelectionOp(SelectionOp.SetSelection(installIds))
     }
 
-    private suspend fun toggleAppSelection(installId: InstallId) {
-        val workspace = getWorkspace()
-        val readyState = workspaceReadyState.filterNotNull().first()
-        val isSelected = installId in readyState.selectedAppIds
-        workspace.selectApp(installId, !isSelected)
+    private fun toggleAppSelection(installId: InstallId) {
+        log(tag) { "toggleAppSelection($installId)" }
+        submitSelectionOp(SelectionOp.Toggle(installId))
     }
 
     fun onSearchQueryChanged(query: TextFieldValue) = launch {
@@ -264,26 +321,24 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
         appsSettings.defaultSortSettings.value(sortSettings)
     }
 
-    fun onClearSelection() = launch {
+    fun onClearSelection() {
         log(tag) { "Clearing selection" }
-        getWorkspace().clearSelection()
+        submitSelectionOp(SelectionOp.Clear)
     }
 
-    fun onSelectAll() = launch {
+    fun onSelectAll() {
         log(tag) { "Selecting all" }
-        getWorkspace().selectAll()
+        submitSelectionOp(SelectionOp.SelectAll)
     }
 
-    fun onSelectUserApps() = launch {
-        val ids = getReadyState().apps.filter { !it.isSystemApp }.map { it.pkg.installId }.toSet()
-        log(tag) { "Selecting ${ids.size} user apps" }
-        getWorkspace().selectApps(ids)
+    fun onSelectUserApps() {
+        log(tag) { "Selecting user apps" }
+        submitSelectionOp(SelectionOp.SelectUserApps)
     }
 
-    fun onSelectSystemApps() = launch {
-        val ids = getReadyState().apps.filter { it.isSystemApp }.map { it.pkg.installId }.toSet()
-        log(tag) { "Selecting ${ids.size} system apps" }
-        getWorkspace().selectApps(ids)
+    fun onSelectSystemApps() {
+        log(tag) { "Selecting system apps" }
+        submitSelectionOp(SelectionOp.SelectSystemApps)
     }
 
     fun onRefresh() = launch {
@@ -548,7 +603,7 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
                             callerWorkspaceId = id,
                         ),
                     )
-                    getWorkspace().clearSelection()
+                    onClearSelection()
                 } else {
                     log(tag, WARN) { "No APK source paths available for export" }
                 }
@@ -585,7 +640,7 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
                     }
                 )
 
-                getWorkspace().clearSelection()
+                onClearSelection()
             }
 
             is AppsActionBarItem.OpenInTab -> launch {
@@ -593,7 +648,7 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
                 action.apps.forEach { app ->
                     openAppDetailsInTab(app)
                 }
-                getWorkspace().clearSelection()
+                onClearSelection()
             }
 
             is AppsActionBarItem.BrowsePath -> launch {
