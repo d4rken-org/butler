@@ -191,6 +191,13 @@ class AppsEngine @AssistedInject constructor(
         log(tag) { "App selection updated: ${newSelection.size} selected" }
     }
 
+    suspend fun toggleSelection(installId: InstallId) = withContext(dispatcherProvider.Default) {
+        val newSelection = _selectedAppIds.updateAndGet {
+            if (installId in it) it - installId else it + installId
+        }
+        log(tag) { "App selection toggled: ${newSelection.size} selected" }
+    }
+
     suspend fun clearSelection() = withContext(dispatcherProvider.Default) {
         log(tag) { "Clearing selection" }
         _selectedAppIds.value = emptySet()

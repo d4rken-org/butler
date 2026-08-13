@@ -135,10 +135,7 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
         when (op) {
             is SelectionOp.SetSelection -> workspace.setSelection(op.installIds)
 
-            is SelectionOp.Toggle -> {
-                val readyState = workspaceReadyState.filterNotNull().first()
-                workspace.selectApp(op.installId, op.installId !in readyState.selectedAppIds)
-            }
+            is SelectionOp.Toggle -> workspace.toggleSelection(op.installId)
 
             SelectionOp.Clear -> workspace.clearSelection()
 

@@ -92,6 +92,7 @@ class AppsDragSelectionOrderTest : BaseTest() {
         val applied = mutableListOf<String>()
         val completions = Channel<Unit>(Channel.UNLIMITED)
         val workspace = mockk<AppsWorkspace>(relaxed = true)
+        // A populated Ready state puts the click into multi-select mode so it routes to a toggle.
         every { workspace.state } returns flowOf(
             AppsWorkspace.State.Ready(
                 apps = apps,
@@ -104,10 +105,10 @@ class AppsDragSelectionOrderTest : BaseTest() {
             completions.receive()
             applied += "set(${requested.size})"
         }
-        coEvery { workspace.selectApp(any(), any()) } coAnswers {
-            val selected = secondArg<Boolean>()
+        // The toggle resolves atomically against the engine's selection, so it takes no boolean.
+        coEvery { workspace.toggleSelection(any()) } coAnswers {
             completions.receive()
-            applied += "toggle(${firstArg<InstallId>()}=$selected)"
+            applied += "toggle(${firstArg<InstallId>()})"
         }
         val vm = createVM(workspace)
 
@@ -119,7 +120,7 @@ class AppsDragSelectionOrderTest : BaseTest() {
 
         repeat(3) { completions.send(Unit) }
 
-        applied shouldBe listOf("set(2)", "set(4)", "toggle(${ids[1]}=true)")
+        applied shouldBe listOf("set(2)", "set(4)", "toggle(${ids[1]})")
     }
 
     private fun createVM(workspace: AppsWorkspace): AppsWorkspaceViewModel {
