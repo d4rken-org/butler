@@ -5,6 +5,8 @@ import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.awaitLongPressOrCancellation
 import androidx.compose.foundation.gestures.scrollBy
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.runtime.Composable
@@ -18,7 +20,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.dp
@@ -62,7 +66,13 @@ fun <K : Any> Modifier.listDragSelect(
     return dragSelect(target, orderedKeys, currentSelection, onSelectionChange, enabled)
 }
 
-/** [listDragSelect] for a vertical [LazyGridState] container; the range follows the display order. */
+/**
+ * [listDragSelect] for a vertical [LazyGridState] container; the range follows the display order.
+ *
+ * @param contentPadding the grid's own content padding; its leading (start) inset is subtracted from
+ *        the pointer x before hit-testing, because grid item offsets are content-relative on the
+ *        cross axis while LazyGridLayoutInfo never exposes the horizontal padding.
+ */
 @Composable
 fun <K : Any> Modifier.gridDragSelect(
     state: LazyGridState,
@@ -70,8 +80,13 @@ fun <K : Any> Modifier.gridDragSelect(
     currentSelection: () -> Set<K>,
     onSelectionChange: (Set<K>) -> Unit,
     enabled: (K) -> Boolean = { true },
+    contentPadding: PaddingValues = PaddingValues(0.dp),
 ): Modifier {
-    val target = remember(state) { LazyGridDragSelectTarget(state) }
+    val layoutDirection = LocalLayoutDirection.current
+    val startPaddingPx = with(LocalDensity.current) {
+        contentPadding.calculateStartPadding(layoutDirection).roundToPx()
+    }
+    val target = remember(state, startPaddingPx) { LazyGridDragSelectTarget(state, startPaddingPx) }
     return dragSelect(target, orderedKeys, currentSelection, onSelectionChange, enabled)
 }
 
@@ -292,7 +307,10 @@ internal class LazyListDragSelectTarget(private val state: LazyListState) : Drag
     }
 }
 
-internal class LazyGridDragSelectTarget(private val state: LazyGridState) : DragSelectTarget {
+internal class LazyGridDragSelectTarget(
+    private val state: LazyGridState,
+    private val startPaddingPx: Int = 0,
+) : DragSelectTarget {
 
     override val scrollableState: ScrollableState get() = state
 
@@ -300,8 +318,9 @@ internal class LazyGridDragSelectTarget(private val state: LazyGridState) : Drag
 
     override fun keyAt(position: Offset): Any? {
         val layoutInfo = state.layoutInfo
+        // Item cross-axis offsets exclude the leading content padding, so undo it on the pointer.
         val point = IntOffset(
-            x = position.x.roundToInt(),
+            x = (position.x - startPaddingPx).roundToInt(),
             y = (position.y + layoutInfo.viewportStartOffset).roundToInt(),
         )
         return layoutInfo.visibleItemsInfo

@@ -79,6 +79,7 @@ internal fun ExplorerGridContent(
             currentSelection = { state.selectionState.selectedItems.mapTo(mutableSetOf()) { it.id } },
             onSelectionChange = { ids -> vm?.setSelection(explorerDragSelectItems(state, ids)) },
             enabled = { id -> explorerDragSelectClaims(state, id, dragPayloadFactory) },
+            contentPadding = contentPadding,
         ),
         verticalArrangement = Arrangement.spacedBy(2.dp),
         horizontalArrangement = Arrangement.spacedBy(2.dp),

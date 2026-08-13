@@ -4,6 +4,8 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -21,6 +23,7 @@ import androidx.compose.ui.test.TouchInjectionScope
 import androidx.compose.ui.test.junit4.ComposeContentTestRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.PreviewWrapper
 import io.kotest.matchers.shouldBe
@@ -97,6 +100,17 @@ class DragSelectGridTest : ComposeTest() {
     }
 
     @Test
+    fun `horizontal content padding is accounted for in the trailing column`() {
+        val harness = GridHarness(keys, contentPadding = PaddingValues(start = 48.dp, top = 60.dp))
+        composeTestRule.setHarness(harness)
+
+        // item5 sits in the last column; without undoing the leading inset the press misses it.
+        composeTestRule.longPressDrag(harness, 5)
+
+        harness.selection.value shouldBe setOf("item5")
+    }
+
+    @Test
     fun `a gap between cells keeps the last endpoint`() {
         // The horizontal spacing between two cells belongs to no item at all.
         val harness = GridHarness(keys)
@@ -137,18 +151,34 @@ private class GridHarness(
     lateinit var gridState: LazyGridState
 
     fun itemCenter(scope: TouchInjectionScope, index: Int): Offset = with(scope) {
-        val columnWidth = width.toFloat() / COLUMNS
         val rowHeight = CELL_HEIGHT.toPx() + CELL_SPACING.toPx()
+        val cellLeft = (index % COLUMNS) * (slotWidth(scope) + CELL_SPACING.toPx())
         Offset(
-            x = (index % COLUMNS) * columnWidth + columnWidth / 2,
+            x = startPaddingPx(scope) + cellLeft + slotWidth(scope) / 2,
             y = contentPadding.calculateTopPadding().toPx() + (index / COLUMNS) * rowHeight + CELL_HEIGHT.toPx() / 2,
         )
     }
 
     /** The spacing strip to the right of [index], which is part of no cell. */
     fun gapAfter(scope: TouchInjectionScope, index: Int): Offset = with(scope) {
-        val columnWidth = width.toFloat() / COLUMNS
-        itemCenter(scope, index).copy(x = (index % COLUMNS + 1) * columnWidth - CELL_SPACING.toPx() / 2)
+        val cellLeft = (index % COLUMNS) * (slotWidth(scope) + CELL_SPACING.toPx())
+        itemCenter(scope, index).copy(
+            x = startPaddingPx(scope) + cellLeft + slotWidth(scope) + CELL_SPACING.toPx() / 2,
+        )
+    }
+
+    /** Width of one column slot, matching GridCells.Fixed inside the padded content area. */
+    private fun slotWidth(scope: TouchInjectionScope): Float = with(scope) {
+        val content = width.toFloat() - startPaddingPx(scope) - endPaddingPx(scope)
+        (content - CELL_SPACING.toPx() * (COLUMNS - 1)) / COLUMNS
+    }
+
+    private fun startPaddingPx(scope: TouchInjectionScope): Float = with(scope) {
+        contentPadding.calculateStartPadding(LayoutDirection.Ltr).toPx()
+    }
+
+    private fun endPaddingPx(scope: TouchInjectionScope): Float = with(scope) {
+        contentPadding.calculateEndPadding(LayoutDirection.Ltr).toPx()
     }
 }
 
@@ -170,6 +200,7 @@ private fun GridHarnessContent(harness: GridHarness) {
                 currentSelection = { harness.selection.value },
                 onSelectionChange = { harness.selection.value = it },
                 enabled = harness.enabled,
+                contentPadding = harness.contentPadding,
             ),
         contentPadding = harness.contentPadding,
         verticalArrangement = Arrangement.spacedBy(CELL_SPACING),

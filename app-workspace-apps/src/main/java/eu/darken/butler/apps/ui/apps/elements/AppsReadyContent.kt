@@ -144,6 +144,7 @@ internal fun AppsReadyContent(
                             orderedKeys = { state.apps.map { app -> app.pkg.installId } },
                             currentSelection = { state.selectedAppIds },
                             onSelectionChange = { onPageAction(AppsPageAction.Selection.SetSelection(it)) },
+                            contentPadding = gridContentPadding,
                         ),
                     contentPadding = gridContentPadding,
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
