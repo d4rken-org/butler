@@ -259,6 +259,36 @@ class DragSelectListTest : ComposeTest() {
         composeTestRule.onNodeWithTag(LIST_TAG).performTouchInput { up() }
         composeTestRule.mainClock.autoAdvance = true
     }
+
+    @Test
+    fun `an anchor that vanishes mid-scroll stops the auto scroll`() {
+        // A finger resting at the edge sends no further pointer events, so only the frame loop can
+        // notice that the session ended - otherwise it scrolls on to the content bound.
+        val harness = Harness(scrollableKeys)
+        composeTestRule.mainClock.autoAdvance = false
+        composeTestRule.setHarness(harness)
+
+        composeTestRule.onNodeWithTag(LIST_TAG).performTouchInput {
+            down(Offset(centerX, harness.itemCenterY(this, 1)))
+            advanceEventTime(LONG_PRESS_MS)
+            moveTo(Offset(centerX, height - 1f))
+        }
+        repeat(5) { composeTestRule.mainClock.advanceTimeByFrame() }
+        (harness.listState.firstVisibleItemIndex > 0) shouldBe true
+
+        harness.selectableKeys.value = scrollableKeys - "item1"
+        // One more frame for the in-flight scroll that started before the anchor vanished.
+        composeTestRule.mainClock.advanceTimeByFrame()
+        val stoppedAt = harness.listState.firstVisibleItemIndex
+        val settled = harness.selectionChanges
+        repeat(30) { composeTestRule.mainClock.advanceTimeByFrame() }
+
+        harness.listState.firstVisibleItemIndex shouldBe stoppedAt
+        harness.selectionChanges shouldBe settled
+
+        composeTestRule.onNodeWithTag(LIST_TAG).performTouchInput { up() }
+        composeTestRule.mainClock.autoAdvance = true
+    }
 }
 
 private const val LIST_TAG = "dragselect-list"

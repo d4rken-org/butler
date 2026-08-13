@@ -126,7 +126,10 @@ private fun <K : Any> Modifier.dragSelect(
                 edgePx = edgePx,
                 maxSpeedPx = maxSpeedPx,
                 // A finger resting at the edge keeps extending the range while the content moves.
-                onScrolled = { position -> session.moveTo(target.keyAt(position)) },
+                onScrolled = { position ->
+                    session.moveTo(target.keyAt(position))
+                    session.isActive
+                },
             )
             session.start()
             try {
@@ -204,13 +207,16 @@ private class DragSelectSession<K : Any>(
  * Scrolls the content while the pointer rests near a viewport edge, advancing by frame delta so the
  * speed is refresh-rate independent. Stops as soon as the content bound is reached and is re-armed
  * by the next drag event.
+ *
+ * [onScrolled] reports whether the session is still live: a finger resting at the edge produces no
+ * pointer events, so the frame loop is the only place that would notice the session ending.
  */
 private class DragSelectAutoScroller(
     private val scope: CoroutineScope,
     private val target: DragSelectTarget,
     private val edgePx: Float,
     private val maxSpeedPx: Float,
-    private val onScrolled: (Offset) -> Unit,
+    private val onScrolled: (Offset) -> Boolean,
 ) {
 
     private var job: Job? = null
@@ -232,7 +238,7 @@ private class DragSelectAutoScroller(
                 val speed = speedFor(pointer)
                 if (speed == 0f) break
                 if (target.scrollableState.scrollBy(speed * seconds) == 0f) break
-                onScrolled(pointer)
+                if (!onScrolled(pointer)) break
             }
         }
     }
