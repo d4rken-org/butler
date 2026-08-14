@@ -1594,6 +1594,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun onTrashDropConfirmed(payload: WorkspaceDragPayload) {
         log(tag) { "onTrashDropConfirmed(${payload.items.size} items)" }
+        // Atomic claim of the dialog: a second invocation (double tap) finds it already gone.
+        if (!dialogs.dismissIfCurrent(TrashDropConfirmation(payload))) return
         onDeleteConfirmed(payload.items.map { it.path }.toSet(), forcePermDelete = false)
     }
 
