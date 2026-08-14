@@ -1596,7 +1596,20 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         log(tag) { "onTrashDropConfirmed(${payload.items.size} items)" }
         // Atomic claim of the dialog: a second invocation (double tap) finds it already gone.
         if (!dialogs.dismissIfCurrent(TrashDropConfirmation(payload))) return
-        onDeleteConfirmed(payload.items.map { it.path }.toSet(), forcePermDelete = false)
+        launch {
+            val paths = payload.items.map { it.path }.toSet()
+            if (paths.isEmpty()) return@launch
+            getWorkspace().execute(
+                ExplorerCommand.Delete(
+                    targets = paths,
+                    options = ExplorerCommand.Delete.Options(forcePermDelete = false),
+                )
+            )
+            clearSelection()
+            // Trash is a virtual location; BrowsingEngine's incremental FS updates key on
+            // parent == current.path and don't cover it, so re-list explicitly.
+            navigation.refresh()
+        }
     }
 
     fun onDropConfirmed(payload: WorkspaceDragPayload, destination: APath<*>, move: Boolean) = launch {
