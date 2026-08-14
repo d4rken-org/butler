@@ -1,6 +1,7 @@
 package eu.darken.butler.common.adb.shizuku
 
 import eu.darken.butler.common.adb.AdbSettings
+import eu.darken.butler.common.adb.AdbUnavailableException
 import eu.darken.butler.common.adb.service.AdbServiceClient
 import eu.darken.butler.common.datastore.DataStoreValue
 import eu.darken.butler.common.pkgs.toPkgId
@@ -154,6 +155,14 @@ class ShizukuManagerTest : BaseTest() {
         runBlocking { mgr.isOurServiceAvailable() } shouldBe false
 
         coVerify(exactly = 0) { serviceClient.get() }
+    }
+
+    @Test fun `isOurServiceAvailable is false when the service client fails`() {
+        coEvery { shizukuWrapper.isGranted() } returns true
+        coEvery { serviceClient.get() } throws AdbUnavailableException("test")
+        val mgr = manager()
+
+        runBlocking { mgr.isOurServiceAvailable() } shouldBe false
     }
 
     @Test fun `managerIds always includes the reference package plus any detected fork`() {

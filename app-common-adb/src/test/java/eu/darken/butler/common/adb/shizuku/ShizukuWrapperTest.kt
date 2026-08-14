@@ -14,7 +14,8 @@ import org.junit.jupiter.api.Test
 
 /**
  * Covers [ShizukuWrapper.getManagerPackage] — permission-based Shizuku detection that survives
- * "Hide Shizuku from other apps" mode and forks that rename their package.
+ * "Hide Shizuku from other apps" mode and forks that rename their package — and
+ * [ShizukuWrapper.isGranted]'s binder-liveness gate.
  */
 class ShizukuWrapperTest {
 
@@ -70,5 +71,41 @@ class ShizukuWrapperTest {
         every { packageManager.getPermissionInfo(any(), any<Int>()) } returns permissionInfo("")
 
         wrapper().getManagerPackage() shouldBe null
+    }
+
+    @Test
+    fun `isGranted returns null when the binder is not alive`() = runTest {
+        val wrapper = wrapper().apply {
+            pingBinderAction = { false }
+            // checkSelfPermission() latches process-wide and would still claim a grant here.
+            checkSelfPermissionAction = { PackageManager.PERMISSION_GRANTED }
+        }
+
+        wrapper.isGranted() shouldBe null
+    }
+
+    @Test
+    fun `isGranted returns null when pingBinder throws the null-race NPE`() = runTest {
+        val wrapper = wrapper().apply {
+            pingBinderAction = { throw NullPointerException("binder went away") }
+            checkSelfPermissionAction = { PackageManager.PERMISSION_GRANTED }
+        }
+
+        wrapper.isGranted() shouldBe null
+    }
+
+    @Test
+    fun `isGranted reflects checkSelfPermission when the binder is alive`() = runTest {
+        val wrapper = wrapper().apply { pingBinderAction = { true } }
+
+        wrapper.checkSelfPermissionAction = { PackageManager.PERMISSION_GRANTED }
+        wrapper.isGranted() shouldBe true
+
+        wrapper.checkSelfPermissionAction = { PackageManager.PERMISSION_DENIED }
+        wrapper.isGranted() shouldBe false
+
+        // Shizuku itself throws when it has no binder to ask, which also means "cannot know".
+        wrapper.checkSelfPermissionAction = { throw IllegalStateException("binder haven't been received") }
+        wrapper.isGranted() shouldBe null
     }
 }
