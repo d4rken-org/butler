@@ -28,3 +28,21 @@ fun validateDropDestination(
     if (!validateDropPaths(payload.items, directory.path)) return null
     return directory.path
 }
+
+/**
+ * Gate for accepting a [payload] dropped onto the root Trash view. Trashing removes the items from
+ * their source, so it is only offered when the source allows a move. Returns true when this
+ * workspace's Trash root can take the drop.
+ */
+fun validateTrashDrop(
+    state: ExplorerWorkspaceViewModel.State,
+    workspaceId: Workspace.Id,
+    payload: WorkspaceDragPayload,
+): Boolean {
+    if (state.pickerConfig != null) return false
+    if (payload.sourceWorkspaceId == workspaceId) return false
+    if (state.currentLocation !is ExplorerLocation.Trash.Root) return false
+    if (!payload.allowMove) return false
+    if (payload.items.isEmpty()) return false
+    return true
+}

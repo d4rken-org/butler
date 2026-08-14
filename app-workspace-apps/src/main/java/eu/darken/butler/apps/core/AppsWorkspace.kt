@@ -256,6 +256,10 @@ class AppsWorkspace @AssistedInject constructor(
         appsEngine.selectApp(installId, selected)
     }
 
+    suspend fun toggleSelection(installId: InstallId) {
+        appsEngine.toggleSelection(installId)
+    }
+
     suspend fun clearSelection() {
         appsEngine.clearSelection()
     }
@@ -266,6 +270,10 @@ class AppsWorkspace @AssistedInject constructor(
 
     suspend fun selectApps(installIds: Set<InstallId>) {
         appsEngine.selectApps(installIds)
+    }
+
+    suspend fun setSelection(installIds: Set<InstallId>) {
+        appsEngine.setSelection(installIds)
     }
 
     suspend fun refresh() {

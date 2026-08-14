@@ -43,6 +43,7 @@ import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.createAndFocus
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -52,6 +53,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.receiveAsFlow
 
 @HiltViewModel(assistedFactory = AppsWorkspaceViewModel.Factory::class)
 class AppsWorkspaceViewModel @AssistedInject constructor(
@@ -81,6 +84,76 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
 
     private val searchQueryFlow = MutableStateFlow(TextFieldValue(""))
     private val dialogStateFlow = MutableStateFlow<AppsDialogState>(AppsDialogState.None)
+
+    private sealed interface SelectionOp {
+        data class SetSelection(val installIds: Set<InstallId>) : SelectionOp
+        data class Toggle(val installId: InstallId) : SelectionOp
+        data object Clear : SelectionOp
+        data object SelectAll : SelectionOp
+        data object SelectUserApps : SelectionOp
+        data object SelectSystemApps : SelectionOp
+    }
+
+    /**
+     * Every selection mutation, no matter which gesture produced it, is applied by this one
+     * sequential worker. A launch-per-event coroutine that hops dispatchers can land them out of
+     * order - a stale, larger drag range would then overwrite the retreat that followed it, or
+     * reinstate a selection the user just cleared.
+     */
+    private val selectionOpsLock = Any()
+    private val selectionOps = ArrayDeque<SelectionOp>()
+    private val selectionOpsSignal = Channel<Unit>(Channel.CONFLATED)
+
+    init {
+        selectionOpsSignal.receiveAsFlow()
+            .onEach {
+                while (true) {
+                    val op = synchronized(selectionOpsLock) { selectionOps.removeFirstOrNull() } ?: break
+                    applySelectionOp(op)
+                }
+            }
+            .launchInViewModel()
+    }
+
+    /**
+     * Queued synchronously so the caller's order is the applied order. Only a trailing
+     * [SelectionOp.SetSelection] that a newer one overtook is dropped - a drag may skip intermediate
+     * ranges, but never the last one, and no other op is ever discarded.
+     */
+    private fun submitSelectionOp(op: SelectionOp) {
+        synchronized(selectionOpsLock) {
+            if (op is SelectionOp.SetSelection && selectionOps.lastOrNull() is SelectionOp.SetSelection) {
+                selectionOps.removeLast()
+            }
+            selectionOps.addLast(op)
+        }
+        selectionOpsSignal.trySend(Unit)
+    }
+
+    private suspend fun applySelectionOp(op: SelectionOp) {
+        val workspace = getWorkspace()
+        when (op) {
+            is SelectionOp.SetSelection -> workspace.setSelection(op.installIds)
+
+            is SelectionOp.Toggle -> workspace.toggleSelection(op.installId)
+
+            SelectionOp.Clear -> workspace.clearSelection()
+
+            SelectionOp.SelectAll -> workspace.selectAll()
+
+            SelectionOp.SelectUserApps -> {
+                val ids = getReadyState().apps.filter { !it.isSystemApp }.map { it.pkg.installId }.toSet()
+                log(tag) { "Selecting ${ids.size} user apps" }
+                workspace.selectApps(ids)
+            }
+
+            SelectionOp.SelectSystemApps -> {
+                val ids = getReadyState().apps.filter { it.isSystemApp }.map { it.pkg.installId }.toSet()
+                log(tag) { "Selecting ${ids.size} system apps" }
+                workspace.selectApps(ids)
+            }
+        }
+    }
 
     sealed interface State {
         data object Initializing : State
@@ -205,21 +278,14 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    private fun onAppLongClick(item: AppItem) = launch {
-        log(tag) { "onAppLongClick(${item.packageName})" }
-        // Once a selection exists the long press belongs to the drag gesture, taps do the selecting.
-        if (workspaceReadyState.filterNotNull().first().isMultiSelectMode) {
-            log(tag, DEBUG) { "onAppLongClick() ignored, selection is active" }
-            return@launch
-        }
-        toggleAppSelection(item.pkg.installId)
+    private fun onSetSelection(installIds: Set<InstallId>) {
+        log(tag) { "onSetSelection(): ${installIds.size} apps" }
+        submitSelectionOp(SelectionOp.SetSelection(installIds))
     }
 
-    private suspend fun toggleAppSelection(installId: InstallId) {
-        val workspace = getWorkspace()
-        val readyState = workspaceReadyState.filterNotNull().first()
-        val isSelected = installId in readyState.selectedAppIds
-        workspace.selectApp(installId, !isSelected)
+    private fun toggleAppSelection(installId: InstallId) {
+        log(tag) { "toggleAppSelection($installId)" }
+        submitSelectionOp(SelectionOp.Toggle(installId))
     }
 
     fun onSearchQueryChanged(query: TextFieldValue) = launch {
@@ -252,26 +318,24 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
         appsSettings.defaultSortSettings.value(sortSettings)
     }
 
-    fun onClearSelection() = launch {
+    fun onClearSelection() {
         log(tag) { "Clearing selection" }
-        getWorkspace().clearSelection()
+        submitSelectionOp(SelectionOp.Clear)
     }
 
-    fun onSelectAll() = launch {
+    fun onSelectAll() {
         log(tag) { "Selecting all" }
-        getWorkspace().selectAll()
+        submitSelectionOp(SelectionOp.SelectAll)
     }
 
-    fun onSelectUserApps() = launch {
-        val ids = getReadyState().apps.filter { !it.isSystemApp }.map { it.pkg.installId }.toSet()
-        log(tag) { "Selecting ${ids.size} user apps" }
-        getWorkspace().selectApps(ids)
+    fun onSelectUserApps() {
+        log(tag) { "Selecting user apps" }
+        submitSelectionOp(SelectionOp.SelectUserApps)
     }
 
-    fun onSelectSystemApps() = launch {
-        val ids = getReadyState().apps.filter { it.isSystemApp }.map { it.pkg.installId }.toSet()
-        log(tag) { "Selecting ${ids.size} system apps" }
-        getWorkspace().selectApps(ids)
+    fun onSelectSystemApps() {
+        log(tag) { "Selecting system apps" }
+        submitSelectionOp(SelectionOp.SelectSystemApps)
     }
 
     fun onRefresh() = launch {
@@ -440,10 +504,10 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
             // App interactions
             is AppsPageAction.Apps.Refresh -> onRefresh()
             is AppsPageAction.Apps.Click -> handleAppClick(action.app)
-            is AppsPageAction.Apps.LongClick -> onAppLongClick(action.app)
 
             // Selection
             is AppsPageAction.Selection.Clear -> onClearSelection()
+            is AppsPageAction.Selection.SetSelection -> onSetSelection(action.installIds)
             is AppsPageAction.Selection.SelectUserApps -> onSelectUserApps()
             is AppsPageAction.Selection.SelectSystemApps -> onSelectSystemApps()
 
@@ -536,7 +600,7 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
                             callerWorkspaceId = id,
                         ),
                     )
-                    getWorkspace().clearSelection()
+                    onClearSelection()
                 } else {
                     log(tag, WARN) { "No APK source paths available for export" }
                 }
@@ -573,7 +637,7 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
                     }
                 )
 
-                getWorkspace().clearSelection()
+                onClearSelection()
             }
 
             is AppsActionBarItem.OpenInTab -> launch {
@@ -581,7 +645,7 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
                 action.apps.forEach { app ->
                     openAppDetailsInTab(app)
                 }
-                getWorkspace().clearSelection()
+                onClearSelection()
             }
 
             is AppsActionBarItem.BrowsePath -> launch {
