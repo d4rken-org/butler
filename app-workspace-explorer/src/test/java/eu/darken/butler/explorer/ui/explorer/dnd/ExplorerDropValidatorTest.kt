@@ -98,7 +98,7 @@ class ExplorerDropValidatorTest : BaseTest() {
 
     @Test
     fun `a nested trash view refuses drops`() {
-        val state = state(location = mockk<ExplorerLocation.Trash.Nested>())
+        val state = state(location = mockk<ExplorerLocation.Trash.Nested>(relaxed = true))
 
         validateTrashDrop(state, workspaceId, payload()) shouldBe false
     }
