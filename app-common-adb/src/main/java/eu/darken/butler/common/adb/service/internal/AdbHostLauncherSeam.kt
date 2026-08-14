@@ -3,9 +3,12 @@ package eu.darken.butler.common.adb.service.internal
 import android.content.ComponentName
 import android.content.ServiceConnection
 import android.os.IBinder
+import android.os.IInterface
 import eu.darken.butler.common.BuildConfigWrap
+import eu.darken.butler.common.adb.AdbException
 import eu.darken.butler.common.adb.service.AdbHostOptions
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.ipc.getInterface
 import kotlinx.coroutines.CompletableDeferred
 import rikka.shizuku.Shizuku
 import rikka.shizuku.Shizuku.UserServiceArgs
@@ -38,6 +41,18 @@ interface ShizukuUserServiceFactory {
         onConnected: (IBinder?) -> Unit,
         onDisconnected: () -> Unit,
     ): ShizukuUserService
+
+    /**
+     * Post-connect handshake: validate the binder, wrap it, push the initial host options and resolve
+     * our user interface. Every failure is thrown to the caller (the launcher decides what to do with
+     * it), nothing is swallowed here. All of this does binder transactions, so the caller must not run
+     * it on Shizuku's main-thread callback.
+     */
+    fun <Service : IInterface, Host : AdbConnection> handshake(
+        binder: IBinder?,
+        serviceClass: KClass<Service>,
+        options: AdbHostOptions,
+    ): Pair<Service, Host>
 }
 
 internal class DefaultShizukuUserServiceFactory : ShizukuUserServiceFactory {
@@ -75,5 +90,24 @@ internal class DefaultShizukuUserServiceFactory : ShizukuUserServiceFactory {
                 disconnected.await()
             }
         }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    override fun <Service : IInterface, Host : AdbConnection> handshake(
+        binder: IBinder?,
+        serviceClass: KClass<Service>,
+        options: AdbHostOptions,
+    ): Pair<Service, Host> {
+        if (binder?.pingBinder() != true) throw AdbException("Invalid binder (ping failed)")
+
+        val baseConnection = AdbConnection.Stub.asInterface(binder)
+            ?: throw AdbException("Failed to get base connection")
+
+        // Initial options, Shizuku has no init arguments through which these can be supplied earlier
+        baseConnection.updateHostOptions(options)
+
+        val userConnection = baseConnection.userConnection.getInterface(serviceClass) as Service
+
+        return userConnection to (baseConnection as Host)
     }
 }
