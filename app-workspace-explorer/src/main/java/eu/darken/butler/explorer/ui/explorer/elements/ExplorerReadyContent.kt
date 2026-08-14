@@ -41,6 +41,7 @@ import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.contracts.dnd.WorkspaceDragPayload
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
 import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
 import eu.darken.butler.workspace.ui.dnd.dropTargetHighlight
 import eu.darken.butler.workspace.ui.dnd.workspaceDragPayload
@@ -99,6 +100,10 @@ internal fun ExplorerReadyContent(
     val isDragHovered = remember { mutableStateOf(false) }
     val currentState by rememberUpdatedState(state)
     val currentVm by rememberUpdatedState(vm)
+    // Same focus request AdaptiveWorkspaceLayout wires to WorkspaceScreenAction.Focus(info.id),
+    // republished by WorkspacePane. Focusing the target pane before the drop opens the confirmation
+    // dialog in an already-focused pane, so its first tap confirms instead of only focusing.
+    val currentFocusRequest by rememberUpdatedState(LocalWorkspaceFocusRequest.current)
     val dropTarget = remember {
         object : DragAndDropTarget {
             override fun onEntered(event: DragAndDropEvent) {
@@ -116,6 +121,7 @@ internal fun ExplorerReadyContent(
             override fun onDrop(event: DragAndDropEvent): Boolean {
                 isDragHovered.value = false
                 val payload = event.workspaceDragPayload() ?: return false
+                currentFocusRequest?.invoke()
                 currentVm?.onDragDropped(payload)
                 return true
             }
