@@ -89,4 +89,66 @@ class ExplorerDropValidatorTest : BaseTest() {
         validateDropDestination(state(), workspaceId, fromSameFolder) shouldBe null
     }
 
+    @Test
+    fun `the trash root takes a movable drop from another workspace`() {
+        val state = state(location = ExplorerLocation.Trash.Root())
+
+        validateTrashDrop(state, workspaceId, payload()) shouldBe true
+    }
+
+    @Test
+    fun `a nested trash view refuses drops`() {
+        val state = state(location = mockk<ExplorerLocation.Trash.Nested>())
+
+        validateTrashDrop(state, workspaceId, payload()) shouldBe false
+    }
+
+    @Test
+    fun `a trash drop from the same workspace is refused`() {
+        val state = state(location = ExplorerLocation.Trash.Root())
+
+        validateTrashDrop(state, workspaceId, payload(sourceWorkspaceId = workspaceId)) shouldBe false
+    }
+
+    @Test
+    fun `a trash drop of copy-only items is refused`() {
+        val state = state(location = ExplorerLocation.Trash.Root())
+        val copyOnly = WorkspaceDragPayload(
+            sourceWorkspaceId = sourceWorkspaceId,
+            items = listOf(
+                WorkspaceDragPayload.Item(
+                    path = LocalPath.build("/storage/emulated/0/DCIM/photo.jpg"),
+                    kind = WorkspaceDragPayload.Kind.FILE_OTHER,
+                ),
+            ),
+            allowMove = false,
+        )
+
+        validateTrashDrop(state, workspaceId, copyOnly) shouldBe false
+    }
+
+    @Test
+    fun `picker mode refuses trash drops`() {
+        val state = state(location = ExplorerLocation.Trash.Root(), pickerConfig = mockk<PickerConfig>())
+
+        validateTrashDrop(state, workspaceId, payload()) shouldBe false
+    }
+
+    @Test
+    fun `a trash drop without items is refused`() {
+        val state = state(location = ExplorerLocation.Trash.Root())
+        val empty = WorkspaceDragPayload(
+            sourceWorkspaceId = sourceWorkspaceId,
+            items = emptyList(),
+            allowMove = true,
+        )
+
+        validateTrashDrop(state, workspaceId, empty) shouldBe false
+    }
+
+    @Test
+    fun `a normal directory refuses trash drops`() {
+        validateTrashDrop(state(), workspaceId, payload()) shouldBe false
+    }
+
 }

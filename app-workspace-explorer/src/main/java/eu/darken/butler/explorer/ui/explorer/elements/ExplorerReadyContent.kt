@@ -36,6 +36,7 @@ import eu.darken.butler.explorer.core.engine.BrowsingAbortedException
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
 import eu.darken.butler.explorer.ui.explorer.dnd.validateDropDestination
+import eu.darken.butler.explorer.ui.explorer.dnd.validateTrashDrop
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.contracts.dnd.WorkspaceDragPayload
 import eu.darken.butler.workspace.core.Workspace
@@ -127,7 +128,10 @@ internal fun ExplorerReadyContent(
             .dragAndDropTarget(
                 shouldStartDragAndDrop = { event ->
                     val payload = event.workspaceDragPayload()
-                    payload != null && validateDropDestination(currentState, workspaceId, payload) != null
+                    payload != null && (
+                        validateDropDestination(currentState, workspaceId, payload) != null ||
+                            validateTrashDrop(currentState, workspaceId, payload)
+                        )
                 },
                 target = dropTarget,
             )

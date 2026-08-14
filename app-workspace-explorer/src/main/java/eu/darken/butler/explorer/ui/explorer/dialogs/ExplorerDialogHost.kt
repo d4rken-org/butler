@@ -164,6 +164,14 @@ fun ExplorerDialogHost(
             )
         }
 
+        is ExplorerDialogState.TrashDropConfirmation -> {
+            TrashDropConfirmationDialog(
+                payload = dialogState.payload,
+                onDismiss = { vm?.dismissDialog() },
+                onConfirm = { vm?.onTrashDropConfirmed(dialogState.payload) },
+            )
+        }
+
         is ExplorerDialogState.ClipboardInfo -> {
             ClipboardInfoBottomSheet(
                 clip = dialogState.clip,

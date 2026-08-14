@@ -427,6 +427,13 @@
         <item quantity="other">Copy %1$d items to \"%2$s\"?</item>
     </plurals>
 
+    <!-- Trash drop dialog (items dragged onto the Trash view) -->
+    <string name="explorer_trash_drop_confirmation_title">Move to trash?</string>
+    <plurals name="explorer_trash_drop_confirmation_message">
+        <item quantity="one">Move %1$d item to trash?</item>
+        <item quantity="other">Move %1$d items to trash?</item>
+    </plurals>
+
     <string name="explorer_operation_move_title">Move operation</string>
     <string name="explorer_operation_move_description_single">Move \"%1$s\" from \"%2$s\" to \"%3$s\".</string>
     <plurals name="explorer_operation_move_description">
