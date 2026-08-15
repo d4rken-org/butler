@@ -3,6 +3,7 @@ package eu.darken.butler.workspace.ui.modal
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.changedToDownIgnoreConsumed
 import androidx.compose.ui.input.pointer.pointerInput
@@ -33,15 +34,23 @@ import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
  *        accessibility activation (a semantics click from TalkBack or switch access) invokes the
  *        content's action directly and is not swallowed — assistive tech states its target
  *        explicitly, so the misclick this guards against cannot happen there.
+ * @param onPressSwallowed invoked once per down that is actually consumed, with that pointer's
+ *        position in this element's coordinate space. Fires only in the [consumeWhenUnfocused] case
+ *        — exactly the presses that produce no feedback of their own, since the content's tap
+ *        detectors never start.
  */
 @Composable
-fun Modifier.requestPaneFocusOnPress(consumeWhenUnfocused: Boolean = false): Modifier {
+fun Modifier.requestPaneFocusOnPress(
+    consumeWhenUnfocused: Boolean = false,
+    onPressSwallowed: ((Offset) -> Unit)? = null,
+): Modifier {
     val requestFocus = LocalWorkspaceFocusRequest.current ?: return this
     val focusManager = LocalFocusManager.current
     val paneFocused = rememberUpdatedState(LocalPaneFocused.current)
     // Read when a press arrives instead of keying the handler on it: a changed lambda identity
     // would restart the event loop mid-gesture.
     val currentRequestFocus = rememberUpdatedState(requestFocus)
+    val currentOnPressSwallowed = rememberUpdatedState(onPressSwallowed)
     return this.pointerInput(consumeWhenUnfocused) {
         awaitPointerEventScope {
             // A raw event loop over every new down instead of one first-down per gesture: while a
@@ -60,7 +69,12 @@ fun Modifier.requestPaneFocusOnPress(consumeWhenUnfocused: Boolean = false): Mod
                     // one — clearing on every press would take focus away from a dialog the user
                     // is typing in.
                     focusManager.clearFocus(force = true)
-                    if (consumeWhenUnfocused) newDowns.forEach { it.consume() }
+                    if (consumeWhenUnfocused) {
+                        newDowns.forEach {
+                            it.consume()
+                            currentOnPressSwallowed.value?.invoke(it.position)
+                        }
+                    }
                 }
                 currentRequestFocus.value.invoke()
             }

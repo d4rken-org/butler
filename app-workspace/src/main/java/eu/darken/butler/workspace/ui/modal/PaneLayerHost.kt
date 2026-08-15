@@ -23,7 +23,8 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceDesign.PaneEdges
  * a modal in the previously focused pane would keep its focus trap armed forever, leaving keyboard
  * focus unable to move between panes at all. Presses arriving while the pane is not the focused one
  * are additionally consumed, so the first click into an unfocused pane focuses it without
- * activating the content under the finger.
+ * activating the content under the finger. Such a press gets no feedback from the content it never
+ * reached, so the host answers it itself with a [PaneFocusPulseOverlay] at the tap point.
  *
  * Callers must provide [eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest] *above* this
  * composable for that to work.
@@ -50,6 +51,7 @@ fun PaneLayerHost(
     content: @Composable BoxScope.() -> Unit,
 ) {
     val layerState = remember { PaneLayerState() }
+    val pulseState = remember { PaneFocusPulseState() }
 
     CompositionLocalProvider(
         LocalPaneLayerState provides layerState,
@@ -67,8 +69,18 @@ fun PaneLayerHost(
         Box(
             // The pane boundary is also where the first press into an unfocused pane is swallowed:
             // it focuses the pane without activating the content under the finger.
-            modifier = modifier.requestPaneFocusOnPress(consumeWhenUnfocused = true),
-            content = content,
-        )
+            modifier = modifier.requestPaneFocusOnPress(
+                consumeWhenUnfocused = true,
+                onPressSwallowed = { pulseState.emit(it) },
+            ),
+        ) {
+            content()
+            // Last child, so the pulse draws above the pane content and its modal layers — the
+            // swallowed press has to be answered where the finger is.
+            PaneFocusPulseOverlay(
+                modifier = Modifier.matchParentSize(),
+                state = pulseState,
+            )
+        }
     }
 }

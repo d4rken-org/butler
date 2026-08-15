@@ -22,12 +22,14 @@ import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performSemanticsAction
@@ -44,6 +46,25 @@ class PaneLayerHostTest : ComposeTest() {
 
     private val hiddenFromAccessibility =
         SemanticsMatcher.keyIsDefined(SemanticsProperties.HideFromAccessibility)
+
+    /**
+     * Advances the frozen clock until an emitted pulse has made it into the tree.
+     *
+     * A snapshot write that happens outside a frame — an emit from pointer dispatch — needs one
+     * frame for the apply notification and a further one for the recomposition it triggers, and
+     * whether the two collapse into a single frame depends on what else is already pending. The
+     * handful of frames this costs is nothing against the durations the pulse tests assert.
+     */
+    private fun advanceUntilPulseComposed() {
+        repeat(PULSE_COMPOSE_FRAMES) {
+            val composed = composeTestRule
+                .onAllNodesWithTag(TAG_PANE_FOCUS_PULSE)
+                .fetchSemanticsNodes()
+                .isNotEmpty()
+            if (composed) return
+            composeTestRule.mainClock.advanceTimeByFrame()
+        }
+    }
 
     @Test
     fun `the topmost layer is active and the ones below it are not`() {
@@ -1066,7 +1087,341 @@ class PaneLayerHostTest : ComposeTest() {
         composeTestRule.onNodeWithTag(CONTENT_TAG).assert(!hiddenFromAccessibility)
     }
 
+    /**
+     * A swallowed press leaves the tap point without any feedback — the content's tap detectors
+     * never start, so there is no ripple — and the pane border at the edge is easy to miss. The
+     * host answers with a pulse of its own.
+     *
+     * The clock is frozen for the whole test: the pulse animation is finite, so it would otherwise
+     * run to completion during synchronisation and be gone before the assert.
+     */
+    @Test
+    fun `a swallowed press draws a pulse that fades out again`() {
+        composeTestRule.mainClock.autoAdvance = false
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                CompositionLocalProvider(
+                    LocalWorkspaceFocusRequest provides { },
+                ) {
+                    PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = false) {
+                        PaneLayer(rank = PaneLayerRank.CONTENT, modal = false) {
+                            Box(modifier = Modifier.size(96.dp).testTag(PRESS_TARGET_TAG))
+                        }
+                    }
+                }
+            }
+        }
+
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG).performClick()
+        advanceUntilPulseComposed()
+
+        composeTestRule.onNodeWithTag(TAG_PANE_FOCUS_PULSE).assertExists()
+
+        composeTestRule.mainClock.advanceTimeBy(PULSE_DURATION_MS + 100)
+        composeTestRule.mainClock.advanceTimeByFrame()
+
+        composeTestRule.onNodeWithTag(TAG_PANE_FOCUS_PULSE).assertDoesNotExist()
+    }
+
+    /** Nothing is swallowed in the focused pane, so nothing needs to be answered either. */
+    @Test
+    fun `a press inside the focused pane draws no pulse`() {
+        composeTestRule.mainClock.autoAdvance = false
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                CompositionLocalProvider(
+                    LocalWorkspaceFocusRequest provides { },
+                ) {
+                    PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = true) {
+                        PaneLayer(rank = PaneLayerRank.CONTENT, modal = false) {
+                            Box(modifier = Modifier.size(96.dp).testTag(PRESS_TARGET_TAG))
+                        }
+                    }
+                }
+            }
+        }
+
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG).performClick()
+        // Far enough for a pulse to have composed, far short of one having faded out again
+        repeat(PULSE_COMPOSE_FRAMES) { composeTestRule.mainClock.advanceTimeByFrame() }
+
+        composeTestRule.onNodeWithTag(TAG_PANE_FOCUS_PULSE).assertDoesNotExist()
+    }
+
+    /**
+     * Every pulse owns its animation for its whole life. A pulse finishing while a later one is
+     * still running must take only its own state with it — sharing a slot would end the survivor
+     * early or keep the finished one around.
+     *
+     * The pulses are started by real swallowed presses, the same way production emits them, while
+     * the state stays with the test: the overlay is a single tagged node for all pulses, so their
+     * individual lifetimes are only visible in the list.
+     */
+    @Test
+    fun `an overlapping pulse lives out its own duration`() {
+        val state = PaneFocusPulseState()
+
+        composeTestRule.mainClock.autoAdvance = false
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                CompositionLocalProvider(
+                    LocalWorkspaceFocusRequest provides { },
+                    LocalPaneFocused provides false,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .testTag(PRESS_TARGET_TAG)
+                            .requestPaneFocusOnPress(
+                                consumeWhenUnfocused = true,
+                                onPressSwallowed = { state.emit(it) },
+                            ),
+                    ) {
+                        PaneFocusPulseOverlay(modifier = Modifier.matchParentSize(), state = state)
+                    }
+                }
+            }
+        }
+
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG).performTouchInput {
+            down(0, Offset(10f, 10f))
+            up(0)
+        }
+        advanceUntilPulseComposed()
+        composeTestRule.onNodeWithTag(TAG_PANE_FOCUS_PULSE).assertExists()
+
+        // Well into the first pulse's run, but nowhere near its end
+        composeTestRule.mainClock.advanceTimeBy(300)
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG).performTouchInput {
+            down(0, Offset(80f, 80f))
+            up(0)
+        }
+        // Same lag for the second pulse, and nothing in the tree distinguishes it from the first.
+        // A pulse that never composed would never animate either, and the final assert below would
+        // still find it in the list.
+        repeat(PULSE_COMPOSE_FRAMES) { composeTestRule.mainClock.advanceTimeByFrame() }
+        composeTestRule.runOnIdle { state.pulses.size shouldBe 2 }
+
+        // Past the first pulse's duration while the second is only a third into its own
+        composeTestRule.mainClock.advanceTimeBy(200)
+        composeTestRule.runOnIdle {
+            state.pulses.map { it.position } shouldBe listOf(Offset(80f, 80f))
+        }
+        composeTestRule.onNodeWithTag(TAG_PANE_FOCUS_PULSE).assertExists()
+
+        composeTestRule.mainClock.advanceTimeBy(PULSE_DURATION_MS + 100)
+        composeTestRule.mainClock.advanceTimeByFrame()
+        composeTestRule.runOnIdle { state.pulses.isEmpty() shouldBe true }
+        composeTestRule.onNodeWithTag(TAG_PANE_FOCUS_PULSE).assertDoesNotExist()
+    }
+
+    @Test
+    fun `every swallowed down reports its own position`() {
+        val swallowed = mutableListOf<Offset>()
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                CompositionLocalProvider(
+                    LocalWorkspaceFocusRequest provides { },
+                    LocalPaneFocused provides false,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(96.dp)
+                            .testTag(PRESS_TARGET_TAG)
+                            .requestPaneFocusOnPress(
+                                consumeWhenUnfocused = true,
+                                onPressSwallowed = { swallowed += it },
+                            ),
+                    )
+                }
+            }
+        }
+
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG).performTouchInput {
+            down(0, Offset(10f, 20f))
+            up(0)
+        }
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG).performTouchInput {
+            down(0, Offset(30f, 40f))
+            up(0)
+        }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.runOnIdle {
+            swallowed shouldBe listOf(Offset(10f, 20f), Offset(30f, 40f))
+        }
+    }
+
+    /** The counterpart of the second-finger swallow: that down gets its own feedback too. */
+    @Test
+    fun `a second finger's down reports its own swallow`() {
+        val swallowed = mutableListOf<Offset>()
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                CompositionLocalProvider(
+                    LocalWorkspaceFocusRequest provides { },
+                    LocalPaneFocused provides false,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(96.dp)
+                            .testTag(PRESS_TARGET_TAG)
+                            .requestPaneFocusOnPress(
+                                consumeWhenUnfocused = true,
+                                onPressSwallowed = { swallowed += it },
+                            ),
+                    )
+                }
+            }
+        }
+
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG).performTouchInput {
+            down(0, Offset(10f, 10f))
+        }
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG).performTouchInput {
+            down(1, Offset(60f, 60f))
+            up(1)
+        }
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG).performTouchInput { up(0) }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.runOnIdle {
+            swallowed shouldBe listOf(Offset(10f, 10f), Offset(60f, 60f))
+        }
+    }
+
+    /**
+     * The pure observers on dialogs and sheets swallow nothing, so there is nothing for them to
+     * report — the pulse belongs to the press that got no feedback of its own.
+     */
+    @Test
+    fun `an observing press reports no swallow`() {
+        val swallowed = mutableListOf<Offset>()
+        var paneFocusRequests = 0
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                CompositionLocalProvider(
+                    LocalWorkspaceFocusRequest provides { paneFocusRequests++ },
+                    LocalPaneFocused provides false,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(96.dp)
+                            .testTag(PRESS_TARGET_TAG)
+                            .requestPaneFocusOnPress(
+                                consumeWhenUnfocused = false,
+                                onPressSwallowed = { swallowed += it },
+                            ),
+                    )
+                }
+            }
+        }
+
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG).performClick()
+        composeTestRule.waitForIdle()
+
+        composeTestRule.runOnIdle {
+            swallowed shouldBe emptyList()
+            paneFocusRequests shouldBe 1
+        }
+    }
+
+    /**
+     * Like the focus request handler, the swallow callback is read when a press arrives instead of
+     * keying the event loop on it — a changed lambda identity must not restart the loop mid-gesture.
+     */
+    @Test
+    fun `a swallowed press is delivered to the latest swallow handler`() {
+        var useSecond by mutableStateOf(false)
+        var firstSwallows = 0
+        var secondSwallows = 0
+        val first: (Offset) -> Unit = { firstSwallows++ }
+        val second: (Offset) -> Unit = { secondSwallows++ }
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                CompositionLocalProvider(
+                    LocalWorkspaceFocusRequest provides { },
+                    LocalPaneFocused provides false,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(96.dp)
+                            .testTag(PRESS_TARGET_TAG)
+                            .requestPaneFocusOnPress(
+                                consumeWhenUnfocused = true,
+                                onPressSwallowed = if (useSecond) second else first,
+                            ),
+                    )
+                }
+            }
+        }
+
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG).performClick()
+        composeTestRule.runOnIdle { useSecond = true }
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG).performClick()
+
+        composeTestRule.runOnIdle {
+            firstSwallows shouldBe 1
+            secondSwallows shouldBe 1
+        }
+    }
+
+    /**
+     * The overlay spans the whole pane and is the last child of the host, so it sits over
+     * everything — purely as a drawing. A press landing while a pulse is still on screen must reach
+     * the content exactly as it would otherwise.
+     */
+    @Test
+    fun `content stays pressable while a pulse is still on screen`() {
+        var paneFocused by mutableStateOf(false)
+        var clicked = 0
+
+        composeTestRule.mainClock.autoAdvance = false
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                CompositionLocalProvider(
+                    LocalWorkspaceFocusRequest provides { },
+                ) {
+                    PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = paneFocused) {
+                        PaneLayer(rank = PaneLayerRank.CONTENT, modal = false) {
+                            Box(
+                                modifier = Modifier
+                                    .size(96.dp)
+                                    .testTag(PRESS_TARGET_TAG)
+                                    .clickable { clicked++ },
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG).performClick()
+        advanceUntilPulseComposed()
+        composeTestRule.onNodeWithTag(TAG_PANE_FOCUS_PULSE).assertExists()
+
+        composeTestRule.runOnIdle { paneFocused = true }
+        composeTestRule.mainClock.advanceTimeByFrame()
+
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG).performClick()
+        composeTestRule.mainClock.advanceTimeByFrame()
+
+        composeTestRule.runOnIdle { clicked shouldBe 1 }
+        // The pulse was still running, so the overlay really was over the content
+        composeTestRule.onNodeWithTag(TAG_PANE_FOCUS_PULSE).assertExists()
+    }
+
     companion object {
+        private const val PULSE_DURATION_MS = 420L
+        private const val PULSE_COMPOSE_FRAMES = 4
         private const val CONTENT_TAG = "layer.content"
         private const val OVERLAY_TAG = "layer.overlay"
         private const val OTHER_PANE_FIELD_TAG = "pane.b.field"
