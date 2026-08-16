@@ -65,6 +65,7 @@ fun UpgradeScreenHost(
     var showRestoreInconclusive by rememberSaveable { mutableStateOf(false) }
     var showStillRenewing by rememberSaveable { mutableStateOf(false) }
     var showCheckFailed by rememberSaveable { mutableStateOf(false) }
+    var showPurchasePending by rememberSaveable { mutableStateOf(false) }
 
     val restoreSuccessMessage = stringResource(R.string.upgrade_screen_restore_success_message)
     LaunchedEffect(vm) {
@@ -76,7 +77,8 @@ fun UpgradeScreenHost(
                 UpgradeEvents.RestoreFailed -> showRestoreFailed = true
                 UpgradeEvents.RestoreInconclusive -> showRestoreInconclusive = true
                 UpgradeEvents.SubscriptionStillRenewing -> showStillRenewing = true
-                UpgradeEvents.SubscriptionCheckFailed -> showCheckFailed = true
+                UpgradeEvents.PurchaseCheckFailed -> showCheckFailed = true
+                UpgradeEvents.PurchasePending -> showPurchasePending = true
             }
         }
     }
@@ -116,10 +118,14 @@ fun UpgradeScreenHost(
 
     if (showCheckFailed) {
         SimpleMessageDialog(
-            title = stringResource(R.string.upgrade_screen_sub_check_failed_title),
-            message = stringResource(R.string.upgrade_screen_sub_check_failed_message),
+            title = stringResource(R.string.upgrade_screen_purchase_check_failed_title),
+            message = stringResource(R.string.upgrade_screen_purchase_check_failed_message),
             onDismiss = { showCheckFailed = false },
         )
+    }
+
+    if (showPurchasePending) {
+        PurchasePendingDialog(onDismiss = { showPurchasePending = false })
     }
 
     val uiState by vm.state.collectAsStateWithLifecycle()
@@ -134,6 +140,29 @@ fun UpgradeScreenHost(
         onRetry = vm::retrySkuQuery,
         onNavigateUp = vm::navUp,
     )
+}
+
+/**
+ * Shown when Play is still processing a payment. Purely informational: there is nothing to fix, no
+ * purchase to restore and no support case — the entitlement arrives on its own once the payment
+ * clears, so the dialog offers only a dismiss.
+ */
+@Composable
+internal fun PurchasePendingDialog(
+    onDismiss: () -> Unit = {},
+) {
+    SimpleMessageDialog(
+        title = null,
+        message = stringResource(R.string.upgrade_screen_pending_dialog_message),
+        onDismiss = onDismiss,
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun PurchasePendingDialogPreview() {
+    PurchasePendingDialog()
 }
 
 // The acquisition pitch inserts the SAME composed brand the status title uses, postfix colored —
@@ -211,6 +240,12 @@ internal fun UpgradeScreen(
                     )
                 }
             }
+
+            // Above the ownership/acquisition split, because a pending payment cuts across it: the
+            // buyer waiting for their first Pro purchase, the owner switching products and the
+            // grace user (whose offers box is hidden entirely) all need it, and it is the reason
+            // their purchase buttons are locked.
+            if (loaded?.hasPendingPurchase == true) PendingPurchaseCard()
 
             if (ownedState != null) {
                 UpgradeOwnershipContent(
@@ -407,6 +442,19 @@ private fun UpgradeScreenOwnerSubPreview() {
     UpgradeScreen(
         uiState = previewLoaded(
             ownership = Ownership(subscription = SubscriptionOwnership(isAutoRenewing = true)),
+        ),
+    )
+}
+
+// The acquisition variant of the pending state: card above the offers, both buy buttons locked.
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun UpgradeScreenPendingPreview() {
+    UpgradeScreen(
+        uiState = previewLoaded(
+            subscriptionAction = SubscriptionAction.STANDARD,
+            hasPendingPurchase = true,
         ),
     )
 }

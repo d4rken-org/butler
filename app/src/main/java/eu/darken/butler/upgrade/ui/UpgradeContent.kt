@@ -76,6 +76,7 @@ internal object UpgradeScreenTags {
     const val OWNED_IAP = "upgrade_owned_iap"
     const val OWNED_SUB = "upgrade_owned_sub"
     const val MANAGE_SUB = "upgrade_manage_sub"
+    const val PENDING = "upgrade_pending"
     const val GRACE = "upgrade_grace"
     const val GRACE_SPINNER = "upgrade_grace_spinner"
     const val GRACE_RESTORE = "upgrade_grace_restore"

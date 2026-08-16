@@ -177,16 +177,18 @@ internal fun previewLoaded(
     ownership: Ownership = Ownership(),
     grace: GraceHint? = null,
     wasPreviouslyPro: Boolean = false,
+    hasPendingPurchase: Boolean = false,
     busy: BusyOp? = null,
 ) = UpgradeUiState.Loaded(
     subscriptionAction = subscriptionAction,
-    subscriptionEnabled = ownership.subscription == null && busy == null,
+    subscriptionEnabled = ownership.subscription == null && busy == null && !hasPendingPurchase,
     subscriptionPrice = "$2.99",
-    iapEnabled = !ownership.hasIap && busy == null,
+    iapEnabled = !ownership.hasIap && busy == null && !hasPendingPurchase,
     iapPrice = "$4.99",
     ownership = ownership,
     grace = grace,
     wasPreviouslyPro = wasPreviouslyPro,
+    hasPendingPurchase = hasPendingPurchase,
     busy = busy,
 )
 
