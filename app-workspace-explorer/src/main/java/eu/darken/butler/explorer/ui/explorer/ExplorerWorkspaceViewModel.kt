@@ -77,6 +77,7 @@ import eu.darken.butler.explorer.ui.explorer.dialogs.RenameResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.SortOptionsResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.SortScope
 import eu.darken.butler.explorer.ui.explorer.dnd.validateDropDestination
+import eu.darken.butler.explorer.ui.explorer.dnd.validateTrashDrop
 import eu.darken.butler.explorer.ui.explorer.util.ExplorerSelectionState
 import eu.darken.butler.explorer.ui.explorer.util.ItemInfoCalculator
 import eu.darken.butler.explorer.ui.picker.ExplorerPickerHelper
@@ -653,6 +654,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     fun navigate(target: ExplorerNavigation) = navigation.navigate(target)
 
     fun toggleItemSelection(item: ExplorerItem) = selection.toggle(item)
+
+    fun setSelection(items: Set<ExplorerItem>) = selection.set(items)
 
     fun onItemClick(item: ExplorerItem) = selection.onItemClick(item)
 
@@ -1580,12 +1583,36 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     /** Items dragged in from another workspace landed on this one, ask what to do with them. */
     fun onDragDropped(payload: WorkspaceDragPayload) = launch {
         log(tag) { "onDragDropped(${payload.items.size} items from ${payload.sourceWorkspaceId})" }
+        if (validateTrashDrop(getState(), id, payload)) {
+            dialogs.show(TrashDropConfirmation(payload))
+            return@launch
+        }
         val destination = validateDropDestination(getState(), id, payload)
         if (destination == null) {
             log(tag) { "onDragDropped(): Drop is not valid here, ignoring" }
             return@launch
         }
         dialogs.show(DropConfirmation(payload, destination))
+    }
+
+    fun onTrashDropConfirmed(payload: WorkspaceDragPayload) {
+        log(tag) { "onTrashDropConfirmed(${payload.items.size} items)" }
+        // Atomic claim of the dialog: a second invocation (double tap) finds it already gone.
+        if (!dialogs.dismissIfCurrent(TrashDropConfirmation(payload))) return
+        launch {
+            val paths = payload.items.map { it.path }.toSet()
+            if (paths.isEmpty()) return@launch
+            getWorkspace().execute(
+                ExplorerCommand.Delete(
+                    targets = paths,
+                    options = ExplorerCommand.Delete.Options(forcePermDelete = false),
+                )
+            )
+            clearSelection()
+            // Trash is a virtual location; BrowsingEngine's incremental FS updates key on
+            // parent == current.path and don't cover it, so re-list explicitly.
+            navigation.refresh()
+        }
     }
 
     fun onDropConfirmed(payload: WorkspaceDragPayload, destination: APath<*>, move: Boolean) = launch {

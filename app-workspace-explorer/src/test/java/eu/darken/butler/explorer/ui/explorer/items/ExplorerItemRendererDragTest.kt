@@ -13,9 +13,11 @@ import org.junit.Test
 import testhelpers.ComposeTest
 
 /**
- * Once a selection exists the long press belongs to the drag gesture and may no longer change the
- * selection. Rows route the press to the selection controller (guarded there), storage volumes
- * toggle directly from here.
+ * The first long press belongs to drag-select, so it must not start a platform drag; only a long
+ * press on an already-selected item arms one - pressing an unselected item in selection mode extends
+ * the selection instead. Whether the press changes the selection is decided by the selection
+ * controller, which every item type - storage volumes included - is routed to instead of toggling
+ * from the composition's own (stale within the frame) selection state.
  */
 class ExplorerItemRendererDragTest : ComposeTest() {
 
@@ -25,10 +27,11 @@ class ExplorerItemRendererDragTest : ComposeTest() {
 
     private var payloadRequests = 0
     private var toggles = 0
+    private var longClicks = 0
 
     @Test
-    fun `long pressing a row arms the drag without toggling the selection`() {
-        renderItem(item = file, selectedItems = setOf(otherFile))
+    fun `long pressing an already-selected row arms the drag`() {
+        renderItem(item = file, selectedItems = setOf(file, otherFile))
 
         composeTestRule.onNodeWithText(FILE_NAME).performTouchInput { longClick() }
 
@@ -36,26 +39,61 @@ class ExplorerItemRendererDragTest : ComposeTest() {
         // the untouched selection can't be a silently missed gesture.
         composeTestRule.runOnIdle {
             payloadRequests shouldBe 1
+            longClicks shouldBe 1
             toggles shouldBe 0
         }
     }
 
     @Test
-    fun `long pressing a storage volume toggles only while nothing is selected`() {
+    fun `long pressing an unselected row does not arm the drag even while a selection exists`() {
+        renderItem(item = file, selectedItems = setOf(otherFile))
+
+        composeTestRule.onNodeWithText(FILE_NAME).performTouchInput { longClick() }
+
+        // An unselected item in selection mode is claimed by drag-select to extend the selection,
+        // never by the cross-pane drag.
+        composeTestRule.runOnIdle {
+            payloadRequests shouldBe 0
+            longClicks shouldBe 1
+            toggles shouldBe 0
+        }
+    }
+
+    @Test
+    fun `long pressing a row does not arm the drag while nothing is selected`() {
+        renderItem(item = file, selectedItems = emptySet())
+
+        composeTestRule.onNodeWithText(FILE_NAME).performTouchInput { longClick() }
+
+        composeTestRule.runOnIdle {
+            payloadRequests shouldBe 0
+            longClicks shouldBe 1
+            toggles shouldBe 0
+        }
+    }
+
+    @Test
+    fun `long pressing a storage volume goes through the selection controller`() {
         renderItem(item = storage, selectedItems = emptySet())
 
         composeTestRule.onNodeWithText(STORAGE_NAME).performTouchInput { longClick() }
 
-        composeTestRule.runOnIdle { toggles shouldBe 1 }
+        composeTestRule.runOnIdle {
+            longClicks shouldBe 1
+            toggles shouldBe 0
+        }
     }
 
     @Test
-    fun `long pressing a storage volume does nothing while a selection exists`() {
+    fun `long pressing a storage volume while a selection exists changes nothing here either`() {
         renderItem(item = storage, selectedItems = setOf(otherFile))
 
         composeTestRule.onNodeWithText(STORAGE_NAME).performTouchInput { longClick() }
 
-        composeTestRule.runOnIdle { toggles shouldBe 0 }
+        composeTestRule.runOnIdle {
+            longClicks shouldBe 1
+            toggles shouldBe 0
+        }
     }
 
     private fun renderItem(item: ExplorerItem, selectedItems: Set<ExplorerItem>) {
@@ -72,7 +110,7 @@ class ExplorerItemRendererDragTest : ComposeTest() {
                     ),
                     isFocused = false,
                     onItemClick = {},
-                    onItemLongClick = {},
+                    onItemLongClick = { longClicks++ },
                     onNavigate = {},
                     onToggleSelection = { toggles++ },
                     // A null payload keeps the platform drag out of Robolectric, the factory call

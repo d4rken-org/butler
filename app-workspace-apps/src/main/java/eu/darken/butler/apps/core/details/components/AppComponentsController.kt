@@ -183,6 +183,12 @@ class AppComponentsController(
         }
     }
 
+    /** Replaces the multi-selection wholesale, e.g. with the range a drag has swept over. */
+    fun setSelection(keys: Set<String>) {
+        log(tag) { "setSelection(${keys.size} keys)" }
+        selectedKeys.value = keys
+    }
+
     fun clearSelection() {
         log(tag) { "clearSelection()" }
         selectedKeys.value = emptySet()
@@ -197,5 +203,4 @@ class AppComponentsController(
         }
     }
 
-    fun onItemLongClick(entry: ComponentEntry) = toggleSelection(entry)
 }

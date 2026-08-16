@@ -24,6 +24,8 @@ import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.dragselect.gridDragSelect
+import eu.darken.butler.common.compose.dragselect.listDragSelect
 import eu.darken.butler.workspace.contracts.apps.AppsViewStyle
 import eu.darken.butler.workspace.ui.common.WorkspacePaddings
 import eu.darken.butler.workspace.ui.common.WorkspacePullToRefreshBox
@@ -79,7 +81,13 @@ internal fun AppsReadyContent(
                     modifier = Modifier
                         .fillMaxSize()
                         .nestedScroll(topBarStackState.nestedScrollConnection)
-                        .nestedScroll(bottomBarStackState.nestedScrollConnection),
+                        .nestedScroll(bottomBarStackState.nestedScrollConnection)
+                        .listDragSelect(
+                            state = listState,
+                            orderedKeys = { state.apps.map { app -> app.pkg.installId } },
+                            currentSelection = { state.selectedAppIds },
+                            onSelectionChange = { onPageAction(AppsPageAction.Selection.SetSelection(it)) },
+                        ),
                     contentPadding = listContentPadding,
                 ) {
                     when {
@@ -104,12 +112,10 @@ internal fun AppsReadyContent(
                                     item = appItem,
                                     isSelected = appItem.pkg.installId in state.selectedAppIds,
                                     onClick = { onPageAction(AppsPageAction.Apps.Click(appItem)) },
-                                    onLongClick = {
-                                        // Synchronous gate, the ViewModel guard reads state across a suspension point.
-                                        if (!state.isMultiSelectMode) {
-                                            onPageAction(AppsPageAction.Apps.LongClick(appItem))
-                                        }
-                                    },
+                                    // The long press belongs to the drag selection, which owns the
+                                    // whole gesture; kept non-null so releasing it can't fall
+                                    // through to onClick and so the press still gives haptic feedback.
+                                    onLongClick = {},
                                     showSelection = state.isMultiSelectMode,
                                 )
                             }
@@ -132,7 +138,14 @@ internal fun AppsReadyContent(
                     modifier = Modifier
                         .fillMaxSize()
                         .nestedScroll(topBarStackState.nestedScrollConnection)
-                        .nestedScroll(bottomBarStackState.nestedScrollConnection),
+                        .nestedScroll(bottomBarStackState.nestedScrollConnection)
+                        .gridDragSelect(
+                            state = gridState,
+                            orderedKeys = { state.apps.map { app -> app.pkg.installId } },
+                            currentSelection = { state.selectedAppIds },
+                            onSelectionChange = { onPageAction(AppsPageAction.Selection.SetSelection(it)) },
+                            contentPadding = gridContentPadding,
+                        ),
                     contentPadding = gridContentPadding,
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -159,12 +172,10 @@ internal fun AppsReadyContent(
                                     item = appItem,
                                     isSelected = appItem.pkg.installId in state.selectedAppIds,
                                     onClick = { onPageAction(AppsPageAction.Apps.Click(appItem)) },
-                                    onLongClick = {
-                                        // Synchronous gate, the ViewModel guard reads state across a suspension point.
-                                        if (!state.isMultiSelectMode) {
-                                            onPageAction(AppsPageAction.Apps.LongClick(appItem))
-                                        }
-                                    },
+                                    // The long press belongs to the drag selection, which owns the
+                                    // whole gesture; kept non-null so releasing it can't fall
+                                    // through to onClick and so the press still gives haptic feedback.
+                                    onLongClick = {},
                                     showSelection = state.isMultiSelectMode,
                                 )
                             }

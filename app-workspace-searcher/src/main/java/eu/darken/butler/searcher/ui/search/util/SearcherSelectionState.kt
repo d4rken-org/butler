@@ -28,6 +28,9 @@ data class SearcherSelectionState(
         return copy(selectedResultIds = newSelectedIds)
     }
 
+    /** Replaces the selection wholesale; ids of results the current search no longer lists survive. */
+    fun setSelection(ids: Set<String>): SearcherSelectionState = copy(selectedResultIds = ids)
+
     fun selectAll(): SearcherSelectionState {
         return copy(selectedResultIds = selectableResults.map { it.resultKey }.toSet())
     }

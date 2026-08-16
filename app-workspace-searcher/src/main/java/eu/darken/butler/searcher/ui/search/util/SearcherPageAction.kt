@@ -195,6 +195,11 @@ sealed interface SearcherPageAction {
         data class ToggleSelection(val item: SearchItem) : Results
 
         /**
+         * Replace the selection, e.g. with the range a drag has swept over
+         */
+        data class SetSelection(val resultIds: Set<String>) : Results
+
+        /**
          * Exit selection mode
          */
         data object ExitSelectionMode : Results

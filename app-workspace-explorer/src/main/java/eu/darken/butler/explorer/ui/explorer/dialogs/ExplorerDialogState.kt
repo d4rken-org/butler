@@ -84,6 +84,11 @@ sealed interface ExplorerDialogState {
         val destination: APath<*>,
     ) : ExplorerDialogState
 
+    /** Items dropped from another workspace onto the Trash view, waiting to confirm the move to trash. */
+    data class TrashDropConfirmation(
+        val payload: WorkspaceDragPayload,
+    ) : ExplorerDialogState
+
     data class ClipboardInfo(val clip: ClipboardClip) : ExplorerDialogState
 
     data class CreateFileFromText(val clip: ClipboardClip.Text) : ExplorerDialogState

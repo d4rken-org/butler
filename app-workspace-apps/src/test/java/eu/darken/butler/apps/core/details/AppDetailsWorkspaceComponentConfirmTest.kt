@@ -83,12 +83,12 @@ class AppDetailsWorkspaceComponentConfirmTest : BaseTest() {
     @Test
     fun `a selection change retires the pending confirm request`() {
         val vm = createVM()
-        vm.onComponentLongPressed(activity)
+        vm.onComponentSelectionChanged(setOf(activity.key))
 
         vm.onComponentAction(ComponentsActionBarItem.Disable(listOf(activity)))
         vm.componentConfirm.value!!.entries.map { it.key } shouldBe listOf(activity.key)
 
-        vm.onComponentLongPressed(service)
+        vm.onComponentSelectionChanged(setOf(service.key))
 
         vm.componentConfirm.value shouldBe null
     }
@@ -96,12 +96,12 @@ class AppDetailsWorkspaceComponentConfirmTest : BaseTest() {
     @Test
     fun `confirming a stale request applies nothing`() {
         val vm = createVM()
-        vm.onComponentLongPressed(activity)
+        vm.onComponentSelectionChanged(setOf(activity.key))
         vm.onComponentAction(ComponentsActionBarItem.Disable(listOf(activity)))
         val stale = vm.componentConfirm.value!!
 
         // The dialog's own callback still holds the captured request after the selection moved on.
-        vm.onComponentLongPressed(service)
+        vm.onComponentSelectionChanged(setOf(service.key))
         vm.onComponentConfirm(stale)
 
         coVerify(exactly = 0) { workspace.setComponentsEnabled(any(), any()) }
@@ -110,7 +110,7 @@ class AppDetailsWorkspaceComponentConfirmTest : BaseTest() {
     @Test
     fun `confirming an unchanged selection applies the live entries`() {
         val vm = createVM()
-        vm.onComponentLongPressed(activity)
+        vm.onComponentSelectionChanged(setOf(activity.key))
         vm.onComponentAction(ComponentsActionBarItem.Disable(listOf(activity)))
 
         vm.onComponentConfirm(vm.componentConfirm.value!!)

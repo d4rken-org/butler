@@ -24,8 +24,12 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.dragselect.gridDragSelect
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.ui.explorer.dragselect.explorerDragSelectClaims
+import eu.darken.butler.explorer.ui.explorer.dragselect.explorerDragSelectItems
+import eu.darken.butler.explorer.ui.explorer.dragselect.explorerDragSelectKeys
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
 import eu.darken.butler.explorer.ui.explorer.items.ExplorerItemRenderer
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
@@ -69,7 +73,14 @@ internal fun ExplorerGridContent(
     LazyVerticalGrid(
         state = effectiveGridState,
         columns = GridCells.Adaptive(minSize = 120.dp),
-        modifier = modifier,
+        modifier = modifier.gridDragSelect(
+            state = effectiveGridState,
+            orderedKeys = { explorerDragSelectKeys(state) },
+            currentSelection = { state.selectionState.selectedItems.mapTo(mutableSetOf()) { it.id } },
+            onSelectionChange = { ids -> vm?.setSelection(explorerDragSelectItems(state, ids)) },
+            enabled = { id -> explorerDragSelectClaims(state, id, dragPayloadFactory) },
+            contentPadding = contentPadding,
+        ),
         verticalArrangement = Arrangement.spacedBy(2.dp),
         horizontalArrangement = Arrangement.spacedBy(2.dp),
         contentPadding = contentPadding,
