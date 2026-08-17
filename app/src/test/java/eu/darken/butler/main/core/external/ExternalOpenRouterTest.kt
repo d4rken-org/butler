@@ -14,7 +14,9 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
@@ -27,6 +29,9 @@ import java.io.File
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 class ExternalOpenRouterTest : BaseTest() {
+
+    @get:Rule
+    val tempFolder = TemporaryFolder()
 
     private lateinit var application: Application
     private val documentUriResolver = mockk<DocumentUriResolver>()
@@ -47,6 +52,8 @@ class ExternalOpenRouterTest : BaseTest() {
     private fun canonical(path: String) = File(path).canonicalPath
 
     private fun ownUri(path: String) = Uri.parse("content://${application.packageName}.provider$path")
+
+    private fun readableFile(name: String) = tempFolder.newFile(name).apply { writeText("payload") }
 
     // ==================== sanitize ====================
 
@@ -95,6 +102,28 @@ class ExternalOpenRouterTest : BaseTest() {
     }
 
     @Test
+    fun `a user-qualified own provider URI is still recognized as ours`() {
+        val router = create()
+
+        router.sanitize(Uri.parse("content://0@${application.packageName}.provider/device_root/sdcard/x.png"))
+            .shouldBeInstanceOf<SourceRef.Local>().path shouldBe LocalPath.build(File(canonical("/sdcard/x.png")))
+
+        router.sanitize(
+            Uri.parse("content://0@${application.packageName}.provider/device_root/data/data/eu.darken.butler/f")
+        ).shouldBeNull()
+    }
+
+    @Test
+    fun `our own documents provider is refused as a source`() {
+        val router = create()
+
+        router.sanitize(Uri.parse("content://${application.packageName}.provider.documents/document/local%7Cabc"))
+            .shouldBeNull()
+        router.sanitize(Uri.parse("content://0@${application.packageName}.provider.documents/document/local%7Cabc"))
+            .shouldBeNull()
+    }
+
+    @Test
     fun `a foreign provider URI stays content`() {
         val uri = Uri.parse("content://com.example.files/document/42")
 
@@ -120,6 +149,14 @@ class ExternalOpenRouterTest : BaseTest() {
         router.resolveMime("*/*", "image/png", "x.bin") shouldBe MimeInfo("image/png")
         router.resolveMime("application/octet-stream", "image/png", "x.bin") shouldBe MimeInfo("image/png")
         router.resolveMime("   ", "image/png", "x.bin") shouldBe MimeInfo("image/png")
+    }
+
+    @Test
+    fun `a subtype wildcard is not a concrete type`() {
+        val router = create()
+
+        router.resolveMime("image/*", "image/png", "x.bin") shouldBe MimeInfo("image/png")
+        router.resolveMime("image/*", null, "mystery") shouldBe MimeInfo("application/octet-stream")
     }
 
     @Test
@@ -153,20 +190,42 @@ class ExternalOpenRouterTest : BaseTest() {
     @Test
     fun `a content URI the document resolver knows is opened directly`() = runTest {
         val uri = Uri.parse("content://com.android.externalstorage.documents/document/primary%3Ax.png")
-        val resolved = LocalPath.build(File("/sdcard/x.png"))
-        every { documentUriResolver.resolve(uri) } returns resolved
+        val file = readableFile("x.png")
+        every { documentUriResolver.resolve(uri) } returns LocalPath.build(file)
 
-        create().resolveForView(SourceRef.Content(uri), MimeInfo("image/png"), "x.png") shouldBe resolved
+        create().resolveForView(SourceRef.Content(uri), MimeInfo("image/png"), "x.png") shouldBe
+            LocalPath.build(file.canonicalFile)
     }
 
     @Test
     fun `a content URI the document resolver knows still honors the extension rule`() = runTest {
         val uri = Uri.parse("content://com.android.externalstorage.documents/document/primary%3Ax")
         val imported = LocalPath.build(File("/cache/external_open/uuid/x.png"))
-        every { documentUriResolver.resolve(uri) } returns LocalPath.build(File("/sdcard/x"))
+        every { documentUriResolver.resolve(uri) } returns LocalPath.build(readableFile("x"))
         coEvery { importer.importToCache(any(), any(), any()) } returns imported
 
         create().resolveForView(SourceRef.Content(uri), MimeInfo("image/png"), "x") shouldBe imported
+    }
+
+    @Test
+    fun `a document ID that traverses into app-private storage is not opened`() = runTest {
+        val uri = Uri.parse("content://com.android.externalstorage.documents/document/primary%3A..%2Fx")
+        val imported = LocalPath.build(File("/cache/external_open/uuid/x"))
+        every { documentUriResolver.resolve(uri) } returns
+            LocalPath.build(File("/sdcard/../../data/data/eu.darken.butler/files/x"))
+        coEvery { importer.importToCache(uri, "x", MimeInfo("image/png")) } returns imported
+
+        create().resolveForView(SourceRef.Content(uri), MimeInfo("image/png"), "x") shouldBe imported
+    }
+
+    @Test
+    fun `a resolved path we cannot read is imported through the provider instead`() = runTest {
+        val uri = Uri.parse("content://com.android.externalstorage.documents/document/primary%3Ax.png")
+        val imported = LocalPath.build(File("/cache/external_open/uuid/x.png"))
+        every { documentUriResolver.resolve(uri) } returns LocalPath.build(File("/sdcard/Pictures/x.png"))
+        coEvery { importer.importToCache(uri, "x.png", MimeInfo("image/png")) } returns imported
+
+        create().resolveForView(SourceRef.Content(uri), MimeInfo("image/png"), "x.png") shouldBe imported
     }
 
     @Test

@@ -52,9 +52,20 @@ class ExternalOpenRouter internal constructor(
             }
         }
 
-        ContentResolver.SCHEME_CONTENT -> when (uri.authority) {
-            "${context.packageName}.provider" -> fromOwnProvider(uri)
-            else -> SourceRef.Content(uri)
+        ContentResolver.SCHEME_CONTENT -> {
+            // Android accepts `content://<userId>@<authority>/...`, so the raw authority can carry a
+            // user prefix that would hide our own providers from the checks below.
+            when (uri.authority?.replaceFirst(USER_PREFIX, "")) {
+                "${context.packageName}.provider" -> fromOwnProvider(uri)
+                "${context.packageName}.provider.documents" -> {
+                    // Our own DocumentsProvider decodes document IDs to arbitrary paths and its
+                    // MANAGE_DOCUMENTS protection doesn't apply to us, so it is not a valid source.
+                    log(TAG, WARN) { "Refusing our own documents provider: $uri" }
+                    null
+                }
+
+                else -> SourceRef.Content(uri)
+            }
         }
 
         else -> {
@@ -111,7 +122,9 @@ class ExternalOpenRouter internal constructor(
 
     private fun normalizeType(raw: String?): String? {
         val cleaned = raw?.substringBefore(';')?.trim()?.lowercase(Locale.ROOT) ?: return null
-        if (cleaned.isBlank() || cleaned == WILDCARD_TYPE || cleaned == GENERIC_BINARY_TYPE) return null
+        // A subtype wildcard like `image/*` looks concrete but yields no extension, which would
+        // leave an imported file extensionless and unopenable for the Viewer.
+        if (cleaned.isBlank() || cleaned.endsWith(WILDCARD_SUBTYPE) || cleaned == GENERIC_BINARY_TYPE) return null
         return cleaned
     }
 
@@ -126,11 +139,14 @@ class ExternalOpenRouter internal constructor(
     ): LocalPath? = when (ref) {
         is SourceRef.Local -> viewablePath(ref.path, mime, displayName)
         is SourceRef.Content -> {
+            // The resolver concatenates the document ID's sub-path without canonicalizing it, so its
+            // output is held to the same private-path rules as any other local path. A path we may
+            // use but can't read (no storage permission) still works through the provider's stream.
             val resolved = documentUriResolver.resolve(ref.uri)
-            if (resolved != null) {
-                viewablePath(resolved, mime, displayName)
-            } else {
-                importer.importToCache(ref.uri, displayName, mime)
+                ?.let { toLocalRef(it.file) as? SourceRef.Local }?.path
+            when {
+                resolved != null && resolved.file.canRead() -> viewablePath(resolved, mime, displayName)
+                else -> importer.importToCache(ref.uri, displayName, mime)
             }
         }
     }
@@ -150,8 +166,9 @@ class ExternalOpenRouter internal constructor(
     companion object {
         private val TAG = logTag("Main", "ExternalOpen", "Router")
         private const val DEVICE_ROOT_SEGMENT = "device_root"
-        private const val WILDCARD_TYPE = "*/*"
+        private const val WILDCARD_SUBTYPE = "/*"
         private const val GENERIC_BINARY_TYPE = "application/octet-stream"
+        private val USER_PREFIX = Regex("^\\d+@")
 
         /**
          * Everything app-private lives below these. Paths below `/sdcard` and `/storage` are
