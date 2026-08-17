@@ -87,46 +87,6 @@ fun ExternalOpenDialog(
     )
 }
 
-@Composable
-private fun ExternalOpenOptionRow(
-    modifier: Modifier = Modifier,
-    option: ExternalOpenOption,
-    onClick: () -> Unit,
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        Icon(
-            imageVector = option.icon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-        )
-        Text(
-            text = stringResource(option.labelRes),
-            style = MaterialTheme.typography.bodyLarge,
-        )
-    }
-}
-
-private val ExternalOpenOption.icon: ImageVector
-    get() = when (this) {
-        ExternalOpenOption.VIEW -> Icons.TwoTone.Visibility
-        ExternalOpenOption.EDIT_AS_TEXT -> Icons.TwoTone.Edit
-        ExternalOpenOption.SAVE_AS -> Icons.TwoTone.SaveAlt
-    }
-
-private val ExternalOpenOption.labelRes: Int
-    get() = when (this) {
-        ExternalOpenOption.VIEW -> R.string.external_open_action_view
-        ExternalOpenOption.EDIT_AS_TEXT -> R.string.external_open_action_edit
-        ExternalOpenOption.SAVE_AS -> R.string.external_open_action_save
-    }
-
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
@@ -154,3 +114,54 @@ private fun ExternalOpenDialogTextPreview() {
         onDismiss = {},
     )
 }
+
+@Composable
+private fun ExternalOpenOptionRow(
+    modifier: Modifier = Modifier,
+    option: ExternalOpenOption,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        Icon(
+            imageVector = option.icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+        )
+        Text(
+            text = stringResource(option.labelRes),
+            style = MaterialTheme.typography.bodyLarge,
+        )
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ExternalOpenOptionRowPreview() {
+    ExternalOpenOptionRow(
+        option = ExternalOpenOption.EDIT_AS_TEXT,
+        onClick = {},
+    )
+}
+
+private val ExternalOpenOption.icon: ImageVector
+    get() = when (this) {
+        ExternalOpenOption.VIEW -> Icons.TwoTone.Visibility
+        ExternalOpenOption.EDIT_AS_TEXT -> Icons.TwoTone.Edit
+        ExternalOpenOption.SAVE_AS -> Icons.TwoTone.SaveAlt
+    }
+
+private val ExternalOpenOption.labelRes: Int
+    get() = when (this) {
+        ExternalOpenOption.VIEW -> R.string.external_open_action_view
+        ExternalOpenOption.EDIT_AS_TEXT -> R.string.external_open_action_edit
+        ExternalOpenOption.SAVE_AS -> R.string.external_open_action_save
+    }
+
