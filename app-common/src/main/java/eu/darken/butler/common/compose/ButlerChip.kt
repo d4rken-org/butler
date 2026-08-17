@@ -124,23 +124,21 @@ fun ButlerChip(
     val contentColor = if (selected) colors.selectedContentColor else colors.contentColor
     val disabledAlpha = if (enabled) 1f else 0.38f
 
-    Surface(
-        modifier = modifier
-            .height(size.height)
-            .then(
-                if (contentDescription != null || onClick != null) {
-                    Modifier.semantics {
-                        if (contentDescription != null) this.contentDescription = contentDescription
-                        if (onClick != null) this.selected = selected
-                    }
-                } else Modifier
-            ),
-        onClick = onClick ?: {},
-        enabled = enabled && onClick != null,
-        shape = MaterialTheme.shapes.small,
-        color = containerColor.copy(alpha = containerColor.alpha * disabledAlpha),
-        contentColor = contentColor.copy(alpha = contentColor.alpha * disabledAlpha),
-    ) {
+    val chipModifier = modifier
+        .height(size.height)
+        .then(
+            if (contentDescription != null || onClick != null) {
+                Modifier.semantics {
+                    if (contentDescription != null) this.contentDescription = contentDescription
+                    if (onClick != null) this.selected = selected
+                }
+            } else Modifier
+        )
+    val chipShape = MaterialTheme.shapes.small
+    val chipContainerColor = containerColor.copy(alpha = containerColor.alpha * disabledAlpha)
+    val chipContentColor = contentColor.copy(alpha = contentColor.alpha * disabledAlpha)
+
+    val chipContent: @Composable () -> Unit = {
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (leadingIcon != null) {
                 Spacer(modifier = Modifier.width(8.dp))
@@ -180,6 +178,28 @@ fun ButlerChip(
                 }
             }
         }
+    }
+
+    if (onClick != null) {
+        Surface(
+            modifier = chipModifier,
+            onClick = onClick,
+            enabled = enabled,
+            shape = chipShape,
+            color = chipContainerColor,
+            contentColor = chipContentColor,
+            content = chipContent,
+        )
+    } else {
+        // A decorative chip must not be a clickable Surface: even disabled it consumes presses aimed
+        // at the row/content beneath it and claims a 48dp minimum touch target around itself.
+        Surface(
+            modifier = chipModifier,
+            shape = chipShape,
+            color = chipContainerColor,
+            contentColor = chipContentColor,
+            content = chipContent,
+        )
     }
 }
 
