@@ -28,6 +28,7 @@ import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.ui.page.WorkspacePageChrome
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -37,6 +38,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import me.saket.telephoto.zoomable.ZoomableImageSource
 import eu.darken.butler.workspace.R as WorkspaceR
@@ -145,7 +147,14 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
         ) as State
     }
         .catch { emit(State.Error(it)) }
-        .asStateFlow(State.Initializing)
+        // The replay cache must not retain the rendered PDF page bitmap after the page stops
+        // collecting: keyed page ViewModels outlive their composables, so an infinite replay
+        // expiration would accumulate one bitmap per visited PDF tab.
+        .stateIn(
+            scope = vmScope,
+            started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5_000, replayExpirationMillis = 0),
+            initialValue = State.Initializing,
+        )
 
     init {
         log(tag) { "Initialized for workspace $id" }
