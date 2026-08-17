@@ -36,6 +36,7 @@ import eu.darken.butler.apps.core.AppPath
 import eu.darken.butler.apps.core.details.AppDetailsWorkspace
 import eu.darken.butler.apps.core.details.AppDetailsWorkspaceViewModel
 import eu.darken.butler.apps.core.details.AppInfo
+import eu.darken.butler.apps.core.details.PackageInfoState
 import eu.darken.butler.apps.core.details.components.ComponentEntry
 import eu.darken.butler.apps.core.details.components.ComponentsData
 import eu.darken.butler.apps.core.details.components.ComponentsUiState
@@ -159,13 +160,8 @@ fun AppDetailsWorkspacePage(
     val appInfo = state.app
     val isModal = state.callerWorkspaceId != null
 
-    // Only OVERVIEW and COMPONENTS have dedicated UI. PACKAGE_INFO (reachable via legacy persisted
-    // sessions) has no screen yet, so it falls back to the overview. Exhaustive on purpose.
-    val showComponents = when (state.selectedTab) {
-        DetailTab.COMPONENTS -> true
-        DetailTab.OVERVIEW -> false
-        DetailTab.PACKAGE_INFO -> false
-    }
+    val showComponents = state.selectedTab == DetailTab.COMPONENTS
+    val showPackageInfo = state.selectedTab == DetailTab.PACKAGE_INFO
 
     // Search is page-local: the toolbar lives in this slot, and the query is transient state that
     // must not survive leaving the route.
@@ -206,11 +202,13 @@ fun AppDetailsWorkspacePage(
             .collect { onPageAction(AppDetailsPageAction.ClearComponentSelection) }
     }
 
-    // Single back handler: an active selection clears first, then search closes, then the Components
-    // sub-screen returns to Overview, then an Overview shown as a modal closes the workspace.
-    // Deliberately unaware of the component sheet — that sheet owns a pane layer of its own, which
-    // disables this handler while it is up.
-    WorkspaceBackHandler(enabled = selectedComponentKeys.isNotEmpty() || showComponents || isModal) {
+    // Single back handler: an active selection clears first, then search closes, then a sub-screen
+    // (Components, Package info) returns to Overview, then an Overview shown as a modal closes the
+    // workspace. Deliberately unaware of the component sheet — that sheet owns a pane layer of its
+    // own, which disables this handler while it is up.
+    WorkspaceBackHandler(
+        enabled = selectedComponentKeys.isNotEmpty() || showComponents || showPackageInfo || isModal,
+    ) {
         when {
             selectedComponentKeys.isNotEmpty() -> onPageAction(AppDetailsPageAction.ClearComponentSelection)
 
@@ -219,7 +217,10 @@ fun AppDetailsWorkspacePage(
                 searchQuery = TextFieldValue()
             }
 
-            showComponents -> onPageAction(AppDetailsPageAction.NavigateToTab(DetailTab.OVERVIEW))
+            showComponents || showPackageInfo -> {
+                onPageAction(AppDetailsPageAction.NavigateToTab(DetailTab.OVERVIEW))
+            }
+
             else -> onPageAction(AppDetailsPageAction.Close)
         }
     }
@@ -251,13 +252,18 @@ fun AppDetailsWorkspacePage(
 
     val overviewListState = rememberWorkspaceLazyListState(workspaceId, slot = AppDetailsScrollSlots.OVERVIEW)
     val componentsListState = rememberWorkspaceLazyListState(workspaceId, slot = AppDetailsScrollSlots.COMPONENTS)
+    val packageInfoListState = rememberWorkspaceLazyListState(workspaceId, slot = AppDetailsScrollSlots.PACKAGE_INFO)
 
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.surface)
     ) {
-        val activeListState = if (showComponents) componentsListState else overviewListState
+        val activeListState = when (state.selectedTab) {
+            DetailTab.COMPONENTS -> componentsListState
+            DetailTab.PACKAGE_INFO -> packageInfoListState
+            DetailTab.OVERVIEW -> overviewListState
+        }
         LazyColumn(
             state = activeListState,
             modifier = Modifier
@@ -277,8 +283,8 @@ fun AppDetailsWorkspacePage(
             verticalArrangement = Arrangement.spacedBy(if (showComponents) 0.dp else 8.dp),
         ) {
             if (appInfo != null) {
-                if (showComponents) {
-                    appComponentsItems(
+                when (state.selectedTab) {
+                    DetailTab.COMPONENTS -> appComponentsItems(
                         state = componentsState,
                         filtered = filteredComponents,
                         query = query,
@@ -289,8 +295,13 @@ fun AppDetailsWorkspacePage(
                         // so the press still gives haptic feedback.
                         onComponentLongClick = {},
                     )
-                } else {
-                    overviewItems(
+
+                    DetailTab.PACKAGE_INFO -> packageInfoItems(
+                        state = state.packageInfo,
+                        appInfo = appInfo,
+                    )
+
+                    DetailTab.OVERVIEW -> overviewItems(
                         appInfo = appInfo,
                         state = state,
                         componentsState = componentsState,
@@ -311,9 +322,19 @@ fun AppDetailsWorkspacePage(
                     scrollBehavior = BarScrollBehavior.CollapseOnScroll,
                     animation = BarAnimation.Slide(),
                     // Re-reveal the toolbar when switching routes so it isn't stuck collapsed.
-                    revealOn = showComponents,
+                    revealOn = state.selectedTab,
                 ) {
-                    if (showComponents) {
+                    if (showPackageInfo) {
+                        AppDetailsToolbarCard(
+                            app = state.app,
+                            design = design,
+                            collapsedFraction = collapsedFraction,
+                            subtitle = stringResource(R.string.appdetails_packageinfo_title),
+                            onBackClick = { onPageAction(AppDetailsPageAction.NavigateToTab(DetailTab.OVERVIEW)) },
+                            backContentDescription = stringResource(R.string.appdetails_back_generic_action),
+                            currentWorkspaceId = workspaceId,
+                        )
+                    } else if (showComponents) {
                         AppDetailsToolbarCard(
                             app = state.app,
                             design = design,
@@ -457,10 +478,20 @@ private fun LazyListScope.overviewItems(
             )
         }
     }
+
+    // Package info Section — same pattern: a summary here, the manifest data on its own screen
+    item {
+        DetailSectionCard(title = stringResource(R.string.appdetails_packageinfo_title)) {
+            PackageInfoSummary(
+                appInfo = appInfo,
+                onViewAll = { onPageAction(AppDetailsPageAction.NavigateToTab(DetailTab.PACKAGE_INFO)) },
+            )
+        }
+    }
 }
 
 @Composable
-private fun DetailSectionCard(
+internal fun DetailSectionCard(
     title: String,
     modifier: Modifier = Modifier,
     contentHorizontalPadding: Dp = 16.dp,
@@ -519,6 +550,38 @@ private fun AppDetailsWorkspacePageComponentsSelectionPreview() {
         componentActions = listOf(
             ComponentsActionBarItem.Disable(selected),
             ComponentsActionBarItem.Enable(selected),
+        ),
+        workspaceId = Workspace.Id(),
+        onPageAction = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun AppDetailsWorkspacePagePackageInfoPreview() {
+    AppDetailsWorkspacePage(
+        design = WorkspaceDesign(),
+        state = AppDetailsWorkspace.State(
+            app = AppsMockDataProvider.Presets.chrome,
+            selectedTab = DetailTab.PACKAGE_INFO,
+            packageInfo = PackageInfoState.Ready(previewPackageInfo),
+        ),
+        workspaceId = Workspace.Id(),
+        onPageAction = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun AppDetailsWorkspacePagePackageInfoUnavailablePreview() {
+    AppDetailsWorkspacePage(
+        design = WorkspaceDesign(),
+        state = AppDetailsWorkspace.State(
+            app = AppsMockDataProvider.Presets.chrome,
+            selectedTab = DetailTab.PACKAGE_INFO,
+            packageInfo = PackageInfoState.Unavailable,
         ),
         workspaceId = Workspace.Id(),
         onPageAction = {},

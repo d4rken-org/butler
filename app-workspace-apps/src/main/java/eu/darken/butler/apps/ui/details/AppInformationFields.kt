@@ -193,7 +193,7 @@ fun AppInformationFields(
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun InfoField(
+internal fun InfoField(
     label: String,
     value: String,
     modifier: Modifier = Modifier,

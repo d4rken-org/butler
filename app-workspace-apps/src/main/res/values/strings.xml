@@ -82,7 +82,15 @@
     <string name="appdetails_close_action">Close</string>
 
     <!-- App Details Package Info -->
-    <string name="appdetails_packageinfo_comingsoon_msg">APK details coming soon</string>
+    <string name="appdetails_packageinfo_title">Package info</string>
+    <string name="appdetails_packageinfo_view_action">View package details</string>
+    <string name="appdetails_packageinfo_unavailable_msg">The app\'s package details could not be read.</string>
+    <string name="appdetails_packageinfo_permissions_header">Permissions (%1$d)</string>
+    <string name="appdetails_packageinfo_signing_header">Signing certificates</string>
+    <string name="appdetails_packageinfo_package_label">Package</string>
+    <string name="appdetails_packageinfo_version_label">Version</string>
+    <string name="appdetails_packageinfo_min_sdk_label">Min SDK</string>
+    <string name="appdetails_packageinfo_target_sdk_label">Target SDK</string>
 
     <!-- Empty States -->
     <string name="apps_empty_no_apps">No apps found</string>

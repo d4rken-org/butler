@@ -26,6 +26,8 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.pkgs.PkgRepo
+import eu.darken.butler.common.pkgs.apk.ApkArchiveParser
+import eu.darken.butler.common.pkgs.features.SourceAvailable
 import eu.darken.butler.common.pkgs.pkgops.PkgOps
 import eu.darken.butler.common.pkgs.pkgops.PkgOpsException
 import eu.darken.butler.common.pkgs.pkgs
@@ -70,6 +72,7 @@ class AppDetailsWorkspace @AssistedInject constructor(
     dispatcherProvider: DispatcherProvider,
     private val pkgRepo: PkgRepo,
     private val pkgOps: PkgOps,
+    private val apkArchiveParser: ApkArchiveParser,
     private val appSizeCache: AppSizeCache,
     private val rootManager: RootManager,
     private val adbManager: AdbManager,
@@ -119,6 +122,42 @@ class AppDetailsWorkspace @AssistedInject constructor(
         }
         .stateIn(scope, SharingStarted.Eagerly, null)
 
+    // Declared after appInfoFlow on purpose: it reads that flow, so it has to see the shared one.
+    private val packageInfoLoader = PackageInfoLoader(
+        scope = scope,
+        appInfo = appInfoFlow,
+        load = { app -> loadPackageInfo(app) },
+    )
+
+    /**
+     * Primary source is the installed-package query: re-parsing only `sourceDir` would miss the
+     * manifests of split APKs. The file fallback covers packages the local PackageManager cannot
+     * see. Known limitation: [PkgOps.queryPkg]'s local path ignores `userHandle` and always queries
+     * the current user, which is exactly the case the sourceDir fallback picks up.
+     */
+    private suspend fun loadPackageInfo(app: AppInfo): PackageInfoState = try {
+        val queried = pkgOps.queryPkg(
+            pkgName = app.id,
+            flags = apkArchiveParser.queryFlags().toLong(),
+            userHandle = app.installId.userHandle,
+        )
+        val info = when {
+            queried != null -> apkArchiveParser.map(queried)
+            // The tab renders neither label nor icon - the toolbar already shows the app identity.
+            else -> (app.install as? SourceAvailable)?.sourceDir
+                ?.let { apkArchiveParser.parseFile(it, includeIcon = false) }
+        }
+        when (info) {
+            null -> PackageInfoState.Unavailable
+            else -> PackageInfoState.Ready(info)
+        }
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        log(tag, WARN) { "Failed to load package info for ${app.packageName}: ${e.asLog()}" }
+        PackageInfoState.Unavailable
+    }
+
     // Declared after appInfoFlow on purpose: it probes that flow, so it has to see the shared one.
     private val componentToggleAvailability = ComponentToggleAvailability(
         scope = scope,
@@ -141,6 +180,7 @@ class AppDetailsWorkspace @AssistedInject constructor(
         val hasRoot: Boolean = false,
         val hasAdb: Boolean = false,
         val componentToggleState: ComponentToggleState = ComponentToggleState.UNSUPPORTED,
+        val packageInfo: PackageInfoState = PackageInfoState.Loading,
     ) {
         val canEnableDisable: Boolean get() = hasRoot || hasAdb
         val canForceStop: Boolean get() = hasRoot || hasAdb
@@ -157,7 +197,9 @@ class AppDetailsWorkspace @AssistedInject constructor(
         appSizeCache.snapshot,
         appSizeCache.isAvailable,
         _sizeLoading,
-    ) { app, selectedTab, hasRoot, hasAdb, componentToggleState, sizeSnapshot, sizesAvailable, isLoadingSize ->
+        packageInfoLoader.state,
+    ) { app, selectedTab, hasRoot, hasAdb, componentToggleState, sizeSnapshot, sizesAvailable, isLoadingSize,
+        packageInfo ->
         val withSize = app?.let { info ->
             val size = sizeSnapshot.sizes[info.installId] ?: return@let info
             info.copy(
@@ -178,6 +220,7 @@ class AppDetailsWorkspace @AssistedInject constructor(
             hasRoot = hasRoot,
             hasAdb = hasAdb,
             componentToggleState = componentToggleState,
+            packageInfo = packageInfo,
         )
     }
 
@@ -254,6 +297,8 @@ class AppDetailsWorkspace @AssistedInject constructor(
     fun updateSelectedTab(tab: DetailTab) {
         log(tag) { "Tab selected: $tab" }
         selectedTabFlow.value = tab
+        // Every entry re-runs the load, which is also the retry after a transient Unavailable.
+        if (tab == DetailTab.PACKAGE_INFO) packageInfoLoader.onRequested()
     }
 
     // Package operations live here, not on the ViewModel, so pkgOpsInFlight actually covers them.
@@ -313,6 +358,10 @@ class AppDetailsWorkspace @AssistedInject constructor(
 
     init {
         log(tag, INFO) { "AppDetailsWorkspace initialized: $id, package=${args.packageName}" }
+
+        // A paused modal comes back on the sub-tab it was left on, and that entry never goes
+        // through updateSelectedTab - without this the route would stay on its spinner forever.
+        if (args.initialTab == DetailTab.PACKAGE_INFO) packageInfoLoader.onRequested()
 
         // Auto-close when the package is removed (e.g. after uninstall)
         // Only close after app was seen at least once (to avoid closing during initial load)

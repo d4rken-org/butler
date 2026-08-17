@@ -11,6 +11,7 @@ internal object AppDetailsScrollSlots {
     /** Separate slots per route so Overview's position survives the round-trip to Components. */
     const val OVERVIEW = "overview"
     const val COMPONENTS = "components"
+    const val PACKAGE_INFO = "packageinfo"
 }
 
 /**

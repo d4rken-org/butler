@@ -45,6 +45,7 @@ class AppDetailsWorkspaceSeedTest {
             dispatcherProvider = TestDispatcherProvider(StandardTestDispatcher()),
             pkgRepo = mockk(relaxed = true),
             pkgOps = mockk(relaxed = true),
+            apkArchiveParser = mockk(relaxed = true),
             appSizeCache = mockk(relaxed = true) {
                 every { snapshot } returns MutableStateFlow(AppSizeCache.Snapshot())
                 every { isAvailable } returns MutableStateFlow(false)

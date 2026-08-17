@@ -4,6 +4,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -11,6 +14,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import eu.darken.butler.apps.core.details.AppDetailsWorkspace
+import eu.darken.butler.apps.core.details.PackageInfoState
 import eu.darken.butler.apps.core.details.components.ComponentsUiState
 import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
 import eu.darken.butler.apps.ui.details.components.ComponentsActionBarItem
@@ -58,6 +62,86 @@ class AppDetailsWorkspacePageTest : ComposeTest() {
         composeTestRule.onNodeWithContentDescription("Back").performClick()
 
         actions shouldBe listOf(AppDetailsPageAction.NavigateToTab(DetailTab.OVERVIEW))
+    }
+
+    private fun setPackageInfoPage(
+        packageInfo: PackageInfoState,
+        actions: MutableList<AppDetailsPageAction> = mutableListOf(),
+    ) {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                AppDetailsWorkspacePage(
+                    design = multiPane,
+                    state = AppDetailsWorkspace.State(
+                        app = AppsMockDataProvider.Presets.chrome,
+                        selectedTab = DetailTab.PACKAGE_INFO,
+                        packageInfo = packageInfo,
+                        callerWorkspaceId = stackedOnCaller,
+                    ),
+                    workspaceId = Workspace.Id(),
+                    onPageAction = { actions += it },
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `package info route shows the manifest data and back returns to overview`() {
+        val actions = mutableListOf<AppDetailsPageAction>()
+        setPackageInfoPage(PackageInfoState.Ready(previewPackageInfo), actions)
+
+        composeTestRule.onNodeWithText("121.0.6167.101 (616710103)").assertExists()
+        composeTestRule.onNodeWithText("android.permission.CAMERA").assertExists()
+        composeTestRule.onNodeWithContentDescription("Back").performClick()
+
+        actions shouldBe listOf(AppDetailsPageAction.NavigateToTab(DetailTab.OVERVIEW))
+    }
+
+    /**
+     * autoAdvance off: the progress indicator animates forever, and waiting for idle with it on
+     * screen would never return under Robolectric.
+     */
+    @Test
+    fun `package info renders a spinner while it loads`() {
+        composeTestRule.mainClock.autoAdvance = false
+        setPackageInfoPage(PackageInfoState.Loading)
+
+        composeTestRule
+            .onNode(SemanticsMatcher.expectValue(SemanticsProperties.ProgressBarRangeInfo, ProgressBarRangeInfo.Indeterminate))
+            .assertExists()
+        composeTestRule.onNodeWithText("The app's package details could not be read.").assertDoesNotExist()
+    }
+
+    @Test
+    fun `package info explains itself when nothing could be read`() {
+        setPackageInfoPage(PackageInfoState.Unavailable)
+
+        composeTestRule
+            .onNodeWithText("The app's package details could not be read.")
+            .assertIsDisplayed()
+    }
+
+    @Test
+    fun `the overview offers a route into the package info screen`() {
+        val actions = mutableListOf<AppDetailsPageAction>()
+        composeTestRule.setContent {
+            PreviewWrapper {
+                AppDetailsWorkspacePage(
+                    design = multiPane,
+                    state = AppDetailsWorkspace.State(
+                        app = AppsMockDataProvider.Presets.chrome,
+                        selectedTab = DetailTab.OVERVIEW,
+                        callerWorkspaceId = stackedOnCaller,
+                    ),
+                    workspaceId = Workspace.Id(),
+                    onPageAction = { actions += it },
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText("View package details").performClick()
+
+        actions shouldBe listOf(AppDetailsPageAction.NavigateToTab(DetailTab.PACKAGE_INFO))
     }
 
     @Test

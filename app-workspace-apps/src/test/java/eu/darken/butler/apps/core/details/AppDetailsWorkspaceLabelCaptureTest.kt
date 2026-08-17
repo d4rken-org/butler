@@ -62,6 +62,7 @@ class AppDetailsWorkspaceLabelCaptureTest {
             dispatcherProvider = TestDispatcherProvider(StandardTestDispatcher(testScheduler)),
             pkgRepo = pkgRepo,
             pkgOps = mockk(relaxed = true),
+            apkArchiveParser = mockk(relaxed = true),
             appSizeCache = mockk(relaxed = true) {
                 every { snapshot } returns MutableStateFlow(AppSizeCache.Snapshot())
                 every { isAvailable } returns MutableStateFlow(false)

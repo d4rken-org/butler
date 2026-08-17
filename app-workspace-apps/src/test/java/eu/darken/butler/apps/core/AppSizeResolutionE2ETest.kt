@@ -192,6 +192,7 @@ class AppSizeResolutionE2ETest : BaseTest() {
         dispatcherProvider = dispatcherProvider,
         pkgRepo = pkgRepo,
         pkgOps = pkgOps,
+        apkArchiveParser = mockk(relaxed = true),
         appSizeCache = cache,
         rootManager = mockk<eu.darken.butler.common.root.RootManager> {
             every { useRoot } returns flowOf(false)
