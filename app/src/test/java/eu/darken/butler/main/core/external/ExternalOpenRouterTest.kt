@@ -228,6 +228,26 @@ class ExternalOpenRouterTest : BaseTest() {
     }
 
     @Test
+    fun `a pdf named like an image is imported so the name matches its type`() = runTest {
+        val uri = Uri.parse("content://com.android.externalstorage.documents/document/primary%3Ainvoice.jpg")
+        val imported = LocalPath.build(File("/cache/external_open/uuid/invoice.jpg.pdf"))
+        every { documentUriResolver.resolve(uri) } returns LocalPath.build(readableFile("invoice.jpg"))
+        coEvery { importer.importToCache(any(), any(), any()) } returns imported
+
+        create().resolveForView(SourceRef.Content(uri), MimeInfo("application/pdf"), "invoice.jpg") shouldBe imported
+    }
+
+    @Test
+    fun `an image named like a pdf is imported so the name matches its type`() = runTest {
+        val uri = Uri.parse("content://com.android.externalstorage.documents/document/primary%3Ascan.pdf")
+        val imported = LocalPath.build(File("/cache/external_open/uuid/scan.pdf.png"))
+        every { documentUriResolver.resolve(uri) } returns LocalPath.build(readableFile("scan.pdf"))
+        coEvery { importer.importToCache(any(), any(), any()) } returns imported
+
+        create().resolveForView(SourceRef.Content(uri), MimeInfo("image/png"), "scan.pdf") shouldBe imported
+    }
+
+    @Test
     fun `a document ID that traverses into app-private storage is not opened`() = runTest {
         val uri = Uri.parse("content://com.android.externalstorage.documents/document/primary%3A..%2Fx")
         val imported = LocalPath.build(File("/cache/external_open/uuid/x"))

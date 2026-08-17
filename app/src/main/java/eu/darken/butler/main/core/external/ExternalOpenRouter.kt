@@ -156,7 +156,7 @@ class ExternalOpenRouter internal constructor(
      * whose name doesn't is copied to a cache file that carries a MIME-derived extension.
      */
     private suspend fun viewablePath(path: LocalPath, mime: MimeInfo, displayName: String): LocalPath? = when {
-        mime.isViewable && !MimeInfo.fromFileName(path.name).isViewable -> {
+        mime.isViewable && !mime.hasMatchingViewableExtension(path.name) -> {
             importer.importToCache(Uri.fromFile(path.file), displayName, mime)
         }
 

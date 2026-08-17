@@ -166,7 +166,7 @@ class ExternalContentImporter @Inject constructor(
             .trim()
             .ifBlank { FALLBACK_FILENAME }
 
-        if (mime?.isViewable != true || MimeInfo.fromFileName(sanitized).isViewable) return sanitized
+        if (mime?.isViewable != true || mime.hasMatchingViewableExtension(sanitized)) return sanitized
 
         val extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(mime.rawType)
             ?: VIEWABLE_EXTENSIONS[mime.rawType]

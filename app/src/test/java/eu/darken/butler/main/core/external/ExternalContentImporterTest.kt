@@ -119,6 +119,24 @@ class ExternalContentImporterTest : BaseTest() {
     }
 
     @Test
+    fun `a pdf named like an image still gets a pdf extension`() = runTest {
+        register(uri) { ByteArrayInputStream("x".toByteArray()) }
+
+        val imported = create().importToCache(uri, "invoice.jpg", MimeInfo("application/pdf")).shouldNotBeNull()
+
+        imported.file.name shouldBe "invoice.jpg.pdf"
+    }
+
+    @Test
+    fun `an image named like a pdf still gets an image extension`() = runTest {
+        register(uri) { ByteArrayInputStream("x".toByteArray()) }
+
+        val imported = create().importToCache(uri, "scan.pdf", MimeInfo("image/png")).shouldNotBeNull()
+
+        imported.file.name shouldBe "scan.pdf.png"
+    }
+
+    @Test
     fun `a failure mid-stream leaves nothing behind`() = runTest {
         register(uri) { failingStream(8) { IOException("Connection lost") } }
 

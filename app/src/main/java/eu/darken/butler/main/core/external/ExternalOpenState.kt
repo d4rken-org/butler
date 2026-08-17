@@ -33,6 +33,20 @@ internal val MimeInfo.isViewable: Boolean
     get() = isImage || isPdf
 
 /**
+ * Whether [fileName] already announces the same viewable category as this type. The Viewer picks its
+ * decoder from the file name, so a merely viewable name isn't enough: a PDF called `invoice.jpg`
+ * would be handed to the image decoder and fail to render.
+ */
+internal fun MimeInfo.hasMatchingViewableExtension(fileName: String): Boolean {
+    val named = MimeInfo.fromFileName(fileName)
+    return when {
+        isPdf -> named.isPdf
+        isImage -> named.isImage
+        else -> false
+    }
+}
+
+/**
  * Viewing is offered for images and PDFs, the two things the Viewer workspace can show, editing only
  * for text that fits the editor's paste cap. Saving is always possible, so the dialog is never empty.
  */
