@@ -259,21 +259,34 @@ internal fun ClassicWorkspaceContainer(
                     // A modal covering everything takes focus away from the pages below it, exactly
                     // like the tab manager overlay does.
                     val focusSuppressed = isOverlayVisible || state.fullScreenModalWorkspace != null
-                    val paneIsFocused = !focusSuppressed &&
+                    // Strict: who actually holds focus. Drives Back dispatch and which workspace
+                    // counts as active.
+                    val paneHoldsFocus = !focusSuppressed &&
                         (focusedRootId == tabInfo.id || chain.any { it.id == state.focused })
+                    // Widened, for press handling only: while focus resolves to no tab at all, the
+                    // pane boundary would consume every press to request a focus that never
+                    // arrives, leaving the visible page tap-dead (observed on device after a
+                    // pane-local modal closes, after picker-driven tab creation and after a session
+                    // restore). No other pane can hold focus in this single-pane pager, so the page
+                    // the pager rests on keeps accepting presses.
+                    val paneAcceptsPresses = paneHoldsFocus ||
+                        (!focusSuppressed && focusedRootId == null && effectiveRootId == tabInfo.id)
                     // Deepest layer is the active one; global focus can sit on a covered ancestor
-                    // (launchPicker never moves it).
-                    val activeId = (chain.lastOrNull()?.id ?: tabInfo.id).takeIf { paneIsFocused }
+                    // (launchPicker never moves it). Strict basis: a page that merely accepts
+                    // presses names no active workspace.
+                    val activeId = (chain.lastOrNull()?.id ?: tabInfo.id).takeIf { paneHoldsFocus }
                     WorkspacePane(
                         info = paneInfo,
                         design = design,
-                        paneFocused = paneIsFocused,
+                        paneFocused = paneAcceptsPresses,
                         // Back must not reach a page the pager is not resting on. Parked on the
                         // trailing placeholder, focus legitimately stays on the last tab, so
                         // without this the off-screen Explorer's back-at-root handler consumes
                         // back and closes that tab. Inherited by the whole stack: a child modal's
-                        // handlers go through WorkspaceBackHandler too.
-                        backActive = paneIsFocused && pagerState.isSettledOnPage(page),
+                        // handlers go through WorkspaceBackHandler too. Strict focus, never the
+                        // widened press variant: no page may arm a back handler while focus names
+                        // no tab.
+                        backActive = paneHoldsFocus && pagerState.isSettledOnPage(page),
                         activeWorkspaceId = activeId,
                         childModals = chain.map { it.asPaneInfo() },
                         // Always the page's own tab: a Focus() for a stacked child is dropped.
