@@ -136,17 +136,24 @@ class AppDetailsWorkspace @AssistedInject constructor(
      * the current user, which is exactly the case the sourceDir fallback picks up.
      */
     private suspend fun loadPackageInfo(app: AppInfo): PackageInfoState = try {
-        val queried = pkgOps.queryPkg(
-            pkgName = app.id,
-            flags = apkArchiveParser.queryFlags().toLong(),
-            userHandle = app.installId.userHandle,
-        )
-        val info = when {
-            queried != null -> apkArchiveParser.map(queried)
-            // The tab renders neither label nor icon - the toolbar already shows the app identity.
-            else -> (app.install as? SourceAvailable)?.sourceDir
-                ?.let { apkArchiveParser.parseFile(it, includeIcon = false) }
+        // A throwing query is the same situation as one that found nothing: the fallback still has
+        // to run, otherwise a package the local PackageManager chokes on reads as unavailable.
+        val primary = try {
+            pkgOps.queryPkg(
+                pkgName = app.id,
+                flags = apkArchiveParser.queryFlags().toLong(),
+                userHandle = app.installId.userHandle,
+            )?.let { apkArchiveParser.map(it) }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            log(tag, WARN) { "Package query failed for ${app.packageName}: ${e.asLog()}" }
+            null
         }
+        // The fallback renders neither label nor icon - the toolbar already shows the app identity.
+        val info = primary
+            ?: (app.install as? SourceAvailable)?.sourceDir
+                ?.let { apkArchiveParser.parseFile(it, includeIcon = false) }
         when (info) {
             null -> PackageInfoState.Unavailable
             else -> PackageInfoState.Ready(info)
