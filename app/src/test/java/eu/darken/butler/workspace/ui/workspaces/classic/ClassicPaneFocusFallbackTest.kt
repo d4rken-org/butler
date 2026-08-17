@@ -12,10 +12,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.down
 import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.up
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.Workspace
@@ -154,7 +157,44 @@ class ClassicPaneFocusFallbackTest : ComposeTest() {
         composeTestRule.waitForIdle()
         composeTestRule.onNodeWithTag(RecordingHost.tagFor(tabA)).assertIsDisplayed()
 
-        composeTestRule.onNodeWithTag(RecordingHost.tagFor(tabA)).performClick()
+        // Pressed near the corner, not via performClick(): that targets the node's centre, and
+        // WorkspaceSwitchIndicator is composed centred over the pager for as long as more than one
+        // tab exists. It is a Card, so its Surface installs a pointer barrier that consumes the
+        // press before the page's clickable sees it, and under Robolectric the indicator's 1s
+        // auto-hide has not fired at press time.
+        composeTestRule.onNodeWithTag(RecordingHost.tagFor(tabA)).performTouchInput {
+            down(Offset(5f, 5f))
+            up()
+        }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.runOnIdle { host.clicks[tabA] shouldBe 1 }
+    }
+
+    /**
+     * Control for the test above: the very same press on the very same page is accepted once focus
+     * really is on its tab, so "the press arrived" there is about the focus state and not about the
+     * press location happening to land on something that always accepts.
+     */
+    @Test
+    fun `a press reaches that page once focus names its tab`() {
+        val host = RecordingHost()
+        val infos = listOf(tab(tabA), tab(tabB))
+
+        composeTestRule.setContent {
+            Container(
+                state(infos, focused = tabA, selected = mapOf(0 to tabA)),
+                host,
+                onAction = {},
+            )
+        }
+        composeTestRule.waitForIdle()
+        composeTestRule.onNodeWithTag(RecordingHost.tagFor(tabA)).assertIsDisplayed()
+
+        composeTestRule.onNodeWithTag(RecordingHost.tagFor(tabA)).performTouchInput {
+            down(Offset(5f, 5f))
+            up()
+        }
         composeTestRule.waitForIdle()
 
         composeTestRule.runOnIdle { host.clicks[tabA] shouldBe 1 }
