@@ -50,6 +50,7 @@ class ViewerWorkspaceRelationshipTest : BaseTest() {
         dispatcherProvider = TestDispatcherProvider(),
         gatewaySwitch = gatewaySwitch,
         imageProbe = imageProbe,
+        pdfPreviewLoader = mockk(relaxed = true),
     )
 
     @Test

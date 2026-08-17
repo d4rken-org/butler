@@ -51,6 +51,7 @@ class ViewerWorkspace @AssistedInject constructor(
     dispatcherProvider: DispatcherProvider,
     private val gatewaySwitch: GatewaySwitch,
     private val imageProbe: ImageProbe,
+    private val pdfPreviewLoader: PdfPreviewLoader,
 ) : Workspace<ViewerArguments> {
 
     private val tag = logTag("Viewer", "Workspace", id.shortTag)
@@ -163,6 +164,21 @@ class ViewerWorkspace @AssistedInject constructor(
         }
 
         val mime = MimeInfo.fromFileName(lookup.name)
+
+        // Page count doubles as the render check: a document that cannot be opened here would render
+        // as a permanently blank canvas, so it goes to the unsupported placeholder instead.
+        if (mime.isPdf) {
+            val pageCount = pdfPreviewLoader.pageCount(filePath)
+            stateFlow.value = if (pageCount == null) {
+                log(tag, WARN) { "$filePath is a PDF that cannot be rendered" }
+                State(content = ViewerContent.Unsupported(mime), fileInfo = fileInfo)
+            } else {
+                log(tag, INFO) { "$filePath is a PDF with $pageCount page(s)" }
+                State(content = ViewerContent.PdfPreview(mime, pageCount), fileInfo = fileInfo)
+            }
+            return
+        }
+
         if (!mime.isImage) {
             log(tag, INFO) { "$filePath is not an image ($mime)" }
             stateFlow.value = State(content = ViewerContent.Unsupported(mime), fileInfo = fileInfo)

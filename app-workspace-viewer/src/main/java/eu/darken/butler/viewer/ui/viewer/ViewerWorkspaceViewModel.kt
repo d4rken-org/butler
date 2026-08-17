@@ -1,6 +1,7 @@
 package eu.darken.butler.viewer.ui.viewer
 
 import android.content.Context
+import android.graphics.Bitmap
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -14,8 +15,10 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.ui.ViewModel3
 import eu.darken.butler.viewer.core.GatewayZoomableImageSource
+import eu.darken.butler.viewer.core.PdfPreviewLoader
 import eu.darken.butler.viewer.core.ViewerContent
 import eu.darken.butler.viewer.core.ViewerFileInfo
+import eu.darken.butler.viewer.core.ViewerPdfPreviewFailedException
 import eu.darken.butler.viewer.core.ViewerWorkspace
 import eu.darken.butler.workspace.core.NoAppForFileException
 import eu.darken.butler.workspace.core.OpenWithIntentUseCase
@@ -31,6 +34,8 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import me.saket.telephoto.zoomable.ZoomableImageSource
@@ -44,6 +49,7 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
     private val workspaceProvider: WorkspaceProvider,
     private val workspaceRemote: WorkspaceRemote,
     private val imageSourceFactory: GatewayZoomableImageSource.Factory,
+    private val pdfPreviewLoader: PdfPreviewLoader,
     private val openWithIntentUseCase: OpenWithIntentUseCase,
     chromeFactory: WorkspacePageChrome.Factory,
 ) : ViewModel3(dispatchers, logTag("Viewer", "Workspace", id.shortTag, "Page")) {
@@ -78,6 +84,35 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
             )
         }
 
+    /**
+     * The first page is rendered here, not in the workspace: a full-screen page bitmap must not
+     * survive in workspace state, where a paused tab would keep holding it. Emits null first so the
+     * page shows its spinner while the render runs, and reports a failed render as a page error.
+     */
+    private val pdfFirstPageFlow = combine(workspaceSource, attemptFlow) { workspace, attempt ->
+        workspace to attempt
+    }
+        .distinctUntilChanged()
+        .flatMapLatest { (workspace, _) ->
+            workspace.state
+                .map { it.content as? ViewerContent.PdfPreview }
+                .distinctUntilChanged()
+                .flatMapLatest { pdf ->
+                    if (pdf == null) {
+                        flowOf<Bitmap?>(null)
+                    } else {
+                        flow<Bitmap?> {
+                            emit(null)
+                            val bitmap = pdfPreviewLoader.firstPage(workspace.filePath)
+                            if (bitmap == null) {
+                                renderErrorFlow.value = ViewerPdfPreviewFailedException(workspace.filePath)
+                            }
+                            emit(bitmap)
+                        }
+                    }
+                }
+        }
+
     private val snapshots = workspaceSource.flatMapLatest { workspace ->
         workspace.state.map { workspace.filePath to it }
     }
@@ -93,7 +128,12 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
         .distinctUntilChanged()
         .asStateFlow()
 
-    val state = combine(snapshots, renderErrorFlow, imageSourceFlow) { snapshot, renderError, imageSource ->
+    val state = combine(
+        snapshots,
+        renderErrorFlow,
+        imageSourceFlow,
+        pdfFirstPageFlow,
+    ) { snapshot, renderError, imageSource, firstPage ->
         val (path, workspaceState) = snapshot
         val content = renderError?.let { ViewerContent.Failed(it) } ?: workspaceState.content
         State.Ready(
@@ -101,6 +141,7 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
             fileInfo = workspaceState.fileInfo,
             path = path,
             imageSource = imageSource.takeIf { content is ViewerContent.Image },
+            pdfFirstPage = firstPage.takeIf { content is ViewerContent.PdfPreview },
         ) as State
     }
         .catch { emit(State.Error(it)) }
@@ -148,6 +189,7 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
             val fileInfo: ViewerFileInfo?,
             val path: APath<*>,
             val imageSource: ZoomableImageSource?,
+            val pdfFirstPage: Bitmap? = null,
         ) : State
     }
 

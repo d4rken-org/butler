@@ -62,6 +62,7 @@ class ViewerWorkspaceDisplayTest {
             dispatcherProvider = TestDispatcherProvider(),
             gatewaySwitch = gatewaySwitch,
             imageProbe = imageProbe,
+            pdfPreviewLoader = mockk(relaxed = true),
         )
         val derived = deriveViewerDisplay(arguments)
 
