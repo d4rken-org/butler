@@ -37,6 +37,7 @@ import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationFocusRequest
 import javax.inject.Inject
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -45,6 +46,7 @@ import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.PolymorphicSerializer
 import kotlinx.serialization.json.Json
 
@@ -52,7 +54,7 @@ import kotlinx.serialization.json.Json
 @HiltViewModel
 class MainViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
-    dispatcherProvider: DispatcherProvider,
+    private val dispatcherProvider: DispatcherProvider,
     private val upgradeRepo: UpgradeRepo,
     private val generalSettings: GeneralSettings,
     private val workspaceRemote: WorkspaceRemote,
@@ -181,55 +183,73 @@ class MainViewModel @Inject constructor(
         get() = _externalOpen
 
     private var externalOpenJob: Job? = null
+    private var externalOpenGeneration = 0L
 
     /**
      * An "Open with" arrival: collects the metadata needed to decide what Butler can offer for the
      * file. The newest arrival wins, an older one that is still gathering metadata is dropped.
+     *
+     * The metadata queries are blocking and don't react to cancellation, so a cancelled job can
+     * still run to completion; the generation counter keeps its result from replacing a newer one.
      */
     fun onExternalFile(uri: Uri, intentType: String?, callerPackage: String?) {
         log(tag) { "onExternalFile($uri, $intentType, $callerPackage)" }
         externalOpenJob?.cancel()
+        // Retire the dialog of the previous arrival right away, it must not stay actionable.
+        _externalOpen.value = null
+        val generation = ++externalOpenGeneration
+
         externalOpenJob = vmScope.launch {
-            val ref = externalOpenRouter.sanitize(uri)
-            if (ref == null) {
-                log(tag, WARN) { "Refusing to open $uri" }
+            val arrival = withContext(dispatcherProvider.IO) {
+                val ref = externalOpenRouter.sanitize(uri)
+                if (ref == null) {
+                    log(tag, WARN) { "Refusing to open $uri" }
+                    return@withContext null
+                }
+
+                val displayName: String
+                val rawSize: Long?
+                val resolverType: String?
+                when (ref) {
+                    is SourceRef.Content -> {
+                        val info = contentUriHelper.extractInfo(ref.uri)
+                        displayName = info.displayName
+                        rawSize = info.size
+                        resolverType = info.mimeType
+                    }
+
+                    is SourceRef.Local -> {
+                        displayName = ref.path.name
+                        rawSize = ref.path.file.length()
+                        resolverType = null
+                    }
+                }
+
+                val sizeBytes = rawSize?.takeIf { it >= 0 }
+                val mime = externalOpenRouter.resolveMime(
+                    intentType = intentType,
+                    resolverType = resolverType,
+                    displayName = displayName,
+                )
+
+                ExternalOpenState(
+                    ref = ref,
+                    originalUri = uri,
+                    displayName = displayName,
+                    sizeBytes = sizeBytes,
+                    mime = mime,
+                    callerPackage = callerPackage,
+                    options = computeExternalOpenOptions(mime, sizeBytes),
+                )
+            }
+
+            ensureActive()
+            if (arrival == null || generation != externalOpenGeneration) {
+                log(tag) { "Dropping stale or refused arrival for $uri" }
                 return@launch
             }
 
-            val displayName: String
-            val rawSize: Long?
-            val resolverType: String?
-            when (ref) {
-                is SourceRef.Content -> {
-                    val info = contentUriHelper.extractInfo(ref.uri)
-                    displayName = info.displayName
-                    rawSize = info.size
-                    resolverType = info.mimeType
-                }
-
-                is SourceRef.Local -> {
-                    displayName = ref.path.name
-                    rawSize = ref.path.file.length()
-                    resolverType = null
-                }
-            }
-
-            val sizeBytes = rawSize?.takeIf { it >= 0 }
-            val mime = externalOpenRouter.resolveMime(
-                intentType = intentType,
-                resolverType = resolverType,
-                displayName = displayName,
-            )
-
-            _externalOpen.value = ExternalOpenState(
-                ref = ref,
-                originalUri = uri,
-                displayName = displayName,
-                sizeBytes = sizeBytes,
-                mime = mime,
-                callerPackage = callerPackage,
-                options = computeExternalOpenOptions(mime, sizeBytes),
-            ).also { log(tag) { "External open state: $it" } }
+            _externalOpen.value = arrival.also { log(tag) { "External open state: $it" } }
         }
     }
 
