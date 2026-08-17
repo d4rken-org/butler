@@ -72,4 +72,12 @@ class MimeInfoTest : BaseTest() {
         MimeInfo.fromFileName("a.mp3").isImage shouldBe false
         MimeInfo.fromFileName("a.mp3").isVideo shouldBe false
     }
+
+    @Test
+    fun `apk files are recognized as package archives`() {
+        MimeInfo.fromFileName("foo.apk").isApk shouldBe true
+        MimeInfo.fromFileName("FOO.APK").isApk shouldBe true
+        MimeInfo.fromFileName("foo.zip").isApk shouldBe false
+        MimeInfo.fromFileName("foo.jpg").isApk shouldBe false
+    }
 }

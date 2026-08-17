@@ -19,7 +19,12 @@ data class MimeInfo(
     val isText: Boolean
         get() = rawType.startsWith("text/") || rawType in TEXT_MIME_TYPES
 
+    val isApk: Boolean
+        get() = rawType == MIME_APK
+
     companion object {
+        const val MIME_APK = "application/vnd.android.package-archive"
+
         private val TEXT_MIME_TYPES = setOf(
             "application/json",
             "application/xml",
@@ -74,7 +79,7 @@ data class MimeInfo(
                 "md" -> "text/markdown"
 
                 // Android
-                "apk" -> "application/vnd.android.package-archive"
+                "apk" -> MIME_APK
 
                 else -> "application/octet-stream"
             }

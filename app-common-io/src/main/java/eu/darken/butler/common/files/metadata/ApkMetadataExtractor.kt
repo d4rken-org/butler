@@ -1,16 +1,12 @@
 package eu.darken.butler.common.files.metadata
 
-import android.content.Context
-import android.content.pm.PackageManager
-import androidx.core.content.pm.PackageInfoCompat
-import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
-import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.pkgs.apk.ApkArchiveParser
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -25,12 +21,12 @@ import javax.inject.Singleton
  * - Application label
  * - Permissions
  *
- * Only supports local file paths.
+ * Only supports local file paths; the parsing itself is [ApkArchiveParser]'s.
  */
 @Singleton
 class ApkMetadataExtractor @Inject constructor(
-    @ApplicationContext private val context: Context,
-    private val dispatcherProvider: DispatcherProvider
+    private val apkArchiveParser: ApkArchiveParser,
+    private val dispatcherProvider: DispatcherProvider,
 ) : MetadataExtractor<ApkMetadata> {
 
     private val tag = logTag("Metadata", "Extractor", "Apk")
@@ -47,29 +43,18 @@ class ApkMetadataExtractor @Inject constructor(
 
             log(tag) { "Extracting APK metadata from: ${path.path}" }
 
-            val packageManager = context.packageManager
-            val packageInfo = packageManager.getPackageArchiveInfo(
-                path.path,
-                PackageManager.GET_PERMISSIONS
-            ) ?: throw IllegalStateException("Failed to parse APK: ${path.path}")
-
-            // Need to set applicationInfo.sourceDir for loadLabel() to work
-            packageInfo.applicationInfo?.sourceDir = path.path
-            packageInfo.applicationInfo?.publicSourceDir = path.path
+            // No icon: the list/metadata consumers render none, and rasterizing one is not free.
+            val info = apkArchiveParser.parseFile(path, includeIcon = false)
+                ?: throw IllegalStateException("Failed to parse APK: ${path.path}")
 
             ApkMetadata(
-                packageName = packageInfo.packageName,
-                versionCode = PackageInfoCompat.getLongVersionCode(packageInfo),
-                versionName = packageInfo.versionName ?: "Unknown",
-                minSdk = packageInfo.applicationInfo?.minSdkVersion ?: 1,
-                targetSdk = packageInfo.applicationInfo?.targetSdkVersion ?: 1,
-                applicationLabel = try {
-                    packageInfo.applicationInfo?.loadLabel(packageManager)?.toString()
-                } catch (e: Exception) {
-                    log(tag, WARN) { "Failed to load application label: ${e.asLog()}" }
-                    null
-                },
-                permissions = packageInfo.requestedPermissions?.toList() ?: emptyList()
+                packageName = info.id.name,
+                versionCode = info.versionCode,
+                versionName = info.versionName ?: "Unknown",
+                minSdk = info.minSdk ?: 1,
+                targetSdk = info.targetSdk ?: 1,
+                applicationLabel = info.label,
+                permissions = info.requestedPermissions,
             )
         }
     }
