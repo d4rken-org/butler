@@ -84,6 +84,28 @@
                 <data android:mimeType="vnd.android.document/directory" />
             </intent-filter>
 
+            <!-- "Open with" for files: typed intents -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
+
+            <!-- "Open with" for files without a type. A filter that declares a mimeType never
+                 matches a typeless intent, and file:// intents commonly carry none. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+            </intent-filter>
+
             <!-- Intent filter for handling Explorer workspace shortcuts -->
             <intent-filter>
                 <action android:name="eu.darken.butler.EXPLORER_OPEN_PATH" />

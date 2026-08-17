@@ -66,6 +66,7 @@ import eu.darken.butler.main.core.operations.fgs.EXTRA_WORKSPACE_ID
 import eu.darken.butler.main.core.operations.fgs.NotificationPermissionGate
 import eu.darken.butler.main.core.operations.fgs.OperationFgsCoordinator
 import eu.darken.butler.main.core.shortcuts.DynamicShortcutManager
+import eu.darken.butler.main.ui.external.ExternalOpenDialog
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.ui.workspaces.workspaces
@@ -125,8 +126,10 @@ class MainActivity : Activity2() {
             }
         }
 
-        // Handle shortcut intent if present (will be processed once navigation is ready)
-        savedIntent = intent
+        // Handle shortcut intent if present (will be processed once navigation is ready).
+        // Only on a fresh start: a recreation (e.g. rotation) hands us the original intent again,
+        // which would replay an arrival the user already dealt with.
+        if (savedInstanceState == null) savedIntent = intent
 
         setContent {
             // Prime WindowInsets listener before first layout to prevent UI jumping.
@@ -162,6 +165,22 @@ class MainActivity : Activity2() {
                             LocalAvoidDisplayCutout provides mainState.avoidDisplayCutout,
                         ) {
                             Navigation(mainState)
+
+                            // During onboarding the arrival stays pending: the dialog shows up once
+                            // the user is through and the workspace UI can actually take the file.
+                            val externalOpen by vm.externalOpen.collectAsState()
+                            externalOpen
+                                ?.takeIf { mainState.startScreen == MainViewModel.State.StartScreen.HOME }
+                                ?.let { arrival ->
+                                    ExternalOpenDialog(
+                                        displayName = arrival.displayName,
+                                        mime = arrival.mime,
+                                        sizeBytes = arrival.sizeBytes,
+                                        options = arrival.options,
+                                        onOption = { vm.onExternalOpenAction(it) },
+                                        onDismiss = { vm.onExternalOpenDismiss() },
+                                    )
+                                }
                         }
                     }
                 }
@@ -321,11 +340,18 @@ class MainActivity : Activity2() {
 
     private fun handleViewIntent(intent: Intent) {
         val uri = intent.data
-        if (uri != null) {
-            log(TAG) { "Handling VIEW intent with URI: $uri (type: ${intent.type})" }
-            vm.openFromDocumentUri(uri)
-        } else {
+        if (uri == null) {
             log(TAG, WARN) { "VIEW intent received but no data URI found" }
+            return
+        }
+        log(TAG) { "Handling VIEW intent with URI: $uri (type: ${intent.type})" }
+        when (intent.type) {
+            MIME_DOCUMENT_ROOT, MIME_DOCUMENT_DIRECTORY -> vm.openFromDocumentUri(uri)
+            else -> vm.onExternalFile(
+                uri = uri,
+                intentType = intent.type,
+                callerPackage = intent.`package` ?: referrer?.host,
+            )
         }
     }
 
@@ -366,5 +392,7 @@ class MainActivity : Activity2() {
     companion object {
         private val TAG = logTag("Main", "Activity")
         private const val BACK_PRESS_INTERVAL = 2000L // 2 seconds
+        private const val MIME_DOCUMENT_ROOT = "vnd.android.document/root"
+        private const val MIME_DOCUMENT_DIRECTORY = "vnd.android.document/directory"
     }
 }
