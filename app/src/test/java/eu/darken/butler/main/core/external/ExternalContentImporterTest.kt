@@ -140,6 +140,16 @@ class ExternalContentImporterTest : BaseTest() {
     }
 
     @Test
+    fun `an import is refused when the cache has no room and the size is unknown`() = runTest {
+        register(uri) { ByteArrayInputStream("Hello World".toByteArray()) }
+        coEvery { cacheRepo.canSpare(any()) } returns false
+
+        create().importToCache(uri, "notes.txt", null).shouldBeNull()
+
+        importDir.listFiles().orEmpty().toList() shouldBe emptyList()
+    }
+
+    @Test
     fun `stale imports are swept but fresh ones survive`() = runTest {
         val stale = File(importDir, "stale").apply { mkdirs() }
         val staleFile = File(stale, "old.txt").apply { writeText("old") }

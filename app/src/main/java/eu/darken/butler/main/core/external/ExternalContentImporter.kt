@@ -68,8 +68,10 @@ class ExternalContentImporter @Inject constructor(
 
         try {
             return withContext(dispatcherProvider.IO) {
+                // Providers often report no size at all, so an unknown size is guarded with the same
+                // budget the copy loop rechecks against instead of skipping the check.
                 val reported = reportedSize(uri)
-                if (reported != null && !cacheRepo.canSpare(reported)) {
+                if (!cacheRepo.canSpare(reported ?: SPACE_RECHECK_INTERVAL)) {
                     log(TAG, WARN) { "Not enough cache space for $reported bytes, aborting import of $uri" }
                     return@withContext null
                 }
