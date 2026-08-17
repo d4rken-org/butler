@@ -171,7 +171,7 @@ private fun ApkInfoCard(
     apkInfo: ApkArchiveInfo,
     installState: ApkInstallState,
 ) {
-    val entries = buildList {
+    val entries = buildList<InfoEntry> {
         add(
             InfoEntry(
                 label = stringResource(R.string.viewer_apk_version_label),
