@@ -158,7 +158,7 @@ class ExternalContentImporter @Inject constructor(
 
     /**
      * The display name comes from another app, so it may carry path separators or be empty. The
-     * Viewer picks its decoder by extension, so an extensionless image also gets one here.
+     * Viewer picks its decoder by extension, so extensionless viewable content also gets one here.
      */
     private fun buildFileName(displayName: String, mime: MimeInfo?): String {
         val sanitized = displayName
@@ -166,10 +166,10 @@ class ExternalContentImporter @Inject constructor(
             .trim()
             .ifBlank { FALLBACK_FILENAME }
 
-        if (mime?.isImage != true || MimeInfo.fromFileName(sanitized).isImage) return sanitized
+        if (mime?.isViewable != true || MimeInfo.fromFileName(sanitized).isViewable) return sanitized
 
         val extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(mime.rawType)
-            ?: IMAGE_EXTENSIONS[mime.rawType]
+            ?: VIEWABLE_EXTENSIONS[mime.rawType]
             ?: return sanitized
 
         return "$sanitized.$extension"
@@ -208,7 +208,7 @@ class ExternalContentImporter @Inject constructor(
         private const val SPACE_RECHECK_INTERVAL = 8 * 1024 * 1024L
         private const val MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000L
         /** Robolectric and some ROMs have an empty [MimeTypeMap], these are the types we care about. */
-        private val IMAGE_EXTENSIONS = mapOf(
+        private val VIEWABLE_EXTENSIONS = mapOf(
             "image/jpeg" to "jpg",
             "image/png" to "png",
             "image/gif" to "gif",
@@ -218,6 +218,7 @@ class ExternalContentImporter @Inject constructor(
             "image/heif" to "heif",
             "image/avif" to "avif",
             "image/svg+xml" to "svg",
+            "application/pdf" to "pdf",
         )
     }
 }

@@ -25,14 +25,22 @@ enum class ExternalOpenOption {
 }
 
 /**
- * Viewing is offered for what the Viewer workspace can actually show, editing only for text that
- * fits the editor's paste cap. Saving is always possible, so the dialog is never empty.
+ * What the Viewer workspace can actually show: images and PDFs. The import and extension rules in
+ * [ExternalOpenRouter] and [ExternalContentImporter] key off the same predicate, so an option we
+ * offer is always one we can also open.
+ */
+internal val MimeInfo.isViewable: Boolean
+    get() = isImage || isPdf
+
+/**
+ * Viewing is offered for images and PDFs, the two things the Viewer workspace can show, editing only
+ * for text that fits the editor's paste cap. Saving is always possible, so the dialog is never empty.
  */
 fun computeExternalOpenOptions(
     mime: MimeInfo,
     sizeBytes: Long?,
 ): List<ExternalOpenOption> = buildList {
-    if (mime.isImage) add(ExternalOpenOption.VIEW)
+    if (mime.isViewable) add(ExternalOpenOption.VIEW)
     if (mime.isText && (sizeBytes == null || sizeBytes <= PasteFileReader.MAX_PASTE_FILE_SIZE)) {
         add(ExternalOpenOption.EDIT_AS_TEXT)
     }

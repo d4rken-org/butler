@@ -17,6 +17,14 @@ class ExternalOpenOptionsTest : BaseTest() {
     }
 
     @Test
+    fun `pdfs can be viewed or saved but not edited`() {
+        computeExternalOpenOptions(MimeInfo("application/pdf"), 1024L) shouldBe listOf(
+            ExternalOpenOption.VIEW,
+            ExternalOpenOption.SAVE_AS,
+        )
+    }
+
+    @Test
     fun `small text can be edited or saved`() {
         computeExternalOpenOptions(MimeInfo("text/plain"), 1024L) shouldBe listOf(
             ExternalOpenOption.EDIT_AS_TEXT,

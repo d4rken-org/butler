@@ -152,11 +152,11 @@ class ExternalOpenRouter internal constructor(
     }
 
     /**
-     * The Viewer picks its decoder by file extension, so an image whose name doesn't say "image"
-     * is copied to a cache file that carries a MIME-derived extension.
+     * The Viewer picks its decoder by file extension, so content whose type says it can be shown but
+     * whose name doesn't is copied to a cache file that carries a MIME-derived extension.
      */
     private suspend fun viewablePath(path: LocalPath, mime: MimeInfo, displayName: String): LocalPath? = when {
-        mime.isImage && !MimeInfo.fromFileName(path.name).isImage -> {
+        mime.isViewable && !MimeInfo.fromFileName(path.name).isViewable -> {
             importer.importToCache(Uri.fromFile(path.file), displayName, mime)
         }
 

@@ -101,6 +101,15 @@ class ExternalContentImporterTest : BaseTest() {
     }
 
     @Test
+    fun `an extensionless pdf gets an extension from its type`() = runTest {
+        register(uri) { ByteArrayInputStream("x".toByteArray()) }
+
+        val imported = create().importToCache(uri, "invoice", MimeInfo("application/pdf")).shouldNotBeNull()
+
+        imported.file.name shouldBe "invoice.pdf"
+    }
+
+    @Test
     fun `an image that already has a matching name is left alone`() = runTest {
         register(uri) { ByteArrayInputStream("x".toByteArray()) }
 

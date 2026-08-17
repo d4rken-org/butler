@@ -16,6 +16,7 @@ import androidx.compose.material.icons.automirrored.twotone.InsertDriveFile
 import androidx.compose.material.icons.twotone.Description
 import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material.icons.twotone.Image
+import androidx.compose.material.icons.twotone.PictureAsPdf
 import androidx.compose.material.icons.twotone.SaveAlt
 import androidx.compose.material.icons.twotone.Visibility
 import androidx.compose.material3.Icon
@@ -110,6 +111,21 @@ private fun ExternalOpenDialogImagePreview() {
         displayName = "IMG_20260817_120000.jpg",
         mime = MimeInfo("image/jpeg"),
         sizeBytes = 2_400_000L,
+        previewUri = null,
+        options = listOf(ExternalOpenOption.VIEW, ExternalOpenOption.SAVE_AS),
+        onOption = {},
+        onDismiss = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ExternalOpenDialogPdfPreview() {
+    ExternalOpenDialog(
+        displayName = "invoice-2026-08.pdf",
+        mime = MimeInfo("application/pdf"),
+        sizeBytes = 180_000L,
         previewUri = null,
         options = listOf(ExternalOpenOption.VIEW, ExternalOpenOption.SAVE_AS),
         onOption = {},
@@ -285,6 +301,7 @@ private fun ExternalOpenCancelRow(
 private val MimeInfo.typeIcon: ImageVector
     get() = when {
         isImage -> Icons.TwoTone.Image
+        isPdf -> Icons.TwoTone.PictureAsPdf
         isText -> Icons.TwoTone.Description
         else -> Icons.AutoMirrored.TwoTone.InsertDriveFile
     }
