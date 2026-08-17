@@ -22,7 +22,6 @@
     <string name="viewer_unsupported_title">This file type is not supported yet</string>
 
     <!-- APK file -->
-    <string name="viewer_apk_package_label">Package</string>
     <string name="viewer_apk_version_label">Version</string>
     <string name="viewer_apk_min_sdk_label">Min SDK</string>
     <string name="viewer_apk_target_sdk_label">Target SDK</string>
