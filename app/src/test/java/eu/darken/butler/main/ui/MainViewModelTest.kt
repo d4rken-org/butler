@@ -55,6 +55,7 @@ class MainViewModelTest : BaseTest() {
     }
 
     private fun createViewModel() = MainViewModel(
+        context = mockk(relaxed = true),
         dispatcherProvider = TestDispatcherProvider(),
         upgradeRepo = upgradeRepo,
         generalSettings = generalSettings,
@@ -62,6 +63,9 @@ class MainViewModelTest : BaseTest() {
         json = Json,
         documentUriResolver = documentUriResolver,
         operationFocusRequest = operationFocusRequest,
+        contentUriHelper = mockk(relaxed = true),
+        externalOpenRouter = mockk(relaxed = true),
+        pasteFileReader = mockk(relaxed = true),
     )
 
     @Test
