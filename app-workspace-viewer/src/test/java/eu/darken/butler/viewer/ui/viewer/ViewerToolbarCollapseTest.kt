@@ -31,6 +31,13 @@ class ViewerToolbarCollapseTest : BaseTest() {
     }
 
     @Test
+    fun `a zoomed pdf page collapses the toolbar`() {
+        val pdf = ViewerContent.PdfPreview(MimeInfo("application/pdf"), pageCount = 3)
+        shouldCollapseToolbar(pdf, isZoomedIn = true) shouldBe true
+        shouldCollapseToolbar(pdf, isZoomedIn = false) shouldBe false
+    }
+
+    @Test
     fun `losing the image expands the toolbar again`() {
         // Telephoto keeps its transformation after the image leaves - without the content gate the
         // toolbar would stay collapsed with no gesture surface left to expand it.

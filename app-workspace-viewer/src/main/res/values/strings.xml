@@ -18,6 +18,11 @@
     <string name="viewer_info_owner_label">Owner</string>
     <string name="viewer_info_owner_value">%1$s / %2$s</string>
 
+    <!-- PDF preview -->
+    <string name="viewer_pdf_preview_content_description">PDF preview of %1$s</string>
+    <string name="viewer_pdf_preview_hint_pages">Preview · page 1 of %1$d</string>
+    <string name="viewer_pdf_preview_hint_single">Preview · 1 page</string>
+
     <!-- Unsupported file -->
     <string name="viewer_unsupported_title">This file type is not supported yet</string>
 
@@ -47,4 +52,6 @@
     <string name="viewer_error_empty_file_description">%1$s is empty and has nothing to show.</string>
     <string name="viewer_error_apk_unreadable_label">Unreadable APK</string>
     <string name="viewer_error_apk_unreadable_description">%1$s could not be parsed as an Android app package.</string>
+    <string name="viewer_error_pdf_preview_label">PDF preview failed</string>
+    <string name="viewer_error_pdf_preview_description">The first page of %1$s could not be rendered. The file may have changed or be damaged.</string>
 </resources>

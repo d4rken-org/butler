@@ -10,6 +10,8 @@ import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.text.CharsetDetector
 import kotlinx.coroutines.CancellationException
 import java.io.ByteArrayOutputStream
+import java.io.IOException
+import java.io.InputStream
 import java.nio.ByteBuffer
 import java.nio.charset.CharacterCodingException
 import java.nio.charset.CodingErrorAction
@@ -28,9 +30,20 @@ class PasteFileReader @Inject constructor(
     private val gatewaySwitch: GatewaySwitch,
 ) {
 
-    suspend fun read(path: APath<*>): Result<String> = try {
-        val content = gatewaySwitch.useRes { decodeBytes(readCapped(path)) }
-        Result.success(content)
+    suspend fun read(path: APath<*>): Result<String> = readCatching {
+        gatewaySwitch.useRes { decodeBytes(readCapped { gatewaySwitch.openInputStream(path) }) }
+    }
+
+    /**
+     * Same capped read and decode, but for content Butler only has a stream for (e.g. a `content://`
+     * URI handed over by another app) instead of an [APath].
+     */
+    suspend fun read(streamProvider: () -> InputStream?): Result<String> = readCatching {
+        decodeBytes(readCapped { streamProvider() })
+    }
+
+    private suspend fun readCatching(block: suspend () -> String): Result<String> = try {
+        Result.success(block())
     } catch (e: CancellationException) {
         throw e
     } catch (e: Exception) {
@@ -38,12 +51,13 @@ class PasteFileReader @Inject constructor(
         Result.failure(e)
     }
 
-    private suspend fun readCapped(path: APath<*>): ByteArray {
+    private suspend fun readCapped(streamProvider: suspend () -> InputStream?): ByteArray {
         val out = ByteArrayOutputStream()
         val buf = ByteArray(64 * 1024)
-        gatewaySwitch.openInputStream(path).use { input ->
+        val input = streamProvider() ?: throw IOException("Could not open the content for reading")
+        input.use {
             while (true) {
-                val read = input.read(buf)
+                val read = it.read(buf)
                 if (read == -1) break
                 if (out.size() + read > MAX_PASTE_FILE_SIZE) {
                     throw PasteTooLargeException(MAX_PASTE_FILE_SIZE)

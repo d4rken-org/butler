@@ -80,4 +80,14 @@ class MimeInfoTest : BaseTest() {
         MimeInfo.fromFileName("foo.zip").isApk shouldBe false
         MimeInfo.fromFileName("foo.jpg").isApk shouldBe false
     }
+
+    @Test
+    fun `only a pdf counts as pdf`() {
+        MimeInfo.fromFileName("a.pdf").isPdf shouldBe true
+        MimeInfo.fromFileName("A.PDF").isPdf shouldBe true
+        MimeInfo.fromFileName("a.jpg").isPdf shouldBe false
+        MimeInfo.fromFileName("a.doc").isPdf shouldBe false
+        MimeInfo.fromFileName("a.xyz").isPdf shouldBe false
+        MimeInfo.fromFileName("a.pdf").isImage shouldBe false
+    }
 }

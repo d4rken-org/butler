@@ -22,6 +22,9 @@ data class MimeInfo(
     val isApk: Boolean
         get() = rawType == MIME_APK
 
+    val isPdf: Boolean
+        get() = rawType == "application/pdf"
+
     companion object {
         const val MIME_APK = "application/vnd.android.package-archive"
 

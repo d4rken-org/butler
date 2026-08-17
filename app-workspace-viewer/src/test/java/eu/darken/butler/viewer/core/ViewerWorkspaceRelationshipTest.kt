@@ -53,6 +53,7 @@ class ViewerWorkspaceRelationshipTest : BaseTest() {
         apkArchiveParser = mockk(relaxed = true),
         pkgRepo = mockk(relaxed = true),
         userManager2 = mockk(relaxed = true),
+        pdfPreviewLoader = mockk(relaxed = true),
     )
 
     @Test

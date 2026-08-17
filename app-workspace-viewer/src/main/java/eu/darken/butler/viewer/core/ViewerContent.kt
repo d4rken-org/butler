@@ -18,6 +18,9 @@ sealed interface ViewerContent {
         val installState: ApkInstallState,
     ) : ViewerContent
 
+    /** A PDF whose first page can be rendered. The bitmap is not part of the state, only its existence. */
+    data class PdfPreview(val mime: MimeInfo, val pageCount: Int) : ViewerContent
+
     data class Unsupported(val mime: MimeInfo) : ViewerContent
 
     data class Failed(val error: Throwable) : ViewerContent

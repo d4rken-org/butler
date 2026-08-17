@@ -196,8 +196,17 @@ fun ViewerWorkspacePage(
                     position = BarPosition.BOTTOM,
                     modifier = Modifier.align(Alignment.BottomCenter),
                     bars = {
-                        // Bars in a BOTTOM stack are declared top-to-bottom, so the action bar
-                        // comes first to sit above the metadata card.
+                        // Bars in a BOTTOM stack are declared top-to-bottom, so the PDF hint and the
+                        // action bar come first to sit above the metadata card.
+                        val pdfContent = state.content as? ViewerContent.PdfPreview
+                        FloatingBar(
+                            key = ViewerBarKeys.PDF_HINT,
+                            visible = pdfContent != null,
+                            animation = BarAnimation.Slide(),
+                        ) {
+                            pdfContent?.let { PdfPreviewHintCard(pageCount = it.pageCount) }
+                        }
+
                         FloatingBar(
                             key = ViewerBarKeys.ACTIONS,
                             visible = true,
@@ -235,9 +244,11 @@ internal fun isZoomedIn(transformationSpecified: Boolean, userZoom: Float): Bool
 /**
  * Telephoto keeps its transformation when the image composable leaves, so a decode failure after a
  * zoom would otherwise strand the toolbar collapsed with no gesture surface left to expand it.
+ *
+ * A rendered PDF page is the same kind of surface, so it collapses the toolbar the same way.
  */
 internal fun shouldCollapseToolbar(content: ViewerContent, isZoomedIn: Boolean): Boolean =
-    content is ViewerContent.Image && isZoomedIn
+    (content is ViewerContent.Image || content is ViewerContent.PdfPreview) && isZoomedIn
 
 @Composable
 private fun ViewerContentArea(
@@ -269,6 +280,12 @@ private fun ViewerContentArea(
                 apkInfo = content.apkInfo,
                 installState = content.installState,
                 contentPadding = contentPadding,
+            )
+
+            is ViewerContent.PdfPreview -> PdfPreviewContent(
+                firstPage = state.pdfFirstPage,
+                fileName = state.path.name,
+                zoomableState = zoomableState,
             )
 
             is ViewerContent.Unsupported -> UnsupportedFilePlaceholder(
@@ -325,6 +342,21 @@ private fun ViewerWorkspacePageModalPreview() {
             imageSource = null,
         ),
         callerWorkspaceId = Workspace.Id(),
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ViewerWorkspacePagePdfPreviewPreview() {
+    ViewerWorkspacePage(
+        workspaceId = Workspace.Id(),
+        state = ViewerWorkspaceViewModel.State.Ready(
+            content = ViewerContent.PdfPreview(MimeInfo("application/pdf"), pageCount = 3),
+            fileInfo = ViewerFileInfo(size = 128_004L, modifiedAt = Clock.System.now()),
+            path = LocalPath.build("/storage/emulated/0/Download/manual.pdf"),
+            imageSource = null,
+        ),
     )
 }
 

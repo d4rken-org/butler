@@ -44,6 +44,7 @@ class ViewerWorkspaceClassificationTest : BaseTest() {
     private val apkArchiveParser = mockk<ApkArchiveParser>()
     private val pkgRepo = mockk<PkgRepo>()
     private val userManager2 = mockk<UserManager2>()
+    private val pdfPreviewLoader = mockk<PdfPreviewLoader>()
 
     private val apkInfo = ApkArchiveInfo(
         id = "eu.darken.butler".toPkgId(),
@@ -111,6 +112,7 @@ class ViewerWorkspaceClassificationTest : BaseTest() {
         apkArchiveParser = apkArchiveParser,
         pkgRepo = pkgRepo,
         userManager2 = userManager2,
+        pdfPreviewLoader = pdfPreviewLoader,
     )
 
     @Test
@@ -225,8 +227,33 @@ class ViewerWorkspaceClassificationTest : BaseTest() {
 
     @Test
     fun `a non-image file resolves to Unsupported`() = runTest2 {
+        val archive = LocalPath.build("/storage/emulated/0/Download/backup.zip")
+        setupGateway(archive.path to lookup(archive))
+
+        workspace(archive).state.first()
+            .content.shouldBeInstanceOf<ViewerContent.Unsupported>()
+            .mime.rawType shouldBe "application/zip"
+    }
+
+    @Test
+    fun `a renderable pdf resolves to PdfPreview`() = runTest2 {
         val pdf = LocalPath.build("/storage/emulated/0/Download/manual.pdf")
         setupGateway(pdf.path to lookup(pdf))
+        coEvery { pdfPreviewLoader.pageCount(any()) } returns 3
+
+        val content = workspace(pdf).state.first().content.shouldBeInstanceOf<ViewerContent.PdfPreview>()
+
+        content.pageCount shouldBe 3
+        content.mime.rawType shouldBe "application/pdf"
+    }
+
+    @Test
+    fun `a pdf that cannot be rendered resolves to Unsupported`() = runTest2 {
+        // Encrypted, corrupt, or on a path with no seekable descriptor - the placeholder still
+        // offers "Open with", where a blank canvas would offer nothing.
+        val pdf = LocalPath.build("/storage/emulated/0/Download/locked.pdf")
+        setupGateway(pdf.path to lookup(pdf))
+        coEvery { pdfPreviewLoader.pageCount(any()) } returns null
 
         workspace(pdf).state.first()
             .content.shouldBeInstanceOf<ViewerContent.Unsupported>()
