@@ -25,6 +25,7 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import testhelpers.coroutine.TestDispatcherProvider
@@ -57,10 +58,16 @@ class ViewerWorkspaceClassificationTest : BaseTest() {
         setupGateway(apkPath.path to lookup(apkPath))
         coEvery { apkArchiveParser.parseFile(any(), any()) } returns info
         coEvery { userManager2.currentUser() } returns UserProfile2(handle = UserHandle2(0), label = "Owner")
-        coEvery { pkgRepo.query(any(), any()) } returns emptyList()
+        every { pkgRepo.data } returns flowOf(PkgRepo.PkgData())
+    }
+
+    private fun setupInstalled(vararg pkgs: Installed) {
+        every { pkgRepo.data } returns flowOf(PkgRepo.PkgData.from(pkgs.toList()))
     }
 
     private fun installed(versionCode: Long, versionName: String? = "1.0.0") = mockk<Installed>().apply {
+        every { this@apply.id } returns apkInfo.id
+        every { this@apply.userHandle } returns UserHandle2(0)
         every { this@apply.versionCode } returns versionCode
         every { this@apply.versionName } returns versionName
     }
@@ -315,7 +322,9 @@ class ViewerWorkspaceClassificationTest : BaseTest() {
     @Test
     fun `a failing installed lookup resolves to Unknown, not NotInstalled`() = runTest2 {
         setupApk()
-        coEvery { pkgRepo.query(any(), any()) } throws IllegalStateException("pkg data unavailable")
+        // The repo stores the failure inside its data instead of throwing on access, so reading
+        // through anything that ignores that error would report the APK as not installed.
+        every { pkgRepo.data } returns flowOf(PkgRepo.PkgData(error = IllegalStateException("pkg data unavailable")))
 
         val state = workspace(apkPath).state.first()
 
@@ -326,7 +335,7 @@ class ViewerWorkspaceClassificationTest : BaseTest() {
     @Test
     fun `an installed package of the same version compares as SAME`() = runTest2 {
         setupApk()
-        coEvery { pkgRepo.query(any(), any()) } returns listOf(installed(versionCode = 140, versionName = "1.4.0"))
+        setupInstalled(installed(versionCode = 140, versionName = "1.4.0"))
 
         val state = workspace(apkPath).state.first()
 
@@ -340,7 +349,7 @@ class ViewerWorkspaceClassificationTest : BaseTest() {
     @Test
     fun `an older installed package compares as APK_NEWER`() = runTest2 {
         setupApk()
-        coEvery { pkgRepo.query(any(), any()) } returns listOf(installed(versionCode = 130))
+        setupInstalled(installed(versionCode = 130))
 
         val state = workspace(apkPath).state.first()
 
@@ -352,7 +361,7 @@ class ViewerWorkspaceClassificationTest : BaseTest() {
     @Test
     fun `a newer installed package compares as INSTALLED_NEWER`() = runTest2 {
         setupApk()
-        coEvery { pkgRepo.query(any(), any()) } returns listOf(installed(versionCode = 150))
+        setupInstalled(installed(versionCode = 150))
 
         val state = workspace(apkPath).state.first()
 

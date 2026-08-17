@@ -21,7 +21,7 @@ import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.pkgs.PkgRepo
 import eu.darken.butler.common.pkgs.apk.ApkArchiveParser
-import eu.darken.butler.common.pkgs.get
+import eu.darken.butler.common.pkgs.current
 import eu.darken.butler.common.user.UserManager2
 import eu.darken.butler.workspace.contracts.viewer.ViewerArguments
 import eu.darken.butler.workspace.core.Workspace
@@ -226,10 +226,15 @@ class ViewerWorkspace @AssistedInject constructor(
         }
 
         val installState = try {
-            // Cross-user entries only exist with elevated access; the any-user lookup is the
-            // fallback so a work-profile install still counts as installed.
-            val installed = pkgRepo.get(apkInfo.id, userManager2.currentUser().handle)
-                ?: pkgRepo.get(apkInfo.id).firstOrNull()
+            // Read through the package data itself instead of the repo's per-id query: the query
+            // path serves the cache map directly, so a repo whose data failed to build answers
+            // "empty" and would read as "not installed". Cross-user entries only exist with
+            // elevated access; the any-user match is the fallback so a work-profile install still
+            // counts as installed.
+            val packages = pkgRepo.current()
+            val installed = packages
+                .firstOrNull { it.id == apkInfo.id && it.userHandle == userManager2.currentUser().handle }
+                ?: packages.firstOrNull { it.id == apkInfo.id }
             when (installed) {
                 null -> ApkInstallState.NotInstalled
                 else -> ApkInstallState.Installed(
