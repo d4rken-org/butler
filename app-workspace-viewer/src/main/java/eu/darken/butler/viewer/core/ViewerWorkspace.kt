@@ -19,6 +19,10 @@ import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.pkgs.PkgRepo
+import eu.darken.butler.common.pkgs.apk.ApkArchiveParser
+import eu.darken.butler.common.pkgs.get
+import eu.darken.butler.common.user.UserManager2
 import eu.darken.butler.workspace.contracts.viewer.ViewerArguments
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceDisplay
@@ -51,6 +55,9 @@ class ViewerWorkspace @AssistedInject constructor(
     dispatcherProvider: DispatcherProvider,
     private val gatewaySwitch: GatewaySwitch,
     private val imageProbe: ImageProbe,
+    private val apkArchiveParser: ApkArchiveParser,
+    private val pkgRepo: PkgRepo,
+    private val userManager2: UserManager2,
 ) : Workspace<ViewerArguments> {
 
     private val tag = logTag("Viewer", "Workspace", id.shortTag)
@@ -163,6 +170,11 @@ class ViewerWorkspace @AssistedInject constructor(
         }
 
         val mime = MimeInfo.fromFileName(lookup.name)
+        if (mime.isApk) {
+            loadApk(mime, fileInfo)
+            return
+        }
+
         if (!mime.isImage) {
             log(tag, INFO) { "$filePath is not an image ($mime)" }
             stateFlow.value = State(content = ViewerContent.Unsupported(mime), fileInfo = fileInfo)
@@ -201,6 +213,43 @@ class ViewerWorkspace @AssistedInject constructor(
         stateFlow.value = State(
             content = ViewerContent.Image(mime),
             fileInfo = fileInfo.copy(imageInfo = imageInfo),
+        )
+    }
+
+    private suspend fun loadApk(mime: MimeInfo, fileInfo: ViewerFileInfo) {
+        val apkInfo = apkArchiveParser.parseFile(filePath)
+        if (apkInfo == null) {
+            val error = ViewerApkParseException(filePath)
+            log(tag, WARN) { "Rejecting $filePath: $error" }
+            stateFlow.value = State(content = ViewerContent.Failed(error), fileInfo = fileInfo)
+            return
+        }
+
+        val installState = try {
+            // Cross-user entries only exist with elevated access; the any-user lookup is the
+            // fallback so a work-profile install still counts as installed.
+            val installed = pkgRepo.get(apkInfo.id, userManager2.currentUser().handle)
+                ?: pkgRepo.get(apkInfo.id).firstOrNull()
+            when (installed) {
+                null -> ApkInstallState.NotInstalled
+                else -> ApkInstallState.Installed(
+                    versionName = installed.versionName,
+                    versionCode = installed.versionCode,
+                    comparison = compareVersions(apkInfo.versionCode, installed.versionCode),
+                )
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            // A failed lookup must not read as "not installed" - that is a different statement.
+            log(tag, WARN) { "Installed lookup failed for ${apkInfo.id}: ${e.asLog()}" }
+            ApkInstallState.Unknown
+        }
+
+        log(tag, INFO) { "$filePath is an APK: ${apkInfo.id} ($installState)" }
+        stateFlow.value = State(
+            content = ViewerContent.Apk(mime = mime, apkInfo = apkInfo, installState = installState),
+            fileInfo = fileInfo,
         )
     }
 
@@ -260,6 +309,12 @@ class ViewerWorkspace @AssistedInject constructor(
         @WorkspaceTypeKey(Workspace.Type.VIEWER)
         fun factory(factory: Factory): WorkspaceFactory<*> = factory
     }
+}
+
+internal fun compareVersions(apkVersionCode: Long, installedVersionCode: Long): VersionComparison = when {
+    apkVersionCode > installedVersionCode -> VersionComparison.APK_NEWER
+    apkVersionCode < installedVersionCode -> VersionComparison.INSTALLED_NEWER
+    else -> VersionComparison.SAME
 }
 
 private val VECTOR_IMAGE_MIME_TYPES = setOf("image/svg+xml")

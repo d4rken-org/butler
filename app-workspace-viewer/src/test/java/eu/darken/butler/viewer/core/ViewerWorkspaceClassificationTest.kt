@@ -9,11 +9,20 @@ import eu.darken.butler.common.files.errors.PathPermissionDeniedException.Reason
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.pkgs.PkgRepo
+import eu.darken.butler.common.pkgs.apk.ApkArchiveInfo
+import eu.darken.butler.common.pkgs.apk.ApkArchiveParser
+import eu.darken.butler.common.pkgs.features.Installed
+import eu.darken.butler.common.pkgs.toPkgId
+import eu.darken.butler.common.user.UserHandle2
+import eu.darken.butler.common.user.UserManager2
+import eu.darken.butler.common.user.UserProfile2
 import eu.darken.butler.workspace.contracts.viewer.ViewerArguments
 import eu.darken.butler.workspace.core.Workspace
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.first
 import org.junit.jupiter.api.Test
@@ -28,8 +37,33 @@ import testhelpers.coroutine.runTest2
 class ViewerWorkspaceClassificationTest : BaseTest() {
 
     private val imagePath = LocalPath.build("/storage/emulated/0/DCIM/photo.jpg")
+    private val apkPath = LocalPath.build("/storage/emulated/0/Download/butler.apk")
     private val gatewaySwitch = mockk<GatewaySwitch>()
     private val imageProbe = mockk<ImageProbe>()
+    private val apkArchiveParser = mockk<ApkArchiveParser>()
+    private val pkgRepo = mockk<PkgRepo>()
+    private val userManager2 = mockk<UserManager2>()
+
+    private val apkInfo = ApkArchiveInfo(
+        id = "eu.darken.butler".toPkgId(),
+        label = "Butler",
+        versionName = "1.4.0",
+        versionCode = 140,
+        minSdk = 26,
+        targetSdk = 36,
+    )
+
+    private fun setupApk(info: ApkArchiveInfo? = apkInfo) {
+        setupGateway(apkPath.path to lookup(apkPath))
+        coEvery { apkArchiveParser.parseFile(any(), any()) } returns info
+        coEvery { userManager2.currentUser() } returns UserProfile2(handle = UserHandle2(0), label = "Owner")
+        coEvery { pkgRepo.query(any(), any()) } returns emptyList()
+    }
+
+    private fun installed(versionCode: Long, versionName: String? = "1.0.0") = mockk<Installed>().apply {
+        every { this@apply.versionCode } returns versionCode
+        every { this@apply.versionName } returns versionName
+    }
 
     private fun lookup(
         path: LocalPath,
@@ -67,6 +101,9 @@ class ViewerWorkspaceClassificationTest : BaseTest() {
         dispatcherProvider = TestDispatcherProvider(),
         gatewaySwitch = gatewaySwitch,
         imageProbe = imageProbe,
+        apkArchiveParser = apkArchiveParser,
+        pkgRepo = pkgRepo,
+        userManager2 = userManager2,
     )
 
     @Test
@@ -250,5 +287,77 @@ class ViewerWorkspaceClassificationTest : BaseTest() {
         state.fileInfo?.imageInfo?.format shouldBe "image/svg+xml"
         state.fileInfo?.imageInfo?.width shouldBe null
         state.fileInfo?.imageInfo?.height shouldBe null
+    }
+
+    @Test
+    fun `an apk whose package is not installed resolves to Apk`() = runTest2 {
+        setupApk()
+
+        val state = workspace(apkPath).state.first()
+
+        val content = state.content.shouldBeInstanceOf<ViewerContent.Apk>()
+        content.mime.isApk shouldBe true
+        content.apkInfo.id.name shouldBe "eu.darken.butler"
+        content.installState shouldBe ApkInstallState.NotInstalled
+    }
+
+    @Test
+    fun `an unparsable apk never resolves to Apk`() = runTest2 {
+        setupApk(info = null)
+
+        val state = workspace(apkPath).state.first()
+
+        state.content.shouldBeInstanceOf<ViewerContent.Failed>()
+            .error.shouldBeInstanceOf<ViewerApkParseException>()
+    }
+
+    /** A failed lookup is not the same statement as "not installed" and must not read as one. */
+    @Test
+    fun `a failing installed lookup resolves to Unknown, not NotInstalled`() = runTest2 {
+        setupApk()
+        coEvery { pkgRepo.query(any(), any()) } throws IllegalStateException("pkg data unavailable")
+
+        val state = workspace(apkPath).state.first()
+
+        state.content.shouldBeInstanceOf<ViewerContent.Apk>()
+            .installState shouldBe ApkInstallState.Unknown
+    }
+
+    @Test
+    fun `an installed package of the same version compares as SAME`() = runTest2 {
+        setupApk()
+        coEvery { pkgRepo.query(any(), any()) } returns listOf(installed(versionCode = 140, versionName = "1.4.0"))
+
+        val state = workspace(apkPath).state.first()
+
+        val installState = state.content.shouldBeInstanceOf<ViewerContent.Apk>()
+            .installState.shouldBeInstanceOf<ApkInstallState.Installed>()
+        installState.versionName shouldBe "1.4.0"
+        installState.versionCode shouldBe 140L
+        installState.comparison shouldBe VersionComparison.SAME
+    }
+
+    @Test
+    fun `an older installed package compares as APK_NEWER`() = runTest2 {
+        setupApk()
+        coEvery { pkgRepo.query(any(), any()) } returns listOf(installed(versionCode = 130))
+
+        val state = workspace(apkPath).state.first()
+
+        state.content.shouldBeInstanceOf<ViewerContent.Apk>()
+            .installState.shouldBeInstanceOf<ApkInstallState.Installed>()
+            .comparison shouldBe VersionComparison.APK_NEWER
+    }
+
+    @Test
+    fun `a newer installed package compares as INSTALLED_NEWER`() = runTest2 {
+        setupApk()
+        coEvery { pkgRepo.query(any(), any()) } returns listOf(installed(versionCode = 150))
+
+        val state = workspace(apkPath).state.first()
+
+        state.content.shouldBeInstanceOf<ViewerContent.Apk>()
+            .installState.shouldBeInstanceOf<ApkInstallState.Installed>()
+            .comparison shouldBe VersionComparison.INSTALLED_NEWER
     }
 }

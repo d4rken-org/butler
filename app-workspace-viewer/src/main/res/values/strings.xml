@@ -21,6 +21,19 @@
     <!-- Unsupported file -->
     <string name="viewer_unsupported_title">This file type is not supported yet</string>
 
+    <!-- APK file -->
+    <string name="viewer_apk_package_label">Package</string>
+    <string name="viewer_apk_version_label">Version</string>
+    <string name="viewer_apk_min_sdk_label">Min SDK</string>
+    <string name="viewer_apk_target_sdk_label">Target SDK</string>
+    <string name="viewer_apk_installed_label">Installed</string>
+    <string name="viewer_apk_not_installed_value">Not installed</string>
+    <string name="viewer_apk_installed_unknown_value">Couldn\'t check</string>
+    <string name="viewer_apk_installed_older_hint">Older than this file</string>
+    <string name="viewer_apk_installed_newer_hint">Newer than this file</string>
+    <string name="viewer_apk_permissions_header">Permissions (%1$d)</string>
+    <string name="viewer_apk_signing_header">Signing certificates</string>
+
     <!-- Errors -->
     <string name="viewer_error_title">Can\'t show this file</string>
     <string name="viewer_error_not_a_file_label">Not a file</string>
@@ -33,4 +46,6 @@
     <string name="viewer_error_file_gone_description">%1$s no longer exists. It may have been moved, renamed or deleted.</string>
     <string name="viewer_error_empty_file_label">Empty file</string>
     <string name="viewer_error_empty_file_description">%1$s is empty and has nothing to show.</string>
+    <string name="viewer_error_apk_unreadable_label">Unreadable APK</string>
+    <string name="viewer_error_apk_unreadable_description">%1$s could not be parsed as an Android app package.</string>
 </resources>

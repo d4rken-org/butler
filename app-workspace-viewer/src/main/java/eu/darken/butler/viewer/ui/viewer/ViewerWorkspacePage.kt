@@ -1,6 +1,7 @@
 package eu.darken.butler.viewer.ui.viewer
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
@@ -22,6 +23,8 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.viewer.R
+import eu.darken.butler.viewer.core.ApkInstallState
+import eu.darken.butler.viewer.core.VersionComparison
 import eu.darken.butler.viewer.core.ViewerContent
 import eu.darken.butler.viewer.core.ViewerFileInfo
 import eu.darken.butler.workspace.core.Workspace
@@ -29,7 +32,9 @@ import eu.darken.butler.workspace.ui.actions.WorkspaceActionBar
 import eu.darken.butler.workspace.ui.error.ErrorCard
 import eu.darken.butler.workspace.ui.floatingbar.BarAnimation
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
+import eu.darken.butler.workspace.ui.common.WorkspacePaddings
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
+import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarContentPadding
 import eu.darken.butler.workspace.ui.insets.rememberPaneFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
@@ -113,6 +118,13 @@ fun ViewerWorkspacePage(
         estimatedContentPadding = 120.dp,
     )
 
+    val contentPadding = rememberFloatingBarContentPadding(
+        topStackState = topBarStackState,
+        bottomStackState = bottomBarStackState,
+        start = WorkspacePaddings.ContentHorizontal,
+        end = WorkspacePaddings.ContentHorizontal,
+    )
+
     // Hoisted: the toolbar is a sibling of the content area, so it cannot read the zoom itself.
     val zoomableState = rememberZoomableState()
     // derivedStateOf keeps pan frames out of the page: contentTransformation carries scale and
@@ -149,6 +161,7 @@ fun ViewerWorkspacePage(
                 ViewerContentArea(
                     state = state,
                     zoomableState = zoomableState,
+                    contentPadding = contentPadding,
                     onOpenWith = onOpenWith,
                     onRetry = onRetry,
                     onShareError = onShareError,
@@ -231,6 +244,7 @@ private fun ViewerContentArea(
     modifier: Modifier = Modifier,
     state: ViewerWorkspaceViewModel.State.Ready,
     zoomableState: ZoomableState,
+    contentPadding: PaddingValues,
     onOpenWith: () -> Unit,
     onRetry: () -> Unit,
     onShareError: (Throwable) -> Unit,
@@ -248,6 +262,14 @@ private fun ViewerContentArea(
                     state = zoomableState,
                 )
             }
+
+            // The only branch that scrolls behind the floating bars, so it is also the only one
+            // that has to inset for them.
+            is ViewerContent.Apk -> ApkFileContent(
+                apkInfo = content.apkInfo,
+                installState = content.installState,
+                contentPadding = contentPadding,
+            )
 
             is ViewerContent.Unsupported -> UnsupportedFilePlaceholder(
                 mimeType = content.mime.rawType,
@@ -316,6 +338,29 @@ private fun ViewerWorkspacePageUnsupportedPreview() {
             content = ViewerContent.Unsupported(MimeInfo("application/pdf")),
             fileInfo = ViewerFileInfo(size = 128_004L, modifiedAt = Clock.System.now()),
             path = LocalPath.build("/storage/emulated/0/Download/manual.pdf"),
+            imageSource = null,
+        ),
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ViewerWorkspacePageApkPreview() {
+    ViewerWorkspacePage(
+        workspaceId = Workspace.Id(),
+        state = ViewerWorkspaceViewModel.State.Ready(
+            content = ViewerContent.Apk(
+                mime = MimeInfo(MimeInfo.MIME_APK),
+                apkInfo = previewApkInfo,
+                installState = ApkInstallState.Installed(
+                    versionName = "1.3.0",
+                    versionCode = 130,
+                    comparison = VersionComparison.APK_NEWER,
+                ),
+            ),
+            fileInfo = ViewerFileInfo(size = 24_112_004L, modifiedAt = Clock.System.now()),
+            path = LocalPath.build("/storage/emulated/0/Download/butler.apk"),
             imageSource = null,
         ),
     )

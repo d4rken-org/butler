@@ -61,6 +61,21 @@ class ViewerFileGoneException(
     )
 }
 
+/**
+ * The file claims to be an Android package but the platform parser could not read a manifest from
+ * it - truncated download, corrupt archive, or an extension that lies about the contents.
+ */
+class ViewerApkParseException(
+    val path: APath<*>,
+) : IllegalArgumentException("Not a readable package archive: ${path.path}"), HasLocalizedError {
+
+    override fun getLocalizedError(context: LocalizedErrorContext) = LocalizedError(
+        throwable = this,
+        label = R.string.viewer_error_apk_unreadable_label.toCaString(),
+        description = caString { it.getString(R.string.viewer_error_apk_unreadable_description, path.name) },
+    )
+}
+
 class ViewerEmptyFileException(
     val path: APath<*>,
 ) : IllegalArgumentException("File is empty: ${path.path}"), HasLocalizedError {

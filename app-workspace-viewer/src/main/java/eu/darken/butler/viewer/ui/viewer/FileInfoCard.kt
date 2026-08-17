@@ -173,7 +173,7 @@ fun FileInfoCard(
 }
 
 @Composable
-private fun InfoBlock(
+internal fun InfoBlock(
     modifier: Modifier = Modifier,
     entry: InfoEntry,
 ) {
