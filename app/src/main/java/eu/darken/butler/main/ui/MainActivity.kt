@@ -176,6 +176,7 @@ class MainActivity : Activity2() {
                                         displayName = arrival.displayName,
                                         mime = arrival.mime,
                                         sizeBytes = arrival.sizeBytes,
+                                        previewUri = arrival.originalUri.takeIf { arrival.mime.isImage },
                                         options = arrival.options,
                                         onOption = { vm.onExternalOpenAction(it) },
                                         onDismiss = { vm.onExternalOpenDismiss() },
