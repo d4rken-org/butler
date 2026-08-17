@@ -1,7 +1,9 @@
 package eu.darken.butler.viewer.ui.viewer
 
 import android.content.Context
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
@@ -59,7 +61,9 @@ class ApkFileContentTest : ComposeTest() {
     fun `falls back to the package name without a label`() {
         setContent(ApkInstallState.NotInstalled, info = apkInfo.copy(label = null))
 
-        composeTestRule.onNodeWithText("eu.darken.butler").assertExists()
+        // Title falls back to the package name, and the package name row keeps showing it: two nodes.
+        composeTestRule.onAllNodesWithText("eu.darken.butler").assertCountEquals(2)
+        composeTestRule.onNodeWithText("Butler").assertDoesNotExist()
     }
 
     @Test

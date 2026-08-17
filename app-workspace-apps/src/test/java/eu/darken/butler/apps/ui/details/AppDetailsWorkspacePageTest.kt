@@ -8,10 +8,13 @@ import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasScrollToNodeAction
 import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextInput
 import eu.darken.butler.apps.core.details.AppDetailsWorkspace
 import eu.darken.butler.apps.core.details.PackageInfoState
@@ -91,6 +94,8 @@ class AppDetailsWorkspacePageTest : ComposeTest() {
         setPackageInfoPage(PackageInfoState.Ready(previewPackageInfo), actions)
 
         composeTestRule.onNodeWithText("121.0.6167.101 (616710103)").assertExists()
+        // Permission rows are lazy items below the fold, so only scrolling composes them.
+        composeTestRule.onNode(hasScrollToNodeAction()).performScrollToNode(hasText("android.permission.CAMERA"))
         composeTestRule.onNodeWithText("android.permission.CAMERA").assertExists()
         composeTestRule.onNodeWithContentDescription("Back").performClick()
 
@@ -139,6 +144,8 @@ class AppDetailsWorkspacePageTest : ComposeTest() {
             }
         }
 
+        // The package info card is the last overview item; without scrolling the click would miss it.
+        composeTestRule.onNode(hasScrollToNodeAction()).performScrollToNode(hasText("View package details"))
         composeTestRule.onNodeWithText("View package details").performClick()
 
         actions shouldBe listOf(AppDetailsPageAction.NavigateToTab(DetailTab.PACKAGE_INFO))
