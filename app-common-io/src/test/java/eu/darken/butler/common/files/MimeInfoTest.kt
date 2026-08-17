@@ -72,4 +72,14 @@ class MimeInfoTest : BaseTest() {
         MimeInfo.fromFileName("a.mp3").isImage shouldBe false
         MimeInfo.fromFileName("a.mp3").isVideo shouldBe false
     }
+
+    @Test
+    fun `only a pdf counts as pdf`() {
+        MimeInfo.fromFileName("a.pdf").isPdf shouldBe true
+        MimeInfo.fromFileName("A.PDF").isPdf shouldBe true
+        MimeInfo.fromFileName("a.jpg").isPdf shouldBe false
+        MimeInfo.fromFileName("a.doc").isPdf shouldBe false
+        MimeInfo.fromFileName("a.xyz").isPdf shouldBe false
+        MimeInfo.fromFileName("a.pdf").isImage shouldBe false
+    }
 }

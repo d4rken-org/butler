@@ -31,6 +31,7 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.extensions.extension
 import eu.darken.butler.common.files.iconRes
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.files.preview.PdfPreviewGenerator
 import eu.darken.butler.common.hashing.Hasher
 import eu.darken.butler.common.pkgs.ApkIconExtractor
 import eu.darken.butler.common.hashing.hash

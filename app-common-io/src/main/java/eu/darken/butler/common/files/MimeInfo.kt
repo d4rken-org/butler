@@ -19,6 +19,9 @@ data class MimeInfo(
     val isText: Boolean
         get() = rawType.startsWith("text/") || rawType in TEXT_MIME_TYPES
 
+    val isPdf: Boolean
+        get() = rawType == "application/pdf"
+
     companion object {
         private val TEXT_MIME_TYPES = setOf(
             "application/json",
