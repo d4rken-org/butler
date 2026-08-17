@@ -50,6 +50,9 @@ class ViewerWorkspaceRelationshipTest : BaseTest() {
         dispatcherProvider = TestDispatcherProvider(),
         gatewaySwitch = gatewaySwitch,
         imageProbe = imageProbe,
+        apkArchiveParser = mockk(relaxed = true),
+        pkgRepo = mockk(relaxed = true),
+        userManager2 = mockk(relaxed = true),
     )
 
     @Test
