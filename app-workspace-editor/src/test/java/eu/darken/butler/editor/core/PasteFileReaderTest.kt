@@ -120,4 +120,25 @@ class PasteFileReaderTest : BaseTest() {
         result.exceptionOrNull().shouldBeInstanceOf<PasteTooLargeException>()
             .maxBytes shouldBe PasteFileReader.MAX_PASTE_FILE_SIZE
     }
+
+    // ==================== read (stream entry point) ====================
+
+    @Test
+    fun `a stream is read and decoded like a file`() = runTest {
+        val bytes = byteArrayOf(0xFF.toByte(), 0xFE.toByte()) +
+            "Hello".flatMap { listOf(it.code.toByte(), 0.toByte()) }.toByteArray()
+
+        decoder.read { ByteArrayInputStream(bytes) }.getOrThrow() shouldBe "Hello"
+    }
+
+    @Test
+    fun `a stream over the cap is rejected`() = runTest {
+        val oversized = ByteArray((PasteFileReader.MAX_PASTE_FILE_SIZE + 1).toInt()) { 'a'.code.toByte() }
+
+        val result = decoder.read { ByteArrayInputStream(oversized) }
+
+        result.isFailure shouldBe true
+        result.exceptionOrNull().shouldBeInstanceOf<PasteTooLargeException>()
+            .maxBytes shouldBe PasteFileReader.MAX_PASTE_FILE_SIZE
+    }
 }
