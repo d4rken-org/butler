@@ -76,21 +76,6 @@ class ViewerApkParseException(
     )
 }
 
-/**
- * The document opened far enough to report a page count, but rendering its first page failed - the
- * file changed underneath the viewer, or the page itself is damaged.
- */
-class ViewerPdfPreviewFailedException(
-    val path: APath<*>,
-) : IllegalStateException("PDF preview failed: ${path.path}"), HasLocalizedError {
-
-    override fun getLocalizedError(context: LocalizedErrorContext) = LocalizedError(
-        throwable = this,
-        label = R.string.viewer_error_pdf_preview_label.toCaString(),
-        description = caString { it.getString(R.string.viewer_error_pdf_preview_description, path.name) },
-    )
-}
-
 class ViewerEmptyFileException(
     val path: APath<*>,
 ) : IllegalArgumentException("File is empty: ${path.path}"), HasLocalizedError {

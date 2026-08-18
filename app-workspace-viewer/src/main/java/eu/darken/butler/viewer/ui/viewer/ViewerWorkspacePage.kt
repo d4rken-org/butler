@@ -3,6 +3,7 @@ package eu.darken.butler.viewer.ui.viewer
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
@@ -75,6 +76,8 @@ fun ViewerWorkspacePageHost(
             onOpenWith = { vm.openWith() },
             onRetry = { vm.retry() },
             onShareError = { error -> vm.shareError(error) },
+            onPdfPreviousPage = { vm.previousPdfPage() },
+            onPdfNextPage = { vm.nextPdfPage() },
             onPageAction = { action ->
                 when (action) {
                     ViewerPageAction.Close -> vm.close()
@@ -94,6 +97,8 @@ fun ViewerWorkspacePage(
     onOpenWith: () -> Unit = {},
     onRetry: () -> Unit = {},
     onShareError: (Throwable) -> Unit = {},
+    onPdfPreviousPage: () -> Unit = {},
+    onPdfNextPage: () -> Unit = {},
     onPageAction: (ViewerPageAction) -> Unit = {},
 ) {
     // A drill-down viewer is an overlay in its opener's pane, so back belongs to it in every phase -
@@ -196,15 +201,28 @@ fun ViewerWorkspacePage(
                     position = BarPosition.BOTTOM,
                     modifier = Modifier.align(Alignment.BottomCenter),
                     bars = {
-                        // Bars in a BOTTOM stack are declared top-to-bottom, so the PDF hint and the
+                        // Bars in a BOTTOM stack are declared top-to-bottom, so the page bar and the
                         // action bar come first to sit above the metadata card.
                         val pdfContent = state.content as? ViewerContent.PdfPreview
                         FloatingBar(
                             key = ViewerBarKeys.PDF_HINT,
                             visible = pdfContent != null,
                             animation = BarAnimation.Slide(),
+                            // The bar wraps its content, so its slot has to span the pane for the
+                            // stack's BottomCenter alignment to center it.
+                            modifier = Modifier.fillMaxWidth(),
                         ) {
-                            pdfContent?.let { PdfPreviewHintCard(pageCount = it.pageCount) }
+                            pdfContent?.let {
+                                PdfPageBar(
+                                    pageIndex = state.pdfPage?.index ?: 0,
+                                    pageCount = it.pageCount,
+                                    isRendering = state.pdfPage?.let { page ->
+                                        page.bitmap == null && !page.failed
+                                    } ?: true,
+                                    onPreviousPage = onPdfPreviousPage,
+                                    onNextPage = onPdfNextPage,
+                                )
+                            }
                         }
 
                         FloatingBar(
@@ -283,9 +301,11 @@ private fun ViewerContentArea(
             )
 
             is ViewerContent.PdfPreview -> PdfPreviewContent(
-                firstPage = state.pdfFirstPage,
+                pdfPage = state.pdfPage,
+                pageCount = content.pageCount,
                 fileName = state.path.name,
                 zoomableState = zoomableState,
+                onRetry = onRetry,
             )
 
             is ViewerContent.Unsupported -> UnsupportedFilePlaceholder(

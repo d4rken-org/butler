@@ -113,14 +113,14 @@ class ViewerWorkspacePageTest : ComposeTest() {
                         path = LocalPath.build("/storage/emulated/0/Download/manual.pdf"),
                         imageSource = null,
                         // Robolectric cannot rasterise a bitmap, so the render stays pending here.
-                        pdfFirstPage = null,
+                        pdfPage = null,
                     ),
                 )
             }
         }
 
         composeTestRule
-            .onNodeWithText(context.getString(R.string.viewer_pdf_preview_hint_pages, 3))
+            .onNodeWithText(context.getString(R.string.viewer_pdf_page_indicator, 1, 3))
             .assertIsDisplayed()
         composeTestRule
             .onNodeWithText(context.getString(R.string.viewer_unsupported_title))
