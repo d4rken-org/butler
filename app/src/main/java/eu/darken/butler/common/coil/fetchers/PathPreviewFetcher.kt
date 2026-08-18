@@ -143,7 +143,7 @@ class PathPreviewFetcher @Inject constructor(
 
             mimeType == "application/pdf" || data.lookedUp.extension.equals("pdf", ignoreCase = true) -> {
                 val bitmap = gatewaySwitch.openReadPFD(data.lookedUp)?.let { pfd ->
-                    pdfPreviewGenerator.renderFirstPage(pfd, options.targetEdgePx()) // owns + closes pfd
+                    pdfPreviewGenerator.renderPage(pfd, options.targetEdgePx()) // owns + closes pfd
                 }
                 bitmap?.let {
                     ImageFetchResult(

@@ -15,10 +15,10 @@ import javax.inject.Singleton
 import kotlin.coroutines.cancellation.CancellationException
 
 /**
- * Renders the first page of a PDF from a seekable [ParcelFileDescriptor] into a bitmap bounded by
+ * Renders a page of a PDF from a seekable [ParcelFileDescriptor] into a bitmap bounded by
  * [PreviewBudget], WITHOUT copying the file. Returns null on empty/encrypted/corrupt PDFs or any failure.
  *
- * Ownership: [renderFirstPage] and [pageCount] take ownership of the [pfd] and always close it
+ * Ownership: [renderPage] and [pageCount] take ownership of the [pfd] and always close it
  * ([PdfRenderer] owns the descriptor once constructed; every early-return path closes it explicitly).
  */
 @Singleton
@@ -26,13 +26,14 @@ class PdfPreviewGenerator @Inject constructor(
     private val dispatcherProvider: DispatcherProvider,
 ) {
 
-    suspend fun renderFirstPage(
+    suspend fun renderPage(
         pfd: ParcelFileDescriptor,
         targetPx: Int,
+        pageIndex: Int = 0,
         maxPx: Int = PreviewBudget.MAX_DIM,
         allowUpscale: Boolean = false,
     ): Bitmap? = try {
-        withContext(dispatcherProvider.IO) { render(pfd, targetPx, maxPx, allowUpscale) }
+        withContext(dispatcherProvider.IO) { render(pfd, targetPx, pageIndex, maxPx, allowUpscale) }
     } catch (e: CancellationException) {
         // render() only runs post-dispatch; if cancelled at the boundary the descriptor is still open.
         runCatching { pfd.close() }
@@ -40,7 +41,7 @@ class PdfPreviewGenerator @Inject constructor(
     } catch (e: Throwable) {
         // render() closes the descriptor on its own paths; close defensively in case a Throwable
         // escaped before ownership was established (e.g. dispatch). Double-close is swallowed.
-        log(TAG, WARN) { "renderFirstPage failed: ${e.asLog()}" }
+        log(TAG, WARN) { "renderPage failed: ${e.asLog()}" }
         runCatching { pfd.close() }
         null
     }
@@ -74,7 +75,13 @@ class PdfPreviewGenerator @Inject constructor(
         return renderer.use { it.pageCount.takeIf { count -> count > 0 } }
     }
 
-    private fun render(pfd: ParcelFileDescriptor, targetPx: Int, maxPx: Int, allowUpscale: Boolean): Bitmap? {
+    private fun render(
+        pfd: ParcelFileDescriptor,
+        targetPx: Int,
+        pageIndex: Int,
+        maxPx: Int,
+        allowUpscale: Boolean,
+    ): Bitmap? {
         if (pfd.statSize < 0) {
             runCatching { pfd.close() }
             return null
@@ -89,7 +96,8 @@ class PdfPreviewGenerator @Inject constructor(
         }
         return renderer.use { r ->
             if (r.pageCount <= 0) return@use null
-            r.openPage(0).use { page ->
+            if (pageIndex !in 0 until r.pageCount) return@use null
+            r.openPage(pageIndex).use { page ->
                 val (outW, outH) = resolveRenderSize(
                     pageWidth = page.width,
                     pageHeight = page.height,

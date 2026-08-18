@@ -3,6 +3,7 @@ package eu.darken.butler.viewer.ui.viewer
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
@@ -80,6 +81,8 @@ fun ViewerWorkspacePageHost(
             onOpenWith = { vm.openWith() },
             onRetry = { vm.retry() },
             onShareError = { error -> vm.shareError(error) },
+            onPdfPreviousPage = { vm.previousPdfPage() },
+            onPdfNextPage = { vm.nextPdfPage() },
             onPageAction = { action ->
                 when (action) {
                     ViewerPageAction.Close -> vm.close()
@@ -101,6 +104,8 @@ fun ViewerWorkspacePage(
     onOpenWith: () -> Unit = {},
     onRetry: () -> Unit = {},
     onShareError: (Throwable) -> Unit = {},
+    onPdfPreviousPage: () -> Unit = {},
+    onPdfNextPage: () -> Unit = {},
     onPageAction: (ViewerPageAction) -> Unit = {},
 ) {
     // A drill-down viewer is an overlay in its opener's pane, so back belongs to it in every phase -
@@ -213,13 +218,14 @@ fun ViewerWorkspacePage(
                 val isToolbarCollapsed = shouldCollapseToolbar(state.content, zoomedIn)
                 // Neither a spinner nor an error card is a surface the user can tap, and retry and
                 // back both live in the chrome - it must not stay hidden from an earlier tap. A PDF
-                // whose page has not rendered yet is the same situation: only a spinner is on
-                // screen, so a render that never finishes would strand the chrome off screen.
-                val pdfStillRendering = state.content is ViewerContent.PdfPreview && state.pdfFirstPage == null
+                // page without a bitmap is the same situation: it is either still rendering or has
+                // failed, and both put an untappable surface on screen.
+                val pdfPageNotShown = state.content is ViewerContent.PdfPreview &&
+                    state.pdfPage?.bitmap == null
                 val chromeShown = chromeVisible ||
                     state.content is ViewerContent.Failed ||
                     state.content is ViewerContent.Loading ||
-                    pdfStillRendering
+                    pdfPageNotShown
 
                 ViewerContentArea(
                     state = state,
@@ -264,16 +270,30 @@ fun ViewerWorkspacePage(
                     position = BarPosition.BOTTOM,
                     modifier = Modifier.align(Alignment.BottomCenter),
                     bars = {
-                        // Bars in a BOTTOM stack are declared top-to-bottom, so the action bar comes
-                        // last to sit at the screen edge, the way every other workspace has it.
+                        // Bars in a BOTTOM stack are declared top-to-bottom, so the page bar leads
+                        // and the action bar comes last, sitting at the screen edge the way every
+                        // other workspace has it.
                         val pdfContent = state.content as? ViewerContent.PdfPreview
                         FloatingBar(
                             key = ViewerBarKeys.PDF_HINT,
                             visible = chromeShown && pdfContent != null,
                             scrollBehavior = BarScrollBehavior.HideOnScroll,
                             animation = BarAnimation.Slide(),
+                            // The bar wraps its content, so its slot has to span the pane for the
+                            // stack's BottomCenter alignment to center it.
+                            modifier = Modifier.fillMaxWidth(),
                         ) {
-                            pdfContent?.let { PdfPreviewHintCard(pageCount = it.pageCount) }
+                            pdfContent?.let {
+                                PdfPageBar(
+                                    pageIndex = state.pdfPage?.index ?: 0,
+                                    pageCount = it.pageCount,
+                                    isRendering = state.pdfPage?.let { page ->
+                                        page.bitmap == null && !page.failed
+                                    } ?: true,
+                                    onPreviousPage = onPdfPreviousPage,
+                                    onNextPage = onPdfNextPage,
+                                )
+                            }
                         }
 
                         // Metadata read before the failure describes a file that is no longer
@@ -359,10 +379,12 @@ private fun ViewerContentArea(
             )
 
             is ViewerContent.PdfPreview -> PdfPreviewContent(
-                firstPage = state.pdfFirstPage,
+                pdfPage = state.pdfPage,
+                pageCount = content.pageCount,
                 fileName = state.path.name,
                 zoomableState = zoomableState,
                 onClick = onToggleChrome,
+                onRetry = onRetry,
             )
 
             is ViewerContent.Unsupported -> UnsupportedFilePlaceholder(

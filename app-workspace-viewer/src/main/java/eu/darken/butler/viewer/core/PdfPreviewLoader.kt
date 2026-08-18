@@ -16,7 +16,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Reads what the viewer needs from a PDF: the page count for the hint, and the first page as a
+ * Reads what the viewer needs from a PDF: the page count for the page bar, and a single page as a
  * full-screen bitmap. Everything it cannot serve resolves to null - no descriptor (root/ADB-routed or
  * archive paths), encrypted, corrupt, or a document without pages - and the page falls back to the
  * unsupported placeholder.
@@ -35,11 +35,12 @@ class PdfPreviewLoader @Inject constructor(
 
     suspend fun pageCount(path: APath<*>): Int? = openPfd(path)?.let { pdfPreviewGenerator.pageCount(it) }
 
-    suspend fun firstPage(path: APath<*>): Bitmap? = renderMutex.withLock {
+    suspend fun page(path: APath<*>, pageIndex: Int): Bitmap? = renderMutex.withLock {
         openPfd(path)?.let {
-            pdfPreviewGenerator.renderFirstPage(
+            pdfPreviewGenerator.renderPage(
                 pfd = it,
                 targetPx = PDF_PREVIEW_EDGE,
+                pageIndex = pageIndex,
                 maxPx = PDF_PREVIEW_EDGE,
                 allowUpscale = true,
             )

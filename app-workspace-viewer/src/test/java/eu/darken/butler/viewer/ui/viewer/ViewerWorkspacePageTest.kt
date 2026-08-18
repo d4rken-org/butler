@@ -110,7 +110,31 @@ class ViewerWorkspacePageTest : ComposeTest() {
                         fileInfo = ViewerFileInfo(size = 128_004L),
                         path = LocalPath.build("/storage/emulated/0/Download/manual.pdf"),
                         imageSource = null,
-                        pdfFirstPage = null,
+                        pdfPage = null,
+                    ),
+                    initiallyChromeVisible = false,
+                )
+            }
+        }
+
+        actionBar().assertIsDisplayed()
+    }
+
+    @Test
+    fun `a page that failed to render keeps the chrome reachable`() {
+        // Worse than a pending render: this one will not resolve on its own, and the failure card
+        // is not a tap surface either.
+        composeTestRule.setContent {
+            PreviewWrapper {
+                ViewerWorkspacePage(
+                    workspaceId = Workspace.Id(),
+                    design = WorkspaceDesign(layout = WorkspaceDesign.Layout.DUAL_VERTICAL),
+                    state = ViewerWorkspaceViewModel.State.Ready(
+                        content = ViewerContent.PdfPreview(MimeInfo("application/pdf"), pageCount = 3),
+                        fileInfo = ViewerFileInfo(size = 128_004L),
+                        path = LocalPath.build("/storage/emulated/0/Download/manual.pdf"),
+                        imageSource = null,
+                        pdfPage = ViewerWorkspaceViewModel.PdfPage(index = 1, bitmap = null, failed = true),
                     ),
                     initiallyChromeVisible = false,
                 )
@@ -204,14 +228,14 @@ class ViewerWorkspacePageTest : ComposeTest() {
                         path = LocalPath.build("/storage/emulated/0/Download/manual.pdf"),
                         imageSource = null,
                         // Robolectric cannot rasterise a bitmap, so the render stays pending here.
-                        pdfFirstPage = null,
+                        pdfPage = null,
                     ),
                 )
             }
         }
 
         composeTestRule
-            .onNodeWithText(context.getString(R.string.viewer_pdf_preview_hint_pages, 3))
+            .onNodeWithText(context.getString(R.string.viewer_pdf_page_indicator, 1, 3))
             .assertIsDisplayed()
         composeTestRule
             .onNodeWithText(context.getString(R.string.viewer_unsupported_title))
