@@ -17,7 +17,7 @@ class ViewerToolbarCardTest : ComposeTest() {
     private val context = ApplicationProvider.getApplicationContext<Context>()
 
     private val fileName = "IMG_20240817_183042.jpg"
-    private val fullPath = "/storage/emulated/0/DCIM/Camera/$fileName"
+    private val folderPath = "/storage/emulated/0/DCIM/Camera"
 
     private fun toolbarWith(isCollapsed: Boolean) {
         composeTestRule.setContent {
@@ -28,7 +28,7 @@ class ViewerToolbarCardTest : ComposeTest() {
                     // Robolectric cannot rasterise, out of the toolbar cutout.
                     design = WorkspaceDesign(layout = WorkspaceDesign.Layout.DUAL_VERTICAL),
                     fileName = fileName,
-                    fullPath = fullPath,
+                    folderPath = folderPath,
                     isCollapsed = isCollapsed,
                 )
             }
@@ -39,22 +39,24 @@ class ViewerToolbarCardTest : ComposeTest() {
     // matchers can report multiple matches - index into all matching nodes instead.
 
     @Test
-    fun `the expanded toolbar shows the full path`() {
+    fun `the expanded toolbar shows the containing folder, not the file name again`() {
         toolbarWith(isCollapsed = false)
 
         composeTestRule
-            .onAllNodesWithText(context.getString(R.string.viewer_toolbar_path_label))[0]
+            .onAllNodesWithText(context.getString(R.string.viewer_toolbar_folder_label))[0]
             .assertIsDisplayed()
-        composeTestRule.onAllNodesWithText(fullPath)[0].assertIsDisplayed()
+        composeTestRule.onAllNodesWithText(folderPath)[0].assertIsDisplayed()
+        // The title above it already carries the name; repeating it as the path's tail said nothing.
+        composeTestRule.onAllNodesWithText("$folderPath/$fileName").assertCountEquals(0)
     }
 
     @Test
-    fun `the collapsed toolbar keeps the name and drops the path`() {
+    fun `the collapsed toolbar keeps the name and drops the folder`() {
         toolbarWith(isCollapsed = true)
 
         composeTestRule.onAllNodesWithText(fileName)[0].assertIsDisplayed()
         composeTestRule
-            .onAllNodesWithText(context.getString(R.string.viewer_toolbar_path_label))
+            .onAllNodesWithText(context.getString(R.string.viewer_toolbar_folder_label))
             .assertCountEquals(0)
     }
 }

@@ -71,6 +71,7 @@ fun PdfPreviewContent(
     pageCount: Int,
     fileName: String,
     zoomableState: ZoomableState = rememberZoomableState(),
+    onClick: (() -> Unit)? = null,
     onRetry: () -> Unit = {},
 ) {
     // Without this a page left zoomed in would hand its transform to the next one, which lands the
@@ -122,6 +123,7 @@ fun PdfPreviewContent(
                 pageCount,
             ),
             state = zoomableState,
+            onClick = onClick,
         )
     }
 }

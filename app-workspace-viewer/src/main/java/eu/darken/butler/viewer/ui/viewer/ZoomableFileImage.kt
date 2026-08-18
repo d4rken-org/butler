@@ -2,7 +2,9 @@ package eu.darken.butler.viewer.ui.viewer
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.ColorPainter
@@ -34,14 +36,19 @@ fun ZoomableFileImage(
     fileName: String,
     contentDescription: String? = stringResource(R.string.viewer_image_content_description, fileName),
     state: ZoomableState = rememberZoomableState(),
+    onClick: (() -> Unit)? = null,
 ) {
     val imageState = rememberZoomableImageState(state)
+    // Telephoto swallows pointer input, so Modifier.clickable never fires on this composable - its
+    // own onClick is the only way in. Remembered so the gesture node is not rebuilt per frame.
+    val clickHandler = remember(onClick) { onClick?.let { handler -> { _: Offset -> handler() } } }
 
     ZoomableImage(
         modifier = modifier.fillMaxSize(),
         image = imageSource,
         contentDescription = contentDescription,
         state = imageState,
+        onClick = clickHandler,
     )
 }
 

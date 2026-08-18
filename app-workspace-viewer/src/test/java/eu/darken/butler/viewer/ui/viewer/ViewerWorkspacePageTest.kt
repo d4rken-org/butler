@@ -3,7 +3,11 @@ package eu.darken.butler.viewer.ui.viewer
 import android.content.Context
 import androidx.activity.OnBackPressedDispatcher
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -50,6 +54,117 @@ class ViewerWorkspacePageTest : ComposeTest() {
             .performClick()
 
         openWithCount shouldBe 1
+    }
+
+    private fun unsupportedState(content: ViewerContent) = ViewerWorkspaceViewModel.State.Ready(
+        content = content,
+        fileInfo = ViewerFileInfo(size = 1024L),
+        path = LocalPath.build("/storage/emulated/0/Download/archive.zip"),
+        imageSource = null,
+    )
+
+    // A hidden floating bar keeps its content composed - FloatingBarStack expresses visibility by
+    // not placing the bar, never by dropping it. So displayed-ness is the assertion here; existence
+    // would be true either way.
+    private fun actionBar() = composeTestRule
+        .onNodeWithContentDescription(context.getString(R.string.viewer_open_with_action))
+
+    private fun tapContent() = composeTestRule
+        .onNodeWithText(context.getString(R.string.viewer_unsupported_title))
+        .performClick()
+
+    @Test
+    fun `tapping the content takes the chrome away and brings it back`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                ViewerWorkspacePage(
+                    workspaceId = Workspace.Id(),
+                    design = WorkspaceDesign(layout = WorkspaceDesign.Layout.DUAL_VERTICAL),
+                    state = unsupportedState(ViewerContent.Unsupported(MimeInfo("application/zip"))),
+                )
+            }
+        }
+
+        // The action bar's icon carries the label as its content description; the placeholder's own
+        // button carries it as text, so this matcher only ever sees the bar.
+        actionBar().assertIsDisplayed()
+
+        tapContent()
+        actionBar().assertIsNotDisplayed()
+
+        tapContent()
+        actionBar().assertIsDisplayed()
+    }
+
+    @Test
+    fun `a pdf whose page has not rendered keeps the chrome reachable`() {
+        // Only a spinner is on screen in this state, so there is nothing to tap - a chrome hidden
+        // before the render started would have no way back.
+        composeTestRule.setContent {
+            PreviewWrapper {
+                ViewerWorkspacePage(
+                    workspaceId = Workspace.Id(),
+                    design = WorkspaceDesign(layout = WorkspaceDesign.Layout.DUAL_VERTICAL),
+                    state = ViewerWorkspaceViewModel.State.Ready(
+                        content = ViewerContent.PdfPreview(MimeInfo("application/pdf"), pageCount = 3),
+                        fileInfo = ViewerFileInfo(size = 128_004L),
+                        path = LocalPath.build("/storage/emulated/0/Download/manual.pdf"),
+                        imageSource = null,
+                        pdfPage = null,
+                    ),
+                    initiallyChromeVisible = false,
+                )
+            }
+        }
+
+        actionBar().assertIsDisplayed()
+    }
+
+    @Test
+    fun `a page that failed to render keeps the chrome reachable`() {
+        // Worse than a pending render: this one will not resolve on its own, and the failure card
+        // is not a tap surface either.
+        composeTestRule.setContent {
+            PreviewWrapper {
+                ViewerWorkspacePage(
+                    workspaceId = Workspace.Id(),
+                    design = WorkspaceDesign(layout = WorkspaceDesign.Layout.DUAL_VERTICAL),
+                    state = ViewerWorkspaceViewModel.State.Ready(
+                        content = ViewerContent.PdfPreview(MimeInfo("application/pdf"), pageCount = 3),
+                        fileInfo = ViewerFileInfo(size = 128_004L),
+                        path = LocalPath.build("/storage/emulated/0/Download/manual.pdf"),
+                        imageSource = null,
+                        pdfPage = ViewerWorkspaceViewModel.PdfPage(index = 1, bitmap = null, failed = true),
+                    ),
+                    initiallyChromeVisible = false,
+                )
+            }
+        }
+
+        actionBar().assertIsDisplayed()
+    }
+
+    @Test
+    fun `a failure brings the chrome back after it was tapped away`() {
+        // Retry and back live in the chrome, and an error card is not a surface to tap - hiding it
+        // and then failing would strand the user.
+        var content by mutableStateOf<ViewerContent>(ViewerContent.Unsupported(MimeInfo("application/zip")))
+        composeTestRule.setContent {
+            PreviewWrapper {
+                ViewerWorkspacePage(
+                    workspaceId = Workspace.Id(),
+                    design = WorkspaceDesign(layout = WorkspaceDesign.Layout.DUAL_VERTICAL),
+                    state = unsupportedState(content),
+                )
+            }
+        }
+
+        tapContent()
+        actionBar().assertIsNotDisplayed()
+
+        composeTestRule.runOnIdle { content = ViewerContent.Failed(IllegalStateException("gone")) }
+
+        actionBar().assertIsDisplayed()
     }
 
     private val readyState = ViewerWorkspaceViewModel.State.Ready(

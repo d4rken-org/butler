@@ -12,9 +12,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
@@ -34,6 +38,7 @@ import eu.darken.butler.workspace.ui.actions.WorkspaceActionBar
 import eu.darken.butler.workspace.ui.error.ErrorCard
 import eu.darken.butler.workspace.ui.floatingbar.BarAnimation
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
+import eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior
 import eu.darken.butler.workspace.ui.common.WorkspacePaddings
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
 import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarContentPadding
@@ -102,6 +107,8 @@ fun ViewerWorkspacePage(
     design: WorkspaceDesign = WorkspaceDesign(),
     state: ViewerWorkspaceViewModel.State,
     callerWorkspaceId: Workspace.Id? = null,
+    /** Test and preview seam for the tap-hidden chrome, mirroring [ApkFileContent]'s expand seam. */
+    initiallyChromeVisible: Boolean = true,
     onOpenWith: () -> Unit = {},
     onRetry: () -> Unit = {},
     onShareError: (Throwable) -> Unit = {},
@@ -154,6 +161,53 @@ fun ViewerWorkspacePage(
         }
     }
 
+    // Tap the content and every floating card leaves; tap again and they come back.
+    var chromeVisible by rememberSaveable { mutableStateOf(initiallyChromeVisible) }
+
+    // Zooming in is the user asking for the picture, not for its metadata. Zooming back out to fit
+    // restores the chrome; a tap in between still overrides it either way.
+    //
+    // Driven off the first *settled* zoom, not the first composition: telephoto reports an
+    // unspecified transformation until it has laid out, so a restored page passes through a
+    // spurious "not zoomed" before its real zoom arrives. Taking the baseline at the first
+    // specified transformation is what keeps a restored [chromeVisible] from being overwritten.
+    val zoomSpecified by remember(zoomableState) {
+        derivedStateOf { zoomableState.contentTransformation.isSpecified }
+    }
+    var zoomBaselineTaken by remember { mutableStateOf(false) }
+    LaunchedEffect(zoomSpecified, zoomedIn) {
+        if (!zoomSpecified) return@LaunchedEffect
+        if (!zoomBaselineTaken) {
+            zoomBaselineTaken = true
+            return@LaunchedEffect
+        }
+        chromeVisible = !zoomedIn
+    }
+
+    // Remembered, not rebuilt per composition: this ends up as the `pointerInput` key of the tap
+    // detectors below, and a key that changes every frame restarts the detector - cancelling any
+    // gesture already in flight, so taps land only when the page happens to be idle.
+    val toggleChrome: () -> Unit = remember(topBarStackState, bottomBarStackState) {
+        {
+            // A scroll-hidden bar is still `visible = true`, so a plain toggle after a scroll-away
+            // would hide it a second time and change nothing the user can see. The first tap reveals.
+            val scrollHidden = topBarStackState.collapseTargets.values.any { it > 0f } ||
+                bottomBarStackState.collapseTargets.values.any { it > 0f }
+            if (scrollHidden) {
+                topBarStackState.resetScrollCollapse()
+                bottomBarStackState.resetScrollCollapse()
+                chromeVisible = true
+            } else {
+                chromeVisible = !chromeVisible
+            }
+        }
+    }
+
+    // Same reasoning: a fresh list per composition would re-key the nestedScroll modifiers.
+    val barScrollConnections = remember(topBarStackState, bottomBarStackState) {
+        listOf(topBarStackState.nestedScrollConnection, bottomBarStackState.nestedScrollConnection)
+    }
+
     Box(modifier = modifier.fillMaxSize()) {
         when (state) {
             ViewerWorkspaceViewModel.State.Initializing -> CircularProgressIndicator(
@@ -172,16 +226,28 @@ fun ViewerWorkspacePage(
 
             is ViewerWorkspaceViewModel.State.Ready -> {
                 val isToolbarCollapsed = shouldCollapseToolbar(state.content, zoomedIn)
+                // Neither a spinner nor an error card is a surface the user can tap, and retry and
+                // back both live in the chrome - it must not stay hidden from an earlier tap. A PDF
+                // page without a bitmap is the same situation: it is either still rendering or has
+                // failed, and both put an untappable surface on screen.
+                val pdfPageNotShown = state.content is ViewerContent.PdfPreview &&
+                    state.pdfPage?.bitmap == null
+                val chromeShown = chromeVisible ||
+                    state.content is ViewerContent.Failed ||
+                    state.content is ViewerContent.Loading ||
+                    pdfPageNotShown
 
                 ViewerContentArea(
                     state = state,
                     zoomableState = zoomableState,
                     contentPadding = contentPadding,
+                    barScrollConnections = barScrollConnections,
                     onOpenWith = onOpenWith,
                     onRetry = onRetry,
                     onShareError = onShareError,
                     onShowIcon = onShowIcon,
                     onSaveIcon = onSaveIcon,
+                    onToggleChrome = toggleChrome,
                 )
 
                 FloatingBarStack(
@@ -191,15 +257,18 @@ fun ViewerWorkspacePage(
                     bars = {
                         FloatingBar(
                             key = ViewerBarKeys.TOOLBAR,
-                            visible = true,
+                            visible = chromeShown,
+                            scrollBehavior = BarScrollBehavior.CollapseOnScroll,
                             animation = BarAnimation.Slide(),
                         ) {
                             ViewerToolbarCard(
                                 workspaceId = workspaceId,
                                 design = design,
                                 fileName = state.path.name,
-                                fullPath = state.path.path,
-                                isCollapsed = isToolbarCollapsed,
+                                // The name is already the title above it, so repeating it here as
+                                // the tail of the full path told the user nothing.
+                                folderPath = state.path.parent?.path ?: state.path.path,
+                                isCollapsed = isToolbarCollapsed || collapsedFraction > 0.5f,
                                 onBackClick = if (isModal) {
                                     { onPageAction(ViewerPageAction.Close) }
                                 } else null,
@@ -213,12 +282,14 @@ fun ViewerWorkspacePage(
                     position = BarPosition.BOTTOM,
                     modifier = Modifier.align(Alignment.BottomCenter),
                     bars = {
-                        // Bars in a BOTTOM stack are declared top-to-bottom, so the page bar and the
-                        // action bar come first to sit above the metadata card.
+                        // Bars in a BOTTOM stack are declared top-to-bottom, so the page bar leads
+                        // and the action bar comes last, sitting at the screen edge the way every
+                        // other workspace has it.
                         val pdfContent = state.content as? ViewerContent.PdfPreview
                         FloatingBar(
                             key = ViewerBarKeys.PDF_HINT,
-                            visible = pdfContent != null,
+                            visible = chromeShown && pdfContent != null,
+                            scrollBehavior = BarScrollBehavior.HideOnScroll,
                             animation = BarAnimation.Slide(),
                             // The bar wraps its content, so its slot has to span the pane for the
                             // stack's BottomCenter alignment to center it.
@@ -237,26 +308,28 @@ fun ViewerWorkspacePage(
                             }
                         }
 
+                        // Metadata read before the failure describes a file that is no longer
+                        // there, so next to the error it would read as current.
+                        val fileInfo = state.fileInfo?.takeIf { state.content !is ViewerContent.Failed }
+                        FloatingBar(
+                            key = ViewerBarKeys.FILEINFO,
+                            visible = chromeShown && fileInfo != null,
+                            scrollBehavior = BarScrollBehavior.HideOnScroll,
+                            animation = BarAnimation.Slide(),
+                        ) {
+                            fileInfo?.let { FileInfoCard(fileInfo = it) }
+                        }
+
                         FloatingBar(
                             key = ViewerBarKeys.ACTIONS,
-                            visible = true,
+                            visible = chromeShown,
+                            scrollBehavior = BarScrollBehavior.HideOnScroll,
                             animation = BarAnimation.Slide(),
                         ) {
                             WorkspaceActionBar(
                                 actions = listOf(ViewerActionBarItem.OpenWith),
                                 onActionClick = { onOpenWith() },
                             )
-                        }
-
-                        // Metadata read before the failure describes a file that is no longer
-                        // there, so next to the error it would read as current.
-                        val fileInfo = state.fileInfo?.takeIf { state.content !is ViewerContent.Failed }
-                        FloatingBar(
-                            key = ViewerBarKeys.FILEINFO,
-                            visible = fileInfo != null,
-                            animation = BarAnimation.Slide(),
-                        ) {
-                            fileInfo?.let { FileInfoCard(fileInfo = it) }
                         }
                     },
                 )
@@ -286,11 +359,13 @@ private fun ViewerContentArea(
     state: ViewerWorkspaceViewModel.State.Ready,
     zoomableState: ZoomableState,
     contentPadding: PaddingValues,
+    barScrollConnections: List<NestedScrollConnection> = emptyList(),
     onOpenWith: () -> Unit,
     onRetry: () -> Unit,
     onShareError: (Throwable) -> Unit,
     onShowIcon: () -> Unit = {},
     onSaveIcon: () -> Unit = {},
+    onToggleChrome: () -> Unit = {},
 ) {
     Box(modifier = modifier.fillMaxSize()) {
         when (val content = state.content) {
@@ -303,17 +378,20 @@ private fun ViewerContentArea(
                     imageSource = source,
                     fileName = state.path.name,
                     state = zoomableState,
+                    onClick = onToggleChrome,
                 )
             }
 
             // The only branch that scrolls behind the floating bars, so it is also the only one
-            // that has to inset for them.
+            // that has to inset for them - and the only one that can drive their scroll behaviour.
             is ViewerContent.Apk -> ApkFileContent(
                 apkInfo = content.apkInfo,
                 installState = content.installState,
                 contentPadding = contentPadding,
                 onShowIcon = onShowIcon,
                 onSaveIcon = onSaveIcon,
+                barScrollConnections = barScrollConnections,
+                onToggleChrome = onToggleChrome,
             )
 
             is ViewerContent.PdfPreview -> PdfPreviewContent(
@@ -321,12 +399,14 @@ private fun ViewerContentArea(
                 pageCount = content.pageCount,
                 fileName = state.path.name,
                 zoomableState = zoomableState,
+                onClick = onToggleChrome,
                 onRetry = onRetry,
             )
 
             is ViewerContent.Unsupported -> UnsupportedFilePlaceholder(
                 mimeType = content.mime.rawType,
                 onOpenWith = onOpenWith,
+                onToggleChrome = onToggleChrome,
             )
 
             is ViewerContent.Failed -> ErrorCard(

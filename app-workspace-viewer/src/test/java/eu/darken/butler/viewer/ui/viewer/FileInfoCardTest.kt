@@ -2,7 +2,9 @@ package eu.darken.butler.viewer.ui.viewer
 
 import android.content.Context
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
@@ -14,6 +16,8 @@ import eu.darken.butler.viewer.core.ViewerContent
 import eu.darken.butler.viewer.core.ViewerFileInfo
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.days
 import org.junit.Test
 import testhelpers.ComposeTest
 
@@ -67,6 +71,87 @@ class FileInfoCardTest : ComposeTest() {
             .assertDoesNotExist()
         composeTestRule
             .onNodeWithText(context.getString(R.string.viewer_info_owner_label))
+            .assertDoesNotExist()
+    }
+
+    @Test
+    fun `a created stamp equal to the modified one is dropped`() {
+        val stamp = Clock.System.now() - 2.days
+        composeTestRule.setContent {
+            PreviewWrapper {
+                FileInfoCard(fileInfo = ViewerFileInfo(size = 1024L, modifiedAt = stamp, createdAt = stamp))
+            }
+        }
+
+        composeTestRule
+            .onNodeWithText(context.getString(R.string.viewer_info_modified_label))
+            .assertIsDisplayed()
+        composeTestRule
+            .onNodeWithText(context.getString(R.string.viewer_info_created_label))
+            .assertDoesNotExist()
+    }
+
+    @Test
+    fun `a created stamp that differs is kept`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                FileInfoCard(
+                    fileInfo = ViewerFileInfo(
+                        size = 1024L,
+                        modifiedAt = Clock.System.now() - 2.days,
+                        createdAt = Clock.System.now() - 30.days,
+                    ),
+                )
+            }
+        }
+
+        composeTestRule
+            .onNodeWithText(context.getString(R.string.viewer_info_created_label))
+            .assertIsDisplayed()
+    }
+
+    @Test
+    fun `collapsing keeps the first row and hides the rest`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                FileInfoCard(
+                    fileInfo = ViewerFileInfo(
+                        size = 1024L,
+                        modifiedAt = Clock.System.now() - 2.days,
+                        permissions = Permissions(0b110_100_100),
+                        ownership = Ownership(
+                            userId = 1000L,
+                            groupId = 1000L,
+                            userName = "media_rw",
+                            groupName = "media_rw",
+                        ),
+                    ),
+                )
+            }
+        }
+
+        composeTestRule
+            .onNodeWithContentDescription(context.getString(R.string.viewer_info_collapse_action))
+            .performClick()
+
+        composeTestRule
+            .onNodeWithText(context.getString(R.string.viewer_info_size_label))
+            .assertIsDisplayed()
+        composeTestRule
+            .onNodeWithText(context.getString(R.string.viewer_info_owner_label))
+            .assertDoesNotExist()
+    }
+
+    @Test
+    fun `a card with a single row offers no collapse control`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                FileInfoCard(fileInfo = ViewerFileInfo(size = 1024L))
+            }
+        }
+
+        composeTestRule
+            .onNodeWithContentDescription(context.getString(R.string.viewer_info_collapse_action))
             .assertDoesNotExist()
     }
 

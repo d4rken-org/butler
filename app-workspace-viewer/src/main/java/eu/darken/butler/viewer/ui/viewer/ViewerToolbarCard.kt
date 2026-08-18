@@ -54,7 +54,7 @@ fun ViewerToolbarCard(
     workspaceId: Workspace.Id,
     design: WorkspaceDesign,
     fileName: String,
-    fullPath: String,
+    folderPath: String,
     isCollapsed: Boolean = false,
     onBackClick: (() -> Unit)? = null,
 ) {
@@ -144,7 +144,7 @@ fun ViewerToolbarCard(
                 ) {
                     Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
                         Text(
-                            text = stringResource(R.string.viewer_toolbar_path_label),
+                            text = stringResource(R.string.viewer_toolbar_folder_label),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -153,7 +153,7 @@ fun ViewerToolbarCard(
                             modifier = Modifier
                                 .heightIn(max = PathBlockMaxHeight)
                                 .verticalScroll(rememberScrollState()),
-                            text = fullPath,
+                            text = folderPath,
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurface,
                             softWrap = true,
@@ -199,7 +199,7 @@ private fun ViewerToolbarCardPreview() {
         workspaceId = Workspace.Id(),
         design = WorkspaceDesign(),
         fileName = "IMG_20240817_183042_HDR.jpg",
-        fullPath = "/storage/emulated/0/DCIM/Camera/IMG_20240817_183042_HDR.jpg",
+        folderPath = "/storage/emulated/0/DCIM/Camera",
     )
 }
 
@@ -212,8 +212,8 @@ private fun ViewerToolbarCardLongPathPreview() {
         workspaceId = Workspace.Id(),
         design = WorkspaceDesign(),
         fileName = "a-really-quite-unreasonably-long-screenshot-file-name-2024-08-17.png",
-        fullPath = "/storage/emulated/0/Android/data/eu.darken.butler/files/backups/2024/august/" +
-            "screenshots/pending-upload/a-really-quite-unreasonably-long-screenshot-file-name-2024-08-17.png",
+        folderPath = "/storage/emulated/0/Android/data/eu.darken.butler/files/backups/2024/august/" +
+            "screenshots/pending-upload",
     )
 }
 
@@ -226,7 +226,7 @@ private fun ViewerToolbarCardModalPreview() {
         workspaceId = Workspace.Id(),
         design = WorkspaceDesign(),
         fileName = "IMG_20240817_183042_HDR.jpg",
-        fullPath = "/storage/emulated/0/DCIM/Camera/IMG_20240817_183042_HDR.jpg",
+        folderPath = "/storage/emulated/0/DCIM/Camera",
         onBackClick = {},
     )
 }
@@ -240,7 +240,7 @@ private fun ViewerToolbarCardModalCollapsedPreview() {
         workspaceId = Workspace.Id(),
         design = WorkspaceDesign(),
         fileName = "IMG_20240817_183042_HDR.jpg",
-        fullPath = "/storage/emulated/0/DCIM/Camera/IMG_20240817_183042_HDR.jpg",
+        folderPath = "/storage/emulated/0/DCIM/Camera",
         isCollapsed = true,
         onBackClick = {},
     )
@@ -255,7 +255,7 @@ private fun ViewerToolbarCardCollapsedPreview() {
         workspaceId = Workspace.Id(),
         design = WorkspaceDesign(),
         fileName = "IMG_20240817_183042_HDR.jpg",
-        fullPath = "/storage/emulated/0/DCIM/Camera/IMG_20240817_183042_HDR.jpg",
+        folderPath = "/storage/emulated/0/DCIM/Camera",
         isCollapsed = true,
     )
 }
@@ -269,6 +269,6 @@ private fun ViewerToolbarCardSplitPanePreview() {
         workspaceId = Workspace.Id(),
         design = WorkspaceDesign(layout = WorkspaceDesign.Layout.DUAL_VERTICAL),
         fileName = "diagram.svg",
-        fullPath = "/storage/emulated/0/Download/diagram.svg",
+        folderPath = "/storage/emulated/0/Download",
     )
 }
