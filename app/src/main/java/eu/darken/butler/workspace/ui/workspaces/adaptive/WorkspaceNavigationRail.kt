@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
@@ -423,13 +424,16 @@ internal fun WorkspaceRailItem(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(RailItemHeight)
             .scale(scale),
     ) {
         Surface(
             onClick = onClick,
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
+                // A minimum rather than a fixed height: the label's line box is sized in sp, so at
+                // a font scale above 1 a fixed entry would clip its own text. The Box wraps the card
+                // instead of sizing it, so the notch glyph keeps aligning to the card's corner.
+                .heightIn(min = RailItemHeight)
                 .testTag(WorkspaceNavigationRailDefaults.ITEM_TEST_TAG)
                 .semantics {
                     selected = isAssigned
@@ -448,7 +452,7 @@ internal fun WorkspaceRailItem(
         ) {
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
                     .padding(vertical = 4.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
@@ -471,7 +475,7 @@ internal fun WorkspaceRailItem(
                     )
                 }
                 Text(
-                    modifier = Modifier.padding(start = 2.dp, end = 2.dp, bottom = 4.dp, top = 8.dp),
+                    modifier = Modifier.padding(start = 2.dp, end = 2.dp, bottom = 4.dp, top = 4.dp),
                     text = workspace.displayTitle.get(LocalContext.current),
                     style = MaterialTheme.typography.labelSmall,
                     textAlign = TextAlign.Center,
