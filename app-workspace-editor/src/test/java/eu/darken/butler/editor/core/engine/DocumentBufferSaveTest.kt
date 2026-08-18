@@ -8,6 +8,7 @@ import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.local.LocalFileSystemOps
 import eu.darken.butler.common.files.metadata.OwnershipResolver
+import eu.darken.butler.common.files.write.FileCommitContext
 import eu.darken.butler.editor.core.engine.text.BlockIndexBuilder
 import eu.darken.butler.editor.core.sources.EditorDataSource
 import eu.darken.butler.editor.core.sources.FileDataSource
@@ -366,7 +367,7 @@ class DocumentBufferSaveTest : BaseTest() {
     ) : EditorDataSource by delegate {
         private var failReads = false
 
-        override suspend fun commit(writer: suspend (EditorDataSource.CommitContext) -> Unit) {
+        override suspend fun commit(writer: suspend (FileCommitContext) -> Unit) {
             delegate.commit(writer)
             failReads = true
         }
@@ -406,7 +407,7 @@ class DocumentBufferSaveTest : BaseTest() {
     private class IntegrityFailingDataSource(
         private val delegate: InMemoryDataSource,
     ) : EditorDataSource by delegate {
-        override suspend fun commit(writer: suspend (EditorDataSource.CommitContext) -> Unit) {
+        override suspend fun commit(writer: suspend (FileCommitContext) -> Unit) {
             throw eu.darken.butler.editor.core.sources.CommitIntegrityException(
                 "Simulated unrestorable commit",
                 IOException("boom"),
@@ -443,7 +444,7 @@ class DocumentBufferSaveTest : BaseTest() {
         val gate = CompletableDeferred<Unit>()
         var commitRan = false
 
-        override suspend fun commit(writer: suspend (EditorDataSource.CommitContext) -> Unit) {
+        override suspend fun commit(writer: suspend (FileCommitContext) -> Unit) {
             gate.await()
             delegate.commit(writer)
             commitRan = true
@@ -487,7 +488,7 @@ class DocumentBufferSaveTest : BaseTest() {
     private class CancelAfterCommitDataSource(
         private val delegate: InMemoryDataSource,
     ) : EditorDataSource by delegate {
-        override suspend fun commit(writer: suspend (EditorDataSource.CommitContext) -> Unit) {
+        override suspend fun commit(writer: suspend (FileCommitContext) -> Unit) {
             delegate.commit(writer)
             // Cancellation lands exactly at the point of no return
             coroutineContext[Job]?.cancel()

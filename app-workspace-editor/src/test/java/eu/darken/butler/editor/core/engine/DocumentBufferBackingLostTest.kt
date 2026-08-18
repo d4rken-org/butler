@@ -6,6 +6,7 @@ import eu.darken.butler.common.files.errors.PathPermissionDeniedException
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.ServiceConnectionLostException
 import eu.darken.butler.common.files.saf.MissingUriPermissionException
+import eu.darken.butler.common.files.write.FileCommitContext
 import eu.darken.butler.editor.core.sources.EditorDataSource
 import eu.darken.butler.workspace.core.Workspace
 import io.kotest.matchers.shouldBe
@@ -62,7 +63,7 @@ class DocumentBufferBackingLostTest : BaseTest() {
             return Buffer().write(bytes).apply { skip(offset) }
         }
 
-        override suspend fun commit(writer: suspend (EditorDataSource.CommitContext) -> Unit) =
+        override suspend fun commit(writer: suspend (FileCommitContext) -> Unit) =
             throw UnsupportedOperationException("not needed for these tests")
 
         override suspend fun close() {

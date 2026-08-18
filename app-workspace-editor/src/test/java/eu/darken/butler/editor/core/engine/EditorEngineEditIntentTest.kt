@@ -1,5 +1,6 @@
 package eu.darken.butler.editor.core.engine
 
+import eu.darken.butler.common.files.write.FileCommitContext
 import eu.darken.butler.editor.core.engine.text.WindowedSearch
 import eu.darken.butler.editor.core.sources.EditorDataSource
 import eu.darken.butler.editor.core.sources.InMemoryDataSource
@@ -378,7 +379,7 @@ class EditorEngineEditIntentTest : EditorEngineTestBase() {
             return delegate.openByteSource(offset)
         }
 
-        override suspend fun commit(writer: suspend (EditorDataSource.CommitContext) -> Unit) =
+        override suspend fun commit(writer: suspend (FileCommitContext) -> Unit) =
             delegate.commit(writer)
     }
 

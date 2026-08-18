@@ -1,6 +1,7 @@
 package eu.darken.butler.editor.core.engine
 
 import eu.darken.butler.common.datastore.DataStoreValue
+import eu.darken.butler.common.files.write.FileCommitContext
 import eu.darken.butler.editor.core.EditorSettings
 import eu.darken.butler.editor.core.sources.EditorDataSource
 import eu.darken.butler.editor.core.sources.InMemoryDataSource
@@ -56,7 +57,7 @@ class EditorEngineCopySelectionTest : DocumentBufferTestBase() {
             return delegate.openByteSource(offset)
         }
 
-        override suspend fun commit(writer: suspend (EditorDataSource.CommitContext) -> Unit) =
+        override suspend fun commit(writer: suspend (FileCommitContext) -> Unit) =
             delegate.commit(writer)
     }
 

@@ -5,6 +5,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.write.FileCommitContext
 import eu.darken.butler.editor.core.engine.ContentSource
 import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -58,10 +59,10 @@ class InMemoryDataSource @AssistedInject constructor(
         return buffer
     }
 
-    override suspend fun commit(writer: suspend (EditorDataSource.CommitContext) -> Unit) {
+    override suspend fun commit(writer: suspend (FileCommitContext) -> Unit) {
         val original = content.toByteArray(Charsets.UTF_8)
         val collected = Buffer()
-        val context = object : EditorDataSource.CommitContext {
+        val context = object : FileCommitContext {
             override val sink: BufferedSink = collected
             override suspend fun openOriginalSource(offset: Long): Source =
                 Buffer().write(original).apply { skip(offset) }

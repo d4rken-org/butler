@@ -1,4 +1,4 @@
-package eu.darken.butler.editor.core.sources
+package eu.darken.butler.common.files.write
 
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
@@ -159,7 +159,7 @@ class AtomicFileWriterTest : BaseTest() {
         } returns MoveOutcome.NotSupported("test")
         val writer = AtomicFileWriter(gateway, "test")
 
-        shouldThrow<CommitIntegrityException> {
+        shouldThrow<AtomicWriteIntegrityException> {
             writer.replace(LocalPath.build(target), AtomicFileWriter.OriginalAccess.None) { context ->
                 context.sink.writeUtf8("NEW")
             }
@@ -168,6 +168,76 @@ class AtomicFileWriterTest : BaseTest() {
         target.exists() shouldBe false
         tempDir.artifacts().single().startsWith("doc.txt.butler-save-bak-") shouldBe true
         File(tempDir, tempDir.artifacts().single()).readText() shouldBe "ORIGINAL"
+    }
+
+    /**
+     * A caller that may create but not replace cannot cover the window spent producing the content.
+     * Here the file appears while the writer is streaming, which is exactly when the old code would
+     * have moved it aside as a "backup" and deleted it on success.
+     */
+    @Test
+    fun `requireAbsent aborts when the target appears during the write`(@TempDir tempDir: File) = runTest {
+        val target = File(tempDir, "doc.txt")
+        val gateway = createMockGateway()
+        val writer = AtomicFileWriter(gateway, "test")
+
+        shouldThrow<AtomicWriteTargetExistsException> {
+            writer.replace(
+                target = LocalPath.build(target),
+                originalAccess = AtomicFileWriter.OriginalAccess.None,
+                requireAbsent = true,
+            ) { context ->
+                // Someone else creates the destination while we are still encoding.
+                target.writeText("SOMEONE ELSES FILE")
+                context.sink.writeUtf8("OURS")
+            }
+        }
+
+        target.readText() shouldBe "SOMEONE ELSES FILE"
+        tempDir.artifacts() shouldBe emptyList()
+    }
+
+    @Test
+    fun `requireAbsent still writes when the destination stays free`(@TempDir tempDir: File) = runTest {
+        val target = File(tempDir, "doc.txt")
+        val gateway = createMockGateway()
+        val writer = AtomicFileWriter(gateway, "test")
+
+        writer.replace(
+            target = LocalPath.build(target),
+            originalAccess = AtomicFileWriter.OriginalAccess.None,
+            requireAbsent = true,
+        ) { context ->
+            context.sink.writeUtf8("OURS")
+        }
+
+        target.readText() shouldBe "OURS"
+        tempDir.artifacts() shouldBe emptyList()
+    }
+
+    /**
+     * The editor maps integrity loss onto its own localized error, which a document reload keys off.
+     * If the injected factory were ignored, that path would silently start throwing the generic type.
+     */
+    @Test
+    fun `an injected integrity error type is used instead of the default`(@TempDir tempDir: File) = runTest {
+        class CallerOwnedIntegrityException(message: String, cause: Throwable) : IOException(message, cause)
+
+        val target = File(tempDir, "doc.txt").apply { writeText("ORIGINAL") }
+        val gateway = createMockGateway()
+        coEvery {
+            gateway.move(match<APath<*>> { it.name.contains(".butler-save-tmp-") }, match<APath<*>> { it.name == "doc.txt" })
+        } returns MoveOutcome.NotSupported("test")
+        coEvery {
+            gateway.move(match<APath<*>> { it.name.contains(".butler-save-bak-") }, match<APath<*>> { it.name == "doc.txt" })
+        } returns MoveOutcome.NotSupported("test")
+        val writer = AtomicFileWriter(gateway, "test", ::CallerOwnedIntegrityException)
+
+        shouldThrow<CallerOwnedIntegrityException> {
+            writer.replace(LocalPath.build(target), AtomicFileWriter.OriginalAccess.None) { context ->
+                context.sink.writeUtf8("NEW")
+            }
+        }
     }
 
     @Test

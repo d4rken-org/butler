@@ -13,6 +13,8 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.extensions.exists
 import eu.darken.butler.common.files.extensions.lookup
+import eu.darken.butler.common.files.write.FileCommitContext
+import eu.darken.butler.common.files.write.AtomicFileWriter
 import eu.darken.butler.editor.core.engine.ContentSource
 import eu.darken.butler.editor.core.engine.LineEnding
 import eu.darken.butler.common.files.text.CharsetDetector
@@ -49,7 +51,7 @@ class FileDataSource @AssistedInject constructor(
     override val contentSource: StateFlow<ContentSource> = _contentSource.asStateFlow()
 
     private val accessMutex = Mutex()
-    private val atomicFileWriter = AtomicFileWriter(gatewaySwitch, tag)
+    private val atomicFileWriter = AtomicFileWriter(gatewaySwitch, tag, ::CommitIntegrityException)
 
     /**
      * Reads the first 8KB for charset detection (enough for BOM + content validation).
@@ -252,12 +254,12 @@ class FileDataSource @AssistedInject constructor(
         }
     }
 
-    override suspend fun commit(writer: suspend (EditorDataSource.CommitContext) -> Unit) = accessMutex.withLock {
+    override suspend fun commit(writer: suspend (FileCommitContext) -> Unit) = accessMutex.withLock {
         withContext(Dispatchers.IO) {
             val fileSource = _contentSource.value as? ContentSource.File
                 ?: error("ContentSource.File not initialized")
 
-            atomicFileWriter.replace(filePath, AtomicFileWriter.OriginalAccess.FromTarget, writer)
+            atomicFileWriter.replace(filePath, AtomicFileWriter.OriginalAccess.FromTarget, writer = writer)
 
             // The commit has landed; a metadata refresh failure must not be reported as a
             // failed commit (consumers re-read metadata during their post-save rescan anyway)
@@ -275,7 +277,7 @@ class FileDataSource @AssistedInject constructor(
     internal suspend fun commitViaBackupSwap(
         tempPath: APath<*>,
         backupPath: APath<*>,
-        writer: suspend (EditorDataSource.CommitContext) -> Unit,
+        writer: suspend (FileCommitContext) -> Unit,
     ) = atomicFileWriter.replaceViaTempSwap(
         target = filePath,
         tempPath = tempPath,
@@ -286,7 +288,7 @@ class FileDataSource @AssistedInject constructor(
 
     internal suspend fun commitViaInPlace(
         backupPath: APath<*>,
-        writer: suspend (EditorDataSource.CommitContext) -> Unit,
+        writer: suspend (FileCommitContext) -> Unit,
     ) = atomicFileWriter.replaceInPlace(
         target = filePath,
         backupPath = backupPath,

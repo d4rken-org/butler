@@ -1,10 +1,11 @@
-package eu.darken.butler.editor.core.sources
+package eu.darken.butler.common.files.write
 
 import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
 import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.LocalPath
@@ -16,6 +17,38 @@ import okio.Source
 import okio.buffer
 import okio.use
 import kotlin.uuid.Uuid
+
+/**
+ * What a writer is handed to produce the new content.
+ *
+ * [openOriginalSource] serves the target's PRE-COMMIT bytes for the whole duration of the commit,
+ * whichever replacement strategy is in play - the writer never has to know where they come from.
+ */
+interface FileCommitContext {
+    val sink: BufferedSink
+
+    /** Positional source over the pre-commit content; stable until the commit finishes. */
+    suspend fun openOriginalSource(offset: Long = 0L): Source
+}
+
+/**
+ * A commit failed AFTER the target may have been mutated and could not be restored: the on-disk
+ * state no longer reliably matches the pre-commit content.
+ *
+ * Callers that need their own (e.g. localized) type pass a factory to [AtomicFileWriter].
+ */
+open class AtomicWriteIntegrityException(
+    message: String,
+    cause: Throwable,
+) : java.io.IOException(message, cause)
+
+/**
+ * A write that required an absent destination found one occupied at commit time. Only raised when
+ * the caller passed `requireAbsent`, i.e. it has no permission to replace whatever is there.
+ */
+class AtomicWriteTargetExistsException(
+    val target: APath<*>,
+) : java.io.IOException("Write target appeared before the commit: ${target.path}")
 
 /**
  * Atomically replaces a target file's content with whatever the writer streams into the provided
@@ -33,24 +66,38 @@ import kotlin.uuid.Uuid
 class AtomicFileWriter(
     private val gatewaySwitch: GatewaySwitch,
     private val tag: String,
+    /**
+     * Builds the exception thrown when a commit fails and the original could not be restored.
+     * Callers with their own error type (the editor forces a document reload off its own) override
+     * this; everyone else gets [AtomicWriteIntegrityException].
+     */
+    private val integrityFailure: (String, Throwable) -> Throwable = { message, cause ->
+        AtomicWriteIntegrityException(message, cause)
+    },
 ) {
 
     sealed interface OriginalAccess {
-        /** The writer reads the target's pre-commit bytes via [EditorDataSource.CommitContext.openOriginalSource]. */
+        /** The writer reads the target's pre-commit bytes via [FileCommitContext.openOriginalSource]. */
         data object FromTarget : OriginalAccess
 
         /** The writer never reads the target's old content; calling openOriginalSource is a bug. */
         data object None : OriginalAccess
     }
 
+    /**
+     * @param requireAbsent the caller has permission to create [target] but not to replace anything
+     *   found there. Re-checked inside the commit, because a caller's own pre-check cannot cover
+     *   the window spent producing the content.
+     */
     suspend fun replace(
         target: APath<*>,
         originalAccess: OriginalAccess,
-        writer: suspend (EditorDataSource.CommitContext) -> Unit,
+        requireAbsent: Boolean = false,
+        writer: suspend (FileCommitContext) -> Unit,
     ) {
         // Archive entries are read-only; reject before touching the gateway. The editor already opens
         // them read-only (canWrite=false), so this is a defensive backstop against a bypassed save gate.
-        if (target is eu.darken.butler.common.files.ArchivePath) {
+        if (target is ArchivePath) {
             throw IllegalArgumentException("Archive entries are read-only and cannot be saved: $target")
         }
 
@@ -70,9 +117,9 @@ class AtomicFileWriter(
         } while (tempPath.exists(gatewaySwitch) || backupPath.exists(gatewaySwitch))
 
         if (target is LocalPath) {
-            replaceViaTempSwap(target, tempPath, backupPath, originalAccess, writer)
+            replaceViaTempSwap(target, tempPath, backupPath, originalAccess, requireAbsent, writer)
         } else {
-            replaceInPlace(target, backupPath, originalAccess, writer)
+            replaceInPlace(target, backupPath, originalAccess, requireAbsent, writer)
         }
     }
 
@@ -81,12 +128,13 @@ class AtomicFileWriter(
      * stays untouched and readable (cancellation-safe); the rename swap is the point of no return
      * and runs non-cancellable, restoring the target on failure.
      */
-    internal suspend fun replaceViaTempSwap(
+    suspend fun replaceViaTempSwap(
         target: APath<*>,
         tempPath: APath<*>,
         backupPath: APath<*>,
         originalAccess: OriginalAccess,
-        writer: suspend (EditorDataSource.CommitContext) -> Unit,
+        requireAbsent: Boolean = false,
+        writer: suspend (FileCommitContext) -> Unit,
     ) {
         try {
             writeContent(tempPath) { sink ->
@@ -95,6 +143,14 @@ class AtomicFileWriter(
         } catch (e: Exception) {
             cleanupArtifact(tempPath)
             throw e
+        }
+
+        // Producing the content above can take arbitrarily long, so the caller's pre-check is stale
+        // by now. Checked here rather than inside the commit's reconciliation block: nothing has
+        // been mutated yet, so this is a clean abort and not a failed commit.
+        if (requireAbsent && target.exists(gatewaySwitch)) {
+            cleanupArtifact(tempPath)
+            throw AtomicWriteTargetExistsException(target)
         }
 
         withContext(NonCancellable) {
@@ -132,7 +188,7 @@ class AtomicFileWriter(
                 }
                 cleanupArtifact(tempPath)
                 if (!restored) {
-                    throw CommitIntegrityException("Commit failed and the original could not be restored to $target", e)
+                    throw integrityFailure("Commit failed and the original could not be restored to $target", e)
                 }
                 throw e
             }
@@ -146,17 +202,23 @@ class AtomicFileWriter(
      * restored from the backup on failure (backup retained if the restore also fails). A target
      * that didn't exist yet is created and deleted again on failure.
      */
-    internal suspend fun replaceInPlace(
+    suspend fun replaceInPlace(
         target: APath<*>,
         backupPath: APath<*>,
         originalAccess: OriginalAccess,
-        writer: suspend (EditorDataSource.CommitContext) -> Unit,
+        requireAbsent: Boolean = false,
+        writer: suspend (FileCommitContext) -> Unit,
     ) {
         val targetExisted = target.exists(gatewaySwitch)
         if (originalAccess == OriginalAccess.FromTarget) {
             check(targetExisted) { "In-place splice requires an existing target: $target" }
         }
+        if (requireAbsent && targetExisted) throw AtomicWriteTargetExistsException(target)
         var backupReady = false
+        // Only a target THIS call brought into existence may be cleaned up on failure. Deriving that
+        // from `targetExisted` instead would delete a file that appeared between the sample and the
+        // create - one this call never owned.
+        var createdTarget = false
         try {
             if (targetExisted) {
                 gatewaySwitch.createFile(backupPath, createParents = false)
@@ -168,6 +230,7 @@ class AtomicFileWriter(
                 backupReady = true
             } else {
                 gatewaySwitch.createFile(target, createParents = false)
+                createdTarget = true
             }
 
             withContext(NonCancellable) {
@@ -193,11 +256,11 @@ class AtomicFileWriter(
                         }
                     }
                     if (!restored) {
-                        throw CommitIntegrityException("In-place commit failed and $target could not be restored", e)
+                        throw integrityFailure("In-place commit failed and $target could not be restored", e)
                     }
                 }
-                // Fresh target: partial writes are junk, nothing existed to restore
-                !targetExisted -> {
+                // Target created by this call: partial writes are junk, nothing existed to restore
+                createdTarget -> {
                     cleanupArtifact(target)
                     cleanupArtifact(backupPath)
                 }
@@ -226,9 +289,9 @@ class AtomicFileWriter(
         sink: BufferedSink,
         originalAccess: OriginalAccess,
         readPath: APath<*>,
-    ): EditorDataSource.CommitContext = when (originalAccess) {
+    ): FileCommitContext = when (originalAccess) {
         OriginalAccess.FromTarget -> GatewayCommitContext(sink, readPath)
-        OriginalAccess.None -> object : EditorDataSource.CommitContext {
+        OriginalAccess.None -> object : FileCommitContext {
             override val sink: BufferedSink = sink
             override suspend fun openOriginalSource(offset: Long): Source =
                 throw IllegalStateException("Writer declared OriginalAccess.None but read the original")
@@ -238,7 +301,7 @@ class AtomicFileWriter(
     private inner class GatewayCommitContext(
         override val sink: BufferedSink,
         private val readPath: APath<*>,
-    ) : EditorDataSource.CommitContext {
+    ) : FileCommitContext {
         override suspend fun openOriginalSource(offset: Long): Source {
             val handle = gatewaySwitch.file(readPath, readWrite = false)
             val source = handle.source(fileOffset = offset)

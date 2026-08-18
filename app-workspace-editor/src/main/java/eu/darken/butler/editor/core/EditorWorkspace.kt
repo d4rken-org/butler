@@ -66,7 +66,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
-import eu.darken.butler.editor.core.sources.AtomicFileWriter
+import eu.darken.butler.common.files.write.AtomicFileWriter
+import eu.darken.butler.editor.core.sources.CommitIntegrityException
 import java.nio.charset.Charset
 import kotlin.uuid.Uuid
 
@@ -82,7 +83,7 @@ class EditorWorkspace @AssistedInject constructor(
 ) : Workspace<EditorArguments> {
 
     private val tag = logTag("Editor", "Workspace", id.shortTag)
-    private val atomicFileWriter = AtomicFileWriter(gatewaySwitch, tag)
+    private val atomicFileWriter = AtomicFileWriter(gatewaySwitch, tag, ::CommitIntegrityException)
 
     override suspend fun createArguments(): EditorArguments {
         // A failed or still-loading file engine must not demote the tab to a scratch buffer:

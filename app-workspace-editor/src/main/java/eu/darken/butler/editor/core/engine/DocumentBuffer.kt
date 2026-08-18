@@ -13,6 +13,7 @@ import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.ServiceConnectionLostException
 import eu.darken.butler.common.files.saf.MissingUriPermissionException
 import eu.darken.butler.common.progress.Progress
+import eu.darken.butler.common.files.write.FileCommitContext
 import eu.darken.butler.editor.R
 import eu.darken.butler.editor.core.engine.text.BlockIndex
 import eu.darken.butler.editor.core.engine.text.BlockIndexBuilder
@@ -1086,7 +1087,7 @@ class DocumentBuffer @AssistedInject constructor(
         }
     }
 
-    private suspend fun writeSplice(context: EditorDataSource.CommitContext, table: PieceTable) {
+    private suspend fun writeSplice(context: FileCommitContext, table: PieceTable) {
         streamPieces(context.sink, table, context::openOriginalSource)
     }
 
@@ -1173,7 +1174,7 @@ class DocumentBuffer @AssistedInject constructor(
 
     /** Like [streamPieces], but every break is rewritten to [targetBreak] via [LineBreakTransformer]. */
     private suspend fun writeConverted(
-        context: EditorDataSource.CommitContext,
+        context: FileCommitContext,
         table: PieceTable,
         targetBreak: String,
     ) {
@@ -1212,7 +1213,7 @@ class DocumentBuffer @AssistedInject constructor(
      * and never splits a surrogate pair across output buffers, so chunked re-encoding is exact.
      */
     private suspend fun writeConvertedOriginal(
-        context: EditorDataSource.CommitContext,
+        context: FileCommitContext,
         physicalOffset: Long,
         byteLen: Long,
         transformer: LineBreakTransformer,
