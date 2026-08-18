@@ -28,7 +28,6 @@ import eu.darken.butler.viewer.core.PdfPreviewLoader
 import eu.darken.butler.viewer.core.ViewerContent
 import eu.darken.butler.viewer.core.ViewerFileInfo
 import eu.darken.butler.viewer.core.ViewerIconUnavailableException
-import eu.darken.butler.viewer.core.ViewerPdfPreviewFailedException
 import eu.darken.butler.viewer.core.ViewerWorkspace
 import eu.darken.butler.workspace.contracts.explorer.PickerConfig
 import eu.darken.butler.workspace.core.NoAppForFileException
@@ -110,12 +109,18 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
             )
         }
 
+    /** Which page the user navigated to. Not persisted: a restored session starts at page one again. */
+    private val pdfPageIndexFlow = MutableStateFlow(0)
+
     /**
-     * The first page is rendered here, not in the workspace: a full-screen page bitmap must not
-     * survive in workspace state, where a paused tab would keep holding it. Emits null first so the
-     * page shows its spinner while the render runs, and reports a failed render as a page error.
+     * The selected page is rendered here, not in the workspace: a full-screen page bitmap must not
+     * survive in workspace state, where a paused tab would keep holding it. Emits the page without a
+     * bitmap first so the page shows its spinner while the render runs.
+     *
+     * A failed render stays inside this flow instead of reaching [renderErrorFlow]: the document
+     * itself is fine, so only the one page reports the failure and the page bar keeps working.
      */
-    private val pdfFirstPageFlow = combine(workspaceSource, attemptFlow) { workspace, attempt ->
+    private val pdfPageFlow = combine(workspaceSource, attemptFlow) { workspace, attempt ->
         workspace to attempt
     }
         .distinctUntilChanged()
@@ -125,16 +130,20 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
                 .distinctUntilChanged()
                 .flatMapLatest { pdf ->
                     if (pdf == null) {
-                        flowOf<Bitmap?>(null)
+                        flowOf<PdfPage?>(null)
                     } else {
-                        flow<Bitmap?> {
-                            emit(null)
-                            val bitmap = pdfPreviewLoader.firstPage(workspace.filePath)
-                            if (bitmap == null) {
-                                renderErrorFlow.value = ViewerPdfPreviewFailedException(workspace.filePath)
+                        pdfPageIndexFlow
+                            // A document that shrank underneath the viewer must not render a page
+                            // index that no longer exists.
+                            .map { it.coerceIn(0, pdf.pageCount - 1) }
+                            .distinctUntilChanged()
+                            .flatMapLatest { page ->
+                                flow<PdfPage?> {
+                                    emit(PdfPage(index = page, bitmap = null))
+                                    val bitmap = pdfPreviewLoader.page(workspace.filePath, page)
+                                    emit(PdfPage(index = page, bitmap = bitmap, failed = bitmap == null))
+                                }
                             }
-                            emit(bitmap)
-                        }
                     }
                 }
         }
@@ -158,8 +167,8 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
         snapshots,
         renderErrorFlow,
         imageSourceFlow,
-        pdfFirstPageFlow,
-    ) { snapshot, renderError, imageSource, firstPage ->
+        pdfPageFlow,
+    ) { snapshot, renderError, imageSource, pdfPage ->
         val (path, workspaceState) = snapshot
         val content = renderError?.let { ViewerContent.Failed(it) } ?: workspaceState.content
         State.Ready(
@@ -167,7 +176,7 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
             fileInfo = workspaceState.fileInfo,
             path = path,
             imageSource = imageSource.takeIf { content is ViewerContent.Image },
-            pdfFirstPage = firstPage.takeIf { content is ViewerContent.PdfPreview },
+            pdfPage = pdfPage.takeIf { content is ViewerContent.PdfPreview },
         ) as State
     }
         .catch { emit(State.Error(it)) }
@@ -250,6 +259,32 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
         renderErrorFlow.value = null
         attemptFlow.update { it + 1 }
         workspaceSource.first().reload()
+    }
+
+    fun nextPdfPage() = movePdfPage(delta = 1)
+
+    fun previousPdfPage() = movePdfPage(delta = -1)
+
+    private fun movePdfPage(delta: Int) {
+        val ready = state.value as? State.Ready ?: return
+        val pdf = ready.content as? ViewerContent.PdfPreview ?: return
+        val displayed = ready.pdfPage ?: run {
+            log(tag) { "movePdfPage($delta) ignored, no page on display yet" }
+            return
+        }
+        // A native page render ignores cancellation and keeps allocating, so a second one may only
+        // start once the current one has produced a bitmap or reported its failure.
+        if (displayed.bitmap == null && !displayed.failed) {
+            log(tag) { "movePdfPage($delta) ignored, page ${displayed.index} is still rendering" }
+            return
+        }
+        val target = resolvePdfNavTarget(
+            displayedIndex = displayed.index,
+            pageCount = pdf.pageCount,
+            delta = delta,
+        ) ?: return
+        log(tag) { "movePdfPage($delta) -> page $target" }
+        pdfPageIndexFlow.value = target
     }
 
     fun close() = launch {
@@ -428,6 +463,13 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
         data object Writing : IconSaveState
     }
 
+    /** One rendered PDF page. A null [bitmap] with [failed] false means the render is still running. */
+    data class PdfPage(
+        val index: Int,
+        val bitmap: Bitmap?,
+        val failed: Boolean = false,
+    )
+
     sealed interface State {
         data object Initializing : State
 
@@ -438,7 +480,7 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
             val fileInfo: ViewerFileInfo?,
             val path: APath<*>,
             val imageSource: ZoomableImageSource?,
-            val pdfFirstPage: Bitmap? = null,
+            val pdfPage: PdfPage? = null,
         ) : State
     }
 
@@ -446,4 +488,15 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
     interface Factory {
         fun create(id: Workspace.Id): ViewerWorkspaceViewModel
     }
+}
+
+/**
+ * Where a page step lands, or null when it would not move. [displayedIndex] is clamped first: a
+ * document that shrank underneath the viewer may still have a larger index on display.
+ */
+internal fun resolvePdfNavTarget(displayedIndex: Int, pageCount: Int, delta: Int): Int? {
+    if (pageCount < 1) return null
+    val current = displayedIndex.coerceIn(0, pageCount - 1)
+    val target = (current + delta).coerceIn(0, pageCount - 1)
+    return target.takeIf { it != displayedIndex }
 }

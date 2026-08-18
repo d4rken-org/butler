@@ -77,21 +77,6 @@ class ViewerApkParseException(
 }
 
 /**
- * The document opened far enough to report a page count, but rendering its first page failed - the
- * file changed underneath the viewer, or the page itself is damaged.
- */
-class ViewerPdfPreviewFailedException(
-    val path: APath<*>,
-) : IllegalStateException("PDF preview failed: ${path.path}"), HasLocalizedError {
-
-    override fun getLocalizedError(context: LocalizedErrorContext) = LocalizedError(
-        throwable = this,
-        label = R.string.viewer_error_pdf_preview_label.toCaString(),
-        description = caString { it.getString(R.string.viewer_error_pdf_preview_description, path.name) },
-    )
-}
-
-/**
  * The archive parsed, but its launcher icon could not be rendered - a missing, malformed or
  * unreadable icon resource. Only reachable from an explicit save/preview, never from a plain view.
  */

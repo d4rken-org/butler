@@ -1,16 +1,24 @@
 package eu.darken.butler.workspace.ui.workspaces
 
 import android.content.Context
+import androidx.compose.foundation.layout.Column
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertHasClickAction
-import androidx.compose.ui.test.assertHeightIsEqualTo
+import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
@@ -24,6 +32,7 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.workspaces.adaptive.WorkspaceNavigationRailDefaults
 import eu.darken.butler.workspace.ui.workspaces.adaptive.WorkspaceRailItem
+import io.kotest.matchers.shouldBe
 import org.junit.Test
 import testhelpers.ComposeTest
 
@@ -33,7 +42,13 @@ import testhelpers.ComposeTest
  * to supply the selection state for free, and the glyph must disappear together with the assignment.
  *
  * The glyph sits outside the entry's `Surface` - it is drawn in a corner notch cut out of it - so
- * these also guard that the wrapping `Box` still merges into one node and still owns the height.
+ * these also guard that the wrapping `Box` still merges into one node, and that the notch never
+ * pushes the entry past the height its own content asks for.
+ *
+ * Heights are asserted as a floor, never as an exact value: the entry's height is its content's,
+ * with [ITEM_MIN_HEIGHT] only as a lower bound, and the label's share of that content is measured
+ * by Robolectric's stub font rather than the real one (see `ComposeTest`). What the exact-value
+ * arithmetic would be testing is the stub, not the layout.
  *
  * Colours carry the rest of the state (outline vs fill), and the notch and the glyph's cells are
  * geometry: neither is asserted here, because Robolectric cannot draw. Previews cover them, and
@@ -54,22 +69,58 @@ class WorkspaceRailItemTest : ComposeTest() {
         paneNumber,
     )
 
+    private val paneIndexState = mutableStateOf<Int?>(null)
+    private val layoutState = mutableStateOf(WorkspaceDesign.Layout.DUAL_VERTICAL)
+    private var isRendered = false
+
+    /**
+     * `setContent` may only be called once per rule, and one of these tests compares the same entry
+     * across two configurations - so the configuration is state the content reads rather than an
+     * argument to it, and repeat calls recompose instead of failing.
+     *
+     * The unconstrained label beside the entry is the yardstick for the line-box test: Robolectric's
+     * stub font makes the label's absolute height meaningless, but the two are measured by the same
+     * stub in the same composition, so the comparison between them still holds.
+     */
     private fun renderItem(
         paneIndex: Int?,
         layout: WorkspaceDesign.Layout = WorkspaceDesign.Layout.DUAL_VERTICAL,
     ) {
+        paneIndexState.value = paneIndex
+        layoutState.value = layout
+
+        if (isRendered) {
+            composeTestRule.waitForIdle()
+            return
+        }
+        isRendered = true
+
         composeTestRule.setContent {
             PreviewWrapper {
-                WorkspaceRailItem(
-                    workspace = workspace(),
-                    paneIndex = paneIndex,
-                    isFocused = false,
-                    layout = layout,
-                    onClick = {},
-                )
+                Column {
+                    WorkspaceRailItem(
+                        workspace = workspace(),
+                        paneIndex = paneIndexState.value,
+                        isFocused = false,
+                        layout = layoutState.value,
+                        onClick = {},
+                    )
+                    Text(
+                        modifier = Modifier.testTag(LABEL_REFERENCE_TAG),
+                        text = "Reference",
+                        style = MaterialTheme.typography.labelSmall,
+                        maxLines = 1,
+                    )
+                }
             }
         }
     }
+
+    private fun heightOf(interaction: SemanticsNodeInteraction) = interaction
+        .getUnclippedBoundsInRoot()
+        .let { it.bottom - it.top }
+
+    private fun itemHeight() = heightOf(composeTestRule.onNodeWithTag(ITEM_TAG))
 
     @Test
     fun `a workspace in a pane shows its pane number`() {
@@ -138,17 +189,50 @@ class WorkspaceRailItemTest : ComposeTest() {
     }
 
     @Test
-    fun `the item keeps a fixed height`() {
+    fun `the item is at least the rail item height`() {
         renderItem(paneIndex = null)
 
-        composeTestRule.onNodeWithTag(ITEM_TAG).assertHeightIsEqualTo(ITEM_HEIGHT)
+        composeTestRule.onNodeWithTag(ITEM_TAG).assertHeightIsAtLeast(ITEM_MIN_HEIGHT)
     }
 
+    /**
+     * The notch is carved out of the entry's width, so an assigned entry - which also drops to the
+     * smaller icon - must never end up taller than an unassigned one.
+     */
     @Test
     fun `the glyph does not grow the item`() {
+        renderItem(paneIndex = null)
+        val unassigned = itemHeight()
+
+        composeTestRule.onNodeWithTag(ITEM_TAG).assertHeightIsAtLeast(ITEM_MIN_HEIGHT)
+
         renderItem(paneIndex = 1, layout = WorkspaceDesign.Layout.QUAD_GRID)
 
-        composeTestRule.onNodeWithTag(ITEM_TAG).assertHeightIsEqualTo(ITEM_HEIGHT)
+        composeTestRule.onNodeWithTag(ITEM_TAG).assertHeightIsAtLeast(ITEM_MIN_HEIGHT)
+        (itemHeight() <= unassigned) shouldBe true
+    }
+
+    /**
+     * The entry used to be a fixed 56dp, which is less than the larger of its two icons plus a full
+     * label line: the label was measured last, got only the height the icon left over, and lost the
+     * bottom of its line box. Asserting the entry's height in dp cannot catch that - the clipping
+     * happens inside a box that stays exactly the size it was told to be - so this compares the
+     * label against the same label with nothing constraining it.
+     *
+     * The unassigned entry is the case that has to hold: it carries the bigger icon, so it is the
+     * one that runs out of room first.
+     *
+     * Font scale is the other half of the regression - the line box is sp, the floor is dp - but it
+     * cannot be tested here: Robolectric's stub font reports one fixed height whatever the scale.
+     */
+    @Test
+    fun `the entry gives the label its whole line box`() {
+        renderItem(paneIndex = null)
+
+        val label = heightOf(composeTestRule.onNodeWithText("Explorer", useUnmergedTree = true))
+        val unconstrained = heightOf(composeTestRule.onNodeWithTag(LABEL_REFERENCE_TAG, useUnmergedTree = true))
+
+        label shouldBe unconstrained
     }
 
     @Test
@@ -161,6 +245,8 @@ class WorkspaceRailItemTest : ComposeTest() {
     companion object {
         private const val ITEM_TAG = WorkspaceNavigationRailDefaults.ITEM_TEST_TAG
 
-        private val ITEM_HEIGHT = 56.dp
+        private const val LABEL_REFERENCE_TAG = "workspace.rail.item.label.reference"
+
+        private val ITEM_MIN_HEIGHT = 56.dp
     }
 }

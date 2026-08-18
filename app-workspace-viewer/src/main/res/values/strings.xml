@@ -19,9 +19,12 @@
     <string name="viewer_info_owner_value">%1$s / %2$s</string>
 
     <!-- PDF preview -->
-    <string name="viewer_pdf_preview_content_description">PDF preview of %1$s</string>
-    <string name="viewer_pdf_preview_hint_pages">Preview · page 1 of %1$d</string>
     <string name="viewer_pdf_preview_hint_single">Preview · 1 page</string>
+    <string name="viewer_pdf_page_indicator">Page %1$d of %2$d</string>
+    <string name="viewer_pdf_page_previous">Previous page</string>
+    <string name="viewer_pdf_page_next">Next page</string>
+    <string name="viewer_pdf_page_error">Page %1$d could not be displayed.</string>
+    <string name="viewer_pdf_page_content_description">PDF preview of %1$s, page %2$d of %3$d</string>
 
     <!-- Unsupported file -->
     <string name="viewer_unsupported_title">This file type is not supported yet</string>
@@ -68,6 +71,4 @@
     <string name="viewer_error_icon_target_notfile_description">%1$s already exists here and isn\'t a regular file, so it can\'t be replaced.</string>
     <string name="viewer_error_icon_target_appeared_label">File appeared</string>
     <string name="viewer_error_icon_target_appeared_description">%1$s was created while you were choosing where to save. Nothing was overwritten, try again.</string>
-    <string name="viewer_error_pdf_preview_label">PDF preview failed</string>
-    <string name="viewer_error_pdf_preview_description">The first page of %1$s could not be rendered. The file may have changed or be damaged.</string>
 </resources>
