@@ -49,7 +49,7 @@ class SharedContentPreviewFetcher(
             // ApkIconExtractor does NOT own the fd -> close it ourselves.
             Kind.APK -> openReadPfd()?.use { apkIconExtractor.extract(it, targetPx) }
             // PdfPreviewGenerator takes ownership of the fd and closes it.
-            Kind.PDF -> openReadPfd()?.let { pdfPreviewGenerator.renderFirstPage(it, targetPx) }
+            Kind.PDF -> openReadPfd()?.let { pdfPreviewGenerator.renderPage(it, targetPx) }
         } ?: return null
 
         return ImageFetchResult(
