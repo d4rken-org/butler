@@ -3,7 +3,7 @@
     <!-- Toolbar and image -->
     <string name="viewer_open_with_action">Open with</string>
     <string name="viewer_image_content_description">Image %1$s</string>
-    <string name="viewer_toolbar_path_label">Path</string>
+    <string name="viewer_toolbar_folder_label">Folder</string>
     <string name="viewer_back_action">Back</string>
 
     <!-- File info card -->
@@ -17,6 +17,8 @@
     <string name="viewer_info_permissions_value">%1$s (%2$s)</string>
     <string name="viewer_info_owner_label">Owner</string>
     <string name="viewer_info_owner_value">%1$s / %2$s</string>
+    <string name="viewer_info_expand_action">Show all details</string>
+    <string name="viewer_info_collapse_action">Hide details</string>
 
     <!-- PDF preview -->
     <string name="viewer_pdf_preview_content_description">PDF preview of %1$s</string>

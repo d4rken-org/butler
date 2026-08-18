@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.KeyboardArrowRight
@@ -31,6 +32,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
@@ -57,6 +61,8 @@ fun ApkFileContent(
     installState: ApkInstallState,
     contentPadding: PaddingValues = PaddingValues(0.dp),
     initiallyPermissionsExpanded: Boolean = false,
+    barScrollConnections: List<NestedScrollConnection> = emptyList(),
+    onToggleChrome: (() -> Unit)? = null,
 ) {
     var permissionsExpanded by rememberSaveable { mutableStateOf(initiallyPermissionsExpanded) }
     val permissions = remember(apkInfo) { apkInfo.requestedPermissions.distinct().sorted() }
@@ -65,7 +71,15 @@ fun ApkFileContent(
         .fillMaxWidth()
 
     LazyColumn(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier
+            .fillMaxSize()
+            .let { base -> barScrollConnections.fold(base) { acc, connection -> acc.nestedScroll(connection) } }
+            // Not `clickable`: this is a whole scrolling list, and a click role plus a ripple on it
+            // would be wrong. Child clickables (the section headers) still win the tap.
+            .let { base ->
+                if (onToggleChrome == null) base
+                else base.pointerInput(onToggleChrome) { detectTapGestures { onToggleChrome() } }
+            },
         contentPadding = contentPadding,
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp),

@@ -52,6 +52,7 @@ fun PdfPreviewContent(
     firstPage: Bitmap?,
     fileName: String,
     zoomableState: ZoomableState = rememberZoomableState(),
+    onClick: (() -> Unit)? = null,
 ) {
     if (firstPage == null) {
         Box(modifier = modifier.fillMaxSize()) {
@@ -64,6 +65,7 @@ fun PdfPreviewContent(
             fileName = fileName,
             contentDescription = stringResource(R.string.viewer_pdf_preview_content_description, fileName),
             state = zoomableState,
+            onClick = onClick,
         )
     }
 }
