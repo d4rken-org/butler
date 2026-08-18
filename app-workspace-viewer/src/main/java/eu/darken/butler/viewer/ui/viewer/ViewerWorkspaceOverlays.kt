@@ -1,8 +1,12 @@
 package eu.darken.butler.viewer.ui.viewer
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import eu.darken.butler.common.error.ErrorEventHandler
+import eu.darken.butler.viewer.core.ViewerContent
 import eu.darken.butler.workspace.core.Workspace
 
 /**
@@ -19,5 +23,35 @@ fun ViewerWorkspaceOverlaysHost(
         creationCallback = { factory: ViewerWorkspaceViewModel.Factory -> factory.create(id = id) }
     ),
 ) {
+    val state by vm.state.collectAsState(initial = null)
+    val iconPreview by vm.iconPreview.collectAsState()
+    val pendingOverwrite by vm.pendingIconOverwrite.collectAsState()
+
+    val apkContent = (state as? ViewerWorkspaceViewModel.State.Ready)?.content as? ViewerContent.Apk
+
+    // The preview holds a full-size bitmap, and this ViewModel outlives its composables - without
+    // this the bitmap would stay resident after the tab is switched away or closed.
+    DisposableEffect(vm) {
+        onDispose { vm.dismissIconPreview() }
+    }
+
+    iconPreview?.let { preview ->
+        ApkIconPreviewDialog(
+            state = preview,
+            appLabel = apkContent?.apkInfo?.let { it.label ?: it.id.name } ?: "",
+            onDismiss = { vm.dismissIconPreview() },
+            onSave = { vm.saveIcon() },
+        )
+    }
+
+    pendingOverwrite?.let { pending ->
+        ApkIconOverwriteDialog(
+            fileName = pending.target.name,
+            onConfirm = { vm.confirmIconOverwrite() },
+            onDismiss = { vm.dismissIconOverwrite() },
+        )
+    }
+
+    // Emitted last so an error lands on top of whatever dialog is already open.
     ErrorEventHandler(vm)
 }

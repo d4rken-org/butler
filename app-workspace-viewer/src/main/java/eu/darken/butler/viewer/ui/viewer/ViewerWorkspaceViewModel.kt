@@ -7,28 +7,46 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import eu.darken.butler.common.ca.CaString
+import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.MimeInfo
+import eu.darken.butler.common.files.validation.FilenameValidator
+import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.ui.ViewModel3
+import eu.darken.butler.viewer.R
+import eu.darken.butler.viewer.core.ApkIconExporter
 import eu.darken.butler.viewer.core.GatewayZoomableImageSource
+import eu.darken.butler.viewer.core.IconSaveDecision
+import eu.darken.butler.viewer.core.decideIconSave
 import eu.darken.butler.viewer.core.PdfPreviewLoader
 import eu.darken.butler.viewer.core.ViewerContent
 import eu.darken.butler.viewer.core.ViewerFileInfo
+import eu.darken.butler.viewer.core.ViewerIconUnavailableException
 import eu.darken.butler.viewer.core.ViewerPdfPreviewFailedException
 import eu.darken.butler.viewer.core.ViewerWorkspace
+import eu.darken.butler.workspace.contracts.explorer.PickerConfig
 import eu.darken.butler.workspace.core.NoAppForFileException
 import eu.darken.butler.workspace.core.OpenWithIntentUseCase
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
+import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote
+import eu.darken.butler.workspace.core.handleResult
+import eu.darken.butler.workspace.core.launchPicker
 import eu.darken.butler.workspace.ui.page.WorkspacePageChrome
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -37,6 +55,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -53,12 +72,17 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
     private val imageSourceFactory: GatewayZoomableImageSource.Factory,
     private val pdfPreviewLoader: PdfPreviewLoader,
     private val openWithIntentUseCase: OpenWithIntentUseCase,
+    private val apkIconExporter: ApkIconExporter,
+    private val filenameValidator: FilenameValidator,
     chromeFactory: WorkspacePageChrome.Factory,
 ) : ViewModel3(dispatchers, logTag("Viewer", "Workspace", id.shortTag, "Page")) {
 
     private val chrome = chromeFactory.create(workspaceId = id, scope = vmScope)
 
     val shareIntentEvent = chrome.shareIntentEvent
+
+    /** One-shot confirmations, e.g. after an icon was written to disk. */
+    val toastEvents = SingleEventFlow<CaString>()
 
     private val workspaceSource = workspaceProvider.retrieve(id)
         .map { it as? ViewerWorkspace }
@@ -156,8 +180,64 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
             initialValue = State.Initializing,
         )
 
+    /**
+     * The full-size icon, held only while its dialog is open. Deliberately outside [State]: the
+     * dialog is composed from the overlay slot, and a bitmap of this size must not sit in the state
+     * a paused tab keeps replaying.
+     */
+    private val iconPreviewFlow = MutableStateFlow<IconPreviewState?>(null)
+    val iconPreview: StateFlow<IconPreviewState?> = iconPreviewFlow
+
+    /** Cancelled on dismiss and on re-open, so a stale render can never publish into a newer dialog. */
+    private var iconPreviewJob: Job? = null
+
+    /**
+     * One save attempt at a time, as a single value.
+     *
+     * Three separate fields (in-flight marker, rendered bitmap, pending destination) had to be
+     * cleared in agreement on every one of a dozen exit paths, and the reservation could not be
+     * taken before the first suspension. Collapsing them means a save is reserved synchronously and
+     * every terminal path is one assignment back to [IconSaveState.Idle].
+     */
+    private val iconSaveFlow = MutableStateFlow<IconSaveState>(IconSaveState.Idle)
+
+    /** Non-null only while the user is being asked to confirm replacing a file. */
+    val pendingIconOverwrite: StateFlow<IconSaveState.Confirming?> = iconSaveFlow
+        .map { it as? IconSaveState.Confirming }
+        .stateIn(vmScope, SharingStarted.WhileSubscribed(5_000), null)
+
     init {
         log(tag) { "Initialized for workspace $id" }
+
+        workspaceRemote.events
+            .handleResult<WorkspaceEvent.PickerResult>(callerWorkspaceId = id) { result ->
+                log(tag) { "Picker result: ${result.selectedPaths.firstOrNull()} (${result.filename})" }
+                val picking = iconSaveFlow.value as? IconSaveState.Picking
+                if (picking == null || result.workspaceId != picking.pickerId) {
+                    log(tag, WARN) { "Ignoring result from a picker we are not waiting on: ${result.workspaceId}" }
+                    return@handleResult
+                }
+                val directory = result.selectedPaths.firstOrNull()
+                val filename = result.filename
+                if (directory == null || filename == null) {
+                    log(tag, WARN) { "Picker returned no destination, dropping the save" }
+                    iconSaveFlow.value = IconSaveState.Idle
+                    return@handleResult
+                }
+                handleIconSaveDestination(picking.bitmap, directory, filename)
+            }
+            .launchIn(vmScope)
+
+        // Backing out of the picker is terminal too. Without this the reservation would never clear
+        // and every later save attempt would be refused as "one is already in progress".
+        workspaceRemote.events
+            .handleResult<WorkspaceEvent.ResultCancelled>(callerWorkspaceId = id) { cancelled ->
+                val picking = iconSaveFlow.value as? IconSaveState.Picking ?: return@handleResult
+                if (cancelled.workspaceId != picking.pickerId) return@handleResult
+                log(tag, INFO) { "Save picker cancelled" }
+                iconSaveFlow.value = IconSaveState.Idle
+            }
+            .launchIn(vmScope)
     }
 
     fun shareError(error: Throwable) {
@@ -186,6 +266,166 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
             chooserTitle = context.getString(WorkspaceR.string.workspace_open_with_chooser_title),
         )
         if (!launched) errorEvents.emit(NoAppForFileException(path.name))
+    }
+
+    fun showIconPreview() {
+        // One live render at a time, keyed by the job itself: a render started for a dialog that has
+        // since been dismissed or reopened is cancelled outright, so neither its bitmap nor its
+        // failure can land in the dialog that replaced it.
+        iconPreviewJob?.cancel()
+        iconPreviewFlow.value = IconPreviewState.Loading
+        iconPreviewJob = vmScope.launch {
+            val path = workspaceSource.first().filePath
+            log(tag, INFO) { "showIconPreview($path)" }
+            val bitmap = try {
+                apkIconExporter.render(path)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                log(tag, ERROR) { "Icon render failed for $path: ${e.asLog()}" }
+                null
+            }
+            if (bitmap == null) {
+                iconPreviewFlow.value = null
+                errorEvents.emit(ViewerIconUnavailableException(path))
+                return@launch
+            }
+            iconPreviewFlow.value = IconPreviewState.Ready(bitmap)
+        }
+    }
+
+    fun dismissIconPreview() {
+        log(tag) { "dismissIconPreview()" }
+        iconPreviewJob?.cancel()
+        iconPreviewJob = null
+        iconPreviewFlow.value = null
+    }
+
+    /**
+     * Renders the icon once, here, and carries that bitmap through the picker and any overwrite
+     * prompt. Re-reading the archive after the destination is chosen would export whatever occupies
+     * the source path by then, which is not necessarily the APK the user was looking at.
+     */
+    /**
+     * The reservation is taken synchronously, before the first suspension: two taps arriving in the
+     * same frame would otherwise both pass an in-coroutine check and open two pickers.
+     */
+    fun saveIcon() {
+        if (iconSaveFlow.value != IconSaveState.Idle) {
+            log(tag, WARN) { "A save is already in progress, ignoring" }
+            return
+        }
+        iconSaveFlow.value = IconSaveState.Preparing
+
+        launch {
+            try {
+                val workspace = workspaceSource.first()
+                val apk = workspace.state.value.content as? ViewerContent.Apk
+                    ?: throw IllegalStateException("Not an APK, nothing to export")
+                log(tag, INFO) { "saveIcon(${apk.apkInfo.id})" }
+
+                val bitmap = (iconPreviewFlow.value as? IconPreviewState.Ready)?.bitmap
+                    ?: apkIconExporter.render(workspace.filePath)
+                    ?: throw ViewerIconUnavailableException(workspace.filePath)
+
+                // The picker stacks on this pane; leaving the preview open would strand it underneath.
+                dismissIconPreview()
+                val created = workspaceRemote.launchPicker(
+                    callerWorkspaceId = id,
+                    startPath = workspace.filePath.parent,
+                    selection = PickerConfig.Selection.SaveAs(
+                        suggestedFilename = "${apk.apkInfo.id.name}-icon.png",
+                    ),
+                )
+                // Anything but Success means no picker opened (e.g. the tab limit blocked it, which
+                // the workspace layer reports itself), so the attempt ends here.
+                val pickerId = (created as? WorkspaceAction.Create.Result.Success)?.newId
+                if (pickerId == null) {
+                    log(tag, WARN) { "Save picker was not created: $created" }
+                    iconSaveFlow.value = IconSaveState.Idle
+                    return@launch
+                }
+                iconSaveFlow.value = IconSaveState.Picking(pickerId, bitmap)
+            } catch (e: Throwable) {
+                iconSaveFlow.value = IconSaveState.Idle
+                throw e
+            }
+        }
+    }
+
+    private fun handleIconSaveDestination(
+        bitmap: Bitmap,
+        directory: APath<*>,
+        filename: String,
+    ) = launch {
+        try {
+            // The picker validates too; re-validating here means a malformed event cannot produce a
+            // path with separators or storage-invalid characters.
+            val validation = filenameValidator.validate(filename, directory)
+            if (validation is FilenameValidator.ValidationResult.Invalid) {
+                throw IllegalArgumentException(
+                    "Filename contains invalid characters: ${validation.invalidChars.joinToString("")}",
+                )
+            }
+
+            val target = directory.child(filename)
+            when (val decision = decideIconSave(target, apkIconExporter.inspectTarget(target))) {
+                is IconSaveDecision.Write -> writeIcon(bitmap, decision.target, overwriteAuthorized = false)
+                is IconSaveDecision.Confirm -> iconSaveFlow.value =
+                    IconSaveState.Confirming(decision.target, bitmap)
+
+                is IconSaveDecision.Reject -> throw decision.error
+            }
+        } catch (e: Throwable) {
+            iconSaveFlow.value = IconSaveState.Idle
+            throw e
+        }
+    }
+
+    fun confirmIconOverwrite() {
+        val confirming = iconSaveFlow.value as? IconSaveState.Confirming ?: return
+        log(tag, INFO) { "confirmIconOverwrite(${confirming.target})" }
+        writeIcon(confirming.bitmap, confirming.target, overwriteAuthorized = true)
+    }
+
+    fun dismissIconOverwrite() {
+        log(tag) { "dismissIconOverwrite()" }
+        if (iconSaveFlow.value is IconSaveState.Confirming) iconSaveFlow.value = IconSaveState.Idle
+    }
+
+    private fun writeIcon(bitmap: Bitmap, target: APath<*>, overwriteAuthorized: Boolean) = launch {
+        iconSaveFlow.value = IconSaveState.Writing
+        try {
+            apkIconExporter.save(bitmap, target, overwriteAuthorized = overwriteAuthorized)
+        } finally {
+            iconSaveFlow.value = IconSaveState.Idle
+        }
+        toastEvents.emit(caString { it.getString(R.string.viewer_apk_icon_saved, target.name) })
+    }
+
+    /** Lifecycle of the full-size icon dialog; null means it is closed. */
+    sealed interface IconPreviewState {
+        data object Loading : IconPreviewState
+
+        data class Ready(val bitmap: Bitmap) : IconPreviewState
+    }
+
+    /**
+     * One icon export, start to finish. Every non-[Idle] state holds the single rendered bitmap, so
+     * returning to [Idle] is the only cleanup any exit path has to perform.
+     */
+    sealed interface IconSaveState {
+        data object Idle : IconSaveState
+
+        /** Reserved: rendering the icon and opening the picker. */
+        data object Preparing : IconSaveState
+
+        data class Picking(val pickerId: Workspace.Id, val bitmap: Bitmap) : IconSaveState
+
+        /** Waiting for the user to agree to replace what is already at [target]. */
+        data class Confirming(val target: APath<*>, val bitmap: Bitmap) : IconSaveState
+
+        data object Writing : IconSaveState
     }
 
     sealed interface State {

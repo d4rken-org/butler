@@ -4,10 +4,13 @@ import android.content.Context
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.core.graphics.createBitmap
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.compose.PreviewWrapper
+import io.kotest.matchers.shouldBe
 import eu.darken.butler.common.pkgs.apk.ApkArchiveInfo
 import eu.darken.butler.common.pkgs.toPkgId
 import eu.darken.butler.viewer.R
@@ -40,13 +43,24 @@ class ApkFileContentTest : ComposeTest() {
     private fun setContent(
         installState: ApkInstallState,
         info: ApkArchiveInfo = apkInfo,
+        onShowIcon: () -> Unit = {},
+        onSaveIcon: () -> Unit = {},
     ) {
         composeTestRule.setContent {
             PreviewWrapper {
-                ApkFileContent(apkInfo = info, installState = installState)
+                ApkFileContent(
+                    apkInfo = info,
+                    installState = installState,
+                    onShowIcon = onShowIcon,
+                    onSaveIcon = onSaveIcon,
+                )
             }
         }
     }
+
+    private fun iconInfo() = apkInfo.copy(
+        icon = createBitmap(48, 48).apply { eraseColor(0xFF3DDC84.toInt()) },
+    )
 
     @Test
     fun `shows label, package name and version`() {
@@ -131,6 +145,42 @@ class ApkFileContentTest : ComposeTest() {
 
         composeTestRule.onNodeWithText("android.permission.INTERNET").assertExists()
         composeTestRule.onNodeWithText("android.permission.POST_NOTIFICATIONS").assertExists()
+    }
+
+    /** The icon is the only source for an export, so without one the action must not be offered. */
+    @Test
+    fun `an apk without an icon offers no save action`() {
+        setContent(ApkInstallState.NotInstalled)
+
+        composeTestRule
+            .onNodeWithContentDescription(context.getString(R.string.viewer_apk_icon_save_action))
+            .assertDoesNotExist()
+    }
+
+    @Test
+    fun `saving the icon is offered once an icon exists`() {
+        var saved = 0
+        setContent(ApkInstallState.NotInstalled, info = iconInfo(), onSaveIcon = { saved++ })
+
+        composeTestRule
+            .onNodeWithContentDescription(context.getString(R.string.viewer_apk_icon_save_action))
+            .performClick()
+
+        saved shouldBe 1
+    }
+
+    @Test
+    fun `tapping the icon opens it`() {
+        var shown = 0
+        setContent(ApkInstallState.NotInstalled, info = iconInfo(), onShowIcon = { shown++ })
+
+        composeTestRule
+            .onNodeWithContentDescription(
+                context.getString(R.string.viewer_apk_icon_content_description, "Butler"),
+            )
+            .performClick()
+
+        shown shouldBe 1
     }
 
     @Test

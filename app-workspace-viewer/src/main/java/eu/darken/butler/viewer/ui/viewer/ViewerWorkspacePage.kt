@@ -1,5 +1,6 @@
 package eu.darken.butler.viewer.ui.viewer
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -62,6 +63,11 @@ fun ViewerWorkspacePageHost(
     LaunchedEffect(vm) {
         vm.shareIntentEvent.collect { intent -> context.startActivity(intent) }
     }
+    LaunchedEffect(vm) {
+        vm.toastEvents.collect { message ->
+            Toast.makeText(context, message.get(context), Toast.LENGTH_SHORT).show()
+        }
+    }
 
     val state by vm.state.collectAsState(initial = null)
     val callerWorkspaceId by vm.callerWorkspaceId.collectAsState(initial = null)
@@ -75,6 +81,8 @@ fun ViewerWorkspacePageHost(
             onOpenWith = { vm.openWith() },
             onRetry = { vm.retry() },
             onShareError = { error -> vm.shareError(error) },
+            onShowIcon = { vm.showIconPreview() },
+            onSaveIcon = { vm.saveIcon() },
             onPageAction = { action ->
                 when (action) {
                     ViewerPageAction.Close -> vm.close()
@@ -94,6 +102,8 @@ fun ViewerWorkspacePage(
     onOpenWith: () -> Unit = {},
     onRetry: () -> Unit = {},
     onShareError: (Throwable) -> Unit = {},
+    onShowIcon: () -> Unit = {},
+    onSaveIcon: () -> Unit = {},
     onPageAction: (ViewerPageAction) -> Unit = {},
 ) {
     // A drill-down viewer is an overlay in its opener's pane, so back belongs to it in every phase -
@@ -165,6 +175,8 @@ fun ViewerWorkspacePage(
                     onOpenWith = onOpenWith,
                     onRetry = onRetry,
                     onShareError = onShareError,
+                    onShowIcon = onShowIcon,
+                    onSaveIcon = onSaveIcon,
                 )
 
                 FloatingBarStack(
@@ -259,6 +271,8 @@ private fun ViewerContentArea(
     onOpenWith: () -> Unit,
     onRetry: () -> Unit,
     onShareError: (Throwable) -> Unit,
+    onShowIcon: () -> Unit = {},
+    onSaveIcon: () -> Unit = {},
 ) {
     Box(modifier = modifier.fillMaxSize()) {
         when (val content = state.content) {
@@ -280,6 +294,8 @@ private fun ViewerContentArea(
                 apkInfo = content.apkInfo,
                 installState = content.installState,
                 contentPadding = contentPadding,
+                onShowIcon = onShowIcon,
+                onSaveIcon = onSaveIcon,
             )
 
             is ViewerContent.PdfPreview -> PdfPreviewContent(

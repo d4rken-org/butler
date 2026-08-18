@@ -144,6 +144,21 @@ class ApkArchiveParserTest : BaseTest() {
         apkVersionText("  ", 4711L) shouldBe "4711"
     }
 
+    /**
+     * `ApplicationInfo.loadIcon()` substitutes the framework's generic application icon when the
+     * item declares none. Falling back to it would show and export a platform asset as though the
+     * archive contained it, so an archive without an icon has to resolve to nothing at all.
+     *
+     * The context here is a relaxed mock, so a fall-through to `loadIcon()` would hand back a mock
+     * drawable rather than null - which is exactly what this asserts against.
+     */
+    @Test
+    fun `an archive without an icon resource resolves to no icon`() {
+        val appInfo = ApplicationInfo().apply { icon = 0 }
+
+        parser.resolveIconDrawable(appInfo) shouldBe null
+    }
+
     companion object {
         private const val CERT_RESOURCE = "pkgs/test-signing-cert.der"
         private const val EXPECTED_FINGERPRINT =

@@ -1,5 +1,6 @@
 package eu.darken.butler.viewer.ui.viewer
 
+import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,9 +18,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.KeyboardArrowRight
 import androidx.compose.material.icons.twotone.Android
 import androidx.compose.material.icons.twotone.KeyboardArrowDown
+import androidx.compose.material.icons.twotone.Save
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,12 +33,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.createBitmap
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.pkgs.apk.ApkArchiveInfo
@@ -57,6 +62,8 @@ fun ApkFileContent(
     installState: ApkInstallState,
     contentPadding: PaddingValues = PaddingValues(0.dp),
     initiallyPermissionsExpanded: Boolean = false,
+    onShowIcon: () -> Unit = {},
+    onSaveIcon: () -> Unit = {},
 ) {
     var permissionsExpanded by rememberSaveable { mutableStateOf(initiallyPermissionsExpanded) }
     val permissions = remember(apkInfo) { apkInfo.requestedPermissions.distinct().sorted() }
@@ -74,6 +81,8 @@ fun ApkFileContent(
             ApkHeader(
                 modifier = itemModifier,
                 apkInfo = apkInfo,
+                onShowIcon = onShowIcon,
+                onSaveIcon = onSaveIcon,
             )
         }
 
@@ -123,22 +132,32 @@ fun ApkFileContent(
     }
 }
 
+/**
+ * Icon, name and package on one line. Stacking them centred cost most of the first screenful for
+ * three short pieces of text, so the icon sits beside them instead.
+ */
 @Composable
 private fun ApkHeader(
     modifier: Modifier = Modifier,
     apkInfo: ApkArchiveInfo,
+    onShowIcon: () -> Unit = {},
+    onSaveIcon: () -> Unit = {},
 ) {
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+    val label = apkInfo.label ?: apkInfo.id.name
+    Row(
+        modifier = modifier.padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         val icon = apkInfo.icon
         if (icon != null) {
             Image(
-                modifier = Modifier.size(64.dp),
+                modifier = Modifier
+                    .clip(MaterialTheme.shapes.small)
+                    .clickable(onClick = onShowIcon)
+                    .size(64.dp),
                 bitmap = icon.asImageBitmap(),
-                contentDescription = null,
+                contentDescription = stringResource(R.string.viewer_apk_icon_content_description, label),
             )
         } else {
             Icon(
@@ -148,20 +167,34 @@ private fun ApkHeader(
                 tint = MaterialTheme.colorScheme.primary,
             )
         }
-        Text(
-            text = apkInfo.label ?: apkInfo.id.name,
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-        )
-        Text(
-            text = apkInfo.id.name,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-        )
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                text = apkInfo.id.name,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        if (icon != null) {
+            IconButton(onClick = onSaveIcon) {
+                Icon(
+                    imageVector = Icons.TwoTone.Save,
+                    contentDescription = stringResource(R.string.viewer_apk_icon_save_action),
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+            }
+        }
     }
 }
 
@@ -325,6 +358,33 @@ internal val previewApkInfo = ApkArchiveInfo(
         ),
     ),
 )
+
+/** Preview-only stand-in for a real launcher icon, so the header's icon branch is previewable. */
+private fun previewIcon(): Bitmap = createBitmap(96, 96).apply { eraseColor(0xFF3DDC84.toInt()) }
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ApkFileContentWithIconPreview() {
+    ApkFileContent(
+        apkInfo = previewApkInfo.copy(icon = previewIcon()),
+        installState = ApkInstallState.NotInstalled,
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ApkFileContentLongLabelPreview() {
+    ApkFileContent(
+        apkInfo = previewApkInfo.copy(
+            icon = previewIcon(),
+            label = "An Application With A Rather Long Display Name",
+            id = "com.example.some.deeply.qualified.package.name".toPkgId(),
+        ),
+        installState = ApkInstallState.NotInstalled,
+    )
+}
 
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)

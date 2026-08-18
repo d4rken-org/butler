@@ -91,6 +91,52 @@ class ViewerPdfPreviewFailedException(
     )
 }
 
+/**
+ * The archive parsed, but its launcher icon could not be rendered - a missing, malformed or
+ * unreadable icon resource. Only reachable from an explicit save/preview, never from a plain view.
+ */
+class ViewerIconUnavailableException(
+    val path: APath<*>,
+) : IllegalStateException("No readable launcher icon: ${path.path}"), HasLocalizedError {
+
+    override fun getLocalizedError(context: LocalizedErrorContext) = LocalizedError(
+        throwable = this,
+        label = R.string.viewer_error_icon_unavailable_label.toCaString(),
+        description = caString { it.getString(R.string.viewer_error_icon_unavailable_description, path.name) },
+    )
+}
+
+/**
+ * The chosen destination exists but is not a regular file: a folder, a symlink, or something the
+ * gateway could not classify. Replacing it is refused rather than offered - writing through a
+ * symlink truncates whatever it points at, which nobody agreeing to replace an icon is asking for.
+ */
+class ViewerIconTargetNotAFileException(
+    val path: APath<*>,
+) : IllegalArgumentException("Save target is not a regular file: ${path.path}"), HasLocalizedError {
+
+    override fun getLocalizedError(context: LocalizedErrorContext) = LocalizedError(
+        throwable = this,
+        label = R.string.viewer_error_icon_target_notfile_label.toCaString(),
+        description = caString { it.getString(R.string.viewer_error_icon_target_notfile_description, path.name) },
+    )
+}
+
+/**
+ * Something occupied the destination between the moment it was checked and the moment we went to
+ * write. Permission to overwrite was never granted for *this* file, so the save stops instead.
+ */
+class ViewerIconTargetAppearedException(
+    val path: APath<*>,
+) : IllegalStateException("Save target appeared after the check: ${path.path}"), HasLocalizedError {
+
+    override fun getLocalizedError(context: LocalizedErrorContext) = LocalizedError(
+        throwable = this,
+        label = R.string.viewer_error_icon_target_appeared_label.toCaString(),
+        description = caString { it.getString(R.string.viewer_error_icon_target_appeared_description, path.name) },
+    )
+}
+
 class ViewerEmptyFileException(
     val path: APath<*>,
 ) : IllegalArgumentException("File is empty: ${path.path}"), HasLocalizedError {

@@ -38,6 +38,16 @@
     <string name="viewer_apk_permissions_header">Permissions (%1$d)</string>
     <string name="viewer_apk_signing_header">Signing certificates</string>
 
+    <!-- APK icon -->
+    <string name="viewer_apk_icon_content_description">App icon of %1$s</string>
+    <string name="viewer_apk_icon_show_action">Show icon</string>
+    <string name="viewer_apk_icon_save_action">Save icon</string>
+    <string name="viewer_apk_icon_dimensions">%1$d × %2$d</string>
+    <string name="viewer_apk_icon_saved">Icon saved as %1$s</string>
+    <string name="viewer_apk_icon_overwrite_title">Replace file?</string>
+    <string name="viewer_apk_icon_overwrite_message">%1$s already exists in this folder. Saving the icon replaces it.</string>
+    <string name="viewer_apk_icon_overwrite_confirm">Replace</string>
+
     <!-- Errors -->
     <string name="viewer_error_title">Can\'t show this file</string>
     <string name="viewer_error_not_a_file_label">Not a file</string>
@@ -52,6 +62,12 @@
     <string name="viewer_error_empty_file_description">%1$s is empty and has nothing to show.</string>
     <string name="viewer_error_apk_unreadable_label">Unreadable APK</string>
     <string name="viewer_error_apk_unreadable_description">%1$s could not be parsed as an Android app package.</string>
+    <string name="viewer_error_icon_unavailable_label">No icon</string>
+    <string name="viewer_error_icon_unavailable_description">The app icon of %1$s could not be read.</string>
+    <string name="viewer_error_icon_target_notfile_label">Name already taken</string>
+    <string name="viewer_error_icon_target_notfile_description">%1$s already exists here and isn\'t a regular file, so it can\'t be replaced.</string>
+    <string name="viewer_error_icon_target_appeared_label">File appeared</string>
+    <string name="viewer_error_icon_target_appeared_description">%1$s was created while you were choosing where to save. Nothing was overwritten, try again.</string>
     <string name="viewer_error_pdf_preview_label">PDF preview failed</string>
     <string name="viewer_error_pdf_preview_description">The first page of %1$s could not be rendered. The file may have changed or be damaged.</string>
 </resources>
