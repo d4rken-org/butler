@@ -129,6 +129,20 @@ class ExternalOpenRouter internal constructor(
     }
 
     /**
+     * The real file this content lives in, if there is one. Null when it is only reachable through a
+     * provider - what Butler would import into its cache has no location worth showing the user.
+     *
+     * The resolver concatenates the document ID's sub-path without canonicalizing it, so its output
+     * is held to the same private-path rules as any other local path.
+     */
+    fun resolveLocation(ref: SourceRef): LocalPath? = when (ref) {
+        is SourceRef.Local -> ref.path
+        is SourceRef.Content -> documentUriResolver.resolve(ref.uri)
+            ?.let { toLocalRef(it.file) as? SourceRef.Local }
+            ?.path
+    }
+
+    /**
      * Resolves the content to a real local file the Viewer can open, importing it into the cache
      * when there is no directly accessible path. Returns null when that isn't possible.
      */
@@ -139,11 +153,9 @@ class ExternalOpenRouter internal constructor(
     ): LocalPath? = when (ref) {
         is SourceRef.Local -> viewablePath(ref.path, mime, displayName)
         is SourceRef.Content -> {
-            // The resolver concatenates the document ID's sub-path without canonicalizing it, so its
-            // output is held to the same private-path rules as any other local path. A path we may
-            // use but can't read (no storage permission) still works through the provider's stream.
-            val resolved = documentUriResolver.resolve(ref.uri)
-                ?.let { toLocalRef(it.file) as? SourceRef.Local }?.path
+            // A path we may use but can't read (no storage permission) still works through the
+            // provider's stream, so an unreadable location falls back to the import.
+            val resolved = resolveLocation(ref)
             when {
                 resolved != null && resolved.file.canRead() -> viewablePath(resolved, mime, displayName)
                 else -> importer.importToCache(ref.uri, displayName, mime)

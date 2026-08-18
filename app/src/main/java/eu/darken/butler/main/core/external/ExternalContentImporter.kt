@@ -219,6 +219,7 @@ class ExternalContentImporter @Inject constructor(
             "image/avif" to "avif",
             "image/svg+xml" to "svg",
             "application/pdf" to "pdf",
+            MimeInfo.MIME_APK to "apk",
         )
     }
 }

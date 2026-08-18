@@ -3,6 +3,7 @@ package eu.darken.butler.main.core.external
 import android.net.Uri
 import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.editor.core.PasteFileReader
+import eu.darken.butler.viewer.core.ViewerSupport
 
 /**
  * A file another app handed to Butler via ACTION_VIEW, together with the choices we can offer for it.
@@ -20,43 +21,41 @@ data class ExternalOpenState(
 enum class ExternalOpenOption {
     VIEW,
     EDIT_AS_TEXT,
+    SHOW_IN_EXPLORER,
     SAVE_AS,
     ;
 }
 
 /**
- * What the Viewer workspace can actually show: images and PDFs. The import and extension rules in
- * [ExternalOpenRouter] and [ExternalContentImporter] key off the same predicate, so an option we
- * offer is always one we can also open.
+ * Whether the Viewer can show this content. Delegates to [ViewerSupport] so the offer always tracks
+ * what the viewer actually renders; the import and extension rules in [ExternalOpenRouter] and
+ * [ExternalContentImporter] key off the same source, so an option we offer is one we can open.
  */
 internal val MimeInfo.isViewable: Boolean
-    get() = isImage || isPdf
+    get() = ViewerSupport.canDisplay(this)
 
 /**
- * Whether [fileName] already announces the same viewable category as this type. The Viewer picks its
- * decoder from the file name, so a merely viewable name isn't enough: a PDF called `invoice.jpg`
- * would be handed to the image decoder and fail to render.
+ * Whether [fileName] already announces the same kind of content as this type, i.e. whether the
+ * viewer would route it to the right renderer without us materializing a better-named copy.
  */
-internal fun MimeInfo.hasMatchingViewableExtension(fileName: String): Boolean {
-    val named = MimeInfo.fromFileName(fileName)
-    return when {
-        isPdf -> named.isPdf
-        isImage -> named.isImage
-        else -> false
-    }
-}
+internal fun MimeInfo.hasMatchingViewableExtension(fileName: String): Boolean =
+    ViewerSupport.hasMatchingName(this, fileName)
 
 /**
- * Viewing is offered for images and PDFs, the two things the Viewer workspace can show, editing only
- * for text that fits the editor's paste cap. Saving is always possible, so the dialog is never empty.
+ * Viewing is offered for whatever the Viewer workspace renders, editing only for text that fits the
+ * editor's paste cap, and revealing only for content that exists as a real file on the device -
+ * anything Butler had to copy into its own cache has no folder worth opening. Saving is always
+ * possible, so the dialog is never empty.
  */
 fun computeExternalOpenOptions(
     mime: MimeInfo,
     sizeBytes: Long?,
+    hasContainingFolder: Boolean = false,
 ): List<ExternalOpenOption> = buildList {
     if (mime.isViewable) add(ExternalOpenOption.VIEW)
     if (mime.isText && (sizeBytes == null || sizeBytes <= PasteFileReader.MAX_PASTE_FILE_SIZE)) {
         add(ExternalOpenOption.EDIT_AS_TEXT)
     }
+    if (hasContainingFolder) add(ExternalOpenOption.SHOW_IN_EXPLORER)
     add(ExternalOpenOption.SAVE_AS)
 }

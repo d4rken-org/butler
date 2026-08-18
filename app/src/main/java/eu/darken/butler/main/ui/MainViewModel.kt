@@ -239,7 +239,13 @@ class MainViewModel @Inject constructor(
                     sizeBytes = sizeBytes,
                     mime = mime,
                     callerPackage = callerPackage,
-                    options = computeExternalOpenOptions(mime, sizeBytes),
+                    options = computeExternalOpenOptions(
+                        mime = mime,
+                        sizeBytes = sizeBytes,
+                        // Only content that lives somewhere the user can browse to; an import into
+                        // our own cache has no folder worth opening.
+                        hasContainingFolder = externalOpenRouter.resolveLocation(ref)?.parent != null,
+                    ),
                 )
             }
 
@@ -267,6 +273,7 @@ class MainViewModel @Inject constructor(
                 when (option) {
                     ExternalOpenOption.VIEW -> openExternalInViewer(state)
                     ExternalOpenOption.EDIT_AS_TEXT -> openExternalInEditor(state)
+                    ExternalOpenOption.SHOW_IN_EXPLORER -> showExternalInExplorer(state)
                     ExternalOpenOption.SAVE_AS -> openExternalInSaver(state)
                 }
             } catch (e: Exception) {
@@ -291,6 +298,23 @@ class MainViewModel @Inject constructor(
         workspaceRemote.createAndFocus(
             type = Workspace.Type.VIEWER,
             arguments = ViewerArguments.Default(filePath = path),
+        )
+    }
+
+    /**
+     * Opens the folder the shared file lives in. Only reachable when the arrival resolved to a real
+     * location, so the resolve here is a repeat of the one that gated the option, not a new attempt.
+     */
+    private suspend fun showExternalInExplorer(state: ExternalOpenState) {
+        val parent = externalOpenRouter.resolveLocation(state.ref)?.parent
+        if (parent == null) {
+            log(tag, WARN) { "No containing folder for ${state.originalUri}" }
+            errorEvents.emit(ExternalOpenFailedException(state.displayName))
+            return
+        }
+        workspaceRemote.createAndFocus(
+            type = Workspace.Type.EXPLORER,
+            arguments = ExplorerArguments.Default(startPath = parent),
         )
     }
 

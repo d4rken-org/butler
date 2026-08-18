@@ -375,6 +375,7 @@
     <string name="external_open_unknown_file_title">Unnamed file</string>
     <string name="external_open_action_view">View</string>
     <string name="external_open_action_edit">Edit as text</string>
+    <string name="external_open_action_show_in_explorer">Show in Explorer</string>
     <string name="external_open_action_save">Save as…</string>
     <string name="external_open_failed_label">Could not open file</string>
     <string name="external_open_failed_description">Butler could not open \"%1$s\".</string>

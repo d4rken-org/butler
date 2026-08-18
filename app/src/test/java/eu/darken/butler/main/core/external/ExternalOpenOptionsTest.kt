@@ -25,6 +25,45 @@ class ExternalOpenOptionsTest : BaseTest() {
     }
 
     @Test
+    fun `apks can be viewed or saved`() {
+        computeExternalOpenOptions(
+            MimeInfo("application/vnd.android.package-archive"),
+            1024L,
+        ) shouldBe listOf(ExternalOpenOption.VIEW, ExternalOpenOption.SAVE_AS)
+    }
+
+    @Test
+    fun `content with a real location can be shown in the explorer`() {
+        computeExternalOpenOptions(
+            MimeInfo("image/png"),
+            1024L,
+            hasContainingFolder = true,
+        ) shouldBe listOf(
+            ExternalOpenOption.VIEW,
+            ExternalOpenOption.SHOW_IN_EXPLORER,
+            ExternalOpenOption.SAVE_AS,
+        )
+    }
+
+    @Test
+    fun `content that only exists behind a provider has no folder to show`() {
+        computeExternalOpenOptions(
+            MimeInfo("image/png"),
+            1024L,
+            hasContainingFolder = false,
+        ) shouldBe listOf(ExternalOpenOption.VIEW, ExternalOpenOption.SAVE_AS)
+    }
+
+    @Test
+    fun `unviewable content with a real location still offers the explorer`() {
+        computeExternalOpenOptions(
+            MimeInfo("application/zip"),
+            1024L,
+            hasContainingFolder = true,
+        ) shouldBe listOf(ExternalOpenOption.SHOW_IN_EXPLORER, ExternalOpenOption.SAVE_AS)
+    }
+
+    @Test
     fun `small text can be edited or saved`() {
         computeExternalOpenOptions(MimeInfo("text/plain"), 1024L) shouldBe listOf(
             ExternalOpenOption.EDIT_AS_TEXT,

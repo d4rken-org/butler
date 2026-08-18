@@ -110,6 +110,33 @@ class ExternalContentImporterTest : BaseTest() {
     }
 
     @Test
+    fun `an extensionless apk gets an extension from its type`() = runTest {
+        register(uri) { ByteArrayInputStream("x".toByteArray()) }
+
+        val imported = create().importToCache(uri, "download", MimeInfo(MimeInfo.MIME_APK)).shouldNotBeNull()
+
+        imported.file.name shouldBe "download.apk"
+    }
+
+    @Test
+    fun `an apk named like an archive still gets an apk extension`() = runTest {
+        register(uri) { ByteArrayInputStream("x".toByteArray()) }
+
+        val imported = create().importToCache(uri, "bundle.zip", MimeInfo(MimeInfo.MIME_APK)).shouldNotBeNull()
+
+        imported.file.name shouldBe "bundle.zip.apk"
+    }
+
+    @Test
+    fun `an apk that already has a matching name is left alone`() = runTest {
+        register(uri) { ByteArrayInputStream("x".toByteArray()) }
+
+        val imported = create().importToCache(uri, "app.apk", MimeInfo(MimeInfo.MIME_APK)).shouldNotBeNull()
+
+        imported.file.name shouldBe "app.apk"
+    }
+
+    @Test
     fun `an image that already has a matching name is left alone`() = runTest {
         register(uri) { ByteArrayInputStream("x".toByteArray()) }
 

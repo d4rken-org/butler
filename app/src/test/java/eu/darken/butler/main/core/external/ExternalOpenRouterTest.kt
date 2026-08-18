@@ -218,6 +218,26 @@ class ExternalOpenRouterTest : BaseTest() {
     }
 
     @Test
+    fun `an apk whose name does not say apk is imported so it gets an extension`() = runTest {
+        val uri = Uri.parse("content://com.android.externalstorage.documents/document/primary%3Adownload")
+        val imported = LocalPath.build(File("/cache/external_open/uuid/download.apk"))
+        every { documentUriResolver.resolve(uri) } returns LocalPath.build(readableFile("download"))
+        coEvery { importer.importToCache(any(), any(), any()) } returns imported
+
+        create().resolveForView(SourceRef.Content(uri), MimeInfo(MimeInfo.MIME_APK), "download") shouldBe imported
+    }
+
+    @Test
+    fun `an apk that already has a matching name is opened directly`() = runTest {
+        val uri = Uri.parse("content://com.android.externalstorage.documents/document/primary%3Aapp.apk")
+        val file = readableFile("app.apk")
+        every { documentUriResolver.resolve(uri) } returns LocalPath.build(file)
+
+        create().resolveForView(SourceRef.Content(uri), MimeInfo(MimeInfo.MIME_APK), "app.apk") shouldBe
+            LocalPath.build(file.canonicalFile)
+    }
+
+    @Test
     fun `a pdf that already has a matching name is opened directly`() = runTest {
         val uri = Uri.parse("content://com.android.externalstorage.documents/document/primary%3Ainvoice.pdf")
         val file = readableFile("invoice.pdf")
