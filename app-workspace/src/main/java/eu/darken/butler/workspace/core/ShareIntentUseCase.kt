@@ -48,19 +48,26 @@ class ShareIntentUseCase @Inject constructor(
         }
 
         return try {
-            val uris = items.mapNotNull { item ->
-                getFileUri(item.path)
+            // Paired, not two independent lists: a dropped item used to shift the two out of step,
+            // so a single surviving URI was described by items[0] - the wrong file's MIME type and
+            // subject - whenever the first item was the one that got dropped.
+            val shareable = items.mapNotNull { item ->
+                getFileUri(item.path)?.let { uri -> item to uri }
             }
 
-            if (uris.isEmpty()) {
+            if (shareable.isEmpty()) {
                 log(tag, WARN) { "No valid URIs created from ${items.size} items" }
                 return null
             }
+            if (shareable.size < items.size) {
+                log(tag, WARN) { "Sharing ${shareable.size} of ${items.size} items, the rest have no usable URI" }
+            }
 
-            if (uris.size == 1) {
-                createSingleShareIntent(uris[0], items[0])
+            if (shareable.size == 1) {
+                val (item, uri) = shareable.single()
+                createSingleShareIntent(uri, item)
             } else {
-                createMultipleShareIntent(uris, items)
+                createMultipleShareIntent(shareable.map { it.second }, shareable.map { it.first })
             }
         } catch (e: Exception) {
             log(tag, ERROR) { "Failed to create share intent: ${e.asLog()}" }
@@ -119,6 +126,14 @@ class ShareIntentUseCase @Inject constructor(
                     val file = File(path.path)
                     if (!file.exists()) {
                         log(tag, WARN) { "File does not exist: ${path.path}" }
+                        return null
+                    }
+                    // A root/ADB-routed LocalPath still yields a constructible FileProvider URI, but
+                    // the provider runs unprivileged and cannot read the file - the receiving app
+                    // would only get a permission error, after a chooser that reported success.
+                    // Same guard OpenWithIntentUseCase already applies.
+                    if (!file.canRead()) {
+                        log(tag, WARN) { "File is not readable without elevated access: ${path.path}" }
                         return null
                     }
 
