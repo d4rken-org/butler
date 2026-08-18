@@ -91,12 +91,15 @@ internal val PairedPermissionsMinCardWidth = 280.dp
  * Bottom floating card with the file's metadata. Rows for values the gateway did not provide are
  * omitted entirely - permissions and ownership are meaningless on public/SAF storage and showing
  * an empty row there would be worse than showing nothing.
+ *
+ * Starts collapsed: the card floats over the content the user opened the viewer for, and size and
+ * modified date are the pair worth that space unprompted. The rest is one tap away.
  */
 @Composable
 fun FileInfoCard(
     modifier: Modifier = Modifier,
     fileInfo: ViewerFileInfo,
-    initiallyExpanded: Boolean = true,
+    initiallyExpanded: Boolean = false,
 ) {
     BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
         FileInfoCardContent(
@@ -235,7 +238,10 @@ private fun FileInfoCardContent(
                 IconButton(
                     onClick = { expanded = !expanded },
                     modifier = Modifier
-                        .align(Alignment.TopEnd)
+                        // Expanded, the toggle belongs beside the first row - the only one that
+                        // insets for it. Collapsed, that row is the whole card, and a top-aligned
+                        // 40dp button in a card barely taller than itself reads as sitting high.
+                        .align(if (expanded) Alignment.TopEnd else Alignment.CenterEnd)
                         .size(ToggleReservedWidth),
                 ) {
                     Icon(
@@ -296,6 +302,7 @@ private fun FileInfoCardFullPreview() {
             ownership = Ownership(userId = 1000L, groupId = 1000L, userName = "media_rw", groupName = "media_rw"),
             imageInfo = ViewerFileInfo.ImageInfo(format = "image/jpeg", width = 4032, height = 3024),
         ),
+        initiallyExpanded = true,
     )
 }
 
@@ -340,6 +347,7 @@ private fun FileInfoCardSameCreatedAndModifiedPreview() {
                 groupName = "media_rw",
             ),
         ),
+        initiallyExpanded = true,
     )
 }
 
@@ -356,6 +364,7 @@ private fun FileInfoCardWithoutPosixMetadataPreview() {
             modifiedAt = Clock.System.now(),
             imageInfo = ViewerFileInfo.ImageInfo(format = "image/svg+xml"),
         ),
+        initiallyExpanded = true,
     )
 }
 
@@ -387,5 +396,6 @@ private fun FileInfoCardWrappingValuesPreview() {
             ownership = Ownership(userId = 1000L, groupId = 9997L, userName = "u0_a237", groupName = "everybody"),
             imageInfo = ViewerFileInfo.ImageInfo(format = "image/x-adobe-dng", width = 12000, height = 9000),
         ),
+        initiallyExpanded = true,
     )
 }

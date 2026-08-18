@@ -17,8 +17,8 @@
         <item quantity="other">%d items from %s</item>
     </plurals>
     <plurals name="clipboard_paths_title_cut">
-        <item quantity="one">Move %d item</item>
-        <item quantity="other">Move %d items</item>
+        <item quantity="one">Cut %d item</item>
+        <item quantity="other">Cut %d items</item>
     </plurals>
     <plurals name="clipboard_paths_description_cut">
         <item quantity="one">%d item from %s</item>

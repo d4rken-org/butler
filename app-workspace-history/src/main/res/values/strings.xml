@@ -90,6 +90,7 @@
     <string name="history_origin_searcher">Searcher</string>
     <string name="history_origin_saver">Saver</string>
     <string name="history_origin_developer">Developer</string>
+    <string name="history_origin_viewer">Viewer</string>
 
     <!-- Duration formats -->
     <string name="history_duration_ms">%1$d ms</string>

@@ -6,6 +6,7 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.files.validation.FilenameValidator
+import eu.darken.butler.common.trash.TrashSettings
 import eu.darken.butler.viewer.core.PdfPreviewLoader
 import eu.darken.butler.viewer.core.ViewerContent
 import eu.darken.butler.viewer.core.ViewerWorkspace
@@ -100,6 +101,8 @@ class ViewerWorkspaceViewModelPagingTest : BaseTest() {
         }
         val chrome = mockk<WorkspacePageChrome>().apply {
             every { shareIntentEvent } returns SingleEventFlow()
+            // The ViewModel derives its issue sheet from this at construction time.
+            every { pendingConflicts } returns flowOf(emptyMap())
         }
         return ViewerWorkspaceViewModel(
             id = workspaceId,
@@ -114,6 +117,14 @@ class ViewerWorkspaceViewModelPagingTest : BaseTest() {
             imageSourceFactory = mockk(relaxed = true),
             pdfPreviewLoader = loader,
             openWithIntentUseCase = mockk(relaxed = true),
+            shareIntentUseCase = mockk(relaxed = true),
+            clipboardRepo = mockk(relaxed = true),
+            // Not relaxed all the way down: the state combine collects `enabled.flow`, and a relaxed
+            // Flow mock completes without emitting, which would stall the state at Initializing.
+            trashSettings = mockk<TrashSettings>(relaxed = true).apply {
+                every { enabled.flow } returns flowOf(false)
+            },
+            operationsManager = mockk(relaxed = true),
             // Unused by the paging cases, but the ViewModel now owns the APK icon export too.
             apkIconExporter = mockk(relaxed = true),
             filenameValidator = FilenameValidator(),

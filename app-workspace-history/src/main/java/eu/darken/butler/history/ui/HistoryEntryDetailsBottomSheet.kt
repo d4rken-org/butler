@@ -251,6 +251,7 @@ internal fun HistoryEntry.OriginType.label(): String = stringResource(
         HistoryEntry.OriginType.SEARCHER -> R.string.history_origin_searcher
         HistoryEntry.OriginType.SAVER -> R.string.history_origin_saver
         HistoryEntry.OriginType.DEVELOPER -> R.string.history_origin_developer
+        HistoryEntry.OriginType.VIEWER -> R.string.history_origin_viewer
     }
 )
 

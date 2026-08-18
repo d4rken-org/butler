@@ -122,6 +122,21 @@ class ViewerIconTargetAppearedException(
     )
 }
 
+/**
+ * Sharing needs a FileProvider URI, which only exists for a local file the app itself can read.
+ * SAF paths and files reachable only through root or ADB have none, so the hand-off never starts.
+ */
+class ViewerShareUnavailableException(
+    val path: APath<*>,
+) : IllegalStateException("Cannot build a shareable URI for: ${path.path}"), HasLocalizedError {
+
+    override fun getLocalizedError(context: LocalizedErrorContext) = LocalizedError(
+        throwable = this,
+        label = R.string.viewer_share_failed_label.toCaString(),
+        description = caString { it.getString(R.string.viewer_share_failed_description, path.name) },
+    )
+}
+
 class ViewerEmptyFileException(
     val path: APath<*>,
 ) : IllegalArgumentException("File is empty: ${path.path}"), HasLocalizedError {

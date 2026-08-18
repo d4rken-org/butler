@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.KeyboardArrowRight
 import androidx.compose.material.icons.twotone.Android
@@ -119,12 +120,14 @@ fun ApkFileContent(
             }
             if (permissionsExpanded) {
                 items(permissions.size, key = { permissions[it] }) { index ->
-                    Text(
-                        modifier = itemModifier.padding(horizontal = 4.dp),
-                        text = permissions[index],
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                    SelectionContainer(modifier = itemModifier) {
+                        Text(
+                            modifier = Modifier.padding(horizontal = 4.dp),
+                            text = permissions[index],
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
             }
         }
@@ -181,24 +184,25 @@ private fun ApkHeader(
                 tint = MaterialTheme.colorScheme.primary,
             )
         }
-        Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(2.dp),
-        ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Text(
-                text = apkInfo.id.name,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
+        // Long-press to select. The enclosing list only detects taps, and a press long enough to
+        // start a selection is past the tap timeout, so the two gestures do not compete.
+        SelectionContainer(modifier = Modifier.weight(1f)) {
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = apkInfo.id.name,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
         }
         if (icon != null) {
             IconButton(onClick = onSaveIcon) {
@@ -274,20 +278,22 @@ private fun ApkInfoCard(
             containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
         ),
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 10.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            groupInfoEntries(entries).forEach { row ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.Top,
-                ) {
-                    row.forEach { InfoBlock(entry = it, modifier = Modifier.weight(1f)) }
-                    if (row.size == 1 && row.first().pairable) Spacer(modifier = Modifier.weight(1f))
+        SelectionContainer {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                groupInfoEntries(entries).forEach { row ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.Top,
+                    ) {
+                        row.forEach { InfoBlock(entry = it, modifier = Modifier.weight(1f)) }
+                        if (row.size == 1 && row.first().pairable) Spacer(modifier = Modifier.weight(1f))
+                    }
                 }
             }
         }
@@ -333,23 +339,22 @@ private fun SignatureBlock(
     modifier: Modifier = Modifier,
     signature: ApkSignature,
 ) {
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(2.dp),
-    ) {
-        signature.subjectDn?.let {
+    SelectionContainer(modifier = modifier) {
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            signature.subjectDn?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
             Text(
-                text = it,
+                text = signature.sha256,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface,
+                fontFamily = FontFamily.Monospace,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        Text(
-            text = signature.sha256,
-            style = MaterialTheme.typography.bodySmall,
-            fontFamily = FontFamily.Monospace,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
     }
 }
 

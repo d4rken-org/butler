@@ -1,15 +1,25 @@
 package eu.darken.butler.viewer.ui.viewer
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.twotone.OpenInNew
+import androidx.compose.material.icons.twotone.ContentCopy
+import androidx.compose.material.icons.twotone.ContentCut
+import androidx.compose.material.icons.twotone.Delete
+import androidx.compose.material.icons.twotone.DeleteForever
 import androidx.compose.material.icons.twotone.OpenInBrowser
+import androidx.compose.material.icons.twotone.Share
 import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.viewer.R
 import eu.darken.butler.workspace.ui.actions.WorkspaceActionBarItem
+import eu.darken.butler.common.R as CommonR
 
 /**
  * Workspace-level actions for the viewer, shown in the bottom action bar.
+ *
+ * [OpenWith] and [Share] stay visible on the narrowest pane; the rest are SECONDARY and fall into
+ * the overflow menu as space runs out, [Delete] first because it is the one a mis-tap costs most.
  */
 sealed interface ViewerActionBarItem : WorkspaceActionBarItem {
     override val icon: ImageVector
@@ -26,5 +36,59 @@ sealed interface ViewerActionBarItem : WorkspaceActionBarItem {
     data object OpenWith : ViewerActionBarItem {
         override val icon = Icons.TwoTone.OpenInBrowser
         override val label = R.string.viewer_open_with_action.toCaString()
+    }
+
+    /**
+     * Send the file to another app via ACTION_SEND.
+     */
+    data object Share : ViewerActionBarItem {
+        override val icon = Icons.TwoTone.Share
+        override val label = CommonR.string.general_share_action.toCaString()
+    }
+
+    /**
+     * Put the file on Butler's clipboard for copying. The paste itself happens in an Explorer tab,
+     * exactly as it does for Explorer's own copy action.
+     */
+    data object Copy : ViewerActionBarItem {
+        override val icon = Icons.TwoTone.ContentCopy
+        override val label = CommonR.string.general_copy_action.toCaString()
+        override val group = WorkspaceActionBarItem.Group.SECONDARY
+    }
+
+    /**
+     * Put the file on Butler's clipboard for moving. "Cut" rather than "Move" so the staging verb
+     * reads the same here as in the Explorer, the Searcher and the clipboard itself; the move is
+     * what the paste performs, and that is what the operation is called.
+     */
+    data object Cut : ViewerActionBarItem {
+        override val icon = Icons.TwoTone.ContentCut
+        override val label = CommonR.string.general_cut_action.toCaString()
+        override val group = WorkspaceActionBarItem.Group.SECONDARY
+    }
+
+    /**
+     * Open the file's folder in a new Explorer tab. Disabled at a storage root, where there is no
+     * parent to show.
+     */
+    data class OpenLocation(
+        override val isEnabled: Boolean = true,
+    ) : ViewerActionBarItem {
+        override val icon = Icons.AutoMirrored.TwoTone.OpenInNew
+        override val label = R.string.viewer_open_location_action.toCaString()
+        override val group = WorkspaceActionBarItem.Group.SECONDARY
+    }
+
+    /**
+     * Delete the file. [trashEnabled] only drives the icon and the destructive tint - whether the
+     * file actually reaches the trash is decided by the delete executor, not here.
+     */
+    data class Delete(
+        val trashEnabled: Boolean = false,
+    ) : ViewerActionBarItem {
+        override val icon = if (trashEnabled) Icons.TwoTone.Delete else Icons.TwoTone.DeleteForever
+        override val label = CommonR.string.general_delete_action.toCaString()
+        override val group = WorkspaceActionBarItem.Group.SECONDARY
+        override val isDestructive = !trashEnabled
     }
 }

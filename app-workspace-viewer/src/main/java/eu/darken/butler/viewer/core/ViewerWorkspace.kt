@@ -22,8 +22,14 @@ import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.pkgs.PkgRepo
 import eu.darken.butler.common.pkgs.apk.ApkArchiveParser
 import eu.darken.butler.common.pkgs.current
+import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.user.UserManager2
+import eu.darken.butler.viewer.core.operations.DeleteOperation
+import eu.darken.butler.viewer.core.operations.ViewerCommand
 import eu.darken.butler.workspace.contracts.viewer.ViewerArguments
+import eu.darken.butler.workspace.core.operations.IssueHandler
+import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceDisplay
 import eu.darken.butler.workspace.core.WorkspaceFactory
@@ -59,6 +65,9 @@ class ViewerWorkspace @AssistedInject constructor(
     private val pkgRepo: PkgRepo,
     private val userManager2: UserManager2,
     private val pdfPreviewLoader: PdfPreviewLoader,
+    private val operationsManager: OperationsManager,
+    private val issueHandler: IssueHandler,
+    private val deleteOperationFactory: DeleteOperation.Factory,
 ) : Workspace<ViewerArguments> {
 
     private val tag = logTag("Viewer", "Workspace", id.shortTag)
@@ -125,6 +134,28 @@ class ViewerWorkspace @AssistedInject constructor(
     }
 
     /**
+     * Submits the delete and returns its operation id. The operation may already have finished by
+     * the time this returns, so a caller waiting on the outcome has to be listening beforehand
+     * rather than starting from the returned id.
+     */
+    suspend fun delete(forcePermDelete: Boolean): Operation.Id {
+        log(tag, INFO) { "delete(forcePermDelete=$forcePermDelete) for $filePath" }
+        val executable = deleteOperationFactory.create(
+            workspaceId = id,
+            command = ViewerCommand.Delete(
+                targets = setOf(filePath),
+                options = ViewerCommand.Delete.Options(forcePermDelete = forcePermDelete),
+            ),
+        )
+        return operationsManager.submit(executable)
+    }
+
+    fun resolveConflict(operationId: Operation.Id, resolution: PathActionIssue.Resolution) {
+        log(tag, INFO) { "resolveConflict($operationId, $resolution)" }
+        scope.launch { issueHandler.resolveIssue(operationId, resolution) }
+    }
+
+    /**
      * The creation arguments verbatim: a viewer holds no state beyond its file path, and the caller
      * has to survive. Pause captures these and rebuilds the workspace from them, so dropping the
      * caller would resume a drill-down as a tab - outside its ownership unit and no longer closing
@@ -166,13 +197,13 @@ class ViewerWorkspace @AssistedInject constructor(
         val rejection = validate(lookup)
         if (rejection != null) {
             log(tag, WARN) { "Rejecting $filePath: $rejection" }
-            stateFlow.value = State(content = ViewerContent.Failed(rejection), fileInfo = fileInfo)
+            stateFlow.value = State(content = ViewerContent.Failed(rejection), fileInfo = fileInfo, lookup = lookup)
             return
         }
 
         val mime = MimeInfo.fromFileName(lookup.name)
         if (mime.isApk) {
-            loadApk(mime, fileInfo)
+            loadApk(mime, fileInfo, lookup)
             return
         }
 
@@ -182,17 +213,17 @@ class ViewerWorkspace @AssistedInject constructor(
             val pageCount = pdfPreviewLoader.pageCount(filePath)
             stateFlow.value = if (pageCount == null) {
                 log(tag, WARN) { "$filePath is a PDF that cannot be rendered" }
-                State(content = ViewerContent.Unsupported(mime), fileInfo = fileInfo)
+                State(content = ViewerContent.Unsupported(mime), fileInfo = fileInfo, lookup = lookup)
             } else {
                 log(tag, INFO) { "$filePath is a PDF with $pageCount page(s)" }
-                State(content = ViewerContent.PdfPreview(mime, pageCount), fileInfo = fileInfo)
+                State(content = ViewerContent.PdfPreview(mime, pageCount), fileInfo = fileInfo, lookup = lookup)
             }
             return
         }
 
         if (!mime.isImage) {
             log(tag, INFO) { "$filePath is not an image ($mime)" }
-            stateFlow.value = State(content = ViewerContent.Unsupported(mime), fileInfo = fileInfo)
+            stateFlow.value = State(content = ViewerContent.Unsupported(mime), fileInfo = fileInfo, lookup = lookup)
             return
         }
 
@@ -211,7 +242,7 @@ class ViewerWorkspace @AssistedInject constructor(
                 if (!mime.isVectorImage) {
                     val error = ViewerUndecodableImageException(filePath)
                     log(tag, WARN) { "Rejecting $filePath: $error" }
-                    stateFlow.value = State(content = ViewerContent.Failed(error), fileInfo = fileInfo)
+                    stateFlow.value = State(content = ViewerContent.Failed(error), fileInfo = fileInfo, lookup = lookup)
                     return
                 }
                 ViewerFileInfo.ImageInfo(format = mime.rawType)
@@ -220,7 +251,7 @@ class ViewerWorkspace @AssistedInject constructor(
             is ProbeResult.ProbeFailed -> {
                 // A stream that cannot be opened or read is a real failure for any format.
                 log(tag, WARN) { "Probing $filePath failed: ${probe.error.asLog()}" }
-                stateFlow.value = State(content = ViewerContent.Failed(probe.error), fileInfo = fileInfo)
+                stateFlow.value = State(content = ViewerContent.Failed(probe.error), fileInfo = fileInfo, lookup = lookup)
                 return
             }
         }
@@ -228,15 +259,16 @@ class ViewerWorkspace @AssistedInject constructor(
         stateFlow.value = State(
             content = ViewerContent.Image(mime),
             fileInfo = fileInfo.copy(imageInfo = imageInfo),
+            lookup = lookup,
         )
     }
 
-    private suspend fun loadApk(mime: MimeInfo, fileInfo: ViewerFileInfo) {
+    private suspend fun loadApk(mime: MimeInfo, fileInfo: ViewerFileInfo, lookup: APathLookup<*>) {
         val apkInfo = apkArchiveParser.parseFile(filePath)
         if (apkInfo == null) {
             val error = ViewerApkParseException(filePath)
             log(tag, WARN) { "Rejecting $filePath: $error" }
-            stateFlow.value = State(content = ViewerContent.Failed(error), fileInfo = fileInfo)
+            stateFlow.value = State(content = ViewerContent.Failed(error), fileInfo = fileInfo, lookup = lookup)
             return
         }
 
@@ -270,6 +302,7 @@ class ViewerWorkspace @AssistedInject constructor(
         stateFlow.value = State(
             content = ViewerContent.Apk(mime = mime, apkInfo = apkInfo, installState = installState),
             fileInfo = fileInfo,
+            lookup = lookup,
         )
     }
 
@@ -309,6 +342,11 @@ class ViewerWorkspace @AssistedInject constructor(
     data class State(
         val content: ViewerContent = ViewerContent.Loading,
         val fileInfo: ViewerFileInfo? = null,
+        /**
+         * The lookup [fileInfo] was built from. Retained because the clipboard stores lookups, not
+         * paths - keeping this one spares a second gateway round trip when the user copies or cuts.
+         */
+        val lookup: APathLookup<*>? = null,
     )
 
     @AssistedFactory

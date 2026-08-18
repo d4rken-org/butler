@@ -29,7 +29,7 @@ data class HistoryEntry(
     val pathsTruncated: Boolean,
     val paths: List<PathChange>,
 ) {
-    enum class OriginType { EXPLORER, SEARCHER, SAVER, DEVELOPER }
+    enum class OriginType { EXPLORER, SEARCHER, SAVER, DEVELOPER, VIEWER }
 
     data class PathChange(
         val path: String,

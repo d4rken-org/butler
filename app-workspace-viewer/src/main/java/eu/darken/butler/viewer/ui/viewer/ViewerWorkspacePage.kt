@@ -84,6 +84,16 @@ fun ViewerWorkspacePageHost(
             design = design,
             state = it,
             callerWorkspaceId = callerWorkspaceId,
+            onAction = { action ->
+                when (action) {
+                    ViewerActionBarItem.OpenWith -> vm.openWith()
+                    ViewerActionBarItem.Share -> vm.share()
+                    ViewerActionBarItem.Copy -> vm.copyToClipboard()
+                    ViewerActionBarItem.Cut -> vm.cutToClipboard()
+                    is ViewerActionBarItem.OpenLocation -> vm.openLocation()
+                    is ViewerActionBarItem.Delete -> vm.requestDelete()
+                }
+            },
             onOpenWith = { vm.openWith() },
             onRetry = { vm.retry() },
             onShareError = { error -> vm.shareError(error) },
@@ -109,6 +119,7 @@ fun ViewerWorkspacePage(
     callerWorkspaceId: Workspace.Id? = null,
     /** Test and preview seam for the tap-hidden chrome, mirroring [ApkFileContent]'s expand seam. */
     initiallyChromeVisible: Boolean = true,
+    onAction: (ViewerActionBarItem) -> Unit = {},
     onOpenWith: () -> Unit = {},
     onRetry: () -> Unit = {},
     onShareError: (Throwable) -> Unit = {},
@@ -327,8 +338,10 @@ fun ViewerWorkspacePage(
                             animation = BarAnimation.Slide(),
                         ) {
                             WorkspaceActionBar(
-                                actions = listOf(ViewerActionBarItem.OpenWith),
-                                onActionClick = { onOpenWith() },
+                                actions = state.actions,
+                                // The bar is generic over all workspaces; only our own items can
+                                // reach it here, and anything else would have no handler anyway.
+                                onActionClick = { clicked -> (clicked as? ViewerActionBarItem)?.let(onAction) },
                             )
                         }
                     },

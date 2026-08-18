@@ -40,6 +40,7 @@ class FileInfoCardTest : ComposeTest() {
                             groupName = "media_rw",
                         ),
                     ),
+                    initiallyExpanded = true,
                 )
             }
         }
@@ -101,6 +102,7 @@ class FileInfoCardTest : ComposeTest() {
                         modifiedAt = Clock.System.now() - 2.days,
                         createdAt = Clock.System.now() - 30.days,
                     ),
+                    initiallyExpanded = true,
                 )
             }
         }
@@ -110,23 +112,23 @@ class FileInfoCardTest : ComposeTest() {
             .assertIsDisplayed()
     }
 
+    private val multiRowFileInfo = ViewerFileInfo(
+        size = 1024L,
+        modifiedAt = Clock.System.now() - 2.days,
+        permissions = Permissions(0b110_100_100),
+        ownership = Ownership(
+            userId = 1000L,
+            groupId = 1000L,
+            userName = "media_rw",
+            groupName = "media_rw",
+        ),
+    )
+
     @Test
     fun `collapsing keeps the first row and hides the rest`() {
         composeTestRule.setContent {
             PreviewWrapper {
-                FileInfoCard(
-                    fileInfo = ViewerFileInfo(
-                        size = 1024L,
-                        modifiedAt = Clock.System.now() - 2.days,
-                        permissions = Permissions(0b110_100_100),
-                        ownership = Ownership(
-                            userId = 1000L,
-                            groupId = 1000L,
-                            userName = "media_rw",
-                            groupName = "media_rw",
-                        ),
-                    ),
-                )
+                FileInfoCard(fileInfo = multiRowFileInfo, initiallyExpanded = true)
             }
         }
 
@@ -140,6 +142,30 @@ class FileInfoCardTest : ComposeTest() {
         composeTestRule
             .onNodeWithText(context.getString(R.string.viewer_info_owner_label))
             .assertDoesNotExist()
+    }
+
+    @Test
+    fun `the card starts collapsed and expands on demand`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                FileInfoCard(fileInfo = multiRowFileInfo)
+            }
+        }
+
+        composeTestRule
+            .onNodeWithText(context.getString(R.string.viewer_info_size_label))
+            .assertIsDisplayed()
+        composeTestRule
+            .onNodeWithText(context.getString(R.string.viewer_info_owner_label))
+            .assertDoesNotExist()
+
+        composeTestRule
+            .onNodeWithContentDescription(context.getString(R.string.viewer_info_expand_action))
+            .performClick()
+
+        composeTestRule
+            .onNodeWithText(context.getString(R.string.viewer_info_owner_label))
+            .assertIsDisplayed()
     }
 
     @Test

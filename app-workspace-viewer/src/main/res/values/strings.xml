@@ -6,6 +6,13 @@
     <string name="viewer_toolbar_folder_label">Folder</string>
     <string name="viewer_back_action">Back</string>
 
+    <!-- Action bar -->
+    <string name="viewer_open_location_action">Open location</string>
+    <string name="viewer_clipboard_copied">%1$s copied. Paste it in an Explorer tab.</string>
+    <string name="viewer_clipboard_cut">%1$s cut. Paste it in an Explorer tab to move it.</string>
+    <string name="viewer_share_failed_label">Couldn\'t share this file</string>
+    <string name="viewer_share_failed_description">%1$s can\'t be handed to another app. That happens with files that need root or ADB access, and with files that are no longer there.</string>
+
     <!-- File info card -->
     <string name="viewer_info_size_label">Size</string>
     <string name="viewer_info_modified_label">Modified</string>

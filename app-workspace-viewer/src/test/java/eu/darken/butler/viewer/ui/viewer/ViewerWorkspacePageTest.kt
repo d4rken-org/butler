@@ -15,6 +15,7 @@ import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
+import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.viewer.R
 import eu.darken.butler.viewer.core.ViewerContent
 import eu.darken.butler.viewer.core.ViewerFileInfo
@@ -30,7 +31,7 @@ class ViewerWorkspacePageTest : ComposeTest() {
 
     @Test
     fun `the action bar hands open-with back to the caller`() {
-        var openWithCount = 0
+        val clicked = mutableListOf<ViewerActionBarItem>()
         composeTestRule.setContent {
             PreviewWrapper {
                 ViewerWorkspacePage(
@@ -44,7 +45,7 @@ class ViewerWorkspacePageTest : ComposeTest() {
                         path = LocalPath.build("/storage/emulated/0/DCIM/photo.jpg"),
                         imageSource = null,
                     ),
-                    onOpenWith = { openWithCount++ },
+                    onAction = { clicked.add(it) },
                 )
             }
         }
@@ -53,7 +54,40 @@ class ViewerWorkspacePageTest : ComposeTest() {
             .onNodeWithContentDescription(context.getString(R.string.viewer_open_with_action))
             .performClick()
 
-        openWithCount shouldBe 1
+        clicked shouldBe listOf(ViewerActionBarItem.OpenWith)
+    }
+
+    @Test
+    fun `a file at a storage root cannot open its location`() {
+        // LocalPath.build("/") has no parent, so there is no folder to show in an Explorer tab.
+        val actions = viewerActions(path = LocalPath.build("/"), trashEnabled = false)
+
+        actions.filterIsInstance<ViewerActionBarItem.OpenLocation>().single().isEnabled shouldBe false
+        viewerActions(path = LocalPath.build("/storage/emulated/0/photo.jpg"), trashEnabled = false)
+            .filterIsInstance<ViewerActionBarItem.OpenLocation>().single().isEnabled shouldBe true
+    }
+
+    @Test
+    fun `delete is only destructive when it bypasses the trash`() {
+        val path = LocalPath.build("/storage/emulated/0/photo.jpg")
+
+        viewerActions(path, trashEnabled = true)
+            .filterIsInstance<ViewerActionBarItem.Delete>().single().isDestructive shouldBe false
+        viewerActions(path, trashEnabled = false)
+            .filterIsInstance<ViewerActionBarItem.Delete>().single().isDestructive shouldBe true
+    }
+
+    @Test
+    fun `a file the trash cannot hold reads as a permanent delete`() {
+        // The trash only takes LocalPaths, so the setting being on says nothing about a SAF file.
+        // The icon has to agree with the confirmation dialog, which asks the same shared function.
+        val safPath = SAFPath.build(
+            "content://com.android.externalstorage.documents/tree/primary%3ADownload",
+            "photo.jpg",
+        )
+
+        viewerActions(safPath, trashEnabled = true)
+            .filterIsInstance<ViewerActionBarItem.Delete>().single().isDestructive shouldBe true
     }
 
     private fun unsupportedState(content: ViewerContent) = ViewerWorkspaceViewModel.State.Ready(

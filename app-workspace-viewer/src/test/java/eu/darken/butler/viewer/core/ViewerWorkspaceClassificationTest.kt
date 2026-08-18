@@ -113,6 +113,9 @@ class ViewerWorkspaceClassificationTest : BaseTest() {
         pkgRepo = pkgRepo,
         userManager2 = userManager2,
         pdfPreviewLoader = pdfPreviewLoader,
+        operationsManager = mockk(relaxed = true),
+        issueHandler = mockk(relaxed = true),
+        deleteOperationFactory = mockk(relaxed = true),
     )
 
     @Test

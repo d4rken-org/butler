@@ -20,7 +20,7 @@ object ViewerWorkspacePageHostEntry : WorkspacePageHostEntry {
 
     @Composable
     override fun Overlays(id: Workspace.Id, design: WorkspaceDesign) {
-        ViewerWorkspaceOverlaysHost(id = id)
+        ViewerWorkspaceOverlaysHost(id = id, design = design)
     }
 
     @Module

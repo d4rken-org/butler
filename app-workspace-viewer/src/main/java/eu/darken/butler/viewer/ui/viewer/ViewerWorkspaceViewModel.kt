@@ -16,8 +16,11 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.MimeInfo
+import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.common.flow.SingleEventFlow
+import eu.darken.butler.common.issue.Issue
+import eu.darken.butler.common.trash.TrashSettings
 import eu.darken.butler.common.ui.ViewModel3
 import eu.darken.butler.viewer.R
 import eu.darken.butler.viewer.core.ApkIconExporter
@@ -27,12 +30,22 @@ import eu.darken.butler.viewer.core.decideIconSave
 import eu.darken.butler.viewer.core.PdfPreviewLoader
 import eu.darken.butler.viewer.core.ViewerContent
 import eu.darken.butler.viewer.core.ViewerFileInfo
+import eu.darken.butler.viewer.core.ViewerFileGoneException
 import eu.darken.butler.viewer.core.ViewerIconUnavailableException
+import eu.darken.butler.viewer.core.ViewerShareUnavailableException
 import eu.darken.butler.viewer.core.ViewerWorkspace
+import eu.darken.butler.workspace.contracts.explorer.ExplorerArguments
 import eu.darken.butler.workspace.contracts.explorer.PickerConfig
 import eu.darken.butler.workspace.core.NoAppForFileException
 import eu.darken.butler.workspace.core.OpenWithIntentUseCase
+import eu.darken.butler.workspace.core.ShareIntentUseCase
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.clipboard.ClipboardClip
+import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
+import eu.darken.butler.workspace.core.createAndFocus
+import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.operations.OperationsManager
+import eu.darken.butler.workspace.core.operations.partitionByTrashSupport
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceProvider
@@ -41,7 +54,10 @@ import eu.darken.butler.workspace.core.handleResult
 import eu.darken.butler.workspace.core.launchPicker
 import eu.darken.butler.workspace.ui.page.WorkspacePageChrome
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -59,6 +75,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import me.saket.telephoto.zoomable.ZoomableImageSource
+import eu.darken.butler.common.R as CommonR
 import eu.darken.butler.workspace.R as WorkspaceR
 
 @HiltViewModel(assistedFactory = ViewerWorkspaceViewModel.Factory::class)
@@ -71,6 +88,10 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
     private val imageSourceFactory: GatewayZoomableImageSource.Factory,
     private val pdfPreviewLoader: PdfPreviewLoader,
     private val openWithIntentUseCase: OpenWithIntentUseCase,
+    private val shareIntentUseCase: ShareIntentUseCase,
+    private val clipboardRepo: ClipboardRepo,
+    private val trashSettings: TrashSettings,
+    private val operationsManager: OperationsManager,
     private val apkIconExporter: ApkIconExporter,
     private val filenameValidator: FilenameValidator,
     chromeFactory: WorkspacePageChrome.Factory,
@@ -168,7 +189,8 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
         renderErrorFlow,
         imageSourceFlow,
         pdfPageFlow,
-    ) { snapshot, renderError, imageSource, pdfPage ->
+        trashSettings.enabled.flow,
+    ) { snapshot, renderError, imageSource, pdfPage, trashEnabled ->
         val (path, workspaceState) = snapshot
         val content = renderError?.let { ViewerContent.Failed(it) } ?: workspaceState.content
         State.Ready(
@@ -177,6 +199,7 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
             path = path,
             imageSource = imageSource.takeIf { content is ViewerContent.Image },
             pdfPage = pdfPage.takeIf { content is ViewerContent.PdfPreview },
+            actions = viewerActions(path = path, trashEnabled = trashEnabled),
         ) as State
     }
         .catch { emit(State.Error(it)) }
@@ -302,6 +325,177 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
         )
         if (!launched) errorEvents.emit(NoAppForFileException(path.name))
     }
+
+    fun share() = launch {
+        val target = workspaceSource.first().filePath
+        log(tag, INFO) { "share($target)" }
+        val item = object : ShareIntentUseCase.Item {
+            override val path = target
+            override val mimeType = MimeInfo.fromFileName(target.name).rawType
+            override val displayName = target.name
+        }
+        val launched = shareIntentUseCase.shareWithChooser(
+            items = listOf(item),
+            chooserTitle = context.getString(CommonR.string.general_share_single_title, target.name),
+        )
+        if (!launched) errorEvents.emit(ViewerShareUnavailableException(target))
+    }
+
+    fun copyToClipboard() = clip(ClipboardClip.Paths.Mode.COPY)
+
+    fun cutToClipboard() = clip(ClipboardClip.Paths.Mode.CUT)
+
+    /**
+     * The clipboard stores lookups, so this reuses the one the workspace already resolved. A state
+     * without one means the file was never successfully looked up, i.e. there is nothing to clip.
+     */
+    private fun clip(mode: ClipboardClip.Paths.Mode) = launch {
+        val workspace = workspaceSource.first()
+        val lookup = workspace.state.value.lookup
+        if (lookup == null) {
+            log(tag, WARN) { "clip($mode) without a lookup for ${workspace.filePath}" }
+            errorEvents.emit(ViewerFileGoneException(workspace.filePath))
+            return@launch
+        }
+        log(tag, INFO) { "clip($mode): ${lookup.lookedUp}" }
+        clipboardRepo.add(
+            ClipboardClip.Paths(
+                mode = mode,
+                origin = id,
+                paths = listOf(lookup),
+            )
+        )
+        // The viewer shows no clipboard bar of its own, so without this the tap looks like a no-op.
+        val message = when (mode) {
+            ClipboardClip.Paths.Mode.COPY -> R.string.viewer_clipboard_copied
+            ClipboardClip.Paths.Mode.CUT -> R.string.viewer_clipboard_cut
+        }
+        toastEvents.emit(caString { it.getString(message, lookup.name) })
+    }
+
+    /** Opens the file's folder as an Explorer tab of its own, beside the viewer rather than over it. */
+    fun openLocation() = launch {
+        val path = workspaceSource.first().filePath
+        val parent = path.parent
+        if (parent == null) {
+            log(tag, WARN) { "openLocation() without a parent for $path" }
+            return@launch
+        }
+        log(tag, INFO) { "openLocation($parent)" }
+        workspaceRemote.createAndFocus(
+            type = Workspace.Type.EXPLORER,
+            arguments = ExplorerArguments.Default(startPath = parent),
+            sourceWorkspaceId = id,
+        )
+    }
+
+    /** Non-null while the user is being asked to confirm the delete. */
+    private val deleteRequestFlow = MutableStateFlow<Set<APath<*>>?>(null)
+    val deleteRequest: StateFlow<Set<APath<*>>?> = deleteRequestFlow
+
+    /** Drives the confirmation dialog's trash-vs-permanent wording, same source as the delete icon. */
+    val trashEnabled: StateFlow<Boolean> = trashSettings.enabled.flow
+        .stateIn(vmScope, SharingStarted.WhileSubscribed(5_000), false)
+
+    /** Reserved synchronously so a double tap cannot submit the delete twice. */
+    private val deleteInFlight = MutableStateFlow(false)
+
+    /**
+     * The conflict on display and the operation waiting on it, as one value.
+     *
+     * Deliberately one flow and eagerly started: as two WhileSubscribed flows, the id half had no
+     * subscriber of its own - only the issue half is collected, for the sheet - so reading its
+     * `.value` always returned the initial null and no resolution ever reached the operation.
+     */
+    private val pendingConflict: StateFlow<PendingConflict?> = chrome.pendingConflicts
+        .map { conflicts ->
+            conflicts.entries.firstOrNull()?.let { PendingConflict(operationId = it.key, issue = it.value) }
+        }
+        .stateIn(vmScope, SharingStarted.Eagerly, null)
+
+    val issueState: StateFlow<Issue?> = pendingConflict
+        .map { it?.issue }
+        .stateIn(vmScope, SharingStarted.Eagerly, null)
+
+    fun requestDelete() = launch {
+        val path = workspaceSource.first().filePath
+        log(tag, INFO) { "requestDelete($path)" }
+        deleteRequestFlow.value = setOf(path)
+    }
+
+    fun dismissDelete() {
+        log(tag) { "dismissDelete()" }
+        deleteRequestFlow.value = null
+    }
+
+    /**
+     * Closes the viewer once the delete actually succeeded. The workspace does not re-read the file
+     * after an operation, so a viewer left open would keep rendering a file that no longer exists -
+     * but a failed or cancelled delete must leave it exactly where it was.
+     */
+    fun confirmDelete(forcePermDelete: Boolean) {
+        if (!deleteInFlight.compareAndSet(expect = false, update = true)) {
+            log(tag, WARN) { "A delete is already in progress, ignoring" }
+            return
+        }
+        deleteRequestFlow.value = null
+
+        launch {
+            try {
+                val workspace = workspaceSource.first()
+                // Attached before the submit and undispatched: `completedOperations` has no replay,
+                // so a delete that finishes quickly would otherwise complete unobserved and leave
+                // the viewer showing a deleted file. The id is not known until submit returns, so it
+                // arrives through this gate - matching on the workspace alone would also accept a
+                // delete this ViewModel did not start.
+                val submittedId = CompletableDeferred<Operation.Id>()
+                val completion = async(start = CoroutineStart.UNDISPATCHED) {
+                    operationsManager.completedOperations.first { it.id == submittedId.await() }
+                }
+                submittedId.complete(workspace.delete(forcePermDelete = forcePermDelete))
+
+                val snapshot = completion.await()
+                val completed = snapshot.state
+                // Nothing in the viewer can dismiss a finished operation - it has no operations bar -
+                // so it would sit in the manager until the tab closes. History already has it.
+                operationsManager.remove(snapshot.id)
+
+                val error = completed.error
+                if (error != null) {
+                    // The viewer has no operations bar to carry the failure, so it reports it here.
+                    log(tag, WARN) { "Delete failed, leaving the viewer open: ${error.asLog()}" }
+                    if (error !is CancellationException) errorEvents.emit(error)
+                    return@launch
+                }
+                // A delete the user resolved by skipping succeeds without removing anything, and
+                // the file is still there to look at.
+                if (completed.report?.affectedPaths.isNullOrEmpty()) {
+                    log(tag, INFO) { "Delete removed nothing, leaving the viewer open" }
+                    return@launch
+                }
+                log(tag, INFO) { "Delete completed, closing the viewer" }
+                workspaceRemote.execute(WorkspaceAction.Close(id))
+            } finally {
+                deleteInFlight.value = false
+            }
+        }
+    }
+
+    fun resolveIssue(resolution: PathActionIssue.Resolution) = launch {
+        val pending = pendingConflict.value
+        if (pending == null) {
+            log(tag, WARN) { "resolveIssue($resolution) with no pending issue" }
+            return@launch
+        }
+        log(tag, INFO) { "resolveIssue(${pending.operationId}, $resolution)" }
+        workspaceSource.first().resolveConflict(pending.operationId, resolution)
+    }
+
+    /** A conflict and the operation blocked on it, kept together so they cannot get out of step. */
+    data class PendingConflict(
+        val operationId: Operation.Id,
+        val issue: Issue,
+    )
 
     fun showIconPreview() {
         // One live render at a time, keyed by the job itself: a render started for a dialog that has
@@ -481,6 +675,7 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
             val path: APath<*>,
             val imageSource: ZoomableImageSource?,
             val pdfPage: PdfPage? = null,
+            val actions: List<ViewerActionBarItem> = viewerActions(path, trashEnabled = false),
         ) : State
     }
 
@@ -489,6 +684,27 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
         fun create(id: Workspace.Id): ViewerWorkspaceViewModel
     }
 }
+
+/**
+ * The viewer's action bar, in display order. Every entry acts on the one file the tab is showing,
+ * so the only thing that varies is whether each is applicable: there is no parent folder to open at
+ * a storage root, and delete only reads as recoverable when this file can really reach the trash.
+ *
+ * The trash question goes through [partitionByTrashSupport] rather than the setting alone: the
+ * setting can be on for a file the trash cannot hold, and the confirmation dialog asks the same
+ * function - an icon promising a recoverable delete over a dialog promising a permanent one is the
+ * drift that shared function exists to prevent.
+ */
+internal fun viewerActions(path: APath<*>, trashEnabled: Boolean): List<ViewerActionBarItem> = listOf(
+    ViewerActionBarItem.OpenWith,
+    ViewerActionBarItem.Share,
+    ViewerActionBarItem.Copy,
+    ViewerActionBarItem.Cut,
+    ViewerActionBarItem.OpenLocation(isEnabled = path.parent != null),
+    ViewerActionBarItem.Delete(
+        trashEnabled = trashEnabled && partitionByTrashSupport(setOf(path)).trashable.isNotEmpty(),
+    ),
+)
 
 /**
  * Where a page step lands, or null when it would not move. [displayedIndex] is clamped first: a
