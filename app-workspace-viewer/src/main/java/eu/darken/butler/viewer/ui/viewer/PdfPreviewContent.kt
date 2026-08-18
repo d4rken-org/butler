@@ -36,6 +36,7 @@ import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
@@ -153,12 +154,17 @@ fun PdfPageBar(
                     )
                 }
                 Text(
-                    modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+                    // Unweighted children are measured first, so the buttons always keep their touch
+                    // targets while the text takes only the remainder.
+                    modifier = Modifier
+                        .weight(1f, fill = false)
+                        .semantics { liveRegion = LiveRegionMode.Polite },
                     text = stringResource(R.string.viewer_pdf_page_indicator, pageIndex + 1, pageCount),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                     maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
                 IconButton(
                     onClick = onNextPage,

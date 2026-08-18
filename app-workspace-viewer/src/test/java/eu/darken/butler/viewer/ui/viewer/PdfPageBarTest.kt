@@ -1,16 +1,25 @@
 package eu.darken.butler.viewer.ui.viewer
 
 import android.content.Context
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.assertHasClickAction
+import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertTouchHeightIsEqualTo
+import androidx.compose.ui.test.assertTouchWidthIsEqualTo
+import androidx.compose.ui.test.assertWidthIsAtLeast
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.unit.dp
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.viewer.R
@@ -107,6 +116,28 @@ class PdfPageBarTest : ComposeTest() {
 
         nextCount shouldBe 1
         previousCount shouldBe 1
+    }
+
+    @Test
+    fun `a narrow bar keeps both controls at full touch target size`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                Box(modifier = Modifier.width(160.dp)) {
+                    PdfPageBar(pageIndex = 998, pageCount = 1000)
+                }
+            }
+        }
+
+        listOf(previousLabel, nextLabel).forEach { label ->
+            composeTestRule.onNodeWithContentDescription(label)
+                // 40dp is the button itself, the 48dp it expands to is what a finger has to hit.
+                .assertWidthIsAtLeast(40.dp)
+                .assertHeightIsAtLeast(40.dp)
+                .assertTouchWidthIsEqualTo(48.dp)
+                .assertTouchHeightIsEqualTo(48.dp)
+                .assertIsEnabled()
+                .assertHasClickAction()
+        }
     }
 
     @Test

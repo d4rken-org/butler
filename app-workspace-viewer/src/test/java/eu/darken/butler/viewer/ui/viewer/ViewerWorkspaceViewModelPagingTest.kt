@@ -81,9 +81,16 @@ class ViewerWorkspaceViewModelPagingTest : BaseTest() {
         Dispatchers.resetMain()
     }
 
-    private fun makeViewModel(): ViewerWorkspaceViewModel {
+    /**
+     * [pdfPageState] feeds the page render branch of the ViewModel, [workspaceState] the content it
+     * displays. They are the same flow in production; handing the branch its own lets a test pin the
+     * window where the content is already a PDF but no page has been rendered yet.
+     */
+    private fun makeViewModel(
+        pdfPageState: MutableStateFlow<ViewerWorkspace.State> = workspaceState,
+    ): ViewerWorkspaceViewModel {
         val workspace = mockk<ViewerWorkspace>().apply {
-            every { state } returns workspaceState
+            every { state } returnsMany listOf(workspaceState, pdfPageState)
             every { filePath } returns this@ViewerWorkspaceViewModelPagingTest.filePath
             every { info } returns MutableStateFlow(
                 Workspace.Info(id = workspaceId, type = Workspace.Type.VIEWER, title = "manual.pdf".toCaString()),
@@ -154,6 +161,24 @@ class ViewerWorkspaceViewModelPagingTest : BaseTest() {
         gate.complete(Unit)
         vm.nextPdfPage()
         requestedPages shouldBe listOf(0, 1)
+    }
+
+    @Test
+    fun `stepping before a page is on display is ignored`() = runTest2 {
+        val pdfPageState = MutableStateFlow(ViewerWorkspace.State(content = ViewerContent.Loading))
+        val vm = makeViewModel(pdfPageState = pdfPageState)
+        startCollecting(vm)
+
+        vm.readyState.content shouldBe ViewerContent.PdfPreview(mime, pageCount = 3)
+        vm.readyState.pdfPage shouldBe null
+
+        vm.nextPdfPage()
+        requestedPages shouldBe emptyList<Int>()
+
+        // Once the page branch catches up, the document must start at its first page, not skip one.
+        pdfPageState.value = workspaceState.value
+        requestedPages shouldBe listOf(0)
+        vm.readyState.pdfPage!!.index shouldBe 0
     }
 
     @Test

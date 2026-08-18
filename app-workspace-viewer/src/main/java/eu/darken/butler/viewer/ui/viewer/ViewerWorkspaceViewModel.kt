@@ -188,15 +188,18 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
     private fun movePdfPage(delta: Int) {
         val ready = state.value as? State.Ready ?: return
         val pdf = ready.content as? ViewerContent.PdfPreview ?: return
-        val displayed = ready.pdfPage
+        val displayed = ready.pdfPage ?: run {
+            log(tag) { "movePdfPage($delta) ignored, no page on display yet" }
+            return
+        }
         // A native page render ignores cancellation and keeps allocating, so a second one may only
         // start once the current one has produced a bitmap or reported its failure.
-        if (displayed != null && displayed.bitmap == null && !displayed.failed) {
+        if (displayed.bitmap == null && !displayed.failed) {
             log(tag) { "movePdfPage($delta) ignored, page ${displayed.index} is still rendering" }
             return
         }
         val target = resolvePdfNavTarget(
-            displayedIndex = displayed?.index ?: 0,
+            displayedIndex = displayed.index,
             pageCount = pdf.pageCount,
             delta = delta,
         ) ?: return
