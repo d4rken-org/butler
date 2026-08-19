@@ -39,6 +39,8 @@ import androidx.navigation3.ui.NavDisplay
 import dagger.hilt.android.AndroidEntryPoint
 import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.compose.LocalAvoidDisplayCutout
+import eu.darken.butler.common.compose.LocalUserActivity
+import eu.darken.butler.common.compose.UserActivityTracker
 import eu.darken.butler.common.compose.tour.GuidedTourController
 import eu.darken.butler.common.compose.tour.GuidedTourHost
 import eu.darken.butler.common.compose.tour.LocalGuidedTourController
@@ -87,6 +89,7 @@ class MainActivity : Activity2() {
     @Inject lateinit var notificationPermissionGate: NotificationPermissionGate
     @Inject lateinit var operationFgsCoordinator: OperationFgsCoordinator
     @Inject lateinit var guidedTourController: GuidedTourController
+    @Inject lateinit var userActivityTracker: UserActivityTracker
 
     private val notificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -153,7 +156,10 @@ class MainActivity : Activity2() {
                     window.decorView.setBackgroundColor(backgroundColor.toArgb())
                 }
 
-                CompositionLocalProvider(LocalNavigationController provides navCtrl) {
+                CompositionLocalProvider(
+                    LocalNavigationController provides navCtrl,
+                    LocalUserActivity provides userActivityTracker,
+                ) {
                     ErrorEventHandler(vm)
                     NavigationEventHandler(vm)
 
@@ -290,6 +296,13 @@ class MainActivity : Activity2() {
         super.onResume()
         vm.checkUpgrades()
         handleSavedIntent()
+        // Returning to the app counts as activity, even without touching anything yet.
+        userActivityTracker.onUserInteraction()
+    }
+
+    override fun onUserInteraction() {
+        super.onUserInteraction()
+        userActivityTracker.onUserInteraction()
     }
 
     override fun onUserLeaveHint() {

@@ -11,6 +11,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.preferredFrameRate
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -30,9 +31,12 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
+import kotlin.random.Random
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 private fun resolveHat(hat: ButlerMascotMode.Hat): Int? {
@@ -55,6 +59,16 @@ private fun resolveHat(hat: ButlerMascotMode.Hat): Int? {
         }
     }
 }
+
+// Every Lottie frame costs a full-window redraw, so vote for a lower rate while animating. Honored
+// where the panel can drop that far (Pixel 8: 60Hz -> 30Hz), ignored where the current rate is
+// already a multiple of it (Galaxy Tab A9+ stays at 90Hz).
+private const val MASCOT_FRAME_RATE = 30f
+
+// No touch or key event for this long means nobody is watching the mascot
+private val MASCOT_IDLE_AFTER = 30.seconds
+
+private fun Duration.jittered(): Duration = this + Random.nextLong(inWholeMilliseconds + 1).milliseconds
 
 private val randomCyclingSequences: List<List<Int>> = listOf(
     listOf(R.raw.mascot_lottie_wink),
@@ -100,16 +114,25 @@ fun ButlerMascot(
         )
 
         is Animated -> {
+            val userActivity = LocalUserActivity.current
             val animatedDescription = contentDescription ?: stringResource(variant.description)
-            val semanticsModifier = Modifier.fillMaxSize().semantics { this.contentDescription = animatedDescription }
+            val semanticsModifier = Modifier
+                .fillMaxSize()
+                .preferredFrameRate(MASCOT_FRAME_RATE)
+                .semantics { this.contentDescription = animatedDescription }
 
             when (variant) {
                 is Animated.RandomCycling -> {
                     val context = LocalContext.current
                     val animatable = rememberLottieAnimatable()
 
-                    LaunchedEffect(variant.speed) {
+                    LaunchedEffect(variant, userActivity) {
+                        val isUserActive = userActivity.isActive(MASCOT_IDLE_AFTER)
                         while (currentCoroutineContext().isActive) {
+                            // A Lottie frame invalidates the whole Compose view, so an unattended
+                            // screen would redraw at panel rate forever. Rest until someone looks.
+                            isUserActive.first { it }
+
                             // Load on demand, one at a time - parsing all upfront saturates the CPU during startup
                             var animated = false
                             for (resId in randomCyclingSequences.random()) {
@@ -121,7 +144,13 @@ fun ButlerMascot(
                                     speed = variant.speed,
                                 )
                             }
-                            if (!animated) delay(1.seconds)
+                            if (!animated) {
+                                delay(1.seconds)
+                                continue
+                            }
+                            if (!variant.loop) break
+                            // Jittered so several on-screen mascots don't fall into lockstep
+                            delay(variant.loopDelay.jittered())
                         }
                     }
 
@@ -189,10 +218,12 @@ fun ButlerMascot(
 
                     val animatable = rememberLottieAnimatable()
 
-                    LaunchedEffect(composition, variant.loop, variant.loopDelay, variant.speed) {
+                    LaunchedEffect(composition, variant.loop, variant.loopDelay, variant.speed, userActivity) {
                         composition ?: return@LaunchedEffect
                         if (variant.loop) {
+                            val isUserActive = userActivity.isActive(MASCOT_IDLE_AFTER)
                             while (currentCoroutineContext().isActive) {
+                                isUserActive.first { it }
                                 animatable.animate(
                                     composition = composition,
                                     iterations = 1,
@@ -272,7 +303,7 @@ sealed interface ButlerMascotMode {
 
         data class RandomCycling(
             override val loop: Boolean = true,
-            override val loopDelay: Duration = 1.seconds,
+            override val loopDelay: Duration = 15.seconds,
             override val speed: Float = 1f,
             override val hat: Hat = Hat.AUTO,
         ) : Animated {
