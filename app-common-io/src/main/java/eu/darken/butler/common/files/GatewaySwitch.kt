@@ -62,6 +62,38 @@ class GatewaySwitch @Inject constructor(
         return action(targetGateway, path)
     }
 
+    /**
+     * Runs [operation] on the type-mapped path; on [Type.AUTO] a [ReadException] retries it on the
+     * alternative path.
+     *
+     * The original failure is what callers see, the fallback failure (including an unmappable
+     * alternative) is attached as a suppressed exception. Mapping the alternative happens inside the
+     * inner try for that reason: an unmappable alternative used to replace the real reason the access
+     * failed with "Can't map to SAF/LOCAL".
+     */
+    private suspend fun <R> withFallback(
+        path: APath<*>,
+        type: Type,
+        label: String,
+        operation: suspend (APath<*>) -> R,
+    ): R {
+        val mapped = path.toTargetType(type)
+        return try {
+            operation(mapped)
+        } catch (oge: ReadException) {
+            if (type != Type.AUTO) throw oge
+            log(TAG, WARN) { "$label(...): Original access failed, try alternative: ${oge.asLog()}" }
+
+            try {
+                operation(path.toAlternative())
+            } catch (e: ReadException) {
+                log(TAG, WARN) { "$label(...): Alternative access failed either: ${e.asLog()}" }
+                if (e !== oge) oge.addSuppressed(e)
+                throw oge
+            }
+        }
+    }
+
     private suspend fun resolveGatewayType(path: APath<*>): APathGateway<out APath<*>, out APathLookup<*>> {
         val gateway = when (path) {
             is SAFPath -> {
@@ -94,6 +126,12 @@ class GatewaySwitch @Inject constructor(
     }
 
     override suspend fun createSymlink(linkPath: APath<*>, targetPath: APath<*>): Boolean {
+        // The gateway is picked from the link, so a target of a different type would reach a gateway
+        // that cannot handle it at all, failing deep inside or being misinterpreted there.
+        require(linkPath::class == targetPath::class) {
+            "Can't create a symlink across path types: link=${linkPath::class.simpleName}, " +
+                "target=${targetPath::class.simpleName}"
+        }
         return useGateway(linkPath) { createSymlink(linkPath, targetPath) }
     }
 
@@ -109,45 +147,15 @@ class GatewaySwitch @Inject constructor(
         return lookup(path, options, Type.CURRENT)
     }
 
-    suspend fun lookup(path: APath<*>, options: LookupOptions, type: Type): APathLookup<APath<*>> {
-        val mapped = path.toTargetType(type)
-        return try {
-            useGateway(mapped) { lookup(path, options) }
-        } catch (oge: ReadException) {
-            if (type != Type.AUTO) throw oge
-            log(TAG, WARN) { "lookup(...): Original lookup failed, try alternative: ${oge.asLog()}" }
-
-            val fallback = path.toAlternative()
-            try {
-                useGateway(fallback) { lookup(path, options) }
-            } catch (e: ReadException) {
-                log(TAG, WARN) { "lookup(...): Alternative lookup failed either: ${e.asLog()}" }
-                throw oge
-            }
-        }
-    }
+    suspend fun lookup(path: APath<*>, options: LookupOptions, type: Type): APathLookup<APath<*>> =
+        withFallback(path, type, "lookup") { target -> useGateway(target) { lookup(it, options) } }
 
     override suspend fun lookupFiles(path: APath<*>, options: LookupOptions): List<APathLookup<APath<*>>> {
         return lookupFiles(path, options, Type.CURRENT)
     }
 
-    suspend fun lookupFiles(path: APath<*>, options: LookupOptions, type: Type): List<APathLookup<APath<*>>> {
-        val mapped = path.toTargetType(type)
-        return try {
-            useGateway(mapped) { lookupFiles(path, options) }
-        } catch (oge: ReadException) {
-            if (type != Type.AUTO) throw oge
-            log(TAG, WARN) { "lookupFiles(...): Original lookup failed, try alternative: ${oge.asLog()}" }
-
-            val fallback = path.toAlternative()
-            try {
-                useGateway(fallback) { lookupFiles(path, options) }
-            } catch (e: ReadException) {
-                log(TAG, WARN) { "lookupFiles(...): Alternative lookup failed either: ${e.asLog()}" }
-                throw oge
-            }
-        }
-    }
+    suspend fun lookupFiles(path: APath<*>, options: LookupOptions, type: Type): List<APathLookup<APath<*>>> =
+        withFallback(path, type, "lookupFiles") { target -> useGateway(target) { lookupFiles(it, options) } }
 
     @Suppress("UNCHECKED_CAST")
     override suspend fun walk(
@@ -174,17 +182,8 @@ class GatewaySwitch @Inject constructor(
         return exists(path, Type.CURRENT)
     }
 
-    suspend fun exists(path: APath<*>, type: Type): Boolean {
-        val mapped = path.toTargetType(type)
-        return try {
-            useGateway(mapped) { exists(path) }
-        } catch (e: ReadException) {
-            if (type != Type.AUTO) throw e
-
-            val fallback = path.toAlternative()
-            useGateway(fallback) { exists(path) }
-        }
-    }
+    suspend fun exists(path: APath<*>, type: Type): Boolean =
+        withFallback(path, type, "exists") { target -> useGateway(target) { exists(it) } }
 
     override suspend fun canWrite(path: APath<*>): Boolean {
         return useGateway(path) { canWrite(path) }
