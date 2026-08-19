@@ -1,11 +1,13 @@
 package eu.darken.butler.common.files.saf
 
+import android.content.ContentProviderClient
 import android.content.ContentResolver
 import android.database.MatrixCursor
 import android.net.Uri
 import android.provider.DocumentsContract
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.errors.ReadException
@@ -22,6 +24,11 @@ import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
 import io.mockk.verify
 import java.io.ByteArrayOutputStream
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
@@ -109,6 +116,15 @@ class SAFFileSystemOpsWriteTest : BaseTest() {
         every { resolver.openOutputStream(any(), any()) } answers {
             if (docs.containsKey(firstArg<Uri>().toString())) ByteArrayOutputStream() else null
         }
+
+        // existsStrict() addresses the provider through a client so it can tell "nobody answered"
+        // apart from "the provider says it's gone". This simulation always has a live provider, so
+        // the client's queries route back into the same document state.
+        val providerClient = mockk<ContentProviderClient>(relaxed = true)
+        every { providerClient.query(any(), any(), any(), any(), any()) } answers {
+            resolver.query(firstArg(), secondArg(), thirdArg(), arg(3), arg(4))
+        }
+        every { resolver.acquireUnstableContentProviderClient(any<Uri>()) } returns providerClient
 
         coEvery { locationManager.getDocFileFor(any()) } answers {
             val path = firstArg<SAFPath>()
@@ -470,5 +486,89 @@ class SAFFileSystemOpsWriteTest : BaseTest() {
 
         // The unexpected document was cleaned up rather than orphaned
         docs.values.any { it.name == "wanted.txt (1)" } shouldBe false
+    }
+
+    // ============ delete ============
+
+    @Test
+    fun `recursive delete follows the provider's documents, not their display names`() = runTest {
+        // Document ids are opaque in general: a provider may hand out an id that has nothing to do
+        // with the display name. Rebuilding a child's uri from its name (path.child(name)) then
+        // addresses a document that does not exist, and the child survives the delete.
+        val dir = path("dir")
+        registerDoc(dir, mime = dirMime)
+        val childUri = "${predictedUri(dir)}%2Fopaque-id-42"
+        docs[childUri] = Doc(name = "visible-name.txt", mime = "application/octet-stream")
+
+        ops.delete(dir, recursive = true) shouldBe true
+
+        docs.containsKey(childUri) shouldBe false
+        docs.containsKey(predictedUri(dir).toString()) shouldBe false
+    }
+
+    @Test
+    fun `a refused delete of an already-gone document counts as deleted`() = runTest {
+        val target = path("a.txt")
+        registerDoc(target)
+        every { DocumentsContract.deleteDocument(any(), any()) } answers {
+            // Providers report a failure for a document that is already gone. Here it really is gone.
+            docs.remove(secondArg<Uri>().toString())
+            false
+        }
+
+        ops.delete(target, recursive = false) shouldBe true
+    }
+
+    @Test
+    fun `a refused delete of a document that is still there fails loudly`() = runTest {
+        val target = path("a.txt")
+        registerDoc(target)
+        every { DocumentsContract.deleteDocument(any(), any()) } returns false
+
+        // Returning false would report "it wasn't there" for a delete that plainly did not happen.
+        shouldThrow<WriteException> { ops.delete(target, recursive = false) }
+        docs.containsKey(predictedUri(target).toString()) shouldBe true
+    }
+
+    @Test
+    fun `a delete that cannot verify itself raises rather than claiming success`() = runTest {
+        val target = path("a.txt")
+        registerDoc(target)
+        every { DocumentsContract.deleteDocument(any(), any()) } returns false
+        // No provider to ask: the verification query cannot answer, so absence must not be assumed.
+        every { resolver.acquireUnstableContentProviderClient(any<Uri>()) } returns null
+
+        shouldThrow<WriteException> { ops.delete(target, recursive = false) }
+    }
+
+    @Test
+    fun `a cancelled recursive delete stops instead of draining the directory`() = runTest {
+        val dir = path("dir")
+        registerDoc(dir, mime = dirMime)
+        repeat(6) { i -> registerDoc(dir.child("f$i.txt")) }
+        val firstChild = dir.child("f0.txt")
+        // Warm the lookup cache so a stale entry has something to be served from.
+        ops.lookup(firstChild, LookupOptions.BASE)
+
+        val scope = CoroutineScope(Job() + Dispatchers.Unconfined)
+        var deletes = 0
+        every { DocumentsContract.deleteDocument(any(), any()) } answers {
+            // Cancel from inside the walk: without a checkpoint per document, the loop keeps going
+            // and only the enclosing frame notices, once everything is already gone.
+            if (++deletes == 2) scope.cancel()
+            docs.remove(secondArg<Uri>().toString()) != null
+        }
+
+        val job = scope.launch { runCatching { ops.delete(dir, recursive = true) } }
+        job.join()
+
+        // Some were deleted, but the walk gave up rather than emptying the directory.
+        (docs.keys.count { it.startsWith("${predictedUri(dir)}%2F") } > 0) shouldBe true
+
+        // The children it DID delete must not stay cached. Invalidating only on a fully successful
+        // delete leaves them served from the lookup cache for up to CACHE_TTL, so a lookup of a
+        // document that is provably gone would still succeed.
+        docs.containsKey(predictedUri(firstChild).toString()) shouldBe false
+        shouldThrow<Exception> { ops.lookup(firstChild, LookupOptions.BASE) }
     }
 }

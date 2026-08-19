@@ -322,26 +322,61 @@ class SAFFileSystemOps @Inject constructor(
                 return false
             }
 
-            // If recursive and it's a directory, delete children first (post-order)
-            if (recursive && docFile.isDirectory) {
-                val children = listFiles(path)
-                children.forEach { childPath ->
-                    delete(childPath, recursive = true)
-                }
-            }
-
-            // Delete the path itself
-            val deleted = docFile.delete()
-            if (deleted) {
+            try {
+                deleteDocument(docFile, path, recursive)
+            } finally {
+                // In a finally, not only on success: a walk that was cancelled or that failed partway
+                // has already deleted some descendants, and leaving those cached would serve stale
+                // entries for up to CACHE_TTL. Pure in-memory map work, so it still runs under
+                // cancellation.
                 invalidateSubtree(path)
                 invalidateParentLookup(path)
             }
-            deleted
+            true
         } catch (e: CancellationException) {
+            throw e
+        } catch (e: WriteException) {
             throw e
         } catch (e: Exception) {
             throw WriteException(path = path, cause = e)
         }
+    }
+
+    /**
+     * Post-order delete of [docFile], recursing over the documents the provider itself handed out.
+     *
+     * Going back through [SAFPath] would rebuild each child's document id from its display name.
+     * Document ids are opaque in general, and a provider whose ids aren't path-derived is exactly the
+     * kind this has to work against, so the walk stays on [SAFDocFile]. The path is carried along only
+     * for log and exception context.
+     */
+    private suspend fun deleteDocument(docFile: SAFDocFile, path: SAFPath, recursive: Boolean) {
+        if (recursive && docFile.isDirectory) {
+            docFile.listFiles().forEach { child ->
+                // Without a checkpoint per document, a cancelled recursive delete keeps deleting until
+                // the enclosing withContext notices, which is only at the very end.
+                currentCoroutineContext().ensureActive()
+                val childName = child.name
+                val childPath = if (childName != null) path.child(childName) else path
+                log(TAG, VERBOSE) { "delete(): Descending into $childPath ($child)" }
+                deleteDocument(child, childPath, recursive = true)
+            }
+        }
+
+        currentCoroutineContext().ensureActive()
+        if (docFile.delete()) return
+
+        // Providers also report a failure for a document that is already gone, so a false here is
+        // ambiguous on its own. Only a query that actually answers may turn it into a success -
+        // existsStrict() raises rather than guessing when no provider answered, which is the whole
+        // reason it exists. Returning false instead would tell the caller "it wasn't there", and
+        // FileSystemOps.delete promises a WriteException for a delete that failed.
+        if (!docFile.existsStrict()) {
+            log(TAG, WARN) { "delete(): Already gone: $path ($docFile)" }
+            return
+        }
+
+        throw WriteException("Delete was refused and the document is still there", path)
     }
 
     private suspend fun createDocumentFile(mimeType: String, targetSafPath: SAFPath): SAFDocFile {

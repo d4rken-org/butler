@@ -1,5 +1,6 @@
 package eu.darken.butler.common.files.saf
 
+import android.content.ContentProviderClient
 import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
@@ -7,7 +8,9 @@ import android.content.pm.PackageManager
 import android.database.Cursor
 import android.database.MatrixCursor
 import android.net.Uri
+import android.os.RemoteException
 import android.provider.DocumentsContract
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
@@ -16,6 +19,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import testhelpers.BaseTest
+import java.io.IOException
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [29])
@@ -106,6 +110,57 @@ class SAFDocFileTest : BaseTest() {
         val cursor = MatrixCursor(arrayOf(DocumentsContract.Document.COLUMN_FLAGS))
         cursor.addRow(arrayOf(flags))
         return cursor
+    }
+
+    private fun createDocIdCursor(docId: String?): Cursor {
+        val cursor = MatrixCursor(arrayOf(DocumentsContract.Document.COLUMN_DOCUMENT_ID))
+        cursor.addRow(arrayOf(docId))
+        return cursor
+    }
+
+    private val strictUri: Uri get() = Uri.parse("content://authority/document/strict")
+
+    private fun clientAnswering(cursor: Cursor?): ContentProviderClient = mockk(relaxed = true) {
+        every { query(strictUri, arrayOf(DocumentsContract.Document.COLUMN_DOCUMENT_ID), null, null, null) } returns
+            cursor
+    }
+
+    @Test
+    fun `existsStrict is true when the provider reports the document`() {
+        every { contentResolver.acquireUnstableContentProviderClient(strictUri) } returns
+            clientAnswering(createDocIdCursor("doc:strict"))
+
+        SAFDocFile(context, contentResolver, strictUri).existsStrict() shouldBe true
+    }
+
+    @Test
+    fun `existsStrict is false when a live provider reports no document`() {
+        // DocumentsProvider.query returns null after catching the FileNotFoundException from
+        // queryDocument, so a null cursor from a provider that DID answer means "gone".
+        every { contentResolver.acquireUnstableContentProviderClient(strictUri) } returns clientAnswering(null)
+
+        SAFDocFile(context, contentResolver, strictUri).existsStrict() shouldBe false
+    }
+
+    @Test
+    fun `existsStrict raises instead of reporting absence when no provider answers`() {
+        // ContentResolver.query hands back a null cursor for this case too, which is why the check
+        // goes through a client: a delete that returned false must not be reported as a success just
+        // because the query meant to prove it never reached anyone.
+        every { contentResolver.acquireUnstableContentProviderClient(strictUri) } returns null
+
+        shouldThrow<IOException> { SAFDocFile(context, contentResolver, strictUri).existsStrict() }
+    }
+
+    @Test
+    fun `existsStrict raises when the live provider dies mid-query`() {
+        val client = mockk<ContentProviderClient>(relaxed = true)
+        every {
+            client.query(strictUri, arrayOf(DocumentsContract.Document.COLUMN_DOCUMENT_ID), null, null, null)
+        } throws RemoteException("provider died")
+        every { contentResolver.acquireUnstableContentProviderClient(strictUri) } returns client
+
+        shouldThrow<IOException> { SAFDocFile(context, contentResolver, strictUri).existsStrict() }
     }
 
     @Test
