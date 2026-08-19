@@ -1,10 +1,13 @@
 package eu.darken.butler.workspace.ui.modal
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.PointerType
 import androidx.compose.ui.input.pointer.changedToDownIgnoreConsumed
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
@@ -77,6 +80,54 @@ fun Modifier.requestPaneFocusOnPress(
                     }
                 }
                 currentRequestFocus.value.invoke()
+            }
+        }
+    }
+}
+
+/**
+ * Reports whether a non-touch pointer (mouse, stylus, trackball) is currently hovering this
+ * element with nothing pressed.
+ *
+ * Observes on the initial pass and never consumes, exactly like [requestPaneFocusOnPress]: the
+ * hover of an unfocused pane is watched by an ancestor of content that must keep receiving every
+ * event unchanged.
+ *
+ * A touch pointer never counts as hovering, and its appearance ends an ongoing hover right away.
+ * Touch has no cursor to give feedback to, so anything keyed on this stays out of the way of
+ * finger input entirely.
+ *
+ * @param enabled while false nothing is observed and the last reported value is reset to false —
+ *        a hover that ended while tracking was off must not come back stale when it resumes.
+ */
+@Composable
+fun Modifier.trackNonTouchHover(
+    enabled: Boolean,
+    onHoveringChanged: (Boolean) -> Unit,
+): Modifier {
+    val currentOnHoveringChanged = rememberUpdatedState(onHoveringChanged)
+    if (!enabled) return this
+    DisposableEffect(Unit) {
+        onDispose { currentOnHoveringChanged.value.invoke(false) }
+    }
+    return this.pointerInput(Unit) {
+        awaitPointerEventScope {
+            var hovering = false
+            while (true) {
+                val event = awaitPointerEvent(PointerEventPass.Initial)
+                val hoveringNow = when {
+                    event.changes.any { it.type == PointerType.Touch } -> false
+                    event.type == PointerEventType.Exit -> false
+                    event.type == PointerEventType.Enter || event.type == PointerEventType.Move -> {
+                        // A pressed pointer is dragging, not hovering: the press has its own
+                        // handling and must not raise a barrier mid-gesture.
+                        event.changes.none { it.pressed }
+                    }
+                    else -> hovering
+                }
+                if (hoveringNow == hovering) continue
+                hovering = hoveringNow
+                currentOnHoveringChanged.value.invoke(hoveringNow)
             }
         }
     }

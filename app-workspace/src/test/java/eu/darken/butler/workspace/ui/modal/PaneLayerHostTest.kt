@@ -36,6 +36,7 @@ import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performMouseInput
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeUp
@@ -1462,6 +1463,160 @@ class PaneLayerHostTest : ComposeTest() {
             tooltipsEnabled shouldBe true
             indication shouldNotBe inertIndication
         }
+    }
+
+    /**
+     * With click-to-focus off the pane boundary is a pure observer again: the press lands where it
+     * was aimed and only asks for the pane on the side, so there is nothing to answer with a pulse.
+     */
+    @Test
+    fun `a press into an unfocused pane reaches the content while click to focus is off`() {
+        composeTestRule.mainClock.autoAdvance = false
+        var clicked = 0
+        var paneFocusRequests = 0
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                CompositionLocalProvider(
+                    LocalWorkspaceFocusRequest provides { paneFocusRequests++ },
+                ) {
+                    PaneLayerHost(
+                        modifier = Modifier.fillMaxSize(),
+                        paneFocused = false,
+                        clickToFocus = false,
+                    ) {
+                        PaneLayer(rank = PaneLayerRank.CONTENT, modal = false) {
+                            Box(
+                                modifier = Modifier
+                                    .size(96.dp)
+                                    .testTag(PRESS_TARGET_TAG)
+                                    .clickable { clicked++ },
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG).performClick()
+        // Far enough for a pulse to have composed, far short of one having faded out again
+        repeat(PULSE_COMPOSE_FRAMES) { composeTestRule.mainClock.advanceTimeByFrame() }
+
+        composeTestRule.onNodeWithTag(TAG_PANE_FOCUS_PULSE).assertDoesNotExist()
+        composeTestRule.runOnIdle {
+            clicked shouldBe 1
+            (paneFocusRequests > 0) shouldBe true
+        }
+    }
+
+    /** Nothing about the pane is muted while it answers clicks directly. */
+    @Test
+    fun `an unfocused pane keeps indication, ripple and tooltips while click to focus is off`() {
+        var outerIndication: Indication? = null
+        var indication: Indication? = null
+        var rippleConfiguration: RippleConfiguration? = null
+        var tooltipsEnabled: Boolean? = null
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                outerIndication = LocalIndication.current
+                PaneLayerHost(
+                    modifier = Modifier.fillMaxSize(),
+                    paneFocused = false,
+                    clickToFocus = false,
+                ) {
+                    PaneLayer(rank = PaneLayerRank.CONTENT, modal = false) {
+                        indication = LocalIndication.current
+                        rippleConfiguration = LocalRippleConfiguration.current
+                        tooltipsEnabled = LocalTooltipsEnabled.current
+                    }
+                }
+            }
+        }
+
+        composeTestRule.runOnIdle {
+            indication shouldBe outerIndication
+            rippleConfiguration shouldNotBe null
+            tooltipsEnabled shouldBe true
+        }
+    }
+
+    /**
+     * The barrier is what makes the pane inert to the feedback no ambient switch reaches: hover
+     * elevation and pointer icons stop because the content stops being hit at all.
+     */
+    @Test
+    fun `a hovering pointer raises the barrier over an unfocused pane`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                CompositionLocalProvider(
+                    LocalWorkspaceFocusRequest provides { },
+                ) {
+                    PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = false) {
+                        PaneLayer(rank = PaneLayerRank.CONTENT, modal = false) {
+                            Box(modifier = Modifier.fillMaxSize().testTag(PRESS_TARGET_TAG))
+                        }
+                    }
+                }
+            }
+        }
+
+        composeTestRule.onNodeWithTag(TAG_PANE_HOVER_BARRIER).assertDoesNotExist()
+
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG).performMouseInput { moveTo(center) }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNodeWithTag(TAG_PANE_HOVER_BARRIER).assertExists()
+    }
+
+    /** A focused pane is meant to react to the cursor, so nothing may come between the two. */
+    @Test
+    fun `a hovering pointer raises no barrier over a focused pane`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                CompositionLocalProvider(
+                    LocalWorkspaceFocusRequest provides { },
+                ) {
+                    PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = true) {
+                        PaneLayer(rank = PaneLayerRank.CONTENT, modal = false) {
+                            Box(modifier = Modifier.fillMaxSize().testTag(PRESS_TARGET_TAG))
+                        }
+                    }
+                }
+            }
+        }
+
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG).performMouseInput { moveTo(center) }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNodeWithTag(TAG_PANE_HOVER_BARRIER).assertDoesNotExist()
+    }
+
+    /** With the setting off an unfocused pane is directly interactive, hover feedback included. */
+    @Test
+    fun `a hovering pointer raises no barrier while click to focus is off`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                CompositionLocalProvider(
+                    LocalWorkspaceFocusRequest provides { },
+                ) {
+                    PaneLayerHost(
+                        modifier = Modifier.fillMaxSize(),
+                        paneFocused = false,
+                        clickToFocus = false,
+                    ) {
+                        PaneLayer(rank = PaneLayerRank.CONTENT, modal = false) {
+                            Box(modifier = Modifier.fillMaxSize().testTag(PRESS_TARGET_TAG))
+                        }
+                    }
+                }
+            }
+        }
+
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG).performMouseInput { moveTo(center) }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNodeWithTag(TAG_PANE_HOVER_BARRIER).assertDoesNotExist()
     }
 
     companion object {

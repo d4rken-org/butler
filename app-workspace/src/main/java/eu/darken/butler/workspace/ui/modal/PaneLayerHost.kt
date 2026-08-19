@@ -9,14 +9,21 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.material3.LocalRippleConfiguration
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.node.DelegatableNode
+import androidx.compose.ui.platform.testTag
 import eu.darken.butler.common.compose.LocalTooltipsEnabled
 import eu.darken.butler.common.ui.dialogs.LocalAlertDialogRenderer
 import eu.darken.butler.workspace.ui.dialogs.PaneBoundAlertDialogRenderer
 import eu.darken.butler.workspace.ui.insets.LocalPaneEdges
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign.PaneEdges
+
+internal const val TAG_PANE_HOVER_BARRIER = "pane:hoverBarrier"
 
 /**
  * Owns the modal layer stack of a single workspace pane.
@@ -28,32 +35,38 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceDesign.PaneEdges
  * individual modal surfaces: a press that a text field or a list row consumes never reaches a click
  * handler further up, so a pane whose content swallowed the touch would never become focused — and
  * a modal in the previously focused pane would keep its focus trap armed forever, leaving keyboard
- * focus unable to move between panes at all. Presses arriving while the pane is not the focused one
- * are additionally consumed, so the first click into an unfocused pane focuses it without
- * activating the content under the finger. Such a press gets no feedback from the content it never
- * reached, so the host answers it itself with a [PaneFocusPulseOverlay] at the tap point.
+ * focus unable to move between panes at all.
  *
  * Callers must provide [eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest] *above* this
  * composable for that to work.
  *
- * While the pane is not the focused one its interaction feedback is switched off: ripples and their
- * hover, press and focus state layers ([LocalRippleConfiguration] `null` covers every Material
- * component, [LocalIndication] the plain `clickable`s), plus tooltips. A pointer hovering an
- * unfocused pane would otherwise light rows and buttons up as if a click would activate them, while
- * the boundary above swallows exactly that click.
+ * With [clickToFocus] on (the user's setting, on by default) an unfocused pane answers nothing
+ * until it has been focused:
+ * - Presses arriving while the pane is not the focused one are consumed, so the first click into it
+ *   focuses the pane without activating the content under the finger. Such a press gets no feedback
+ *   from the content it never reached, so the host answers it itself with a [PaneFocusPulseOverlay]
+ *   at the tap point.
+ * - The pane's interaction feedback is switched off: ripples and their hover, press and focus state
+ *   layers ([LocalRippleConfiguration] `null` covers every Material component, [LocalIndication] the
+ *   plain `clickable`s), plus tooltips. A pointer hovering an unfocused pane would otherwise light
+ *   rows and buttons up as if a click would activate them, while the boundary above swallows exactly
+ *   that click.
+ * - While a non-touch pointer hovers, a barrier covers the pane and takes its content out of hit
+ *   testing. Hover feedback that no ambient switch reaches — Material's per-component hover
+ *   elevation, the pointer icon a text field sets — only stops when the hover stops arriving, and
+ *   Compose derives hover enter/exit from hit-test results. The barrier exists solely while a
+ *   cursor is inside: touch never raises it, so finger input, scrolling an unfocused pane included,
+ *   behaves exactly as before.
  *
- * Only the affordances are suppressed, never the input itself: scrolling, dragging and drop-target
- * highlights keep working in an unfocused pane, matching every desktop convention for inactive
- * windows and preserving the scrollability the swallow deliberately left intact. That choice bounds
- * what can be suppressed — Material's hover *elevation* (filled buttons level 0 to 1, elevated
- * cards level 1 to 2) is animated per component from its own interaction source, with no ambient
- * switch, so a cursor still lifts those surfaces slightly. Removing that too would mean taking the
- * pane out of hit testing, which is what keeps scrolling alive.
+ * With [clickToFocus] off none of that applies: an unfocused pane is directly interactive, clicks
+ * land where they are aimed and pane focus follows them.
  *
  * The host itself always spans the full pane and must never be inset — its layers carry the pane's
  * scrims and pointer barriers. [paneEdges] is published to the subtree instead, so the content and
  * the modal surfaces inside can pad themselves.
  *
+ * @param clickToFocus whether an unfocused pane stays inert until it is clicked once, per the user's
+ *        "Click to focus" setting. Off makes an unfocused pane directly interactive.
  * @param paneFocused whether this pane is the focused one. Accepts either occupant of the pane —
  *        the parent workspace or its pane-local child modal: a child modal CAN hold the global focus
  *        (`createAndFocus` and a tab-manager selection both put it there), so the caller resolves
@@ -67,12 +80,15 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceDesign.PaneEdges
 fun PaneLayerHost(
     modifier: Modifier = Modifier,
     paneFocused: Boolean,
+    clickToFocus: Boolean = true,
     backActive: Boolean = paneFocused,
     paneEdges: PaneEdges = LocalPaneEdges.current,
     content: @Composable BoxScope.() -> Unit,
 ) {
     val layerState = remember { PaneLayerState() }
     val pulseState = remember { PaneFocusPulseState() }
+    val inert = clickToFocus && !paneFocused
+    var pointerHovering by remember { mutableStateOf(false) }
 
     CompositionLocalProvider(
         LocalPaneLayerState provides layerState,
@@ -88,20 +104,38 @@ fun PaneLayerHost(
         LocalAlertDialogRenderer provides PaneBoundAlertDialogRenderer,
         // Reading `.current` keeps the focused case on whatever the theme provides, instead of
         // pinning it to a default this file would have to keep in sync.
-        LocalIndication provides if (paneFocused) LocalIndication.current else NoIndication,
-        LocalRippleConfiguration provides if (paneFocused) LocalRippleConfiguration.current else null,
+        LocalIndication provides if (inert) NoIndication else LocalIndication.current,
+        LocalRippleConfiguration provides if (inert) null else LocalRippleConfiguration.current,
         // Narrowing, never widening: an outer provider that already muted tooltips keeps its say.
-        LocalTooltipsEnabled provides (paneFocused && LocalTooltipsEnabled.current),
+        LocalTooltipsEnabled provides (!inert && LocalTooltipsEnabled.current),
     ) {
         Box(
             // The pane boundary is also where the first press into an unfocused pane is swallowed:
-            // it focuses the pane without activating the content under the finger.
-            modifier = modifier.requestPaneFocusOnPress(
-                consumeWhenUnfocused = true,
-                onPressSwallowed = { pulseState.emit(it) },
-            ),
+            // it focuses the pane without activating the content under the finger. Without
+            // clickToFocus the same modifier degrades to a pure observer: the press reaches the
+            // content and focus follows it, and no pulse is emitted because nothing was swallowed.
+            modifier = modifier
+                .requestPaneFocusOnPress(
+                    consumeWhenUnfocused = clickToFocus,
+                    onPressSwallowed = { pulseState.emit(it) },
+                )
+                .trackNonTouchHover(enabled = inert) { pointerHovering = it },
         ) {
             content()
+            if (inert && pointerHovering) {
+                Box(
+                    // Hit testing stops at the topmost hit sibling, so this takes the content out
+                    // of the hover path: it receives one Exit and no further Enter, which ends
+                    // tint, elevation, tooltips and cursor shape at their source. It must consume
+                    // nothing — the press observer above still needs every event — and must carry
+                    // no semantics beyond the test tag, so assistive tech keeps reaching content
+                    // that the barrier only covers visually.
+                    modifier = Modifier
+                        .matchParentSize()
+                        .testTag(TAG_PANE_HOVER_BARRIER)
+                        .pointerInput(Unit) {},
+                )
+            }
             // Last child, so the pulse draws above the pane content and its modal layers — the
             // swallowed press has to be answered where the finger is.
             PaneFocusPulseOverlay(
