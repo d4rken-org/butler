@@ -1,5 +1,6 @@
 package eu.darken.butler.common.adb.shizuku
 
+import eu.darken.butler.common.adb.AdbConnectTimeoutException
 import eu.darken.butler.common.adb.AdbSettings
 import eu.darken.butler.common.adb.AdbUnavailableException
 import eu.darken.butler.common.adb.service.AdbServiceClient
@@ -163,6 +164,45 @@ class ShizukuManagerTest : BaseTest() {
         val mgr = manager()
 
         runBlocking { mgr.isOurServiceAvailable() } shouldBe false
+    }
+
+    @Test fun `getServiceState separates an unreadable grant from a denied one`() {
+        val mgr = manager()
+
+        // "Cannot know" - overwhelmingly just Shizuku not started yet. Telling this user their setup
+        // failed would be wrong, so it must not be reported as a denial or as terminal.
+        coEvery { shizukuWrapper.isGranted() } returns null
+        runBlocking { mgr.getServiceState() } shouldBe ShizukuServiceState.Unknown
+        ShizukuServiceState.Unknown.isTerminalFailure shouldBe false
+
+        coEvery { shizukuWrapper.isGranted() } returns false
+        runBlocking { mgr.getServiceState() } shouldBe ShizukuServiceState.PermissionDenied
+
+        coVerify(exactly = 0) { serviceClient.get() }
+    }
+
+    @Test fun `getServiceState reports a spent connect budget as TimedOut`() {
+        coEvery { shizukuWrapper.isGranted() } returns true
+        // How AdbServiceClient surfaces it: the launcher's timeout wrapped by its .catch.
+        coEvery { serviceClient.get() } throws AdbUnavailableException(
+            "Failed to establish connection",
+            cause = AdbConnectTimeoutException("did not connect"),
+        )
+        val mgr = manager()
+
+        val state = runBlocking { mgr.getServiceState() }
+        state shouldBe ShizukuServiceState.TimedOut
+        state.isTerminalFailure shouldBe true
+    }
+
+    @Test fun `getServiceState reports any other connection error as Failed`() {
+        coEvery { shizukuWrapper.isGranted() } returns true
+        coEvery { serviceClient.get() } throws AdbUnavailableException("handshake boom")
+        val mgr = manager()
+
+        val state = runBlocking { mgr.getServiceState() }
+        state shouldBe ShizukuServiceState.Failed
+        state.isTerminalFailure shouldBe true
     }
 
     @Test fun `managerIds always includes the reference package plus any detected fork`() {

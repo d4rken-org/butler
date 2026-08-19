@@ -92,6 +92,7 @@
     <string name="setup_status_not_connected">Not connected</string>
     <string name="setup_status_not_installed">Not installed</string>
     <string name="setup_status_connecting">Connecting…</string>
+    <string name="setup_status_connection_failed">Connection failed</string>
     <string name="setup_status_unavailable">Unavailable</string>
 
     <!-- Debug Log -->

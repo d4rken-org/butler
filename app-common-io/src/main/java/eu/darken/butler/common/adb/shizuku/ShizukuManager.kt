@@ -1,6 +1,7 @@
 package eu.darken.butler.common.adb.shizuku
 
 import eu.darken.butler.common.adb.AdbSettings
+import eu.darken.butler.common.adb.isAdbConnectTimeout
 import eu.darken.butler.common.adb.service.AdbServiceClient
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.coroutine.DispatcherProvider
@@ -147,21 +148,48 @@ class ShizukuManager @Inject constructor(
 
     suspend fun requestPermission() = shizukuWrapper.requestPermission()
 
-    suspend fun isOurServiceAvailable(): Boolean = withContext(dispatcherProvider.IO) {
-        if (isGranted() != true) {
-            log(TAG, VERBOSE) { "isOurServiceAvailable(): Shizuku permission not granted" }
-            return@withContext false
+    suspend fun isOurServiceAvailable(): Boolean = getServiceState() is ShizukuServiceState.Available
+
+    /**
+     * Same probe as [isOurServiceAvailable], but says WHY when the answer is no.
+     *
+     * The distinction that matters for the UI is "we have not finished looking" versus "we looked and
+     * it will not work": only the latter is worth telling the user about, and only the latter should
+     * offer a retry.
+     */
+    suspend fun getServiceState(): ShizukuServiceState = withContext(dispatcherProvider.IO) {
+        when (isGranted()) {
+            false -> {
+                log(TAG, VERBOSE) { "getServiceState(): Shizuku permission not granted" }
+                return@withContext ShizukuServiceState.PermissionDenied
+            }
+            // Not a denial: no live binder means the grant state cannot be read at all.
+            null -> {
+                log(TAG, VERBOSE) { "getServiceState(): No live binder, grant state unknown" }
+                return@withContext ShizukuServiceState.Unknown
+            }
+
+            true -> {}
         }
         try {
-            log(TAG, VERBOSE) { "isOurServiceAvailable(): Requesting service client (CACHE MISS)" }
-            serviceClient.get().use { it.item.ipc.checkBase() != null }
+            log(TAG, VERBOSE) { "getServiceState(): Requesting service client (CACHE MISS)" }
+            val alive = serviceClient.get().use { it.item.ipc.checkBase() != null }
+            if (alive) {
+                ShizukuServiceState.Available
+            } else {
+                // Connected, but the host handed back nothing usable.
+                log(TAG, WARN) { "getServiceState(): checkBase() returned null" }
+                ShizukuServiceState.Failed
+            }
         } catch (e: CancellationException) {
             throw e // don't cache a cancelled probe as "unavailable"
         } catch (e: Exception) {
-            log(TAG, WARN) { "isOurServiceAvailable(): Error during checkBase(): $e" }
-            false
+            log(TAG, WARN) { "getServiceState(): Error during checkBase(): ${e.asLog()}" }
+            // A spent connect budget is the signature of Shizuku's user service never calling back,
+            // but the same defect also surfaces as a handshake failure, so both are terminal.
+            if (e.isAdbConnectTimeout()) ShizukuServiceState.TimedOut else ShizukuServiceState.Failed
         }
-    }.also { log(TAG) { "isOurServiceAvailable(): $it" } }
+    }.also { log(TAG) { "getServiceState(): $it" } }
 
     /**
      * Did the user consent to Butler using Shizuku and is Shizuku available?

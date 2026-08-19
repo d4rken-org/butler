@@ -60,6 +60,11 @@ fun SetupStateIndicator(
                         shizukuState.ourService -> {
                             Icons.TwoTone.CheckCircle to MaterialTheme.colorScheme.primary
                         }
+                        // Ahead of basicService: the pending-looking indicator must not outlive a
+                        // probe that already concluded our service will not come up.
+                        shizukuState.serviceState.isTerminalFailure -> {
+                            Icons.TwoTone.Error to MaterialTheme.colorScheme.error
+                        }
                         shizukuState.basicService -> {
                             Icons.TwoTone.RadioButtonUnchecked to MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         }

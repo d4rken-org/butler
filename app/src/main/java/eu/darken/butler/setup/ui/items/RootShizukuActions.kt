@@ -16,6 +16,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.R
+import eu.darken.butler.common.adb.shizuku.ShizukuServiceState
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -56,6 +57,12 @@ fun RootShizukuActions(
                     !shizukuState.isInstalled -> stringResource(R.string.setup_status_not_installed)
                     !shizukuState.isCompatible -> stringResource(R.string.setup_status_unavailable)
                     shizukuState.ourService -> stringResource(R.string.setup_status_connected)
+                    // Ahead of basicService: Shizuku itself answering says nothing about our service,
+                    // and reporting "Connecting…" for a probe that already gave up is what left this
+                    // card spinning forever.
+                    shizukuState.serviceState.isTerminalFailure ->
+                        stringResource(R.string.setup_status_connection_failed)
+
                     shizukuState.basicService -> stringResource(R.string.setup_status_connecting)
                     else -> stringResource(R.string.setup_status_not_connected)
                 }
@@ -163,7 +170,32 @@ private fun ShizukuActionsNotConnectedPreview() {
                 isCompatible = true,
                 isInstalled = true,
                 basicService = false,
-                ourService = false,
+                serviceState = ShizukuServiceState.NotChecked,
+                alsoHasRoot = false,
+            ),
+            isRequired = false,
+            priority = 6,
+        ),
+        onExecuteAction = {},
+        switchLabel = "Use Shizuku"
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ShizukuActionsConnectionFailedPreview() {
+    RootShizukuActions(
+        item = SetupItem(
+            type = SetupModule.Type.SHIZUKU,
+            state = ShizukuSetupModule.Result(
+                pkg = "moe.shizuku.privileged.api".toPkgId(),
+                useShizuku = true,
+                isCompatible = true,
+                isInstalled = true,
+                // Shizuku answers, but our user service never came up.
+                basicService = true,
+                serviceState = ShizukuServiceState.TimedOut,
                 alsoHasRoot = false,
             ),
             isRequired = false,
