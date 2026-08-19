@@ -275,8 +275,8 @@
 
     <!-- Open with (hand a file to another app) -->
     <string name="workspace_open_with_chooser_title">Open with</string>
-    <string name="workspace_open_with_no_app_label">No app found</string>
-    <string name="workspace_open_with_no_app_description">No installed app can open %1$s.</string>
+    <string name="workspace_open_with_no_app_label">No other app found</string>
+    <string name="workspace_open_with_no_app_description">No other installed app can open %1$s.</string>
 
     <!-- Workspace Banner Feedback -->
     <plurals name="workspace_banner_opened_tabs">

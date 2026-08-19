@@ -79,8 +79,18 @@ class OpenWithIntentUseCase @Inject constructor(
         }
     }
 
+    /**
+     * Whether any app *other than Butler* can view the intent.
+     *
+     * Butler registers an `ACTION_VIEW` filter for every file so it appears in other apps'
+     * "Open with", which means it always answers this query about itself. Counting that would make
+     * the check trivially true and turn every chooser into one that can offer nothing but the app
+     * the user is already in, so the own package is excluded.
+     */
     private fun hasHandler(intent: Intent): Boolean = try {
-        context.packageManager.queryIntentActivities(intent, 0).isNotEmpty()
+        context.packageManager
+            .queryIntentActivities(intent, 0)
+            .any { it.activityInfo?.packageName != context.packageName }
     } catch (e: Exception) {
         log(tag, WARN) { "Failed to check intent handlers: ${e.asLog()}" }
         false
@@ -122,7 +132,7 @@ class OpenWithIntentUseCase @Inject constructor(
  */
 class NoAppForFileException(
     val fileName: String,
-) : IllegalStateException("No app found to open file: $fileName"), HasLocalizedError {
+) : IllegalStateException("No other app found to open file: $fileName"), HasLocalizedError {
 
     override fun getLocalizedError(context: LocalizedErrorContext) = LocalizedError(
         throwable = this,

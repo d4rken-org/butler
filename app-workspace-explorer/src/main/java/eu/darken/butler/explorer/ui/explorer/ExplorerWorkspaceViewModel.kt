@@ -1072,7 +1072,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     ),
                 )
                 if (!launched) {
-                    log(tag, WARN) { "No app found to open file: ${action.item.lookup.name}" }
+                    log(tag, WARN) { "No other app found to open file: ${action.item.lookup.name}" }
                     errorEvents.emit(NoAppForFileException(action.item.lookup.name))
                 }
             }

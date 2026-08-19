@@ -849,7 +849,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                         ),
                     )
                     if (!launched) {
-                        log(TAG, WARN) { "No app found to open file: ${action.result.name}" }
+                        log(TAG, WARN) { "No other app found to open file: ${action.result.name}" }
                         errorEvents.emit(NoAppForFileException(action.result.name))
                     }
                 }

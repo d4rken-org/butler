@@ -87,6 +87,12 @@ class OpenWithIntentUseCaseTest : BaseTest() {
         useCase.createViewIntent(path(), "image/jpeg").shouldBeNull()
     }
 
+    /**
+     * Butler's own manifest declares an `ACTION_VIEW` filter for every file, so it always resolves
+     * this intent. That deliberately does not count as a handler: "Open with" offers other apps, and
+     * a chooser containing only the app the user is already in is no answer. Nothing else is
+     * registered here, so the guard must report no handler.
+     */
     @Test
     fun `no handler means no launch`() {
         useCase.openWithChooser(path(), "image/jpeg", "Open with") shouldBe false
