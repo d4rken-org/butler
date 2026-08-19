@@ -1,5 +1,6 @@
 package eu.darken.butler.explorer.ui.explorer
 
+import android.content.ActivityNotFoundException
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.layout.Box
@@ -502,7 +503,13 @@ fun ExplorerWorkspacePageHost(
 
     LaunchedEffect(vm) {
         vm.safPickerEvents.collect { intent ->
-            safPickerLauncher.launch(intent)
+            try {
+                safPickerLauncher.launch(intent)
+            } catch (e: ActivityNotFoundException) {
+                // Devices with DocumentsUI disabled or missing resolve nothing for
+                // ACTION_OPEN_DOCUMENT_TREE, and an uncaught throw here takes down the collector.
+                vm.onSafPickerUnavailable(e)
+            }
         }
     }
 

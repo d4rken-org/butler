@@ -44,6 +44,11 @@ class ExplorerSafLocationController(
 
     val safPickerEvents = SingleEventFlow<Intent>()
 
+    /** Drop a staged grant whose picker never opened, so it can't be applied to a later result. */
+    fun clearPendingSAFPickerGrant() {
+        _pendingSAFPickerGrant.value = null
+    }
+
     fun showAddStorageSheet() {
         log(tag) { "showAddStorageSheet(): Showing add storage sheet" }
         showAddStorageSheetFlow.value = true

@@ -1377,6 +1377,18 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun onRemoveLocationConfirmed() = safLocations.onRemoveLocationConfirmed()
 
+    /**
+     * The system had no activity to handle our SAF picker intent (DocumentsUI disabled or missing).
+     *
+     * Clears the staged grant as well: without it the next picker result would be auto-labeled for a
+     * request that never reached a picker.
+     */
+    fun onSafPickerUnavailable(error: Throwable) = launch {
+        log(tag, WARN) { "SAF picker could not be launched: ${error.asLog()}" }
+        safLocations.clearPendingSAFPickerGrant()
+        errorEvents.emit(error)
+    }
+
     fun onEmptyTrashConfirmed() = launch {
         log(tag) { "onEmptyTrashConfirmed()" }
         dialogs.dismiss()
