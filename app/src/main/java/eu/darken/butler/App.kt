@@ -33,6 +33,7 @@ import eu.darken.butler.common.trash.TrashCleanupScheduler
 import eu.darken.butler.common.updater.UpdateService
 import eu.darken.butler.main.core.CurriculumVitae
 import eu.darken.butler.main.core.GeneralSettings
+import eu.darken.butler.main.core.external.ExternalImportSweeper
 import eu.darken.butler.main.core.release.ReleaseManager
 import eu.darken.butler.main.core.operations.fgs.OperationFgsCoordinator
 import eu.darken.butler.main.core.shortcuts.DynamicShortcutManager
@@ -92,6 +93,9 @@ open class App : Application(), Configuration.Provider, SingletonImageLoader.Fac
      * idle tabs would never be paused.
      */
     @Inject lateinit var workspaceAutoPauseManager: dagger.Lazy<WorkspaceAutoPauseManager>
+
+    /** Same deal: nothing else injects it, so its sweep loop needs an eager .get() to ever run. */
+    @Inject lateinit var externalImportSweeper: dagger.Lazy<ExternalImportSweeper>
 
     private val logCatLogger = LogCatLogger()
 
@@ -178,6 +182,9 @@ open class App : Application(), Configuration.Provider, SingletonImageLoader.Fac
 
         // Eagerly start the idle-tab auto-pause evaluation loop.
         val autoPauseManager = workspaceAutoPauseManager.get()
+
+        // Frees cache copies of files other apps shared with us once no workspace holds them.
+        externalImportSweeper.get().start()
 
         // One-shot cleanup of the retired external/internal debug-log store (recordings now live in
         // the unified bug-report store under filesDir). Idempotent and harmless if already gone.

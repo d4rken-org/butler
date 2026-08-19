@@ -204,18 +204,17 @@ class ExternalContentImporterTest : BaseTest() {
     }
 
     @Test
-    fun `stale imports are swept but fresh ones survive`() = runTest {
-        val stale = File(importDir, "stale").apply { mkdirs() }
-        val staleFile = File(stale, "old.txt").apply { writeText("old") }
-        val fresh = File(importDir, "fresh").apply { mkdirs() }
-        val eightDaysAgo = System.currentTimeMillis() - 8 * 24 * 60 * 60 * 1000L
-        stale.setLastModified(eightDaysAgo)
+    fun `importing leaves earlier imports alone`() = runTest {
+        // Deleting is ExternalImportSweeper's job now: this class cannot see who still holds one,
+        // and age alone would take the file a week-old restored session still points at.
+        val existing = File(importDir, "existing").apply { mkdirs() }
+        val existingFile = File(existing, "old.txt").apply { writeText("old") }
+        existing.setLastModified(System.currentTimeMillis() - 8 * 24 * 60 * 60 * 1000L)
         register(uri) { ByteArrayInputStream("x".toByteArray()) }
 
         create().importToCache(uri, "notes.txt", null).shouldNotBeNull()
 
-        stale.exists() shouldBe false
-        staleFile.exists() shouldBe false
-        fresh.exists() shouldBe true
+        existing.exists() shouldBe true
+        existingFile.exists() shouldBe true
     }
 }

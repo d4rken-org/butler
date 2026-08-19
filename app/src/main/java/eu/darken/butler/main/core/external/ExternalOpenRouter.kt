@@ -143,22 +143,38 @@ class ExternalOpenRouter internal constructor(
     }
 
     /**
-     * Resolves the content to a real local file the Viewer can open, importing it into the cache
-     * when there is no directly accessible path. Returns null when that isn't possible.
+     * How the Viewer should open this content.
+     *
+     * A real file we can read is opened where it lies. Everything else is streamed straight from the
+     * provider - no copy - EXCEPT an APK, which the framework parser can only read from a path, so
+     * that one is imported into the cache. Null means we could not produce either.
      */
     suspend fun resolveForView(
         ref: SourceRef,
         mime: MimeInfo,
         displayName: String,
-    ): LocalPath? = when (ref) {
-        is SourceRef.Local -> viewablePath(ref.path, mime, displayName)
+        sizeBytes: Long?,
+    ): ViewTarget? = when (ref) {
+        is SourceRef.Local -> viewablePath(ref.path, mime, displayName)?.let { ViewTarget.Stored(it) }
+
         is SourceRef.Content -> {
             // A path we may use but can't read (no storage permission) still works through the
-            // provider's stream, so an unreadable location falls back to the import.
+            // provider's stream, so an unreadable location falls back to streaming.
             val resolved = resolveLocation(ref)
             when {
-                resolved != null && resolved.file.canRead() -> viewablePath(resolved, mime, displayName)
-                else -> importer.importToCache(ref.uri, displayName, mime)
+                resolved != null && resolved.file.canRead() ->
+                    viewablePath(resolved, mime, displayName)?.let { ViewTarget.Stored(it) }
+
+                // getPackageArchiveInfo takes a path string and the signing block sits outside the
+                // ZIP entries, so an APK cannot be read from a descriptor.
+                mime.isApk -> importer.importToCache(ref.uri, displayName, mime)?.let { ViewTarget.Stored(it) }
+
+                else -> ViewTarget.Streamed(
+                    uri = ref.uri,
+                    displayName = displayName,
+                    mime = mime,
+                    sizeBytes = sizeBytes,
+                )
             }
         }
     }
@@ -188,6 +204,22 @@ class ExternalOpenRouter internal constructor(
          */
         internal val PRIVATE_PATH_PREFIXES = setOf("/data/", "/proc/")
     }
+}
+
+/**
+ * How the Viewer should read the content, decided by [ExternalOpenRouter.resolveForView].
+ */
+sealed interface ViewTarget {
+    /** A real file, opened in place. */
+    data class Stored(val path: LocalPath) : ViewTarget
+
+    /** Read through the provider grant, never copied. */
+    data class Streamed(
+        val uri: Uri,
+        val displayName: String,
+        val mime: MimeInfo,
+        val sizeBytes: Long?,
+    ) : ViewTarget
 }
 
 /**

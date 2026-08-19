@@ -61,6 +61,7 @@ class ViewerWorkspaceDisplayTest {
             creationArguments = arguments,
             dispatcherProvider = TestDispatcherProvider(),
             gatewaySwitch = gatewaySwitch,
+            contentReader = readerFor(gatewaySwitch),
             imageProbe = imageProbe,
             apkArchiveParser = mockk(relaxed = true),
             pkgRepo = mockk(relaxed = true),

@@ -76,10 +76,10 @@ class GatewayPainterFallbackTest {
 
     private fun sourceFor(imageLoader: ImageLoader) = GatewayZoomableImageSource(
         context = context,
-        gatewaySwitch = mockk<GatewaySwitch>(relaxed = true),
+        contentReader = readerFor(mockk<GatewaySwitch>(relaxed = true)),
         imageLoader = imageLoader,
         dispatcherProvider = TestDispatcherProvider(),
-        path = gifPath,
+        source = ViewerSource.Stored(gifPath),
         onError = {},
     )
 
@@ -133,10 +133,10 @@ class GatewayPainterFallbackTest {
         var reported: Throwable? = null
         val source = GatewayZoomableImageSource(
             context = context,
-            gatewaySwitch = mockk<GatewaySwitch>(relaxed = true),
+            contentReader = readerFor(mockk<GatewaySwitch>(relaxed = true)),
             imageLoader = loader,
             dispatcherProvider = TestDispatcherProvider(),
-            path = gifPath,
+            source = ViewerSource.Stored(gifPath),
             onError = { reported = it },
         )
 

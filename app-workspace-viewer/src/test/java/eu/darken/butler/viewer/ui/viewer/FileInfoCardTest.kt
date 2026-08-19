@@ -13,6 +13,7 @@ import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.viewer.R
 import eu.darken.butler.viewer.core.ViewerContent
+import eu.darken.butler.viewer.core.ViewerSource
 import eu.darken.butler.viewer.core.ViewerFileInfo
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
@@ -219,7 +220,7 @@ class FileInfoCardTest : ComposeTest() {
                     state = ViewerWorkspaceViewModel.State.Ready(
                         content = content,
                         fileInfo = fileInfo,
-                        path = LocalPath.build("/storage/emulated/0/DCIM/photo.jpg"),
+                        source = ViewerSource.Stored(LocalPath.build("/storage/emulated/0/DCIM/photo.jpg")),
                         imageSource = null,
                     ),
                 )

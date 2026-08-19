@@ -18,6 +18,7 @@ import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.viewer.R
 import eu.darken.butler.viewer.core.ViewerContent
+import eu.darken.butler.viewer.core.ViewerSource
 import eu.darken.butler.viewer.core.ViewerFileInfo
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
@@ -42,7 +43,7 @@ class ViewerWorkspacePageTest : ComposeTest() {
                     state = ViewerWorkspaceViewModel.State.Ready(
                         content = ViewerContent.Image(MimeInfo("image/jpeg")),
                         fileInfo = ViewerFileInfo(size = 1024L),
-                        path = LocalPath.build("/storage/emulated/0/DCIM/photo.jpg"),
+                        source = ViewerSource.Stored(LocalPath.build("/storage/emulated/0/DCIM/photo.jpg")),
                         imageSource = null,
                     ),
                     onAction = { clicked.add(it) },
@@ -60,20 +61,20 @@ class ViewerWorkspacePageTest : ComposeTest() {
     @Test
     fun `a file at a storage root cannot open its location`() {
         // LocalPath.build("/") has no parent, so there is no folder to show in an Explorer tab.
-        val actions = viewerActions(path = LocalPath.build("/"), trashEnabled = false)
+        val actions = viewerActions(ViewerSource.Stored(LocalPath.build("/")), trashEnabled = false)
 
         actions.filterIsInstance<ViewerActionBarItem.OpenLocation>().single().isEnabled shouldBe false
-        viewerActions(path = LocalPath.build("/storage/emulated/0/photo.jpg"), trashEnabled = false)
+        viewerActions(ViewerSource.Stored(LocalPath.build("/storage/emulated/0/photo.jpg")), trashEnabled = false)
             .filterIsInstance<ViewerActionBarItem.OpenLocation>().single().isEnabled shouldBe true
     }
 
     @Test
     fun `delete is only destructive when it bypasses the trash`() {
-        val path = LocalPath.build("/storage/emulated/0/photo.jpg")
+        val source = ViewerSource.Stored(LocalPath.build("/storage/emulated/0/photo.jpg"))
 
-        viewerActions(path, trashEnabled = true)
+        viewerActions(source, trashEnabled = true)
             .filterIsInstance<ViewerActionBarItem.Delete>().single().isDestructive shouldBe false
-        viewerActions(path, trashEnabled = false)
+        viewerActions(source, trashEnabled = false)
             .filterIsInstance<ViewerActionBarItem.Delete>().single().isDestructive shouldBe true
     }
 
@@ -86,14 +87,14 @@ class ViewerWorkspacePageTest : ComposeTest() {
             "photo.jpg",
         )
 
-        viewerActions(safPath, trashEnabled = true)
+        viewerActions(ViewerSource.Stored(safPath), trashEnabled = true)
             .filterIsInstance<ViewerActionBarItem.Delete>().single().isDestructive shouldBe true
     }
 
     private fun unsupportedState(content: ViewerContent) = ViewerWorkspaceViewModel.State.Ready(
         content = content,
         fileInfo = ViewerFileInfo(size = 1024L),
-        path = LocalPath.build("/storage/emulated/0/Download/archive.zip"),
+        source = ViewerSource.Stored(LocalPath.build("/storage/emulated/0/Download/archive.zip")),
         imageSource = null,
     )
 
@@ -142,7 +143,7 @@ class ViewerWorkspacePageTest : ComposeTest() {
                     state = ViewerWorkspaceViewModel.State.Ready(
                         content = ViewerContent.PdfPreview(MimeInfo("application/pdf"), pageCount = 3),
                         fileInfo = ViewerFileInfo(size = 128_004L),
-                        path = LocalPath.build("/storage/emulated/0/Download/manual.pdf"),
+                        source = ViewerSource.Stored(LocalPath.build("/storage/emulated/0/Download/manual.pdf")),
                         imageSource = null,
                         pdfPage = null,
                     ),
@@ -166,7 +167,7 @@ class ViewerWorkspacePageTest : ComposeTest() {
                     state = ViewerWorkspaceViewModel.State.Ready(
                         content = ViewerContent.PdfPreview(MimeInfo("application/pdf"), pageCount = 3),
                         fileInfo = ViewerFileInfo(size = 128_004L),
-                        path = LocalPath.build("/storage/emulated/0/Download/manual.pdf"),
+                        source = ViewerSource.Stored(LocalPath.build("/storage/emulated/0/Download/manual.pdf")),
                         imageSource = null,
                         pdfPage = ViewerWorkspaceViewModel.PdfPage(index = 1, bitmap = null, failed = true),
                     ),
@@ -204,14 +205,14 @@ class ViewerWorkspacePageTest : ComposeTest() {
     private val readyState = ViewerWorkspaceViewModel.State.Ready(
         content = ViewerContent.Image(MimeInfo("image/jpeg")),
         fileInfo = ViewerFileInfo(size = 1024L),
-        path = LocalPath.build("/storage/emulated/0/DCIM/photo.jpg"),
+        source = ViewerSource.Stored(LocalPath.build("/storage/emulated/0/DCIM/photo.jpg")),
         imageSource = null,
     )
 
     private val failedState = ViewerWorkspaceViewModel.State.Ready(
         content = ViewerContent.Failed(IllegalStateException("Decoder gave up")),
         fileInfo = null,
-        path = LocalPath.build("/storage/emulated/0/DCIM/photo.jpg"),
+        source = ViewerSource.Stored(LocalPath.build("/storage/emulated/0/DCIM/photo.jpg")),
         imageSource = null,
     )
 
@@ -259,7 +260,7 @@ class ViewerWorkspacePageTest : ComposeTest() {
                     state = ViewerWorkspaceViewModel.State.Ready(
                         content = ViewerContent.PdfPreview(MimeInfo("application/pdf"), pageCount = 3),
                         fileInfo = ViewerFileInfo(size = 128_004L),
-                        path = LocalPath.build("/storage/emulated/0/Download/manual.pdf"),
+                        source = ViewerSource.Stored(LocalPath.build("/storage/emulated/0/Download/manual.pdf")),
                         imageSource = null,
                         // Robolectric cannot rasterise a bitmap, so the render stays pending here.
                         pdfPage = null,

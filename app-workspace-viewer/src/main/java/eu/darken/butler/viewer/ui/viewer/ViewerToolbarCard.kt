@@ -54,7 +54,8 @@ fun ViewerToolbarCard(
     workspaceId: Workspace.Id,
     design: WorkspaceDesign,
     fileName: String,
-    folderPath: String,
+    /** Null when the content has no location, i.e. it was streamed from another app. */
+    folderPath: String?,
     isCollapsed: Boolean = false,
     onBackClick: (() -> Unit)? = null,
 ) {
@@ -137,27 +138,31 @@ fun ViewerToolbarCard(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
-                ) {
-                    Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
-                        Text(
-                            text = stringResource(R.string.viewer_toolbar_folder_label),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            modifier = Modifier
-                                .heightIn(max = PathBlockMaxHeight)
-                                .verticalScroll(rememberScrollState()),
-                            text = folderPath,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            softWrap = true,
-                        )
+                // Nothing to show for streamed content: it has no folder, and an empty block would
+                // read as "the folder is unknown" rather than "there isn't one".
+                if (folderPath != null) {
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
+                    ) {
+                        Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+                            Text(
+                                text = stringResource(R.string.viewer_toolbar_folder_label),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                modifier = Modifier
+                                    .heightIn(max = PathBlockMaxHeight)
+                                    .verticalScroll(rememberScrollState()),
+                                text = folderPath,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                softWrap = true,
+                            )
+                        }
                     }
                 }
             }

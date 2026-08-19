@@ -353,6 +353,9 @@ class WorkspaceSessionManager @Inject constructor(
                 if (!visited.add(current.id)) return@run null
                 current = current.callerWorkspaceId?.let { infosById[it] } ?: return@run null
             }
+            // A workspace that is never saved has no row to focus on the next start, and storing its
+            // id would make the restore fall back to the FIRST tab rather than leaving focus alone.
+            if (!current.isPersistable) return@run null
             current.id
         }
 
@@ -390,7 +393,10 @@ class WorkspaceSessionManager @Inject constructor(
 
         // Pull workspace data
         val repoState = workspaceRepo.state.first()
-        val workspacesToSave = repoState.infos.filter { !it.isSubWorkspace }
+        // Sub-workspaces are overlays their owner rebuilds; non-persistable ones hold something that
+        // only means anything in this process (a URI grant another app gave us), so a saved row
+        // would restore as a tab that can never load.
+        val workspacesToSave = repoState.infos.filter { !it.isSubWorkspace && it.isPersistable }
 
         val uiState = buildUiState(repoState)
         val now = Clock.System.now()
@@ -636,6 +642,16 @@ class WorkspaceSessionManager @Inject constructor(
                 if (arguments.isForSubWorkspace) {
                     log(TAG, WARN) {
                         "Skipping sub-workspace row during restore (id=${entity.workspaceId}, type=$type)"
+                    }
+                    return@forEach
+                }
+
+                // Same reasoning for arguments that were never meant to outlive their process: the
+                // save side skips them, so a row like this is stale data from before that rule or a
+                // bug, and restoring it can only produce a tab that fails to load.
+                if (!arguments.isPersistable) {
+                    log(TAG, WARN) {
+                        "Skipping non-persistable row during restore (id=${entity.workspaceId}, type=$type)"
                     }
                     return@forEach
                 }

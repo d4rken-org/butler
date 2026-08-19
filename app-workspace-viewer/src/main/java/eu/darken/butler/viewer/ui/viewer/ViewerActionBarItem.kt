@@ -7,6 +7,7 @@ import androidx.compose.material.icons.twotone.ContentCut
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.DeleteForever
 import androidx.compose.material.icons.twotone.OpenInBrowser
+import androidx.compose.material.icons.twotone.SaveAlt
 import androidx.compose.material.icons.twotone.Share
 import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.common.ca.CaString
@@ -29,6 +30,15 @@ sealed interface ViewerActionBarItem : WorkspaceActionBarItem {
     override val isDestructive: Boolean get() = false
     override val group: WorkspaceActionBarItem.Group get() = WorkspaceActionBarItem.Group.PRIMARY
     override val badge: Boolean get() = false
+
+    /**
+     * Write streamed content to a place the user picks. The only action a streamed source offers,
+     * and what turns it into a real file that supports all the others.
+     */
+    data object SaveCopy : ViewerActionBarItem {
+        override val icon = Icons.TwoTone.SaveAlt
+        override val label = R.string.viewer_save_copy_action.toCaString()
+    }
 
     /**
      * Hand the file to another app via the system chooser.

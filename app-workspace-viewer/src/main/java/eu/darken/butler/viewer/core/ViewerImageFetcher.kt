@@ -10,9 +10,6 @@ import coil3.key.Keyer
 import coil3.request.Options
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.files.APath
-import eu.darken.butler.common.files.GatewaySwitch
-import eu.darken.butler.common.files.MimeInfo
 import okio.FileSystem
 import okio.buffer
 import okio.source
@@ -27,40 +24,44 @@ import javax.inject.Inject
  * no budget, and a failure must surface instead of silently becoming an icon.
  */
 data class ViewerImageRequest(
-    val path: APath<*>,
+    val source: ViewerSource,
 )
 
 class ViewerImageKeyer @Inject constructor() : Keyer<ViewerImageRequest> {
-    override fun key(data: ViewerImageRequest, options: Options): String = "viewer:${data.path.path}"
+    // ViewerSource.cacheKey, not the path: streamed content has no path, and its key folds in the
+    // arrival so two shares of one provider URI never serve each other's bytes.
+    override fun key(data: ViewerImageRequest, options: Options): String = "viewer:${data.source.cacheKey}"
 }
 
 class ViewerImageFetcher(
-    private val gatewaySwitch: GatewaySwitch,
+    private val contentReader: ViewerContentReader,
     private val data: ViewerImageRequest,
 ) : Fetcher {
 
     override suspend fun fetch(): FetchResult {
-        log(TAG) { "fetch(): ${data.path}" }
-        val stream = gatewaySwitch.openInputStream(data.path)
+        log(TAG) { "fetch(): ${data.source}" }
+        // Hand-over: Coil reads the source after this returns, so it cannot be scope-bound.
+        val stream = contentReader.openStreamForHandover(data.source)
         return SourceFetchResult(
             source = ImageSource(
                 source = stream.source().buffer(),
                 fileSystem = FileSystem.SYSTEM,
             ),
-            mimeType = MimeInfo.fromFileName(data.path.name).rawType,
+            // Declared type, not the file name: shared content often arrives without an extension.
+            mimeType = data.source.mime.rawType,
             dataSource = DataSource.DISK,
         )
     }
 
     class Factory @Inject constructor(
-        private val gatewaySwitch: GatewaySwitch,
+        private val contentReader: ViewerContentReader,
     ) : Fetcher.Factory<ViewerImageRequest> {
 
         override fun create(
             data: ViewerImageRequest,
             options: Options,
             imageLoader: ImageLoader,
-        ): Fetcher = ViewerImageFetcher(gatewaySwitch, data)
+        ): Fetcher = ViewerImageFetcher(contentReader, data)
     }
 
     companion object {
