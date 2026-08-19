@@ -25,6 +25,7 @@ class WorkspaceSettingsViewModel @Inject constructor(
         workspaceSettings.livePreview.flow,
         workspaceSettings.layoutModePortrait.flow,
         workspaceSettings.layoutModeLandscape.flow,
+        workspaceSettings.paneClickToFocus.flow,
         workspaceSettings.sessionRestoreEnabled.flow,
         workspaceSettings.autoPauseEnabled.flow,
         workspaceSettings.autoPauseIdleTimeout.flow,
