@@ -135,6 +135,7 @@ class WorkspacesViewModelReviewCardTest : BaseTest() {
         val workspaceSettings = mockk<WorkspaceSettings>(relaxed = true).apply {
             every { swipeGesturesEnabled } returns boolSetting(true)
             every { onDemandWorkspaceCreation } returns boolSetting(true)
+            every { paneClickToFocus } returns boolSetting(true)
         }
         val pageManager = mockk<WorkspacePageManager>(relaxed = true).apply {
             every { state } returns MutableStateFlow(
