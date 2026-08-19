@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.twotone.AdsClick
 import androidx.compose.material.icons.twotone.AutoAwesome
 import androidx.compose.material.icons.twotone.PauseCircle
 import androidx.compose.material.icons.twotone.RestorePage
@@ -68,6 +69,7 @@ fun WorkspaceSettingsScreen(
     onToggleLivePreview: () -> Unit,
     onSetLayoutModePortrait: (WorkspacePanelMode) -> Unit,
     onSetLayoutModeLandscape: (WorkspacePanelMode) -> Unit,
+    onTogglePaneClickToFocus: () -> Unit,
     onToggleSessionRestore: () -> Unit,
     onToggleAutoPause: () -> Unit,
     onSetAutoPauseIdleTimeout: (Duration) -> Unit,
@@ -144,6 +146,16 @@ fun WorkspaceSettingsScreen(
                     subtitle = stringResource(R.string.workspace_settings_layout_mode_landscape_desc),
                     value = state.layoutModeLandscape.label(),
                     onClick = { showLandscapeDialog = true }
+                )
+            }
+
+            item {
+                SettingsSwitchItem(
+                    icon = Icons.TwoTone.AdsClick,
+                    title = stringResource(R.string.workspace_settings_pane_click_to_focus_title),
+                    subtitle = stringResource(R.string.workspace_settings_pane_click_to_focus_desc),
+                    checked = state.paneClickToFocus,
+                    onCheckedChange = { onTogglePaneClickToFocus() },
                 )
             }
 
@@ -349,6 +361,7 @@ private fun WorkspaceSettingsScreenPreview() {
             livePreview = true,
             layoutModePortrait = WorkspacePanelMode.AUTO,
             layoutModeLandscape = WorkspacePanelMode.AUTO,
+            paneClickToFocus = true,
             sessionRestoreEnabled = true,
             sessionWorkspaceCount = 3,
             sessionDatabaseSizeBytes = 131072,
@@ -359,6 +372,7 @@ private fun WorkspaceSettingsScreenPreview() {
         onToggleLivePreview = {},
         onSetLayoutModePortrait = {},
         onSetLayoutModeLandscape = {},
+        onTogglePaneClickToFocus = {},
         onToggleSessionRestore = {},
         onToggleAutoPause = {},
         onSetAutoPauseIdleTimeout = {},
@@ -381,6 +395,7 @@ fun WorkspaceSettingsScreenHost(vm: WorkspaceSettingsViewModel = hiltViewModel()
             onToggleLivePreview = { vm.toggleLivePreview() },
             onSetLayoutModePortrait = { mode -> vm.setLayoutModePortrait(mode) },
             onSetLayoutModeLandscape = { mode -> vm.setLayoutModeLandscape(mode) },
+            onTogglePaneClickToFocus = { vm.togglePaneClickToFocus() },
             onToggleSessionRestore = { vm.toggleSessionRestore() },
             onToggleAutoPause = { vm.toggleAutoPause() },
             onSetAutoPauseIdleTimeout = { timeout -> vm.setAutoPauseIdleTimeout(timeout) },

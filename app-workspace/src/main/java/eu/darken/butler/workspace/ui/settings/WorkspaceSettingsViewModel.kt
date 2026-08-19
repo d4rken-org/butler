@@ -30,13 +30,14 @@ class WorkspaceSettingsViewModel @Inject constructor(
         workspaceSettings.autoPauseIdleTimeout.flow,
         sessionStorage.getWorkspaceCount(WorkspaceSessionStorage.DEFAULT_SESSION_ID),
         sessionStorage.getDatabaseSizeBytes(WorkspaceSessionStorage.DEFAULT_SESSION_ID),
-    ) { swipeGesturesEnabled, onDemandWorkspaceCreation, livePreview, layoutModePortrait, layoutModeLandscape, sessionRestoreEnabled, autoPauseEnabled, autoPauseIdleTimeout, sessionWorkspaceCount, sessionDatabaseSizeBytes ->
+    ) { swipeGesturesEnabled, onDemandWorkspaceCreation, livePreview, layoutModePortrait, layoutModeLandscape, paneClickToFocus, sessionRestoreEnabled, autoPauseEnabled, autoPauseIdleTimeout, sessionWorkspaceCount, sessionDatabaseSizeBytes ->
         State(
             swipeGesturesEnabled = swipeGesturesEnabled,
             onDemandWorkspaceCreation = onDemandWorkspaceCreation,
             livePreview = livePreview,
             layoutModePortrait = layoutModePortrait,
             layoutModeLandscape = layoutModeLandscape,
+            paneClickToFocus = paneClickToFocus,
             sessionRestoreEnabled = sessionRestoreEnabled,
             autoPauseEnabled = autoPauseEnabled,
             autoPauseIdleTimeout = WorkspaceSettings.clampIdleTimeout(autoPauseIdleTimeout),
@@ -68,6 +69,11 @@ class WorkspaceSettingsViewModel @Inject constructor(
         workspaceSettings.layoutModeLandscape.value(mode)
     }
 
+    fun togglePaneClickToFocus() = launch {
+        val current = workspaceSettings.paneClickToFocus.value()
+        workspaceSettings.paneClickToFocus.value(!current)
+    }
+
     fun toggleSessionRestore() = launch {
         val current = workspaceSettings.sessionRestoreEnabled.value()
         workspaceSettings.sessionRestoreEnabled.value(!current)
@@ -91,6 +97,7 @@ class WorkspaceSettingsViewModel @Inject constructor(
         val livePreview: Boolean,
         val layoutModePortrait: WorkspacePanelMode,
         val layoutModeLandscape: WorkspacePanelMode,
+        val paneClickToFocus: Boolean,
         val sessionRestoreEnabled: Boolean,
         val autoPauseEnabled: Boolean = true,
         val autoPauseIdleTimeout: Duration = WorkspaceSettings.AUTO_PAUSE_IDLE_TIMEOUT_DEFAULT,

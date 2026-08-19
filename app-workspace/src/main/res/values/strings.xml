@@ -314,6 +314,9 @@
     <string name="workspace_settings_layout_mode_quad_grid">Quad grid</string>
     <string name="workspace_settings_layout_mode_quad_grid_desc">Four panes in a 2×2 grid.</string>
 
+    <string name="workspace_settings_pane_click_to_focus_title">Click to focus</string>
+    <string name="workspace_settings_pane_click_to_focus_desc">The first click on an unfocused pane only focuses it, and unfocused panes don\'t react to a mouse pointer. Turn off to interact with them directly.</string>
+
     <!-- Session -->
     <string name="workspace_settings_session_title">Session</string>
     <string name="workspace_settings_session_restore_title">Restore tabs on startup</string>

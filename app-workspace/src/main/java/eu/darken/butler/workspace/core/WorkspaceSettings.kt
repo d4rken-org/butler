@@ -44,6 +44,8 @@ class WorkspaceSettings @Inject constructor(
 
     val layoutModeLandscape = dataStore.createValue("workspace.layout.mode.landscape", WorkspacePanelMode.AUTO, json)
 
+    val paneClickToFocus = dataStore.createValue("workspace.pane.clicktofocus.enabled", true)
+
     val sessionRestoreEnabled = dataStore.createValue("workspace.session.restore.enabled", true)
 
     val autoPauseEnabled = dataStore.createValue("workspace.session.autopause.enabled", true)
@@ -63,6 +65,7 @@ class WorkspaceSettings @Inject constructor(
         livePreview,
         layoutModePortrait,
         layoutModeLandscape,
+        paneClickToFocus,
         sessionRestoreEnabled,
         autoPauseEnabled,
         autoPauseIdleTimeout,
