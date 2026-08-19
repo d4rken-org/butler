@@ -20,18 +20,23 @@ interface OperationHistoryDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPaths(paths: List<OperationHistoryPathEntity>)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertScopePaths(paths: List<OperationHistoryScopeEntity>)
+
     /**
-     * Atomic write: insert one operation row + all its path rows + enforce the retention cap.
-     * If [maxItems] is exceeded, deletes the oldest by `completedAt`.
+     * Atomic write: insert one operation row + all its path and scope rows + enforce the retention
+     * cap. If [maxItems] is exceeded, deletes the oldest by `completedAt`.
      */
     @Transaction
     suspend fun insertWithPathsAndTrim(
         entry: OperationHistoryEntity,
         paths: List<OperationHistoryPathEntity>,
+        scopePaths: List<OperationHistoryScopeEntity>,
         maxItems: Int,
     ) {
         insertEntry(entry)
         if (paths.isNotEmpty()) insertPaths(paths)
+        if (scopePaths.isNotEmpty()) insertScopePaths(scopePaths)
         val count = getCount()
         if (count > maxItems) deleteOldest(count - maxItems)
     }
@@ -60,15 +65,19 @@ interface OperationHistoryDao {
     ): Flow<List<String>>
 
     /**
-     * Phase 1 with dynamic OR-joined path scopes. The repo builds the full SQL via
-     * [androidx.sqlite.db.SimpleSQLiteQuery] and binds N path scopes (each contributing four
-     * placeholders for path/previousPath × exact/descendant). Single query so ORDER BY + LIMIT
-     * apply globally across all scopes — no client-side union, no bind-arg explosion.
+     * Phase 1 with dynamic OR-joined path scopes, matched against the scope index. The repo builds
+     * the full SQL via [androidx.sqlite.db.SimpleSQLiteQuery] and binds N path scopes (each
+     * contributing two placeholders for exact/descendant). Single query so ORDER BY + LIMIT apply
+     * globally across all scopes — no client-side union, no bind-arg explosion.
      *
-     * Observed entities ensure the Flow re-emits when either table changes.
+     * Observed entities ensure the Flow re-emits when any of the tables change.
      */
     @RawQuery(
-        observedEntities = [OperationHistoryEntity::class, OperationHistoryPathEntity::class],
+        observedEntities = [
+            OperationHistoryEntity::class,
+            OperationHistoryPathEntity::class,
+            OperationHistoryScopeEntity::class,
+        ],
     )
     fun observeIdsRaw(query: SupportSQLiteQuery): Flow<List<String>>
 
@@ -80,6 +89,26 @@ interface OperationHistoryDao {
     @Transaction
     @Query("SELECT * FROM operation_history WHERE id = :id")
     suspend fun getById(id: String): OperationHistoryWithPaths?
+
+    /**
+     * On-demand load of one operation's scope index, bounded by [limit]. Deliberately not a
+     * `@Relation` on [OperationHistoryWithPaths]: that projection powers the whole history list (up
+     * to 2000 rows), so attaching the index would materialize hundreds of thousands of rows per list
+     * emission. The limit is a display bound only - the table itself stays uncapped so filtering
+     * still sees every path.
+     */
+    @Query(
+        """
+        SELECT * FROM operation_history_scope
+        WHERE operationHistoryId = :operationHistoryId
+        ORDER BY sortIndex ASC
+        LIMIT :limit
+        """
+    )
+    suspend fun getScopePathsPreview(operationHistoryId: String, limit: Int): List<OperationHistoryScopeEntity>
+
+    @Query("SELECT COUNT(*) FROM operation_history_scope WHERE operationHistoryId = :operationHistoryId")
+    suspend fun getScopePathCount(operationHistoryId: String): Int
 
     // ─── retention ─────────────────────────────────────────────────────────────────
 

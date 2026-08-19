@@ -157,15 +157,18 @@ private fun HistoryEntry.headline(): String {
         Operation.Metadata.Intent.DROP_MOVE -> "Dropped (move)"
         null -> kind.entryHeadlineLabel()
     }
-    val target = paths.firstOrNull()?.path?.substringAfterLast('/')
+    val target = displayPath()?.substringAfterLast('/')
     return if (target.isNullOrBlank()) intentLabel else "$intentLabel  $target"
 }
 
 private fun HistoryEntry.subline(timeAgo: String): String {
     val originLabel = originType.name.lowercase().replaceFirstChar { it.uppercaseChar() }
-    val pathHint = paths.firstOrNull()?.path?.substringBeforeLast('/').orEmpty()
+    val pathHint = displayPath()?.substringBeforeLast('/').orEmpty()
     return if (pathHint.isNotEmpty()) "$originLabel  ·  $timeAgo  ·  $pathHint" else "$originLabel  ·  $timeAgo"
 }
+
+/** Falls back to the stored representative path so failed and cancelled ops still name a file. */
+private fun HistoryEntry.displayPath(): String? = paths.firstOrNull()?.path ?: primaryPath
 
 private fun Operation.Metadata.Kind.entryHeadlineLabel(): String = when (this) {
     Operation.Metadata.Kind.COPY -> "Copied"
@@ -310,6 +313,37 @@ private fun HistoryEntryRowTruncatedPreview() {
                     change = Operation.Report.PathChange.Change.REMOVED,
                 )
             },
+        ),
+        onClick = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun HistoryEntryRowNoChangesPreview() {
+    val now = Clock.System.now()
+    HistoryEntryRow(
+        entry = HistoryEntry(
+            id = "4",
+            kind = Operation.Metadata.Kind.COPY,
+            intent = Operation.Metadata.Intent.PASTE_COPY,
+            originType = HistoryEntry.OriginType.EXPLORER,
+            originWorkspaceId = "abc",
+            title = "Copy holiday.mp4",
+            description = "Failed before anything was written",
+            summary = "No space left on device",
+            startedAt = now - 40.seconds,
+            completedAt = now - 35.seconds,
+            duration = 5.seconds,
+            outcome = HistoryOutcome.FAILED,
+            errorMessage = "No space left on device",
+            errorClass = "java.io.IOException",
+            affectedPathsCount = 0,
+            partialErrorCount = 0,
+            pathsTruncated = false,
+            paths = emptyList(),
+            primaryPath = "/storage/emulated/0/Movies/holiday.mp4",
         ),
         onClick = {},
     )

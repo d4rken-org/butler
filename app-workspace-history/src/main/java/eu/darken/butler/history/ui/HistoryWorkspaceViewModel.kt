@@ -77,8 +77,24 @@ class HistoryWorkspaceViewModel @AssistedInject constructor(
         log(tag) { "Initialized for workspace $id" }
     }
 
+    // Not `launch`: visibility must be applied in call order, and the coroutine dispatcher is a
+    // multithreaded pool - two rapid taps could otherwise apply their updates in either order and
+    // leave the wrong entry open.
     fun showEntryDetails(entry: HistoryEntry?) {
-        _overlayState.update { it.copy(detailEntry = entry) }
+        _overlayState.update { it.copy(detailEntry = entry, attemptedPaths = emptyList(), attemptedPathsTotal = 0) }
+        // Entries without reported changes would show an empty sheet, so fill it with what the
+        // operation tried to touch. Loaded on demand: the list query doesn't carry the scope index.
+        if (entry == null || entry.paths.isNotEmpty()) return
+        launch {
+            val attempted = historyRepo.getAttemptedPaths(entry.id)
+            _overlayState.update {
+                if (it.detailEntry?.id != entry.id) {
+                    it
+                } else {
+                    it.copy(attemptedPaths = attempted.paths, attemptedPathsTotal = attempted.totalCount)
+                }
+            }
+        }
     }
 
     fun setAddFilterOpen(open: Boolean) {
@@ -143,6 +159,8 @@ class HistoryWorkspaceViewModel @AssistedInject constructor(
 
     data class OverlayState(
         val detailEntry: HistoryEntry? = null,
+        val attemptedPaths: List<String> = emptyList(),
+        val attemptedPathsTotal: Int = 0,
         val addFilterOpen: Boolean = false,
         val pathScopeOpen: Boolean = false,
     )

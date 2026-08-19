@@ -28,6 +28,11 @@ data class HistoryEntry(
     val partialErrorCount: Int,
     val pathsTruncated: Boolean,
     val paths: List<PathChange>,
+    /**
+     * Representative path for entries without reported changes (failed/cancelled ops), so the list
+     * can still show a filename and folder. Null when the operation named no paths at all.
+     */
+    val primaryPath: String? = null,
 ) {
     enum class OriginType { EXPLORER, SEARCHER, SAVER, DEVELOPER, VIEWER }
 

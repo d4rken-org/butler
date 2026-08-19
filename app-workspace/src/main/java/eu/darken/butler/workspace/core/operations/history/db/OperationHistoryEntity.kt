@@ -43,4 +43,9 @@ data class OperationHistoryEntity(
     val partialErrorCount: Int = 0,
     /** True when [operation_history_paths] only stores a capped subset (default cap: 200). */
     val pathsTruncated: Boolean = false,
+    /**
+     * One representative path (first reported change, else first intended path). Lets the list show
+     * a filename and folder for operations that reported no changes, without loading child rows.
+     */
+    val primaryPath: String? = null,
 )

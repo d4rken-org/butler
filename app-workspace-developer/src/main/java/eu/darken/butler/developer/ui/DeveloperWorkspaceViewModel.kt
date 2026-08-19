@@ -46,6 +46,7 @@ import eu.darken.butler.workspace.core.operations.history.HistorySettings
 import eu.darken.butler.workspace.core.operations.history.db.OperationHistoryDao
 import eu.darken.butler.workspace.core.operations.history.db.OperationHistoryEntity
 import eu.darken.butler.workspace.core.operations.history.db.OperationHistoryPathEntity
+import eu.darken.butler.workspace.core.operations.history.db.OperationHistoryScopeEntity
 import eu.darken.butler.workspace.ui.page.WorkspacePageChrome
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
@@ -389,6 +390,15 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
                     )
                 }
 
+                val scopeEntities = (listOf(spec.pathRoot) + storedPaths.map { "${spec.pathRoot}/$it" })
+                    .mapIndexed { i, path ->
+                        OperationHistoryScopeEntity(
+                            operationHistoryId = rowId,
+                            path = path,
+                            sortIndex = i,
+                        )
+                    }
+
                 val outcomeLabel = spec.outcome.name.lowercase()
                 val intentLabel = spec.intent?.name?.lowercase()?.replace('_', ' ')
                 val titleText = if (intentLabel != null) "${spec.kind.name} ($intentLabel)" else spec.kind.name
@@ -417,11 +427,13 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
                     affectedPathsCount = spec.pathsTruncatedCount ?: storedPaths.size,
                     partialErrorCount = if (spec.outcome == HistoryOutcome.PARTIAL) rng.nextInt(1, 3) else 0,
                     pathsTruncated = truncated,
+                    primaryPath = pathEntities.firstOrNull()?.path,
                 )
 
                 operationHistoryDao.insertWithPathsAndTrim(
                     entry = entry,
                     paths = pathEntities,
+                    scopePaths = scopeEntities,
                     maxItems = maxItems,
                 )
             }

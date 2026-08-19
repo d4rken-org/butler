@@ -90,6 +90,8 @@ fun HistoryWorkspaceOverlays(
 
     HistoryEntryDetailsBottomSheet(
         entry = overlayState.detailEntry,
+        attemptedPaths = overlayState.attemptedPaths,
+        attemptedPathsTotal = overlayState.attemptedPathsTotal,
         topInset = statusBarInset,
         bottomInset = navBarInset,
         onDismiss = onDismissEntryDetails,

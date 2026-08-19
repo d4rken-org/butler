@@ -2,6 +2,7 @@ package eu.darken.butler.workspace.core.operations.history
 
 import android.content.Context
 import androidx.sqlite.db.SimpleSQLiteQuery
+import androidx.sqlite.db.SupportSQLiteDatabase
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.datastore.value
@@ -9,12 +10,15 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.workspace.core.operations.CompletedOperationSnapshot
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.history.db.OperationHistoryDao
+import eu.darken.butler.workspace.core.operations.history.db.OperationHistoryDatabase
 import eu.darken.butler.workspace.core.operations.history.db.OperationHistoryEntity
 import eu.darken.butler.workspace.core.operations.history.db.OperationHistoryPathEntity
+import eu.darken.butler.workspace.core.operations.history.db.OperationHistoryScopeEntity
 import eu.darken.butler.workspace.core.operations.history.db.OperationHistoryWithPaths
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -33,6 +37,7 @@ class OperationHistoryRepo @Inject constructor(
     @AppScope private val appScope: CoroutineScope,
     @ApplicationContext private val context: Context,
     private val operationsManager: OperationsManager,
+    private val database: OperationHistoryDatabase,
     private val dao: OperationHistoryDao,
     private val historySettings: HistorySettings,
 ) {
@@ -86,16 +91,23 @@ class OperationHistoryRepo @Inject constructor(
             is Operation.Metadata.Origin.Viewer -> HistoryEntry.OriginType.VIEWER
         }
 
-        val pathChanges = collectPathChanges(metadata, state)
-        val capped = pathChanges.take(MAX_PATHS_PER_OP)
+        val reportedChanges = collectReportedChanges(state)
+        val scopePaths = collectScopePaths(metadata, state)
 
         val rowId = Uuid.random().toString()
-        val pathEntities = capped.mapIndexed { index, change ->
+        val pathEntities = reportedChanges.take(MAX_PATHS_PER_OP).mapIndexed { index, change ->
             OperationHistoryPathEntity(
                 operationHistoryId = rowId,
                 path = change.path,
                 previousPath = change.previousPath,
                 change = change.change.name,
+                sortIndex = index,
+            )
+        }
+        val scopeEntities = scopePaths.mapIndexed { index, path ->
+            OperationHistoryScopeEntity(
+                operationHistoryId = rowId,
+                path = path,
                 sortIndex = index,
             )
         }
@@ -115,25 +127,82 @@ class OperationHistoryRepo @Inject constructor(
             outcome = outcome.name,
             errorMessage = state.error?.message,
             errorClass = state.error?.javaClass?.name,
-            affectedPathsCount = pathChanges.size,
+            affectedPathsCount = reportedChanges.size,
             partialErrorCount = state.report?.partialErrorCount ?: 0,
-            pathsTruncated = pathChanges.size > MAX_PATHS_PER_OP,
+            pathsTruncated = reportedChanges.size > MAX_PATHS_PER_OP,
+            primaryPath = reportedChanges.firstOrNull()?.path
+                ?: metadata.intendedPaths?.firstOrNull()?.userReadablePath?.get(context),
         )
 
         dao.insertWithPathsAndTrim(
             entry = entry,
             paths = pathEntities,
+            scopePaths = scopeEntities,
             maxItems = historySettings.maxHistoryItems.value(),
         )
+
+        trimToMaxBytes()
     }
 
     /**
-     * Collect the union of `report.affectedPaths` and `metadata.intendedPaths`, deduplicated by
-     * the resolved path string. Affected paths come first (preserve change-type semantics); intended
-     * paths fill in for failed/cancelled ops where the report is null/empty.
+     * Size-based retention. The item cap bounds how many operations are kept, not how much they
+     * weigh: the scope index is uncapped per operation, so a single delete over 100k files writes
+     * megabytes of rows. Drops the oldest operations in 10% steps until the used bytes fit
+     * [limitBytes], then reclaims the freed pages.
+     *
+     * Never empties the table: an operation that on its own exceeds the limit is kept, otherwise
+     * history would permanently show nothing on a device that does such operations routinely.
+     *
+     * Failure is logged and swallowed - a trim problem must not lose the write that triggered it.
      */
-    private fun collectPathChanges(
-        metadata: Operation.Metadata,
+    internal suspend fun trimToMaxBytes(limitBytes: Long = MAX_DB_SIZE_BYTES) {
+        runCatching {
+            var deletedAny = false
+            val db = database.openHelper.writableDatabase
+            while (true) {
+                val used =
+                    (db.pragmaLong("page_count") - db.pragmaLong("freelist_count")) * db.pragmaLong("page_size")
+                if (used <= limitBytes) break
+                val count = dao.getCount()
+                if (count <= 1) {
+                    log(TAG, WARN) { "trimToMaxBytes(): $used bytes held by a single operation, keeping it" }
+                    break
+                }
+                log(TAG, INFO) { "trimToMaxBytes(): $used bytes over $limitBytes, trimming $count entries" }
+                dao.deleteOldest((count / 10).coerceAtLeast(1))
+                deletedAny = true
+            }
+            // VACUUM can't run inside a transaction, hence out here instead of in a @Transaction DAO
+            // method: deleting rows only moves pages onto the freelist, the file itself never shrinks.
+            // The trigger is stateless on purpose: a VACUUM that fails (SQLITE_BUSY, low free disk)
+            // leaves the file over the ceiling with reclaimable pages on the freelist, so the next
+            // persist retries it without any pending flag. It terminates because the loop above
+            // already pushed the used bytes to the limit, so a successful VACUUM brings the file
+            // itself to at most the limit and the condition goes false. The free-page term is what
+            // stops a pointless retry loop when the count <= 1 stop deliberately keeps a single
+            // operation that outweighs the whole limit.
+            val totalBytes = db.pragmaLong("page_count") * db.pragmaLong("page_size")
+            val freeBytes = db.pragmaLong("freelist_count") * db.pragmaLong("page_size")
+            val overPhysicalLimitWithFreePages = totalBytes > limitBytes && freeBytes > 0
+            val heavilyFragmented = totalBytes > 0 && freeBytes * 4 > totalBytes
+            if (deletedAny || overPhysicalLimitWithFreePages || heavilyFragmented) db.execSQL("VACUUM")
+        }.onFailure { log(TAG, ERROR) { "trimToMaxBytes($limitBytes) failed: ${it.asLog()}" } }
+    }
+
+    /**
+     * Room parses `@Query` SQL with its own grammar, which rejects the `pragma_*()` table-valued
+     * function form, so the pragmas are read straight off the database handle instead.
+     */
+    private fun SupportSQLiteDatabase.pragmaLong(pragma: String): Long =
+        query("PRAGMA $pragma").use { cursor -> if (cursor.moveToFirst()) cursor.getLong(0) else 0L }
+
+    /**
+     * The audit record: what the operation actually reported changing, deduplicated by the resolved
+     * path string. Paths the operation merely read or intended to touch are NOT included - they'd be
+     * displayed as changes they never were (a single-file copy would claim to have added the source
+     * file and the destination folder). They go into the scope index instead.
+     */
+    private fun collectReportedChanges(
         state: Operation.State.Completed,
     ): List<HistoryEntry.PathChange> {
         val seen = mutableSetOf<String>()
@@ -150,32 +219,36 @@ class OperationHistoryRepo @Inject constructor(
             }
         }
 
-        // Fill from intendedPaths so failed/cancelled ops still have something queryable.
-        metadata.intendedPaths?.forEach { intended ->
-            val pathStr = intended.userReadablePath.get(context)
-            if (seen.add(pathStr)) {
-                // Synthetic change kind: inferred from operation kind (best-effort label).
-                val change = when (metadata.kind) {
-                    Operation.Metadata.Kind.DELETE -> Operation.Report.PathChange.Change.REMOVED
-                    Operation.Metadata.Kind.MOVE -> Operation.Report.PathChange.Change.MOVED
-                    Operation.Metadata.Kind.COPY,
-                    Operation.Metadata.Kind.SAVE,
-                    Operation.Metadata.Kind.CREATE_FILE,
-                    Operation.Metadata.Kind.CREATE_FOLDER,
-                    Operation.Metadata.Kind.COMPRESS,
-                    Operation.Metadata.Kind.EXTRACT,
-                    Operation.Metadata.Kind.RESTORE,
-                    null -> Operation.Report.PathChange.Change.ADDED
-                }
-                out += HistoryEntry.PathChange(
-                    path = pathStr,
-                    previousPath = null,
-                    change = change,
-                )
+        return out
+    }
+
+    /**
+     * The search index that backs the path-scope filter: intended paths, reported paths and move
+     * sources, plus every one of their parent directories. Never displayed as a change.
+     *
+     * Uncapped: a scope only matches a row exactly or as its ancestor prefix, so dropping any path
+     * would silently make that path unfilterable - an ancestor row can't stand in for it. The total
+     * database size is bounded by [trimToMaxBytes] instead of by a per-operation row cap.
+     *
+     * Parents come first so the collapsed folders lead the sortIndex order the attempted-paths sheet
+     * renders in, ahead of the potentially thousands of individual files below them.
+     */
+    private fun collectScopePaths(
+        metadata: Operation.Metadata,
+        state: Operation.State.Completed,
+    ): List<String> {
+        val candidates = buildList<APath<*>> {
+            metadata.intendedPaths?.let { addAll(it) }
+            state.report?.affectedPaths?.forEach { change ->
+                add(change.path)
+                change.previousPath?.let { add(it) }
             }
         }
 
-        return out
+        val parents = candidates.mapNotNull { it.parent?.userReadablePath?.get(context) }
+        val exact = candidates.map { it.userReadablePath.get(context) }
+
+        return (parents + exact).distinct()
     }
 
     // ─── query ────────────────────────────────────────────────────────────────────
@@ -188,9 +261,9 @@ class OperationHistoryRepo @Inject constructor(
      * [SimpleSQLiteQuery]. Single query → ORDER BY + LIMIT apply globally and we never fan out N
      * sub-queries (which would risk bind-arg explosion at the IN(:ids) stage).
      *
-     * Path-scope LIKE wildcards (`%`, `_`, `\`) in the user-provided paths are escaped before
-     * binding. Both `path` and `previousPath` columns are matched, so a move/rename OUT of a
-     * scoped folder still appears under that scope.
+     * Scopes are matched against `operation_history_scope`, which holds every path the operation
+     * touched or intended to touch plus their parent directories - so a move/rename OUT of a scoped
+     * folder still appears under that scope.
      */
     fun query(filter: HistoryFilter, limit: Int): Flow<List<HistoryEntry>> {
         // "No filter" for an enum dimension means "all values". Empty IN clauses are invalid SQL.
@@ -219,6 +292,24 @@ class OperationHistoryRepo @Inject constructor(
     ): SimpleSQLiteQuery = buildScopedIdsQueryStatic(outcomes, kinds, pathScopes, limit)
 
     fun observeCount(): Flow<Int> = dao.observeCount()
+
+    /**
+     * Paths the operation touched or intended to touch, loaded on demand. Shown for entries that
+     * reported no changes at all, where there'd otherwise be nothing to display.
+     *
+     * The scope index is uncapped per operation, so only the first [MAX_PATHS_PER_OP] rows are
+     * loaded - the same bound the audit table has. [AttemptedPaths.totalCount] carries the real
+     * size so the sheet can say what it isn't showing.
+     */
+    suspend fun getAttemptedPaths(id: String): AttemptedPaths = AttemptedPaths(
+        paths = dao.getScopePathsPreview(id, MAX_PATHS_PER_OP).map { it.path },
+        totalCount = dao.getScopePathCount(id),
+    )
+
+    data class AttemptedPaths(
+        val paths: List<String>,
+        val totalCount: Int,
+    )
 
     suspend fun delete(id: String) {
         log(TAG, INFO) { "delete(): $id" }
@@ -253,6 +344,7 @@ class OperationHistoryRepo @Inject constructor(
         affectedPathsCount = entry.affectedPathsCount,
         partialErrorCount = entry.partialErrorCount,
         pathsTruncated = entry.pathsTruncated,
+        primaryPath = entry.primaryPath,
         paths = paths.sortedBy { it.sortIndex }.map { p ->
             HistoryEntry.PathChange(
                 path = p.path,
@@ -265,6 +357,12 @@ class OperationHistoryRepo @Inject constructor(
     companion object {
         private val TAG = logTag("Workspace", "Operations", "History", "Repo")
         const val MAX_PATHS_PER_OP = 200
+
+        /**
+         * Hard ceiling on the whole history database, enforced by [trimToMaxBytes]. Deliberately not
+         * a setting: it's a safety net against pathological operations, not a user-facing knob.
+         */
+        internal const val MAX_DB_SIZE_BYTES = 32L * 1024 * 1024
 
         /**
          * Trim, drop trailing slashes (except a lone `/` root), null on blank. De-dup is the
@@ -286,10 +384,20 @@ class OperationHistoryRepo @Inject constructor(
             input.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
 
         /**
-         * Build the dynamic SQL for the multi-scope path filter. Each scope contributes 4 bind
-         * placeholders (path/previousPath × exact/descendant). All scopes joined with OR. A single
-         * SQL query keeps ORDER BY + LIMIT global across scopes — no client-side union, no
-         * bind-arg explosion via `IN (:ids)`. Exposed at companion level for unit testing.
+         * LIKE pattern matching everything below [scope]. Built in Kotlin instead of concatenating
+         * `|| '/%'` in SQL, because the root scope would otherwise become `//%` and match nothing.
+         */
+        internal fun descendantPatternStatic(scope: String): String =
+            if (scope == "/") "/%" else escapeLikePatternStatic(scope) + "/%"
+
+        /**
+         * Build the dynamic SQL for the multi-scope path filter. Each scope contributes 2 bind
+         * placeholders (exact + descendant). All scopes joined with OR. A single SQL query keeps
+         * ORDER BY + LIMIT global across scopes — no client-side union, no bind-arg explosion via
+         * `IN (:ids)`. Exposed at companion level for unit testing.
+         *
+         * The exact placeholder is bound to the RAW scope: it's an equality comparison, so binding
+         * the LIKE-escaped value there would make a scope containing `%`, `_` or `\` never match.
          */
         internal fun buildScopedIdsQueryStatic(
             outcomes: List<String>,
@@ -300,16 +408,15 @@ class OperationHistoryRepo @Inject constructor(
             val outcomesPh = List(outcomes.size) { "?" }.joinToString(",")
             val kindsPh = List(kinds.size) { "?" }.joinToString(",")
             val scopePredicate = pathScopes.joinToString(" OR ") {
-                "(p.path = ? OR p.path LIKE ? || '/%' ESCAPE '\\') " +
-                    "OR (p.previousPath = ? OR p.previousPath LIKE ? || '/%' ESCAPE '\\')"
+                "(s.path = ? OR s.path LIKE ? ESCAPE '\\')"
             }
             val sql = """
                 SELECT id FROM operation_history
                 WHERE outcome IN ($outcomesPh)
                   AND kind IN ($kindsPh)
                   AND EXISTS (
-                    SELECT 1 FROM operation_history_paths p
-                    WHERE p.operationHistoryId = operation_history.id
+                    SELECT 1 FROM operation_history_scope s
+                    WHERE s.operationHistoryId = operation_history.id
                       AND ($scopePredicate)
                   )
                 ORDER BY completedAt DESC
@@ -319,8 +426,8 @@ class OperationHistoryRepo @Inject constructor(
                 addAll(outcomes)
                 addAll(kinds)
                 for (scope in pathScopes) {
-                    val escaped = escapeLikePatternStatic(scope)
-                    add(escaped); add(escaped); add(escaped); add(escaped)
+                    add(scope)
+                    add(descendantPatternStatic(scope))
                 }
                 add(limit)
             }

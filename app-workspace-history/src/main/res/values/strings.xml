@@ -79,7 +79,9 @@
     <string name="history_detail_label_partial_errors">Per-item failures</string>
     <string name="history_detail_copy_path_action">Copy path</string>
     <string name="history_detail_paths_empty">No affected paths recorded.</string>
+    <string name="history_detail_label_attempted_paths">Attempted paths</string>
     <string name="history_detail_paths_truncated_callout">Showing first %1$d of %2$d affected paths.</string>
+    <string name="history_detail_attempted_paths_truncated_callout">Showing first %1$d of %2$d attempted paths.</string>
     <plurals name="history_detail_partial_errors_callout">
         <item quantity="one">%1$d item failed during this operation.</item>
         <item quantity="other">%1$d items failed during this operation.</item>

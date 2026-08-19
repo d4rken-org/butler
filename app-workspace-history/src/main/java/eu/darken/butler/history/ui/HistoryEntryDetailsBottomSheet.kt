@@ -39,6 +39,8 @@ import kotlin.time.Duration
 @Composable
 fun HistoryEntryDetailsBottomSheet(
     entry: HistoryEntry?,
+    attemptedPaths: List<String> = emptyList(),
+    attemptedPathsTotal: Int = 0,
     topInset: Dp = 0.dp,
     bottomInset: Dp,
     onDismiss: () -> Unit,
@@ -131,6 +133,34 @@ fun HistoryEntryDetailsBottomSheet(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                if (attemptedPaths.isNotEmpty()) {
+                    Text(
+                        text = stringResource(R.string.history_detail_label_attempted_paths),
+                        style = MaterialTheme.typography.titleSmall,
+                    )
+                    if (attemptedPathsTotal > attemptedPaths.size) {
+                        Callout(
+                            icon = Icons.TwoTone.WarningAmber,
+                            iconTint = MaterialTheme.colorScheme.tertiary,
+                            text = stringResource(
+                                R.string.history_detail_attempted_paths_truncated_callout,
+                                attemptedPaths.size,
+                                attemptedPathsTotal,
+                            ),
+                        )
+                    }
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        attemptedPaths.forEach { path ->
+                            Text(
+                                text = path,
+                                style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.MiddleEllipsis,
+                            )
+                        }
+                    }
+                }
             } else {
                 if (entry.pathsTruncated) {
                     Callout(
