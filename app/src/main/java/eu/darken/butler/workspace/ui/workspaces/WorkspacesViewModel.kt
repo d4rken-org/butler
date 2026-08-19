@@ -255,13 +255,14 @@ class WorkspacesViewModel @Inject constructor(
         upgradeRepo.upgradeInfo,
         workspaceSettings.swipeGesturesEnabled.flow,
         workspaceSettings.onDemandWorkspaceCreation.flow,
+        workspaceSettings.paneClickToFocus.flow,
         workspacePageManager.state,
         visibleMotd,
         sessionManager.state,
         _managerDialogs,
         reviewState,
         guidedTourController.session,
-    ) { repoState, upgradeInfo, swipeGesturesEnabled, onDemandWorkspaceCreation, uiState, motd, restorationState, dialogs, review, tourSession ->
+    ) { repoState, upgradeInfo, swipeGesturesEnabled, onDemandWorkspaceCreation, paneClickToFocus, uiState, motd, restorationState, dialogs, review, tourSession ->
         val base = State(
             state = repoState,
             focusedWorkspace = uiState.focusedWorkspaceId,
@@ -270,6 +271,7 @@ class WorkspacesViewModel @Inject constructor(
             isUpgraded = upgradeInfo.isPro,
             swipeGesturesEnabled = swipeGesturesEnabled,
             onDemandWorkspaceCreation = swipeGesturesEnabled && onDemandWorkspaceCreation,
+            paneClickToFocus = paneClickToFocus,
             motd = motd,
             currentPaneCount = uiState.currentPaneCount,
             isRestoring = restorationState == WorkspaceSessionManager.State.Restoring,
@@ -520,6 +522,7 @@ class WorkspacesViewModel @Inject constructor(
         val isUpgraded: Boolean,
         val swipeGesturesEnabled: Boolean = true,
         val onDemandWorkspaceCreation: Boolean = true,
+        val paneClickToFocus: Boolean = true,
         val motd: MotdState? = null,
         val currentPaneCount: Int = 1,
         val isRestoring: Boolean = false,

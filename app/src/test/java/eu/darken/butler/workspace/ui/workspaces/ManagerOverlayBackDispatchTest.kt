@@ -124,6 +124,7 @@ class ManagerOverlayBackDispatchTest : ComposeTest() {
                             onConfirmManagerDialog = {},
                             bannerStates = emptyMap(),
                             onDismissBanner = {},
+                            clickToFocus = true,
                             isOverlayVisible = overlayVisible,
                             onShareError = { _, _ -> },
                         )

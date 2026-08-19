@@ -171,6 +171,7 @@ fun WorkspaceScreen(
                 onDismissBanner = onDismissBanner,
                 onRenameWorkspace = { renameTargetId = it },
                 paneLocalModalChains = state.paneLocalModalChains,
+                clickToFocus = state.paneClickToFocus,
                 isUpgraded = state.isUpgraded,
                 isOverlayVisible = isOverlayVisible,
                 // A full-screen modal covers every pane, so none of them may stay focus- or

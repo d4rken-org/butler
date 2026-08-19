@@ -37,6 +37,8 @@ import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
  * @param paneFocused whether this pane is the focused one — true for any occupant. A pane-local
  *        modal's id can itself be the globally focused one (`createAndFocus`, tab-manager
  *        selection), so callers resolve focus through the chain's owning tab, not this pane's id.
+ * @param clickToFocus whether an unfocused pane has to be clicked once before it reacts to
+ *        anything: the user's "Click to focus" setting, forwarded to [PaneLayerHost].
  * @param backActive whether system Back may be dispatched into this pane. Defaults to
  *        [paneFocused]; a pager-driven layout narrows it, because its focused pane can be scrolled
  *        off screen while focus stays put.
@@ -56,6 +58,7 @@ fun WorkspacePane(
     info: WorkspacePaneInfo,
     design: WorkspaceDesign,
     paneFocused: Boolean,
+    clickToFocus: Boolean = true,
     backActive: Boolean = paneFocused,
     onRequestPaneFocus: () -> Unit,
     managerDialogStates: Map<Workspace.Id, ManagerDialog.WorkspaceTargeted>,
@@ -81,6 +84,7 @@ fun WorkspacePane(
             // are applied to the content and the modal surfaces inside instead.
             modifier = modifier,
             paneFocused = paneFocused,
+            clickToFocus = clickToFocus,
             backActive = backActive,
             paneEdges = paneEdges,
         ) {

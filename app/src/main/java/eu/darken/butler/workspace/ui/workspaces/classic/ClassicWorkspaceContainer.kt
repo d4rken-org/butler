@@ -279,6 +279,7 @@ internal fun ClassicWorkspaceContainer(
                         info = paneInfo,
                         design = design,
                         paneFocused = paneAcceptsPresses,
+                        clickToFocus = state.paneClickToFocus,
                         // Back must not reach a page the pager is not resting on. Parked on the
                         // trailing placeholder, focus legitimately stays on the last tab, so
                         // without this the off-screen Explorer's back-at-root handler consumes

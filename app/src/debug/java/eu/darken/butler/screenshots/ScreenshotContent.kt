@@ -198,6 +198,7 @@ internal fun ScreenshotPaneFrame(
             onConfirmManagerDialog = {},
             bannerStates = emptyMap(),
             onDismissBanner = {},
+            clickToFocus = true,
             onShareError = { _, _ -> },
         )
     }

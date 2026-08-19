@@ -51,6 +51,8 @@ fun AdaptiveWorkspaceLayout(
     onConfirmManagerDialog: (ManagerDialog.WorkspaceTargeted) -> Unit,
     bannerStates: Map<Workspace.Id, eu.darken.butler.workspace.ui.feedback.BannerState>,
     onDismissBanner: (Workspace.Id) -> Unit,
+    /** Whether an unfocused pane has to be clicked once before it reacts to anything. */
+    clickToFocus: Boolean,
     onRenameWorkspace: (Workspace.Id) -> Unit = {},
     paneLocalModalChains: Map<Workspace.Id, List<Workspace.Info>> = emptyMap(),
     isUpgraded: Boolean = false,
@@ -156,6 +158,7 @@ fun AdaptiveWorkspaceLayout(
                                 // focus for the tab: a Focus() for a modal is silently dropped,
                                 // which would leave another pane active.
                                 paneFocused = paneIsFocused,
+                                clickToFocus = clickToFocus,
                                 onRequestPaneFocus = {
                                     onScreenAction(WorkspaceScreenAction.Focus(info.id))
                                 },
