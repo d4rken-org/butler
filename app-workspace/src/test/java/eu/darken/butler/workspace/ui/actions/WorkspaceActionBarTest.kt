@@ -8,6 +8,7 @@ import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material.icons.twotone.Refresh
 import androidx.compose.material.icons.twotone.Share
 import androidx.compose.material.icons.twotone.Star
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.test.assertCountEquals
@@ -22,6 +23,7 @@ import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.compose.LocalTooltipsEnabled
 import eu.darken.butler.common.compose.PreviewWrapper
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
@@ -53,15 +55,18 @@ class WorkspaceActionBarTest : ComposeTest() {
     private fun setBar(
         actions: List<WorkspaceActionBarItem>,
         width: Int? = null,
+        tooltipsEnabled: Boolean = true,
         onActionClick: (WorkspaceActionBarItem) -> Unit = {},
     ) {
         composeTestRule.setContent {
             PreviewWrapper {
-                WorkspaceActionBar(
-                    modifier = if (width != null) Modifier.width(width.dp) else Modifier,
-                    actions = actions,
-                    onActionClick = onActionClick,
-                )
+                CompositionLocalProvider(LocalTooltipsEnabled provides tooltipsEnabled) {
+                    WorkspaceActionBar(
+                        modifier = if (width != null) Modifier.width(width.dp) else Modifier,
+                        actions = actions,
+                        onActionClick = onActionClick,
+                    )
+                }
             }
         }
     }
@@ -75,6 +80,17 @@ class WorkspaceActionBarTest : ComposeTest() {
             composeTestRule.waitForIdle()
             composeTestRule.onNodeWithText(action.name).assertIsDisplayed()
         }
+    }
+
+    /** An unfocused pane turns tooltips off, and the bar has to honour that like every other one. */
+    @Test
+    fun `no tooltip appears while tooltips are disabled`() {
+        setBar(listOf(share), tooltipsEnabled = false)
+
+        composeTestRule.onNodeWithContentDescription("Share").performTouchInput { longClick() }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onAllNodesWithText("Share").assertCountEquals(0)
     }
 
     @Test

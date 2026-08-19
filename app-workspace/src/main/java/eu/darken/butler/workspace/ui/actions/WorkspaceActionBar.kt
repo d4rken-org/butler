@@ -54,6 +54,7 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
+import eu.darken.butler.common.compose.LocalTooltipsEnabled
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.R
@@ -164,6 +165,7 @@ fun WorkspaceActionBar(
                                 ),
                                 tooltip = { PlainTooltip { Text(action.label.get(context)) } },
                                 state = rememberTooltipState(),
+                                enableUserInput = LocalTooltipsEnabled.current,
                             ) {
                                 Box(
                                     modifier = Modifier

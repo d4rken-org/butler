@@ -1,5 +1,7 @@
 package eu.darken.butler.workspace.ui.modal
 
+import androidx.compose.foundation.Indication
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
@@ -12,6 +14,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.LocalRippleConfiguration
+import androidx.compose.material3.RippleConfiguration
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -36,9 +40,11 @@ import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeUp
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.LocalTooltipsEnabled
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import org.junit.Test
 import testhelpers.ComposeTest
 
@@ -1417,6 +1423,45 @@ class PaneLayerHostTest : ComposeTest() {
         composeTestRule.runOnIdle { clicked shouldBe 1 }
         // The pulse was still running, so the overlay really was over the content
         composeTestRule.onNodeWithTag(TAG_PANE_FOCUS_PULSE).assertExists()
+    }
+
+    /**
+     * A hovering cursor must not light up content the pane will not let it click. The affordances
+     * are what goes away — the input path stays as it is, which the scroll test above guards.
+     */
+    @Test
+    fun `an unfocused pane hands out no indication, no ripple and no tooltips`() {
+        var paneFocused by mutableStateOf(false)
+        var indication: Indication? = null
+        var rippleConfiguration: RippleConfiguration? = null
+        var tooltipsEnabled: Boolean? = null
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = paneFocused) {
+                    PaneLayer(rank = PaneLayerRank.CONTENT, modal = false) {
+                        indication = LocalIndication.current
+                        rippleConfiguration = LocalRippleConfiguration.current
+                        tooltipsEnabled = LocalTooltipsEnabled.current
+                    }
+                }
+            }
+        }
+
+        val inertIndication = composeTestRule.runOnIdle {
+            // A null configuration takes the whole ripple node away, state layers included
+            rippleConfiguration shouldBe null
+            tooltipsEnabled shouldBe false
+            indication
+        }
+
+        composeTestRule.runOnIdle { paneFocused = true }
+
+        composeTestRule.runOnIdle {
+            rippleConfiguration shouldNotBe null
+            tooltipsEnabled shouldBe true
+            indication shouldNotBe inertIndication
+        }
     }
 
     companion object {
