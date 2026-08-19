@@ -58,9 +58,12 @@ internal const val TAG_PANE_HOVER_BARRIER = "pane:hoverBarrier"
  *   cursor is inside: touch never raises it.
  *   The accepted cost of occluding by hit test: a gesture that *begins* while the barrier is up
  *   never reaches the content, since Compose resolves the hit path at the down and keeps it for the
- *   rest of the gesture. Only scroll and drag notice, and only where a cursor and a touchscreen
- *   share a device — a swipe under a resting cursor does nothing, the next one scrolls, because
- *   that first touch already lowered the barrier and only a fresh cursor move raises it again.
+ *   rest of the gesture. Wheel scrolling of an unfocused pane is therefore blocked for as long as
+ *   the barrier is up, on any device with a pointer — a scroll neither lowers the barrier nor gets
+ *   past it, so only moving the cursor out of the pane or the pane gaining focus restores it. This
+ *   one does not clear itself. Where a cursor and a touchscreen are both in use, a finger swipe that
+ *   begins under a resting cursor is lost too — but that first touch lowers the barrier, so the next
+ *   swipe scrolls, until a fresh cursor move raises it again.
  *   Taps still focus the pane through the press observer above, and drag-and-drop is unaffected.
  *
  * With [clickToFocus] off none of that applies: an unfocused pane is directly interactive, clicks
