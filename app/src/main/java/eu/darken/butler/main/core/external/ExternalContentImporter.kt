@@ -17,11 +17,9 @@ import eu.darken.butler.common.files.MimeInfo
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.CopyOnWriteArraySet
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.uuid.Uuid
@@ -33,11 +31,9 @@ import kotlin.uuid.Uuid
  * Each import gets its own random sub-directory, which keeps the original display name usable even
  * when two apps hand over files with the same name.
  *
- * Imports are not cleaned up when the workspace that uses them closes: the file has to outlive the
- * arrival dialog and the workspace may be restored from a session later. Instead a lazy sweep on
- * first import per process drops everything older than [MAX_AGE_MS]. A Viewer workspace restored
- * from a week-old session can therefore point at a swept file; it then shows the viewer's existing
- * missing-file failure state, which is the accepted trade-off against unbounded cache growth.
+ * Writing is all this does. Deleting an import again belongs to [ExternalImportSweeper], because an
+ * import outlives the dialog that created it and may be restored from a session days later, so only
+ * something that can see every holder may decide it is garbage.
  *
  * Raw [File] and stream use is deliberate here and follows the `LocalFileMaterializer` precedent:
  * this only ever touches Butler's own cache directory, not user storage.
@@ -49,20 +45,40 @@ class ExternalContentImporter @Inject constructor(
     private val cacheRepo: CacheRepo,
 ) {
 
-    private val baseDir: File
+    /** Where imports live. Read by [ExternalImportSweeper], which owns deleting them again. */
+    val baseDir: File
         get() = File(context.cacheDir, IMPORT_DIRNAME)
 
-    private val swept = AtomicBoolean(false)
-    private val sweepMutex = Mutex()
+    private val inFlightDirs = CopyOnWriteArraySet<String>()
+
+    /**
+     * Imports currently being written. No workspace holds one yet and a big copy can run for
+     * minutes, so [ExternalImportSweeper] would otherwise see an old-looking directory nobody
+     * references and delete it out from under the copy.
+     */
+    val inFlight: Set<String>
+        get() = inFlightDirs.toSet()
 
     /**
      * Streams [uri] into the cache and returns the resulting file, or null if the content could not
      * be imported (no stream, no space, read failure).
      */
     suspend fun importToCache(uri: Uri, displayName: String, mime: MimeInfo?): LocalPath? {
-        sweepStaleImports()
-
         val targetDir = File(baseDir, Uuid.random().toString())
+        inFlightDirs.add(targetDir.name)
+        try {
+            return doImport(uri, displayName, mime, targetDir)
+        } finally {
+            inFlightDirs.remove(targetDir.name)
+        }
+    }
+
+    private suspend fun doImport(
+        uri: Uri,
+        displayName: String,
+        mime: MimeInfo?,
+        targetDir: File,
+    ): LocalPath? {
         val target = File(targetDir, buildFileName(displayName, mime))
         log(TAG) { "importToCache($uri, $displayName, $mime) -> $target" }
 
@@ -175,38 +191,12 @@ class ExternalContentImporter @Inject constructor(
         return "$sanitized.$extension"
     }
 
-    /**
-     * Drops imports left behind by earlier runs. Runs once per process, before this instance writes
-     * anything of its own, so it can never race an in-flight import.
-     */
-    private suspend fun sweepStaleImports() {
-        if (swept.get()) return
-        sweepMutex.withLock {
-            if (swept.get()) return@withLock
-            withContext(dispatcherProvider.IO) {
-                try {
-                    val cutOff = System.currentTimeMillis() - MAX_AGE_MS
-                    baseDir.listFiles()?.forEach { entry ->
-                        if (entry.lastModified() < cutOff) {
-                            log(TAG, VERBOSE) { "Sweeping stale import $entry" }
-                            entry.deleteRecursively()
-                        }
-                    }
-                } catch (e: Exception) {
-                    log(TAG, WARN) { "Failed to sweep stale imports: ${e.asLog()}" }
-                }
-            }
-            swept.set(true)
-        }
-    }
-
     companion object {
         private val TAG = logTag("Main", "ExternalOpen", "Importer")
         private const val IMPORT_DIRNAME = "external_open"
         private const val FALLBACK_FILENAME = "file"
         private const val COPY_BUFFER_SIZE = 64 * 1024
         private const val SPACE_RECHECK_INTERVAL = 8 * 1024 * 1024L
-        private const val MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000L
         /** Robolectric and some ROMs have an empty [MimeTypeMap], these are the types we care about. */
         private val VIEWABLE_EXTENSIONS = mapOf(
             "image/jpeg" to "jpg",

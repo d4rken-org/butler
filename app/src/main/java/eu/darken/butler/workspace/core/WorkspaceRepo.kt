@@ -101,8 +101,27 @@ class WorkspaceRepo @Inject constructor(
      * made a selection, and because [resolveLimitByClosing] has a caller waiting for the failure to
      * report.
      */
-    private val pendingLimitRecoveries =
-        ConcurrentHashMap<String, suspend (Set<Workspace.Id>) -> Throwable?>()
+    private val pendingLimitRecoveries = ConcurrentHashMap<String, PendingLimitRecovery>()
+
+    /**
+     * A create the free-tier limit blocked, kept until the user resolves or dismisses its dialog.
+     *
+     * [arguments] is carried alongside [retry] purely so the blocked create can still be recognised
+     * as holding whatever it points at. Without it the arguments are sealed inside the closure, and
+     * anything that reclaims unreferenced resources (see `ExternalImportSweeper`) would read a create
+     * that is merely waiting for the user as one that no longer exists.
+     */
+    private data class PendingLimitRecovery(
+        val arguments: Workspace.Arguments?,
+        val retry: suspend (Set<Workspace.Id>) -> Throwable?,
+    )
+
+    /**
+     * Arguments of every create currently parked behind a free-tier limit dialog. Empty once each is
+     * either committed (it becomes a real workspace) or dismissed (it is dropped).
+     */
+    fun peekPendingCreateArguments(): List<Workspace.Arguments> =
+        pendingLimitRecoveries.values.mapNotNull { it.arguments }
 
     /**
      * Normalized user-set name, or null when the input clears it. Single source of truth for what a
@@ -319,6 +338,14 @@ class WorkspaceRepo @Inject constructor(
     fun peek(id: Workspace.Id): Workspace<out Workspace.Arguments>? = _workspaces.value.singleOrNull { it.id == id }
 
     /**
+     * Every workspace that exists right now, live or paused, read from the same authoritative list
+     * [peek] uses. Callers that must not miss one - anything deciding a resource is unreachable -
+     * enumerate through this rather than [state], whose replay can still be mid-restore and report
+     * fewer workspaces than actually exist.
+     */
+    fun peekAll(): List<Workspace<out Workspace.Arguments>> = _workspaces.value
+
+    /**
      * When [id] was created, or null when it is unknown. Survives a pause/resume round-trip - the
      * map is keyed by id and [executeResume] only swaps the instance in its list slot - so session
      * saving can persist the true creation instant instead of the instant of the first save.
@@ -376,11 +403,12 @@ class WorkspaceRepo @Inject constructor(
     fun resolveLimitByClosing(confirmationId: String, victims: Set<Workspace.Id>): Deferred<Throwable?> {
         log(TAG, INFO) { "resolveLimitByClosing($confirmationId, $victims)" }
         _pendingConfirmations.update { it - confirmationId }
-        val retry = pendingLimitRecoveries.remove(confirmationId)
-        if (retry == null) {
+        val parked = pendingLimitRecoveries.remove(confirmationId)
+        if (parked == null) {
             log(TAG, WARN) { "No blocked create parked for $confirmationId, nothing to recover" }
             return CompletableDeferred(null)
         }
+        val retry = parked.retry
         return appScope.async {
             lock.withLock { retry(victims) }
         }
@@ -425,7 +453,7 @@ class WorkspaceRepo @Inject constructor(
                     } else {
                         null
                     }
-                    postLimitDialog(retry = limitRetry)
+                    postLimitDialog(retry = limitRetry, heldArguments = action.arguments)
                     return@withLock WorkspaceAction.Create.Result.LimitReached
                 }
 
@@ -1219,14 +1247,19 @@ class WorkspaceRepo @Inject constructor(
      * deliver. The tabs are still listed in that case - read-only, so the user can at least see what
      * is holding the slots - which is why `canRecover` is tracked separately from the list.
      */
-    private fun postLimitDialog(retry: (suspend (Set<Workspace.Id>) -> Throwable?)? = null) {
+    private fun postLimitDialog(
+        retry: (suspend (Set<Workspace.Id>) -> Throwable?)? = null,
+        heldArguments: Workspace.Arguments? = null,
+    ) {
         val confirmationId = Uuid.random().toString()
         val currentCount = countedTabCount()
 
         val candidates = if (retry == null) emptyList() else limitCandidates()
         val canRecover = retry != null &&
             currentCount - candidates.count { it.isClosable } < FREE_TIER_WORKSPACE_LIMIT
-        if (retry != null && canRecover) pendingLimitRecoveries[confirmationId] = retry
+        if (retry != null && canRecover) {
+            pendingLimitRecoveries[confirmationId] = PendingLimitRecovery(heldArguments, retry)
+        }
 
         _pendingConfirmations.update {
             it + (confirmationId to PendingWorkspaceConfirmation(
@@ -1303,7 +1336,7 @@ class WorkspaceRepo @Inject constructor(
                 val retry: suspend (Set<Workspace.Id>) -> Throwable? = { newVictimIds ->
                     recoverFromLimit(action, isPro, newVictimIds)
                 }
-                postLimitDialog(retry = retry)
+                postLimitDialog(retry = retry, heldArguments = action.arguments)
                 return null
             }
         } else {
@@ -1335,7 +1368,10 @@ class WorkspaceRepo @Inject constructor(
             if (countedTabCount() >= FREE_TIER_WORKSPACE_LIMIT) {
                 log(TAG, WARN) { "Only $closed of ${victims.size} tabs could be closed, asking again" }
                 built.release()
-                postLimitDialog(retry = { newVictimIds -> recoverFromLimit(action, isPro, newVictimIds) })
+                postLimitDialog(
+                    retry = { newVictimIds -> recoverFromLimit(action, isPro, newVictimIds) },
+                    heldArguments = action.arguments,
+                )
                 return null
             }
             val newId = commitWorkspace(
