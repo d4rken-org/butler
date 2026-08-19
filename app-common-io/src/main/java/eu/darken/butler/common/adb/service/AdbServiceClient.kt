@@ -3,6 +3,7 @@ package eu.darken.butler.common.adb.service
 import eu.darken.butler.common.adb.AdbServiceConnection
 import eu.darken.butler.common.adb.AdbSettings
 import eu.darken.butler.common.adb.AdbUnavailableException
+import eu.darken.butler.common.adb.isAdbConnectTimeout
 import eu.darken.butler.common.adb.service.internal.AdbConnection
 import eu.darken.butler.common.adb.service.internal.AdbHostLauncher
 import eu.darken.butler.common.coroutine.AppScope
@@ -109,6 +110,12 @@ class AdbServiceClient @Inject constructor(
     // ADB teardown hangs were a silent-failure support pain point (#2453); surface its lifecycle
     // breadcrumbs at DEBUG even outside trace mode.
     verboseLifecycle = true,
+    // A connect timeout means the Shizuku handshake burned its entire budget without an answer, so
+    // the default "the starter owns this failure, retry fresh" is a bad trade here: each retry is
+    // another full budget. On a device where Shizuku's user service never comes up (the MediaTek/
+    // HyperOS defect) that turns one 15s stall into up to five for every concurrent probe. The
+    // caller that started the generation always got the real error; this gives it to the others too.
+    isRetryableStartupFailure = { !it.isAdbConnectTimeout() },
 ) {
 
     data class Connection(

@@ -1247,4 +1247,63 @@ class SharedResourceTest : BaseTest() {
             Logging.remove(capture)
         }
     }
+
+    @Test
+    fun `a non-retryable startup failure reaches the reusing caller instead of costing another attempt`(): Unit =
+        runBlocking {
+            val attempts = AtomicInteger(0)
+            val firstStarted = CompletableDeferred<Unit>()
+            val failFirst = CompletableDeferred<Unit>()
+
+            // Same latch trick as the test above: only a REUSING caller logs this breadcrumb, so
+            // without it the second get() could start after generation 1 already died and pass
+            // vacuously on a fresh generation.
+            val reuserLatched = CompletableDeferred<Unit>()
+            val capture = object : Logging.Logger {
+                override fun log(
+                    priority: Logging.Priority,
+                    tag: String,
+                    message: String,
+                    metaData: Map<String, Any>?,
+                ) {
+                    if (tag == "terminal-reuse:SR" && message.contains("Source job already exists")) {
+                        reuserLatched.complete(Unit)
+                    }
+                }
+            }
+            Logging.install(capture)
+            try {
+                val sr = SharedResource<Int>(
+                    tag = "terminal-reuse",
+                    parentScope = this + Dispatchers.IO,
+                    stopTimeout = Duration.ZERO,
+                    source = flow {
+                        if (attempts.incrementAndGet() == 1) {
+                            firstStarted.complete(Unit)
+                            failFirst.await()
+                            throw IOException("budget spent")
+                        }
+                        emit(attempts.get())
+                        awaitCancellation()
+                    },
+                    // Stands in for a spent connect budget: retrying can only spend it again.
+                    isRetryableStartupFailure = { it !is IOException },
+                )
+
+                val creator = async(Dispatchers.IO) { runCatching { sr.get() } }
+                firstStarted.await()
+                val reuser = async(Dispatchers.IO) { runCatching { sr.get() } }
+                reuserLatched.await()
+                failFirst.complete(Unit)
+
+                (creator.await().exceptionOrNull() is IOException) shouldBe true
+                // The reuser gets the real cause rather than silently paying for a second attempt.
+                (reuser.await().exceptionOrNull() is IOException) shouldBe true
+                attempts.get() shouldBe 1
+
+                sr.close()
+            } finally {
+                Logging.remove(capture)
+            }
+        }
 }
