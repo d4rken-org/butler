@@ -55,8 +55,13 @@ internal const val TAG_PANE_HOVER_BARRIER = "pane:hoverBarrier"
  *   testing. Hover feedback that no ambient switch reaches — Material's per-component hover
  *   elevation, the pointer icon a text field sets — only stops when the hover stops arriving, and
  *   Compose derives hover enter/exit from hit-test results. The barrier exists solely while a
- *   cursor is inside: touch never raises it, so finger input, scrolling an unfocused pane included,
- *   behaves exactly as before.
+ *   cursor is inside: touch never raises it.
+ *   The accepted cost of occluding by hit test: a gesture that *begins* while the barrier is up
+ *   never reaches the content, since Compose resolves the hit path at the down and keeps it for the
+ *   rest of the gesture. Only scroll and drag notice, and only where a cursor and a touchscreen
+ *   share a device — a swipe under a resting cursor does nothing, the next one scrolls, because
+ *   that first touch already lowered the barrier and only a fresh cursor move raises it again.
+ *   Taps still focus the pane through the press observer above, and drag-and-drop is unaffected.
  *
  * With [clickToFocus] off none of that applies: an unfocused pane is directly interactive, clicks
  * land where they are aimed and pane focus follows them.

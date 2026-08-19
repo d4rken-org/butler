@@ -1619,6 +1619,160 @@ class PaneLayerHostTest : ComposeTest() {
         composeTestRule.onNodeWithTag(TAG_PANE_HOVER_BARRIER).assertDoesNotExist()
     }
 
+    /**
+     * Deliberate behaviour, pinned so it cannot change silently — this test is not describing a
+     * defect. The barrier is the topmost hit sibling when the down arrives, and Compose resolves
+     * the hit path once per gesture and keeps it, so a swipe that *starts* while a cursor rests in
+     * an unfocused pane never reaches the content: the pane does not scroll. That is the accepted
+     * cost of taking the content out of hit testing. The alternative — no barrier — was rejected
+     * because it brings back the per-component hover feedback (Material's hover elevation above
+     * all) that no ambient switch reaches.
+     *
+     * It needs a mouse and a touchscreen on the same device to happen at all, and it clears itself
+     * with the very gesture that ran into it: see the test below.
+     */
+    @Test
+    fun `a swipe starting under a hovering cursor does not scroll an unfocused pane`() {
+        var listState: LazyListState? = null
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                CompositionLocalProvider(
+                    LocalWorkspaceFocusRequest provides { },
+                ) {
+                    PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = false) {
+                        PaneLayer(rank = PaneLayerRank.CONTENT, modal = false) {
+                            val state = rememberLazyListState().also { listState = it }
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .testTag(PRESS_TARGET_TAG),
+                                state = state,
+                            ) {
+                                items(List(100) { it }) {
+                                    Box(modifier = Modifier.fillMaxWidth().height(40.dp))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG).performMouseInput { moveTo(center) }
+        composeTestRule.waitForIdle()
+        // Precondition: the swipe below really does start against a raised barrier
+        composeTestRule.onNodeWithTag(TAG_PANE_HOVER_BARRIER).assertExists()
+
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG).performTouchInput { swipeUp() }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.runOnIdle {
+            val scrolled = listState!!.firstVisibleItemIndex > 0 ||
+                listState!!.firstVisibleItemScrollOffset > 0
+            scrolled shouldBe false
+        }
+    }
+
+    /**
+     * What keeps the limitation above from being more than a hiccup: the touch pointer that ran
+     * into the barrier also lowers it — [trackNonTouchHover] treats touch as "not hovering" — and
+     * only a fresh mouse move raises it again. So the next swipe scrolls, and the pane is never
+     * left stuck.
+     */
+    @Test
+    fun `a second swipe scrolls an unfocused pane once the first lowered the barrier`() {
+        var listState: LazyListState? = null
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                CompositionLocalProvider(
+                    LocalWorkspaceFocusRequest provides { },
+                ) {
+                    PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = false) {
+                        PaneLayer(rank = PaneLayerRank.CONTENT, modal = false) {
+                            val state = rememberLazyListState().also { listState = it }
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .testTag(PRESS_TARGET_TAG),
+                                state = state,
+                            ) {
+                                items(List(100) { it }) {
+                                    Box(modifier = Modifier.fillMaxWidth().height(40.dp))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG).performMouseInput { moveTo(center) }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG).performTouchInput { swipeUp() }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNodeWithTag(TAG_PANE_HOVER_BARRIER).assertDoesNotExist()
+
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG).performTouchInput { swipeUp() }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.runOnIdle {
+            val scrolled = listState!!.firstVisibleItemIndex > 0 ||
+                listState!!.firstVisibleItemScrollOffset > 0
+            scrolled shouldBe true
+        }
+    }
+
+    /**
+     * The ordinary single-input path, which the barrier must never touch: with no cursor anywhere
+     * near the pane there is nothing to raise it, and a finger scrolls an unfocused pane on the
+     * first try. Asserted alongside the scroll, so a barrier that started appearing without a
+     * hover would fail here rather than only in the mixed-input tests above.
+     */
+    @Test
+    fun `a swipe scrolls an unfocused pane while nothing hovers it`() {
+        var listState: LazyListState? = null
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                CompositionLocalProvider(
+                    LocalWorkspaceFocusRequest provides { },
+                ) {
+                    PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = false) {
+                        PaneLayer(rank = PaneLayerRank.CONTENT, modal = false) {
+                            val state = rememberLazyListState().also { listState = it }
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .testTag(PRESS_TARGET_TAG),
+                                state = state,
+                            ) {
+                                items(List(100) { it }) {
+                                    Box(modifier = Modifier.fillMaxWidth().height(40.dp))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        composeTestRule.onNodeWithTag(TAG_PANE_HOVER_BARRIER).assertDoesNotExist()
+
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG).performTouchInput { swipeUp() }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.runOnIdle {
+            val scrolled = listState!!.firstVisibleItemIndex > 0 ||
+                listState!!.firstVisibleItemScrollOffset > 0
+            scrolled shouldBe true
+        }
+        composeTestRule.onNodeWithTag(TAG_PANE_HOVER_BARRIER).assertDoesNotExist()
+    }
+
     companion object {
         private const val PULSE_DURATION_MS = 420L
         private const val PULSE_COMPOSE_FRAMES = 4
