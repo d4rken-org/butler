@@ -61,6 +61,21 @@ class SAFDocFileTest : BaseTest() {
     }
 
     @Test
+    fun `tree uri separates repeated segments by position, not by value`() {
+        // The third crumb equals the first, so a by-value "am I the first crumb?" check skips its
+        // separator and glues the path together. Any real path can hit this: Download/foo/Download.
+        SAFDocFile.buildTreeUri(
+            Uri.parse("content://auth.ority/tree/primary%3A"),
+            listOf("Download", "foo", "Download"),
+        ).toString() shouldBe "content://auth.ority/tree/primary%3A/document/primary%3A%2FDownload%2Ffoo%2FDownload"
+
+        SAFDocFile.buildTreeUri(
+            Uri.parse("content://auth.ority/tree/primary%3A"),
+            listOf("files", "cache", "files"),
+        ).toString() shouldBe "content://auth.ority/tree/primary%3A/document/primary%3A%2Ffiles%2Fcache%2Ffiles"
+    }
+
+    @Test
     fun `test tree seperator addition`() {
         SAFDocFile.buildTreeUri(
             Uri.parse("content://com.android.externalstorage.documents/tree/primary%3AAndroid%2Fdata"),

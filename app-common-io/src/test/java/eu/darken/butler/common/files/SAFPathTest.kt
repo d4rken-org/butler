@@ -79,6 +79,17 @@ class SAFPathTest : BaseTest() {
     }
 
     @Test
+    fun `pathUri separates repeated segments by position, not by value`() {
+        // An earlier segment repeating the last one made a by-value "am I the last segment?" check
+        // skip its separator, gluing two segments together. pathUri feeds permission matching.
+        SAFPath.build(testUri, "files", "cache", "files").pathUri.toString() shouldBe
+            "$testUri%3Afiles%2Fcache%2Ffiles"
+
+        SAFPath.build(testUri, "Download", "foo", "Download").pathUri.toString() shouldBe
+            "$testUri%3ADownload%2Ffoo%2FDownload"
+    }
+
+    @Test
     fun `test must be tree uri`() {
         shouldThrow<IllegalArgumentException> {
             SAFPath.build("abc")
