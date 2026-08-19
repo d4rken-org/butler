@@ -10,10 +10,6 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.files.APath
-import eu.darken.butler.common.files.GatewaySwitch
-import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.preview.PreviewBudget
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.NonCancellable
@@ -45,28 +41,29 @@ sealed interface ProbeResult {
  */
 @Singleton
 class ImageProbe @Inject constructor(
-    private val gatewaySwitch: GatewaySwitch,
+    private val contentReader: ViewerContentReader,
     private val dispatcherProvider: DispatcherProvider,
 ) {
 
-    suspend fun probe(path: APath<*>): ProbeResult = withContext(dispatcherProvider.IO) {
+    suspend fun probe(source: ViewerSource): ProbeResult = withContext(dispatcherProvider.IO) {
         try {
             val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-            // Routed streams hold a gateway lease - the read must stay inside both use() and useRes().
-            gatewaySwitch.useRes {
-                gatewaySwitch.openInputStream(path).use { stream ->
-                    BitmapFactory.decodeStream(stream, null, options)
-                }
+            // The reader keeps the gateway lease open around the read; a returned stream would have
+            // outlived it.
+            contentReader.readInput(source) { stream ->
+                BitmapFactory.decodeStream(stream, null, options)
             }
 
             val width = options.outWidth
             val height = options.outHeight
             if (width <= 0 || height <= 0) {
-                log(TAG) { "No raster dimensions for $path" }
+                log(TAG) { "No raster dimensions for $source" }
                 ProbeResult.NoRasterDimensions
             } else {
-                val format = options.outMimeType ?: MimeInfo.fromFileName(path.name).rawType
-                val defect = verifyStructure(path, format, width, height) ?: verifyDecodable(path)
+                // The source's declared type, not its name: shared content routinely arrives
+                // without an extension, and fromFileName would call a JPEG an octet-stream.
+                val format = options.outMimeType ?: source.mime.rawType
+                val defect = verifyStructure(source, format, width, height) ?: verifyDecodable(source)
                 when (defect) {
                     null -> ProbeResult.Probed(width = width, height = height, format = format)
                     else -> ProbeResult.ProbeFailed(defect)
@@ -75,7 +72,7 @@ class ImageProbe @Inject constructor(
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            log(TAG, WARN) { "probe($path) failed: ${e.asLog()}" }
+            log(TAG, WARN) { "probe($source) failed: ${e.asLog()}" }
             ProbeResult.ProbeFailed(e)
         }
     }
@@ -93,31 +90,29 @@ class ImageProbe @Inject constructor(
      * Returns null when the file is sound (or when the format is none of this check's business).
      */
     private suspend fun verifyStructure(
-        path: APath<*>,
+        source: ViewerSource,
         format: String,
         width: Int,
         height: Int,
     ): Throwable? {
         if (!SubSamplableFormats.supports(format)) {
-            log(TAG) { "Skipping structure check, $format has no decodable regions ($path)" }
+            log(TAG) { "Skipping structure check, $format has no decodable regions ($source)" }
             return null
         }
         return try {
-            // A fresh stream: the probe's is spent and gateway streams don't rewind.
-            val region = gatewaySwitch.useRes {
-                gatewaySwitch.openInputStream(path).use { stream ->
-                    @Suppress("DEPRECATION")
-                    val decoder = BitmapRegionDecoder.newInstance(stream, false)
-                    try {
-                        decoder?.decodeRegion(tailRegion(width, height), tailOptions())
-                    } finally {
-                        decoder?.recycle()
-                    }
+            // A fresh stream: the probe's is spent and neither gateway nor provider streams rewind.
+            val region = contentReader.readInput(source) { stream ->
+                @Suppress("DEPRECATION")
+                val decoder = BitmapRegionDecoder.newInstance(stream, false)
+                try {
+                    decoder?.decodeRegion(tailRegion(width, height), tailOptions())
+                } finally {
+                    decoder?.recycle()
                 }
             }
             if (region == null) {
-                log(TAG, WARN) { "Structure check found no decodable tail region in $path" }
-                ViewerUndecodableImageException(path)
+                log(TAG, WARN) { "Structure check found no decodable tail region in $source" }
+                ViewerUndecodableImageException(source.displayName)
             } else {
                 region.recycle()
                 null
@@ -125,8 +120,8 @@ class ImageProbe @Inject constructor(
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            log(TAG, WARN) { "Structure check failed for $path: ${e.asLog()}" }
-            ViewerUndecodableImageException(path)
+            log(TAG, WARN) { "Structure check failed for $source: ${e.asLog()}" }
+            ViewerUndecodableImageException(source.displayName)
         }
     }
 
@@ -153,25 +148,25 @@ class ImageProbe @Inject constructor(
      *
      * Returns null when the file is sound or the check could not run.
      */
-    private suspend fun verifyDecodable(path: APath<*>): Throwable? {
+    private suspend fun verifyDecodable(source: ViewerSource): Throwable? {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
-            log(TAG) { "Skipping decode check, ImageDecoder needs API 28 ($path)" }
+            log(TAG) { "Skipping decode check, ImageDecoder needs API 28 ($source)" }
             return null
         }
         // Owns whatever the resolve obtains from the moment it exists, so a cancellation that
         // discards the resolve's result is never the moment nobody holds an open descriptor.
         val pending = PendingInput()
         return try {
-            when (ImageDecodeCheck.inspect(resolveDecodeInput(path, pending))) {
+            when (ImageDecodeCheck.inspect(resolveDecodeInput(source, pending))) {
                 ImageDecodeCheck.Verdict.DAMAGED -> {
-                    log(TAG, WARN) { "Decode check rejected $path" }
-                    ViewerUndecodableImageException(path)
+                    log(TAG, WARN) { "Decode check rejected $source" }
+                    ViewerUndecodableImageException(source.displayName)
                 }
 
                 ImageDecodeCheck.Verdict.SOUND -> null
 
                 ImageDecodeCheck.Verdict.UNKNOWN -> {
-                    log(TAG) { "Decode check had nothing to say about $path" }
+                    log(TAG) { "Decode check had nothing to say about $source" }
                     null
                 }
             }
@@ -182,18 +177,12 @@ class ImageProbe @Inject constructor(
 
     /** The decoder reads the file itself, so it needs a source of its own - or none at all. */
     internal suspend fun resolveDecodeInput(
-        path: APath<*>,
+        source: ViewerSource,
         pending: PendingInput = PendingInput(),
     ): ImageDecodeInput {
-        val localFile = (path as? LocalPath)?.file
-        if (localFile != null) {
-            val readable = try {
-                localFile.canRead()
-            } catch (e: SecurityException) {
-                false
-            }
-            // The common case: no descriptor, no lease, no copy.
-            if (readable) return ImageDecodeInput.LocalFile(localFile).also { pending.adopt(it) }
+        // The common case: no descriptor, no lease, no copy.
+        contentReader.localFileOrNull(source)?.let {
+            return ImageDecodeInput.LocalFile(it).also { input -> pending.adopt(input) }
         }
 
         // NonCancellable, and the hand-over happens inside it: the descriptor is created by a
@@ -201,12 +190,12 @@ class ImageProbe @Inject constructor(
         // discard the only reference to an open fd. Enough of those and the process runs out.
         return withContext(NonCancellable) {
             val pfd = try {
-                // Bypasses gateway routing by design and returns null for everything it cannot serve.
-                gatewaySwitch.openReadPFD(path)
+                // Returns null for everything it cannot serve, including non-seekable providers.
+                contentReader.openReadPfd(source)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                log(TAG, WARN) { "No descriptor for $path: ${e.asLog()}" }
+                log(TAG, WARN) { "No descriptor for $source: ${e.asLog()}" }
                 null
             }
             val input = pfd?.let { ImageDecodeInput.Descriptor(it) } ?: ImageDecodeInput.None

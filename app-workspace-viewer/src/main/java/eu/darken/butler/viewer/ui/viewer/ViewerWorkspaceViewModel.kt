@@ -29,12 +29,14 @@ import eu.darken.butler.viewer.core.IconSaveDecision
 import eu.darken.butler.viewer.core.decideIconSave
 import eu.darken.butler.viewer.core.PdfPreviewLoader
 import eu.darken.butler.viewer.core.ViewerContent
+import eu.darken.butler.viewer.core.ViewerSource
 import eu.darken.butler.viewer.core.ViewerFileInfo
 import eu.darken.butler.viewer.core.ViewerFileGoneException
 import eu.darken.butler.viewer.core.ViewerIconUnavailableException
 import eu.darken.butler.viewer.core.ViewerShareUnavailableException
 import eu.darken.butler.viewer.core.ViewerWorkspace
 import eu.darken.butler.workspace.contracts.explorer.ExplorerArguments
+import eu.darken.butler.workspace.contracts.saver.SaverArguments
 import eu.darken.butler.workspace.contracts.explorer.PickerConfig
 import eu.darken.butler.workspace.core.NoAppForFileException
 import eu.darken.butler.workspace.core.OpenWithIntentUseCase
@@ -116,16 +118,16 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
 
     /**
      * [WorkspaceProvider.retrieve] is derived from the workspace collection, so it re-emits when an
-     * unrelated tab opens or closes. Only the path and the retry attempt may produce a new image
-     * source - a fresh one would re-resolve and open another gateway stream for the same picture.
+     * unrelated tab opens or closes. Only the source and the retry attempt may produce a new image
+     * source - a fresh one would re-resolve and open another stream for the same picture.
      */
     private val imageSourceFlow = combine(workspaceSource, attemptFlow) { workspace, attempt ->
-        workspace.filePath to attempt
+        workspace.source to attempt
     }
         .distinctUntilChanged()
-        .map { (path, _) ->
+        .map { (source, _) ->
             imageSourceFactory.create(
-                path = path,
+                source = source,
                 onError = { renderErrorFlow.value = it },
             )
         }
@@ -161,7 +163,7 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
                             .flatMapLatest { page ->
                                 flow<PdfPage?> {
                                     emit(PdfPage(index = page, bitmap = null))
-                                    val bitmap = pdfPreviewLoader.page(workspace.filePath, page)
+                                    val bitmap = pdfPreviewLoader.page(workspace.source, page)
                                     emit(PdfPage(index = page, bitmap = bitmap, failed = bitmap == null))
                                 }
                             }
@@ -170,7 +172,7 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
         }
 
     private val snapshots = workspaceSource.flatMapLatest { workspace ->
-        workspace.state.map { workspace.filePath to it }
+        workspace.state.map { workspace.source to it }
     }
 
     /**
@@ -191,15 +193,15 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
         pdfPageFlow,
         trashSettings.enabled.flow,
     ) { snapshot, renderError, imageSource, pdfPage, trashEnabled ->
-        val (path, workspaceState) = snapshot
+        val (source, workspaceState) = snapshot
         val content = renderError?.let { ViewerContent.Failed(it) } ?: workspaceState.content
         State.Ready(
             content = content,
             fileInfo = workspaceState.fileInfo,
-            path = path,
+            source = source,
             imageSource = imageSource.takeIf { content is ViewerContent.Image },
             pdfPage = pdfPage.takeIf { content is ViewerContent.PdfPreview },
-            actions = viewerActions(path = path, trashEnabled = trashEnabled),
+            actions = viewerActions(source = source, trashEnabled = trashEnabled),
         ) as State
     }
         .catch { emit(State.Error(it)) }
@@ -315,23 +317,30 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
         workspaceRemote.execute(WorkspaceAction.Close(id))
     }
 
+    /**
+     * Both hand-off actions need a FileProvider URI, which only exists for a real local file. The
+     * action bar hides them for streamed content, so a null path here means the UI and this got out
+     * of step rather than a case to recover from.
+     */
     fun openWith() = launch {
-        val path = workspaceSource.first().filePath
+        val workspace = workspaceSource.first()
+        val path = workspace.storedPath ?: return@launch
         log(tag, INFO) { "openWith($path)" }
         val launched = openWithIntentUseCase.openWithChooser(
             path = path,
-            mime = MimeInfo.fromFileName(path.name).rawType,
+            mime = workspace.source.mime.rawType,
             chooserTitle = context.getString(WorkspaceR.string.workspace_open_with_chooser_title),
         )
         if (!launched) errorEvents.emit(NoAppForFileException(path.name))
     }
 
     fun share() = launch {
-        val target = workspaceSource.first().filePath
+        val workspace = workspaceSource.first()
+        val target = workspace.storedPath ?: return@launch
         log(tag, INFO) { "share($target)" }
         val item = object : ShareIntentUseCase.Item {
             override val path = target
-            override val mimeType = MimeInfo.fromFileName(target.name).rawType
+            override val mimeType = workspace.source.mime.rawType
             override val displayName = target.name
         }
         val launched = shareIntentUseCase.shareWithChooser(
@@ -339,6 +348,23 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
             chooserTitle = context.getString(CommonR.string.general_share_single_title, target.name),
         )
         if (!launched) errorEvents.emit(ViewerShareUnavailableException(target))
+    }
+
+    /**
+     * Writes streamed content somewhere the user picks, which is the only way to keep it: the grant
+     * dies with the task, and it cannot be handed to another app. The Saver streams straight from
+     * the URI to the destination, so this still copies nothing into Butler's own storage.
+     */
+    fun saveCopy() = launch {
+        val streamed = workspaceSource.first().source as? ViewerSource.Streamed ?: return@launch
+        log(tag, INFO) { "saveCopy($streamed)" }
+        workspaceRemote.createAndFocus(
+            type = Workspace.Type.SAVER,
+            arguments = SaverArguments.Default(
+                sourceUris = listOf(streamed.uri.toString()),
+                callerWorkspaceId = id,
+            ),
+        )
     }
 
     fun copyToClipboard() = clip(ClipboardClip.Paths.Mode.COPY)
@@ -353,8 +379,8 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
         val workspace = workspaceSource.first()
         val lookup = workspace.state.value.lookup
         if (lookup == null) {
-            log(tag, WARN) { "clip($mode) without a lookup for ${workspace.filePath}" }
-            errorEvents.emit(ViewerFileGoneException(workspace.filePath))
+            log(tag, WARN) { "clip($mode) without a lookup for ${workspace.source}" }
+            errorEvents.emit(ViewerFileGoneException(workspace.source.displayName))
             return@launch
         }
         log(tag, INFO) { "clip($mode): ${lookup.lookedUp}" }
@@ -375,7 +401,8 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
 
     /** Opens the file's folder as an Explorer tab of its own, beside the viewer rather than over it. */
     fun openLocation() = launch {
-        val path = workspaceSource.first().filePath
+        // Streamed content has no folder; the action bar hides this for it.
+        val path = workspaceSource.first().storedPath ?: return@launch
         val parent = path.parent
         if (parent == null) {
             log(tag, WARN) { "openLocation() without a parent for $path" }
@@ -418,7 +445,8 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
         .stateIn(vmScope, SharingStarted.Eagerly, null)
 
     fun requestDelete() = launch {
-        val path = workspaceSource.first().filePath
+        // Deleting someone else's shared content is not ours to do; the action bar hides it.
+        val path = workspaceSource.first().storedPath ?: return@launch
         log(tag, INFO) { "requestDelete($path)" }
         deleteRequestFlow.value = setOf(path)
     }
@@ -504,7 +532,9 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
         iconPreviewJob?.cancel()
         iconPreviewFlow.value = IconPreviewState.Loading
         iconPreviewJob = vmScope.launch {
-            val path = workspaceSource.first().filePath
+            // APKs always arrive as a real file - the arrival flow imports rather than streams them
+            // - so the icon actions are only ever offered for a stored source.
+            val path = workspaceSource.first().storedPath ?: return@launch
             log(tag, INFO) { "showIconPreview($path)" }
             val bitmap = try {
                 apkIconExporter.render(path)
@@ -553,15 +583,17 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
                     ?: throw IllegalStateException("Not an APK, nothing to export")
                 log(tag, INFO) { "saveIcon(${apk.apkInfo.id})" }
 
+                val apkPath = workspace.storedPath
+                    ?: throw IllegalStateException("Streamed content has no APK to export from")
                 val bitmap = (iconPreviewFlow.value as? IconPreviewState.Ready)?.bitmap
-                    ?: apkIconExporter.render(workspace.filePath)
-                    ?: throw ViewerIconUnavailableException(workspace.filePath)
+                    ?: apkIconExporter.render(apkPath)
+                    ?: throw ViewerIconUnavailableException(apkPath)
 
                 // The picker stacks on this pane; leaving the preview open would strand it underneath.
                 dismissIconPreview()
                 val created = workspaceRemote.launchPicker(
                     callerWorkspaceId = id,
-                    startPath = workspace.filePath.parent,
+                    startPath = apkPath.parent,
                     selection = PickerConfig.Selection.SaveAs(
                         suggestedFilename = "${apk.apkInfo.id.name}-icon.png",
                     ),
@@ -672,10 +704,10 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
         data class Ready(
             val content: ViewerContent,
             val fileInfo: ViewerFileInfo?,
-            val path: APath<*>,
+            val source: ViewerSource,
             val imageSource: ZoomableImageSource?,
             val pdfPage: PdfPage? = null,
-            val actions: List<ViewerActionBarItem> = viewerActions(path, trashEnabled = false),
+            val actions: List<ViewerActionBarItem> = viewerActions(source, trashEnabled = false),
         ) : State
     }
 
@@ -686,25 +718,38 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
 }
 
 /**
- * The viewer's action bar, in display order. Every entry acts on the one file the tab is showing,
- * so the only thing that varies is whether each is applicable: there is no parent folder to open at
- * a storage root, and delete only reads as recoverable when this file can really reach the trash.
+ * The viewer's action bar, in display order.
+ *
+ * Streamed content gets exactly one action. Every other entry needs a path Butler owns: handing the
+ * file to another app needs a FileProvider URI, and a grant we were given cannot be passed on;
+ * copy and cut put paths on the clipboard for a later paste; there is no folder to open; and
+ * deleting content another app owns is not ours to do. "Save a copy" is what turns it into a file
+ * that has all of them.
+ *
+ * For a stored file the only thing that varies is applicability: there is no parent folder at a
+ * storage root, and delete only reads as recoverable when this file can really reach the trash.
  *
  * The trash question goes through [partitionByTrashSupport] rather than the setting alone: the
  * setting can be on for a file the trash cannot hold, and the confirmation dialog asks the same
  * function - an icon promising a recoverable delete over a dialog promising a permanent one is the
  * drift that shared function exists to prevent.
  */
-internal fun viewerActions(path: APath<*>, trashEnabled: Boolean): List<ViewerActionBarItem> = listOf(
-    ViewerActionBarItem.OpenWith,
-    ViewerActionBarItem.Share,
-    ViewerActionBarItem.Copy,
-    ViewerActionBarItem.Cut,
-    ViewerActionBarItem.OpenLocation(isEnabled = path.parent != null),
-    ViewerActionBarItem.Delete(
-        trashEnabled = trashEnabled && partitionByTrashSupport(setOf(path)).trashable.isNotEmpty(),
-    ),
-)
+internal fun viewerActions(source: ViewerSource, trashEnabled: Boolean): List<ViewerActionBarItem> =
+    when (source) {
+        is ViewerSource.Streamed -> listOf(ViewerActionBarItem.SaveCopy)
+
+        is ViewerSource.Stored -> listOf(
+            ViewerActionBarItem.OpenWith,
+            ViewerActionBarItem.Share,
+            ViewerActionBarItem.Copy,
+            ViewerActionBarItem.Cut,
+            ViewerActionBarItem.OpenLocation(isEnabled = source.path.parent != null),
+            ViewerActionBarItem.Delete(
+                trashEnabled = trashEnabled &&
+                    partitionByTrashSupport(setOf(source.path)).trashable.isNotEmpty(),
+            ),
+        )
+    }
 
 /**
  * Where a page step lands, or null when it would not move. [displayedIndex] is clamped first: a

@@ -101,6 +101,18 @@ interface Workspace<ArgT : Workspace.Arguments> {
 
     interface Arguments : Parcelable {
         val type: Type
+
+        /**
+         * Whether a workspace built from these arguments may be written to the session database.
+         *
+         * False for arguments that only mean something inside the process that produced them: a
+         * `content://` URI another app granted us reads fine now and is dead after the task is
+         * removed, so persisting it would restore a tab that can never load. Such a workspace is
+         * still an ordinary tab, it simply does not survive a restart.
+         *
+         * @see Info.isPersistable
+         */
+        val isPersistable: Boolean get() = true
     }
 
     /**
@@ -311,6 +323,21 @@ interface Workspace<ArgT : Workspace.Arguments> {
          * meaning "automatic title" and stays live while a custom name is set.
          */
         val customTitle: String? = null,
+        /**
+         * Whether this workspace may be written to the session database, projected from
+         * [Arguments.isPersistable]. False for a workspace whose arguments only mean something
+         * inside the process that created them - a viewer streaming a `content://` URI another app
+         * granted us, for example, whose grant does not outlive the task.
+         *
+         * A workspace that says false is still an ordinary tab in every other respect; it is only
+         * skipped by the session save, so it does not come back as a dead tab on the next start.
+         *
+         * NOTE for implementors: several workspaces build [Info] by hand instead of through
+         * `initialInfo()`. A hand-built block that forgets this field reverts to true on its first
+         * emission while the seed still reads false, which persists silently and only shows up as a
+         * broken tab after a restart. Carry it explicitly.
+         */
+        val isPersistable: Boolean = true,
     ) {
         /** What the tab chrome renders: the custom name when set, otherwise the automatic [title]. */
         val displayTitle: CaString get() = customTitle?.toCaString() ?: title

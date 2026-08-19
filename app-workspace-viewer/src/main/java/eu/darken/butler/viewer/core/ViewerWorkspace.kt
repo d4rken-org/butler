@@ -60,6 +60,7 @@ class ViewerWorkspace @AssistedInject constructor(
     @Assisted private val creationArguments: ViewerArguments,
     dispatcherProvider: DispatcherProvider,
     private val gatewaySwitch: GatewaySwitch,
+    private val contentReader: ViewerContentReader,
     private val imageProbe: ImageProbe,
     private val apkArchiveParser: ApkArchiveParser,
     private val pkgRepo: PkgRepo,
@@ -81,7 +82,15 @@ class ViewerWorkspace @AssistedInject constructor(
 
     override val type: Workspace.Type = Workspace.Type.VIEWER
 
-    val filePath: APath<*> = creationArguments.filePath
+    /** What this viewer shows: a file on the device, or content streamed from another app. */
+    val source: ViewerSource = creationArguments.toViewerSource()
+
+    /**
+     * The backing file, or null for streamed content. Only for the operations that genuinely cannot
+     * work without one - delete, APK parsing, "open location" - each of which has to say what it
+     * does when there is none.
+     */
+    val storedPath: APath<*>? = (source as? ViewerSource.Stored)?.path
 
     private val stateFlow = MutableStateFlow(State())
     val state: StateFlow<State> = stateFlow
@@ -111,7 +120,16 @@ class ViewerWorkspace @AssistedInject constructor(
             // Built by hand instead of via initialInfo(), so the relationship fields have to be
             // carried explicitly - a missing one here silently reads as "not pausable with my owner"
             pausableAsChild = creationArguments.isPausableAsChild,
-            contentPath = filePath,
+            contentPath = storedPath,
+            // Both of these MUST be repeated here, not just in initialInfo() below: this hand-built
+            // block replaces the seed on the first emission, so a missing flag would silently revert
+            // to the permissive default and only show up as a dead tab after a restart.
+            isPersistable = creationArguments.isPersistable,
+            // Streamed content is never auto-paused. Pausing holds the arguments and rebuilds later,
+            // and the URI grant can lapse in between - so a tab the user never touched would come
+            // back unreadable. It costs nothing to keep: the viewer's state holds no bitmap, both
+            // the decoded image and the rendered page live in the ViewModel.
+            isPausable = source is ViewerSource.Stored,
         )
     }.stateInWorkspace(
         scope = scope,
@@ -123,7 +141,7 @@ class ViewerWorkspace @AssistedInject constructor(
     )
 
     init {
-        log(tag, INFO) { "Initialized for $filePath" }
+        log(tag, INFO) { "Initialized for $source" }
         reload()
     }
 
@@ -139,7 +157,10 @@ class ViewerWorkspace @AssistedInject constructor(
      * rather than starting from the returned id.
      */
     suspend fun delete(forcePermDelete: Boolean): Operation.Id {
-        log(tag, INFO) { "delete(forcePermDelete=$forcePermDelete) for $filePath" }
+        log(tag, INFO) { "delete(forcePermDelete=$forcePermDelete) for $source" }
+        // Streamed content is not ours to delete and the UI hides the action for it, so reaching
+        // here without a path is a bug rather than a state to handle.
+        val filePath = requireNotNull(storedPath) { "Cannot delete streamed content" }
         val executable = deleteOperationFactory.create(
             workspaceId = id,
             command = ViewerCommand.Delete(
@@ -170,7 +191,34 @@ class ViewerWorkspace @AssistedInject constructor(
 
     private suspend fun load() {
         stateFlow.value = State()
+        when (val current = source) {
+            is ViewerSource.Stored -> loadStored(current)
+            is ViewerSource.Streamed -> loadStreamed(current)
+        }
+    }
 
+    /**
+     * Streamed content has nothing to look up: everything a gateway lookup would answer either does
+     * not exist for a ContentProvider grant (permissions, ownership, file type) or was already
+     * reported by the sending app.
+     */
+    private suspend fun loadStreamed(streamed: ViewerSource.Streamed) {
+        val fileInfo = ViewerFileInfo(size = streamed.sizeBytes)
+
+        val rejection = validateStreamed(streamed, streamed.mime)
+        if (rejection != null) {
+            log(tag, WARN) { "Rejecting $streamed: $rejection" }
+            stateFlow.value = State(content = ViewerContent.Failed(rejection), fileInfo = fileInfo)
+            return
+        }
+
+        // The type the sender declared, never the display name: provider names routinely have no
+        // extension, and name-based classification would send this to the wrong renderer.
+        classify(streamed.mime, fileInfo, lookup = null)
+    }
+
+    private suspend fun loadStored(stored: ViewerSource.Stored) {
+        val filePath = stored.path
         val lookup = try {
             gatewaySwitch.useRes { gatewaySwitch.lookup(filePath, LookupOptions.BASE) }
         } catch (e: CancellationException) {
@@ -194,42 +242,53 @@ class ViewerWorkspace @AssistedInject constructor(
 
         // A restored session can point at a path that has since become a directory, a dangling
         // symlink or a truncated file. None of those may render as a blank image.
-        val rejection = validate(lookup)
+        val rejection = validate(filePath, lookup)
         if (rejection != null) {
             log(tag, WARN) { "Rejecting $filePath: $rejection" }
             stateFlow.value = State(content = ViewerContent.Failed(rejection), fileInfo = fileInfo, lookup = lookup)
             return
         }
 
-        val mime = MimeInfo.fromFileName(lookup.name)
+        classify(MimeInfo.fromFileName(lookup.name), fileInfo, lookup)
+    }
+
+    private suspend fun classify(mime: MimeInfo, fileInfo: ViewerFileInfo, lookup: APathLookup<*>?) {
         if (mime.isApk) {
-            loadApk(mime, fileInfo, lookup)
+            // The framework parser takes a path, so an APK always arrives as a real file - the
+            // arrival flow imports one rather than streaming it. Anything else is a routing bug.
+            val apkPath = storedPath
+            if (apkPath == null) {
+                log(tag, WARN) { "Streamed APK cannot be parsed, no path: $source" }
+                stateFlow.value = State(content = ViewerContent.Unsupported(mime), fileInfo = fileInfo)
+                return
+            }
+            loadApk(apkPath, mime, fileInfo, lookup)
             return
         }
 
         // Page count doubles as the render check: a document that cannot be opened here would render
         // as a permanently blank canvas, so it goes to the unsupported placeholder instead.
         if (mime.isPdf) {
-            val pageCount = pdfPreviewLoader.pageCount(filePath)
+            val pageCount = pdfPreviewLoader.pageCount(source)
             stateFlow.value = if (pageCount == null) {
-                log(tag, WARN) { "$filePath is a PDF that cannot be rendered" }
+                log(tag, WARN) { "$source is a PDF that cannot be rendered" }
                 State(content = ViewerContent.Unsupported(mime), fileInfo = fileInfo, lookup = lookup)
             } else {
-                log(tag, INFO) { "$filePath is a PDF with $pageCount page(s)" }
+                log(tag, INFO) { "$source is a PDF with $pageCount page(s)" }
                 State(content = ViewerContent.PdfPreview(mime, pageCount), fileInfo = fileInfo, lookup = lookup)
             }
             return
         }
 
         if (!mime.isImage) {
-            log(tag, INFO) { "$filePath is not an image ($mime)" }
+            log(tag, INFO) { "$source is not an image ($mime)" }
             stateFlow.value = State(content = ViewerContent.Unsupported(mime), fileInfo = fileInfo, lookup = lookup)
             return
         }
 
         // The probe doubles as the decode check. It has to run before the image is announced,
         // otherwise bytes the decoder rejects would render as a permanently blank canvas.
-        val imageInfo = when (val probe = imageProbe.probe(filePath)) {
+        val imageInfo = when (val probe = imageProbe.probe(source)) {
             is ProbeResult.Probed -> ViewerFileInfo.ImageInfo(
                 format = probe.format,
                 width = probe.width,
@@ -240,8 +299,8 @@ class ViewerWorkspace @AssistedInject constructor(
                 // Vector formats legitimately have none. For a raster format it means the decoder
                 // could not even read the header, i.e. the bytes are corrupt or truncated.
                 if (!mime.isVectorImage) {
-                    val error = ViewerUndecodableImageException(filePath)
-                    log(tag, WARN) { "Rejecting $filePath: $error" }
+                    val error = ViewerUndecodableImageException(source.displayName)
+                    log(tag, WARN) { "Rejecting $source: $error" }
                     stateFlow.value = State(content = ViewerContent.Failed(error), fileInfo = fileInfo, lookup = lookup)
                     return
                 }
@@ -250,7 +309,7 @@ class ViewerWorkspace @AssistedInject constructor(
 
             is ProbeResult.ProbeFailed -> {
                 // A stream that cannot be opened or read is a real failure for any format.
-                log(tag, WARN) { "Probing $filePath failed: ${probe.error.asLog()}" }
+                log(tag, WARN) { "Probing $source failed: ${probe.error.asLog()}" }
                 stateFlow.value = State(content = ViewerContent.Failed(probe.error), fileInfo = fileInfo, lookup = lookup)
                 return
             }
@@ -263,7 +322,12 @@ class ViewerWorkspace @AssistedInject constructor(
         )
     }
 
-    private suspend fun loadApk(mime: MimeInfo, fileInfo: ViewerFileInfo, lookup: APathLookup<*>) {
+    private suspend fun loadApk(
+        filePath: APath<*>,
+        mime: MimeInfo,
+        fileInfo: ViewerFileInfo,
+        lookup: APathLookup<*>?,
+    ) {
         val apkInfo = apkArchiveParser.parseFile(filePath)
         if (apkInfo == null) {
             val error = ViewerApkParseException(filePath)
@@ -308,21 +372,23 @@ class ViewerWorkspace @AssistedInject constructor(
 
     /** Only a definitive "not there" counts; a failing check stays with the original error. */
     private suspend fun isGone(): Boolean = try {
+        val filePath = storedPath ?: return false
         !gatewaySwitch.useRes { gatewaySwitch.exists(filePath) }
     } catch (e: CancellationException) {
         throw e
     } catch (e: Exception) {
-        log(tag, WARN) { "Existence check failed for $filePath: ${e.asLog()}" }
+        log(tag, WARN) { "Existence check failed for $source: ${e.asLog()}" }
         false
     }
 
-    private suspend fun validate(lookup: APathLookup<APath<*>>): Throwable? = when (lookup.fileType) {
-        FileType.FILE -> if (lookup.size == 0L) ViewerEmptyFileException(filePath) else null
-        FileType.DIRECTORY, FileType.UNKNOWN -> ViewerNotAFileException(filePath)
-        FileType.SYMBOLIC_LINK -> validateSymlink(lookup)
-    }
+    private suspend fun validate(filePath: APath<*>, lookup: APathLookup<APath<*>>): Throwable? =
+        when (lookup.fileType) {
+            FileType.FILE -> if (lookup.size == 0L) ViewerEmptyFileException(filePath) else null
+            FileType.DIRECTORY, FileType.UNKNOWN -> ViewerNotAFileException(filePath)
+            FileType.SYMBOLIC_LINK -> validateSymlink(filePath, lookup)
+        }
 
-    private suspend fun validateSymlink(lookup: APathLookup<APath<*>>): Throwable? {
+    private suspend fun validateSymlink(filePath: APath<*>, lookup: APathLookup<APath<*>>): Throwable? {
         val target = lookup.target ?: return ViewerBrokenSymlinkException(filePath)
         val targetLookup = try {
             gatewaySwitch.useRes { gatewaySwitch.lookup(target, LookupOptions.BASE) }
@@ -337,6 +403,43 @@ class ViewerWorkspace @AssistedInject constructor(
             targetLookup.size == 0L -> ViewerEmptyFileException(filePath)
             else -> null
         }
+    }
+
+    /**
+     * The streamed counterpart of [validate]. Directories and symlinks have no meaning for a
+     * ContentProvider grant, but empty content still does, and a grant that has lapsed is a failure
+     * a path never has.
+     *
+     * Checked up front so the PDF and image branches report the same, true reason instead of each
+     * blaming the format for something that is really about access.
+     */
+    private suspend fun validateStreamed(streamed: ViewerSource.Streamed, mime: MimeInfo): Throwable? {
+        // One real read rather than the size the provider claims: a stale or placeholder zero from
+        // a cloud provider would otherwise reject a file that has content, and a lapsed grant that
+        // also reports zero would be called empty when it is really unreadable.
+        val hasBytes = try {
+            contentReader.readInput(streamed) { it.read() != -1 }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: SecurityException) {
+            log(tag, WARN) { "Grant for $streamed has lapsed: ${e.asLog()}" }
+            return ViewerContentUnreadableException(streamed.displayName, e)
+        } catch (e: Exception) {
+            log(tag, WARN) { "Cannot read $streamed: ${e.asLog()}" }
+            return ViewerContentUnreadableException(streamed.displayName, e)
+        }
+        if (!hasBytes) return ViewerEmptyFileException(streamed.displayName)
+
+        // Seekability is asked of PDFs ONLY. PdfRenderer has to seek, but the image path reads
+        // streams end to end - the probe, telephoto's content-URI source and Coil all open their
+        // own - so demanding a descriptor there would reject pipe-backed providers whose images
+        // render perfectly well.
+        if (mime.isPdf && contentReader.openReadPfd(streamed)?.use { true } != true) {
+            log(tag, WARN) { "$streamed is a PDF from a provider that cannot seek" }
+            return ViewerContentUnreadableException(streamed.displayName)
+        }
+
+        return null
     }
 
     data class State(

@@ -31,7 +31,9 @@ import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.viewer.R
 import eu.darken.butler.viewer.core.ApkInstallState
 import eu.darken.butler.viewer.core.VersionComparison
+import androidx.core.net.toUri
 import eu.darken.butler.viewer.core.ViewerContent
+import eu.darken.butler.viewer.core.ViewerSource
 import eu.darken.butler.viewer.core.ViewerFileInfo
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.actions.WorkspaceActionBar
@@ -92,6 +94,7 @@ fun ViewerWorkspacePageHost(
                     ViewerActionBarItem.Cut -> vm.cutToClipboard()
                     is ViewerActionBarItem.OpenLocation -> vm.openLocation()
                     is ViewerActionBarItem.Delete -> vm.requestDelete()
+                    ViewerActionBarItem.SaveCopy -> vm.saveCopy()
                 }
             },
             onOpenWith = { vm.openWith() },
@@ -275,10 +278,11 @@ fun ViewerWorkspacePage(
                             ViewerToolbarCard(
                                 workspaceId = workspaceId,
                                 design = design,
-                                fileName = state.path.name,
+                                fileName = state.source.displayName,
                                 // The name is already the title above it, so repeating it here as
-                                // the tail of the full path told the user nothing.
-                                folderPath = state.path.parent?.path ?: state.path.path,
+                                // the tail of the full path told the user nothing. Null for streamed
+                                // content, which lives nowhere Butler could name.
+                                folderPath = state.source.folderPath,
                                 isCollapsed = isToolbarCollapsed || collapsedFraction > 0.5f,
                                 onBackClick = if (isModal) {
                                     { onPageAction(ViewerPageAction.Close) }
@@ -333,7 +337,9 @@ fun ViewerWorkspacePage(
 
                         FloatingBar(
                             key = ViewerBarKeys.ACTIONS,
-                            visible = chromeShown,
+                            // The bar wraps its content, so an empty action list would leave an
+                            // empty pill floating over the image rather than nothing at all.
+                            visible = chromeShown && state.actions.any { it.isVisible },
                             scrollBehavior = BarScrollBehavior.HideOnScroll,
                             animation = BarAnimation.Slide(),
                         ) {
@@ -389,7 +395,7 @@ private fun ViewerContentArea(
             is ViewerContent.Image -> state.imageSource?.let { source ->
                 ZoomableFileImage(
                     imageSource = source,
-                    fileName = state.path.name,
+                    fileName = state.source.displayName,
                     state = zoomableState,
                     onClick = onToggleChrome,
                 )
@@ -410,7 +416,7 @@ private fun ViewerContentArea(
             is ViewerContent.PdfPreview -> PdfPreviewContent(
                 pdfPage = state.pdfPage,
                 pageCount = content.pageCount,
-                fileName = state.path.name,
+                fileName = state.source.displayName,
                 zoomableState = zoomableState,
                 onClick = onToggleChrome,
                 onRetry = onRetry,
@@ -436,6 +442,7 @@ private fun ViewerContentArea(
 }
 
 private val previewPath = LocalPath.build("/storage/emulated/0/DCIM/Camera/IMG_20240817_183042.jpg")
+private val previewSource = ViewerSource.Stored(previewPath)
 
 private val previewFileInfo = ViewerFileInfo(
     size = 4_812_331L,
@@ -452,7 +459,7 @@ private fun ViewerWorkspacePageImagePreview() {
         state = ViewerWorkspaceViewModel.State.Ready(
             content = ViewerContent.Image(MimeInfo("image/jpeg")),
             fileInfo = previewFileInfo,
-            path = previewPath,
+            source = previewSource,
             imageSource = null,
         ),
     )
@@ -467,7 +474,7 @@ private fun ViewerWorkspacePageModalPreview() {
         state = ViewerWorkspaceViewModel.State.Ready(
             content = ViewerContent.Image(MimeInfo("image/jpeg")),
             fileInfo = previewFileInfo,
-            path = previewPath,
+            source = previewSource,
             imageSource = null,
         ),
         callerWorkspaceId = Workspace.Id(),
@@ -483,7 +490,7 @@ private fun ViewerWorkspacePagePdfPreviewPreview() {
         state = ViewerWorkspaceViewModel.State.Ready(
             content = ViewerContent.PdfPreview(MimeInfo("application/pdf"), pageCount = 3),
             fileInfo = ViewerFileInfo(size = 128_004L, modifiedAt = Clock.System.now()),
-            path = LocalPath.build("/storage/emulated/0/Download/manual.pdf"),
+            source = ViewerSource.Stored(LocalPath.build("/storage/emulated/0/Download/manual.pdf")),
             imageSource = null,
         ),
     )
@@ -498,7 +505,7 @@ private fun ViewerWorkspacePageUnsupportedPreview() {
         state = ViewerWorkspaceViewModel.State.Ready(
             content = ViewerContent.Unsupported(MimeInfo("application/pdf")),
             fileInfo = ViewerFileInfo(size = 128_004L, modifiedAt = Clock.System.now()),
-            path = LocalPath.build("/storage/emulated/0/Download/manual.pdf"),
+            source = ViewerSource.Stored(LocalPath.build("/storage/emulated/0/Download/manual.pdf")),
             imageSource = null,
         ),
     )
@@ -521,8 +528,32 @@ private fun ViewerWorkspacePageApkPreview() {
                 ),
             ),
             fileInfo = ViewerFileInfo(size = 24_112_004L, modifiedAt = Clock.System.now()),
-            path = LocalPath.build("/storage/emulated/0/Download/butler.apk"),
+            source = ViewerSource.Stored(LocalPath.build("/storage/emulated/0/Download/butler.apk")),
             imageSource = null,
+        ),
+    )
+}
+
+/** Streamed content: no folder block, and "Save a copy" is the only action. */
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ViewerWorkspacePageStreamedPreview() {
+    val streamed = ViewerSource.Streamed(
+        uri = "content://com.example.files/document/42".toUri(),
+        displayName = "holiday.jpg",
+        mime = MimeInfo("image/jpeg"),
+        sizeBytes = 2_411_200L,
+        arrivalId = "preview",
+    )
+    ViewerWorkspacePage(
+        workspaceId = Workspace.Id(),
+        state = ViewerWorkspaceViewModel.State.Ready(
+            content = ViewerContent.Image(MimeInfo("image/jpeg")),
+            fileInfo = ViewerFileInfo(size = 2_411_200L),
+            source = streamed,
+            imageSource = null,
+            actions = viewerActions(streamed, trashEnabled = false),
         ),
     )
 }
@@ -536,7 +567,7 @@ private fun ViewerWorkspacePageFailedPreview() {
         state = ViewerWorkspaceViewModel.State.Ready(
             content = ViewerContent.Failed(IllegalStateException("Decoder gave up on a truncated JPEG")),
             fileInfo = previewFileInfo,
-            path = previewPath,
+            source = previewSource,
             imageSource = null,
         ),
     )

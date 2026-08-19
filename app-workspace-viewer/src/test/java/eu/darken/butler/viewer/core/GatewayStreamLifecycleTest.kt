@@ -81,10 +81,10 @@ class GatewayStreamLifecycleTest {
         path: APath<*> = safPath,
     ) = GatewayZoomableImageSource(
         context = context,
-        gatewaySwitch = gatewaySwitch,
+        contentReader = readerFor(gatewaySwitch),
         imageLoader = mockk<ImageLoader>(relaxed = true),
         dispatcherProvider = TestDispatcherProvider(),
-        path = path,
+        source = ViewerSource.Stored(path),
         onError = {},
     )
 
@@ -121,7 +121,8 @@ class GatewayStreamLifecycleTest {
             }
             val source = sourceFor(gatewaySwitch)
 
-            val subSamplingSource = source.openSource()
+            // Non-null for a gateway source: only a provider URI telephoto refuses yields null.
+            val subSamplingSource = source.openSource()!!
             // Cancellation between opening and hand-off must not leak the lease.
             subSamplingSource.close()
 

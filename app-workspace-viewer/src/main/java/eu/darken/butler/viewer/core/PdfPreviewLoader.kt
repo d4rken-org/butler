@@ -6,8 +6,6 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.files.APath
-import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.preview.PdfPreviewGenerator
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.sync.Mutex
@@ -23,7 +21,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class PdfPreviewLoader @Inject constructor(
-    private val gatewaySwitch: GatewaySwitch,
+    private val contentReader: ViewerContentReader,
     private val pdfPreviewGenerator: PdfPreviewGenerator,
 ) {
 
@@ -33,10 +31,10 @@ class PdfPreviewLoader @Inject constructor(
      */
     private val renderMutex = Mutex()
 
-    suspend fun pageCount(path: APath<*>): Int? = openPfd(path)?.let { pdfPreviewGenerator.pageCount(it) }
+    suspend fun pageCount(source: ViewerSource): Int? = openPfd(source)?.let { pdfPreviewGenerator.pageCount(it) }
 
-    suspend fun page(path: APath<*>, pageIndex: Int): Bitmap? = renderMutex.withLock {
-        openPfd(path)?.let {
+    suspend fun page(source: ViewerSource, pageIndex: Int): Bitmap? = renderMutex.withLock {
+        openPfd(source)?.let {
             pdfPreviewGenerator.renderPage(
                 pfd = it,
                 targetPx = PDF_PREVIEW_EDGE,
@@ -48,12 +46,14 @@ class PdfPreviewLoader @Inject constructor(
     }
 
     /** The generator takes ownership of the descriptor, so this hands it over unclosed. */
-    private suspend fun openPfd(path: APath<*>): ParcelFileDescriptor? = try {
-        gatewaySwitch.openReadPFD(path)
+    private suspend fun openPfd(source: ViewerSource): ParcelFileDescriptor? = try {
+        // Null covers a non-seekable provider too: PdfRenderer has to seek, and a pipe would render
+        // blank pages rather than fail, which reads as a broken document instead of an unusable one.
+        contentReader.openReadPfd(source)
     } catch (e: CancellationException) {
         throw e
     } catch (e: Exception) {
-        log(TAG, WARN) { "No descriptor for $path: ${e.asLog()}" }
+        log(TAG, WARN) { "No descriptor for $source: ${e.asLog()}" }
         null
     }
 

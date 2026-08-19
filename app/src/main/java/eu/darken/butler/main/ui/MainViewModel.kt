@@ -19,6 +19,7 @@ import eu.darken.butler.main.core.external.ExternalOpenFailedException
 import eu.darken.butler.main.core.external.ExternalOpenOption
 import eu.darken.butler.main.core.external.ExternalOpenRouter
 import eu.darken.butler.main.core.external.ExternalOpenState
+import eu.darken.butler.main.core.external.ViewTarget
 import eu.darken.butler.main.core.external.SourceRef
 import eu.darken.butler.main.core.external.computeExternalOpenOptions
 import eu.darken.butler.main.core.themeState
@@ -49,6 +50,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.PolymorphicSerializer
 import kotlinx.serialization.json.Json
+import kotlin.uuid.Uuid
 
 
 @HiltViewModel
@@ -289,16 +291,31 @@ class MainViewModel @Inject constructor(
     }
 
     private suspend fun openExternalInViewer(state: ExternalOpenState) {
-        val path = externalOpenRouter.resolveForView(state.ref, state.mime, state.displayName)
-        if (path == null) {
+        val target = externalOpenRouter.resolveForView(
+            ref = state.ref,
+            mime = state.mime,
+            displayName = state.displayName,
+            sizeBytes = state.sizeBytes,
+        )
+        if (target == null) {
             log(tag, WARN) { "Could not resolve ${state.originalUri} for viewing" }
             errorEvents.emit(ExternalOpenFailedException(state.displayName))
             return
         }
-        workspaceRemote.createAndFocus(
-            type = Workspace.Type.VIEWER,
-            arguments = ViewerArguments.Default(filePath = path),
-        )
+        val arguments = when (target) {
+            is ViewTarget.Stored -> ViewerArguments.Default(filePath = target.path)
+
+            // Minted here, once per arrival: it keys the image caches, so two shares of one provider
+            // URI cannot serve each other's bytes and a retry is not stuck on a cached failure.
+            is ViewTarget.Streamed -> ViewerArguments.Streamed(
+                uriString = target.uri.toString(),
+                displayName = target.displayName,
+                mimeType = target.mime.rawType,
+                sizeBytes = target.sizeBytes,
+                arrivalId = Uuid.random().toString(),
+            )
+        }
+        workspaceRemote.createAndFocus(type = Workspace.Type.VIEWER, arguments = arguments)
     }
 
     /**

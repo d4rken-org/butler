@@ -40,6 +40,7 @@ fun Workspace<*>.initialInfo(
         modalPresentation = withCaller?.modalPresentation ?: Workspace.ModalPresentationMode.PANE_LOCAL,
         pausableAsChild = arguments.isPausableAsChild,
         contentPath = (arguments as? Workspace.ArgumentsWithContentPath)?.contentPath,
+        isPersistable = arguments.isPersistable,
     )
 }
 

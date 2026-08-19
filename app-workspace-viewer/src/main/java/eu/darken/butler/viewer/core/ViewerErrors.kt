@@ -35,13 +35,15 @@ class ViewerBrokenSymlinkException(
  * corrupt bytes, or a file whose extension lies about its contents.
  */
 class ViewerUndecodableImageException(
-    val path: APath<*>,
-) : IllegalArgumentException("Not a decodable image: ${path.path}"), HasLocalizedError {
+    val displayName: String,
+) : IllegalArgumentException("Not a decodable image: $displayName"), HasLocalizedError {
+
+    constructor(path: APath<*>) : this(path.name)
 
     override fun getLocalizedError(context: LocalizedErrorContext) = LocalizedError(
         throwable = this,
         label = R.string.viewer_error_undecodable_label.toCaString(),
-        description = caString { it.getString(R.string.viewer_error_undecodable_description, path.name) },
+        description = caString { it.getString(R.string.viewer_error_undecodable_description, displayName) },
     )
 }
 
@@ -50,14 +52,16 @@ class ViewerUndecodableImageException(
  * would send the user hunting for an access problem that does not exist.
  */
 class ViewerFileGoneException(
-    val path: APath<*>,
+    val displayName: String,
     cause: Throwable? = null,
-) : IllegalArgumentException("File no longer exists: ${path.path}", cause), HasLocalizedError {
+) : IllegalArgumentException("File no longer exists: $displayName", cause), HasLocalizedError {
+
+    constructor(path: APath<*>, cause: Throwable? = null) : this(path.name, cause)
 
     override fun getLocalizedError(context: LocalizedErrorContext) = LocalizedError(
         throwable = this,
         label = R.string.viewer_error_file_gone_label.toCaString(),
-        description = caString { it.getString(R.string.viewer_error_file_gone_description, path.name) },
+        description = caString { it.getString(R.string.viewer_error_file_gone_description, displayName) },
     )
 }
 
@@ -138,12 +142,35 @@ class ViewerShareUnavailableException(
 }
 
 class ViewerEmptyFileException(
-    val path: APath<*>,
-) : IllegalArgumentException("File is empty: ${path.path}"), HasLocalizedError {
+    val displayName: String,
+) : IllegalArgumentException("File is empty: $displayName"), HasLocalizedError {
+
+    // Stored content names the full path, which is what the user needs to find it again; streamed
+    // content has none, so it names the file the sending app announced.
+    constructor(path: APath<*>) : this(path.path)
 
     override fun getLocalizedError(context: LocalizedErrorContext) = LocalizedError(
         throwable = this,
         label = R.string.viewer_error_empty_file_label.toCaString(),
-        description = caString { it.getString(R.string.viewer_error_empty_file_description, path.path) },
+        description = caString { it.getString(R.string.viewer_error_empty_file_description, displayName) },
+    )
+}
+
+/**
+ * The shared content cannot be read at all: the sending app's provider refused the open, revoked the
+ * grant, or only offers a pipe that the PDF and region decoders cannot seek in.
+ *
+ * Distinct from [ViewerUndecodableImageException] on purpose - that one says the bytes are damaged
+ * and invites a retry, while this one is about access and a retry cannot change it.
+ */
+class ViewerContentUnreadableException(
+    val displayName: String,
+    cause: Throwable? = null,
+) : IllegalStateException("Shared content is unreadable: $displayName", cause), HasLocalizedError {
+
+    override fun getLocalizedError(context: LocalizedErrorContext) = LocalizedError(
+        throwable = this,
+        label = R.string.viewer_error_content_unreadable_label.toCaString(),
+        description = caString { it.getString(R.string.viewer_error_content_unreadable_description, displayName) },
     )
 }

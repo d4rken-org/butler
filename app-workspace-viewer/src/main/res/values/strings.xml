@@ -80,4 +80,7 @@
     <string name="viewer_error_icon_target_notfile_description">%1$s already exists here and isn\'t a regular file, so it can\'t be replaced.</string>
     <string name="viewer_error_icon_target_appeared_label">File appeared</string>
     <string name="viewer_error_icon_target_appeared_description">%1$s was created while you were choosing where to save. Nothing was overwritten, try again.</string>
+    <string name="viewer_error_content_unreadable_label">Can\'t read this file</string>
+    <string name="viewer_error_content_unreadable_description">The app that shared %1$s is no longer letting Butler read it. Ask that app to share it again.</string>
+    <string name="viewer_save_copy_action">Save a copy…</string>
 </resources>

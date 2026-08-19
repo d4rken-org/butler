@@ -10,6 +10,7 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
@@ -175,7 +176,8 @@ class ExternalOpenRouterTest : BaseTest() {
     fun `a local image whose name matches is opened directly`() = runTest {
         val ref = SourceRef.Local(LocalPath.build(File("/sdcard/holiday.jpg")))
 
-        create().resolveForView(ref, MimeInfo("image/jpeg"), "holiday.jpg") shouldBe ref.path
+        create().resolveForView(ref, MimeInfo("image/jpeg"), "holiday.jpg", null) shouldBe
+            ViewTarget.Stored(ref.path)
     }
 
     @Test
@@ -184,7 +186,7 @@ class ExternalOpenRouterTest : BaseTest() {
         val imported = LocalPath.build(File("/cache/external_open/uuid/holiday.jpg"))
         coEvery { importer.importToCache(any(), any(), any()) } returns imported
 
-        create().resolveForView(ref, MimeInfo("image/jpeg"), "holiday") shouldBe imported
+        create().resolveForView(ref, MimeInfo("image/jpeg"), "holiday", null) shouldBe ViewTarget.Stored(imported)
     }
 
     @Test
@@ -193,8 +195,8 @@ class ExternalOpenRouterTest : BaseTest() {
         val file = readableFile("x.png")
         every { documentUriResolver.resolve(uri) } returns LocalPath.build(file)
 
-        create().resolveForView(SourceRef.Content(uri), MimeInfo("image/png"), "x.png") shouldBe
-            LocalPath.build(file.canonicalFile)
+        create().resolveForView(SourceRef.Content(uri), MimeInfo("image/png"), "x.png", null) shouldBe
+            ViewTarget.Stored(LocalPath.build(file.canonicalFile))
     }
 
     @Test
@@ -204,7 +206,8 @@ class ExternalOpenRouterTest : BaseTest() {
         every { documentUriResolver.resolve(uri) } returns LocalPath.build(readableFile("x"))
         coEvery { importer.importToCache(any(), any(), any()) } returns imported
 
-        create().resolveForView(SourceRef.Content(uri), MimeInfo("image/png"), "x") shouldBe imported
+        create().resolveForView(SourceRef.Content(uri), MimeInfo("image/png"), "x", null) shouldBe
+            ViewTarget.Stored(imported)
     }
 
     @Test
@@ -214,7 +217,8 @@ class ExternalOpenRouterTest : BaseTest() {
         every { documentUriResolver.resolve(uri) } returns LocalPath.build(readableFile("invoice"))
         coEvery { importer.importToCache(any(), any(), any()) } returns imported
 
-        create().resolveForView(SourceRef.Content(uri), MimeInfo("application/pdf"), "invoice") shouldBe imported
+        create().resolveForView(SourceRef.Content(uri), MimeInfo("application/pdf"), "invoice", null) shouldBe
+            ViewTarget.Stored(imported)
     }
 
     @Test
@@ -224,7 +228,8 @@ class ExternalOpenRouterTest : BaseTest() {
         every { documentUriResolver.resolve(uri) } returns LocalPath.build(readableFile("download"))
         coEvery { importer.importToCache(any(), any(), any()) } returns imported
 
-        create().resolveForView(SourceRef.Content(uri), MimeInfo(MimeInfo.MIME_APK), "download") shouldBe imported
+        create().resolveForView(SourceRef.Content(uri), MimeInfo(MimeInfo.MIME_APK), "download", null) shouldBe
+            ViewTarget.Stored(imported)
     }
 
     @Test
@@ -233,8 +238,8 @@ class ExternalOpenRouterTest : BaseTest() {
         val file = readableFile("app.apk")
         every { documentUriResolver.resolve(uri) } returns LocalPath.build(file)
 
-        create().resolveForView(SourceRef.Content(uri), MimeInfo(MimeInfo.MIME_APK), "app.apk") shouldBe
-            LocalPath.build(file.canonicalFile)
+        create().resolveForView(SourceRef.Content(uri), MimeInfo(MimeInfo.MIME_APK), "app.apk", null) shouldBe
+            ViewTarget.Stored(LocalPath.build(file.canonicalFile))
     }
 
     @Test
@@ -243,8 +248,8 @@ class ExternalOpenRouterTest : BaseTest() {
         val file = readableFile("invoice.pdf")
         every { documentUriResolver.resolve(uri) } returns LocalPath.build(file)
 
-        create().resolveForView(SourceRef.Content(uri), MimeInfo("application/pdf"), "invoice.pdf") shouldBe
-            LocalPath.build(file.canonicalFile)
+        create().resolveForView(SourceRef.Content(uri), MimeInfo("application/pdf"), "invoice.pdf", null) shouldBe
+            ViewTarget.Stored(LocalPath.build(file.canonicalFile))
     }
 
     @Test
@@ -254,7 +259,8 @@ class ExternalOpenRouterTest : BaseTest() {
         every { documentUriResolver.resolve(uri) } returns LocalPath.build(readableFile("invoice.jpg"))
         coEvery { importer.importToCache(any(), any(), any()) } returns imported
 
-        create().resolveForView(SourceRef.Content(uri), MimeInfo("application/pdf"), "invoice.jpg") shouldBe imported
+        create().resolveForView(SourceRef.Content(uri), MimeInfo("application/pdf"), "invoice.jpg", null) shouldBe
+            ViewTarget.Stored(imported)
     }
 
     @Test
@@ -264,37 +270,72 @@ class ExternalOpenRouterTest : BaseTest() {
         every { documentUriResolver.resolve(uri) } returns LocalPath.build(readableFile("scan.pdf"))
         coEvery { importer.importToCache(any(), any(), any()) } returns imported
 
-        create().resolveForView(SourceRef.Content(uri), MimeInfo("image/png"), "scan.pdf") shouldBe imported
+        create().resolveForView(SourceRef.Content(uri), MimeInfo("image/png"), "scan.pdf", null) shouldBe
+            ViewTarget.Stored(imported)
     }
 
     @Test
-    fun `a document ID that traverses into app-private storage is not opened`() = runTest {
+    fun `a document ID that traverses into app-private storage is never opened as a path`() = runTest {
         val uri = Uri.parse("content://com.android.externalstorage.documents/document/primary%3A..%2Fx")
-        val imported = LocalPath.build(File("/cache/external_open/uuid/x"))
         every { documentUriResolver.resolve(uri) } returns
             LocalPath.build(File("/sdcard/../../data/data/eu.darken.butler/files/x"))
-        coEvery { importer.importToCache(uri, "x", MimeInfo("image/png")) } returns imported
 
-        create().resolveForView(SourceRef.Content(uri), MimeInfo("image/png"), "x") shouldBe imported
+        // The traversal is refused, so what is left is the provider's own stream - which grants no
+        // more than the sending app already had.
+        create().resolveForView(SourceRef.Content(uri), MimeInfo("image/png"), "x", null) shouldBe
+            ViewTarget.Streamed(uri, "x", MimeInfo("image/png"), null)
+        coVerify(exactly = 0) { importer.importToCache(any(), any(), any()) }
     }
 
     @Test
-    fun `a resolved path we cannot read is imported through the provider instead`() = runTest {
+    fun `a resolved path we cannot read is streamed through the provider instead`() = runTest {
         val uri = Uri.parse("content://com.android.externalstorage.documents/document/primary%3Ax.png")
-        val imported = LocalPath.build(File("/cache/external_open/uuid/x.png"))
         every { documentUriResolver.resolve(uri) } returns LocalPath.build(File("/sdcard/Pictures/x.png"))
-        coEvery { importer.importToCache(uri, "x.png", MimeInfo("image/png")) } returns imported
 
-        create().resolveForView(SourceRef.Content(uri), MimeInfo("image/png"), "x.png") shouldBe imported
+        create().resolveForView(SourceRef.Content(uri), MimeInfo("image/png"), "x.png", 4096L) shouldBe
+            ViewTarget.Streamed(uri, "x.png", MimeInfo("image/png"), 4096L)
+        coVerify(exactly = 0) { importer.importToCache(any(), any(), any()) }
     }
 
     @Test
-    fun `an unresolvable content URI is imported into the cache`() = runTest {
+    fun `an unresolvable content URI is streamed, not copied`() = runTest {
         val uri = Uri.parse("content://com.example.files/document/42")
-        val imported = LocalPath.build(File("/cache/external_open/uuid/x.png"))
         every { documentUriResolver.resolve(uri) } returns null
-        coEvery { importer.importToCache(uri, "x.png", MimeInfo("image/png")) } returns imported
 
-        create().resolveForView(SourceRef.Content(uri), MimeInfo("image/png"), "x.png") shouldBe imported
+        create().resolveForView(SourceRef.Content(uri), MimeInfo("image/png"), "x.png", 4096L) shouldBe
+            ViewTarget.Streamed(uri, "x.png", MimeInfo("image/png"), 4096L)
+        coVerify(exactly = 0) { importer.importToCache(any(), any(), any()) }
+    }
+
+    @Test
+    fun `a streamed name that says nothing still carries the declared type`() = runTest {
+        // The whole reason the copy existed: the viewer classified by file name, and a provider
+        // display name like this one has no extension to classify by.
+        val uri = Uri.parse("content://com.example.files/document/42")
+        every { documentUriResolver.resolve(uri) } returns null
+
+        create().resolveForView(SourceRef.Content(uri), MimeInfo("image/jpeg"), "IMG_4821", null) shouldBe
+            ViewTarget.Streamed(uri, "IMG_4821", MimeInfo("image/jpeg"), null)
+    }
+
+    @Test
+    fun `an unresolvable apk is still copied, because the parser needs a real path`() = runTest {
+        val uri = Uri.parse("content://com.example.files/document/42")
+        val imported = LocalPath.build(File("/cache/external_open/uuid/app.apk"))
+        every { documentUriResolver.resolve(uri) } returns null
+        coEvery { importer.importToCache(uri, "app.apk", MimeInfo(MimeInfo.MIME_APK)) } returns imported
+
+        create().resolveForView(SourceRef.Content(uri), MimeInfo(MimeInfo.MIME_APK), "app.apk", null) shouldBe
+            ViewTarget.Stored(imported)
+    }
+
+    @Test
+    fun `an apk that cannot be copied resolves to nothing`() = runTest {
+        val uri = Uri.parse("content://com.example.files/document/42")
+        every { documentUriResolver.resolve(uri) } returns null
+        coEvery { importer.importToCache(any(), any(), any()) } returns null
+
+        create().resolveForView(SourceRef.Content(uri), MimeInfo(MimeInfo.MIME_APK), "app.apk", null)
+            .shouldBeNull()
     }
 }

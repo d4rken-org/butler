@@ -109,6 +109,7 @@ class ViewerWorkspaceClassificationTest : BaseTest() {
         dispatcherProvider = TestDispatcherProvider(),
         gatewaySwitch = gatewaySwitch,
         imageProbe = imageProbe,
+        contentReader = readerFor(gatewaySwitch),
         apkArchiveParser = apkArchiveParser,
         pkgRepo = pkgRepo,
         userManager2 = userManager2,

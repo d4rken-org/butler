@@ -21,10 +21,6 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.files.APath
-import eu.darken.butler.common.files.GatewaySwitch
-import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.common.files.MimeInfo
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -39,7 +35,7 @@ import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
 
 /**
- * A [ZoomableImageSource] that reads through Butler's [GatewaySwitch] instead of Coil's disk cache.
+ * A [ZoomableImageSource] that reads through [ViewerContentReader] instead of Coil's disk cache.
  *
  * Telephoto's own Coil integration only sub-samples when the Coil result resolves to a real file in
  * Coil's disk cache. Butler's images are not guaranteed to be disk-cached, so that integration
@@ -49,20 +45,20 @@ import javax.inject.Inject
  */
 class GatewayZoomableImageSource(
     private val context: Context,
-    private val gatewaySwitch: GatewaySwitch,
+    private val contentReader: ViewerContentReader,
     private val imageLoader: ImageLoader,
     private val dispatcherProvider: DispatcherProvider,
-    private val path: APath<*>,
+    private val source: ViewerSource,
     private val onError: (Throwable) -> Unit,
 ) : ZoomableImageSource {
 
     @Composable
     override fun resolve(canvasSize: Flow<Size>): ZoomableImageSource.ResolveResult {
-        var resolution by remember(path) { mutableStateOf<Resolution>(Resolution.Pending) }
+        var resolution by remember(source) { mutableStateOf<Resolution>(Resolution.Pending) }
         // Owns every opened source until telephoto has it, so nothing dropped in between leaks.
-        val pending = remember(path) { PendingSource() }
+        val pending = remember(source) { PendingSource() }
 
-        LaunchedEffect(path) {
+        LaunchedEffect(source) {
             resolution = try {
                 when (val resolved = resolveSource(pending)) {
                     Resolution.NeedsPainter -> loadPainter()
@@ -72,13 +68,13 @@ class GatewayZoomableImageSource(
                 pending.close()
                 throw e
             } catch (e: Exception) {
-                log(TAG, ERROR) { "Failed to resolve $path: ${e.asLog()}" }
+                log(TAG, ERROR) { "Failed to resolve $source: ${e.asLog()}" }
                 onError(e)
                 Resolution.Failed
             }
         }
 
-        DisposableEffect(path) {
+        DisposableEffect(source) {
             // Disposal before the sub-sampling delegate is installed: nothing downstream ever
             // learns about that source, and a gateway stream holds a lease.
             onDispose { pending.close() }
@@ -123,15 +119,15 @@ class GatewayZoomableImageSource(
      * `AsyncImagePainter` start two requests and cancel the first one.
      */
     internal suspend fun loadPainter(): Resolution {
-        val request = ImageRequest.Builder(context).data(ViewerImageRequest(path)).build()
+        val request = ImageRequest.Builder(context).data(ViewerImageRequest(source)).build()
         return when (val result = imageLoader.execute(request)) {
             is SuccessResult -> {
-                log(TAG) { "Coil loaded $path" }
+                log(TAG) { "Coil loaded $source" }
                 Resolution.Rendered(result.image.asPainter(context))
             }
 
             is ErrorResult -> {
-                log(TAG, ERROR) { "Coil failed to load $path: ${result.throwable.asLog()}" }
+                log(TAG, ERROR) { "Coil failed to load $source: ${result.throwable.asLog()}" }
                 onError(result.throwable)
                 Resolution.Failed
             }
@@ -141,35 +137,40 @@ class GatewayZoomableImageSource(
     internal suspend fun resolveSource(pending: PendingSource = PendingSource()): Resolution {
         // Telephoto only refuses SVG/GIF/AVIF, which is far more than BitmapRegionDecoder can
         // actually tile. Formats it cannot decode never reach the tile decoder from here.
-        val format = MimeInfo.fromFileName(path.name).rawType
+        // The source's declared type, never its name: shared content often has no extension, and
+        // fromFileName would report octet-stream and drop every such image to a whole-bitmap decode.
+        val format = source.mime.rawType
         if (!SubSamplableFormats.supports(format)) {
-            log(TAG) { "$format cannot be tiled, falling back to Coil for $path" }
+            log(TAG) { "$format cannot be tiled, falling back to Coil for $source" }
             return Resolution.NeedsPainter
         }
 
-        val source = withContext(dispatcherProvider.IO) {
+        val imageSource = withContext(dispatcherProvider.IO) {
             // Handing ownership over inside the dispatcher block: a cancellation that discards the
             // result on the way out must not be the moment nobody owns the stream.
-            openSource().also { pending.adopt(it) }
+            openSource()?.also { pending.adopt(it) }
+        } ?: run {
+            log(TAG) { "No sub-sampling source for $source, falling back to Coil" }
+            return Resolution.NeedsPainter
         }
 
         val subSamplable = try {
-            source.canBeSubSampled(context)
+            imageSource.canBeSubSampled(context)
         } catch (e: Throwable) {
             pending.close()
             throw e
         }
 
         if (subSamplable) {
-            log(TAG) { "Sub-sampling $path" }
+            log(TAG) { "Sub-sampling $source" }
             // Telephoto owns the source once the delegate is composed - until then [pending] does.
-            return Resolution.SubSampled(source)
+            return Resolution.SubSampled(imageSource)
         }
 
         // canBeSubSampled() opened the stream via peek(). Without a sub-sampling delegate nothing
         // downstream will ever close it, so it has to go before the Coil request starts.
         pending.close()
-        log(TAG) { "$path cannot be sub-sampled, falling back to Coil" }
+        log(TAG) { "$source cannot be sub-sampled, falling back to Coil" }
         return Resolution.NeedsPainter
     }
 
@@ -197,12 +198,27 @@ class GatewayZoomableImageSource(
         }
     }
 
-    internal suspend fun openSource(): SubSamplingImageSource = when {
+    /**
+     * Null when this source has nothing the tile decoder can use; the caller falls back to Coil.
+     */
+    internal suspend fun openSource(): SubSamplingImageSource? {
         // A LocalPath alone does NOT imply direct access: LocalGateway auto-escalates to
         // ISOLATED/ROOT/ADB, and file() would bypass that routing and fail on protected files
         // Butler can otherwise read.
-        path is LocalPath && path.file.canRead() -> SubSamplingImageSource.file(path.file.toOkioPath())
-        else -> rawGatewaySource(gatewaySwitch.openInputStream(path))
+        contentReader.localFileOrNull(source)?.let {
+            return SubSamplingImageSource.file(it.toOkioPath())
+        }
+
+        // Telephoto's own content-URI source, NOT rawSource: rawSource holds one buffered stream and
+        // serves every decoder through peek(), which retains everything read so far, so tiling deep
+        // into a large photo would pull the whole file into memory. contentUri opens a fresh stream
+        // per decoder instead, which is the entire point of not copying the file in the first place.
+        if (source is ViewerSource.Streamed) {
+            return SubSamplingImageSource.contentUriOrNull(source.uri)
+        }
+
+        // Hand-over, not a scoped read: telephoto consumes this lazily, so nothing here can close it.
+        return rawGatewaySource(contentReader.openStreamForHandover(source))
     }
 
     /**
@@ -236,19 +252,19 @@ class GatewayZoomableImageSource(
 
     class Factory @Inject constructor(
         @ApplicationContext private val context: Context,
-        private val gatewaySwitch: GatewaySwitch,
+        private val contentReader: ViewerContentReader,
         private val imageLoader: ImageLoader,
         private val dispatcherProvider: DispatcherProvider,
     ) {
         fun create(
-            path: APath<*>,
+            source: ViewerSource,
             onError: (Throwable) -> Unit,
         ): ZoomableImageSource = GatewayZoomableImageSource(
             context = context,
-            gatewaySwitch = gatewaySwitch,
+            contentReader = contentReader,
             imageLoader = imageLoader,
             dispatcherProvider = dispatcherProvider,
-            path = path,
+            source = source,
             onError = onError,
         )
     }

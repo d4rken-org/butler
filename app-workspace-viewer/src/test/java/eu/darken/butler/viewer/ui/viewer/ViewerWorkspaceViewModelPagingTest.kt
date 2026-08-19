@@ -9,6 +9,7 @@ import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.common.trash.TrashSettings
 import eu.darken.butler.viewer.core.PdfPreviewLoader
 import eu.darken.butler.viewer.core.ViewerContent
+import eu.darken.butler.viewer.core.ViewerSource
 import eu.darken.butler.viewer.core.ViewerWorkspace
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceProvider
@@ -47,6 +48,7 @@ class ViewerWorkspaceViewModelPagingTest : BaseTest() {
 
     private val workspaceId = Workspace.Id()
     private val filePath = LocalPath.build("/storage/emulated/0/Download/manual.pdf")
+    private val source = ViewerSource.Stored(filePath)
     private val mime = MimeInfo("application/pdf")
 
     private val requestedPages = mutableListOf<Int>()
@@ -93,7 +95,8 @@ class ViewerWorkspaceViewModelPagingTest : BaseTest() {
     ): ViewerWorkspaceViewModel {
         val workspace = mockk<ViewerWorkspace>().apply {
             every { state } returnsMany listOf(workspaceState, pdfPageState)
-            every { filePath } returns this@ViewerWorkspaceViewModelPagingTest.filePath
+            every { source } returns this@ViewerWorkspaceViewModelPagingTest.source
+            every { storedPath } returns this@ViewerWorkspaceViewModelPagingTest.filePath
             every { info } returns MutableStateFlow(
                 Workspace.Info(id = workspaceId, type = Workspace.Type.VIEWER, title = "manual.pdf".toCaString()),
             )

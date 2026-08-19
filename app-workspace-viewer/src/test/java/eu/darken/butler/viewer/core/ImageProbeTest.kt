@@ -49,6 +49,8 @@ class ImageProbeTest {
     private val svgPath = LocalPath.build("/storage/emulated/0/Download/diagram.svg")
     private val gifPath = LocalPath.build("/storage/emulated/0/Download/dancing.gif")
     private val safPath = SAFPath.build("content://com.example.provider/tree/primary", "photo.jpg")
+    private val source = ViewerSource.Stored(path)
+    private val safSource = ViewerSource.Stored(safPath)
     private val opened = AtomicInteger(0)
     private val closed = AtomicInteger(0)
     private lateinit var gatewaySwitch: GatewaySwitch
@@ -79,7 +81,7 @@ class ImageProbeTest {
             coEvery { openInputStream(any()) } answers { stream() }
             coEvery { openReadPFD(any()) } coAnswers { descriptor() }
         }
-        return ImageProbe(gatewaySwitch, TestDispatcherProvider())
+        return ImageProbe(readerFor(gatewaySwitch), TestDispatcherProvider())
     }
 
     private fun anyStream() = CountingStream(ByteArrayInputStream(ByteArray(64)))
@@ -88,7 +90,7 @@ class ImageProbeTest {
     fun `closes every stream it opens after a successful read`() = runTest2 {
         val probe = probe { CountingStream(ByteArrayInputStream(ByteArray(64))) }
 
-        probe.probe(path).shouldBeInstanceOf<ProbeResult.Probed>()
+        probe.probe(source).shouldBeInstanceOf<ProbeResult.Probed>()
 
         // Bounds and structure check each get their own stream - gateway streams don't rewind.
         opened.get() shouldBe 2
@@ -99,7 +101,7 @@ class ImageProbeTest {
     fun `a stream that never yields a header is a probe failure`() = runTest2 {
         val probe = probe { throw IOException("disk gave up") }
 
-        probe.probe(path).shouldBeInstanceOf<ProbeResult.ProbeFailed>()
+        probe.probe(source).shouldBeInstanceOf<ProbeResult.ProbeFailed>()
 
         // The gateway never handed out a stream, so there is no lease to release either.
         opened.get() shouldBe 0
@@ -117,7 +119,7 @@ class ImageProbeTest {
             )
         }
 
-        probe.probe(path)
+        probe.probe(source)
 
         // The decoder stops at the header and swallows stream failures on the way, so what the
         // read reports is its business - releasing every lease afterwards is ours.
@@ -129,7 +131,7 @@ class ImageProbeTest {
     fun `does not swallow cancellation`() = runTest2 {
         val probe = probe { throw CancellationException("cancelled") }
 
-        shouldThrow<CancellationException> { probe.probe(path) }
+        shouldThrow<CancellationException> { probe.probe(source) }
     }
 
     @Test
@@ -144,7 +146,7 @@ class ImageProbeTest {
             )
         }
 
-        shouldThrow<CancellationException> { probe.probe(path) }
+        shouldThrow<CancellationException> { probe.probe(source) }
 
         closed.get() shouldBe 1
     }
@@ -154,7 +156,7 @@ class ImageProbeTest {
         val svg = """<svg xmlns="http://www.w3.org/2000/svg"/>""".toByteArray()
         val probe = probe { CountingStream(ByteArrayInputStream(svg)) }
 
-        val result = probe.probe(svgPath)
+        val result = probe.probe(ViewerSource.Stored(svgPath))
 
         // Either the decoder recognises nothing (NoRasterDimensions) or it reports real bounds -
         // what must never happen is a ProbeFailed for a perfectly valid vector file.
@@ -173,7 +175,7 @@ class ImageProbeTest {
         // BitmapRegionDecoder is not the right tool for a GIF, animated or not, and a valid one
         // must never be rejected just because it cannot be tiled. The skip keys on the format, so
         // the frame count does not matter here.
-        probe.probe(gifPath).shouldNotBeInstanceOf<ProbeResult.ProbeFailed>()
+        probe.probe(ViewerSource.Stored(gifPath)).shouldNotBeInstanceOf<ProbeResult.ProbeFailed>()
         opened.get() shouldBe 1
         closed.get() shouldBe 1
     }
@@ -186,7 +188,7 @@ class ImageProbeTest {
         }
         val probe = probe { anyStream() }
 
-        probe.resolveDecodeInput(LocalPath.build(file)) shouldBe ImageDecodeInput.LocalFile(file)
+        probe.resolveDecodeInput(ViewerSource.Stored(LocalPath.build(file))) shouldBe ImageDecodeInput.LocalFile(file)
 
         // The cheap path: a file the process can read needs no descriptor from the gateway.
         coVerify(exactly = 0) { gatewaySwitch.openReadPFD(any()) }
@@ -197,7 +199,7 @@ class ImageProbeTest {
         val descriptor = mockk<ParcelFileDescriptor>(relaxed = true)
         val probe = probe(descriptor = { descriptor }) { anyStream() }
 
-        probe.resolveDecodeInput(safPath) shouldBe ImageDecodeInput.Descriptor(descriptor)
+        probe.resolveDecodeInput(safSource) shouldBe ImageDecodeInput.Descriptor(descriptor)
     }
 
     @Test
@@ -205,17 +207,17 @@ class ImageProbeTest {
         // Root- or ADB-routed local paths and archive entries end up here: no source, no verdict.
         val probe = probe(descriptor = { null }) { anyStream() }
 
-        probe.resolveDecodeInput(safPath) shouldBe ImageDecodeInput.None
-        probe.probe(safPath).shouldNotBeInstanceOf<ProbeResult.ProbeFailed>()
+        probe.resolveDecodeInput(safSource) shouldBe ImageDecodeInput.None
+        probe.probe(safSource).shouldNotBeInstanceOf<ProbeResult.ProbeFailed>()
     }
 
     @Test
     fun `a descriptor that blows up on open is skipped, not failed`() = runTest2 {
         val probe = probe(descriptor = { throw IOException("no fd for you") }) { anyStream() }
 
-        probe.resolveDecodeInput(safPath) shouldBe ImageDecodeInput.None
+        probe.resolveDecodeInput(safSource) shouldBe ImageDecodeInput.None
         // Failing to obtain a source says nothing about the file, so it must never reject one.
-        probe.probe(safPath).shouldNotBeInstanceOf<ProbeResult.ProbeFailed>()
+        probe.probe(safSource).shouldNotBeInstanceOf<ProbeResult.ProbeFailed>()
     }
 
     @Test
@@ -234,7 +236,7 @@ class ImageProbeTest {
         val probe = probe(descriptor = { descriptor }) { anyStream() }
         val pending = PendingInput()
 
-        probe.resolveDecodeInput(safPath, pending) shouldBe ImageDecodeInput.Descriptor(descriptor)
+        probe.resolveDecodeInput(safSource, pending) shouldBe ImageDecodeInput.Descriptor(descriptor)
         // The check still needs it while it runs.
         verify(exactly = 0) { descriptor.close() }
 
@@ -255,7 +257,7 @@ class ImageProbeTest {
 
         runBlocking {
             val resolve = launch(Dispatchers.Default, start = CoroutineStart.LAZY) {
-                runCatching { probe.resolveDecodeInput(safPath, pending) }
+                runCatching { probe.resolveDecodeInput(safSource, pending) }
             }
             job = resolve
             resolve.start()
@@ -273,7 +275,7 @@ class ImageProbeTest {
         val probe = probe(descriptor = { descriptor }) { anyStream() }
         val pending = PendingInput()
 
-        probe.resolveDecodeInput(safPath, pending)
+        probe.resolveDecodeInput(safSource, pending)
         // The check runs inside a finally that cannot know whether the resolve got that far.
         pending.close()
         pending.close()
@@ -286,7 +288,7 @@ class ImageProbeTest {
         val probe = probe(descriptor = { null }) { anyStream() }
         val pending = PendingInput()
 
-        probe.resolveDecodeInput(safPath, pending) shouldBe ImageDecodeInput.None
+        probe.resolveDecodeInput(safSource, pending) shouldBe ImageDecodeInput.None
 
         // Nothing was opened, so closing the holder has nothing to do and must not blow up.
         pending.close()
@@ -311,7 +313,7 @@ class ImageProbeTest {
     fun `below API 28 the decode check does not even look for a source`() = runTest2 {
         val probe = probe { anyStream() }
 
-        probe.probe(path).shouldNotBeInstanceOf<ProbeResult.ProbeFailed>()
+        probe.probe(source).shouldNotBeInstanceOf<ProbeResult.ProbeFailed>()
 
         // ImageDecoder does not exist there, so the region check stands alone.
         coVerify(exactly = 0) { gatewaySwitch.openReadPFD(any()) }
