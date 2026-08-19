@@ -8,9 +8,15 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 /**
  * Covers [ShizukuWrapper.getManagerPackage] — permission-based Shizuku detection that survives
@@ -26,9 +32,12 @@ class ShizukuWrapperTest {
         override val IO: CoroutineDispatcher = Dispatchers.Unconfined
     }
 
-    private fun wrapper(): ShizukuWrapper {
+    private fun wrapper(
+        appScope: CoroutineScope = CoroutineScope(Job() + Dispatchers.Unconfined),
+        dispatchers: DispatcherProvider = dispatcherProvider,
+    ): ShizukuWrapper {
         every { context.packageManager } returns packageManager
-        return ShizukuWrapper(context, dispatcherProvider)
+        return ShizukuWrapper(context, appScope, dispatchers)
     }
 
     // mockk gives us a real (Objenesis-instantiated) PermissionInfo whose inherited public
@@ -107,5 +116,34 @@ class ShizukuWrapperTest {
         // Shizuku itself throws when it has no binder to ask, which also means "cannot know".
         wrapper.checkSelfPermissionAction = { throw IllegalStateException("binder haven't been received") }
         wrapper.isGranted() shouldBe null
+    }
+
+    /**
+     * Real time and a real dispatcher on purpose: the defect is a thread stuck inside a synchronous
+     * binder transaction, which virtual time would skip straight past.
+     */
+    @Test
+    fun `isGranted gives up instead of hanging on a wedged binder`() = runBlocking {
+        val appScope = CoroutineScope(Job() + Dispatchers.IO)
+        val realDispatchers = object : DispatcherProvider {
+            override val IO: CoroutineDispatcher = Dispatchers.IO
+        }
+        val release = CountDownLatch(1)
+        val wrapper = wrapper(appScope, realDispatchers).apply {
+            ipcTimeoutMs = 100L
+            // Uninterruptible from the caller's side, like a PING_TRANSACTION against a wedged server.
+            pingBinderAction = { release.await(30, TimeUnit.SECONDS); true }
+            checkSelfPermissionAction = { PackageManager.PERMISSION_GRANTED }
+        }
+
+        val start = System.currentTimeMillis()
+        val granted = wrapper.isGranted()
+        val elapsed = System.currentTimeMillis() - start
+
+        granted shouldBe null
+        (elapsed < 5 * 1000L) shouldBe true
+
+        release.countDown()
+        appScope.cancel()
     }
 }

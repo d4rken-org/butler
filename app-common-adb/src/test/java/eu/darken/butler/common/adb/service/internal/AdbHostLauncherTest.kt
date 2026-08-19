@@ -2,6 +2,7 @@ package eu.darken.butler.common.adb.service.internal
 
 import android.os.IBinder
 import android.os.IInterface
+import eu.darken.butler.common.adb.AdbConnectTimeoutException
 import eu.darken.butler.common.adb.AdbException
 import eu.darken.butler.common.adb.service.AdbHostOptions
 import io.kotest.assertions.throwables.shouldThrow
@@ -30,7 +31,7 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 import org.junit.jupiter.api.Test
 import testhelpers.coroutine.TestDispatcherProvider
 import java.util.concurrent.CountDownLatch
@@ -44,6 +45,16 @@ import kotlin.time.Duration.Companion.seconds
 class AdbHostLauncherTest {
 
     private val events = mutableListOf<String>()
+
+    /**
+     * Bounded await for the wedge tests, [withTimeoutOrNull] plus an explicit failure.
+     *
+     * Never `withTimeout` here: its `TimeoutCancellationException` unwinds a test body as a
+     * cancellation rather than a failure, so a regression that re-introduces a wedge would be
+     * reported as a pass.
+     */
+    private suspend fun <T> awaitOrFail(what: String, block: suspend () -> T): T =
+        withTimeoutOrNull(5 * 1000L) { block() } ?: throw AssertionError("Timed out waiting for $what")
 
     private inner class FakeService(
         val onUnbind: () -> Unit = {},
@@ -117,6 +128,8 @@ class AdbHostLauncherTest {
 
     private fun AdbHostLauncher.connect(
         connectTimeoutMs: Long = AdbHostLauncher.CONNECT_TIMEOUT_MS,
+        apiVersionTimeoutMs: Long = AdbHostLauncher.API_VERSION_TIMEOUT_MS,
+        unbindTimeoutMs: Long = AdbHostLauncher.UNBIND_TIMEOUT_MS,
     ) = createConnection(
         serviceClass = AdbConnection::class,
         hostClass = AdbConnection::class,
@@ -124,6 +137,8 @@ class AdbHostLauncherTest {
         // BuildConfigWrap's static init, which isn't available on a plain JVM.
         options = AdbHostOptions(isDebug = false, isTrace = false, recorderPath = null),
         connectTimeoutMs = connectTimeoutMs,
+        apiVersionTimeoutMs = apiVersionTimeoutMs,
+        unbindTimeoutMs = unbindTimeoutMs,
     )
 
     @Test fun `unsupported shizuku version fails before binding`() = runTest {
@@ -283,10 +298,10 @@ class AdbHostLauncherTest {
 
             withContext(Dispatchers.Default) {
                 // Only measure once the wedge is real: bind() has been entered and is blocked.
-                withTimeout(5_000L) { bindEntered.await() }
+                awaitOrFail("bind() to be entered") { bindEntered.await() }
 
-                val error = withTimeout(5_000L) { collectResult.await() }.exceptionOrNull()
-                error.shouldBeInstanceOf<AdbException>()
+                val error = awaitOrFail("the collector to be released") { collectResult.await() }.exceptionOrNull()
+                error.shouldBeInstanceOf<AdbConnectTimeoutException>()
                 error.message!! shouldContain "did not connect"
 
                 // While bind() is still wedged there is nothing to unbind yet.
@@ -295,7 +310,7 @@ class AdbHostLauncherTest {
                 // When the wedged transaction finally returns, the binding must not leak:
                 // teardown already gave up, so the late unbind is the only cleanup left.
                 bindWedge.countDown()
-                withTimeout(5_000L) { unboundLate.await() }
+                awaitOrFail("the late unbind") { unboundLate.await() }
             }
         } finally {
             bindWedge.countDown()
@@ -328,5 +343,91 @@ class AdbHostLauncherTest {
         caught.isCompleted shouldBe false // still connected, nothing was torn down
         emitted shouldHaveSize 1
         job.cancelAndJoin()
+    }
+
+    @Test fun `an apiVersion call wedged in its binder transaction is bounded`() = runTest(
+        timeout = 10.seconds,
+    ) {
+        // Shizuku.getVersion() is only a cached field once the server pushed its version via
+        // bindApplication(); before that it is a real transaction that wedges against an unresponsive
+        // server. It runs before the connect watchdog is armed, so it needs its own bound.
+        val versionEntered = CompletableDeferred<Unit>()
+        val versionWedge = CountDownLatch(1)
+        val service = FakeService()
+        val factory = object : ShizukuUserServiceFactory by FakeFactory(service) {
+            override fun apiVersion(): Int {
+                versionEntered.complete(Unit)
+                versionWedge.await()
+                return 11
+            }
+        }
+        val realScope = CoroutineScope(SupervisorJob())
+        val l = AdbHostLauncher(
+            serviceFactory = factory,
+            appScope = realScope,
+            dispatcherProvider = TestDispatcherProvider(Dispatchers.IO),
+        )
+
+        try {
+            val collectResult = realScope.async(Dispatchers.Default) {
+                runCatching { l.connect(apiVersionTimeoutMs = 250L).collect { } }
+            }
+
+            withContext(Dispatchers.Default) {
+                awaitOrFail("apiVersion() to be entered") { versionEntered.await() }
+
+                val error = awaitOrFail("the collector to be released") { collectResult.await() }.exceptionOrNull()
+                error.shouldBeInstanceOf<AdbConnectTimeoutException>()
+                error.message!! shouldContain "getVersion()"
+            }
+
+            events.shouldBeEmpty() // gave up before binding anything
+        } finally {
+            versionWedge.countDown()
+            realScope.cancel()
+        }
+    }
+
+    @Test fun `an unbind wedged in its binder transaction still releases collectors`() = runTest(
+        timeout = 10.seconds,
+    ) {
+        // The watchdog close()s the channel, but collection of a callbackFlow awaits its producer, so
+        // an unbounded unbind in the teardown finally pins every collector anyway.
+        val unbindEntered = CompletableDeferred<Unit>()
+        val unbindWedge = CountDownLatch(1)
+        val service = object : ShizukuUserService {
+            override fun bind() {}
+
+            override fun unbind() {
+                unbindEntered.complete(Unit)
+                unbindWedge.await() // blocks the thread, unaffected by coroutine cancellation
+            }
+
+            override suspend fun awaitDisconnect() {}
+        }
+        val realScope = CoroutineScope(SupervisorJob())
+        val l = AdbHostLauncher(
+            serviceFactory = FakeFactory(service),
+            appScope = realScope,
+            dispatcherProvider = TestDispatcherProvider(Dispatchers.IO),
+        )
+
+        try {
+            val collectResult = realScope.async(Dispatchers.Default) {
+                // Never connects, so the watchdog fires and teardown runs into the wedged unbind.
+                runCatching { l.connect(connectTimeoutMs = 250L, unbindTimeoutMs = 250L).collect { } }
+            }
+
+            withContext(Dispatchers.Default) {
+                awaitOrFail("unbind() to be entered") { unbindEntered.await() }
+
+                val error = awaitOrFail("the collector to be released") { collectResult.await() }.exceptionOrNull()
+                error.shouldBeInstanceOf<AdbConnectTimeoutException>()
+                error.message!! shouldContain "did not connect"
+            }
+        } finally {
+            unbindWedge.countDown()
+            realScope.cancel()
+        }
     }
 }
