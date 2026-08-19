@@ -326,6 +326,34 @@ class FlowCmdShellTest : BaseTest() {
         }
     }
 
+    @Test fun `isUsable is false once the streams ended, even while the process lives`(): Unit = runBlocking {
+        // The two signals are written by different coroutines and nothing orders them: the exit code
+        // is published only after process.waitFor() returns, while execute() starts rejecting as soon
+        // as the shared streams emit their terminal End event. A reuse check on isAlive() alone
+        // therefore hands out a session whose very next command throws.
+        LoopbackShell(closeStdoutAtStart = true, closeStderrAtStart = true).use { shell ->
+            val session = shell.cmdSession()
+
+            withTimeout(5_000) {
+                shouldThrowExactly<IllegalStateException> { session.execute(FlowCmd("echo hi")) }
+            }
+
+            // Process is still running; only the streams are gone.
+            shell.exitCode.value shouldBe null
+            session.isAlive() shouldBe true
+            session.isUsable() shouldBe false
+        }
+    }
+
+    @Test fun `isUsable agrees with isAlive on a healthy session`(): Unit = runBlocking {
+        LoopbackShell().use { shell ->
+            val session = shell.cmdSession()
+
+            session.isAlive() shouldBe true
+            session.isUsable() shouldBe true
+        }
+    }
+
     @Test fun `second execute after stream death is rejected before writing`(): Unit = runBlocking {
         LoopbackShell(closeStdoutAtStart = true, closeStderrAtStart = true).use { shell ->
             val session = shell.cmdSession()
