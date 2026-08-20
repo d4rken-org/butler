@@ -119,8 +119,15 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
     /** Bumped by [retry] so a failed decode gets a fresh image source instead of the poisoned one. */
     private val attemptFlow = MutableStateFlow(0)
 
-    /** Resolve and Coil-load failures reported by the image source, which the workspace cannot see. */
-    private val renderErrorFlow = MutableStateFlow<Throwable?>(null)
+    /**
+     * Resolve and Coil-load failures reported by the image source, which the workspace cannot see.
+     *
+     * Stored with the source they belong to: this tab is replaced under its own id when a stream is
+     * saved to a file, so the ViewModel survives the swap and a failure kept as a bare throwable
+     * would keep the saved file's page showing the old stream's error. A late callback from the
+     * disposed source cannot poison the new one either - it names the source it came from.
+     */
+    private val renderErrorFlow = MutableStateFlow<RenderFailure?>(null)
 
     /**
      * [WorkspaceProvider.retrieve] is derived from the workspace collection, so it re-emits when an
@@ -134,10 +141,15 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
         .map { (source, attempt) ->
             imageSourceFactory.create(
                 source = source,
-                // Tagged with the attempt that created this source: [renderErrorFlow] is one global
-                // slot, and a disposed source reporting its failure late would otherwise poison the
-                // fresh attempt that replaced it.
-                onError = { if (attemptFlow.value == attempt) renderErrorFlow.value = it },
+                // Tagged with the attempt AND the source that created it: [renderErrorFlow] is one
+                // global slot, so a disposed source reporting its failure late would otherwise
+                // poison whatever replaced it - a fresh attempt on the same source (caught here) or
+                // a different source this tab was rebound to (caught where the state is composed).
+                onError = {
+                    if (attemptFlow.value == attempt) {
+                        renderErrorFlow.value = RenderFailure(source = source, error = it)
+                    }
+                },
             )
         }
 
@@ -201,8 +213,11 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
         imageSourceFlow,
         pdfPageFlow,
         trashSettings.enabled.flow,
-    ) { snapshot, renderError, imageSource, pdfPage, trashEnabled ->
+    ) { snapshot, renderFailure, imageSource, pdfPage, trashEnabled ->
         val (source, workspaceState) = snapshot
+        // Only the failure of what is on display now: one recorded for a source this tab has since
+        // been rebound away from would hide the new content behind the old one's error.
+        val renderError = renderFailure?.takeIf { it.source == source }?.error
         // The workspace did the actual lookup, so its failure outranks a render error. Refreshing a
         // deleted file briefly composes an image source against the missing file, and that generic
         // decode error must not replace the accurate "this file is gone" card.
@@ -849,6 +864,12 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
 
         data object Writing : IconSaveState
     }
+
+    /** A render failure and the source it came from, kept together so they cannot get out of step. */
+    private data class RenderFailure(
+        val source: ViewerSource,
+        val error: Throwable,
+    )
 
     /** One rendered PDF page. A null [bitmap] with [failed] false means the render is still running. */
     data class PdfPage(
