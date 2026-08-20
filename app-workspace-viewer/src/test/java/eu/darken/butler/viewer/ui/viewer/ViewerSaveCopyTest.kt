@@ -172,6 +172,10 @@ class ViewerSaveCopyTest : BaseTest() {
         val replacement = creates.last()
         replacement.type shouldBe Workspace.Type.VIEWER
         replacement.replace shouldBe workspaceId
+        // Same id, so the Saver that reported the save is not swept as an orphan of a gone tab.
+        replacement.id shouldBe workspaceId
+        // The destination may already be open in another tab; that must not refuse the rebind.
+        replacement.skipContentDedup shouldBe true
         val arguments = replacement.arguments.shouldBeInstanceOf<ViewerArguments.Default>()
         arguments.filePath shouldBe savedPath
         // Still the same shared file, so the message that came with it carries over.
@@ -190,19 +194,26 @@ class ViewerSaveCopyTest : BaseTest() {
     }
 
     @Test
-    fun `a save that wrote nothing leaves the tab on the stream and frees the reservation`() = runTest2 {
+    fun `a save that wrote nothing leaves the tab on the stream and the retry alive`() = runTest2 {
         val saverId = Workspace.Id()
         nextCreatedId = saverId
         val vm = makeViewModel()
         vm.saveCopy()
 
+        // An overwrite the user backed out of, or a write that failed: the Saver is still open and
+        // will report again, so the reservation stays with it.
         events.emit(saveResult(saverId))
-
         creates.size shouldBe 1
-        // The reservation is clear again, so the user can retry.
-        nextCreatedId = Workspace.Id()
+
+        // A second tap must not stack another Saver over the one that is still on screen.
         vm.saveCopy()
-        creates.size shouldBe 2
+        creates.size shouldBe 1
+
+        events.emit(saveResult(saverId, savedPath))
+
+        val replacement = creates.last()
+        replacement.replace shouldBe workspaceId
+        replacement.arguments.shouldBeInstanceOf<ViewerArguments.Default>().filePath shouldBe savedPath
     }
 
     @Test

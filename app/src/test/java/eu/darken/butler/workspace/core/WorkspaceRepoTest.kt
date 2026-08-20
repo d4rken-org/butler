@@ -482,6 +482,27 @@ class WorkspaceRepoTest : BaseTest() {
     }
 
     @Test
+    fun `a same-id replacement keeps its sub-workspaces`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val originalId = repo.createTab()
+        val childId = repo.createSubWorkspace(caller = originalId)
+
+        // The tab is rebuilt in place, so nothing was orphaned - a viewer rebinding to the file its
+        // own Saver just wrote must not take that Saver down with it.
+        repo.execute(
+            WorkspaceAction.Create(
+                type = Workspace.Type.SEARCHER,
+                arguments = FakeArguments(Workspace.Type.SEARCHER),
+                replace = originalId,
+                id = originalId,
+            )
+        )
+
+        fake(childId).released shouldBe false
+        repo.retrieve(childId).first() shouldNotBe null
+    }
+
+    @Test
     fun `quota-exempt types do not count toward the free tier limit`() = runTest(UnconfinedTestDispatcher()) {
         val repo = createRepo(isPro = false)
         // An exempt singleton open alongside a full set of normal tabs must not consume a slot.
@@ -1577,12 +1598,14 @@ class WorkspaceRepoTest : BaseTest() {
         id: Workspace.Id? = null,
         skipLimitCheck: Boolean = false,
         replace: Workspace.Id? = null,
+        skipContentDedup: Boolean = false,
     ): WorkspaceAction.Create = WorkspaceAction.Create(
         type = type,
         arguments = FakeContentArguments(type, path),
         id = id,
         skipLimitCheck = skipLimitCheck,
         replace = replace,
+        skipContentDedup = skipContentDedup,
     )
 
     private suspend fun WorkspaceRepo.createContentTab(path: APath<*>?): Workspace.Id =
@@ -1644,6 +1667,31 @@ class WorkspaceRepoTest : BaseTest() {
 
         repo.execute(contentReq(pathA, replace = holderId))
             .shouldBeInstanceOf<WorkspaceAction.Create.Result.Success>()
+    }
+
+    @Test
+    fun `a create that opted out commits onto a path another tab holds`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val ownId = repo.createContentTab(pathB)
+        repo.createContentTab(pathA)
+
+        // A workspace binding itself to a path it just produced: sending the user to the foreign
+        // tab instead would abandon the one they were working in.
+        repo.execute(contentReq(pathA, replace = ownId, id = ownId, skipContentDedup = true))
+            .shouldBeInstanceOf<WorkspaceAction.Create.Result.Success>()
+        repo.infoFor(ownId).contentPath shouldBe pathA
+    }
+
+    @Test
+    fun `a replace of something else still dedups`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val holderId = repo.createContentTab(pathA)
+        val otherId = repo.createContentTab(pathB)
+
+        // Replaces are not exempt as a class; only the opt-out above skips the check.
+        val result = repo.execute(contentReq(pathA, replace = otherId))
+        result.shouldBeInstanceOf<WorkspaceAction.Create.Result.AlreadyOpen>()
+        result.existingId shouldBe holderId
     }
 
     @Test
