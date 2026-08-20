@@ -318,6 +318,32 @@ class ExternalOpenRouterTest : BaseTest() {
             ViewTarget.Streamed(uri, "IMG_4821", MimeInfo("image/jpeg"), null)
     }
 
+    /**
+     * The view offer now covers every arrival, archives included, and none of them may become a
+     * hidden copy in Butler's cache: a stored container is browsed where it lies, a provider one is
+     * streamed to wherever the user chooses to save it.
+     */
+    @Test
+    fun `a local archive is opened where it lies, never copied`() = runTest {
+        val ref = SourceRef.Local(LocalPath.build(File("/sdcard/Download/backup.zip")))
+
+        create().resolveForView(ref, MimeInfo("application/zip"), "backup.zip", null) shouldBe
+            ViewTarget.Stored(ref.path)
+        create().resolveForView(ref, MimeInfo("application/octet-stream"), "backup.zip", null) shouldBe
+            ViewTarget.Stored(ref.path)
+        coVerify(exactly = 0) { importer.importToCache(any(), any(), any()) }
+    }
+
+    @Test
+    fun `a streamed archive is streamed, never copied`() = runTest {
+        val uri = Uri.parse("content://com.example.files/document/42")
+        every { documentUriResolver.resolve(uri) } returns null
+
+        create().resolveForView(SourceRef.Content(uri), MimeInfo("application/zip"), "backup.zip", 4096L) shouldBe
+            ViewTarget.Streamed(uri, "backup.zip", MimeInfo("application/zip"), 4096L)
+        coVerify(exactly = 0) { importer.importToCache(any(), any(), any()) }
+    }
+
     @Test
     fun `an unresolvable apk is still copied, because the parser needs a real path`() = runTest {
         val uri = Uri.parse("content://com.example.files/document/42")

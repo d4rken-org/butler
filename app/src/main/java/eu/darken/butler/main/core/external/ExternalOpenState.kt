@@ -27,9 +27,10 @@ enum class ExternalOpenOption {
 }
 
 /**
- * Whether the Viewer can show this content. Delegates to [ViewerSupport] so the offer always tracks
- * what the viewer actually renders; the import and extension rules in [ExternalOpenRouter] and
- * [ExternalContentImporter] key off the same source, so an option we offer is one we can open.
+ * Whether the Viewer has a renderer for this content. Delegates to [ViewerSupport] so the import and
+ * extension rules in [ExternalOpenRouter] and [ExternalContentImporter] track what the viewer
+ * actually renders. Deliberately NOT what gates the view offer - see [computeExternalOpenOptions] -
+ * because widening it would start importing archives into the cache.
  */
 internal val MimeInfo.isViewable: Boolean
     get() = ViewerSupport.canDisplay(this)
@@ -42,7 +43,9 @@ internal fun MimeInfo.hasMatchingViewableExtension(fileName: String): Boolean =
     ViewerSupport.hasMatchingName(this, fileName)
 
 /**
- * Viewing is offered for whatever the Viewer workspace renders, editing only for text that fits the
+ * Viewing is offered for every arrival, whatever it is: the Viewer classifies archives as their own
+ * state and explains in place what it cannot render, which is a better answer than a dialog that
+ * silently drops the action the user came for. Editing is offered only for text that fits the
  * editor's paste cap, and revealing only for content that exists as a real file on the device -
  * anything Butler had to copy into its own cache has no folder worth opening. Saving is always
  * possible, so the dialog is never empty.
@@ -52,7 +55,7 @@ fun computeExternalOpenOptions(
     sizeBytes: Long?,
     hasContainingFolder: Boolean = false,
 ): List<ExternalOpenOption> = buildList {
-    if (mime.isViewable) add(ExternalOpenOption.VIEW)
+    add(ExternalOpenOption.VIEW)
     if (mime.isText && (sizeBytes == null || sizeBytes <= PasteFileReader.MAX_PASTE_FILE_SIZE)) {
         add(ExternalOpenOption.EDIT_AS_TEXT)
     }
