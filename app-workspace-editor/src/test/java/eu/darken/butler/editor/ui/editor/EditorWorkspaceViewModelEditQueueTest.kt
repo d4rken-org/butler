@@ -387,6 +387,94 @@ class EditorWorkspaceViewModelEditQueueTest : BaseTest() {
         order shouldBe listOf("type", "tap", "sentinel")
     }
 
+    // ==================== Selection burst coalescing ====================
+
+    private fun col(column: Int) = TextPosition(offset = 0, line = 0, column = column)
+
+    @Test
+    fun `a burst of selection updates collapses to the newest`() = runTest {
+        // Every pointer event of a handle drag enqueues one selection. Each is a whole-state
+        // assignment, so within an uninterrupted run only the newest is observable - executing the
+        // ones it overwrote just re-resolves offsets and refreshes the window for nothing.
+        val applied = mutableListOf<Int>()
+        val firstStarted = CompletableDeferred<Unit>()
+        val releaseFirst = CompletableDeferred<Unit>()
+        val workspace = makeWorkspace().apply {
+            coEvery { setSelection(any(), any()) } coAnswers {
+                if (applied.isEmpty()) {
+                    firstStarted.complete(Unit)
+                    releaseFirst.await()
+                }
+                applied += secondArg<TextPosition>().column
+            }
+        }
+        val vm = makeViewModel(workspace)
+
+        vm.setSelection(col(0), col(10))
+        firstStarted.await()
+        // Queued while the first one is still in flight
+        vm.setSelection(col(0), col(11))
+        vm.setSelection(col(0), col(12))
+        vm.setSelection(col(0), col(13))
+        releaseFirst.complete(Unit)
+        vm.insertText("sentinel")
+        drained.await()
+
+        applied shouldBe listOf(10, 13)
+    }
+
+    @Test
+    fun `an edit between two selections stops the run from collapsing across it`() = runTest {
+        // Coalescing may only ever fold a run of back-to-back selections. Anything else in between
+        // is a document mutation the selections around it are ordered against.
+        val order = mutableListOf<String>()
+        val firstStarted = CompletableDeferred<Unit>()
+        val releaseFirst = CompletableDeferred<Unit>()
+        val workspace = makeWorkspace().apply {
+            coEvery { setSelection(any(), any()) } coAnswers {
+                val column = secondArg<TextPosition>().column
+                if (order.isEmpty()) {
+                    firstStarted.complete(Unit)
+                    releaseFirst.await()
+                }
+                order += "select$column"
+            }
+            coEvery { performEdit(any(), any()) } answers {
+                val text = insertedText()
+                order += text
+                if (text == "sentinel") drained.complete(Unit)
+                EditorEngine.EditOutcome.Applied()
+            }
+        }
+        val vm = makeViewModel(workspace)
+
+        vm.setSelection(col(0), col(1))
+        firstStarted.await()
+        vm.setSelection(col(0), col(2))
+        vm.insertText("edit")
+        vm.setSelection(col(0), col(3))
+        releaseFirst.complete(Unit)
+        vm.insertText("sentinel")
+        drained.await()
+
+        order shouldBe listOf("select1", "select2", "edit", "select3", "sentinel")
+    }
+
+    @Test
+    fun `a lone selection is applied without waiting for a successor`() = runTest {
+        // Draining successors must never turn into waiting for one: a single tap-drag release has
+        // nothing behind it and still has to land.
+        val applied = CompletableDeferred<Int>()
+        val workspace = makeWorkspace().apply {
+            coEvery { setSelection(any(), any()) } answers { applied.complete(secondArg<TextPosition>().column) }
+        }
+        val vm = makeViewModel(workspace)
+
+        vm.setSelection(col(0), col(7))
+
+        applied.await() shouldBe 7
+    }
+
     // ==================== Epoch stamping across a file switch ====================
 
     /**

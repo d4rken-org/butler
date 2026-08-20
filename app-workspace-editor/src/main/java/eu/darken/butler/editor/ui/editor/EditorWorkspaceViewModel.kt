@@ -581,8 +581,39 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             .launchIn(vmScope)
     }
 
+    /**
+     * Drains the queue, folding runs of back-to-back selections into their newest member.
+     *
+     * A handle drag enqueues one [EditCommand.Navigate.SetSelection] per pointer event, and every
+     * one of them re-resolves two offsets, breaks the undo run and refreshes the visible window.
+     * Dropping the intermediates of a run is inert: a selection is a whole-state assignment, so the
+     * newest one overwrites whatever its predecessors would have set; `breakUndoRun()` is
+     * idempotent across a run with no edit between its members; and only the final window refresh
+     * is ever observed. Ordering is untouched - only ALREADY-QUEUED successors are drained, and the
+     * first command of any other kind stops the drain and runs next.
+     */
     private fun consumeEditCommands() = vmScope.launch {
-        for (command in editCommands) {
+        // Holds the non-selection command that ended a drain, so the next round executes it before
+        // receiving again.
+        var pending: EditCommand? = null
+        while (true) {
+            val received = pending ?: editCommands.receiveCatching().getOrNull() ?: break
+            pending = null
+            val command = if (received is EditCommand.Navigate.SetSelection) {
+                var newest: EditCommand.Navigate.SetSelection = received
+                while (true) {
+                    val next = editCommands.tryReceive().getOrNull() ?: break
+                    if (next is EditCommand.Navigate.SetSelection) {
+                        newest = next
+                    } else {
+                        pending = next
+                        break
+                    }
+                }
+                newest
+            } else {
+                received
+            }
             try {
                 execute(command)
             } catch (e: CancellationException) {

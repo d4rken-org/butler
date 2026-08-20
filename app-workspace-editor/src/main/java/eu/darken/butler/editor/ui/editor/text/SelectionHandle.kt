@@ -47,6 +47,9 @@ internal fun SelectionHandle(
     horizontalScrollState: ScrollState,
     actualCharWidth: Float,
     onDrag: (Offset) -> Unit,
+    /** Gesture boundaries, so callers can capture and release per-drag state around [onDrag]. */
+    onDragStart: () -> Unit = {},
+    onDragEnd: () -> Unit = {},
     modifier: Modifier = Modifier,
     wordWrap: Boolean = false,
     textLayouts: Map<Long, TextLayoutResult> = emptyMap(),
@@ -82,6 +85,8 @@ internal fun SelectionHandle(
 
     // The drag coroutine below outlives recompositions and must never invoke a stale capture.
     val currentOnDrag by rememberUpdatedState(onDrag)
+    val currentOnDragStart by rememberUpdatedState(onDragStart)
+    val currentOnDragEnd by rememberUpdatedState(onDragEnd)
 
     // Use simple state to store Y position, updated via LaunchedEffect observing layout
     var yPosition by remember { mutableStateOf<Float?>(null) }
@@ -168,7 +173,13 @@ internal fun SelectionHandle(
                     translationY = currentYPos + visualLineOffsetY + contentPaddingTop
                 }
                 .pointerInput(lineNumberWidthPx, wordWrap, charWidth) {
-                    detectDragGestures { change, _ ->
+                    detectDragGestures(
+                        onDragStart = { currentOnDragStart() },
+                        onDragEnd = { currentOnDragEnd() },
+                        // A cancelled gesture ends just as much as a lifted finger: whatever the
+                        // caller captured on start has to be released either way.
+                        onDragCancel = { currentOnDragEnd() },
+                    ) { change, _ ->
                         // Recompute the handle's anchor the same way the graphicsLayer block does
                         // so drag deltas convert back into content coordinates.
                         val horizontalScrollOffset = if (wordWrap) 0f else horizontalScrollState.value.toFloat()

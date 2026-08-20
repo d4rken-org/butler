@@ -96,6 +96,13 @@ const val EDITOR_INPUT_TEST_TAG = "editor.input.field"
 /** Semantics tag for the tappable text area, used by Compose regression tests. */
 internal const val EDITOR_CONTENT_TEST_TAG = "editor.content.lines"
 
+/**
+ * Semantics tags for the two selection drag handles. They are drawn on a Canvas and carry no
+ * semantics of their own, so Compose regression tests have no other way to address them.
+ */
+internal const val EDITOR_SELECTION_HANDLE_START_TEST_TAG = "editor.selection.handle.start"
+internal const val EDITOR_SELECTION_HANDLE_END_TEST_TAG = "editor.selection.handle.end"
+
 @Composable
 fun LazyTextEditor(
     modifier: Modifier = Modifier,
@@ -966,17 +973,28 @@ private fun DualColumnEditorContent(
             }
         }
 
+        // Each handle pivots around the OTHER endpoint, captured when its own gesture starts - see
+        // [SelectionDragCoordinator] for what reading it from the live selection does after a
+        // crossover. ONE coordinator for both handles: two fingers can hold both at once, and each
+        // emitted selection is a complete pair, so a per-handle tracker would have each event
+        // restore the peer endpoint as it was when its own gesture began. Hoisted above the branch
+        // so a selection that briefly goes null cannot drop a running gesture.
+        val handleDrag = remember { SelectionDragCoordinator() }
+
         // Selection handles
         if (selection != null && isFocused) {
             val (start, end) = selection
 
             // Start handle
             SelectionHandle(
+                modifier = Modifier.testTag(EDITOR_SELECTION_HANDLE_START_TEST_TAG),
                 position = start,
                 contentListState = contentListState,
                 lineNumberWidth = lineNumberWidth,
                 horizontalScrollState = horizontalScrollState,
                 actualCharWidth = charWidthPx,
+                onDragStart = { handleDrag.beginStart(start, end) },
+                onDragEnd = { handleDrag.endStart() },
                 onDrag = { offset ->
                     val result = calculatePositionFromOffset(
                         offset = offset,
@@ -991,16 +1009,7 @@ private fun DualColumnEditorContent(
                     )
 
                     if (result != null) {
-                        // Update selection start, keep end fixed
-                        val (newStart, newEnd) = if (result.position.line < end.line ||
-                            (result.position.line == end.line && result.position.column < end.column)
-                        ) {
-                            result.position to end
-                        } else {
-                            end to result.position
-                        }
-
-                        onSelectionChange(newStart to newEnd)
+                        handleDrag.updateStart(result.position)?.let(onSelectionChange)
                     }
                 },
                 wordWrap = wordWrap,
@@ -1013,11 +1022,14 @@ private fun DualColumnEditorContent(
 
             // End handle
             SelectionHandle(
+                modifier = Modifier.testTag(EDITOR_SELECTION_HANDLE_END_TEST_TAG),
                 position = end,
                 contentListState = contentListState,
                 lineNumberWidth = lineNumberWidth,
                 horizontalScrollState = horizontalScrollState,
                 actualCharWidth = charWidthPx,
+                onDragStart = { handleDrag.beginEnd(start, end) },
+                onDragEnd = { handleDrag.endEnd() },
                 onDrag = { offset ->
                     val result = calculatePositionFromOffset(
                         offset = offset,
@@ -1032,16 +1044,7 @@ private fun DualColumnEditorContent(
                     )
 
                     if (result != null) {
-                        // Update selection end, keep start fixed
-                        val (newStart, newEnd) = if (result.position.line > start.line ||
-                            (result.position.line == start.line && result.position.column > start.column)
-                        ) {
-                            start to result.position
-                        } else {
-                            result.position to start
-                        }
-
-                        onSelectionChange(newStart to newEnd)
+                        handleDrag.updateEnd(result.position)?.let(onSelectionChange)
                     }
                 },
                 wordWrap = wordWrap,
