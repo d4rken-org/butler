@@ -481,7 +481,11 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
         log(tag, INFO) { "rebindToSavedFile($savedPath)" }
         workspaceRemote.createAndFocus(
             type = Workspace.Type.VIEWER,
-            arguments = ViewerArguments.Default(filePath = savedPath),
+            arguments = ViewerArguments.Default(
+                filePath = savedPath,
+                // Still the same shared file, so what the sender wrote about it still applies.
+                caption = workspaceSource.first().sharedCaption,
+            ),
             replace = id,
         )
     }

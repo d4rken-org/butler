@@ -308,7 +308,10 @@ class MainViewModel @Inject constructor(
             return
         }
         val arguments = when (target) {
-            is ViewTarget.Stored -> ViewerArguments.Default(filePath = target.path)
+            is ViewTarget.Stored -> ViewerArguments.Default(
+                filePath = target.path,
+                caption = state.caption,
+            )
 
             // Minted here, once per arrival: it keys the image caches, so two shares of one provider
             // URI cannot serve each other's bytes and a retry is not stuck on a cached failure.
@@ -318,6 +321,7 @@ class MainViewModel @Inject constructor(
                 mimeType = target.mime.rawType,
                 sizeBytes = target.sizeBytes,
                 arrivalId = Uuid.random().toString(),
+                caption = state.caption,
             )
         }
         workspaceRemote.createAndFocus(type = Workspace.Type.VIEWER, arguments = arguments)

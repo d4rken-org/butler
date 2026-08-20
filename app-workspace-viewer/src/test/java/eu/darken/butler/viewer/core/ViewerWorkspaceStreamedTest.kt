@@ -46,12 +46,14 @@ class ViewerWorkspaceStreamedTest : BaseTest() {
         displayName: String = "holiday.jpg",
         mimeType: String = "image/jpeg",
         sizeBytes: Long? = 2_411_200L,
+        caption: String? = null,
     ) = ViewerArguments.Streamed(
         uriString = "content://com.example.files/document/42",
         displayName = displayName,
         mimeType = mimeType,
         sizeBytes = sizeBytes,
         arrivalId = "arrival-1",
+        caption = caption,
     )
 
     private fun seekableDescriptor(size: Long = 2_411_200L) = mockk<ParcelFileDescriptor>(relaxed = true).apply {
@@ -245,6 +247,23 @@ class ViewerWorkspaceStreamedTest : BaseTest() {
         workspace(arguments(displayName = "backup.zip", mimeType = "application/zip"), reader)
             .state.first().content.shouldBeInstanceOf<ViewerContent.Failed>()
             .error.shouldBeInstanceOf<ViewerContentUnreadableException>()
+    }
+
+    /** A share carrying a file and text opens the file, so the text has to show up next to it. */
+    @Test
+    fun `a shared message reaches the info card`() = runTest {
+        val state = workspace(
+            arguments(displayName = "backup.zip", mimeType = "application/zip", caption = "look at this"),
+        ).state.first()
+
+        state.fileInfo?.sharedCaption shouldBe "look at this"
+    }
+
+    @Test
+    fun `content shared without a message has no caption`() = runTest {
+        coEvery { imageProbe.probe(any()) } returns ProbeResult.Probed(4032, 3024, "image/jpeg")
+
+        workspace().state.first().fileInfo?.sharedCaption shouldBe null
     }
 
     @Test

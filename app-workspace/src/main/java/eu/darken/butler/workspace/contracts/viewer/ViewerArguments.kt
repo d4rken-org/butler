@@ -30,6 +30,8 @@ sealed interface ViewerArguments : Workspace.Arguments {
     @Parcelize
     data class Default(
         val filePath: APath<*>,
+        /** Text a share attached to this file, see [Streamed.caption]. */
+        val caption: String? = null,
         @Transient override val callerWorkspaceId: Workspace.Id? = null,
     ) : ViewerArguments, Workspace.ArgumentsWithCaller, Workspace.ArgumentsWithContentPath {
         // Get-only (no backing field): invisible to kotlinx-serialization and Parcelize, so
@@ -58,6 +60,8 @@ sealed interface ViewerArguments : Workspace.Arguments {
      * @param arrivalId Distinguishes two shares of the same URI. Providers reuse document ids, so
      * without this the image caches would serve the first share's bytes for the second, and a retry
      * could never get past a cached failure.
+     * @param caption What the sender wrote about the file. A share that carries both a file and text
+     * opens the file, so the text is shown here rather than dropped.
      */
     @Serializable
     @SerialName("streamed")
@@ -68,6 +72,7 @@ sealed interface ViewerArguments : Workspace.Arguments {
         val mimeType: String,
         val sizeBytes: Long?,
         val arrivalId: String,
+        val caption: String? = null,
         @Transient override val callerWorkspaceId: Workspace.Id? = null,
     ) : ViewerArguments, Workspace.ArgumentsWithCaller {
 

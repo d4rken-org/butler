@@ -11,8 +11,10 @@ import eu.darken.butler.main.core.GeneralSettings
 import eu.darken.butler.main.core.external.ExternalOpenOption
 import eu.darken.butler.main.core.external.ExternalOpenRouter
 import eu.darken.butler.main.core.external.SourceRef
+import eu.darken.butler.main.core.external.ViewTarget
 import eu.darken.butler.saver.core.ContentUriHelper
 import eu.darken.butler.workspace.contracts.saver.SaverArguments
+import eu.darken.butler.workspace.contracts.viewer.ViewerArguments
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceRemote
@@ -114,6 +116,41 @@ class MainViewModelArrivalTest : BaseTest() {
         arrival.callerPackage shouldBe callerPackage
         arrival.displayName shouldBe "backup.zip"
         arrival.options shouldBe listOf(ExternalOpenOption.VIEW, ExternalOpenOption.SAVE_AS)
+    }
+
+    /**
+     * A share that carries a file and a description opens the file, so the description has to reach
+     * the Viewer rather than being dropped with the Editor route it used to take.
+     */
+    @Test
+    fun `viewing from the dialog carries the shared message to the Viewer`() = runTest {
+        coEvery { externalOpenRouter.resolveForView(any(), any(), any(), any()) } returns ViewTarget.Streamed(
+            uri = uri,
+            displayName = "backup.zip",
+            mime = MimeInfo("application/zip"),
+            sizeBytes = 4096L,
+        )
+        val action = slot<WorkspaceAction>()
+        coEvery { workspaceRemote.execute(capture(action)) } returns
+            WorkspaceAction.Create.Result.Success(Workspace.Id())
+
+        val vm = createViewModel()
+        vm.onExternalFile(uri, "application/zip", callerPackage, caption = "look at this")
+        vm.externalOpen.filterNotNull().first()
+        vm.onExternalOpenAction(ExternalOpenOption.VIEW)
+
+        val created = action.captured.shouldBeInstanceOf<WorkspaceAction.Create>()
+        created.type shouldBe Workspace.Type.VIEWER
+        created.arguments.shouldBeInstanceOf<ViewerArguments.Streamed>().caption shouldBe "look at this"
+    }
+
+    @Test
+    fun `an Open-with arrival has no message to carry`() = runTest {
+        val vm = createViewModel()
+
+        vm.onExternalFile(uri, "application/zip", callerPackage)
+
+        vm.externalOpen.filterNotNull().first().caption shouldBe null
     }
 
     @Test

@@ -289,6 +289,30 @@ class ViewerWorkspaceClassificationTest : BaseTest() {
         content.access shouldBe ViewerContent.Archive.Access.NESTED
     }
 
+    /** The caption survives the rebind a saved copy performs, which lands on a stored path. */
+    @Test
+    fun `a stored file keeps the message it was shared with`() = runTest2 {
+        val archive = LocalPath.build("/storage/emulated/0/Download/backup.zip")
+        setupGateway(archive.path to lookup(archive))
+        val workspace = ViewerWorkspace(
+            id = Workspace.Id(),
+            creationArguments = ViewerArguments.Default(filePath = archive, caption = "look at this"),
+            dispatcherProvider = TestDispatcherProvider(),
+            gatewaySwitch = gatewaySwitch,
+            imageProbe = imageProbe,
+            contentReader = readerFor(gatewaySwitch),
+            apkArchiveParser = apkArchiveParser,
+            pkgRepo = pkgRepo,
+            userManager2 = userManager2,
+            pdfPreviewLoader = pdfPreviewLoader,
+            operationsManager = mockk(relaxed = true),
+            issueHandler = mockk(relaxed = true),
+            deleteOperationFactory = mockk(relaxed = true),
+        )
+
+        workspace.state.first().fileInfo?.sharedCaption shouldBe "look at this"
+    }
+
     @Test
     fun `an apk is still an apk, not an archive`() = runTest2 {
         setupApk()

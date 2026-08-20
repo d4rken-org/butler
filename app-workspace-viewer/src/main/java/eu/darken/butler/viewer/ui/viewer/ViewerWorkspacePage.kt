@@ -379,7 +379,14 @@ fun ViewerWorkspacePage(
                             scrollBehavior = BarScrollBehavior.HideOnScroll,
                             animation = BarAnimation.Slide(),
                         ) {
-                            fileInfo?.let { FileInfoCard(fileInfo = it) }
+                            // Expanded from the start when a share carried a message: it is the
+                            // one entry the user has not seen before, and it sits last in the card.
+                            fileInfo?.let {
+                                FileInfoCard(
+                                    fileInfo = it,
+                                    initiallyExpanded = it.sharedCaption != null,
+                                )
+                            }
                         }
 
                         FloatingBar(

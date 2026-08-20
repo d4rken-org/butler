@@ -92,6 +92,7 @@ class ViewerSaveCopyTest : BaseTest() {
             )
             every { source } returns streamed
             every { storedPath } returns null
+            every { sharedCaption } returns "look at this"
             every { info } returns MutableStateFlow(
                 Workspace.Info(id = workspaceId, type = Workspace.Type.VIEWER, title = "backup.zip".toCaString()),
             )
@@ -171,7 +172,10 @@ class ViewerSaveCopyTest : BaseTest() {
         val replacement = creates.last()
         replacement.type shouldBe Workspace.Type.VIEWER
         replacement.replace shouldBe workspaceId
-        replacement.arguments.shouldBeInstanceOf<ViewerArguments.Default>().filePath shouldBe savedPath
+        val arguments = replacement.arguments.shouldBeInstanceOf<ViewerArguments.Default>()
+        arguments.filePath shouldBe savedPath
+        // Still the same shared file, so the message that came with it carries over.
+        arguments.caption shouldBe "look at this"
     }
 
     @Test

@@ -97,6 +97,16 @@ class ViewerWorkspace @AssistedInject constructor(
      */
     val storedPath: APath<*>? = (source as? ViewerSource.Stored)?.path
 
+    /**
+     * Text the sender attached when this file was shared. Not part of [source] - it says nothing
+     * about how the content is read - but it travels with the tab, including across the rebind a
+     * saved copy performs.
+     */
+    val sharedCaption: String? = when (creationArguments) {
+        is ViewerArguments.Default -> creationArguments.caption
+        is ViewerArguments.Streamed -> creationArguments.caption
+    }
+
     private val stateFlow = MutableStateFlow(State())
     val state: StateFlow<State> = stateFlow
 
@@ -274,7 +284,7 @@ class ViewerWorkspace @AssistedInject constructor(
      * reported by the sending app.
      */
     private suspend fun loadStreamed(streamed: ViewerSource.Streamed) {
-        val fileInfo = ViewerFileInfo(size = streamed.sizeBytes)
+        val fileInfo = ViewerFileInfo(size = streamed.sizeBytes, sharedCaption = sharedCaption)
 
         val rejection = validateStreamed(streamed)
         if (rejection != null) {
@@ -309,6 +319,7 @@ class ViewerWorkspace @AssistedInject constructor(
             createdAt = lookup.createdAt,
             permissions = lookup.permissions,
             ownership = lookup.ownership,
+            sharedCaption = sharedCaption,
         )
 
         // A restored session can point at a path that has since become a directory, a dangling

@@ -197,6 +197,18 @@ private fun FileInfoCardContent(
                 ),
             )
         }
+        // Last and never paired: a caption is free text, routinely a whole sentence or a URL, and
+        // half a row would leave nothing but an ellipsis. The page expands the card when there is
+        // one, so it is read without a tap despite sitting at the bottom.
+        fileInfo.sharedCaption?.takeIf { it.isNotBlank() }?.let {
+            add(
+                InfoEntry(
+                    label = stringResource(R.string.viewer_info_caption_label),
+                    value = it,
+                    pairable = false,
+                ),
+            )
+        }
     }
 
     var expanded by rememberSaveable { mutableStateOf(initiallyExpanded) }
@@ -363,6 +375,24 @@ private fun FileInfoCardWithoutPosixMetadataPreview() {
             size = 128_004L,
             modifiedAt = Clock.System.now(),
             imageInfo = ViewerFileInfo.ImageInfo(format = "image/svg+xml"),
+        ),
+        initiallyExpanded = true,
+    )
+}
+
+/** A share that carried a message alongside the file; the page opens this card expanded. */
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun FileInfoCardWithSharedCaptionPreview() {
+    FileInfoCard(
+        modifier = Modifier
+            .width(360.dp)
+            .padding(16.dp),
+        fileInfo = ViewerFileInfo(
+            size = 12_004_311L,
+            modifiedAt = Clock.System.now(),
+            sharedCaption = "Here are the logs from yesterday, the crash is at the very bottom",
         ),
         initiallyExpanded = true,
     )
