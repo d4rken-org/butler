@@ -42,6 +42,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -197,6 +198,8 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
             }
             .launchIn(vmScope)
 
+        reportSavedPaths()
+
         // A "tap to resolve" conflict notification routes here. Wait until the conflict is present
         // for this workspace before surfacing the sheet, then consume the request.
         operationFocusRequest.requests
@@ -218,6 +221,37 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
     override fun onCleared() {
         operationFocusRequest.clearForWorkspace(id)
         super.onCleared()
+    }
+
+    /**
+     * Tells the caller where a save landed, when it asked to be told.
+     *
+     * [emitEvent] rather than `returnResult`: that one closes the emitting workspace, which would
+     * take the Saver's own "Open saved file" and "Save again" away the moment the save succeeded.
+     * The event is informational and the Saver carries on exactly as before.
+     *
+     * Exactly one emission per save: the state identity dedupes, and [drop] discards the replayed
+     * current value so a page that re-subscribes does not report a save that already happened. A
+     * second Save-again cycle passes through Idle first and therefore reports again.
+     */
+    private fun reportSavedPaths() = launch {
+        val workspace = getWorkspace()
+        if (!workspace.reportSavedPaths) return@launch
+        workspace.saveState
+            .distinctUntilChanged()
+            .drop(1)
+            .filterIsInstance<SaverWorkspace.SaveState.Success>()
+            .collect { success ->
+                val savedPaths = success.report.successes.map { it.savedPath }
+                log(tag, INFO) { "Reporting ${savedPaths.size} saved path(s) to ${workspace.callerWorkspaceId}" }
+                workspaceRemote.emitEvent(
+                    WorkspaceEvent.SaveResult(
+                        workspaceId = id,
+                        callerWorkspaceId = workspace.callerWorkspaceId,
+                        savedPaths = savedPaths,
+                    )
+                )
+            }
     }
 
     fun onPickDestination() = launch {

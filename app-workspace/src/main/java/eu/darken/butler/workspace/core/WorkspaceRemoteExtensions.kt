@@ -101,17 +101,22 @@ suspend fun WorkspaceRemote.launchPicker(
  * @param arguments Optional workspace-specific arguments
  * @param sourceWorkspaceId Workspace this was invoked from, used as a pane placement hint
  *        (see [WorkspaceAction.Create.sourceWorkspaceId]).
+ * @param replace Workspace the new one takes the place of, inheriting its pane slot and focus
+ *        (see [WorkspaceAction.Create.replace]). A replace occupies no additional slot, so the
+ *        limit never applies to it.
  * @return The Create action result (Success, AlreadyOpen for singletons, or LimitReached)
  */
 suspend fun WorkspaceRemote.createAndFocus(
     type: Workspace.Type,
     arguments: Workspace.Arguments,
     sourceWorkspaceId: Workspace.Id? = null,
+    replace: Workspace.Id? = null,
 ): WorkspaceAction.Create.Result {
     val result = execute(
         WorkspaceAction.Create(
             type = type,
             arguments = arguments,
+            replace = replace,
             sourceWorkspaceId = sourceWorkspaceId,
             allowLimitRecovery = true,
         )

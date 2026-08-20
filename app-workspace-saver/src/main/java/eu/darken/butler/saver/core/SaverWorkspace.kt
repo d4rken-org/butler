@@ -93,6 +93,9 @@ class SaverWorkspace @AssistedInject constructor(
      */
     val callerWorkspaceId: Workspace.Id? = creationArguments.callerWorkspaceId
 
+    /** Whether the caller asked to be told where this Saver wrote, see [SaverArguments.Default]. */
+    val reportSavedPaths: Boolean = creationArguments.reportSavedPaths
+
     // State flows for UI
     private val _sourceInfos = MutableStateFlow<List<ContentUriHelper.SourceInfo>>(emptyList())
     val sourceInfos: Flow<List<ContentUriHelper.SourceInfo>> = _sourceInfos
@@ -301,6 +304,7 @@ class SaverWorkspace @AssistedInject constructor(
         destinationPath = _destination.value,
         callerWorkspaceId = creationArguments.callerWorkspaceId,
         modalPresentation = creationArguments.modalPresentation,
+        reportSavedPaths = creationArguments.reportSavedPaths,
     )
 
     override suspend fun release() {

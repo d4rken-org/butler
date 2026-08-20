@@ -43,5 +43,14 @@ sealed interface SaverArguments : Workspace.Arguments {
          */
         @Transient override val modalPresentation: Workspace.ModalPresentationMode =
             Workspace.ModalPresentationMode.PANE_LOCAL,
+        /**
+         * Emit [eu.darken.butler.workspace.core.WorkspaceEvent.SaveResult] when a save succeeds, so
+         * the caller can act on what was written.
+         *
+         * Opt-in rather than implied by [callerWorkspaceId]: that one means "owned by", not
+         * "waiting for a result", and the APK exports from Apps/App details launch caller-owned
+         * Savers that have nobody listening.
+         */
+        val reportSavedPaths: Boolean = false,
     ) : SaverArguments, Workspace.ArgumentsWithCaller
 }

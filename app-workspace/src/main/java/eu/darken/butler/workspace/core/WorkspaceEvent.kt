@@ -84,6 +84,22 @@ sealed interface WorkspaceEvent {
     ) : ResultEvent
 
     /**
+     * Emitted by a Saver that was asked to report where it wrote
+     * ([eu.darken.butler.workspace.contracts.saver.SaverArguments.Default.reportSavedPaths]).
+     *
+     * Informational, unlike [PickerResult]: the Saver keeps running afterwards, with its
+     * "Open saved file" and "Save again" actions intact. A caller acting on it has to check
+     * [workspaceId] against the Saver it launched - it is not the only Saver that can be open.
+     *
+     * @param savedPaths Files that were actually written, in report order.
+     */
+    data class SaveResult(
+        override val workspaceId: Workspace.Id,
+        override val callerWorkspaceId: Workspace.Id?,
+        val savedPaths: List<APath<*>>,
+    ) : ResultEvent
+
+    /**
      * Emitted when a result-returning workspace is cancelled without providing a result
      *
      * @param workspaceId Workspace that was cancelled

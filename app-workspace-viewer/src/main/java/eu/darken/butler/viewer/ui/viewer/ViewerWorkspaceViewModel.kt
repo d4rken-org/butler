@@ -40,6 +40,7 @@ import eu.darken.butler.viewer.core.ViewerShareUnavailableException
 import eu.darken.butler.viewer.core.ViewerWorkspace
 import eu.darken.butler.workspace.contracts.explorer.ExplorerArguments
 import eu.darken.butler.workspace.contracts.saver.SaverArguments
+import eu.darken.butler.workspace.contracts.viewer.ViewerArguments
 import eu.darken.butler.workspace.contracts.explorer.PickerConfig
 import eu.darken.butler.workspace.core.NoAppForFileException
 import eu.darken.butler.workspace.core.OpenWithIntentUseCase
@@ -70,6 +71,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -77,6 +79,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import me.saket.telephoto.zoomable.ZoomableImageSource
@@ -299,6 +302,37 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
                 iconSaveFlow.value = IconSaveState.Idle
             }
             .launchIn(vmScope)
+
+        // Only the Saver THIS viewer launched may rebind it: several can be open at once, and the
+        // event carries no claim on us beyond naming us as its caller.
+        workspaceRemote.events
+            .handleResult<WorkspaceEvent.SaveResult>(callerWorkspaceId = id) { result ->
+                val saving = saveCopyFlow.value as? SaveCopyState.Saving
+                if (saving == null || result.workspaceId != saving.saverId) {
+                    log(tag, WARN) { "Ignoring a save result from a Saver we did not launch: ${result.workspaceId}" }
+                    return@handleResult
+                }
+                val savedPath = result.savedPaths.firstOrNull()
+                if (savedPath == null) {
+                    log(tag, WARN) { "The save reported no written file, staying on the stream" }
+                    saveCopyFlow.value = SaveCopyState.Idle
+                    return@handleResult
+                }
+                rebindToSavedFile(savedPath)
+            }
+            .launchIn(vmScope)
+
+        // The Saver closing without having saved is terminal as well; without this the reservation
+        // would never clear and "Save a copy" would be dead for the rest of this tab's life.
+        workspaceRemote.events
+            .filterIsInstance<WorkspaceEvent.Closed>()
+            .onEach { closed ->
+                val saving = saveCopyFlow.value as? SaveCopyState.Saving ?: return@onEach
+                if (closed.workspaceId != saving.saverId) return@onEach
+                log(tag, INFO) { "The Saver we launched was closed" }
+                saveCopyFlow.value = SaveCopyState.Idle
+            }
+            .launchIn(vmScope)
     }
 
     fun shareError(error: Throwable) {
@@ -390,18 +424,79 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
      * Writes streamed content somewhere the user picks, which is the only way to keep it: the grant
      * dies with the task, and it cannot be handed to another app. The Saver streams straight from
      * the URI to the destination, so this still copies nothing into Butler's own storage.
+     *
+     * The reservation is taken synchronously, before the first suspension: two taps in the same
+     * frame would otherwise both pass an in-coroutine check and stack two Savers over one file.
      */
-    fun saveCopy() = launch {
-        val streamed = workspaceSource.first().source as? ViewerSource.Streamed ?: return@launch
-        log(tag, INFO) { "saveCopy($streamed)" }
+    fun saveCopy() {
+        if (saveCopyFlow.value != SaveCopyState.Idle) {
+            log(tag, WARN) { "A save is already in progress, ignoring" }
+            return
+        }
+        saveCopyFlow.value = SaveCopyState.Preparing
+
+        launch {
+            try {
+                val streamed = workspaceSource.first().source as? ViewerSource.Streamed
+                if (streamed == null) {
+                    log(tag, WARN) { "saveCopy() on stored content, nothing to save" }
+                    saveCopyFlow.value = SaveCopyState.Idle
+                    return@launch
+                }
+                log(tag, INFO) { "saveCopy($streamed)" }
+                val created = workspaceRemote.createAndFocus(
+                    type = Workspace.Type.SAVER,
+                    arguments = SaverArguments.Default(
+                        sourceUris = listOf(streamed.uri.toString()),
+                        callerWorkspaceId = id,
+                        // So this viewer can rebind to the file once it exists.
+                        reportSavedPaths = true,
+                    ),
+                )
+                // Anything but Success means no Saver opened, so the attempt ends here.
+                val saverId = (created as? WorkspaceAction.Create.Result.Success)?.newId
+                if (saverId == null) {
+                    log(tag, WARN) { "Saver was not created: $created" }
+                    saveCopyFlow.value = SaveCopyState.Idle
+                    return@launch
+                }
+                saveCopyFlow.value = SaveCopyState.Saving(saverId)
+            } catch (e: Throwable) {
+                saveCopyFlow.value = SaveCopyState.Idle
+                throw e
+            }
+        }
+    }
+
+    /**
+     * Binds this tab to the file the Saver just wrote by REPLACING it with a viewer on that path,
+     * so everything a real file supports - browsing a container, opening, sharing, deleting -
+     * becomes available without the user having to find the copy first.
+     *
+     * A replacement rather than a mutation: the source decides the workspace's identity (its
+     * content path, whether it may be persisted or paused), all of which are read from the
+     * creation arguments. The new tab inherits the old one's pane slot and focus.
+     */
+    private suspend fun rebindToSavedFile(savedPath: APath<*>) {
+        log(tag, INFO) { "rebindToSavedFile($savedPath)" }
         workspaceRemote.createAndFocus(
-            type = Workspace.Type.SAVER,
-            arguments = SaverArguments.Default(
-                sourceUris = listOf(streamed.uri.toString()),
-                callerWorkspaceId = id,
-            ),
+            type = Workspace.Type.VIEWER,
+            arguments = ViewerArguments.Default(filePath = savedPath),
+            replace = id,
         )
     }
+
+    /** One "Save a copy" at a time; [Saving] holds the Saver whose result this viewer accepts. */
+    private sealed interface SaveCopyState {
+        data object Idle : SaveCopyState
+
+        /** Reserved: the Saver is being created. */
+        data object Preparing : SaveCopyState
+
+        data class Saving(val saverId: Workspace.Id) : SaveCopyState
+    }
+
+    private val saveCopyFlow = MutableStateFlow<SaveCopyState>(SaveCopyState.Idle)
 
     fun copyToClipboard() = clip(ClipboardClip.Paths.Mode.COPY)
 
