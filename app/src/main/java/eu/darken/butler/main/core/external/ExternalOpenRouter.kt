@@ -11,6 +11,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
+import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.common.storage.DocumentUriResolver
 import java.io.File
 import java.util.Locale
@@ -165,6 +166,16 @@ class ExternalOpenRouter internal constructor(
                 resolved != null && resolved.file.canRead() ->
                     viewablePath(resolved, mime, displayName)?.let { ViewTarget.Stored(it) }
 
+                // An archive is classified by its name, and the Viewer offers to browse it as it
+                // lies. Ahead of the APK branch: an APK is a ZIP, so a mislabelled archive would
+                // otherwise be copied into the cache and offered as an app.
+                ArchiveFormat.fromFileName(displayName) != null -> ViewTarget.Streamed(
+                    uri = ref.uri,
+                    displayName = displayName,
+                    mime = mime,
+                    sizeBytes = sizeBytes,
+                )
+
                 // getPackageArchiveInfo takes a path string and the signing block sits outside the
                 // ZIP entries, so an APK cannot be read from a descriptor.
                 mime.isApk -> importer.importToCache(ref.uri, displayName, mime)?.let { ViewTarget.Stored(it) }
@@ -184,6 +195,11 @@ class ExternalOpenRouter internal constructor(
      * whose name doesn't is copied to a cache file that carries a MIME-derived extension.
      */
     private suspend fun viewablePath(path: LocalPath, mime: MimeInfo, displayName: String): LocalPath? = when {
+        // The name already says what this is and the Viewer classifies archives by it. A sender
+        // that declares a .zip as an image would otherwise have it copied into the cache under an
+        // image name, which loses both the browse offer and the file's real name.
+        ArchiveFormat.fromFileName(path.name) != null -> path
+
         mime.isViewable && !mime.hasMatchingViewableExtension(path.name) -> {
             importer.importToCache(Uri.fromFile(path.file), displayName, mime)
         }

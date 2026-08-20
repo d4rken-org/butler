@@ -344,6 +344,43 @@ class ExternalOpenRouterTest : BaseTest() {
         coVerify(exactly = 0) { importer.importToCache(any(), any(), any()) }
     }
 
+    /**
+     * Senders routinely declare a container as whatever they think it holds. The name is the only
+     * thing the Viewer classifies archives by, so a mislabelled one must not be renamed into a
+     * cache copy on the way in - that loses the browse offer and the file's real name.
+     */
+    @Test
+    fun `a mislabelled local archive is opened where it lies, never copied`() = runTest {
+        val ref = SourceRef.Local(LocalPath.build(File("/sdcard/Download/backup.zip")))
+        val router = create()
+
+        router.resolveForView(ref, MimeInfo("image/png"), "backup.zip", null) shouldBe
+            ViewTarget.Stored(ref.path)
+        router.resolveForView(ref, MimeInfo("application/pdf"), "backup.zip", null) shouldBe
+            ViewTarget.Stored(ref.path)
+        // An APK is a ZIP, so this is the mislabel that used to end up presented as an app.
+        router.resolveForView(ref, MimeInfo(MimeInfo.MIME_APK), "backup.zip", null) shouldBe
+            ViewTarget.Stored(ref.path)
+
+        coVerify(exactly = 0) { importer.importToCache(any(), any(), any()) }
+    }
+
+    @Test
+    fun `a mislabelled streamed archive is streamed, never copied`() = runTest {
+        val uri = Uri.parse("content://com.example.files/document/42")
+        every { documentUriResolver.resolve(uri) } returns null
+        val router = create()
+
+        router.resolveForView(SourceRef.Content(uri), MimeInfo("image/png"), "backup.zip", 4096L) shouldBe
+            ViewTarget.Streamed(uri, "backup.zip", MimeInfo("image/png"), 4096L)
+        router.resolveForView(SourceRef.Content(uri), MimeInfo("application/pdf"), "backup.zip", 4096L) shouldBe
+            ViewTarget.Streamed(uri, "backup.zip", MimeInfo("application/pdf"), 4096L)
+        router.resolveForView(SourceRef.Content(uri), MimeInfo(MimeInfo.MIME_APK), "backup.zip", 4096L) shouldBe
+            ViewTarget.Streamed(uri, "backup.zip", MimeInfo(MimeInfo.MIME_APK), 4096L)
+
+        coVerify(exactly = 0) { importer.importToCache(any(), any(), any()) }
+    }
+
     @Test
     fun `an unresolvable apk is still copied, because the parser needs a real path`() = runTest {
         val uri = Uri.parse("content://com.example.files/document/42")
