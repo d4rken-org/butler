@@ -476,6 +476,10 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
      * A replacement rather than a mutation: the source decides the workspace's identity (its
      * content path, whether it may be persisted or paused), all of which are read from the
      * creation arguments. The new tab inherits the old one's pane slot and focus.
+     *
+     * Published under THIS tab's id: the Saver that triggered the rebind is our own sub-workspace,
+     * and a replacement carrying a fresh id would leave it hanging off an id that no longer exists,
+     * so the repo would close it as orphaned right as it reports success.
      */
     private suspend fun rebindToSavedFile(savedPath: APath<*>) {
         log(tag, INFO) { "rebindToSavedFile($savedPath)" }
@@ -487,6 +491,7 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
                 caption = workspaceSource.first().sharedCaption,
             ),
             replace = id,
+            id = id,
         )
     }
 

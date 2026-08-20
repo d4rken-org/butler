@@ -104,6 +104,9 @@ suspend fun WorkspaceRemote.launchPicker(
  * @param replace Workspace the new one takes the place of, inheriting its pane slot and focus
  *        (see [WorkspaceAction.Create.replace]). A replace occupies no additional slot, so the
  *        limit never applies to it.
+ * @param id Id the new workspace is published under (see [WorkspaceAction.Create.id]). Passing the
+ *        replaced id keeps the tab's identity across the swap, so everything anchored to it - the
+ *        sub-workspaces it owns above all - stays attached instead of being swept as orphaned.
  * @return The Create action result (Success, AlreadyOpen for singletons, or LimitReached)
  */
 suspend fun WorkspaceRemote.createAndFocus(
@@ -111,12 +114,14 @@ suspend fun WorkspaceRemote.createAndFocus(
     arguments: Workspace.Arguments,
     sourceWorkspaceId: Workspace.Id? = null,
     replace: Workspace.Id? = null,
+    id: Workspace.Id? = null,
 ): WorkspaceAction.Create.Result {
     val result = execute(
         WorkspaceAction.Create(
             type = type,
             arguments = arguments,
             replace = replace,
+            id = id,
             sourceWorkspaceId = sourceWorkspaceId,
             allowLimitRecovery = true,
         )
