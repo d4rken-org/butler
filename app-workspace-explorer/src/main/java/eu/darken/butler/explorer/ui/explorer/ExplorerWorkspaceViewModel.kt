@@ -113,8 +113,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
@@ -366,17 +364,22 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
      * once the tab has actually arrived at the folder it was created for.
      *
      * Waiting for the arrival is what makes the highlight stick: it is dropped on every location
-     * change, so setting it while the first navigation is still running would wipe it immediately.
-     * The hint is consumed at the workspace, so a rebuilt ViewModel cannot replay it.
+     * change, and the reveal needs the listing it highlights in, so acting while the first
+     * navigation or its load is still running would wipe or miss the item.
+     *
+     * The hint is only PEEKED at here and claimed once the items are on screen: a page torn down
+     * while waiting - the tab is scrolled out of the pager, the ViewModel is recreated - would
+     * otherwise carry the hint to the grave and the file would never be highlighted.
      */
     private fun revealCreationHint() = launch {
         val workspace = workspaceSource.filterNotNull().first()
-        val hint = workspace.consumeRevealHint() ?: return@launch
+        val hint = workspace.peekRevealHint() ?: return@launch
         log(tag) { "revealCreationHint(): waiting for ${hint.location.path} to reveal ${hint.path.path}" }
 
-        val arrived = awaitLocation(workspace.state, hint.location, REVEAL_ARRIVAL_TIMEOUT)
-        if (!arrived) {
-            log(tag, WARN) { "revealCreationHint(): ${hint.location.path} did not become current in time" }
+        awaitLoadedLocation(workspace.state, hint.location)
+
+        if (workspace.consumeRevealHint() == null) {
+            log(tag) { "revealCreationHint(): hint was already claimed elsewhere" }
             return@launch
         }
         navigation.revealItems(listOf(hint.path), highlight = true)
@@ -1944,25 +1947,32 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     companion object {
         private const val NAVIGATION_AWAIT_MS = 5_000L
-
-        /** How long a reveal hint waits for the tab to arrive at its start location. */
-        private val REVEAL_ARRIVAL_TIMEOUT = 10.seconds
     }
 }
 
 /**
- * Waits for the tab to actually be showing [location], i.e. for a settled [ExplorerWorkspace.State]
- * rather than the mere request to go there. Returns false if that does not happen within [timeout].
+ * Waits for the tab to actually be SHOWING [location]: a settled [ExplorerWorkspace.State] whose
+ * directory has finished loading and has a listing, not the mere request to go there. A location is
+ * published as soon as the navigation starts, with no items yet, and highlighting an item that is
+ * not in the listing yet does nothing.
+ *
+ * No deadline: the only thing waiting on it is a highlight that is claimed on arrival, so a load
+ * that takes minutes still reveals, and a cancelled wait leaves the hint for the next page.
  *
  * One-shot by construction: it completes on the FIRST arrival, so a later navigation cannot make a
  * reveal fire a second time.
  */
-internal suspend fun awaitLocation(
+internal suspend fun awaitLoadedLocation(
     states: Flow<ExplorerWorkspace.State>,
     location: APath<*>,
-    timeout: Duration,
-): Boolean = withTimeoutOrNull(timeout) {
+) {
     states
         .filterIsInstance<ExplorerWorkspace.State.Ready>()
-        .first { (it.currentLocation as? ExplorerLocation.Directory)?.path?.matches(location) == true }
-} != null
+        .first { state ->
+            val directory = state.currentLocation as? ExplorerLocation.Directory
+            directory != null &&
+                directory.path.matches(location) &&
+                directory.progress == null &&
+                directory.items != null
+        }
+}

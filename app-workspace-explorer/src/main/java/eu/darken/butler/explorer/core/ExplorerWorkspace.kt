@@ -133,6 +133,13 @@ class ExplorerWorkspace @AssistedInject constructor(
      */
     fun consumeRevealHint(): RevealHint? = pendingReveal.getAndUpdate { null }
 
+    /**
+     * The pending hint WITHOUT taking it, so a page can learn what it will have to wait for and
+     * still leave the hint for its successor if it is torn down before the listing arrives.
+     * [consumeRevealHint] is the claim.
+     */
+    fun peekRevealHint(): RevealHint? = pendingReveal.value
+
     private val pendingReveal = MutableStateFlow(
         (creationArguments as? ExplorerArguments.Default)?.let { args ->
             val location = args.startPath

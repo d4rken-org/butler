@@ -123,6 +123,23 @@ class ExplorerWorkspaceArgumentsTest {
     }
 
     @Test
+    fun `peeking leaves the hint for whoever actually arrives`() = runTest {
+        val file = download.child("backup.zip")
+        val workspace = testExplorerWorkspace(
+            ExplorerArguments.Default(startPath = download, revealPath = file),
+        )
+        val hint = ExplorerWorkspace.RevealHint(location = download, path = file)
+
+        // A page that learns what to wait for and is torn down before the listing loads must give
+        // the hint back, otherwise the file is never highlighted.
+        workspace.peekRevealHint() shouldBe hint
+        workspace.peekRevealHint() shouldBe hint
+
+        workspace.consumeRevealHint() shouldBe hint
+        workspace.peekRevealHint() shouldBe null
+    }
+
+    @Test
     fun `a tab without a reveal hint has none to hand out`() = runTest {
         testExplorerWorkspace(ExplorerArguments.Default(startPath = download))
             .consumeRevealHint() shouldBe null
