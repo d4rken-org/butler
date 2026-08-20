@@ -38,7 +38,8 @@ class SaverArgumentsSerializationTest : BaseTest() {
                 "destinationPath": {
                     "type": "LOCAL",
                     "file": "/sdcard/Download"
-                }
+                },
+                "reportSavedPaths": false
             }
         """.toComparableJson()
     }
@@ -54,7 +55,8 @@ class SaverArgumentsSerializationTest : BaseTest() {
         serialized.toString().toComparableJson() shouldBe """
             {
                 "type": "default",
-                "sourceUris": ["content://provider/file"]
+                "sourceUris": ["content://provider/file"],
+                "reportSavedPaths": false
             }
         """.toComparableJson()
     }
@@ -147,7 +149,8 @@ class SaverArgumentsSerializationTest : BaseTest() {
         serialized.toString().toComparableJson() shouldBe """
             {
                 "type": "default",
-                "sourceUris": ["content://provider/file"]
+                "sourceUris": ["content://provider/file"],
+                "reportSavedPaths": false
             }
         """.toComparableJson()
 

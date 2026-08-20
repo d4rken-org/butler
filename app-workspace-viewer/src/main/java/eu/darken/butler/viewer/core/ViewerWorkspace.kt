@@ -17,9 +17,9 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.GatewaySwitch
-import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.MimeInfo
+import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.pkgs.PkgRepo
 import eu.darken.butler.common.pkgs.apk.ApkArchiveParser
