@@ -17,6 +17,16 @@ sealed interface WorkspaceAction {
          */
         val skipLimitCheck: Boolean = false,
         /**
+         * Skips the content-path dedup check for this create alone, so it commits even when another
+         * workspace of the same type already publishes the path.
+         *
+         * For the narrow case of a workspace binding ITSELF to a path it just produced (the viewer
+         * rebinding to a saved copy): the alternative is refusing the create and focusing a foreign
+         * tab, which abandons the workspace the user was working in. Ordinary creates must keep
+         * deduping, so this stays opt-in per call site.
+         */
+        val skipContentDedup: Boolean = false,
+        /**
          * Workspace this create was invoked from, if any. Purely a placement hint: the UI prefers a
          * pane adjacent to it and never evicts the pane it occupies. Null (the default) means
          * "no origin" - global entry points, the tab manager and session restore - and keeps

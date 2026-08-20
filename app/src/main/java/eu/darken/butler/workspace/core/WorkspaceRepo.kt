@@ -1064,13 +1064,15 @@ class WorkspaceRepo @Inject constructor(
 
     /**
      * Content path this create dedups on, or null when dedup doesn't apply. Mirrors
-     * [findExistingSingleton]'s gating: sub-workspace creates and session restoration
-     * ([WorkspaceAction.Create.skipLimitCheck]) never dedup.
+     * [findExistingSingleton]'s gating: sub-workspace creates, session restoration
+     * ([WorkspaceAction.Create.skipLimitCheck]) and creates that opted out
+     * ([WorkspaceAction.Create.skipContentDedup]) never dedup.
      */
     private val WorkspaceAction.Create.dedupContentPath: APath<*>?
         get() {
             if (arguments.isForSubWorkspace) return null
             if (skipLimitCheck) return null
+            if (skipContentDedup) return null
             return (arguments as? Workspace.ArgumentsWithContentPath)?.contentPath
         }
 

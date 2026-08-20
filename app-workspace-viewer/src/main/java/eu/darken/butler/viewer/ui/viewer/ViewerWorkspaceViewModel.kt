@@ -314,8 +314,10 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
                 }
                 val savedPath = result.savedPaths.firstOrNull()
                 if (savedPath == null) {
+                    // The Saver is still open and can be retried; the reservation stays with it and
+                    // is only released when it reports a written file or closes. Clearing it here
+                    // would leave the retry's result with nobody listening.
                     log(tag, WARN) { "The save reported no written file, staying on the stream" }
-                    saveCopyFlow.value = SaveCopyState.Idle
                     return@handleResult
                 }
                 rebindToSavedFile(savedPath)
@@ -492,6 +494,9 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
             ),
             replace = id,
             id = id,
+            // The user may already have the destination open in another tab; sending them there
+            // would strand this one on a stream of a file that now exists.
+            skipContentDedup = true,
         )
     }
 

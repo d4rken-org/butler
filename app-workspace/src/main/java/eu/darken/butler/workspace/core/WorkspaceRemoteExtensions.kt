@@ -107,6 +107,8 @@ suspend fun WorkspaceRemote.launchPicker(
  * @param id Id the new workspace is published under (see [WorkspaceAction.Create.id]). Passing the
  *        replaced id keeps the tab's identity across the swap, so everything anchored to it - the
  *        sub-workspaces it owns above all - stays attached instead of being swept as orphaned.
+ * @param skipContentDedup Commits even when another workspace already holds the content path
+ *        (see [WorkspaceAction.Create.skipContentDedup]).
  * @return The Create action result (Success, AlreadyOpen for singletons, or LimitReached)
  */
 suspend fun WorkspaceRemote.createAndFocus(
@@ -115,6 +117,7 @@ suspend fun WorkspaceRemote.createAndFocus(
     sourceWorkspaceId: Workspace.Id? = null,
     replace: Workspace.Id? = null,
     id: Workspace.Id? = null,
+    skipContentDedup: Boolean = false,
 ): WorkspaceAction.Create.Result {
     val result = execute(
         WorkspaceAction.Create(
@@ -122,6 +125,7 @@ suspend fun WorkspaceRemote.createAndFocus(
             arguments = arguments,
             replace = replace,
             id = id,
+            skipContentDedup = skipContentDedup,
             sourceWorkspaceId = sourceWorkspaceId,
             allowLimitRecovery = true,
         )
