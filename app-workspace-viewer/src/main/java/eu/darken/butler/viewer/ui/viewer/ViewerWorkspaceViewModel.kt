@@ -15,6 +15,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.validation.FilenameValidator
@@ -221,7 +222,12 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
             source = source,
             imageSource = imageSource.takeIf { content is ViewerContent.Image },
             pdfPage = pdfPage.takeIf { content is ViewerContent.PdfPreview },
-            actions = viewerActions(source = source, trashEnabled = trashEnabled, isGone = isGone),
+            actions = viewerActions(
+                source = source,
+                trashEnabled = trashEnabled,
+                content = content,
+                isGone = isGone,
+            ),
             externalChange = workspaceState.externalChange,
         ) as State
     }
@@ -442,6 +448,22 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
         workspaceRemote.createAndFocus(
             type = Workspace.Type.EXPLORER,
             arguments = ExplorerArguments.Default(startPath = parent),
+            sourceWorkspaceId = id,
+        )
+    }
+
+    /**
+     * Opens the archive's contents as an Explorer tab beside the viewer, exactly like
+     * [openLocation] does for a folder. Nothing is extracted or copied: the Explorer reads the
+     * container through the gateway.
+     */
+    fun browseArchive() = launch {
+        // Streamed content has no container path; the page offers "Save a copy" for it instead.
+        val path = workspaceSource.first().storedPath ?: return@launch
+        log(tag, INFO) { "browseArchive($path)" }
+        workspaceRemote.createAndFocus(
+            type = Workspace.Type.EXPLORER,
+            arguments = ExplorerArguments.Default(startPath = ArchivePath.root(path)),
             sourceWorkspaceId = id,
         )
     }
@@ -737,7 +759,7 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
             val source: ViewerSource,
             val imageSource: ZoomableImageSource?,
             val pdfPage: PdfPage? = null,
-            val actions: List<ViewerActionBarItem> = viewerActions(source, trashEnabled = false),
+            val actions: List<ViewerActionBarItem> = viewerActions(source, trashEnabled = false, content = content),
             val externalChange: ViewerExternalChange? = null,
         ) : State
     }
@@ -758,7 +780,9 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
  * that has all of them.
  *
  * For a stored file the only thing that varies is applicability: there is no parent folder at a
- * storage root, and delete only reads as recoverable when this file can really reach the trash.
+ * storage root, delete only reads as recoverable when this file can really reach the trash, and
+ * browsing is offered only for a container that can actually be opened where it lies - which is why
+ * the resolved [content] is an input here rather than just the source.
  *
  * The trash question goes through [partitionByTrashSupport] rather than the setting alone: the
  * setting can be on for a file the trash cannot hold, and the confirmation dialog asks the same
@@ -772,12 +796,19 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
 internal fun viewerActions(
     source: ViewerSource,
     trashEnabled: Boolean,
+    content: ViewerContent = ViewerContent.Loading,
     isGone: Boolean = false,
 ): List<ViewerActionBarItem> = when (source) {
     is ViewerSource.Streamed -> listOf(ViewerActionBarItem.SaveCopy)
 
     is ViewerSource.Stored -> buildList {
         if (!isGone) {
+            // Leads for a container the Explorer can open in place: it is what the user came for,
+            // and the file actions below apply to the container, not to what is inside it. Opening
+            // a container that is gone would land the Explorer on nothing, so it goes with them.
+            if ((content as? ViewerContent.Archive)?.access == ViewerContent.Archive.Access.BROWSABLE) {
+                add(ViewerActionBarItem.BrowseArchive)
+            }
             add(ViewerActionBarItem.OpenWith)
             add(ViewerActionBarItem.Share)
             add(ViewerActionBarItem.Copy)

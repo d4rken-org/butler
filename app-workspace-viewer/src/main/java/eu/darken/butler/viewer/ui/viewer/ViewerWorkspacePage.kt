@@ -32,6 +32,7 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
+import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.viewer.R
 import eu.darken.butler.viewer.core.ApkInstallState
 import eu.darken.butler.viewer.core.VersionComparison
@@ -114,9 +115,12 @@ fun ViewerWorkspacePageHost(
                     is ViewerActionBarItem.OpenLocation -> vm.openLocation()
                     is ViewerActionBarItem.Delete -> vm.requestDelete()
                     ViewerActionBarItem.SaveCopy -> vm.saveCopy()
+                    ViewerActionBarItem.BrowseArchive -> vm.browseArchive()
                 }
             },
             onOpenWith = { vm.openWith() },
+            onSaveCopy = { vm.saveCopy() },
+            onBrowseArchive = { vm.browseArchive() },
             onRetry = { vm.retry() },
             onShareError = { error -> vm.shareError(error) },
             onShowIcon = { vm.showIconPreview() },
@@ -143,6 +147,8 @@ fun ViewerWorkspacePage(
     initiallyChromeVisible: Boolean = true,
     onAction: (ViewerActionBarItem) -> Unit = {},
     onOpenWith: () -> Unit = {},
+    onSaveCopy: () -> Unit = {},
+    onBrowseArchive: () -> Unit = {},
     onRetry: () -> Unit = {},
     onShareError: (Throwable) -> Unit = {},
     onShowIcon: () -> Unit = {},
@@ -283,6 +289,8 @@ fun ViewerWorkspacePage(
                     contentPadding = contentPadding,
                     barScrollConnections = barScrollConnections,
                     onOpenWith = onOpenWith,
+                    onSaveCopy = onSaveCopy,
+                    onBrowseArchive = onBrowseArchive,
                     onRetry = onRetry,
                     onShareError = onShareError,
                     onShowIcon = onShowIcon,
@@ -419,6 +427,8 @@ private fun ViewerContentArea(
     contentPadding: PaddingValues,
     barScrollConnections: List<NestedScrollConnection> = emptyList(),
     onOpenWith: () -> Unit,
+    onSaveCopy: () -> Unit = {},
+    onBrowseArchive: () -> Unit = {},
     onRetry: () -> Unit,
     onShareError: (Throwable) -> Unit,
     onShowIcon: () -> Unit = {},
@@ -461,9 +471,19 @@ private fun ViewerContentArea(
                 onRetry = onRetry,
             )
 
+            is ViewerContent.Archive -> ArchivePlaceholder(
+                format = content.format,
+                access = content.access,
+                onBrowse = onBrowseArchive,
+                onSaveCopy = onSaveCopy,
+                onToggleChrome = onToggleChrome,
+            )
+
             is ViewerContent.Unsupported -> UnsupportedFilePlaceholder(
                 mimeType = content.mime.rawType,
+                isStreamed = state.source is ViewerSource.Streamed,
                 onOpenWith = onOpenWith,
+                onSaveCopy = onSaveCopy,
                 onToggleChrome = onToggleChrome,
             )
 
@@ -545,6 +565,27 @@ private fun ViewerWorkspacePageUnsupportedPreview() {
             content = ViewerContent.Unsupported(MimeInfo("application/pdf")),
             fileInfo = ViewerFileInfo(size = 128_004L, modifiedAt = Clock.System.now()),
             source = ViewerSource.Stored(LocalPath.build("/storage/emulated/0/Download/manual.pdf")),
+            imageSource = null,
+        ),
+    )
+}
+
+/** An archive: no renderer, but a way in, and the action bar leads with it. */
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ViewerWorkspacePageArchivePreview() {
+    val source = ViewerSource.Stored(LocalPath.build("/storage/emulated/0/Download/backup.zip"))
+    ViewerWorkspacePage(
+        workspaceId = Workspace.Id(),
+        state = ViewerWorkspaceViewModel.State.Ready(
+            content = ViewerContent.Archive(
+                mime = MimeInfo("application/zip"),
+                format = ArchiveFormat.ZIP,
+                access = ViewerContent.Archive.Access.BROWSABLE,
+            ),
+            fileInfo = ViewerFileInfo(size = 12_004_311L, modifiedAt = Clock.System.now()),
+            source = source,
             imageSource = null,
         ),
     )

@@ -1,6 +1,7 @@
 package eu.darken.butler.viewer.core
 
 import eu.darken.butler.common.files.MimeInfo
+import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.common.pkgs.apk.ApkArchiveInfo
 
 /**
@@ -20,6 +21,34 @@ sealed interface ViewerContent {
 
     /** A PDF whose pages can be rendered. The bitmap is not part of the state, only its existence. */
     data class PdfPreview(val mime: MimeInfo, val pageCount: Int) : ViewerContent
+
+    /**
+     * A container the Explorer can browse. The viewer renders nothing for it - it says what this is
+     * and how to get into it, which is a different answer from "not supported".
+     */
+    data class Archive(
+        val mime: MimeInfo,
+        val format: ArchiveFormat,
+        val access: Access,
+    ) : ViewerContent {
+
+        /**
+         * What can actually be done with this container from here. Carried on the state rather than
+         * re-derived in the UI, because the two reasons a container cannot be browsed need
+         * different answers and only one of them has an action at all.
+         */
+        enum class Access {
+            /** A real file outside any other archive: the Explorer opens it in place. */
+            BROWSABLE,
+
+            /** Streamed from another app: it has to be written somewhere before it can be browsed. */
+            NEEDS_COPY,
+
+            /** An archive inside an archive. Butler does not open those, and saving cannot serve it. */
+            NESTED,
+            ;
+        }
+    }
 
     data class Unsupported(val mime: MimeInfo) : ViewerContent
 

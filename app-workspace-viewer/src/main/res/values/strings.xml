@@ -38,6 +38,12 @@
     <!-- Unsupported file -->
     <string name="viewer_unsupported_title">This file type is not supported yet</string>
 
+    <!-- Archive -->
+    <string name="viewer_archive_title">This is an archive</string>
+    <string name="viewer_browse_archive_action">Browse contents</string>
+    <string name="viewer_archive_needs_copy_msg">Save a copy to your device, then Butler can browse what\'s inside.</string>
+    <string name="viewer_archive_nested_msg">This archive sits inside another archive. Extract it first to browse what\'s inside.</string>
+
     <!-- APK file -->
     <string name="viewer_apk_version_label">Version</string>
     <string name="viewer_apk_min_sdk_label">Min SDK</string>

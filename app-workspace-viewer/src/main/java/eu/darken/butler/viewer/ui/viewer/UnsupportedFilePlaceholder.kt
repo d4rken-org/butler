@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.InsertDriveFile
 import androidx.compose.material.icons.twotone.OpenInBrowser
+import androidx.compose.material.icons.twotone.SaveAlt
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -26,11 +27,20 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.viewer.R
 
+/**
+ * Shown for content the viewer has no renderer for.
+ *
+ * [isStreamed] decides the way out, and it has to: "Open with" needs a FileProvider URI, so for
+ * content another app streamed to us it is a button that does nothing at all. That content has to
+ * be written somewhere first, which is what "Save a copy" does.
+ */
 @Composable
 fun UnsupportedFilePlaceholder(
     modifier: Modifier = Modifier,
     mimeType: String,
-    onOpenWith: () -> Unit,
+    isStreamed: Boolean = false,
+    onOpenWith: () -> Unit = {},
+    onSaveCopy: () -> Unit = {},
     onToggleChrome: (() -> Unit)? = null,
 ) {
     Box(
@@ -65,14 +75,17 @@ fun UnsupportedFilePlaceholder(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
             )
-            Button(onClick = onOpenWith) {
+            Button(onClick = if (isStreamed) onSaveCopy else onOpenWith) {
                 Icon(
-                    imageVector = Icons.TwoTone.OpenInBrowser,
+                    imageVector = if (isStreamed) Icons.TwoTone.SaveAlt else Icons.TwoTone.OpenInBrowser,
                     contentDescription = null,
                     modifier = Modifier.size(18.dp),
                 )
                 Text(
-                    text = stringResource(R.string.viewer_open_with_action),
+                    text = stringResource(
+                        if (isStreamed) R.string.viewer_save_copy_action
+                        else R.string.viewer_open_with_action,
+                    ),
                     modifier = Modifier.padding(start = 8.dp),
                 )
             }
@@ -97,5 +110,17 @@ private fun UnsupportedFilePlaceholderUnknownTypePreview() {
     UnsupportedFilePlaceholder(
         mimeType = "application/octet-stream",
         onOpenWith = {},
+    )
+}
+
+/** Streamed: "Open with" has no URI to hand over, so saving is the only way forward. */
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun UnsupportedFilePlaceholderStreamedPreview() {
+    UnsupportedFilePlaceholder(
+        mimeType = "video/mp4",
+        isStreamed = true,
+        onSaveCopy = {},
     )
 }

@@ -11,11 +11,13 @@ import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.core.net.toUri
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.viewer.R
 import eu.darken.butler.viewer.core.ViewerContent
 import eu.darken.butler.viewer.core.ViewerExternalChange
@@ -68,6 +70,36 @@ class ViewerWorkspacePageTest : ComposeTest() {
         actions.filterIsInstance<ViewerActionBarItem.OpenLocation>().single().isEnabled shouldBe false
         viewerActions(ViewerSource.Stored(LocalPath.build("/storage/emulated/0/photo.jpg")), trashEnabled = false)
             .filterIsInstance<ViewerActionBarItem.OpenLocation>().single().isEnabled shouldBe true
+    }
+
+    @Test
+    fun `a browsable archive leads with browsing, anything else offers none`() {
+        val stored = ViewerSource.Stored(LocalPath.build("/storage/emulated/0/Download/backup.zip"))
+        val streamed = ViewerSource.Streamed(
+            uri = "content://com.example.files/document/42".toUri(),
+            displayName = "backup.zip",
+            mime = MimeInfo("application/zip"),
+            sizeBytes = 1024L,
+            arrivalId = "arrival-1",
+        )
+        fun archive(access: ViewerContent.Archive.Access) = ViewerContent.Archive(
+            mime = MimeInfo("application/zip"),
+            format = ArchiveFormat.ZIP,
+            access = access,
+        )
+
+        viewerActions(stored, trashEnabled = false, content = archive(ViewerContent.Archive.Access.BROWSABLE))
+            .first() shouldBe ViewerActionBarItem.BrowseArchive
+
+        // Nested: nothing here can open it, so the bar must not pretend otherwise.
+        viewerActions(stored, trashEnabled = false, content = archive(ViewerContent.Archive.Access.NESTED))
+            .contains(ViewerActionBarItem.BrowseArchive) shouldBe false
+        // Streamed content keeps its single action; there is no container path to browse.
+        viewerActions(streamed, trashEnabled = false, content = archive(ViewerContent.Archive.Access.NEEDS_COPY)) shouldBe
+            listOf(ViewerActionBarItem.SaveCopy)
+        // Not an archive at all.
+        viewerActions(stored, trashEnabled = false, content = ViewerContent.Image(MimeInfo("image/jpeg")))
+            .contains(ViewerActionBarItem.BrowseArchive) shouldBe false
     }
 
     @Test

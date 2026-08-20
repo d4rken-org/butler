@@ -15,7 +15,9 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
+import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.GatewaySwitch
+import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.metadata.FileType
@@ -274,7 +276,7 @@ class ViewerWorkspace @AssistedInject constructor(
     private suspend fun loadStreamed(streamed: ViewerSource.Streamed) {
         val fileInfo = ViewerFileInfo(size = streamed.sizeBytes)
 
-        val rejection = validateStreamed(streamed, streamed.mime)
+        val rejection = validateStreamed(streamed)
         if (rejection != null) {
             log(tag, WARN) { "Rejecting $streamed: $rejection" }
             stateFlow.value = State(content = ViewerContent.Failed(rejection), fileInfo = fileInfo)
@@ -337,6 +339,32 @@ class ViewerWorkspace @AssistedInject constructor(
         lookup: APathLookup<*>?,
         contentLookup: APathLookup<*>? = null,
     ) {
+        // By name and ahead of every MIME branch: senders declare archives as anything from
+        // image/png to application/pdf, and reaching the image probe or the PDF seek check with a
+        // container would end as "damaged" or "unreadable" instead of something we can offer to
+        // browse. Compound suffixes (.tar.gz) are why this is a name question in the first place.
+        val archiveFormat = ArchiveFormat.fromFileName(source.displayName)
+        if (archiveFormat != null) {
+            val access = when {
+                source !is ViewerSource.Stored -> ViewerContent.Archive.Access.NEEDS_COPY
+                // Nested containers are not browsable: the gateway refuses an archive inside an
+                // archive, and there is nothing to save a copy from either.
+                source.path is ArchivePath -> ViewerContent.Archive.Access.NESTED
+                else -> ViewerContent.Archive.Access.BROWSABLE
+            }
+            log(tag, INFO) { "$source is a $archiveFormat archive ($access)" }
+            stateFlow.value = State(
+                content = ViewerContent.Archive(mime = mime, format = archiveFormat, access = access),
+                fileInfo = fileInfo,
+                lookup = lookup,
+                // A container is a file that can be replaced or removed while its placeholder is on
+                // display, and the Browse offer would then point at something that is no longer
+                // there - so it is watched like every other accepted file.
+                contentLookup = contentLookup,
+            )
+            return
+        }
+
         if (mime.isApk) {
             // The framework parser takes a path, so an APK always arrives as a real file - the
             // arrival flow imports one rather than streaming it. Anything else is a routing bug.
@@ -353,6 +381,13 @@ class ViewerWorkspace @AssistedInject constructor(
         // Page count doubles as the render check: a document that cannot be opened here would render
         // as a permanently blank canvas, so it goes to the unsupported placeholder instead.
         if (mime.isPdf) {
+            val streamed = source as? ViewerSource.Streamed
+            val rejection = streamed?.let { validateSeekable(it) }
+            if (rejection != null) {
+                log(tag, WARN) { "Rejecting $source: $rejection" }
+                stateFlow.value = State(content = ViewerContent.Failed(rejection), fileInfo = fileInfo)
+                return
+            }
             val pageCount = pdfPreviewLoader.pageCount(source)
             stateFlow.value = if (pageCount == null) {
                 log(tag, WARN) { "$source is a PDF that cannot be rendered" }
@@ -558,9 +593,12 @@ class ViewerWorkspace @AssistedInject constructor(
      * a path never has.
      *
      * Checked up front so the PDF and image branches report the same, true reason instead of each
-     * blaming the format for something that is really about access.
+     * blaming the format for something that is really about access. Deliberately says nothing about
+     * seekability ([validateSeekable]): that question belongs to the PDF branch, i.e. after
+     * classification, or a container the sender mislabelled as a PDF would be rejected here before
+     * it is ever recognized as an archive.
      */
-    private suspend fun validateStreamed(streamed: ViewerSource.Streamed, mime: MimeInfo): Throwable? {
+    private suspend fun validateStreamed(streamed: ViewerSource.Streamed): Throwable? {
         // One real read rather than the size the provider claims: a stale or placeholder zero from
         // a cloud provider would otherwise reject a file that has content, and a lapsed grant that
         // also reports zero would be called empty when it is really unreadable.
@@ -577,16 +615,18 @@ class ViewerWorkspace @AssistedInject constructor(
         }
         if (!hasBytes) return ViewerEmptyFileException(streamed.displayName)
 
-        // Seekability is asked of PDFs ONLY. PdfRenderer has to seek, but the image path reads
-        // streams end to end - the probe, telephoto's content-URI source and Coil all open their
-        // own - so demanding a descriptor there would reject pipe-backed providers whose images
-        // render perfectly well.
-        if (mime.isPdf && contentReader.openReadPfd(streamed)?.use { true } != true) {
-            log(tag, WARN) { "$streamed is a PDF from a provider that cannot seek" }
-            return ViewerContentUnreadableException(streamed.displayName)
-        }
-
         return null
+    }
+
+    /**
+     * Asked of PDFs ONLY. PdfRenderer has to seek, but the image path reads streams end to end -
+     * the probe, telephoto's content-URI source and Coil all open their own - so demanding a
+     * descriptor there would reject pipe-backed providers whose images render perfectly well.
+     */
+    private suspend fun validateSeekable(streamed: ViewerSource.Streamed): Throwable? {
+        if (contentReader.openReadPfd(streamed)?.use { true } == true) return null
+        log(tag, WARN) { "$streamed is a PDF from a provider that cannot seek" }
+        return ViewerContentUnreadableException(streamed.displayName)
     }
 
     data class State(

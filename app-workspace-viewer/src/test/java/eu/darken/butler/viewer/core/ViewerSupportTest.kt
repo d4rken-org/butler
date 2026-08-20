@@ -6,9 +6,12 @@ import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 
 /**
- * Pins [ViewerSupport] to what the viewer actually renders. Callers outside this module offer a
- * "view" action based on it, so a type claimed here that the viewer can't classify would offer an
- * action that dead-ends in the unsupported placeholder.
+ * Pins [ViewerSupport] to what the viewer actually renders. Content arriving from another app is
+ * copied under a MIME-derived name when this claims its type, so a type claimed here that the
+ * viewer cannot classify would produce a renamed copy no renderer ever picks up.
+ *
+ * Archives stay out of it on purpose: the viewer classifies them by name into
+ * [ViewerContent.Archive] and offers browsing, not rendering.
  */
 class ViewerSupportTest : BaseTest() {
 
@@ -34,6 +37,14 @@ class ViewerSupportTest : BaseTest() {
         "application/zip",
         "application/octet-stream",
     )
+
+    /** An archive is browsed, not rendered, so it must never be treated as displayable content. */
+    @Test
+    fun `archives are not renderable`() {
+        ViewerSupport.canDisplay(MimeInfo("application/zip")) shouldBe false
+        ViewerSupport.canDisplay(MimeInfo("application/x-tar")) shouldBe false
+        ViewerSupport.canDisplay(MimeInfo("application/gzip")) shouldBe false
+    }
 
     @Test
     fun `every type the viewer classifies is offered`() {

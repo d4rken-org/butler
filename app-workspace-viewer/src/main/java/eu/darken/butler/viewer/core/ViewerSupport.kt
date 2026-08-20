@@ -3,11 +3,16 @@ package eu.darken.butler.viewer.core
 import eu.darken.butler.common.files.MimeInfo
 
 /**
- * What the Viewer workspace can actually put on screen.
+ * What the Viewer workspace can actually RENDER.
  *
- * This is the single source of truth for "can Butler show this?". Callers outside the viewer (the
- * "Open with" arrival dialog, for example) offer a view action based on it instead of keeping their
- * own list of formats, which drifted twice while PDF and APK support were being added.
+ * This is the single source of truth for "does Butler have a renderer for this?", which decides
+ * whether content has to be materialized under a name that renderer recognizes. It is not what
+ * decides whether the viewer is offered at all: the viewer takes anything and explains what it
+ * cannot render.
+ *
+ * Archives are deliberately absent. [ViewerWorkspace] classifies them separately, by file name and
+ * before every branch here, and offers browsing instead of rendering - claiming them here would
+ * only start copying containers into Butler's cache to give them a "better" extension.
  *
  * [ViewerSupportTest] pins it to the classification in [ViewerWorkspace]: every type claimed here
  * has to reach a displayable [ViewerContent], and anything else has to stay unsupported.

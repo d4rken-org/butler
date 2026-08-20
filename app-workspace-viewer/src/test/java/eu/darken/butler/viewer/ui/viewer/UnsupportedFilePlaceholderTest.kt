@@ -44,4 +44,29 @@ class UnsupportedFilePlaceholderTest : ComposeTest() {
 
         opened shouldBe true
     }
+
+    /**
+     * "Open with" needs a FileProvider URI, which streamed content has none of - the button was
+     * there and did nothing at all.
+     */
+    @Test
+    fun `streamed content is offered a save instead of a dead open with`() {
+        var saved = false
+        composeTestRule.setContent {
+            PreviewWrapper {
+                UnsupportedFilePlaceholder(
+                    mimeType = "video/mp4",
+                    isStreamed = true,
+                    onSaveCopy = { saved = true },
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText(context.getString(R.string.viewer_open_with_action)).assertDoesNotExist()
+        composeTestRule
+            .onNodeWithText(context.getString(R.string.viewer_save_copy_action))
+            .performClick()
+
+        saved shouldBe true
+    }
 }

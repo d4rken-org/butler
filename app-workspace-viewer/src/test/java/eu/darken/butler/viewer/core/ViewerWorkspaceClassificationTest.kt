@@ -2,8 +2,11 @@ package eu.darken.butler.viewer.core
 
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
+import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.archive.ArchiveFormat
+import eu.darken.butler.common.files.archive.ArchivePathLookup
 import eu.darken.butler.common.files.errors.PathPermissionDeniedException
 import eu.darken.butler.common.files.errors.PathPermissionDeniedException.Reason
 import eu.darken.butler.common.files.errors.ReadException
@@ -103,7 +106,7 @@ class ViewerWorkspaceClassificationTest : BaseTest() {
         coEvery { imageProbe.probe(any()) } returns ProbeResult.Probed(4032, 3024, "image/jpeg")
     }
 
-    private fun workspace(path: LocalPath = imagePath) = ViewerWorkspace(
+    private fun workspace(path: APath<*> = imagePath) = ViewerWorkspace(
         id = Workspace.Id(),
         creationArguments = ViewerArguments.Default(filePath = path),
         dispatcherProvider = TestDispatcherProvider(),
@@ -230,13 +233,67 @@ class ViewerWorkspaceClassificationTest : BaseTest() {
     }
 
     @Test
-    fun `a non-image file resolves to Unsupported`() = runTest2 {
+    fun `a file the viewer has no renderer for resolves to Unsupported`() = runTest2 {
+        val binary = LocalPath.build("/storage/emulated/0/Download/firmware.bin")
+        setupGateway(binary.path to lookup(binary))
+
+        workspace(binary).state.first()
+            .content.shouldBeInstanceOf<ViewerContent.Unsupported>()
+            .mime.rawType shouldBe "application/octet-stream"
+    }
+
+    /**
+     * A stored source classifies by its own name, so there is no declared type to disagree with it -
+     * the mislabelling cases live in [ViewerWorkspaceStreamedTest].
+     */
+    @Test
+    fun `a stored archive resolves to a browsable Archive`() = runTest2 {
         val archive = LocalPath.build("/storage/emulated/0/Download/backup.zip")
         setupGateway(archive.path to lookup(archive))
 
-        workspace(archive).state.first()
-            .content.shouldBeInstanceOf<ViewerContent.Unsupported>()
-            .mime.rawType shouldBe "application/zip"
+        val content = workspace(archive).state.first().content.shouldBeInstanceOf<ViewerContent.Archive>()
+
+        content.format shouldBe ArchiveFormat.ZIP
+        content.access shouldBe ViewerContent.Archive.Access.BROWSABLE
+        content.mime.rawType shouldBe "application/zip"
+    }
+
+    @Test
+    fun `a compound archive suffix is recognized whole`() = runTest2 {
+        // ".tar.gz" is why detection is name-based: by extension alone this is a plain gzip.
+        val archive = LocalPath.build("/storage/emulated/0/Download/backup.tar.gz")
+        setupGateway(archive.path to lookup(archive))
+
+        val content = workspace(archive).state.first().content.shouldBeInstanceOf<ViewerContent.Archive>()
+
+        content.format shouldBe ArchiveFormat.TAR_GZ
+        content.access shouldBe ViewerContent.Archive.Access.BROWSABLE
+    }
+
+    @Test
+    fun `an archive inside an archive cannot be browsed or copied`() = runTest2 {
+        val outer = LocalPath.build("/storage/emulated/0/Download/outer.zip")
+        val inner = ArchivePath(container = outer, segments = listOf("inner.zip"))
+        setupGateway(
+            inner.path to ArchivePathLookup(
+                lookedUp = inner,
+                fileType = FileType.FILE,
+                size = 1024L,
+                modifiedAt = null,
+            ),
+        )
+
+        val content = workspace(inner).state.first().content.shouldBeInstanceOf<ViewerContent.Archive>()
+
+        content.format shouldBe ArchiveFormat.ZIP
+        content.access shouldBe ViewerContent.Archive.Access.NESTED
+    }
+
+    @Test
+    fun `an apk is still an apk, not an archive`() = runTest2 {
+        setupApk()
+
+        workspace(apkPath).state.first().content.shouldBeInstanceOf<ViewerContent.Apk>()
     }
 
     @Test

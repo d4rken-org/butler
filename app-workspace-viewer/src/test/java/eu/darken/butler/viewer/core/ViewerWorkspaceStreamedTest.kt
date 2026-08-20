@@ -2,6 +2,7 @@ package eu.darken.butler.viewer.core
 
 import android.os.ParcelFileDescriptor
 import eu.darken.butler.common.files.GatewaySwitch
+import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.common.pkgs.PkgRepo
 import eu.darken.butler.common.pkgs.apk.ApkArchiveParser
 import eu.darken.butler.common.user.UserManager2
@@ -193,6 +194,56 @@ class ViewerWorkspaceStreamedTest : BaseTest() {
         val state = workspace(contentReader = reader).state.first()
 
         state.content.shouldBeInstanceOf<ViewerContent.Failed>()
+            .error.shouldBeInstanceOf<ViewerContentUnreadableException>()
+    }
+
+    /**
+     * Archives are classified by name before any type-driven branch runs. Senders label them with
+     * whatever they like, and reaching the image probe or the PDF seek check with a container would
+     * report it as damaged or unreadable instead of as something to browse.
+     */
+    @Test
+    fun `a streamed archive resolves to an Archive that needs a copy`() = runTest {
+        val content = workspace(arguments(displayName = "backup.zip", mimeType = "application/zip"))
+            .state.first().content.shouldBeInstanceOf<ViewerContent.Archive>()
+
+        content.format shouldBe ArchiveFormat.ZIP
+        content.access shouldBe ViewerContent.Archive.Access.NEEDS_COPY
+    }
+
+    @Test
+    fun `a generically typed archive is still an archive`() = runTest {
+        workspace(arguments(displayName = "backup.tar.gz", mimeType = "application/octet-stream"))
+            .state.first().content.shouldBeInstanceOf<ViewerContent.Archive>()
+            .format shouldBe ArchiveFormat.TAR_GZ
+    }
+
+    @Test
+    fun `an archive the sender declared as an image never reaches the image probe`() = runTest {
+        coEvery { imageProbe.probe(any()) } returns ProbeResult.NoRasterDimensions
+
+        workspace(arguments(displayName = "backup.zip", mimeType = "image/png"))
+            .state.first().content.shouldBeInstanceOf<ViewerContent.Archive>()
+    }
+
+    @Test
+    fun `an archive the sender declared as a pdf is not held to the seek check`() = runTest {
+        // The seekability question belongs to the PDF branch, after classification: asking it up
+        // front rejected a container from a pipe-backed provider before it was ever recognized.
+        workspace(
+            arguments(displayName = "backup.zip", mimeType = "application/pdf"),
+            readableReader(seekable = false),
+        ).state.first().content.shouldBeInstanceOf<ViewerContent.Archive>()
+    }
+
+    @Test
+    fun `streamed content that cannot be read is still rejected before classification`() = runTest {
+        val reader = mockk<ViewerContentReader>(relaxed = true)
+        coEvery { reader.readInput(any(), any<suspend (java.io.InputStream) -> Any?>()) } throws
+            SecurityException("grant revoked")
+
+        workspace(arguments(displayName = "backup.zip", mimeType = "application/zip"), reader)
+            .state.first().content.shouldBeInstanceOf<ViewerContent.Failed>()
             .error.shouldBeInstanceOf<ViewerContentUnreadableException>()
     }
 
