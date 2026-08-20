@@ -1,6 +1,8 @@
 package eu.darken.butler.main.core.external
 
+import android.content.Intent
 import android.net.Uri
+import android.text.SpannableString
 import io.kotest.matchers.shouldBe
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -26,6 +28,23 @@ class ShareRoutingTest : BaseTest() {
     fun `a file beats accompanying text, which rides along as the caption`() {
         resolveShareRoute(text = "look at this", subject = "Backup", uris = listOf(zip)) shouldBe
             ShareRoute.SingleFile(zip, caption = "look at this")
+    }
+
+    @Test
+    fun `a styled caption is not dropped`() {
+        // Messengers hand over the message as a Spanned, which getStringExtra reports as absent -
+        // this is how MainActivity reads it, so the caption has to survive that path.
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            putExtra(Intent.EXTRA_TEXT, SpannableString("look at this") as CharSequence)
+        }
+
+        intent.getStringExtra(Intent.EXTRA_TEXT) shouldBe null
+
+        resolveShareRoute(
+            text = intent.getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString(),
+            subject = null,
+            uris = listOf(zip),
+        ) shouldBe ShareRoute.SingleFile(zip, caption = "look at this")
     }
 
     @Test

@@ -379,7 +379,9 @@ class MainActivity : Activity2() {
             else -> emptyList()
         }
         val route = resolveShareRoute(
-            text = intent.getStringExtra(Intent.EXTRA_TEXT),
+            // Senders may hand us styled text (Spanned), which getStringExtra silently reports as
+            // absent - the caption or the shared text itself would vanish.
+            text = intent.getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString(),
             subject = intent.getStringExtra(Intent.EXTRA_SUBJECT),
             uris = uris,
         )
