@@ -6,7 +6,11 @@ import eu.darken.butler.editor.core.PasteFileReader
 import eu.darken.butler.viewer.core.ViewerSupport
 
 /**
- * A file another app handed to Butler via ACTION_VIEW, together with the choices we can offer for it.
+ * A file another app handed to Butler - via ACTION_VIEW or a single-file share - together with the
+ * choices we can offer for it.
+ *
+ * @param caption Text the sender attached to the file. Only a share carries one; an ACTION_VIEW
+ * arrival has no text to go with the file.
  */
 data class ExternalOpenState(
     val ref: SourceRef,
@@ -16,6 +20,7 @@ data class ExternalOpenState(
     val mime: MimeInfo,
     val callerPackage: String?,
     val options: List<ExternalOpenOption>,
+    val caption: String? = null,
 )
 
 enum class ExternalOpenOption {

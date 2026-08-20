@@ -369,6 +369,9 @@
     <!-- Saver Share Target -->
     <string name="saver_share_label">Save as…</string>
 
+    <!-- Single-file Share Target -->
+    <string name="share_receive_label">Open in Butler</string>
+
     <!-- Editor Share Target -->
     <string name="editor_share_label">Edit text</string>
 

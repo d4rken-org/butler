@@ -121,8 +121,9 @@
                 <data android:mimeType="text/*" />
             </intent-filter>
 
-            <!-- Intent filter for ACTION_SEND (Save as...) -->
-            <intent-filter android:label="@string/saver_share_label">
+            <!-- Intent filter for ACTION_SEND: a single file goes to the arrival dialog, which
+                 offers viewing and revealing next to saving -->
+            <intent-filter android:label="@string/share_receive_label">
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="*/*" />

@@ -188,14 +188,18 @@ class MainViewModel @Inject constructor(
     private var externalOpenGeneration = 0L
 
     /**
-     * An "Open with" arrival: collects the metadata needed to decide what Butler can offer for the
-     * file. The newest arrival wins, an older one that is still gathering metadata is dropped.
+     * A file arriving from another app - "Open with" or a single-file share: collects the metadata
+     * needed to decide what Butler can offer for it. The newest arrival wins, an older one that is
+     * still gathering metadata is dropped.
      *
      * The metadata queries are blocking and don't react to cancellation, so a cancelled job can
      * still run to completion; the generation counter keeps its result from replacing a newer one.
+     *
+     * @param caption Text a share attached to the file, carried to the Viewer so preferring the
+     * file over the text does not lose the text. Null for every ACTION_VIEW arrival.
      */
-    fun onExternalFile(uri: Uri, intentType: String?, callerPackage: String?) {
-        log(tag) { "onExternalFile($uri, $intentType, $callerPackage)" }
+    fun onExternalFile(uri: Uri, intentType: String?, callerPackage: String?, caption: String? = null) {
+        log(tag) { "onExternalFile($uri, $intentType, $callerPackage, caption=${caption != null})" }
         externalOpenJob?.cancel()
         // Retire the dialog of the previous arrival right away, it must not stay actionable.
         _externalOpen.value = null
@@ -241,6 +245,7 @@ class MainViewModel @Inject constructor(
                     sizeBytes = sizeBytes,
                     mime = mime,
                     callerPackage = callerPackage,
+                    caption = caption,
                     options = computeExternalOpenOptions(
                         mime = mime,
                         sizeBytes = sizeBytes,

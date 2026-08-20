@@ -67,6 +67,8 @@ import eu.darken.butler.main.core.operations.fgs.EXTRA_OPERATION_ID
 import eu.darken.butler.main.core.operations.fgs.EXTRA_WORKSPACE_ID
 import eu.darken.butler.main.core.operations.fgs.NotificationPermissionGate
 import eu.darken.butler.main.core.operations.fgs.OperationFgsCoordinator
+import eu.darken.butler.main.core.external.ShareRoute
+import eu.darken.butler.main.core.external.resolveShareRoute
 import eu.darken.butler.main.core.shortcuts.DynamicShortcutManager
 import eu.darken.butler.main.ui.external.ExternalOpenDialog
 import eu.darken.butler.workspace.core.Workspace
@@ -371,33 +373,38 @@ class MainActivity : Activity2() {
 
     @Suppress("DEPRECATION")
     private fun handleShareIntent(intent: Intent) {
-        // Check for text content first (e.g., shared text from other apps)
-        val text = intent.getStringExtra(Intent.EXTRA_TEXT)
-        if (text != null) {
-            val subject = intent.getStringExtra(Intent.EXTRA_SUBJECT)
-            log(TAG) { "Handling text share: ${text.length} chars, subject=$subject" }
-            vm.createEditorWorkspaceWithText(text, subject)
-            return
-        }
-
-        // Fall through to file handling
         val uris: List<Uri> = when (intent.action) {
             Intent.ACTION_SEND -> listOfNotNull(intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM))
             Intent.ACTION_SEND_MULTIPLE -> intent.getParcelableArrayListExtra<Uri>(Intent.EXTRA_STREAM) ?: emptyList()
             else -> emptyList()
         }
-
-        if (uris.isEmpty()) {
-            log(TAG) { "Share intent received but no content found" }
-            return
-        }
-
-        log(TAG) { "Handling share intent with ${uris.size} URI(s): $uris" }
-
-        vm.createSaverWorkspace(
-            sourceUris = uris,
-            callerPackage = intent.`package` ?: referrer?.host,
+        val route = resolveShareRoute(
+            text = intent.getStringExtra(Intent.EXTRA_TEXT),
+            subject = intent.getStringExtra(Intent.EXTRA_SUBJECT),
+            uris = uris,
         )
+        // The route itself is not logged: shared text is the user's content.
+        log(TAG) { "Handling share intent as ${route::class.simpleName} with ${uris.size} URI(s)" }
+
+        when (route) {
+            is ShareRoute.Text -> vm.createEditorWorkspaceWithText(route.text, route.subject)
+
+            // A single file goes through the arrival dialog, the same one "Open with" uses, so the
+            // user gets View and Show in Explorer instead of only ever landing in "Save as".
+            is ShareRoute.SingleFile -> vm.onExternalFile(
+                uri = route.uri,
+                intentType = intent.type,
+                callerPackage = intent.`package` ?: referrer?.host,
+                caption = route.caption,
+            )
+
+            is ShareRoute.MultipleFiles -> vm.createSaverWorkspace(
+                sourceUris = route.uris,
+                callerPackage = intent.`package` ?: referrer?.host,
+            )
+
+            ShareRoute.Nothing -> log(TAG, WARN) { "Share intent received but no content found" }
+        }
     }
 
     private var savedIntent: Intent? = null
