@@ -397,6 +397,8 @@
     <string name="explorer_compress_dialog_title">Create archive</string>
     <string name="explorer_compress_dialog_name_label">Archive name</string>
     <string name="explorer_compress_dialog_format_label">Format</string>
+    <string name="explorer_compress_dialog_format_zip_hint">Opens on any device. Can be password protected.</string>
+    <string name="explorer_compress_dialog_format_targz_hint">Smaller for many files. No password protection.</string>
     <string name="explorer_compress_dialog_create_action">Create</string>
     <string name="explorer_compress_dialog_level_label">Compression level</string>
     <string name="explorer_compress_dialog_level_fast">Fast</string>

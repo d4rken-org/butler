@@ -21,53 +21,65 @@ import androidx.compose.ui.unit.height
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.common.files.archive.CompressionPreset
-import eu.darken.butler.workspace.ui.dialogs.PaneBoundAlertDialogDefaults
+import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheetDefaults
 import eu.darken.butler.workspace.ui.modal.PaneLayerHost
 import io.kotest.matchers.shouldBe
 import org.junit.Test
+import org.robolectric.annotation.Config
 import testhelpers.ComposeTest
+import testhelpers.TestApplication
 
-class CompressOptionsDialogTest : ComposeTest() {
+/**
+ * The sheet anchors to the bottom of its pane, and the pane here is the test root, so the root has
+ * to be tall enough to hold the whole form — injected touches below the root land on nothing while
+ * still reporting success.
+ */
+@Config(application = TestApplication::class, sdk = [34], qualifiers = "w400dp-h900dp")
+class CompressOptionsSheetTest : ComposeTest() {
 
     private var confirmed: List<Any?>? = null
 
-    // Radio labels sit inside a selectable Row; target the clickable ancestor, not the leaf Text,
-    // and scroll it into view first so touch coordinates line up under the scrollable dialog body.
-    private fun clickSelectable(label: String) =
+    // Segment labels sit inside the segmented button's own clickable node, not on a leaf Text, so
+    // target the clickable ancestor and scroll it into view first.
+    private fun clickSegment(label: String) =
         composeTestRule.onNode(hasText(label) and hasClickAction()).performScrollTo().performClick()
 
-    private fun setDialogContent(
+    private fun setSheetContent(
         defaultFormat: ArchiveFormat = ArchiveFormat.ZIP,
     ) {
         composeTestRule.setContent {
-            CompressOptionsDialog(
-                suggestedName = "archive",
-                defaultFormat = defaultFormat,
-                onDismiss = {},
-                onConfirm = { name, format, preset, password ->
-                    confirmed = listOf(name, format, preset, password)
-                },
-            )
+            PreviewWrapper {
+                PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = true) {
+                    CompressOptionsSheet(
+                        suggestedName = "archive",
+                        defaultFormat = defaultFormat,
+                        onDismiss = {},
+                        onConfirm = { name, format, preset, password ->
+                            confirmed = listOf(name, format, preset, password)
+                        },
+                    )
+                }
+            }
         }
     }
 
     @Test
     fun `create disabled when name is blank`() {
-        setDialogContent()
+        setSheetContent()
         composeTestRule.onNodeWithText("archive").performTextReplacement(" ")
         composeTestRule.onNodeWithText("Create").assertIsNotEnabled()
     }
 
     @Test
     fun `empty password confirms with null password`() {
-        setDialogContent()
+        setSheetContent()
         composeTestRule.onNodeWithText("Create").assertIsEnabled().performClick()
         confirmed shouldBe listOf("archive", ArchiveFormat.ZIP, CompressionPreset.NORMAL, null)
     }
 
     @Test
     fun `mismatched passwords disable create until they match`() {
-        setDialogContent()
+        setSheetContent()
         composeTestRule.onNodeWithText("Password (optional)").performTextInput("hunter2")
         composeTestRule.onNodeWithText("Confirm password").performTextInput("hunter")
         composeTestRule.onNodeWithText("Create").assertIsNotEnabled()
@@ -79,7 +91,7 @@ class CompressOptionsDialogTest : ComposeTest() {
 
     @Test
     fun `weak password shows hint but does not block`() {
-        setDialogContent()
+        setSheetContent()
         composeTestRule.onNodeWithText("Password (optional)").performTextInput("abc")
         composeTestRule.onNodeWithText("Weak password").assertIsDisplayed()
         composeTestRule.onNodeWithText("Confirm password").performTextInput("abc")
@@ -88,44 +100,86 @@ class CompressOptionsDialogTest : ComposeTest() {
 
     @Test
     fun `switching to tar gz hides password fields and drops typed password`() {
-        setDialogContent()
+        setSheetContent()
         composeTestRule.onNodeWithText("Password (optional)").performTextInput("hunter2")
         composeTestRule.onNodeWithText("Confirm password").performTextInput("hunter2")
 
-        clickSelectable("tar.gz")
+        clickSegment("tar.gz")
+        composeTestRule.onNodeWithText("Password (optional)").assertDoesNotExist()
+        composeTestRule.onNodeWithText("Confirm password").assertDoesNotExist()
+
+        composeTestRule.onNodeWithText("Create").assertIsEnabled().performClick()
+        confirmed shouldBe listOf("archive", ArchiveFormat.TAR_GZ, CompressionPreset.NORMAL, null)
+    }
+
+    /** Hiding the fields must not discard what was typed — the round trip has to bring it back. */
+    @Test
+    fun `switching back to zip restores the typed password`() {
+        setSheetContent()
+        composeTestRule.onNodeWithText("Password (optional)").performTextInput("hunter2")
+        composeTestRule.onNodeWithText("Confirm password").performTextInput("hunter2")
+
+        clickSegment("tar.gz")
+        clickSegment("zip")
+
+        composeTestRule.onNodeWithText("Create").assertIsEnabled().performClick()
+        confirmed shouldBe listOf("archive", ArchiveFormat.ZIP, CompressionPreset.NORMAL, "hunter2")
+    }
+
+    /**
+     * A password left half-confirmed when the user moves to a format that takes none must not keep
+     * Create disabled: the field explaining the block is no longer on screen.
+     */
+    @Test
+    fun `a mismatched password stops blocking create once tar gz is selected`() {
+        setSheetContent()
+        composeTestRule.onNodeWithText("Password (optional)").performTextInput("hunter2")
+        composeTestRule.onNodeWithText("Confirm password").performTextInput("hunter")
+        composeTestRule.onNodeWithText("Create").assertIsNotEnabled()
+
+        clickSegment("tar.gz")
         composeTestRule.onNodeWithText("Create").assertIsEnabled().performClick()
 
         confirmed shouldBe listOf("archive", ArchiveFormat.TAR_GZ, CompressionPreset.NORMAL, null)
     }
 
+    /** The format caption is what warns the user that tar.gz drops the password fields. */
+    @Test
+    fun `the format caption follows the selected format`() {
+        setSheetContent()
+        composeTestRule.onNodeWithText("Opens on any device. Can be password protected.").assertIsDisplayed()
+
+        clickSegment("tar.gz")
+        composeTestRule.onNodeWithText("Smaller for many files. No password protection.").assertIsDisplayed()
+    }
+
     @Test
     fun `level selection is forwarded`() {
-        setDialogContent()
-        clickSelectable("Best")
+        setSheetContent()
+        clickSegment("Best")
         composeTestRule.onNodeWithText("Create").performClick()
         confirmed shouldBe listOf("archive", ArchiveFormat.ZIP, CompressionPreset.BEST, null)
     }
 
     @Test
     fun `unoffered default format falls back to zip`() {
-        setDialogContent(defaultFormat = ArchiveFormat.TAR_BZ2)
+        setSheetContent(defaultFormat = ArchiveFormat.TAR_BZ2)
         composeTestRule.onNodeWithText("Create").performClick()
         confirmed shouldBe listOf("archive", ArchiveFormat.ZIP, CompressionPreset.NORMAL, null)
     }
 
     /**
-     * The pane-bound dialog scrolls its own title/text block, so it measures the text slot with an
-     * unbounded height. A nested scroller in there rejects an infinite vertical constraint and the
-     * whole dialog fails to measure — which is why this is the tallest migrated dialog and gets its
-     * own measurement case in a pane far too short for its content.
+     * This is the tallest form in the explorer, so it is the one that has to prove the sheet bounds
+     * itself to a pane far shorter than its content instead of running off the end of it.
      */
     @Test
+    @Config(qualifiers = "w320dp-h260dp")
     fun `it measures inside a pane far shorter than its content`() {
         composeTestRule.setContent {
             PreviewWrapper {
                 Box(modifier = Modifier.size(width = 320.dp, height = SHORT_PANE_HEIGHT)) {
                     PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = true) {
-                        CompressOptionsDialog(
+                        CompressOptionsSheet(
                             suggestedName = "archive",
                             onDismiss = {},
                             onConfirm = { _, _, _, _ -> },
@@ -135,20 +189,17 @@ class CompressOptionsDialogTest : ComposeTest() {
             }
         }
 
-        val surfaceBounds = composeTestRule.onNodeWithTag(PaneBoundAlertDialogDefaults.SURFACE_TEST_TAG)
+        val cardBounds = composeTestRule.onNodeWithTag(PaneScopedBottomSheetDefaults.CARD_TEST_TAG)
             .getUnclippedBoundsInRoot()
 
-        // The nested scroller either threw during measurement or, where it did not, measured the
-        // surface straight past the pane it has to fit inside. Both show up here.
-        (surfaceBounds.height <= SHORT_PANE_HEIGHT) shouldBe true
+        (cardBounds.height <= SHORT_PANE_HEIGHT) shouldBe true
 
-        // The action row sits outside the dialog's own scroll container, so it must have been
-        // measured too rather than pushed off the end of an unbounded column.
-        composeTestRule.onNodeWithText("Create").assertExists()
+        // Reachable by scrolling the sheet's own content region rather than pushed off its end.
+        composeTestRule.onNodeWithText("Create").performScrollTo().assertIsDisplayed()
     }
 
     companion object {
-        /** Far shorter than the dialog's content, so the height cap is actually exercised. */
+        /** Far shorter than the sheet's content, so the height cap is actually exercised. */
         private val SHORT_PANE_HEIGHT = 260.dp
     }
 }

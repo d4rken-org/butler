@@ -98,7 +98,7 @@ fun ExplorerDialogHost(
         }
 
         is ExplorerDialogState.CompressOptions -> {
-            CompressOptionsDialog(
+            CompressOptionsSheet(
                 suggestedName = dialogState.suggestedName,
                 defaultFormat = dialogState.defaultFormat,
                 defaultPreset = dialogState.defaultPreset,
@@ -114,6 +114,8 @@ fun ExplorerDialogHost(
                         password = password,
                     )
                 },
+                topInset = topInset,
+                bottomInset = bottomInset,
             )
         }
 
