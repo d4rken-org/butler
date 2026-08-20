@@ -35,6 +35,14 @@ sealed interface ExplorerArguments : Workspace.Arguments {
          * and for arguments saved before this field existed.
          */
         val startTarget: ExplorerStartTarget? = null,
+        /**
+         * Item to scroll to and highlight once the tab has arrived at [startPath], so "show me this
+         * file" lands on the file instead of on a folder the user then has to search.
+         *
+         * Creation-only: the workspace strips it from every set of arguments it hands back, or a
+         * session restore would replay the highlight forever.
+         */
+        val revealPath: APath<*>? = null,
     ) : ExplorerArguments
 
     /**

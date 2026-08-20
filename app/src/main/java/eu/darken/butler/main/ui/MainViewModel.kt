@@ -328,7 +328,8 @@ class MainViewModel @Inject constructor(
      * location, so the resolve here is a repeat of the one that gated the option, not a new attempt.
      */
     private suspend fun showExternalInExplorer(state: ExternalOpenState) {
-        val parent = externalOpenRouter.resolveLocation(state.ref)?.parent
+        val location = externalOpenRouter.resolveLocation(state.ref)
+        val parent = location?.parent
         if (parent == null) {
             log(tag, WARN) { "No containing folder for ${state.originalUri}" }
             errorEvents.emit(ExternalOpenFailedException(state.displayName))
@@ -336,7 +337,8 @@ class MainViewModel @Inject constructor(
         }
         workspaceRemote.createAndFocus(
             type = Workspace.Type.EXPLORER,
-            arguments = ExplorerArguments.Default(startPath = parent),
+            // The folder alone would leave the user looking for their file in it.
+            arguments = ExplorerArguments.Default(startPath = parent, revealPath = location),
         )
     }
 

@@ -15,6 +15,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.explorer.core.engine.BrowsingEngine
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
@@ -63,6 +64,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.KSerializer
@@ -110,11 +112,44 @@ class ExplorerWorkspace @AssistedInject constructor(
         // loaded location instead would persist a half-updated pair whenever a save runs while a
         // navigation is in flight, cancelled or failed - the tab would reopen somewhere else.
         // Home/Device/Trash have no path, which is what startTarget captures.
-        val currentTarget = (_state.value as? State.Ready)?.currentTarget ?: return creationArguments
+        //
+        // The creation arguments are handed back verbatim while the tab is still initializing or
+        // after a failed load, so the reveal hint has to be stripped on that path too - a session
+        // save landing in that window would persist it and re-highlight on every restore.
+        val currentTarget = (_state.value as? State.Ready)?.currentTarget ?: return creationArguments.withoutReveal()
         return ExplorerArguments.Default(
             startPath = (currentTarget as? ExplorerNavigation.Target.Directory)?.path,
             startTarget = currentTarget.asStartTarget,
         )
+    }
+
+    /**
+     * The item to highlight once this tab has settled on the location it was created for, handed
+     * out exactly ONCE.
+     *
+     * The page's ViewModel is rebuilt whenever the tab is recomposed into a pane, while this
+     * instance lives on; re-reading the arguments there would highlight the file again long after
+     * the user moved on.
+     */
+    fun consumeRevealHint(): RevealHint? = pendingReveal.getAndUpdate { null }
+
+    private val pendingReveal = MutableStateFlow(
+        (creationArguments as? ExplorerArguments.Default)?.let { args ->
+            val location = args.startPath
+            val path = args.revealPath
+            if (location != null && path != null) RevealHint(location = location, path = path) else null
+        }
+    )
+
+    /** Highlight [path] once this tab is at [location]; both come from the creation arguments. */
+    data class RevealHint(
+        val location: APath<*>,
+        val path: APath<*>,
+    )
+
+    private fun ExplorerArguments.withoutReveal(): ExplorerArguments = when {
+        this is ExplorerArguments.Default && revealPath != null -> copy(revealPath = null)
+        else -> this
     }
 
     private val browsingEngine = browsingEngineFactory.create(id, scope)

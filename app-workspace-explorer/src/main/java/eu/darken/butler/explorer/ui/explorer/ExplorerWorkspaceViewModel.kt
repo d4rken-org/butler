@@ -113,10 +113,13 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -354,6 +357,29 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
         // A "tap to resolve" conflict notification routes here (see the controller).
         conflicts.focusRequestHandler.launchInViewModel()
+
+        revealCreationHint()
+    }
+
+    /**
+     * A tab opened to show one particular file ("Show in Explorer", "Open saved file") highlights it
+     * once the tab has actually arrived at the folder it was created for.
+     *
+     * Waiting for the arrival is what makes the highlight stick: it is dropped on every location
+     * change, so setting it while the first navigation is still running would wipe it immediately.
+     * The hint is consumed at the workspace, so a rebuilt ViewModel cannot replay it.
+     */
+    private fun revealCreationHint() = launch {
+        val workspace = workspaceSource.filterNotNull().first()
+        val hint = workspace.consumeRevealHint() ?: return@launch
+        log(tag) { "revealCreationHint(): waiting for ${hint.location.path} to reveal ${hint.path.path}" }
+
+        val arrived = awaitLocation(workspace.state, hint.location, REVEAL_ARRIVAL_TIMEOUT)
+        if (!arrived) {
+            log(tag, WARN) { "revealCreationHint(): ${hint.location.path} did not become current in time" }
+            return@launch
+        }
+        navigation.revealItems(listOf(hint.path), highlight = true)
     }
 
     override fun onCleared() {
@@ -1918,5 +1944,25 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     companion object {
         private const val NAVIGATION_AWAIT_MS = 5_000L
+
+        /** How long a reveal hint waits for the tab to arrive at its start location. */
+        private val REVEAL_ARRIVAL_TIMEOUT = 10.seconds
     }
 }
+
+/**
+ * Waits for the tab to actually be showing [location], i.e. for a settled [ExplorerWorkspace.State]
+ * rather than the mere request to go there. Returns false if that does not happen within [timeout].
+ *
+ * One-shot by construction: it completes on the FIRST arrival, so a later navigation cannot make a
+ * reveal fire a second time.
+ */
+internal suspend fun awaitLocation(
+    states: Flow<ExplorerWorkspace.State>,
+    location: APath<*>,
+    timeout: Duration,
+): Boolean = withTimeoutOrNull(timeout) {
+    states
+        .filterIsInstance<ExplorerWorkspace.State.Ready>()
+        .first { (it.currentLocation as? ExplorerLocation.Directory)?.path?.matches(location) == true }
+} != null

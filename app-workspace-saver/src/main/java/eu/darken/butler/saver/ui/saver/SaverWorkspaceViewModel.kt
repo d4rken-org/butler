@@ -262,7 +262,11 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
             log(tag, INFO) { "Opening saved file location: ${firstSavedPath.parent}" }
             workspaceRemote.createAndFocus(
                 type = Workspace.Type.EXPLORER,
-                arguments = ExplorerArguments.Default(startPath = firstSavedPath.parent),
+                // Straight to the file that was just written, not just to the folder holding it.
+                arguments = ExplorerArguments.Default(
+                    startPath = firstSavedPath.parent,
+                    revealPath = firstSavedPath,
+                ),
                 sourceWorkspaceId = id,
             )
         }

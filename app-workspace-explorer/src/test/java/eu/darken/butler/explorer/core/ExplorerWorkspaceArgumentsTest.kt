@@ -78,6 +78,59 @@ class ExplorerWorkspaceArgumentsTest {
         workspace.createArguments() shouldBe arguments
     }
 
+    /**
+     * The reveal hint is a creation-time instruction, not tab state. Saving it would replay the
+     * highlight on every restore of that tab, long after the file was shown once.
+     */
+    @Test
+    fun `a settled tab never saves its reveal hint`() = runTest {
+        val workspace = testExplorerWorkspace(
+            ExplorerArguments.Default(startPath = download, revealPath = download.child("backup.zip")),
+            UnconfinedTestDispatcher(testScheduler),
+        )
+
+        val saved = workspace.createArguments() as ExplorerArguments.Default
+
+        saved.startPath shouldBe download
+        saved.revealPath shouldBe null
+        workspace.release()
+    }
+
+    @Test
+    fun `a tab still initializing never saves its reveal hint either`() = runTest {
+        // Unadvanced scheduler: the creation arguments are what a save catches here, verbatim -
+        // which is exactly the window where the hint would slip through.
+        val workspace = testExplorerWorkspace(
+            ExplorerArguments.Default(startPath = download, revealPath = download.child("backup.zip")),
+        )
+
+        val saved = workspace.createArguments() as ExplorerArguments.Default
+
+        saved.startPath shouldBe download
+        saved.revealPath shouldBe null
+    }
+
+    @Test
+    fun `the reveal hint is handed out exactly once`() = runTest {
+        val file = download.child("backup.zip")
+        val workspace = testExplorerWorkspace(
+            ExplorerArguments.Default(startPath = download, revealPath = file),
+        )
+
+        workspace.consumeRevealHint() shouldBe ExplorerWorkspace.RevealHint(location = download, path = file)
+        // A rebuilt page ViewModel asks again; the highlight must not come back with it.
+        workspace.consumeRevealHint() shouldBe null
+    }
+
+    @Test
+    fun `a tab without a reveal hint has none to hand out`() = runTest {
+        testExplorerWorkspace(ExplorerArguments.Default(startPath = download))
+            .consumeRevealHint() shouldBe null
+        // A hint without a location has nothing to wait for.
+        testExplorerWorkspace(ExplorerArguments.Default(revealPath = download.child("backup.zip")))
+            .consumeRevealHint() shouldBe null
+    }
+
     @Test
     fun `the saved arguments keep naming the tab the same way`() = runTest {
         val workspace = testExplorerWorkspace(
