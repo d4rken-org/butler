@@ -2,6 +2,7 @@ package eu.darken.butler.main.ui
 
 import android.net.Uri
 import eu.darken.butler.common.datastore.DataStoreValue
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.pkgs.toPkgId
 import eu.darken.butler.common.theming.ThemeColor
@@ -36,6 +37,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import testhelpers.BaseTest
 import testhelpers.coroutine.TestDispatcherProvider
+import java.io.File
 
 /**
  * Single-file shares now go through the arrival dialog instead of straight to the Saver, so what
@@ -142,6 +144,52 @@ class MainViewModelArrivalTest : BaseTest() {
         val created = action.captured.shouldBeInstanceOf<WorkspaceAction.Create>()
         created.type shouldBe Workspace.Type.VIEWER
         created.arguments.shouldBeInstanceOf<ViewerArguments.Streamed>().caption shouldBe "look at this"
+    }
+
+    /**
+     * Sharing a file that already has a tab focuses that tab, which would still show the previous
+     * message. The message is what the sender just wrote, so the tab is rebuilt to carry it.
+     */
+    @Test
+    fun `a new message reaches a file that is already open`() = runTest {
+        val existing = Workspace.Id()
+        val path = LocalPath.build(File("/sdcard/Download/backup.zip"))
+        coEvery { externalOpenRouter.resolveForView(any(), any(), any(), any()) } returns ViewTarget.Stored(path)
+        val actions = mutableListOf<WorkspaceAction>()
+        coEvery { workspaceRemote.execute(capture(actions)) } returns
+            WorkspaceAction.Create.Result.AlreadyOpen(existing)
+
+        val vm = createViewModel()
+        vm.onExternalFile(uri, "application/zip", callerPackage, caption = "look at this")
+        vm.externalOpen.filterNotNull().first()
+        vm.onExternalOpenAction(ExternalOpenOption.VIEW)
+
+        val creates = actions.filterIsInstance<WorkspaceAction.Create>()
+        creates.size shouldBe 2
+        val rebuild = creates.last()
+        // Same id and slot: the tab the user is looking at, not a second one for the same file.
+        rebuild.id shouldBe existing
+        rebuild.replace shouldBe existing
+        rebuild.arguments.shouldBeInstanceOf<ViewerArguments.Default>().let {
+            it.filePath shouldBe path
+            it.caption shouldBe "look at this"
+        }
+    }
+
+    @Test
+    fun `an already open file without a new message is simply focused`() = runTest {
+        coEvery { externalOpenRouter.resolveForView(any(), any(), any(), any()) } returns
+            ViewTarget.Stored(LocalPath.build(File("/sdcard/Download/backup.zip")))
+        val actions = mutableListOf<WorkspaceAction>()
+        coEvery { workspaceRemote.execute(capture(actions)) } returns
+            WorkspaceAction.Create.Result.AlreadyOpen(Workspace.Id())
+
+        val vm = createViewModel()
+        vm.onExternalFile(uri, "application/zip", callerPackage)
+        vm.externalOpen.filterNotNull().first()
+        vm.onExternalOpenAction(ExternalOpenOption.VIEW)
+
+        actions.filterIsInstance<WorkspaceAction.Create>().size shouldBe 1
     }
 
     @Test

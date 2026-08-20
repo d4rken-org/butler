@@ -31,6 +31,7 @@ import eu.darken.butler.workspace.contracts.explorer.ExplorerArguments
 import eu.darken.butler.workspace.contracts.saver.SaverArguments
 import eu.darken.butler.workspace.contracts.viewer.ViewerArguments
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.createAndFocus
@@ -324,7 +325,21 @@ class MainViewModel @Inject constructor(
                 caption = state.caption,
             )
         }
-        workspaceRemote.createAndFocus(type = Workspace.Type.VIEWER, arguments = arguments)
+        val result = workspaceRemote.createAndFocus(type = Workspace.Type.VIEWER, arguments = arguments)
+
+        // A second share of a file that is already open focuses the existing tab, which would still
+        // be showing the previous message (or none). The caption is what the sender just wrote, so
+        // the tab is rebuilt in place under its own id to carry it.
+        val caption = state.caption
+        if (caption != null && result is WorkspaceAction.Create.Result.AlreadyOpen) {
+            log(tag) { "Re-creating ${result.existingId} to carry the new caption" }
+            workspaceRemote.createAndFocus(
+                type = Workspace.Type.VIEWER,
+                arguments = arguments,
+                replace = result.existingId,
+                id = result.existingId,
+            )
+        }
     }
 
     /**
