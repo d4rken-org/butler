@@ -21,7 +21,14 @@ data class ExternalOpenState(
     val callerPackage: String?,
     val options: List<ExternalOpenOption>,
     val caption: String? = null,
-)
+) {
+    // The caption is the sender's own text and the arrival is logged on every step it takes
+    // through the dialog, so only its presence is reported.
+    override fun toString(): String =
+        "ExternalOpenState(ref=$ref, originalUri=$originalUri, displayName=$displayName, " +
+            "sizeBytes=$sizeBytes, mime=$mime, callerPackage=$callerPackage, options=$options, " +
+            "caption=${if (caption != null) "<present>" else "null"})"
+}
 
 enum class ExternalOpenOption {
     VIEW,

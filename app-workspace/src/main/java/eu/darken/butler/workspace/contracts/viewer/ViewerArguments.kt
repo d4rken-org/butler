@@ -46,6 +46,12 @@ sealed interface ViewerArguments : Workspace.Arguments {
          * caller no result, so nobody is waiting on it either.
          */
         override val pausableAsChild: Boolean get() = true
+
+        // The caption is the sender's own text and arguments end up in retained diagnostic logs,
+        // so only its presence is reported.
+        override fun toString(): String =
+            "ViewerArguments.Default(filePath=$filePath, caption=${caption.redacted}, " +
+                "callerWorkspaceId=$callerWorkspaceId)"
     }
 
     /**
@@ -87,5 +93,15 @@ sealed interface ViewerArguments : Workspace.Arguments {
          * foreign URI is not one. Two shares of the same file legitimately open two tabs.
          */
         override val pausableAsChild: Boolean get() = true
+
+        /** See [Default.toString]. */
+        override fun toString(): String =
+            "ViewerArguments.Streamed(uriString=$uriString, displayName=$displayName, " +
+                "mimeType=$mimeType, sizeBytes=$sizeBytes, arrivalId=$arrivalId, " +
+                "caption=${caption.redacted}, callerWorkspaceId=$callerWorkspaceId)"
     }
 }
+
+/** Presence instead of content, for text that belongs to the user rather than to Butler. */
+private val String?.redacted: String
+    get() = if (this != null) "<present>" else "null"
