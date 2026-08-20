@@ -1,7 +1,7 @@
 package eu.darken.butler.explorer.core.operations
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.Archive
+import androidx.compose.material.icons.twotone.Compress
 import androidx.compose.ui.graphics.vector.ImageVector
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -49,7 +49,7 @@ class CompressOperation @AssistedInject constructor(
 
     override val metadata: Operation.Metadata = object : Operation.Metadata {
         override val origin = Operation.Metadata.Origin.Explorer(workspaceId)
-        override val icon: ImageVector = Icons.TwoTone.Archive
+        override val icon: ImageVector = Icons.TwoTone.Compress
         override val title = R.string.explorer_operation_compress_title.toCaString()
         override val description = caString { cx ->
             cx.getQuantityString2(

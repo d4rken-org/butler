@@ -4,7 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.Sort
 import androidx.compose.material.icons.automirrored.twotone.ViewList
 import androidx.compose.material.icons.twotone.Add
-import androidx.compose.material.icons.twotone.Archive
+import androidx.compose.material.icons.twotone.Compress
 import androidx.compose.material.icons.twotone.ContentCopy
 import androidx.compose.material.icons.twotone.ContentCut
 import androidx.compose.material.icons.twotone.Delete
@@ -170,7 +170,7 @@ sealed interface ExplorerActionBarItem : WorkspaceActionBarItem {
         data class Compress(
             override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.SECONDARY,
         ) : Directory {
-            override val icon = Icons.TwoTone.Archive
+            override val icon = Icons.TwoTone.Compress
             override val label = R.string.explorer_action_compress.toCaString()
         }
 

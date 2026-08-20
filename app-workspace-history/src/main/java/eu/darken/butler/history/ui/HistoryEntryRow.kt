@@ -11,9 +11,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.DriveFileMove
 import androidx.compose.material.icons.automirrored.twotone.NoteAdd
-import androidx.compose.material.icons.twotone.Archive
 import androidx.compose.material.icons.twotone.Cancel
 import androidx.compose.material.icons.twotone.CheckCircle
+import androidx.compose.material.icons.twotone.Compress
 import androidx.compose.material.icons.twotone.CopyAll
 import androidx.compose.material.icons.twotone.CreateNewFolder
 import androidx.compose.material.icons.twotone.Delete
@@ -189,7 +189,7 @@ internal fun Operation.Metadata.Kind.icon(): ImageVector = when (this) {
     Operation.Metadata.Kind.CREATE_FOLDER -> Icons.TwoTone.CreateNewFolder
     Operation.Metadata.Kind.CREATE_FILE -> Icons.AutoMirrored.TwoTone.NoteAdd
     Operation.Metadata.Kind.SAVE -> Icons.TwoTone.Save
-    Operation.Metadata.Kind.COMPRESS -> Icons.TwoTone.Archive
+    Operation.Metadata.Kind.COMPRESS -> Icons.TwoTone.Compress
     Operation.Metadata.Kind.EXTRACT -> Icons.TwoTone.Unarchive
     Operation.Metadata.Kind.RESTORE -> Icons.TwoTone.Restore
 }
