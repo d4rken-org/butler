@@ -1718,7 +1718,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
                 if (completed.error == null) {
                     log(tag, INFO) { "Created text file: $filename with ${clip.content.length} characters" }
-                    revealItems(listOf(filePath))
+                    // Resolving a name conflict by renaming lands the file somewhere other than filePath.
+                    val createdPath = completed.report?.affectedPaths
+                        ?.firstOrNull { it.change == Operation.Report.PathChange.Change.ADDED }
+                        ?.path
+                    revealItems(listOfNotNull(createdPath))
                     clipboardRepo.remove(clip.id)
                 }
             } catch (e: Exception) {
