@@ -55,6 +55,7 @@ internal class GenericPathCreate<P : APath<P>, PL : APathLookup<P>>(
 ) {
     private val tag = logTag("FileOps", "Generic", "Create")
     private val issueResolver = PathOperationIssueResolver(onIssue)
+    private val namingUtils = GenericPathNamingUtils(ops = fileSystemOps)
 
     // Use channelFlow to support emissions after IPC callbacks (which use runBlocking on client side)
     fun execute(): Flow<CreateAction.State<P, PL>> = channelFlow {
@@ -73,11 +74,16 @@ internal class GenericPathCreate<P : APath<P>, PL : APathLookup<P>>(
             if (existingLookup.fileType != FileType.UNKNOWN) {
                 log(tag, DEBUG) { "Target already exists: $existingLookup" }
 
+                // The sheet's apply-to-all rename resolves with suggestedName directly, so
+                // offering rename without one leaves it nothing to apply.
                 val issue = PathActionIssue.PathAlreadyExists(
                     destination = existingLookup,
                     canRenameSource = true,
                     canOverwrite = true,
                     canSkip = false,
+                    suggestedName = currentTarget.parent
+                        ?.let { namingUtils.generateUniqueName(it, currentTarget.name, knownToExist = true) }
+                        ?: "${currentTarget.name} (1)",
                 )
 
                 when (val resolution = issueResolver.resolveIssue(issue)) {
