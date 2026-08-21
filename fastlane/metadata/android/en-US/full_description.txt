@@ -1,8 +1,8 @@
-Butler is the file explorer for Android I always wanted, so I built it.
+Butler is a file manager for Android built around tabs. Browse, search, view and edit files across your whole storage, with multi-pane layouts and root access when you need it.
 
-Fast, private, open source. A little whimsical. Built for power users.
+It's the file explorer for Android I always wanted, so I built it. Fast, private, open source.
 
-Butler works on your whole storage: internal, SD cards, USB drives. And every file type, not just the media your gallery shows you.
+Butler works on internal storage, SD cards and USB OTG drives. And every file type, not just the media your gallery shows you.
 
 <b>Tabs and workspaces</b>
 - Browse files in tabs and run any of Butler's tools in parallel.
@@ -13,20 +13,30 @@ Butler works on your whole storage: internal, SD cards, USB drives. And every fi
 <b>File operations</b>
 - Copy, move, rename and delete, with transfer speeds and performance graphs while operations run.
 - Trash bin support, so deletions stay reversible.
-- Create and extract ZIP archives, including encrypted ones.
+- Create ZIP archives and unzip them, including encrypted ones.
+- Operations keep running when you leave the app, with progress and a cancel button in the notification.
 - An operation history showing what ran, what succeeded and what failed.
 
 <b>Search and text</b>
 - Search by file name and within file contents, with regular expression (regex) support.
 - A text editor that stays fast on very large files.
 
+<b>Viewing files</b>
+- View images and page through PDFs without leaving Butler.
+- File details down to size, dimensions, permissions and owner.
+- Anything Butler doesn't display itself is handed to the app that can.
+
 <b>Apps and APKs</b>
 - App manager: browse installed apps, disable them, export APKs, clear caches and uninstall.
 - Receive, inspect and open APK files. Installation goes through Android's system installer.
 
+<b>Works with your other apps</b>
+- Butler shows up in other apps' file pickers, so you can browse with Butler wherever you open or save a file.
+- Share a file to Butler from any app and pick exactly where it goes, under the name you choose.
+- Shared text opens straight in Butler's editor.
+
 <b>Access and appearance</b>
 - Root or Shizuku for the places Android normally keeps locked.
-- Butler shows up in other apps' file pickers, so you can browse with Butler wherever you open or save a file.
 - Material You theming with dynamic colors, dark mode and an AMOLED option.
 
 <b>Privacy</b>
