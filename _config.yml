@@ -12,6 +12,11 @@ title: "Butler"
 description: "The file explorer for Android."
 author: "by Matthias Urhahn"
 
+header_pages:
+  - CHANGELOG.md
+  - PRIVACY_POLICY.md
+  - SECURITY.md
+
 include:
   - PRIVACY_POLICY.md
 exclude:
@@ -28,5 +33,6 @@ exclude:
   - app-common-io
   - app-common-adb
   - motd
+  - docs
   - tooling
   - CONTRIBUTING.md
