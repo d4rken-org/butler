@@ -20,26 +20,32 @@ platform :android do
   	#ensure_git_status_clean
   end
 
+  # Closed testing. Play's API track names do not line up with the Console labels:
+  # internal = Internal testing, alpha = Closed testing, beta = Open testing, production = Production.
+  #
+  # First upload only: an app stays in "draft" until its first release is published, and the Play
+  # API rejects any non-draft release on a draft app. Run this lane once with
+  # SUPPLY_RELEASE_STATUS=draft (or upload that first .aab through the Console), publish it there,
+  # and every later run works unchanged with supply's default "completed" status.
   lane :beta do
     gradle(task: 'clean bundleGplayBeta')
     sh "bash ./remove_unsupported_languages.sh"
-  	supply(
-        track: 'beta',
-        rollout: '0.10',
+    supply(
+        track: 'alpha',
         package_name: 'eu.darken.butler',
         skip_upload_changelogs: 'false',
         skip_upload_apk: 'true',
         skip_upload_images: 'true',
         skip_upload_screenshots: 'true',
         skip_upload_metadata: 'true',
-  	)
+    )
   end
 
   lane :production do
     gradle(task: 'clean bundleGplayRelease')
     sh "bash ./remove_unsupported_languages.sh"
     supply(
-        track: 'beta',
+        track: 'production',
         rollout: '0.10',
         package_name: 'eu.darken.butler',
         skip_upload_changelogs: 'false',
