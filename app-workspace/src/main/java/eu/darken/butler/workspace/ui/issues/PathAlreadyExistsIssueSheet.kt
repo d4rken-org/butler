@@ -217,10 +217,14 @@ fun PathAlreadyExistsIssueSheet(
                     if (issue.canRenameSource) {
                         OutlinedButton(
                             onClick = {
-                                if (applyToAll) {
+                                // Apply-to-all resolves with the suggestion directly. Without one
+                                // there is nothing to apply, so ask for a name and carry the
+                                // apply-to-all intent into the resolution instead of dropping it.
+                                val applyAllName = issue.suggestedName.takeIf { applyToAll }
+                                if (applyAllName != null) {
                                     onResolution(
                                         PathActionIssue.PathAlreadyExists.Resolution.RenameSource(
-                                            issue.suggestedName!!,
+                                            applyAllName,
                                             applyToAll = true
                                         )
                                     )
@@ -231,6 +235,7 @@ fun PathAlreadyExistsIssueSheet(
                                             target = PathIssueRenameRequest.Target.SOURCE,
                                             currentName = issue.source?.name ?: issue.destination.name,
                                             suggestedName = issue.suggestedName,
+                                            applyToAll = applyToAll,
                                         )
                                     )
                                 }
@@ -258,10 +263,11 @@ fun PathAlreadyExistsIssueSheet(
                     if (issue.canRenameDestination) {
                         OutlinedButton(
                             onClick = {
-                                if (applyToAll) {
+                                val applyAllName = issue.suggestedName.takeIf { applyToAll }
+                                if (applyAllName != null) {
                                     onResolution(
                                         PathActionIssue.PathAlreadyExists.Resolution.RenameDestination(
-                                            issue.suggestedName!!,
+                                            applyAllName,
                                             applyToAll = true
                                         )
                                     )

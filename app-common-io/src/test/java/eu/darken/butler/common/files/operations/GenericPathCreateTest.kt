@@ -39,8 +39,11 @@ class GenericPathCreateTest : BaseTest() {
     private var issueCallCount = 0
     private var issueResolution: PathActionIssue.Resolution? = null
 
+    private val capturedIssues = mutableListOf<PathActionIssue>()
+
     private val onIssue: suspend (PathActionIssue) -> PathActionIssue.Resolution = { issue ->
         issueCallCount++
+        capturedIssues += issue
         issueResolution ?: throw AssertionError("No resolution provided for issue: $issue")
     }
 
@@ -60,6 +63,7 @@ class GenericPathCreateTest : BaseTest() {
         }
         issueCallCount = 0
         issueResolution = null
+        capturedIssues.clear()
     }
 
     @AfterEach
@@ -163,6 +167,51 @@ class GenericPathCreateTest : BaseTest() {
         result.created.lookedUp.path shouldBe "/parent/file (1).txt"
         mockOps.hasFile("/parent/file (1).txt") shouldBe true
         mockOps.hasFile("/parent/file.txt") shouldBe true // Original still exists
+    }
+
+    /**
+     * The conflict sheet's "apply to all" rename resolves with issue.suggestedName directly, so
+     * offering rename without supplying one crashes it.
+     */
+    @Test
+    fun `conflict offers a suggested name alongside rename`() = runTest {
+        mockOps.addMockDir("/parent")
+        mockOps.addMockFile("/parent/file.txt", "existing".toByteArray())
+
+        issueResolution = PathActionIssue.PathAlreadyExists.Resolution.Cancel()
+
+        assertThrows<CancellationException> {
+            LocalPath.build("/parent/file.txt").createGeneric(
+                fileSystemOps = mockOps,
+                type = CreateAction.CreateType.FILE,
+                onIssue = onIssue
+            ).toList()
+        }
+
+        val issue = capturedIssues.single().shouldBeInstanceOf<PathActionIssue.PathAlreadyExists>()
+        issue.canRenameSource shouldBe true
+        issue.suggestedName shouldBe "file (1).txt"
+    }
+
+    @Test
+    fun `suggested name skips names that are themselves taken`() = runTest {
+        mockOps.addMockDir("/parent")
+        mockOps.addMockFile("/parent/file.txt", "v1".toByteArray())
+        mockOps.addMockFile("/parent/file (1).txt", "v2".toByteArray())
+
+        issueResolution = PathActionIssue.PathAlreadyExists.Resolution.Cancel()
+
+        assertThrows<CancellationException> {
+            LocalPath.build("/parent/file.txt").createGeneric(
+                fileSystemOps = mockOps,
+                type = CreateAction.CreateType.FILE,
+                onIssue = onIssue
+            ).toList()
+        }
+
+        capturedIssues.single()
+            .shouldBeInstanceOf<PathActionIssue.PathAlreadyExists>()
+            .suggestedName shouldBe "file (2).txt"
     }
 
     @Test

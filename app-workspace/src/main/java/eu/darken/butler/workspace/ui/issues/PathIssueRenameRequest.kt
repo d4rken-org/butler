@@ -17,6 +17,12 @@ data class PathIssueRenameRequest(
     val target: Target,
     val currentName: String,
     val suggestedName: String? = null,
+    /**
+     * Whether the user asked to apply this to every later conflict too. The typed name is still
+     * used only for this one, apply-to-all makes the operation auto-name the rest.
+     * [Target.DESTINATION] never carries it, that resolution has no apply-to-all by design.
+     */
+    val applyToAll: Boolean = false,
 ) {
     enum class Target {
         /** Rename the incoming item. */
@@ -27,7 +33,7 @@ data class PathIssueRenameRequest(
     }
 
     fun toResolution(newName: String): PathActionIssue.PathAlreadyExists.Resolution = when (target) {
-        Target.SOURCE -> PathActionIssue.PathAlreadyExists.Resolution.RenameSource(newName, applyToAll = false)
+        Target.SOURCE -> PathActionIssue.PathAlreadyExists.Resolution.RenameSource(newName, applyToAll = applyToAll)
         Target.DESTINATION -> PathActionIssue.PathAlreadyExists.Resolution.RenameDestination(
             newName,
             applyToAll = false,
