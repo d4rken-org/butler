@@ -7,7 +7,7 @@ assignees: ''
 
 ---
 
-<!-- Thanks for helping me improve Butler! Please make sure to fill out as many info's as possible. More info: https://github.com/d4rken/butler/wiki/Bugs -->
+<!-- Thanks for helping me improve Butler! Please make sure to fill out as many info's as possible. More info: https://github.com/d4rken-org/butler/wiki/Bugs -->
 
 **Describe the bug**
 A clear and concise description of what the bug is.
@@ -31,7 +31,7 @@ A clear and concise description of what you expected to happen.
 - Butler version [e.g. v0.6.6-rc6]
 
 **Debug log**
-If you can reproduce the bug, record the event in [a debug log](https://github.com/d4rken/butler/wiki/Bugs#debug-log).
+If you can reproduce the bug, record the event in [a debug log](https://github.com/d4rken-org/butler/wiki/Bugs#debug-log).
 
 **Screenshots/Video**
 If applicable, add screenshots or a video if it helps to explain your problem.

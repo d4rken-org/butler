@@ -48,7 +48,7 @@ https://docs.github.com/site-policy/privacy-policies/github-privacy-statement
 
 The
 `FOSS` build flavor (i.e. not the Google Play version) of Butler includes an "update check" mechanism that can show a card on the dashboard if a newer version is available.
-Butler sends HTTP requests to GitHub`s servers to retrieve the [latest release](https://github.com/d4rken/butler/releases/latest) information. A GitHub account is not required.
+Butler sends HTTP requests to GitHub`s servers to retrieve the [latest release](https://github.com/d4rken-org/butler/releases/latest) information. A GitHub account is not required.
 
 The update check is optional and can be disabled during onboarding or in the settings.
 

@@ -71,7 +71,7 @@ class SharedLibraryPathClawTest : BaseTest() {
     }
 
     /**
-     * https://github.com/d4rken/butler/issues/539
+     * https://github.com/d4rken-org/butler/issues/539
      * Android 10, Oxygen OS 10.0.1, Oneplus 5
      */
     @Test

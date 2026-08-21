@@ -1097,7 +1097,7 @@ class APathExtensionTest : BaseTest() {
         }
     }
 
-    // https://github.com/d4rken/butler/issues/1100
+    // https://github.com/d4rken-org/butler/issues/1100
     @Test fun `remove prefix SAF - issue 1100`() {
         val searchpath: APath<*> = SAFPath.build(treeUri)
         val path: APath<*> = SAFPath.build(treeUri, "nextcloud", "folder")
