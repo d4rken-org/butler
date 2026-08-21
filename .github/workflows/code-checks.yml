@@ -168,3 +168,20 @@ jobs:
             **/*.hprof
           if-no-files-found: ignore
           retention-days: 7
+
+  check-release-tooling:
+    name: Release tooling
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 #v7.0.0
+        with:
+          persist-credentials: false
+      - name: Install bats and shellcheck
+        run: sudo apt-get update -q && sudo apt-get install -y bats shellcheck
+      - name: Shellcheck bump.sh
+        run: shellcheck tools/release/bump.sh
+      - name: Run bump.sh unit tests
+        run: bats tools/release/bump.bats
+      - name: Live consistency check
+        run: bash tools/release/bump.sh --mode=check
