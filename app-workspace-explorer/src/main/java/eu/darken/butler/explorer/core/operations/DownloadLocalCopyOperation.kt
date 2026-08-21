@@ -78,7 +78,8 @@ class DownloadLocalCopyOperation @AssistedInject constructor(
         }
 
         gatewaySwitch.createDir(command.destinationDir, createParents = true)
-        var destPath = command.destinationDir.child(command.source.name)
+        val destPath = command.destinationDir.child(command.source.name)
+        var overwriteAuthorized = false
         if (gatewaySwitch.exists(destPath)) {
             val resolution = issueHandler.handleIssue(
                 operationContext.id,
@@ -89,7 +90,7 @@ class DownloadLocalCopyOperation @AssistedInject constructor(
                 ),
             )
             when (resolution) {
-                is PathActionIssue.PathAlreadyExists.Resolution.Overwrite -> Unit
+                is PathActionIssue.PathAlreadyExists.Resolution.Overwrite -> overwriteAuthorized = true
                 else -> {
                     log(tag, INFO) { "Conflict prompt dismissed, aborting download" }
                     send(
@@ -138,6 +139,11 @@ class DownloadLocalCopyOperation @AssistedInject constructor(
                 }
             }.also {
                 if (gatewaySwitch.exists(destPath)) {
+                    if (!overwriteAuthorized) {
+                        // Appeared after the conflict check - never delete what the user
+                        // didn't authorize us to replace.
+                        throw WriteException("Destination appeared during download", destPath)
+                    }
                     if (!gatewaySwitch.delete(destPath)) {
                         throw WriteException("Could not replace existing file", destPath)
                     }

@@ -199,4 +199,22 @@ class DownloadLocalCopyOperationTest : BaseTest() {
         coVerify { gatewaySwitch.delete(match<APath<*>> { it.name.endsWith(".part") }, any()) }
         moves.shouldBeEmpty()
     }
+
+    @Test
+    fun `destination appearing mid-download is never deleted without authorization`() = runTest2 {
+        // Absent at the conflict check, so no prompt is shown, present by commit time.
+        coEvery { gatewaySwitch.exists(destPath) } returns false andThen true
+        coEvery { gatewaySwitch.exists(match<APath<*>> { it.name.endsWith(".part") }) } returns true
+
+        val e = shouldThrow<WriteException> {
+            operation().perform(context()).toList()
+        }
+
+        e.message shouldContain "appeared"
+        coVerify(exactly = 0) { issueHandler.handleIssue(any(), any()) }
+        coVerify(exactly = 0) { gatewaySwitch.delete(destPath, any<Boolean>()) }
+        moves.shouldBeEmpty()
+        // Nothing was destroyed, so the temp is a discardable orphan and gets cleaned up.
+        coVerify { gatewaySwitch.delete(match<APath<*>> { it.name.endsWith(".part") }, any<Boolean>()) }
+    }
 }
