@@ -36,12 +36,16 @@ import java.util.Locale
  * The action follows [access] rather than being derived from the source here - the two cases that
  * cannot be browsed need different answers, and only one of them has an action at all. A nested
  * archive gets no button on purpose: saving a copy cannot serve it either.
+ *
+ * [isGone] drops the browse button the same way it drops the bar's entry: the container is no
+ * longer there, so opening it would land the Explorer on nothing.
  */
 @Composable
 fun ArchivePlaceholder(
     modifier: Modifier = Modifier,
     format: ArchiveFormat,
     access: ViewerContent.Archive.Access,
+    isGone: Boolean = false,
     onBrowse: () -> Unit = {},
     onSaveCopy: () -> Unit = {},
     onToggleChrome: (() -> Unit)? = null,
@@ -80,16 +84,18 @@ fun ArchivePlaceholder(
             )
 
             when (access) {
-                ViewerContent.Archive.Access.BROWSABLE -> Button(onClick = onBrowse) {
-                    Icon(
-                        imageVector = Icons.TwoTone.FolderZip,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp),
-                    )
-                    Text(
-                        text = stringResource(R.string.viewer_browse_archive_action),
-                        modifier = Modifier.padding(start = 8.dp),
-                    )
+                ViewerContent.Archive.Access.BROWSABLE -> if (!isGone) {
+                    Button(onClick = onBrowse) {
+                        Icon(
+                            imageVector = Icons.TwoTone.FolderZip,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Text(
+                            text = stringResource(R.string.viewer_browse_archive_action),
+                            modifier = Modifier.padding(start = 8.dp),
+                        )
+                    }
                 }
 
                 ViewerContent.Archive.Access.NEEDS_COPY -> {
@@ -130,6 +136,17 @@ private fun ArchivePlaceholderBrowsablePreview() {
     ArchivePlaceholder(
         format = ArchiveFormat.ZIP,
         access = ViewerContent.Archive.Access.BROWSABLE,
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ArchivePlaceholderGonePreview() {
+    ArchivePlaceholder(
+        format = ArchiveFormat.ZIP,
+        access = ViewerContent.Archive.Access.BROWSABLE,
+        isGone = true,
     )
 }
 

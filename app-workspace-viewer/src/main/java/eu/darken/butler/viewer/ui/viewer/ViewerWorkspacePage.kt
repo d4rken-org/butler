@@ -38,6 +38,7 @@ import eu.darken.butler.viewer.core.ApkInstallState
 import eu.darken.butler.viewer.core.VersionComparison
 import androidx.core.net.toUri
 import eu.darken.butler.viewer.core.ViewerContent
+import eu.darken.butler.viewer.core.ViewerExternalChange
 import eu.darken.butler.viewer.core.ViewerSource
 import eu.darken.butler.viewer.core.ViewerFileInfo
 import eu.darken.butler.workspace.core.Workspace
@@ -481,6 +482,9 @@ private fun ViewerContentArea(
             is ViewerContent.Archive -> ArchivePlaceholder(
                 format = content.format,
                 access = content.access,
+                // Same gate the action bar's entry goes through: a browse button for a container
+                // that is no longer there is a dead end.
+                isGone = state.externalChange == ViewerExternalChange.Gone,
                 onBrowse = onBrowseArchive,
                 onSaveCopy = onSaveCopy,
                 onToggleChrome = onToggleChrome,

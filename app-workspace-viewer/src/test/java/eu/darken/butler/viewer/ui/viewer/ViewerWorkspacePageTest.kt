@@ -374,6 +374,74 @@ class ViewerWorkspacePageTest : ComposeTest() {
         )
     }
 
+    // Built the way the ViewModel builds it, actions included: the bar and the content have to be
+    // looked at together here, they answer the same question for the same file.
+    private fun browsableArchiveState(
+        externalChange: ViewerExternalChange? = null,
+    ): ViewerWorkspaceViewModel.State.Ready {
+        val content = ViewerContent.Archive(
+            mime = MimeInfo("application/zip"),
+            format = ArchiveFormat.ZIP,
+            access = ViewerContent.Archive.Access.BROWSABLE,
+        )
+        val source = ViewerSource.Stored(LocalPath.build("/storage/emulated/0/Download/backup.zip"))
+        return ViewerWorkspaceViewModel.State.Ready(
+            content = content,
+            fileInfo = ViewerFileInfo(size = 1024L),
+            source = source,
+            imageSource = null,
+            actions = viewerActions(
+                source = source,
+                trashEnabled = false,
+                content = content,
+                isGone = externalChange == ViewerExternalChange.Gone,
+            ),
+            externalChange = externalChange,
+        )
+    }
+
+    // The placeholder's own button carries the label as text, the action bar's icon carries it as a
+    // content description - so this matcher only ever sees the button inside the content.
+    private fun browseButton() = composeTestRule
+        .onNodeWithText(context.getString(R.string.viewer_browse_archive_action))
+
+    @Test
+    fun `an archive that is gone offers no way into it`() {
+        // The bar drops its entry for a container that is no longer there; the button in the
+        // content has to go with it, or it opens an Explorer tab on nothing.
+        composeTestRule.setContent {
+            PreviewWrapper {
+                ViewerWorkspacePage(
+                    workspaceId = Workspace.Id(),
+                    design = WorkspaceDesign(layout = WorkspaceDesign.Layout.DUAL_VERTICAL),
+                    state = browsableArchiveState(ViewerExternalChange.Gone),
+                )
+            }
+        }
+
+        browseButton().assertDoesNotExist()
+    }
+
+    @Test
+    fun `an archive that is still there offers a way into it`() {
+        var browsed = 0
+        composeTestRule.setContent {
+            PreviewWrapper {
+                ViewerWorkspacePage(
+                    workspaceId = Workspace.Id(),
+                    design = WorkspaceDesign(layout = WorkspaceDesign.Layout.DUAL_VERTICAL),
+                    state = browsableArchiveState(),
+                    onBrowseArchive = { browsed++ },
+                )
+            }
+        }
+
+        browseButton().assertIsDisplayed()
+        browseButton().performClick()
+
+        browsed shouldBe 1
+    }
+
     @Test
     fun `back closes a drill-down that is still loading`() {
         pressBack(ViewerWorkspaceViewModel.State.Initializing, callerWorkspaceId = Workspace.Id()) shouldBe 1
