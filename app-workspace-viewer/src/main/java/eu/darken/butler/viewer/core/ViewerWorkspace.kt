@@ -47,7 +47,10 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
 
@@ -96,6 +99,9 @@ class ViewerWorkspace @AssistedInject constructor(
     val state: StateFlow<State> = stateFlow
 
     private var loadJob: Job? = null
+
+    /** One probe at a time, so two poll ticks cannot interleave their verdicts. */
+    private val externalChangeMutex = Mutex()
 
     private val seedDisplay = deriveViewerDisplay(creationArguments)
 
@@ -171,6 +177,69 @@ class ViewerWorkspace @AssistedInject constructor(
         return operationsManager.submit(executable)
     }
 
+    /**
+     * Compares the file on display against the metadata it was loaded with, and latches the verdict
+     * into [State.externalChange].
+     *
+     * The flag only ever escalates: nothing but a [reload] clears it, and [ViewerExternalChange.Gone]
+     * is terminal. A probe that cannot reach the file changes nothing, because an unreadable file is
+     * no evidence either way.
+     *
+     * Size plus mtime is all a gateway can offer cheaply. SAF and the root/ADB gateways report a
+     * coarse or absent mtime, so an in-place edit that keeps the size can go undetected there - the
+     * same limitation the editor's poll-side probe has.
+     */
+    suspend fun checkExternalChange() = externalChangeMutex.withLock {
+        try {
+            probeExternalChange()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            log(tag, WARN) { "checkExternalChange() failed - ${e.asLog()}" }
+        }
+    }
+
+    private suspend fun probeExternalChange() {
+        if (source !is ViewerSource.Stored) return
+        val snapshot = stateFlow.value
+        if (snapshot.externalChange == ViewerExternalChange.Gone) return
+        // Nothing was ever rendered, so there is no baseline a verdict could be about.
+        val baseline = snapshot.contentLookup ?: return
+        val effectivePath = baseline.lookedUp
+
+        val current = try {
+            gatewaySwitch.useRes { gatewaySwitch.lookup(effectivePath, LookupOptions.BASE) }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            log(tag) { "Probe lookup failed for $effectivePath: ${e.asLog()}" }
+            if (isGone(effectivePath)) latchExternalChange(baseline, ViewerExternalChange.Gone)
+            return
+        }
+
+        val changed = current.size != baseline.size ||
+            (baseline.modifiedAt != null && current.modifiedAt != null && current.modifiedAt != baseline.modifiedAt)
+        if (changed) latchExternalChange(baseline, ViewerExternalChange.Modified)
+    }
+
+    private fun latchExternalChange(baseline: APathLookup<*>, verdict: ViewerExternalChange) {
+        stateFlow.update { current ->
+            when {
+                // A probe suspended across a load must not land a verdict about the file the
+                // previous baseline described.
+                current.contentLookup !== baseline -> current
+                current.externalChange == ViewerExternalChange.Gone -> current
+                current.externalChange == ViewerExternalChange.Modified &&
+                    verdict != ViewerExternalChange.Gone -> current
+
+                else -> {
+                    log(tag, INFO) { "External change for ${baseline.lookedUp}: $verdict" }
+                    current.copy(externalChange = verdict)
+                }
+            }
+        }
+    }
+
     fun resolveConflict(operationId: Operation.Id, resolution: PathActionIssue.Resolution) {
         log(tag, INFO) { "resolveConflict($operationId, $resolution)" }
         scope.launch { issueHandler.resolveIssue(operationId, resolution) }
@@ -227,7 +296,7 @@ class ViewerWorkspace @AssistedInject constructor(
             log(tag, WARN) { "Lookup failed for $filePath: ${e.asLog()}" }
             // A file deleted behind the viewer's back surfaces as a gateway permission error, which
             // would send the user looking for an access problem that does not exist.
-            val error = if (isGone()) ViewerFileGoneException(filePath, e) else e
+            val error = if (isGone(filePath)) ViewerFileGoneException(filePath, e) else e
             stateFlow.value = State(content = ViewerContent.Failed(error))
             return
         }
@@ -242,17 +311,32 @@ class ViewerWorkspace @AssistedInject constructor(
 
         // A restored session can point at a path that has since become a directory, a dangling
         // symlink or a truncated file. None of those may render as a blank image.
-        val rejection = validate(filePath, lookup)
-        if (rejection != null) {
-            log(tag, WARN) { "Rejecting $filePath: $rejection" }
-            stateFlow.value = State(content = ViewerContent.Failed(rejection), fileInfo = fileInfo, lookup = lookup)
+        val validation = validate(filePath, lookup)
+        if (validation is Validation.Rejected) {
+            log(tag, WARN) { "Rejecting $filePath: ${validation.error}" }
+            stateFlow.value = State(
+                content = ViewerContent.Failed(validation.error),
+                fileInfo = fileInfo,
+                lookup = lookup,
+                contentLookup = validation.contentLookup,
+            )
             return
         }
 
-        classify(MimeInfo.fromFileName(lookup.name), fileInfo, lookup)
+        classify(
+            mime = MimeInfo.fromFileName(lookup.name),
+            fileInfo = fileInfo,
+            lookup = lookup,
+            contentLookup = (validation as Validation.Accepted).contentLookup,
+        )
     }
 
-    private suspend fun classify(mime: MimeInfo, fileInfo: ViewerFileInfo, lookup: APathLookup<*>?) {
+    private suspend fun classify(
+        mime: MimeInfo,
+        fileInfo: ViewerFileInfo,
+        lookup: APathLookup<*>?,
+        contentLookup: APathLookup<*>? = null,
+    ) {
         if (mime.isApk) {
             // The framework parser takes a path, so an APK always arrives as a real file - the
             // arrival flow imports one rather than streaming it. Anything else is a routing bug.
@@ -262,7 +346,7 @@ class ViewerWorkspace @AssistedInject constructor(
                 stateFlow.value = State(content = ViewerContent.Unsupported(mime), fileInfo = fileInfo)
                 return
             }
-            loadApk(apkPath, mime, fileInfo, lookup)
+            loadApk(apkPath, mime, fileInfo, lookup, contentLookup)
             return
         }
 
@@ -272,17 +356,32 @@ class ViewerWorkspace @AssistedInject constructor(
             val pageCount = pdfPreviewLoader.pageCount(source)
             stateFlow.value = if (pageCount == null) {
                 log(tag, WARN) { "$source is a PDF that cannot be rendered" }
-                State(content = ViewerContent.Unsupported(mime), fileInfo = fileInfo, lookup = lookup)
+                State(
+                    content = ViewerContent.Unsupported(mime),
+                    fileInfo = fileInfo,
+                    lookup = lookup,
+                    contentLookup = contentLookup,
+                )
             } else {
                 log(tag, INFO) { "$source is a PDF with $pageCount page(s)" }
-                State(content = ViewerContent.PdfPreview(mime, pageCount), fileInfo = fileInfo, lookup = lookup)
+                State(
+                    content = ViewerContent.PdfPreview(mime, pageCount),
+                    fileInfo = fileInfo,
+                    lookup = lookup,
+                    contentLookup = contentLookup,
+                )
             }
             return
         }
 
         if (!mime.isImage) {
             log(tag, INFO) { "$source is not an image ($mime)" }
-            stateFlow.value = State(content = ViewerContent.Unsupported(mime), fileInfo = fileInfo, lookup = lookup)
+            stateFlow.value = State(
+                content = ViewerContent.Unsupported(mime),
+                fileInfo = fileInfo,
+                lookup = lookup,
+                contentLookup = contentLookup,
+            )
             return
         }
 
@@ -301,7 +400,12 @@ class ViewerWorkspace @AssistedInject constructor(
                 if (!mime.isVectorImage) {
                     val error = ViewerUndecodableImageException(source.displayName)
                     log(tag, WARN) { "Rejecting $source: $error" }
-                    stateFlow.value = State(content = ViewerContent.Failed(error), fileInfo = fileInfo, lookup = lookup)
+                    stateFlow.value = State(
+                        content = ViewerContent.Failed(error),
+                        fileInfo = fileInfo,
+                        lookup = lookup,
+                        contentLookup = contentLookup,
+                    )
                     return
                 }
                 ViewerFileInfo.ImageInfo(format = mime.rawType)
@@ -310,7 +414,12 @@ class ViewerWorkspace @AssistedInject constructor(
             is ProbeResult.ProbeFailed -> {
                 // A stream that cannot be opened or read is a real failure for any format.
                 log(tag, WARN) { "Probing $source failed: ${probe.error.asLog()}" }
-                stateFlow.value = State(content = ViewerContent.Failed(probe.error), fileInfo = fileInfo, lookup = lookup)
+                stateFlow.value = State(
+                    content = ViewerContent.Failed(probe.error),
+                    fileInfo = fileInfo,
+                    lookup = lookup,
+                    contentLookup = contentLookup,
+                )
                 return
             }
         }
@@ -319,6 +428,7 @@ class ViewerWorkspace @AssistedInject constructor(
             content = ViewerContent.Image(mime),
             fileInfo = fileInfo.copy(imageInfo = imageInfo),
             lookup = lookup,
+            contentLookup = contentLookup,
         )
     }
 
@@ -327,12 +437,18 @@ class ViewerWorkspace @AssistedInject constructor(
         mime: MimeInfo,
         fileInfo: ViewerFileInfo,
         lookup: APathLookup<*>?,
+        contentLookup: APathLookup<*>?,
     ) {
         val apkInfo = apkArchiveParser.parseFile(filePath)
         if (apkInfo == null) {
             val error = ViewerApkParseException(filePath)
             log(tag, WARN) { "Rejecting $filePath: $error" }
-            stateFlow.value = State(content = ViewerContent.Failed(error), fileInfo = fileInfo, lookup = lookup)
+            stateFlow.value = State(
+                content = ViewerContent.Failed(error),
+                fileInfo = fileInfo,
+                lookup = lookup,
+                contentLookup = contentLookup,
+            )
             return
         }
 
@@ -367,41 +483,72 @@ class ViewerWorkspace @AssistedInject constructor(
             content = ViewerContent.Apk(mime = mime, apkInfo = apkInfo, installState = installState),
             fileInfo = fileInfo,
             lookup = lookup,
+            contentLookup = contentLookup,
         )
     }
 
     /** Only a definitive "not there" counts; a failing check stays with the original error. */
-    private suspend fun isGone(): Boolean = try {
-        val filePath = storedPath ?: return false
+    private suspend fun isGone(path: APath<*>?): Boolean = try {
+        val filePath = path ?: return false
         !gatewaySwitch.useRes { gatewaySwitch.exists(filePath) }
     } catch (e: CancellationException) {
         throw e
     } catch (e: Exception) {
-        log(tag, WARN) { "Existence check failed for $source: ${e.asLog()}" }
+        log(tag, WARN) { "Existence check failed for $path: ${e.asLog()}" }
         false
     }
 
-    private suspend fun validate(filePath: APath<*>, lookup: APathLookup<APath<*>>): Throwable? =
+    /**
+     * Outcome of [validate]. Both outcomes can name the file this viewer is bound to - for a symlink
+     * the target rather than the link node - which becomes [State.contentLookup] and with it the
+     * baseline [checkExternalChange] compares against.
+     */
+    private sealed interface Validation {
+        /**
+         * [contentLookup] is set only where watching the file can still lead somewhere, i.e. for an
+         * empty file that may yet gain content. A directory, a non-file or a broken symlink stays
+         * without one on purpose: a directory's mtime moves with every change inside it, which would
+         * put a "File changed" banner over a "Not a file" placeholder for a reason the user cannot
+         * act on.
+         */
+        data class Rejected(val error: Throwable, val contentLookup: APathLookup<*>? = null) : Validation
+
+        data class Accepted(val contentLookup: APathLookup<*>) : Validation
+    }
+
+    private suspend fun validate(filePath: APath<*>, lookup: APathLookup<APath<*>>): Validation =
         when (lookup.fileType) {
-            FileType.FILE -> if (lookup.size == 0L) ViewerEmptyFileException(filePath) else null
-            FileType.DIRECTORY, FileType.UNKNOWN -> ViewerNotAFileException(filePath)
+            FileType.FILE -> when (lookup.size) {
+                0L -> Validation.Rejected(ViewerEmptyFileException(filePath), contentLookup = lookup)
+                else -> Validation.Accepted(lookup)
+            }
+
+            FileType.DIRECTORY, FileType.UNKNOWN -> Validation.Rejected(ViewerNotAFileException(filePath))
             FileType.SYMBOLIC_LINK -> validateSymlink(filePath, lookup)
         }
 
-    private suspend fun validateSymlink(filePath: APath<*>, lookup: APathLookup<APath<*>>): Throwable? {
-        val target = lookup.target ?: return ViewerBrokenSymlinkException(filePath)
+    /**
+     * Single-level resolution, which is also what the external-change probe compares against: the
+     * link node's own metadata never moves when its target is rewritten or deleted.
+     */
+    private suspend fun validateSymlink(filePath: APath<*>, lookup: APathLookup<APath<*>>): Validation {
+        val target = lookup.target ?: return Validation.Rejected(ViewerBrokenSymlinkException(filePath))
         val targetLookup = try {
             gatewaySwitch.useRes { gatewaySwitch.lookup(target, LookupOptions.BASE) }
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             log(tag, WARN) { "Symlink target lookup failed for $target: ${e.asLog()}" }
-            return ViewerBrokenSymlinkException(filePath)
+            return Validation.Rejected(ViewerBrokenSymlinkException(filePath))
         }
         return when {
-            targetLookup.fileType != FileType.FILE -> ViewerNotAFileException(filePath)
-            targetLookup.size == 0L -> ViewerEmptyFileException(filePath)
-            else -> null
+            targetLookup.fileType != FileType.FILE -> Validation.Rejected(ViewerNotAFileException(filePath))
+            // The target is the file that would grow, not the link.
+            targetLookup.size == 0L -> Validation.Rejected(
+                ViewerEmptyFileException(filePath),
+                contentLookup = targetLookup,
+            )
+            else -> Validation.Accepted(targetLookup)
         }
     }
 
@@ -450,6 +597,15 @@ class ViewerWorkspace @AssistedInject constructor(
          * paths - keeping this one spares a second gateway round trip when the user copies or cuts.
          */
         val lookup: APathLookup<*>? = null,
+        /**
+         * The file this viewer is bound to and would render: the symlink target where there is one
+         * and [lookup] otherwise. Set even when nothing is on display - an unsupported, undecodable
+         * or empty file still has one, so bytes that arrive later can be noticed. Doubles as the
+         * baseline [checkExternalChange] compares against.
+         */
+        val contentLookup: APathLookup<*>? = null,
+        /** What the last probe found on disk, or null while the file still matches what was loaded. */
+        val externalChange: ViewerExternalChange? = null,
     )
 
     @AssistedFactory

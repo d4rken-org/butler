@@ -18,6 +18,7 @@ import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.viewer.R
 import eu.darken.butler.viewer.core.ViewerContent
+import eu.darken.butler.viewer.core.ViewerExternalChange
 import eu.darken.butler.viewer.core.ViewerSource
 import eu.darken.butler.viewer.core.ViewerFileInfo
 import eu.darken.butler.workspace.core.Workspace
@@ -25,6 +26,7 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import io.kotest.matchers.shouldBe
 import org.junit.Test
 import testhelpers.ComposeTest
+import eu.darken.butler.common.R as CommonR
 
 class ViewerWorkspacePageTest : ComposeTest() {
 
@@ -275,6 +277,69 @@ class ViewerWorkspacePageTest : ComposeTest() {
         composeTestRule
             .onNodeWithText(context.getString(R.string.viewer_unsupported_title))
             .assertDoesNotExist()
+    }
+
+    // Page level rather than banner level on purpose: a hidden FloatingBar keeps its content
+    // composed, so only the page can prove the notice is actually on screen.
+    private fun changeBanner() = composeTestRule
+        .onNodeWithText(context.getString(R.string.viewer_external_change_title))
+
+    @Test
+    fun `a changed file offers a refresh over the content`() {
+        var retries = 0
+        composeTestRule.setContent {
+            PreviewWrapper {
+                ViewerWorkspacePage(
+                    workspaceId = Workspace.Id(),
+                    design = WorkspaceDesign(layout = WorkspaceDesign.Layout.DUAL_VERTICAL),
+                    state = readyState.copy(externalChange = ViewerExternalChange.Modified),
+                    onRetry = { retries++ },
+                )
+            }
+        }
+
+        changeBanner().assertIsDisplayed()
+
+        composeTestRule
+            .onNodeWithText(context.getString(CommonR.string.general_refresh_action))
+            .performClick()
+
+        retries shouldBe 1
+    }
+
+    @Test
+    fun `an external change brings the chrome back after it was tapped away`() {
+        // The chrome is gone whenever the user tapped the picture away or zoomed in, which is
+        // exactly when a silent notice would be worth nothing.
+        var change by mutableStateOf<ViewerExternalChange?>(null)
+        composeTestRule.setContent {
+            PreviewWrapper {
+                ViewerWorkspacePage(
+                    workspaceId = Workspace.Id(),
+                    design = WorkspaceDesign(layout = WorkspaceDesign.Layout.DUAL_VERTICAL),
+                    state = unsupportedState(ViewerContent.Unsupported(MimeInfo("application/zip")))
+                        .copy(externalChange = change),
+                )
+            }
+        }
+
+        tapContent()
+        actionBar().assertIsNotDisplayed()
+
+        composeTestRule.runOnIdle { change = ViewerExternalChange.Modified }
+
+        changeBanner().assertIsDisplayed()
+    }
+
+    @Test
+    fun `a file that is gone keeps only the actions that do not need it`() {
+        // Handing it to another app, clipping it or deleting it all need the file. The folder is
+        // still there, so opening its location stays.
+        val source = ViewerSource.Stored(LocalPath.build("/storage/emulated/0/DCIM/photo.jpg"))
+
+        viewerActions(source, trashEnabled = true, isGone = true) shouldBe listOf(
+            ViewerActionBarItem.OpenLocation(isEnabled = true),
+        )
     }
 
     @Test

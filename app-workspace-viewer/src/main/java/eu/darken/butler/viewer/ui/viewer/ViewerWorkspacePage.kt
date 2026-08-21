@@ -16,6 +16,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -51,6 +55,9 @@ import me.saket.telephoto.zoomable.ZoomableState
 import me.saket.telephoto.zoomable.rememberZoomableState
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.seconds
+
+private val VIEWER_EXTERNAL_CHANGE_POLL_INTERVAL = 15.seconds
 
 /** Page-level intents the viewer hands back to its host. */
 sealed interface ViewerPageAction {
@@ -74,6 +81,18 @@ fun ViewerWorkspacePageHost(
     LaunchedEffect(vm) {
         vm.toastEvents.collect { message ->
             Toast.makeText(context, message.get(context), Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // External-change polling only runs while this page is resumed; background tabs stay quiet. The
+    // probe comes first and the wait after, so a tab returning to the foreground checks right away.
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(vm) {
+        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            while (true) {
+                vm.checkExternalChange()
+                delay(VIEWER_EXTERNAL_CHANGE_POLL_INTERVAL)
+            }
         }
     }
 
@@ -198,6 +217,13 @@ fun ViewerWorkspacePage(
         chromeVisible = !zoomedIn
     }
 
+    // The notice would be silent exactly when it matters: the chrome is gone whenever the user has
+    // tapped the picture away, and zooming in hides it on its own.
+    val externalChange = (state as? ViewerWorkspaceViewModel.State.Ready)?.externalChange
+    LaunchedEffect(externalChange) {
+        if (externalChange != null) chromeVisible = true
+    }
+
     // Remembered, not rebuilt per composition: this ends up as the `pointerInput` key of the tap
     // detectors below, and a key that changes every frame restarts the detector - cancelling any
     // gesture already in flight, so taps land only when the page happens to be idle.
@@ -288,6 +314,19 @@ fun ViewerWorkspacePage(
                                     { onPageAction(ViewerPageAction.Close) }
                                 } else null,
                             )
+                        }
+
+                        FloatingBar(
+                            key = ViewerBarKeys.EXTERNAL_CHANGE,
+                            visible = chromeShown && externalChange != null,
+                            scrollBehavior = BarScrollBehavior.HideOnScroll,
+                            animation = BarAnimation.Slide(),
+                            // A bar scrolled away before the file changed has to come back for it.
+                            revealOn = externalChange,
+                        ) {
+                            externalChange?.let {
+                                ViewerExternalChangeBanner(change = it, onRefresh = onRetry)
+                            }
                         }
                     },
                 )

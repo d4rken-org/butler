@@ -28,8 +28,10 @@ import eu.darken.butler.viewer.core.GatewayZoomableImageSource
 import eu.darken.butler.viewer.core.IconSaveDecision
 import eu.darken.butler.viewer.core.decideIconSave
 import eu.darken.butler.viewer.core.PdfPreviewLoader
+import eu.darken.butler.viewer.core.ViewerBrokenSymlinkException
 import eu.darken.butler.viewer.core.ViewerContent
 import eu.darken.butler.viewer.core.ViewerSource
+import eu.darken.butler.viewer.core.ViewerExternalChange
 import eu.darken.butler.viewer.core.ViewerFileInfo
 import eu.darken.butler.viewer.core.ViewerFileGoneException
 import eu.darken.butler.viewer.core.ViewerIconUnavailableException
@@ -125,10 +127,13 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
         workspace.source to attempt
     }
         .distinctUntilChanged()
-        .map { (source, _) ->
+        .map { (source, attempt) ->
             imageSourceFactory.create(
                 source = source,
-                onError = { renderErrorFlow.value = it },
+                // Tagged with the attempt that created this source: [renderErrorFlow] is one global
+                // slot, and a disposed source reporting its failure late would otherwise poison the
+                // fresh attempt that replaced it.
+                onError = { if (attemptFlow.value == attempt) renderErrorFlow.value = it },
             )
         }
 
@@ -194,14 +199,30 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
         trashSettings.enabled.flow,
     ) { snapshot, renderError, imageSource, pdfPage, trashEnabled ->
         val (source, workspaceState) = snapshot
-        val content = renderError?.let { ViewerContent.Failed(it) } ?: workspaceState.content
+        // The workspace did the actual lookup, so its failure outranks a render error. Refreshing a
+        // deleted file briefly composes an image source against the missing file, and that generic
+        // decode error must not replace the accurate "this file is gone" card.
+        val content = when {
+            workspaceState.content is ViewerContent.Failed -> workspaceState.content
+            renderError != null -> ViewerContent.Failed(renderError)
+            else -> workspaceState.content
+        }
+        // Every verdict that means "the content is unreachable" has to count. A reload clears the
+        // probe's flag and reports the loss as a failure instead: as a gone file when the path
+        // itself vanished, or as a broken symlink when the link survived its target. The actions
+        // must stay hidden in all three cases.
+        val failure = (workspaceState.content as? ViewerContent.Failed)?.error
+        val isGone = workspaceState.externalChange == ViewerExternalChange.Gone ||
+            failure is ViewerFileGoneException ||
+            failure is ViewerBrokenSymlinkException
         State.Ready(
             content = content,
             fileInfo = workspaceState.fileInfo,
             source = source,
             imageSource = imageSource.takeIf { content is ViewerContent.Image },
             pdfPage = pdfPage.takeIf { content is ViewerContent.PdfPreview },
-            actions = viewerActions(source = source, trashEnabled = trashEnabled),
+            actions = viewerActions(source = source, trashEnabled = trashEnabled, isGone = isGone),
+            externalChange = workspaceState.externalChange,
         ) as State
     }
         .catch { emit(State.Error(it)) }
@@ -277,6 +298,15 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
     fun shareError(error: Throwable) {
         log(tag) { "shareError($error)" }
         chrome.shareWorkspaceError(error, "Viewer workspace ${id.shortTag}")
+    }
+
+    /**
+     * Suspends rather than launching: the page polls this on a timer, and a fire-and-forget probe
+     * would let the next tick start before a slow root or ADB gateway answered, leaving two probes
+     * in flight and outliving the page's RESUMED window.
+     */
+    suspend fun checkExternalChange() {
+        workspaceSource.first().checkExternalChange()
     }
 
     fun retry() = launch {
@@ -708,6 +738,7 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
             val imageSource: ZoomableImageSource?,
             val pdfPage: PdfPage? = null,
             val actions: List<ViewerActionBarItem> = viewerActions(source, trashEnabled = false),
+            val externalChange: ViewerExternalChange? = null,
         ) : State
     }
 
@@ -733,23 +764,36 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
  * setting can be on for a file the trash cannot hold, and the confirmation dialog asks the same
  * function - an icon promising a recoverable delete over a dialog promising a permanent one is the
  * drift that shared function exists to prevent.
+ *
+ * [isGone] drops everything that needs the file itself, the same way streamed content never gets
+ * those entries. Opening its location survives: the folder is still there, and it is where the user
+ * would go looking for what happened to the file.
  */
-internal fun viewerActions(source: ViewerSource, trashEnabled: Boolean): List<ViewerActionBarItem> =
-    when (source) {
-        is ViewerSource.Streamed -> listOf(ViewerActionBarItem.SaveCopy)
+internal fun viewerActions(
+    source: ViewerSource,
+    trashEnabled: Boolean,
+    isGone: Boolean = false,
+): List<ViewerActionBarItem> = when (source) {
+    is ViewerSource.Streamed -> listOf(ViewerActionBarItem.SaveCopy)
 
-        is ViewerSource.Stored -> listOf(
-            ViewerActionBarItem.OpenWith,
-            ViewerActionBarItem.Share,
-            ViewerActionBarItem.Copy,
-            ViewerActionBarItem.Cut,
-            ViewerActionBarItem.OpenLocation(isEnabled = source.path.parent != null),
-            ViewerActionBarItem.Delete(
-                trashEnabled = trashEnabled &&
-                    partitionByTrashSupport(setOf(source.path)).trashable.isNotEmpty(),
-            ),
-        )
+    is ViewerSource.Stored -> buildList {
+        if (!isGone) {
+            add(ViewerActionBarItem.OpenWith)
+            add(ViewerActionBarItem.Share)
+            add(ViewerActionBarItem.Copy)
+            add(ViewerActionBarItem.Cut)
+        }
+        add(ViewerActionBarItem.OpenLocation(isEnabled = source.path.parent != null))
+        if (!isGone) {
+            add(
+                ViewerActionBarItem.Delete(
+                    trashEnabled = trashEnabled &&
+                        partitionByTrashSupport(setOf(source.path)).trashable.isNotEmpty(),
+                ),
+            )
+        }
     }
+}
 
 /**
  * Where a page step lands, or null when it would not move. [displayedIndex] is clamped first: a

@@ -13,6 +13,7 @@ package eu.darken.butler.viewer.ui.viewer
  */
 internal object ViewerBarKeys {
     const val TOOLBAR = "toolbar"
+    const val EXTERNAL_CHANGE = "externalchange"
     const val ACTIONS = "actions"
     const val FILEINFO = "fileinfo"
     const val PDF_HINT = "pdfhint"

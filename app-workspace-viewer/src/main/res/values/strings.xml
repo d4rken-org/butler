@@ -60,6 +60,12 @@
     <string name="viewer_apk_icon_overwrite_message">%1$s already exists in this folder. Saving the icon replaces it.</string>
     <string name="viewer_apk_icon_overwrite_confirm">Replace</string>
 
+    <!-- External change notice -->
+    <string name="viewer_external_change_title">File changed</string>
+    <string name="viewer_external_change_message">This file changed on the device. Refresh to load it again.</string>
+    <string name="viewer_external_change_gone_title">File is gone</string>
+    <string name="viewer_external_change_gone_message">This file was deleted or can no longer be reached.</string>
+
     <!-- Errors -->
     <string name="viewer_error_title">Can\'t show this file</string>
     <string name="viewer_error_not_a_file_label">Not a file</string>

@@ -113,6 +113,20 @@ class ViewerWorkspaceStreamedTest : BaseTest() {
     }
 
     @Test
+    fun `streamed content is never probed for external changes`() = runTest {
+        // There is no path to re-look-up, and the sending app's grant is the only thing that could
+        // change - which a metadata probe cannot see.
+        coEvery { imageProbe.probe(any()) } returns ProbeResult.Probed(4032, 3024, "image/jpeg")
+        val workspace = workspace()
+        workspace.state.first()
+
+        workspace.checkExternalChange()
+
+        workspace.state.value.externalChange.shouldBeNull()
+        coVerify(exactly = 0) { gatewaySwitch.lookup(any(), any()) }
+    }
+
+    @Test
     fun `a streamed workspace refuses to be persisted or paused`() = runTest {
         coEvery { imageProbe.probe(any()) } returns ProbeResult.Probed(4032, 3024, "image/jpeg")
         val workspace = workspace()
