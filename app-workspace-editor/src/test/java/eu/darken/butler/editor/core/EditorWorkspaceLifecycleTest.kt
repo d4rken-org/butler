@@ -224,8 +224,8 @@ class EditorWorkspaceLifecycleTest : BaseTest() {
         )
         try {
             workspace.awaitFile("doc.txt")
-
-            workspace.info.value.isPausable shouldBe true
+            // The content-source collector runs asynchronously, so wait for it to have seen the file
+            withTimeout(10_000) { workspace.info.first { it.isPausable } }
         } finally {
             workspace.release()
         }
