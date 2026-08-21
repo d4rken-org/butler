@@ -46,6 +46,8 @@ import java.io.InputStream
 import java.io.PipedInputStream
 import java.io.PipedOutputStream
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 class FlowCmdShellTest : BaseTest() {
     @BeforeEach
@@ -442,6 +444,71 @@ class FlowCmdShellTest : BaseTest() {
         }
     }
 
+    @Test fun `close waits for an in-flight command before tearing down the streams`(): Unit = runBlocking {
+        // Holding the end markers keeps the command provably in flight while the process is already
+        // gone. A process exit does not mean its pipes were read to the end, so cancelling the
+        // shared stream relays in that window drops whatever is still buffered - including the
+        // exit-code marker - and the command fails as if the shell had died externally.
+        // The drain window is widened so the death-watcher does not cut the harvesters loose while
+        // the test deliberately stretches the in-flight phase.
+        LoopbackShell(exitCodeValue = 5, holdEndMarkers = true).use { shell ->
+            val session = shell.cmdSession(deathDrainIdleMs = 5_000)
+
+            val execution = async(Dispatchers.IO) { session.execute(FlowCmd("echo one")) }
+            // Explicit signal instead of a delay: the interpreter is parked on the gate, so the
+            // command is provably mid-harvest rather than merely "not done yet".
+            withContext(Dispatchers.IO) { shell.awaitEndMarkersHeld() }
+            execution.isCompleted shouldBe false
+
+            val closeEntered = CompletableDeferred<Unit>()
+            val closing = async(Dispatchers.IO) {
+                closeEntered.complete(Unit)
+                session.close()
+            }
+            closeEntered.await()
+            // Satisfies close()'s waitFor(), so the in-flight command is the only thing left to wait
+            // for. Returning here would mean the streams were torn down under a live command.
+            shell.exitCode.value = FlowProcess.ExitCode(5)
+            withTimeoutOrNull(500) { closing.await() } shouldBe null
+
+            shell.releaseEndMarkers()
+
+            withTimeout(5_000) { execution.await() }.apply {
+                output shouldBe listOf("one")
+                exitCode shouldBe FlowProcess.ExitCode(5)
+            }
+            withTimeout(5_000) { closing.await() }
+        }
+    }
+
+    @Test fun `a command submitted while closing is rejected instead of racing the exit`(): Unit = runBlocking {
+        // `exit` is already on its way to the shell, so submitting would hand the command to a
+        // shell that is about to quit: no end marker could come back and it would fail as if the
+        // shell had died externally. It has to be turned away before anything is written.
+        LoopbackShell().use { shell ->
+            val session = shell.cmdSession()
+
+            val closeEntered = CompletableDeferred<Unit>()
+            val closing = async(Dispatchers.IO) {
+                closeEntered.complete(Unit)
+                session.close()
+            }
+            closeEntered.await()
+            // The shell reading `exit` proves close() is past its state change, and close() itself
+            // stays parked in waitFor() until the fixture reports an exit.
+            withContext(Dispatchers.IO) { shell.awaitConsumed("exit") }
+
+            withTimeout(5_000) {
+                shouldThrowExactly<IllegalStateException> { session.execute(FlowCmd("echo late")) }
+            }
+            session.isUsable() shouldBe false
+            shell.consumedLines().none { it.contains("late") } shouldBe true
+
+            shell.exitCode.value = FlowProcess.ExitCode(0)
+            withTimeout(5_000) { closing.await() }
+        }
+    }
+
     @Test fun `process death before drain does not truncate buffered output`(): Unit = runBlocking {
         val lines = 120_000
         // The payload has to outgrow the fixture's pipe buffer, otherwise the interpreter never
@@ -569,6 +636,7 @@ class FlowCmdShellTest : BaseTest() {
         private val dieAfterProtocol: Boolean = false,
         private val closePipesAfterProtocol: Boolean = false,
         private val closePipesOnExecLine: Boolean = false,
+        private val holdEndMarkers: Boolean = false,
     ) : AutoCloseable {
 
         val exitCode = MutableStateFlow<FlowProcess.ExitCode?>(null)
@@ -582,6 +650,14 @@ class FlowCmdShellTest : BaseTest() {
         private val stdoutSink = PipedOutputStream(stdoutSource)
         private val stderrSource = PipedInputStream(PIPE_BUFFER)
         private val stderrSink = PipedOutputStream(stderrSource)
+
+        // Lets a test hold a command in flight: the interpreter stops before echoing either end
+        // marker, so execute() is provably still harvesting while the test drives close().
+        private val endMarkerGate = CountDownLatch(1)
+
+        // Counted down right before the interpreter parks on the gate, so a test can wait for the
+        // hold to be in effect instead of inferring it from "nothing happened yet".
+        private val endMarkerHeld = CountDownLatch(1)
 
         @Volatile private var closing = false
         @Volatile private var failure: Throwable? = null
@@ -605,6 +681,21 @@ class FlowCmdShellTest : BaseTest() {
         }
 
         fun consumedLines(): List<String> = consumed.toList()
+
+        fun awaitEndMarkersHeld() = check(endMarkerHeld.await(WATCHDOG_MS, TimeUnit.MILLISECONDS)) {
+            "Interpreter never reached the end-marker gate"
+        }
+
+        /** Blocks until the shell has read [line] off stdin. The timeout is a watchdog. */
+        fun awaitConsumed(line: String) {
+            val deadline = System.nanoTime() + WATCHDOG_MS * 1_000_000
+            while (consumed.none { it == line }) {
+                check(System.nanoTime() < deadline) { "Interpreter never consumed: $line" }
+                Thread.sleep(10)
+            }
+        }
+
+        fun releaseEndMarkers() = endMarkerGate.countDown()
 
         fun cmdSession(deathDrainIdleMs: Long? = null): FlowCmdShell.Session {
             val process = mockk<Process>().apply {
@@ -630,6 +721,11 @@ class FlowCmdShellTest : BaseTest() {
         private fun handle(line: String) {
             consumed.add(line)
             val isProtocolEnd = END_MARKER_ECHO.matches(line)
+
+            if (holdEndMarkers && (isProtocolEnd || END_MARKER_ECHO_OUT.matches(line))) {
+                endMarkerHeld.countDown()
+                endMarkerGate.await()
+            }
 
             if (isProtocolEnd && closeStderrBeforeEndMarker) closeQuietly(stderrSink)
 
@@ -689,6 +785,8 @@ class FlowCmdShellTest : BaseTest() {
 
         override fun close() {
             closing = true
+            // A still-held gate would strand the interpreter thread in the join below
+            endMarkerGate.countDown()
             closeQuietly(stdinSink)
             interpreter.join(2_000)
             listOf(stdoutSink, stderrSink, stdinSource, stdoutSource, stderrSource).forEach { closeQuietly(it) }
@@ -699,7 +797,9 @@ class FlowCmdShellTest : BaseTest() {
 
         companion object {
             private const val PIPE_BUFFER = 1 shl 20
+            private const val WATCHDOG_MS = 30_000L
             private val END_MARKER_ECHO = Regex("""^echo \S+-end >&2$""")
+            private val END_MARKER_ECHO_OUT = Regex("""^echo \S+-end \$\?$""")
         }
     }
 }

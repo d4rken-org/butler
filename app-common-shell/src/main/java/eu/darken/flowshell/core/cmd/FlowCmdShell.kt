@@ -73,6 +73,15 @@ class FlowCmdShell(
         private val scope = CoroutineScope(Job() + Dispatchers.IO)
         private val mutex = Mutex()
 
+        // Guards the protocol write batch. execute() writes its markers and the command as five
+        // separate lines, and close() writes `exit` without holding [mutex] (it cannot: the
+        // exec-replacement path keeps that lock while awaiting the process exit that only `exit`
+        // can trigger). Without this, `exit` lands between the command and its end marker, the
+        // shell quits before echoing it, and the command fails as if the shell had died.
+        private val writeMutex = Mutex()
+
+        @Volatile private var closing = false
+
         private var cmdCount = 0
         val counter: Int
             get() = cmdCount
@@ -97,9 +106,9 @@ class FlowCmdShell(
          * hence the re-read across the suspending liveness check.
          */
         suspend fun isUsable(): Boolean {
-            if (streamEnded) return false
+            if (closing || streamEnded) return false
             if (!session.isAlive()) return false
-            return !streamEnded
+            return !(closing || streamEnded)
         }
 
         suspend fun waitFor() = session.waitFor()
@@ -110,9 +119,26 @@ class FlowCmdShell(
             scope.cancel()
         }
 
+        /**
+         * Graceful shutdown: submits `exit`, waits for the process to die, then lets a command that
+         * is already in flight drain to completion. Use [cancel] to abort a running command.
+         */
         suspend fun close() = withContext(Dispatchers.IO) {
             if (isDebug) log(_tag) { "close()" }
-            session.close()
+            // Published before `exit` is written, so a command that has not claimed the write lock
+            // yet is rejected outright instead of being submitted to a shell that is about to quit.
+            closing = true
+            writeMutex.withLock { session.write("exit") }
+            session.waitFor()
+            // The shared stream relays are children of `scope`, and the process exiting does not
+            // mean its pipes were read to the end: the trailing exit-code marker of an in-flight
+            // command is usually still unread when waitFor() returns. Cancelling here would drop
+            // it and the command would fail as if the shell had died externally. execute() holds
+            // the mutex for its whole lifetime, so taking it waits that out. Normally that is the
+            // remaining drain, but the death-watcher's window is idle-based rather than total: a
+            // descendant that keeps the pipes open and stays chatty can stretch this. Callers that
+            // cannot wait wrap close() in a timeout and fall back to cancel() (see SharedShell).
+            mutex.withLock { if (isDebug) log(_tag, VERBOSE) { "close(): in-flight command drained" } }
             scope.cancel()
         }
 
@@ -148,6 +174,7 @@ class FlowCmdShell(
         suspend fun execute(cmd: FlowCmd): FlowCmd.Result = withContext(Dispatchers.IO) {
             mutex.withLock {
                 if (streamEnded) throw IllegalStateException("Shell session stream has ended", firstEndCause.get())
+                if (closing) throw IllegalStateException("Shell session is closing")
 
                 cmdCount++
                 val id = Uuid.random().toString()
@@ -239,16 +266,20 @@ class FlowCmdShell(
 
                 listOf(outputReady, errorReady).awaitAll()
 
-                if (outputJob.isCompleted || errorJob.isCompleted || streamEnded) {
-                    // The streams are gone before a single byte was written, so this command was
-                    // never submitted: no markers can arrive and no replacement process exists to
-                    // wait for. Tear the harvesters down and fail instead of waiting for anything.
-                    log(_tag, WARN) { "Streams already ended, aborting ($id)" }
-
+                // Nothing was submitted, so no marker can arrive and no replacement process exists
+                // to wait for: cut the harvesters loose instead of waiting for either.
+                suspend fun abortUnsubmitted() {
                     outputJob.cancel()
                     errorJob.cancel()
                     deathWatcher.cancel()
                     listOf(outputJob, errorJob).joinAll()
+                }
+
+                if (outputJob.isCompleted || errorJob.isCompleted || streamEnded) {
+                    // The streams are gone before a single byte was written.
+                    log(_tag, WARN) { "Streams already ended, aborting ($id)" }
+
+                    abortUnsubmitted()
 
                     throw IllegalStateException(
                         "Shell session stream has ended",
@@ -258,11 +289,25 @@ class FlowCmdShell(
 
                 if (isDebug) log(_tag, VERBOSE) { "Harvesters are ready, writing commands... ($id)" }
 
-                session.write("echo $idStart", false)
-                session.write("echo $idStart >&2", false)
-                cmd.instructions.forEach { session.write(it, flush = false) }
-                session.write("echo $idEnd $?", false)
-                session.write("echo $idEnd >&2", true)
+                // All five lines go out as one batch: close() must not be able to slip `exit`
+                // between the command and its end marker. Re-checking `closing` under the same
+                // lock closes the other half of that race - a command that lost it is rejected
+                // here, before writing, instead of being run by a shell that is already quitting.
+                writeMutex.withLock {
+                    if (closing) {
+                        log(_tag, WARN) { "Session is closing, aborting ($id)" }
+
+                        abortUnsubmitted()
+
+                        throw IllegalStateException("Shell session is closing")
+                    }
+
+                    session.write("echo $idStart", false)
+                    session.write("echo $idStart >&2", false)
+                    cmd.instructions.forEach { session.write(it, flush = false) }
+                    session.write("echo $idEnd $?", false)
+                    session.write("echo $idEnd >&2", true)
+                }
 
                 if (isDebug) log(_tag, VERBOSE) { "Commands are written, waiting... ($id)" }
 
