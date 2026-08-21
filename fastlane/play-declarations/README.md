@@ -1,9 +1,12 @@
 # Play Console — Permissions Declarations
 
-Copy-paste source for the **Permissions Declaration Form** in Google Play Console
-(App content → *Sensitive app permissions* / *Permissions declaration*). Butler declares three
-sensitive permissions that gate review — they must be declared **and approved** before the app
-can pass review, including for closed testing.
+Copy-paste source for the review-gating **App content** forms in Google Play Console. Butler
+declares three sensitive permissions plus one foreground service type — all of them must be
+declared **and approved** before the app can pass review, including for closed testing.
+
+The three permissions go through the **Permissions Declaration Form**
+(App content → *Sensitive app permissions* / *Permissions declaration*). The foreground service
+type goes through a **separate** form; see [Foreground service](#foreground-service) below.
 
 One directory per permission rationale, each holding its declaration text and a
 recorder script for its demo video:
@@ -15,6 +18,18 @@ recorder script for its demo video:
 | [`request-install-packages/`](./request-install-packages/DECLARATION.md) | `android.permission.REQUEST_INSTALL_PACKAGES` | Opening APK files ("Open with") | **File sharing, transfer or management** |
 
 Package name: `eu.darken.butler`
+
+## Foreground service
+
+Filed separately, under App content → **Foreground service (FGS) permissions**. Declaring an FGS
+type without completing this form fails review.
+
+| Folder | Type | Gates | Google FGS type to select |
+|--------|------|-------|---------------------------|
+| [`foreground-service-data-sync/`](./foreground-service-data-sync/DECLARATION.md) | `dataSync` (`FOREGROUND_SERVICE_DATA_SYNC`) | Finishing a user-started copy/move/delete/ZIP after leaving the app | **Data sync** |
+
+It needs its own demo video. Unlike the three permissions above, it has **no `record.sh` yet** —
+the storyboard in its `DECLARATION.md` is written to be recorded manually.
 
 ## How to use
 
