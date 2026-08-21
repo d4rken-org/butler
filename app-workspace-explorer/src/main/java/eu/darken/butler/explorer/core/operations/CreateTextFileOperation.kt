@@ -91,14 +91,18 @@ class CreateTextFileOperation @AssistedInject constructor(
 
             result as CreateAction.State.Completed<*, *>
 
-            // Write content to the file
-            log(tag) { "Writing ${command.content.length} characters to file" }
-            gatewaySwitch.openOutputStream(command.path, append = false).use { outputStream ->
+            // A rename resolution for a name conflict moves the file we created, writing to
+            // command.path would truncate the very file the rename was meant to preserve.
+            val createdPath = (result.created as APathLookup<*>).lookedUp
+
+            log(tag) { "Writing ${command.content.length} characters to $createdPath" }
+            gatewaySwitch.openOutputStream(createdPath, append = false).use { outputStream ->
                 outputStream.write(command.content.toByteArray(Charsets.UTF_8))
             }
 
-            // Lookup the created file for tracking
-            val lookup = gatewaySwitch.lookup(command.path, LookupOptions())
+            // Re-lookup, result.created predates the content. BASE so the item enters the listing
+            // with a size instead of showing "?" until the next refresh.
+            val lookup = gatewaySwitch.lookup(createdPath, LookupOptions.BASE)
 
             // Track filesystem changes
             @Suppress("UNCHECKED_CAST")
