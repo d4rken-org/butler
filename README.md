@@ -3,7 +3,6 @@
 # Butler - File Explorer
 
 [![API](https://img.shields.io/badge/API-26%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=26)
-[![Crowdin](https://badges.crowdin.net/butler/localized.svg)](https://crowdin.com/project/butler)
 [![Code tests & eval](https://img.shields.io/github/actions/workflow/status/d4rken/butler/code-checks.yml?logo=githubactions&label=Code%20tests
 )](https://github.com/d4rken/butler/actions)
 [![Github Downloads](https://img.shields.io/github/downloads/d4rken/butler/total.svg?label=GitHub%20Downloads&logo=github)](https://github.com/d4rken/butler/edit/main/README.md#download)
@@ -37,8 +36,6 @@ Features include:
 | [Google Play (Open Testing)](https://play.google.com/apps/testing/eu.darken.butler)     | ![](https://img.shields.io/badge/Open%20Test%20Track%20-%20Google%20Play?logo=googleplay&logoColor=googleplay&label=Google%20Play)                                                                                                 |
 | [Github (Release)](https://github.com/d4rken/butler/releases)                           | ![](https://img.shields.io/github/v/release/d4rken/butler?display_name=release&logo=github&label=GitHub%20(Release)) ![](https://img.shields.io/github/downloads/d4rken/butler/latest/total?label=%20)                             |
 | [Github (Pre-Release)](https://github.com/d4rken/butler/releases)                       | ![](https://img.shields.io/github/v/release/d4rken/butler?include_prereleases&display_name=release&logo=github&label=GitHub%20(Pre-Release)) ![](https://img.shields.io/github/downloads-pre/d4rken/butler/latest/total?label=%20) |
-| [F-Droid (Main Repo)](https://f-droid.org/en/packages/eu.darken.butler/)                | ![](https://img.shields.io/f-droid/v/eu.darken.butler?logo=f-droid&label=f-droid%20(latest))                                                                                                                                       |
-| [F-Droid (IzzyOnDroid)](https://apt.izzysoft.de/packages/eu.darken.butler/)             | ![](https://img.shields.io/endpoint?url=https://apt.izzysoft.de/fdroid/api/v1/shield/eu.darken.butler&label=IzzyOnDroid%20(latest))                                                                                                |
 
 ## Support the project
 
@@ -81,6 +78,3 @@ Butler's code is available under a GPL v3 license, this excludes:
 * Google Play texts & descriptions.
 * Translations.
 
-## Thanks
-
-* Thanks to [crowdin.com](https://crowdin.com/) for supporting open-source projects
