@@ -65,7 +65,9 @@ class RootSetupModule @Inject constructor(
                 @Suppress("USELESS_CAST")
                 baseState.copy(
                     ourService = try {
-                        IpcContract.isCompatible(connection.ipc.checkBase())
+                        // The round-trip is the liveness proof; the identity in its reply must still
+                        // be the one the connection was gated on.
+                        IpcContract.decode(connection.ipc.checkBase()) == connection.hostIdentity
                     } catch (e: CancellationException) {
                         throw e
                     } catch (e: Exception) {
@@ -74,9 +76,8 @@ class RootSetupModule @Inject constructor(
                     },
                 ) as SetupModule.State
             }
-            // The service client now rejects a host that speaks a different IpcContract.VERSION, so
-            // obtaining the binder itself can fail. Report "no service" rather than erroring the
-            // whole setup flow.
+            // The service client rejects a host left over from an older app installation, so obtaining
+            // the binder itself can fail. Report "no service" rather than erroring the whole setup flow.
             .catch { e ->
                 log(TAG, WARN) { "Root service unavailable: $e" }
                 emit(baseState as SetupModule.State)

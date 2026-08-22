@@ -83,13 +83,16 @@ class RootHostLauncherTest {
 
     private class FakeCommandFactory : RootLaunchCommandFactory {
         val relocations = mutableListOf<Boolean>()
+        val identities = mutableListOf<String>()
         override fun <Host : BaseRootHost> create(
             hostClass: kotlin.reflect.KClass<Host>,
             pairingCode: String,
             options: RootHostOptions,
+            hostIdentity: String,
         ): RootLaunchCommand = object : RootLaunchCommand {
             override fun build(withRelocation: Boolean): FlowCmd {
                 relocations += withRelocation
+                identities += hostIdentity
                 return FlowCmd("launch relocate=$withRelocation")
             }
         }
@@ -105,6 +108,7 @@ class RootHostLauncherTest {
         serviceClass = RootConnection::class,
         hostClass = BaseRootHost::class,
         options = RootHostOptions(),
+        hostIdentity = HOST_IDENTITY,
     )
 
     @Test fun `session open failure still releases the receiver`() = runTest {
@@ -208,10 +212,14 @@ class RootHostLauncherTest {
         job.cancelAndJoin()
 
         cmds.relocations shouldBe listOf(false) // connected -> relocation retry skipped
+        cmds.identities shouldBe listOf(HOST_IDENTITY) // our identity is stamped into the launch args
         emitted shouldHaveSize 1 // factory-routed callback sent the connection into the flow
     }
 
     companion object {
+        /** Stand-in for the launching app's encoded `IpcContract.HostIdentity`, opaque to the launcher. */
+        private const val HOST_IDENTITY = "ipc-host-identity: test"
+
         private fun ok(cmd: FlowCmd) = FlowCmd.Result(cmd, FlowProcess.ExitCode.OK, emptyList(), emptyList())
     }
 }

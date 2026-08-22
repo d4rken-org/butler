@@ -1,5 +1,7 @@
 package eu.darken.butler.common.root.service
 
+import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
@@ -8,7 +10,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.ipc.IpcContract
-import eu.darken.butler.common.ipc.IpcContractMismatchException
+import eu.darken.butler.common.ipc.gateOnHostIdentity
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.local.ipc.FileOpsClient
 import eu.darken.butler.common.flow.setupCommonEventHandlers
@@ -29,7 +31,6 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
@@ -39,6 +40,7 @@ import javax.inject.Singleton
 
 @Singleton
 class RootServiceClient @Inject constructor(
+    @ApplicationContext context: Context,
     @AppScope coroutineScope: CoroutineScope,
     dispatcherProvider: DispatcherProvider,
     private val rootHostLauncher: RootHostLauncher,
@@ -65,7 +67,10 @@ class RootServiceClient @Inject constructor(
 
         val lastInternal = MutableStateFlow<RootConnection?>(null)
         rootHostLauncher
-            .createHostConnection(options = initialOptions)
+            .createHostConnection(
+                options = initialOptions,
+                hostIdentity = IpcContract.current(context).encode(),
+            )
             .onEach { wrapper ->
                 lastInternal.value = wrapper.host
                 send(wrapper.service)
@@ -94,30 +99,34 @@ class RootServiceClient @Inject constructor(
             log(TAG) { "awaitClose() CLOSING" }
         }
     }
-        .map {
-            val reply = it.checkBase()
-            if (!IpcContract.isCompatible(reply)) {
-                // A host from a different app revision: its AIDL transaction codes need not line up
-                // with ours, so refuse before any module client can issue a call against it.
-                log(TAG, WARN) { "Incompatible host, expected ipc-version ${IpcContract.VERSION}, got: $reply" }
-                throw IpcContractMismatchException("Host does not speak ipc-version ${IpcContract.VERSION}")
-            }
+        .gateOnHostIdentity(
+            tag = TAG,
+            expected = { IpcContract.current(context) },
+            checkBase = { it.checkBase() },
+        ) { ipc, identity ->
             Connection(
-                ipc = it,
+                ipc = ipc,
+                hostIdentity = identity,
                 clientModules = listOf(
-                    fileOpsClientFactory.create(it.fileOps),
-                    pkgOpsClientFactory.create(it.pkgOps),
-                    shellOpsClientFactory.create(it.shellOps),
+                    fileOpsClientFactory.create(ipc.fileOps),
+                    pkgOpsClientFactory.create(ipc.pkgOps),
+                    shellOpsClientFactory.create(ipc.shellOps),
                 )
             )
         },
     // Root teardown hangs were a silent-failure support pain point (#2453); surface its lifecycle
     // breadcrumbs at DEBUG even outside trace mode.
     verboseLifecycle = true,
+    // A cached generation may predate an in-place app update. Compared against the identity captured
+    // when the connection was gated, so this stays local: the validator runs on every acquire, and
+    // another checkBase() round-trip would run `id` in the host each time.
+    isReusable = { it.hostIdentity == IpcContract.current(context) },
 ) {
 
     data class Connection(
         val ipc: RootServiceConnection,
+        /** Identity of the app installation that launched the host, verified when it was handed out. */
+        val hostIdentity: IpcContract.HostIdentity,
         val clientModules: List<IpcClientModule>
     )
 
@@ -130,12 +139,14 @@ class RootServiceClient @Inject constructor(
              */
             useMountMaster: Boolean = false,
             options: RootHostOptions,
+            hostIdentity: String,
         ) = this
             .createConnection(
                 serviceClass = RootServiceConnection::class,
                 hostClass = RootHost::class,
                 useMountMaster = useMountMaster,
                 options = options,
+                hostIdentity = hostIdentity,
             )
             .onStart { log(TAG) { "Initiating connection to host." } }
             .onEach { log(TAG) { "Connection available: $it" } }

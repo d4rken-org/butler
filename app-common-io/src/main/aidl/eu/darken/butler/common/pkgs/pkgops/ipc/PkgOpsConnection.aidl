@@ -34,7 +34,7 @@ interface PkgOpsConnection {
     // Appended, never inserted, and never removed mid-interface: this is non-stable AIDL, so
     // transaction codes come from declaration order. Adding or deleting a method mid-interface
     // renumbers every later one, and a root/Shizuku host that survived an in-place app update would
-    // then dispatch the wrong transaction. Any such change must bump IpcContract.VERSION so the
-    // handshake in checkBase() rejects a mismatched host instead of misdispatching.
+    // then dispatch the wrong transaction. Such a host is caught by the identity handshake in
+    // checkBase() (see IpcContract), but appending keeps it from being a problem in the first place.
     void setComponentEnabledSetting(String packageName, String className, int newState, int flags);
 }

@@ -48,9 +48,12 @@ class RootHost(_args: List<String>) : HasSharedResource<Any>, BaseRootHost("$TAG
 
     override suspend fun onExecute() {
         log(iTag) { "Starting IPC connection via $rootIpcFactory" }
+        // Stamped from our launch args, never read from this process: the Dagger graph above is built
+        // on the system context, which identifies the "android" package rather than ours.
+        val userBinder = serviceHost.get().also { it.identityStamp.stamp(initOptions.hostIdentity) }
         val ipc = rootIpcFactory.create(
             initArgs = initOptions,
-            userProvidedBinder = serviceHost.get(),
+            userProvidedBinder = userBinder,
         )
         log(iTag) { "IPC created: $ipc" }
 

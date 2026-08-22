@@ -38,6 +38,13 @@ class RootSetupModuleTest : BaseTest() {
     private lateinit var scope: CoroutineScope
     private var probeCount = 0
 
+    private val hostIdentity = IpcContract.HostIdentity(
+        versionCode = 12345,
+        versionName = "1.2.3",
+        lastUpdateTime = 1755800000000,
+        packageCodePath = "/data/app/~~aB1/eu.darken.butler-Xy2/base.apk",
+    )
+
     @BeforeEach
     fun setup() {
         probeCount = 0
@@ -50,7 +57,8 @@ class RootSetupModuleTest : BaseTest() {
         coEvery { rootManager.isInstalled() } returns true
         every { rootManager.binder } returns flowOf(connection)
         every { connection.ipc } returns ipc
-        every { ipc.checkBase() } answers { probeCount++; "${IpcContract.marker()}\nok" }
+        every { connection.hostIdentity } returns hostIdentity
+        every { ipc.checkBase() } answers { probeCount++; "${hostIdentity.encode()}\nok" }
     }
 
     @AfterEach
@@ -123,23 +131,25 @@ class RootSetupModuleTest : BaseTest() {
         runBlocking { collector.cancelAndJoin() }
     }
 
-    @Test fun `a host without a version marker is not reported as our service`() {
+    @Test fun `a host without an identity is not reported as our service`() {
         // Pre-handshake hosts answer with a plain diagnostic string. Its transaction codes need not
         // match ours, so the setup card must not show as complete.
         every { ipc.checkBase() } answers { probeCount++; "Our pkg: eu.darken.butler" }
         val mod = module()
 
-        val collector = mod.state.test(tag = "no-marker", scope = scope)
+        val collector = mod.state.test(tag = "no-identity", scope = scope)
         collector.await { values, _ -> values.any { it is RootSetupModule.Result } }
 
         collector.latestValues.last().shouldBeInstanceOf<RootSetupModule.Result>().ourService shouldBe false
     }
 
-    @Test fun `a host with a mismatched version is not reported as our service`() {
-        every { ipc.checkBase() } answers { probeCount++; "ipc-version: ${IpcContract.VERSION + 1}\nok" }
+    @Test fun `a host from another installation is not reported as our service`() {
+        // Same app version, reinstalled: only lastUpdateTime gives the leftover host away.
+        val leftover = hostIdentity.copy(lastUpdateTime = hostIdentity.lastUpdateTime - 5000)
+        every { ipc.checkBase() } answers { probeCount++; "${leftover.encode()}\nok" }
         val mod = module()
 
-        val collector = mod.state.test(tag = "bad-version", scope = scope)
+        val collector = mod.state.test(tag = "stale-host", scope = scope)
         collector.await { values, _ -> values.any { it is RootSetupModule.Result } }
 
         collector.latestValues.last().shouldBeInstanceOf<RootSetupModule.Result>().ourService shouldBe false

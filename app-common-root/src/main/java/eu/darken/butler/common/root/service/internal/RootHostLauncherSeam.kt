@@ -60,11 +60,15 @@ interface RootLaunchCommandFactory {
      * (which touches [Debug] and the package name) plus [RootHostCmdBuilder] (which touches Parcel /
      * reflection), none of which run on a plain JVM — hence the seam. The args are captured ONCE here
      * so the direct-exec and relocation attempts use identical init args (matching pre-seam behaviour).
+     *
+     * [hostIdentity] is the caller's encoded `IpcContract.HostIdentity`, stamped into the host at
+     * launch so it can be echoed back and compared later.
      */
     fun <Host : BaseRootHost> create(
         hostClass: KClass<Host>,
         pairingCode: String,
         options: RootHostOptions,
+        hostIdentity: String,
     ): RootLaunchCommand
 }
 
@@ -105,6 +109,7 @@ internal class DefaultRootLaunchCommandFactory(
         hostClass: KClass<Host>,
         pairingCode: String,
         options: RootHostOptions,
+        hostIdentity: String,
     ): RootLaunchCommand {
         // Captured once per connection — both launch attempts reuse these.
         val initArgs = RootHostInitArgs(
@@ -114,6 +119,7 @@ internal class DefaultRootLaunchCommandFactory(
             isDebug = options.isDebug,
             isTrace = options.isTrace,
             recorderPath = options.recorderPath,
+            hostIdentity = hostIdentity,
         )
         val cmdBuilder = RootHostCmdBuilder(context, hostClass)
         return object : RootLaunchCommand {

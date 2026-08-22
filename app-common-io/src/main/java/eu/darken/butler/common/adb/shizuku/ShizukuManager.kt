@@ -174,12 +174,16 @@ class ShizukuManager @Inject constructor(
         }
         try {
             log(TAG, VERBOSE) { "getServiceState(): Requesting service client (CACHE MISS)" }
-            val alive = serviceClient.get().use { IpcContract.isCompatible(it.item.ipc.checkBase()) }
+            val alive = serviceClient.get().use {
+                // The round-trip is the liveness proof; the identity in its reply must still be the
+                // one the connection was gated on (the client rejects anything else).
+                IpcContract.decode(it.item.ipc.checkBase()) == it.item.hostIdentity
+            }
             if (alive) {
                 ShizukuServiceState.Available
             } else {
                 // Connected, but the host handed back nothing usable.
-                log(TAG, WARN) { "getServiceState(): checkBase() reply was missing or incompatible" }
+                log(TAG, WARN) { "getServiceState(): checkBase() reply was missing or from another host" }
                 ShizukuServiceState.Failed
             }
         } catch (e: CancellationException) {

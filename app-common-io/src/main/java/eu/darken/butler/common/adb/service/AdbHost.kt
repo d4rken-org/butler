@@ -95,7 +95,12 @@ class AdbHost(
         keepAliveToken.close()
     }
 
-    override fun getUserConnection(): IBinder = serviceHost.get()
+    override fun getUserConnection(): IBinder = serviceHost.get().also {
+        // Shizuku has no init arguments, so the identity rides along with the initial options push,
+        // which the client's handshake does before asking for this connection. Only the first stamp
+        // sticks, so a newer client binding to this (possibly stale) host cannot overwrite it.
+        it.identityStamp.stamp(currentOptions.value.hostIdentity)
+    }
 
     override fun updateHostOptions(options: AdbHostOptions) {
         log(TAG) { "updateHostOptions(): $options" }
