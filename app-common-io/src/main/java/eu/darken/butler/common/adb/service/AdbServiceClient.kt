@@ -16,6 +16,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.ipc.IpcContract
+import eu.darken.butler.common.ipc.IpcContractMismatchException
 import eu.darken.butler.common.ipc.IpcHostAttempt
 import eu.darken.butler.common.ipc.gateOnHostIdentity
 import eu.darken.butler.common.debug.logging.logTag
@@ -130,7 +131,14 @@ class AdbServiceClient @Inject constructor(
     // another full budget. On a device where Shizuku's user service never comes up (the MediaTek/
     // HyperOS defect) that turns one 15s stall into up to five for every concurrent probe. The
     // caller that started the generation always got the real error; this gives it to the others too.
-    isRetryableStartupFailure = { !it.isAdbConnectTimeout() },
+    //
+    // An identity mismatch is excluded for a different reason: the gate has already decided whether
+    // rebinding is safe (it reconnects only when the stale host's teardown was confirmed), and a
+    // fresh source collection started here would bypass that decision — binding a replacement that
+    // the still-in-flight `remove=true` unbind can take out.
+    isRetryableStartupFailure = {
+        !it.isAdbConnectTimeout() && it !is IpcContractMismatchException
+    },
     // A cached generation may predate an in-place app update, and the keep-alive above makes that
     // window longer than elsewhere. Compared against the identity captured when the connection was
     // gated, so this stays local: the validator runs on every acquire, and another checkBase()
