@@ -16,6 +16,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.ipc.IpcContract
+import eu.darken.butler.common.ipc.IpcHostAttempt
 import eu.darken.butler.common.ipc.gateOnHostIdentity
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.local.ipc.FileOpsClient
@@ -58,7 +59,7 @@ class AdbServiceClient @Inject constructor(
     // slow host-disconnect IPC during keep-alive expiry would otherwise starve Dispatchers.Default —
     // the same pool the UI's vmScope uses — wedging the dashboard. Mirrors ShellOps/PkgOps.
     coroutineScope + dispatcherProvider.IO,
-    callbackFlow {
+    callbackFlow<IpcHostAttempt<AdbServiceConnection>> {
         log(TAG) { "Instantiating ADB launcher..." }
 
         if (adbSettings.useAdb.value() != true) throw AdbUnavailableException("ADB is not enabled")
@@ -76,7 +77,9 @@ class AdbServiceClient @Inject constructor(
             .createServiceHostConnection(optionsInitial)
             .onEach { wrapper ->
                 lastInternal.value = wrapper.host
-                send(wrapper.service)
+                // The teardown signal rides along: Shizuku's unbind is detached and bounded, so the
+                // identity gate must not rebind on a mismatch until this generation is really gone.
+                send(IpcHostAttempt(wrapper.service, wrapper.disconnectConfirmed))
             }
             .launchIn(this)
 

@@ -10,6 +10,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.ipc.IpcContract
+import eu.darken.butler.common.ipc.IpcHostAttempt
 import eu.darken.butler.common.ipc.gateOnHostIdentity
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.local.ipc.FileOpsClient
@@ -55,7 +56,7 @@ class RootServiceClient @Inject constructor(
     // slow host-disconnect IPC during teardown would otherwise starve Dispatchers.Default — the same
     // pool the UI's vmScope uses — wedging the dashboard. Mirrors ShellOps/PkgOps.
     parentScope = coroutineScope + dispatcherProvider.IO,
-    source = callbackFlow {
+    source = callbackFlow<IpcHostAttempt<RootServiceConnection>> {
         log(TAG) { "Instantiating Root launcher..." }
         if (rootSettings.useRoot.value() != true) throw RootUnavailableException("Root is not enabled")
 
@@ -73,7 +74,9 @@ class RootServiceClient @Inject constructor(
             )
             .onEach { wrapper ->
                 lastInternal.value = wrapper.host
-                send(wrapper.service)
+                // No teardown signal: RootHostLauncher tears down inside the producer coroutine, so
+                // the identity gate's re-collection already happens after the host is gone.
+                send(IpcHostAttempt(wrapper.service))
             }
             .launchIn(this)
 

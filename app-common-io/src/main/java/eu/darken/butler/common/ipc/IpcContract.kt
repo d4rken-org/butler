@@ -2,6 +2,7 @@ package eu.darken.butler.common.ipc
 
 import android.content.Context
 import androidx.core.content.pm.PackageInfoCompat
+import kotlinx.coroutines.Deferred
 
 /** Tag every identity frame starts with, so a host predating it can't be mistaken for a stamped one. */
 private const val PREFIX = "ipc-host-identity:"
@@ -115,12 +116,19 @@ object IpcContract {
  * i.e. it survived an in-place app update. Thrown before any module client is handed out, so no
  * caller can issue a transaction against a host that would misdispatch it or run stale code.
  *
- * The service clients recover from this on the fresh-connection path: the stale host is torn down,
- * its unbind is awaited, and the connection is retried exactly once. A second mismatch (the host is
- * still there, e.g. Shizuku handed back the same running user service) propagates to the caller.
+ * The service clients recover from this on the fresh-connection path: the stale host is torn down
+ * and, if that teardown is known to have finished, the connection is retried exactly once. A second
+ * mismatch (the host is still there, e.g. Shizuku handed back the same running user service)
+ * propagates to the caller, as does a mismatch whose teardown could not be confirmed.
  */
 class IpcContractMismatchException(
     message: String,
+    /**
+     * Teardown signal of the host generation that mismatched, carried along so the recovery in
+     * [gateOnHostIdentity] can decide whether rebinding is safe. Null when the launcher's teardown
+     * needs no confirmation; see [IpcHostAttempt].
+     */
+    internal val disconnectConfirmed: Deferred<Boolean>? = null,
 ) : IllegalStateException(message)
 
 private const val ESCAPE = '\\'
