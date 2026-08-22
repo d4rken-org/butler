@@ -1,0 +1,138 @@
+# Path-based PR labels, applied by .github/workflows/pr-labeler.yml
+#
+# Only labels that follow objectively from the changed paths belong here.
+# Type labels (bug/enhancement/Chore/documentation), device/ROM labels and
+# api-level labels are not derivable from a diff and stay manual.
+#
+# Under pull_request_target this file is read from the base branch, so edits
+# only take effect once they are merged into main.
+
+"c: Explorer":
+  - changed-files:
+      - any-glob-to-any-file: "app-workspace-explorer/**"
+
+"c: Searcher":
+  - changed-files:
+      - any-glob-to-any-file: "app-workspace-searcher/**"
+
+"c: Editor":
+  - changed-files:
+      - any-glob-to-any-file: "app-workspace-editor/**"
+
+"c: Viewer":
+  - changed-files:
+      - any-glob-to-any-file: "app-workspace-viewer/**"
+
+"c: Apps":
+  - changed-files:
+      - any-glob-to-any-file: "app-workspace-apps/**"
+
+"c: Templates":
+  - changed-files:
+      - any-glob-to-any-file: "app-workspace-templates/**"
+
+"c: History":
+  - changed-files:
+      - any-glob-to-any-file: "app-workspace-history/**"
+
+"c: Saver":
+  - changed-files:
+      - any-glob-to-any-file: "app-workspace-saver/**"
+
+"c: Developer":
+  - changed-files:
+      - any-glob-to-any-file: "app-workspace-developer/**"
+
+"c: Bugreport":
+  - changed-files:
+      - any-glob-to-any-file: "app-workspace-bugreport/**"
+
+"c: Workspace":
+  - changed-files:
+      - any-glob-to-any-file: "app-workspace/**"
+
+"c: IO":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "app-common-io/**"
+          - "app-common-shell/**"
+
+"c: PKGS":
+  - changed-files:
+      - any-glob-to-any-file: "app-common-pkgs/**"
+
+"c: Documents":
+  - changed-files:
+      - any-glob-to-any-file: "app-provider-documents/**"
+
+"c: Setup":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "*/src/*/java/eu/darken/butler/setup/**"
+          - "*/src/*/java/eu/darken/butler/workspace/core/setup/**"
+          - "app/src/*/java/eu/darken/butler/main/ui/onboarding/**"
+
+Root:
+  - changed-files:
+      - any-glob-to-any-file: "app-common-root/**"
+
+ADB:
+  - changed-files:
+      - any-glob-to-any-file: "app-common-adb/**"
+
+SAF:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "app-common-io/src/*/java/eu/darken/butler/common/files/saf/**"
+          - "app-common-io/src/*/java/eu/darken/butler/common/files/SAFPath*"
+          - "app-common-io/src/*/java/eu/darken/butler/common/storage/saf/**"
+          - "app-common-io/schemas/*SAFLocationDatabase/**"
+
+MOTD:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "motd/**"
+          - "app/src/*/java/eu/darken/butler/main/core/motd/**"
+          - "app/src/*/java/eu/darken/butler/main/ui/motd/**"
+
+# Locale-shaped qualifiers only. The character classes matter: values-?? would
+# also match API and density qualifiers such as values-v4, and letters-only
+# keeps values-night, values-sw600dp and values-car out. Butler has no
+# translated resources yet, these match once Crowdin pulls land.
+Translation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/res/values-[a-z][a-z]/strings.xml"
+          - "**/res/values-[a-z][a-z]-r[A-Z][A-Z]/strings.xml"
+          - "**/res/values-b+*/strings.xml"
+  # Store listing changes, but only when they touch a locale other than the
+  # en-US source. Both globs must match a changed file for this rule to fire.
+  - changed-files:
+      - all-globs-to-any-file:
+          - "fastlane/metadata/android/**"
+          - "!fastlane/metadata/android/en-US/**"
+
+FOSS:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "*/src/foss/**"
+          - "*/src/testFoss/**"
+          - "motd/foss/**"
+
+"Google Play":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "*/src/gplay/**"
+          - "*/src/testGplay/**"
+          - "motd/gplay/**"
+
+"Build process":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*.gradle"
+          - "**/*.gradle.kts"
+          - "gradle/**"
+          - "gradlew"
+          - "gradlew.bat"
+          - "buildSrc/**"
+          - ".github/**"
