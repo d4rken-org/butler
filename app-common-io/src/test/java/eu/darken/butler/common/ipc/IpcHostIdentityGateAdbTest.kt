@@ -2,8 +2,8 @@ package eu.darken.butler.common.ipc
 
 import android.os.IBinder
 import android.os.IInterface
-import eu.darken.butler.common.adb.isAdbConnectTimeout
 import eu.darken.butler.common.adb.service.AdbHostOptions
+import eu.darken.butler.common.adb.service.AdbServiceClient
 import eu.darken.butler.common.adb.service.internal.AdbConnection
 import eu.darken.butler.common.adb.service.internal.AdbHostLauncher
 import eu.darken.butler.common.adb.service.internal.ShizukuUserService
@@ -262,8 +262,8 @@ class IpcHostIdentityGateAdbTest : BaseTest() {
             // A single reply, so any rebind lands on the same stale host again.
             source = hostLauncher.gated(stale.encode(), unbindTimeoutMs = 250L),
             stopTimeout = Duration.ZERO,
-            // The predicate AdbServiceClient installs.
-            isRetryableStartupFailure = { !it.isAdbConnectTimeout() && it !is IpcContractMismatchException },
+            // The very value AdbServiceClient installs, not a copy of it.
+            isRetryableStartupFailure = AdbServiceClient.RETRYABLE_STARTUP_FAILURE,
         )
         var pump: Thread? = null
 
