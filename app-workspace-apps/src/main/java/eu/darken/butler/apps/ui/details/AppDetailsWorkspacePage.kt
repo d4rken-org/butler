@@ -88,7 +88,6 @@ sealed interface AppDetailsPageAction {
     data class SetComponentEnabled(val entry: ComponentEntry, val enabled: Boolean) : AppDetailsPageAction
     data object OpenElevatedAccessSetup : AppDetailsPageAction
     data class ForceStop(val app: AppInfo) : AppDetailsPageAction
-    data class ClearCache(val app: AppInfo) : AppDetailsPageAction
     data class ClearData(val app: AppInfo) : AppDetailsPageAction
     data object OpenSizeSetup : AppDetailsPageAction
 }
@@ -137,7 +136,6 @@ fun AppDetailsWorkspacePageHost(
                     is AppDetailsPageAction.SetComponentEnabled -> vm.onSetComponentEnabled(action.entry, action.enabled)
                     is AppDetailsPageAction.OpenElevatedAccessSetup -> vm.openElevatedAccessSetup()
                     is AppDetailsPageAction.ForceStop -> vm.onForceStop(action.app)
-                    is AppDetailsPageAction.ClearCache -> vm.onClearCache(action.app)
                     is AppDetailsPageAction.ClearData -> vm.onClearData(action.app)
                     is AppDetailsPageAction.OpenSizeSetup -> vm.onOpenSizePermissionSetup()
                 }
@@ -438,11 +436,9 @@ private fun LazyListScope.overviewItems(
                 onExportApk = { onPageAction(AppDetailsPageAction.ExportApk(appInfo)) },
                 onShareApk = { onPageAction(AppDetailsPageAction.ShareApk(appInfo)) },
                 onForceStop = { onPageAction(AppDetailsPageAction.ForceStop(appInfo)) },
-                onClearCache = { onPageAction(AppDetailsPageAction.ClearCache(appInfo)) },
                 onClearData = { onPageAction(AppDetailsPageAction.ClearData(appInfo)) },
                 canEnableDisable = state.canEnableDisable,
                 canForceStop = state.canForceStop,
-                canClearCache = state.canClearCache,
                 canClearData = state.canClearData,
             )
         }

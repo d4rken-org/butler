@@ -15,12 +15,6 @@ interface PkgOpsConnection {
 
     boolean forceStop(String packageName);
 
-    boolean clearCacheAsUser(String packageName, int handleId);
-
-    boolean clearCache(String packageName);
-
-    boolean trimCaches(long desiredBytes, String storageId);
-
     List<PackageInfo> getInstalledPackagesAsUser(long flags, int handleId);
 
     RemoteInputStream getInstalledPackagesAsUserStream(long flags, int handleId);
@@ -37,8 +31,10 @@ interface PkgOpsConnection {
 
     boolean clearData(String packageName, int handleId);
 
-    // Appended, never inserted: this is non-stable AIDL, so transaction codes come from declaration
-    // order. Adding a method mid-interface renumbers every later one, and a root/Shizuku host that
-    // survived an in-place app update would then dispatch the wrong transaction.
+    // Appended, never inserted, and never removed mid-interface: this is non-stable AIDL, so
+    // transaction codes come from declaration order. Adding or deleting a method mid-interface
+    // renumbers every later one, and a root/Shizuku host that survived an in-place app update would
+    // then dispatch the wrong transaction. Any such change must bump IpcContract.VERSION so the
+    // handshake in checkBase() rejects a mismatched host instead of misdispatching.
     void setComponentEnabledSetting(String packageName, String className, int newState, int flags);
 }

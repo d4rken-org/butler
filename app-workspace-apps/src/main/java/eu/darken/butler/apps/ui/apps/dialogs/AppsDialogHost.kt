@@ -21,7 +21,6 @@ fun AppsDialogHost(
     onConfirmEnable: (List<AppItem>) -> Unit,
     onConfirmDisable: (List<AppItem>) -> Unit,
     onConfirmUninstall: (List<AppItem>) -> Unit,
-    onConfirmClearCache: (List<AppItem>) -> Unit,
     onConfirmClearData: (List<AppItem>) -> Unit,
     onOpenSizeSetup: () -> Unit,
     topInset: Dp = 0.dp,
@@ -101,19 +100,6 @@ fun AppsDialogHost(
                 confirmButtonText = "Uninstall",
                 isDestructive = true,
                 onConfirm = { onConfirmUninstall(dialogState.apps) },
-                onDismiss = onDismiss,
-                modifier = modifier,
-            )
-        }
-
-        is AppsDialogState.ConfirmClearCache -> {
-            ConfirmationDialog(
-                title = "Clear cache?",
-                message = "Cache will be cleared for the following apps:",
-                apps = dialogState.apps,
-                confirmButtonText = "Clear cache",
-                isDestructive = false,
-                onConfirm = { onConfirmClearCache(dialogState.apps) },
                 onDismiss = onDismiss,
                 modifier = modifier,
             )

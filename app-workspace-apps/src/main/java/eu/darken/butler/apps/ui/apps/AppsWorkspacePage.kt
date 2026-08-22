@@ -263,7 +263,6 @@ private fun AppsWorkspacePageWithSelectionPreview() {
             AppsActionBarItem.SelectAll,
             AppsActionBarItem.Disable(mockApps.take(2)),
             AppsActionBarItem.Uninstall(mockApps.take(2)),
-            AppsActionBarItem.ClearCache(mockApps.take(2)),
         ),
         isLoading = false,
     )

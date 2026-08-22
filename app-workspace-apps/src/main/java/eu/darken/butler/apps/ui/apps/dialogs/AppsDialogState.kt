@@ -35,10 +35,6 @@ sealed interface AppsDialogState {
         val apps: List<AppItem>,
     ) : AppsDialogState
 
-    data class ConfirmClearCache(
-        val apps: List<AppItem>,
-    ) : AppsDialogState
-
     data class ConfirmClearData(
         val apps: List<AppItem>,
     ) : AppsDialogState

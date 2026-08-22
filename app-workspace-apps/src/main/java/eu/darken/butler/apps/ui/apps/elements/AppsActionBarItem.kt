@@ -7,7 +7,6 @@ import androidx.compose.material.icons.automirrored.twotone.Sort
 import androidx.compose.material.icons.automirrored.twotone.ViewList
 import androidx.compose.material.icons.twotone.Block
 import androidx.compose.material.icons.twotone.CheckCircle
-import androidx.compose.material.icons.twotone.CleaningServices
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.DeleteSweep
 import androidx.compose.material.icons.twotone.Deselect
@@ -105,14 +104,6 @@ sealed interface AppsActionBarItem : WorkspaceActionBarItem {
         override val icon = Icons.TwoTone.Delete
         override val label = R.string.apps_action_uninstall.toCaString()
         override val isDestructive = true
-    }
-
-    data class ClearCache(
-        val apps: List<AppItem>,
-    ) : AppsActionBarItem {
-        override val icon = Icons.TwoTone.CleaningServices
-        override val label = R.string.apps_action_clear_cache.toCaString()
-        override val group = WorkspaceActionBarItem.Group.SECONDARY
     }
 
     data class ClearData(

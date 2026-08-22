@@ -376,30 +376,6 @@ class PkgOps @Inject constructor(
         }
     }
 
-    suspend fun clearCache(id: InstallId, mode: Mode = Mode.AUTO) {
-        log(TAG) { "clearCache($id, $mode)" }
-        try {
-            if (mode == Mode.NORMAL) throw PkgOpsException("clearCache($id) does not support mode=NORMAL")
-
-            if (mode == Mode.ADB) throw PkgOpsException("clearCache($id) does not support mode=ADB")
-
-            if (rootManager.canUseRootNow() && (mode == Mode.AUTO || mode == Mode.ROOT)) {
-                log(TAG) { "clearCache($id, $mode->ROOT)" }
-                rootOps { it.clearCache(id) }
-                return
-            }
-
-            throw ElevatedAccessUnavailableException("Mode $mode is unavailable")
-        } catch (e: Exception) {
-            if (e is ElevatedAccessUnavailableException) {
-                log(TAG, DEBUG) { "clearCache(...): $mode unavailable for $id" }
-            } else {
-                log(TAG, WARN) { "clearCache($id,$mode) failed: ${e.asLog()}" }
-            }
-            throw PkgOpsException(message = "clearCache($id, $mode) failed", cause = e)
-        }
-    }
-
     suspend fun uninstall(id: InstallId, mode: Mode = Mode.AUTO): Boolean {
         log(TAG, VERBOSE) { "uninstall($id, mode=$mode)" }
         try {
@@ -457,38 +433,6 @@ class PkgOps @Inject constructor(
                 log(TAG, WARN) { "clearData($id, mode=$mode) failed: $e" }
             }
             throw PkgOpsException(message = "clearData($id, $mode) failed", cause = e)
-        }
-    }
-
-    suspend fun trimCaches(
-        desiredBytes: Long,
-        storageId: String? = null,
-        mode: Mode = Mode.AUTO,
-    ) {
-        log(TAG) { "trimCaches($desiredBytes, $storageId, $mode)" }
-        try {
-            if (mode == Mode.NORMAL) throw PkgOpsException("trimCaches($storageId) does not support mode=NORMAL")
-
-            if (adbManager.canUseAdbNow() && (mode == Mode.AUTO || mode == Mode.ADB)) {
-                log(TAG) { "trimCaches($desiredBytes, $storageId, $mode->ADB)" }
-                adbOps { it.trimCaches(desiredBytes, storageId) }
-                return
-            }
-
-            if (rootManager.canUseRootNow() && (mode == Mode.AUTO || mode == Mode.ROOT)) {
-                log(TAG) { "trimCaches($desiredBytes, $storageId, $mode->ROOT)" }
-                rootOps { it.trimCaches(desiredBytes, storageId) }
-                return
-            }
-
-            throw ElevatedAccessUnavailableException("Mode $mode is unavailable")
-        } catch (e: Exception) {
-            if (e is ElevatedAccessUnavailableException) {
-                log(TAG, DEBUG) { "trimCaches(...): $mode unavailable" }
-            } else {
-                log(TAG, WARN) { "trimCaches($desiredBytes, $storageId,$mode) failed: ${e.asLog()}" }
-            }
-            throw PkgOpsException(message = "trimCaches($desiredBytes, $storageId, $mode) failed", cause = e)
         }
     }
 

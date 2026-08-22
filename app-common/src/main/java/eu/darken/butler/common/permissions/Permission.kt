@@ -73,9 +73,6 @@ sealed class Permission(
         }
     }
 
-    data object WRITE_SECURE_SETTINGS
-        : Permission("android.permission.WRITE_SECURE_SETTINGS")
-
     data object QUERY_ALL_PACKAGES
         : Permission("android.permission.QUERY_ALL_PACKAGES")
 

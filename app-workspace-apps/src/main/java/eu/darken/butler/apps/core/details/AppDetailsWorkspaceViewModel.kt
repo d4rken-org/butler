@@ -350,12 +350,6 @@ class AppDetailsWorkspaceViewModel @AssistedInject constructor(
         getWorkspace().forceStopApp(app)
     }
 
-    fun onClearCache(app: AppInfo) = launch {
-        log(tag) { "Clearing cache: ${app.packageName}" }
-        getWorkspace().clearCacheApp(app)
-        appSizeCache.invalidate(listOf(app.installId))
-    }
-
     fun onClearData(app: AppInfo) = launch {
         log(tag) { "Clearing data: ${app.packageName}" }
         getWorkspace().clearDataApp(app)
