@@ -126,19 +126,7 @@ class AdbServiceClient @Inject constructor(
     // ADB teardown hangs were a silent-failure support pain point (#2453); surface its lifecycle
     // breadcrumbs at DEBUG even outside trace mode.
     verboseLifecycle = true,
-    // A connect timeout means the Shizuku handshake burned its entire budget without an answer, so
-    // the default "the starter owns this failure, retry fresh" is a bad trade here: each retry is
-    // another full budget. On a device where Shizuku's user service never comes up (the MediaTek/
-    // HyperOS defect) that turns one 15s stall into up to five for every concurrent probe. The
-    // caller that started the generation always got the real error; this gives it to the others too.
-    //
-    // An identity mismatch is excluded for a different reason: the gate has already decided whether
-    // rebinding is safe (it reconnects only when the stale host's teardown was confirmed), and a
-    // fresh source collection started here would bypass that decision — binding a replacement that
-    // the still-in-flight `remove=true` unbind can take out.
-    isRetryableStartupFailure = {
-        !it.isAdbConnectTimeout() && it !is IpcContractMismatchException
-    },
+    isRetryableStartupFailure = RETRYABLE_STARTUP_FAILURE,
     // A cached generation may predate an in-place app update, and the keep-alive above makes that
     // window longer than elsewhere. Compared against the identity captured when the connection was
     // gated, so this stays local: the validator runs on every acquire, and another checkBase()
@@ -161,6 +149,23 @@ class AdbServiceClient @Inject constructor(
         // purpose: a uid-2000 host should not linger in the background for long. Teardown still happens
         // (and is prompt/safe); this only delays its start.
         private val ADB_HOST_KEEPALIVE: Duration = 30.seconds
+
+        // A connect timeout means the Shizuku handshake burned its entire budget without an answer, so
+        // the default "the starter owns this failure, retry fresh" is a bad trade here: each retry is
+        // another full budget. On a device where Shizuku's user service never comes up (the MediaTek/
+        // HyperOS defect) that turns one 15s stall into up to five for every concurrent probe. The
+        // caller that started the generation always got the real error; this gives it to the others too.
+        //
+        // An identity mismatch is excluded for a different reason: the gate has already decided whether
+        // rebinding is safe (it reconnects only when the stale host's teardown was confirmed), and a
+        // fresh source collection started here would bypass that decision — binding a replacement that
+        // the still-in-flight `remove=true` unbind can take out.
+        //
+        // Shared with the regression test that covers the mismatch case, so a change here can't quietly
+        // leave the test guarding a stale copy.
+        internal val RETRYABLE_STARTUP_FAILURE: (Throwable) -> Boolean = {
+            !it.isAdbConnectTimeout() && it !is IpcContractMismatchException
+        }
 
         fun AdbHostLauncher.createServiceHostConnection(
             options: AdbHostOptions,
