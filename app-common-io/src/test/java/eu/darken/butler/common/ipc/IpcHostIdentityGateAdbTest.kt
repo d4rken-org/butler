@@ -2,11 +2,15 @@ package eu.darken.butler.common.ipc
 
 import android.os.IBinder
 import android.os.IInterface
+import eu.darken.butler.common.adb.isAdbConnectTimeout
 import eu.darken.butler.common.adb.service.AdbHostOptions
 import eu.darken.butler.common.adb.service.internal.AdbConnection
 import eu.darken.butler.common.adb.service.internal.AdbHostLauncher
 import eu.darken.butler.common.adb.service.internal.ShizukuUserService
 import eu.darken.butler.common.adb.service.internal.ShizukuUserServiceFactory
+import eu.darken.butler.common.debug.Bugs
+import eu.darken.butler.common.debug.logging.Logging
+import eu.darken.butler.common.sharedresource.SharedResource
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.mockk
@@ -19,6 +23,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.plus
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
@@ -30,6 +35,7 @@ import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.reflect.KClass
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -206,4 +212,92 @@ class IpcHostIdentityGateAdbTest : BaseTest() {
             realScope.cancel()
         }
     }
+
+    /**
+     * The gate refusing to rebind only settles the gate's own retry. [SharedResource] has a second
+     * one: a caller that latched onto a generation which died before producing a value gets that
+     * generation detached and a FRESH source collection started — the rebind the gate just declined,
+     * with the stale unbind still in flight. Wired with the predicate AdbServiceClient passes, so
+     * this covers the layer the gate-only tests above cannot see.
+     */
+    @Test fun `a mismatch is not rebound by the shared resource retry either`() = runTest(timeout = 10.seconds) {
+        val unbindEntered = CompletableDeferred<Unit>()
+        val unbindWedge = CountDownLatch(1)
+        val service = object : ShizukuUserService {
+            override fun bind() {
+                binds.incrementAndGet()
+            }
+
+            override fun unbind() {
+                unbindEntered.complete(Unit)
+                unbindWedge.await() // blocks the thread, unaffected by coroutine cancellation
+            }
+
+            override suspend fun awaitDisconnect() {}
+        }
+        val realScope = CoroutineScope(SupervisorJob())
+        val hostLauncher = launcher(service, realScope)
+
+        // Only a REUSING get() logs this, and it is trace-gated. Without waiting for it, the second
+        // caller could arrive after generation 1 already died and pass vacuously on a fresh one.
+        val reuserLatched = CompletableDeferred<Unit>()
+        val capture = object : Logging.Logger {
+            override fun log(
+                priority: Logging.Priority,
+                tag: String,
+                message: String,
+                metaData: Map<String, Any>?,
+            ) {
+                if (tag == "$SR_TAG:SR" && message.contains("Source job already exists")) {
+                    reuserLatched.complete(Unit)
+                }
+            }
+        }
+        Bugs.isTrace = true
+        Logging.install(capture)
+
+        val sharedResource = SharedResource(
+            tag = SR_TAG,
+            parentScope = realScope + Dispatchers.IO,
+            // A single reply, so any rebind lands on the same stale host again.
+            source = hostLauncher.gated(stale.encode(), unbindTimeoutMs = 250L),
+            stopTimeout = Duration.ZERO,
+            // The predicate AdbServiceClient installs.
+            isRetryableStartupFailure = { !it.isAdbConnectTimeout() && it !is IpcContractMismatchException },
+        )
+        var pump: Thread? = null
+
+        try {
+            withContext(Dispatchers.Default) {
+                val creator = realScope.async(Dispatchers.IO) { runCatching { sharedResource.get() } }
+                // Generation 1 is installed and its source is running, but nothing has answered its
+                // connect callback yet, so it cannot have produced a value.
+                awaitBinds(1)
+
+                val reuser = realScope.async(Dispatchers.IO) { runCatching { sharedResource.get() } }
+                awaitOrFail("the second caller to latch onto generation 1") { reuserLatched.await() }
+
+                // Only now let the host connect, mismatch, and wedge its unbind.
+                pump = startConnectPump()
+                awaitOrFail("unbind() to be entered") { unbindEntered.await() }
+
+                awaitOrFail("the starting caller to be released") { creator.await() }
+                    .exceptionOrNull().shouldBeInstanceOf<IpcContractMismatchException>()
+                // The waiter must inherit the mismatch instead of retrying onto a fresh generation.
+                awaitOrFail("the reusing caller to be released") { reuser.await() }
+                    .exceptionOrNull().shouldBeInstanceOf<IpcContractMismatchException>()
+            }
+
+            // The whole point: no second generation for the in-flight unbind to remove.
+            binds.get() shouldBe 1
+        } finally {
+            unbindWedge.countDown()
+            pump?.interrupt()
+            realScope.cancel()
+            Logging.remove(capture)
+            Bugs.isTrace = false
+        }
+    }
 }
+
+private const val SR_TAG = "gate-shared-resource"
