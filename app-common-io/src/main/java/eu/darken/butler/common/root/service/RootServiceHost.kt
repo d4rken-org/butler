@@ -5,6 +5,7 @@ import androidx.annotation.Keep
 import dagger.Lazy
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.ipc.IpcContract
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.local.ipc.FileOpsConnection
 import eu.darken.butler.common.files.local.ipc.FileOpsHost
@@ -29,6 +30,8 @@ class RootServiceHost @Inject constructor(
 
     override fun checkBase(): String {
         val sb = StringBuilder()
+        // Must stay the FIRST line: the client gates the whole connection on it.
+        sb.append("${IpcContract.marker()}\n")
         sb.append("Our pkg: ${context.packageName}\n")
         val ids = runBlocking { FlowCmd("id").execute() }
         sb.append("Shell ids are: ${ids.merged}\n")

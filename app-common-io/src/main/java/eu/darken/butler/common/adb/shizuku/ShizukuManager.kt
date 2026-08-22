@@ -8,6 +8,7 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.ipc.IpcContract
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.flow.replayingShare
 import eu.darken.butler.common.flow.setupCommonEventHandlers
@@ -173,12 +174,12 @@ class ShizukuManager @Inject constructor(
         }
         try {
             log(TAG, VERBOSE) { "getServiceState(): Requesting service client (CACHE MISS)" }
-            val alive = serviceClient.get().use { it.item.ipc.checkBase() != null }
+            val alive = serviceClient.get().use { IpcContract.isCompatible(it.item.ipc.checkBase()) }
             if (alive) {
                 ShizukuServiceState.Available
             } else {
                 // Connected, but the host handed back nothing usable.
-                log(TAG, WARN) { "getServiceState(): checkBase() returned null" }
+                log(TAG, WARN) { "getServiceState(): checkBase() reply was missing or incompatible" }
                 ShizukuServiceState.Failed
             }
         } catch (e: CancellationException) {

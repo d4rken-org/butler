@@ -9,6 +9,7 @@ import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
+import eu.darken.butler.common.ipc.IpcContract
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
@@ -49,7 +50,7 @@ class RootSetupModuleTest : BaseTest() {
         coEvery { rootManager.isInstalled() } returns true
         every { rootManager.binder } returns flowOf(connection)
         every { connection.ipc } returns ipc
-        every { ipc.checkBase() } answers { probeCount++; "ok" }
+        every { ipc.checkBase() } answers { probeCount++; "${IpcContract.marker()}\nok" }
     }
 
     @AfterEach
@@ -120,5 +121,27 @@ class RootSetupModuleTest : BaseTest() {
         probeCount shouldBeGreaterThan before
 
         runBlocking { collector.cancelAndJoin() }
+    }
+
+    @Test fun `a host without a version marker is not reported as our service`() {
+        // Pre-handshake hosts answer with a plain diagnostic string. Its transaction codes need not
+        // match ours, so the setup card must not show as complete.
+        every { ipc.checkBase() } answers { probeCount++; "Our pkg: eu.darken.butler" }
+        val mod = module()
+
+        val collector = mod.state.test(tag = "no-marker", scope = scope)
+        collector.await { values, _ -> values.any { it is RootSetupModule.Result } }
+
+        collector.latestValues.last().shouldBeInstanceOf<RootSetupModule.Result>().ourService shouldBe false
+    }
+
+    @Test fun `a host with a mismatched version is not reported as our service`() {
+        every { ipc.checkBase() } answers { probeCount++; "ipc-version: ${IpcContract.VERSION + 1}\nok" }
+        val mod = module()
+
+        val collector = mod.state.test(tag = "bad-version", scope = scope)
+        collector.await { values, _ -> values.any { it is RootSetupModule.Result } }
+
+        collector.latestValues.last().shouldBeInstanceOf<RootSetupModule.Result>().ourService shouldBe false
     }
 }

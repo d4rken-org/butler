@@ -9,6 +9,7 @@ import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.ipc.IpcContract
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.flow.replayingShare
 import eu.darken.butler.common.rngString
@@ -19,6 +20,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -63,7 +65,7 @@ class RootSetupModule @Inject constructor(
                 @Suppress("USELESS_CAST")
                 baseState.copy(
                     ourService = try {
-                        connection.ipc.checkBase() != null
+                        IpcContract.isCompatible(connection.ipc.checkBase())
                     } catch (e: CancellationException) {
                         throw e
                     } catch (e: Exception) {
@@ -71,6 +73,13 @@ class RootSetupModule @Inject constructor(
                         false
                     },
                 ) as SetupModule.State
+            }
+            // The service client now rejects a host that speaks a different IpcContract.VERSION, so
+            // obtaining the binder itself can fail. Report "no service" rather than erroring the
+            // whole setup flow.
+            .catch { e ->
+                log(TAG, WARN) { "Root service unavailable: $e" }
+                emit(baseState as SetupModule.State)
             }
     }
         .flatMapLatest { it }

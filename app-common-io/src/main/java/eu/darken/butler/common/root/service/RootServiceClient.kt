@@ -7,6 +7,8 @@ import eu.darken.butler.common.debug.DebugSettings
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.ipc.IpcContract
+import eu.darken.butler.common.ipc.IpcContractMismatchException
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.local.ipc.FileOpsClient
 import eu.darken.butler.common.flow.setupCommonEventHandlers
@@ -93,6 +95,13 @@ class RootServiceClient @Inject constructor(
         }
     }
         .map {
+            val reply = it.checkBase()
+            if (!IpcContract.isCompatible(reply)) {
+                // A host from a different app revision: its AIDL transaction codes need not line up
+                // with ours, so refuse before any module client can issue a call against it.
+                log(TAG, WARN) { "Incompatible host, expected ipc-version ${IpcContract.VERSION}, got: $reply" }
+                throw IpcContractMismatchException("Host does not speak ipc-version ${IpcContract.VERSION}")
+            }
             Connection(
                 ipc = it,
                 clientModules = listOf(
