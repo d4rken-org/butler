@@ -1,5 +1,7 @@
 package eu.darken.butler.common.adb.service
 
+import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.adb.AdbServiceConnection
 import eu.darken.butler.common.adb.AdbSettings
 import eu.darken.butler.common.adb.AdbUnavailableException
@@ -14,7 +16,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.ipc.IpcContract
-import eu.darken.butler.common.ipc.IpcContractMismatchException
+import eu.darken.butler.common.ipc.gateOnHostIdentity
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.local.ipc.FileOpsClient
 import eu.darken.butler.common.flow.setupCommonEventHandlers
@@ -30,7 +32,6 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
@@ -42,6 +43,7 @@ import kotlin.time.Duration.Companion.seconds
 
 @Singleton
 class AdbServiceClient @Inject constructor(
+    @ApplicationContext context: Context,
     serviceLauncher: AdbHostLauncher,
     @AppScope coroutineScope: CoroutineScope,
     dispatcherProvider: DispatcherProvider,
@@ -65,6 +67,8 @@ class AdbServiceClient @Inject constructor(
             isDebug = debugSettings.isDebugMode.value(),
             isTrace = debugSettings.isTraceMode.value(),
             recorderPath = debugSettings.recorderPath.value(),
+            // Shizuku has no init args, so this initial push doubles as the host's launch arguments.
+            hostIdentity = IpcContract.current(context).encode(),
         )
 
         val lastInternal = MutableStateFlow<AdbConnection?>(null)
@@ -86,6 +90,7 @@ class AdbServiceClient @Inject constructor(
                 isDebug = isDebug,
                 isTrace = isTrace,
                 recorderPath = recorderPath,
+                // No identity: it is a launch stamp, and this push happens after the host was stamped.
             )
             log(TAG) { "Updating debug settings: $optionsDynamic" }
             lastConnection.updateHostOptions(optionsDynamic)
@@ -98,20 +103,18 @@ class AdbServiceClient @Inject constructor(
             log(TAG) { "awaitClose() CLOSING" }
         }
     }
-        .map {
-            val reply = it.checkBase()
-            if (!IpcContract.isCompatible(reply)) {
-                // A host from a different app revision: its AIDL transaction codes need not line up
-                // with ours, so refuse before any module client can issue a call against it.
-                log(TAG, WARN) { "Incompatible host, expected ipc-version ${IpcContract.VERSION}, got: $reply" }
-                throw IpcContractMismatchException("Host does not speak ipc-version ${IpcContract.VERSION}")
-            }
+        .gateOnHostIdentity(
+            tag = TAG,
+            expected = { IpcContract.current(context) },
+            checkBase = { it.checkBase() },
+        ) { ipc, identity ->
             Connection(
-                ipc = it,
+                ipc = ipc,
+                hostIdentity = identity,
                 clientModules = listOf(
-                    fileOpsClientFactory.create(it.fileOps),
-                    pkgOpsClientFactory.create(it.pkgOps),
-                    shellOpsClientFactory.create(it.shellOps),
+                    fileOpsClientFactory.create(ipc.fileOps),
+                    pkgOpsClientFactory.create(ipc.pkgOps),
+                    shellOpsClientFactory.create(ipc.shellOps),
                 )
             )
         },
@@ -125,10 +128,17 @@ class AdbServiceClient @Inject constructor(
     // HyperOS defect) that turns one 15s stall into up to five for every concurrent probe. The
     // caller that started the generation always got the real error; this gives it to the others too.
     isRetryableStartupFailure = { !it.isAdbConnectTimeout() },
+    // A cached generation may predate an in-place app update, and the keep-alive above makes that
+    // window longer than elsewhere. Compared against the identity captured when the connection was
+    // gated, so this stays local: the validator runs on every acquire, and another checkBase()
+    // round-trip would run `id` in the host each time.
+    isReusable = { it.hostIdentity == IpcContract.current(context) },
 ) {
 
     data class Connection(
         val ipc: AdbServiceConnection,
+        /** Identity of the app installation that launched the host, verified when it was handed out. */
+        val hostIdentity: IpcContract.HostIdentity,
         val clientModules: List<IpcClientModule>
     )
 

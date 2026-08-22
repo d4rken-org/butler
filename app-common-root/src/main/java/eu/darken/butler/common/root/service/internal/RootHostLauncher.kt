@@ -55,6 +55,8 @@ class RootHostLauncher(
         hostClass: KClass<Host>,
         useMountMaster: Boolean = false,
         options: RootHostOptions,
+        /** Encoded `IpcContract.HostIdentity` of the launching app installation, stamped into the host. */
+        hostIdentity: String,
     ): Flow<ConnectionWrapper<Service>> = callbackFlow {
         val iTag = "$TAG:${Uuid.random().toString().takeLast(4)}"
         log(iTag, INFO) { "createConnection($serviceClass, $hostClass, $useMountMaster, $options)" }
@@ -110,7 +112,7 @@ class RootHostLauncher(
                 }
             }
 
-            val command = commandFactory.create(hostClass, pairingCode, options)
+            val command = commandFactory.create(hostClass, pairingCode, options, hostIdentity)
 
             // Attempt 1: direct exec. Blocks until the root host process exits (success path, with
             // onConnect having fired meanwhile) or fails fast on a broken pipe / unsupported exec.

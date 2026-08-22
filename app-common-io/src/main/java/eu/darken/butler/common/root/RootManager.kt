@@ -79,7 +79,11 @@ class RootManager @Inject constructor(
             cachedState?.let { return@withContext it }
 
             val newState = try {
-                serviceClient.get().use { IpcContract.isCompatible(it.item.ipc.checkBase()) }
+                serviceClient.get().use {
+                    // The round-trip is the liveness proof; the identity in its reply must still be
+                    // the one the connection was gated on (the client rejects anything else).
+                    IpcContract.decode(it.item.ipc.checkBase()) == it.item.hostIdentity
+                }
             } catch (e: CancellationException) {
                 throw e // don't cache a cancelled probe as "not rooted"
             } catch (e: Exception) {
