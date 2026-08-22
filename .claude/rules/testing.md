@@ -6,7 +6,7 @@ paths: ["**/src/test*/**", "**/src/androidTest/**", "**/*Test.kt", "app-common-t
 
 ## Test Commands
 
-Standard Gradle invocations (`testDebugUnitTest`, `--tests "<fqcn>"`, `connectedAndroidTest`). Flavored modules need the flavor in the task name — see the Compose section below.
+Standard Gradle invocations (`testFossDebugUnitTest`, `--tests "<fqcn>"`, `connectedAndroidTest`). Every module carries the `version` flavor dimension, so unit test tasks always include the flavor — there is no flavor-free `testDebugUnitTest`.
 
 ## What to Test
 
@@ -53,9 +53,8 @@ class MyComponentTest : ComposeTest() {
 **Running Compose tests:**
 
 ```bash
-# Module without flavors
-./gradlew :app-workspace:testDebugUnitTest --tests "*.MyComponentTest"
+./gradlew :app-workspace:testFossDebugUnitTest --tests "*.MyComponentTest"
 
-# Module with flavors (app-common)
-./gradlew :app-common:testFossDebugUnitTest --tests "*.MyComponentTest"
+# The gplay side of the same module
+./gradlew :app-workspace:testGplayDebugUnitTest --tests "*.MyComponentTest"
 ```

@@ -21,7 +21,7 @@ jobs:
       matrix:
         # Must match the artifacts uploaded by the test-modules matrix in code-checks.yml
         variant: [ Debug ]
-        flavor: [ test,testFoss,testGplay ]
+        flavor: [ testFoss,testGplay ]
     steps:
       - name: Test Report
         uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 #v3.0.0
