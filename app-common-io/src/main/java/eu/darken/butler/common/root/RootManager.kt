@@ -7,6 +7,7 @@ import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.ipc.IpcContract
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.flow.replayingShare
 import eu.darken.butler.common.flow.setupCommonEventHandlers
@@ -78,7 +79,7 @@ class RootManager @Inject constructor(
             cachedState?.let { return@withContext it }
 
             val newState = try {
-                serviceClient.get().use { it.item.ipc.checkBase() != null }
+                serviceClient.get().use { IpcContract.isCompatible(it.item.ipc.checkBase()) }
             } catch (e: CancellationException) {
                 throw e // don't cache a cancelled probe as "not rooted"
             } catch (e: Exception) {

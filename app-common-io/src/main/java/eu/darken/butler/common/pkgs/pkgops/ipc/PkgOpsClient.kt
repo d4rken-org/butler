@@ -50,30 +50,6 @@ class PkgOpsClient @AssistedInject constructor(
         }
     }
 
-    suspend fun clearCache(installId: InstallId): Boolean = try {
-        connection.clearCacheAsUser(installId.pkgId.name, installId.userHandle.handleId)
-    } catch (e: Exception) {
-        throw e.refineException().also {
-            log(TAG, ERROR) { "clearCache(installId=$installId) failed: ${it.asLog()}" }
-        }
-    }
-
-    suspend fun clearCache(pkgId: Pkg.Id): Boolean = try {
-        connection.clearCache(pkgId.name)
-    } catch (e: Exception) {
-        throw e.refineException().also {
-            log(TAG, ERROR) { "clearCache(pkgId=$pkgId) failed: ${it.asLog()}" }
-        }
-    }
-
-    suspend fun trimCaches(desiredBytes: Long, storageId: String? = null): Boolean = try {
-        connection.trimCaches(desiredBytes, storageId)
-    } catch (e: Exception) {
-        throw e.refineException().also {
-            log(TAG, ERROR) { "trimCaches(desiredBytes=$desiredBytes, storageId=$storageId) failed: ${it.asLog()}" }
-        }
-    }
-
     /**
      * Can fail if the amount of packages exceeds the IPC buffer size.
      * android.os.DeadObjectException: Transaction failed on small parcel; remote process probably died

@@ -191,7 +191,6 @@ class AppDetailsWorkspace @AssistedInject constructor(
     ) {
         val canEnableDisable: Boolean get() = hasRoot || hasAdb
         val canForceStop: Boolean get() = hasRoot || hasAdb
-        val canClearCache: Boolean get() = hasRoot
         val canClearData: Boolean get() = hasRoot || hasAdb
     }
 
@@ -319,11 +318,6 @@ class AppDetailsWorkspace @AssistedInject constructor(
     suspend fun forceStopApp(app: AppInfo): Boolean = trackPkgOp {
         log(tag) { "forceStopApp(${app.packageName})" }
         pkgOps.forceStop(app.id)
-    }
-
-    suspend fun clearCacheApp(app: AppInfo) = trackPkgOp {
-        log(tag) { "clearCacheApp(${app.packageName})" }
-        pkgOps.clearCache(app.installId)
     }
 
     suspend fun clearDataApp(app: AppInfo): Boolean = trackPkgOp {

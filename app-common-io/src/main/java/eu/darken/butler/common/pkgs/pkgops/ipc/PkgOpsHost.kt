@@ -13,10 +13,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.ipc.IpcHostModule
 import eu.darken.butler.common.ipc.RemoteInputStream
-import eu.darken.butler.common.pkgs.deleteApplicationCacheFiles
-import eu.darken.butler.common.pkgs.deleteApplicationCacheFilesAsUser
 import eu.darken.butler.common.pkgs.features.InstallId
-import eu.darken.butler.common.pkgs.freeStorageAndNotify
 import eu.darken.butler.common.pkgs.getInstalledPackagesAsUser
 import eu.darken.butler.common.pkgs.pkgops.LibcoreTool
 import eu.darken.butler.common.pkgs.pkgops.ProcessScanner
@@ -91,30 +88,6 @@ class PkgOpsHost @Inject constructor(
         true
     } catch (e: Exception) {
         log(TAG, ERROR) { "forceStop(packageName=$packageName) failed: ${e.asLog()}" }
-        throw e.wrapToPropagate()
-    }
-
-    override fun clearCacheAsUser(packageName: String, handleId: Int): Boolean = try {
-        log(TAG, VERBOSE) { "clearCache(packageName=$packageName, handleId=$handleId)..." }
-        runBlocking { pm.deleteApplicationCacheFilesAsUser(packageName, handleId) }
-    } catch (e: Exception) {
-        log(TAG, ERROR) { "clearCache(packageName=$packageName, handleId=$handleId) failed: ${e.asLog()}" }
-        throw e.wrapToPropagate()
-    }
-
-    override fun clearCache(packageName: String): Boolean = try {
-        log(TAG, VERBOSE) { "clearCache(packageName=$packageName)..." }
-        runBlocking { pm.deleteApplicationCacheFiles(packageName) }
-    } catch (e: Exception) {
-        log(TAG, ERROR) { "clearCache(packageName=$packageName) failed: ${e.asLog()}" }
-        throw e.wrapToPropagate()
-    }
-
-    override fun trimCaches(desiredBytes: Long, storageId: String?): Boolean = try {
-        log(TAG, VERBOSE) { "trimCaches(desiredBytes=$desiredBytes, storageId=$storageId)..." }
-        runBlocking { pm.freeStorageAndNotify(desiredBytes, storageId) }
-    } catch (e: Exception) {
-        log(TAG, ERROR) { "trimCaches(desiredBytes=$desiredBytes, storageId=$storageId) failed: ${e.asLog()}" }
         throw e.wrapToPropagate()
     }
 

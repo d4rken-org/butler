@@ -11,7 +11,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.Launch
 import androidx.compose.material.icons.twotone.Block
 import androidx.compose.material.icons.twotone.CheckCircle
-import androidx.compose.material.icons.twotone.ClearAll
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.DeleteForever
 import androidx.compose.material.icons.twotone.GetApp
@@ -67,12 +66,6 @@ sealed class AppAction {
         override val icon = Icons.TwoTone.Stop
         override val titleRes = R.string.apps_action_force_stop
         override val descriptionRes = R.string.apps_action_force_stop_desc
-    }
-
-    data object ClearCache : AppAction() {
-        override val icon = Icons.TwoTone.ClearAll
-        override val titleRes = R.string.apps_action_clear_cache
-        override val descriptionRes = R.string.apps_action_clear_cache_desc
     }
 
     // Export actions
@@ -131,11 +124,9 @@ fun ActionsSection(
     onExportApk: () -> Unit,
     onShareApk: () -> Unit,
     onForceStop: () -> Unit = {},
-    onClearCache: () -> Unit = {},
     onClearData: () -> Unit = {},
     canEnableDisable: Boolean = true,
     canForceStop: Boolean = true,
-    canClearCache: Boolean = true,
     canClearData: Boolean = true,
 ) {
     if (app == null) return
@@ -143,7 +134,6 @@ fun ActionsSection(
     val managementActions = buildList {
         if (canEnableDisable) add(AppAction.EnableDisable(app.isEnabled))
         if (canForceStop) add(AppAction.ForceStop)
-        if (canClearCache) add(AppAction.ClearCache)
     }
 
     val destructiveActions = buildList {
@@ -163,7 +153,6 @@ fun ActionsSection(
         AppAction.OpenInfo to onShowAppInfo,
         AppAction.EnableDisable(app.isEnabled) to onEnableDisable,
         AppAction.ForceStop to onForceStop,
-        AppAction.ClearCache to onClearCache,
         AppAction.ExportApk to onExportApk,
         AppAction.ShareApk to onShareApk,
         AppAction.ClearData to onClearData,
@@ -269,7 +258,6 @@ private fun ActionsSectionPreview() {
         onExportApk = {},
         onShareApk = {},
         onForceStop = {},
-        onClearCache = {},
         onClearData = {},
     )
 }

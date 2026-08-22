@@ -73,7 +73,6 @@ fun AppsWorkspaceOverlays(
         onConfirmEnable = { onPageAction(AppsPageAction.Dialog.ConfirmEnable(it)) },
         onConfirmDisable = { onPageAction(AppsPageAction.Dialog.ConfirmDisable(it)) },
         onConfirmUninstall = { onPageAction(AppsPageAction.Dialog.ConfirmUninstall(it)) },
-        onConfirmClearCache = { onPageAction(AppsPageAction.Dialog.ConfirmClearCache(it)) },
         onConfirmClearData = { onPageAction(AppsPageAction.Dialog.ConfirmClearData(it)) },
         onOpenSizeSetup = { onPageAction(AppsPageAction.Dialog.OpenSizeSetup) },
         topInset = statusBarInset,

@@ -249,10 +249,6 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
                 if (enableAction.isVisible) add(enableAction)
             }
 
-            if (wsState.canClearCache) {
-                add(AppsActionBarItem.ClearCache(selectedApps))
-            }
-
             if (wsState.canClearData) {
                 add(AppsActionBarItem.ClearData(selectedApps))
             }
@@ -465,12 +461,6 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
         getWorkspace().uninstallApps(apps)
     }
 
-    fun performClearCacheApps(apps: List<AppItem>) = launch {
-        log(tag) { "Clearing cache for ${apps.size} apps" }
-        dismissDialog()
-        getWorkspace().clearCacheApps(apps)
-    }
-
     fun performClearDataApps(apps: List<AppItem>) = launch {
         log(tag) { "Clearing data for ${apps.size} apps" }
         dismissDialog()
@@ -521,7 +511,6 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
             is AppsPageAction.Dialog.ConfirmEnable -> performEnableApps(action.apps)
             is AppsPageAction.Dialog.ConfirmDisable -> performDisableApps(action.apps)
             is AppsPageAction.Dialog.ConfirmUninstall -> performUninstallApps(action.apps)
-            is AppsPageAction.Dialog.ConfirmClearCache -> performClearCacheApps(action.apps)
             is AppsPageAction.Dialog.ConfirmClearData -> performClearDataApps(action.apps)
             is AppsPageAction.Dialog.OpenSizeSetup -> onOpenSizePermissionSetup()
 
@@ -574,11 +563,6 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
             is AppsActionBarItem.Uninstall -> launch {
                 log(tag) { "Uninstall action for ${action.apps.size} apps" }
                 dialogStateFlow.value = AppsDialogState.ConfirmUninstall(action.apps)
-            }
-
-            is AppsActionBarItem.ClearCache -> launch {
-                log(tag) { "Clear cache action for ${action.apps.size} apps" }
-                dialogStateFlow.value = AppsDialogState.ConfirmClearCache(action.apps)
             }
 
             is AppsActionBarItem.ClearData -> launch {

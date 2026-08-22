@@ -104,7 +104,6 @@ class AppsWorkspace @AssistedInject constructor(
             val selectionCount: Int get() = selectedApps.size
 
             val canEnableDisable: Boolean get() = hasRoot || hasAdb
-            val canClearCache: Boolean get() = hasRoot
             val canClearData: Boolean get() = hasRoot || hasAdb
         }
 
@@ -338,28 +337,6 @@ class AppsWorkspace @AssistedInject constructor(
                 throw PkgOpsException("Failed to uninstall ${failures.size}/${apps.size} apps", failures.first().second)
             }
         } finally {
-            appsEngine.refresh()
-            appsEngine.clearSelection()
-        }
-    }
-
-    suspend fun clearCacheApps(apps: List<AppItem>) = trackPkgOp {
-        log(tag) { "Clearing cache for ${apps.size} apps" }
-        val failures = mutableListOf<Pair<AppItem, Exception>>()
-        try {
-            apps.forEach { app ->
-                try {
-                    pkgOps.clearCache(app.pkg.installId)
-                } catch (e: Exception) {
-                    log(tag, WARN) { "Failed to clear cache for ${app.packageName}: $e" }
-                    failures.add(app to e)
-                }
-            }
-            if (failures.isNotEmpty()) {
-                throw PkgOpsException("Failed to clear cache for ${failures.size}/${apps.size} apps", failures.first().second)
-            }
-        } finally {
-            appSizeCache.invalidate(apps.map { it.pkg.installId })
             appsEngine.refresh()
             appsEngine.clearSelection()
         }
