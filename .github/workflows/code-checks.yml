@@ -56,7 +56,9 @@ jobs:
       fail-fast: false
       matrix:
         variant: [ Debug ]
-        flavor: [ test,testFoss,testGplay ]
+        # Every module carries the `version` dimension, so there is no flavor-free
+        # `testDebugUnitTest` task left to run; these two cover the whole tree.
+        flavor: [ testFoss,testGplay ]
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout source code

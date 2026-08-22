@@ -15,8 +15,8 @@
 # Build debug version (FOSS flavor) - main app
 ./gradlew :app:compileFossDebugKotlin --no-daemon
 
-# Build specific modules (use compileDebugKotlin, not compileFossDebugKotlin for modules)
-./gradlew :app-workspace:compileDebugKotlin --no-daemon
+# Build specific modules (every module carries the foss/gplay dimension)
+./gradlew :app-workspace:compileFossDebugKotlin --no-daemon
 
 # Build release version
 ./gradlew :app:bundleFossRelease

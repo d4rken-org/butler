@@ -15,7 +15,7 @@ import kotlin.time.measureTime
  * The `manual-benchmark` tag is excluded from the module's normal `Test` tasks, so this class is
  * absent from the test plan (not reported as skipped). Run it manually with:
  *
- * `./gradlew :app-workspace-editor:testDebugUnitTest -PrunEditorBenchmarks --tests "*PieceStorageBenchmark*"`
+ * `./gradlew :app-workspace-editor:testFossDebugUnitTest -PrunEditorBenchmarks --tests "*PieceStorageBenchmark*"`
  *
  * Decision rule: consider a piece tree only if per-edit latency at >= 10k pieces exceeds ~1ms
  * or UI jank is otherwise plausible. Storage is internal to PieceTable, so a later swap needs

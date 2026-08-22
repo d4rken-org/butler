@@ -15,18 +15,7 @@ apply(plugin = "org.jetbrains.kotlinx.kover")
 android {
     namespace = "${projectConfig.packageName}.common"
 
-    setupLibraryDefaults(projectConfig, ownsVersionFlavor = true)
-
-    flavorDimensions.add("version")
-    productFlavors {
-        create("foss") {
-            dimension = "version"
-            isDefault = true
-        }
-        create("gplay") {
-            dimension = "version"
-        }
-    }
+    setupLibraryDefaults(projectConfig)
 
     setupModuleBuildTypes()
 
@@ -72,9 +61,6 @@ dependencies {
     addCoil()
     addLottie()
     addRoomDb()
-
-    "gplayImplementation"(libs.billing.core)
-    "gplayImplementation"(libs.billing.ktx)
 }
 
 // Kover's verify rules can't filter per-rule (only the report can), so to gate ONLY the
