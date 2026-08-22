@@ -20,17 +20,42 @@ Send a [quick mail](mailto:support@darken.eu) if you have questions.
 
 Details about senstive permissions can be found below.
 
-In general, Butler only processes data locally, on your device. Two edge cases exist:
+In general, Butler only processes data locally, on your device. Two features create files that describe what Butler
+did in detail, and that you can choose to share:
 
 * If you record a [debug log](#debug-log), the resulting file will contain a detailed log of Butlers actions.
-* If you enable [automatic error reports](#automatic-error-reports) and an error occurs, the resulting bug report may
-  contain information about what Butler did shortly before the error occured.
+* If Butler crashes, a [crash report](#crash-reports) is written to your device and may contain information about what
+  Butler did shortly before the error occured.
 
 ### Query installed apps
 
 Butler has multiple features that require the `QUERY_ALL_PACKAGES` permission.
 The
 `QUERY_ALL_PACKAGES` permission allows Butler to retrieve the inventory of installed apps, i.e. know which apps you currently have installed on your device. To display icons and extra information when browsing directories related to an app.
+
+### All files access
+
+Butler is a file manager, so browsing and managing the files on your device is its core function. Android restricts
+apps to their own directories and to media files unless they hold the `MANAGE_EXTERNAL_STORAGE` permission, which
+Android presents as "All files access". Without it Butler cannot show or modify most of your storage.
+
+You grant this permission yourself in the system settings, and you can revoke it there at any time. Butler reads and
+writes files only where you direct it to. File names and file contents are not transmitted anywhere.
+
+### Usage access
+
+The `PACKAGE_USAGE_STATS` permission, which Android presents as "Usage access", allows Butler to see which apps are
+currently running. Butler uses this to show app related information, for example when displaying installed apps.
+
+This permission is optional. If it is not granted, Butler skips the features that depend on it.
+
+### Install apps
+
+The `REQUEST_INSTALL_PACKAGES` permission allows Butler to hand an APK file you selected to the system's package
+installer, so that installing an app you found in your storage works from within Butler.
+
+Butler does not install anything on its own. The system installer is what performs the installation, and it asks for
+your confirmation.
 
 ## Message of the day
 
@@ -63,3 +88,15 @@ This feature creates a log file that contains verbose output of what the app is 
 It is manually triggered by the user through an option in the app settings.
 The recorded log file can be shared through compatible apps (e.g. your email app) using the system's share dialog.
 As this log file may contain sensitive information (e.g. details about files or your installed applications) it should only be shared with trusted parties.
+
+## Crash reports
+
+If Butler crashes, it writes a crash report into its own private storage on your device. The report contains the error
+details and information about what Butler was doing shortly before the crash.
+
+Crash reports are never sent anywhere automatically. Butler does not include any crash reporting or analytics service.
+Reports stay on your device until you open them via "Bug reports" in the app settings and share them yourself using the
+system's share dialog.
+
+As a crash report may contain sensitive information (e.g. details about files or your installed applications) it should
+only be shared with trusted parties.
