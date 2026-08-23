@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 # Record the APK-install (REQUEST_INSTALL_PACKAGES) declaration screencast.
-# The video shows the user-gated install flow: picking an APK file and choosing
-# "Open with", allowing Butler as an install source (Android's per-source
-# "Install unknown apps" grant — the policy-critical shot), and confirming in
-# the system installer.
+# The permitted use requires BOTH halves of the core functionality on camera, so
+# the video shows the package being received and managed as a file (an APK lands
+# in a staging folder and the user copies it into Download) and then the
+# user-gated install flow: picking the APK and choosing "Open with", allowing
+# Butler as an install source (Android's per-source "Install unknown apps" grant,
+# the policy-critical shot), and confirming in the system installer.
 #
 # Runs against a bare AOSP emulator (no Play Protect dialogs). The install-source
 # grant MUST start pristine so the grant flow is captured; the pre-state VERIFIES
@@ -38,10 +40,16 @@ echo "$DEMO_APK_SHA256  $DEMO_APK" | sha256sum -c - >/dev/null 2>&1 \
   || { echo "SHA-256 mismatch for $DEMO_APK — aborting"; exit 1; }
 
 # ---- pre-state (off camera) -------------------------------------------------
-echo "Pre-state: seed APK, verify pristine install-source grant, clean tabs, reach Download…"
+echo "Pre-state: seed APK into the staging folder, verify pristine install-source grant, clean tabs, reach Download/incoming…"
 "${ADB[@]}" shell pm uninstall "$DEMO_PKG" >/dev/null 2>&1
 "${ADB[@]}" shell rm -f "/sdcard/Download/*.apk" >/dev/null 2>&1
-"${ADB[@]}" push "$DEMO_APK" "/sdcard/Download/$DEMO_APK_NAME" >/dev/null
+"${ADB[@]}" shell rm -rf "/sdcard/Download/incoming" >/dev/null 2>&1
+# The APK is seeded into a staging folder, NOT into Download: the first recorded
+# beat is the user copying it out of there, which is the "receiving app packages"
+# half of the permitted use. Pushing it straight to Download would put that step
+# off camera and leave the video evidencing only the install half.
+"${ADB[@]}" shell mkdir -p "/sdcard/Download/incoming" >/dev/null 2>&1
+"${ADB[@]}" push "$DEMO_APK" "/sdcard/Download/incoming/$DEMO_APK_NAME" >/dev/null
 # The REQUEST_INSTALL_PACKAGES app-op MUST start ungranted so the source-approval
 # shot (the policy-critical moment) is captured. It cannot be reset back to the
 # first-prompt state with `appops set …`: once the source has responded to the
@@ -82,10 +90,11 @@ else
   clean_tabs_to_picker
 fi
 tap "Explorer"; pause 2.5
-# navigate to Download off camera so the recording starts on the APK
+# navigate to the staging folder off camera so the recording starts on the APK
 tap "Device"; pause 2.0
 tap "Internal shared storage"; pause 2.0
 tap "Download"; pause 2.0
+tap "incoming"; pause 2.0
 
 # ---- recorded flow ----------------------------------------------------------
 rec_start
@@ -98,6 +107,29 @@ die_rec() {
   "${ADB[@]}" shell pkill -INT screenrecord 2>/dev/null || true
   exit 1
 }
+
+# ---- receiving the package (the other half of the permitted use) ------------
+# Google requires core functionality to cover BOTH receiving app packages AND
+# enabling user-initiated installation. This beat is the receiving half: the APK
+# sits in a staging folder and the user files it into Download with Butler's own
+# file management, before anything is installed.
+cap "An APK arrives in your storage"
+pause 2.6
+dump; sel=$(_find -c "$UIX" "CapOd")
+[ -n "$sel" ] || die_rec "the seeded APK is not visible in Download/incoming"
+"${ADB[@]}" shell input swipe $sel $sel 900   # long-press -> selection mode
+pause 1.4
+tap "Copy"; pause 1.6
+back; pause 1.8                             # up to Download
+tap "Paste" 0 -c; pause 2.6
+# A dropped tap here would cost the "receiving" half of the evidence without any
+# other symptom, so confirm the copy actually landed before filming the install.
+for c in 1 2 3 4 5; do
+  "${ADB[@]}" shell ls "/sdcard/Download/$DEMO_APK_NAME" 2>/dev/null | grep -q "$DEMO_APK_NAME" && break
+  pause 1.2
+done
+"${ADB[@]}" shell ls "/sdcard/Download/$DEMO_APK_NAME" 2>/dev/null | grep -q "$DEMO_APK_NAME" \
+  || die_rec "the APK was not copied into Download (receiving half would be missing)"
 
 cap "An APK file in your file explorer"
 pause 3.0

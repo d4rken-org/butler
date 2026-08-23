@@ -3,6 +3,68 @@
 App: **Butler – File Explorer** (`eu.darken.butler`)
 Form: Play Console → App content → Permissions declaration form → **Request install packages**
 
+## Play Console form
+
+Two checkbox groups and a video link, in the order below. Sections 1 to 4 are background for
+whoever fills the form in, not fields.
+
+### Core purpose
+
+*"Which permitted functionality does your app provide? Select all that apply."*, under the warning
+*"Selecting a category that does not match the core purpose of your app may lead to a rejection."*
+
+- [ ] web browsing
+- [ ] Search or Assistant
+- [ ] communication services that support attachments
+- [x] **file sharing, transfer or management**: Butler is a file manager, and APK files are files
+      it receives, browses, moves, shares and opens like any other.
+- [ ] enterprise device management
+- [ ] none of these
+
+The five unticked boxes describe products Butler is not: it is no browser, no search or assistant
+surface, no messaging or attachment service, and no device-management tool. Ticking **none of
+these** would fail review outright, since it states the app has no permitted use for a permission
+it declares.
+
+### Usage
+
+*"Why does your app need to use the REQUEST_INSTALL_PACKAGES permission? Select all that apply."*
+
+- [x] **App functionality**: without the permission the OS will not authorize Butler as an install
+      source, so opening an APK cannot proceed.
+- [ ] Analytics
+- [ ] Developer communications
+- [ ] Advertising or marketing
+- [ ] Fraud prevention, security, and compliance
+- [ ] Personalization
+- [ ] Account management
+
+### Video
+
+*"Video instructions"*, a link field taking a YouTube or cloud-storage URL. Because this form has
+no text field, the video is the only evidence Google gets, and it has to carry **both** halves of
+the permitted use: receiving and managing an app package as a file, and enabling the
+user-initiated installation of it. The storyboard in [§4](#4-demo-video-script) and the recorder
+are built around that; hosting rules are in [`../README.md`](../README.md#demo-videos).
+
+### This form has no free-text field
+
+There is nowhere on this form to paste a written rationale. Sections 2 and 3 exist for reviewers of
+this repository and for a follow-up exchange with Google, not for the console.
+
+---
+
+## If Google asks a follow-up
+
+Not a console field. This is §2 condensed to 500 characters for a policy email or an appeal reply,
+so the written answer matches the form and the video:
+
+```text
+Butler is a file manager. Users receive APK files through downloads, transfers and backups, and Butler's App Manager can export an installed app as an APK; Butler browses, moves, copies and shares them like any other file. When the user opens one, Butler hands it to Android's system package installer with ACTION_VIEW and a FileProvider URI. Butler has no installer logic of its own: Android asks the user to allow Butler as an install source, then to confirm the install itself.
+```
+
+---
+
 ## 1. Permitted use to select
 
 **File sharing, transfer or management.**
@@ -14,7 +76,7 @@ core functionality includes:
 
 ---
 
-## 2. "How does your app use this permission?" (paste into the form)
+## 2. "How does your app use this permission?" (reference, not a form field)
 
 Butler is a file manager. Browsing, organizing, and **opening local files — including Android
 package files (`.apk`)** — is its core purpose. Users routinely have APK files in their storage
@@ -76,7 +138,7 @@ Google requires the core feature to be prominently documented in the listing.
 ## 4. Demo video script
 
 Produced by the automated recorder (`./record.sh`); see
-[`../README.md`](../README.md#generating-the-demo-videos-automated). Length **~68s** (incl. title
+[`../README.md`](../README.md#generating-the-demo-videos-automated). Length **~88s** (incl. title
 and end cards), portrait 720×1606, synthetic data only. The installed app is CapOd
 (`eu.darken.capod`) — another app by the same developer, pinned by URL + SHA-256 in `record.sh`,
 so no third-party brand appears.
@@ -84,15 +146,31 @@ so no third-party brand appears.
 | # | Shot | On screen |
 |---|------|-----------|
 | 1 | **Title card** | "Butler — eu.darken.butler — Opening a user-selected APK in Android's package installer (REQUEST_INSTALL_PACKAGES)". |
-| 2 | **Explorer with an APK** | Butler's Explorer on `Download`, an `.apk` file visible among normal files. |
-| 3 | **User action** | Tap the APK → file options → **"Open with"** — Butler hands the file to the system installer. |
-| 4 | **Android's source approval** | The OS blocks: "For your security…" → **Settings** → per-source **"Install unknown apps"** screen → user enables **"Allow from this source"** for Butler. This is the visible permission grant. |
-| 5 | **User-confirmed install** | With the source now allowed, the user reopens the APK: **"Do you want to install this app?"** → taps **Install** → "App installed" → **Done**. |
-| 6 | **End card** | "Butler only opens APKs you selected, in Android's installer. Approval and install confirmation stay under your control." |
+| 2 | **An APK arrives in your storage** | Butler's Explorer on `Download/incoming`, where the `.apk` landed. Long-press to select it → **Copy** → back up to `Download` → **Paste**. Butler receives and files an app package like any other file, which is the "sending or receiving app packages" half of the permitted use. |
+| 3 | **Explorer with an APK** | Butler's Explorer on `Download`, the copied `.apk` visible among normal files. |
+| 4 | **User action** | Tap the APK → file options → **"Open with"** — Butler hands the file to the system installer. |
+| 5 | **Android's source approval** | The OS blocks: "For your security…" → **Settings** → per-source **"Install unknown apps"** screen → user enables **"Allow from this source"** for Butler. This is the visible permission grant. |
+| 6 | **User-confirmed install** | With the source now allowed, the user reopens the APK: **"Do you want to install this app?"** → taps **Install** → "App installed" → **Done**. |
+| 7 | **End card** | "Butler only opens APKs you selected, in Android's installer. Approval and install confirmation stay under your control." |
 
-Shot 4 is the policy-critical moment — the permission's user-facing grant. Shots 3–5 together
-show that all three decisions (file, source, install) belong to the user, matching the
-"user-initiated installation of app packages" requirement of the permitted use we selected.
+Shot 2 covers the receiving-and-managing half of the permitted use, which the recorder used to do
+off camera with an `adb push`. Shot 5 is the policy-critical moment, the permission's user-facing
+grant. Shots 4 to 6 together show that all three decisions (file, source, install) belong to the
+user, matching the "user-initiated installation of app packages" half.
+
+### Video description (paste into YouTube)
+
+```text
+Butler, a file explorer for Android, package name eu.darken.butler. This video demonstrates the REQUEST_INSTALL_PACKAGES permission.
+
+1. Butler's file explorer opens on Download/incoming, where an APK file has arrived. The user long-presses to select it, copies it, goes back up to Download and pastes it there. Butler receives an app package and manages it as a file, which is the first half of the permitted use.
+2. The explorer now shows the APK in Download among ordinary files.
+3. The user taps the APK and chooses "Open with". Butler hands the file to Android's system package installer and does nothing else.
+4. Android blocks the install and asks the user to allow Butler as an install source. The per-source "Install unknown apps" setting is switched on for Butler. This is the permission's user-facing grant and it is a decision only the user can make.
+5. The APK is opened again, Android's installer asks "Do you want to install this app?", the user taps Install, and the app is installed.
+
+The app installed in this video is CapOd, another app by the same developer, so no third-party brand appears. Butler has no installer logic of its own: it cannot install anything without the user picking the file, allowing the install source and confirming in Android's own installer. Everything shown happens on the device.
+```
 
 ---
 
