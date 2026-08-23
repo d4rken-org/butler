@@ -20,13 +20,20 @@ platform :android do
   	#ensure_git_status_clean
   end
 
-  # Closed testing. Play's API track names do not line up with the Console labels:
+  # Play's API track names do not line up with the Console labels:
   # internal = Internal testing, alpha = Closed testing, beta = Open testing, production = Production.
   #
-  # First upload only: an app stays in "draft" until its first release is published, and the Play
-  # API rejects any non-draft release on a draft app. Run this lane once with
-  # SUPPLY_RELEASE_STATUS=draft (or upload that first .aab through the Console), publish it there,
-  # and every later run works unchanged with supply's default "completed" status.
+  # Butler is in closed testing, so BOTH lanes upload to 'alpha' and neither touches the production
+  # track. A -beta tag comes through :beta and a -rc tag through :production, but while we are in
+  # closed testing they are the same destination and only the build type differs. Promotion out of
+  # closed testing happens in the Console. When Butler leaves closed testing, move both lanes up
+  # together ('beta' for open testing, later 'production') instead of letting them drift apart.
+  #
+  # No rollout percentage on either lane: a staged rollout on a closed track would leave most
+  # testers on the previous build, which is the opposite of what a test track is for.
+  #
+  # The first-upload draft dance is done. eu.darken.butler has a published release, so supply's
+  # default "completed" status works and SUPPLY_RELEASE_STATUS=draft is no longer needed.
   lane :beta do
     gradle(task: 'clean bundleGplayBeta')
     sh "bash ./remove_unsupported_languages.sh"
@@ -45,8 +52,7 @@ platform :android do
     gradle(task: 'clean bundleGplayRelease')
     sh "bash ./remove_unsupported_languages.sh"
     supply(
-        track: 'production',
-        rollout: '0.10',
+        track: 'alpha',
         package_name: 'eu.darken.butler',
         skip_upload_changelogs: 'false',
         skip_upload_apk: 'true',
