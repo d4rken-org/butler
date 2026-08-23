@@ -118,7 +118,7 @@ Produced by the automated recorder (`./record.sh`); see
 | 1 | **Title card** | "Butler — eu.darken.butler — App manager (QUERY_ALL_PACKAGES)". |
 | 2 | **Open the App Manager** | The Apps workspace, with a header showing the installed-app counts ("N user · N system apps"). |
 | 3 | **Search across all apps** | Type into the app search field; the list filters across the full installed-package set. |
-| 4 | **Inspect an app in depth** | Open an app's detail: package id, version, SDK levels, storage paths, exported components. |
+| 4 | **Inspect an app in depth** | Open an app's detail and scroll it: package id, version, install metadata and SDK levels. |
 | 5 | **Export the APK into the file explorer** | From the detail, **Export APK** → a "Save as" file-manager workspace (destination prefilled to `Download`) → **Save** → "1 file saved" → **Open directory** → the Explorer opens on `Download` with the exported `.apk` now present as a file. |
 | 6 | **End card** | "Searches and manages every installed app on the device. Not collected, not used for analytics or advertising." |
 
@@ -134,7 +134,7 @@ Butler, a file explorer for Android, package name eu.darken.butler. This video d
 
 1. Butler's App Manager opens. Its header counts the installed apps it can see, user apps and system apps.
 2. A search across every installed app filters the list as the query is typed. Searching all installed apps is the feature that needs broad package visibility; a queries manifest entry only exposes packages named at build time or apps matching declared intents and providers, so it cannot enumerate the device.
-3. One app is opened in detail: package id, version, SDK levels, on-device storage paths and exported components.
+3. One app is opened in detail, showing its package id, version, install metadata and SDK levels.
 4. Its APK is exported through Butler's own save-as workspace into the Download folder.
 5. The explorer opens on Download, where the exported APK is now an ordinary file the user can browse, move and share. This is the link between the App Manager and Butler's file-manager core purpose.
 
