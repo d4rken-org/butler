@@ -181,50 +181,58 @@ run contributes nothing. It does not clear the output directory, so delete any e
 and `declaration.mp4` before re-recording rather than assuming a failed run left none.
 
 The threshold targets the cap, not the form's *recommended* 90 seconds. The recorded video is
-114.9s and overshoots that recommendation deliberately: the remaining time is mostly waits the OS
+112.2s and overshoots that recommendation deliberately: the remaining time is mostly waits the OS
 owns, the Saver writing the file and the install itself, so reaching 90s would mean dropping a beat
 rather than tightening one. Both candidate beats, the APK arriving from another app and the
-source-approval detour, carry policy evidence the form has no text box big enough to replace.
+source-approval sequence, carry policy evidence the form has no text box big enough to replace.
 
-Post-process this one with the caption band lifted, or shot 4 loses its evidence:
+Post-process with `CAPY=300`, below, or shot 5 loses its evidence.
 
 ```
 CAPY=300 ./postprocess.sh /tmp/butler-demo/request-install-packages
 ```
 
-The default band sits where the system chooser draws its app labels, so "Butler" and "Package
-installer" end up behind the caption that describes them. `CAPY` defaults to the value the other
-declarations use, so lifting it here changes nothing about their videos.
+The default caption band sits where the system chooser draws its app labels, so "Butler" and
+"Package installer" end up behind the caption that describes them. `CAPY` defaults to the value the
+other declarations use, so lifting it here changes nothing about their videos.
 
 | # | Shot | On screen |
 |---|------|-----------|
 | 1 | **Title card** | "Butler — File Explorer / eu.darken.butler" over "Opening a user-selected APK in Android's package installer (REQUEST_INSTALL_PACKAGES)". |
-| 2 | *An APK arrives from another app* | Android's own Files app on `Documents`, where the `.apk` sits. Long-press it → **Share** → **Butler** (a chooser appears only when more than one app handles the share; where Butler is the sole handler the system goes straight to it) → Butler's arrival dialog for the shared file → **Save as…** → the **Saver** opens on it, destination `Download`, the file's own name prefilled → **Save** → once the save has finished, **Open directory**. Butler receives an app package handed over by another app, which is the "sending or receiving app packages" half of the permitted use. |
-| 3 | *An APK file in your file explorer* | Butler's Explorer on `Download`, the saved `.apk` visible among normal files. |
-| 4 | *Select the APK, choose 'Open with'* | Tap the APK → file options → **"Open with"** → the system chooser offers **Butler** and **Package installer**, and the user picks **Package installer**. Butler offers the file; the user decides who opens it. |
-| 5 | *Approve the install source* | The OS blocks the install: "For your security…" → **Settings**. |
-| 6 | *Allow APK installs from Butler* | The per-source **"Install unknown apps"** screen for Butler → the user enables **"Allow from this source"**. This is the visible permission grant. |
-| 7 | *Confirm in Android's installer* | With the source now allowed, the user reopens the APK: **"Do you want to install this app?"** → taps **Install** → "App installed" → **Done**. |
-| 8 | **End card** | "Butler only opens APKs you selected, in Android's installer. Approval and install confirmation stay under your control." |
+| 2 | *Opening Butler, a file explorer* | Home screen, then Butler launched from it, showing its Home with the device and trash entries. The form asks for the app being opened, and every later shot is either another app or an OS screen. |
+| 3 | *An APK arrives from another app* | Android's own Files app on `Documents`, where the `.apk` sits. Long-press it → **Share** → **Butler** (a chooser appears only when more than one app handles the share; where Butler is the sole handler the system goes straight to it) → Butler's arrival dialog → **Save as…** → the **Saver** opens on it, destination `Download`, the file's own name prefilled → **Save** → **Open directory**. This is the "sending or receiving app packages" half of the permitted use. |
+| 4 | *An APK file in your file explorer* | Butler's Explorer on `Download`, the saved `.apk` visible among normal files. |
+| 5 | *Open with: Butler offers the APK, you pick Android's installer* | Tap the APK → file options → **"Open with"** → the system chooser offers **Butler** and **Package installer**, and the user picks **Package installer**. |
+| 6 | *Android checks Butler's permission to be an install source* | The OS blocks with "For your security, your phone currently isn't allowed to install unknown apps from this source", naming **Butler** → **Settings**. |
+| 7 | *You allow Butler as an install source: the permission's grant* | The per-source **"Install unknown apps"** screen for Butler → the user enables **"Allow from this source"**, held on camera in its enabled state. |
+| 8 | *You confirm in Android's installer; Butler never installs anything* | The user reopens the APK, picks the installer again, and Android asks **"Do you want to install this app?"** → **Install** → "App installed" → **Done**. |
+| 9 | **End card** | "Butler only opens APKs you selected, in Android's installer. Approval and install confirmation stay under your control." |
 
-Shots 2 to 7 are the six burned-in captions, quoted here in italics so the table and the video read
-the same; rows 1 and 8 are the title and end cards, which carry no caption. Shot 2 covers the
-receiving half of the permitted use as a real inter-app handoff. Shots 5 and 6 are the
-policy-critical moment, the permission's user-facing grant, split across the block dialog and the
-toggle the user actually flips. Shots 4 to 7 together show the three decisions that gate an install
-(which app opens the file, whether Butler may be a source, whether to install), matching the
-"user-initiated installation of app packages" half.
+Rows 2 to 8 are the seven burned-in captions, quoted in italics so the table and the video read the
+same; rows 1 and 9 are the cards, which carry no caption.
+
+The captions on rows 5 to 8 name the permission's role rather than the tap, because the form asks
+for exactly that: *"If it isn't obvious from the user interface how the REQUEST_INSTALL_PACKAGES
+permission is being used, provide a voice-over or captions to help explain."* Nothing after the
+hand-off is Butler's own UI, so without those words a viewer sees Android's installer doing the
+work and no visible sign of what Butler's permission is for. Rows 6 and 7 are the policy-critical
+pair, the block that names Butler and the toggle the user flips. Rows 5 to 8 together show the
+three decisions that gate an install: which app opens the file, whether Butler may be a source, and
+whether to install.
 
 ### Video description (paste into YouTube)
 
 ```text
 Butler, a file explorer for Android, package name eu.darken.butler. This video demonstrates the REQUEST_INSTALL_PACKAGES permission.
 
-1. An APK file sits in the Documents folder of Android's own Files app. The user long-presses it, chooses Share and sends it to Butler. Butler asks what to do with the arriving file and the user picks Save as, which opens Butler's save-as screen on it. The file is saved into Download under its own name, and Open directory shows it there. Butler receives an app package handed over by another app and manages it as a file, which is the first half of the permitted use.
-2. The explorer now shows the APK in Download among ordinary files.
-3. The user taps the APK and chooses "Open with". Butler offers the file through Android's chooser, which lists Butler itself and the system package installer, and the user picks the package installer. Butler does nothing beyond offering the file.
-4. Android blocks the install and asks the user to allow Butler as an install source. The per-source "Install unknown apps" setting is switched on for Butler. This is the permission's user-facing grant and it is a decision only the user can make.
-5. The APK is opened again, Android's installer asks "Do you want to install this app?", the user taps Install, and the app is installed.
+1. Butler is opened from the home screen, showing its file explorer.
+2. An APK file sits in the Documents folder of Android's own Files app. The user long-presses it, chooses Share and sends it to Butler. Butler asks what to do with the arriving file and the user picks Save as, which opens Butler's save-as screen on it. The file is saved into Download under its own name, and Open directory shows it there. Butler receives an app package handed over by another app and manages it as a file, which is the first half of the permitted use.
+3. The explorer now shows the APK in Download among ordinary files.
+4. The user taps the APK and chooses "Open with". Butler offers the file through Android's chooser, which lists Butler itself and the system package installer, and the user picks the package installer. Butler does nothing beyond offering the file.
+5. Android blocks the install and names Butler: the phone is not allowed to install unknown apps from this source. Butler is the app that made the request, so this is the permission being checked. The user opens Settings and switches on "Install unknown apps" for Butler. This is the permission's user-facing grant and it is a decision only the user can make.
+6. The APK is opened again, Android's installer asks "Do you want to install this app?", the user taps Install, and the app is installed.
+
+Captions are burned in because every screen after the hand-off belongs to Android's installer, not to Butler, so the permission's role is not visible from the interface alone.
 
 The app installed in this video is CapOd, another app by the same developer, so no third-party brand appears. Butler has no installer logic of its own: it never targets the installer directly, and it cannot install anything without the user picking the file, choosing who opens it, allowing the install source and confirming in Android's own installer. Everything shown happens on the device.
 ```

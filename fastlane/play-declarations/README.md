@@ -172,16 +172,23 @@ only synthetic/seeded data — nothing personal is uploaded.
   tabs. The three shots map to the three reasons SAF/MediaStore are insufficient:
   non-media files, bulk cross-tree moves, and traversing a whole volume from a
   single permission instead of picking every tree in the SAF picker.
-- **`request-install-packages`** (~100 s): Android's Files app **shares an `.apk`
-  into Butler**, whose arrival dialog offers **Save as…**; the Saver writes it into
-  `Download` and **Open directory** shows it in the explorer (the "receiving app
-  packages" half) → **"Open with"** hands it to the system installer → Android's per-source
-  **"Install unknown apps"** grant for Butler (the policy-critical shot) → the user
-  confirms **Install** in the system installer → "App installed". Shows both halves
-  of the permitted use and all three user decisions that gate an install; the
-  installed app is CapOd (same developer, pinned URL + SHA-256). The recorder
-  aborts if the recorded flow overruns its duration budget, so a video too long
-  to submit is never produced.
+- **`request-install-packages`** (~112 s): **Butler is opened from the home screen**
+  (the form asks for the app being opened, and every other shot is another app or an
+  OS screen) → Android's Files app **shares an `.apk` into Butler**, whose arrival
+  dialog offers **Save as…**; the Saver writes it into `Download` and **Open
+  directory** shows it in the explorer (the "receiving app packages" half) → **"Open
+  with"** raises the chooser, where the user picks **Package installer** → Android's
+  per-source **"Install unknown apps"** grant for Butler (the policy-critical shot) →
+  the user confirms **Install** → "App installed". Shows both halves of the permitted
+  use and every user decision that gates an install; the installed app is CapOd (same
+  developer, pinned URL + SHA-256). Post-process with `CAPY=300`: the default caption
+  band covers the chooser's app labels.
+
+  Its captions explain the permission rather than narrate the tap, because after the
+  hand-off every screen belongs to Android's installer and nothing on camera shows
+  Butler using the permission. Captions may carry `\n` to wrap onto a second line.
+  The recorder aborts if the recorded flow overruns its duration budget, so a video
+  too long to submit is never produced.
 - **`query-all-packages`** (~50 s): App Manager breadth (user + system app counts)
   → **search across all installed apps** → deep app detail → **Export APK into the
   file explorer** (Export → Save-as → the `.apk` lands in `Download`, browsable in

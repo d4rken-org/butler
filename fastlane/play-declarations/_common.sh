@@ -60,7 +60,12 @@ back() { "${ADB[@]}" shell input keyevent BACK; }
 pause() { sleep "${1:-1.6}"; }
 # Type one character at a time; `input text` drops characters under screenrecord load.
 type_slow() { local s="$1" i; for ((i=0; i<${#s}; i++)); do "${ADB[@]}" shell input text "${s:$i:1}"; sleep 0.18; done; }
-cap() { local now; now=$(date +%s.%N); awk -v a="$now" -v b="$REC_T0" -v s="$1" 'BEGIN{printf "%.2f|%s\n", a-b, s}' >> "$CAPS"; }
+# One line per caption in $CAPS, "seconds|text". The text reaches awk through the
+# environment rather than -v, because -v processes escape sequences: a caption
+# carrying \n to wrap onto a second line would become a real newline here and
+# split into two lines, and the second one has no "seconds|" for postprocess.sh
+# to parse. Left literal, postprocess.sh expands it with printf '%b'.
+cap() { local now; now=$(date +%s.%N); s="$1" awk -v a="$now" -v b="$REC_T0" 'BEGIN{printf "%.2f|%s\n", a-b, ENVIRON["s"]}' >> "$CAPS"; }
 
 # ---- first-run onboarding and tours -----------------------------------------
 # A fresh install has to be walked through two separate gates before any recorder

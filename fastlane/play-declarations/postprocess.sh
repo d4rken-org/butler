@@ -44,7 +44,9 @@ if [ -f "$CAPS" ]; then
   for ((i=0;i<n;i++)); do
     start=${lines[i]%%|*}; text=${lines[i]#*|}
     if (( i+1 < n )); then end=${lines[i+1]%%|*}; else end=$dur; fi
-    printf '%s' "$text" > "$TXTDIR/c$i.txt"
+    # %b, not %s: a caption may carry \n to wrap onto a second line, which a
+    # caption that has to explain something rather than name it usually needs.
+    printf '%b' "$text" > "$TXTDIR/c$i.txt"
     chain+=",drawtext=fontfile=${FONT}:textfile=${TXTDIR}/c$i.txt:fontcolor=white:fontsize=32:box=1:boxcolor=0x000000C0:boxborderw=20:x=(w-text_w)/2:y=h-${CAPY}:enable='between(t,${start},${end})'"
   done
 fi

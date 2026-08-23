@@ -155,6 +155,25 @@ done
 # ---- recorded flow ----------------------------------------------------------
 rec_start
 
+# ---- the app being opened ---------------------------------------------------
+# The form asks for a video "which shows your app being opened, and the core
+# feature you've described being used". The rest of this recording starts inside
+# ANOTHER app (the system Files app), so without this beat Butler is never seen
+# being opened at all. Launching from the home screen rather than resuming keeps
+# it unambiguous. The pre-state already ran onboarding, so this is a warm start
+# and stays short.
+cap "Opening Butler, a file explorer"
+"${ADB[@]}" shell input keyevent HOME; pause 1.0
+"${ADB[@]}" shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
+pause 2.2
+dump
+_find -c "$UIX" "Butler" >/dev/null || _find "$UIX" "Create tab" >/dev/null \
+  || die_rec "Butler did not come up for the opening shot"
+pause 0.8
+# Back to the system Files app, where the receiving beat starts.
+"${ADB[@]}" shell am start -n com.android.documentsui/.files.FilesActivity >/dev/null 2>&1
+pause 1.8
+
 # ---- receiving the package (the other half of the permitted use) ------------
 # Google requires core functionality to cover BOTH receiving app packages AND
 # enabling user-initiated installation. This beat is the receiving half: another
@@ -170,14 +189,14 @@ rec_start
 # controls, and DocumentsUI's own navigation labels used in the pre-state
 # ("Show roots", "Internal storage", "Documents").
 cap "An APK arrives from another app"
-pause 1.8
+pause 1.4
 dump; sel=$(_find -c "$UIX" "CapOd")
 [ -n "$sel" ] || die_rec "the seeded APK is not visible in the system Files app"
 "${ADB[@]}" shell input swipe $sel $sel 900   # long-press -> selection mode
-pause 1.6
+pause 1.3
 dump
 if _find "$UIX" "Share" >/dev/null; then
-  tap "Share"; pause 2.0
+  tap "Share"; pause 1.6
 elif _find "$UIX" "More options" >/dev/null; then
   tap "More options"; pause 1.6      # Share can sit in the overflow menu
   tap "Share" || die_rec "the system Files app offered no Share action for the APK"
@@ -192,7 +211,7 @@ dump
 if _find -c "$UIX" "Save as" >/dev/null; then
   :                                         # already in Butler's arrival dialog
 elif _find -c "$UIX" "Butler" >/dev/null; then
-  tap "Butler" 0 -c; pause 2.0
+  tap "Butler" 0 -c; pause 1.6
 else
   die_rec "the share went neither to a chooser offering Butler nor to Butler's arrival dialog"
 fi
@@ -202,7 +221,7 @@ fi
 # Saver on the shared file; the substring match covers the trailing ellipsis.
 pause 2.2
 tap "Save as" 0 -c || die_rec "Butler's arrival dialog offered no Save as action"
-pause 2.4
+pause 2.0
 dump
 _find "$UIX" "Destination" >/dev/null \
   || die_rec "Butler's Saver did not open after Save as"
@@ -219,7 +238,7 @@ if ! _find -c "$UIX" "Download" >/dev/null; then
   tap "Select this folder"; pause 2.4
 fi
 tap "Save" || die_rec "the Saver's Save action was not found"
-pause 1.6
+pause 1.2
 # A dropped tap here would cost the "receiving" half of the evidence without any
 # other symptom, so confirm the save actually landed before filming the install.
 # The destination path exists as soon as SaveFilesOperation creates the file, before
@@ -230,10 +249,13 @@ pause 1.6
 # (saver_save_again_action) is rendered only in the success state, so gate the poll
 # on that label plus the pinned checksum. The checksum doubles as proof that the
 # shared content URI was read correctly end to end.
+# Hash on the device, not by streaming the file out: `exec-out cat` moves the
+# whole APK over adb on every poll, and this runs inside a retry loop while
+# screenrecord is capturing.
 saved_complete() {
   local hash
-  hash=$("${ADB[@]}" exec-out cat "/sdcard/Download/$DEMO_APK_NAME" 2>/dev/null \
-    | sha256sum | awk '{print $1}')
+  hash=$("${ADB[@]}" shell sha256sum "/sdcard/Download/$DEMO_APK_NAME" 2>/dev/null \
+    | awk '{print $1}' | tr -d '\r')
   [ "$hash" = "$DEMO_APK_SHA256" ]
 }
 
@@ -251,7 +273,7 @@ done
 # stranded on the Saver. Require the filename AND the absence of both Saver-only
 # controls, which can only hold once the Saver screen has actually been left.
 tap "Open directory" || die_rec "the Saver did not offer Open directory after the save"
-pause 2.2
+pause 1.6
 opened=0
 for c in 1 2 3 4 5 6 7 8 9 10 11 12; do
   dump
@@ -266,7 +288,7 @@ done
 [ "$opened" = 1 ] || die_rec "Open directory did not reach Butler's Download explorer"
 
 cap "An APK file in your file explorer"
-pause 2.2
+pause 1.6
 
 scr() { [ "${DBG:-0}" = 1 ] || return 0; dump; echo "  [dbg] $1 :: $(grep -oE 'text="[^"]+"' "$UIX" | grep -iE 'security|Install unknown|Allow from|install this app|SETTINGS|INSTALL|CANCEL|Open with|CapOd' | tr '\n' '|')" >&2; }
 
@@ -277,28 +299,28 @@ scr() { [ "${DBG:-0}" = 1 ] || return 0; dump; echo "  [dbg] $1 :: $(grep -oE 't
 pick_installer() {
   dump
   if _find -c "$UIX" "Package installer" >/dev/null; then
-    tap "Package installer" 0 -c; pause 2.6
+    tap "Package installer" 0 -c; pause 2.0
   fi
 }
 
-cap "Select the APK, choose 'Open with'"
-tap "CapOd" 0 -c; pause 1.5                 # file options sheet
+cap "Open with: Butler offers the APK,\nyou pick Android's installer"
+tap "CapOd" 0 -c; pause 1.2                 # file options sheet
 scr "after CapOd tap"
-tap "Open with"; pause 3.0                  # hand-off to the system installer
+tap "Open with"; pause 2.2                  # hand-off to the system installer
 pick_installer
 scr "after Open with"
 
-cap "Approve the install source"
+cap "Android checks Butler's permission\nto be an install source"
 # Entry path varies: either the "For your security…" CANCEL/SETTINGS dialog, or
 # (if this source was visited before) straight to the settings toggle page.
-pause 2.4
+pause 1.8
 dump
 if _find "$UIX" "SETTINGS" >/dev/null; then
-  tap "SETTINGS"; pause 2.8                   # -> "Install unknown apps" settings page
+  tap "SETTINGS"; pause 2.2                   # -> "Install unknown apps" settings page
 fi
 scr "after SETTINGS check"
 
-cap "Allow APK installs from Butler"
+cap "You allow Butler as an install\nsource: the permission's grant"
 # Enable the per-source toggle. A single input tap can be DROPPED under
 # screenrecord load, so verify the grant took hold via the app-op (reliable from
 # a pristine start: it is "allow" only once the toggle is actually on) and retry
@@ -310,7 +332,7 @@ for i in 1 2 3 4 5; do
   granted && break
   dump
   if _find "$UIX" "Allow from this source" >/dev/null; then
-    tap "Allow from this source"; pause 2.4
+    tap "Allow from this source"; pause 2.0
   elif _find "$UIX" "SETTINGS" >/dev/null; then
     tap "SETTINGS"; pause 2.6                   # bounced back to the block dialog
   else
@@ -320,23 +342,23 @@ done
 scr "after toggle grant"
 # The grant is the policy-critical shot — do not save a video without it.
 granted || die_rec "per-source install grant did not take hold after retries"
-pause 1.6                                       # hold on the enabled toggle
+pause 1.4                                       # hold on the enabled toggle
 
 # Return to Butler and reopen the now-allowed APK. Enabling the toggle sometimes
 # auto-resumes the pending install and sometimes not (build variance); reopening
 # is the deterministic trigger and keeps the captions aligned. With the source
 # now allowed (app-op = allow) this goes straight to the confirm dialog.
-back; pause 1.6                                 # dismiss any auto-resumed dialog / leave settings
+back; pause 1.3                                 # dismiss any auto-resumed dialog / leave settings
 for j in 1 2 3 4 5; do dump; _find -c "$UIX" "$DEMO_APK_NAME" >/dev/null && break; back; pause 1.4; done
 
-cap "Confirm in Android's installer"
-tap "CapOd" 0 -c; pause 1.6                     # file options sheet
-tap "Open with"; pause 3.0                      # -> confirm dialog (source now allowed)
+cap "You confirm in Android's installer;\nButler never installs anything"
+tap "CapOd" 0 -c; pause 1.3                     # file options sheet
+tap "Open with"; pause 2.2                      # -> confirm dialog (source now allowed)
 pick_installer
 for k in 1 2 3 4 5 6; do dump; _find "$UIX" "INSTALL" >/dev/null && break; pause 1.0; done
 _find "$UIX" "INSTALL" >/dev/null || die_rec "system installer confirm dialog never appeared"
-tap "INSTALL"; pause 4.0                        # OS performs the install
-pause 1.5                                       # "App installed."
+tap "INSTALL"; pause 3.0                        # OS performs the install
+pause 1.2                                       # "App installed."
 dump
 _find "$UIX" "DONE" >/dev/null && tap "DONE"
 pause 1.2
