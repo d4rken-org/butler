@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Record the APK-install (REQUEST_INSTALL_PACKAGES) declaration screencast.
 # The permitted use requires BOTH halves of the core functionality on camera, so
-# the video shows the package being received and managed as a file (an APK lands
-# in a staging folder and the user copies it into Download) and then the
+# the video shows the package being received (the system Files app shares an APK
+# into Butler, and Butler's save-as files it into Download) and then the
 # user-gated install flow: picking the APK and choosing "Open with", allowing
 # Butler as an install source (Android's per-source "Install unknown apps" grant,
 # the policy-critical shot), and confirming in the system installer.
@@ -39,17 +39,30 @@ fi
 echo "$DEMO_APK_SHA256  $DEMO_APK" | sha256sum -c - >/dev/null 2>&1 \
   || { echo "SHA-256 mismatch for $DEMO_APK — aborting"; exit 1; }
 
+# ---- abort helper -----------------------------------------------------------
+# Abort without saving a bad video: stop screenrecord and exit non-zero, leaving
+# the on-device clip unpulled so no invalid declaration.mp4 is produced. Used to
+# enforce that the policy-critical shots actually happened. Defined before the
+# pre-state so the off-camera setup can use it too; the pkill is a no-op while
+# nothing is recording yet.
+die_rec() {
+  echo "ABORT (recording): $1" >&2
+  "${ADB[@]}" shell pkill -INT screenrecord 2>/dev/null || true
+  exit 1
+}
+
 # ---- pre-state (off camera) -------------------------------------------------
-echo "Pre-state: seed APK into the staging folder, verify pristine install-source grant, clean tabs, reach Download/incoming…"
+echo "Pre-state: seed APK for the sharing app, verify pristine install-source grant, clean tabs, open the system Files app…"
 "${ADB[@]}" shell pm uninstall "$DEMO_PKG" >/dev/null 2>&1
 "${ADB[@]}" shell rm -f "/sdcard/Download/*.apk" >/dev/null 2>&1
-"${ADB[@]}" shell rm -rf "/sdcard/Download/incoming" >/dev/null 2>&1
-# The APK is seeded into a staging folder, NOT into Download: the first recorded
-# beat is the user copying it out of there, which is the "receiving app packages"
-# half of the permitted use. Pushing it straight to Download would put that step
-# off camera and leave the video evidencing only the install half.
-"${ADB[@]}" shell mkdir -p "/sdcard/Download/incoming" >/dev/null 2>&1
-"${ADB[@]}" push "$DEMO_APK" "/sdcard/Download/incoming/$DEMO_APK_NAME" >/dev/null
+"${ADB[@]}" shell rm -f "/sdcard/Documents/$DEMO_APK_NAME" >/dev/null 2>&1
+# The APK is seeded into Documents, NOT into Download: the first recorded beat is
+# another app sharing it into Butler, which then saves it into Download. That is
+# the "receiving app packages" half of the permitted use. Seeding it straight to
+# Download would put that step off camera, and Butler's save would collide with
+# the already-present file instead of writing a new one.
+"${ADB[@]}" shell mkdir -p "/sdcard/Documents" >/dev/null 2>&1
+"${ADB[@]}" push "$DEMO_APK" "/sdcard/Documents/$DEMO_APK_NAME" >/dev/null
 # The REQUEST_INSTALL_PACKAGES app-op MUST start ungranted so the source-approval
 # shot (the policy-critical moment) is captured. It cannot be reset back to the
 # first-prompt state with `appops set …`: once the source has responded to the
@@ -89,47 +102,95 @@ if _find "$UIX" "Create tab" >/dev/null; then
 else
   clean_tabs_to_picker
 fi
-tap "Explorer"; pause 2.5
-# navigate to the staging folder off camera so the recording starts on the APK
-tap "Device"; pause 2.0
-tap "Internal shared storage"; pause 2.0
-tap "Download"; pause 2.0
-tap "incoming"; pause 2.0
+tap "Explorer"; pause 2.5                   # leave Butler on a fresh Explorer tab
+# Hand over to the system Files app off camera, so the recording opens inside the
+# OTHER app and the share into Butler is visible as a real inter-app handoff.
+docui="$("${ADB[@]}" shell am start -n com.android.documentsui/.files.FilesActivity 2>&1)"
+case "$docui" in
+  *Error*|*Exception*|*"does not exist"*)
+    die_rec "system Files app (com.android.documentsui/.files.FilesActivity) did not start: ${docui%%$'\n'*}" ;;
+esac
+pause 3.0
+# Reach /sdcard/Documents through the storage volume. The roots drawer also has a
+# by-type "Documents" root, which lists documents from MediaProvider and would
+# NOT show an APK, so go through internal storage.
+dump
+if _find "$UIX" "Show roots" >/dev/null; then
+  tap "Show roots"; pause 1.8
+fi
+dump
+_find -c "$UIX" "Internal storage" >/dev/null \
+  || die_rec "the system Files app did not offer an internal-storage root"
+tap "Internal storage" 0 -c; pause 2.6
+tap "Documents" 0 -c || die_rec "the system Files app did not show the Documents folder"
+pause 2.4
 
 # ---- recorded flow ----------------------------------------------------------
 rec_start
 
-# Abort mid-recording without saving a bad video: stop screenrecord and exit
-# non-zero, leaving the on-device clip unpulled so no invalid declaration.mp4 is
-# produced. Used to enforce the policy-critical shots actually happened.
-die_rec() {
-  echo "ABORT (recording): $1" >&2
-  "${ADB[@]}" shell pkill -INT screenrecord 2>/dev/null || true
-  exit 1
-}
-
 # ---- receiving the package (the other half of the permitted use) ------------
 # Google requires core functionality to cover BOTH receiving app packages AND
-# enabling user-initiated installation. This beat is the receiving half: the APK
-# sits in a staging folder and the user files it into Download with Butler's own
-# file management, before anything is installed.
-cap "An APK arrives in your storage"
+# enabling user-initiated installation. This beat is the receiving half: another
+# app hands an APK to Butler, and Butler's save-as writes it where the user picks
+# it, before anything is installed.
+#
+# UNTESTED: this beat drives a SECOND app's UI by label and could not be tried in
+# the run that wrote it. Every label here is unverified and must be checked on the
+# first real recording run: the system Files app's "Share" action (and the "More
+# options" overflow it may hide behind), the share sheet's entry for Butler, the
+# Saver's "Destination" / "Select this folder" / "Save" controls, and DocumentsUI's
+# own navigation labels used in the pre-state ("Show roots", "Internal storage",
+# "Documents").
+cap "An APK arrives from another app"
 pause 2.6
 dump; sel=$(_find -c "$UIX" "CapOd")
-[ -n "$sel" ] || die_rec "the seeded APK is not visible in Download/incoming"
+[ -n "$sel" ] || die_rec "the seeded APK is not visible in the system Files app"
 "${ADB[@]}" shell input swipe $sel $sel 900   # long-press -> selection mode
-pause 1.4
-tap "Copy"; pause 1.6
-back; pause 1.8                             # up to Download
-tap "Paste" 0 -c; pause 2.6
+pause 1.6
+dump
+if _find "$UIX" "Share" >/dev/null; then
+  tap "Share"; pause 2.6
+elif _find "$UIX" "More options" >/dev/null; then
+  tap "More options"; pause 1.6      # Share can sit in the overflow menu
+  tap "Share" || die_rec "the system Files app offered no Share action for the APK"
+  pause 2.6
+else
+  die_rec "the system Files app offered no Share action for the APK"
+fi
+tap "Butler" 0 -c || die_rec "Butler was not offered in the share sheet"
+pause 3.4                                   # Butler's Saver opens on the shared APK
+
+# The Saver defaults its destination to Download; pick it explicitly if it does
+# not, then save under the shared file's own name (the prefilled filename).
+dump
+if ! _find -c "$UIX" "Download" >/dev/null; then
+  tap "Destination" || die_rec "the Saver showed no destination to pick"
+  pause 2.4
+  tap "Device"; pause 2.0
+  tap "Internal shared storage"; pause 2.0
+  tap "Download"; pause 2.0
+  tap "Select this folder"; pause 2.4
+fi
+tap "Save" || die_rec "the Saver's Save action was not found"
+pause 3.4
 # A dropped tap here would cost the "receiving" half of the evidence without any
-# other symptom, so confirm the copy actually landed before filming the install.
+# other symptom, so confirm the save actually landed before filming the install.
 for c in 1 2 3 4 5; do
   "${ADB[@]}" shell ls "/sdcard/Download/$DEMO_APK_NAME" 2>/dev/null | grep -q "$DEMO_APK_NAME" && break
   pause 1.2
 done
 "${ADB[@]}" shell ls "/sdcard/Download/$DEMO_APK_NAME" 2>/dev/null | grep -q "$DEMO_APK_NAME" \
-  || die_rec "the APK was not copied into Download (receiving half would be missing)"
+  || die_rec "the shared APK was not saved into Download (receiving half would be missing)"
+
+# Butler is showing the Saver's result, so get to Download on camera.
+dump
+if _find "$UIX" "Open directory" >/dev/null; then
+  tap "Open directory"; pause 3.4
+else
+  tap "Device"; pause 2.0
+  tap "Internal shared storage"; pause 2.0
+  tap "Download"; pause 2.0
+fi
 
 cap "An APK file in your file explorer"
 pause 3.0
