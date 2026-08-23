@@ -3,6 +3,52 @@
 App: **Butler – File Explorer** (`eu.darken.butler`)
 Form: Play Console → App content → Permissions declaration form → **All files access**
 
+## Play Console form
+
+The live form asks for two free-text boxes, a checkbox group, and a video, in the order below.
+Both text boxes are capped at **500 characters**, and the fenced blocks here are the paste source.
+Sections 1 to 4 are background for whoever fills the form in, not fields.
+
+### All files access (500 characters)
+
+Prompt: *"Describe 1 feature in your app that requires a permitted use of the All files access
+permission."*, with the helper line *"Approval will be granted for your entire app, not just for
+this feature."* One feature, described as one feature, not a bulleted list of everything the app
+does.
+
+```text
+Butler is a file manager. The feature is browsing the device's shared storage and managing what is there: opening any folder the user navigates to, then copying, moving, renaming, compressing and deleting files of any type at that location, with bulk multi-select operations and a trash that restores an item to the exact path it came from. It must work on every path the user can reach, not only on media files. All of it happens on the device; no file name and no file content is uploaded anywhere.
+```
+
+### Usage
+
+*"Why does your app need to use the All files access permission? Select all that apply."*
+
+- [x] **Core functionality**: browsing and managing files is what the app is for.
+- [ ] Personalization: the permission tailors nothing to the user.
+- [ ] Security or fraud prevention: Butler does no scanning, no threat detection.
+- [ ] Analytics: Butler has no analytics.
+- [ ] Ads or monetization: Butler shows no ads and sells nothing.
+
+### Technical reason (500 characters)
+
+Prompt: *"Explain why your app can't make use of more privacy friendly best practices, such as the
+Storage Access Framework, or the Media Store API. Improving the performance of your app is not an
+acceptable reason"*. Speed is therefore never used as an argument, here or in §3.
+
+```text
+The Storage Access Framework makes the user pick each tree in the system picker, and Android 11 and later refuses a grant on the storage root, on Download, and on Android/data and Android/obb, so a file manager cannot reach everything it must. Every extra volume needs its own pick. moveDocument() is optional per document provider, so a cross-tree move can fail, and symbolic links cannot be represented at all. MediaStore gives no read or write access to arbitrary non-media files of other apps.
+```
+
+### Demo video
+
+A demo video is required for this form. The storyboard and the description to paste with it are in
+[§4](#4-demo-video-script); the hosting rules are in [`../README.md`](../README.md#demo-videos).
+The video field sits below the part of the form that the screenshots this section was written from
+captured, so its exact label is not recorded here.
+
+---
+
 ## 1. Permitted use to select
 
 **File management.**
@@ -14,7 +60,7 @@ Google's permitted-use wording (file manager), which Butler matches exactly:
 
 ---
 
-## 2. "How does your app use this permission?" (paste into the form)
+## 2. "How does your app use this permission?" (reference, not a form field)
 
 Butler is a general-purpose file manager. Its core, primary purpose is to let the user access,
 edit, and manage — including maintenance — files and folders across the device's shared storage,
@@ -23,9 +69,8 @@ outside the app's own app-specific directory.
 Features that depend on broad file access, all of which are the app's main, prominently
 advertised functionality:
 
-- Browsing the entire shared-storage tree and operating on files of **any type** — not only
-  media, but non-media files such as logs, configuration files, source code, archives, and
-  databases that the MediaStore API does not expose at all.
+- Browsing the entire shared-storage tree and operating on files of **any type**: not only media,
+  but non-media files such as logs, configuration files, source code, archives, and databases.
 - Copying, moving, and deleting **files and whole folders** across arbitrary, user-chosen
   directories, including bulk (multi-select) operations and background operations with progress
   reporting.
@@ -37,7 +82,9 @@ advertised functionality:
   files).
 
 All file access is performed **only on the device** to provide these features. File contents and
-file listings are never collected, transmitted, sold, or shared. (See the app's privacy policy.)
+file listings are not collected and are not used for analytics or advertising; they leave the
+device only inside a debug log or crash report the user chooses to share. (See the app's privacy
+policy.)
 
 This is **not** manual, single-file selection — it is continuous management and maintenance of
 whole directory trees the user navigates, which the Storage Access Framework file picker cannot
@@ -45,30 +92,31 @@ provide (see below).
 
 ---
 
-## 3. "Why is an alternative API not sufficient?" (paste into the form)
+## 3. "Why is an alternative API not sufficient?" (reference, not a form field)
 
 Butler cannot deliver its core file-management functionality with the Storage Access Framework
 (SAF) or the MediaStore API:
 
-- **MediaStore only exposes media files.** A file manager must manage *all* file types — logs,
-  configuration files, source code, archives, databases, app exports — not just images, audio,
-  and video. MediaStore cannot see or modify these at all, so it cannot serve the core feature.
-- **Whole-volume management vs. per-folder grants.** SAF grants access one directory tree at a
-  time via the system picker. A file manager must let the user freely traverse and operate on the
-  entire shared volume; requiring a separate manual SAF grant for every folder makes general file
-  management impractical, and is exactly the "manual file selection" pattern SAF is meant for —
-  not whole-device management.
-- **Recursive search needs unrestricted traversal.** Searching across the whole tree — by file
-  name and by file contents — requires walking every subfolder; SAF would demand a separate
-  explicit grant for each branch, which defeats the feature.
+- **MediaStore does not manage arbitrary non-media files.** `MediaStore.Files` and
+  `MediaStore.Downloads` exist, but they give an app no read/write access to arbitrary non-media
+  files owned by other apps, and non-media files outside the app's own entries are not manageable
+  through it. A file manager has to handle logs, configuration files, source code, archives and
+  databases wherever they happen to sit.
+- **SAF hands out user-picked roots, not the device.** The user has to select each tree in the
+  system picker, and on Android 11 and later the picker refuses a grant on the storage root
+  itself, on `Download`, and on `Android/data` and `Android/obb`. The single grant that would
+  cover the whole volume is exactly the one the platform will not give.
+- **Every storage volume is separate.** An SD card, a USB drive, or any other volume needs its own
+  pick, so the prompt repeats per volume, and a tree the user has not picked stays invisible to
+  operations that span the device, such as a recursive search or a cross-volume move.
+- **Cross-tree operations are unreliable over SAF.** `moveDocument()` is optional and
+  document-provider-dependent, so moving files or folders between trees can fail outright, which
+  a file manager cannot present to the user as a working feature.
+- **No symlink support.** SAF cannot read or create symbolic links; these operations throw on
+  SAF paths. Direct file access is required to handle symlinks.
 - **In-place editing of arbitrary files.** Butler's editor reads and writes files at any path the
   user navigates to. SAF only permits this for documents the user has individually picked, not for
   the free in-place editing a file manager provides.
-- **Bulk/atomic operations are unreliable over SAF.** SAF's `moveDocument()` is optional and
-  document-provider-dependent, so atomic move/delete of files and folders across arbitrary trees
-  may fail. Direct access provides consistent, performant bulk copy/move/delete.
-- **No symlink support.** SAF cannot read or create symbolic links; these operations throw on
-  SAF paths. Direct file access is required to handle symlinks.
 
 Butler uses SAF where it is sufficient and requests All-files access only for the
 file-management functionality above, which SAF and MediaStore cannot provide.
@@ -88,15 +136,31 @@ This is the flow the automated recorder produces (`./record.sh`); see
 | 3 | **Grant the permission** | Butler's Permission-setup screen (its rationale text) → Android's "Allow access to manage all files" system toggle → ON → back; storage now lists. |
 | 4 | **Browse non-media folders** | Navigate into `Projects/butler-notes/` showing non-media files: `build.log`, `config.json`, `README.md`. |
 | 5 | **Manage non-media files** | Multi-select all three → Cut → navigate to a different directory (`Documents`) → Paste. Bulk move of logs/configs/docs across the tree. |
-| 6 | **Search the whole device** | Open a Search workspace and search `report` across `/storage/emulated/0`. One query returns hits from unrelated folders — `Annual-report.pdf` in `Documents/Work` and `Quarterly-report.pdf` in `Download` — each with its full path. A per-folder SAF grant could not span both. |
+| 6 | **Search the whole device** | Open a Search workspace and search `report` across `/storage/emulated/0`. One query traverses the whole volume from a single permission and returns hits in unrelated folders: `Annual-report.pdf` in `Documents/Work` and `Quarterly-report.pdf` in `Download`, each with its full path. Over SAF the user would have to pick each of those trees, and Android 11+ refuses a grant on the storage root that would otherwise cover both at once. |
 | 7 | **Tabbed workspaces** | Open the Tab Manager, showing live workspace previews of **both** tabs: the Explorer (with the moved files) and the Searcher (with the search results). |
 | 8 | **End card** | "Browse and manage arbitrary files and folders across the device, in tabbed workspaces. On-device only — never uploaded." |
 
 Notes:
 - Deliberately uses **non-media** files in a deep arbitrary folder (not photos/PDFs in
   `Documents`), to make plain that MediaStore/SAF cannot serve the feature.
-- The three core pillars are all shown: arbitrary non-media browse (vs. MediaStore), bulk
-  move across trees (vs. single-file SAF picking), and whole-volume recursive search (vs.
-  per-folder SAF grants). In-place editing (§2–3) is described but not filmed, to keep length down.
+- The three core pillars are all shown: arbitrary non-media browse (against MediaStore), bulk move
+  across directories (against single-file SAF picking), and whole-volume traversal from a single
+  permission (against picking every tree separately in the SAF picker). In-place editing (§2, §3)
+  is described but not filmed, to keep length down.
 - No audio; on-screen captions only.
 - The `QUERY_ALL_PACKAGES` demo is a separate video (see that folder).
+
+### Video description (paste into YouTube)
+
+```text
+Butler, a file explorer for Android, package name eu.darken.butler. This video demonstrates the All files access permission (MANAGE_EXTERNAL_STORAGE).
+
+1. The app tries to browse internal shared storage and shows a "Permission needed" card instead of a file list. Without the permission there is nothing to manage.
+2. Butler's permission setup screen explains the request, then Android's own "Allow access to manage all files" toggle is switched on. Back in Butler, storage lists.
+3. A deep folder, Projects/butler-notes, is opened. It holds non-media files: build.log, config.json and README.md.
+4. All three files are multi-selected, cut, and pasted into another directory. Bulk management of non-media files across directories is the feature that needs the permission.
+5. A search workspace searches for "report" across all of internal shared storage. The single query traverses the whole volume and returns Annual-report.pdf in Documents/Work and Quarterly-report.pdf in Download, each with its full path.
+6. The tab manager shows both workspaces at once, the explorer with the moved files and the searcher with its results.
+
+Everything shown happens on the device. File names and file contents are not collected and are not used for analytics or advertising; they leave the device only inside a debug log or crash report the user chooses to share.
+```

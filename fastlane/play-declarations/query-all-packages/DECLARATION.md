@@ -3,6 +3,48 @@
 App: **Butler – File Explorer** (`eu.darken.butler`)
 Form: Play Console → App content → Permissions declaration form → **Query all packages**
 
+## Play Console form
+
+The live form has one free-text box capped at **500 characters**, a checkbox group, and a video
+link field. There is no second box for the alternative-API argument, so the one block below has to
+carry both the feature and the reason a narrower method fails. Sections 1 to 4 are background, not
+fields.
+
+### Core purpose (500 characters)
+
+Prompt: *"Describe 1 feature in your app that requires a permitted use of the QUERY_ALL_PACKAGES
+permission."*, with the examples *Device search / Antivirus apps / File managers and browsers* and
+the helper line *"Approval will be granted for your entire app, not just for this feature"*.
+
+```text
+Butler's App Manager lets the user search every installed app, user and system, then inspect one, export its APK into Butler's own file explorer, disable it, clear its cache or uninstall it. A queries manifest entry only reveals packages named at build time, so it cannot back a search-all-apps feature. The inventory is shown inside the app, is not collected, and is not used for analytics or advertising; it leaves the device only inside a diagnostic report the user chooses to share.
+```
+
+### Usage
+
+*"Why does your app need to use the QUERY_ALL_PACKAGES permission? Select all that apply."*
+
+- [x] **App functionality**: the App Manager is the feature, and it cannot list what it cannot see.
+- [ ] Analytics
+- [ ] Developer communications
+- [ ] Advertising or marketing
+- [ ] Fraud prevention, security, and compliance
+- [ ] Personalization
+- [ ] Account management
+
+Analytics and Advertising or marketing must stay unticked in particular: ticking either would
+assert exactly the use the QUERY_ALL_PACKAGES policy lists as invalid, acquiring the installed-app
+inventory for analytics or ads. The other four describe things Butler does not do with package
+data at all.
+
+### Video
+
+*"Video instructions"*, a link field taking a YouTube or cloud-storage URL, 90 seconds or shorter
+recommended. The storyboard and the description to paste with it are in
+[§4](#4-demo-video-script); hosting rules are in [`../README.md`](../README.md#demo-videos).
+
+---
+
 ## 1. Permitted use to select
 
 **File managers.**
@@ -13,7 +55,7 @@ Google lists this verbatim among the QUERY_ALL_PACKAGES permitted uses:
 
 ---
 
-## 2. "How does your app use this permission?" (paste into the form)
+## 2. "How does your app use this permission?" (reference, not a form field)
 
 Butler is a file manager whose **App Manager** is a prominent, core user-facing feature. Its
 purpose is to let the user **search for and browse every installed application** — user and
@@ -34,9 +76,9 @@ user-facing "search all installed apps" feature, so no less-broad method suffice
 
 Exporting an APK ties the App Manager directly to Butler's file-manager identity: the exported
 `.apk` is written to shared storage and is then a file the user browses, moves, and shares in
-Butler like any other. The installed-app inventory is shown **only inside the app**, on-device;
-it is never sold, shared, transmitted, or used for analytics or advertising. (See the privacy
-policy.)
+Butler like any other. The installed-app inventory is shown **only inside the app**, on-device. It
+is not collected and is not used for analytics or advertising; it leaves the device only inside a
+debug log or crash report the user chooses to share. (See the privacy policy.)
 
 ---
 
@@ -47,9 +89,14 @@ acquired for sale/analytics/ads, or where a less-broad method would do. Butler's
 all three:
 
 - **Core purpose**: the App Manager is a primary, documented feature of the app.
-- **No monetization of inventory**: package data never leaves the device and is not shared.
+- **No monetization of inventory**: the package list is not collected and not used for analytics
+  or advertising.
 - **No narrower method suffices**: a user-facing "manage any installed app" feature inherently
   needs full visibility.
+
+The live form has no "why is an alternative not sufficient" box, so this argument survives on the
+form only in the condensed sentence inside the Core purpose block above. Keep the two in sync when
+either changes.
 
 Keep the App Manager feature listed in the store description
 (`fastlane/metadata/android/en-US/full_description.txt` already includes:
@@ -71,12 +118,26 @@ Produced by the automated recorder (`./record.sh`); see
 | 3 | **Search across all apps** | Type into the app search field; the list filters across the full installed-package set. |
 | 4 | **Inspect an app in depth** | Open an app's detail: package id, version, SDK levels, storage paths, exported components. |
 | 5 | **Export the APK into the file explorer** | From the detail, **Export APK** → a "Save as" file-manager workspace (destination prefilled to `Download`) → **Save** → "1 file saved" → **Open directory** → the Explorer opens on `Download` with the exported `.apk` now present as a file. |
-| 6 | **End card** | "Searches and manages every installed app on the device. Package data stays on-device and is never shared." |
+| 6 | **End card** | "Searches and manages every installed app on the device. Not used for analytics or ads." |
 
 The breadth header and the **search-all-apps** step are the policy-critical shots — they show why
 broad visibility into installed packages is required. Shot 5 then ties QUERY_ALL_PACKAGES directly
 to the **"File managers"** permitted use we selected: the exported APK lands in Butler's own file
 explorer, where the user browses, moves, and shares it like any other file (as described in §2).
+
+### Video description (paste into YouTube)
+
+```text
+Butler, a file explorer for Android, package name eu.darken.butler. This video demonstrates the QUERY_ALL_PACKAGES permission.
+
+1. Butler's App Manager opens. Its header counts the installed apps it can see, user apps and system apps.
+2. A search across every installed app filters the list as the query is typed. Searching all installed apps is the feature that needs broad package visibility; a queries manifest entry would only reveal packages named at build time.
+3. One app is opened in detail: package id, version, SDK levels, on-device storage paths and exported components.
+4. Its APK is exported through Butler's own save-as workspace into the Download folder.
+5. The explorer opens on Download, where the exported APK is now an ordinary file the user can browse, move and share. This is the link between the App Manager and Butler's file-manager core purpose.
+
+The installed-app list is shown inside the app only. It is not collected and is not used for analytics or advertising; it leaves the device only inside a debug log or crash report the user chooses to share.
+```
 
 ---
 
