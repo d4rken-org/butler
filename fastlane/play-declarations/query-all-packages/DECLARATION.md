@@ -102,8 +102,8 @@ either changes.
 
 Keep the App Manager feature listed in the store description
 (`fastlane/metadata/android/en-US/full_description.txt` already includes:
-"App manager - browse, disable, export APKs, clear cache, uninstall.") — Google requires the
-core feature to be prominently documented in the listing.
+"App manager: browse installed apps, disable them, export APKs, clear app data and uninstall.") —
+Google requires the core feature to be prominently documented in the listing.
 
 ---
 

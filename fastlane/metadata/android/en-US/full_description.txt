@@ -27,7 +27,7 @@ Butler works on internal storage, SD cards and USB OTG drives. And every file ty
 - Anything Butler doesn't display itself is handed to the app that can.
 
 <b>Apps and APKs</b>
-- App manager: browse installed apps, disable them, export APKs, clear caches and uninstall.
+- App manager: browse installed apps, disable them, export APKs, clear app data and uninstall.
 - Receive, inspect and open APK files. Installation goes through Android's system installer.
 
 <b>Works with your other apps</b>
