@@ -37,11 +37,11 @@ alike, and lets you inspect one, export its APK as a file, share its details as 
 or uninstall it.
 The same inventory provides icons and extra information when you browse directories that belong to an app.
 
-The list of your installed apps is shown inside the app and is not used for analytics or advertising. It
-leaves your device only if it ends up in a [debug log](#debug-log) or a [crash report](#crash-reports) that
-you choose to share, or in an APK you exported and then shared with another app. When you pick Share for an
-app, Butler sends that app's name, package name, version and installer source to the app you choose as plain
-text; no file is attached.
+The list of your installed apps is shown inside the app and is not used for analytics or advertising. Package
+information leaves your device only when you choose to hand it to something else: as app details in plain text
+when you pick Share, as an APK you exported and then shared with another app, or inside a
+[debug log](#debug-log) or a [crash report](#crash-reports) that you share. Share sends the selected app's
+name, package name, version and installer source as plain text; no file is attached.
 
 ### All files access
 
