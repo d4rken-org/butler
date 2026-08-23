@@ -62,6 +62,44 @@ pause() { sleep "${1:-1.6}"; }
 type_slow() { local s="$1" i; for ((i=0; i<${#s}; i++)); do "${ADB[@]}" shell input text "${s:$i:1}"; sleep 0.18; done; }
 cap() { local now; now=$(date +%s.%N); awk -v a="$now" -v b="$REC_T0" -v s="$1" 'BEGIN{printf "%.2f|%s\n", a-b, s}' >> "$CAPS"; }
 
+# ---- first-run onboarding and tours -----------------------------------------
+# A fresh install has to be walked through two separate gates before any recorder
+# can drive the app, and a tour can still pop up later, on top of a shot that is
+# already being recorded. Sequence, established on a clean install:
+#
+#   1. "Welcome to Butler" carousel (4 pages)  -> "Skip" jumps to page 4
+#   2. page 4 "Privacy & data"                 -> "Accept"
+#   3. tab onboarding with a tour overlay      -> "Skip"
+#   4. "Skip the tour?" dialog                 -> "Disable all tours"
+#   5. home screen with "Create tab"
+#
+# Step 4 matters beyond the first run: "Continue tour" and "Don't show this tour"
+# both leave other tours armed, and one appearing mid-recording would cover a
+# policy-critical shot. Only "Disable all tours" turns them all off.
+#
+# The loop is order-sensitive, most-modal first: the tour dialog sits over the
+# overlay, which sits over the onboarding screen. It exits as soon as none of the
+# gates is on screen, so it is a no-op on an already-configured install.
+dismiss_onboarding() {
+  local i
+  for i in $(seq 1 10); do
+    dump
+    if _find "$UIX" "Disable all tours" >/dev/null; then
+      tap "Disable all tours"; pause 1.6; continue
+    fi
+    if _find "$UIX" "Accept" >/dev/null; then
+      tap "Accept"; pause 2.0; continue
+    fi
+    if _find "$UIX" "Skip" >/dev/null; then
+      tap "Skip"; pause 1.6; continue
+    fi
+    if _find "$UIX" "Start with a tab" >/dev/null; then
+      tap "Start with a tab"; pause 1.6; continue
+    fi
+    break                                 # no gate on screen, we are through
+  done
+}
+
 # ---- reach a clean New-tab type picker --------------------------------------
 # Robust to the app restoring a sub-screen (app detail / save-as) where the tab
 # menu is not reachable: pop sub-screens with BACK until "Tab manager" appears.

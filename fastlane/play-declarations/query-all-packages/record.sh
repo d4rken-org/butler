@@ -23,6 +23,10 @@ echo "Pre-state: clean prior exports, show touches, clean tabs, reach picker…"
 "${ADB[@]}" shell am force-stop "$PKG"
 "${ADB[@]}" shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
 pause 3
+# A fresh install gates the app behind the welcome carousel and a tour overlay,
+# and a tour can still surface later over a recorded shot. Clear both, and turn
+# tours off, before touching tabs.
+dismiss_onboarding
 clean_tabs_to_picker
 
 # ---- recorded flow ----------------------------------------------------------

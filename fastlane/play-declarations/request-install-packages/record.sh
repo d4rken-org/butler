@@ -89,12 +89,9 @@ esac
 "${ADB[@]}" shell am force-stop "$PKG"
 "${ADB[@]}" shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
 pause 3
-# first-run onboarding (fresh emulator): Skip -> Accept; no-op when already set up
-dump
-if _find "$UIX" "Skip" >/dev/null; then
-  tap "Skip"; pause 1.2
-  tap "Accept"; pause 2.5
-fi
+# First-run onboarding and tours. Tours must be turned OFF, not just skipped:
+# one popping up mid-recording would sit on top of a policy-critical shot.
+dismiss_onboarding
 # fresh home shows "Create tab" directly; otherwise clean up restored tabs
 dump
 if _find "$UIX" "Create tab" >/dev/null; then
@@ -118,12 +115,42 @@ dump
 if _find "$UIX" "Show roots" >/dev/null; then
   tap "Show roots"; pause 1.8
 fi
-dump
-_find -c "$UIX" "Internal storage" >/dev/null \
-  || die_rec "the system Files app did not offer an internal-storage root"
-tap "Internal storage" 0 -c; pause 2.6
-tap "Documents" 0 -c || die_rec "the system Files app did not show the Documents folder"
-pause 2.4
+# Reach /sdcard/Documents in the system Files app, off camera.
+#
+# Two things make this fiddly, and both were found on a live emulator rather
+# than assumed. DocumentsUI labels the internal-storage root with the DEVICE
+# MODEL (ro.product.model), not "Internal storage": here the row reads "Android
+# SDK built for x86_64". And "Documents" is ambiguous, because the by-type root
+# chip in the top bar and the folder row in the file list carry the same exact
+# text, with no stable ordering between them. The by-type root is a MediaProvider
+# view and lists no APK at all, so picking the wrong one silently dead-ends.
+#
+# So: re-navigate from the roots drawer on every attempt and keep the "Documents"
+# whose listing actually contains the seeded APK. Backing out of a wrong guess is
+# not reliable (BACK from the by-type root lands on Recent, not on the storage
+# root), which is why each attempt restarts from the drawer instead.
+dev_root="$("${ADB[@]}" shell getprop ro.product.model | tr -d '\r')"
+docs_ok=0
+for di in 0 1 2 3; do
+  "${ADB[@]}" shell am force-stop com.android.documentsui
+  "${ADB[@]}" shell am start -n com.android.documentsui/.files.FilesActivity >/dev/null 2>&1
+  pause 2.6
+  dump
+  if _find "$UIX" "Show roots" >/dev/null; then tap "Show roots"; pause 1.8; fi
+  dump
+  if   _find -c "$UIX" "$dev_root" >/dev/null;        then tap "$dev_root" 0 -c; pause 2.6
+  elif _find -c "$UIX" "Internal storage" >/dev/null; then tap "Internal storage" 0 -c; pause 2.6
+  else die_rec "the system Files app offered no internal-storage root (looked for '$dev_root')"
+  fi
+  dump
+  xy=$(_find "$UIX" "Documents" "$di")
+  [ -z "$xy" ] && break                     # no further candidate to try
+  "${ADB[@]}" shell input tap $xy; pause 2.4
+  dump
+  if _find -c "$UIX" "$DEMO_APK_NAME" >/dev/null; then docs_ok=1; break; fi
+done
+[ "$docs_ok" = 1 ] \
+  || die_rec "could not reach a Documents folder listing the seeded APK in the system Files app"
 
 # ---- recorded flow ----------------------------------------------------------
 rec_start
@@ -143,14 +170,14 @@ rec_start
 # controls, and DocumentsUI's own navigation labels used in the pre-state
 # ("Show roots", "Internal storage", "Documents").
 cap "An APK arrives from another app"
-pause 2.6
+pause 1.8
 dump; sel=$(_find -c "$UIX" "CapOd")
 [ -n "$sel" ] || die_rec "the seeded APK is not visible in the system Files app"
 "${ADB[@]}" shell input swipe $sel $sel 900   # long-press -> selection mode
 pause 1.6
 dump
 if _find "$UIX" "Share" >/dev/null; then
-  tap "Share"; pause 2.6
+  tap "Share"; pause 2.0
 elif _find "$UIX" "More options" >/dev/null; then
   tap "More options"; pause 1.6      # Share can sit in the overflow menu
   tap "Share" || die_rec "the system Files app offered no Share action for the APK"
@@ -158,14 +185,24 @@ elif _find "$UIX" "More options" >/dev/null; then
 else
   die_rec "the system Files app offered no Share action for the APK"
 fi
-tap "Butler" 0 -c || die_rec "Butler was not offered in the share sheet"
+# The share sheet only appears when more than one app handles ACTION_SEND. On a
+# bare AOSP image Butler is the only handler, so the system goes straight to
+# Butler's arrival dialog and there is no chooser to tap. Handle both.
+dump
+if _find -c "$UIX" "Save as" >/dev/null; then
+  :                                         # already in Butler's arrival dialog
+elif _find -c "$UIX" "Butler" >/dev/null; then
+  tap "Butler" 0 -c; pause 2.0
+else
+  die_rec "the share went neither to a chooser offering Butler nor to Butler's arrival dialog"
+fi
 # A single-file ACTION_SEND does NOT open the Saver directly: MainActivity routes
 # ShareRoute.SingleFile to onExternalFile, which raises Butler's arrival dialog
 # (View / Show in Explorer / Save as…). "Save as…" is the action that opens the
 # Saver on the shared file; the substring match covers the trailing ellipsis.
-pause 3.4
+pause 2.2
 tap "Save as" 0 -c || die_rec "Butler's arrival dialog offered no Save as action"
-pause 3.4
+pause 2.4
 dump
 _find "$UIX" "Destination" >/dev/null \
   || die_rec "Butler's Saver did not open after Save as"
@@ -182,7 +219,7 @@ if ! _find -c "$UIX" "Download" >/dev/null; then
   tap "Select this folder"; pause 2.4
 fi
 tap "Save" || die_rec "the Saver's Save action was not found"
-pause 3.4
+pause 1.6
 # A dropped tap here would cost the "receiving" half of the evidence without any
 # other symptom, so confirm the save actually landed before filming the install.
 # The destination path exists as soon as SaveFilesOperation creates the file, before
@@ -214,7 +251,7 @@ done
 # stranded on the Saver. Require the filename AND the absence of both Saver-only
 # controls, which can only hold once the Saver screen has actually been left.
 tap "Open directory" || die_rec "the Saver did not offer Open directory after the save"
-pause 3.4
+pause 2.2
 opened=0
 for c in 1 2 3 4 5 6 7 8 9 10 11 12; do
   dump
@@ -229,14 +266,26 @@ done
 [ "$opened" = 1 ] || die_rec "Open directory did not reach Butler's Download explorer"
 
 cap "An APK file in your file explorer"
-pause 3.0
+pause 2.2
 
 scr() { [ "${DBG:-0}" = 1 ] || return 0; dump; echo "  [dbg] $1 :: $(grep -oE 'text="[^"]+"' "$UIX" | grep -iE 'security|Install unknown|Allow from|install this app|SETTINGS|INSTALL|CANCEL|Open with|CapOd' | tr '\n' '|')" >&2; }
 
+# Both Butler and the system package installer handle ACTION_VIEW on an APK, so
+# "Open with" raises a chooser offering "Butler" and "Package installer". Pick
+# the installer: that hand-off is the whole point of the permission. On an image
+# where only one target handles it, no chooser appears and this is a no-op.
+pick_installer() {
+  dump
+  if _find -c "$UIX" "Package installer" >/dev/null; then
+    tap "Package installer" 0 -c; pause 2.6
+  fi
+}
+
 cap "Select the APK, choose 'Open with'"
-tap "CapOd" 0 -c; pause 1.8                 # file options sheet
+tap "CapOd" 0 -c; pause 1.5                 # file options sheet
 scr "after CapOd tap"
 tap "Open with"; pause 3.0                  # hand-off to the system installer
+pick_installer
 scr "after Open with"
 
 cap "Approve the install source"
@@ -283,10 +332,11 @@ for j in 1 2 3 4 5; do dump; _find -c "$UIX" "$DEMO_APK_NAME" >/dev/null && brea
 cap "Confirm in Android's installer"
 tap "CapOd" 0 -c; pause 1.6                     # file options sheet
 tap "Open with"; pause 3.0                      # -> confirm dialog (source now allowed)
+pick_installer
 for k in 1 2 3 4 5 6; do dump; _find "$UIX" "INSTALL" >/dev/null && break; pause 1.0; done
 _find "$UIX" "INSTALL" >/dev/null || die_rec "system installer confirm dialog never appeared"
-tap "INSTALL"; pause 5.0                        # OS performs the install
-pause 1.8                                       # "App installed."
+tap "INSTALL"; pause 4.0                        # OS performs the install
+pause 1.5                                       # "App installed."
 dump
 _find "$UIX" "DONE" >/dev/null && tap "DONE"
 pause 1.2
