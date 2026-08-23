@@ -86,7 +86,13 @@ class OperationNotifications @Inject constructor(
 
         when (state) {
             is Operation.State.Active -> {
-                builder.setContentText(state.primaryProgress.primary.get(context))
+                // The title is per-kind ("Copy operation"), so with several operations running
+                // it cannot tell them apart. The metadata description names what is being moved
+                // and where, which is what makes a row identifiable, and what makes its Cancel
+                // action safe to press.
+                val description = operation.metadata.description.get(context)
+                builder.setContentText(description)
+                builder.setStyle(NotificationCompat.BigTextStyle().bigText(description))
                 applyProgress(builder, state.primaryProgress.count)
             }
             else -> {

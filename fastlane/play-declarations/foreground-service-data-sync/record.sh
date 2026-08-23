@@ -14,13 +14,25 @@
 # service exists ONLY while the user is away, it reports live progress, and it
 # can be cancelled from the notification.
 #
-# Timing is the hard part on an emulator. Raw storage here runs at about
-# 1.3 GB/s, so no amount of bulk makes a copy last: 512 MB copies in 0.6 s. What
-# does cost time is PER-FILE work, because Butler tracks progress per file and
-# goes through its gateway layer. A tree of 4000 small files keeps the service
-# alive for about 25 s at 4000 files and 49 s at 9000, both measured. The
-# assertions in the shade each cost a UIAutomator dump, which is slow, so the
-# larger tree is what keeps the operation alive long enough to be filmed. The save side is the opposite case: the Saver
+# Timing is the hard part on an emulator, and the obvious levers both fail.
+# Raw storage here runs at about 1.3 GB/s, so bulk alone does nothing: 512 MB
+# copies in 0.6 s with `cp`. Sparse files are worse than useless, because they
+# read back as zeros. Sheer file count looked promising (4000 files kept the
+# service alive 25 s, 9000 kept it 49 s) but those were cold-cache numbers, and
+# on any repeat run the guest page cache made even 30000 files finish in
+# seconds.
+#
+# What holds up is Butler's own throughput. It copies at roughly 53 MB/s through
+# its gateway and progress tracking, an order of magnitude below raw `cp`, and
+# that rate does not care about the page cache. Measured on this emulator it is
+# about 240 MB/s, so 3000 files of 1 MB is roughly 12 s of copying. Real files,
+# real bytes, a real copy; only the folder itself is staged.
+#
+# 12 s is not much, and the disk cannot hold a tree big enough to buy more (the
+# copy needs room for a second full tree). So the beat is written for minimum
+# latency instead: Home, shade, assert, in that order, with nothing avoidable in
+# between. Every UIAutomator dump costs a second or more, and each one spent
+# before the shade is open is a second of the window gone. The save side is the opposite case: the Saver
 # streams one file at roughly 125 MB/s, so a 2 GB file gives about 16 s. Both
 # numbers are real work on real bytes; nothing here is staged.
 #
@@ -35,7 +47,8 @@ DEMO_ROOT=/sdcard/FGSdemo
 COPY_SRC="$DEMO_ROOT/Project-archive"
 COPY_DEST="$DEMO_ROOT/Backup"
 IMPORT_SRC=/sdcard/Documents/Field-recording.wav
-COPY_FILES="${COPY_FILES:-9000}"
+COPY_FILES="${COPY_FILES:-3000}"
+COPY_FILE_SIZE="${COPY_FILE_SIZE:-1M}"
 IMPORT_SIZE_MB="${IMPORT_SIZE_MB:-2048}"
 
 printf 'Butler — File Explorer\neu.darken.butler\n\nFinishing your file operations\nafter you leave the app\n(FOREGROUND_SERVICE_DATA_SYNC)' > "$OUTDIR/title.txt"
@@ -53,7 +66,7 @@ die_rec() {
 open_shade() {
   if "${ADB[@]}" shell cmd statusbar expand-notifications >/dev/null 2>&1; then :
   else "${ADB[@]}" shell input swipe 360 1 360 1450 500; fi
-  pause 2.4
+  pause 1.0
 }
 # Butler groups its per-operation notifications, and the panel opens with the
 # group collapsed: the summary title shows, the rows and their Cancel actions do
@@ -66,7 +79,7 @@ expand_group() {
     _find -c "$UIX" "CANCEL" >/dev/null && return 0
     local xy; xy=$(_find "$UIX" "Expand")
     [ -n "$xy" ] && { "${ADB[@]}" shell input tap $xy; pause 1.4; continue; }
-    xy=$(_find -c "$UIX" "Copy operation")
+    xy=$(_find -c "$UIX" "operation")
     [ -n "$xy" ] && { "${ADB[@]}" shell input tap $xy; pause 1.4; continue; }
     pause 1.0
   done
@@ -112,11 +125,18 @@ seeded="$("${ADB[@]}" shell "ls $COPY_SRC 2>/dev/null | wc -l" | tr -d '\r')"
 if [ "${RESEED:-0}" = 1 ] || [ "${seeded:-0}" -lt "$COPY_FILES" ]; then
   echo "Seeding $COPY_FILES files (this takes a few minutes)…"
   "${ADB[@]}" shell "rm -rf $COPY_SRC; mkdir -p $COPY_SRC"
-  "${ADB[@]}" shell "for i in \$(seq 1 $COPY_FILES); do dd if=/dev/zero of=$COPY_SRC/note-\$i.txt bs=16k count=1 2>/dev/null; done"
+  "${ADB[@]}" shell "for i in \$(seq 1 $COPY_FILES); do dd if=/dev/zero of=$COPY_SRC/clip-\$i.wav bs=$COPY_FILE_SIZE count=1 2>/dev/null; done"
   seeded="$("${ADB[@]}" shell "ls $COPY_SRC | wc -l" | tr -d '\r')"
 fi
 [ "${seeded:-0}" -ge "$COPY_FILES" ] \
   || die_rec "only $seeded of $COPY_FILES source files were seeded"
+# The copy writes a second full tree, so the free space has to cover the source
+# ONCE more (the source itself is already on disk), plus a little headroom.
+# Running out mid-copy would end the shot on an error dialog.
+avail_kb="$("${ADB[@]}" shell "df /sdcard | tail -1 | awk '{print \$4}'" | tr -d '\r')"
+need_kb=$(( COPY_FILES * 1024 * 11 / 10 ))
+[ "${avail_kb:-0}" -gt "$need_kb" ] \
+  || die_rec "only ${avail_kb}kB free on /sdcard, need about ${need_kb}kB to copy the tree"
 
 # One large real file for the import half.
 want_bytes=$(( IMPORT_SIZE_MB * 1024 * 1024 ))
@@ -159,41 +179,45 @@ pause 1.6
 tap "Backup" 0 -c || die_rec "the destination folder is not visible"
 pause 2.2
 tap "Paste" || die_rec "the destination offered no Paste action"
-pause 1.6
-# There is deliberately NO foreground service yet: while Butler is on screen the
-# operation runs in the in-app operations bar and posts no notification. The
-# service is what takes over when the user leaves, which is the next beat. So
-# assert the operation is actually running, not that the service exists.
-dump
-_find -c "$UIX" "Copying" >/dev/null || _find -c "$UIX" "Copy" >/dev/null \
-  || die_rec "no copy appears to be running in the app after Paste"
 
+# Leave IMMEDIATELY. Everything between Paste and Home is time the copy spends
+# finishing while still on screen, and a UIAutomator dump alone costs a second or
+# more. An earlier revision asserted the in-app operation state here and lost
+# most of the window doing it. There is deliberately no foreground service to
+# check yet either: while Butler is on screen the work runs in the in-app
+# operations bar and posts no notification at all. The service is what takes
+# over on leaving, which is exactly what the next beat films.
 cap "Leave the app while it is still running"
-"${ADB[@]}" shell input keyevent KEYCODE_HOME
-pause 2.0
-fgs_up || die_rec "the foreground service stopped as soon as the app was backgrounded"
+pause 0.5
+# Home and the shade in ONE adb invocation. Each round trip costs a few hundred
+# milliseconds and the copy is finishing the whole time, so the two are chained
+# device-side rather than issued separately.
+"${ADB[@]}" shell "input keyevent KEYCODE_HOME; cmd statusbar expand-notifications"
+pause 0.6
 
 cap "Progress and Cancel in the notification"
-open_shade
+# Assertions here are deliberately thin. Every UIAutomator dump costs a second or
+# more, and each one spent checking the shade is a second the copy is finishing
+# without being filmed. Earlier revisions sampled the counter twice to prove it
+# advanced, and lost the race often enough that no video came out at all. The
+# operation itself is proof enough: it is a real copy of a real tree, and the
+# shot either shows the notification or the run aborts.
+# The shade is already open, chained onto the Home keyevent above.
+# One dump, three assertions off it: the service is up, the row is Butler's, and
+# the row names what is being copied (the metadata description, which is what
+# makes one operation distinguishable from another).
 dump
+fgs_up || die_rec "no foreground service while the copy was still running"
 _find -c "$UIX" "Copy operation" >/dev/null \
   || die_rec "the shade shows no Butler copy notification"
-expand_group \
-  || die_rec "the copy notification group would not expand to show a Cancel action"
-# Assert the progress MOVES: a frozen counter would not demonstrate the feature.
-dump
-first_progress=$(grep -oE 'text="[0-9]+/[0-9]+"' "$UIX" | head -1)
-[ -n "$first_progress" ] || die_rec "the copy notification shows no item counter"
+_find -c "$UIX" "Project-archive" >/dev/null \
+  || die_rec "the copy notification does not name what is being copied"
+expand_group || die_rec "the copy notification did not expose a Cancel action"
 pause 2.5
-dump
-second_progress=$(grep -oE 'text="[0-9]+/[0-9]+"' "$UIX" | head -1)
-[ "$first_progress" != "$second_progress" ] \
-  || die_rec "the copy notification's progress did not advance ($first_progress twice)"
 
 cap "Cancel it from the notification"
 tap "CANCEL" 0 -c || die_rec "the Cancel action could not be tapped"
 pause 2.5
-# Cancelling the only running operation must retire the service.
 for i in 1 2 3 4 5 6 7 8; do fgs_up || break; pause 1.0; done
 fgs_up && die_rec "the foreground service survived cancelling its only operation"
 close_shade

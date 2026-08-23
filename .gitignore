@@ -33,3 +33,4 @@ fastlane/metadata/android/*/images/tenInchScreenshots/*.png
 !fastlane/metadata/android/en-US/images/tenInchScreenshots/*.png
 # Staging area of copy_screenshots.sh, removed on every exit path but never a repo file
 fastlane/.screenshot-staging.*/
+gradle/gradle-daemon-jvm.properties
