@@ -1,3 +1,5 @@
+import com.android.build.api.artifact.SingleArtifact
+
 plugins {
     id("com.android.application")
     id("kotlin-parcelize")
@@ -10,6 +12,7 @@ plugins {
 apply(plugin = "dagger.hilt.android.plugin")
 
 val commitHashProvider = providers.of(CommitHashValueSource::class) {}
+val signingBasePath = File(System.getProperty("user.home"), ".config/projects/${projectConfig.packageName}")
 
 android {
     if (projectConfig.compileSdkPreview != null) {
@@ -40,12 +43,11 @@ android {
     }
 
     signingConfigs {
-        val basePath = File(System.getProperty("user.home"), ".config/projects/${projectConfig.packageName}")
         create("releaseFoss") {
-            setupCredentials(File(basePath, "signing-foss.properties"))
+            setupCredentials(File(signingBasePath, "signing-foss.properties"))
         }
         create("releaseGplay") {
-            setupCredentials(File(basePath, "signing-gplay-upload.properties"))
+            setupCredentials(File(signingBasePath, "signing-gplay-upload.properties"))
         }
     }
 
@@ -153,12 +155,30 @@ androidComponents {
         if (variant.buildType != "release" && variant.buildType != "beta") return@onVariants
         val baseName = (variant.productFlavors.map { it.second } + listOfNotNull(variant.buildType))
             .joinToString("-")
+        // The gplay variant APK carries the upload key, not the Play app signing key; mark it
+        // so it can't be confused with the installable re-signed APK produced below.
+        val suffix = if (variant.flavorName == "gplay") "-UPLOAD" else ""
         val output = variant.outputs.single()
         output.outputFileName.set(
             "${projectConfig.packageName}" +
                 "-v${projectConfig.version.name}-${projectConfig.version.code}" +
-                "-${baseName.uppercase()}.apk",
+                "-${baseName.uppercase()}$suffix.apk",
         )
+
+        // The gplay variant is signed with the upload key so the AAB passes Play's upload check.
+        // For a directly installable Play-signed APK, re-sign the assembled APK with the app
+        // signing key. Local-only: without signing-gplay.properties (e.g. CI) the task no-ops.
+        if (variant.flavorName == "gplay") {
+            val buildTypeName = variant.buildType!!
+            tasks.register<SignGplayApkTask>(
+                "signGplay${buildTypeName.replaceFirstChar { it.uppercase() }}Apk",
+            ) {
+                apkDir.set(variant.artifacts.get(SingleArtifact.APK))
+                signingProps.from(File(signingBasePath, "signing-gplay.properties"))
+                sdkDir.set(sdkComponents.sdkDirectory)
+                outputDir.set(layout.buildDirectory.dir("outputs/apk_gplay_signed/$buildTypeName"))
+            }
+        }
     }
 }
 
@@ -169,6 +189,12 @@ afterEvaluate {
         }
         named("bundleGplayRelease") {
             dependsOn("lintVitalGplayRelease")
+        }
+        named("assembleGplayBeta") {
+            finalizedBy("signGplayBetaApk")
+        }
+        named("assembleGplayRelease") {
+            finalizedBy("signGplayReleaseApk")
         }
     }
 }
