@@ -26,7 +26,7 @@ type without completing this form fails review.
 
 | Folder | Type | Gates | Google FGS type to select |
 |--------|------|-------|---------------------------|
-| [`foreground-service-data-sync/`](./foreground-service-data-sync/DECLARATION.md) | `dataSync` (`FOREGROUND_SERVICE_DATA_SYNC`) | Finishing a user-started copy/move/delete/ZIP after leaving the app | **Data sync** |
+| [`foreground-service-data-sync/`](./foreground-service-data-sync/DECLARATION.md) | `dataSync` (`FOREGROUND_SERVICE_DATA_SYNC`) | Finishing a user-started copy, move, delete, archive or save after leaving the app | **Data sync** |
 
 It needs its own demo video. Unlike the three permissions above, it has **no `record.sh` yet** —
 the storyboard in its `DECLARATION.md` is written to be recorded manually.

@@ -40,27 +40,30 @@ checkboxes in three groups.
 | Network processing | Backing up, restoring | no |
 | Network processing | Other | **untick it** |
 | Local processing | Media transcoding | no |
-| Local processing | Importing, exporting | no |
+| Local processing | Importing, exporting | **yes** |
 | Local processing | Other | **yes** |
 | Other tasks | Other | no |
 
 **Network processing > Other arrives pre-ticked and must be unticked.** Butler's operations do no
 network I/O at all, so leaving it ticked would make the declaration untrue.
 
-**Local processing > Other** is the one to tick. What it covers: finishing a copy, move, delete or
-ZIP operation the user started, between filesystem locations the user picked, after the user has
-left the app while the operation is still running.
+**Local processing > Other** and **Local processing > Importing, exporting** are the two to tick.
+What they cover: finishing an operation the user started, after the user has left the app while it
+is still running. That is a copy, a move, a delete, an archive being written or extracted between
+filesystem locations the user picked, and the save of a file another app handed to Butler.
 
-Why none of the named tasks describes it:
+Why each of the three Local processing boxes is ticked or not:
 
-- *Backing up, restoring* sits in the Network processing group, and Butler transfers nothing to or
-  from a network.
-- *Media transcoding*: Butler does not transcode media. It copies bytes, it does not re-encode
-  them.
-- *Importing, exporting*: Butler moves the user's existing files between locations the user chose,
-  rather than bringing data into or out of the app. The form gives no definition of this category,
-  so if a reviewer reads it more broadly, it is the closest alternative to "Local processing >
-  Other" and the safest one to switch to.
+- *Other* is ticked: the bulk of the work is Butler moving the user's existing files between
+  locations the user chose, which none of the named tasks describes.
+- *Importing, exporting* is ticked: another app can share a file to Butler, and Butler's save-as
+  then writes it wherever the user points it. That save is submitted to the same operations
+  manager and is protected by the same foreground service, and it is data being brought into the
+  app rather than moved between two locations the user already had.
+- *Media transcoding* stays unticked: Butler does not transcode media. It copies bytes, it does not
+  re-encode them.
+- *Backing up, restoring* stays unticked, and it sits in the Network processing group anyway, where
+  Butler transfers nothing to or from a network.
 
 ### Video
 
@@ -84,13 +87,13 @@ forms use.
 Core functionality:
 
 ```text
-Butler is a file manager. The service exists for one feature: finishing a copy, move, delete or ZIP operation the user already started, when the user leaves the app while it is still running. These operations move the user's files between locations they picked and can run for minutes; killing the process leaves a half-copied folder or a truncated archive. It starts only then, posts an ongoing notification with progress and a Cancel action, and stops once the user returns or the work is done.
+Butler is a file manager. The service exists for one feature: finishing an operation the user already started, when the user leaves the app while it is still running. That covers copying, moving, deleting, archiving and extracting the user's files, and saving a file another app handed to Butler. These run for minutes; killing the process leaves a half-copied folder or a truncated archive. It posts an ongoing notification with progress and a Cancel action, and stops once the user returns.
 ```
 
 Why an alternative API does not work:
 
 ```text
-A user-initiated data transfer job requires a network constraint, because that API exists for transfers to and from a network. Butler's operations run from one storage location to another and do no network I/O, so the job cannot express them; it is also API 34 and up, while Butler's minSdk is 26. Deferrable work (WorkManager, JobScheduler) does not fit either: the operation is already running and holds open file handles, so it cannot be deferred or restarted without re-copying the user's data.
+A user-initiated data transfer job requires a network constraint, because that API exists for transfers to and from a network. Butler's operations move the user's files between storage locations, or write a file another app handed over, and make no network request, so the job cannot express them. It is also API 34 and later, while Butler's minSdk is 26. Deferrable work (WorkManager, JobScheduler) does not fit either: the operation is already running with open file handles.
 ```
 
 ---
@@ -104,13 +107,15 @@ A user-initiated data transfer job requires a network constraint, because that A
 ## 2. "What is the core functionality this foreground service type is used for?" (reference, not a form field)
 
 Butler is a file manager. Its foreground service exists for exactly one feature: **finishing a file
-operation the user explicitly started** — copy, move, delete, and ZIP compress/extract — when the
-user leaves the app while that operation is still running.
+operation the user explicitly started** — copy, move, delete, compress into an archive (ZIP, TAR,
+TAR.GZ or TAR.BZ2), extract one, and save a file another app handed to Butler — when the user
+leaves the app while that operation is still running.
 
 These operations move real user data between locations on the device: internal storage, SD cards,
-USB drives, and archives. A single operation can be many gigabytes and run for minutes. If the
-process is killed part-way, the user is left with a partially copied tree or a half-written archive,
-which is data loss from the user's point of view.
+USB drives, and archives. The save case is the same machinery: another app shares a file to Butler,
+and Butler writes it where the user points it. A single operation can be many gigabytes and run for
+minutes. If the process is killed part-way, the user is left with a partially copied tree or a
+half-written archive, which is data loss from the user's point of view.
 
 The service is deliberately narrow:
 
@@ -138,8 +143,8 @@ Google's suggested alternatives do not fit a local file transfer:
 - **User-initiated data transfer job** (`JobInfo.Builder.setUserInitiated(true)`, API 34+) is the
   API Google names first for `dataSync`. It cannot express this work: a user-initiated data transfer
   job **requires a network constraint** (`setRequiredNetworkType`), because the API is designed for
-  transfers to and from a network. Butler's operations run from one storage location to another and
-  involve no network at all. Availability is the secondary point: the API starts at 34, while
+  transfers to and from a network. Butler's operations run from one storage location to another, or
+  write out a file another app handed over, and involve no network at all. Availability is the secondary point: the API starts at 34, while
   Butler's `minSdk` is 26, so it could at best cover newer devices.
 - **WorkManager expedited work / `JobScheduler` deferrable jobs** are, by definition, deferrable and
   quota-limited. The operation is already in progress and holds open file handles; it cannot be
@@ -178,6 +183,12 @@ does the foreground service exist. Shot 5 shows the work is cancellable per oper
 shows it is bounded: the service is gone as soon as the app is back on screen, and the surviving
 copy finishes in the in-app bar.
 
+The storyboard films the copy case only. The second case the service covers is a Save-as import:
+another app shares a file to Butler, Butler's save-as writes it to the location the user picks, and
+that operation goes through the same manager and the same service. It matches the *Importing,
+exporting* task that is ticked on the form, so a second recorded scenario for it would be worth
+having.
+
 ### Video description (paste into YouTube)
 
 ```text
@@ -189,7 +200,7 @@ Butler, a file explorer for Android, package name eu.darken.butler. This video d
 4. Cancel is tapped on the second operation. It stops and leaves the notification while the first copy carries on.
 5. The user reopens Butler. The foreground service stops because the app is on screen again and the notification disappears; the first copy finishes in the in-app operations bar and is listed in the operation history.
 
-The files are copied from one location on the device to another. These operations involve no network, and nothing about them is collected or used for analytics or advertising; details leave the device only inside a debug log or crash report the user chooses to share.
+The same service covers Butler's other operations: moving, deleting, compressing into an archive and extracting one, and saving a file another app has shared into Butler. All of it runs from one location on the device to another, involves no network, and nothing about it is collected or used for analytics or advertising; details leave the device only inside a debug log or crash report the user chooses to share.
 ```
 
 ---
