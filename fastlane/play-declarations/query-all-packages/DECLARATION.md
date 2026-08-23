@@ -17,7 +17,7 @@ permission."*, with the examples *Device search / Antivirus apps / File managers
 the helper line *"Approval will be granted for your entire app, not just for this feature"*.
 
 ```text
-Butler's App Manager lets the user search every installed app, user and system, then inspect one, export its APK into Butler's own file explorer, disable it, clear its cache or uninstall it. A queries manifest entry only reveals packages named at build time, so it cannot back a search-all-apps feature. The inventory is shown inside the app, is not collected, and is not used for analytics or advertising; it leaves the device only inside a diagnostic report the user chooses to share.
+Butler's App Manager lets the user search every installed app, user and system, then inspect one, export or share its APK, disable it, clear its data or uninstall it. A queries manifest entry only exposes packages named at build time or apps matching declared intents and providers, so it cannot enumerate every installed app for an open search. The inventory is not collected and not used for analytics or advertising; it leaves the device only in an APK or diagnostic report the user shares.
 ```
 
 ### Usage
@@ -65,20 +65,22 @@ system — on the device, then inspect and manage any of them:
 - Inspect an app in depth: package id, version, target/min SDK, install metadata, on-device
   storage paths, and exported components (activities, services, receivers).
 - **Export an app's APK file** to shared storage — where it immediately appears in Butler's own
-  file explorer.
-- Disable/enable, clear cache, and uninstall apps.
+  file explorer — or share it straight to another app.
+- Disable/enable, clear an app's data, and uninstall apps.
 
 The feature requires broad package visibility (`QUERY_ALL_PACKAGES`) because its core purpose is
 to **search across all installed packages** so the user can find and manage *any* app — Google's
 named "file managers" permitted use, which matches the "core purpose to search for all apps"
-criterion. A declared `<queries>` manifest reveals only a predetermined subset and cannot back a
-user-facing "search all installed apps" feature, so no less-broad method suffices.
+criterion. A declared `<queries>` manifest element exposes only the packages named at build time
+plus the apps that match the intent filters and provider authorities it declares, so it can never
+enumerate the installed apps a user-facing "search all installed apps" feature has to offer. No
+less-broad method suffices.
 
 Exporting an APK ties the App Manager directly to Butler's file-manager identity: the exported
 `.apk` is written to shared storage and is then a file the user browses, moves, and shares in
-Butler like any other. The installed-app inventory is shown **only inside the app**, on-device. It
-is not collected and is not used for analytics or advertising; it leaves the device only inside a
-debug log or crash report the user chooses to share. (See the privacy policy.)
+Butler like any other. The installed-app inventory is not collected and is not used for analytics
+or advertising; it leaves the device only inside an APK or a diagnostic report the user chooses to
+share. (See the privacy policy.)
 
 ---
 
@@ -118,7 +120,7 @@ Produced by the automated recorder (`./record.sh`); see
 | 3 | **Search across all apps** | Type into the app search field; the list filters across the full installed-package set. |
 | 4 | **Inspect an app in depth** | Open an app's detail: package id, version, SDK levels, storage paths, exported components. |
 | 5 | **Export the APK into the file explorer** | From the detail, **Export APK** → a "Save as" file-manager workspace (destination prefilled to `Download`) → **Save** → "1 file saved" → **Open directory** → the Explorer opens on `Download` with the exported `.apk` now present as a file. |
-| 6 | **End card** | "Searches and manages every installed app on the device. Shown only inside the app, not used for analytics or advertising." |
+| 6 | **End card** | "Searches and manages every installed app on the device. Not collected, not used for analytics or advertising." |
 
 The breadth header and the **search-all-apps** step are the policy-critical shots — they show why
 broad visibility into installed packages is required. Shot 5 then ties QUERY_ALL_PACKAGES directly
@@ -131,12 +133,12 @@ explorer, where the user browses, moves, and shares it like any other file (as d
 Butler, a file explorer for Android, package name eu.darken.butler. This video demonstrates the QUERY_ALL_PACKAGES permission.
 
 1. Butler's App Manager opens. Its header counts the installed apps it can see, user apps and system apps.
-2. A search across every installed app filters the list as the query is typed. Searching all installed apps is the feature that needs broad package visibility; a queries manifest entry would only reveal packages named at build time.
+2. A search across every installed app filters the list as the query is typed. Searching all installed apps is the feature that needs broad package visibility; a queries manifest entry only exposes packages named at build time or apps matching declared intents and providers, so it cannot enumerate the device.
 3. One app is opened in detail: package id, version, SDK levels, on-device storage paths and exported components.
 4. Its APK is exported through Butler's own save-as workspace into the Download folder.
 5. The explorer opens on Download, where the exported APK is now an ordinary file the user can browse, move and share. This is the link between the App Manager and Butler's file-manager core purpose.
 
-The installed-app list is shown inside the app only. It is not collected and is not used for analytics or advertising; it leaves the device only inside a debug log or crash report the user chooses to share.
+From the same detail screen the user can share the APK, disable the app, clear its data or uninstall it. The installed-app list is not collected and is not used for analytics or advertising; it leaves the device only inside an APK or a diagnostic report the user chooses to share.
 ```
 
 ---
