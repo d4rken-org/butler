@@ -139,9 +139,9 @@ rec_start
 # first real recording run: the system Files app's "Share" action (and the "More
 # options" overflow it may hide behind), the share sheet's entry for Butler,
 # Butler's arrival dialog and its "Save as…" action, the Saver's "Destination" /
-# "Select this folder" / "Save" / "Open directory" controls, and DocumentsUI's own
-# navigation labels used in the pre-state ("Show roots", "Internal storage",
-# "Documents").
+# "Select this folder" / "Save" / "Open directory" / "Save to new location"
+# controls, and DocumentsUI's own navigation labels used in the pre-state
+# ("Show roots", "Internal storage", "Documents").
 cap "An APK arrives from another app"
 pause 2.6
 dump; sel=$(_find -c "$UIX" "CapOd")
@@ -186,11 +186,13 @@ pause 3.4
 # A dropped tap here would cost the "receiving" half of the evidence without any
 # other symptom, so confirm the save actually landed before filming the install.
 # The destination path exists as soon as SaveFilesOperation creates the file, before
-# its contents are written, so existence alone does not prove the save finished. Gate
-# on the Saver's success state plus the pinned checksum, and only then use Open
-# directory: it is rendered but disabled while the save runs, and tap() matches on
-# text only, so it cannot see the disabled state. The checksum doubles as proof that
-# the shared content URI was read correctly end to end.
+# its contents are written, so existence alone does not prove the save finished.
+# "Open directory" cannot prove it either: the Saver renders that button while the
+# save is still running and merely disables it, and tap()/_find match on text only,
+# so a disabled button looks exactly like an enabled one. "Save to new location"
+# (saver_save_again_action) is rendered only in the success state, so gate the poll
+# on that label plus the pinned checksum. The checksum doubles as proof that the
+# shared content URI was read correctly end to end.
 saved_complete() {
   local hash
   hash=$("${ADB[@]}" exec-out cat "/sdcard/Download/$DEMO_APK_NAME" 2>/dev/null \
@@ -201,17 +203,30 @@ saved_complete() {
 saved=0
 for c in 1 2 3 4 5 6 7 8 9 10 11 12; do
   dump
-  if _find -c "$UIX" "Open directory" >/dev/null && saved_complete; then saved=1; break; fi
+  if _find "$UIX" "Save to new location" >/dev/null && saved_complete; then saved=1; break; fi
   pause 1.2
 done
 [ "$saved" = 1 ] || die_rec "the shared APK did not finish saving correctly into Download"
 
-# Butler is showing the Saver's result, so get to Download on camera.
+# Butler is showing the Saver's result, so get to Download on camera. The APK's
+# filename alone does not prove the tap landed: the Saver's own SourceFileCard shows
+# it as well, so a tap dropped under recording load would still pass that check while
+# stranded on the Saver. Require the filename AND the absence of both Saver-only
+# controls, which can only hold once the Saver screen has actually been left.
 tap "Open directory" || die_rec "the Saver did not offer Open directory after the save"
 pause 3.4
-dump
-_find -c "$UIX" "$DEMO_APK_NAME" >/dev/null \
-  || die_rec "the saved APK is not visible in Butler's Download explorer"
+opened=0
+for c in 1 2 3 4 5 6 7 8 9 10 11 12; do
+  dump
+  if _find -c "$UIX" "$DEMO_APK_NAME" >/dev/null \
+    && ! _find "$UIX" "Open directory" >/dev/null \
+    && ! _find "$UIX" "Save to new location" >/dev/null; then
+    opened=1
+    break
+  fi
+  pause 0.8
+done
+[ "$opened" = 1 ] || die_rec "Open directory did not reach Butler's Download explorer"
 
 cap "An APK file in your file explorer"
 pause 3.0
