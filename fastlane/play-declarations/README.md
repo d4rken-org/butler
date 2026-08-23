@@ -62,10 +62,11 @@ Rules that apply to all of them:
 ## Submission readiness
 
 - **All files access** and **Query all packages**: ready, videos recorded.
-- **Request install packages**: the video must be **re-recorded** first. The recorder now films the
-  user receiving an APK as a file (copy out of `Download/incoming` into `Download`) before the
-  install flow, because the permitted use requires both halves and the form has no text field to
-  argue the point in. Any previously recorded video is missing that beat.
+- **Request install packages**: the video must be **re-recorded** first. The recorder now films
+  Butler receiving an APK from another app (Android's Files app shares it into Butler, whose
+  save-as writes it into `Download`) before the install flow, because the permitted use requires
+  both halves and the form has no text field to argue the point in. Any previously recorded video
+  is missing that beat.
 - **Foreground service, `dataSync`**: **not submittable yet.** No video has been recorded and there
   is no recorder for it.
 
@@ -149,9 +150,9 @@ only synthetic/seeded data — nothing personal is uploaded.
   tabs. The three shots map to the three reasons SAF/MediaStore are insufficient:
   non-media files, bulk cross-tree moves, and traversing a whole volume from a
   single permission instead of picking every tree in the SAF picker.
-- **`request-install-packages`** (~88 s): an `.apk` arrives in `Download/incoming`
-  and the user **copies it into `Download`** (the "receiving app packages" half) →
-  **"Open with"** hands it to the system installer → Android's per-source
+- **`request-install-packages`** (~100 s): Android's Files app **shares an `.apk`
+  into Butler**, whose save-as writes it into `Download` (the "receiving app
+  packages" half) → **"Open with"** hands it to the system installer → Android's per-source
   **"Install unknown apps"** grant for Butler (the policy-critical shot) → the user
   confirms **Install** in the system installer → "App installed". Shows both halves
   of the permitted use and all three user decisions that gate an install; the
