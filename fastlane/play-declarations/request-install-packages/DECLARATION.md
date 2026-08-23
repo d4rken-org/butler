@@ -148,7 +148,7 @@ so no third-party brand appears.
 | 1 | **Title card** | "Butler — eu.darken.butler — Opening a user-selected APK in Android's package installer (REQUEST_INSTALL_PACKAGES)". |
 | 2 | **An APK arrives in your storage** | Butler's Explorer on `Download/incoming`, where the `.apk` landed. Long-press to select it → **Copy** → back up to `Download` → **Paste**. Butler receives and files an app package like any other file, which is the "sending or receiving app packages" half of the permitted use. |
 | 3 | **Explorer with an APK** | Butler's Explorer on `Download`, the copied `.apk` visible among normal files. |
-| 4 | **User action** | Tap the APK → file options → **"Open with"** — Butler hands the file to the system installer. |
+| 4 | **User action** | Tap the APK → file options → **"Open with"**: Butler hands the file to the system installer. |
 | 5 | **Android's source approval** | The OS blocks: "For your security…" → **Settings** → per-source **"Install unknown apps"** screen → user enables **"Allow from this source"** for Butler. This is the visible permission grant. |
 | 6 | **User-confirmed install** | With the source now allowed, the user reopens the APK: **"Do you want to install this app?"** → taps **Install** → "App installed" → **Done**. |
 | 7 | **End card** | "Butler only opens APKs you selected, in Android's installer. Approval and install confirmation stay under your control." |
