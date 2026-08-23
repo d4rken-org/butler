@@ -7,8 +7,12 @@
 # Usage: ./record.sh [adb-serial]   (default emulator-5564 / butler-main-2)
 #        NOREC=1 ./record.sh ...     validate taps without recording
 SERIAL="${1:-emulator-5564}"
-OUTDIR="${OUTDIR:-/tmp/butler-demo/manage-external-storage}"
 HERE="$(cd "$(dirname "$0")" && pwd)"
+# Output lands next to the script, in this permission's own folder. The .gitignore
+# here keeps *.mp4 out of the repository, so the videos stay local artifacts that
+# sit with the declaration they belong to rather than in /tmp, where a reboot eats
+# them.
+OUTDIR="${OUTDIR:-$HERE}"
 source "$HERE/../_common.sh"
 
 printf 'Butler — File Explorer\neu.darken.butler\n\nAll files access\n(MANAGE_EXTERNAL_STORAGE)' > "$OUTDIR/title.txt"

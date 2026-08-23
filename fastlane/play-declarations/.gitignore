@@ -1,5 +1,13 @@
-# Generated screencasts are not committed — only the scripts that produce them.
+# Generated screencasts and their build artifacts are not committed, only the
+# scripts that produce them. record.sh writes all of this into the permission's
+# own folder so the videos live next to the declaration they belong to, but they
+# stay local: they are large, regenerable, and what gets submitted to Google is a
+# hosted URL rather than a file from here.
 *.mp4
+captions.txt
+title.txt
+end.txt
+ui.xml
 out/
 __pycache__/
 *.pyc

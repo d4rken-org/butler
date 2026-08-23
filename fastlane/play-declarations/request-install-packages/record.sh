@@ -18,8 +18,12 @@
 # Usage: ./record.sh [adb-serial]   (default emulator-5578 / butler-install-demo)
 #        NOREC=1 ./record.sh ...     validate taps without recording
 SERIAL="${1:-emulator-5578}"
-OUTDIR="${OUTDIR:-/tmp/butler-demo/request-install-packages}"
 HERE="$(cd "$(dirname "$0")" && pwd)"
+# Output lands next to the script, in this permission's own folder. The .gitignore
+# here keeps *.mp4 out of the repository, so the videos stay local artifacts that
+# sit with the declaration they belong to rather than in /tmp, where a reboot eats
+# them.
+OUTDIR="${OUTDIR:-$HERE}"
 source "$HERE/../_common.sh"
 
 DEMO_PKG="eu.darken.capod"
