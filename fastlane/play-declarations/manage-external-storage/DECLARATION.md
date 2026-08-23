@@ -17,7 +17,7 @@ this feature."* One feature, described as one feature, not a bulleted list of ev
 does.
 
 ```text
-Butler is a file manager. The feature is browsing the device's shared storage and managing what is there: opening any folder the user navigates to, then copying, moving, renaming, compressing and deleting files of any type at that location, with bulk multi-select operations and a trash that restores an item to the exact path it came from. It must work on every path the user can reach, not only on media files. All of it happens on the device; no file name and no file content is uploaded anywhere.
+Butler is a file manager. The feature is browsing the device's shared storage and managing what is there: opening any folder the user navigates to, then copying, moving, renaming, compressing, sharing and deleting files of any type, with bulk multi-select and a trash that restores an item to the exact path it came from. It must work on every path the user can reach, not only on media. Processing is on-device; a file leaves Butler only when the user shares it or a diagnostic report.
 ```
 
 ### Usage
@@ -28,7 +28,7 @@ Butler is a file manager. The feature is browsing the device's shared storage an
 - [ ] Personalization: the permission tailors nothing to the user.
 - [ ] Security or fraud prevention: Butler does no scanning, no threat detection.
 - [ ] Analytics: Butler has no analytics.
-- [ ] Ads or monetization: Butler shows no ads and sells nothing.
+- [ ] Ads or monetization: All-files access is not used to serve ads or to monetize the app.
 
 ### Technical reason (500 characters)
 
@@ -82,9 +82,9 @@ advertised functionality:
   files).
 
 All file access is performed **only on the device** to provide these features. File contents and
-file listings are not collected and are not used for analytics or advertising; they leave the
-device only inside a debug log or crash report the user chooses to share. (See the app's privacy
-policy.)
+file listings are not collected and are not used for analytics or advertising; a file leaves Butler
+only when the user shares it to another app, or inside a debug log or crash report the user chooses
+to share. (See the app's privacy policy.)
 
 This is **not** manual, single-file selection — it is continuous management and maintenance of
 whole directory trees the user navigates, which the Storage Access Framework file picker cannot
@@ -162,5 +162,5 @@ Butler, a file explorer for Android, package name eu.darken.butler. This video d
 5. A search workspace searches for "report" across all of internal shared storage. The single query traverses the whole volume and returns Annual-report.pdf in Documents/Work and Quarterly-report.pdf in Download, each with its full path.
 6. The tab manager shows both workspaces at once, the explorer with the moved files and the searcher with its results.
 
-Everything shown happens on the device. File names and file contents are not collected and are not used for analytics or advertising; they leave the device only inside a debug log or crash report the user chooses to share.
+Everything shown happens on the device. File names and file contents are not collected and are not used for analytics or advertising; a file leaves Butler only when the user shares it to another app, or inside a debug log or crash report the user chooses to share.
 ```
