@@ -72,11 +72,14 @@ outside the repo and not backed up, so copy anything you intend to submit somewh
   written against an older build of the app.
 - **Query all packages**: **no video.** The recorder is fixed (onboarding flow, end-card wording)
   but has not been re-run since.
-- **Request install packages**: **recorded, 114 s**, and it covers both halves of the permitted
-  use: an APK arrives from Android's Files app, Butler's arrival dialog offers **Save as…**, the
-  Saver writes it into `Download`, and only then the install flow with the per-source grant. It was
+- **Request install packages**: **recorded, 112 s**, and it covers both halves of the permitted
+  use: Butler is opened from the home screen, an APK arrives from Android's Files app, Butler's
+  arrival dialog offers **Save as…**, the Saver writes it into `Download`, and only then the
+  install flow with the per-source grant. Its captions explain the permission rather than narrate
+  the taps, which the form asks for where the UI does not show the permission's use. It was
   recorded on an **emulator**, which conflicts with the real-device rule below. Re-record on a
-  device before submitting, or accept that gap knowingly.
+  device before submitting, or accept that gap knowingly. Post-process with `CAPY=300`: the default
+  caption band covers the chooser's app labels.
 - **Foreground service, `dataSync`**: **recorded on a Pixel 3a, 40 s.** One ticked task (*Local
   processing > Other*), one scenario, which is what the form asks for. Known gap: the notification
   renders collapsed in the shade's "Silent" section, so the **Cancel action is not in frame**.

@@ -12,6 +12,11 @@ TITLE="$OUTDIR/title.txt"; END="$OUTDIR/end.txt"
 FONT=/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf
 FONTB=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf
 FPS=30; BG=0x0E3B2E
+# Caption baseline, as a distance from the bottom edge of the frame. Overridable
+# because a recorder whose flow ends on a bottom sheet needs the band lifted clear
+# of it: the APK-install demo films the system chooser, whose app labels sit in
+# exactly the default band and would be covered by the caption describing them.
+CAPY="${CAPY:-180}"
 
 [ -f "$RAW" ] || { echo "missing $RAW — run record.sh first"; exit 1; }
 
@@ -40,7 +45,7 @@ if [ -f "$CAPS" ]; then
     start=${lines[i]%%|*}; text=${lines[i]#*|}
     if (( i+1 < n )); then end=${lines[i+1]%%|*}; else end=$dur; fi
     printf '%s' "$text" > "$TXTDIR/c$i.txt"
-    chain+=",drawtext=fontfile=${FONT}:textfile=${TXTDIR}/c$i.txt:fontcolor=white:fontsize=32:box=1:boxcolor=0x000000C0:boxborderw=20:x=(w-text_w)/2:y=h-180:enable='between(t,${start},${end})'"
+    chain+=",drawtext=fontfile=${FONT}:textfile=${TXTDIR}/c$i.txt:fontcolor=white:fontsize=32:box=1:boxcolor=0x000000C0:boxborderw=20:x=(w-text_w)/2:y=h-${CAPY}:enable='between(t,${start},${end})'"
   done
 fi
 
