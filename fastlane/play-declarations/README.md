@@ -35,24 +35,25 @@ shot the form asks for cannot exist.
 
 ## Field map
 
-The four forms do **not** share one shape. Two of them have no free-text field at all, and the
-number of text boxes differs between the other two, so there is no single "paste the rationale"
-step that works everywhere. Fill each one from the map below.
+The four forms do **not** share one shape: the number of text boxes differs, and so does each
+box's character cap, so there is no single "paste the rationale" step that works everywhere. Fill
+each one from the map below.
 
 | Form | Fields it actually has | Paste source |
 |------|------------------------|--------------|
 | All files access | Two free-text boxes: *All files access* (describe 1 feature) and *Technical reason* (why not SAF or MediaStore). One `Usage` checkbox group. A demo video. | [`manage-external-storage/DECLARATION.md`](./manage-external-storage/DECLARATION.md#play-console-form), section *Play Console form* |
 | Query all packages | **One** free-text box: *Core purpose* (describe 1 feature). One `Usage` checkbox group. A video link field. There is no alternative-API box, so the single block carries both the feature and the reason `<queries>` is not enough. | [`query-all-packages/DECLARATION.md`](./query-all-packages/DECLARATION.md#play-console-form), section *Play Console form* |
-| Request install packages | **No free text.** A *Core purpose* checkbox group (permitted functionality) plus the `Usage` checkbox group, and a video link field. The video is the only evidence Google gets. | [`request-install-packages/DECLARATION.md`](./request-install-packages/DECLARATION.md#play-console-form), section *Play Console form* |
+| Request install packages | A *Core purpose* checkbox group (permitted functionality) **and one free-text box** in the same group: *"Describe 1 feature…"*, capped at **1000** characters. Then the `Usage` checkbox group and a video link field. | [`request-install-packages/DECLARATION.md`](./request-install-packages/DECLARATION.md#play-console-form), section *Play Console form* |
 | Foreground service, `dataSync` | **No free text.** A task checkbox group in three sections (Network processing, Local processing, Other tasks), and a video link that appears once a task is ticked. | [`foreground-service-data-sync/DECLARATION.md`](./foreground-service-data-sync/DECLARATION.md#play-console-form), section *Play Console form* |
 
 Rules that apply to all of them:
 
-- Every free-text box is capped at **500 characters**. The blocks in the declarations are written
-  to sit just under that cap.
+- Character caps are **per form**, shown by the box's own counter — Request install packages
+  allows 1000. Each declaration states the cap for its box, and its block is written to sit under
+  that one. Do not assume a cap you have not read off the form.
 - The `## Play Console form` section of a declaration is the **only** paste source. The numbered
   sections below it are background for whoever fills the form in and for a policy follow-up; they
-  are longer than 500 characters and are labelled *(reference, not a form field)*.
+  exceed every box's cap and are labelled *(reference, not a form field)*.
 - Paste-ready text always sits in a fenced block opened with ```` ```text ````, and nothing else in
   these files uses that fence. Checks that extract and character-count the blocks key on it, so
   keep it exact.
@@ -78,8 +79,9 @@ outside the repo and not backed up, so copy anything you intend to submit somewh
   install flow with the per-source grant. Its captions explain the permission rather than narrate
   the taps, which the form asks for where the UI does not show the permission's use. It was
   recorded on an **emulator**, which conflicts with the real-device rule below. Re-record on a
-  device before submitting, or accept that gap knowingly. Post-process with `CAPY=300`: the default
-  caption band covers the chooser's app labels.
+  device before submitting, or accept that gap knowingly. It is over the form's *recommended* 90s
+  and under the 2-minute cap, a deliberate call recorded in its `DECLARATION.md`. Post-process with
+  `CAPY=300`: the default caption band covers the chooser's app labels.
 - **Foreground service, `dataSync`**: **recorded on a Pixel 3a, 40 s.** One ticked task (*Local
   processing > Other*), one scenario, which is what the form asks for. Known gap: the notification
   renders collapsed in the shade's "Silent" section, so the **Cancel action is not in frame**.
@@ -89,10 +91,13 @@ outside the repo and not backed up, so copy anything you intend to submit somewh
 
 ## Demo videos
 
-All four forms take a video. All files access requires one; the other three have a video link field
-and the two with no free-text field depend on it entirely.
+All four forms take a video. All files access requires one; the other three have a video link
+field. Request install packages asks for the video to show "your app being opened, and the core
+feature you've described being used", so its video and its free-text box must describe the same
+feature.
 
-- Length: **under 2 minutes**; the QUERY_ALL_PACKAGES form recommends 90 seconds or shorter.
+- Length: **under 2 minutes**; the QUERY_ALL_PACKAGES and REQUEST_INSTALL_PACKAGES forms both
+  recommend **90 seconds or shorter**.
   Resolution **720p or higher**.
 - Record on a **real device** with the **English** UI.
 - Must visibly show: the permission being granted (where there is a grant), **and** each core

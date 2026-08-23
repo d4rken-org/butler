@@ -5,8 +5,8 @@ Form: Play Console → App content → Permissions declaration form → **Reques
 
 ## Play Console form
 
-Two checkbox groups and a video link, in the order below. Sections 1 to 4 are background for
-whoever fills the form in, not fields.
+Two checkbox groups, one free-text box and a video link, in the order below. Sections 1 to 4 are
+background for whoever fills the form in, not fields.
 
 ### Core purpose
 
@@ -26,6 +26,25 @@ surface, no messaging or attachment service, and no device-management tool. Tick
 these** would fail review outright, since it states the app has no permitted use for a permission
 it declares.
 
+### Core purpose, free text
+
+Under the checkboxes, still in the *Core purpose* group:
+
+*"Describe 1 feature in your app that requires a permitted use of the REQUEST_INSTALL_PACKAGES
+permission."* Capped at **1000 characters**, and captioned *"Approval will be granted for your
+entire app, not just for this feature."*
+
+It asks for **one** feature, so this describes the APK feature end to end rather than listing
+everything Butler does. Paste:
+
+```text
+Butler is a file manager. APKs reach a device through downloads, transfers and backups, and its App Manager can export an installed app as an APK, so users hold them like any other file Butler browses, moves and shares.
+
+Opening one is the feature this permission gates. The user selects an APK in the file explorer and chooses "Open with". Butler builds an ACTION_VIEW intent carrying a FileProvider URI and hands it to the system chooser, where the user picks Android's package installer. Butler never targets the installer directly and has no installer logic: it does not use the PackageInstaller session APIs and never installs in the background.
+
+Android gates the request on Butler as the originating package: unless Butler is already allowed, the OS asks the user to grant "Install unknown apps" for it, then the user confirms the install in Android's own installer. Without this permission the installer rejects the request as an unauthorized source and the feature cannot complete.
+```
+
 ### Usage
 
 *"Why does your app need to use the REQUEST_INSTALL_PACKAGES permission? Select all that apply."*
@@ -41,23 +60,22 @@ it declares.
 
 ### Video
 
-*"Video instructions"*, a link field taking a YouTube or cloud-storage URL. Because this form has
-no text field, the video is the only evidence Google gets, and it has to carry **both** halves of
-the permitted use: receiving and managing an app package as a file, and enabling the
-user-initiated installation of it. The storyboard in [§4](#4-demo-video-script) and the recorder
-are built around that; hosting rules are in [`../README.md`](../README.md#demo-videos).
+*"Video instructions"*, a link field taking a YouTube or cloud-storage URL: *"provide a link to a
+short video which shows your app being opened, and the core feature you've described being used"*,
+with captions or a voice-over where the UI does not make the permission's role obvious. The field
+notes **90 seconds or shorter is recommended**.
 
-### This form has no free-text field
-
-There is nowhere on this form to paste a written rationale. Sections 2 and 3 exist for reviewers of
-this repository and for a follow-up exchange with Google, not for the console.
+The video has to show the feature the box above describes, so the two are written together: the
+storyboard in [§4](#4-demo-video-script) covers both halves of the permitted use, receiving and
+managing an app package as a file and enabling the user-initiated installation of it, with burned-in
+captions. Hosting rules are in [`../README.md`](../README.md#demo-videos).
 
 ---
 
 ## If Google asks a follow-up
 
-Not a console field. This is §2 condensed to 500 characters for a policy email or an appeal reply,
-so the written answer matches the form and the video:
+Not a console field, and shorter than the console box above. This is §2 condensed to 500 characters
+for a policy email or an appeal reply, so the written answer matches the form and the video:
 
 ```text
 Butler is a file manager. Users receive APK files through downloads, transfers, backups, and Butler's App Manager can export an installed app as an APK; Butler browses, moves, copies and shares them like any other file. Opening one offers it via ACTION_VIEW and a FileProvider URI through the system chooser, where the user picks Android's package installer. Butler has no installer logic: Android asks the user to allow it as an install source, unless already allowed, then to confirm the install.
@@ -161,6 +179,12 @@ recorded flow and aborts at 108s or more, which leaves room for the 3s title car
 `postprocess.sh` concatenates. An abort leaves the clip on the device unpulled, so the overrunning
 run contributes nothing. It does not clear the output directory, so delete any earlier `raw.mp4`
 and `declaration.mp4` before re-recording rather than assuming a failed run left none.
+
+The threshold targets the cap, not the form's *recommended* 90 seconds. The recorded video is
+114.9s and overshoots that recommendation deliberately: the remaining time is mostly waits the OS
+owns, the Saver writing the file and the install itself, so reaching 90s would mean dropping a beat
+rather than tightening one. Both candidate beats, the APK arriving from another app and the
+source-approval detour, carry policy evidence the form has no text box big enough to replace.
 
 Post-process this one with the caption band lifted, or shot 4 loses its evidence:
 
