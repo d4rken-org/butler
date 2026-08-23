@@ -28,8 +28,10 @@ type without completing this form fails review.
 |--------|------|-------|---------------------------|
 | [`foreground-service-data-sync/`](./foreground-service-data-sync/DECLARATION.md) | `dataSync` (`FOREGROUND_SERVICE_DATA_SYNC`) | Finishing a user-started copy, move, delete, archive or save after leaving the app | **Data sync** |
 
-It needs its own demo video. Unlike the three permissions above, it has **no `record.sh` yet** —
-the storyboard in its `DECLARATION.md` is written to be recorded manually.
+It needs its own demo video, and it has a `record.sh` like the other three. That one must run
+against a **real device**: on an emulator the storage is host-backed and a multi-gigabyte copy
+finishes in about a second, so the operation is over before the user can leave the app and the
+shot the form asks for cannot exist.
 
 ## Field map
 
@@ -61,17 +63,26 @@ Rules that apply to all of them:
 
 ## Submission readiness
 
-- **All files access** and **Query all packages**: ready, videos recorded.
-- **Request install packages**: the video must be **re-recorded** first. The recorder now films
-  Butler receiving an APK from another app (Android's Files app shares it into Butler, Butler's
-  arrival dialog offers **Save as…**, and the Saver writes it into `Download`) before the install
-  flow, because the permitted use requires both halves and the form has no text field to argue the
-  point in. Any previously recorded video is missing that beat.
-- **Foreground service, `dataSync`**: **not submittable yet.** No video has been recorded and there
-  is no recorder for it. Two ticked tasks means two scenarios have to be on camera: the copy that
-  keeps running after the user leaves the app (*Local processing > Other*), and a file shared into
-  Butler and written by the Saver while the user is away (*Local processing > Importing,
-  exporting*). One recording covering only the copy is not enough.
+The declaration texts are all final. The videos are not: only two of the four exist, and both carry
+a caveat. Recorded output lands in `/tmp/butler-demo/<permission>/declaration.mp4`, which is
+outside the repo and not backed up, so copy anything you intend to submit somewhere durable.
+
+- **All files access**: **no video.** The recorder is fixed but has not completed a run. Its last
+  attempt overran `screenrecord`'s own 180-second limit with most taps failing, because it was
+  written against an older build of the app.
+- **Query all packages**: **no video.** The recorder is fixed (onboarding flow, end-card wording)
+  but has not been re-run since.
+- **Request install packages**: **recorded, 114 s**, and it covers both halves of the permitted
+  use: an APK arrives from Android's Files app, Butler's arrival dialog offers **Save as…**, the
+  Saver writes it into `Download`, and only then the install flow with the per-source grant. It was
+  recorded on an **emulator**, which conflicts with the real-device rule below. Re-record on a
+  device before submitting, or accept that gap knowingly.
+- **Foreground service, `dataSync`**: **recorded on a Pixel 3a, 40 s.** One ticked task (*Local
+  processing > Other*), one scenario, which is what the form asks for. Known gap: the notification
+  renders collapsed in the shade's "Silent" section, so the **Cancel action is not in frame**.
+  Since user control is central to the FGS criteria, that shot is worth re-recording.
+  This one **must** be recorded on a real device: emulator storage is host-backed and a 3 GB copy
+  finishes in about a second, so the operation is over before the user can leave the app.
 
 ## Demo videos
 
@@ -87,8 +98,8 @@ and the two with no free-text field depend on it entirely.
   ("anyone with the link can view"), then paste that URL into the form.
 - Each declaration's `## 4.` section holds its storyboard **and** a plain-text
   *Video description (paste into YouTube)* block to publish alongside the video.
-- Three of the four can be regenerated automatically (see "Generating the demo videos" below); the
-  foreground-service one has to be recorded by hand.
+- All four have a `record.sh` now, including the foreground-service one (see "Generating the demo
+  videos" below).
 
 ## Keep these consistent
 
