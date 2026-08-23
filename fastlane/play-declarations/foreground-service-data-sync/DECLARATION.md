@@ -71,8 +71,11 @@ Ticking a task reveals *"Provide a video demonstrating how your app uses the
 FOREGROUND_SERVICE_DATA_SYNC permission for the tasks you've selected"* and a **Video link** field.
 
 **No video exists yet.** Unlike the other three declarations, this one has no `record.sh`, and
-nothing has been recorded manually either. **This form cannot be submitted** until the storyboard
-in [§4](#4-demo-video) has been recorded and hosted per
+nothing has been recorded manually either. The demand is per ticked task, so the video has to show
+**both**: the copy scenario for *Local processing > Other*, and the Save-as scenario for *Local
+processing > Importing, exporting*. Footage of only one of them leaves a ticked task
+undemonstrated, which invites a rejection. **This form cannot be submitted** until both scenarios
+in the storyboard in [§4](#4-demo-video) have been recorded and hosted per
 [`../README.md`](../README.md#demo-videos).
 
 ---
@@ -176,31 +179,41 @@ storyboard is written to be recorded manually or automated later.
 | 4 | **The service appears** | Notification shade: Butler's ongoing notification with the operation names, live progress, and a visible **Cancel** action. This is the shot that justifies the type. |
 | 5 | **Cancel is real** | Tap **Cancel** on the second operation. It stops and drops out of the notification, while the first copy keeps running with live progress. The user is in control of each operation. |
 | 6 | **Return to the app** | Reopen Butler: the foreground service stops because the app is on screen again and the notification disappears. Progress is back in the in-app operations bar, where the first copy runs to completion and then appears in the operation history. |
-| 7 | **End card** | "The service runs only while a file operation you started is still finishing, and stops the moment it does. Nothing leaves your device." |
+| 7 | **A file arrives from another app** | Android's own Files app: long-press a large file, **Share**, pick **Butler**. Butler's arrival dialog offers **Save as**; pick a destination and tap **Save**. The save starts and runs with live progress in the in-app operations bar. |
+| 8 | **User leaves during the save** | Press Home while the save is still running. |
+| 9 | **The service covers the import too** | Notification shade: Butler's ongoing notification with the save's live progress and a **Cancel** action. |
+| 10 | **Return to the app** | Reopen Butler: the notification disappears and the save continues, then completes, in the in-app operations bar. |
+| 11 | **End card** | "The service runs only while a file operation you started is still finishing, and stops the moment it does. Nothing leaves your device." |
 
 Shots 2–4 establish the required sequence: the user starts the work, the user leaves, and only then
 does the foreground service exist. Shot 5 shows the work is cancellable per operation, and shot 6
 shows it is bounded: the service is gone as soon as the app is back on screen, and the surviving
 copy finishes in the in-app bar.
 
-The storyboard films the copy case only. The second case the service covers is a Save-as import:
-another app shares a file to Butler, Butler's save-as writes it to the location the user picks, and
-that operation goes through the same manager and the same service. It matches the *Importing,
-exporting* task that is ticked on the form, so a second recorded scenario for it would be worth
-having.
+Shots 7–10 are the second required scenario, not an optional extra. The form asks for a video
+demonstrating the permission **for the tasks you've selected**, and *Local processing > Importing,
+exporting* is ticked, so the import case has to be on camera as well: another app shares a file to
+Butler, Butler's save writes it to the location the user picks, and that operation goes through the
+same operations manager and the same foreground service as a copy. Pick a file large enough that
+the save is still running when Home is pressed, otherwise the notification never appears. A ticked
+task with no footage behind it invites a rejection.
 
 ### Video description (paste into YouTube)
 
 ```text
-Butler, a file explorer for Android, package name eu.darken.butler. This video demonstrates the FOREGROUND_SERVICE_DATA_SYNC permission. The recording is still to be made; this description matches the storyboard it will follow.
+Butler, a file explorer for Android, package name eu.darken.butler. This video demonstrates the FOREGROUND_SERVICE_DATA_SYNC permission. The recording is still to be made; this description matches its storyboard.
 
-1. In Butler's file explorer the user selects a large folder and copies it to a destination on another storage volume, then starts a second, smaller copy. Both run with live progress in the in-app operations bar. There is no notification while the app is on screen.
+1. In Butler's file explorer the user copies a large folder to another storage volume, then starts a second, smaller copy. Both run with live progress in the in-app operations bar. There is no notification while the app is on screen.
 2. The user presses Home while both copies are still running.
-3. The notification shade shows Butler's ongoing notification: the running operations, their live progress, and a Cancel action. This is the only situation in which the foreground service exists, keeping a file operation the user already started from being killed part-way.
+3. The notification shade shows Butler's ongoing notification: the running operations, their live progress and a Cancel action. The foreground service exists only in this situation, keeping an operation the user already started from being killed part-way.
 4. Cancel is tapped on the second operation. It stops and leaves the notification while the first copy carries on.
-5. The user reopens Butler. The foreground service stops because the app is on screen again and the notification disappears; the first copy finishes in the in-app operations bar and is listed in the operation history.
+5. The user reopens Butler. The service stops because the app is on screen again and the notification disappears; the first copy finishes in the in-app operations bar and is listed in the operation history.
+6. The second scenario is an import. In Android's Files app the user shares a large file to Butler, Butler's arrival dialog offers Save as, and the user picks a destination and taps Save. The save runs with live progress in the operations bar.
+7. The user presses Home while that save is still running.
+8. Butler's ongoing notification shows the save's live progress and a Cancel action: the same service, now keeping a file another app handed over from being written only half way.
+9. The user reopens Butler. The notification disappears and the save finishes in the operations bar.
 
-The same service covers Butler's other operations: moving, deleting, compressing into an archive and extracting one, and saving a file another app has shared into Butler. All of it runs from one location on the device to another, involves no network, and nothing about it is collected or used for analytics or advertising; details leave the device only inside a debug log or crash report the user chooses to share.
+The same service covers Butler's other operations: moving, deleting, compressing into an archive and extracting one. It all runs on the device, involves no network, and nothing is collected or used for analytics or advertising; details leave the device only inside a debug log or crash report the user chooses to share.
 ```
 
 ---

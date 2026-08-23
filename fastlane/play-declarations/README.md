@@ -68,7 +68,10 @@ Rules that apply to all of them:
   both halves and the form has no text field to argue the point in. Any previously recorded video
   is missing that beat.
 - **Foreground service, `dataSync`**: **not submittable yet.** No video has been recorded and there
-  is no recorder for it.
+  is no recorder for it. Two ticked tasks means two scenarios have to be on camera: the copy that
+  keeps running after the user leaves the app (*Local processing > Other*), and a file shared into
+  Butler and written by the Saver while the user is away (*Local processing > Importing,
+  exporting*). One recording covering only the copy is not enough.
 
 ## Demo videos
 
