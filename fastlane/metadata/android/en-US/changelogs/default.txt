@@ -1,9 +1,8 @@
-Hey 👋
-Butler is actively developed and not feature complete yet, I'm adding new stuff all the time!
-Got ideas? Let me know 😊
+Butler 🤵 is actively developed and getting frequent updates.
+I'm adding new stuff all the time! Got ideas? Let me know 😊
 
-🐛 Bug fixes, 🚀 performance boosts, maybe even ✨ new features.
+This update may contain bug fixes 🐛, performance boosts 🚀, and even new features ✨.
+A detailed list of changes can be found here: https://butler.darken.eu/changelog
 
-Changelog: https://butler.darken.eu/changelog
-
-FYI: It’s just me here, thanks for understanding if replies take a bit. ¯\_(ツ)_/¯
+Questions? Just mail me!
+Note: It’s just me here, sometimes replies might take a bit. Sorry for that!
