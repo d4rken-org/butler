@@ -118,7 +118,7 @@ Produced by the automated recorder (`./record.sh`); see
 | 3 | **Search across all apps** | Type into the app search field; the list filters across the full installed-package set. |
 | 4 | **Inspect an app in depth** | Open an app's detail: package id, version, SDK levels, storage paths, exported components. |
 | 5 | **Export the APK into the file explorer** | From the detail, **Export APK** → a "Save as" file-manager workspace (destination prefilled to `Download`) → **Save** → "1 file saved" → **Open directory** → the Explorer opens on `Download` with the exported `.apk` now present as a file. |
-| 6 | **End card** | "Searches and manages every installed app on the device. Not used for analytics or ads." |
+| 6 | **End card** | "Searches and manages every installed app on the device. Shown only inside the app, not used for analytics or advertising." |
 
 The breadth header and the **search-all-apps** step are the policy-critical shots — they show why
 broad visibility into installed packages is required. Shot 5 then ties QUERY_ALL_PACKAGES directly

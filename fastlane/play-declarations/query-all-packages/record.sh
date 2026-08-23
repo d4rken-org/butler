@@ -13,7 +13,7 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 source "$HERE/../_common.sh"
 
 printf 'Butler — File Explorer\neu.darken.butler\n\nApp manager\n(QUERY_ALL_PACKAGES)' > "$OUTDIR/title.txt"
-printf 'Searches and manages every\ninstalled app on the device.\n\nPackage data stays on-device\nand is never shared.' > "$OUTDIR/end.txt"
+printf 'Searches and manages every\ninstalled app on the device.\n\nShown only inside the app,\nnot used for analytics\nor advertising.' > "$OUTDIR/end.txt"
 
 # ---- pre-state (off camera) -------------------------------------------------
 echo "Pre-state: clean prior exports, show touches, clean tabs, reach picker…"

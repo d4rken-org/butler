@@ -29,9 +29,16 @@ did in detail, and that you can choose to share:
 
 ### Query installed apps
 
-Butler has multiple features that require the `QUERY_ALL_PACKAGES` permission.
-The
-`QUERY_ALL_PACKAGES` permission allows Butler to retrieve the inventory of installed apps, i.e. know which apps you currently have installed on your device. To display icons and extra information when browsing directories related to an app.
+The `QUERY_ALL_PACKAGES` permission allows Butler to retrieve the inventory of installed apps, i.e. know
+which apps you currently have installed on your device.
+
+Butler's app manager is built on it: it lists and searches every installed app, user apps and system apps
+alike, and lets you inspect one, export its APK as a file, disable it, clear its cache or uninstall it. The
+same inventory provides icons and extra information when you browse directories that belong to an app.
+
+The list of your installed apps is shown inside the app and is not used for analytics or advertising. It
+leaves your device only if it ends up in a [debug log](#debug-log) or a [crash report](#crash-reports) that
+you choose to share.
 
 ### All files access
 
