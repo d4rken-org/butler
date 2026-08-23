@@ -11,9 +11,20 @@ TITLE="$OUTDIR/title.txt"; END="$OUTDIR/end.txt"
 
 FONT=/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf
 FONTB=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf
-W=720; H=1606; FPS=30; BG=0x0E3B2E
+FPS=30; BG=0x0E3B2E
 
 [ -f "$RAW" ] || { echo "missing $RAW — run record.sh first"; exit 1; }
+
+# Take the frame size from the recording rather than pinning it. The cards are
+# generated at whatever the raw video is, and the raw is scaled to itself, so a
+# device with a different aspect ratio no longer gets squeezed into a 720x1606
+# box. Emulator captures stay 720x1606; a Pixel 3a comes out 720x1480.
+W=$(ffprobe -v error -select_streams v:0 -show_entries stream=width -of csv=p=0 "$RAW")
+H=$(ffprobe -v error -select_streams v:0 -show_entries stream=height -of csv=p=0 "$RAW")
+case "${W:-}${H:-}" in
+  *[!0-9]*|"") echo "could not read frame size from $RAW"; exit 1 ;;
+esac
+echo "Frame size from recording: ${W}x${H}"
 [ -f "$TITLE" ] || printf 'Butler — File Explorer\neu.darken.butler' > "$TITLE"
 [ -f "$END" ]   || printf 'Files are managed on-device\nand never leave the device.' > "$END"
 TXTDIR="$(mktemp -d)"; trap 'rm -rf "$TXTDIR"' EXIT

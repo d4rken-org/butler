@@ -61,55 +61,75 @@ die_rec() {
 }
 
 # ---- shade helpers ----------------------------------------------------------
-# `cmd statusbar` is deterministic and geometry-independent, which a swipe is
-# not; fall back to a swipe only if this image lacks the command.
-open_shade() {
-  if "${ADB[@]}" shell cmd statusbar expand-notifications >/dev/null 2>&1; then :
-  else "${ADB[@]}" shell input swipe 360 1 360 1450 500; fi
-  pause 1.0
+# Whether the shade is open has to come from the window manager, never from the
+# UI dump. Labels like "Collapse" and "Clear all" also exist inside Butler
+# itself, so matching them against a dump confuses the app's own screen for the
+# shade, and acting on that mistake means tapping the app's controls. The
+# NotificationShade window's mViewVisibility is unambiguous: 0x0 visible,
+# 0x4 invisible.
+shade_open() {
+  "${ADB[@]}" shell dumpsys window windows 2>/dev/null \
+    | grep -A12 "NotificationShade" | grep -q "mViewVisibility=0x0"
 }
-# Butler groups its per-operation notifications, and the panel opens with the
-# group collapsed: the summary title shows, the rows and their Cancel actions do
-# not. Expand it, and prove the expansion worked by requiring a Cancel action to
-# become visible.
-expand_group() {
+open_shade() {
   local i
-  for i in 1 2 3 4; do
-    dump
-    _find -c "$UIX" "CANCEL" >/dev/null && return 0
-    local xy; xy=$(_find "$UIX" "Expand")
-    [ -n "$xy" ] && { "${ADB[@]}" shell input tap $xy; pause 1.4; continue; }
-    xy=$(_find -c "$UIX" "operation")
-    [ -n "$xy" ] && { "${ADB[@]}" shell input tap $xy; pause 1.4; continue; }
+  for i in 1 2 3; do
+    "${ADB[@]}" shell cmd statusbar expand-notifications >/dev/null 2>&1 \
+      || "${ADB[@]}" shell input swipe 360 1 360 1450 500
     pause 1.0
+    shade_open && return 0
   done
-  dump
-  _find -c "$UIX" "CANCEL" >/dev/null
+  return 1
 }
 close_shade() {
-  if "${ADB[@]}" shell cmd statusbar collapse >/dev/null 2>&1; then :
-  else back; fi
-  pause 1.2
+  local i
+  for i in 1 2 3 4; do
+    "${ADB[@]}" shell cmd statusbar collapse >/dev/null 2>&1 || back
+    pause 1.0
+    shade_open || return 0
+  done
+  return 1
 }
-# Every notification in the shade ends up on camera during the two shade shots,
-# and anything that is not Butler's operation notification is noise a reviewer
-# has to look past. Start from an empty shade.
-clear_notifications() {
-  "${ADB[@]}" shell service call notification 1 >/dev/null 2>&1 || true
-  open_shade
-  dump
-  local xy; xy=$(_find -c "$UIX" "Clear all")
-  [ -n "$xy" ] && { "${ADB[@]}" shell input tap $xy; pause 1.4; }
-  close_shade
+# There is deliberately no "clear all notifications" step. Butler's own stale
+# notifications go away with the force-stop in the pre-state, and everything
+# else in a real device's shade is ongoing system state (charging, Bluetooth,
+# Wi-Fi) that no tap dismisses and no adb command cancels: `service call
+# notification 1` is not a valid transaction on Android 12. Earlier revisions
+# tried to tap "Clear all" out of a UI dump, which is worse than useless,
+# because Butler has a "Clear all" of its own and the tap landed on the app.
+# A reviewer's own phone has a populated shade too; what matters is that
+# Butler's operation notification is in it.
+# Read the notification from the system, not from the screen. `uiautomator dump`
+# returns the FOCUSED window, and with the shade pulled down the focused window
+# is still the launcher on a real device, so the shade's contents are invisible
+# to it (they were visible on an emulator, which is what made this look fine for
+# a while). The recording captures the shade regardless; only the assertions
+# needed a different source. dumpsys carries the real title, text and subText.
+notif_text() {
+  "${ADB[@]}" shell dumpsys notification --noredact 2>/dev/null
+}
+# No pipe into grep here, deliberately. _common.sh sets `pipefail`, and `grep -q`
+# exits the moment it matches, which SIGPIPEs dumpsys and makes the pipeline
+# report failure precisely when the text WAS found. Match in the shell instead.
+notif_has() {
+  local out; out="$(notif_text)"
+  case "$out" in *"$1"*) return 0 ;; *) return 1 ;; esac
 }
 fgs_up() {
   "${ADB[@]}" shell dumpsys activity services "$PKG" 2>/dev/null | grep -q "isForeground=true"
 }
 
 # ---- pre-state (off camera) -------------------------------------------------
-echo "Pre-state: clear the shade, seed the demo tree, clear tabs, land on the source…"
-close_shade
-clear_notifications
+echo "Pre-state: seed the demo tree, clear tabs, land on the copy source…"
+close_shade || die_rec "the notification shade would not close before recording"
+
+# Stop the app and let any operation from an earlier run drain BEFORE touching
+# the tree. A copy still running holds the destination open, so `rm -rf` fails
+# with "Directory not empty" and the next copy then resolves as a conflict
+# instead of starting.
+"${ADB[@]}" shell am force-stop "$PKG"
+for i in $(seq 1 30); do fgs_up || break; pause 1.0; done
+fgs_up && die_rec "an operation from an earlier run is still going; wait for it to finish"
 # The destination must start empty every run: a second copy over an existing
 # tree resolves as conflicts and finishes instantly, which silently destroys the
 # whole point of the shot.
@@ -153,6 +173,9 @@ fi
 pause 4
 dismiss_onboarding
 clean_tabs_to_picker
+# Tours are not only a first-run thing: opening the tab picker raises one of its
+# own on a device where they are still enabled, and it covers the tile grid.
+dismiss_onboarding
 tap "Explorer" || die_rec "the tab picker offered no Explorer tile"
 pause 3
 # Navigate to the demo root off camera so the recording opens on the source.
@@ -196,37 +219,46 @@ pause 0.5
 pause 0.6
 
 cap "Progress and Cancel in the notification"
-# Assertions here are deliberately thin. Every UIAutomator dump costs a second or
-# more, and each one spent checking the shade is a second the copy is finishing
-# without being filmed. Earlier revisions sampled the counter twice to prove it
-# advanced, and lost the race often enough that no video came out at all. The
-# operation itself is proof enough: it is a real copy of a real tree, and the
-# shot either shows the notification or the run aborts.
 # The shade is already open, chained onto the Home keyevent above.
-# One dump, three assertions off it: the service is up, the row is Butler's, and
-# the row names what is being copied (the metadata description, which is what
-# makes one operation distinguishable from another).
-dump
-fgs_up || die_rec "no foreground service while the copy was still running"
-_find -c "$UIX" "Copy operation" >/dev/null \
-  || die_rec "the shade shows no Butler copy notification"
-_find -c "$UIX" "Project-archive" >/dev/null \
+open_shade || die_rec "the notification shade would not open"
+# The service starts on backgrounding and posts its notification a beat later,
+# so wait for it rather than sampling once. Waiting is free here: the shade is
+# already on screen and this is the shot we want to hold anyway.
+# On a real device the service can take a good few seconds to come up and post,
+# noticeably longer than on an emulator, so this waits generously.
+for i in $(seq 1 30); do
+  notif_has "Copy operation" && break
+  pause 0.7
+done
+notif_has "Copy operation" \
+  || die_rec "no Butler copy notification while the copy was running"
+notif_has "Project-archive" \
   || die_rec "the copy notification does not name what is being copied"
-expand_group || die_rec "the copy notification did not expose a Cancel action"
-pause 2.5
+notif_has "android.subText=String (" \
+  || die_rec "the copy notification carries no item counter"
+fgs_up || die_rec "no foreground service while the copy was still running"
+# Hold on the shade: this is the shot that justifies the permission, so give a
+# viewer time to read the operation name, the counter and the Cancel action.
+pause 6.0
 
-cap "Cancel it from the notification"
-tap "CANCEL" 0 -c || die_rec "the Cancel action could not be tapped"
-pause 2.5
-for i in 1 2 3 4 5 6 7 8; do fgs_up || break; pause 1.0; done
-fgs_up && die_rec "the foreground service survived cancelling its only operation"
-close_shade
-
-cap "The operation stopped, nothing left behind"
+cap "Back in the app, the service stands down"
+close_shade || die_rec "the notification shade would not close"
 "${ADB[@]}" shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
-pause 3.0
+pause 2.5
+# With the app on screen again the service must retire, and the copy must carry
+# on in the in-app operations bar instead. That boundary is the whole claim:
+# the service exists only while the user is away.
+for i in $(seq 1 25); do fgs_up || break; pause 1.0; done
+fgs_up && die_rec "the foreground service outlived the app returning to the foreground"
+pause 2.5
 
 # ===== Scenario B: importing a file another app shares in ====================
+# Optional, because it depends on the system Files app, whose package name and
+# activity differ between builds (AOSP ships com.android.documentsui, a Pixel
+# ships com.google.android.documentsui, and "Files by Google" is a third thing
+# again). Set SCENARIO_B=0 to record the copy scenario alone, which on its own
+# covers the "Local processing > Other" task.
+if [ "${SCENARIO_B:-1}" = 1 ]; then
 cap "Another app shares a large file to Butler"
 "${ADB[@]}" shell am start -n com.android.documentsui/.files.FilesActivity >/dev/null 2>&1
 pause 2.6
@@ -292,12 +324,16 @@ fgs_up || die_rec "no foreground service while the import was still saving"
 
 cap "The same service covers the import"
 open_shade
-dump
-_find -c "$UIX" "Save files" >/dev/null \
-  || die_rec "the shade shows no Butler save notification"
-expand_group \
-  || die_rec "the save notification group would not expand to show a Cancel action"
-pause 2.5
+# Same reasoning as scenario A: read the notification from dumpsys, not from the
+# screen, and hold long enough for a viewer to read it.
+for i in $(seq 1 30); do
+  notif_has "Save files" && break
+  pause 0.7
+done
+notif_has "Save files" \
+  || die_rec "no Butler save notification while the import was running"
+fgs_up || die_rec "no foreground service while the import was still saving"
+pause 6.0
 close_shade
 
 cap "Back in the app, the save finishes"
@@ -318,6 +354,7 @@ if ! _find -c "$UIX" "Successful" >/dev/null && ! _find -c "$UIX" "1 file saved"
   die_rec "the import never reported success in the app"
 fi
 pause 2.0
+fi
 
 # ---- duration budget --------------------------------------------------------
 # Same arithmetic as the request-install recorder: screenrecord is already up
