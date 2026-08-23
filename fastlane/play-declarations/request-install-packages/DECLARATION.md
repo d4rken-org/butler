@@ -146,7 +146,7 @@ so no third-party brand appears.
 | # | Shot | On screen |
 |---|------|-----------|
 | 1 | **Title card** | "Butler — eu.darken.butler — Opening a user-selected APK in Android's package installer (REQUEST_INSTALL_PACKAGES)". |
-| 2 | **An APK arrives from another app** | Android's own Files app on `Documents`, where the `.apk` sits. Long-press it → **Share** → pick **Butler** in the chooser → Butler's **Save as** opens on the shared file, destination `Download`, saved under the file's own name. Butler receives an app package handed over by another app, which is the "sending or receiving app packages" half of the permitted use. |
+| 2 | **An APK arrives from another app** | Android's own Files app on `Documents`, where the `.apk` sits. Long-press it → **Share** → pick **Butler** in the chooser → Butler's arrival dialog for the shared file → **Save as…** → the **Saver** opens on it, destination `Download`, the file's own name prefilled → **Save** → once the save has finished, **Open directory**. Butler receives an app package handed over by another app, which is the "sending or receiving app packages" half of the permitted use. |
 | 3 | **Explorer with an APK** | Butler's Explorer on `Download`, the saved `.apk` visible among normal files. |
 | 4 | **User action** | Tap the APK → file options → **"Open with"**: Butler hands the file to the system installer. |
 | 5 | **Android's source approval** | The OS blocks: "For your security…" → **Settings** → per-source **"Install unknown apps"** screen → user enables **"Allow from this source"** for Butler. This is the visible permission grant. |
@@ -163,7 +163,7 @@ user, matching the "user-initiated installation of app packages" half.
 ```text
 Butler, a file explorer for Android, package name eu.darken.butler. This video demonstrates the REQUEST_INSTALL_PACKAGES permission.
 
-1. An APK file sits in the Documents folder of Android's own Files app. The user long-presses it, chooses Share and picks Butler. Butler's save-as screen opens on the shared file, and the user saves it into Download under its own name. Butler receives an app package handed over by another app and manages it as a file, which is the first half of the permitted use.
+1. An APK file sits in the Documents folder of Android's own Files app. The user long-presses it, chooses Share and picks Butler. Butler asks what to do with the arriving file and the user picks Save as, which opens Butler's save-as screen on it. The file is saved into Download under its own name, and Open directory shows it there. Butler receives an app package handed over by another app and manages it as a file, which is the first half of the permitted use.
 2. The explorer now shows the APK in Download among ordinary files.
 3. The user taps the APK and chooses "Open with". Butler hands the file to Android's system package installer and does nothing else.
 4. Android blocks the install and asks the user to allow Butler as an install source. The per-source "Install unknown apps" setting is switched on for Butler. This is the permission's user-facing grant and it is a decision only the user can make.

@@ -137,9 +137,10 @@ rec_start
 # UNTESTED: this beat drives a SECOND app's UI by label and could not be tried in
 # the run that wrote it. Every label here is unverified and must be checked on the
 # first real recording run: the system Files app's "Share" action (and the "More
-# options" overflow it may hide behind), the share sheet's entry for Butler, the
-# Saver's "Destination" / "Select this folder" / "Save" controls, and DocumentsUI's
-# own navigation labels used in the pre-state ("Show roots", "Internal storage",
+# options" overflow it may hide behind), the share sheet's entry for Butler,
+# Butler's arrival dialog and its "Save as…" action, the Saver's "Destination" /
+# "Select this folder" / "Save" / "Open directory" controls, and DocumentsUI's own
+# navigation labels used in the pre-state ("Show roots", "Internal storage",
 # "Documents").
 cap "An APK arrives from another app"
 pause 2.6
@@ -158,7 +159,16 @@ else
   die_rec "the system Files app offered no Share action for the APK"
 fi
 tap "Butler" 0 -c || die_rec "Butler was not offered in the share sheet"
-pause 3.4                                   # Butler's Saver opens on the shared APK
+# A single-file ACTION_SEND does NOT open the Saver directly: MainActivity routes
+# ShareRoute.SingleFile to onExternalFile, which raises Butler's arrival dialog
+# (View / Show in Explorer / Save as…). "Save as…" is the action that opens the
+# Saver on the shared file; the substring match covers the trailing ellipsis.
+pause 3.4
+tap "Save as" 0 -c || die_rec "Butler's arrival dialog offered no Save as action"
+pause 3.4
+dump
+_find "$UIX" "Destination" >/dev/null \
+  || die_rec "Butler's Saver did not open after Save as"
 
 # The Saver defaults its destination to Download; pick it explicitly if it does
 # not, then save under the shared file's own name (the prefilled filename).
@@ -175,22 +185,33 @@ tap "Save" || die_rec "the Saver's Save action was not found"
 pause 3.4
 # A dropped tap here would cost the "receiving" half of the evidence without any
 # other symptom, so confirm the save actually landed before filming the install.
-for c in 1 2 3 4 5; do
-  "${ADB[@]}" shell ls "/sdcard/Download/$DEMO_APK_NAME" 2>/dev/null | grep -q "$DEMO_APK_NAME" && break
+# The destination path exists as soon as SaveFilesOperation creates the file, before
+# its contents are written, so existence alone does not prove the save finished. Gate
+# on the Saver's success state plus the pinned checksum, and only then use Open
+# directory: it is rendered but disabled while the save runs, and tap() matches on
+# text only, so it cannot see the disabled state. The checksum doubles as proof that
+# the shared content URI was read correctly end to end.
+saved_complete() {
+  local hash
+  hash=$("${ADB[@]}" exec-out cat "/sdcard/Download/$DEMO_APK_NAME" 2>/dev/null \
+    | sha256sum | awk '{print $1}')
+  [ "$hash" = "$DEMO_APK_SHA256" ]
+}
+
+saved=0
+for c in 1 2 3 4 5 6 7 8 9 10 11 12; do
+  dump
+  if _find -c "$UIX" "Open directory" >/dev/null && saved_complete; then saved=1; break; fi
   pause 1.2
 done
-"${ADB[@]}" shell ls "/sdcard/Download/$DEMO_APK_NAME" 2>/dev/null | grep -q "$DEMO_APK_NAME" \
-  || die_rec "the shared APK was not saved into Download (receiving half would be missing)"
+[ "$saved" = 1 ] || die_rec "the shared APK did not finish saving correctly into Download"
 
 # Butler is showing the Saver's result, so get to Download on camera.
+tap "Open directory" || die_rec "the Saver did not offer Open directory after the save"
+pause 3.4
 dump
-if _find "$UIX" "Open directory" >/dev/null; then
-  tap "Open directory"; pause 3.4
-else
-  tap "Device"; pause 2.0
-  tap "Internal shared storage"; pause 2.0
-  tap "Download"; pause 2.0
-fi
+_find -c "$UIX" "$DEMO_APK_NAME" >/dev/null \
+  || die_rec "the saved APK is not visible in Butler's Download explorer"
 
 cap "An APK file in your file explorer"
 pause 3.0

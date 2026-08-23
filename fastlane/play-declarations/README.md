@@ -63,10 +63,10 @@ Rules that apply to all of them:
 
 - **All files access** and **Query all packages**: ready, videos recorded.
 - **Request install packages**: the video must be **re-recorded** first. The recorder now films
-  Butler receiving an APK from another app (Android's Files app shares it into Butler, whose
-  save-as writes it into `Download`) before the install flow, because the permitted use requires
-  both halves and the form has no text field to argue the point in. Any previously recorded video
-  is missing that beat.
+  Butler receiving an APK from another app (Android's Files app shares it into Butler, Butler's
+  arrival dialog offers **Save as…**, and the Saver writes it into `Download`) before the install
+  flow, because the permitted use requires both halves and the form has no text field to argue the
+  point in. Any previously recorded video is missing that beat.
 - **Foreground service, `dataSync`**: **not submittable yet.** No video has been recorded and there
   is no recorder for it. Two ticked tasks means two scenarios have to be on camera: the copy that
   keeps running after the user leaves the app (*Local processing > Other*), and a file shared into
@@ -154,7 +154,8 @@ only synthetic/seeded data — nothing personal is uploaded.
   non-media files, bulk cross-tree moves, and traversing a whole volume from a
   single permission instead of picking every tree in the SAF picker.
 - **`request-install-packages`** (~100 s): Android's Files app **shares an `.apk`
-  into Butler**, whose save-as writes it into `Download` (the "receiving app
+  into Butler**, whose arrival dialog offers **Save as…**; the Saver writes it into
+  `Download` and **Open directory** shows it in the explorer (the "receiving app
   packages" half) → **"Open with"** hands it to the system installer → Android's per-source
   **"Install unknown apps"** grant for Butler (the policy-critical shot) → the user
   confirms **Install** in the system installer → "App installed". Shows both halves
