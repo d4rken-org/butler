@@ -33,12 +33,15 @@ The `QUERY_ALL_PACKAGES` permission allows Butler to retrieve the inventory of i
 which apps you currently have installed on your device.
 
 Butler's app manager is built on it: it lists and searches every installed app, user apps and system apps
-alike, and lets you inspect one, export or share its APK as a file, disable it, clear its data or uninstall it.
+alike, and lets you inspect one, export its APK as a file, share its details as text, disable it, clear its data
+or uninstall it.
 The same inventory provides icons and extra information when you browse directories that belong to an app.
 
 The list of your installed apps is shown inside the app and is not used for analytics or advertising. It
 leaves your device only if it ends up in a [debug log](#debug-log) or a [crash report](#crash-reports) that
-you choose to share, or in an APK you exported and then shared with another app.
+you choose to share, or in an APK you exported and then shared with another app. When you pick Share for an
+app, Butler sends that app's name, package name, version and installer source to the app you choose as plain
+text; no file is attached.
 
 ### All files access
 

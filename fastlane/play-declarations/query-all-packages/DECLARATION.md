@@ -17,7 +17,7 @@ permission."*, with the examples *Device search / Antivirus apps / File managers
 the helper line *"Approval will be granted for your entire app, not just for this feature"*.
 
 ```text
-Butler's App Manager lets the user search every installed app, user and system, then inspect one, export or share its APK, disable it, clear its data or uninstall it. A queries manifest entry only exposes packages named at build time or apps matching declared intents and providers, so it cannot enumerate every installed app for an open search. The inventory is not collected and not used for analytics or advertising; it leaves the device only in an APK or diagnostic report the user shares.
+Butler's App Manager lets users search user and system apps, inspect one, export its APK, share its label, package, version and installer as text, disable it, clear its data or uninstall it. A <queries> entry exposes only named packages or apps matching declared intents/providers, so it cannot enumerate every installed app for open search. The inventory is not collected or used for analytics/ads; app details leave only through Share info, a user-shared APK or user-shared diagnostic report.
 ```
 
 ### Usage
@@ -64,8 +64,10 @@ system — on the device, then inspect and manage any of them:
 - **Search and list all installed apps** (user and system) by name or package id.
 - Inspect an app in depth: package id, version, target/min SDK, install metadata, on-device
   storage paths, and exported components (activities, services, receivers).
-- **Export an app's APK file** to shared storage — where it immediately appears in Butler's own
-  file explorer — or share it straight to another app.
+- **Export an app's APK file** into shared storage, where it immediately appears in Butler's own
+  file explorer as an ordinary file.
+- **Share an app's info** as text: its label, package name, version and installer source are sent
+  to another app through a plain-text share. No file is attached.
 - Disable/enable, clear an app's data, and uninstall apps.
 
 The feature requires broad package visibility (`QUERY_ALL_PACKAGES`) because its core purpose is
@@ -76,11 +78,13 @@ plus the apps that match the intent filters and provider authorities it declares
 enumerate the installed apps a user-facing "search all installed apps" feature has to offer. No
 less-broad method suffices.
 
-Exporting an APK ties the App Manager directly to Butler's file-manager identity: the exported
-`.apk` is written to shared storage and is then a file the user browses, moves, and shares in
-Butler like any other. The installed-app inventory is not collected and is not used for analytics
-or advertising; it leaves the device only inside an APK or a diagnostic report the user chooses to
-share. (See the privacy policy.)
+Exporting an APK ties the App Manager directly to Butler's file-manager identity: **Export APK**
+writes the `.apk` into shared storage, where it becomes a file the user browses, moves, and shares
+in Butler like any other. **Share info** is a separate action with no file in it: it sends the
+app's label, package name, version and installer source to another app as plain text. The
+installed-app inventory is not collected and is not used for analytics or advertising; app details
+leave the device only through a Share info text, an APK the user exported and then shared, or a
+diagnostic report the user chooses to share. (See the privacy policy.)
 
 ---
 
@@ -138,7 +142,7 @@ Butler, a file explorer for Android, package name eu.darken.butler. This video d
 4. Its APK is exported through Butler's own save-as workspace into the Download folder.
 5. The explorer opens on Download, where the exported APK is now an ordinary file the user can browse, move and share. This is the link between the App Manager and Butler's file-manager core purpose.
 
-From the same detail screen the user can share the APK, disable the app, clear its data or uninstall it. The installed-app list is not collected and is not used for analytics or advertising; it leaves the device only inside an APK or a diagnostic report the user chooses to share.
+From the same detail screen the user can send the app's label, package name, version and installer source to another app as plain text with Share info, disable the app, clear its data or uninstall it. Share info carries text only and attaches no file; exporting the APK is the separate action that writes a file. The installed-app list is not collected and is not used for analytics or advertising; app details leave the device only through a Share info text, an exported APK the user shares, or a diagnostic report the user chooses to share.
 ```
 
 ---
