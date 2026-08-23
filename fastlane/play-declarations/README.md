@@ -160,7 +160,9 @@ only synthetic/seeded data — nothing personal is uploaded.
   **"Install unknown apps"** grant for Butler (the policy-critical shot) → the user
   confirms **Install** in the system installer → "App installed". Shows both halves
   of the permitted use and all three user decisions that gate an install; the
-  installed app is CapOd (same developer, pinned URL + SHA-256).
+  installed app is CapOd (same developer, pinned URL + SHA-256). The recorder
+  aborts if the recorded flow overruns its duration budget, so a video too long
+  to submit is never produced.
 - **`query-all-packages`** (~50 s): App Manager breadth (user + system app counts)
   → **search across all installed apps** → deep app detail → **Export APK into the
   file explorer** (Export → Save-as → the `.apk` lands in `Download`, browsable in

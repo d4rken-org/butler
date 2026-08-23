@@ -293,4 +293,22 @@ pause 1.2
 # Confirm the install actually completed before saving the video.
 "${ADB[@]}" shell pm list packages | grep -q "$DEMO_PKG" || die_rec "install did not complete ($DEMO_PKG not present)"
 
+# ---- duration budget --------------------------------------------------------
+# Google caps the declaration video at 2 minutes, and the recorded flow is not
+# the whole video: screenrecord has been running about 1.2s before REC_T0 (the
+# sleep in rec_start), rec_stop adds its own stop and pull delay, and
+# postprocess.sh concatenates a 3s title card and a 3.5s end card. A 108s flow
+# therefore lands the finished file near 116s against the 120s ceiling, so 108s
+# is the budget. This ABORTS instead of warning, matching the rest of the
+# script: leaving the clip on the device unpulled is better than saving a video
+# that is over the limit README states and cannot be submitted. bash has no
+# floating point, so the subtraction and the comparison go through awk, like
+# cap() does in _common.sh.
+flow_elapsed=$(
+  awk -v now="$(date +%s.%N)" -v start="$REC_T0" \
+    'BEGIN { printf "%.3f", now - start }'
+)
+awk -v elapsed="$flow_elapsed" 'BEGIN { exit !(elapsed < 108) }' \
+  || die_rec "recorded flow took ${flow_elapsed}s; final video would risk exceeding 2 minutes"
+
 rec_stop
