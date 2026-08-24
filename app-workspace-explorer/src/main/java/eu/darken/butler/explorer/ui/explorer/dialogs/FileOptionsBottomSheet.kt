@@ -52,6 +52,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
+import eu.darken.butler.common.files.SmbPath
 import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
@@ -227,6 +228,9 @@ private fun FileOptionsContent(
         // loading) stays permissive.
         val isArchiveEntry = item.lookup.lookedUp is ArchivePath
         val isWritable = !isArchiveEntry && item.canWrite != false
+        // Handing a file to another app needs a file:// or content:// URI, which a file on a server
+        // does not have, so those entries are not offered for it.
+        val isNetworkFile = item.lookup.lookedUp is SmbPath
         // Offer Extract only for real archive files. An entry that is itself inside an archive (a nested
         // archive) can't be opened as a container, so extraction would fail.
         val isArchiveFile = remember(item.lookup.name, isArchiveEntry) {
@@ -268,20 +272,24 @@ private fun FileOptionsContent(
                 onClick = { onAction(ExplorerActionBarItem.File.OpenInTab(item)) },
             )
 
-            FileActionRow(
-                icon = Icons.TwoTone.OpenInBrowser,
-                title = stringResource(R.string.explorer_file_action_open_with),
-                subtitle = stringResource(R.string.explorer_file_action_open_with_subtitle),
-                onClick = { onAction(ExplorerActionBarItem.File.OpenWith(item)) },
-            )
+            if (!isNetworkFile) {
+                FileActionRow(
+                    icon = Icons.TwoTone.OpenInBrowser,
+                    title = stringResource(R.string.explorer_file_action_open_with),
+                    subtitle = stringResource(R.string.explorer_file_action_open_with_subtitle),
+                    onClick = { onAction(ExplorerActionBarItem.File.OpenWith(item)) },
+                )
+            }
         }
 
-        FileActionRow(
-            icon = Icons.TwoTone.Share,
-            title = stringResource(R.string.explorer_file_action_share),
-            subtitle = stringResource(R.string.explorer_file_action_share_subtitle),
-            onClick = { onAction(ExplorerActionBarItem.File.Share(item)) },
-        )
+        if (!isNetworkFile) {
+            FileActionRow(
+                icon = Icons.TwoTone.Share,
+                title = stringResource(R.string.explorer_file_action_share),
+                subtitle = stringResource(R.string.explorer_file_action_share_subtitle),
+                onClick = { onAction(ExplorerActionBarItem.File.Share(item)) },
+            )
+        }
 
         HorizontalDivider()
 
