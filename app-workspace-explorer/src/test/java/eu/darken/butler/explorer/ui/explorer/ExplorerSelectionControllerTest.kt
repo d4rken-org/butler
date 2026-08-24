@@ -290,6 +290,34 @@ class ExplorerSelectionControllerTest : BaseTest() {
     }
 
     @Test
+    fun `normal browsing selects a location that needs a sign-in so it can be managed`() = runTest {
+        val signInRequired = MockDataProvider.createMockStorageNetwork(
+            name = "Work NAS",
+            status = ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED,
+        )
+        var navigated: ExplorerItem? = null
+        val controller = controller(navigate = { navigated = it })
+
+        // A tap on its own still opens the sign-in form
+        controller.onItemClick(signInRequired)
+        runCurrent()
+        navigated shouldBe signInRequired
+        controller.selectedItems.value shouldBe emptySet()
+
+        // A long press selects it, which is what Remove, Edit and Rename need
+        navigated = null
+        controller.onItemLongClick(signInRequired)
+        controller.selectedItems.value shouldBe setOf(signInRequired)
+        navigated shouldBe null
+
+        // With a selection active the tap toggles instead of navigating
+        controller.onItemClick(signInRequired)
+        runCurrent()
+        controller.selectedItems.value shouldBe emptySet()
+        navigated shouldBe null
+    }
+
+    @Test
     fun `long press stops changing the selection once one exists`() = runTest {
         val first = fileItem("a.txt")
         val second = fileItem("b.txt")

@@ -25,11 +25,14 @@ class NetworkStorageItemTest : ComposeTest() {
         status = ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED,
     )
 
-    /** A picker returns what is selected, and a location that needs a sign-in cannot be opened. */
+    /**
+     * Selecting a row is how Remove, Edit and Rename reach a location, so a broken one has to stay
+     * selectable. Keeping it out of a picker result is the picker's job, not the item's.
+     */
     @Test
-    fun `only an available location can be selected`() {
+    fun `a location that needs a sign-in stays selectable`() {
         available.isSelectable() shouldBe true
-        signInRequired.isSelectable() shouldBe false
+        signInRequired.isSelectable() shouldBe true
     }
 
     @Test
