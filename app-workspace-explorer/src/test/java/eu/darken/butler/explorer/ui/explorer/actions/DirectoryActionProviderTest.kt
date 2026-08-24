@@ -3,8 +3,10 @@ package eu.darken.butler.explorer.ui.explorer.actions
 import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
+import eu.darken.butler.common.files.SmbPath
 import eu.darken.butler.common.files.archive.ArchivePathLookup
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.files.smb.SmbPathLookup
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
@@ -16,6 +18,7 @@ import io.mockk.every
 import io.mockk.mockk
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
+import kotlin.uuid.Uuid
 
 class DirectoryActionProviderTest : BaseTest() {
 
@@ -142,10 +145,41 @@ class DirectoryActionProviderTest : BaseTest() {
         actions.any { it is ExplorerActionBarItem.Directory.Extract } shouldBe false
     }
 
+    private fun networkFile(name: String) = ExplorerItem.RegularFile(
+        lookup = SmbPathLookup(
+            lookedUp = SmbPath(LOCATION_ID, listOf(name)),
+            fileType = FileType.FILE,
+            size = 10L,
+            modifiedAt = null,
+        ),
+        mimeType = MimeInfo("text/plain"),
+    )
+
+    @Test
+    fun `a selection holding a network file does not offer Share`() {
+        val actions = selectionActions(
+            directory(null),
+            setOf(MockDataProvider.createMockRegularFile(), networkFile("remote.txt")),
+        )
+
+        actions.any { it is ExplorerActionBarItem.Directory.Share } shouldBe false
+    }
+
+    @Test
+    fun `a purely local selection offers Share`() {
+        val actions = selectionActions(directory(null), setOf(MockDataProvider.createMockRegularFile()))
+
+        actions.any { it is ExplorerActionBarItem.Directory.Share } shouldBe true
+    }
+
     @Test
     fun `a real archive file offers Extract`() {
         val actions = selectionActions(directory(null), setOf(MockDataProvider.createMockRegularFile("real.zip")))
 
         actions.any { it is ExplorerActionBarItem.Directory.Extract } shouldBe true
+    }
+
+    companion object {
+        private val LOCATION_ID = Uuid.parse("11111111-2222-3333-4444-555555555555")
     }
 }
