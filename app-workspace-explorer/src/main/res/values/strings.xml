@@ -283,7 +283,7 @@
     <string name="explorer_network_form_error_share_malformed">This is not a valid share name</string>
     <string name="explorer_network_form_error_base_path">This folder path cannot be used</string>
     <string name="explorer_network_form_error_username_blank">Enter a username</string>
-    <string name="explorer_network_form_error_password_required">Enter the password again to change the username</string>
+    <string name="explorer_network_form_error_password_required">Enter the password again to change the username or domain</string>
 
     <!-- Location Naming -->
     <string name="explorer_location_name_title">Name location</string>

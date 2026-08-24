@@ -88,14 +88,21 @@ class SmbLocationManagerImpl @Inject constructor(
     ): SmbLocation {
         val existing = dao.get(id)?.toLocation() ?: throw IllegalArgumentException("Unknown location: $id")
 
+        // The domain is part of the stored credential, so changing it invalidates it just like a
+        // changed username does.
+        val domainChanged = SmbLocationInput.normalizeDomain(domain) !=
+            SmbLocationInput.normalizeDomain(existing.domain)
+
         val credentialChanged = password != null ||
+            domainChanged ||
             authType != existing.authType ||
             rememberCredential != existing.rememberCredential
 
         val keepsStoredCredential = username == existing.username &&
+            !domainChanged &&
             rememberCredential == existing.rememberCredential
         require(password != null || authType == SmbLocation.AuthType.GUEST || keepsStoredCredential) {
-            "Changing the username or the remember setting requires re-entering the password"
+            "Changing the username, the domain or the remember setting requires re-entering the password"
         }
 
         val updated = existing.copy(
