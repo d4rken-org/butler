@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Block
 import androidx.compose.material.icons.twotone.Edit
+import androidx.compose.material.icons.twotone.Lock
 import androidx.compose.material.icons.twotone.Visibility
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -113,17 +114,39 @@ fun StorageGrid(
                     val typeLabel = when (item) {
                         is ExplorerItem.Storage.Local -> stringResource(R.string.explorer_file_storage_local_label)
                         is ExplorerItem.Storage.SAF -> stringResource(R.string.explorer_file_storage_saf_label)
+                        is ExplorerItem.Storage.Network -> stringResource(R.string.explorer_network_storage_label)
                     }
                     stringResource(R.string.explorer_file_storage_size_format, typeLabel, total, free)
+                }
+                item is ExplorerItem.Storage.Network &&
+                    item.status == ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED -> {
+                    stringResource(R.string.explorer_network_sign_in_required_label)
                 }
                 else -> null
             }
         },
-        tertiaryText = item.target.path.path,
+        // A network path is a UUID, the location's own subtitle is what identifies it to the user.
+        tertiaryText = item.subtitle?.get(LocalContext.current) ?: item.target.path.path,
         backgroundColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
-        trailingContent = if (item is ExplorerItem.Storage.SAF) {
-            { PermissionIndicator(item.location) }
-        } else null
+        trailingContent = when {
+            item is ExplorerItem.Storage.SAF -> {
+                { PermissionIndicator(item.location) }
+            }
+
+            item is ExplorerItem.Storage.Network &&
+                item.status == ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED -> {
+                {
+                    Icon(
+                        imageVector = Icons.TwoTone.Lock,
+                        contentDescription = stringResource(R.string.explorer_network_sign_in_required_label),
+                        tint = Color.White,
+                        modifier = Modifier.size(16.dp),
+                    )
+                }
+            }
+
+            else -> null
+        }
     )
 }
 

@@ -5,6 +5,7 @@ import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.FolderOpen
 import androidx.compose.material.icons.twotone.FolderShared
 import androidx.compose.material.icons.twotone.Home
+import androidx.compose.material.icons.twotone.Lan
 import androidx.compose.material.icons.twotone.PauseCircle
 import androidx.compose.material.icons.twotone.PhoneAndroid
 import androidx.compose.material.icons.twotone.FolderZip
@@ -14,7 +15,9 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.files.SmbPath
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
+import eu.darken.butler.common.files.smb.location.SmbLocationManager
 import eu.darken.butler.common.trash.TrashSettings
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
@@ -22,6 +25,7 @@ import javax.inject.Inject
 
 class BreadcrumbGenerator @Inject constructor(
     private val safLocationManager: SAFLocationManager,
+    private val smbLocationManager: SmbLocationManager,
     private val trashSettings: TrashSettings,
 ) {
 
@@ -38,6 +42,7 @@ class BreadcrumbGenerator @Inject constructor(
     suspend fun getBreadcrumbs(location: ExplorerLocation): List<ExplorerBreadcrumb> = when (location) {
         is ExplorerLocation.Home -> listOf(HOME)
         is ExplorerLocation.Device -> listOf(HOME, DEVICE)
+        is ExplorerLocation.Network -> listOf(HOME, NETWORK)
         is ExplorerLocation.Trash.Root -> listOf(HOME, getTrashBreadcrumb())
         is ExplorerLocation.Trash.Nested -> buildList {
             add(HOME)
@@ -76,6 +81,10 @@ class BreadcrumbGenerator @Inject constructor(
                     add(HOME)
                     add(DEVICE)
                 }
+                is ExplorerNavigation.Target.Network -> {
+                    add(HOME)
+                    add(NETWORK)
+                }
                 is ExplorerNavigation.Target.Trash -> {
                     add(HOME)
                     add(getTrashBreadcrumb())
@@ -86,11 +95,11 @@ class BreadcrumbGenerator @Inject constructor(
                 }
                 is ExplorerNavigation.Target.Directory -> {
                     add(HOME)
-                    add(DEVICE)
+                    add(if (location.path is SmbPath) NETWORK else DEVICE)
                 }
                 null -> {
                     add(HOME)
-                    add(DEVICE)
+                    add(if (location.path is SmbPath) NETWORK else DEVICE)
                 }
             }
 
@@ -179,6 +188,34 @@ class BreadcrumbGenerator @Inject constructor(
                     }
                 }
 
+                is SmbPath -> {
+                    // An unknown location id can only mean a stale path, the raw id is a safe label.
+                    val label = smbLocationManager.get(path.locationId)?.displayName
+                        ?: path.locationId.toString().toCaString()
+
+                    add(
+                        ExplorerBreadcrumb(
+                            label = label,
+                            icon = Icons.TwoTone.Lan,
+                            target = ExplorerNavigation.Target.Directory(SmbPath.root(path.locationId)),
+                        )
+                    )
+
+                    val accumulated = mutableListOf<String>()
+                    path.segments.forEach { segment ->
+                        accumulated.add(segment)
+                        add(
+                            ExplorerBreadcrumb(
+                                label = segment.toCaString(),
+                                icon = Icons.TwoTone.FolderOpen,
+                                target = ExplorerNavigation.Target.Directory(
+                                    SmbPath(path.locationId, accumulated.toList())
+                                ),
+                            )
+                        )
+                    }
+                }
+
                 is ArchivePath -> {
                     // The archive sits in a regular directory: prefix with that directory's crumbs.
                     path.container.parent?.let { addPathCrumbs(it) }
@@ -214,6 +251,12 @@ class BreadcrumbGenerator @Inject constructor(
             label = R.string.explorer_navigation_device.toCaString(),
             icon = Icons.TwoTone.PhoneAndroid,
             target = ExplorerNavigation.Target.Device,
+        )
+
+        val NETWORK = ExplorerBreadcrumb(
+            label = R.string.explorer_navigation_network.toCaString(),
+            icon = Icons.TwoTone.Lan,
+            target = ExplorerNavigation.Target.Network,
         )
 
         val HOME = ExplorerBreadcrumb(

@@ -53,6 +53,16 @@ fun ExplorerDialogHost(
             )
         }
 
+        is ExplorerDialogState.SmbLocationForm -> {
+            SmbLocationFormSheet(
+                state = dialogState,
+                onDismiss = { vm?.dismissDialog() },
+                onSubmit = { input -> vm?.onSmbLocationFormSubmit(input) },
+                topInset = topInset,
+                bottomInset = bottomInset,
+            )
+        }
+
         is ExplorerDialogState.Rename -> {
             RenameDialog(
                 item = dialogState.item,

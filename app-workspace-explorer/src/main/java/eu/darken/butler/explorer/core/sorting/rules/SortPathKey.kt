@@ -4,6 +4,7 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.files.SmbPath
 
 /**
  * Stable identity of a folder for the purposes of a saved sort rule.
@@ -34,6 +35,7 @@ fun APath<*>.sortAncestorKeys(): List<String> {
 
 private const val LOCAL_PREFIX = "local"
 private const val SAF_PREFIX = "saf"
+private const val SMB_PREFIX = "smb"
 private const val ARCHIVE_MARKER = "!archive"
 
 /** [floor] is the smallest component count a key of this type may have. */
@@ -60,6 +62,11 @@ private fun APath<*>.keyComponents(): KeyComponents = when (this) {
             floor = 3,
         )
     }
+
+    is SmbPath -> KeyComponents(
+        components = (listOf(SMB_PREFIX, locationId.toString()) + segments).escapeComponents(),
+        floor = 2,
+    )
 
     is ArchivePath -> {
         val containerKey = container.keyComponents()

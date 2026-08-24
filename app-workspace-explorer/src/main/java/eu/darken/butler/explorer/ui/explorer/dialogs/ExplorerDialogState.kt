@@ -3,6 +3,7 @@ package eu.darken.butler.explorer.ui.explorer.dialogs
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.archive.ArchiveFormat
+import eu.darken.butler.common.files.smb.location.SmbLocation
 import eu.darken.butler.common.files.archive.CompressionPreset
 import eu.darken.butler.explorer.core.FileTypeFilter
 import eu.darken.butler.explorer.core.SortSettings
@@ -22,11 +23,27 @@ sealed interface ExplorerDialogState {
         val initialPermanentDelete: Boolean = false,
     ) : ExplorerDialogState
 
-    data class RemoveLocationConfirmation(val items: List<ExplorerItem.Storage.SAF>) : ExplorerDialogState
+    data class RemoveLocationConfirmation(val items: List<ExplorerItem.Storage>) : ExplorerDialogState
 
     data class LocationStorageName(
         val locationId: String,
         val currentName: String?,
+        val kind: Kind = Kind.SAF,
+    ) : ExplorerDialogState {
+        enum class Kind {
+            SAF,
+            NETWORK,
+        }
+    }
+
+    /**
+     * Add or edit a network location. [isTesting] and [error] are driven by the view model while the
+     * sheet stays open, the entered fields live in the sheet itself.
+     */
+    data class SmbLocationForm(
+        val existing: SmbLocation? = null,
+        val isTesting: Boolean = false,
+        val error: CaString? = null,
     ) : ExplorerDialogState
 
     data class Rename(val item: APath<*>) : ExplorerDialogState

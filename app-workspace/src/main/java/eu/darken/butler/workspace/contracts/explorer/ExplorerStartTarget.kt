@@ -12,6 +12,7 @@ import kotlinx.serialization.Serializable
 enum class ExplorerStartTarget {
     @SerialName("home") HOME,
     @SerialName("device") DEVICE,
+    @SerialName("network") NETWORK,
     @SerialName("trash") TRASH,
     ;
 }

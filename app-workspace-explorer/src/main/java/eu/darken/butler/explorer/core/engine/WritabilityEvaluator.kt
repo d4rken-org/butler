@@ -4,6 +4,7 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.files.SmbPath
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import javax.inject.Inject
@@ -45,12 +46,17 @@ class WritabilityEvaluator @Inject constructor() {
             return context.safCanWrite
         }
 
-        // Rule 3: Unknown permissions = unknown (treated as writable by consumers)
+        // Rule 3: The SMB server enforces access, there are no Unix bits to evaluate here.
+        if (path is SmbPath) {
+            return true
+        }
+
+        // Rule 4: Unknown permissions = unknown (treated as writable by consumers)
         if (permissions == null) {
             return null
         }
 
-        // Rule 4: Evaluate Unix permissions
+        // Rule 5: Evaluate Unix permissions
         return evaluateUnixPermissions(permissions, ownership, context.appUid)
     }
 

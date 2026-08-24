@@ -15,6 +15,7 @@ import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.files.SmbPath
 import eu.darken.butler.common.files.extensions.getFileSystemInfo
 import eu.darken.butler.common.files.extensions.isAncestorOfOrSelf
 import eu.darken.butler.common.files.metadata.FileType
@@ -110,7 +111,9 @@ class DirectoryLocationLoader @AssistedInject constructor(
                     context.loadContent()
 
                     currentCoroutineContext().ensureActive()
-                    context.loadContentExtended()
+                    // A second pass over the network would mean one more round trip per item for
+                    // ownership and permissions an SMB share does not report anyway.
+                    if (context.targetPath !is SmbPath) context.loadContentExtended()
                 }
 
                 currentCoroutineContext().ensureActive()

@@ -8,6 +8,8 @@ import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.files.SmbPath
+import eu.darken.butler.common.files.smb.SmbLocationInput
 import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.metadata.FileType
@@ -132,8 +134,19 @@ class ExplorerNavigationController(
                 clearSelection()
             }
             is ExplorerItem.Storage -> {
-                workspace().navigate(item.target)
-                clearSelection()
+                // Opening a location whose password is gone would just fail: ask for it first.
+                val needsSignIn = item is ExplorerItem.Storage.Network &&
+                    item.status == ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED
+                if (needsSignIn) {
+                    dialogs.show(
+                        ExplorerDialogState.SmbLocationForm(
+                            existing = (item as ExplorerItem.Storage.Network).location
+                        )
+                    )
+                } else {
+                    workspace().navigate(item.target)
+                    clearSelection()
+                }
             }
             is ExplorerItem.Trash.Root -> {
                 if (selectedItems().isNotEmpty()) {
@@ -184,6 +197,15 @@ class ExplorerNavigationController(
                 container = currentPath.container,
                 segments = trimmed.split("/").filter { it.isNotEmpty() && it != "." && it != ".." },
             )
+            // Edited text addresses a folder below the location root, never outside it.
+            is SmbPath -> {
+                val segments = SmbLocationInput.splitPath(trimmed)
+                if (segments.any { SmbLocationInput.pathSegmentIssue(it) != null }) {
+                    log(tag, WARN) { "navigateToEditedPath(): Rejecting '$trimmed', not a usable network path" }
+                    return
+                }
+                SmbPath(currentPath.locationId, segments)
+            }
         }
         navigateToPath(newPath)
     }

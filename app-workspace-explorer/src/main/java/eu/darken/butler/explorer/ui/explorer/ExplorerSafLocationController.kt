@@ -10,6 +10,7 @@ import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.ExplorerWorkspace
+import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
 import eu.darken.butler.permissions.core.SAFPickerGrant
@@ -163,9 +164,9 @@ class ExplorerSafLocationController(
 
         dialogs.dismiss()
 
-        dialogState.items.forEach { item ->
-            safLocationManager.revokePermission(item.location.id)
-        }
+        dialogState.items
+            .filterIsInstance<ExplorerItem.Storage.SAF>()
+            .forEach { item -> safLocationManager.revokePermission(item.location.id) }
         clearSelection()
 
         workspace().navigate(ExplorerNavigation.Refresh)
