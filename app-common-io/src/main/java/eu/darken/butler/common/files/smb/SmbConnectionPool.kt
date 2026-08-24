@@ -47,6 +47,7 @@ class SmbConnectionPool @Inject constructor(
     private val locationManager: SmbLocationManager,
     private val credentialStore: SmbCredentialStore,
     private val clientFactory: SmbClientFactory,
+    private val dialectProbe: SmbDialectProbe,
 ) {
 
     /** A live share plus the lease keeping it alive. Closing it twice is a no-op. */
@@ -171,7 +172,7 @@ class SmbConnectionPool @Inject constructor(
             Generation(key, location, client, connection, session, share)
         } catch (e: Exception) {
             runCatching { client.close() }
-            throw SmbStatusMapper.mapConnect(e, endpoint, location.share)
+            throw mapConnectFailure(e, location, endpoint)
         }
 
         log(TAG, INFO) { "Connected to $endpoint (credential generation ${key.credentialVersion})" }
@@ -189,6 +190,17 @@ class SmbConnectionPool @Inject constructor(
                 fresh
             }
         }
+    }
+
+    /**
+     * An SMB1-only server hangs up on our negotiate, which is indistinguishable from an unreachable
+     * host until it is asked with multi-protocol negotiation.
+     */
+    private fun mapConnectFailure(error: Throwable, location: SmbLocation, endpoint: String): Throwable {
+        val mapped = SmbStatusMapper.mapConnect(error, endpoint, location.share)
+        if (mapped !is SmbUnreachableException || !dialectProbe.isWorthProbing(error)) return mapped
+        if (!dialectProbe.isSmb1Only(location.host, location.port)) return mapped
+        return SmbDialectNotSupportedException(endpoint, error)
     }
 
     /** Drops every generation of a location, e.g. after its credential changed. */
@@ -212,8 +224,8 @@ class SmbConnectionPool @Inject constructor(
         dropped.forEach { markStale(it) }
     }
 
-    private suspend fun trimIdle(): Boolean {
-        val now = Clock.System.now().toEpochMilliseconds()
+    /** @return whether any generation is left. Internal so the idle policy can be tested. */
+    internal suspend fun trimIdle(now: Long = Clock.System.now().toEpochMilliseconds()): Boolean {
         val dropped = mutableListOf<Generation>()
         val remaining = lock.withLock {
             generations.entries
