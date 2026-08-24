@@ -94,9 +94,6 @@ sealed interface ExplorerItem {
             override val availableBytes: Long? get() = null
             override val canWrite: Boolean get() = true
 
-            /** Nothing can be done with a location Butler cannot open, least of all return it from a picker. */
-            override fun isSelectable(context: Any?): Boolean = status == Status.AVAILABLE
-
             enum class Status {
                 AVAILABLE,
 
