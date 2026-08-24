@@ -265,6 +265,7 @@ class BrowsingEngineTest : BaseTest() {
                 dispatcherProvider = TestDispatcherProvider(dispatcher),
                 homeLocationLoaderFactory = mockk(relaxed = true),
                 deviceLocationLoaderFactory = mockk(relaxed = true),
+                networkLocationLoaderFactory = mockk(relaxed = true),
                 trashLocationLoaderFactory = mockk(relaxed = true),
                 directoryLoaderFactory = mockk {
                     every { create(any()) } returns directoryLoader

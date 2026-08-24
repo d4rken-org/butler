@@ -1,11 +1,14 @@
 package eu.darken.butler.common.files.validation
 
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.SmbPath
+import eu.darken.butler.common.files.smb.SmbLocationInput
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import java.io.File
+import kotlin.uuid.Uuid
 
 class FilenameValidatorTest : BaseTest() {
 
@@ -188,5 +191,45 @@ class FilenameValidatorTest : BaseTest() {
 
         result.shouldBeInstanceOf<FilenameValidator.ValidationResult.Invalid>()
         result.invalidChars shouldBe setOf('<', '>')
+    }
+
+    // SMB
+
+    private val smbPath = SmbPath.root(Uuid.parse("11111111-2222-3333-4444-555555555555"))
+
+    @Test
+    fun `smb context is detected for network paths`() {
+        val result = validator.validate("bad:name", smbPath)
+
+        result.shouldBeInstanceOf<FilenameValidator.ValidationResult.Invalid>()
+        result.context shouldBe FilenameValidator.StorageContext.SMB
+    }
+
+    @Test
+    fun `smb rejects the characters windows servers refuse`() {
+        val result = validator.validate("a\\b/c:d*e?f\"g<h>i|j", smbPath)
+
+        result.shouldBeInstanceOf<FilenameValidator.ValidationResult.Invalid>()
+        result.invalidChars shouldBe setOf('\\', '/', ':', '*', '?', '\"', '<', '>', '|')
+    }
+
+    @Test
+    fun `smb accepts an ordinary name`() {
+        validator.validate("Holiday 2024.mkv", smbPath) shouldBe FilenameValidator.ValidationResult.Valid
+    }
+
+    @Test
+    fun `smb reports whole-name problems separately from characters`() {
+        validator.validate("..", smbPath)
+            .shouldBeInstanceOf<FilenameValidator.ValidationResult.InvalidName>()
+            .reason shouldBe SmbLocationInput.NameIssue.TRAVERSAL
+
+        validator.validate("trailing.", smbPath)
+            .shouldBeInstanceOf<FilenameValidator.ValidationResult.InvalidName>()
+            .reason shouldBe SmbLocationInput.NameIssue.TRAILING_DOT_OR_SPACE
+
+        validator.validate("trailing ", smbPath)
+            .shouldBeInstanceOf<FilenameValidator.ValidationResult.InvalidName>()
+            .reason shouldBe SmbLocationInput.NameIssue.TRAILING_DOT_OR_SPACE
     }
 }
