@@ -306,6 +306,74 @@ class SmbLocationManagerTest : BaseTest() {
     }
 
     @Test
+    fun `changing the domain without a password is rejected`() = runTest {
+        val manager = manager()
+        val location = manager.createSample()
+
+        shouldThrow<IllegalArgumentException> {
+            manager.update(
+                id = location.id,
+                label = location.label,
+                host = location.host,
+                port = location.port,
+                share = location.share,
+                basePath = location.basePath,
+                domain = "WORKGROUP",
+                username = location.username,
+                authType = SmbLocation.AuthType.PASSWORD,
+                rememberCredential = true,
+                password = null,
+            )
+        }
+    }
+
+    @Test
+    fun `a new domain is stored with the credential`() = runTest {
+        val manager = manager()
+        val location = manager.createSample()
+
+        val updated = manager.update(
+            id = location.id,
+            label = location.label,
+            host = location.host,
+            port = location.port,
+            share = location.share,
+            basePath = location.basePath,
+            domain = "WORKGROUP",
+            username = location.username,
+            authType = SmbLocation.AuthType.PASSWORD,
+            rememberCredential = true,
+            password = "hunter2".toCharArray(),
+        )
+
+        updated.credentialVersion shouldBe 2
+        credentialStore.resolve(updated).domain shouldBe "WORKGROUP"
+    }
+
+    @Test
+    fun `a blank domain counts as no domain`() = runTest {
+        val manager = manager()
+        val location = manager.createSample()
+
+        val updated = manager.update(
+            id = location.id,
+            label = location.label,
+            host = location.host,
+            port = location.port,
+            share = location.share,
+            basePath = location.basePath,
+            domain = "  ",
+            username = location.username,
+            authType = SmbLocation.AuthType.PASSWORD,
+            rememberCredential = true,
+            password = null,
+        )
+
+        updated.credentialVersion shouldBe 1
+        String(credentialStore.resolve(updated).password) shouldBe "hunter2"
+    }
+
+    @Test
     fun `switching to guest drops the stored credential`() = runTest {
         val manager = manager()
         val location = manager.createSample()

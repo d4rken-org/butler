@@ -88,10 +88,11 @@ class ExplorerSmbLocationController(
         val password = input.password.takeIf { it.isNotEmpty() }?.toCharArray()
         val usesPassword = input.authType == SmbLocation.AuthType.PASSWORD
 
-        // A username or remember-switch change invalidates the stored credential, see
+        // A username, domain or remember-switch change invalidates the stored credential, see
         // SmbLocationManager.update
         val keepsStoredCredential = existing != null &&
             details.username == existing.username &&
+            details.domain == SmbLocationInput.normalizeDomain(existing.domain) &&
             input.rememberCredential == existing.rememberCredential
         if (usesPassword && password == null && (existing == null || !keepsStoredCredential)) {
             dialogs.show(

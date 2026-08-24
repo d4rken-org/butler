@@ -83,9 +83,11 @@ fun SmbLocationFormSheet(
     var rememberCredential by remember { mutableStateOf(existing?.rememberCredential ?: true) }
 
     val usesPassword = authType == SmbLocation.AuthType.PASSWORD
-    // Editing keeps the stored password only while the username and the remember switch stay put.
+    // Editing keeps the stored password only while the credential fields and the remember switch
+    // stay put. The domain is part of the credential, so it counts too.
     val keepsStoredCredential = existing != null &&
         username == existing.username.orEmpty() &&
+        SmbLocationInput.normalizeDomain(domain) == SmbLocationInput.normalizeDomain(existing.domain) &&
         rememberCredential == existing.rememberCredential
     val canSubmit = !state.isTesting &&
         host.isNotBlank() &&

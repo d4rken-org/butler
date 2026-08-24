@@ -106,6 +106,15 @@ class SmbLocationFormSheetTest : ComposeTest() {
     }
 
     @Test
+    fun `changing the domain requires the password again`() {
+        setSheetContent(ExplorerDialogState.SmbLocationForm(existing = stored))
+
+        composeTestRule.onNodeWithText("Domain (optional)").performScrollTo().performTextInput("WORKGROUP")
+
+        composeTestRule.onNodeWithText("Test & save").performScrollTo().assertIsNotEnabled()
+    }
+
+    @Test
     fun `an error is shown inline`() {
         setSheetContent(
             ExplorerDialogState.SmbLocationForm(

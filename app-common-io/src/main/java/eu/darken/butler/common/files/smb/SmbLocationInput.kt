@@ -156,11 +156,14 @@ object SmbLocationInput {
                 port = parsedPort!!,
                 share = parsedShare!!,
                 basePath = parsedBasePath,
-                domain = domain.trim().takeIf { it.isNotEmpty() },
+                domain = normalizeDomain(domain),
                 username = trimmedUsername.takeIf { it.isNotEmpty() },
             ),
         )
     }
+
+    /** No domain and a blank domain mean the same thing, so they must compare equal. */
+    fun normalizeDomain(raw: String?): String? = raw?.trim()?.takeIf { it.isNotEmpty() }
 
     /** Splits on both separator styles so a pasted `\\srv\media` tail and a typed `a/b` both work. */
     fun splitPath(raw: String): Segments = raw
