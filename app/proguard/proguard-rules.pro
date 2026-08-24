@@ -23,3 +23,24 @@
 
 # Play Core KTX references this compile-time-only GMS annotation not on the runtime classpath
 -dontwarn com.google.android.gms.common.annotation.NoNullnessRewrite
+
+# smbj authenticates with NTLM only (username/password or guest), so its Kerberos/SPNEGO path is
+# unreachable - and Android has no JGSS implementation to reach anyway.
+-dontwarn org.ietf.jgss.GSSContext
+-dontwarn org.ietf.jgss.GSSCredential
+-dontwarn org.ietf.jgss.GSSException
+-dontwarn org.ietf.jgss.GSSManager
+-dontwarn org.ietf.jgss.GSSName
+-dontwarn org.ietf.jgss.Oid
+
+# mbassador (smbj's event bus) offers optional EL-based message filtering, which needs a Java EE
+# expression language implementation Android does not ship. smbj never declares such a filter.
+# Listed per class rather than per package on purpose, same reasoning as the commons-compress block
+# above: a future upgrade that makes these reachable should fail the build, not the app.
+-dontwarn javax.el.BeanELResolver
+-dontwarn javax.el.ELContext
+-dontwarn javax.el.ELResolver
+-dontwarn javax.el.ExpressionFactory
+-dontwarn javax.el.FunctionMapper
+-dontwarn javax.el.ValueExpression
+-dontwarn javax.el.VariableMapper
