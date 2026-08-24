@@ -43,11 +43,17 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.explorer.R
 import kotlinx.coroutines.delay
 
-/** Empty Network view: the only way out of it is adding a location, so it offers that directly. */
+/**
+ * Empty Network view: the only way out of it is adding a location, so it offers that directly.
+ *
+ * @param showAddAction a picker returns a location instead of administering them, so it gets the
+ * explanation without the button.
+ */
 @Composable
 fun EmptyNetworkState(
     modifier: Modifier = Modifier,
     onAddLocation: () -> Unit,
+    showAddAction: Boolean = true,
     initiallyVisible: Boolean = false,
 ) {
     var visible by remember { mutableStateOf(initiallyVisible) }
@@ -127,11 +133,13 @@ fun EmptyNetworkState(
                     modifier = Modifier.padding(top = 4.dp)
                 )
 
-                FilledTonalButton(
-                    onClick = onAddLocation,
-                    modifier = Modifier.padding(top = 16.dp),
-                ) {
-                    Text(text = stringResource(R.string.explorer_network_add_location_action))
+                if (showAddAction) {
+                    FilledTonalButton(
+                        onClick = onAddLocation,
+                        modifier = Modifier.padding(top = 16.dp),
+                    ) {
+                        Text(text = stringResource(R.string.explorer_network_add_location_action))
+                    }
                 }
             }
         }
@@ -144,6 +152,17 @@ fun EmptyNetworkState(
 private fun EmptyNetworkStatePreview() {
     EmptyNetworkState(
         onAddLocation = {},
+        initiallyVisible = true,
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun EmptyNetworkStateInPickerPreview() {
+    EmptyNetworkState(
+        onAddLocation = {},
+        showAddAction = false,
         initiallyVisible = true,
     )
 }

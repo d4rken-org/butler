@@ -25,6 +25,13 @@ class NetworkStorageItemTest : ComposeTest() {
         status = ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED,
     )
 
+    /** A picker returns what is selected, and a location that needs a sign-in cannot be opened. */
+    @Test
+    fun `only an available location can be selected`() {
+        available.isSelectable() shouldBe true
+        signInRequired.isSelectable() shouldBe false
+    }
+
     @Test
     fun `the row shows the label and endpoint, never the internal path`() {
         composeTestRule.setContent {
