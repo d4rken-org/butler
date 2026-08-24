@@ -36,6 +36,23 @@ class SmbAuthException(
     )
 }
 
+/**
+ * The credentials were accepted, the share was not: this account may not use it. Deliberately not a
+ * sign-in failure, re-entering the password cannot change a permission on the server.
+ */
+class SmbShareAccessDeniedException(
+    val endpoint: String,
+    val share: String,
+    cause: Throwable? = null,
+) : ReadException(message = "No access to '$share' on $endpoint", cause = cause), HasLocalizedError {
+
+    override fun getLocalizedError(context: LocalizedErrorContext) = LocalizedError(
+        throwable = this,
+        label = R.string.smb_error_share_access_denied_title.toCaString(),
+        description = caString { it.getString(R.string.smb_error_share_access_denied_description, share, endpoint) },
+    )
+}
+
 /** The server is reachable but does not publish this share. */
 class SmbShareNotFoundException(
     val endpoint: String,

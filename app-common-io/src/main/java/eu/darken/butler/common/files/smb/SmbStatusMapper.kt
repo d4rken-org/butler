@@ -60,12 +60,34 @@ object SmbStatusMapper {
         else -> false
     }
 
+    /**
+     * Failures raised while authenticating. Access denied means the account itself was refused here,
+     * which re-entering the password can fix.
+     */
+    fun mapAuthenticate(error: Throwable, endpoint: String): Throwable = when {
+        error !is SMBApiException -> error
+        error.status in AUTH_REJECTED -> SmbAuthException(endpoint, error)
+        error.status == NtStatus.STATUS_ACCESS_DENIED -> SmbAuthException(endpoint, error)
+        else -> error
+    }
+
+    /**
+     * Failures raised while opening the share on an authenticated session. Access denied means this
+     * account may not use this share, which no password can change.
+     */
+    fun mapConnectShare(error: Throwable, endpoint: String, share: String): Throwable = when {
+        error !is SMBApiException -> error
+        error.status == NtStatus.STATUS_ACCESS_DENIED -> SmbShareAccessDeniedException(endpoint, share, error)
+        else -> error
+    }
+
     /** Failures raised while opening a connection, session or share. */
     fun mapConnect(error: Throwable, endpoint: String, share: String): Throwable = when {
         error is CancellationException -> error
         // Already carries its own user-facing meaning
         error is SmbUnreachableException || error is SmbAuthException -> error
         error is SmbShareNotFoundException || error is SmbDialectNotSupportedException -> error
+        error is SmbShareAccessDeniedException -> error
         error is SmbCredentialUnavailableException -> error
         // smbj wraps it: the verdict can sit anywhere in the chain
         error.causeChain().any { it is SMB1NotSupportedException } -> {
@@ -99,6 +121,7 @@ object SmbStatusMapper {
                 // Already carries its own user-facing meaning
                 is SmbUnreachableException, is SmbAuthException -> error
                 is SmbShareNotFoundException, is SmbDialectNotSupportedException -> error
+                is SmbShareAccessDeniedException -> error
                 is SmbCredentialUnavailableException -> error
                 else -> wrap(error.message ?: "SMB operation failed", path, error, write)
             }

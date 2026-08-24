@@ -56,6 +56,36 @@ class SmbStatusMapperTest : BaseTest() {
     }
 
     @Test
+    fun `access denied while authenticating is an auth failure`() {
+        SmbStatusMapper.mapAuthenticate(apiError(NtStatus.STATUS_ACCESS_DENIED), "nas.local")
+            .shouldBeInstanceOf<SmbAuthException>()
+        SmbStatusMapper.mapAuthenticate(apiError(NtStatus.STATUS_LOGON_FAILURE), "nas.local")
+            .shouldBeInstanceOf<SmbAuthException>()
+    }
+
+    @Test
+    fun `access denied while opening the share is not a sign-in failure`() {
+        val mapped = SmbStatusMapper.mapConnectShare(apiError(NtStatus.STATUS_ACCESS_DENIED), "nas.local", "media")
+
+        mapped.shouldBeInstanceOf<SmbShareAccessDeniedException>().share shouldBe "media"
+        mapped.isSmbSignInFailure() shouldBe false
+    }
+
+    @Test
+    fun `a phase mapper leaves everything else to the generic mapping`() {
+        val badName = apiError(NtStatus.STATUS_BAD_NETWORK_NAME)
+        SmbStatusMapper.mapAuthenticate(badName, "nas.local") shouldBe badName
+        SmbStatusMapper.mapConnectShare(badName, "nas.local", "media") shouldBe badName
+    }
+
+    @Test
+    fun `a share access denial survives the generic connect mapping`() {
+        val original = SmbShareAccessDeniedException("nas.local", "media")
+        SmbStatusMapper.mapConnect(original, "nas.local", "media") shouldBe original
+        SmbStatusMapper.mapOperation(original, path, "lookup", write = false) shouldBe original
+    }
+
+    @Test
     fun `a bad network name is a missing share`() {
         val mapped = SmbStatusMapper.mapConnect(apiError(NtStatus.STATUS_BAD_NETWORK_NAME), "nas.local", "media")
         mapped.shouldBeInstanceOf<SmbShareNotFoundException>().share shouldBe "media"

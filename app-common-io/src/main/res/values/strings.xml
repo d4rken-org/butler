@@ -46,6 +46,8 @@
     <string name="smb_error_unreachable_description">Butler could not reach \"%1$s\". Check that the device is on the same network and that the server is switched on.</string>
     <string name="smb_error_auth_title">Sign-in failed</string>
     <string name="smb_error_auth_description">\"%1$s\" rejected the username or password.</string>
+    <string name="smb_error_share_access_denied_title">No access to this share</string>
+    <string name="smb_error_share_access_denied_description">This account may not use \"%1$s\" on \"%2$s\". Check the share permissions on the server.</string>
     <string name="smb_error_share_not_found_title">Share not found</string>
     <string name="smb_error_share_not_found_description">\"%1$s\" does not exist on \"%2$s\".</string>
     <string name="smb_error_dialect_title">Server too old</string>
