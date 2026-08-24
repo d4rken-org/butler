@@ -173,21 +173,29 @@ class SmbConnectionPool @Inject constructor(
             SmbLocation.AuthType.PASSWORD -> credentialStore.resolve(location)
         }
 
-        val authContext = when (credential) {
-            null -> AuthenticationContext.guest()
-            else -> AuthenticationContext(credential.username, credential.password, credential.domain)
+        // The context keeps its own copy of the password, so ours can go immediately.
+        var authContext: AuthenticationContext? = try {
+            when (credential) {
+                null -> AuthenticationContext.guest()
+                else -> AuthenticationContext(credential.username, credential.password, credential.domain)
+            }
+        } finally {
+            credential?.wipe()
         }
 
         val client = clientFactory.create(CONFIG)
         val fresh = try {
             val connection = client.connect(location.host, location.port)
-            val session = connection.authenticate(authContext)
+            val session = connection.authenticate(authContext!!)
             val share = session.connectShare(location.share) as? DiskShare
                 ?: throw SmbShareNotFoundException(endpoint, location.share)
             Generation(key, location, client, connection, session, share)
         } catch (e: Exception) {
             runCatching { client.close() }
             throw mapConnectFailure(e, location, endpoint)
+        } finally {
+            // Nothing past the session setup needs the password, don't hold it any longer
+            authContext = null
         }
 
         log(TAG, INFO) { "Connected to $endpoint (credential generation ${key.credentialVersion})" }

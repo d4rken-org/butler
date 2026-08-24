@@ -28,24 +28,26 @@ class KeystoreSmbCredentialCipher @Inject constructor() : SmbCredentialCipher {
         get() = KeyStore.getInstance(KEYSTORE_PROVIDER).apply { load(null) }
 
     override fun encrypt(locationId: Uuid, payloadVersion: Int, plaintext: ByteArray): SmbCredentialCipher.Envelope {
-        val key = try {
-            getOrCreateKey()
+        // A key can also fail on use rather than on lookup: an invalidated one is still returned and
+        // only throws at init, so the whole sequence translates into the same failure.
+        return try {
+            val key = getOrCreateKey()
+
+            val cipher = Cipher.getInstance(TRANSFORMATION).apply {
+                init(Cipher.ENCRYPT_MODE, key)
+                updateAAD(aad(locationId, payloadVersion))
+            }
+
+            SmbCredentialCipher.Envelope(
+                envelopeVersion = SmbCredentialCipher.ENVELOPE_VERSION,
+                keyAlias = KEY_ALIAS,
+                iv = cipher.iv,
+                ciphertext = cipher.doFinal(plaintext),
+            )
         } catch (e: GeneralSecurityException) {
-            log(TAG, ERROR) { "No key available to encrypt with: ${e.asLog()}" }
+            log(TAG, ERROR) { "Credential for $locationId could not be encrypted: ${e.asLog()}" }
             throw SmbCredentialUnavailableException(locationId, "Keystore key unavailable", e)
         }
-
-        val cipher = Cipher.getInstance(TRANSFORMATION).apply {
-            init(Cipher.ENCRYPT_MODE, key)
-            updateAAD(aad(locationId, payloadVersion))
-        }
-
-        return SmbCredentialCipher.Envelope(
-            envelopeVersion = SmbCredentialCipher.ENVELOPE_VERSION,
-            keyAlias = KEY_ALIAS,
-            iv = cipher.iv,
-            ciphertext = cipher.doFinal(plaintext),
-        )
     }
 
     override fun decrypt(

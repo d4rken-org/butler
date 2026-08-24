@@ -70,6 +70,22 @@ class ExplorerSmbLocationController(
         val existing = formState.existing
         log(tag) { "onFormSubmit(existing=${existing?.id})" }
 
+        val password = input.password.takeIf { it.isNotEmpty() }?.toCharArray()
+        // Every exit below - a validation error, a failed test, a failed save - leaves through here,
+        // so the entered password never outlives the submit.
+        try {
+            submit(formState, existing, input, password)
+        } finally {
+            password?.fill(Char(0))
+        }
+    }
+
+    private suspend fun submit(
+        formState: ExplorerDialogState.SmbLocationForm,
+        existing: SmbLocation?,
+        input: SmbLocationFormInput,
+        password: CharArray?,
+    ) {
         val parsed = SmbLocationInput.parse(
             host = input.host,
             port = input.port,
@@ -81,11 +97,10 @@ class ExplorerSmbLocationController(
         )
         if (parsed is SmbLocationInput.Result.Invalid) {
             dialogs.show(formState.copy(error = parsed.issues.first().message()))
-            return@doLaunch
+            return
         }
         val details = (parsed as SmbLocationInput.Result.Valid).parsed
 
-        val password = input.password.takeIf { it.isNotEmpty() }?.toCharArray()
         val usesPassword = input.authType == SmbLocation.AuthType.PASSWORD
 
         // A username, domain or remember-switch change invalidates the stored credential, see
@@ -98,7 +113,7 @@ class ExplorerSmbLocationController(
             dialogs.show(
                 formState.copy(error = R.string.explorer_network_form_error_password_required.toCaString())
             )
-            return@doLaunch
+            return
         }
 
         dialogs.show(formState.copy(isTesting = true, error = null))
@@ -111,7 +126,7 @@ class ExplorerSmbLocationController(
             } catch (e: Exception) {
                 log(tag, ERROR) { "onFormSubmit(): Stored credential unusable: ${e.asLog()}" }
                 dialogs.show(formState.copy(isTesting = false, error = e.localizedDescription()))
-                return@doLaunch
+                return
             }
 
             else -> null
@@ -129,7 +144,7 @@ class ExplorerSmbLocationController(
         } catch (e: Exception) {
             log(tag, ERROR) { "onFormSubmit(): Connection test failed: ${e.asLog()}" }
             dialogs.show(formState.copy(isTesting = false, error = e.localizedDescription()))
-            return@doLaunch
+            return
         } finally {
             storedCredential?.wipe()
         }
@@ -167,9 +182,7 @@ class ExplorerSmbLocationController(
         } catch (e: Exception) {
             log(tag, ERROR) { "onFormSubmit(): Failed to save: ${e.asLog()}" }
             dialogs.show(formState.copy(isTesting = false, error = e.localizedDescription()))
-            return@doLaunch
-        } finally {
-            password?.fill(Char(0))
+            return
         }
 
         dialogs.dismiss()
