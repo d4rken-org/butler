@@ -15,6 +15,10 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import okio.FileHandle
@@ -161,6 +165,41 @@ class GatewaySwitchPfdTest : BaseTest() {
         every { proxyPfdFactory.create(handle, "r") } returns proxyPfd
 
         gatewaySwitch.openReadPFD(path) shouldBe null
+
+        verify { proxyPfd.close() }
+    }
+
+    @Test
+    fun `a proxy descriptor created for a cancelled caller is closed, not leaked`() = runTest {
+        val path = LocalPath.build("storage", "emulated", "0", "not-there")
+        val handle = mockk<FileHandle>(relaxed = true)
+        val proxyPfd = seekablePfd()
+        val createEntered = CompletableDeferred<Unit>()
+        val createMayFinish = CompletableDeferred<Unit>()
+        coEvery { localGateway.file(path, false) } returns handle
+        every { proxyPfdFactory.create(handle, "r") } answers {
+            createEntered.complete(Unit)
+            runBlocking { createMayFinish.await() }
+            proxyPfd
+        }
+        // Real dispatching: the caller has to be cancellable while create() is blocked mid-handoff.
+        val switch = GatewaySwitch(
+            appScope = TestScope(),
+            dispatcherProvider = TestDispatcherProvider(Dispatchers.IO),
+            safGateway = safGateway,
+            localGateway = localGateway,
+            archiveGateway = archiveGateway,
+            safLocationManager = safLocationManager,
+            proxyPfdFactory = proxyPfdFactory,
+        )
+
+        // Caller on another dispatcher: only then is the hand-back a real resume, which is where a
+        // cancelled caller drops the descriptor.
+        val job = launch(Dispatchers.Default) { switch.openReadPFD(path) }
+        createEntered.await()
+        job.cancel()
+        createMayFinish.complete(Unit)
+        job.join()
 
         verify { proxyPfd.close() }
     }

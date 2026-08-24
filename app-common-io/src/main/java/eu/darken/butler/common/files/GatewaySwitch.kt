@@ -251,17 +251,28 @@ class GatewaySwitch @Inject constructor(
      * holds a gateway lease until the descriptor is released, and statSize below may block on a
      * Binder call.
      */
-    private suspend fun proxyReadPfdOrNull(path: APath<*>): ParcelFileDescriptor? =
-        withContext(NonCancellable + dispatcherProvider.IO) {
-            try {
-                // create() owns the handle from here on and closes it itself if it throws.
-                val handle = file(path, readWrite = false)
-                proxyPfdFactory.create(handle, "r").seekableOrNull()
-            } catch (e: Exception) {
-                log(TAG, WARN) { "openReadPFD($path): Proxy lane failed: ${e.asLog()}" }
-                null
+    private suspend fun proxyReadPfdOrNull(path: APath<*>): ParcelFileDescriptor? {
+        var openedPfd: ParcelFileDescriptor? = null
+        return try {
+            withContext(NonCancellable + dispatcherProvider.IO) {
+                try {
+                    // create() owns the handle from here on and closes it itself if it throws.
+                    val handle = file(path, readWrite = false)
+                    openedPfd = proxyPfdFactory.create(handle, "r").seekableOrNull()
+                    openedPfd
+                } catch (e: Exception) {
+                    log(TAG, WARN) { "openReadPFD($path): Proxy lane failed: ${e.asLog()}" }
+                    null
+                }
             }
+        } catch (e: CancellationException) {
+            // Resuming into a cancelled caller discards the return value, so nobody downstream ever
+            // sees this descriptor - it has to be closed here. That also runs the proxy's release
+            // callback, which closes the handle and frees the gateway lease.
+            runCatching { openedPfd?.close() }
+            throw e
         }
+    }
 
     private fun ParcelFileDescriptor.seekableOrNull(): ParcelFileDescriptor? {
         val size = try {
