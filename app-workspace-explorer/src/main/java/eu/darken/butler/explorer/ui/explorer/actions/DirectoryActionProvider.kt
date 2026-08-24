@@ -1,6 +1,7 @@
 package eu.darken.butler.explorer.ui.explorer.actions
 
 import eu.darken.butler.common.files.ArchivePath
+import eu.darken.butler.common.files.SmbPath
 import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
@@ -65,7 +66,12 @@ class DirectoryActionProvider @Inject constructor(
                 )
             }
 
-            if (selectionState.selectedItems.all { it is ExplorerItem.File }) {
+            // Handing a file to another app needs a file:// or content:// URI, which a file on a
+            // server does not have, so a selection holding one is not offered for sharing.
+            val selectionHasNetworkEntry = selectionState.selectedItems.any {
+                it is ExplorerItem.Lookup && it.path is SmbPath
+            }
+            if (!selectionHasNetworkEntry && selectionState.selectedItems.all { it is ExplorerItem.File }) {
                 actions.add(ExplorerActionBarItem.Directory.Share())
             }
 
