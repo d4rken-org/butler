@@ -27,6 +27,7 @@ import eu.darken.butler.common.files.operations.copyGeneric
 import eu.darken.butler.common.files.operations.moveGeneric
 import eu.darken.butler.common.files.saf.SAFGateway
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
+import eu.darken.butler.common.files.smb.SmbGateway
 import eu.darken.butler.common.sharedresource.SharedResource
 import eu.darken.butler.common.sharedresource.adoptChildResource
 import android.os.ParcelFileDescriptor
@@ -52,6 +53,7 @@ class GatewaySwitch @Inject constructor(
     private val safGateway: SAFGateway,
     private val localGateway: LocalGateway,
     private val archiveGateway: ArchiveGateway,
+    private val smbGateway: SmbGateway,
     private val safLocationManager: SAFLocationManager,
     private val proxyPfdFactory: ProxyPfdFactory,
 ) : APathGateway<APath<*>, APathLookup<APath<*>>> {
@@ -109,6 +111,10 @@ class GatewaySwitch @Inject constructor(
 
             is ArchivePath -> {
                 archiveGateway.also { adoptChildResource(it) }
+            }
+
+            is SmbPath -> {
+                smbGateway.also { adoptChildResource(it) }
             }
         }
         return gateway
@@ -230,6 +236,9 @@ class GatewaySwitch @Inject constructor(
         // No preview descriptors for archive entries: producing one would require decompressing
         // the entry to scratch storage, which previews must not trigger implicitly.
         is ArchivePath -> null
+
+        // Same for network files: a descriptor would mean downloading the whole file first.
+        is SmbPath -> null
     }
 
     private suspend fun directReadPfdOrNull(path: LocalPath): ParcelFileDescriptor? =
@@ -352,12 +361,15 @@ class GatewaySwitch @Inject constructor(
             is LocalPath -> this
             is SAFPath -> safLocationManager.toLocalPath(this) ?: throw IOException("Can't map $this to LOCAL")
             is ArchivePath -> throw IOException("Can't map $this to LOCAL")
+            // Forced modes are about the local/SAF split, a network path is unaffected by them.
+            is SmbPath -> this
         }
 
         Type.FORCED_SAF -> when (this) {
             is LocalPath -> safLocationManager.toSAFPath(this) ?: throw IOException("Can't map $this to SAF")
             is SAFPath -> this
             is ArchivePath -> throw IOException("Can't map $this to SAF")
+            is SmbPath -> this
         }
     }
 
@@ -365,6 +377,7 @@ class GatewaySwitch @Inject constructor(
         is LocalPath -> safLocationManager.toSAFPath(this) ?: throw ReadException("Can't map to SAF", this)
         is SAFPath -> safLocationManager.toLocalPath(this) ?: throw ReadException("Can't map to LOCAL", this)
         is ArchivePath -> throw ReadException("No alternative mapping for archive paths", this)
+        is SmbPath -> throw ReadException("No alternative mapping for network paths", this)
     }
 
     override suspend fun getFileSystem(path: APath<*>): FileSystem {
@@ -533,6 +546,12 @@ class GatewaySwitch @Inject constructor(
                 (sources as Collection<ArchivePath>).copyCrossType(target, transferOptions, onIssue)
                     .collect { state -> emit(state) }
             }
+
+            is SmbPath -> {
+                @Suppress("UNCHECKED_CAST")
+                (sources as Collection<SmbPath>).copyCrossType(target, transferOptions, onIssue)
+                    .collect { state -> emit(state) }
+            }
         }
     }
 
@@ -565,6 +584,12 @@ class GatewaySwitch @Inject constructor(
 
             // Moving OUT of an archive implies deleting the source entry - archives are read-only.
             is ArchivePath -> throw WriteException("Archives are read-only", sources.first())
+
+            is SmbPath -> {
+                @Suppress("UNCHECKED_CAST")
+                (sources as Collection<SmbPath>).moveCrossType(target, transferOptions, onIssue)
+                    .collect { state -> emit(state) }
+            }
         }
     }
 
@@ -589,6 +614,15 @@ class GatewaySwitch @Inject constructor(
         )
 
         is ArchivePath -> throw WriteException("Archives are read-only", destination)
+
+        is SmbPath -> copyGeneric(
+            destination = destination,
+            sourceOps = localGateway,
+            destOps = smbGateway,
+            strategy = GenericCrossTypeCopyStrategy(),
+            options = options,
+            onIssue = onIssue,
+        )
     }
 
     @JvmName("safPathCopyCrossType")
@@ -609,6 +643,15 @@ class GatewaySwitch @Inject constructor(
         is SAFPath -> error("Same-type operations should be handled by native implementation")
 
         is ArchivePath -> throw WriteException("Archives are read-only", destination)
+
+        is SmbPath -> copyGeneric(
+            destination = destination,
+            sourceOps = safGateway,
+            destOps = smbGateway,
+            strategy = GenericCrossTypeCopyStrategy(),
+            options = options,
+            onIssue = onIssue,
+        )
     }
 
     @JvmName("archivePathCopyCrossType")
@@ -636,6 +679,15 @@ class GatewaySwitch @Inject constructor(
         )
 
         is ArchivePath -> throw WriteException("Archives are read-only", destination)
+
+        is SmbPath -> copyGeneric(
+            destination = destination,
+            sourceOps = archiveGateway,
+            destOps = smbGateway,
+            strategy = GenericCrossTypeCopyStrategy(),
+            options = options,
+            onIssue = onIssue,
+        )
     }
 
     // ========================================================================
@@ -659,6 +711,15 @@ class GatewaySwitch @Inject constructor(
         )
 
         is ArchivePath -> throw WriteException("Archives are read-only", destination)
+
+        is SmbPath -> moveGeneric(
+            destination = destination,
+            sourceOps = localGateway,
+            destOps = smbGateway,
+            strategy = GenericCrossTypeMoveStrategy(),
+            options = options,
+            onIssue = onIssue,
+        )
     }
 
     @JvmName("safPathMoveCrossType")
@@ -679,6 +740,73 @@ class GatewaySwitch @Inject constructor(
         is SAFPath -> error("Same-type operations should be handled by native implementation")
 
         is ArchivePath -> throw WriteException("Archives are read-only", destination)
+
+        is SmbPath -> moveGeneric(
+            destination = destination,
+            sourceOps = safGateway,
+            destOps = smbGateway,
+            strategy = GenericCrossTypeMoveStrategy(),
+            options = options,
+            onIssue = onIssue,
+        )
+    }
+
+    @JvmName("smbPathCopyCrossType")
+    private suspend fun Collection<SmbPath>.copyCrossType(
+        destination: APath<*>,
+        options: TransferStrategy.Options,
+        onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?
+    ): Flow<CopyAction.State<*, *, *, *>> = when (destination) {
+        is LocalPath -> copyGeneric(
+            destination = destination,
+            sourceOps = smbGateway,
+            destOps = localGateway,
+            strategy = GenericCrossTypeCopyStrategy(),
+            options = options,
+            onIssue = onIssue,
+        )
+
+        is SAFPath -> copyGeneric(
+            destination = destination,
+            sourceOps = smbGateway,
+            destOps = safGateway,
+            strategy = GenericCrossTypeCopyStrategy(),
+            options = options,
+            onIssue = onIssue,
+        )
+
+        is ArchivePath -> throw WriteException("Archives are read-only", destination)
+
+        is SmbPath -> error("Same-type operations should be handled by native implementation")
+    }
+
+    @JvmName("smbPathMoveCrossType")
+    private suspend fun Collection<SmbPath>.moveCrossType(
+        destination: APath<*>,
+        options: TransferStrategy.Options,
+        onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?
+    ): Flow<MoveAction.State<*, *, *, *>> = when (destination) {
+        is LocalPath -> moveGeneric(
+            destination = destination,
+            sourceOps = smbGateway,
+            destOps = localGateway,
+            strategy = GenericCrossTypeMoveStrategy(),
+            options = options,
+            onIssue = onIssue,
+        )
+
+        is SAFPath -> moveGeneric(
+            destination = destination,
+            sourceOps = smbGateway,
+            destOps = safGateway,
+            strategy = GenericCrossTypeMoveStrategy(),
+            options = options,
+            onIssue = onIssue,
+        )
+
+        is ArchivePath -> throw WriteException("Archives are read-only", destination)
+
+        is SmbPath -> error("Same-type operations should be handled by native implementation")
     }
 
     override suspend fun create(
