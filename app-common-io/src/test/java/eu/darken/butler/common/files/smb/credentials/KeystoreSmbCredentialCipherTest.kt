@@ -69,7 +69,7 @@ class KeystoreSmbCredentialCipherTest : BaseTest() {
     }
 
     /** Stands in for AndroidKeyStore and hands out a key every AES cipher rejects. */
-    class UnusableKeyProvider : Provider(NAME, "1.0", "Test keystore handing out an unusable key") {
+    class UnusableKeyProvider : Provider(NAME, 1.0, "Test keystore handing out an unusable key") {
         init {
             put("KeyStore.$NAME", UnusableKeyStoreSpi::class.java.name)
         }
