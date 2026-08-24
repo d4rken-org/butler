@@ -42,13 +42,13 @@ class FileOptionsBottomSheetTest : ComposeTest() {
         mimeType = MimeInfo("text/plain"),
     )
 
-    private fun setSheetContent(item: ExplorerItem.File) {
+    private fun setSheetContent(item: ExplorerItem.File, trashEnabled: Boolean = false) {
         composeTestRule.setContent {
             PreviewWrapper {
                 PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = true) {
                     FileOptionsBottomSheet(
                         item = item,
-                        trashEnabled = false,
+                        trashEnabled = trashEnabled,
                         onDismiss = {},
                         onAction = {},
                     )
@@ -77,5 +77,22 @@ class FileOptionsBottomSheetTest : ComposeTest() {
         countOf("Share") shouldBe 0
         // The actions that work on it are untouched
         countOf("Copy") shouldBe 1
+    }
+
+    @Test
+    fun `a local file offers the trash while it is enabled`() {
+        setSheetContent(localFile, trashEnabled = true)
+
+        countOf("Move to Trash") shouldBe 1
+        countOf("Delete") shouldBe 0
+    }
+
+    /** The trash only holds local files, so deleting a file on a server is permanent. */
+    @Test
+    fun `a file on network storage is deleted rather than trashed`() {
+        setSheetContent(networkFile, trashEnabled = true)
+
+        countOf("Move to Trash") shouldBe 0
+        countOf("Delete") shouldBe 1
     }
 }

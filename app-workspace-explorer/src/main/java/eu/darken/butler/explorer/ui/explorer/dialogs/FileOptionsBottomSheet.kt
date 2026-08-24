@@ -65,6 +65,7 @@ import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionBarItem
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.icon
+import eu.darken.butler.workspace.core.operations.partitionByTrashSupport
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 
 @Composable
@@ -319,18 +320,22 @@ private fun FileOptionsContent(
         HorizontalDivider()
 
         if (isWritable) {
+            // The setting can be on for a file the trash cannot hold, e.g. one on a server. Asking
+            // [partitionByTrashSupport], the same function the delete itself asks, keeps the promise
+            // made here and what actually happens from drifting apart.
+            val canTrash = trashEnabled && partitionByTrashSupport(setOf(item.path)).trashable.isNotEmpty()
             FileActionRow(
                 icon = Icons.TwoTone.Delete,
                 title = stringResource(
-                    if (trashEnabled) R.string.explorer_file_action_move_to_trash
+                    if (canTrash) R.string.explorer_file_action_move_to_trash
                     else R.string.explorer_file_action_delete
                 ),
                 subtitle = stringResource(
-                    if (trashEnabled) R.string.explorer_file_action_move_to_trash_subtitle
+                    if (canTrash) R.string.explorer_file_action_move_to_trash_subtitle
                     else R.string.explorer_file_action_delete_subtitle
                 ),
                 onClick = { onAction(ExplorerActionBarItem.File.Delete(item)) },
-                isDestructive = !trashEnabled,
+                isDestructive = !canTrash,
             )
         }
 
