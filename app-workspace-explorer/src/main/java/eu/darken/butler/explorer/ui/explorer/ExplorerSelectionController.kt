@@ -5,6 +5,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.explorer.core.ExplorerWorkspace
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
+import eu.darken.butler.explorer.core.engine.needsSignIn
 import eu.darken.butler.workspace.contracts.explorer.PickerConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -214,7 +215,4 @@ class ExplorerSelectionController(
             toggle(item)
         }
     }
-
-    private fun ExplorerItem.needsSignIn(): Boolean = this is ExplorerItem.Storage.Network &&
-        status == ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED
 }

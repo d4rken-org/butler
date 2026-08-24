@@ -284,3 +284,10 @@ sealed interface ExplorerItem {
         }
     }
 }
+
+/**
+ * A network location whose credential the vault cannot produce. Butler cannot open it, so it has to
+ * reach the sign-in form instead of a listing, and no picker may hand it back to its caller.
+ */
+fun ExplorerItem.needsSignIn(): Boolean = this is ExplorerItem.Storage.Network &&
+    status == ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED

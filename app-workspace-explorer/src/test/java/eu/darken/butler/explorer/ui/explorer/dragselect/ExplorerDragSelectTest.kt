@@ -8,6 +8,7 @@ import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
 import eu.darken.butler.explorer.ui.explorer.dnd.ExplorerDragPayloadFactory
+import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.explorer.ui.explorer.util.ExplorerSelectionState
 import eu.darken.butler.workspace.contracts.dnd.WorkspaceDragPayload
 import eu.darken.butler.workspace.contracts.explorer.PickerConfig
@@ -16,6 +17,7 @@ import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
+import kotlin.uuid.Uuid
 
 class ExplorerDragSelectTest : BaseTest() {
 
@@ -74,6 +76,32 @@ class ExplorerDragSelectTest : BaseTest() {
         )
 
         explorerDragSelectKeys(state) shouldContainExactly listOf(first.id, second.id)
+    }
+
+    @Test
+    fun `a picker drag sweeps past a network location that needs a sign-in`() {
+        val available = MockDataProvider.createMockStorageNetwork()
+        val signInRequired = MockDataProvider.createMockStorageNetwork(
+            name = "Office NAS",
+            status = ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED,
+            id = Uuid.parse("99999999-8888-7777-6666-555555555555"),
+        )
+        val state = state(
+            items = listOf(available, signInRequired),
+            pickerConfig = pickerConfig(PickerConfig.Selection.DirectoryMulti),
+        )
+
+        explorerDragSelectKeys(state) shouldContainExactly listOf(available.id)
+    }
+
+    @Test
+    fun `normal browsing drag-selects a network location that needs a sign-in`() {
+        val signInRequired = MockDataProvider.createMockStorageNetwork(
+            status = ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED,
+        )
+        val state = state(items = listOf(signInRequired))
+
+        explorerDragSelectKeys(state) shouldContainExactly listOf(signInRequired.id)
     }
 
     @Test

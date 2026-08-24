@@ -18,6 +18,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
+import kotlin.uuid.Uuid
 
 class ExplorerPickerHelperTest : BaseTest() {
 
@@ -95,7 +96,8 @@ class ExplorerPickerHelperTest : BaseTest() {
 
     private fun mockNetworkStorage(
         status: ExplorerItem.Storage.Network.Status = ExplorerItem.Storage.Network.Status.AVAILABLE,
-    ): ExplorerItem.Storage.Network = MockDataProvider.createMockStorageNetwork(status = status)
+        id: Uuid = Uuid.parse("11111111-2222-3333-4444-555555555555"),
+    ): ExplorerItem.Storage.Network = MockDataProvider.createMockStorageNetwork(status = status, id = id)
 
     // ═══════════════════════════════════════════════════════════════
     // canConfirmSelection Tests
@@ -336,6 +338,53 @@ class ExplorerPickerHelperTest : BaseTest() {
                     selectedItems = emptySet(),
                     saveAsFilename = "",
                 ) shouldBe false
+            }
+        }
+
+        @Nested
+        inner class MultiSelect {
+
+            @Test
+            fun `blocked when a selected network location needs a sign-in`() {
+                listOf(
+                    PickerConfig.Selection.DirectoryMulti,
+                    PickerConfig.Selection.MixedMulti,
+                ).forEach { selection ->
+                    val config = PickerConfig(callerWorkspaceId = mockk(), selection = selection)
+                    helper.canConfirmSelection(
+                        config = config,
+                        currentLocation = mockNetworkLocation(),
+                        selectedItems = setOf(
+                            mockNetworkStorage(),
+                            mockNetworkStorage(
+                                status = ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED,
+                                id = Uuid.parse("99999999-8888-7777-6666-555555555555"),
+                            ),
+                        ),
+                        saveAsFilename = "",
+                    ) shouldBe false
+                }
+            }
+
+            @Test
+            fun `enabled when every selected network location is available`() {
+                listOf(
+                    PickerConfig.Selection.DirectoryMulti,
+                    PickerConfig.Selection.MixedMulti,
+                ).forEach { selection ->
+                    val config = PickerConfig(callerWorkspaceId = mockk(), selection = selection)
+                    helper.canConfirmSelection(
+                        config = config,
+                        currentLocation = mockNetworkLocation(),
+                        selectedItems = setOf(
+                            mockNetworkStorage(),
+                            mockNetworkStorage(
+                                id = Uuid.parse("99999999-8888-7777-6666-555555555555"),
+                            ),
+                        ),
+                        saveAsFilename = "",
+                    ) shouldBe true
+                }
             }
         }
 

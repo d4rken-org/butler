@@ -3,6 +3,7 @@ package eu.darken.butler.explorer.ui.picker
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
+import eu.darken.butler.explorer.core.engine.needsSignIn
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionBarItem
 import eu.darken.butler.workspace.contracts.explorer.PickerConfig
 import eu.darken.butler.workspace.contracts.explorer.isDisabled
@@ -45,7 +46,10 @@ class ExplorerPickerHelper @Inject constructor() {
             is PickerConfig.Selection.MixedMulti -> {
                 val canSelect = selectedItems.isNotEmpty() || currentLocation is ExplorerLocation.Directory
                 val writableOk = !config.requireWritable || isWritable(currentLocation, selectedItems)
-                canSelect && writableOk
+                // Confirm is blocked rather than the row being dropped from the result: a silently
+                // shrunken result would look like the picker ignored what the user selected.
+                val signInOk = selectedItems.none { it.needsSignIn() }
+                canSelect && writableOk && signInOk
             }
             is PickerConfig.Selection.FileMulti -> selectedItems.isNotEmpty()
             is PickerConfig.Selection.FileSingle -> false // Instant selection, no confirm needed
