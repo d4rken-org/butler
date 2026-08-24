@@ -105,13 +105,19 @@ class SmbConnectionPoolTest : BaseTest() {
         factory: FakeClientFactory,
         locations: List<SmbLocation> = listOf(locationA, locationB),
         evictions: SharedFlow<Uuid> = MutableSharedFlow(),
+    ): SmbConnectionPool = pool(factory, FakeLocationManager(locations.associateBy { it.id }), evictions)
+
+    private fun pool(
+        factory: FakeClientFactory,
+        locationManager: FakeLocationManager,
+        evictions: SharedFlow<Uuid> = MutableSharedFlow(),
     ): SmbConnectionPool {
         val credentialStore = mockk<SmbCredentialStore>(relaxed = true) {
             every { this@mockk.evictions } returns evictions
         }
         return SmbConnectionPool(
             appScope = TestScope(),
-            locationManager = FakeLocationManager(locations.associateBy { it.id }),
+            locationManager = locationManager,
             credentialStore = credentialStore,
             clientFactory = factory,
             dialectProbe = SmbDialectProbe(factory),
@@ -252,6 +258,38 @@ class SmbConnectionPoolTest : BaseTest() {
 
         verify { factory.shares[0].close() }
         verify { factory.shares[1].close() }
+    }
+
+    @Test
+    fun `the pool reconnects after it was closed`() = runTest {
+        val factory = FakeClientFactory()
+        val pool = pool(factory)
+        pool.acquire(locationA.id).close()
+
+        pool.close()
+        pool.use(SmbPath.root(locationA.id), retryOnTransportLoss = false) { }
+
+        factory.clients.size shouldBe 2
+    }
+
+    @Test
+    fun `an edited endpoint gets a new session while the old one drains`() = runTest {
+        val factory = FakeClientFactory()
+        val locations = FakeLocationManager(mapOf(locationA.id to locationA))
+        val pool = pool(factory, locations)
+        val inFlight = pool.acquire(locationA.id)
+
+        locations.locationsById = mapOf(locationA.id to locationA.copy(host = "other.local"))
+        val afterEdit = pool.acquire(locationA.id)
+
+        afterEdit.location.host shouldBe "other.local"
+        factory.clients.size shouldBe 2
+        // The old session is only closed once the operation still using it is done
+        verify(exactly = 0) { factory.shares[0].close() }
+        inFlight.close()
+        verify { factory.shares[0].close() }
+
+        afterEdit.close()
     }
 
     companion object {

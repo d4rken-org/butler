@@ -19,7 +19,6 @@ import eu.darken.butler.common.files.smb.location.SmbLocation
 import eu.darken.butler.common.files.smb.location.SmbLocationManager
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -83,13 +82,18 @@ class SmbConnectionPool @Inject constructor(
 
     private val lock = Mutex()
     private val generations = mutableMapOf<Key, Generation>()
-    private var idleTicker: Job? = null
-    private var closed = false
 
     init {
         credentialStore.evictions
             .onEach { evict(it) }
             .launchIn(appScope)
+
+        appScope.launch {
+            while (isActive) {
+                delay(IDLE_CHECK_INTERVAL)
+                trimIdle()
+            }
+        }
     }
 
     /**
@@ -129,8 +133,19 @@ class SmbConnectionPool @Inject constructor(
 
         repeat(CONNECT_ATTEMPTS) {
             val generation = lock.withLock {
-                check(!closed) { "SMB connection pool is closed" }
-                generations[key]?.takeIf { !it.stale && it.connection.isConnected }
+                val cached = generations[key]?.takeIf { !it.stale && it.connection.isConnected }
+                when {
+                    cached == null -> null
+                    // The key only covers the credential generation, so an edited host, port, share,
+                    // base path or domain would otherwise keep being served from the old endpoint.
+                    !cached.location.hasSameEndpoint(location) -> {
+                        generations.remove(key)
+                        markStale(cached)
+                        null
+                    }
+
+                    else -> cached
+                }
             } ?: connect(location, key)
 
             val leased = synchronized(generation) {
@@ -186,11 +201,17 @@ class SmbConnectionPool @Inject constructor(
             } else {
                 generations.remove(key)?.let { markStale(it) }
                 generations[key] = fresh
-                ensureIdleTicker()
                 fresh
             }
         }
     }
+
+    /** Everything the session is bound to that [Key] does not cover. */
+    private fun SmbLocation.hasSameEndpoint(other: SmbLocation): Boolean = host == other.host &&
+        port == other.port &&
+        share == other.share &&
+        basePath == other.basePath &&
+        domain == other.domain
 
     /**
      * An SMB1-only server hangs up on our negotiate, which is indistinguishable from an unreachable
@@ -215,10 +236,12 @@ class SmbConnectionPool @Inject constructor(
         dropped.forEach { markStale(it) }
     }
 
+    /**
+     * Drops every session, e.g. when the last user of the gateway lets go. The pool itself stays
+     * usable: the next operation reconnects instead of failing for the rest of the process.
+     */
     suspend fun close() {
         val dropped = lock.withLock {
-            closed = true
-            idleTicker?.cancel()
             generations.values.toList().also { generations.clear() }
         }
         dropped.forEach { markStale(it) }
@@ -238,16 +261,6 @@ class SmbConnectionPool @Inject constructor(
         }
         dropped.forEach { closeQuietly(it) }
         return remaining
-    }
-
-    private fun ensureIdleTicker() {
-        if (idleTicker?.isActive == true) return
-        idleTicker = appScope.launch {
-            while (isActive) {
-                delay(IDLE_CHECK_INTERVAL)
-                if (!trimIdle()) break
-            }
-        }
     }
 
     /** Called from stream/handle close, which cannot suspend. */

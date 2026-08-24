@@ -11,13 +11,20 @@ import eu.darken.butler.common.files.smb.credentials.db.SmbCredentialEntity
 import eu.darken.butler.common.files.smb.credentials.db.SmbCredentialsDao
 import eu.darken.butler.common.files.smb.location.SmbLocation
 import eu.darken.butler.common.files.smb.location.SmbLocationManager
+import eu.darken.butler.common.sharedresource.useRes
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import okio.buffer
 import okio.sink
 import okio.source
@@ -212,6 +219,31 @@ class SmbGatewayIntegrationTest : BaseTest() {
         rig.pool.close()
     }
 
+    /** The keep-alive resource is released whenever the last operation finishes, not just on exit. */
+    @Test
+    fun `browsing works again after the gateway resource was released`() = runTest {
+        assumeTrue(dockerAvailable)
+        val rig = rig(sambaContainer)
+        val gatewayScope = CoroutineScope(Dispatchers.IO)
+        val gateway = SmbGateway(gatewayScope, TestDispatcherProvider(), rig.ops, rig.pool)
+
+        gateway.sharedResource.useRes { gateway.lookupFiles(path(), LookupOptions()) }
+
+        gateway.sharedResource.close()
+        withContext(Dispatchers.IO) {
+            withTimeout(RESOURCE_TEARDOWN_TIMEOUT) {
+                while (!gateway.sharedResource.isClosed) delay(100)
+                // The source teardown (which closes the pool) runs off-lock after the detach
+                delay(1000)
+            }
+        }
+
+        gateway.sharedResource.useRes { gateway.lookupFiles(path(), LookupOptions()) }
+
+        gatewayScope.cancel()
+        rig.pool.close()
+    }
+
     @Test
     fun `a wrong password is reported as an auth failure`() = runTest {
         assumeTrue(dockerAvailable)
@@ -252,6 +284,9 @@ class SmbGatewayIntegrationTest : BaseTest() {
 
         /** Well past Int.MAX_VALUE, the offset every 32-bit truncation bug shows up at. */
         private const val LARGE_OFFSET = 3L * 1024 * 1024 * 1024
+
+        /** Generous room for the shared resource's own stop timeout. */
+        private const val RESOURCE_TEARDOWN_TIMEOUT = 30_000L
 
         val dockerAvailable: Boolean by lazy {
             try {
