@@ -31,16 +31,14 @@ class ExplorerPickerHelper @Inject constructor() {
 
         return when (config.selection) {
             is PickerConfig.Selection.DirectorySingle -> {
-                val atDirectory = currentLocation is ExplorerLocation.Directory
-                    || (currentLocation is ExplorerLocation.Device && selectedItems.isNotEmpty())
+                val atDirectory = isAtConfirmableTarget(currentLocation, selectedItems)
                 val writableOk = !config.requireWritable || isWritable(currentLocation, selectedItems)
                 atDirectory && writableOk
             }
             is PickerConfig.Selection.SaveAs -> {
                 // SaveAs always requires writability (inherent to the operation)
                 val hasValidFilename = saveAsFilename.isNotBlank()
-                val atDirectory = currentLocation is ExplorerLocation.Directory
-                    || (currentLocation is ExplorerLocation.Device && selectedItems.isNotEmpty())
+                val atDirectory = isAtConfirmableTarget(currentLocation, selectedItems)
                 hasValidFilename && atDirectory && isWritable(currentLocation, selectedItems)
             }
             is PickerConfig.Selection.DirectoryMulti,
@@ -97,6 +95,13 @@ class ExplorerPickerHelper @Inject constructor() {
     fun allowsFileOpenActions(config: PickerConfig?): Boolean = config == null
 
     /**
+     * Whether a surface may offer network location management: adding, editing, renaming or
+     * removing one. A picker hands a location back to its caller, it does not administer them. Both
+     * the action bar (via [filterActionsForPicker]) and the empty Network view ask this.
+     */
+    fun allowsNetworkManagementActions(config: PickerConfig?): Boolean = config == null
+
+    /**
      * Extracts selected paths for picker result based on selection mode.
      */
     fun extractSelectedPaths(
@@ -144,6 +149,23 @@ class ExplorerPickerHelper @Inject constructor() {
         }
     }
 
+    /**
+     * A single-target picker confirms either the folder it stands in, or a storage picked at a
+     * storage overview. On the Network overview only a location Butler can actually open counts.
+     */
+    private fun isAtConfirmableTarget(
+        currentLocation: ExplorerLocation?,
+        selectedItems: Set<ExplorerItem>,
+    ): Boolean = when (currentLocation) {
+        is ExplorerLocation.Directory -> true
+        is ExplorerLocation.Device -> selectedItems.isNotEmpty()
+        is ExplorerLocation.Network -> selectedItems.isNotEmpty() && selectedItems.all {
+            it is ExplorerItem.Storage.Network && it.status == ExplorerItem.Storage.Network.Status.AVAILABLE
+        }
+
+        else -> false
+    }
+
     private fun isWritable(
         currentLocation: ExplorerLocation?,
         selectedItems: Set<ExplorerItem>,
@@ -189,6 +211,12 @@ class ExplorerPickerHelper @Inject constructor() {
             is ExplorerActionBarItem.File.OpenInEditor,
             is ExplorerActionBarItem.File.OpenWith -> allowsFileOpenActions(config)
 
+            // Administering network locations, also offered by the empty Network view
+            is ExplorerActionBarItem.Network.AddLocation,
+            is ExplorerActionBarItem.Network.EditLocation,
+            is ExplorerActionBarItem.Network.RemoveLocation,
+            is ExplorerActionBarItem.Network.RenameLocation -> allowsNetworkManagementActions(config)
+
             // Blocked: modification, clipboard, device, file, and recycle bin actions
             is ExplorerActionBarItem.Directory.Copy,
             is ExplorerActionBarItem.Directory.Cut,
@@ -201,10 +229,6 @@ class ExplorerPickerHelper @Inject constructor() {
             is ExplorerActionBarItem.Device.AddLocation,
             is ExplorerActionBarItem.Device.RemoveLocation,
             is ExplorerActionBarItem.Device.RenameLocation,
-            is ExplorerActionBarItem.Network.AddLocation,
-            is ExplorerActionBarItem.Network.EditLocation,
-            is ExplorerActionBarItem.Network.RemoveLocation,
-            is ExplorerActionBarItem.Network.RenameLocation,
             is ExplorerActionBarItem.File.Share,
             is ExplorerActionBarItem.File.Copy,
             is ExplorerActionBarItem.File.Cut,

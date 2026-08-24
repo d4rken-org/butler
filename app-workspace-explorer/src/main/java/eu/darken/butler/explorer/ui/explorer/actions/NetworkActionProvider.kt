@@ -21,12 +21,6 @@ class NetworkActionProvider @Inject constructor() : ExplorerActionProvider {
             .filterIsInstance<ExplorerItem.Storage.Network>()
 
         if (selectionState.selectedItems.isNotEmpty()) {
-            if (selectionState.selectedItems.any { it is ExplorerItem.Storage }) {
-                actions.add(ExplorerActionBarItem.Directory.OpenInNewTabs())
-            }
-
-            actions.add(ExplorerActionBarItem.Common.Info())
-
             if (selectedNetworkItems.size == 1) {
                 actions.add(ExplorerActionBarItem.Network.EditLocation())
                 actions.add(ExplorerActionBarItem.Network.RenameLocation())

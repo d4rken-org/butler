@@ -89,6 +89,7 @@ internal fun ExplorerListContent(
                             onAddLocation = {
                                 vm?.executeAction(ExplorerActionBarItem.Network.AddLocation())
                             },
+                            showAddAction = state.networkManagementEnabled,
                         )
 
                         else -> EmptyDirectoryState()

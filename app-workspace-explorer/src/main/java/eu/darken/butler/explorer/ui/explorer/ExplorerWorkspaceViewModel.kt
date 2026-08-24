@@ -24,13 +24,11 @@ import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.common.files.archive.CompressionPreset
 import eu.darken.butler.common.files.TextFileDetector
 import eu.darken.butler.common.files.actions.PathActionIssue
-import eu.darken.butler.common.files.SmbPath
 import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.extensions.matches
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.files.smb.SmbConnectionTester
-import eu.darken.butler.common.files.smb.isSmbSignInFailure
 import eu.darken.butler.common.files.smb.credentials.SmbCredentialStore
 import eu.darken.butler.common.files.smb.location.SmbLocationManager
 import eu.darken.butler.common.files.validation.FilenameValidator
@@ -56,6 +54,7 @@ import eu.darken.butler.workspace.core.preview.FolderPreviewObserver
 import eu.darken.butler.workspace.core.preview.FolderPreviewResolver
 import eu.darken.butler.explorer.core.FilterState
 import eu.darken.butler.explorer.core.SortSettings
+import eu.darken.butler.explorer.core.smbSignInLocationId
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.favorites.ExplorerFavoritesRepo
@@ -121,6 +120,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterIsInstance
@@ -354,15 +354,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         // A directory that fails because the password is gone or wrong opens the sign-in form
         // instead of a dead error screen; saving it refreshes the location.
         workspaceReadyState
-            .map { it?.error }
-            .distinctUntilChanged()
-            .onEach { error ->
-                if (error == null || !error.isSmbSignInFailure()) return@onEach
-                val locationId = (cachedCurrentLocation as? ExplorerLocation.Directory)
-                    ?.path
-                    ?.let { it as? SmbPath }
-                    ?.locationId
-                    ?: return@onEach
+            .distinctUntilChangedBy { it?.error }
+            .onEach { state ->
+                val locationId = state?.smbSignInLocationId() ?: return@onEach
                 smbLocations.promptSignIn(locationId)
             }
             .launchInViewModel()
@@ -456,6 +450,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val sortSettings: SortSettings = SortSettings(),
         val trashEnabled: Boolean = false,
         val fileOpenActionsEnabled: Boolean = true,
+        /** A picker returns a network location, it does not add or remove one. */
+        val networkManagementEnabled: Boolean = true,
         val saveAsFilename: String = "",
         val disabledItems: Set<ExplorerItem> = emptySet(),
         val canConfirmSelection: Boolean = true,
@@ -655,6 +651,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                         sortSettings = matchedSort?.resolution?.settings ?: SortSettings(),
                         trashEnabled = recycleBinEnabled,
                         fileOpenActionsEnabled = pickerHelper.allowsFileOpenActions(pickerConfig),
+                        networkManagementEnabled = pickerHelper.allowsNetworkManagementActions(pickerConfig),
                         saveAsFilename = saveAsFilename,
                         disabledItems = disabledItems,
                         canConfirmSelection = canConfirmSelection,

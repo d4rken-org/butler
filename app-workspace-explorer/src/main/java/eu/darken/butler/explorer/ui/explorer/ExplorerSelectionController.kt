@@ -153,6 +153,11 @@ class ExplorerSelectionController(
         val pickerConfig = workspace.pickerConfig
 
         when {
+            // A location that needs a sign-in cannot be selected or opened, so every tap on it goes
+            // to the form that fixes that (navigate() shows it, see ExplorerNavigationController).
+            item.needsSignIn() -> {
+                navigate(item)
+            }
             // FileMulti mode: tap file to toggle selection
             pickerConfig?.selection is PickerConfig.Selection.FileMulti && item is ExplorerItem.File -> {
                 toggle(item)
@@ -185,6 +190,11 @@ class ExplorerSelectionController(
             return
         }
 
+        if (item.needsSignIn()) {
+            navigate(item)
+            return
+        }
+
         val pickerConfig = pickerConfig()
 
         // Enable long-press selection in:
@@ -199,4 +209,7 @@ class ExplorerSelectionController(
             toggle(item)
         }
     }
+
+    private fun ExplorerItem.needsSignIn(): Boolean = this is ExplorerItem.Storage.Network &&
+        status == ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED
 }
