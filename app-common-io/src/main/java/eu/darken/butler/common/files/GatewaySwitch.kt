@@ -15,6 +15,7 @@ import eu.darken.butler.common.files.archive.ArchiveGateway
 import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
+import eu.darken.butler.common.files.io.ProxyPfdFactory
 import eu.darken.butler.common.files.local.LocalGateway
 import eu.darken.butler.common.files.metadata.FileSystem
 import eu.darken.butler.common.files.metadata.Ownership
@@ -31,6 +32,7 @@ import eu.darken.butler.common.sharedresource.adoptChildResource
 import android.os.ParcelFileDescriptor
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.plus
@@ -51,6 +53,7 @@ class GatewaySwitch @Inject constructor(
     private val localGateway: LocalGateway,
     private val archiveGateway: ArchiveGateway,
     private val safLocationManager: SAFLocationManager,
+    private val proxyPfdFactory: ProxyPfdFactory,
 ) : APathGateway<APath<*>, APathLookup<APath<*>>> {
 
     private suspend fun <T : APath<T>, R> useGateway(
@@ -212,24 +215,15 @@ class GatewaySwitch @Inject constructor(
     /**
      * Best-effort seekable, read-only [ParcelFileDescriptor] for streaming previews (APK icon, PDF, …).
      *
-     * NOTE: this intentionally bypasses gateway routing — a [LocalPath] opens its backing file directly,
-     * so root/ADB-only files return null. It also returns null for non-seekable descriptors (statSize < 0)
-     * and any failure. Callers MUST treat null as "no preview" and fall back to a placeholder; they own
-     * closing the returned descriptor.
+     * A [LocalPath] the app can open itself and a [SAFPath] are served by the platform directly. Every
+     * other [LocalPath] - the ones that need root or ADB escalation - goes through [proxyReadPfdOrNull],
+     * which serves reads from the gateway's [FileHandle]. Archive entries have no descriptor at all.
+     *
+     * Null means "no preview": non-seekable descriptors (statSize < 0) and any failure resolve to it,
+     * and callers MUST fall back to a placeholder. Callers own closing the returned descriptor.
      */
     suspend fun openReadPFD(path: APath<*>): ParcelFileDescriptor? = when (path) {
-        is LocalPath -> withContext(dispatcherProvider.IO) {
-            try {
-                val file = path.file
-                if (!file.isFile || !file.canRead()) return@withContext null
-                ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY).seekableOrNull()
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                log(TAG, WARN) { "openReadPFD($path) failed: ${e.asLog()}" }
-                null
-            }
-        }
+        is LocalPath -> directReadPfdOrNull(path) ?: proxyReadPfdOrNull(path)
 
         is SAFPath -> safGateway.openReadPFD(path)?.seekableOrNull()
 
@@ -238,8 +232,49 @@ class GatewaySwitch @Inject constructor(
         is ArchivePath -> null
     }
 
-    private fun ParcelFileDescriptor.seekableOrNull(): ParcelFileDescriptor? =
-        if (statSize >= 0) this else this.also { runCatching { it.close() } }.let { null }
+    private suspend fun directReadPfdOrNull(path: LocalPath): ParcelFileDescriptor? =
+        withContext(dispatcherProvider.IO) {
+            try {
+                val file = path.file
+                if (!file.isFile || !file.canRead()) return@withContext null
+                ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY).seekableOrNull()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                log(TAG, WARN) { "openReadPFD($path): Direct open failed: ${e.asLog()}" }
+                null
+            }
+        }
+
+    /**
+     * NonCancellable because both halves carry something a cancellation must not drop: the handle
+     * holds a gateway lease until the descriptor is released, and statSize below may block on a
+     * Binder call.
+     */
+    private suspend fun proxyReadPfdOrNull(path: APath<*>): ParcelFileDescriptor? =
+        withContext(NonCancellable + dispatcherProvider.IO) {
+            try {
+                // create() owns the handle from here on and closes it itself if it throws.
+                val handle = file(path, readWrite = false)
+                proxyPfdFactory.create(handle, "r").seekableOrNull()
+            } catch (e: Exception) {
+                log(TAG, WARN) { "openReadPFD($path): Proxy lane failed: ${e.asLog()}" }
+                null
+            }
+        }
+
+    private fun ParcelFileDescriptor.seekableOrNull(): ParcelFileDescriptor? {
+        val size = try {
+            statSize
+        } catch (e: Exception) {
+            log(TAG, WARN) { "seekableOrNull(): statSize failed: ${e.asLog()}" }
+            runCatching { close() }
+            return null
+        }
+        if (size >= 0) return this
+        runCatching { close() }
+        return null
+    }
 
     override suspend fun delete(
         targets: Set<APath<*>>,

@@ -204,7 +204,7 @@ class ImageProbeTest {
 
     @Test
     fun `a path the gateway cannot serve is skipped, not failed`() = runTest2 {
-        // Root- or ADB-routed local paths and archive entries end up here: no source, no verdict.
+        // Archive entries end up here: no source, no verdict.
         val probe = probe(descriptor = { null }) { anyStream() }
 
         probe.resolveDecodeInput(safSource) shouldBe ImageDecodeInput.None

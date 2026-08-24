@@ -248,6 +248,20 @@ interface FileSystemOps<P : APath<P>, PL : APathLookup<P>> {
      */
     suspend fun openOutputStream(path: P, append: Boolean = false): OutputStream
 
+    /**
+     * Open a random-access handle on a file.
+     *
+     * Reads and writes are positioned, so no seeking is involved and any order of offsets is valid.
+     * `size()` reflects the file as the handle sees it and stays stable while nothing writes through
+     * the handle. The handle carries whatever lease its gateway needs (a root/ADB session, for
+     * example) and stays valid until it is closed, which also releases that lease.
+     *
+     * Caller is responsible for closing the handle.
+     *
+     * @param path The file to open
+     * @param readWrite If true, the handle may also write; if false, it is read-only
+     * @throws eu.darken.butler.common.files.errors.ReadException if the file cannot be opened
+     */
     suspend fun file(path: P, readWrite: Boolean): FileHandle
 
     /**

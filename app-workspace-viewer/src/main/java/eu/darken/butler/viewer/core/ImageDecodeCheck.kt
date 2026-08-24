@@ -17,8 +17,8 @@ import java.util.concurrent.atomic.AtomicReference
 
 /**
  * What the decode check was given to read a file with. [None] is an ordinary outcome, not an error:
- * root/ADB-routed local paths, archive entries and anything that fails to open have no seekable
- * source, and the check then has nothing to say about the file.
+ * archive entries and anything that fails to open have no seekable source, and the check then has
+ * nothing to say about the file.
  */
 internal sealed interface ImageDecodeInput {
 
