@@ -144,20 +144,11 @@ class SmbConnectionPool @Inject constructor(
                         null
                     }
 
-                    else -> cached
+                    else -> cached.takeIf { lease(it) }
                 }
             } ?: connect(location, key)
 
-            val leased = synchronized(generation) {
-                if (generation.stale) {
-                    false
-                } else {
-                    generation.leases++
-                    true
-                }
-            }
-
-            if (leased) {
+            if (generation != null) {
                 return Lease(generation.location, generation.share) { release(generation) }
             }
         }
@@ -165,7 +156,24 @@ class SmbConnectionPool @Inject constructor(
         throw SmbUnreachableException(location.endpointLabel)
     }
 
-    private suspend fun connect(location: SmbLocation, key: Key): Generation {
+    /**
+     * Takes the first lease on a generation. Only ever called while [lock] is held, because
+     * [trimIdle] collects on that same lock: checking and leasing in one go is what stops the idle
+     * sweep from closing a session between it being picked and it reaching the caller.
+     *
+     * @return false if the generation went stale first, the caller then connects a fresh one.
+     */
+    private fun lease(generation: Generation): Boolean = synchronized(generation) {
+        if (generation.stale) {
+            false
+        } else {
+            generation.leases++
+            true
+        }
+    }
+
+    /** @return the leased generation, or null if it went stale before it could be leased. */
+    private suspend fun connect(location: SmbLocation, key: Key): Generation? {
         val endpoint = location.endpointLabel
 
         val credential = when (location.authType) {
@@ -222,11 +230,11 @@ class SmbConnectionPool @Inject constructor(
             if (existing != null) {
                 // Raced another caller onto the same endpoint, keep theirs
                 closeQuietly(fresh)
-                existing
+                existing.takeIf { lease(it) }
             } else {
                 generations.remove(key)?.let { markStale(it) }
                 generations[key] = fresh
-                fresh
+                fresh.takeIf { lease(it) }
             }
         }
     }

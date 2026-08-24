@@ -18,16 +18,20 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
+import java.util.concurrent.CyclicBarrier
+import java.util.concurrent.TimeUnit
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
@@ -252,6 +256,36 @@ class SmbConnectionPoolTest : BaseTest() {
         leased.close()
     }
 
+    /**
+     * The idle sweep and a caller asking for the same location run into each other. Whichever wins,
+     * the caller must never be handed the share the sweep just closed: either the sweep gets there
+     * first and the caller connects a fresh session, or the caller leases first and the sweep skips
+     * a generation that is no longer idle.
+     */
+    @Test
+    fun `the idle sweep never closes a session that is being handed out`() = runBlocking {
+        repeat(RACE_ROUNDS) {
+            val factory = FakeClientFactory()
+            val pool = pool(factory)
+            // Cached, unleased and past the idle timeout: exactly what the sweep collects
+            pool.acquire(locationA.id).close()
+
+            val start = CyclicBarrier(2)
+            val sweep = async(Dispatchers.IO) {
+                start.await(BARRIER_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                pool.trimIdle(FAR_FUTURE)
+            }
+            val lease = async(Dispatchers.IO) {
+                start.await(BARRIER_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                pool.acquire(locationA.id)
+            }.await()
+            sweep.await()
+
+            verify(exactly = 0) { lease.share.close() }
+            lease.close()
+        }
+    }
+
     @Test
     fun `closing the pool closes every session`() = runTest {
         val factory = FakeClientFactory()
@@ -355,5 +389,7 @@ class SmbConnectionPoolTest : BaseTest() {
 
     companion object {
         private const val FAR_FUTURE = Long.MAX_VALUE / 2
+        private const val RACE_ROUNDS = 100
+        private const val BARRIER_TIMEOUT_SECONDS = 10L
     }
 }
