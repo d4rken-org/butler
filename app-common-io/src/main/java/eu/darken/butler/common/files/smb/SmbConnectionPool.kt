@@ -210,7 +210,11 @@ class SmbConnectionPool @Inject constructor(
         log(TAG, INFO) { "Connected to $endpoint (credential generation ${key.credentialVersion})" }
 
         return lock.withLock {
-            val existing = generations[key]?.takeIf { !it.stale && it.connection.isConnected }
+            // The endpoint check matters as much as in acquire(): a caller that connected to the old
+            // endpoint may publish while an edited location is already being connected to.
+            val existing = generations[key]?.takeIf {
+                !it.stale && it.connection.isConnected && it.location.hasSameEndpoint(location)
+            }
             if (existing != null) {
                 // Raced another caller onto the same endpoint, keep theirs
                 closeQuietly(fresh)

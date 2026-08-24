@@ -7,19 +7,24 @@ import com.hierynomus.smbj.share.DiskShare
 import com.hierynomus.protocol.transport.TransportException
 import eu.darken.butler.common.files.SmbPath
 import eu.darken.butler.common.files.extensions.Segments
+import eu.darken.butler.common.files.smb.credentials.SmbCredential
 import eu.darken.butler.common.files.smb.credentials.SmbCredentialStore
 import eu.darken.butler.common.files.smb.location.SmbLocation
 import eu.darken.butler.common.files.smb.location.SmbLocationManager
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
@@ -290,6 +295,62 @@ class SmbConnectionPoolTest : BaseTest() {
         verify { factory.shares[0].close() }
 
         afterEdit.close()
+    }
+
+    /**
+     * The connect that started first finishes last: it must not hand its old-endpoint session to the
+     * caller that asked after the edit.
+     */
+    @Test
+    fun `a connect that finishes late never replaces the edited endpoint`() = runTest {
+        val factory = FakeClientFactory()
+        val passwordLocation = locationA.copy(
+            authType = SmbLocation.AuthType.PASSWORD,
+            username = "darken",
+        )
+        val locations = FakeLocationManager(mapOf(passwordLocation.id to passwordLocation))
+        // One gate per connect, in call order, so both can be held mid-negotiation
+        val gates = listOf(CompletableDeferred<Unit>(), CompletableDeferred<Unit>())
+        var resolveCalls = 0
+        val credentialStore = mockk<SmbCredentialStore>(relaxed = true) {
+            every { this@mockk.evictions } returns MutableSharedFlow()
+            coEvery { resolve(any()) } coAnswers {
+                gates[resolveCalls++].await()
+                SmbCredential("darken", null, "hunter2".toCharArray())
+            }
+        }
+        val pool = SmbConnectionPool(
+            appScope = TestScope(),
+            locationManager = locations,
+            credentialStore = credentialStore,
+            clientFactory = factory,
+            dialectProbe = SmbDialectProbe(factory),
+        )
+
+        val beforeEdit = async { pool.acquire(passwordLocation.id) }
+        runCurrent()
+
+        locations.locationsById = mapOf(passwordLocation.id to passwordLocation.copy(host = "other.local"))
+        val afterEdit = async { pool.acquire(passwordLocation.id) }
+        runCurrent()
+
+        // The old-endpoint connect publishes first, the post-edit one right after
+        gates[0].complete(Unit)
+        runCurrent()
+        gates[1].complete(Unit)
+        runCurrent()
+
+        val oldLease = beforeEdit.await()
+        val newLease = afterEdit.await()
+        oldLease.location.host shouldBe "nas.local"
+        newLease.location.host shouldBe "other.local"
+
+        oldLease.close()
+        newLease.close()
+
+        val next = pool.acquire(passwordLocation.id)
+        next.location.host shouldBe "other.local"
+        next.close()
     }
 
     companion object {
