@@ -835,7 +835,9 @@ class SharedResourceTest : BaseTest() {
                 var r = sr.get()
                 var guard = 0
                 // A transient get() may reuse the not-yet-detached (dead) gen-1; retry until gen-2.
-                while (r.item == 1 && guard++ < 1000) {
+                // Gen-1's async self-teardown may force-close the freshly handed-out lease between
+                // get() and the item read, making `item` throw — treat that as dead-gen-1 reuse too.
+                while (runCatching { r.item }.getOrNull() != 2 && guard++ < 1000) {
                     r.close()
                     r = sr.get()
                 }
@@ -915,7 +917,9 @@ class SharedResourceTest : BaseTest() {
             val r2 = withTimeout(5_000) {
                 var r = sr.get()
                 var guard = 0
-                while (r.item == 1 && guard++ < 2000) {
+                // Tolerate `item` throwing when gen-1's self-teardown force-closes a fresh lease
+                // mid-read (see the sibling supersede test's churn loop).
+                while (runCatching { r.item }.getOrNull() != 2 && guard++ < 2000) {
                     r.close()
                     r = sr.get()
                 }
