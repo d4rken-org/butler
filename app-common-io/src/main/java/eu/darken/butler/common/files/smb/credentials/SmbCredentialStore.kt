@@ -66,12 +66,8 @@ class SmbCredentialStore @Inject constructor(
             ?.takeIf { it.credentialVersion == location.credentialVersion }
             ?.let { return SmbCredential(it.username, it.domain, it.password.copyOf()) }
 
-        val entity = dao.get(location.id)
-            ?: throw SmbCredentialUnavailableException(location.id, "No credential stored")
-
-        if (entity.credentialVersion != location.credentialVersion) {
-            throw SmbCredentialUnavailableException(location.id, "Stored credential is from an older generation")
-        }
+        val entity = dao.get(location.id, location.credentialVersion)
+            ?: throw SmbCredentialUnavailableException(location.id, "No credential stored for this generation")
 
         val plaintext = cipher.decrypt(
             locationId = location.id,
@@ -96,10 +92,11 @@ class SmbCredentialStore @Inject constructor(
     }
 
     /**
-     * Persists (or holds in memory) a credential and evicts whatever was there before.
+     * Persists (or holds in memory) one generation of a credential and evicts the open sessions.
      *
-     * Called BEFORE the matching location row is written, so a crash in between leaves an orphaned
-     * credential row (cleaned up by [reconcile]) rather than a location nobody can sign in to.
+     * Called BEFORE the matching location row is written, so a crash in between leaves an unused
+     * credential row (cleaned up by [dropOtherGenerations] and [reconcile]) rather than a location
+     * nobody can sign in to. Older generations survive this call for exactly that reason.
      */
     suspend fun store(
         locationId: Uuid,
@@ -126,7 +123,7 @@ class SmbCredentialStore @Inject constructor(
             }
 
             val now = Clock.System.now()
-            val existing = dao.get(locationId)
+            val existing = dao.get(locationId, credentialVersion)
             dao.upsert(
                 SmbCredentialEntity(
                     locationId = locationId,
@@ -141,7 +138,7 @@ class SmbCredentialStore @Inject constructor(
                 )
             )
         } else {
-            dao.delete(locationId)
+            dao.deleteGeneration(locationId, credentialVersion)
             sessionCredentials[locationId] = SessionEntry(
                 credentialVersion = credentialVersion,
                 username = username,
@@ -161,14 +158,30 @@ class SmbCredentialStore @Inject constructor(
         evictionEvents.emit(locationId)
     }
 
-    /** Drops credential rows whose location is gone, e.g. after a crash between the two writes. */
-    suspend fun reconcile(knownLocationIds: Set<Uuid>) {
-        val orphaned = dao.getLocationIds().filterNot { knownLocationIds.contains(it) }
-        if (orphaned.isEmpty()) return
-        log(TAG, INFO) { "Dropping ${orphaned.size} orphaned credentials" }
-        orphaned.forEach { dao.delete(it) }
+    /** Retires the generations a committed location row no longer refers to. */
+    suspend fun dropOtherGenerations(locationId: Uuid, keepVersion: Int) {
+        dao.deleteOtherGenerations(locationId, keepVersion)
+    }
+
+    /**
+     * Drops every credential row no location refers to: locations that are gone (e.g. after a crash
+     * between the two writes), generations no location points at any more, and guest locations,
+     * which never authenticate.
+     */
+    suspend fun reconcile(locations: Collection<SmbLocation>) {
+        val known = locations.associateBy { it.id }
+        val stale = dao.getAllOnce().filter { row ->
+            val location = known[row.locationId]
+            location == null ||
+                location.authType == SmbLocation.AuthType.GUEST ||
+                location.credentialVersion != row.credentialVersion
+        }
+        if (stale.isNotEmpty()) {
+            log(TAG, INFO) { "Dropping ${stale.size} unreferenced credential(s)" }
+            stale.forEach { dao.deleteGeneration(it.locationId, it.credentialVersion) }
+        }
         sessionCredentials.keys
-            .filterNot { knownLocationIds.contains(it) }
+            .filterNot { known.containsKey(it) }
             .forEach { clearSession(it) }
     }
 
@@ -181,7 +194,11 @@ class SmbCredentialStore @Inject constructor(
     }
 
     private fun availability(locationId: Uuid, expectedVersion: Int?): Flow<Availability> = combine(
-        dao.getAll().map { entities -> entities.firstOrNull { it.locationId == locationId } },
+        dao.getAll().map { entities ->
+            entities.firstOrNull {
+                it.locationId == locationId && (expectedVersion == null || it.credentialVersion == expectedVersion)
+            }
+        },
         sessionRevision,
     ) { entity, _ ->
         val session = sessionCredentials[locationId]
@@ -191,7 +208,6 @@ class SmbCredentialStore @Inject constructor(
             }
 
             entity == null -> Availability.MISSING
-            expectedVersion != null && entity.credentialVersion != expectedVersion -> Availability.MISSING
             !cipher.isKeyAvailable(entity.keyAlias) -> Availability.KEY_UNAVAILABLE
             else -> Availability.AVAILABLE
         }

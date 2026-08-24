@@ -68,14 +68,31 @@ class SmbCredentialStoreTest : BaseTest() {
         val rows = MutableStateFlow<List<SmbCredentialEntity>>(emptyList())
 
         override fun getAll(): Flow<List<SmbCredentialEntity>> = rows
-        override suspend fun get(locationId: Uuid) = rows.value.firstOrNull { it.locationId == locationId }
-        override suspend fun getLocationIds() = rows.value.map { it.locationId }
+        override suspend fun getAllOnce() = rows.value
+        override suspend fun get(locationId: Uuid, credentialVersion: Int) = rows.value.firstOrNull {
+            it.locationId == locationId && it.credentialVersion == credentialVersion
+        }
+
         override suspend fun upsert(entity: SmbCredentialEntity) {
-            rows.value = rows.value.filterNot { it.locationId == entity.locationId } + entity
+            rows.value = rows.value.filterNot {
+                it.locationId == entity.locationId && it.credentialVersion == entity.credentialVersion
+            } + entity
         }
 
         override suspend fun delete(locationId: Uuid) {
             rows.value = rows.value.filterNot { it.locationId == locationId }
+        }
+
+        override suspend fun deleteGeneration(locationId: Uuid, credentialVersion: Int) {
+            rows.value = rows.value.filterNot {
+                it.locationId == locationId && it.credentialVersion == credentialVersion
+            }
+        }
+
+        override suspend fun deleteOtherGenerations(locationId: Uuid, keepVersion: Int) {
+            rows.value = rows.value.filterNot {
+                it.locationId == locationId && it.credentialVersion != keepVersion
+            }
         }
     }
 
@@ -177,7 +194,7 @@ class SmbCredentialStoreTest : BaseTest() {
         val store = create(dao = dao)
         store.store(locationId, 1, "darken", null, "hunter2".toCharArray(), remember = true)
 
-        store.reconcile(emptySet())
+        store.reconcile(emptyList())
 
         dao.rows.value shouldBe emptyList()
     }
@@ -188,9 +205,57 @@ class SmbCredentialStoreTest : BaseTest() {
         val store = create(dao = dao)
         store.store(locationId, 1, "darken", null, "hunter2".toCharArray(), remember = true)
 
-        store.reconcile(setOf(locationId))
+        store.reconcile(listOf(location))
 
         dao.rows.value.size shouldBe 1
+    }
+
+    @Test
+    fun `a new generation leaves the one the location still points at intact`() = runTest {
+        val dao = FakeDao()
+        val store = create(dao = dao)
+        store.store(locationId, 1, "darken", null, "hunter2".toCharArray(), remember = true)
+
+        store.store(locationId, 2, "darken", null, "newpass".toCharArray(), remember = true)
+
+        dao.rows.value.map { it.credentialVersion }.toSet() shouldBe setOf(1, 2)
+        String(store.resolve(location).password) shouldBe "hunter2"
+        String(store.resolve(location.copy(credentialVersion = 2)).password) shouldBe "newpass"
+    }
+
+    @Test
+    fun `retiring a generation keeps only the current one`() = runTest {
+        val dao = FakeDao()
+        val store = create(dao = dao)
+        store.store(locationId, 1, "darken", null, "hunter2".toCharArray(), remember = true)
+        store.store(locationId, 2, "darken", null, "newpass".toCharArray(), remember = true)
+
+        store.dropOtherGenerations(locationId, keepVersion = 2)
+
+        dao.rows.value.map { it.credentialVersion } shouldBe listOf(2)
+    }
+
+    @Test
+    fun `reconcile drops generations no location points at`() = runTest {
+        val dao = FakeDao()
+        val store = create(dao = dao)
+        store.store(locationId, 1, "darken", null, "hunter2".toCharArray(), remember = true)
+        store.store(locationId, 2, "darken", null, "newpass".toCharArray(), remember = true)
+
+        store.reconcile(listOf(location.copy(credentialVersion = 2)))
+
+        dao.rows.value.map { it.credentialVersion } shouldBe listOf(2)
+    }
+
+    @Test
+    fun `reconcile drops credentials of guest locations`() = runTest {
+        val dao = FakeDao()
+        val store = create(dao = dao)
+        store.store(locationId, 1, "darken", null, "hunter2".toCharArray(), remember = true)
+
+        store.reconcile(listOf(location.copy(authType = SmbLocation.AuthType.GUEST)))
+
+        dao.rows.value shouldBe emptyList()
     }
 
     @Test

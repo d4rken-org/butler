@@ -50,14 +50,31 @@ class SmbLocationManagerTest : BaseTest() {
         val rows = MutableStateFlow<List<SmbCredentialEntity>>(emptyList())
 
         override fun getAll(): Flow<List<SmbCredentialEntity>> = rows
-        override suspend fun get(locationId: Uuid) = rows.value.firstOrNull { it.locationId == locationId }
-        override suspend fun getLocationIds() = rows.value.map { it.locationId }
+        override suspend fun getAllOnce() = rows.value
+        override suspend fun get(locationId: Uuid, credentialVersion: Int) = rows.value.firstOrNull {
+            it.locationId == locationId && it.credentialVersion == credentialVersion
+        }
+
         override suspend fun upsert(entity: SmbCredentialEntity) {
-            rows.value = rows.value.filterNot { it.locationId == entity.locationId } + entity
+            rows.value = rows.value.filterNot {
+                it.locationId == entity.locationId && it.credentialVersion == entity.credentialVersion
+            } + entity
         }
 
         override suspend fun delete(locationId: Uuid) {
             rows.value = rows.value.filterNot { it.locationId == locationId }
+        }
+
+        override suspend fun deleteGeneration(locationId: Uuid, credentialVersion: Int) {
+            rows.value = rows.value.filterNot {
+                it.locationId == locationId && it.credentialVersion == credentialVersion
+            }
+        }
+
+        override suspend fun deleteOtherGenerations(locationId: Uuid, keepVersion: Int) {
+            rows.value = rows.value.filterNot {
+                it.locationId == locationId && it.credentialVersion != keepVersion
+            }
         }
     }
 
@@ -126,7 +143,7 @@ class SmbLocationManagerTest : BaseTest() {
         locationsDao.rows.value shouldBe emptyList()
         credentialsDao.rows.value.size shouldBe 1
 
-        credentialStore.reconcile(locationsDao.rows.value.map { it.locationId }.toSet())
+        credentialStore.reconcile(emptyList())
         credentialsDao.rows.value shouldBe emptyList()
     }
 
@@ -137,7 +154,7 @@ class SmbLocationManagerTest : BaseTest() {
         // Simulate the location row disappearing without its credential
         locationsDao.rows.value = emptyList()
 
-        credentialStore.reconcile(emptySet())
+        credentialStore.reconcile(emptyList())
 
         credentialsDao.rows.value shouldBe emptyList()
         credentialStore.availability(location).first() shouldBe SmbCredentialStore.Availability.MISSING
@@ -189,6 +206,58 @@ class SmbLocationManagerTest : BaseTest() {
         updated.credentialVersion shouldBe 2
         credentialsDao.rows.value.single().credentialVersion shouldBe 2
         String(credentialStore.resolve(updated).password) shouldBe "newpass"
+    }
+
+    @Test
+    fun `a new generation retires the previous one`() = runTest {
+        val manager = manager()
+        val location = manager.createSample()
+
+        manager.update(
+            id = location.id,
+            label = location.label,
+            host = location.host,
+            port = location.port,
+            share = location.share,
+            basePath = location.basePath,
+            domain = null,
+            username = location.username,
+            authType = SmbLocation.AuthType.PASSWORD,
+            rememberCredential = true,
+            password = "newpass".toCharArray(),
+        )
+
+        credentialsDao.rows.value.map { it.credentialVersion } shouldBe listOf(2)
+    }
+
+    @Test
+    fun `a location write lost between the two writes keeps the credential still in use`() = runTest {
+        val manager = manager()
+        val location = manager.createSample()
+        locationsDao.failAfterWrites = 0
+
+        shouldThrow<IllegalStateException> {
+            manager.update(
+                id = location.id,
+                label = location.label,
+                host = location.host,
+                port = location.port,
+                share = location.share,
+                basePath = location.basePath,
+                domain = null,
+                username = location.username,
+                authType = SmbLocation.AuthType.PASSWORD,
+                rememberCredential = true,
+                password = "newpass".toCharArray(),
+            )
+        }
+
+        // The location still points at generation 1, so signing in must keep working
+        credentialsDao.rows.value.map { it.credentialVersion }.toSet() shouldBe setOf(1, 2)
+        String(credentialStore.resolve(location).password) shouldBe "hunter2"
+
+        credentialStore.reconcile(listOfNotNull(manager.get(location.id)))
+        credentialsDao.rows.value.map { it.credentialVersion } shouldBe listOf(1)
     }
 
     @Test

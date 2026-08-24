@@ -87,14 +87,31 @@ class SmbGatewayIntegrationTest : BaseTest() {
     private class InMemoryCredentialsDao : SmbCredentialsDao {
         val rows = MutableStateFlow<List<SmbCredentialEntity>>(emptyList())
         override fun getAll(): Flow<List<SmbCredentialEntity>> = rows
-        override suspend fun get(locationId: Uuid) = rows.value.firstOrNull { it.locationId == locationId }
-        override suspend fun getLocationIds() = rows.value.map { it.locationId }
+        override suspend fun getAllOnce() = rows.value
+        override suspend fun get(locationId: Uuid, credentialVersion: Int) = rows.value.firstOrNull {
+            it.locationId == locationId && it.credentialVersion == credentialVersion
+        }
+
         override suspend fun upsert(entity: SmbCredentialEntity) {
-            rows.value = rows.value.filterNot { it.locationId == entity.locationId } + entity
+            rows.value = rows.value.filterNot {
+                it.locationId == entity.locationId && it.credentialVersion == entity.credentialVersion
+            } + entity
         }
 
         override suspend fun delete(locationId: Uuid) {
             rows.value = rows.value.filterNot { it.locationId == locationId }
+        }
+
+        override suspend fun deleteGeneration(locationId: Uuid, credentialVersion: Int) {
+            rows.value = rows.value.filterNot {
+                it.locationId == locationId && it.credentialVersion == credentialVersion
+            }
+        }
+
+        override suspend fun deleteOtherGenerations(locationId: Uuid, keepVersion: Int) {
+            rows.value = rows.value.filterNot {
+                it.locationId == locationId && it.credentialVersion != keepVersion
+            }
         }
     }
 

@@ -115,6 +115,9 @@ class SmbLocationManagerImpl @Inject constructor(
 
         if (credentialChanged) writeCredential(updated, password)
         dao.upsert(updated.toEntity())
+        // Only now is the predecessor unreachable: until the row above committed, it was the
+        // generation the location still pointed at.
+        credentialStore.dropOtherGenerations(updated.id, updated.credentialVersion)
 
         return updated
     }
@@ -149,7 +152,7 @@ class SmbLocationManagerImpl @Inject constructor(
 
     private suspend fun reconcileCredentials() {
         try {
-            credentialStore.reconcile(dao.getAll().first().map { it.locationId }.toSet())
+            credentialStore.reconcile(dao.getAll().first().map { it.toLocation() })
         } catch (e: Exception) {
             log(TAG, WARN) { "Credential reconciliation failed: ${e.asLog()}" }
         }
