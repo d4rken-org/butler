@@ -140,9 +140,10 @@ class ImageProbe @Inject constructor(
      * - [ImageDecoder] starts at API 28. On 26/27 the region check stands alone.
      * - It needs a seekable source. A readable local file is the common case and costs nothing
      *   extra; otherwise [GatewaySwitch.openReadPFD] may still provide a descriptor (API 29+, where
-     *   the decoder's descriptor entry point begins). Root/ADB-routed local paths and archive
-     *   entries have neither and are skipped: buying a source there would mean buffering the whole
-     *   file, throwing away the sub-sampling this module exists to provide, on our rarest paths.
+     *   the decoder's descriptor entry point begins), including for root/ADB-routed local paths,
+     *   which it serves through a proxy descriptor. Archive entries have neither and are skipped:
+     *   buying a source there would mean buffering the whole file, throwing away the sub-sampling
+     *   this module exists to provide, on our rarest paths.
      * - Only truncated or malformed data counts as a defect. A failing read, a format the decoder
      *   does not implement, or anything else it throws leaves the file alone.
      *

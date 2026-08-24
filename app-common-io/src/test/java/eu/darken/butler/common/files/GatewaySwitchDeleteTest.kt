@@ -85,6 +85,7 @@ class GatewaySwitchDeleteTest : BaseTest() {
             localGateway = localGateway,
             archiveGateway = archiveGateway,
             safLocationManager = safLocationManager,
+            proxyPfdFactory = mockk(relaxed = true),
         )
     }
 

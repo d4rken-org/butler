@@ -15,9 +15,9 @@ import javax.inject.Singleton
 
 /**
  * Reads what the viewer needs from a PDF: the page count for the page bar, and a single page as a
- * full-screen bitmap. Everything it cannot serve resolves to null - no descriptor (root/ADB-routed or
- * archive paths), encrypted, corrupt, or a document without pages - and the page falls back to the
- * unsupported placeholder.
+ * full-screen bitmap. Everything it cannot serve resolves to null - no descriptor (archive entries),
+ * encrypted, corrupt, or a document without pages - and the page falls back to the unsupported
+ * placeholder.
  */
 @Singleton
 class PdfPreviewLoader @Inject constructor(
