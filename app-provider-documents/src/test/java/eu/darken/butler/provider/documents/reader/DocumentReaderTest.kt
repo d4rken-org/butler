@@ -11,9 +11,9 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.files.io.ProxyPfdFactory
 import eu.darken.butler.provider.documents.core.DocumentIdCodec
 import eu.darken.butler.provider.documents.core.reader.DocumentReader
-import eu.darken.butler.provider.documents.core.reader.ProxyPfdFactory
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.mockk.coEvery
