@@ -43,7 +43,7 @@ class SmbCredentialStore @Inject constructor(
 
     private val json = Json { ignoreUnknownKeys = true }
 
-    private val sessionCredentials = ConcurrentHashMap<Uuid, SessionEntry>()
+    private val sessionCredentials = ConcurrentHashMap<SessionKey, SessionEntry>()
     private val sessionRevision = MutableStateFlow(0)
 
     private val evictionEvents = MutableSharedFlow<Uuid>(extraBufferCapacity = 16)
@@ -51,8 +51,13 @@ class SmbCredentialStore @Inject constructor(
     /** Emits a location id whenever its credential changed, so open sessions can be dropped. */
     val evictions: SharedFlow<Uuid> = evictionEvents.asSharedFlow()
 
+    /**
+     * Generations are kept apart in memory just like they are in the database: storing the next one
+     * must not destroy the one the committed location row still points at.
+     */
+    private data class SessionKey(val locationId: Uuid, val credentialVersion: Int)
+
     private class SessionEntry(
-        val credentialVersion: Int,
         val username: String,
         val domain: String?,
         val password: CharArray,
@@ -62,8 +67,7 @@ class SmbCredentialStore @Inject constructor(
      * @throws SmbCredentialUnavailableException if nothing usable is stored for this location
      */
     suspend fun resolve(location: SmbLocation): SmbCredential {
-        sessionCredentials[location.id]
-            ?.takeIf { it.credentialVersion == location.credentialVersion }
+        sessionCredentials[SessionKey(location.id, location.credentialVersion)]
             ?.let { return SmbCredential(it.username, it.domain, it.password.copyOf()) }
 
         val entity = dao.get(location.id, location.credentialVersion)
@@ -107,7 +111,7 @@ class SmbCredentialStore @Inject constructor(
         remember: Boolean,
     ) {
         log(TAG) { "store($locationId, version=$credentialVersion, remember=$remember)" }
-        clearSession(locationId)
+        clearSession(SessionKey(locationId, credentialVersion))
 
         if (remember) {
             val payload = SmbCredentialPayload(
@@ -139,8 +143,7 @@ class SmbCredentialStore @Inject constructor(
             )
         } else {
             dao.deleteGeneration(locationId, credentialVersion)
-            sessionCredentials[locationId] = SessionEntry(
-                credentialVersion = credentialVersion,
+            sessionCredentials[SessionKey(locationId, credentialVersion)] = SessionEntry(
                 username = username,
                 domain = domain,
                 password = password.copyOf(),
@@ -154,13 +157,14 @@ class SmbCredentialStore @Inject constructor(
     suspend fun remove(locationId: Uuid) {
         log(TAG) { "remove($locationId)" }
         dao.delete(locationId)
-        clearSession(locationId)
+        clearSessions { it.locationId == locationId }
         evictionEvents.emit(locationId)
     }
 
-    /** Retires the generations a committed location row no longer refers to. */
+    /** Retires the generations a committed location row no longer refers to, stored and in memory. */
     suspend fun dropOtherGenerations(locationId: Uuid, keepVersion: Int) {
         dao.deleteOtherGenerations(locationId, keepVersion)
+        clearSessions { it.locationId == locationId && it.credentialVersion != keepVersion }
     }
 
     /**
@@ -180,9 +184,12 @@ class SmbCredentialStore @Inject constructor(
             log(TAG, INFO) { "Dropping ${stale.size} unreferenced credential(s)" }
             stale.forEach { dao.deleteGeneration(it.locationId, it.credentialVersion) }
         }
-        sessionCredentials.keys
-            .filterNot { known.containsKey(it) }
-            .forEach { clearSession(it) }
+        clearSessions { key ->
+            val location = known[key.locationId]
+            location == null ||
+                location.authType == SmbLocation.AuthType.GUEST ||
+                location.credentialVersion != key.credentialVersion
+        }
     }
 
     fun availability(locationId: Uuid): Flow<Availability> = availability(locationId, expectedVersion = null)
@@ -201,11 +208,11 @@ class SmbCredentialStore @Inject constructor(
         },
         sessionRevision,
     ) { entity, _ ->
-        val session = sessionCredentials[locationId]
+        val hasSession = sessionCredentials.keys.any {
+            it.locationId == locationId && (expectedVersion == null || it.credentialVersion == expectedVersion)
+        }
         when {
-            session != null && (expectedVersion == null || session.credentialVersion == expectedVersion) -> {
-                Availability.AVAILABLE
-            }
+            hasSession -> Availability.AVAILABLE
 
             entity == null -> Availability.MISSING
             !cipher.isKeyAvailable(entity.keyAlias) -> Availability.KEY_UNAVAILABLE
@@ -213,12 +220,16 @@ class SmbCredentialStore @Inject constructor(
         }
     }.distinctUntilChanged()
 
-    private fun clearSession(locationId: Uuid) {
-        sessionCredentials.remove(locationId)?.let {
-            log(TAG, VERBOSE) { "Wiping session credential for $locationId" }
+    private fun clearSession(key: SessionKey) {
+        sessionCredentials.remove(key)?.let {
+            log(TAG, VERBOSE) { "Wiping session credential for $key" }
             it.password.fill(Char(0))
             sessionRevision.value++
         }
+    }
+
+    private fun clearSessions(matching: (SessionKey) -> Boolean) {
+        sessionCredentials.keys.filter(matching).forEach { clearSession(it) }
     }
 
     companion object {

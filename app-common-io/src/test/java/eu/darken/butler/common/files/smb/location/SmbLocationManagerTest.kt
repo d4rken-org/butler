@@ -261,6 +261,63 @@ class SmbLocationManagerTest : BaseTest() {
     }
 
     @Test
+    fun `a lost location write keeps a session-only credential usable`() = runTest {
+        val manager = manager()
+        val location = manager.createSample(remember = false)
+        locationsDao.failAfterWrites = 0
+
+        shouldThrow<IllegalStateException> {
+            manager.update(
+                id = location.id,
+                label = location.label,
+                host = location.host,
+                port = location.port,
+                share = location.share,
+                basePath = location.basePath,
+                domain = null,
+                username = location.username,
+                authType = SmbLocation.AuthType.PASSWORD,
+                rememberCredential = false,
+                password = "newpass".toCharArray(),
+            )
+        }
+
+        // The location still points at generation 1, whose in-memory credential survived
+        String(credentialStore.resolve(location).password) shouldBe "hunter2"
+
+        credentialStore.reconcile(listOfNotNull(manager.get(location.id)))
+        String(credentialStore.resolve(location).password) shouldBe "hunter2"
+    }
+
+    @Test
+    fun `a lost location write keeps a password location signed in`() = runTest {
+        val manager = manager()
+        val location = manager.createSample()
+        locationsDao.failAfterWrites = 0
+
+        shouldThrow<IllegalStateException> {
+            manager.update(
+                id = location.id,
+                label = location.label,
+                host = location.host,
+                port = location.port,
+                share = location.share,
+                basePath = location.basePath,
+                domain = null,
+                username = null,
+                authType = SmbLocation.AuthType.GUEST,
+                rememberCredential = false,
+                password = null,
+            )
+        }
+
+        // The row never switched to guest, so its credential must still be there
+        manager.get(location.id)!!.authType shouldBe SmbLocation.AuthType.PASSWORD
+        credentialsDao.rows.value.map { it.credentialVersion } shouldBe listOf(1)
+        String(credentialStore.resolve(location).password) shouldBe "hunter2"
+    }
+
+    @Test
     fun `an unchanged edit keeps the stored credential`() = runTest {
         val manager = manager()
         val location = manager.createSample()
