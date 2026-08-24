@@ -38,7 +38,8 @@ class SmbConnectionTester @Inject constructor(
         val endpoint = "$host:$port/$share"
         log(TAG) { "test($endpoint, username=$username)" }
 
-        val authContext = when {
+        // The context keeps its own copy of the password; the array itself belongs to the caller.
+        var authContext: AuthenticationContext? = when {
             username.isNullOrEmpty() || password == null -> AuthenticationContext.guest()
             else -> AuthenticationContext(username, password, domain)
         }
@@ -46,7 +47,7 @@ class SmbConnectionTester @Inject constructor(
         val client = clientFactory.create(SmbConnectionPool.CONFIG)
         try {
             client.connect(host, port).use { connection ->
-                connection.authenticate(authContext).use { session ->
+                connection.authenticate(authContext!!).use { session ->
                     val connected = session.connectShare(share)
                     if (connected !is DiskShare) throw SmbShareNotFoundException(endpoint, share)
                     connected.close()
@@ -65,6 +66,8 @@ class SmbConnectionTester @Inject constructor(
                 else -> mapped
             }
         } finally {
+            // Nothing past the session setup needs the password, don't hold it any longer
+            authContext = null
             runCatching { client.close() }
         }
     }
