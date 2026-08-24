@@ -186,9 +186,18 @@ class SmbConnectionPool @Inject constructor(
         val client = clientFactory.create(CONFIG)
         val fresh = try {
             val connection = client.connect(location.host, location.port)
-            val session = connection.authenticate(authContext!!)
-            val share = session.connectShare(location.share) as? DiskShare
-                ?: throw SmbShareNotFoundException(endpoint, location.share)
+            // Which phase failed decides what "access denied" means, see SmbStatusMapper
+            val session = try {
+                connection.authenticate(authContext!!)
+            } catch (e: Exception) {
+                throw SmbStatusMapper.mapAuthenticate(e, endpoint)
+            }
+            val share = try {
+                session.connectShare(location.share) as? DiskShare
+                    ?: throw SmbShareNotFoundException(endpoint, location.share)
+            } catch (e: Exception) {
+                throw SmbStatusMapper.mapConnectShare(e, endpoint, location.share)
+            }
             Generation(key, location, client, connection, session, share)
         } catch (e: Exception) {
             runCatching { client.close() }

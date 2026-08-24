@@ -47,8 +47,18 @@ class SmbConnectionTester @Inject constructor(
         val client = clientFactory.create(SmbConnectionPool.CONFIG)
         try {
             client.connect(host, port).use { connection ->
-                connection.authenticate(authContext!!).use { session ->
-                    val connected = session.connectShare(share)
+                // Which phase failed decides what "access denied" means, see SmbStatusMapper
+                val session = try {
+                    connection.authenticate(authContext!!)
+                } catch (e: Exception) {
+                    throw SmbStatusMapper.mapAuthenticate(e, endpoint)
+                }
+                session.use {
+                    val connected = try {
+                        it.connectShare(share)
+                    } catch (e: Exception) {
+                        throw SmbStatusMapper.mapConnectShare(e, endpoint, share)
+                    }
                     if (connected !is DiskShare) throw SmbShareNotFoundException(endpoint, share)
                     connected.close()
                 }
