@@ -7,6 +7,7 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.files.SmbPath
 import kotlinx.serialization.json.Json
 import java.util.Base64
 import javax.inject.Inject
@@ -48,6 +49,9 @@ class DocumentIdCodec @Inject constructor(
             is SAFPath -> "saf"
             // Archive contents are not exposed to other apps via the DocumentsProvider.
             is ArchivePath -> throw IllegalArgumentException("Archive paths have no document ID: $path")
+            // Neither is network storage: another app holding a document ID would make Butler
+            // reconnect and re-authenticate on its behalf.
+            is SmbPath -> throw IllegalArgumentException("SMB paths have no document ID: $path")
         }
 
         val encodedData = when (path) {
@@ -64,6 +68,7 @@ class DocumentIdCodec @Inject constructor(
                 )
             }
             is ArchivePath -> throw IllegalArgumentException("Archive paths have no document ID: $path")
+            is SmbPath -> throw IllegalArgumentException("SMB paths have no document ID: $path")
         }
 
         val documentId = "$pathType$SEPARATOR$encodedData"
