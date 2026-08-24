@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.ChevronRight
 import androidx.compose.material.icons.twotone.ContentCopy
 import androidx.compose.material.icons.twotone.FolderZip
+import androidx.compose.material.icons.twotone.Lan
 import androidx.compose.material.icons.twotone.Home
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -64,6 +65,7 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.files.SmbPath
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.ui.pagerFriendlyHorizontalScroll
 import eu.darken.butler.explorer.R
@@ -346,6 +348,20 @@ private fun rememberBreadcrumbPathInfo(
                         prefixIcon = Icons.TwoTone.FolderZip,
                         prefixLabel = path.container.name,
                     )
+
+                    is SmbPath -> {
+                        // The location root breadcrumb carries the label, edited text is relative to it.
+                        val rootBreadcrumb = breadcrumbs.find {
+                            it.target is ExplorerNavigation.Target.Directory &&
+                                it.target.path == SmbPath.root(path.locationId)
+                        }
+                        BreadcrumbPathInfo(
+                            displayPath = path.segments.joinToString("/"),
+                            path = path,
+                            prefixIcon = rootBreadcrumb?.icon ?: Icons.TwoTone.Lan,
+                            prefixLabel = rootBreadcrumb?.label?.get(context),
+                        )
+                    }
                 }
             }
             else -> BreadcrumbPathInfo(displayPath = "", path = null)

@@ -6,6 +6,7 @@ import androidx.compose.material.icons.twotone.ContentCut
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.FolderOpen
 import androidx.compose.material.icons.twotone.FolderShared
+import androidx.compose.material.icons.twotone.Lan
 import androidx.compose.material.icons.twotone.Home
 import androidx.compose.material.icons.twotone.PhoneAndroid
 import androidx.compose.material.icons.twotone.Storage
@@ -25,6 +26,7 @@ import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.files.saf.location.SAFLocation
+import eu.darken.butler.common.files.smb.location.SmbLocation
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.R
@@ -543,6 +545,34 @@ object MockDataProvider {
             totalBytes = totalBytes,
             availableBytes = availableBytes,
             target = ExplorerNavigation.Target.Directory(SAFPath.build(treeUri)),
+        )
+    }
+
+    fun createMockStorageNetwork(
+        name: String = "Home NAS",
+        host: String = "nas.local",
+        share: String = "media",
+        status: ExplorerItem.Storage.Network.Status = ExplorerItem.Storage.Network.Status.AVAILABLE,
+        id: Uuid = Uuid.parse("11111111-2222-3333-4444-555555555555"),
+    ): ExplorerItem.Storage.Network {
+        val location = SmbLocation(
+            id = id,
+            label = name,
+            host = host,
+            share = share,
+            authType = SmbLocation.AuthType.PASSWORD,
+            rememberCredential = true,
+            credentialVersion = 1,
+            createdAt = MockTimes.daysAgo(7),
+            updatedAt = MockTimes.daysAgo(7),
+        )
+        return ExplorerItem.Storage.Network(
+            location = location,
+            displayName = name.toCaString(),
+            displayIcon = Icons.TwoTone.Lan,
+            target = ExplorerNavigation.Target.Directory(location.rootPath),
+            subtitle = location.endpointLabel.toCaString(),
+            status = status,
         )
     }
 

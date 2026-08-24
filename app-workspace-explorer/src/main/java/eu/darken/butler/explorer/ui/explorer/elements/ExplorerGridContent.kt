@@ -27,6 +27,8 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.dragselect.gridDragSelect
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionBarItem
+import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.ui.explorer.dragselect.explorerDragSelectClaims
 import eu.darken.butler.explorer.ui.explorer.dragselect.explorerDragSelectItems
 import eu.darken.butler.explorer.ui.explorer.dragselect.explorerDragSelectKeys
@@ -103,12 +105,18 @@ internal fun ExplorerGridContent(
                     modifier = emptyModifier,
                     contentAlignment = Alignment.Center
                 ) {
-                    if (state.isFilteredEmpty) {
-                        EmptyFilteredState(
+                    when {
+                        state.isFilteredEmpty -> EmptyFilteredState(
                             onResetFilters = { vm?.resetFilters() },
                         )
-                    } else {
-                        EmptyDirectoryState()
+
+                        state.currentLocation is ExplorerLocation.Network -> EmptyNetworkState(
+                            onAddLocation = {
+                                vm?.executeAction(ExplorerActionBarItem.Network.AddLocation())
+                            },
+                        )
+
+                        else -> EmptyDirectoryState()
                     }
                 }
             }

@@ -48,6 +48,20 @@ sealed interface ExplorerLocation {
         ) : LocationInfo
     }
 
+    data class Network(
+        override val items: List<ExplorerItem>? = null,
+        override val info: Info? = null,
+        override val setupRequirements: PathRequirements = PathRequirements(),
+        override val progress: Progress.Data? = Progress.Data(),
+    ) : ExplorerLocation {
+
+        override val locationId: String get() = "location://network"
+
+        data class Info(
+            val locationCount: Int,
+        ) : LocationInfo
+    }
+
     data class Directory(
         override val items: List<ExplorerItem.Path>? = null,
         override val info: Info? = null,

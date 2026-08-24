@@ -24,10 +24,15 @@ import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.common.files.archive.CompressionPreset
 import eu.darken.butler.common.files.TextFileDetector
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.files.SmbPath
 import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.extensions.matches
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
+import eu.darken.butler.common.files.smb.SmbConnectionTester
+import eu.darken.butler.common.files.smb.isSmbSignInFailure
+import eu.darken.butler.common.files.smb.credentials.SmbCredentialStore
+import eu.darken.butler.common.files.smb.location.SmbLocationManager
 import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.flow.combine as combineMany
@@ -71,6 +76,7 @@ import eu.darken.butler.explorer.ui.explorer.dialogs.CreateItemResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.CreateItemType
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogEvent
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
+import eu.darken.butler.explorer.ui.explorer.dialogs.SmbLocationFormInput
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.*
 import eu.darken.butler.explorer.ui.explorer.dialogs.FilterOptionsResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.RenameResult
@@ -149,6 +155,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val filenameValidator: FilenameValidator,
     private val gatewaySwitch: GatewaySwitch,
     internal val safLocationManager: SAFLocationManager,
+    private val smbLocationManager: SmbLocationManager,
+    private val smbCredentialStore: SmbCredentialStore,
+    private val smbConnectionTester: SmbConnectionTester,
     private val trashManager: TrashManager,
     private val trashRepo: TrashRepo,
     private val itemInfoCalculator: ItemInfoCalculator,
@@ -199,6 +208,17 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         dialogs = dialogs,
         workspace = ::getWorkspace,
         currentLocation = { getState().currentLocation },
+        clearSelection = ::clearSelection,
+        onError = { errorEvents.tryEmit(it) },
+        doLaunch = doLaunch,
+        tag = tag,
+    )
+    private val smbLocations = ExplorerSmbLocationController(
+        locationManager = smbLocationManager,
+        credentialStore = smbCredentialStore,
+        connectionTester = smbConnectionTester,
+        dialogs = dialogs,
+        workspace = ::getWorkspace,
         clearSelection = ::clearSelection,
         onError = { errorEvents.tryEmit(it) },
         doLaunch = doLaunch,
@@ -330,6 +350,23 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 selection.pruneAgainst(location)
             }
             .launchInViewModel()
+
+        // A directory that fails because the password is gone or wrong opens the sign-in form
+        // instead of a dead error screen; saving it refreshes the location.
+        workspaceReadyState
+            .map { it?.error }
+            .distinctUntilChanged()
+            .onEach { error ->
+                if (error == null || !error.isSmbSignInFailure()) return@onEach
+                val locationId = (cachedCurrentLocation as? ExplorerLocation.Directory)
+                    ?.path
+                    ?.let { it as? SmbPath }
+                    ?.locationId
+                    ?: return@onEach
+                smbLocations.promptSignIn(locationId)
+            }
+            .launchInViewModel()
+
         // Handle dialog events
         dialogEvents
             .onEach { event ->
@@ -1035,6 +1072,26 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     )
                 )
             }
+            is ExplorerActionBarItem.Network.AddLocation -> {
+                smbLocations.showAddForm()
+            }
+            is ExplorerActionBarItem.Network.EditLocation -> {
+                val selectedItem = selection.selectedItems.value
+                    .filterIsInstance<ExplorerItem.Storage.Network>()
+                    .single()
+                smbLocations.showEditForm(selectedItem.location)
+            }
+            is ExplorerActionBarItem.Network.RenameLocation -> {
+                val selectedItem = selection.selectedItems.value
+                    .filterIsInstance<ExplorerItem.Storage.Network>()
+                    .single()
+                smbLocations.showRenameDialog(selectedItem)
+            }
+            is ExplorerActionBarItem.Network.RemoveLocation -> {
+                val selectedItems = selection.selectedItems.value
+                    .filterIsInstance<ExplorerItem.Storage.Network>()
+                if (selectedItems.isNotEmpty()) smbLocations.showRemoveConfirmation(selectedItems)
+            }
             is ExplorerActionBarItem.Trash.SelectAll -> {
                 selection.set(stateSnap.selectionState.selectableItems)
             }
@@ -1404,7 +1461,17 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun onRemoveLocationConfirmed() = safLocations.onRemoveLocationConfirmed()
+    fun onRemoveLocationConfirmed() {
+        val items = (dialogs.current() as? ExplorerDialogState.RemoveLocationConfirmation)?.items ?: return
+        val networkItems = items.filterIsInstance<ExplorerItem.Storage.Network>()
+        if (networkItems.isNotEmpty()) {
+            smbLocations.onRemoveConfirmed(networkItems)
+        } else {
+            safLocations.onRemoveLocationConfirmed()
+        }
+    }
+
+    fun onSmbLocationFormSubmit(input: SmbLocationFormInput) = smbLocations.onFormSubmit(input)
 
     /**
      * The system had no activity to handle our SAF picker intent (DocumentsUI disabled or missing).
@@ -1424,7 +1491,15 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         trash.emptyTrash()
     }
 
-    fun onLocationStorageName(name: String?) = safLocations.onLocationStorageName(name)
+    fun onLocationStorageName(name: String?) {
+        val dialogState = dialogs.current() as? ExplorerDialogState.LocationStorageName ?: return
+        when (dialogState.kind) {
+            ExplorerDialogState.LocationStorageName.Kind.SAF -> safLocations.onLocationStorageName(name)
+            ExplorerDialogState.LocationStorageName.Kind.NETWORK -> {
+                smbLocations.onRename(dialogState.locationId, name)
+            }
+        }
+    }
 
     fun onRename(result: RenameResult) = launch {
         log(tag) { "onRename($result)" }

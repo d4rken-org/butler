@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Block
 import androidx.compose.material.icons.twotone.Edit
+import androidx.compose.material.icons.twotone.Lock
 import androidx.compose.material.icons.twotone.Visibility
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -69,7 +70,8 @@ fun StorageRow(
             }
         },
         primaryText = item.displayName.get(context),
-        secondaryText = item.target.path.path,
+        // A network path is a UUID, the location's own subtitle is what identifies it to the user.
+        secondaryText = item.subtitle?.get(context) ?: item.target.path.path,
         tertiaryText = run {
             val totalBytes = item.totalBytes
             val availableBytes = item.availableBytes
@@ -80,17 +82,46 @@ fun StorageRow(
                     val typeLabel = when (item) {
                         is ExplorerItem.Storage.Local -> stringResource(R.string.explorer_file_storage_local_label)
                         is ExplorerItem.Storage.SAF -> stringResource(R.string.explorer_file_storage_saf_label)
+                        is ExplorerItem.Storage.Network -> stringResource(R.string.explorer_network_storage_label)
                     }
                     stringResource(R.string.explorer_file_storage_size_format, typeLabel, total, free)
                 }
                 item is ExplorerItem.Storage.SAF -> stringResource(R.string.explorer_file_storage_saf_label)
                 item is ExplorerItem.Storage.Local -> stringResource(R.string.explorer_file_storage_local_label)
+                item is ExplorerItem.Storage.Network -> when (item.status) {
+                    ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED -> {
+                        stringResource(R.string.explorer_network_sign_in_required_label)
+                    }
+
+                    ExplorerItem.Storage.Network.Status.AVAILABLE -> {
+                        stringResource(R.string.explorer_network_storage_label)
+                    }
+                }
                 else -> null
             }
         },
-        trailingContent = if (item is ExplorerItem.Storage.SAF) {
-            { PermissionIndicator(item.location) }
-        } else null
+        trailingContent = when {
+            item is ExplorerItem.Storage.SAF -> {
+                { PermissionIndicator(item.location) }
+            }
+
+            item is ExplorerItem.Storage.Network &&
+                item.status == ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED -> {
+                { SignInRequiredIndicator() }
+            }
+
+            else -> null
+        }
+    )
+}
+
+@Composable
+private fun SignInRequiredIndicator() {
+    Icon(
+        imageVector = Icons.TwoTone.Lock,
+        contentDescription = stringResource(R.string.explorer_network_sign_in_required_label),
+        tint = MaterialTheme.colorScheme.error,
+        modifier = Modifier.size(18.dp),
     )
 }
 
@@ -134,6 +165,29 @@ private fun PermissionIndicator(location: SAFLocation) {
 private fun StorageRowLocalPreview() {
     StorageRow(
         item = MockDataProvider.createMockStorageLocal(),
+        onClick = {}
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun StorageRowNetworkPreview() {
+    StorageRow(
+        item = MockDataProvider.createMockStorageNetwork(),
+        onClick = {}
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun StorageRowNetworkSignInRequiredPreview() {
+    StorageRow(
+        item = MockDataProvider.createMockStorageNetwork(
+            name = "Work NAS",
+            status = ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED,
+        ),
         onClick = {}
     )
 }

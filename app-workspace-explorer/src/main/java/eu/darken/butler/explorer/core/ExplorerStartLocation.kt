@@ -44,6 +44,7 @@ internal val ExplorerNavigation.Target.asStartTarget: ExplorerStartTarget?
     get() = when (this) {
         is ExplorerNavigation.Target.Home -> ExplorerStartTarget.HOME
         is ExplorerNavigation.Target.Device -> ExplorerStartTarget.DEVICE
+        is ExplorerNavigation.Target.Network -> ExplorerStartTarget.NETWORK
         is ExplorerNavigation.Target.Trash -> ExplorerStartTarget.TRASH
         is ExplorerNavigation.Target.Directory -> null
     }
@@ -53,5 +54,6 @@ internal val ExplorerStartTarget.asNavigationTarget: ExplorerNavigation.Target
     get() = when (this) {
         ExplorerStartTarget.HOME -> ExplorerNavigation.Target.Home
         ExplorerStartTarget.DEVICE -> ExplorerNavigation.Target.Device
+        ExplorerStartTarget.NETWORK -> ExplorerNavigation.Target.Network
         ExplorerStartTarget.TRASH -> ExplorerNavigation.Target.Trash.Root
     }

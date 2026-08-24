@@ -265,7 +265,7 @@ class SmbConnectionPool @Inject constructor(
         private val IDLE_CHECK_INTERVAL = 30.seconds
         private const val CONNECT_ATTEMPTS = 3
 
-        private val CONFIG: SmbConfig = SmbConfig.builder()
+        internal val CONFIG: SmbConfig = SmbConfig.builder()
             .withSocketFactory(SmbSocketFactory())
             .withSoTimeout(SmbSocketFactory.SOCKET_TIMEOUT_MS)
             .withTimeout(SmbSocketFactory.SOCKET_TIMEOUT_MS.toLong(), java.util.concurrent.TimeUnit.MILLISECONDS)

@@ -140,6 +140,7 @@
     <string name="explorer_breadcrumb_copy_path_action">Copy path</string>
     <string name="explorer_breadcrumb_copy_path_confirmation">Path copied to clipboard</string>
     <string name="explorer_navigation_device">Device</string>
+    <string name="explorer_navigation_network">Network</string>
     <string name="explorer_navigation_trash">Trash</string>
     <string name="explorer_navigation_trash_desc">Recover deleted files</string>
     <string name="explorer_navigation_trash_nested_desc">Inside trashed folder</string>
@@ -191,6 +192,8 @@
     <string name="explorer_loader_progress_device_loading">Loading device</string>
     <string name="explorer_loader_progress_device_locations">Loading storage locations</string>
 
+    <string name="explorer_loader_progress_network_loading">Loading network storage</string>
+
     <string name="explorer_loader_progress_home_loading">Loading home</string>
     <string name="explorer_loader_progress_trash_loading">Loading trash…</string>
 
@@ -231,6 +234,56 @@
         <item quantity="other">Remove %1$d storage locations?</item>
     </plurals>
     <string name="explorer_device_remove_confirmation_message">This will revoke Butler\'s access to this location. Your files will not be deleted.</string>
+
+    <!-- Network Storage -->
+    <plurals name="explorer_network_location_count">
+        <item quantity="one">%d network storage</item>
+        <item quantity="other">%d network storages</item>
+    </plurals>
+    <string name="explorer_network_storage_label">Network</string>
+    <string name="explorer_network_add_location_action">Add network storage</string>
+    <string name="explorer_network_edit_location_action">Edit network storage</string>
+    <string name="explorer_network_remove_location_action">Remove network storage</string>
+    <string name="explorer_network_sign_in_required_label">Sign-in required</string>
+    <string name="explorer_network_empty_title">No network storage yet</string>
+    <string name="explorer_network_empty_caption">Add a Windows share or NAS folder to browse it here.</string>
+    <string name="explorer_network_remove_confirmation_title">Remove network storage?</string>
+    <plurals name="explorer_network_remove_confirmation_title_multiple">
+        <item quantity="one">Remove %1$d network storage?</item>
+        <item quantity="other">Remove %1$d network storages?</item>
+    </plurals>
+    <string name="explorer_network_remove_confirmation_message">Butler forgets the server details and the saved password. Nothing on the server is deleted.</string>
+
+    <!-- Network Storage Form -->
+    <string name="explorer_network_form_add_title">Add network storage</string>
+    <string name="explorer_network_form_edit_title">Edit network storage</string>
+    <string name="explorer_network_form_label_label">Name (optional)</string>
+    <string name="explorer_network_form_host_label">Server address</string>
+    <string name="explorer_network_form_host_hint">nas.local or 192.168.1.10</string>
+    <string name="explorer_network_form_port_label">Port</string>
+    <string name="explorer_network_form_share_label">Share</string>
+    <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_base_path_label">Folder inside the share (optional)</string>
+    <string name="explorer_network_form_auth_guest">Guest</string>
+    <string name="explorer_network_form_auth_password">Username and password</string>
+    <string name="explorer_network_form_username_label">Username</string>
+    <string name="explorer_network_form_domain_label">Domain (optional)</string>
+    <string name="explorer_network_form_password_label">Password</string>
+    <string name="explorer_network_form_password_kept_hint">Leave empty to keep the saved password</string>
+    <string name="explorer_network_form_remember_label">Remember password</string>
+    <string name="explorer_network_form_remember_hint">Stored encrypted on this device only</string>
+    <string name="explorer_network_form_test_and_save_action">Test &amp; save</string>
+    <string name="explorer_network_form_testing">Connecting…</string>
+    <string name="explorer_network_form_error_host_blank">Enter a server address</string>
+    <string name="explorer_network_form_error_host_not_bare">Enter only the server address, without a scheme or path</string>
+    <string name="explorer_network_form_error_host_malformed">This is not a valid server address</string>
+    <string name="explorer_network_form_error_port">Enter a port between 1 and 65535</string>
+    <string name="explorer_network_form_error_share_blank">Enter a share name</string>
+    <string name="explorer_network_form_error_share_not_single">Enter only the share name, put subfolders below</string>
+    <string name="explorer_network_form_error_share_malformed">This is not a valid share name</string>
+    <string name="explorer_network_form_error_base_path">This folder path cannot be used</string>
+    <string name="explorer_network_form_error_username_blank">Enter a username</string>
+    <string name="explorer_network_form_error_password_required">Enter the password again to change the username</string>
 
     <!-- Location Naming -->
     <string name="explorer_location_name_title">Name location</string>

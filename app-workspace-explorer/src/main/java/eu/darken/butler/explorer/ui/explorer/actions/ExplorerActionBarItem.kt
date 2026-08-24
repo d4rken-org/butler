@@ -11,6 +11,8 @@ import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.DeleteForever
 import androidx.compose.material.icons.twotone.Deselect
 import androidx.compose.material.icons.twotone.DriveFileRenameOutline
+import androidx.compose.material.icons.twotone.Edit
+import androidx.compose.material.icons.twotone.Lan
 import androidx.compose.material.icons.twotone.FilterList
 import androidx.compose.material.icons.twotone.FolderShared
 import androidx.compose.material.icons.twotone.GridView
@@ -241,6 +243,41 @@ sealed interface ExplorerActionBarItem : WorkspaceActionBarItem {
         ) : Device {
             override val icon = Icons.TwoTone.DriveFileRenameOutline
             override val label = R.string.explorer_location_rename_action.toCaString()
+        }
+    }
+
+    sealed interface Network : ExplorerActionBarItem {
+        data class AddLocation(
+            override val isEnabled: Boolean = true,
+            override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.PRIMARY,
+        ) : Network {
+            override val icon = Icons.TwoTone.Lan
+            override val label = R.string.explorer_network_add_location_action.toCaString()
+        }
+
+        data class EditLocation(
+            override val isEnabled: Boolean = true,
+            override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.PRIMARY,
+        ) : Network {
+            override val icon = Icons.TwoTone.Edit
+            override val label = R.string.explorer_network_edit_location_action.toCaString()
+        }
+
+        data class RenameLocation(
+            override val isEnabled: Boolean = true,
+            override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.PRIMARY,
+        ) : Network {
+            override val icon = Icons.TwoTone.DriveFileRenameOutline
+            override val label = R.string.explorer_location_rename_action.toCaString()
+        }
+
+        data class RemoveLocation(
+            override val isEnabled: Boolean = true,
+            override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.PRIMARY,
+        ) : Network {
+            override val icon = Icons.TwoTone.RemoveCircle
+            override val label = R.string.explorer_network_remove_location_action.toCaString()
+            override val isDestructive = true
         }
     }
 
