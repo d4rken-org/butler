@@ -7,8 +7,10 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import java.io.IOException
 import java.security.GeneralSecurityException
 import java.security.KeyStore
+import java.security.ProviderException
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
@@ -27,6 +29,14 @@ class KeystoreSmbCredentialCipher @Inject constructor() : SmbCredentialCipher {
     private val keyStore: KeyStore
         get() = KeyStore.getInstance(KEYSTORE_PROVIDER).apply { load(null) }
 
+    /**
+     * Everything a keystore that is present but unusable throws at us: crypto errors, the hardware
+     * or service failures the provider reports as an unchecked [ProviderException], and the
+     * [IOException] a keystore that cannot be loaded raises.
+     */
+    private val Throwable.isKeystoreFailure: Boolean
+        get() = this is GeneralSecurityException || this is ProviderException || this is IOException
+
     override fun encrypt(locationId: Uuid, payloadVersion: Int, plaintext: ByteArray): SmbCredentialCipher.Envelope {
         // A key can also fail on use rather than on lookup: an invalidated one is still returned and
         // only throws at init, so the whole sequence translates into the same failure.
@@ -44,7 +54,8 @@ class KeystoreSmbCredentialCipher @Inject constructor() : SmbCredentialCipher {
                 iv = cipher.iv,
                 ciphertext = cipher.doFinal(plaintext),
             )
-        } catch (e: GeneralSecurityException) {
+        } catch (e: Exception) {
+            if (!e.isKeystoreFailure) throw e
             log(TAG, ERROR) { "Credential for $locationId could not be encrypted: ${e.asLog()}" }
             throw SmbCredentialUnavailableException(locationId, "Keystore key unavailable", e)
         }
@@ -64,9 +75,14 @@ class KeystoreSmbCredentialCipher @Inject constructor() : SmbCredentialCipher {
 
         val key = try {
             keyStore.getKey(envelope.keyAlias, null) as? SecretKey
-        } catch (e: GeneralSecurityException) {
+        } catch (e: Exception) {
+            if (!e.isKeystoreFailure) throw e
             log(TAG, WARN) { "Keystore lookup failed for ${envelope.keyAlias}: ${e.asLog()}" }
-            null
+            throw SmbCredentialUnavailableException(
+                locationId,
+                "Keystore key ${envelope.keyAlias} is unavailable",
+                e,
+            )
         } ?: throw SmbCredentialUnavailableException(locationId, "Keystore key ${envelope.keyAlias} is gone")
 
         return try {
@@ -75,7 +91,8 @@ class KeystoreSmbCredentialCipher @Inject constructor() : SmbCredentialCipher {
                 updateAAD(aad(locationId, payloadVersion))
                 doFinal(envelope.ciphertext)
             }
-        } catch (e: GeneralSecurityException) {
+        } catch (e: Exception) {
+            if (!e.isKeystoreFailure) throw e
             log(TAG, WARN) { "Credential for $locationId failed to decrypt: ${e.asLog()}" }
             throw SmbCredentialUnavailableException(locationId, "Credential did not authenticate", e)
         }
@@ -83,7 +100,8 @@ class KeystoreSmbCredentialCipher @Inject constructor() : SmbCredentialCipher {
 
     override fun isKeyAvailable(keyAlias: String): Boolean = try {
         keyStore.containsAlias(keyAlias)
-    } catch (e: GeneralSecurityException) {
+    } catch (e: Exception) {
+        if (!e.isKeystoreFailure) throw e
         log(TAG, WARN) { "Keystore is unusable: ${e.asLog()}" }
         false
     }
