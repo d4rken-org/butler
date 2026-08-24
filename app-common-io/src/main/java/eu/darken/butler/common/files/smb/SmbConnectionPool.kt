@@ -203,7 +203,11 @@ class SmbConnectionPool @Inject constructor(
             runCatching { client.close() }
             throw mapConnectFailure(e, location, endpoint)
         } finally {
-            // Nothing past the session setup needs the password, don't hold it any longer
+            // Nothing past the session setup needs the password, don't hold it any longer. Dropping
+            // the reference is not enough, the live session keeps the context: zero the copy smbj
+            // made. Safe because a lost connection is replaced by a fresh resolve+connect, this
+            // session never re-authenticates. A guest context has no password to begin with.
+            if (credential != null) authContext?.password?.fill(' ')
             authContext = null
         }
 
