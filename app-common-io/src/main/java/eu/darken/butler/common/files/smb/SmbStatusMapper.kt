@@ -67,7 +67,10 @@ object SmbStatusMapper {
         error is SmbUnreachableException || error is SmbAuthException -> error
         error is SmbShareNotFoundException || error is SmbDialectNotSupportedException -> error
         error is SmbCredentialUnavailableException -> error
-        error is SMB1NotSupportedException -> SmbDialectNotSupportedException(endpoint, error)
+        // smbj wraps it: the verdict can sit anywhere in the chain
+        error.causeChain().any { it is SMB1NotSupportedException } -> {
+            SmbDialectNotSupportedException(endpoint, error)
+        }
         error is UnknownHostException -> SmbUnreachableException(endpoint, error)
         error is SocketTimeoutException -> SmbUnreachableException(endpoint, error)
         error is SMBApiException && error.status in AUTH_REJECTED -> SmbAuthException(endpoint, error)
@@ -121,6 +124,11 @@ object SmbStatusMapper {
             in AUTH_REJECTED -> SmbAuthException(path.path, error)
             else -> wrap(error.message ?: "SMB operation failed", path, error, write)
         }
+    }
+
+    private fun Throwable.causeChain(): Sequence<Throwable> {
+        val seen = mutableSetOf<Throwable>()
+        return generateSequence(this) { it.cause }.takeWhile { seen.add(it) }
     }
 
     private fun wrap(message: String, path: APath<*>, cause: Throwable, write: Boolean): Throwable = when {

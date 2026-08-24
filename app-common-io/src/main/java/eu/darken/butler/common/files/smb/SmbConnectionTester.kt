@@ -19,6 +19,7 @@ import javax.inject.Singleton
 @Singleton
 class SmbConnectionTester @Inject constructor(
     private val clientFactory: SmbClientFactory,
+    private val dialectProbe: SmbDialectProbe,
     private val dispatcherProvider: DispatcherProvider,
 ) {
 
@@ -54,7 +55,15 @@ class SmbConnectionTester @Inject constructor(
             log(TAG, INFO) { "test($endpoint): OK" }
         } catch (e: Exception) {
             log(TAG, WARN) { "test($endpoint) failed: ${e.asLog()}" }
-            throw SmbStatusMapper.mapConnect(e, endpoint, share)
+            val mapped = SmbStatusMapper.mapConnect(e, endpoint, share)
+            // Same reasoning as in the pool: an SMB1-only server just hangs up on us.
+            throw when {
+                mapped is SmbUnreachableException &&
+                    dialectProbe.isWorthProbing(e) &&
+                    dialectProbe.isSmb1Only(host, port) -> SmbDialectNotSupportedException(endpoint, e)
+
+                else -> mapped
+            }
         } finally {
             runCatching { client.close() }
         }
