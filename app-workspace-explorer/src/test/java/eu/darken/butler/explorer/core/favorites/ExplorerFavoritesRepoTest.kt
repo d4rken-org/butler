@@ -150,6 +150,7 @@ class ExplorerFavoritesRepoTest : BaseTest() {
 
         val path = LocalPath.build("/will-be-removed")
         repo.add(path)
+        repo.favoritePaths.first { it.isNotEmpty() }
         repo.isFavorite(path) shouldBe true
 
         repo.remove(path)
@@ -179,6 +180,7 @@ class ExplorerFavoritesRepoTest : BaseTest() {
 
         val path = LocalPath.build("/toggle-target")
         repo.toggle(path) shouldBe ExplorerFavoritesRepo.ToggleResult.Added(path)
+        repo.favoritePaths.first { it.isNotEmpty() }
         repo.isFavorite(path) shouldBe true
     }
 
@@ -194,6 +196,7 @@ class ExplorerFavoritesRepoTest : BaseTest() {
         repo.toggle(path) shouldBe ExplorerFavoritesRepo.ToggleResult.Removed(
             ExplorerFavoritesRepo.RemovedFavorite(path, 1)
         )
+        repo.favoritePaths.first { it.size == 1 }
         repo.isFavorite(path) shouldBe false
     }
 
