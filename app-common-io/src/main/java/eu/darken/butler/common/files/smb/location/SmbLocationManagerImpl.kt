@@ -120,8 +120,21 @@ class SmbLocationManagerImpl @Inject constructor(
         )
         log(TAG, INFO) { "update(): $updated" }
 
-        if (credentialChanged) writeCredential(updated, password)
-        dao.upsert(updated.toEntity())
+        when (updated.authType) {
+            // A credential has to exist before the row pointing at it, or a failed write leaves a
+            // location nobody can sign in to.
+            SmbLocation.AuthType.PASSWORD -> {
+                if (credentialChanged) writeCredential(updated, password)
+                dao.upsert(updated.toEntity())
+            }
+            // Guest is the other way round: the row that stops referring to the credential goes
+            // first, so a failed write keeps the password location signed in. An interrupted
+            // cleanup is what reconcile() drops.
+            SmbLocation.AuthType.GUEST -> {
+                dao.upsert(updated.toEntity())
+                if (credentialChanged) writeCredential(updated, password)
+            }
+        }
         // Only now is the predecessor unreachable: until the row above committed, it was the
         // generation the location still pointed at.
         credentialStore.dropOtherGenerations(updated.id, updated.credentialVersion)

@@ -224,6 +224,20 @@ class SmbCredentialStoreTest : BaseTest() {
     }
 
     @Test
+    fun `a new session generation leaves the one the location still points at intact`() = runTest {
+        val store = create()
+        store.store(locationId, 1, "darken", null, "hunter2".toCharArray(), remember = false)
+
+        store.store(locationId, 2, "darken", null, "newpass".toCharArray(), remember = false)
+
+        String(store.resolve(location).password) shouldBe "hunter2"
+        String(store.resolve(location.copy(credentialVersion = 2)).password) shouldBe "newpass"
+
+        store.dropOtherGenerations(locationId, keepVersion = 2)
+        shouldThrow<SmbCredentialUnavailableException> { store.resolve(location) }
+    }
+
+    @Test
     fun `retiring a generation keeps only the current one`() = runTest {
         val dao = FakeDao()
         val store = create(dao = dao)
