@@ -10,6 +10,7 @@ import java.security.InvalidKeyException
 import java.security.Key
 import java.security.KeyStoreSpi
 import java.security.Provider
+import java.security.ProviderException
 import java.security.Security
 import java.security.cert.Certificate
 import java.util.Date
@@ -20,8 +21,9 @@ import kotlin.uuid.Uuid
 
 /**
  * A keystore key can survive as an object and still be rejected when it is used: an invalidated key
- * is handed out and only throws at `Cipher.init`. Both directions have to report that as a
- * credential that cannot be produced, not as a raw crypto failure.
+ * is handed out and only throws at `Cipher.init`, and a keystore backed by broken hardware throws
+ * the unchecked ProviderException instead of a crypto error. Both directions have to report either
+ * as a credential that cannot be produced, not as a raw failure.
  */
 class KeystoreSmbCredentialCipherTest : BaseTest() {
 
@@ -29,12 +31,18 @@ class KeystoreSmbCredentialCipherTest : BaseTest() {
 
     @BeforeEach
     fun installUnusableKeystore() {
-        Security.addProvider(UnusableKeyProvider())
+        installKeystore(UnusableKeyProvider())
     }
 
     @AfterEach
     fun removeUnusableKeystore() {
         Security.removeProvider(UnusableKeyProvider.NAME)
+    }
+
+    /** Only one provider may hold the AndroidKeyStore name at a time. */
+    private fun installKeystore(provider: Provider) {
+        Security.removeProvider(UnusableKeyProvider.NAME)
+        Security.addProvider(provider)
     }
 
     @Test
@@ -68,6 +76,39 @@ class KeystoreSmbCredentialCipherTest : BaseTest() {
         error.cause.shouldBeInstanceOf<InvalidKeyException>()
     }
 
+    @Test
+    fun `a keystore that fails on the device is reported as unavailable while encrypting`() {
+        installKeystore(BrokenKeyProvider())
+        val cipher = KeystoreSmbCredentialCipher()
+
+        val error = shouldThrow<SmbCredentialUnavailableException> {
+            cipher.encrypt(locationId, 1, "payload".encodeToByteArray())
+        }
+
+        error.cause.shouldBeInstanceOf<ProviderException>()
+    }
+
+    @Test
+    fun `a keystore that fails on the device is reported as unavailable while decrypting`() {
+        installKeystore(BrokenKeyProvider())
+        val cipher = KeystoreSmbCredentialCipher()
+
+        val error = shouldThrow<SmbCredentialUnavailableException> {
+            cipher.decrypt(
+                locationId = locationId,
+                payloadVersion = 1,
+                envelope = SmbCredentialCipher.Envelope(
+                    envelopeVersion = SmbCredentialCipher.ENVELOPE_VERSION,
+                    keyAlias = "butler_smb_credentials",
+                    iv = ByteArray(12),
+                    ciphertext = ByteArray(32),
+                ),
+            )
+        }
+
+        error.cause.shouldBeInstanceOf<ProviderException>()
+    }
+
     /** Stands in for AndroidKeyStore and hands out a key every AES cipher rejects. */
     class UnusableKeyProvider : Provider(NAME, 1.0, "Test keystore handing out an unusable key") {
         init {
@@ -79,7 +120,19 @@ class KeystoreSmbCredentialCipherTest : BaseTest() {
         }
     }
 
-    class UnusableKeyStoreSpi : KeyStoreSpi() {
+    /** Stands in for a keystore whose hardware or service is broken: it throws on every lookup. */
+    class BrokenKeyProvider : Provider(UnusableKeyProvider.NAME, 1.0, "Test keystore that cannot be used") {
+        init {
+            put("KeyStore.${UnusableKeyProvider.NAME}", BrokenKeyStoreSpi::class.java.name)
+        }
+    }
+
+    class BrokenKeyStoreSpi : UnusableKeyStoreSpi() {
+        override fun engineGetKey(alias: String?, password: CharArray?): Key =
+            throw ProviderException("Keystore service died")
+    }
+
+    open class UnusableKeyStoreSpi : KeyStoreSpi() {
         override fun engineGetKey(alias: String?, password: CharArray?): Key =
             SecretKeySpec(ByteArray(3), "AES")
 
