@@ -42,6 +42,14 @@
     <string name="path_action_archive_password_wrong_description">The password for \"%1$s\" was incorrect. Try again.</string>
 
     <!-- Network storage errors -->
+    <string name="smb_error_unreachable_title">Server unreachable</string>
+    <string name="smb_error_unreachable_description">Butler could not reach \"%1$s\". Check that the device is on the same network and that the server is switched on.</string>
+    <string name="smb_error_auth_title">Sign-in failed</string>
+    <string name="smb_error_auth_description">\"%1$s\" rejected the username or password.</string>
+    <string name="smb_error_share_not_found_title">Share not found</string>
+    <string name="smb_error_share_not_found_description">\"%1$s\" does not exist on \"%2$s\".</string>
+    <string name="smb_error_dialect_title">Server too old</string>
+    <string name="smb_error_dialect_description">\"%1$s\" only offers SMB1, which is insecure and unsupported. Enable SMB2 or newer on the server.</string>
     <string name="smb_error_credential_unavailable_title">Sign-in required</string>
     <string name="smb_error_credential_unavailable_description">The saved password for this network storage can no longer be read. Enter it again to reconnect.</string>
 
