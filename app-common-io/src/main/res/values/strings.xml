@@ -41,6 +41,10 @@
     <string name="path_action_archive_password_description">\"%1$s\" is encrypted. Enter the password to read its contents.</string>
     <string name="path_action_archive_password_wrong_description">The password for \"%1$s\" was incorrect. Try again.</string>
 
+    <!-- Network storage errors -->
+    <string name="smb_error_credential_unavailable_title">Sign-in required</string>
+    <string name="smb_error_credential_unavailable_description">The saved password for this network storage can no longer be read. Enter it again to reconnect.</string>
+
     <!-- Service connection errors -->
     <string name="service_connection_lost_error_title">File operation interrupted</string>
     <string name="service_connection_lost_error_message">The file operation service stopped unexpectedly. Please try again.</string>
