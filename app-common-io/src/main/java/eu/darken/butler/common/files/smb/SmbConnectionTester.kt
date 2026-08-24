@@ -39,9 +39,10 @@ class SmbConnectionTester @Inject constructor(
         log(TAG) { "test($endpoint, username=$username)" }
 
         // The context keeps its own copy of the password; the array itself belongs to the caller.
+        var passwordCopy: CharArray? = null
         var authContext: AuthenticationContext? = when {
             username.isNullOrEmpty() || password == null -> AuthenticationContext.guest()
-            else -> AuthenticationContext(username, password, domain)
+            else -> AuthenticationContext(username, password, domain).also { passwordCopy = it.password }
         }
 
         val client = clientFactory.create(SmbConnectionPool.CONFIG)
@@ -76,7 +77,10 @@ class SmbConnectionTester @Inject constructor(
                 else -> mapped
             }
         } finally {
-            // Nothing past the session setup needs the password, don't hold it any longer
+            // Nothing past the session setup needs the password, don't hold it any longer. Dropping
+            // the reference leaves smbj's copy behind, so that one is zeroed too - the session is
+            // already closed here and never re-authenticates.
+            passwordCopy?.fill(' ')
             authContext = null
             runCatching { client.close() }
         }
