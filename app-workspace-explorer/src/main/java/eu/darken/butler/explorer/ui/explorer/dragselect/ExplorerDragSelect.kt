@@ -1,17 +1,24 @@
 package eu.darken.butler.explorer.ui.explorer.dragselect
 
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.core.engine.needsSignIn
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
 import eu.darken.butler.workspace.contracts.dnd.WorkspaceDragPayload
 
 /**
  * The items a drag may sweep over, in display order. Sourced from the picker-aware eligibility set
  * instead of a generic "is selectable" test, so e.g. a file picker can't drag-select directories.
+ *
+ * A picker also skips network locations that need a sign-in: the tap and long-press routes send them
+ * to the sign-in form instead of selecting them, and a drag must not be the one way to get an
+ * unbrowsable location into the result.
  */
 fun explorerDragSelectKeys(state: ExplorerWorkspaceViewModel.State): List<String> {
     val selectable = state.selectionState.selectableItems
+    val isPicking = state.pickerConfig != null
     return state.items.orEmpty()
         .filter { it in selectable && it !in state.disabledItems }
+        .filterNot { isPicking && it.needsSignIn() }
         .map { it.id }
 }
 
