@@ -237,8 +237,8 @@
 
     <!-- Network Storage -->
     <plurals name="explorer_network_location_count">
-        <item quantity="one">%d network storage</item>
-        <item quantity="other">%d network storages</item>
+        <item quantity="one">%d network location</item>
+        <item quantity="other">%d network locations</item>
     </plurals>
     <string name="explorer_network_storage_label">Network</string>
     <string name="explorer_network_add_location_action">Add network storage</string>
