@@ -1,17 +1,19 @@
 package eu.darken.butler.common.files.smb.credentials.db
 
 import androidx.room.Entity
-import androidx.room.PrimaryKey
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 /**
- * Encrypted credential for one location. Lives in its own database file so it can be excluded from
- * backups without excluding the locations themselves.
+ * Encrypted credential for one generation of one location. Lives in its own database file so it can
+ * be excluded from backups without excluding the locations themselves.
+ *
+ * The generation is part of the key so writing a new one cannot destroy the one still referenced by
+ * the location row: the credential is written first, and only a committed location row retires its
+ * predecessor.
  */
-@Entity(tableName = "smb_credentials")
+@Entity(tableName = "smb_credentials", primaryKeys = ["locationId", "credentialVersion"])
 data class SmbCredentialEntity(
-    @PrimaryKey
     val locationId: Uuid,
     /** Must match the location row's generation, a mismatch means the credential is stale. */
     val credentialVersion: Int,

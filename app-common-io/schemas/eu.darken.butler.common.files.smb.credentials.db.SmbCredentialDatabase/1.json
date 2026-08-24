@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "c95a8a3b9d36f155442db9fd3e168d74",
+    "identityHash": "ca94bee1fa1b7ad4e437aa8ee2738863",
     "entities": [
       {
         "tableName": "smb_credentials",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`locationId` TEXT NOT NULL, `credentialVersion` INTEGER NOT NULL, `envelopeVersion` INTEGER NOT NULL, `payloadVersion` INTEGER NOT NULL, `keyAlias` TEXT NOT NULL, `iv` BLOB NOT NULL, `ciphertext` BLOB NOT NULL, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, PRIMARY KEY(`locationId`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`locationId` TEXT NOT NULL, `credentialVersion` INTEGER NOT NULL, `envelopeVersion` INTEGER NOT NULL, `payloadVersion` INTEGER NOT NULL, `keyAlias` TEXT NOT NULL, `iv` BLOB NOT NULL, `ciphertext` BLOB NOT NULL, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, PRIMARY KEY(`locationId`, `credentialVersion`))",
         "fields": [
           {
             "fieldPath": "locationId",
@@ -66,14 +66,15 @@
         "primaryKey": {
           "autoGenerate": false,
           "columnNames": [
-            "locationId"
+            "locationId",
+            "credentialVersion"
           ]
         }
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'c95a8a3b9d36f155442db9fd3e168d74')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ca94bee1fa1b7ad4e437aa8ee2738863')"
     ]
   }
 }
