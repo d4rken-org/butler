@@ -22,7 +22,6 @@ import eu.darken.butler.common.hasApiLevel
 import eu.darken.butler.main.ui.MainActivity
 import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.preview.WorkspacePreviewModel
-import kotlinx.coroutines.flow.first
 import okio.Buffer
 import okio.FileSystem
 import java.io.ByteArrayOutputStream
@@ -74,7 +73,7 @@ class WorkspacePreviewFetcher @Inject constructor(
         // Step 2: Disk cache miss - generate preview
         log(TAG) { "Disk cache MISS for ${data.workspaceId.shortTag} - generating preview" }
 
-        val workspaceInfo = workspaceRepo.state.first().infos.find { it.id == data.workspaceId }
+        val workspaceInfo = workspaceRepo.peekInfos().find { it.id == data.workspaceId }
 
         if (workspaceInfo == null) {
             log(TAG, WARN) { "Workspace ${data.workspaceId.shortTag} not found in repo" }

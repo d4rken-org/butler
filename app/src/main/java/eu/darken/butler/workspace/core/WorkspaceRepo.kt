@@ -346,6 +346,19 @@ class WorkspaceRepo @Inject constructor(
     fun peekAll(): List<Workspace<out Workspace.Arguments>> = _workspaces.value
 
     /**
+     * The current workspaces with their custom names applied, read from the authoritative state
+     * rather than [state], whose replay can still hold the snapshot from before a create, close or
+     * rename that has already been committed. Preview capture and fetch start right after such a
+     * mutation, so naming from the replay is what bakes a stale name into a cached thumbnail.
+     *
+     * [lock] is NOT reentrant, so this must not be called from a path that already holds it.
+     */
+    suspend fun peekInfos(): List<Workspace.Info> = lock.withLock {
+        val titles = _customTitles.value
+        _workspaces.value.map { it.info.value.withCustomTitle(titles) }
+    }
+
+    /**
      * When [id] was created, or null when it is unknown. Survives a pause/resume round-trip - the
      * map is keyed by id and [executeResume] only swaps the instance in its list slot - so session
      * saving can persist the true creation instant instead of the instant of the first save.
