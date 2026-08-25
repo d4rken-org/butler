@@ -49,21 +49,29 @@ class BugReportWorkspaceViewModel @AssistedInject constructor(
     private val _overlayState = MutableStateFlow(OverlayState())
     val overlayState: StateFlow<OverlayState> = _overlayState
 
-    fun requestShareConsent(reportId: String) {
-        log(tag) { "requestShareConsent($reportId)" }
-        _overlayState.update { it.copy(shareConsentReportId = reportId) }
+    // First-wins: a request arriving while another dialog is up is dropped, so a destructive
+    // confirmation can never turn into a different question under the user's finger.
+    private fun requestDialog(dialog: ActiveDialog) {
+        log(tag) { "requestDialog($dialog)" }
+        _overlayState.update { if (it.activeDialog != null) it else it.copy(activeDialog = dialog) }
     }
 
-    fun dismissShareConsent() {
-        _overlayState.update { it.copy(shareConsentReportId = null) }
+    fun requestShareConsent(reportId: String) = requestDialog(ActiveDialog.ShareConsent(reportId))
+
+    fun dismissShareConsent() = _overlayState.update {
+        if (it.activeDialog is ActiveDialog.ShareConsent) it.copy(activeDialog = null) else it
     }
 
-    fun showShortRecordingWarning() {
-        _overlayState.update { it.copy(showShortRecordingWarning = true) }
+    fun showShortRecordingWarning() = requestDialog(ActiveDialog.ShortRecordingWarning)
+
+    fun dismissShortRecordingWarning() = _overlayState.update {
+        if (it.activeDialog is ActiveDialog.ShortRecordingWarning) it.copy(activeDialog = null) else it
     }
 
-    fun dismissShortRecordingWarning() {
-        _overlayState.update { it.copy(showShortRecordingWarning = false) }
+    fun requestDeleteAllConfirmation() = requestDialog(ActiveDialog.DeleteAllConfirmation)
+
+    fun dismissDeleteAllConfirmation() = _overlayState.update {
+        if (it.activeDialog is ActiveDialog.DeleteAllConfirmation) it.copy(activeDialog = null) else it
     }
 
     // Loads the selected report's log tail. flatMapLatest cancels an in-flight load when the selection
@@ -146,10 +154,15 @@ class BugReportWorkspaceViewModel @AssistedInject constructor(
         if (selectedReportId.value == reportId) selectedReportId.value = null
     }
 
-    fun deleteAll() = launch {
+    fun deleteAll() {
         log(tag, INFO) { "deleteAll()" }
-        bugReportRepo.deleteAll()
-        selectedReportId.value = null
+        // Dismiss before the IO, like the share consent does: otherwise the confirm button stays live
+        // during the delete, and a throw inside deleteAll() would strand the dialog open.
+        dismissDeleteAllConfirmation()
+        launch {
+            bugReportRepo.deleteAll()
+            selectedReportId.value = null
+        }
     }
 
     fun startRecording() = launch {
@@ -184,11 +197,16 @@ class BugReportWorkspaceViewModel @AssistedInject constructor(
         val detail: Detail? = null,
     )
 
+    /** A single slot, so two dialogs can never stack on top of each other. */
     data class OverlayState(
-        /** Report awaiting the user's share consent, or null while no consent is being asked for. */
-        val shareConsentReportId: String? = null,
-        val showShortRecordingWarning: Boolean = false,
+        val activeDialog: ActiveDialog? = null,
     )
+
+    sealed interface ActiveDialog {
+        data class ShareConsent(val reportId: String) : ActiveDialog
+        data object ShortRecordingWarning : ActiveDialog
+        data object DeleteAllConfirmation : ActiveDialog
+    }
 
     /** The full-screen detail view's state: the report plus its (async) log tail. */
     data class Detail(
