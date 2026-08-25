@@ -219,6 +219,51 @@ class AppInstallInspectorTest : BaseTest() {
     }
 
     @Test
+    fun `an xapk split in a subdirectory is installed`() = runTest2 {
+        val container = bundle(
+            "nested.xapk",
+            mapOf(
+                "manifest.json" to """
+                    {
+                      "package_name": "$testPkg",
+                      "split_apks": [
+                        {"file": "splits/config.en.apk", "id": "config.en"},
+                        {"file": "base.apk", "id": "base"}
+                      ]
+                    }
+                """.trimIndent(),
+                "splits/config.en.apk" to "en",
+                "base.apk" to "base",
+            ),
+        )
+
+        val plan = inspector().inspect(container)
+
+        plan.splits.map { it.entryPath } shouldContainExactly listOf("base.apk", "splits/config.en.apk")
+    }
+
+    @Test
+    fun `an xapk missing a declared split is rejected`() = runTest2 {
+        val container = bundle(
+            "incomplete.xapk",
+            mapOf(
+                "manifest.json" to """
+                    {
+                      "package_name": "$testPkg",
+                      "split_apks": [
+                        {"file": "base.apk", "id": "base"},
+                        {"file": "config.en.apk", "id": "config.en"}
+                      ]
+                    }
+                """.trimIndent(),
+                "base.apk" to "base",
+            ),
+        )
+
+        shouldThrow<AppInstallUnsupportedBundleException> { inspector().inspect(container) }
+    }
+
+    @Test
     fun `an xapk without a manifest falls back to a filename scan`() = runTest2 {
         val container = bundle(
             "nomanifest.xapk",
@@ -277,6 +322,45 @@ class AppInstallInspectorTest : BaseTest() {
     }
 
     @Test
+    fun `a manifest expansion is placed under the name it declares`() = runTest2 {
+        val container = bundle(
+            "declaredpath.xapk",
+            mapOf(
+                "manifest.json" to """
+                    {
+                      "package_name":"$testPkg",
+                      "expansions":[
+                        {"file":"payload.obb","install_path":"Android/obb/$testPkg/main.1.obb"}
+                      ]
+                    }
+                """.trimIndent(),
+                "base.apk" to "base",
+                "payload.obb" to "payload",
+            ),
+        )
+
+        val plan = inspector().inspect(container)
+
+        plan.obbEntries.single().entryPath shouldBe "payload.obb"
+        plan.obbEntries.single().fileName shouldBe "main.1.obb"
+    }
+
+    @Test
+    fun `expansions that would overwrite each other are rejected`() = runTest2 {
+        val container = bundle(
+            "colliding.xapk",
+            mapOf(
+                "manifest.json" to """{"package_name":"$testPkg"}""",
+                "base.apk" to "base",
+                "Android/obb/$testPkg/main.obb" to "one",
+                "Android/obb/$testPkg/MAIN.OBB" to "two",
+            ),
+        )
+
+        shouldThrow<AppInstallUnsupportedBundleException> { inspector().inspect(container) }
+    }
+
+    @Test
     fun `expansion entries outside the installed package are dropped`() = runTest2 {
         val container = bundle(
             "foreign.xapk",
@@ -295,7 +379,7 @@ class AppInstallInspectorTest : BaseTest() {
     }
 
     @Test
-    fun `traversal names never reach the plan`() = runTest2 {
+    fun `a container with traversal names is rejected`() = runTest2 {
         val container = bundle(
             "evil.xapk",
             mapOf(
@@ -306,10 +390,9 @@ class AppInstallInspectorTest : BaseTest() {
             ),
         )
 
-        val plan = inspector().inspect(container)
-
-        plan.splits.map { it.entryPath } shouldContainExactly listOf("base.apk")
-        plan.obbEntries.shouldBeEmpty()
+        // Installing what is left over would be an app assembled from the parts of a container that
+        // tried to write outside itself.
+        shouldThrow<AppInstallUnsupportedBundleException> { inspector().inspect(container) }
     }
 
     @Test
@@ -331,7 +414,7 @@ class AppInstallInspectorTest : BaseTest() {
     }
 
     @Test
-    fun `an entry with an unusable size is dropped`() {
+    fun `an unusable entry size is recognized`() {
         val subject = inspector()
         subject.isUsableSize(entryMeta(size = 12L)) shouldBe true
         subject.isUsableSize(entryMeta(size = 0L)) shouldBe true
