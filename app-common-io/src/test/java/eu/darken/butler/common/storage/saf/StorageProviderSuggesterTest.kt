@@ -93,6 +93,8 @@ class StorageProviderSuggesterTest : BaseTest() {
             FakeProvider(pkg = "com.android.providers.downloads", authority = "com.android.providers.downloads.documents"),
             FakeProvider(pkg = "com.android.providers.media.module", authority = "com.android.providers.media.documents"),
             FakeProvider(pkg = "com.android.mtp", authority = "com.android.mtp.documents"),
+            FakeProvider(pkg = "com.android.documentsui", authority = "com.android.documentsui.archives"),
+            FakeProvider(pkg = "com.google.android.documentsui", authority = "com.android.documentsui.archives"),
         )
 
         suggester.getSuggestions().shouldBeEmpty()

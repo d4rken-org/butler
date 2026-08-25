@@ -112,6 +112,8 @@ class StorageProviderSuggester @Inject constructor(
             "com.android.providers.downloads.documents",
             "com.android.providers.media.documents",
             "com.android.mtp.documents",
+            // Browses inside archive files for the system picker, publishes no grantable root.
+            "com.android.documentsui.archives",
         )
     }
 }
