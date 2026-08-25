@@ -165,7 +165,7 @@ jobs:
     needs: validate-tag
     if: always() && (needs.validate-tag.result == 'success' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-22.04
-    environment: gplay-production
+    environment: gplay-production-upload
     env:
       BUNDLE_GEMFILE: ${{ github.workspace }}/fastlane/Gemfile
     steps:
@@ -187,6 +187,12 @@ jobs:
           mkdir -p "${TMP_SERVICEKEY_DIR}"
           TMP_SERVICEKEY_FILE_PATH="${TMP_SERVICEKEY_DIR}"/service_account.json
           echo $ENCODED_SERVICE_KEY | base64 -di > "${TMP_SERVICEKEY_FILE_PATH}"
+          # An unset secret decodes to an empty file and exits 0, so the failure would
+          # otherwise only surface in supply after the bundle build.
+          if ! jq -e . "${TMP_SERVICEKEY_FILE_PATH}" >/dev/null 2>&1; then
+            echo "::error::GPLAY_SERVICE_ACCOUNT_KEY_JSON_BASE64 is missing or not valid base64-encoded JSON in this environment." >&2
+            exit 1
+          fi
           echo "SUPPLY_JSON_KEY=$(echo $TMP_SERVICEKEY_FILE_PATH)" >> $GITHUB_ENV
 
       - name: Checkout source code
