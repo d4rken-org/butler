@@ -844,7 +844,6 @@ private fun DualColumnEditorContent(
                                     charWidthPx = charWidthPx,
                                     tabSize = tabSize,
                                     textLayouts = textLayouts,
-                                    contentPaddingTop = contentPaddingTopPx,
                                     lineStartColumns = currentStartColumns,
                                 )
 
@@ -911,7 +910,6 @@ private fun DualColumnEditorContent(
                                     charWidthPx = charWidthPx,
                                     tabSize = tabSize,
                                     textLayouts = textLayouts,
-                                    contentPaddingTop = contentPaddingTopPx,
                                     lineStartColumns = currentStartColumns,
                                 )
 
@@ -1004,7 +1002,6 @@ private fun DualColumnEditorContent(
                         charWidthPx = charWidthPx,
                         tabSize = tabSize,
                         textLayouts = textLayouts,
-                        contentPaddingTop = contentPaddingTopPx,
                         lineStartColumns = currentStartColumns,
                     )
 
@@ -1039,7 +1036,6 @@ private fun DualColumnEditorContent(
                         charWidthPx = charWidthPx,
                         tabSize = tabSize,
                         textLayouts = textLayouts,
-                        contentPaddingTop = contentPaddingTopPx,
                         lineStartColumns = currentStartColumns,
                     )
 
