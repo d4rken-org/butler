@@ -1,6 +1,10 @@
 package eu.darken.butler.editor.ui.editor.text
 
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.lazy.LazyListItemInfo
+import androidx.compose.foundation.lazy.LazyListLayoutInfo
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.unit.IntSize
 import eu.darken.butler.editor.core.engine.TextPosition
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
@@ -504,6 +508,53 @@ class EditorPositionUtilsTest {
         @Test
         fun `empty line clamps to zero`() {
             expandedColumnFromX(adjustedX = 500f, charWidthPx = 10f, maxColumn = 0) shouldBe 0
+        }
+    }
+
+    @Nested
+    inner class LazyListCoordinates {
+
+        private fun layoutInfo(topContentPadding: Int) = object : LazyListLayoutInfo {
+            override val visibleItemsInfo: List<LazyListItemInfo> = emptyList()
+            override val viewportStartOffset: Int = -topContentPadding
+            override val viewportEndOffset: Int = 0
+            override val totalItemsCount: Int = 0
+            override val viewportSize: IntSize = IntSize.Zero
+            override val orientation: Orientation = Orientation.Vertical
+            override val reverseLayout: Boolean = false
+            override val beforeContentPadding: Int = topContentPadding
+            override val afterContentPadding: Int = 0
+            override val mainAxisItemSpacing: Int = 0
+        }
+
+        @Test
+        fun `without top padding both directions are the identity`() {
+            val info = layoutInfo(topContentPadding = 0)
+
+            info.containerToItemY(0f) shouldBe 0f
+            info.containerToItemY(37f) shouldBe 37f
+            info.itemToContainerY(37f) shouldBe 37f
+        }
+
+        @Test
+        fun `top padding shifts the two spaces against each other`() {
+            val info = layoutInfo(topContentPadding = 64)
+
+            // The item-space origin, the first item's top, sits 64px down the container.
+            info.containerToItemY(64f) shouldBe 0f
+            info.itemToContainerY(0f) shouldBe 64f
+            // A tap inside the padding band is above the content region.
+            info.containerToItemY(10f) shouldBe -54f
+        }
+
+        @Test
+        fun `the two directions round-trip at non-zero padding`() {
+            val info = layoutInfo(topContentPadding = 64)
+
+            for (y in listOf(-100f, 0f, 12.5f, 64f, 1000f)) {
+                info.itemToContainerY(info.containerToItemY(y)) shouldBe y
+                info.containerToItemY(info.itemToContainerY(y)) shouldBe y
+            }
         }
     }
 }
