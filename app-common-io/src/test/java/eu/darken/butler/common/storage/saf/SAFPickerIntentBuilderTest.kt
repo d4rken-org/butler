@@ -175,18 +175,18 @@ class SAFPickerIntentBuilderTest : BaseTest() {
     }
 
     @Test
-    fun `test builds correct URI for a path shaped document id`() {
+    fun `test builds root URI for a path shaped root id`() {
         val builder = SAFPickerIntentBuilder(mockk<StorageManager2>())
 
         val intent = builder.buildPickerIntent(
             authority = "com.termux.documents",
-            rootDocumentId = "/data/data/com.termux/files/home",
+            rootId = "/data/data/com.termux/files/home",
         )
 
         val navUri = intent.getParcelableExtra<Uri>(DocumentsContract.EXTRA_INITIAL_URI)
         navUri.shouldNotBeNull()
 
-        navUri.toString() shouldBe "content://com.termux.documents/tree/%2Fdata%2Fdata%2Fcom.termux%2Ffiles%2Fhome/document/%2Fdata%2Fdata%2Fcom.termux%2Ffiles%2Fhome"
+        navUri.toString() shouldBe "content://com.termux.documents/root/%2Fdata%2Fdata%2Fcom.termux%2Ffiles%2Fhome"
     }
 
     @Test
@@ -195,7 +195,7 @@ class SAFPickerIntentBuilderTest : BaseTest() {
 
         val intent = builder.buildPickerIntent(
             authority = "com.termux.documents",
-            rootDocumentId = "/data/data/com.termux/files/home",
+            rootId = "/data/data/com.termux/files/home",
         )
 
         intent.action shouldBe Intent.ACTION_OPEN_DOCUMENT_TREE

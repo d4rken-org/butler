@@ -3,7 +3,7 @@ package eu.darken.butler.common.storage.saf
 /**
  * Providers we know enough about to open the system picker directly at their storage root.
  *
- * A stale [rootDocumentIdFor] degrades gracefully: it only feeds
+ * A stale [rootIdFor] degrades gracefully: it only feeds
  * [android.provider.DocumentsContract.EXTRA_INITIAL_URI], which the picker treats as a hint.
  */
 enum class KnownStorageProvider(val packageNames: Set<String>) {
@@ -12,7 +12,7 @@ enum class KnownStorageProvider(val packageNames: Set<String>) {
 
     fun authorityFor(pkg: String): String = "$pkg.documents"
 
-    fun rootDocumentIdFor(pkg: String): String = when (this) {
+    fun rootIdFor(pkg: String): String = when (this) {
         TERMUX -> "/data/data/$pkg/files/home"
     }
 

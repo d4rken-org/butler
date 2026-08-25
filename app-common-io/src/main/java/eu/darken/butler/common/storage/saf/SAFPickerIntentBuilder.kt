@@ -125,17 +125,17 @@ class SAFPickerIntentBuilder @Inject constructor(
      * Builds a SAF picker intent pre-navigated to a provider's own storage root.
      *
      * @param authority The documents provider authority
-     * @param rootDocumentId The provider's root document ID
+     * @param rootId The provider's root ID
      */
-    fun buildPickerIntent(authority: String, rootDocumentId: String): Intent {
-        val treeUri = DocumentsContract.buildTreeDocumentUri(authority, rootDocumentId)
-        val navTreeUri = DocumentsContract.buildDocumentUriUsingTree(treeUri, rootDocumentId)
+    fun buildPickerIntent(authority: String, rootId: String): Intent {
+        // A tree URI would presuppose a grant for this authority, which is exactly what we're asking for.
+        val rootUri = DocumentsContract.buildRootUri(authority, rootId)
 
-        log(TAG) { "Created picker intent for $authority ($rootDocumentId) -> navigation URI: $navTreeUri" }
+        log(TAG) { "Created picker intent for $authority ($rootId) -> navigation URI: $rootUri" }
 
         return Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
             putExtra("android.content.extra.SHOW_ADVANCED", true)
-            putExtra(DocumentsContract.EXTRA_INITIAL_URI, navTreeUri)
+            putExtra(DocumentsContract.EXTRA_INITIAL_URI, rootUri)
         }
     }
 

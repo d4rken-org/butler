@@ -100,7 +100,7 @@ class ExplorerSafLocationController(
         val intent = when {
             known != null -> safPickerIntentBuilder.buildPickerIntent(
                 authority = known.authorityFor(suggestion.packageName),
-                rootDocumentId = known.rootDocumentIdFor(suggestion.packageName),
+                rootId = known.rootIdFor(suggestion.packageName),
             )
             else -> Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
                 putExtra("android.content.extra.SHOW_ADVANCED", true)
