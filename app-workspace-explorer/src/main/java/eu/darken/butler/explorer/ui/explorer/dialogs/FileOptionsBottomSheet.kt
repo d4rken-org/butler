@@ -257,7 +257,17 @@ private fun FileOptionsContent(
             FileActionRow(
                 icon = Workspace.Type.VIEWER.icon,
                 title = stringResource(R.string.explorer_file_action_open),
-                subtitle = stringResource(R.string.explorer_file_action_open_subtitle),
+                // Only a Viewer stacks inside this tab and returns here on back. A text file
+                // routes to the Editor, which is a tab of its own, making this row do exactly
+                // what the "open in new tab" row below does. Routing pinned by
+                // OpenInNewTabsUseCaseTest.
+                subtitle = stringResource(
+                    if (isTextFile) {
+                        R.string.explorer_file_action_open_in_tab_subtitle
+                    } else {
+                        R.string.explorer_file_action_open_subtitle
+                    },
+                ),
                 onClick = { onAction(ExplorerActionBarItem.File.Open(item)) },
             )
 
