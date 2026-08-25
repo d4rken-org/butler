@@ -1,5 +1,6 @@
 package eu.darken.butler.workspace.core.clipboard
 
+import android.content.Context
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.ca.toCaString
@@ -40,19 +41,44 @@ sealed interface ClipboardClip {
 
         override val description: CaString
             get() = caString {
-                if (paths.size == 1) {
-                    paths.single().userReadablePath.get(it)
-                } else {
-                    it.getQuantityString2(
+                val locations = sourceLocations(it)
+                when {
+                    paths.size == 1 -> paths.single().userReadablePath.get(it)
+                    locations.size > 1 -> {
+                        val locationsPhrase = it.getQuantityString2(
+                            R.plurals.clipboard_paths_locations,
+                            locations.size,
+                            locations.size,
+                        )
+                        it.getQuantityString2(
+                            when (mode) {
+                                Mode.COPY -> R.plurals.clipboard_paths_description_copy_multi
+                                Mode.CUT -> R.plurals.clipboard_paths_description_cut_multi
+                            },
+                            paths.size,
+                            paths.size, locationsPhrase
+                        )
+                    }
+
+                    else -> it.getQuantityString2(
                         when (mode) {
                             Mode.COPY -> R.plurals.clipboard_paths_description_copy
                             Mode.CUT -> R.plurals.clipboard_paths_description_cut
                         },
                         paths.size,
-                        paths.size, paths.first().parent?.userReadablePath?.get(it) ?: "?"
+                        paths.size, locations.first()
                     )
                 }
             }
+
+        /**
+         * The distinct directories the clipped paths were taken from. A path at the filesystem
+         * root has no parent and reads as "/", the same as an item directly below the root, so
+         * both count as one location.
+         */
+        fun sourceLocations(context: Context): List<String> = paths
+            .map { path -> path.parent?.userReadablePath?.get(context) ?: "/" }
+            .distinct()
 
         enum class Mode {
             COPY,
