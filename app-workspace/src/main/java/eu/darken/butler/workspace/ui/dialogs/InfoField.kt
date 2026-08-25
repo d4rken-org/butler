@@ -5,9 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -49,7 +47,7 @@ fun InfoCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 4.dp),
+                .padding(vertical = 2.dp),
             content = content,
         )
     }
@@ -76,7 +74,7 @@ fun InfoField(
                     Modifier
                 },
             )
-            .padding(horizontal = 12.dp, vertical = 4.dp),
+            .padding(horizontal = 12.dp, vertical = 2.dp),
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -96,8 +94,6 @@ fun InfoField(
                 )
             }
         }
-
-        Spacer(modifier = Modifier.height(1.dp))
 
         Text(
             text = value,

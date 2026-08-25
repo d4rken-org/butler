@@ -80,8 +80,8 @@ private fun ItemInfoContent(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .padding(bottom = 32.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+            .padding(bottom = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         // Title
         Text(
@@ -190,7 +190,7 @@ private fun SingleFileInfo(
     }
 
     if (item is ExplorerItem.SymbolicLink) {
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(6.dp))
         InfoCard {
             InfoField(
                 label = stringResource(R.string.explorer_info_symlink_target_label),
@@ -378,7 +378,7 @@ private fun NetworkStorageInfo(
         )
     }
 
-    Spacer(modifier = Modifier.height(8.dp))
+    Spacer(modifier = Modifier.height(6.dp))
 
     InfoCard {
         InfoField(
