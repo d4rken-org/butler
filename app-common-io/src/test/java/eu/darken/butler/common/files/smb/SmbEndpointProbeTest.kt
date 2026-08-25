@@ -283,7 +283,7 @@ class SmbEndpointProbeTest : BaseTest() {
     }
 
     @Test
-    fun `a network change that happened off screen invalidates the cache`() = runTest {
+    fun `a network change that happened off screen is not served from the cache`() = runTest {
         val connector = FakeConnector()
         val networkStates = MutableStateFlow<NetworkStateProvider.State>(wifi)
         val probe = createProbe(FakeResolver { listOf(ipv4) }, connector, networkStates = networkStates)
@@ -307,6 +307,50 @@ class SmbEndpointProbeTest : BaseTest() {
 
         watchingAgain.cancel()
         runCurrent()
+    }
+
+    @Test
+    fun `becoming watched again re-probes even if the network never changed`() = runTest {
+        val connector = FakeConnector()
+        val networkStates = MutableStateFlow<NetworkStateProvider.State>(wifi)
+        val probe = createProbe(FakeResolver { listOf(ipv4) }, connector, networkStates = networkStates)
+
+        val watching = probe.states.launchIn(this)
+        runCurrent()
+        probe.probe(listOf(location()))
+        runCurrent()
+        connector.attempts.size shouldBe 1
+
+        watching.cancel()
+        runCurrent()
+
+        // Same network and the clock never moved, so only the gap itself can force this probe.
+        val watchingAgain = probe.states.launchIn(this)
+        runCurrent()
+        connector.attempts.size shouldBe 2
+
+        watchingAgain.cancel()
+        runCurrent()
+    }
+
+    /** The pass for the old host is only queued when the edit lands, it must not run at all. */
+    @Test
+    fun `a pass that starts after the host was edited neither publishes nor probes`() = runTest {
+        val connector = FakeConnector()
+        val probe = createProbe(
+            FakeResolver { host -> if (host == "old.nas") listOf(ipv6) else listOf(ipv4) },
+            connector,
+        )
+
+        probe.probe(listOf(location(host = "old.nas")))
+        probe.probe(listOf(location(host = "new.nas")))
+        advanceUntilIdle()
+
+        connector.attempts shouldBe listOf(ipv4)
+        probe.states.value[locationId] shouldBe SmbEndpointState(
+            address = ipv4.hostAddress,
+            reachability = SmbEndpointState.Reachability.REACHABLE,
+        )
     }
 
     @Test

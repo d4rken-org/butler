@@ -20,16 +20,15 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
@@ -118,14 +117,11 @@ class SmbEndpointProbe @Inject constructor(
     private val cache = mutableMapOf<Endpoint, CacheEntry>()
     private val inFlight = mutableMapOf<Endpoint, InFlightProbe>()
 
-    /** What each id was last probed for, so an edited host reports as unknown again. */
+    /** What each id last published a state for, so only an edited host resets its row to unknown. */
     private val probedEndpoints = mutableMapOf<Uuid, Endpoint>()
 
     /** Bumped on every connectivity change, results from an earlier epoch describe another network. */
     private var connectivityEpoch = 0
-
-    /** What the last probe pass ran on, the only yardstick for a change that happened off screen. */
-    private var lastProbeNetworkState: NetworkStateProvider.State? = null
 
     @Volatile private var watched: List<SmbLocation> = emptyList()
 
@@ -143,7 +139,7 @@ class SmbEndpointProbe @Inject constructor(
                     emptyFlow()
                 } else {
                     merge(
-                        missedConnectivityChange(),
+                        flowOf(Trigger.RESUBSCRIBED),
                         expiryTicks().map { Trigger.EXPIRY },
                         networkStateProvider.networkState.drop(1).map { Trigger.CONNECTIVITY },
                     )
@@ -151,7 +147,7 @@ class SmbEndpointProbe @Inject constructor(
             }
             .onEach { trigger ->
                 log(tag) { "Re-probing after $trigger" }
-                if (trigger == Trigger.CONNECTIVITY) {
+                if (trigger != Trigger.EXPIRY) {
                     mutex.withLock {
                         cache.clear()
                         connectivityEpoch++
@@ -162,23 +158,23 @@ class SmbEndpointProbe @Inject constructor(
             .launchIn(appScope)
     }
 
-    private enum class Trigger { EXPIRY, CONNECTIVITY }
+    private enum class Trigger {
+        EXPIRY,
+        CONNECTIVITY,
+
+        /**
+         * Nothing watches connectivity while the list is off screen, so the gap counts as a change
+         * rather than being compared against anything: an unnoticed hop to another network and back
+         * looks identical to no hop at all.
+         */
+        RESUBSCRIBED,
+    }
 
     private fun expiryTicks() = flow {
         while (true) {
             delay(EXPIRY_CHECK_INTERVAL)
             emit(Unit)
         }
-    }
-
-    /**
-     * Nothing watches connectivity while the list is off screen, so a change during that gap only
-     * shows as the current network differing from the one the last probe pass ran on.
-     */
-    private fun missedConnectivityChange(): Flow<Trigger> = flow {
-        val current = networkStateProvider.networkState.firstOrNull()
-        val changed = mutex.withLock { lastProbeNetworkState != null && lastProbeNetworkState != current }
-        if (changed) emit(Trigger.CONNECTIVITY)
     }
 
     /**
@@ -194,15 +190,25 @@ class SmbEndpointProbe @Inject constructor(
     private suspend fun probeAll(locations: Collection<SmbLocation>, force: Boolean) = coroutineScope {
         val known = watched.map { it.id }.toSet()
         _states.update { states -> states.filterKeys { it in known } }
-        val networkState = networkStateProvider.networkState.firstOrNull()
-        mutex.withLock { lastProbeNetworkState = networkState }
         locations.forEach { location -> launch { probeLocation(location, force) } }
     }
+
+    /**
+     * What an id stands for right now. [watched] is assigned before a pass is even launched, so it,
+     * unlike anything a pass itself writes, cannot be walked backwards by a pass that lost the race.
+     */
+    private fun currentEndpoint(id: Uuid): Endpoint? = watched
+        .firstOrNull { it.id == id }
+        ?.let { Endpoint(it.host, it.port) }
 
     private suspend fun probeLocation(location: SmbLocation, force: Boolean) {
         val endpoint = Endpoint(location.host, location.port)
 
         val probe = mutex.withLock {
+            if (currentEndpoint(location.id) != endpoint) {
+                log(tag, VERBOSE) { "Skipping $endpoint, ${location.id} does not stand for it anymore" }
+                return
+            }
             if (force) cache.remove(endpoint)
             val cached = cache[endpoint]
             if (cached != null && clock.now() - cached.probedAt < CACHE_TTL) {
@@ -236,7 +242,7 @@ class SmbEndpointProbe @Inject constructor(
             if (inFlight[endpoint]?.deferred === probe.deferred) inFlight.remove(endpoint)
             // The host may have been edited and the network may have changed while this ran, either
             // makes the result describe something else than what the id stands for now.
-            val isCurrent = probe.epoch == connectivityEpoch && probedEndpoints[location.id] == endpoint
+            val isCurrent = probe.epoch == connectivityEpoch && currentEndpoint(location.id) == endpoint
             if (!isCurrent) {
                 log(tag, VERBOSE) { "Dropping outdated result for $endpoint: $state" }
                 return@withLock
