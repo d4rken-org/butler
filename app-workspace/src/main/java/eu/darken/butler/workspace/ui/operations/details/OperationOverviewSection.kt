@@ -46,7 +46,7 @@ import eu.darken.butler.common.formatRelativeTime
 import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
-import eu.darken.butler.workspace.ui.operations.bar.OperationActionIndicator
+import eu.darken.butler.workspace.ui.operations.bar.operationStateVisuals
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
 
@@ -217,9 +217,12 @@ private fun OperationOverviewGrid(
                             entry = entry,
                             valueLeading = if (entry === statusEntry) {
                                 {
-                                    OperationActionIndicator(
+                                    val visuals = operationStateVisuals(operation.state)
+                                    Icon(
                                         modifier = Modifier.size(16.dp),
-                                        state = operation.state,
+                                        imageVector = visuals.imageVector,
+                                        contentDescription = visuals.contentDescription,
+                                        tint = visuals.tint,
                                     )
                                 }
                             } else {
