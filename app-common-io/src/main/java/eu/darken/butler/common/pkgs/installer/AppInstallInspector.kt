@@ -74,7 +74,7 @@ class AppInstallInspector @Inject constructor(
     }
 
     private suspend fun inspectBundle(path: APath<*>, format: AppInstallFormat): AppInstallPlan {
-        val index = indexOrFail(path, format)
+        val index = indexOrFail(path)
         if (index.isEncrypted) throw AppInstallProtectedBundleException(path)
         if (index.entriesBySegments.size > MAX_INDEX_ENTRIES) {
             throw AppInstallUnsupportedBundleException(path, "index holds ${index.entriesBySegments.size} entries")
@@ -144,16 +144,15 @@ class AppInstallInspector @Inject constructor(
         )
     }
 
-    private suspend fun indexOrFail(path: APath<*>, format: AppInstallFormat): ArchiveIndex = try {
+    /**
+     * Only a password demand marks a container as protected. A truncated download, a non-seekable
+     * provider and a protected APKM all surface as the same read error, so mapping by file extension
+     * would send most of those users after a recovery that does not apply to them.
+     */
+    private suspend fun indexOrFail(path: APath<*>): ArchiveIndex = try {
         archiveService.index(path)
-    } catch (e: CancellationException) {
-        throw e
     } catch (e: ArchivePasswordRequiredException) {
         throw AppInstallProtectedBundleException(path, e)
-    } catch (e: Exception) {
-        // A protected APKM is a whole-file wrapper: it does not even index, and the corruption error
-        // that surfaces would otherwise be shown as a damaged file.
-        if (format == AppInstallFormat.APKM) throw AppInstallProtectedBundleException(path, e) else throw e
     }
 
     /**
