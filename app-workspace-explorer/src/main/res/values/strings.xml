@@ -396,6 +396,8 @@
     <string name="explorer_file_info_type_label">Type</string>
     <string name="explorer_file_info_size_label">Size</string>
     <string name="explorer_file_info_modified_label">Modified</string>
+    <string name="explorer_file_action_install">Install</string>
+    <string name="explorer_file_action_install_subtitle">Install this app on your device</string>
     <string name="explorer_file_action_open">Open</string>
     <string name="explorer_file_action_open_subtitle">View here, back returns to this folder</string>
     <string name="explorer_file_action_open_in_tab">Open in new tab</string>

@@ -16,6 +16,7 @@ import androidx.compose.material.icons.twotone.FilterList
 import androidx.compose.material.icons.twotone.FolderShared
 import androidx.compose.material.icons.twotone.GridView
 import androidx.compose.material.icons.twotone.Info
+import androidx.compose.material.icons.twotone.InstallMobile
 import androidx.compose.material.icons.automirrored.twotone.OpenInNew
 import androidx.compose.material.icons.twotone.Refresh
 import androidx.compose.material.icons.twotone.RemoveCircle
@@ -278,6 +279,15 @@ sealed interface ExplorerActionBarItem : WorkspaceActionBarItem {
      * Actions for single-file context menu operations (from FileOptionsBottomSheet).
      */
     sealed interface File : ExplorerActionBarItem {
+        /** Installs an APK or app bundle. Only offered for the four installable extensions. */
+        data class Install(
+            val item: ExplorerItem.File,
+            override val icon: ImageVector = Icons.TwoTone.InstallMobile,
+            val labelRes: Int = R.string.explorer_file_action_install,
+        ) : File {
+            override val label = labelRes.toCaString()
+        }
+
         /**
          * Opens the file in the workspace type that fits it, as a drill-down of this workspace:
          * an overlay in the same pane that returns here on back.

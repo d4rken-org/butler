@@ -238,6 +238,7 @@ class ExplorerPickerHelper @Inject constructor() {
             is ExplorerActionBarItem.File.Delete,
             is ExplorerActionBarItem.File.ShowProperties,
             is ExplorerActionBarItem.File.Extract,
+            is ExplorerActionBarItem.File.Install,
             is ExplorerActionBarItem.Directory.Compress,
             is ExplorerActionBarItem.Directory.Extract,
             is ExplorerActionBarItem.Trash.Restore,
