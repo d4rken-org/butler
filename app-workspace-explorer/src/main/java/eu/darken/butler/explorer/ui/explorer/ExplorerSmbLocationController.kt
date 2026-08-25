@@ -16,6 +16,7 @@ import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.ExplorerWorkspace
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
 import eu.darken.butler.explorer.ui.explorer.dialogs.SmbLocationFormInput
 import kotlinx.coroutines.CoroutineScope
@@ -33,6 +34,7 @@ class ExplorerSmbLocationController(
     private val connectionTester: SmbConnectionTester,
     private val dialogs: ExplorerDialogController,
     private val workspace: suspend () -> ExplorerWorkspace,
+    private val currentLocation: () -> ExplorerLocation?,
     private val clearSelection: () -> Unit,
     private val onError: (Throwable) -> Unit,
     private val doLaunch: (suspend CoroutineScope.() -> Unit) -> Unit,
@@ -196,7 +198,7 @@ class ExplorerSmbLocationController(
 
         dialogs.dismiss()
         clearSelection()
-        workspace().navigate(ExplorerNavigation.Refresh)
+        refreshUnlessLive()
     }
 
     fun onRemoveConfirmed(items: List<ExplorerItem.Storage.Network>) = doLaunch {
@@ -209,7 +211,7 @@ class ExplorerSmbLocationController(
             onError(e)
         }
         clearSelection()
-        workspace().navigate(ExplorerNavigation.Refresh)
+        refreshUnlessLive()
     }
 
     fun onRename(locationId: String, name: String?) = doLaunch {
@@ -222,13 +224,26 @@ class ExplorerSmbLocationController(
             onError(e)
         }
         clearSelection()
-        workspace().navigate(ExplorerNavigation.Refresh)
+        refreshUnlessLive()
     }
 
     /** Opens the form for a location whose password has to be entered again. */
     fun promptSignIn(locationId: Uuid) {
         log(tag) { "promptSignIn($locationId)" }
         showEditForm(locationId)
+    }
+
+    /**
+     * The Network list re-reads itself from the location store, so a reload would only restart every
+     * reachability probe. Anywhere else - the sign-in form opened from a directory that could not be
+     * listed - the reload is what puts the user back into that directory.
+     */
+    private suspend fun refreshUnlessLive() {
+        if (currentLocation() is ExplorerLocation.Network) {
+            log(tag) { "Network list is live, no refresh needed" }
+            return
+        }
+        workspace().navigate(ExplorerNavigation.Refresh)
     }
 
     private fun Throwable.localizedDescription(): CaString =

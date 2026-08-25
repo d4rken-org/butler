@@ -1,6 +1,8 @@
 package eu.darken.butler.explorer.core.engine
 
 import eu.darken.butler.common.files.extensions.Segments
+import eu.darken.butler.common.files.smb.SmbEndpointProbe
+import eu.darken.butler.common.files.smb.SmbEndpointState
 import eu.darken.butler.common.files.smb.credentials.SmbCredentialStore
 import eu.darken.butler.common.files.smb.location.SmbLocation
 import eu.darken.butler.common.files.smb.location.SmbLocationManager
@@ -9,9 +11,15 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
@@ -20,8 +28,10 @@ import kotlin.uuid.Uuid
 
 class NetworkLocationLoaderTest : BaseTest() {
 
+    private val locationId = Uuid.parse("11111111-1111-1111-1111-111111111111")
+
     private fun location(
-        id: Uuid = Uuid.random(),
+        id: Uuid = locationId,
         label: String? = "Home NAS",
         authType: SmbLocation.AuthType = SmbLocation.AuthType.PASSWORD,
     ) = SmbLocation(
@@ -70,6 +80,12 @@ class NetworkLocationLoaderTest : BaseTest() {
         override suspend fun setLabel(id: Uuid, label: String?) = throw UnsupportedOperationException()
     }
 
+    private val endpointStates = MutableStateFlow<Map<Uuid, SmbEndpointState>>(emptyMap())
+
+    private val endpointProbe = mockk<SmbEndpointProbe>(relaxed = true).apply {
+        every { states } returns endpointStates
+    }
+
     private fun loader(
         locations: List<SmbLocation>,
         availability: SmbCredentialStore.Availability = SmbCredentialStore.Availability.AVAILABLE,
@@ -79,11 +95,12 @@ class NetworkLocationLoaderTest : BaseTest() {
         credentialStore = mockk(relaxed = true) {
             every { availability(any<SmbLocation>()) } returns flowOf(availability)
         },
+        endpointProbe = endpointProbe,
     )
 
     @Test
     fun `an empty list emits an empty network location`() = runTest {
-        val emissions = loader(emptyList()).loadNetwork().toList()
+        val emissions = loader(emptyList()).loadNetwork().take(2).toList()
 
         val last = emissions.last().shouldBeInstanceOf<ExplorerLocation.Network>()
         last.items shouldBe emptyList()
@@ -94,7 +111,7 @@ class NetworkLocationLoaderTest : BaseTest() {
     @Test
     fun `stored locations become network storage items`() = runTest {
         val stored = location()
-        val emissions = loader(listOf(stored)).loadNetwork().toList()
+        val emissions = loader(listOf(stored)).loadNetwork().take(2).toList()
 
         val last = emissions.last().shouldBeInstanceOf<ExplorerLocation.Network>()
         last.info?.locationCount shouldBe 1
@@ -103,9 +120,48 @@ class NetworkLocationLoaderTest : BaseTest() {
         item.location shouldBe stored
         item.target.path shouldBe stored.rootPath
         item.status shouldBe ExplorerItem.Storage.Network.Status.AVAILABLE
-        // Capacity is never probed, drawing the view must not connect anywhere
+        // Capacity is never read, drawing the view must not open a session anywhere
         item.totalBytes shouldBe null
         item.availableBytes shouldBe null
+    }
+
+    /** The list has to be on screen while the servers are still being asked. */
+    @Test
+    fun `rows are listed before any probe has an answer`() = runTest {
+        val emissions = loader(listOf(location())).loadNetwork().take(2).toList()
+
+        val item = emissions.last().items!!.single().shouldBeInstanceOf<ExplorerItem.Storage.Network>()
+        item.endpoint shouldBe SmbEndpointState()
+        verify { endpointProbe.probe(listOf(location()), force = false) }
+    }
+
+    @Test
+    fun `a probe result arrives as another emission`() = runTest {
+        val emissions = mutableListOf<ExplorerLocation>()
+        val collector = launch { loader(listOf(location())).loadNetwork().toList(emissions) }
+        runCurrent()
+
+        emissions.size shouldBe 2
+        emissions.last().items!!.single().shouldBeInstanceOf<ExplorerItem.Storage.Network>()
+            .endpoint.reachability shouldBe SmbEndpointState.Reachability.CHECKING
+
+        endpointStates.value = mapOf(
+            locationId to SmbEndpointState("192.168.1.50", SmbEndpointState.Reachability.REACHABLE),
+        )
+        runCurrent()
+
+        emissions.size shouldBe 3
+        emissions.last().items!!.single().shouldBeInstanceOf<ExplorerItem.Storage.Network>()
+            .endpoint shouldBe SmbEndpointState("192.168.1.50", SmbEndpointState.Reachability.REACHABLE)
+
+        collector.cancel()
+    }
+
+    @Test
+    fun `a refresh re-probes instead of reusing recent results`() = runTest {
+        loader(listOf(location())).loadNetwork(force = true).take(2).toList()
+
+        verify { endpointProbe.probe(listOf(location()), force = true) }
     }
 
     @Test
@@ -113,7 +169,7 @@ class NetworkLocationLoaderTest : BaseTest() {
         val emissions = loader(
             listOf(location()),
             availability = SmbCredentialStore.Availability.MISSING,
-        ).loadNetwork().toList()
+        ).loadNetwork().take(2).toList()
 
         val item = emissions.last().items!!.single().shouldBeInstanceOf<ExplorerItem.Storage.Network>()
         item.status shouldBe ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED
@@ -124,7 +180,7 @@ class NetworkLocationLoaderTest : BaseTest() {
         val emissions = loader(
             listOf(location()),
             availability = SmbCredentialStore.Availability.KEY_UNAVAILABLE,
-        ).loadNetwork().toList()
+        ).loadNetwork().take(2).toList()
 
         val item = emissions.last().items!!.single().shouldBeInstanceOf<ExplorerItem.Storage.Network>()
         item.status shouldBe ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED
@@ -132,9 +188,17 @@ class NetworkLocationLoaderTest : BaseTest() {
 
     @Test
     fun `the first emission reports progress`() = runTest {
-        val emissions = loader(listOf(location())).loadNetwork().toList()
+        val emissions = loader(listOf(location())).loadNetwork().take(2).toList()
 
         emissions.first().isLoading shouldBe true
+        emissions.first().items shouldBe null
         emissions.last().isLoading shouldBe false
+    }
+
+    @Test
+    fun `the load does not settle before the locations are known`() = runTest {
+        val first = loader(listOf(location())).loadNetwork().first()
+
+        first.isLoading shouldBe true
     }
 }

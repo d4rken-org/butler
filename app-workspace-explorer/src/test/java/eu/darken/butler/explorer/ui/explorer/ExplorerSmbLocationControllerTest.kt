@@ -53,6 +53,7 @@ class ExplorerSmbLocationControllerTest : BaseTest() {
         connectionTester = mockk<SmbConnectionTester>(relaxed = true),
         dialogs = dialogs,
         workspace = { mockk<ExplorerWorkspace>().apply { coEvery { navigate(any()) } just Runs } },
+        currentLocation = { null },
         clearSelection = {},
         onError = {},
         doLaunch = { block -> launch { block() } },
