@@ -258,7 +258,11 @@ internal fun ClassicWorkspaceContainer(
         if (state.tabWorkspaces.isNotEmpty()) {
             HorizontalPager(
                 state = pagerState,
-                modifier = Modifier.fillMaxSize(),
+                // Swiping the page out from under an in-flight system back gesture is what makes
+                // Back appear dead on ROMs that hand the app the edge touch first.
+                modifier = Modifier
+                    .fillMaxSize()
+                    .ignoreEdgeHorizontalDrags(),
                 flingBehavior = flingBehavior,
                 userScrollEnabled = state.swipeGesturesEnabled,
                 key = { page ->
