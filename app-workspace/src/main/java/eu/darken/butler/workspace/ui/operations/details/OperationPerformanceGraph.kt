@@ -14,8 +14,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
@@ -35,13 +37,13 @@ import com.patrykandpatrick.vico.core.cartesian.axis.HorizontalAxis
 import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianLayerRangeProvider
+import com.patrykandpatrick.vico.core.cartesian.data.CartesianValueFormatter
 import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
 import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer
 import com.patrykandpatrick.vico.core.common.Fill
 import com.patrykandpatrick.vico.core.common.data.ExtraStore
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
-import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -50,7 +52,7 @@ import eu.darken.butler.common.files.local.operations.core.PerformanceSample
 import eu.darken.butler.common.formatByteSpeed
 import eu.darken.butler.common.formatItemSpeed
 import eu.darken.butler.workspace.R
-import kotlin.math.max
+import java.util.Locale
 import kotlin.time.Duration.Companion.milliseconds
 
 private val TAG = logTag("PerformanceGraph")
@@ -63,7 +65,9 @@ fun OperationPerformanceGraph(
 ) {
     val backgroundColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
 
-    if (!performanceHistory.canShowGraph) {
+    val graphData = remember(performanceHistory) { PerformanceGraphData.from(performanceHistory) }
+
+    if (graphData == null) {
         // Not enough data - show message
         Box(
             modifier = modifier
@@ -71,7 +75,7 @@ fun OperationPerformanceGraph(
                 .height(180.dp)
                 .clip(RoundedCornerShape(8.dp))
                 .background(backgroundColor),
-            contentAlignment = androidx.compose.ui.Alignment.Center
+            contentAlignment = Alignment.Center
         ) {
             Text(
                 text = stringResource(R.string.workspace_operation_performance_not_enough_data),
@@ -82,152 +86,17 @@ fun OperationPerformanceGraph(
         return
     }
 
-    val modelProducer = remember { CartesianChartModelProducer() }
+    val byteSpeeds = graphData.byteSpeeds
+    // Keyed by mode so a two series model can't be handed to a single layer chart
+    val modelProducer = remember(byteSpeeds != null) { CartesianChartModelProducer() }
 
-    // State for Y-axis ranges (calculated from smoothed data)
-    var minSpeed = remember { androidx.compose.runtime.mutableDoubleStateOf(0.0) }
-    var maxSpeed = remember { androidx.compose.runtime.mutableDoubleStateOf(100.0) }
-    var minItems = remember { androidx.compose.runtime.mutableDoubleStateOf(0.0) }
-    var maxItems = remember { androidx.compose.runtime.mutableDoubleStateOf(10.0) }
-
-    LaunchedEffect(performanceHistory.samples.size, performanceHistory.totalBytes) {
-        log(
-            TAG,
-            DEBUG
-        ) { "Rendering graph with ${performanceHistory.samples.size} samples, totalBytes: ${performanceHistory.totalBytes}" }
-
-        // Filter samples to avoid Vico precision errors with many small files
-        // Include samples where EITHER bytes% OR items% changed by at least 0.5%
-        val filteredSamples = mutableListOf<PerformanceSample>()
-        var lastBytesPercentage = -1f
-        var lastItemsPercentage = -1f
-
-        performanceHistory.samples.forEach { sample ->
-            val bytesPercentage = if (performanceHistory.totalBytes > 0) {
-                (sample.totalBytesProcessed.toFloat() / performanceHistory.totalBytes.toFloat()) * 100f
-            } else {
-                0f
-            }
-
-            val itemsPercentage = if (performanceHistory.totalItems > 0) {
-                (sample.totalItemsProcessed.toFloat() / performanceHistory.totalItems.toFloat()) * 100f
-            } else {
-                0f
-            }
-
-            // Always include first sample, and samples where EITHER percentage changed by >= 0.5%
-            val bytesChanged = (bytesPercentage - lastBytesPercentage) >= 0.5f
-            val itemsChanged = (itemsPercentage - lastItemsPercentage) >= 0.5f
-
-            if (filteredSamples.isEmpty() || bytesChanged || itemsChanged) {
-                filteredSamples.add(sample)
-                lastBytesPercentage = bytesPercentage
-                lastItemsPercentage = itemsPercentage
-            }
-        }
-
-        // Always include the last sample to show final state
-        val lastSample = performanceHistory.samples.lastOrNull()
-        if (lastSample != null && (filteredSamples.lastOrNull() != lastSample)) {
-            filteredSamples.add(lastSample)
-        }
-
-        log(TAG, DEBUG) { "Filtered to ${filteredSamples.size} samples from ${performanceHistory.samples.size}" }
-
-        // Map filtered samples to independent completion percentages (X-axes) and speeds (Y-axes)
-        // Bytes completion percentage - used for bytes/s line
-        val bytesCompletionPercentages = filteredSamples.map { sample ->
-            val raw = if (performanceHistory.totalBytes > 0) {
-                (sample.totalBytesProcessed.toFloat() / performanceHistory.totalBytes.toFloat()) * 100f
-            } else {
-                0f
-            }
-            // Round to nearest 0.5% to ensure clean GCD calculation (prevents Vico precision errors)
-            (kotlin.math.round(raw * 2) / 2.0).toFloat()
-        }
-
-        // Items completion percentage - used for items/s line
-        val itemsCompletionPercentages = filteredSamples.map { sample ->
-            val raw = if (performanceHistory.totalItems > 0) {
-                (sample.totalItemsProcessed.toFloat() / performanceHistory.totalItems.toFloat()) * 100f
-            } else {
-                0f
-            }
-            // Round to nearest 0.5% to ensure clean GCD calculation (prevents Vico precision errors)
-            (kotlin.math.round(raw * 2) / 2.0).toFloat()
-        }
-
-        val bytesPerSecondMB = filteredSamples.map { sample ->
-            sample.bytesPerSecond / 1_000_000f // Convert to MB/s
-        }
-
-        val itemsPerSecond = filteredSamples.map { sample ->
-            sample.itemsPerSecond
-        }
-
-        // Apply moving average smoothing to reduce graph noise
-        fun List<Number>.movingAverage(windowSize: Int = 10): List<Float> {
-            if (size <= windowSize) return map { it.toFloat() }
-            return indices.map { i ->
-                val start = maxOf(0, i - windowSize / 2)
-                val end = minOf(size, i + windowSize / 2 + 1)
-                subList(start, end).sumOf { it.toDouble() }.toFloat() / (end - start)
-            }
-        }
-
-        val smoothedBytesPerSecondMB = bytesPerSecondMB.movingAverage()
-        val smoothedItemsPerSecond = itemsPerSecond.movingAverage()
-
-        // Calculate Y-axis ranges from smoothed data for accurate axis scaling
-        minSpeed.doubleValue = smoothedBytesPerSecondMB.minOrNull()?.toDouble() ?: 0.0
-        maxSpeed.doubleValue = smoothedBytesPerSecondMB.maxOrNull()?.toDouble() ?: 100.0
-        minItems.doubleValue = smoothedItemsPerSecond.minOrNull()?.toDouble() ?: 0.0
-        maxItems.doubleValue = smoothedItemsPerSecond.maxOrNull()?.toDouble() ?: 10.0
-
+    LaunchedEffect(graphData) {
         log(TAG, DEBUG) {
-            "Smoothed bytes range: min=${"%.2f".format(minSpeed.doubleValue)} MB/s, max=${
-                "%.2f".format(
-                    maxSpeed.doubleValue
-                )
-            } MB/s"
+            "Plotting ${graphData.progress.size} points from ${performanceHistory.samples.size} samples"
         }
-        log(
-            TAG,
-            DEBUG
-        ) { "Smoothed items range: min=${"%.1f".format(minItems.doubleValue)} items/s, max=${"%.1f".format(maxItems.doubleValue)} items/s" }
-
-        // Log filtered samples for debugging
-        filteredSamples.take(3).forEachIndexed { idx, sample ->
-            val pct = when {
-                performanceHistory.totalBytes > 0 -> (sample.totalBytesProcessed.toFloat() / performanceHistory.totalBytes * 100f)
-                performanceHistory.totalItems > 0 -> (sample.totalItemsProcessed.toFloat() / performanceHistory.totalItems * 100f)
-                else -> 0f
-            }
-            log(
-                TAG,
-                DEBUG
-            ) { "FilteredSample[$idx]: ${"%.1f".format(pct)}% complete, ${sample.bytesPerSecond / 1_000_000f} MB/s" }
-        }
-        if (filteredSamples.size > 3) {
-            log(TAG, DEBUG) { "... (${filteredSamples.size - 6} filtered samples omitted) ..." }
-            filteredSamples.takeLast(3).forEachIndexed { idx, sample ->
-                val pct = when {
-                    performanceHistory.totalBytes > 0 -> (sample.totalBytesProcessed.toFloat() / performanceHistory.totalBytes * 100f)
-                    performanceHistory.totalItems > 0 -> (sample.totalItemsProcessed.toFloat() / performanceHistory.totalItems * 100f)
-                    else -> 0f
-                }
-                val actualIdx = filteredSamples.size - 3 + idx
-                log(
-                    TAG,
-                    DEBUG
-                ) { "FilteredSample[$actualIdx]: ${"%.1f".format(pct)}% complete, ${sample.bytesPerSecond / 1_000_000f} MB/s" }
-            }
-        }
-
         modelProducer.runTransaction {
-            // Each lineSeries block maps to a separate layer with independent X-axes
-            lineSeries { series(x = bytesCompletionPercentages, y = smoothedBytesPerSecondMB) }  // Layer 0 (bytes)
-            lineSeries { series(x = itemsCompletionPercentages, y = smoothedItemsPerSecond) }    // Layer 1 (items)
+            if (byteSpeeds != null) lineSeries { series(x = graphData.progress, y = byteSpeeds) }
+            lineSeries { series(x = graphData.progress, y = graphData.itemSpeeds) }
         }
     }
 
@@ -240,10 +109,83 @@ fun OperationPerformanceGraph(
             val bytesLineColor = MaterialTheme.colorScheme.primary
             val itemsLineColor = MaterialTheme.colorScheme.secondary
 
-            val axisLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
-            val axisLabel = rememberAxisLabelComponent(
-                color = axisLabelColor
+            val axisLabel = rememberAxisLabelComponent(color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+            val maxBytes = axisMax(graphData.maxByteSpeed)
+            val maxItems = axisMax(graphData.maxItemSpeed)
+
+            val bytesLayer = if (byteSpeeds != null) {
+                rememberLineCartesianLayer(
+                    lineProvider = LineCartesianLayer.LineProvider.series(
+                        LineCartesianLayer.rememberLine(
+                            fill = remember(bytesLineColor) {
+                                LineCartesianLayer.LineFill.single(Fill(bytesLineColor.toArgb()))
+                            },
+                            areaFill = remember(bytesLineColor) {
+                                LineCartesianLayer.AreaFill.single(
+                                    Fill(bytesLineColor.copy(alpha = 0.3f).toArgb())
+                                )
+                            },
+                            pointConnector = remember {
+                                LineCartesianLayer.PointConnector.cubic(curvature = 0.2f)
+                            },
+                        )
+                    ),
+                    rangeProvider = remember(maxBytes) { speedRangeProvider(maxBytes) },
+                    verticalAxisPosition = Axis.Position.Vertical.Start,
+                )
+            } else {
+                null
+            }
+
+            val itemsLayer = rememberLineCartesianLayer(
+                lineProvider = LineCartesianLayer.LineProvider.series(
+                    LineCartesianLayer.rememberLine(
+                        fill = remember(itemsLineColor) {
+                            LineCartesianLayer.LineFill.single(Fill(itemsLineColor.toArgb()))
+                        },
+                        areaFill = null,  // No area fill for items line to reduce clutter
+                        pointConnector = remember {
+                            LineCartesianLayer.PointConnector.cubic(curvature = 0.2f)
+                        },
+                    )
+                ),
+                rangeProvider = remember(maxItems) { speedRangeProvider(maxItems) },
+                verticalAxisPosition = if (byteSpeeds != null) {
+                    Axis.Position.Vertical.End
+                } else {
+                    Axis.Position.Vertical.Start
+                },
             )
+
+            val itemsUnitLabel = stringResource(R.string.workspace_operation_performance_unit_items)
+            val bytesUnitLabel = graphData.byteUnit?.let { stringResource(it.labelRes) }
+
+            // Without byte data the single start axis belongs to the items layer
+            val startAxis = VerticalAxis.rememberStart(
+                label = axisLabel,
+                guideline = null,  // Hide grid lines
+                itemPlacer = remember { VerticalAxis.ItemPlacer.count(count = { 5 }) },
+                valueFormatter = remember(maxBytes, maxItems, byteSpeeds != null) {
+                    speedValueFormatter(if (byteSpeeds != null) maxBytes else maxItems)
+                },
+                title = bytesUnitLabel ?: itemsUnitLabel,
+                titleComponent = rememberAxisLabelComponent(
+                    color = if (byteSpeeds != null) bytesLineColor else itemsLineColor,
+                ),
+            )
+            val endAxis = if (byteSpeeds != null) {
+                VerticalAxis.rememberEnd(
+                    label = axisLabel,
+                    guideline = null,  // Hide grid lines
+                    itemPlacer = remember { VerticalAxis.ItemPlacer.count(count = { 5 }) },
+                    valueFormatter = remember(maxItems) { speedValueFormatter(maxItems) },
+                    title = itemsUnitLabel,
+                    titleComponent = rememberAxisLabelComponent(color = itemsLineColor),
+                )
+            } else {
+                null
+            }
 
             CartesianChartHost(
                 modifier = Modifier
@@ -252,90 +194,10 @@ fun OperationPerformanceGraph(
                     .clip(RoundedCornerShape(8.dp))
                     .background(backgroundColor),
                 chart = rememberCartesianChart(
-                    // Layer 1: Bytes per second (left Y-axis) - series index 0
-                    rememberLineCartesianLayer(
-                        lineProvider = LineCartesianLayer.LineProvider.series(
-                            LineCartesianLayer.rememberLine(
-                                fill = remember(bytesLineColor) {
-                                    LineCartesianLayer.LineFill.single(Fill(bytesLineColor.toArgb()))
-                                },
-                                areaFill = remember(bytesLineColor) {
-                                    LineCartesianLayer.AreaFill.single(
-                                        Fill(bytesLineColor.copy(alpha = 0.3f).toArgb())
-                                    )
-                                },
-                                pointConnector = remember {
-                                    LineCartesianLayer.PointConnector.cubic(curvature = 0.2f)
-                                },
-                            )
-                        ),
-                        rangeProvider = remember(minSpeed.doubleValue, maxSpeed.doubleValue) {
-                            object : CartesianLayerRangeProvider {
-                                override fun getMinY(minY: Double, maxY: Double, extraStore: ExtraStore): Double {
-                                    return 0.0
-                                }
-
-                                override fun getMaxY(minY: Double, maxY: Double, extraStore: ExtraStore): Double {
-                                    return max(maxSpeed.doubleValue * 1.20, 5.0)
-                                }
-
-                                override fun getMinX(minX: Double, maxX: Double, extraStore: ExtraStore): Double {
-                                    return 0.0 // Fixed 0 to 100% range
-                                }
-
-                                override fun getMaxX(minX: Double, maxX: Double, extraStore: ExtraStore): Double {
-                                    return 100.0 // Fixed 0 to 100% range
-                                }
-                            }
-                        },
-                        verticalAxisPosition = Axis.Position.Vertical.Start,
-                    ),
-                    // Layer 2: Items per second (right Y-axis) - series index 1
-                    rememberLineCartesianLayer(
-                        lineProvider = LineCartesianLayer.LineProvider.series(
-                            LineCartesianLayer.rememberLine(
-                                fill = remember(itemsLineColor) {
-                                    LineCartesianLayer.LineFill.single(Fill(itemsLineColor.toArgb()))
-                                },
-                                areaFill = null,  // No area fill for items line to reduce clutter
-                                pointConnector = remember {
-                                    LineCartesianLayer.PointConnector.cubic(curvature = 0.2f)
-                                },
-                            )
-                        ),
-                        rangeProvider = remember(minItems.doubleValue, maxItems.doubleValue) {
-                            object : CartesianLayerRangeProvider {
-                                override fun getMinY(minY: Double, maxY: Double, extraStore: ExtraStore): Double {
-                                    return 0.0
-                                }
-
-                                override fun getMaxY(minY: Double, maxY: Double, extraStore: ExtraStore): Double {
-                                    return max(maxItems.doubleValue * 1.20, 10.0)
-                                }
-
-                                override fun getMinX(minX: Double, maxX: Double, extraStore: ExtraStore): Double {
-                                    return 0.0 // Fixed 0 to 100% range
-                                }
-
-                                override fun getMaxX(minX: Double, maxX: Double, extraStore: ExtraStore): Double {
-                                    return 100.0 // Fixed 0 to 100% range
-                                }
-                            }
-                        },
-                        verticalAxisPosition = Axis.Position.Vertical.End,
-                    ),
-                    startAxis = VerticalAxis.rememberStart(
-                        label = axisLabel,
-                        guideline = null,  // Hide grid lines
-                        itemPlacer = remember { VerticalAxis.ItemPlacer.count(count = { 5 }) },
-                        valueFormatter = { _, value, _ -> value.toInt().toString() }
-                    ),
-                    endAxis = VerticalAxis.rememberEnd(
-                        label = axisLabel,
-                        guideline = null,  // Hide grid lines
-                        itemPlacer = remember { VerticalAxis.ItemPlacer.count(count = { 5 }) },
-                        valueFormatter = { _, value, _ -> value.toInt().toString() }
-                    ),
+                    // Layer order matches the series order in the transaction above
+                    *listOfNotNull(bytesLayer, itemsLayer).toTypedArray(),
+                    startAxis = startAxis,
+                    endAxis = endAxis,
                     bottomAxis = HorizontalAxis.rememberBottom(
                         label = null,  // Hide X-axis labels like Windows Explorer
                         guideline = null,  // Hide grid lines
@@ -351,43 +213,73 @@ fun OperationPerformanceGraph(
             )
 
             // Recent average byte speed label (top-left, matches left Y-axis)
-            if (performanceHistory.samples.isNotEmpty()) {
-                val averageSpeed = performanceHistory.getRecentBytesPerSecond()
-
-                Text(
-                    text = formatByteSpeed(averageSpeed),
-                    style = MaterialTheme.typography.labelSmall,
+            if (byteSpeeds != null) {
+                SpeedChip(
+                    text = formatByteSpeed(performanceHistory.getRecentBytesPerSecond()),
                     color = bytesLineColor,
                     modifier = Modifier
-                        .align(androidx.compose.ui.Alignment.TopStart)
-                        .offset(x = 48.dp, y = 16.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
-                            shape = RoundedCornerShape(4.dp)
-                        )
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                        .align(Alignment.TopStart)
+                        .offset(x = 48.dp, y = 16.dp),
                 )
             }
 
             // Recent average item speed label (top-right, matches right Y-axis)
-            if (performanceHistory.samples.isNotEmpty()) {
-                val averageItems = performanceHistory.getRecentItemsPerSecond().toInt()
-
-                Text(
-                    text = formatItemSpeed(averageItems.toDouble()),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = itemsLineColor,
-                    modifier = Modifier
-                        .align(androidx.compose.ui.Alignment.TopEnd)
-                        .offset(x = (-48).dp, y = 16.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
-                            shape = RoundedCornerShape(4.dp)
-                        )
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                )
-            }
+            SpeedChip(
+                text = formatItemSpeed(performanceHistory.getRecentItemsPerSecond().toDouble()),
+                color = itemsLineColor,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .offset(x = (-48).dp, y = 16.dp),
+            )
         }
+    }
+}
+
+@Composable
+private fun SpeedChip(
+    modifier: Modifier = Modifier,
+    text: String,
+    color: Color,
+) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelSmall,
+        color = color,
+        modifier = modifier
+            .background(
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
+                shape = RoundedCornerShape(4.dp)
+            )
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+    )
+}
+
+private val ByteSpeedUnit.labelRes: Int
+    get() = when (this) {
+        ByteSpeedUnit.B_S -> R.string.workspace_operation_performance_unit_bytes
+        ByteSpeedUnit.KB_S -> R.string.workspace_operation_performance_unit_kilobytes
+        ByteSpeedUnit.MB_S -> R.string.workspace_operation_performance_unit_megabytes
+        ByteSpeedUnit.GB_S -> R.string.workspace_operation_performance_unit_gigabytes
+    }
+
+private fun axisMax(maxValue: Double): Double = if (maxValue == 0.0) 1.0 else maxValue * 1.20
+
+private fun speedRangeProvider(rangeMaxY: Double) = object : CartesianLayerRangeProvider {
+    override fun getMinY(minY: Double, maxY: Double, extraStore: ExtraStore): Double = 0.0
+
+    override fun getMaxY(minY: Double, maxY: Double, extraStore: ExtraStore): Double = rangeMaxY
+
+    override fun getMinX(minX: Double, maxX: Double, extraStore: ExtraStore): Double = 0.0
+
+    override fun getMaxX(minX: Double, maxX: Double, extraStore: ExtraStore): Double = 100.0
+}
+
+/** Slow axes need decimals, fast ones would only repeat the same rounded label. */
+private fun speedValueFormatter(maxY: Double) = CartesianValueFormatter { _, value, _ ->
+    when {
+        maxY >= 10.0 -> String.format(Locale.getDefault(), "%.0f", value)
+        maxY >= 1.0 -> String.format(Locale.getDefault(), "%.1f", value)
+        else -> String.format(Locale.getDefault(), "%.2f", value)
     }
 }
 
@@ -442,6 +334,7 @@ private fun OperationPerformanceGraphHalfDataPreview() {
             samples = samples,
             startTime = baseTime,
             totalBytes = totalBytes,
+            totalItems = 1000,
         )
     }
     OperationPerformanceGraph(performanceHistory = history)
@@ -478,6 +371,67 @@ private fun OperationPerformanceGraphFullDataPreview() {
             samples = samples,
             startTime = baseTime,
             totalBytes = totalBytes,
+            totalItems = 1000,
+        )
+    }
+    OperationPerformanceGraph(performanceHistory = history)
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun OperationPerformanceGraphItemsOnlyPreview() {
+    // Deleting 500 empty files: no bytes anywhere, only the items axis has data
+    val history = remember {
+        val baseTime = kotlin.time.Clock.System.now()
+        val totalItems = 500
+
+        val samples = (0..100).map { i ->
+            val items = (40.0 + (kotlin.math.sin(i * 0.35) * 15.0)).coerceAtLeast(10.0).toFloat()
+            PerformanceSample(
+                timestamp = baseTime + (i * 250).milliseconds,
+                bytesPerSecond = 0L,
+                itemsPerSecond = items,
+                totalBytesProcessed = 0L,
+                totalItemsProcessed = (totalItems * (i / 100f)).toInt(),
+            )
+        }
+
+        PerformanceHistory(
+            samples = samples,
+            startTime = baseTime,
+            totalItems = totalItems,
+        )
+    }
+    OperationPerformanceGraph(performanceHistory = history)
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun OperationPerformanceGraphSingleFilePreview() {
+    // A single large file: the item count never moves, item speed stays below 1/s
+    val history = remember {
+        val baseTime = kotlin.time.Clock.System.now()
+        val totalBytes = 4_000_000_000L
+
+        val samples = (0..100).map { i ->
+            val progress = i / 100f
+            val speed = (80_000_000 + (kotlin.math.sin(i * 0.25) * 20_000_000)).toLong()
+            PerformanceSample(
+                timestamp = baseTime + (i * 500).milliseconds,
+                bytesPerSecond = speed,
+                itemsPerSecond = 0.02f,
+                totalBytesProcessed = (totalBytes * progress).toLong(),
+                totalItemsProcessed = 0,
+            )
+        }
+
+        PerformanceHistory(
+            samples = samples,
+            startTime = baseTime,
+            totalBytes = totalBytes,
+            totalItems = 1,
         )
     }
     OperationPerformanceGraph(performanceHistory = history)
