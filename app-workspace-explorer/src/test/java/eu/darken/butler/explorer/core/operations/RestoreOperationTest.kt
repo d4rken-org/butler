@@ -12,7 +12,9 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.filesystem.FileSystemEvent
 import eu.darken.butler.workspace.core.filesystem.FileSystemHinter
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.operations.OperationPathPlan
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -79,7 +81,7 @@ class RestoreOperationTest : BaseTest() {
             trashRepo = trashRepo,
             trashManager = trashManager,
             hinter = hinter,
-            command = ExplorerCommand.Restore(rootItemIds = setOf(itemId), intendedPaths = listOf(restoredPath)),
+            command = ExplorerCommand.Restore(rootItemIds = setOf(itemId), restoredPaths = listOf(restoredPath)),
         )
 
         val completed = op.perform(Operation.Context(id = Operation.Id(), startedAt = Instant.DISTANT_PAST))
@@ -105,7 +107,7 @@ class RestoreOperationTest : BaseTest() {
         val op = operation(
             trashRepo = trashRepo,
             trashManager = trashManager,
-            command = ExplorerCommand.Restore(rootItemIds = setOf(itemId), intendedPaths = listOf(restoredPath)),
+            command = ExplorerCommand.Restore(rootItemIds = setOf(itemId), restoredPaths = listOf(restoredPath)),
         )
 
         val completed = op.perform(Operation.Context(id = Operation.Id(), startedAt = Instant.DISTANT_PAST))
@@ -131,7 +133,7 @@ class RestoreOperationTest : BaseTest() {
                     ExplorerCommand.Restore.NestedTarget(parentId = parentId, relativePath = "a.txt"),
                     ExplorerCommand.Restore.NestedTarget(parentId = parentId, relativePath = "b.txt"),
                 ),
-                intendedPaths = listOf(restoredPath),
+                restoredPaths = listOf(restoredPath),
             ),
         )
 
@@ -141,5 +143,21 @@ class RestoreOperationTest : BaseTest() {
         val report = completed.report.shouldBeInstanceOf<RestoreOperation.Report>()
         report.failedCount shouldBe 2
         report.restoredPaths shouldBe emptySet()
+    }
+
+    @Test
+    fun `the path plan targets the paths being restored`() {
+        val plan = operation(
+            trashRepo = mockk(),
+            trashManager = mockk(),
+            command = ExplorerCommand.Restore(
+                rootItemIds = setOf(Uuid.random()),
+                restoredPaths = listOf(restoredPath),
+            ),
+        ).metadata.pathPlan!!
+
+        plan.targets shouldContainExactly listOf(restoredPath)
+        plan.destination shouldBe null
+        plan.scopePaths shouldContainExactly listOf(restoredPath)
     }
 }

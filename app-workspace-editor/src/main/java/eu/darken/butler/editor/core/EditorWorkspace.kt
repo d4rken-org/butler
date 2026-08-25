@@ -618,7 +618,7 @@ class EditorWorkspace @AssistedInject constructor(
 
     suspend fun saveFile() {
         // TODO: Wrap as an Operation submitted via OperationsManager so editor saves appear in
-        // the global Operation History (kind = SAVE, intendedPaths = [filePath]). Same applies to
+        // the global Operation History (kind = SAVE, pathPlan targets = [filePath]). Same applies to
         // auto-save call sites. Out of scope for History v1.
         // Progress is emitted by EditorEngine during save
         saveMutex.withLock { currentEngine().saveFile() }

@@ -23,6 +23,7 @@ import eu.darken.butler.workspace.core.filesystem.FileSystemHinter
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.operations.OperationPathPlan
 import eu.darken.butler.workspace.core.operations.buildTransferProgressMetrics
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
@@ -64,7 +65,10 @@ class CopyOperation @AssistedInject constructor(
         }
         override val kind = Operation.Metadata.Kind.COPY
         override val intent = command.intent
-        override val intendedPaths = command.sources + command.destination
+        override val pathPlan = OperationPathPlan(
+            targets = command.sources.toList(),
+            destination = OperationPathPlan.Destination.Container(command.destination),
+        )
     }
 
     override fun perform(

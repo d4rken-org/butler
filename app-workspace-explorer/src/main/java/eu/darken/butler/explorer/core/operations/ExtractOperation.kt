@@ -34,6 +34,7 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.filesystem.FileSystemHinter
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.operations.OperationPathPlan
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.channels.ProducerScope
@@ -68,7 +69,10 @@ class ExtractOperation @AssistedInject constructor(
             )
         }
         override val kind = Operation.Metadata.Kind.EXTRACT
-        override val intendedPaths = listOf(command.archive, command.destinationDir)
+        override val pathPlan = OperationPathPlan(
+            targets = listOf(command.archive),
+            destination = OperationPathPlan.Destination.Container(command.destinationDir),
+        )
     }
 
     override fun perform(operationContext: Operation.Context): Flow<State> = channelFlow {

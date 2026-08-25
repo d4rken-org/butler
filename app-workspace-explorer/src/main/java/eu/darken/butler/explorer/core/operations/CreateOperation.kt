@@ -22,6 +22,7 @@ import eu.darken.butler.workspace.core.filesystem.FileSystemHinter
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.operations.OperationPathPlan
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.last
@@ -58,7 +59,9 @@ class CreateOperation @AssistedInject constructor(
             ExplorerCommand.Create.Type.FILE -> Operation.Metadata.Kind.CREATE_FILE
             ExplorerCommand.Create.Type.DIRECTORY -> Operation.Metadata.Kind.CREATE_FOLDER
         }
-        override val intendedPaths = setOf(command.parentPath.child(command.name))
+        override val pathPlan = OperationPathPlan(
+            targets = listOf(command.parentPath.child(command.name)),
+        )
     }
 
     override fun perform(
