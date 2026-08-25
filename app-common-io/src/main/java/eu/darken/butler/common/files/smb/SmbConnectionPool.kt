@@ -133,7 +133,12 @@ class SmbConnectionPool @Inject constructor(
 
         repeat(CONNECT_ATTEMPTS) {
             val generation = lock.withLock {
-                val cached = generations[key]?.takeIf { !it.stale && it.connection.isConnected }
+                // The share has to be checked too: smbj closes every share before the transport
+                // reports itself gone, so a connection that still says "connected" can already be
+                // handing out a closed share.
+                val cached = generations[key]?.takeIf {
+                    !it.stale && it.connection.isConnected && it.share.isConnected
+                }
                 when {
                     cached == null -> null
                     // The key only covers the credential generation, so an edited host, port, share,
@@ -225,7 +230,10 @@ class SmbConnectionPool @Inject constructor(
             // The endpoint check matters as much as in acquire(): a caller that connected to the old
             // endpoint may publish while an edited location is already being connected to.
             val existing = generations[key]?.takeIf {
-                !it.stale && it.connection.isConnected && it.location.hasSameEndpoint(location)
+                !it.stale &&
+                    it.connection.isConnected &&
+                    it.share.isConnected &&
+                    it.location.hasSameEndpoint(location)
             }
             if (existing != null) {
                 // Raced another caller onto the same endpoint, keep theirs
