@@ -2,6 +2,7 @@ package eu.darken.butler.explorer.core.operations
 
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationPathPlan
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
@@ -38,9 +39,13 @@ class ExplorerOperationPathPlanTest : BaseTest() {
     )
 
     @Test
-    fun `a move into a folder keeps the sources as targets and the folder as destination`() {
+    fun `a paste or drop move lands the sources inside the target folder`() {
         val plan = moveOperation(
-            ExplorerCommand.Move(sources = setOf(first, second), destination = folder),
+            ExplorerCommand.Move(
+                sources = setOf(first, second),
+                destination = OperationPathPlan.Destination.Container(folder),
+                intent = Operation.Metadata.Intent.PASTE_MOVE,
+            ),
         ).metadata.pathPlan!!
 
         plan.targets shouldContainExactly listOf(first, second)
@@ -50,14 +55,49 @@ class ExplorerOperationPathPlanTest : BaseTest() {
     }
 
     @Test
-    fun `a copy into a folder keeps the sources as targets and the folder as destination`() {
+    fun `a rename move names the exact path the user asked for`() {
+        val renamed = first.parent!!.child("renamed.txt")
+        val plan = moveOperation(
+            ExplorerCommand.Move(
+                sources = setOf(first),
+                destination = OperationPathPlan.Destination.RequestedTarget(renamed),
+                intent = Operation.Metadata.Intent.RENAME,
+            ),
+        ).metadata.pathPlan!!
+
+        plan.targets shouldContainExactly listOf(first)
+        plan.destination shouldBe OperationPathPlan.Destination.RequestedTarget(renamed)
+        plan.scopePaths shouldContainExactly listOf(first, renamed)
+    }
+
+    @Test
+    fun `a paste or drop copy lands the sources inside the target folder`() {
         val plan = copyOperation(
-            ExplorerCommand.Copy(sources = setOf(first), destination = folder),
+            ExplorerCommand.Copy(
+                sources = setOf(first),
+                destination = OperationPathPlan.Destination.Container(folder),
+                intent = Operation.Metadata.Intent.DROP_COPY,
+            ),
         ).metadata.pathPlan!!
 
         plan.targets shouldContainExactly listOf(first)
         plan.destination shouldBe OperationPathPlan.Destination.Container(folder)
         plan.scopePaths shouldContainExactly listOf(first, folder)
+    }
+
+    @Test
+    fun `the destination path reaches the gateway unchanged whichever kind it is`() {
+        val container = ExplorerCommand.Move(
+            sources = setOf(first),
+            destination = OperationPathPlan.Destination.Container(folder),
+        )
+        val requested = ExplorerCommand.Copy(
+            sources = setOf(first),
+            destination = OperationPathPlan.Destination.RequestedTarget(folder),
+        )
+
+        container.destination.path shouldBe folder
+        requested.destination.path shouldBe folder
     }
 
     @Test

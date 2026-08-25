@@ -4,6 +4,7 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.common.files.archive.CompressionPreset
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.operations.OperationPathPlan
 import kotlin.uuid.Uuid
 
 sealed interface ExplorerCommand {
@@ -31,7 +32,7 @@ sealed interface ExplorerCommand {
 
     data class Copy(
         val sources: Set<APath<*>>,
-        val destination: APath<*>,
+        val destination: OperationPathPlan.Destination,
         val options: Options = Options(),
         /**
          * Optional semantic intent override surfaced in operation history
@@ -47,7 +48,7 @@ sealed interface ExplorerCommand {
 
     data class Move(
         val sources: Set<APath<*>>,
-        val destination: APath<*>,
+        val destination: OperationPathPlan.Destination,
         val options: Options = Options(),
         /**
          * Optional semantic intent override surfaced in operation history
