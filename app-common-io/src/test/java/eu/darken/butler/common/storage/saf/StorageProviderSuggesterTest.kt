@@ -45,7 +45,7 @@ class StorageProviderSuggesterTest : BaseTest() {
         val fakes = providers.toList()
         val resolveInfos = fakes.map { it.toResolveInfo() }
         val pm = mockk<PackageManager>()
-        every { pm.queryIntentContentProviders(any(), any()) } returns resolveInfos
+        every { pm.queryIntentContentProviders(any<Intent>(), any<Int>()) } returns resolveInfos
         every { pm.getLaunchIntentForPackage(any()) } answers {
             val pkg = firstArg<String>()
             if (fakes.any { it.pkg == pkg && it.hasLauncher }) Intent() else null
@@ -54,7 +54,7 @@ class StorageProviderSuggesterTest : BaseTest() {
             val pkg = firstArg<ApplicationInfo>().packageName
             fakes.first { it.pkg == pkg }.label ?: throw IllegalStateException("No label for $pkg")
         }
-        every { pm.resolveContentProvider(any(), any()) } answers {
+        every { pm.resolveContentProvider(any<String>(), any<Int>()) } answers {
             val authority = firstArg<String>()
             resolveInfos.firstOrNull { it.providerInfo.authority == authority }?.providerInfo
         }
