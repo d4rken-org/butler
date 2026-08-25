@@ -317,7 +317,7 @@
     <string name="explorer_file_info_size_label">Size</string>
     <string name="explorer_file_info_modified_label">Modified</string>
     <string name="explorer_file_action_open">Open</string>
-    <string name="explorer_file_action_open_subtitle">View in Butler</string>
+    <string name="explorer_file_action_open_subtitle">View here, back returns to this folder</string>
     <string name="explorer_file_action_open_in_tab">Open in new tab</string>
     <string name="explorer_file_action_open_in_tab_subtitle">View in Butler as its own tab</string>
     <string name="explorer_file_action_open_in_editor">Open in editor</string>
