@@ -17,6 +17,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.MimeInfo
+import eu.darken.butler.common.files.SmbPath
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.common.flow.SingleEventFlow
@@ -939,8 +940,12 @@ internal fun viewerActions(
             if ((content as? ViewerContent.Archive)?.access == ViewerContent.Archive.Access.BROWSABLE) {
                 add(ViewerActionBarItem.BrowseArchive)
             }
-            add(ViewerActionBarItem.OpenWith)
-            add(ViewerActionBarItem.Share)
+            // Handing a file to another app needs a file:// or content:// URI, which a file on a
+            // server does not have, so those two are not offered for it.
+            if (source.path !is SmbPath) {
+                add(ViewerActionBarItem.OpenWith)
+                add(ViewerActionBarItem.Share)
+            }
             add(ViewerActionBarItem.Copy)
             add(ViewerActionBarItem.Cut)
         }
