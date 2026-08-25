@@ -166,7 +166,7 @@ class AppInstaller @Inject constructor(
                 else -> installViaShell(plan, staged, mode, send)
             }
         } finally {
-            withContext(NonCancellable) { staging.discard() }
+            withContext(NonCancellable) { staging.discardQuietly() }
         }
         return placeObb(plan, send)
     }
@@ -223,18 +223,34 @@ class AppInstaller @Inject constructor(
             }
         }
 
+        /** Creates what this staging owns. Its owner already exists, so a failure here is cleanable. */
+        suspend fun create() {
+            localDir?.let {
+                if (!it.mkdirs() && !it.isDirectory) throw AppInstallSessionException("Cannot create staging $it")
+            }
+            shellDir?.let { gatewaySwitch.createDir(it, createParents = true) }
+        }
+
         suspend fun discard() {
             localDir?.let {
-                if (!it.deleteRecursively()) log(TAG, WARN) { "Failed to remove staging $it" }
+                if (!it.deleteRecursively() && it.exists()) {
+                    throw AppInstallSessionException("Cannot remove staging $it")
+                }
             }
             shellDir?.let { dir ->
                 val shellMode = if (mode == Mode.ROOT) ShellOps.Mode.ROOT else ShellOps.Mode.ADB
-                try {
-                    shellOps.execute(ShellOpsCmd("rm -rf ${quote(dir.path)}"), shellMode)
-                } catch (e: Exception) {
-                    log(TAG, WARN) { "Failed to remove staging $dir: ${e.asLog()}" }
+                val result = shellOps.execute(ShellOpsCmd("rm -rf ${quote(dir.path)}"), shellMode)
+                if (!result.isSuccess) {
+                    throw AppInstallSessionException("Cannot remove staging $dir: ${result.failureText()}")
                 }
             }
+        }
+
+        /** Cleanup runs where an install verdict already exists and must not be replaced by it. */
+        suspend fun discardQuietly() = try {
+            discard()
+        } catch (e: Exception) {
+            log(TAG, WARN) { "Staging cleanup failed: ${e.asLog()}" }
         }
     }
 
@@ -245,24 +261,32 @@ class AppInstaller @Inject constructor(
         val open: suspend () -> InputStream,
     )
 
+    /**
+     * The staging object exists before the directory does, so whatever it created is owned by
+     * something that can remove it again - a directory created behind a failing return would be
+     * scratch nobody is responsible for.
+     */
     private suspend fun openStaging(plan: AppInstallPlan, mode: Mode): Staging {
         if (mode == Mode.SYSTEM && plan.format == AppInstallFormat.APK && plan.source is LocalPath) {
             return Staging(mode, localDir = null, shellDir = null)
         }
 
-        if (mode == Mode.ADB) {
+        val staging = if (mode == Mode.ADB) {
             sweepShellStaging()
-            val dir = LocalPath.build(SHELL_STAGING_ROOT, Uuid.random().toString())
-            gatewaySwitch.createDir(dir, createParents = true)
-            return Staging(mode, localDir = null, shellDir = dir)
+            Staging(mode, localDir = null, shellDir = LocalPath.build(SHELL_STAGING_ROOT, Uuid.random().toString()))
+        } else {
+            sweepLocalStaging()
+            val root = context.cacheDir?.let { File(it, LOCAL_STAGING_DIRNAME) }
+                ?: throw AppInstallSessionException("No cache directory available for staging")
+            Staging(mode, localDir = File(root, Uuid.random().toString()), shellDir = null)
         }
-
-        sweepLocalStaging()
-        val root = context.cacheDir?.let { File(it, LOCAL_STAGING_DIRNAME) }
-            ?: throw AppInstallSessionException("No cache directory available for staging")
-        val dir = File(root, Uuid.random().toString())
-        if (!dir.mkdirs() && !dir.isDirectory) throw AppInstallSessionException("Cannot create staging $dir")
-        return Staging(mode, localDir = dir, shellDir = null)
+        try {
+            staging.create()
+        } catch (e: Throwable) {
+            withContext(NonCancellable) { staging.discardQuietly() }
+            throw e
+        }
+        return staging
     }
 
     /** Sweeps scratch left behind by a crashed run. Once per process, before anything is created. */
@@ -271,12 +295,15 @@ class AppInstaller @Inject constructor(
         sweepMutex.withLock {
             if (localSwept.get()) return
             val root = context.cacheDir?.let { File(it, LOCAL_STAGING_DIRNAME) }
-            try {
-                root?.listFiles()?.forEach { it.deleteRecursively() }
+            val swept = try {
+                root?.listFiles()?.all { it.deleteRecursively() } ?: true
             } catch (e: Exception) {
                 log(TAG, WARN) { "Failed to sweep local staging: ${e.asLog()}" }
+                false
             }
-            localSwept.set(true)
+            // A sweep that did not happen must stay pending: the flag is what stops the next run
+            // from looking, and scratch left behind is never noticed again in this process.
+            if (swept) localSwept.set(true)
         }
     }
 
@@ -284,10 +311,15 @@ class AppInstaller @Inject constructor(
         if (shellSwept.get()) return
         sweepMutex.withLock {
             if (shellSwept.get()) return
-            try {
+            val result = try {
                 shellOps.execute(ShellOpsCmd("rm -rf ${quote(SHELL_STAGING_ROOT)}"), ShellOps.Mode.ADB)
             } catch (e: Exception) {
                 log(TAG, WARN) { "Failed to sweep shell staging: ${e.asLog()}" }
+                return
+            }
+            if (!result.isSuccess) {
+                log(TAG, WARN) { "Failed to sweep shell staging: ${result.failureText()}" }
+                return
             }
             shellSwept.set(true)
         }
