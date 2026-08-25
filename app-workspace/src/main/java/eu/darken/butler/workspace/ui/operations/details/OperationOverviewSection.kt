@@ -41,10 +41,12 @@ import eu.darken.butler.common.compose.InfoEntry
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.compose.groupInfoEntries
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.formatDuration
 import eu.darken.butler.common.formatRelativeTime
 import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.operations.OperationPathPlan
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.bar.operationStateVisuals
 import kotlin.time.Clock
@@ -55,7 +57,8 @@ internal val OverviewPairingMinWidth = 240.dp
 
 /**
  * Result is never paired and never capped: a move/copy summary concatenates up to four plural
- * segments, and a two-line cap would hide the tail with no way to read it.
+ * segments, and a two-line cap would hide the tail with no way to read it. The destination is
+ * absent for operations that have none (delete, create, restore).
  */
 internal fun buildOverviewEntries(
     statusLabel: String,
@@ -64,12 +67,24 @@ internal fun buildOverviewEntries(
     timeValue: String,
     durationLabel: String,
     durationValue: String,
+    destinationLabel: String?,
+    destinationValue: String?,
     resultLabel: String,
     resultValue: String?,
 ): List<InfoEntry> = buildList {
     add(InfoEntry(label = statusLabel, value = statusValue, pairable = true))
     add(InfoEntry(label = timeLabel, value = timeValue, pairable = true))
     add(InfoEntry(label = durationLabel, value = durationValue, pairable = true))
+    if (destinationLabel != null && destinationValue != null) {
+        add(
+            InfoEntry(
+                label = destinationLabel,
+                value = destinationValue,
+                pairable = false,
+                valueStyle = InfoEntry.ValueStyle.PATH,
+            ),
+        )
+    }
     if (resultValue != null) {
         add(
             InfoEntry(
@@ -160,6 +175,8 @@ private fun OperationOverviewGrid(
         else -> null
     }
 
+    val destination = operation.pathPlan?.destination
+
     val baseEntries = buildOverviewEntries(
         statusLabel = stringResource(R.string.operations_details_status),
         statusValue = when (operation.state) {
@@ -191,6 +208,14 @@ private fun OperationOverviewGrid(
             is OperationDisplay.State.Failed -> formatDuration(operation.state.completedAt - operation.startedAt)
             is OperationDisplay.State.Cancelled -> formatDuration(operation.state.completedAt - operation.startedAt)
         },
+        destinationLabel = when (destination) {
+            is OperationPathPlan.Destination.Container ->
+                stringResource(R.string.operations_details_destination_folder)
+            is OperationPathPlan.Destination.RequestedTarget ->
+                stringResource(R.string.operations_details_destination_path)
+            null -> null
+        },
+        destinationValue = destination?.path?.userReadablePath?.asComposable(),
         resultLabel = stringResource(R.string.operations_details_result),
         resultValue = if (reportSummary != null) reportSummary.asComposable() else null,
     )
@@ -256,6 +281,43 @@ private fun OperationOverviewSectionCompletedPreview() {
                 icon = Icons.TwoTone.Handyman,
                 title = "Move".toCaString(),
                 description = "Moving files".toCaString(),
+                pathPlan = OperationPathPlan(
+                    targets = listOf(LocalPath.build("/storage/emulated/0/Download/report.pdf")),
+                    destination = OperationPathPlan.Destination.Container(
+                        LocalPath.build("/storage/emulated/0/Documents/Projects/Archive/2026"),
+                    ),
+                ),
+                state = OperationDisplay.State.Completed(
+                    summary = summary.toCaString(),
+                    completedAt = Clock.System.now(),
+                    report = previewReport(summary),
+                ),
+            ),
+        )
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun OperationOverviewSectionRenamedPreview() {
+    val summary = "Renamed 1 file"
+    Box(modifier = Modifier.width(360.dp)) {
+        OperationOverviewSection(
+            operation = OperationDisplay(
+                id = Operation.Id(),
+                startedAt = Clock.System.now() - 1.minutes,
+                icon = Icons.TwoTone.Handyman,
+                title = "Rename".toCaString(),
+                description = "Renaming a file".toCaString(),
+                pathPlan = OperationPathPlan(
+                    targets = listOf(LocalPath.build("/storage/emulated/0/Documents/report.pdf")),
+                    destination = OperationPathPlan.Destination.RequestedTarget(
+                        LocalPath.build(
+                            "/storage/emulated/0/Documents/Projects/Archive/2026/quarterly-report-final.pdf",
+                        ),
+                    ),
+                ),
                 state = OperationDisplay.State.Completed(
                     summary = summary.toCaString(),
                     completedAt = Clock.System.now(),

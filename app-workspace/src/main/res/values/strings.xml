@@ -139,6 +139,8 @@
     <string name="operations_details_handle_issue">Handle issue</string>
     <string name="operations_details_status">Status</string>
     <string name="operations_details_result">Result</string>
+    <string name="operations_details_destination_folder">Destination folder</string>
+    <string name="operations_details_destination_path">Destination path</string>
     <string name="operations_details_affected_paths_with_count">Affected paths (%d)</string>
     <string name="workspace_operations_performance_graph_label">Performance graph</string>
 
