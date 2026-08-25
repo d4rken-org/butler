@@ -831,7 +831,9 @@ class AppInstaller @Inject constructor(
                 )
             )
             val commit = shellOps.execute(ShellOpsCmd("pm install-commit $sessionId"), shellMode)
-            if (!commit.isSuccess || commit.output.none { it.contains("Success") }) {
+            // Both streams, for the same reason the create parse reads both: a `pm` that answers on
+            // stderr would otherwise have an install reported as failed right after it succeeded.
+            if (!commit.isSuccess || (commit.output + commit.errors).none { it.contains("Success") }) {
                 throw AppInstallSessionException(commit.failureText())
             }
             committed = true
