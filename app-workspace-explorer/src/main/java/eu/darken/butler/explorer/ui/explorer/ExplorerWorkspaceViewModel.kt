@@ -630,7 +630,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                         canGoBack = wsStateInner.canGoBack,
                         canGoForward = wsStateInner.canGoForward,
                         availableActions = availableActions,
-                        dialogState = dialogState,
+                        dialogState = dialogState.withLiveNetworkItem(wsStateInner.currentLocation?.items),
                         setupRequirements = wsStateInner.currentLocation?.setupRequirements ?: PathRequirements(),
                         isPro = upgradeInfo.isPro,
                         filterState = filterState,
@@ -2019,6 +2019,21 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     companion object {
         private const val NAVIGATION_AWAIT_MS = 5_000L
     }
+}
+
+/**
+ * Pairs an open network info sheet with the row as it is right now.
+ *
+ * The dialog only remembers which location it was opened for, so a sheet opened while the address
+ * was still being looked up shows the answer as soon as the probe reports it. A null item means the
+ * location is no longer in the listing, e.g. because it was removed while the sheet was open.
+ */
+internal fun ExplorerDialogState.withLiveNetworkItem(items: List<ExplorerItem>?): ExplorerDialogState {
+    val context = (this as? ItemInfo)?.context as? ItemInfo.InfoContext.SingleNetwork ?: return this
+    val item = items
+        ?.filterIsInstance<ExplorerItem.Storage.Network>()
+        ?.firstOrNull { it.location.id == context.locationId }
+    return ItemInfo(context.copy(item = item))
 }
 
 /**

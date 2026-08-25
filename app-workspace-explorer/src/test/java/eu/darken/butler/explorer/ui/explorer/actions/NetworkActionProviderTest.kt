@@ -35,11 +35,12 @@ class NetworkActionProviderTest : BaseTest() {
     }
 
     @Test
-    fun `one selected location offers edit, rename and remove`() {
+    fun `one selected location offers edit, rename, info and remove`() {
         val actions = actionsFor(first)
 
         actions.any { it is ExplorerActionBarItem.Network.EditLocation } shouldBe true
         actions.any { it is ExplorerActionBarItem.Network.RenameLocation } shouldBe true
+        actions.any { it is ExplorerActionBarItem.Common.Info } shouldBe true
         actions.any { it is ExplorerActionBarItem.Network.RemoveLocation } shouldBe true
         actions.any { it is ExplorerActionBarItem.Network.AddLocation } shouldBe false
     }
@@ -51,17 +52,15 @@ class NetworkActionProviderTest : BaseTest() {
         actions.any { it is ExplorerActionBarItem.Network.RemoveLocation } shouldBe true
         actions.any { it is ExplorerActionBarItem.Network.EditLocation } shouldBe false
         actions.any { it is ExplorerActionBarItem.Network.RenameLocation } shouldBe false
+        // The sheet describes one share, there is nothing to show for a stack of them.
+        actions.any { it is ExplorerActionBarItem.Common.Info } shouldBe false
     }
 
-    /**
-     * Properties are empty for a location and a new tab would skip the sign-in check, so neither is
-     * offered here.
-     */
+    /** A new tab would skip the sign-in check, so it is not offered here. */
     @Test
-    fun `a selected location offers neither properties nor opening in a new tab`() {
+    fun `a selected location does not offer opening in a new tab`() {
         val actions = actionsFor(first)
 
-        actions.any { it is ExplorerActionBarItem.Common.Info } shouldBe false
         actions.any { it is ExplorerActionBarItem.Directory.OpenInNewTabs } shouldBe false
     }
 

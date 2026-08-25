@@ -84,21 +84,15 @@ class NetworkLocationLoader @AssistedInject constructor(
         )
     }
 
-    private suspend fun SmbLocation.toItem(endpoint: SmbEndpointState): ExplorerItem.Storage.Network {
-        val availability = credentialStore.availability(this).first()
-        return ExplorerItem.Storage.Network(
-            location = this,
-            displayName = displayName,
-            displayIcon = Icons.TwoTone.Lan,
-            target = ExplorerNavigation.Target.Directory(rootPath),
-            subtitle = endpointLabel.toCaString(),
-            status = when (availability) {
-                SmbCredentialStore.Availability.AVAILABLE -> ExplorerItem.Storage.Network.Status.AVAILABLE
-                else -> ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED
-            },
-            endpoint = endpoint,
-        )
-    }
+    private suspend fun SmbLocation.toItem(endpoint: SmbEndpointState) = ExplorerItem.Storage.Network(
+        location = this,
+        displayName = displayName,
+        displayIcon = Icons.TwoTone.Lan,
+        target = ExplorerNavigation.Target.Directory(rootPath),
+        subtitle = endpointLabel.toCaString(),
+        credentials = credentialStore.availability(this).first(),
+        endpoint = endpoint,
+    )
 
     @AssistedFactory
     interface Factory {

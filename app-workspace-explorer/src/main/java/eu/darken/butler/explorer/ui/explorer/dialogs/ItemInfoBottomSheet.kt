@@ -31,6 +31,9 @@ import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.saf.location.SAFLocation
+import eu.darken.butler.common.files.smb.SmbEndpointState
+import eu.darken.butler.common.files.smb.credentials.SmbCredentialStore
+import eu.darken.butler.common.files.smb.location.SmbLocation
 import eu.darken.butler.common.files.toCaString
 import eu.darken.butler.common.DateTimeStyle
 import eu.darken.butler.common.formatDateTime
@@ -104,6 +107,11 @@ private fun ItemInfoContent(
 
             is ExplorerDialogState.ItemInfo.InfoContext.SingleLocalStorage -> {
                 LocalStorageInfo(item = context.item, onCopyToClipboard = onCopyToClipboard)
+            }
+
+            is ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork -> {
+                // Null while the location is on its way out of the listing, e.g. after a removal.
+                context.item?.let { NetworkStorageInfo(item = it, onCopyToClipboard = onCopyToClipboard) }
             }
 
             is ExplorerDialogState.ItemInfo.InfoContext.MultipleItems -> {
@@ -302,6 +310,124 @@ private fun SingleSAFInfo(
         InfoField(
             label = stringResource(R.string.explorer_info_saf_granted_label),
             value = formatDateTime(item.location.grantedAt, DateTimeStyle.DETAILED),
+        )
+    }
+}
+
+/** Everything about a share except its password: no ciphertext, no length, no hint. */
+@Composable
+private fun NetworkStorageInfo(
+    item: ExplorerItem.Storage.Network,
+    onCopyToClipboard: (String) -> Unit,
+) {
+    val context = LocalContext.current
+    val location = item.location
+
+    InfoCard {
+        InfoField(
+            label = stringResource(R.string.explorer_info_name_label),
+            value = item.displayName.get(context),
+        )
+
+        InfoField(
+            label = stringResource(R.string.explorer_info_network_server_label),
+            value = location.host,
+            onCopy = { onCopyToClipboard(location.host) },
+            valueStyle = InfoValueStyle.MONOSPACE,
+        )
+
+        InfoField(
+            label = stringResource(R.string.explorer_info_network_port_label),
+            value = location.port.toString(),
+        )
+
+        InfoField(
+            label = stringResource(R.string.explorer_info_network_share_label),
+            value = location.share,
+        )
+
+        if (location.basePath.isNotEmpty()) {
+            InfoField(
+                label = stringResource(R.string.explorer_info_network_folder_label),
+                value = location.basePath.joinToString("/"),
+                valueStyle = InfoValueStyle.MONOSPACE,
+            )
+        }
+
+        val address = item.endpoint.address
+        InfoField(
+            label = stringResource(R.string.explorer_info_network_address_label),
+            value = address ?: stringResource(R.string.explorer_info_unknown),
+            onCopy = address?.let { { onCopyToClipboard(it) } },
+            valueStyle = InfoValueStyle.MONOSPACE,
+        )
+
+        InfoField(
+            label = stringResource(R.string.explorer_info_network_status_label),
+            value = when (item.endpoint.reachability) {
+                SmbEndpointState.Reachability.CHECKING -> {
+                    stringResource(R.string.explorer_network_status_checking_label)
+                }
+                SmbEndpointState.Reachability.REACHABLE -> {
+                    stringResource(R.string.explorer_network_status_available_label)
+                }
+                SmbEndpointState.Reachability.UNREACHABLE -> {
+                    stringResource(R.string.explorer_network_status_unavailable_label)
+                }
+            },
+        )
+    }
+
+    Spacer(modifier = Modifier.height(8.dp))
+
+    InfoCard {
+        InfoField(
+            label = stringResource(R.string.explorer_info_network_auth_label),
+            value = when (location.authType) {
+                SmbLocation.AuthType.GUEST -> stringResource(R.string.explorer_network_form_auth_guest)
+                SmbLocation.AuthType.PASSWORD -> stringResource(R.string.explorer_network_form_auth_password)
+            },
+        )
+
+        if (location.authType == SmbLocation.AuthType.PASSWORD) {
+            InfoField(
+                label = stringResource(R.string.explorer_network_form_username_label),
+                value = location.username ?: stringResource(R.string.explorer_info_unknown),
+            )
+
+            location.domain?.takeIf { it.isNotBlank() }?.let { domain ->
+                InfoField(
+                    label = stringResource(R.string.explorer_info_network_domain_label),
+                    value = domain,
+                )
+            }
+
+            // From the vault, not from the "remember password" switch: that one says what should be
+            // kept, this one says what can actually be produced.
+            InfoField(
+                label = stringResource(R.string.explorer_info_network_password_label),
+                value = when (item.credentials) {
+                    SmbCredentialStore.Availability.AVAILABLE -> {
+                        stringResource(R.string.explorer_info_network_password_available)
+                    }
+                    SmbCredentialStore.Availability.MISSING -> {
+                        stringResource(R.string.explorer_info_network_password_missing)
+                    }
+                    SmbCredentialStore.Availability.KEY_UNAVAILABLE -> {
+                        stringResource(R.string.explorer_info_network_password_locked)
+                    }
+                },
+            )
+        }
+
+        InfoField(
+            label = stringResource(R.string.explorer_info_network_added_label),
+            value = formatDateTime(location.createdAt, DateTimeStyle.DETAILED),
+        )
+
+        InfoField(
+            label = stringResource(R.string.explorer_info_network_updated_label),
+            value = formatDateTime(location.updatedAt, DateTimeStyle.DETAILED),
         )
     }
 }
@@ -519,6 +645,50 @@ private fun ItemInfoBottomSheetPreviewSAF() {
 
     ItemInfoBottomSheet(
         context = ExplorerDialogState.ItemInfo.InfoContext.SingleSAF(mockSAF),
+        onDismiss = {},
+        onCopyToClipboard = {}
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ItemInfoBottomSheetPreviewNetworkReachable() {
+    val item = MockDataProvider.createMockStorageNetwork(
+        endpoint = SmbEndpointState("192.168.1.50", SmbEndpointState.Reachability.REACHABLE),
+    )
+
+    ItemInfoBottomSheet(
+        context = ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork(item.location.id, item),
+        onDismiss = {},
+        onCopyToClipboard = {}
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ItemInfoBottomSheetPreviewNetworkChecking() {
+    val item = MockDataProvider.createMockStorageNetwork()
+
+    ItemInfoBottomSheet(
+        context = ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork(item.location.id, item),
+        onDismiss = {},
+        onCopyToClipboard = {}
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ItemInfoBottomSheetPreviewNetworkSignInRequired() {
+    val item = MockDataProvider.createMockStorageNetwork(
+        status = ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED,
+        endpoint = SmbEndpointState("192.168.1.50", SmbEndpointState.Reachability.UNREACHABLE),
+    )
+
+    ItemInfoBottomSheet(
+        context = ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork(item.location.id, item),
         onDismiss = {},
         onCopyToClipboard = {}
     )

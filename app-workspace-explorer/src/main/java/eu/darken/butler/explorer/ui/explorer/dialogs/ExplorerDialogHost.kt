@@ -260,6 +260,7 @@ fun ExplorerDialogHost(
                 // Keep Explorer-specific contexts with original ItemInfoBottomSheet
                 is ExplorerDialogState.ItemInfo.InfoContext.SingleSAF,
                 is ExplorerDialogState.ItemInfo.InfoContext.SingleLocalStorage,
+                is ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork,
                 is ExplorerDialogState.ItemInfo.InfoContext.DeviceView,
                 is ExplorerDialogState.ItemInfo.InfoContext.HomeView -> {
                     ItemInfoBottomSheet(

@@ -11,6 +11,7 @@ import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.operations.ExplorerCommand
 import eu.darken.butler.workspace.contracts.dnd.WorkspaceDragPayload
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
+import kotlin.uuid.Uuid
 
 sealed interface ExplorerDialogState {
 
@@ -116,6 +117,17 @@ sealed interface ExplorerDialogState {
             data class SingleDirectory(val item: ExplorerItem.Directory) : InfoContext
             data class SingleSAF(val item: ExplorerItem.Storage.SAF) : InfoContext
             data class SingleLocalStorage(val item: ExplorerItem.Storage.Local) : InfoContext
+
+            /**
+             * Only the location is remembered, [item] is filled in from the listing every time the
+             * UI state is built: a sheet opened while the address was still being looked up has to
+             * show the answer when it arrives, not the row it was opened from.
+             */
+            data class SingleNetwork(
+                val locationId: Uuid,
+                val item: ExplorerItem.Storage.Network? = null,
+            ) : InfoContext
+
             data class MultipleItems(
                 val selectedItems: List<ExplorerItem>,
                 val fileCount: Int,

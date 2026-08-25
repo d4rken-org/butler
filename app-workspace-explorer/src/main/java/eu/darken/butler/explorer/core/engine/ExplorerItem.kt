@@ -11,6 +11,7 @@ import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.files.saf.location.SAFLocation
 import eu.darken.butler.common.files.smb.SmbEndpointState
+import eu.darken.butler.common.files.smb.credentials.SmbCredentialStore
 import eu.darken.butler.common.files.smb.location.SmbLocation
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import kotlin.time.Instant
@@ -82,7 +83,7 @@ sealed interface ExplorerItem {
          * A stored network location. Capacity stays null: reading it would mean opening a session on
          * every server just to draw the Network view, which a reachability probe does not do.
          *
-         * [endpoint] arrives after the row is first drawn, [status] comes from the credential vault.
+         * [endpoint] arrives after the row is first drawn, [credentials] is the vault's verdict.
          */
         data class Network(
             val location: SmbLocation,
@@ -90,13 +91,20 @@ sealed interface ExplorerItem {
             override val displayIcon: ImageVector,
             override val target: ExplorerNavigation.Target.Directory,
             override val subtitle: CaString,
-            val status: Status,
+            val credentials: SmbCredentialStore.Availability,
             val endpoint: SmbEndpointState = SmbEndpointState(),
         ) : Storage {
             override val id: String get() = "network-${location.id}"
             override val totalBytes: Long? get() = null
             override val availableBytes: Long? get() = null
             override val canWrite: Boolean get() = true
+
+            /** What a row can say about [credentials]: either the vault can produce one, or it cannot. */
+            val status: Status
+                get() = when (credentials) {
+                    SmbCredentialStore.Availability.AVAILABLE -> Status.AVAILABLE
+                    else -> Status.SIGN_IN_REQUIRED
+                }
 
             /** Whether the row has something to flag: a credential problem, an absent server, or both. */
             val hasIssue: Boolean
