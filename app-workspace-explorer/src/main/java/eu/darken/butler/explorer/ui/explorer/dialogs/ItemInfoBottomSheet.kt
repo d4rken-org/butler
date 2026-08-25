@@ -41,13 +41,16 @@ import eu.darken.butler.common.files.toCaString
 import eu.darken.butler.common.DateTimeStyle
 import eu.darken.butler.common.formatDateTime
 import eu.darken.butler.common.formatFileSize
+import eu.darken.butler.common.theming.success
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
+import eu.darken.butler.explorer.ui.explorer.items.statusLabel
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 import eu.darken.butler.workspace.ui.dialogs.InfoCard
 import eu.darken.butler.workspace.ui.dialogs.InfoField
+import eu.darken.butler.workspace.ui.dialogs.InfoFieldPair
 import eu.darken.butler.workspace.ui.dialogs.InfoValueStyle
 import kotlin.time.Clock
 import kotlin.uuid.Uuid
@@ -355,9 +358,28 @@ private fun NetworkStorageInfo(
     val location = item.location
 
     InfoCard {
-        InfoField(
-            label = stringResource(R.string.explorer_info_name_label),
-            value = item.displayName.get(context),
+        InfoFieldPair(
+            left = {
+                InfoField(
+                    label = stringResource(R.string.explorer_info_name_label),
+                    value = item.displayName.get(context),
+                )
+            },
+            right = {
+                InfoField(
+                    label = stringResource(R.string.explorer_info_network_status_label),
+                    // Same wording as the row in the list, so a credential problem still outranks
+                    // reachability instead of reading "Available" next to a red row.
+                    value = item.statusLabel(context),
+                    valueColor = when {
+                        item.hasIssue -> MaterialTheme.colorScheme.error
+                        item.endpoint.reachability == SmbEndpointState.Reachability.REACHABLE -> {
+                            MaterialTheme.colorScheme.success
+                        }
+                        else -> null
+                    },
+                )
+            },
         )
 
         InfoField(
@@ -367,9 +389,22 @@ private fun NetworkStorageInfo(
             valueStyle = InfoValueStyle.MONOSPACE,
         )
 
-        InfoField(
-            label = stringResource(R.string.explorer_info_network_port_label),
-            value = location.port.toString(),
+        val address = item.endpoint.address
+        InfoFieldPair(
+            left = {
+                InfoField(
+                    label = stringResource(R.string.explorer_info_network_address_label),
+                    value = address ?: stringResource(R.string.explorer_info_unknown),
+                    onCopy = address?.let { { onCopyToClipboard(it) } },
+                    valueStyle = InfoValueStyle.MONOSPACE,
+                )
+            },
+            right = {
+                InfoField(
+                    label = stringResource(R.string.explorer_info_network_port_label),
+                    value = location.port.toString(),
+                )
+            },
         )
 
         InfoField(
@@ -384,29 +419,6 @@ private fun NetworkStorageInfo(
                 valueStyle = InfoValueStyle.MONOSPACE,
             )
         }
-
-        val address = item.endpoint.address
-        InfoField(
-            label = stringResource(R.string.explorer_info_network_address_label),
-            value = address ?: stringResource(R.string.explorer_info_unknown),
-            onCopy = address?.let { { onCopyToClipboard(it) } },
-            valueStyle = InfoValueStyle.MONOSPACE,
-        )
-
-        InfoField(
-            label = stringResource(R.string.explorer_info_network_status_label),
-            value = when (item.endpoint.reachability) {
-                SmbEndpointState.Reachability.CHECKING -> {
-                    stringResource(R.string.explorer_network_status_checking_label)
-                }
-                SmbEndpointState.Reachability.REACHABLE -> {
-                    stringResource(R.string.explorer_network_status_available_label)
-                }
-                SmbEndpointState.Reachability.UNREACHABLE -> {
-                    stringResource(R.string.explorer_network_status_unavailable_label)
-                }
-            },
-        )
     }
 
     Spacer(modifier = Modifier.height(6.dp))

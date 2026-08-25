@@ -2,6 +2,7 @@ package eu.darken.butler.workspace.ui.dialogs
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -21,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
@@ -62,6 +64,7 @@ fun InfoField(
     modifier: Modifier = Modifier,
     onCopy: (() -> Unit)? = null,
     valueStyle: InfoValueStyle = InfoValueStyle.NORMAL,
+    valueColor: Color? = null,
     trailingContent: (@Composable () -> Unit)? = null,
 ) {
     val copyLabel = stringResource(R.string.workspace_file_info_copy_action)
@@ -108,7 +111,7 @@ fun InfoField(
                         MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace)
                     }
                 },
-                color = MaterialTheme.colorScheme.onSurface,
+                color = valueColor ?: MaterialTheme.colorScheme.onSurface,
                 maxLines = when (valueStyle) {
                     InfoValueStyle.NORMAL -> 3
                     InfoValueStyle.MONOSPACE -> Int.MAX_VALUE
@@ -118,6 +121,53 @@ fun InfoField(
         }
 
         trailingContent?.invoke()
+    }
+}
+
+/**
+ * Two fields sharing one row, each getting half of it.
+ *
+ * The weight sits on the wrapper boxes and not on the slots: a `RowScope` receiver cannot force a
+ * caller to apply it, and without it the two halves are sized by their content instead. No
+ * horizontal padding of its own, so an [InfoField] in [left] lines up with a full-width one above.
+ */
+@Composable
+fun InfoFieldPair(
+    modifier: Modifier = Modifier,
+    left: @Composable () -> Unit,
+    right: @Composable () -> Unit,
+) {
+    Row(modifier = modifier.fillMaxWidth()) {
+        Box(modifier = Modifier.weight(1f)) { left() }
+        Box(modifier = Modifier.weight(1f)) { right() }
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun InfoFieldPairPreview() {
+    InfoCard {
+        InfoFieldPair(
+            left = {
+                InfoField(
+                    label = "Name",
+                    value = "Home NAS",
+                )
+            },
+            right = {
+                InfoField(
+                    label = "Status",
+                    value = "Available",
+                )
+            },
+        )
+        InfoField(
+            label = "Server",
+            value = "nas.local",
+            onCopy = {},
+            valueStyle = InfoValueStyle.MONOSPACE,
+        )
     }
 }
 
