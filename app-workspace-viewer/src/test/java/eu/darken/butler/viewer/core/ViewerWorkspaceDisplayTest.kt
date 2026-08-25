@@ -64,6 +64,7 @@ class ViewerWorkspaceDisplayTest {
             contentReader = readerFor(gatewaySwitch),
             imageProbe = imageProbe,
             apkArchiveParser = mockk(relaxed = true),
+            appInstallInspector = mockk(relaxed = true),
             pkgRepo = mockk(relaxed = true),
             userManager2 = mockk(relaxed = true),
             pdfPreviewLoader = mockk(relaxed = true),

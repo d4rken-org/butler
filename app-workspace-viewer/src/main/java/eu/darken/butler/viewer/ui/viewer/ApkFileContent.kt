@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -69,7 +70,14 @@ fun ApkFileContent(
     apkInfo: ApkArchiveInfo,
     installState: ApkInstallState,
     contentPadding: PaddingValues = PaddingValues(0.dp),
+    /** Rendered right below the header, for what a container adds on top of its base APK. */
+    bundleSummary: (@Composable () -> Unit)? = null,
     initiallyPermissionsExpanded: Boolean = false,
+    /**
+     * Off where the icon cannot be exported: the exporter reads an APK, and a bundle's own file is a
+     * zip. The rendered icon still shows, it just is not a handle for showing or saving one.
+     */
+    iconActionsEnabled: Boolean = true,
     onShowIcon: () -> Unit = {},
     onSaveIcon: () -> Unit = {},
     barScrollConnections: List<NestedScrollConnection> = emptyList(),
@@ -99,9 +107,16 @@ fun ApkFileContent(
             ApkHeader(
                 modifier = itemModifier,
                 apkInfo = apkInfo,
+                iconActionsEnabled = iconActionsEnabled,
                 onShowIcon = onShowIcon,
                 onSaveIcon = onSaveIcon,
             )
+        }
+
+        if (bundleSummary != null) {
+            item {
+                Box(modifier = itemModifier) { bundleSummary() }
+            }
         }
 
         item {
@@ -160,6 +175,7 @@ fun ApkFileContent(
 private fun ApkHeader(
     modifier: Modifier = Modifier,
     apkInfo: ApkArchiveInfo,
+    iconActionsEnabled: Boolean = true,
     onShowIcon: () -> Unit = {},
     onSaveIcon: () -> Unit = {},
 ) {
@@ -174,7 +190,7 @@ private fun ApkHeader(
             Image(
                 modifier = Modifier
                     .clip(MaterialTheme.shapes.small)
-                    .clickable(onClick = onShowIcon)
+                    .then(if (iconActionsEnabled) Modifier.clickable(onClick = onShowIcon) else Modifier)
                     .size(64.dp),
                 bitmap = icon.asImageBitmap(),
                 contentDescription = stringResource(R.string.viewer_apk_icon_content_description, label),
@@ -207,7 +223,7 @@ private fun ApkHeader(
                 )
             }
         }
-        if (icon != null) {
+        if (icon != null && iconActionsEnabled) {
             IconButton(onClick = onSaveIcon) {
                 Icon(
                     imageVector = Icons.TwoTone.Save,

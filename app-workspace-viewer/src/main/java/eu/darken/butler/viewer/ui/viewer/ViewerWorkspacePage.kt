@@ -117,6 +117,7 @@ fun ViewerWorkspacePageHost(
                     is ViewerActionBarItem.Delete -> vm.requestDelete()
                     ViewerActionBarItem.SaveCopy -> vm.saveCopy()
                     ViewerActionBarItem.BrowseArchive -> vm.browseArchive()
+                    ViewerActionBarItem.Install -> vm.install()
                 }
             },
             onOpenWith = { vm.openWith() },
@@ -466,6 +467,18 @@ private fun ViewerContentArea(
                 contentPadding = contentPadding,
                 onShowIcon = onShowIcon,
                 onSaveIcon = onSaveIcon,
+                barScrollConnections = barScrollConnections,
+                onToggleChrome = onToggleChrome,
+            )
+
+            is ViewerContent.AppBundle -> AppBundleFileContent(
+                format = content.format,
+                apkInfo = content.apkInfo,
+                installState = content.installState,
+                splitCount = content.splitCount,
+                hasObb = content.hasObb,
+                needsElevationForObb = content.needsElevationForObb,
+                contentPadding = contentPadding,
                 barScrollConnections = barScrollConnections,
                 onToggleChrome = onToggleChrome,
             )

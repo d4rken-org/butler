@@ -22,7 +22,11 @@ import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.pkgs.PkgRepo
+import eu.darken.butler.common.pkgs.apk.ApkArchiveInfo
 import eu.darken.butler.common.pkgs.apk.ApkArchiveParser
+import eu.darken.butler.common.pkgs.installer.AppInstallFormat
+import eu.darken.butler.common.pkgs.installer.AppInstallInspector
+import eu.darken.butler.common.pkgs.installer.AppInstallPlan
 import eu.darken.butler.common.pkgs.current
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.user.UserManager2
@@ -68,6 +72,7 @@ class ViewerWorkspace @AssistedInject constructor(
     private val contentReader: ViewerContentReader,
     private val imageProbe: ImageProbe,
     private val apkArchiveParser: ApkArchiveParser,
+    private val appInstallInspector: AppInstallInspector,
     private val pkgRepo: PkgRepo,
     private val userManager2: UserManager2,
     private val pdfPreviewLoader: PdfPreviewLoader,
@@ -350,6 +355,16 @@ class ViewerWorkspace @AssistedInject constructor(
         lookup: APathLookup<*>?,
         contentLookup: APathLookup<*>? = null,
     ) {
+        // Ahead of the archive branch, and only for a real file outside another archive. A streamed
+        // or nested bundle cannot be inspected or installed from where it lies, and falling through
+        // keeps the archive placeholder's "save a copy" offer, which is the way out of both.
+        val bundleFormat = AppInstallFormat.fromFileName(source.displayName)?.takeIf { it.isBundle }
+        val bundlePath = (source as? ViewerSource.Stored)?.path?.takeIf { it !is ArchivePath }
+        if (bundleFormat != null && bundlePath != null) {
+            loadAppBundle(bundlePath, bundleFormat, mime, fileInfo, lookup, contentLookup)
+            return
+        }
+
         // By name and ahead of every MIME branch: senders declare archives as anything from
         // image/png to application/pdf, and reaching the image probe or the PDF seek check with a
         // container would end as "damaged" or "unreadable" instead of something we can offer to
@@ -498,31 +513,7 @@ class ViewerWorkspace @AssistedInject constructor(
             return
         }
 
-        val installState = try {
-            // Read through the package data itself instead of the repo's per-id query: the query
-            // path serves the cache map directly, so a repo whose data failed to build answers
-            // "empty" and would read as "not installed". Cross-user entries only exist with
-            // elevated access; the any-user match is the fallback so a work-profile install still
-            // counts as installed.
-            val packages = pkgRepo.current()
-            val installed = packages
-                .firstOrNull { it.id == apkInfo.id && it.userHandle == userManager2.currentUser().handle }
-                ?: packages.firstOrNull { it.id == apkInfo.id }
-            when (installed) {
-                null -> ApkInstallState.NotInstalled
-                else -> ApkInstallState.Installed(
-                    versionName = installed.versionName,
-                    versionCode = installed.versionCode,
-                    comparison = compareVersions(apkInfo.versionCode, installed.versionCode),
-                )
-            }
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            // A failed lookup must not read as "not installed" - that is a different statement.
-            log(tag, WARN) { "Installed lookup failed for ${apkInfo.id}: ${e.asLog()}" }
-            ApkInstallState.Unknown
-        }
+        val installState = resolveInstallState(apkInfo)
 
         log(tag, INFO) { "$filePath is an APK: ${apkInfo.id} ($installState)" }
         stateFlow.value = State(
@@ -531,6 +522,91 @@ class ViewerWorkspace @AssistedInject constructor(
             lookup = lookup,
             contentLookup = contentLookup,
         )
+    }
+
+    /**
+     * A multi-APK container. Inspection is what turns it from "some zip" into something with a
+     * package name, so a container that cannot be inspected is a failure here rather than a bundle
+     * whose card would have nothing to show.
+     */
+    private suspend fun loadAppBundle(
+        filePath: APath<*>,
+        format: AppInstallFormat,
+        mime: MimeInfo,
+        fileInfo: ViewerFileInfo,
+        lookup: APathLookup<*>?,
+        contentLookup: APathLookup<*>?,
+    ) {
+        val plan = try {
+            appInstallInspector.inspect(filePath)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            log(tag, WARN) { "Rejecting $filePath: ${e.asLog()}" }
+            stateFlow.value = State(
+                content = ViewerContent.Failed(e),
+                fileInfo = fileInfo,
+                lookup = lookup,
+                contentLookup = contentLookup,
+            )
+            return
+        }
+
+        val apkInfo = plan.baseInfo
+        if (apkInfo == null) {
+            val error = ViewerApkParseException(filePath)
+            log(tag, WARN) { "Rejecting $filePath: $error" }
+            stateFlow.value = State(
+                content = ViewerContent.Failed(error),
+                fileInfo = fileInfo,
+                lookup = lookup,
+                contentLookup = contentLookup,
+            )
+            return
+        }
+
+        val installState = resolveInstallState(apkInfo)
+        log(tag, INFO) { "$filePath is a $format bundle: ${apkInfo.id} (${plan.splits.size} splits)" }
+        stateFlow.value = State(
+            content = ViewerContent.AppBundle(
+                mime = mime,
+                format = format,
+                apkInfo = apkInfo,
+                splitCount = plan.splits.size,
+                hasObb = plan.warnings.contains(AppInstallPlan.Warning.OBB_PRESENT),
+                needsElevationForObb = plan.warnings.contains(AppInstallPlan.Warning.OBB_NEEDS_ELEVATION),
+                installState = installState,
+            ),
+            fileInfo = fileInfo,
+            lookup = lookup,
+            contentLookup = contentLookup,
+        )
+    }
+
+    private suspend fun resolveInstallState(apkInfo: ApkArchiveInfo): ApkInstallState = try {
+        // Read through the package data itself instead of the repo's per-id query: the query
+        // path serves the cache map directly, so a repo whose data failed to build answers
+        // "empty" and would read as "not installed". Cross-user entries only exist with
+        // elevated access; the any-user match is the fallback so a work-profile install still
+        // counts as installed.
+        val packages = pkgRepo.current()
+        val installed = packages
+            .firstOrNull { it.id == apkInfo.id && it.userHandle == userManager2.currentUser().handle }
+            ?: packages.firstOrNull { it.id == apkInfo.id }
+        when (installed) {
+            null -> ApkInstallState.NotInstalled
+            else -> ApkInstallState.Installed(
+                versionName = installed.versionName,
+                versionCode = installed.versionCode,
+                comparison = compareVersions(apkInfo.versionCode, installed.versionCode),
+            )
+        }
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        // A failed lookup must not read as "not installed" - that is a different statement.
+        log(tag, WARN) { "Installed lookup failed for ${apkInfo.id}: ${e.asLog()}" }
+        ApkInstallState.Unknown
     }
 
     /** Only a definitive "not there" counts; a failing check stays with the original error. */

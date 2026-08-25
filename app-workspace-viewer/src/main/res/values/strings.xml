@@ -57,6 +57,13 @@
     <string name="viewer_apk_permissions_header">Permissions (%1$d)</string>
     <string name="viewer_apk_signing_header">Signing certificates</string>
 
+    <!-- App install -->
+    <string name="viewer_install_action">Install</string>
+    <string name="viewer_bundle_format_label">Bundle format</string>
+    <string name="viewer_bundle_splits_label">APKs inside</string>
+    <string name="viewer_bundle_expansion_files_hint">Contains expansion files that are placed after the app is installed.</string>
+    <string name="viewer_bundle_expansion_needs_elevation_warning">Placing expansion files needs root or ADB access. Without it the app installs, but its expansion files stay behind.</string>
+
     <!-- APK icon -->
     <string name="viewer_apk_icon_content_description">App icon of %1$s</string>
     <string name="viewer_apk_icon_show_action">Show icon</string>

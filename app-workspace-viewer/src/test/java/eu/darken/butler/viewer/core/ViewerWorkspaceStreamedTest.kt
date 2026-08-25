@@ -87,6 +87,7 @@ class ViewerWorkspaceStreamedTest : BaseTest() {
         imageProbe = imageProbe,
         contentReader = contentReader,
         apkArchiveParser = apkArchiveParser,
+        appInstallInspector = mockk(relaxed = true),
         pkgRepo = pkgRepo,
         userManager2 = userManager2,
         pdfPreviewLoader = pdfPreviewLoader,
