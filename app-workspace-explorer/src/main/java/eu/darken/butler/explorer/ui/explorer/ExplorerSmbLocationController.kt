@@ -44,8 +44,17 @@ class ExplorerSmbLocationController(
         dialogs.show(ExplorerDialogState.SmbLocationForm())
     }
 
-    fun showEditForm(location: SmbLocation) {
-        log(tag) { "showEditForm(${location.id})" }
+    /**
+     * The stored details are re-read here rather than taken from the selected row: the row was drawn
+     * from an earlier listing and the location may have changed since.
+     */
+    fun showEditForm(locationId: Uuid) = doLaunch {
+        log(tag) { "showEditForm($locationId)" }
+        val location = locationManager.get(locationId)
+        if (location == null) {
+            log(tag, ERROR) { "showEditForm(): Unknown location $locationId" }
+            return@doLaunch
+        }
         dialogs.show(ExplorerDialogState.SmbLocationForm(existing = location))
     }
 
@@ -217,13 +226,9 @@ class ExplorerSmbLocationController(
     }
 
     /** Opens the form for a location whose password has to be entered again. */
-    fun promptSignIn(locationId: Uuid) = doLaunch {
-        val location = locationManager.get(locationId)
-        if (location == null) {
-            log(tag, ERROR) { "promptSignIn(): Unknown location $locationId" }
-            return@doLaunch
-        }
-        showEditForm(location)
+    fun promptSignIn(locationId: Uuid) {
+        log(tag) { "promptSignIn($locationId)" }
+        showEditForm(locationId)
     }
 
     private fun Throwable.localizedDescription(): CaString =
