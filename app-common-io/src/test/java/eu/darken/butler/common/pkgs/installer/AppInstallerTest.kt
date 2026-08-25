@@ -17,6 +17,7 @@ import eu.darken.butler.common.storage.StorageEnvironment
 import eu.darken.butler.common.user.UserHandle2
 import eu.darken.butler.common.user.UserManager2
 import eu.darken.butler.common.user.UserProfile2
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -63,6 +64,12 @@ class AppInstallerTest : BaseTest() {
     /** The mode whose `pm install-create` answers success in a shape the installer cannot read. */
     private var unreadableCreateMode: ShellOps.Mode? = null
 
+    /** What the shell staging root holds, the root itself included when it exists. */
+    private var shellStagingChildren = emptyList<String>()
+
+    /** Makes the removal of a run's own staging directory fail, leaving it behind. */
+    private var stagingRemovalFails = false
+
     private val shellOps = mockk<ShellOps>()
     private val gatewaySwitch = mockk<GatewaySwitch>()
 
@@ -94,6 +101,13 @@ class AppInstallerTest : BaseTest() {
                     else -> ShellOpsResult(1, emptyList(), listOf("Failure [INSTALL_FAILED_VERSION_DOWNGRADE]"))
                 }
 
+                line.startsWith("rm -rf") -> when {
+                    stagingRemovalFails && !line.contains(LEFTOVER_NAME) ->
+                        ShellOpsResult(1, emptyList(), listOf("rm: Permission denied"))
+
+                    else -> ShellOpsResult(0, emptyList(), emptyList())
+                }
+
                 else -> ShellOpsResult(0, emptyList(), emptyList())
             }
         }
@@ -102,6 +116,11 @@ class AppInstallerTest : BaseTest() {
         coEvery { gatewaySwitch.createDir(any(), any()) } answers { gatewayWrites += firstArg<LocalPath>().path }
         coEvery { gatewaySwitch.createFile(any(), any()) } answers { gatewayWrites += firstArg<LocalPath>().path }
         coEvery { gatewaySwitch.openOutputStream(any(), any()) } answers { ByteArrayOutputStream() }
+        coEvery { gatewaySwitch.exists(any()) } answers { firstArg<LocalPath>().path in shellStagingChildren }
+        coEvery { gatewaySwitch.listFiles(any()) } answers {
+            val parent = firstArg<LocalPath>().path
+            shellStagingChildren.filter { it != parent }.map { LocalPath.build(it) }
+        }
     }
 
     @After
@@ -259,5 +278,35 @@ class AppInstallerTest : BaseTest() {
         events.single().shouldBeInstanceOf<AppInstallEvent.Failure>()
             .error.shouldBeInstanceOf<AppInstallNoElevationException>()
         executed.isEmpty() shouldBe true
+    }
+
+    @Test
+    fun `the shell sweep removes leftovers one by one, never the whole root`() = runTest2 {
+        shellStagingChildren = listOf(SHELL_ROOT, "$SHELL_ROOT/$LEFTOVER_NAME")
+
+        installer().install(plan(), AppInstaller.Mode.ADB).toList()
+
+        val removals = executed.map { it.second }.filter { it.startsWith("rm -rf") }
+        removals shouldContain "rm -rf '$SHELL_ROOT/$LEFTOVER_NAME'"
+        // The root also holds the staging of every install that is extracting right now.
+        removals.none { it == "rm -rf '$SHELL_ROOT'" } shouldBe true
+    }
+
+    @Test
+    fun `staging that could not be removed stays sweepable`() = runTest2 {
+        shellStagingChildren = listOf(SHELL_ROOT, "$SHELL_ROOT/$LEFTOVER_NAME")
+        stagingRemovalFails = true
+        val installer = installer()
+
+        installer.install(plan(), AppInstaller.Mode.ADB).toList()
+        installer.install(plan(), AppInstaller.Mode.ADB).toList()
+
+        // Twice: a run whose own cleanup failed must not leave the root marked as swept.
+        executed.count { it.second == "rm -rf '$SHELL_ROOT/$LEFTOVER_NAME'" } shouldBe 2
+    }
+
+    companion object {
+        private const val SHELL_ROOT = "/data/local/tmp/butler-install"
+        private const val LEFTOVER_NAME = "0f9d8f4e-0000-4000-8000-00000000cafe"
     }
 }
