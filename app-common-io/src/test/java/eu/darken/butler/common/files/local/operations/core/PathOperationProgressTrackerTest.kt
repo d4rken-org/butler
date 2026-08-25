@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import testhelpers.TestClock
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Instant
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Tests for PathOperationProgressTracker - progress and performance tracking.
@@ -105,30 +105,33 @@ class PathOperationProgressTrackerTest : BaseTest() {
 
     @Test
     fun `samples recorded with zero time delta have estimated speeds`() {
-        val tracker = PathOperationProgressTracker()
+        val clock = TestClock()
+        val tracker = PathOperationProgressTracker(clock = clock)
         tracker.totalItems = 10
         tracker.totalBytes = 1_000_000L
 
-        val startTime = Instant.fromEpochMilliseconds(1000)
-
-        // First sample
+        // First sample, no elapsed time yet
         tracker.completeItem(bytes = 100_000L)
         tracker.shouldReportProgress(force = true)
         tracker.performanceHistory.samples.size shouldBe 1
 
-        // Second sample with < 1ms elapsed (zero time delta)
-        // Simulate by completing another item instantly
+        // Second sample one second later, speeds come from the delta
+        clock += 1.seconds
         tracker.completeItem(bytes = 100_000L)
         tracker.shouldReportProgress(force = true)
-
-        // Should still record the sample (not skip it)
         tracker.performanceHistory.samples.size shouldBe 2
 
-        val secondSample = tracker.performanceHistory.samples[1]
-        secondSample.totalBytesProcessed shouldBe 200_000L
-        secondSample.totalItemsProcessed shouldBe 2
-        // Speed should be estimated (not zero, not infinite)
-        // Either from total progress or previous sample
+        // Third sample at the very same timestamp: zero delta, speeds fall back to totals/elapsed
+        tracker.completeItem(bytes = 300_000L)
+        tracker.shouldReportProgress(force = true)
+        tracker.performanceHistory.samples.size shouldBe 3
+
+        val thirdSample = tracker.performanceHistory.samples[2]
+        thirdSample.totalBytesProcessed shouldBe 500_000L
+        thirdSample.totalItemsProcessed shouldBe 3
+        // 500_000 bytes / 1s elapsed, 3 items / 1s elapsed
+        thirdSample.bytesPerSecond shouldBe 500_000L
+        thirdSample.itemsPerSecond shouldBe 3f
     }
 
     @Test
