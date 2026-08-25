@@ -163,6 +163,27 @@ class OperationHistoryPersistTest : BaseTest() {
     }
 
     @Test
+    fun `an install is stored under its own kind and named by its container`() = runTest {
+        val container = LocalPath.build("/sdcard/Download/example.apk")
+        val id = persist(
+            testSnapshot(
+                metadata = testMetadata(
+                    operationKind = Operation.Metadata.Kind.INSTALL,
+                    intended = listOf(container),
+                ),
+                state = TestCompletedState(report = null),
+            )
+        )
+
+        val stored = database.operationHistoryDao().getById(id)!!
+        stored.entry.kind shouldBe Operation.Metadata.Kind.INSTALL.name
+        stored.entry.outcome shouldBe HistoryOutcome.COMPLETED.name
+        // An install writes no file of its own, so the container is all there is to name the row by.
+        stored.paths.shouldBeEmpty()
+        stored.entry.primaryPath shouldBe container.path
+    }
+
+    @Test
     fun `the scope index keeps sources, destinations and their parents`() = runTest {
         val id = persist(
             testSnapshot(

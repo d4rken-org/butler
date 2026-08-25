@@ -19,6 +19,7 @@ import androidx.compose.material.icons.twotone.CreateNewFolder
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.Error
 import androidx.compose.material.icons.twotone.ErrorOutline
+import androidx.compose.material.icons.twotone.InstallMobile
 import androidx.compose.material.icons.twotone.Restore
 import androidx.compose.material.icons.twotone.Save
 import androidx.compose.material.icons.twotone.Unarchive
@@ -180,6 +181,7 @@ private fun Operation.Metadata.Kind.entryHeadlineLabel(): String = when (this) {
     Operation.Metadata.Kind.COMPRESS -> "Compressed"
     Operation.Metadata.Kind.EXTRACT -> "Extracted"
     Operation.Metadata.Kind.RESTORE -> "Restored"
+    Operation.Metadata.Kind.INSTALL -> "Installed"
 }
 
 internal fun Operation.Metadata.Kind.icon(): ImageVector = when (this) {
@@ -192,6 +194,7 @@ internal fun Operation.Metadata.Kind.icon(): ImageVector = when (this) {
     Operation.Metadata.Kind.COMPRESS -> Icons.TwoTone.Compress
     Operation.Metadata.Kind.EXTRACT -> Icons.TwoTone.Unarchive
     Operation.Metadata.Kind.RESTORE -> Icons.TwoTone.Restore
+    Operation.Metadata.Kind.INSTALL -> Icons.TwoTone.InstallMobile
 }
 
 @Composable
