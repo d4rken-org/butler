@@ -29,8 +29,11 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.CyclicBarrier
 import java.util.concurrent.TimeUnit
 import kotlin.time.Instant
@@ -97,10 +100,14 @@ class SmbConnectionPoolTest : BaseTest() {
         /** Index-aligned with [shares], so a test can kill one share without killing its connection. */
         val shareConnected = mutableListOf<Boolean>()
 
+        /** Index-aligned with [shares], runs inside that share's close so a test can stall a teardown. */
+        val closeHooks = mutableListOf<(() -> Unit)?>()
+
         override fun create(config: com.hierynomus.smbj.SmbConfig): SMBClient {
             val index = shares.size
             val share = mockk<DiskShare>(relaxed = true) {
                 every { isConnected } answers { shareConnected[index] }
+                every { close() } answers { closeHooks[index]?.invoke() }
             }
             val session = mockk<Session>(relaxed = true) {
                 every { connectShare(any()) } returns share
@@ -114,6 +121,7 @@ class SmbConnectionPoolTest : BaseTest() {
             }
             shares.add(share)
             shareConnected.add(true)
+            closeHooks.add(null)
             clients.add(client)
             return client
         }
@@ -418,9 +426,74 @@ class SmbConnectionPoolTest : BaseTest() {
         next.close()
     }
 
+    /**
+     * A server that stopped answering makes closing its session sit in the socket timeout. That
+     * teardown must not run under the pool-wide lock, or every unrelated location stalls with it.
+     */
+    @Test
+    fun `an edited endpoint drops its old session without stalling other locations`() = runBlocking {
+        val factory = FakeClientFactory()
+        val locations = FakeLocationManager(mapOf(locationA.id to locationA, locationB.id to locationB))
+        val pool = pool(factory, locations)
+        pool.acquire(locationA.id).close()
+
+        val teardownStarted = CountDownLatch(1)
+        val teardownRelease = CountDownLatch(1)
+        factory.closeHooks[0] = {
+            teardownStarted.countDown()
+            teardownRelease.await(BARRIER_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+        }
+
+        locations.locationsById = mapOf(
+            locationA.id to locationA.copy(host = "other.local"),
+            locationB.id to locationB,
+        )
+        val displacing = async(Dispatchers.IO) { pool.acquire(locationA.id) }
+        teardownStarted.await(BARRIER_TIMEOUT_SECONDS, TimeUnit.SECONDS) shouldBe true
+
+        val unrelated = withTimeoutOrNull(PROGRESS_TIMEOUT_MS) {
+            withContext(Dispatchers.IO) { pool.acquire(locationB.id) }
+        }
+        teardownRelease.countDown()
+
+        unrelated shouldNotBe null
+        unrelated?.close()
+        displacing.await().close()
+    }
+
+    /** The same teardown one path further along: the dead session is only replaced when the fresh one is published. */
+    @Test
+    fun `replacing a dead session does not stall other locations`() = runBlocking {
+        val factory = FakeClientFactory()
+        val pool = pool(factory)
+        pool.acquire(locationA.id).close()
+
+        val teardownStarted = CountDownLatch(1)
+        val teardownRelease = CountDownLatch(1)
+        factory.closeHooks[0] = {
+            teardownStarted.countDown()
+            teardownRelease.await(BARRIER_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+        }
+
+        // The cached generation is skipped on lookup and only disposed of when connect() publishes
+        factory.shareConnected[0] = false
+        val reconnecting = async(Dispatchers.IO) { pool.acquire(locationA.id) }
+        teardownStarted.await(BARRIER_TIMEOUT_SECONDS, TimeUnit.SECONDS) shouldBe true
+
+        val unrelated = withTimeoutOrNull(PROGRESS_TIMEOUT_MS) {
+            withContext(Dispatchers.IO) { pool.acquire(locationB.id) }
+        }
+        teardownRelease.countDown()
+
+        unrelated shouldNotBe null
+        unrelated?.close()
+        reconnecting.await().close()
+    }
+
     companion object {
         private const val FAR_FUTURE = Long.MAX_VALUE / 2
         private const val RACE_ROUNDS = 100
         private const val BARRIER_TIMEOUT_SECONDS = 10L
+        private const val PROGRESS_TIMEOUT_MS = 5_000L
     }
 }
