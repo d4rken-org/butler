@@ -99,6 +99,7 @@ fun SmbLocationFormSheet(
         onDismiss = onDismiss,
         topInset = topInset,
         bottomInset = bottomInset,
+        includeImePadding = true,
     ) {
         Column(
             modifier = Modifier
