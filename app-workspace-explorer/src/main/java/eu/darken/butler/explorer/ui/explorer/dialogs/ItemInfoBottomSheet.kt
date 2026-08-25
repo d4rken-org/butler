@@ -3,9 +3,11 @@ package eu.darken.butler.explorer.ui.explorer.dialogs
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.FolderShared
 import androidx.compose.material.icons.twotone.Visibility
@@ -16,7 +18,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -28,6 +32,7 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.icons.SmbShare
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.SAFPath
@@ -101,6 +106,11 @@ private fun ItemInfoContent(
         else -> null
     }
 
+    val titleIcon: ImageVector? = when (context) {
+        is ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork -> Icons.TwoTone.SmbShare
+        else -> null
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -109,11 +119,23 @@ private fun ItemInfoContent(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         // Title
-        Text(
-            text = stringResource(R.string.explorer_info_title),
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            titleIcon?.let {
+                Icon(
+                    imageVector = it,
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                )
+            }
+            Text(
+                text = stringResource(R.string.explorer_info_title),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+            )
+        }
 
         subtitle?.let {
             Text(
@@ -429,6 +451,11 @@ private fun NetworkStorageInfo(
         InfoField(
             label = stringResource(R.string.explorer_info_network_share_label),
             value = location.share,
+        )
+
+        InfoField(
+            label = stringResource(R.string.explorer_info_type_label),
+            value = stringResource(R.string.explorer_info_network_type_value),
         )
 
         if (location.basePath.isNotEmpty()) {

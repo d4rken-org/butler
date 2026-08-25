@@ -124,6 +124,7 @@
     <string name="explorer_info_network_folder_label">Folder</string>
     <string name="explorer_info_network_address_label">Address</string>
     <string name="explorer_info_network_status_label">Status</string>
+    <string name="explorer_info_network_type_value">SMB</string>
     <string name="explorer_info_network_auth_label">Sign-in</string>
     <string name="explorer_info_network_domain_label">Domain</string>
     <string name="explorer_info_network_password_label">Password</string>
