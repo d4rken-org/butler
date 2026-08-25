@@ -27,6 +27,10 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
+import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceStacks
@@ -43,6 +47,8 @@ import eu.darken.butler.workspace.ui.workspaces.WorkspacesViewModel
 import eu.darken.butler.workspace.ui.workspaces.asPaneInfo
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
+
+private val TAG = logTag("Workspace", "Classic", "Container")
 
 // Stable key for the on-demand-creation placeholder page (last index when enabled).
 // Distinct from any Workspace.Id so the pager preserves identity across list churn.
@@ -210,11 +216,25 @@ internal fun ClassicWorkspaceContainer(
             state.fullScreenModalWorkspace == null &&
             !hasGlobalBlockingDialog,
     ) {
-        // On the placeholder and at rest: return to the focused tab. Otherwise the pager is
-        // mid-move or focus has not caught up with a settle yet — swallow the press rather than
-        // let it reach the app-root exit prompt, and let the user press again once things settle.
-        if (isOnPlaceholder && !pagerState.isScrollInProgress) {
-            backTarget?.let { scope.launch { coordinator.scrollToWorkspace(pagerState, tabIds, it) } }
+        val settling = pagerState.isScrollInProgress
+        val settledTab = tabIds.getOrNull(pagerState.settledPage)
+        // Mid-move and the placeholder are the expected reasons to land here. At rest on a real
+        // page means focus and the pager disagree with nothing in flight to reconcile them, and
+        // that is the state presses cannot get out of on their own.
+        log(TAG, if (settling || isOnPlaceholder) VERBOSE else WARN) {
+            "Pane-level back: focusedRoot=$backTarget targetPage=$backTargetPage " +
+                "settled=${pagerState.settledPage} settling=$settling onPlaceholder=$isOnPlaceholder"
+        }
+        when {
+            settling -> Unit
+            // The placeholder is no destination, so here the pager is the one that has to move.
+            isOnPlaceholder -> backTarget?.let {
+                scope.launch { coordinator.scrollToWorkspace(pagerState, tabIds, it) }
+            }
+            // At rest on a real page: that page is what the user is looking at, so focus adopts it
+            // rather than the pager undoing a swipe the user just made. The press itself is still
+            // consumed; the next one reaches the page now that the two agree.
+            settledTab != null -> onWorkspaceScreenAction(WorkspaceScreenAction.Select(settledTab))
         }
     }
 
