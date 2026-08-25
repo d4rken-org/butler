@@ -61,6 +61,9 @@ class SmbLocationManagerTest : BaseTest() {
     private class FakeCredentialsDao : SmbCredentialsDao {
         val rows = MutableStateFlow<List<SmbCredentialEntity>>(emptyList())
 
+        /** Runs inside a credential write, i.e. in the middle of a create() or update(). */
+        var onUpsert: (suspend () -> Unit)? = null
+
         override fun getAll(): Flow<List<SmbCredentialEntity>> = rows
         override suspend fun getAllOnce() = rows.value
         override suspend fun get(locationId: Uuid, credentialVersion: Int) = rows.value.firstOrNull {
@@ -68,6 +71,7 @@ class SmbLocationManagerTest : BaseTest() {
         }
 
         override suspend fun upsert(entity: SmbCredentialEntity) {
+            onUpsert?.invoke()
             rows.value = rows.value.filterNot {
                 it.locationId == entity.locationId && it.credentialVersion == entity.credentialVersion
             } + entity
@@ -535,6 +539,62 @@ class SmbLocationManagerTest : BaseTest() {
 
         updated.lastSeenAt shouldBe seenAt
         manager.get(location.id)!!.lastSeenAt shouldBe seenAt
+    }
+
+    @Test
+    fun `a sighting recorded while an edit is saving survives it`() = runTest {
+        val manager = manager()
+        val location = manager.createSample()
+        val seenAt = Instant.fromEpochMilliseconds(5_000)
+        // A probe answering while the new credential is being encrypted
+        credentialsDao.onUpsert = {
+            credentialsDao.onUpsert = null
+            manager.recordSeen(location.id, "nas.local", 445, seenAt)
+        }
+
+        val updated = manager.update(
+            id = location.id,
+            label = "Renamed",
+            host = location.host,
+            port = location.port,
+            share = location.share,
+            basePath = location.basePath,
+            domain = null,
+            username = location.username,
+            authType = SmbLocation.AuthType.PASSWORD,
+            rememberCredential = true,
+            password = "newpass".toCharArray(),
+        )
+
+        updated.lastSeenAt shouldBe seenAt
+        manager.get(location.id)!!.lastSeenAt shouldBe seenAt
+    }
+
+    @Test
+    fun `a sighting recorded while the endpoint is being edited is still forgotten`() = runTest {
+        val manager = manager()
+        val location = manager.createSample()
+        credentialsDao.onUpsert = {
+            credentialsDao.onUpsert = null
+            manager.recordSeen(location.id, "nas.local", 445, Instant.fromEpochMilliseconds(5_000))
+        }
+
+        val updated = manager.update(
+            id = location.id,
+            label = location.label,
+            host = "other.nas",
+            port = location.port,
+            share = location.share,
+            basePath = location.basePath,
+            domain = null,
+            username = location.username,
+            authType = SmbLocation.AuthType.PASSWORD,
+            rememberCredential = true,
+            password = "newpass".toCharArray(),
+        )
+
+        updated.lastSeenAt shouldBe null
+        manager.get(location.id)!!.lastSeenAt shouldBe null
     }
 
     @Test
