@@ -125,14 +125,11 @@ class ExplorerNavigationControllerTest : BaseTest() {
         val controller = controller(workspace = workspace)
         val item = fileItem("photos.zip")
 
+        val expectedTarget = ExplorerNavigation.Target.Directory(ArchivePath.root(item.lookup.lookedUp))
         controller.navigate(item as ExplorerItem)
         runCurrent()
 
-        coVerify {
-            workspace.navigate(
-                ExplorerNavigation.Target.Directory(ArchivePath.root(item.lookup.lookedUp)),
-            )
-        }
+        coVerify { workspace.navigate(expectedTarget) }
     }
 
     @Test
