@@ -54,6 +54,21 @@
     <string name="smb_error_dialect_description">\"%1$s\" only offers SMB1, which is insecure and unsupported. Enable SMB2 or newer on the server.</string>
     <string name="smb_error_credential_unavailable_title">Sign-in required</string>
     <string name="smb_error_credential_unavailable_description">The saved password for this network storage can no longer be read. Enter it again to reconnect.</string>
+    <!-- App install errors -->
+    <string name="app_install_error_protected_bundle_title">Protected app bundle</string>
+    <string name="app_install_error_protected_bundle_description">\"%1$s\" is encrypted and can only be installed by the app that created it.</string>
+
+    <string name="app_install_error_unsupported_apk_set_title">APK set format not supported</string>
+    <string name="app_install_error_unsupported_apk_set_description">\"%1$s\" is a bundletool APK set. Butler can\'t tell which of its variants fits this device.</string>
+
+    <string name="app_install_error_unsupported_bundle_title">No app to install</string>
+    <string name="app_install_error_unsupported_bundle_description">\"%1$s\" doesn\'t contain any installable APK.</string>
+
+    <string name="app_install_error_session_title">Installation failed</string>
+    <string name="app_install_error_session_description">The system rejected the installation: %1$s</string>
+
+    <string name="app_install_error_no_elevation_title">No elevated access</string>
+    <string name="app_install_error_no_elevation_description">Root or ADB access is currently unavailable.</string>
 
     <!-- Service connection errors -->
     <string name="service_connection_lost_error_title">File operation interrupted</string>

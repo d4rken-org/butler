@@ -170,6 +170,11 @@
         <receiver
             android:name="eu.darken.butler.main.core.operations.fgs.OperationCancelReceiver"
             android:exported="false" />
+
+        <!-- Status sink for system installer sessions. Reached only via explicit PendingIntent. -->
+        <receiver
+            android:name="eu.darken.butler.common.pkgs.installer.AppInstallStatusReceiver"
+            android:exported="false" />
     </application>
 
 </manifest>

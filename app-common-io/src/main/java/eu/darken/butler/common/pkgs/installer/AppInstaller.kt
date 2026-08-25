@@ -1,0 +1,630 @@
+package eu.darken.butler.common.pkgs.installer
+
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageInstaller
+import android.net.Uri
+import android.os.SystemClock
+import android.provider.Settings
+import dagger.hilt.android.qualifiers.ApplicationContext
+import eu.darken.butler.common.ElevatedAccessUnavailableException
+import eu.darken.butler.common.adb.AdbManager
+import eu.darken.butler.common.adb.AdbUnavailableException
+import eu.darken.butler.common.adb.canUseAdbNow
+import eu.darken.butler.common.coroutine.DispatcherProvider
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.asLog
+import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.ArchivePath
+import eu.darken.butler.common.files.GatewaySwitch
+import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.errors.ServiceConnectionLostException
+import eu.darken.butler.common.hasApiLevel
+import eu.darken.butler.common.root.RootManager
+import eu.darken.butler.common.root.RootUnavailableException
+import eu.darken.butler.common.root.canUseRootNow
+import eu.darken.butler.common.shell.ShellOps
+import eu.darken.butler.common.shell.ShellOpsException
+import eu.darken.butler.common.shell.ipc.ShellOpsCmd
+import eu.darken.butler.common.shell.ipc.ShellOpsResult
+import eu.darken.butler.common.storage.StorageEnvironment
+import eu.darken.butler.common.user.UserManager2
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
+import java.io.File
+import java.io.FileOutputStream
+import java.io.InputStream
+import java.io.OutputStream
+import java.util.concurrent.atomic.AtomicBoolean
+import javax.inject.Inject
+import javax.inject.Singleton
+import kotlin.uuid.Uuid
+
+/**
+ * Installs an [AppInstallPlan], preferring a silent elevated install and falling back to the
+ * platform installer, which shows Android's own confirmation dialog.
+ */
+@Singleton
+class AppInstaller @Inject constructor(
+    @ApplicationContext private val context: Context,
+    private val shellOps: ShellOps,
+    private val rootManager: RootManager,
+    private val adbManager: AdbManager,
+    private val userManager2: UserManager2,
+    private val gatewaySwitch: GatewaySwitch,
+    private val storageEnvironment: StorageEnvironment,
+    private val statusRelay: AppInstallStatusRelay,
+    private val dispatcherProvider: DispatcherProvider,
+) {
+
+    enum class Mode { AUTO, ROOT, ADB, SYSTEM }
+
+    private val sweepMutex = Mutex()
+    private val localSwept = AtomicBoolean(false)
+    private val shellSwept = AtomicBoolean(false)
+
+    suspend fun hasElevation(): Boolean = rootManager.canUseRootNow() || adbManager.canUseAdbNow()
+
+    /** False while Butler is not an authorized install source; [unknownSourcesSettings] fixes that. */
+    fun canUseSystemInstaller(): Boolean = context.packageManager.canRequestPackageInstalls()
+
+    fun unknownSourcesSettings(): Intent = Intent(
+        Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+        Uri.parse("package:${context.packageName}"),
+    ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
+    /**
+     * Runs [plan], reporting progress and exactly one terminal event.
+     *
+     * Falling through to the next mode happens only when the transport itself is unavailable or
+     * broken. A semantic install failure - an invalid APK, a signature conflict, a downgrade, an
+     * incompatible SDK or ABI - is terminal: re-showing a system confirm dialog after root already
+     * proved the APK unusable would be misleading.
+     */
+    fun install(plan: AppInstallPlan, mode: Mode = Mode.AUTO): Flow<AppInstallEvent> = channelFlow {
+        withContext(dispatcherProvider.IO) {
+            val modes = resolveModes(mode)
+            log(TAG, INFO) { "install(${plan.source}, $mode): candidates=$modes" }
+            if (modes.isEmpty()) {
+                send(AppInstallEvent.Failure(AppInstallNoElevationException(mode)))
+                return@withContext
+            }
+
+            var lastTransportError: Throwable? = null
+            modes.forEachIndexed { index, candidate ->
+                try {
+                    val obbPlaced = perform(plan, candidate) { send(it) }
+                    send(AppInstallEvent.Success(plan.pkgId, candidate, obbPlaced))
+                    return@withContext
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    if (isTransportFailure(e) && index < modes.lastIndex) {
+                        log(TAG, WARN) { "install(): $candidate transport failed, trying next: ${e.asLog()}" }
+                        lastTransportError = e
+                        return@forEachIndexed
+                    }
+                    log(TAG, ERROR) { "install(): $candidate failed: ${e.asLog()}" }
+                    send(AppInstallEvent.Failure(e))
+                    return@withContext
+                }
+            }
+            send(AppInstallEvent.Failure(lastTransportError ?: AppInstallNoElevationException(mode)))
+        }
+    }
+
+    private suspend fun resolveModes(mode: Mode): List<Mode> = when (mode) {
+        Mode.AUTO -> buildList {
+            if (rootManager.canUseRootNow()) add(Mode.ROOT)
+            if (adbManager.canUseAdbNow()) add(Mode.ADB)
+            add(Mode.SYSTEM)
+        }
+
+        Mode.ROOT -> if (rootManager.canUseRootNow()) listOf(Mode.ROOT) else emptyList()
+        Mode.ADB -> if (adbManager.canUseAdbNow()) listOf(Mode.ADB) else emptyList()
+        Mode.SYSTEM -> listOf(Mode.SYSTEM)
+    }
+
+    private fun isTransportFailure(error: Throwable): Boolean = when (error) {
+        is AppInstallException -> false
+        is ElevatedAccessUnavailableException,
+        is RootUnavailableException,
+        is AdbUnavailableException,
+        is ServiceConnectionLostException,
+        is ShellOpsException,
+        -> true
+
+        else -> false
+    }
+
+    /** Returns whether expansion files were placed. */
+    private suspend fun perform(
+        plan: AppInstallPlan,
+        mode: Mode,
+        send: suspend (AppInstallEvent) -> Unit,
+    ): Boolean {
+        val staging = openStaging(plan, mode)
+        try {
+            val staged = staging.stage(plan, send)
+            when (mode) {
+                Mode.SYSTEM -> installViaSystem(plan, staged, send)
+                else -> installViaShell(plan, staged, mode, send)
+            }
+        } finally {
+            withContext(NonCancellable) { staging.discard() }
+        }
+        return placeObb(plan, send)
+    }
+
+    // region staging
+
+    /**
+     * Where extracted APKs live until `pm` or `PackageInstaller` has read them.
+     *
+     * ADB staging goes to `/data/local/tmp` rather than an app directory because that directory is
+     * owned by the shell UID and readable by it on every supported version - the same shell that
+     * runs `pm install-write` right after. It is written through [GatewaySwitch] so the local
+     * routing policy escalates the write to that very shell.
+     */
+    private inner class Staging(
+        val mode: Mode,
+        val localDir: File?,
+        val shellDir: LocalPath?,
+    ) {
+
+        suspend fun stage(plan: AppInstallPlan, send: suspend (AppInstallEvent) -> Unit): List<StagedSplit> {
+            if (localDir == null && shellDir == null) {
+                // Single-APK system install: the source file is already everything the session needs.
+                val split = plan.splits.single()
+                return listOf(StagedSplit(split, shellPath = null) { gatewaySwitch.openInputStream(plan.source) })
+            }
+
+            val total = plan.totalBytes
+            var done = 0L
+            return plan.splits.map { split ->
+                send(
+                    AppInstallEvent.Progress(
+                        stage = AppInstallEvent.Stage.EXTRACTING,
+                        current = done,
+                        total = total,
+                        label = split.stagedName,
+                    )
+                )
+                when {
+                    localDir != null -> {
+                        val target = File(localDir, split.stagedName)
+                        done += target.outputStream().use { out -> copyEntry(plan, split, out) }
+                        StagedSplit(split, shellPath = target.path) { target.inputStream() }
+                    }
+
+                    else -> {
+                        val target = shellDir!!.child(split.stagedName)
+                        gatewaySwitch.createFile(target, createParents = false)
+                        done += gatewaySwitch.openOutputStream(target, append = false)
+                            .use { out -> copyEntry(plan, split, out) }
+                        StagedSplit(split, shellPath = target.path) { gatewaySwitch.openInputStream(target) }
+                    }
+                }
+            }
+        }
+
+        suspend fun discard() {
+            localDir?.let {
+                if (!it.deleteRecursively()) log(TAG, WARN) { "Failed to remove staging $it" }
+            }
+            shellDir?.let { dir ->
+                val shellMode = if (mode == Mode.ROOT) ShellOps.Mode.ROOT else ShellOps.Mode.ADB
+                try {
+                    shellOps.execute(ShellOpsCmd("rm -rf ${quote(dir.path)}"), shellMode)
+                } catch (e: Exception) {
+                    log(TAG, WARN) { "Failed to remove staging $dir: ${e.asLog()}" }
+                }
+            }
+        }
+    }
+
+    private class StagedSplit(
+        val split: AppInstallPlan.Split,
+        /** Absolute path the elevated shell reads from; null when the content is only streamable. */
+        val shellPath: String?,
+        val open: suspend () -> InputStream,
+    )
+
+    private suspend fun openStaging(plan: AppInstallPlan, mode: Mode): Staging {
+        if (mode == Mode.SYSTEM && plan.format == AppInstallFormat.APK && plan.source is LocalPath) {
+            return Staging(mode, localDir = null, shellDir = null)
+        }
+
+        if (mode == Mode.ADB) {
+            sweepShellStaging()
+            val dir = LocalPath.build(SHELL_STAGING_ROOT, Uuid.random().toString())
+            gatewaySwitch.createDir(dir, createParents = true)
+            return Staging(mode, localDir = null, shellDir = dir)
+        }
+
+        sweepLocalStaging()
+        val root = context.cacheDir?.let { File(it, LOCAL_STAGING_DIRNAME) }
+            ?: throw AppInstallSessionException("No cache directory available for staging")
+        val dir = File(root, Uuid.random().toString())
+        if (!dir.mkdirs() && !dir.isDirectory) throw AppInstallSessionException("Cannot create staging $dir")
+        return Staging(mode, localDir = dir, shellDir = null)
+    }
+
+    /** Sweeps scratch left behind by a crashed run. Once per process, before anything is created. */
+    private suspend fun sweepLocalStaging() {
+        if (localSwept.get()) return
+        sweepMutex.withLock {
+            if (localSwept.get()) return
+            val root = context.cacheDir?.let { File(it, LOCAL_STAGING_DIRNAME) }
+            try {
+                root?.listFiles()?.forEach { it.deleteRecursively() }
+            } catch (e: Exception) {
+                log(TAG, WARN) { "Failed to sweep local staging: ${e.asLog()}" }
+            }
+            localSwept.set(true)
+        }
+    }
+
+    private suspend fun sweepShellStaging() {
+        if (shellSwept.get()) return
+        sweepMutex.withLock {
+            if (shellSwept.get()) return
+            try {
+                shellOps.execute(ShellOpsCmd("rm -rf ${quote(SHELL_STAGING_ROOT)}"), ShellOps.Mode.ADB)
+            } catch (e: Exception) {
+                log(TAG, WARN) { "Failed to sweep shell staging: ${e.asLog()}" }
+            }
+            shellSwept.set(true)
+        }
+    }
+
+    private suspend fun copyEntry(plan: AppInstallPlan, split: AppInstallPlan.Split, out: OutputStream): Long =
+        openSplit(plan, split).use { input -> copyChecked(input, out, split.size, plan.source) }
+
+    private suspend fun openSplit(plan: AppInstallPlan, split: AppInstallPlan.Split): InputStream = when {
+        plan.format.isBundle -> gatewaySwitch.openInputStream(entryPathOf(plan.source, split.entryPath))
+        else -> gatewaySwitch.openInputStream(plan.source)
+    }
+
+    private fun entryPathOf(container: APath<*>, entryPath: String) =
+        ArchivePath(container = container, segments = entryPath.split('/').filter { it.isNotEmpty() })
+
+    /**
+     * Copies at most [declaredSize] bytes. An entry that decompresses to more than the index said it
+     * would is a lie about the container, not a large file, so it aborts rather than filling storage.
+     */
+    private fun copyChecked(input: InputStream, out: OutputStream, declaredSize: Long, source: APath<*>): Long {
+        val buffer = ByteArray(COPY_BUFFER_SIZE)
+        var written = 0L
+        while (true) {
+            val read = input.read(buffer)
+            if (read == -1) break
+            written += read
+            if (written > declaredSize) {
+                throw AppInstallUnsupportedBundleException(source, "entry exceeds its declared size")
+            }
+            out.write(buffer, 0, read)
+        }
+        out.flush()
+        return written
+    }
+
+    // endregion
+
+    // region elevated install
+
+    private suspend fun installViaShell(
+        plan: AppInstallPlan,
+        staged: List<StagedSplit>,
+        mode: Mode,
+        send: suspend (AppInstallEvent) -> Unit,
+    ) {
+        val shellMode = if (mode == Mode.ROOT) ShellOps.Mode.ROOT else ShellOps.Mode.ADB
+        val userId = userManager2.currentUser().handle.handleId
+
+        val created = shellOps.execute(
+            ShellOpsCmd("pm install-create -r -t -S ${plan.totalBytes} --user $userId"),
+            shellMode,
+        )
+        val sessionId = SESSION_ID_PATTERN.find(created.output.joinToString("\n"))
+            ?.groupValues?.getOrNull(1)
+            ?.toIntOrNull()
+            ?.takeIf { created.isSuccess }
+            ?: throw AppInstallSessionException(created.failureText())
+
+        var committed = false
+        try {
+            staged.forEachIndexed { index, entry ->
+                send(
+                    AppInstallEvent.Progress(
+                        stage = AppInstallEvent.Stage.WRITING,
+                        current = index.toLong(),
+                        total = staged.size.toLong(),
+                        label = entry.split.stagedName,
+                    )
+                )
+                val path = entry.shellPath ?: throw AppInstallSessionException("Split was not staged for the shell")
+                val written = shellOps.execute(
+                    ShellOpsCmd(
+                        "pm install-write -S ${entry.split.size} $sessionId " +
+                            "${quote(entry.split.stagedName)} ${quote(path)}"
+                    ),
+                    shellMode,
+                )
+                if (!written.isSuccess) throw AppInstallSessionException(written.failureText())
+            }
+
+            send(
+                AppInstallEvent.Progress(
+                    stage = AppInstallEvent.Stage.COMMITTING,
+                    current = staged.size.toLong(),
+                    total = staged.size.toLong(),
+                )
+            )
+            val commit = shellOps.execute(ShellOpsCmd("pm install-commit $sessionId"), shellMode)
+            if (!commit.isSuccess || commit.output.none { it.contains("Success") }) {
+                throw AppInstallSessionException(commit.failureText())
+            }
+            committed = true
+        } finally {
+            if (!committed) {
+                withContext(NonCancellable) {
+                    try {
+                        shellOps.execute(ShellOpsCmd("pm install-abandon $sessionId"), shellMode)
+                    } catch (e: Exception) {
+                        log(TAG, WARN) { "Failed to abandon session $sessionId: ${e.asLog()}" }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun ShellOpsResult.failureText(): String = (errors + output)
+        .firstOrNull { it.isNotBlank() }
+        ?: "exit code $exitCode"
+
+    // endregion
+
+    // region system install
+
+    private suspend fun installViaSystem(
+        plan: AppInstallPlan,
+        staged: List<StagedSplit>,
+        send: suspend (AppInstallEvent) -> Unit,
+    ) {
+        val installer = context.packageManager.packageInstaller
+        val params = PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL)
+        plan.pkgId?.let { params.setAppPackageName(it.name) }
+
+        val sessionId = installer.createSession(params)
+        val requestId = Uuid.random().toString()
+        var succeeded = false
+        try {
+            installer.openSession(sessionId).use { session ->
+                staged.forEachIndexed { index, entry ->
+                    send(
+                        AppInstallEvent.Progress(
+                            stage = AppInstallEvent.Stage.WRITING,
+                            current = index.toLong(),
+                            total = staged.size.toLong(),
+                            label = entry.split.stagedName,
+                        )
+                    )
+                    val out = session.openWrite(entry.split.stagedName, 0, entry.split.size)
+                    try {
+                        entry.open().use { input -> copyChecked(input, out, entry.split.size, plan.source) }
+                        session.fsync(out)
+                    } finally {
+                        out.close()
+                    }
+                }
+
+                send(
+                    AppInstallEvent.Progress(
+                        stage = AppInstallEvent.Stage.COMMITTING,
+                        current = staged.size.toLong(),
+                        total = staged.size.toLong(),
+                    )
+                )
+                commitAndAwait(installer, session, sessionId, requestId)
+            }
+            succeeded = true
+        } finally {
+            if (!succeeded) {
+                withContext(NonCancellable) {
+                    try {
+                        installer.abandonSession(sessionId)
+                    } catch (e: Exception) {
+                        log(TAG, WARN) { "Failed to abandon session $sessionId: ${e.asLog()}" }
+                    }
+                }
+            }
+        }
+    }
+
+    private suspend fun commitAndAwait(
+        installer: PackageInstaller,
+        session: PackageInstaller.Session,
+        sessionId: Int,
+        requestId: String,
+    ) = coroutineScope {
+        val statuses = Channel<AppInstallStatusRelay.Status>(Channel.BUFFERED)
+        // UNDISPATCHED so the collector is registered before commit() can produce a callback.
+        val subscription = launch(start = CoroutineStart.UNDISPATCHED) {
+            statusRelay.statuses.filter { it.requestId == requestId }.collect { statuses.send(it) }
+        }
+        try {
+            session.commit(buildStatusIntent(sessionId, requestId).intentSender)
+
+            while (true) {
+                val status = awaitStatus(installer, sessionId, statuses)
+                    ?: throw AppInstallSessionException("The system installer never reported a result")
+                when (status.status) {
+                    PackageInstaller.STATUS_SUCCESS -> return@coroutineScope
+                    PackageInstaller.STATUS_PENDING_USER_ACTION -> {
+                        val confirm = status.userAction
+                            ?: throw AppInstallSessionException("No install confirmation was offered")
+                        context.startActivity(confirm.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                    }
+
+                    else -> throw AppInstallSessionException(
+                        status.message ?: "The installer reported status ${status.status}"
+                    )
+                }
+            }
+        } finally {
+            subscription.cancel()
+            statuses.close()
+        }
+    }
+
+    /**
+     * Waits for the session's own verdict. The wait is not a plain deadline: while the session is
+     * still open the user may simply be looking at the confirmation dialog, and reporting a failure
+     * there would be contradicted by the success that follows.
+     */
+    private suspend fun awaitStatus(
+        installer: PackageInstaller,
+        sessionId: Int,
+        statuses: Channel<AppInstallStatusRelay.Status>,
+    ): AppInstallStatusRelay.Status? {
+        val deadline = SystemClock.elapsedRealtime() + SESSION_MAX_WAIT_MS
+        var goneSince: Long? = null
+        while (SystemClock.elapsedRealtime() < deadline) {
+            withTimeoutOrNull(SESSION_POLL_INTERVAL_MS) { statuses.receive() }?.let { return it }
+
+            val alive = try {
+                installer.getSessionInfo(sessionId) != null
+            } catch (e: Exception) {
+                log(TAG, WARN) { "Session $sessionId lookup failed: ${e.asLog()}" }
+                false
+            }
+            when {
+                alive -> goneSince = null
+                goneSince == null -> goneSince = SystemClock.elapsedRealtime()
+                SystemClock.elapsedRealtime() - goneSince > SESSION_GONE_GRACE_MS -> return null
+            }
+        }
+        return null
+    }
+
+    private fun buildStatusIntent(sessionId: Int, requestId: String): PendingIntent {
+        val intent = Intent(context, AppInstallStatusReceiver::class.java).apply {
+            action = AppInstallStatusReceiver.ACTION_INSTALL_STATUS
+            setPackage(context.packageName)
+            putExtra(AppInstallStatusReceiver.EXTRA_REQUEST_ID, requestId)
+        }
+        // Mutable is mandatory: PackageInstaller fills in the status extras, and an immutable status
+        // receiver is rejected outright at Butler's target SDK.
+        val mutable = if (hasApiLevel(31)) {
+            @Suppress("NewApi")
+            PendingIntent.FLAG_MUTABLE
+        } else {
+            0
+        }
+        return PendingIntent.getBroadcast(
+            context,
+            sessionId,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or mutable,
+        )
+    }
+
+    // endregion
+
+    /**
+     * Places the expansion files of an XAPK after the install succeeded.
+     *
+     * The destination is built from the package the base APK declares, never from what the container
+     * claims. On Android 11+ no unprivileged mechanism - MANAGE_EXTERNAL_STORAGE included - may write
+     * another package's obb directory, so this only succeeds when the write can escalate to root or
+     * ADB; otherwise the run ends success-with-warning.
+     */
+    private suspend fun placeObb(plan: AppInstallPlan, send: suspend (AppInstallEvent) -> Unit): Boolean {
+        if (plan.obbEntries.isEmpty()) return false
+
+        val packageName = plan.pkgId?.name
+        val obbRoot = storageEnvironment.publicObbDirs.firstOrNull()
+        if (packageName == null || obbRoot == null) {
+            send(AppInstallEvent.ObbFailed("No obb destination could be resolved"))
+            return false
+        }
+
+        val targetDir = obbRoot.child(packageName)
+        return try {
+            gatewaySwitch.createDir(targetDir, createParents = true)
+            plan.obbEntries.forEachIndexed { index, entry ->
+                send(
+                    AppInstallEvent.Progress(
+                        stage = AppInstallEvent.Stage.PLACING_OBB,
+                        current = index.toLong(),
+                        total = plan.obbEntries.size.toLong(),
+                        label = entry.fileName,
+                    )
+                )
+                writeObbEntry(plan, entry, targetDir)
+            }
+            true
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            log(TAG, WARN) { "Expansion placement failed: ${e.asLog()}" }
+            send(AppInstallEvent.ObbFailed(e.message ?: e.toString()))
+            false
+        }
+    }
+
+    private suspend fun writeObbEntry(plan: AppInstallPlan, entry: AppInstallPlan.ObbEntry, targetDir: APath<*>) {
+        val target = targetDir.child(entry.fileName)
+        val partial = targetDir.child("${entry.fileName}$PARTIAL_SUFFIX")
+        try {
+            gatewaySwitch.createFile(partial, createParents = false)
+            gatewaySwitch.openOutputStream(partial, append = false).use { out ->
+                gatewaySwitch.openInputStream(entryPathOf(plan.source, entry.entryPath)).use { input ->
+                    copyChecked(input, out, entry.size, plan.source)
+                }
+                (out as? FileOutputStream)?.fd?.sync()
+            }
+            if (gatewaySwitch.exists(target)) gatewaySwitch.delete(target, recursive = false)
+            gatewaySwitch.move(partial, target)
+        } catch (e: Throwable) {
+            withContext(NonCancellable) {
+                try {
+                    gatewaySwitch.delete(partial, recursive = false)
+                } catch (cleanup: Exception) {
+                    log(TAG, WARN) { "Failed to remove partial $partial: ${cleanup.asLog()}" }
+                }
+            }
+            throw e
+        }
+    }
+
+    /** Single-quotes an argument so nothing an archive named can be read as shell syntax. */
+    private fun quote(arg: String): String = "'" + arg.replace("'", "'\\''") + "'"
+
+    companion object {
+        private val TAG = logTag("Pkg", "Installer")
+        private const val LOCAL_STAGING_DIRNAME = "install-staging"
+        private const val SHELL_STAGING_ROOT = "/data/local/tmp/butler-install"
+        private const val PARTIAL_SUFFIX = ".part"
+        private const val COPY_BUFFER_SIZE = 64 * 1024
+        private const val SESSION_POLL_INTERVAL_MS = 2_000L
+        private const val SESSION_GONE_GRACE_MS = 4_000L
+        private const val SESSION_MAX_WAIT_MS = 10 * 60 * 1000L
+        private val SESSION_ID_PATTERN = Regex("""\[(\d+)]""")
+    }
+}
