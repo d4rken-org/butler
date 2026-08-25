@@ -57,6 +57,7 @@ class AppInstallerTest : BaseTest() {
 
     private var rootTransportBroken = false
     private var commitSucceeds = true
+    private var commitAnswersOnStderr = false
     private var writeSucceeds = true
     private var sessionCreateOutput = listOf("Success: created install session [42]")
     private var sessionCreateErrors = emptyList<String>()
@@ -97,8 +98,9 @@ class AppInstallerTest : BaseTest() {
                 }
 
                 line.startsWith("pm install-commit") -> when {
-                    commitSucceeds -> ShellOpsResult(0, listOf("Success"), emptyList())
-                    else -> ShellOpsResult(1, emptyList(), listOf("Failure [INSTALL_FAILED_VERSION_DOWNGRADE]"))
+                    !commitSucceeds -> ShellOpsResult(1, emptyList(), listOf("Failure [INSTALL_FAILED_VERSION_DOWNGRADE]"))
+                    commitAnswersOnStderr -> ShellOpsResult(0, emptyList(), listOf("Success"))
+                    else -> ShellOpsResult(0, listOf("Success"), emptyList())
                 }
 
                 line.startsWith("rm -rf") -> when {
@@ -239,6 +241,17 @@ class AppInstallerTest : BaseTest() {
 
         events.last().shouldBeInstanceOf<AppInstallEvent.Success>().viaMode shouldBe AppInstaller.Mode.ROOT
         pmCommands().last() shouldBe "pm install-commit 42"
+    }
+
+    @Test
+    fun `a commit response on stderr is still a success`() = runTest2 {
+        commitAnswersOnStderr = true
+
+        val events = installer().install(plan(), AppInstaller.Mode.ROOT).toList()
+
+        events.last().shouldBeInstanceOf<AppInstallEvent.Success>().viaMode shouldBe AppInstaller.Mode.ROOT
+        // The session is committed, so abandoning it afterwards would be undoing a finished install.
+        pmCommands().none { it.startsWith("pm install-abandon") } shouldBe true
     }
 
     @Test
