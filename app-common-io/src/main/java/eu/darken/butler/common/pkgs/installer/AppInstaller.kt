@@ -432,7 +432,9 @@ class AppInstaller @Inject constructor(
                 }
             } catch (e: Throwable) {
                 withContext(NonCancellable) { if (deleteQuietly(partial.path)) forget(partial) }
-                if (e is CancellationException) throw e
+                // A destination that cannot be written is a warning; a container that lied about how
+                // long its expansion is fails the bundle, exactly as it does for a split.
+                if (e is CancellationException || e is AppInstallUnsupportedBundleException) throw e
                 log(TAG, WARN) { "Failed to stage expansion ${entry.fileName}: ${e.asLog()}" }
                 obbFailure = e.message ?: e.toString()
             }
