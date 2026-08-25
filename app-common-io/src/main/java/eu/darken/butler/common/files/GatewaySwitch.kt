@@ -222,8 +222,9 @@ class GatewaySwitch @Inject constructor(
      * Best-effort seekable, read-only [ParcelFileDescriptor] for streaming previews (APK icon, PDF, …).
      *
      * A [LocalPath] the app can open itself and a [SAFPath] are served by the platform directly. Every
-     * other [LocalPath] - the ones that need root or ADB escalation - goes through [proxyReadPfdOrNull],
-     * which serves reads from the gateway's [FileHandle]. Archive entries have no descriptor at all.
+     * other [LocalPath] - the ones that need root or ADB escalation - and every [SmbPath] go through
+     * [proxyReadPfdOrNull], which serves reads from the gateway's [FileHandle]. Archive entries have
+     * no descriptor at all.
      *
      * Null means "no preview": non-seekable descriptors (statSize < 0) and any failure resolve to it,
      * and callers MUST fall back to a placeholder. Callers own closing the returned descriptor.
@@ -237,8 +238,7 @@ class GatewaySwitch @Inject constructor(
         // the entry to scratch storage, which previews must not trigger implicitly.
         is ArchivePath -> null
 
-        // Same for network files: a descriptor would mean downloading the whole file first.
-        is SmbPath -> null
+        is SmbPath -> proxyReadPfdOrNull(path)
     }
 
     private suspend fun directReadPfdOrNull(path: LocalPath): ParcelFileDescriptor? =

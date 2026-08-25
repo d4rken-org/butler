@@ -32,6 +32,7 @@ import org.robolectric.annotation.Config
 import testhelpers.BaseTest
 import testhelpers.EmptyApp
 import testhelpers.coroutine.TestDispatcherProvider
+import kotlin.uuid.Uuid
 
 /**
  * Covers which lane [GatewaySwitch.openReadPFD] serves a path from, and that no descriptor is left
@@ -126,6 +127,20 @@ class GatewaySwitchPfdTest : BaseTest() {
         every { proxyPfdFactory.create(handle, "r") } throws IllegalStateException("no proxy fd")
 
         gatewaySwitch.openReadPFD(path) shouldBe null
+    }
+
+    @Test
+    fun `a network file is served through the proxy lane`() = runTest {
+        val path = SmbPath(Uuid.parse("11111111-2222-3333-4444-555555555555"), listOf("a.pdf"))
+        val handle = mockk<FileHandle>(relaxed = true)
+        val proxyPfd = seekablePfd()
+        coEvery { smbGateway.file(path, false) } returns handle
+        every { proxyPfdFactory.create(handle, "r") } returns proxyPfd
+
+        gatewaySwitch.openReadPFD(path) shouldBe proxyPfd
+
+        coVerify(exactly = 1) { smbGateway.file(path, false) }
+        verify(exactly = 1) { proxyPfdFactory.create(handle, "r") }
     }
 
     @Test

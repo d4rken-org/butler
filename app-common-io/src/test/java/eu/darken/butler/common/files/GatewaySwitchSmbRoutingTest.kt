@@ -68,11 +68,6 @@ class GatewaySwitchSmbRoutingTest : BaseTest() {
     }
 
     @Test
-    fun `no preview descriptor is produced for network files`() = runTest {
-        gatewaySwitch.openReadPFD(SmbPath(locationId, listOf("a.pdf"))) shouldBe null
-    }
-
-    @Test
     fun `copying from smb to local streams the content`() = runTest {
         val source = SmbPath(locationId, listOf("movies", "a.mkv"))
         smbOps.addMockFile(source.path, "network bytes".toByteArray())
