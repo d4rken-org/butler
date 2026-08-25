@@ -156,6 +156,7 @@ class HistoryWorkspace @AssistedInject constructor(
                         Operation.Metadata.Kind.COMPRESS -> ctx.getString(R.string.history_workspace_title_kind_compress)
                         Operation.Metadata.Kind.EXTRACT -> ctx.getString(R.string.history_workspace_title_kind_extract)
                         Operation.Metadata.Kind.RESTORE -> ctx.getString(R.string.history_workspace_title_kind_restore)
+                        Operation.Metadata.Kind.INSTALL -> ctx.getString(R.string.history_workspace_title_kind_install)
                     }
                 else -> ctx.getString(R.string.history_workspace_title_filtered)
             }
