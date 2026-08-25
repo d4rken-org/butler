@@ -55,7 +55,7 @@ data class PerformanceGraphData(
                         samples[samples.lastIndex] = finalSample
                         progress[progress.lastIndex] = finalX
                     }
-                    // A revised down total moves the final sample back onto steps that were already plotted
+                    // Defensive: non-monotonic sample order (e.g. a wall-clock jump) can move the final sample back onto steps already plotted
                     finalX < progress.last() -> {
                         while (progress.isNotEmpty() && progress.last() >= finalX) {
                             samples.removeAt(samples.lastIndex)
