@@ -11,7 +11,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
@@ -54,8 +57,11 @@ class SmbEndpointProbeTest : BaseTest() {
         updatedAt = Instant.fromEpochMilliseconds(0),
     )
 
-    private class FakeResolver(private val result: () -> List<InetAddress>) : SmbEndpointProbe.Resolver {
-        override fun resolve(host: String): List<InetAddress> = result()
+    private val wifi = NetworkStateProvider.State.LegacyAPI21(isMeteredConnection = false, isInternetAvailable = true)
+    private val mobile = NetworkStateProvider.State.LegacyAPI21(isMeteredConnection = true, isInternetAvailable = true)
+
+    private class FakeResolver(private val result: (String) -> List<InetAddress>) : SmbEndpointProbe.Resolver {
+        override fun resolve(host: String): List<InetAddress> = result(host)
     }
 
     private class FakeConnector(
@@ -92,6 +98,7 @@ class SmbEndpointProbeTest : BaseTest() {
         resolver: SmbEndpointProbe.Resolver,
         connector: SmbEndpointProbe.Connector,
         clock: SmbEndpointProbe.Clock = FakeClock(),
+        networkStates: Flow<NetworkStateProvider.State> = emptyFlow(),
     ) = SmbEndpointProbe(
         appScope = appScope(),
         dispatcherProvider = TestDispatcherProvider(StandardTestDispatcher(testScheduler)),
@@ -99,7 +106,7 @@ class SmbEndpointProbeTest : BaseTest() {
         connector = connector,
         clock = clock,
         networkStateProvider = mockk<NetworkStateProvider>().apply {
-            every { networkState } returns emptyFlow()
+            every { networkState } returns networkStates
         },
     )
 
@@ -231,6 +238,118 @@ class SmbEndpointProbeTest : BaseTest() {
         advanceUntilIdle()
 
         probe.states.value[locationId]?.reachability shouldBe SmbEndpointState.Reachability.REACHABLE
+    }
+
+    /** A deadline hit while connecting still knows where the host is, DNS answered before that. */
+    @Test
+    fun `an address that resolved outlives the overall deadline`() = runTest {
+        val connector = FakeConnector { delay(Duration.INFINITE) }
+        val probe = createProbe(FakeResolver { listOf(ipv6, ipv4) }, connector)
+
+        probe.probe(listOf(location()))
+        advanceTimeBy(30.seconds)
+
+        probe.states.value[locationId] shouldBe SmbEndpointState(
+            address = ipv6.hostAddress,
+            reachability = SmbEndpointState.Reachability.UNREACHABLE,
+        )
+    }
+
+    @Test
+    fun `a result for a host that was edited away is discarded`() = runTest {
+        val oldHost = CompletableDeferred<Unit>()
+        val connector = FakeConnector { address -> if (address == ipv6) oldHost.await() }
+        val probe = createProbe(
+            FakeResolver { host -> if (host == "old.nas") listOf(ipv6) else listOf(ipv4) },
+            connector,
+        )
+
+        probe.probe(listOf(location(host = "old.nas")))
+        runCurrent()
+        probe.states.value[locationId]?.reachability shouldBe SmbEndpointState.Reachability.CHECKING
+
+        probe.probe(listOf(location(host = "new.nas")))
+        runCurrent()
+        val current = SmbEndpointState(
+            address = ipv4.hostAddress,
+            reachability = SmbEndpointState.Reachability.REACHABLE,
+        )
+        probe.states.value[locationId] shouldBe current
+
+        oldHost.complete(Unit)
+        runCurrent()
+
+        probe.states.value[locationId] shouldBe current
+    }
+
+    @Test
+    fun `a network change that happened off screen invalidates the cache`() = runTest {
+        val connector = FakeConnector()
+        val networkStates = MutableStateFlow<NetworkStateProvider.State>(wifi)
+        val probe = createProbe(FakeResolver { listOf(ipv4) }, connector, networkStates = networkStates)
+
+        // No `advanceUntilIdle` while somebody watches, the expiry ticker never runs out of ticks.
+        val watching = probe.states.launchIn(this)
+        runCurrent()
+        probe.probe(listOf(location()))
+        runCurrent()
+        connector.attempts.size shouldBe 1
+
+        watching.cancel()
+        runCurrent()
+        networkStates.value = mobile
+        runCurrent()
+        connector.attempts.size shouldBe 1
+
+        val watchingAgain = probe.states.launchIn(this)
+        runCurrent()
+        connector.attempts.size shouldBe 2
+
+        watchingAgain.cancel()
+        runCurrent()
+    }
+
+    @Test
+    fun `a probe started on the previous network is neither published nor cached`() = runTest {
+        val gates = mutableListOf<CompletableDeferred<Unit>>()
+        val connector = FakeConnector {
+            val isReplacement = gates.isNotEmpty()
+            val gate = CompletableDeferred<Unit>()
+            gates.add(gate)
+            gate.await()
+            if (isReplacement) throw IOException("refused on the new network")
+        }
+        val networkStates = MutableStateFlow<NetworkStateProvider.State>(wifi)
+        val probe = createProbe(FakeResolver { listOf(ipv4) }, connector, networkStates = networkStates)
+
+        val watching = probe.states.launchIn(this)
+        runCurrent()
+        probe.probe(listOf(location()))
+        runCurrent()
+        gates.size shouldBe 1
+
+        networkStates.value = mobile
+        runCurrent()
+        gates.size shouldBe 2
+
+        gates[0].complete(Unit)
+        runCurrent()
+        probe.states.value[locationId]?.reachability shouldBe SmbEndpointState.Reachability.CHECKING
+
+        // Nothing was cached either, this joins the replacement instead of being served REACHABLE.
+        probe.probe(listOf(location()))
+        runCurrent()
+        probe.states.value[locationId]?.reachability shouldBe SmbEndpointState.Reachability.CHECKING
+
+        gates[1].complete(Unit)
+        runCurrent()
+        probe.states.value[locationId] shouldBe SmbEndpointState(
+            address = ipv4.hostAddress,
+            reachability = SmbEndpointState.Reachability.UNREACHABLE,
+        )
+
+        watching.cancel()
+        runCurrent()
     }
 
     @Test

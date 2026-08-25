@@ -20,18 +20,21 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -109,12 +112,20 @@ class SmbEndpointProbe @Inject constructor(
 
     private data class CacheEntry(val state: SmbEndpointState, val probedAt: Instant)
 
+    private data class InFlightProbe(val epoch: Int, val deferred: Deferred<SmbEndpointState>)
+
     private val mutex = Mutex()
     private val cache = mutableMapOf<Endpoint, CacheEntry>()
-    private val inFlight = mutableMapOf<Endpoint, Deferred<SmbEndpointState>>()
+    private val inFlight = mutableMapOf<Endpoint, InFlightProbe>()
 
     /** What each id was last probed for, so an edited host reports as unknown again. */
     private val probedEndpoints = mutableMapOf<Uuid, Endpoint>()
+
+    /** Bumped on every connectivity change, results from an earlier epoch describe another network. */
+    private var connectivityEpoch = 0
+
+    /** What the last probe pass ran on, the only yardstick for a change that happened off screen. */
+    private var lastProbeNetworkState: NetworkStateProvider.State? = null
 
     @Volatile private var watched: List<SmbLocation> = emptyList()
 
@@ -132,6 +143,7 @@ class SmbEndpointProbe @Inject constructor(
                     emptyFlow()
                 } else {
                     merge(
+                        missedConnectivityChange(),
                         expiryTicks().map { Trigger.EXPIRY },
                         networkStateProvider.networkState.drop(1).map { Trigger.CONNECTIVITY },
                     )
@@ -139,7 +151,12 @@ class SmbEndpointProbe @Inject constructor(
             }
             .onEach { trigger ->
                 log(tag) { "Re-probing after $trigger" }
-                if (trigger == Trigger.CONNECTIVITY) mutex.withLock { cache.clear() }
+                if (trigger == Trigger.CONNECTIVITY) {
+                    mutex.withLock {
+                        cache.clear()
+                        connectivityEpoch++
+                    }
+                }
                 probeAll(watched, force = false)
             }
             .launchIn(appScope)
@@ -155,6 +172,16 @@ class SmbEndpointProbe @Inject constructor(
     }
 
     /**
+     * Nothing watches connectivity while the list is off screen, so a change during that gap only
+     * shows as the current network differing from the one the last probe pass ran on.
+     */
+    private fun missedConnectivityChange(): Flow<Trigger> = flow {
+        val current = networkStateProvider.networkState.firstOrNull()
+        val changed = mutex.withLock { lastProbeNetworkState != null && lastProbeNetworkState != current }
+        if (changed) emit(Trigger.CONNECTIVITY)
+    }
+
+    /**
      * Publishes a state for every given location, probing the ones whose cached result is missing or
      * stale. [force] skips the cache, which is what an explicit user refresh does.
      */
@@ -165,8 +192,10 @@ class SmbEndpointProbe @Inject constructor(
     }
 
     private suspend fun probeAll(locations: Collection<SmbLocation>, force: Boolean) = coroutineScope {
-        val known = locations.map { it.id }.toSet()
-        _states.value = _states.value.filterKeys { it in known }
+        val known = watched.map { it.id }.toSet()
+        _states.update { states -> states.filterKeys { it in known } }
+        val networkState = networkStateProvider.networkState.firstOrNull()
+        mutex.withLock { lastProbeNetworkState = networkState }
         locations.forEach { location -> launch { probeLocation(location, force) } }
     }
 
@@ -182,18 +211,20 @@ class SmbEndpointProbe @Inject constructor(
                 return
             }
             // A second view asking for the same server joins the running probe instead of opening
-            // another connection to it.
+            // another connection to it, unless that probe ran on the network we just left.
             if (probedEndpoints[location.id] != endpoint) {
                 probedEndpoints[location.id] = endpoint
                 publish(location.id, SmbEndpointState())
             }
-            inFlight[endpoint] ?: appScope
-                .async(dispatcherProvider.IO) { runProbe(endpoint) }
-                .also { inFlight[endpoint] = it }
+            inFlight[endpoint]?.takeIf { it.epoch == connectivityEpoch }
+                ?: InFlightProbe(
+                    epoch = connectivityEpoch,
+                    deferred = appScope.async(dispatcherProvider.IO) { runProbe(endpoint) },
+                ).also { inFlight[endpoint] = it }
         }
 
         val state = try {
-            probe.await()
+            probe.deferred.await()
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -202,53 +233,71 @@ class SmbEndpointProbe @Inject constructor(
         }
 
         mutex.withLock {
-            if (inFlight[endpoint] === probe) {
-                inFlight.remove(endpoint)
-                cache[endpoint] = CacheEntry(state, clock.now())
+            if (inFlight[endpoint]?.deferred === probe.deferred) inFlight.remove(endpoint)
+            // The host may have been edited and the network may have changed while this ran, either
+            // makes the result describe something else than what the id stands for now.
+            val isCurrent = probe.epoch == connectivityEpoch && probedEndpoints[location.id] == endpoint
+            if (!isCurrent) {
+                log(tag, VERBOSE) { "Dropping outdated result for $endpoint: $state" }
+                return@withLock
             }
+            cache[endpoint] = CacheEntry(state, clock.now())
             publish(location.id, state)
         }
     }
 
     private fun publish(id: Uuid, state: SmbEndpointState) {
-        _states.value = _states.value + (id to state)
+        _states.update { it + (id to state) }
     }
 
     private suspend fun runProbe(endpoint: Endpoint): SmbEndpointState {
-        return withTimeoutOrNull(OVERALL_TIMEOUT) {
-            val addresses = try {
-                resolver.resolve(endpoint.host)
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                log(tag, VERBOSE) { "${endpoint.host} does not resolve: ${e.asLog()}" }
-                emptyList<InetAddress>()
-            }
-            if (addresses.isEmpty()) return@withTimeoutOrNull SmbEndpointState(
-                reachability = SmbEndpointState.Reachability.UNREACHABLE,
-            )
+        // A blocking name lookup offers no suspension point, so awaiting it from a coroutine of its
+        // own is the only way the deadline below can fire while the resolver is still stuck.
+        val resolution = appScope.async(dispatcherProvider.IO) { resolver.resolve(endpoint.host) }
+        var firstResolvedAddress: String? = null
 
-            // getByName alone would be enough for the address, but it can hand back an IPv6 address
-            // that is unreachable on a host that answers perfectly well over IPv4.
-            addresses.forEach { address ->
-                try {
-                    connector.connect(address, endpoint.port, ATTEMPT_TIMEOUT)
-                    return@withTimeoutOrNull SmbEndpointState(
-                        address = address.hostAddress,
-                        reachability = SmbEndpointState.Reachability.REACHABLE,
-                    )
+        return try {
+            withTimeoutOrNull(OVERALL_TIMEOUT) {
+                val addresses = try {
+                    resolution.await()
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
-                    log(tag, VERBOSE) { "${address.hostAddress}:${endpoint.port} did not answer: ${e.asLog()}" }
+                    log(tag, VERBOSE) { "${endpoint.host} does not resolve: ${e.asLog()}" }
+                    emptyList<InetAddress>()
                 }
-            }
+                if (addresses.isEmpty()) return@withTimeoutOrNull SmbEndpointState(
+                    reachability = SmbEndpointState.Reachability.UNREACHABLE,
+                )
+                firstResolvedAddress = addresses.first().hostAddress
 
-            SmbEndpointState(
-                address = addresses.first().hostAddress,
+                // getByName alone would be enough for the address, but it can hand back an IPv6 address
+                // that is unreachable on a host that answers perfectly well over IPv4.
+                addresses.forEach { address ->
+                    try {
+                        connector.connect(address, endpoint.port, ATTEMPT_TIMEOUT)
+                        return@withTimeoutOrNull SmbEndpointState(
+                            address = address.hostAddress,
+                            reachability = SmbEndpointState.Reachability.REACHABLE,
+                        )
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        log(tag, VERBOSE) { "${address.hostAddress}:${endpoint.port} did not answer: ${e.asLog()}" }
+                    }
+                }
+
+                SmbEndpointState(
+                    address = firstResolvedAddress,
+                    reachability = SmbEndpointState.Reachability.UNREACHABLE,
+                )
+            } ?: SmbEndpointState(
+                address = firstResolvedAddress,
                 reachability = SmbEndpointState.Reachability.UNREACHABLE,
             )
-        } ?: SmbEndpointState(reachability = SmbEndpointState.Reachability.UNREACHABLE)
+        } finally {
+            resolution.cancel()
+        }
     }
 
     companion object {
