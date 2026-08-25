@@ -30,6 +30,7 @@ import eu.darken.butler.common.files.extensions.matches
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.files.smb.SmbConnectionTester
 import eu.darken.butler.common.files.smb.credentials.SmbCredentialStore
+import eu.darken.butler.common.files.smb.credentials.SmbCredentialUnavailableException
 import eu.darken.butler.common.files.smb.location.SmbLocationManager
 import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.common.flow.SingleEventFlow
@@ -79,6 +80,7 @@ import eu.darken.butler.explorer.ui.explorer.dialogs.SmbLocationFormInput
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.*
 import eu.darken.butler.explorer.ui.explorer.dialogs.FilterOptionsResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.RenameResult
+import eu.darken.butler.explorer.ui.explorer.dialogs.RevealedPassword
 import eu.darken.butler.explorer.ui.explorer.dialogs.SortOptionsResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.SortScope
 import eu.darken.butler.explorer.ui.explorer.dnd.validateDropDestination
@@ -133,14 +135,18 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.PolymorphicSerializer
 import kotlinx.serialization.json.Json
+import kotlin.uuid.Uuid
 
 @HiltViewModel(assistedFactory = ExplorerWorkspaceViewModel.Factory::class)
 class ExplorerWorkspaceViewModel @AssistedInject constructor(
     @Assisted private val id: Workspace.Id,
     @ApplicationContext private val context: Context,
-    dispatchers: DispatcherProvider,
+    private val dispatchers: DispatcherProvider,
     workspaceProvider: WorkspaceProvider,
     private val workspaceRemote: WorkspaceRemote,
     private val actionProvider: DefaultActionProvider,
@@ -259,6 +265,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         tag = tag,
     )
 
+    /** Reveals the password of the open network info sheet, ended when that sheet goes away. */
+    private var networkRevealJob: Job? = null
+
     val issueState: StateFlow<Issue?> get() = conflicts.issueState
     val showIssueSheet: StateFlow<Boolean> get() = conflicts.showIssueSheet
     val showAddStorageSheet get() = safLocations.showAddStorageSheet
@@ -366,6 +375,17 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         dialogEvents
             .onEach { event ->
                 dialogs.handle(event)
+            }
+            .launchInViewModel()
+
+        // What an open network info sheet loads belongs to that sheet: dismissing it, or replacing
+        // it with any other dialog, ends the work started for it.
+        dialogs.state
+            .map { ((it as? ItemInfo)?.context as? ItemInfo.InfoContext.SingleNetwork)?.locationId }
+            .distinctUntilChanged()
+            .onEach {
+                networkRevealJob?.cancel()
+                networkRevealJob = null
             }
             .launchInViewModel()
 
@@ -1453,6 +1473,47 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun onSmbLocationFormSubmit(input: SmbLocationFormInput) = smbLocations.onFormSubmit(input)
+
+    /**
+     * Puts the stored password of an open network info sheet on screen.
+     *
+     * The [CharArray] the vault hands over is zeroed again right away, but what reaches the sheet is
+     * an immutable String, so hiding it again and dismissing the sheet can only drop the live
+     * reference - earlier flow emissions and Compose snapshots may hold it until they are collected.
+     * That is why this never travels through SavedStateHandle or any other serialization path.
+     */
+    fun onRevealNetworkPassword(locationId: Uuid) {
+        log(tag) { "onRevealNetworkPassword($locationId)" }
+        networkRevealJob?.cancel()
+        dialogs.updateSingleNetwork(locationId) { it.copy(isRevealing = true) }
+        networkRevealJob = vmScope.launch {
+            var revealed: RevealedPassword? = null
+            try {
+                val location = smbLocationManager.get(locationId)
+                if (location != null) {
+                    revealed = withContext(dispatchers.IO) {
+                        val credential = smbCredentialStore.resolve(location)
+                        try {
+                            RevealedPassword(String(credential.password))
+                        } finally {
+                            credential.wipe()
+                        }
+                    }
+                }
+            } catch (e: SmbCredentialUnavailableException) {
+                // No toast: the field itself already states that the vault has nothing to produce.
+                log(tag, WARN) { "onRevealNetworkPassword(): Nothing to reveal: ${e.asLog()}" }
+            }
+            dialogs.updateSingleNetwork(locationId) { it.copy(revealed = revealed, isRevealing = false) }
+        }
+    }
+
+    fun onHideNetworkPassword(locationId: Uuid) {
+        log(tag) { "onHideNetworkPassword($locationId)" }
+        networkRevealJob?.cancel()
+        networkRevealJob = null
+        dialogs.updateSingleNetwork(locationId) { it.copy(revealed = null, isRevealing = false) }
+    }
 
     /**
      * The system had no activity to handle our SAF picker intent (DocumentsUI disabled or missing).
