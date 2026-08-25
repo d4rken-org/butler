@@ -1,5 +1,6 @@
 package eu.darken.butler.editor.ui.editor.text
 
+import androidx.compose.foundation.lazy.LazyListLayoutInfo
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.TextLayoutResult
@@ -253,6 +254,19 @@ internal fun expandedColumnFromX(adjustedX: Float, charWidthPx: Float, maxColumn
     val column = if (adjustedX > cell * charWidthPx + charWidthPx / 2f) cell + 1 else cell
     return column.coerceIn(0, maxColumn.coerceAtLeast(0))
 }
+
+/**
+ * Container space (pointer offsets over the whole lazy layout, top content padding included) to item
+ * space ([androidx.compose.foundation.lazy.LazyListItemInfo.offset], measured from the content
+ * region's origin below that padding).
+ *
+ * [LazyListLayoutInfo.viewportStartOffset] is the negated top content padding of the layout being
+ * read, so a live read stays exact while an animated padding shrinks or grows.
+ */
+internal fun LazyListLayoutInfo.containerToItemY(containerY: Float): Float = containerY + viewportStartOffset
+
+/** Inverse of [containerToItemY]. */
+internal fun LazyListLayoutInfo.itemToContainerY(itemY: Float): Float = itemY - viewportStartOffset
 
 internal fun calculatePositionFromOffset(
     offset: Offset,
