@@ -2,7 +2,6 @@ package eu.darken.butler.editor.ui.editor
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.runtime.Composable
@@ -45,7 +44,7 @@ import eu.darken.butler.workspace.ui.floatingbar.BarAnimation
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
-import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
+import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarContentPadding
 import eu.darken.butler.workspace.ui.insets.rememberPaneFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
@@ -320,18 +319,17 @@ fun EditorWorkspacePage(
         )
 
         // Main content area
-        val topContentPadding = topBarStackState.contentPaddingDp()
-        val bottomContentPadding = bottomBarStackState.contentPaddingDp()
+        val contentPadding = rememberFloatingBarContentPadding(
+            topStackState = topBarStackState,
+            bottomStackState = bottomBarStackState,
+        )
 
         Box(modifier = Modifier.fillMaxSize()) {
             if (!state.hasFile && state.isLoading) {
                 EditorLoadingOverlay()
             } else {
                 LazyTextEditor(
-                    contentPadding = PaddingValues(
-                        top = topContentPadding,
-                        bottom = bottomContentPadding,
-                    ),
+                    contentPadding = contentPadding,
                     content = state.currentContent,
                     totalLines = state.totalLines,
                     cursorPosition = state.cursorPosition,
