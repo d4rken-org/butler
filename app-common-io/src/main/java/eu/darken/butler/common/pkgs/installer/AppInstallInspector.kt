@@ -251,20 +251,30 @@ class AppInstallInspector @Inject constructor(
         manifest: BundleManifest?,
         basePackageName: String?,
     ): List<AppInstallPlan.ObbEntry> {
-        if (basePackageName == null) return emptyList()
+        if (basePackageName == null) {
+            // Without it there is no destination to build, and dropping the declaration instead
+            // would report an install of an app that is missing its expansion data as a success.
+            if (manifest?.expansions?.isNotEmpty() == true) {
+                throw AppInstallUnsupportedBundleException(path, "expansions are declared but the base package is not")
+            }
+            return emptyList()
+        }
 
         val byRawName = index.entriesBySegments.values.filter { !it.isDirectory }.associateBy { it.rawName }
         // The manifest is the only place that says where an expansion has to land when the archive
         // does not already store it in its destination shape, so it is consulted first.
-        val declared = manifest?.expansions.orEmpty().mapNotNull { expansion ->
+        val declared = manifest?.expansions.orEmpty().map { expansion ->
             val entry = byRawName[expansion.sourceFile]
-            val destination = obbDestinationName(expansion.installPath, basePackageName)
-            if (entry == null || destination == null) {
-                log(TAG, WARN) { "Dropping expansion ${expansion.sourceFile} -> ${expansion.installPath}" }
-                null
-            } else {
-                entry to destination
-            }
+                ?: throw AppInstallUnsupportedBundleException(
+                    path,
+                    "declared expansion ${expansion.sourceFile} is missing",
+                )
+            val destination = obbDestinationName(expansion, basePackageName)
+                ?: throw AppInstallUnsupportedBundleException(
+                    path,
+                    "declared expansion ${expansion.sourceFile} has no usable destination",
+                )
+            entry to destination
         }
         val scanned = index.entriesBySegments.values
             .filter { !it.isDirectory }
@@ -299,10 +309,25 @@ class AppInstallInspector @Inject constructor(
     }
 
     /**
-     * The basename an expansion may be written under, or null when the manifest points at anything
-     * other than `Android/obb/<base package>/<plain name>`.
+     * The basename a declared expansion may be written under, or null when it points anywhere Butler
+     * would not write.
+     *
+     * With an `install_path` that has to be `Android/obb/<base package>/<plain name>`, since that is
+     * the only destination shape built here. Producers that leave it out say where the payload goes
+     * with `install_location` instead:
+     *
+     *     {"file": "main.123.pkg.obb", "install_location": "EXTERNAL_STORAGE"}
+     *
+     * which lands under the base package's own obb directory, under the source's plain basename.
      */
-    private fun obbDestinationName(installPath: String, basePackageName: String): String? {
+    private fun obbDestinationName(expansion: ManifestExpansion, basePackageName: String): String? {
+        val installPath = expansion.installPath
+            ?: return when {
+                expansion.installLocation.equals(EXTERNAL_STORAGE, ignoreCase = true) ->
+                    ArchiveEntrySafety.parseEntryName(expansion.sourceFile)?.lastOrNull()
+
+                else -> null
+            }
         val segments = ArchiveEntrySafety.parseEntryName(installPath) ?: return null
         if (segments.size != 4) return null
         if (!segments[0].equals("Android", true) || !segments[1].equals("obb", true)) return null
@@ -391,10 +416,14 @@ class AppInstallInspector @Inject constructor(
         val id: String?,
     )
 
-    /** [sourceFile] is an archive entry name, [installPath] where the producer wants it placed. */
+    /**
+     * [sourceFile] is an archive entry name. [installPath] is where the producer wants it placed;
+     * when that is absent [installLocation] names the storage it belongs on instead.
+     */
     private data class ManifestExpansion(
         val sourceFile: String,
-        val installPath: String,
+        val installPath: String?,
+        val installLocation: String?,
     )
 
     /** Reads a field that producers encode as either a JSON string or a bare number. */
@@ -412,7 +441,11 @@ class AppInstallInspector @Inject constructor(
             ?.filterIsInstance<JsonObject>()
             ?.mapNotNull { entry ->
                 val source = entry.string("file") ?: entry.string("install_path") ?: return@mapNotNull null
-                ManifestExpansion(sourceFile = source, installPath = entry.string("install_path") ?: source)
+                ManifestExpansion(
+                    sourceFile = source,
+                    installPath = entry.string("install_path"),
+                    installLocation = entry.string("install_location"),
+                )
             }
             ?: emptyList()
 
@@ -421,6 +454,7 @@ class AppInstallInspector @Inject constructor(
         private const val APK_SUFFIX = ".apk"
         private const val BASE_APK_NAME = "base.apk"
         private const val BASE_SPLIT_ID = "base"
+        private const val EXTERNAL_STORAGE = "EXTERNAL_STORAGE"
         private const val MAX_INDEX_ENTRIES = 10_000
         private const val MAX_SPLITS = 256
         private const val MAX_OBB_ENTRIES = 64

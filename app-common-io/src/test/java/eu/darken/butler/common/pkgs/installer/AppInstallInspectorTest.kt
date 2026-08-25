@@ -346,6 +346,93 @@ class AppInstallInspectorTest : BaseTest() {
     }
 
     @Test
+    fun `an expansion declared by install location lands under the base package`() = runTest2 {
+        val container = bundle(
+            "location.xapk",
+            mapOf(
+                "manifest.json" to """
+                    {
+                      "package_name":"$testPkg",
+                      "expansions":[
+                        {"file":"main.123.$testPkg.obb","install_location":"EXTERNAL_STORAGE"}
+                      ]
+                    }
+                """.trimIndent(),
+                "base.apk" to "base",
+                "main.123.$testPkg.obb" to "payload",
+            ),
+        )
+
+        val plan = inspector().inspect(container)
+
+        plan.obbEntries.single().entryPath shouldBe "main.123.$testPkg.obb"
+        plan.obbEntries.single().fileName shouldBe "main.123.$testPkg.obb"
+        plan.warnings shouldContainExactly listOf(
+            AppInstallPlan.Warning.OBB_PRESENT,
+            AppInstallPlan.Warning.OBB_NEEDS_ELEVATION,
+        )
+    }
+
+    @Test
+    fun `a declared expansion that is missing fails the bundle`() = runTest2 {
+        val container = bundle(
+            "gone.xapk",
+            mapOf(
+                "manifest.json" to """
+                    {
+                      "package_name":"$testPkg",
+                      "expansions":[
+                        {"file":"payload.obb","install_path":"Android/obb/$testPkg/main.obb"}
+                      ]
+                    }
+                """.trimIndent(),
+                "base.apk" to "base",
+            ),
+        )
+
+        shouldThrow<AppInstallUnsupportedBundleException> { inspector().inspect(container) }
+    }
+
+    @Test
+    fun `a declared expansion with an unusable destination fails the bundle`() = runTest2 {
+        // Neither an install path nor a location that says where the payload belongs: dropping it
+        // would install an app that only looks complete, and report that as an unqualified success.
+        val container = bundle(
+            "nodestination.xapk",
+            mapOf(
+                "manifest.json" to """
+                    {"package_name":"$testPkg","expansions":[{"file":"payload.obb"}]}
+                """.trimIndent(),
+                "base.apk" to "base",
+                "payload.obb" to "payload",
+            ),
+        )
+
+        shouldThrow<AppInstallUnsupportedBundleException> { inspector().inspect(container) }
+    }
+
+    @Test
+    fun `a declared expansion pointing at a foreign package fails the bundle`() = runTest2 {
+        val container = bundle(
+            "foreigndeclared.xapk",
+            mapOf(
+                "manifest.json" to """
+                    {
+                      "package_name":"$testPkg",
+                      "expansions":[
+                        {"file":"payload.obb","install_path":"Android/obb/com.someone.else/main.obb"}
+                      ]
+                    }
+                """.trimIndent(),
+                "base.apk" to "base",
+                "payload.obb" to "payload",
+            ),
+        )
+
+        shouldThrow<AppInstallUnsupportedBundleException> { inspector().inspect(container) }
+    }
+
+    @Test
     fun `expansions that would overwrite each other are rejected`() = runTest2 {
         val container = bundle(
             "colliding.xapk",
