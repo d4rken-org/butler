@@ -148,6 +148,7 @@ fun ExplorerInfoBar(
                             info.locationCount,
                             info.locationCount
                         ),
+                        onClick = selectAll,
                     )
                 }
 
