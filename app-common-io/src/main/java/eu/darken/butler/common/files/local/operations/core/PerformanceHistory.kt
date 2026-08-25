@@ -137,7 +137,7 @@ data class PerformanceHistory(
 
         if (totalBytes == 0L && totalItems == 0) {
             // Can't determine percentage without either metric, fallback to keeping last N
-            return allSamples.takeLast(COMPACT_TARGET)
+            return allSamples.takeLast(COMPACT_TARGET).sortedBy { it.timestamp }
         }
 
         // Percentage-based downsampling: ensure samples distributed across 0-100% range

@@ -978,6 +978,34 @@ class PerformanceHistoryTest : BaseTest() {
         history.samples.size shouldBe 999
     }
 
+    @Test
+    fun `fallback compaction keeps chronological order`() {
+        val startTime = Instant.fromEpochMilliseconds(1000)
+        var history = PerformanceHistory()
+
+        // Stop at the first compaction, later adds would append past the sorted block again
+        repeat(1001) { i ->
+            // Every tenth sample is recorded out of insertion order
+            val offsetMs = if (i % 10 == 0) (i * 10) - 25 else i * 10
+            history = history.addSample(
+                PerformanceSample(
+                    timestamp = startTime + offsetMs.milliseconds,
+                    bytesPerSecond = 1_000_000L,
+                    itemsPerSecond = 10f,
+                    totalBytesProcessed = 0L,
+                    totalItemsProcessed = 0
+                ),
+                totalBytes = 0L,  // No total to calculate percentage
+                totalItems = 0
+            )
+        }
+
+        history.samples shouldHaveSize 800
+        history.samples.zipWithNext().forEach { (prev, next) ->
+            (prev.timestamp <= next.timestamp) shouldBe true
+        }
+    }
+
     // ============ EDGE CASES ============
 
     @Test
