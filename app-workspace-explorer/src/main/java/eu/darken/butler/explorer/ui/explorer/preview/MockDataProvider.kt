@@ -1147,10 +1147,10 @@ object MockDataProvider {
     fun createDefaultHomeActions(
         viewStyle: ExplorerViewStyle = ExplorerViewStyle.default(),
     ): List<ExplorerActionBarItem> = listOf(
-        ExplorerActionBarItem.Common.Refresh(),
         ExplorerActionBarItem.Common.Sort(),
         ExplorerActionBarItem.Common.Filter(),
         ExplorerActionBarItem.Common.UpdateViewStyle(viewStyle.toggled()),
+        ExplorerActionBarItem.Common.Refresh(),
     )
 
     /**

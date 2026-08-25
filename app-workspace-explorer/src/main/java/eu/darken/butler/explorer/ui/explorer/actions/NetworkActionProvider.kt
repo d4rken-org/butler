@@ -31,13 +31,13 @@ class NetworkActionProvider @Inject constructor() : ExplorerActionProvider {
             }
         } else {
             actions.add(ExplorerActionBarItem.Network.AddLocation())
+            actions.add(ExplorerActionBarItem.Common.Sort())
+            actions.add(ExplorerActionBarItem.Common.Filter())
+
+            actions.add(ExplorerActionBarItem.Common.UpdateViewStyle(viewStyle.toggled()))
         }
 
         actions.add(ExplorerActionBarItem.Common.Refresh())
-        actions.add(ExplorerActionBarItem.Common.Sort())
-        actions.add(ExplorerActionBarItem.Common.Filter())
-
-        actions.add(ExplorerActionBarItem.Common.UpdateViewStyle(viewStyle.toggled()))
 
         return actions
     }

@@ -44,13 +44,13 @@ class DeviceActionProvider @Inject constructor(
             addFavoritesSelectionAction(actions, selectionState)
         } else {
             actions.add(ExplorerActionBarItem.Device.AddLocation())
+            actions.add(ExplorerActionBarItem.Common.Sort())
+            actions.add(ExplorerActionBarItem.Common.Filter())
+
+            actions.add(ExplorerActionBarItem.Common.UpdateViewStyle(viewStyle.toggled()))
         }
 
         actions.add(ExplorerActionBarItem.Common.Refresh())
-        actions.add(ExplorerActionBarItem.Common.Sort())
-        actions.add(ExplorerActionBarItem.Common.Filter())
-
-        actions.add(ExplorerActionBarItem.Common.UpdateViewStyle(viewStyle.toggled()))
 
         return actions
     }
