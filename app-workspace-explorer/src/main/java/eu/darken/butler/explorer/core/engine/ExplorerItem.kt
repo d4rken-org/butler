@@ -10,6 +10,7 @@ import eu.darken.butler.common.files.metadata.FileMetadata
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.files.saf.location.SAFLocation
+import eu.darken.butler.common.files.smb.SmbEndpointState
 import eu.darken.butler.common.files.smb.location.SmbLocation
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import kotlin.time.Instant
@@ -78,8 +79,10 @@ sealed interface ExplorerItem {
         }
 
         /**
-         * A stored network location. Capacity stays null: probing it would mean connecting to every
-         * server just to draw the Network view.
+         * A stored network location. Capacity stays null: reading it would mean opening a session on
+         * every server just to draw the Network view, which a reachability probe does not do.
+         *
+         * [endpoint] arrives after the row is first drawn, [status] comes from the credential vault.
          */
         data class Network(
             val location: SmbLocation,
@@ -88,11 +91,17 @@ sealed interface ExplorerItem {
             override val target: ExplorerNavigation.Target.Directory,
             override val subtitle: CaString,
             val status: Status,
+            val endpoint: SmbEndpointState = SmbEndpointState(),
         ) : Storage {
             override val id: String get() = "network-${location.id}"
             override val totalBytes: Long? get() = null
             override val availableBytes: Long? get() = null
             override val canWrite: Boolean get() = true
+
+            /** Whether the row has something to flag: a credential problem, an absent server, or both. */
+            val hasIssue: Boolean
+                get() = status == Status.SIGN_IN_REQUIRED ||
+                    endpoint.reachability == SmbEndpointState.Reachability.UNREACHABLE
 
             enum class Status {
                 AVAILABLE,

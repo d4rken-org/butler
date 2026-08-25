@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Block
+import androidx.compose.material.icons.twotone.CloudOff
 import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material.icons.twotone.Lock
 import androidx.compose.material.icons.twotone.Visibility
@@ -26,8 +27,11 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
 import eu.darken.butler.common.files.saf.location.SAFLocation
+import eu.darken.butler.common.files.smb.SmbEndpointState
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.ui.explorer.items.endpointLabel
+import eu.darken.butler.explorer.ui.explorer.items.statusLabel
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
 @Composable
@@ -104,11 +108,11 @@ fun StorageGrid(
         },
         primaryText = item.displayName.get(LocalContext.current),
         secondaryText = run {
+            val context = LocalContext.current
             val totalBytes = item.totalBytes
             val availableBytes = item.availableBytes
             when {
                 totalBytes != null && availableBytes != null -> {
-                    val context = LocalContext.current
                     val total = eu.darken.butler.common.formatFileSize(context, totalBytes, shortFormat = true)
                     val free = eu.darken.butler.common.formatFileSize(context, availableBytes, shortFormat = true)
                     val typeLabel = when (item) {
@@ -118,36 +122,52 @@ fun StorageGrid(
                     }
                     stringResource(R.string.explorer_file_storage_size_format, typeLabel, total, free)
                 }
-                item is ExplorerItem.Storage.Network &&
-                    item.status == ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED -> {
-                    stringResource(R.string.explorer_network_sign_in_required_label)
-                }
+                item is ExplorerItem.Storage.Network -> item.statusLabel(context)
                 else -> null
             }
         },
         // A network path is a UUID, the location's own subtitle is what identifies it to the user.
-        tertiaryText = item.subtitle?.get(LocalContext.current) ?: item.target.path.path,
+        tertiaryText = when (item) {
+            is ExplorerItem.Storage.Network -> item.endpointLabel(LocalContext.current)
+            else -> item.subtitle?.get(LocalContext.current) ?: item.target.path.path
+        },
         backgroundColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
         trailingContent = when {
             item is ExplorerItem.Storage.SAF -> {
                 { PermissionIndicator(item.location) }
             }
 
-            item is ExplorerItem.Storage.Network &&
-                item.status == ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED -> {
-                {
-                    Icon(
-                        imageVector = Icons.TwoTone.Lock,
-                        contentDescription = stringResource(R.string.explorer_network_sign_in_required_label),
-                        tint = Color.White,
-                        modifier = Modifier.size(16.dp),
-                    )
-                }
+            item is ExplorerItem.Storage.Network && item.hasIssue -> {
+                { NetworkIssueIndicator(item) }
             }
 
             else -> null
         }
     )
+}
+
+@Composable
+private fun NetworkIssueIndicator(item: ExplorerItem.Storage.Network) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (item.status == ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED) {
+            Icon(
+                imageVector = Icons.TwoTone.Lock,
+                contentDescription = stringResource(R.string.explorer_network_sign_in_required_label),
+                tint = Color.White,
+                modifier = Modifier.size(16.dp),
+            )
+        }
+        if (item.endpoint.reachability == SmbEndpointState.Reachability.UNREACHABLE) {
+            Icon(
+                imageVector = Icons.TwoTone.CloudOff,
+                contentDescription = stringResource(R.string.explorer_network_status_unavailable_label),
+                tint = Color.White,
+                modifier = Modifier.size(16.dp),
+            )
+        }
+    }
 }
 
 @Preview2
@@ -163,6 +183,51 @@ private fun StorageGridLocalPreview() {
         items(3) {
             StorageGrid(
                 item = MockDataProvider.createMockStorageLocal(),
+                onClick = {}
+            )
+        }
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun StorageGridNetworkPreview() {
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(3),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        item {
+            StorageGrid(
+                item = MockDataProvider.createMockStorageNetwork(),
+                onClick = {}
+            )
+        }
+        item {
+            StorageGrid(
+                item = MockDataProvider.createMockStorageNetwork(
+                    endpoint = SmbEndpointState("192.168.1.50", SmbEndpointState.Reachability.REACHABLE),
+                ),
+                onClick = {}
+            )
+        }
+        item {
+            StorageGrid(
+                item = MockDataProvider.createMockStorageNetwork(
+                    endpoint = SmbEndpointState("192.168.1.50", SmbEndpointState.Reachability.UNREACHABLE),
+                ),
+                onClick = {}
+            )
+        }
+        item {
+            StorageGrid(
+                item = MockDataProvider.createMockStorageNetwork(
+                    name = "Work NAS",
+                    status = ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED,
+                    endpoint = SmbEndpointState("192.168.1.51", SmbEndpointState.Reachability.REACHABLE),
+                ),
                 onClick = {}
             )
         }

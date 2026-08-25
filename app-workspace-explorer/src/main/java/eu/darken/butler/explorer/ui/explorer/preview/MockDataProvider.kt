@@ -26,6 +26,7 @@ import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.files.saf.location.SAFLocation
+import eu.darken.butler.common.files.smb.SmbEndpointState
 import eu.darken.butler.common.files.smb.location.SmbLocation
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.common.progress.Progress
@@ -554,12 +555,17 @@ object MockDataProvider {
         share: String = "media",
         status: ExplorerItem.Storage.Network.Status = ExplorerItem.Storage.Network.Status.AVAILABLE,
         id: Uuid = Uuid.parse("11111111-2222-3333-4444-555555555555"),
+        endpoint: SmbEndpointState = SmbEndpointState(),
+        username: String? = "hoffmann",
+        domain: String? = null,
     ): ExplorerItem.Storage.Network {
         val location = SmbLocation(
             id = id,
             label = name,
             host = host,
             share = share,
+            domain = domain,
+            username = username,
             authType = SmbLocation.AuthType.PASSWORD,
             rememberCredential = true,
             credentialVersion = 1,
@@ -573,6 +579,7 @@ object MockDataProvider {
             target = ExplorerNavigation.Target.Directory(location.rootPath),
             subtitle = location.endpointLabel.toCaString(),
             status = status,
+            endpoint = endpoint,
         )
     }
 

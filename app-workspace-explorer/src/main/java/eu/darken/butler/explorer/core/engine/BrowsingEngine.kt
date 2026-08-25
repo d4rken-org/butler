@@ -282,7 +282,7 @@ class BrowsingEngine @AssistedInject constructor(
         loadGeneration: Int,
         isRefresh: Boolean,
     ): Flow<Load> {
-        return loaderFor(target)
+        return loaderFor(target, isRefresh)
             .flowOn(dispatcherProvider.IO)
             .map {
                 Load(
@@ -308,10 +308,11 @@ class BrowsingEngine @AssistedInject constructor(
             }
     }
 
-    private fun loaderFor(target: ExplorerNavigation.Target): Flow<ExplorerLocation> = when (target) {
+    /** [isRefresh] is what the user asking for fresh data looks like down here, see the Network loader. */
+    private fun loaderFor(target: ExplorerNavigation.Target, isRefresh: Boolean): Flow<ExplorerLocation> = when (target) {
         is ExplorerNavigation.Target.Home -> homeLocationLoader.loadHome()
         is ExplorerNavigation.Target.Device -> deviceLocationLoader.loadDevice()
-        is ExplorerNavigation.Target.Network -> networkLocationLoader.loadNetwork()
+        is ExplorerNavigation.Target.Network -> networkLocationLoader.loadNetwork(force = isRefresh)
         is ExplorerNavigation.Target.Trash.Root -> trashLocationLoader.loadRoot()
         is ExplorerNavigation.Target.Trash.Nested -> trashLocationLoader.loadNested(
             target.parentItem,

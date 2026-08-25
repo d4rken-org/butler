@@ -219,6 +219,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         connectionTester = smbConnectionTester,
         dialogs = dialogs,
         workspace = ::getWorkspace,
+        currentLocation = { cachedCurrentLocation },
         clearSelection = ::clearSelection,
         onError = { errorEvents.tryEmit(it) },
         doLaunch = doLaunch,

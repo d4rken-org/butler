@@ -245,6 +245,10 @@
     <string name="explorer_network_edit_location_action">Edit network storage</string>
     <string name="explorer_network_remove_location_action">Remove network storage</string>
     <string name="explorer_network_sign_in_required_label">Sign-in required</string>
+    <string name="explorer_network_status_checking_label">Checking…</string>
+    <string name="explorer_network_status_available_label">Available</string>
+    <string name="explorer_network_status_unavailable_label">Unavailable</string>
+    <string name="explorer_network_endpoint_with_address_format">%1$s [%2$s]</string>
     <string name="explorer_network_empty_title">No network storage yet</string>
     <string name="explorer_network_empty_caption">Add a Windows share or NAS folder to browse it here.</string>
     <string name="explorer_network_remove_confirmation_title">Remove network storage?</string>
