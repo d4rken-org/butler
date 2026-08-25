@@ -22,6 +22,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -37,6 +38,8 @@ import eu.darken.butler.common.formatRelativeTime
 import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
+import eu.darken.butler.workspace.ui.LocalWorkspaceTitles
+import eu.darken.butler.workspace.ui.originWorkspaceLabel
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
 import kotlin.uuid.Uuid
@@ -127,27 +130,30 @@ fun ClipboardEntryRow(
                             )
                         }
 
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Icon(
-                                imageVector = Icons.TwoTone.Workspaces,
-                                contentDescription = null,
-                                modifier = Modifier.size(12.dp),
-                                tint = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f),
-                            )
+                        val originLabel = originWorkspaceLabel(entry.origin)
+                        if (originLabel != null) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Icon(
+                                    imageVector = Icons.TwoTone.Workspaces,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(12.dp),
+                                    tint = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f),
+                                )
 
-                            Spacer(modifier = Modifier.width(6.dp))
+                                Spacer(modifier = Modifier.width(6.dp))
 
-                            Text(
-                                text = stringResource(R.string.clipboard_origin, entry.origin.shortTag),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f),
-                            )
+                                Text(
+                                    text = stringResource(R.string.clipboard_origin, originLabel),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.weight(1f),
+                                )
+                            }
                         }
                     }
                 } else {
@@ -261,27 +267,30 @@ fun ClipboardEntryRow(
                             )
                         }
 
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Icon(
-                                imageVector = Icons.TwoTone.Workspaces,
-                                contentDescription = null,
-                                modifier = Modifier.size(12.dp),
-                                tint = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f),
-                            )
+                        val originLabel = originWorkspaceLabel(entry.origin)
+                        if (originLabel != null) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Icon(
+                                    imageVector = Icons.TwoTone.Workspaces,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(12.dp),
+                                    tint = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f),
+                                )
 
-                            Spacer(modifier = Modifier.width(6.dp))
+                                Spacer(modifier = Modifier.width(6.dp))
 
-                            Text(
-                                text = stringResource(R.string.clipboard_origin, entry.origin.shortTag),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f),
-                            )
+                                Text(
+                                    text = stringResource(R.string.clipboard_origin, originLabel),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.weight(1f),
+                                )
+                            }
                         }
                     }
                 } else {
@@ -370,20 +379,23 @@ private fun ClipboardEntryRowCollapsedPreview() {
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ClipboardEntryRowExpandedPreview() {
-    ClipboardEntryRow(
-        entry = ClipboardClip.Paths(
-            origin = Workspace.Id(Uuid.random()),
-            mode = ClipboardClip.Paths.Mode.CUT,
-            paths = listOf(
-                mockFileLookup("/storage/emulated/0/Documents/report.pdf"),
+    val origin = Workspace.Id(Uuid.random())
+    CompositionLocalProvider(LocalWorkspaceTitles provides mapOf(origin to "Documents")) {
+        ClipboardEntryRow(
+            entry = ClipboardClip.Paths(
+                origin = origin,
+                mode = ClipboardClip.Paths.Mode.CUT,
+                paths = listOf(
+                    mockFileLookup("/storage/emulated/0/Documents/report.pdf"),
+                ),
+                clippedAt = Clock.System.now() - 2.minutes,
             ),
-            clippedAt = Clock.System.now() - 2.minutes,
-        ),
-        workspaceType = Workspace.Type.SEARCHER,
-        onPasteClick = {},
-        onEntryClick = {},
-        showOrigin = true,
-    )
+            workspaceType = Workspace.Type.SEARCHER,
+            onPasteClick = {},
+            onEntryClick = {},
+            showOrigin = true,
+        )
+    }
 }
 
 @Preview2
@@ -407,15 +419,18 @@ private fun ClipboardEntryRowTextCollapsedPreview() {
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ClipboardEntryRowTextExpandedPreview() {
-    ClipboardEntryRow(
-        entry = ClipboardClip.Text(
-            origin = Workspace.Id(Uuid.random()),
-            content = "function greet(name) {\n  return `Hello, \${name}!`;\n}",
-            clippedAt = Clock.System.now() - 1.minutes,
-        ),
-        workspaceType = Workspace.Type.EXPLORER,
-        onPasteClick = {},
-        onEntryClick = {},
-        showOrigin = true,
-    )
+    val origin = Workspace.Id(Uuid.random())
+    CompositionLocalProvider(LocalWorkspaceTitles provides mapOf(origin to "Editor")) {
+        ClipboardEntryRow(
+            entry = ClipboardClip.Text(
+                origin = origin,
+                content = "function greet(name) {\n  return `Hello, \${name}!`;\n}",
+                clippedAt = Clock.System.now() - 1.minutes,
+            ),
+            workspaceType = Workspace.Type.EXPLORER,
+            onPasteClick = {},
+            onEntryClick = {},
+            showOrigin = true,
+        )
+    }
 }
