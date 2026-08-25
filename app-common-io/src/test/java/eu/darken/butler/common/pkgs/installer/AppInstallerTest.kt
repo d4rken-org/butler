@@ -5,8 +5,13 @@ import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.adb.AdbManager
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.archive.ArchiveEntryMeta
+import eu.darken.butler.common.files.archive.ArchiveFormat
+import eu.darken.butler.common.files.archive.ArchiveIndex
 import eu.darken.butler.common.files.archive.ArchiveService
+import eu.darken.butler.common.pkgs.apk.ApkArchiveInfo
 import eu.darken.butler.common.pkgs.apk.ApkArchiveParser
+import eu.darken.butler.common.pkgs.apk.ApkSignature
 import eu.darken.butler.common.pkgs.toPkgId
 import eu.darken.butler.common.root.RootManager
 import eu.darken.butler.common.shell.ShellOps
@@ -38,6 +43,7 @@ import testhelpers.coroutine.TestDispatcherProvider
 import testhelpers.coroutine.runTest2
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.InputStream
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [30])
@@ -73,6 +79,8 @@ class AppInstallerTest : BaseTest() {
 
     private val shellOps = mockk<ShellOps>()
     private val gatewaySwitch = mockk<GatewaySwitch>()
+    private val archiveService = mockk<ArchiveService>()
+    private val apkArchiveParser = mockk<ApkArchiveParser>()
 
     @Before
     fun setup() {
@@ -139,8 +147,8 @@ class AppInstallerTest : BaseTest() {
             coEvery { currentUser() } returns UserProfile2(handle = UserHandle2(handleId = 11))
         },
         gatewaySwitch = gatewaySwitch,
-        archiveService = mockk<ArchiveService>(),
-        apkArchiveParser = mockk<ApkArchiveParser>(),
+        archiveService = archiveService,
+        apkArchiveParser = apkArchiveParser,
         storageEnvironment = mockk<StorageEnvironment>(relaxed = true),
         statusRelay = AppInstallStatusRelay(),
         dispatcherProvider = dispatcherProvider,
@@ -159,6 +167,50 @@ class AppInstallerTest : BaseTest() {
     )
 
     private fun pmCommands() = executed.map { it.second }.filter { it.startsWith("pm ") }
+
+    private fun baseInfo(certSha256: String) = ApkArchiveInfo(
+        id = "com.example.app".toPkgId(),
+        versionCode = 3,
+        signatures = listOf(ApkSignature(subjectDn = null, sha256 = certSha256)),
+    )
+
+    /** A one-APK bundle whose single entry is [apk], so the staged base is readable back. */
+    private fun bundlePlan(inspected: ApkArchiveInfo) = AppInstallPlan(
+        source = apk,
+        format = AppInstallFormat.XAPK,
+        pkgId = inspected.id,
+        baseInfo = inspected,
+        splits = listOf(
+            AppInstallPlan.Split(entryPath = "base.apk", stagedName = "base.apk", size = apk.file.length()),
+        ),
+        obbEntries = emptyList(),
+        warnings = emptyList(),
+        indexEntryCount = 1,
+    )
+
+    private fun stubBundleArchive() {
+        val entry = ArchiveEntryMeta(
+            segments = listOf("base.apk"),
+            rawName = "base.apk",
+            isDirectory = false,
+            size = apk.file.length(),
+            modifiedAt = null,
+        )
+        coEvery { archiveService.invalidate(any()) } returns Unit
+        coEvery { archiveService.index(any()) } returns ArchiveIndex(
+            container = apk,
+            format = ArchiveFormat.ZIP,
+            fingerprint = "fingerprint",
+            entriesBySegments = mapOf(entry.segments to entry),
+            childrenBySegments = emptyMap(),
+            skippedUnsafe = 0,
+            skippedSpecial = 0,
+        )
+        coEvery { archiveService.useEntryStreams(any(), any(), any()) } coAnswers {
+            val action = thirdArg<suspend (ArchiveEntryMeta, InputStream) -> Unit>()
+            apk.file.inputStream().use { action(entry, it) }
+        }
+    }
 
     @Test
     fun `root install runs create, write and commit in order`() = runTest2 {
@@ -291,6 +343,31 @@ class AppInstallerTest : BaseTest() {
         events.single().shouldBeInstanceOf<AppInstallEvent.Failure>()
             .error.shouldBeInstanceOf<AppInstallNoElevationException>()
         executed.isEmpty() shouldBe true
+    }
+
+    @Test
+    fun `a bundle whose staged base is not the inspected one is rejected`() = runTest2 {
+        stubBundleArchive()
+        val inspected = baseInfo(certSha256 = "aa")
+        coEvery { apkArchiveParser.parseFile(any(), any()) } returns baseInfo(certSha256 = "bb")
+
+        val events = installer().install(bundlePlan(inspected), AppInstaller.Mode.ROOT).toList()
+
+        events.last().shouldBeInstanceOf<AppInstallEvent.Failure>()
+            .error.shouldBeInstanceOf<AppInstallUnsupportedBundleException>()
+        // Rejected before a session exists, so nothing was ever handed to `pm`.
+        pmCommands().isEmpty() shouldBe true
+    }
+
+    @Test
+    fun `a bundle whose staged base is the inspected one installs`() = runTest2 {
+        stubBundleArchive()
+        val inspected = baseInfo(certSha256 = "aa")
+        coEvery { apkArchiveParser.parseFile(any(), any()) } returns inspected
+
+        val events = installer().install(bundlePlan(inspected), AppInstaller.Mode.ROOT).toList()
+
+        events.last().shouldBeInstanceOf<AppInstallEvent.Success>().viaMode shouldBe AppInstaller.Mode.ROOT
     }
 
     @Test
