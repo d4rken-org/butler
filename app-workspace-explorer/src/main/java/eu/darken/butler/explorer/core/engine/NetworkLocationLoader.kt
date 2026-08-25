@@ -1,11 +1,11 @@
 package eu.darken.butler.explorer.core.engine
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.Lan
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.compose.icons.SmbShare
 import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -87,7 +87,7 @@ class NetworkLocationLoader @AssistedInject constructor(
     private suspend fun SmbLocation.toItem(endpoint: SmbEndpointState) = ExplorerItem.Storage.Network(
         location = this,
         displayName = displayName,
-        displayIcon = Icons.TwoTone.Lan,
+        displayIcon = Icons.TwoTone.SmbShare,
         target = ExplorerNavigation.Target.Directory(rootPath),
         subtitle = endpointLabel.toCaString(),
         credentials = credentialStore.availability(this).first(),

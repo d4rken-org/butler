@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasText
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -74,7 +73,11 @@ class NetworkStorageItemTest : ComposeTest() {
         composeTestRule.onAllNodes(hasText(available.target.path.path)).fetchSemanticsNodes().size shouldBe 0
     }
 
-    /** The tile has no room for a label, so the badge is the icon in the top-right corner. */
+    /**
+     * The tile states the status in words next to its icon, so the wording is what is asserted here
+     * as in the row. The icons carry no content description of their own on purpose: they sit right
+     * beside that text, and describing both would have a screen reader announce it twice.
+     */
     @Test
     fun `the grid tile badges a location that needs a sign-in`() {
         composeTestRule.setContent {
@@ -85,6 +88,6 @@ class NetworkStorageItemTest : ComposeTest() {
             }
         }
 
-        composeTestRule.onNodeWithContentDescription("Sign-in required").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Sign-in required").assertIsDisplayed()
     }
 }

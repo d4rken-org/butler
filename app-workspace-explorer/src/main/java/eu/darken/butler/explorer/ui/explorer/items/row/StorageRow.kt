@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Block
-import androidx.compose.material.icons.twotone.CloudOff
 import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material.icons.twotone.Lock
 import androidx.compose.material.icons.twotone.Visibility
@@ -24,12 +23,13 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.icons.NetworkOffline
+import eu.darken.butler.common.compose.icons.NetworkOnline
 import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
 import eu.darken.butler.common.files.saf.location.SAFLocation
 import eu.darken.butler.common.files.smb.SmbEndpointState
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
-import eu.darken.butler.explorer.ui.explorer.items.endpointLabel
 import eu.darken.butler.explorer.ui.explorer.items.statusLabel
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
@@ -75,10 +75,7 @@ fun StorageRow(
         },
         primaryText = item.displayName.get(context),
         // A network path is a UUID, the location's own subtitle is what identifies it to the user.
-        secondaryText = when (item) {
-            is ExplorerItem.Storage.Network -> item.endpointLabel(context)
-            else -> item.subtitle?.get(context) ?: item.target.path.path
-        },
+        secondaryText = item.subtitle?.get(context) ?: item.target.path.path,
         tertiaryText = run {
             val totalBytes = item.totalBytes
             val availableBytes = item.availableBytes
@@ -99,13 +96,19 @@ fun StorageRow(
                 else -> null
             }
         },
+        // Only a state worth acting on gets colour; "Available" is the normal case and stays muted.
+        tertiaryColor = when {
+            item !is ExplorerItem.Storage.Network -> null
+            item.hasIssue -> MaterialTheme.colorScheme.error
+            else -> null
+        },
         trailingContent = when {
             item is ExplorerItem.Storage.SAF -> {
                 { PermissionIndicator(item.location) }
             }
 
-            item is ExplorerItem.Storage.Network && item.hasIssue -> {
-                { NetworkIssueIndicator(item) }
+            item is ExplorerItem.Storage.Network -> {
+                { NetworkStatusIndicator(item) }
             }
 
             else -> null
@@ -113,8 +116,9 @@ fun StorageRow(
     )
 }
 
+/** Nothing is drawn while the probe is still checking, so the row does not flash a wrong verdict. */
 @Composable
-private fun NetworkIssueIndicator(item: ExplorerItem.Storage.Network) {
+private fun NetworkStatusIndicator(item: ExplorerItem.Storage.Network) {
     Row(
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -126,11 +130,20 @@ private fun NetworkIssueIndicator(item: ExplorerItem.Storage.Network) {
                 modifier = Modifier.size(18.dp),
             )
         }
-        if (item.endpoint.reachability == SmbEndpointState.Reachability.UNREACHABLE) {
-            Icon(
-                imageVector = Icons.TwoTone.CloudOff,
-                contentDescription = stringResource(R.string.explorer_network_status_unavailable_label),
+        when (item.endpoint.reachability) {
+            SmbEndpointState.Reachability.CHECKING -> Unit
+
+            SmbEndpointState.Reachability.REACHABLE -> Icon(
+                imageVector = Icons.TwoTone.NetworkOnline,
+                contentDescription = stringResource(R.string.explorer_network_status_available_label),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(18.dp),
+            )
+
+            SmbEndpointState.Reachability.UNREACHABLE -> Icon(
+                imageVector = Icons.TwoTone.NetworkOffline,
+                contentDescription = stringResource(R.string.explorer_network_status_unavailable_label),
+                tint = MaterialTheme.colorScheme.error,
                 modifier = Modifier.size(18.dp),
             )
         }
