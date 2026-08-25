@@ -12,6 +12,7 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.common.pkgs.installer.AppInstallEvent
 import eu.darken.butler.common.pkgs.installer.AppInstallPlan
 import eu.darken.butler.common.pkgs.installer.AppInstaller
@@ -69,6 +70,11 @@ class AppInstallOperation @AssistedInject constructor(
                 )
 
                 is AppInstallEvent.ObbFailed -> events.emit(event)
+                // Waiting rather than a bespoke notification: it is what the operations framework
+                // already alerts about, and its issue is what offers the dialog again.
+                is AppInstallEvent.ConfirmationRequired -> send(
+                    WaitingState(startedAt = operationContext.startedAt, issue = event.issue)
+                )
                 is AppInstallEvent.Success -> terminal = event
                 is AppInstallEvent.Failure -> terminal = event
             }
@@ -123,6 +129,14 @@ class AppInstallOperation @AssistedInject constructor(
         ),
         override val secondaryProgress: Progress.Data? = null,
     ) : Operation.State.Active
+
+    private data class WaitingState(
+        override val startedAt: Instant,
+        override val waitingSince: Instant = Clock.System.now(),
+        override val issue: Issue,
+    ) : Operation.State.Waiting {
+        override val reason: CaString get() = issue.title
+    }
 
     private data class CompletedState(
         override val startedAt: Instant,

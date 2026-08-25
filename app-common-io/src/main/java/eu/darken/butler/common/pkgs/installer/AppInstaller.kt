@@ -902,7 +902,7 @@ class AppInstaller @Inject constructor(
                         total = staged.size.toLong(),
                     )
                 )
-                commitAndAwait(installer, session, sessionId, requestId)
+                commitAndAwait(installer, session, sessionId, requestId, plan, send)
             }
             succeeded = true
         } finally {
@@ -923,6 +923,8 @@ class AppInstaller @Inject constructor(
         session: PackageInstaller.Session,
         sessionId: Int,
         requestId: String,
+        plan: AppInstallPlan,
+        send: suspend (AppInstallEvent) -> Unit,
     ) = coroutineScope {
         val statuses = Channel<AppInstallStatusRelay.Status>(Channel.BUFFERED)
         // UNDISPATCHED so the collector is registered before commit() can produce a callback.
@@ -940,7 +942,23 @@ class AppInstaller @Inject constructor(
                     PackageInstaller.STATUS_PENDING_USER_ACTION -> {
                         val confirm = status.userAction
                             ?: throw AppInstallSessionException("No install confirmation was offered")
-                        context.startActivity(confirm.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                        confirm.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        // Android drops an activity started by a backgrounded app and nothing
+                        // re-sends this one, so the run has to keep a way back to it: without one
+                        // the session sits open until the wait gives up, on every attempt.
+                        send(
+                            AppInstallEvent.ConfirmationRequired(
+                                AppInstallConfirmationIssue(
+                                    label = plan.baseInfo?.label ?: plan.pkgId?.name,
+                                    confirmIntent = confirm,
+                                )
+                            )
+                        )
+                        try {
+                            context.startActivity(confirm)
+                        } catch (e: Exception) {
+                            log(TAG, WARN) { "Confirmation could not be shown right now: ${e.asLog()}" }
+                        }
                     }
 
                     else -> throw AppInstallSessionException(
