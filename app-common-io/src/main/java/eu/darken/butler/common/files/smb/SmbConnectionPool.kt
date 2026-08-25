@@ -132,7 +132,8 @@ class SmbConnectionPool @Inject constructor(
         val key = Key(locationId, location.credentialVersion)
 
         repeat(CONNECT_ATTEMPTS) {
-            val generation = lock.withLock {
+            var displaced: Generation? = null
+            val reused = lock.withLock {
                 // The share has to be checked too: smbj closes every share before the transport
                 // reports itself gone, so a connection that still says "connected" can already be
                 // handing out a closed share.
@@ -144,14 +145,18 @@ class SmbConnectionPool @Inject constructor(
                     // The key only covers the credential generation, so an edited host, port, share,
                     // base path or domain would otherwise keep being served from the old endpoint.
                     !cached.location.hasSameEndpoint(location) -> {
-                        generations.remove(key)
-                        markStale(cached)
+                        displaced = generations.remove(key)
                         null
                     }
 
                     else -> cached.takeIf { lease(it) }
                 }
-            } ?: connect(location, key)
+            }
+            // Closing a dead session sits in the socket timeout, doing that under the pool-wide lock
+            // would stall every other location too.
+            displaced?.let { markStale(it) }
+
+            val generation = reused ?: connect(location, key)
 
             if (generation != null) {
                 return Lease(generation.location, generation.share) { release(generation) }
@@ -226,7 +231,9 @@ class SmbConnectionPool @Inject constructor(
 
         log(TAG, INFO) { "Connected to $endpoint (credential generation ${key.credentialVersion})" }
 
-        return lock.withLock {
+        var redundant: Generation? = null
+        var displaced: Generation? = null
+        val leased = lock.withLock {
             // The endpoint check matters as much as in acquire(): a caller that connected to the old
             // endpoint may publish while an edited location is already being connected to.
             val existing = generations[key]?.takeIf {
@@ -237,14 +244,19 @@ class SmbConnectionPool @Inject constructor(
             }
             if (existing != null) {
                 // Raced another caller onto the same endpoint, keep theirs
-                closeQuietly(fresh)
+                redundant = fresh
                 existing.takeIf { lease(it) }
             } else {
-                generations.remove(key)?.let { markStale(it) }
+                displaced = generations.remove(key)
                 generations[key] = fresh
                 fresh.takeIf { lease(it) }
             }
         }
+        // Same reason as in acquire(): a session whose server stopped answering takes the full socket
+        // timeout to close, so it is disposed of with the lock already released.
+        redundant?.let { closeQuietly(it) }
+        displaced?.let { markStale(it) }
+        return leased
     }
 
     /** Everything the session is bound to that [Key] does not cover. */
