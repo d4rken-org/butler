@@ -46,6 +46,7 @@ import eu.darken.butler.common.files.toCaString
 import eu.darken.butler.common.DateTimeStyle
 import eu.darken.butler.common.formatDateTime
 import eu.darken.butler.common.formatFileSize
+import eu.darken.butler.common.rememberMinuteTick
 import eu.darken.butler.common.theming.success
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
@@ -411,7 +412,7 @@ private fun NetworkStorageInfo(
                     label = stringResource(R.string.explorer_info_network_status_label),
                     // Same wording as the row in the list, so a credential problem still outranks
                     // reachability instead of reading "Available" next to a red row.
-                    value = item.statusLabel(context),
+                    value = item.statusLabel(context, rememberMinuteTick()),
                     valueColor = when {
                         item.hasIssue -> MaterialTheme.colorScheme.error
                         item.endpoint.reachability == SmbEndpointState.Reachability.REACHABLE -> {
@@ -566,6 +567,13 @@ private fun NetworkStorageInfo(
         InfoField(
             label = stringResource(R.string.explorer_info_network_updated_label),
             value = formatDateTime(location.updatedAt, DateTimeStyle.DETAILED),
+        )
+
+        InfoField(
+            label = stringResource(R.string.explorer_info_network_last_seen_label),
+            value = location.lastSeenAt
+                ?.let { formatDateTime(it, DateTimeStyle.DETAILED) }
+                ?: stringResource(R.string.explorer_info_network_last_seen_never),
         )
     }
 }

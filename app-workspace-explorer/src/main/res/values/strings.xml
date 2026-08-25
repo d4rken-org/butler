@@ -134,6 +134,8 @@
     <string name="explorer_info_network_password_locked">Stored, but this device cannot unlock it</string>
     <string name="explorer_info_network_added_label">Added</string>
     <string name="explorer_info_network_updated_label">Updated</string>
+    <string name="explorer_info_network_last_seen_label">Last seen</string>
+    <string name="explorer_info_network_last_seen_never">Never</string>
 
     <!-- Multiple Items Info -->
     <string name="explorer_info_selected_label">Selected</string>
@@ -266,6 +268,7 @@
     <string name="explorer_network_status_checking_label">Checking…</string>
     <string name="explorer_network_status_available_label">Available</string>
     <string name="explorer_network_status_unavailable_label">Unavailable</string>
+    <string name="explorer_network_status_unavailable_since_format">Unavailable (%1$s)</string>
     <string name="explorer_network_empty_title">No network storage yet</string>
     <string name="explorer_network_empty_caption">Add a Windows share or NAS folder to browse it here.</string>
     <string name="explorer_network_remove_confirmation_title">Remove network storage?</string>

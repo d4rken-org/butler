@@ -559,6 +559,7 @@ object MockDataProvider {
         endpoint: SmbEndpointState = SmbEndpointState(),
         username: String? = "hoffmann",
         domain: String? = null,
+        lastSeenAt: Instant? = null,
     ): ExplorerItem.Storage.Network {
         val location = SmbLocation(
             id = id,
@@ -572,6 +573,7 @@ object MockDataProvider {
             credentialVersion = 1,
             createdAt = MockTimes.daysAgo(7),
             updatedAt = MockTimes.daysAgo(7),
+            lastSeenAt = lastSeenAt,
         )
         return ExplorerItem.Storage.Network(
             location = location,
