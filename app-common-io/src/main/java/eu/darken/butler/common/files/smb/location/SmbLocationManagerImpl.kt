@@ -118,32 +118,38 @@ class SmbLocationManagerImpl @Inject constructor(
             rememberCredential = rememberCredential,
             credentialVersion = if (credentialChanged) existing.credentialVersion + 1 else existing.credentialVersion,
             updatedAt = Clock.System.now(),
-            // A different server was never seen at all, whatever the old one answered says nothing
-            // about it. Everything else - a new label, a new password - keeps the timestamp.
-            lastSeenAt = existing.lastSeenAt.takeIf { host == existing.host && port == existing.port },
         )
         log(TAG, INFO) { "update(): $updated" }
 
-        when (updated.authType) {
+        // The row is written whole, and a reachability probe can record a sighting through markSeen
+        // while the credential above is still being encrypted, so the timestamp is read as late as
+        // possible. A different server was never seen at all, whatever the old one answered says
+        // nothing about it. Everything else - a new label, a new password - keeps the timestamp.
+        suspend fun storeRow(): SmbLocation = updated
+            .copy(lastSeenAt = dao.get(id)?.lastSeenAt.takeIf { host == existing.host && port == existing.port })
+            .also { dao.upsert(it.toEntity()) }
+
+        val stored = when (updated.authType) {
             // A credential has to exist before the row pointing at it, or a failed write leaves a
             // location nobody can sign in to.
             SmbLocation.AuthType.PASSWORD -> {
                 if (credentialChanged) writeCredential(updated, password)
-                dao.upsert(updated.toEntity())
+                storeRow()
             }
             // Guest is the other way round: the row that stops referring to the credential goes
             // first, so a failed write keeps the password location signed in. An interrupted
             // cleanup is what reconcile() drops.
             SmbLocation.AuthType.GUEST -> {
-                dao.upsert(updated.toEntity())
+                val row = storeRow()
                 if (credentialChanged) writeCredential(updated, password)
+                row
             }
         }
         // Only now is the predecessor unreachable: until the row above committed, it was the
         // generation the location still pointed at.
         credentialStore.dropOtherGenerations(updated.id, updated.credentialVersion)
 
-        return updated
+        return stored
     }
 
     override suspend fun delete(id: Uuid) {
