@@ -6,7 +6,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Handyman
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
+import androidx.compose.ui.test.onAllNodes
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -23,8 +28,9 @@ import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
 
 /**
- * Bounds only: Robolectric measures text at a fixed 20px height and 1px per character, so anything
- * about how a value wraps or ellipsizes would pass regardless of the layout. Positions are sound.
+ * Layout assertions here are bounds only: Robolectric measures text at a fixed 20px height and 1px
+ * per character, so anything about how a value wraps or ellipsizes would pass regardless of the
+ * layout. Positions are sound.
  */
 class OperationOverviewSectionTest : ComposeTest() {
 
@@ -86,5 +92,14 @@ class OperationOverviewSectionTest : ComposeTest() {
                 (first.bottom <= second.top || second.bottom <= first.top) shouldBe true
             }
         }
+    }
+
+    @Test
+    fun `the state icon is decorative and claims no touch target`() {
+        renderAt(OverviewPairingMinWidth + 80.dp)
+
+        composeTestRule
+            .onAllNodes(SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Button))
+            .assertCountEquals(0)
     }
 }
