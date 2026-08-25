@@ -89,6 +89,9 @@ class AppInstaller @Inject constructor(
     /** Expansion partials some install is filling right now, so no sweep mistakes them for scratch. */
     private val activeObbPartials: MutableSet<String> = ConcurrentHashMap.newKeySet()
 
+    /** Staging directory names some install is still using, for the same reason. */
+    private val activeStagingNames: MutableSet<String> = ConcurrentHashMap.newKeySet()
+
     suspend fun hasElevation(): Boolean = rootManager.canUseRootNow() || adbManager.canUseAdbNow()
 
     /** False while Butler is not an authorized install source; [unknownSourcesSettings] fixes that. */
@@ -195,6 +198,8 @@ class AppInstaller @Inject constructor(
      */
     private inner class Staging(
         val mode: Mode,
+        /** Names the directory this staging owns, and what a concurrent run's sweep skips. */
+        val name: String,
         val localDir: File?,
         val shellDir: LocalPath?,
     ) {
@@ -486,17 +491,29 @@ class AppInstaller @Inject constructor(
 
         suspend fun discard() {
             obbPartials.toList().forEach { if (deleteQuietly(it.path)) forget(it) }
-            localDir?.let {
-                if (!it.deleteRecursively() && it.exists()) {
-                    throw AppInstallSessionException("Cannot remove staging $it")
+            try {
+                localDir?.let {
+                    if (!it.deleteRecursively() && it.exists()) {
+                        throw AppInstallSessionException("Cannot remove staging $it")
+                    }
                 }
-            }
-            shellDir?.let { dir ->
-                val shellMode = if (mode == Mode.ROOT) ShellOps.Mode.ROOT else ShellOps.Mode.ADB
-                val result = shellOps.execute(ShellOpsCmd("rm -rf ${quote(dir.path)}"), shellMode)
-                if (!result.isSuccess) {
-                    throw AppInstallSessionException("Cannot remove staging $dir: ${result.failureText()}")
+                shellDir?.let { dir ->
+                    val shellMode = if (mode == Mode.ROOT) ShellOps.Mode.ROOT else ShellOps.Mode.ADB
+                    val result = shellOps.execute(ShellOpsCmd("rm -rf ${quote(dir.path)}"), shellMode)
+                    if (!result.isSuccess) {
+                        throw AppInstallSessionException("Cannot remove staging $dir: ${result.failureText()}")
+                    }
                 }
+            } catch (e: Throwable) {
+                // Scratch this run could not remove has to stay sweepable: the flag is what stops
+                // every later run in this process from looking for it at all.
+                if (localDir != null) localSwept.set(false)
+                if (shellDir != null) shellSwept.set(false)
+                throw e
+            } finally {
+                // Even when removal failed: what is left is nobody's any more, and a name that stays
+                // registered is one no sweep would ever pick up.
+                activeStagingNames.remove(name)
             }
         }
 
@@ -536,14 +553,23 @@ class AppInstaller @Inject constructor(
      * scratch nobody is responsible for.
      */
     private suspend fun openStaging(mode: Mode): Staging {
-        val staging = if (mode == Mode.ADB) {
-            sweepShellStaging()
-            Staging(mode, localDir = null, shellDir = LocalPath.build(SHELL_STAGING_ROOT, Uuid.random().toString()))
-        } else {
-            sweepLocalStaging()
-            val root = context.cacheDir?.let { File(it, LOCAL_STAGING_DIRNAME) }
-                ?: throw AppInstallSessionException("No cache directory available for staging")
-            Staging(mode, localDir = File(root, Uuid.random().toString()), shellDir = null)
+        // Registered before the sweep can list it: a sweep removes the whole staging root minus what
+        // is in use, and an install starting while another is extracting must not take its directory.
+        val name = Uuid.random().toString()
+        activeStagingNames += name
+        val staging = try {
+            if (mode == Mode.ADB) {
+                sweepShellStaging()
+                Staging(mode, name, localDir = null, shellDir = LocalPath.build(SHELL_STAGING_ROOT, name))
+            } else {
+                sweepLocalStaging()
+                val root = context.cacheDir?.let { File(it, LOCAL_STAGING_DIRNAME) }
+                    ?: throw AppInstallSessionException("No cache directory available for staging")
+                Staging(mode, name, localDir = File(root, name), shellDir = null)
+            }
+        } catch (e: Throwable) {
+            activeStagingNames.remove(name)
+            throw e
         }
         try {
             staging.create()
@@ -554,14 +580,22 @@ class AppInstaller @Inject constructor(
         return staging
     }
 
-    /** Sweeps scratch left behind by a crashed run. Once per process, before anything is created. */
+    /**
+     * Sweeps scratch left behind by a crashed run. Once per process, before anything is created, and
+     * child by child rather than the root as a whole: the root also holds the staging of every
+     * install that is extracting right now.
+     */
     private suspend fun sweepLocalStaging() {
         if (localSwept.get()) return
         sweepMutex.withLock {
             if (localSwept.get()) return
             val root = context.cacheDir?.let { File(it, LOCAL_STAGING_DIRNAME) }
             val swept = try {
-                root?.listFiles()?.all { it.deleteRecursively() } ?: true
+                root?.listFiles()
+                    ?.filter { it.name !in activeStagingNames }
+                    ?.map { it.deleteRecursively() }
+                    ?.all { it }
+                    ?: true
             } catch (e: Exception) {
                 log(TAG, WARN) { "Failed to sweep local staging: ${e.asLog()}" }
                 false
@@ -576,17 +610,29 @@ class AppInstaller @Inject constructor(
         if (shellSwept.get()) return
         sweepMutex.withLock {
             if (shellSwept.get()) return
-            val result = try {
-                shellOps.execute(ShellOpsCmd("rm -rf ${quote(SHELL_STAGING_ROOT)}"), ShellOps.Mode.ADB)
+            val root = LocalPath.build(SHELL_STAGING_ROOT)
+            val swept = try {
+                when {
+                    !gatewaySwitch.exists(root) -> true
+                    else -> gatewaySwitch.listFiles(root)
+                        .filter { it.name !in activeStagingNames }
+                        .map { child ->
+                            val removal = shellOps.execute(
+                                ShellOpsCmd("rm -rf ${quote(child.path)}"),
+                                ShellOps.Mode.ADB,
+                            )
+                            if (!removal.isSuccess) {
+                                log(TAG, WARN) { "Failed to sweep $child: ${removal.failureText()}" }
+                            }
+                            removal.isSuccess
+                        }
+                        .all { it }
+                }
             } catch (e: Exception) {
                 log(TAG, WARN) { "Failed to sweep shell staging: ${e.asLog()}" }
-                return
+                false
             }
-            if (!result.isSuccess) {
-                log(TAG, WARN) { "Failed to sweep shell staging: ${result.failureText()}" }
-                return
-            }
-            shellSwept.set(true)
+            if (swept) shellSwept.set(true)
         }
     }
 
