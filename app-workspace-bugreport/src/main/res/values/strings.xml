@@ -11,6 +11,7 @@
     <string name="bugreport_type_recording">Recording</string>
 
     <string name="bugreport_record_action">Record debug log</string>
+    <string name="bugreport_record_short_action">Record</string>
     <string name="bugreport_stop_action">Stop recording</string>
     <string name="bugreport_stop_short_action">Stop</string>
     <string name="bugreport_recording_ongoing_label">Recording…</string>

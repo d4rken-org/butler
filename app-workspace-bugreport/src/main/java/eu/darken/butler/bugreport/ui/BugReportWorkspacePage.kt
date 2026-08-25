@@ -11,11 +11,9 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -37,13 +35,16 @@ import androidx.compose.material.icons.twotone.Stop
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -55,6 +56,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -81,7 +84,7 @@ import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
 import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
-import eu.darken.butler.workspace.ui.insets.paneInsets
+import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarContentPadding
 import eu.darken.butler.workspace.ui.insets.rememberPaneFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonDefaults
@@ -161,9 +164,6 @@ fun BugReportWorkspacePage(
         return
     }
 
-    val paneInsets = design.paneInsets()
-    val navBarInset = paneInsets.bottom
-
     val topBarStackState = rememberPaneFloatingBarStackState(
         position = BarPosition.TOP,
         defaultSpacing = 8.dp,
@@ -171,6 +171,21 @@ fun BugReportWorkspacePage(
         contentPadding = 8.dp,
         design = design,
         estimatedContentPadding = 112.dp,
+    )
+    val bottomBarStackState = rememberPaneFloatingBarStackState(
+        position = BarPosition.BOTTOM,
+        workspaceId = state.id,
+        design = design,
+        defaultSpacing = 8.dp,
+        edgePadding = 8.dp,
+        contentPadding = 16.dp,
+        estimatedContentPadding = 80.dp,
+    )
+    val listContentPadding = rememberFloatingBarContentPadding(
+        topBarStackState,
+        bottomBarStackState,
+        start = WorkspacePaddings.ContentHorizontal,
+        end = WorkspacePaddings.ContentHorizontal,
     )
 
     // The ongoing recording is represented by the toolbar's recording row, never as a list card —
@@ -182,19 +197,17 @@ fun BugReportWorkspacePage(
             EmptyState(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(top = topBarStackState.contentPaddingDp()),
+                    .padding(
+                        top = topBarStackState.contentPaddingDp(),
+                        bottom = bottomBarStackState.contentPaddingDp(),
+                    ),
             )
         } else {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .nestedScroll(topBarStackState.nestedScrollConnection),
-                contentPadding = PaddingValues(
-                    start = WorkspacePaddings.ContentHorizontal,
-                    end = WorkspacePaddings.ContentHorizontal,
-                    top = topBarStackState.contentPaddingDp(),
-                    bottom = navBarInset + 16.dp,
-                ),
+                contentPadding = listContentPadding,
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 items(listReports, key = { it.id }) { info ->
@@ -230,10 +243,33 @@ fun BugReportWorkspacePage(
                         recordingStartedAt = state.recordingStartedAt,
                         recordingLogSize = state.recordingLogSize,
                         isCollapsed = collapsedFraction > 0.5f,
-                        onStartRecording = onStartRecording,
                         onStopRecording = onStopRecording,
                         onDeleteAll = onDeleteAll,
                     )
+                }
+            },
+        )
+
+        FloatingBarStack(
+            state = bottomBarStackState,
+            position = BarPosition.BOTTOM,
+            modifier = Modifier.align(Alignment.BottomCenter),
+            bars = {
+                // Static: the toolbar's recording controls disappear on scroll-collapse, so this is
+                // the only in-pane stop control that is guaranteed to be reachable.
+                FloatingBar(
+                    key = "record",
+                    visible = true,
+                    scrollBehavior = BarScrollBehavior.Static,
+                    estimatedHeight = 56.dp,
+                ) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                        RecordButton(
+                            isRecording = state.isRecording,
+                            onStartRecording = onStartRecording,
+                            onStopRecording = onStopRecording,
+                        )
+                    }
                 }
             },
         )
@@ -249,7 +285,6 @@ private fun BugReportToolbarCard(
     recordingStartedAt: Long,
     recordingLogSize: Long,
     isCollapsed: Boolean,
-    onStartRecording: () -> Unit,
     onStopRecording: () -> Unit,
     onDeleteAll: () -> Unit,
 ) {
@@ -322,22 +357,6 @@ private fun BugReportToolbarCard(
                         fontFamily = FontFamily.Monospace,
                         modifier = Modifier.weight(1f),
                     )
-                    // Compact Stop as a plain clickable box (not IconButton, which would enforce a
-                    // 48dp minimum interactive size and keep the collapsed bar taller than the 40dp
-                    // workspace button). Matches WorkspaceButton's own compact tap target.
-                    Box(
-                        modifier = Modifier
-                            .size(WorkspaceButtonDefaults.sizeCompact)
-                            .clip(CircleShape)
-                            .clickable(onClick = onStopRecording),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(
-                            imageVector = Icons.TwoTone.Stop,
-                            contentDescription = stringResource(R.string.bugreport_stop_action),
-                            tint = MaterialTheme.colorScheme.error,
-                        )
-                    }
                 } else {
                     Icon(
                         imageVector = Workspace.Type.BUG_REPORT.icon,
@@ -351,15 +370,6 @@ private fun BugReportToolbarCard(
                         style = MaterialTheme.typography.titleSmall,
                         modifier = Modifier.weight(1f),
                     )
-                    if (!isCollapsed && !isRecording) {
-                        IconButton(onClick = onStartRecording) {
-                            Icon(
-                                imageVector = Icons.TwoTone.FiberManualRecord,
-                                contentDescription = stringResource(R.string.bugreport_record_action),
-                                tint = MaterialTheme.colorScheme.error,
-                            )
-                        }
-                    }
                     if (!isCollapsed && hasReports) {
                         IconButton(onClick = onDeleteAll) {
                             Icon(
@@ -385,6 +395,72 @@ private fun BugReportToolbarCard(
                 )
             }
         }
+    }
+}
+
+/**
+ * Starts/stops a recording from the bottom bar. The error tint only appears while recording, so an
+ * otherwise empty screen isn't dominated by a red pill.
+ *
+ * The content description uses the long-form strings ("Record debug log" / "Stop recording"): the
+ * visible label is a bare "Record"/"Stop", and the toolbar's recording row renders a "Stop" of its
+ * own, so visible text alone identifies neither for a screen reader nor for a test.
+ */
+@Composable
+private fun RecordButton(
+    modifier: Modifier = Modifier,
+    isRecording: Boolean,
+    onStartRecording: () -> Unit,
+    onStopRecording: () -> Unit,
+) {
+    val description = stringResource(
+        if (isRecording) R.string.bugreport_stop_action else R.string.bugreport_record_action,
+    )
+    val defaultContainerColor = FloatingActionButtonDefaults.containerColor
+    val containerColor = if (isRecording) MaterialTheme.colorScheme.errorContainer else defaultContainerColor
+    ExtendedFloatingActionButton(
+        onClick = if (isRecording) onStopRecording else onStartRecording,
+        modifier = modifier.semantics { contentDescription = description },
+        containerColor = containerColor,
+        contentColor = if (isRecording) {
+            MaterialTheme.colorScheme.onErrorContainer
+        } else {
+            contentColorFor(defaultContainerColor)
+        },
+        icon = {
+            if (isRecording) {
+                Icon(imageVector = Icons.TwoTone.Stop, contentDescription = null)
+            } else {
+                Icon(
+                    imageVector = Icons.TwoTone.FiberManualRecord,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error,
+                )
+            }
+        },
+        text = {
+            Text(
+                stringResource(
+                    if (isRecording) R.string.bugreport_stop_short_action else R.string.bugreport_record_short_action,
+                ),
+            )
+        },
+    )
+}
+
+@Preview2
+@Composable
+private fun RecordButtonIdlePreview() {
+    PreviewWrapper {
+        RecordButton(isRecording = false, onStartRecording = {}, onStopRecording = {})
+    }
+}
+
+@Preview2
+@Composable
+private fun RecordButtonRecordingPreview() {
+    PreviewWrapper {
+        RecordButton(isRecording = true, onStartRecording = {}, onStopRecording = {})
     }
 }
 
