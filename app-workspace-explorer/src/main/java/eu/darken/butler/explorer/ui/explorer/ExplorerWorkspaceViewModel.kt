@@ -1499,12 +1499,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         networkRevealJob?.cancel()
         dialogs.updateSingleNetwork(locationId) { it.copy(isRevealing = true) }
         networkRevealJob = vmScope.launch {
-            var revealed: RevealedPassword? = null
-            try {
+            val revealed = try {
                 val location = smbLocationManager.get(locationId)
-                if (location != null) {
-                    revealed = withContext(dispatchers.IO) {
-                        val credential = smbCredentialStore.resolve(location)
+                location?.let {
+                    withContext(dispatchers.IO) {
+                        val credential = smbCredentialStore.resolve(it)
                         try {
                             RevealedPassword(String(credential.password))
                         } finally {
@@ -1512,9 +1511,19 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                         }
                     }
                 }
+            } catch (e: CancellationException) {
+                // The sheet this belonged to has moved on, and its button went with it.
+                throw e
             } catch (e: SmbCredentialUnavailableException) {
                 // No toast: the field itself already states that the vault has nothing to produce.
                 log(tag, WARN) { "onRevealNetworkPassword(): Nothing to reveal: ${e.asLog()}" }
+                null
+            } catch (e: Exception) {
+                // An unusable keystore key - a changed screen lock - or a failed read, while the
+                // field still says the password is there. That needs saying, unlike the case above.
+                log(tag, ERROR) { "onRevealNetworkPassword(): Failed to reveal: ${e.asLog()}" }
+                errorEvents.emit(e)
+                null
             }
             dialogs.updateSingleNetwork(locationId) { it.copy(revealed = revealed, isRevealing = false) }
         }
