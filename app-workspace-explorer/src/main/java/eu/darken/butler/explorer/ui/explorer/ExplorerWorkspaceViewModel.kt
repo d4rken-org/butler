@@ -496,17 +496,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    /**
-     * Compares two item lists by ID and type, allowing phase transitions
-     * (Peek → Lookup) while filtering same-phase duplicates.
-     */
-    private fun List<ExplorerItem>?.hasSameItemsAs(other: List<ExplorerItem>?): Boolean {
-        if (this === other) return true
-        if (this == null || other == null) return false
-        if (size != other.size) return false
-        return zip(other).all { (a, b) -> a.id == b.id && a::class == b::class }
-    }
-
     // Sorted/filtered items, shared to prevent duplicate processing
     private val processedItemsFlow: Flow<List<ExplorerItem>?> = combineMany(
         workspaceReadyState
@@ -1076,13 +1065,18 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 val selectedItem = selection.selectedItems.value
                     .filterIsInstance<ExplorerItem.Storage.Network>()
                     .single()
-                smbLocations.showEditForm(selectedItem.location)
+                smbLocations.showEditForm(selectedItem.location.id)
             }
             is ExplorerActionBarItem.Network.RenameLocation -> {
                 val selectedItem = selection.selectedItems.value
                     .filterIsInstance<ExplorerItem.Storage.Network>()
                     .single()
-                smbLocations.showRenameDialog(selectedItem)
+                // The selection holds the row as it was drawn, the listing holds the current name.
+                val current = stateSnap.currentLocation?.items
+                    ?.filterIsInstance<ExplorerItem.Storage.Network>()
+                    ?.firstOrNull { it.id == selectedItem.id }
+                    ?: selectedItem
+                smbLocations.showRenameDialog(current)
             }
             is ExplorerActionBarItem.Network.RemoveLocation -> {
                 val selectedItems = selection.selectedItems.value
@@ -2023,6 +2017,28 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     companion object {
         private const val NAVIGATION_AWAIT_MS = 5_000L
+    }
+}
+
+/**
+ * Whether two listings would render the same, i.e. whether the newer one can be dropped.
+ *
+ * Lookups are compared by id and type, which lets a phase transition (Peek to Lookup) through while
+ * filtering same-phase duplicates. A storage row instead carries its whole presentation - name,
+ * status, address - in its own fields, so those are compared in full: by id alone a renamed or
+ * re-probed location would keep rendering its old row.
+ *
+ * Top-level for the same reason as `applyFavoritePriority`: unit-testable without VM scaffolding.
+ */
+internal fun List<ExplorerItem>?.hasSameItemsAs(other: List<ExplorerItem>?): Boolean {
+    if (this === other) return true
+    if (this == null || other == null) return false
+    if (size != other.size) return false
+    return zip(other).all { (a, b) ->
+        when {
+            a is ExplorerItem.Storage || b is ExplorerItem.Storage -> a == b
+            else -> a.id == b.id && a::class == b::class
+        }
     }
 }
 
