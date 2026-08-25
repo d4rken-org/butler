@@ -122,7 +122,19 @@ sealed interface ExplorerDialogState {
                 val item: ExplorerItem.Storage.Network? = null,
                 val revealed: RevealedPassword? = null,
                 val isRevealing: Boolean = false,
-            ) : InfoContext
+                val capacity: Capacity? = null,
+            ) : InfoContext {
+
+                /**
+                 * How full the share is. Null means it was never asked for, because there is
+                 * nothing to sign in with or nothing to reach.
+                 */
+                sealed interface Capacity {
+                    data object Loading : Capacity
+                    data object Unavailable : Capacity
+                    data class Data(val totalBytes: Long, val freeBytes: Long) : Capacity
+                }
+            }
 
             data class MultipleItems(
                 val selectedItems: List<ExplorerItem>,

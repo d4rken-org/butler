@@ -149,6 +149,7 @@ private fun ItemInfoContent(
                         item = item,
                         revealed = context.revealed,
                         isRevealing = context.isRevealing,
+                        capacity = context.capacity,
                         onCopyToClipboard = onCopyToClipboard,
                         onRevealPassword = { onRevealPassword(context.locationId) },
                         onHidePassword = { onHidePassword(context.locationId) },
@@ -367,6 +368,7 @@ private fun NetworkStorageInfo(
     item: ExplorerItem.Storage.Network,
     revealed: RevealedPassword?,
     isRevealing: Boolean,
+    capacity: ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork.Capacity?,
     onCopyToClipboard: (String) -> Unit,
     onRevealPassword: () -> Unit,
     onHidePassword: () -> Unit,
@@ -435,6 +437,33 @@ private fun NetworkStorageInfo(
                 value = location.basePath.joinToString("/"),
                 valueStyle = InfoValueStyle.MONOSPACE,
             )
+        }
+
+        // Same four labels as a local storage sheet, so the two read alike.
+        if (capacity is ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork.Capacity.Data) {
+            InfoField(
+                label = stringResource(R.string.explorer_info_total_capacity_label),
+                value = formatFileSize(capacity.totalBytes),
+            )
+
+            InfoField(
+                label = stringResource(R.string.explorer_info_free_space_label),
+                value = formatFileSize(capacity.freeBytes),
+            )
+
+            InfoField(
+                label = stringResource(R.string.explorer_info_used_space_label),
+                value = formatFileSize(capacity.totalBytes - capacity.freeBytes),
+            )
+
+            if (capacity.totalBytes > 0L) {
+                val percentage = ((capacity.totalBytes - capacity.freeBytes).toDouble() /
+                    capacity.totalBytes * 100).toInt()
+                InfoField(
+                    label = stringResource(R.string.explorer_info_usage_label),
+                    value = "$percentage%",
+                )
+            }
         }
     }
 
@@ -742,6 +771,28 @@ private fun ItemInfoBottomSheetPreviewNetworkReachable() {
 
     ItemInfoBottomSheet(
         context = ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork(item.location.id, item),
+        onDismiss = {},
+        onCopyToClipboard = {}
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ItemInfoBottomSheetPreviewNetworkWithCapacity() {
+    val item = MockDataProvider.createMockStorageNetwork(
+        endpoint = SmbEndpointState("192.168.1.50", SmbEndpointState.Reachability.REACHABLE),
+    )
+
+    ItemInfoBottomSheet(
+        context = ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork(
+            locationId = item.location.id,
+            item = item,
+            capacity = ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork.Capacity.Data(
+                totalBytes = MockDataProvider.MockSizes.gb(8),
+                freeBytes = MockDataProvider.MockSizes.gb(3),
+            ),
+        ),
         onDismiss = {},
         onCopyToClipboard = {}
     )
