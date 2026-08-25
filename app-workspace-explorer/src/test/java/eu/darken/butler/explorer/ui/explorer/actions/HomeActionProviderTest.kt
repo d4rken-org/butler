@@ -20,11 +20,11 @@ class HomeActionProviderTest : BaseTest() {
         trashEnabled = false,
     )
 
+    /** Refreshing is blocked while items are selected, so it must not be offered there either. */
     @Test
-    fun `refreshing is offered either way`() {
-        listOf(actionsFor(), actionsFor(shortcut)).forEach { actions ->
-            actions.any { it is ExplorerActionBarItem.Common.Refresh } shouldBe true
-        }
+    fun `refreshing is only offered without a selection`() {
+        actionsFor().any { it is ExplorerActionBarItem.Common.Refresh } shouldBe true
+        actionsFor(shortcut).any { it is ExplorerActionBarItem.Common.Refresh } shouldBe false
     }
 
     @Test
