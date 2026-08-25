@@ -289,6 +289,8 @@ class AppInstaller @Inject constructor(
                     stageObb(plan, expansion, obbTarget, stream)
                 }
             }
+            // The same identity check a plain APK gets, leaving ADB staging as the residual.
+            if (localDir != null) verifyStagedBase(plan, staged.getValue(plan.splits.first()))
             return plan.splits.map { staged.getValue(it) }
         }
 
