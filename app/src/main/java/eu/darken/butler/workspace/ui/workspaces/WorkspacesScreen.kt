@@ -36,6 +36,8 @@ import eu.darken.butler.main.ui.motd.MotdCard
 import eu.darken.butler.main.ui.review.ReviewCard
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.LocalWorkspacePageHosts
+import eu.darken.butler.workspace.ui.LocalWorkspaceTitles
+import eu.darken.butler.workspace.ui.tabLabel
 import eu.darken.butler.workspace.ui.LocalWorkspacePagerVisibility
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceRemote
@@ -342,12 +344,19 @@ fun WorkspacesScreenHost(
 
     val state by vm.state.collectAsState(initial = null)
 
+    val workspaceTitles = state?.let { current ->
+        remember(current.all, context) {
+            current.all.associate { it.id to it.tabLabel.get(context) }
+        }
+    }
+
     CompositionLocalProvider(
         LocalWorkspaceButtonProvider provides workspaceButtonVm,
         LocalWorkspacePageHosts provides vm.pageHosts,
         LocalWorkspaceScrollPositions provides vm.scrollPositions,
         LocalWorkspaceBarCollapseStates provides vm.barCollapseStates,
         LocalWorkspacePagerVisibility provides vm.pagerVisibility,
+        LocalWorkspaceTitles provides workspaceTitles,
     ) {
         state?.let { state ->
             WorkspaceScreen(

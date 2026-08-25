@@ -26,6 +26,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -44,6 +45,7 @@ import eu.darken.butler.workspace.ui.clipboard.mockFileLookup
 import eu.darken.butler.common.ui.SwipeToDismissItem
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
+import eu.darken.butler.workspace.ui.LocalWorkspaceTitles
 import kotlinx.coroutines.delay
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
@@ -282,9 +284,12 @@ fun ClipboardBarSingleItemPreview() {
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 fun ClipboardBarExpandedPreview() {
+    val picturesOrigin = Workspace.Id(Uuid.random())
+    val documentsOrigin = Workspace.Id(Uuid.random())
+    val closedOrigin = Workspace.Id(Uuid.random())
     val mockEntries = listOf(
         ClipboardClip.Paths(
-            origin = Workspace.Id(Uuid.random()),
+            origin = picturesOrigin,
             mode = ClipboardClip.Paths.Mode.COPY,
             paths = listOf(
                 mockFileLookup("/storage/emulated/0/Pictures/photo1.jpg"),
@@ -294,7 +299,7 @@ fun ClipboardBarExpandedPreview() {
             clippedAt = Clock.System.now() - 5.minutes,
         ),
         ClipboardClip.Paths(
-            origin = Workspace.Id(Uuid.random()),
+            origin = documentsOrigin,
             mode = ClipboardClip.Paths.Mode.CUT,
             paths = listOf(
                 mockFileLookup("/storage/emulated/0/Documents/report.pdf"),
@@ -302,7 +307,7 @@ fun ClipboardBarExpandedPreview() {
             clippedAt = Clock.System.now() - 2.minutes,
         ),
         ClipboardClip.Paths(
-            origin = Workspace.Id(Uuid.random()),
+            origin = closedOrigin,
             mode = ClipboardClip.Paths.Mode.COPY,
             paths = listOf(
                 mockFileLookup("/storage/emulated/0/Downloads/app.apk"),
@@ -310,21 +315,27 @@ fun ClipboardBarExpandedPreview() {
             clippedAt = Clock.System.now() - 1.minutes,
         ),
     )
+    val titles = mapOf(
+        picturesOrigin to "Pictures",
+        documentsOrigin to "Documents",
+    )
 
     PreviewWrapper {
-        Box(
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.background)
-                .padding(16.dp)
-        ) {
-            ClipboardBar(
-                workspaceType = Workspace.Type.EXPLORER,
-                initialExpanded = true,
-                clipboardEntries = mockEntries,
-                onPasteClick = {},
-                onRemoveClick = {},
-                onClearAll = {},
-            )
+        CompositionLocalProvider(LocalWorkspaceTitles provides titles) {
+            Box(
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.background)
+                    .padding(16.dp)
+            ) {
+                ClipboardBar(
+                    workspaceType = Workspace.Type.EXPLORER,
+                    initialExpanded = true,
+                    clipboardEntries = mockEntries,
+                    onPasteClick = {},
+                    onRemoveClick = {},
+                    onClearAll = {},
+                )
+            }
         }
     }
 }
