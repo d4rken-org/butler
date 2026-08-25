@@ -242,6 +242,7 @@ class ExplorerSafLocationControllerTest : BaseTest() {
         controller.showAddStorageSheet()
         runCurrent()
         controller.dismissAddStorageSheet()
+        runCurrent()
         controller.showAddStorageSheet()
         runCurrent()
         firstLoad.complete(Unit)
