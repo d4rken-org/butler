@@ -5,6 +5,8 @@ import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.adb.AdbManager
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.archive.ArchiveService
+import eu.darken.butler.common.pkgs.apk.ApkArchiveParser
 import eu.darken.butler.common.pkgs.toPkgId
 import eu.darken.butler.common.root.RootManager
 import eu.darken.butler.common.shell.ShellOps
@@ -116,6 +118,8 @@ class AppInstallerTest : BaseTest() {
             coEvery { currentUser() } returns UserProfile2(handle = UserHandle2(handleId = 11))
         },
         gatewaySwitch = gatewaySwitch,
+        archiveService = mockk<ArchiveService>(),
+        apkArchiveParser = mockk<ApkArchiveParser>(),
         storageEnvironment = mockk<StorageEnvironment>(relaxed = true),
         statusRelay = AppInstallStatusRelay(),
         dispatcherProvider = dispatcherProvider,

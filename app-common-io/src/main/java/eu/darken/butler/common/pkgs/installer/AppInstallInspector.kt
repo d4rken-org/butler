@@ -148,6 +148,7 @@ class AppInstallInspector @Inject constructor(
             splits = splits,
             obbEntries = obbEntries,
             warnings = warnings,
+            indexEntryCount = index.entriesBySegments.size,
         )
     }
 

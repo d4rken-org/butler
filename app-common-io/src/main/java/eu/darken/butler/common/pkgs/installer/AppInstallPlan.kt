@@ -24,6 +24,11 @@ data class AppInstallPlan(
     /** XAPK only. */
     val obbEntries: List<ObbEntry>,
     val warnings: List<Warning>,
+    /**
+     * How many entries the container held when it was inspected. Zero for a plain APK; for a bundle
+     * it is what the installer holds the container against before reading a single byte out of it.
+     */
+    val indexEntryCount: Int = 0,
 ) {
 
     val totalBytes: Long get() = splits.sumOf { it.size }
