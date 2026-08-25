@@ -55,6 +55,7 @@ import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -84,6 +85,9 @@ class AppInstaller @Inject constructor(
     private val sweepMutex = Mutex()
     private val localSwept = AtomicBoolean(false)
     private val shellSwept = AtomicBoolean(false)
+
+    /** Expansion partials some install is filling right now, so no sweep mistakes them for scratch. */
+    private val activeObbPartials: MutableSet<String> = ConcurrentHashMap.newKeySet()
 
     suspend fun hasElevation(): Boolean = rootManager.canUseRootNow() || adbManager.canUseAdbNow()
 
@@ -367,7 +371,7 @@ class AppInstaller @Inject constructor(
                 if (!canonicalDir.segments.isChildOf(canonicalRoot.segments)) {
                     throw IOException("$canonicalDir is not inside $canonicalRoot")
                 }
-                ObbTarget(dir = dir, canonicalPath = canonicalDir.path).also { sweepObbBackups(it) }
+                ObbTarget(dir = dir, canonicalPath = canonicalDir.path).also { sweepObbArtifacts(it) }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -399,6 +403,9 @@ class AppInstaller @Inject constructor(
                 backup = target.dir.child("${entry.fileName}.$operationId$BACKUP_SUFFIX"),
                 lockKey = obbLockKey(target, entry.fileName),
             )
+            // Held before the file can exist, and let go of only once it is gone again: a partial
+            // nothing tracks is several GB under Android/obb that no later run would look at.
+            adopt(partial)
             try {
                 gatewaySwitch.createFile(partial.path, createParents = false)
                 gatewaySwitch.file(partial.path, readWrite = true).use { handle ->
@@ -410,14 +417,24 @@ class AppInstaller @Inject constructor(
                     // descriptor of a direct write only, never of one that went through root or ADB.
                     handle.flush()
                 }
-                obbPartials += partial
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
+                withContext(NonCancellable) { if (deleteQuietly(partial.path)) forget(partial) }
+                if (e is CancellationException) throw e
                 log(TAG, WARN) { "Failed to stage expansion ${entry.fileName}: ${e.asLog()}" }
-                withContext(NonCancellable) { deleteQuietly(partial.path) }
                 obbFailure = e.message ?: e.toString()
             }
+        }
+
+        /** Takes responsibility for [partial], for this staging and process-wide alike. */
+        private fun adopt(partial: ObbPartial) {
+            obbPartials += partial
+            activeObbPartials += partial.path.path
+        }
+
+        /** Drops [partial] again. Only called once its file is confirmed gone or moved into place. */
+        private fun forget(partial: ObbPartial) {
+            obbPartials.remove(partial)
+            activeObbPartials.remove(partial.path.path)
         }
 
         /** Moves the staged expansions onto their destinations. Returns whether they all landed. */
@@ -447,7 +464,7 @@ class AppInstaller @Inject constructor(
                         )
                     )
                     commitObbPartial(partial)
-                    obbPartials.remove(partial)
+                    forget(partial)
                 }
                 true
             } catch (e: CancellationException) {
@@ -468,10 +485,7 @@ class AppInstaller @Inject constructor(
         }
 
         suspend fun discard() {
-            obbPartials.toList().forEach {
-                deleteQuietly(it.path)
-                obbPartials.remove(it)
-            }
+            obbPartials.toList().forEach { if (deleteQuietly(it.path)) forget(it) }
             localDir?.let {
                 if (!it.deleteRecursively() && it.exists()) {
                     throw AppInstallSessionException("Cannot remove staging $it")
@@ -623,20 +637,20 @@ class AppInstaller @Inject constructor(
      */
     private suspend fun commitObbPartial(partial: ObbPartial) = obbLock(partial.lockKey).withLock {
         settleBackup(partial.target, partial.backup)
-        if (gatewaySwitch.exists(partial.target)) requireMoved(partial.target, partial.backup)
         try {
+            if (gatewaySwitch.exists(partial.target)) requireMoved(partial.target, partial.backup)
             requireMoved(partial.path, partial.target)
-        } catch (e: Throwable) {
+        } finally {
+            // Every exit, cancellation included, and both moves inside the guard: between them the
+            // only copy of the expansion is the backup, so a settle that is skipped here loses it.
             withContext(NonCancellable) {
                 try {
                     settleBackup(partial.target, partial.backup)
-                } catch (restore: Exception) {
-                    log(TAG, ERROR) { "Restore failed, original kept at ${partial.backup}: ${restore.asLog()}" }
+                } catch (settle: Exception) {
+                    log(TAG, ERROR) { "Settle failed, original kept at ${partial.backup}: ${settle.asLog()}" }
                 }
             }
-            throw e
         }
-        deleteQuietly(partial.backup)
     }
 
     /** Restores a backup whose target is gone, drops one whose target is there. */
@@ -645,18 +659,40 @@ class AppInstaller @Inject constructor(
         if (gatewaySwitch.exists(target)) deleteQuietly(backup) else requireMoved(backup, target)
     }
 
-    /** Finishes the transactions a killed run left half-done in the destination directory. */
-    private suspend fun sweepObbBackups(target: ObbTarget) {
-        gatewaySwitch.listFiles(target.dir)
-            .filter { it.name.endsWith(BACKUP_SUFFIX) }
-            .forEach { backup ->
-                // `<name>.<operation id>.btlbak`, so the destination is the name minus both parts.
-                val original = backup.name.removeSuffix(BACKUP_SUFFIX).substringBeforeLast('.', "")
-                if (original.isEmpty()) return@forEach
-                obbLock(obbLockKey(target, original)).withLock {
-                    settleBackup(target.dir.child(original), backup)
+    /**
+     * Finishes the transactions a killed run left half-done in the destination directory: a backup
+     * whose swap never completed goes back onto its destination, and a partial nobody is filling any
+     * more is several GB of scratch that only this sweep will ever remove.
+     */
+    private suspend fun sweepObbArtifacts(target: ObbTarget) {
+        gatewaySwitch.listFiles(target.dir).forEach { artifact ->
+            when {
+                artifact.name.endsWith(BACKUP_SUFFIX) -> {
+                    val original = transactionOrigin(artifact.name, BACKUP_SUFFIX) ?: return@forEach
+                    obbLock(obbLockKey(target, original)).withLock {
+                        settleBackup(target.dir.child(original), artifact)
+                    }
+                }
+
+                artifact.name.endsWith(PARTIAL_SUFFIX) -> {
+                    if (transactionOrigin(artifact.name, PARTIAL_SUFFIX) == null) return@forEach
+                    // A partial another install is filling right now is not leftovers.
+                    if (activeObbPartials.contains(artifact.path)) return@forEach
+                    deleteQuietly(artifact)
                 }
             }
+        }
+    }
+
+    /**
+     * The destination name behind a `<name>.<operation id>.<suffix>` artifact, or null when the name
+     * is not one Butler wrote - `download.part` is somebody else's file, not scratch.
+     */
+    private fun transactionOrigin(artifactName: String, suffix: String): String? {
+        val withoutSuffix = artifactName.removeSuffix(suffix)
+        val operationId = withoutSuffix.substringAfterLast('.', "")
+        if (runCatching { Uuid.parse(operationId) }.isFailure) return null
+        return withoutSuffix.substringBeforeLast('.', "").takeIf { it.isNotEmpty() }
     }
 
     /**
@@ -668,12 +704,13 @@ class AppInstaller @Inject constructor(
         if (outcome !is MoveOutcome.Moved) throw IOException("Cannot move $source onto $destination: $outcome")
     }
 
-    private suspend fun deleteQuietly(path: APath<*>) {
-        try {
-            if (gatewaySwitch.exists(path)) gatewaySwitch.delete(path, recursive = false)
-        } catch (e: Exception) {
-            log(TAG, WARN) { "Failed to remove $path: ${e.asLog()}" }
-        }
+    /** Returns whether [path] is gone afterwards; failing to remove it is never fatal by itself. */
+    private suspend fun deleteQuietly(path: APath<*>): Boolean = try {
+        if (gatewaySwitch.exists(path)) gatewaySwitch.delete(path, recursive = false)
+        true
+    } catch (e: Exception) {
+        log(TAG, WARN) { "Failed to remove $path: ${e.asLog()}" }
+        false
     }
 
     // endregion
