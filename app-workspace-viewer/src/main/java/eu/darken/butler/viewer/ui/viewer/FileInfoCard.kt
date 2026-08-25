@@ -19,7 +19,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,13 +27,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
+import eu.darken.butler.common.compose.InfoBlock
+import eu.darken.butler.common.compose.InfoEntry
 import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.groupInfoEntries
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.DateTimeStyle
@@ -44,31 +44,6 @@ import eu.darken.butler.viewer.R
 import eu.darken.butler.viewer.core.ViewerFileInfo
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
-
-internal data class InfoEntry(val label: String, val value: String, val pairable: Boolean)
-
-/** Groups consecutive pairable entries two-per-row; non-pairable entries get a row of their own. */
-internal fun groupInfoEntries(entries: List<InfoEntry>): List<List<InfoEntry>> {
-    val rows = mutableListOf<List<InfoEntry>>()
-    var pending = mutableListOf<InfoEntry>()
-    entries.forEach { entry ->
-        if (entry.pairable) {
-            pending.add(entry)
-            if (pending.size == 2) {
-                rows.add(pending)
-                pending = mutableListOf()
-            }
-        } else {
-            if (pending.isNotEmpty()) {
-                rows.add(pending)
-                pending = mutableListOf()
-            }
-            rows.add(listOf(entry))
-        }
-    }
-    if (pending.isNotEmpty()) rows.add(pending)
-    return rows
-}
 
 /**
  * Collapsed keeps the first row only. That row is Size and Modified for every file the gateway
@@ -272,31 +247,6 @@ private fun FileInfoCardContent(
 
 /** Footprint of the expand/collapse button, and the end inset the first row reserves for it. */
 private val ToggleReservedWidth = 40.dp
-
-@Composable
-internal fun InfoBlock(
-    modifier: Modifier = Modifier,
-    entry: InfoEntry,
-) {
-    Column(modifier = modifier) {
-        Text(
-            text = entry.label,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-        Text(
-            text = entry.value,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurface,
-            fontWeight = FontWeight.Medium,
-            // Plain ellipsis: MiddleEllipsis degrades to clipping on multiline Android text.
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-        )
-    }
-}
 
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
