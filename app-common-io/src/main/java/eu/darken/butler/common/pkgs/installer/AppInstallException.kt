@@ -70,6 +70,22 @@ class AppInstallSessionException(
     )
 }
 
+/**
+ * The elevated shell could not be driven, rather than having rejected the app: an answer Butler
+ * cannot read at all says nothing about the APK, so the next install mode is still worth trying.
+ */
+class AppInstallTransportException(
+    val detail: String,
+    cause: Throwable? = null,
+) : AppInstallException("Install transport failed: $detail", cause) {
+
+    override fun getLocalizedError(context: LocalizedErrorContext) = LocalizedError(
+        throwable = this,
+        label = R.string.app_install_error_session_title.toCaString(),
+        description = caString { it.getString(R.string.app_install_error_session_description, detail) },
+    )
+}
+
 /** Root or ADB was explicitly requested but is not available right now. */
 class AppInstallNoElevationException(
     val requestedMode: AppInstaller.Mode,

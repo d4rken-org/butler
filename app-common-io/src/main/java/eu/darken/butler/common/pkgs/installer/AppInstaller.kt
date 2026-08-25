@@ -140,6 +140,7 @@ class AppInstaller @Inject constructor(
     }
 
     private fun isTransportFailure(error: Throwable): Boolean = when (error) {
+        is AppInstallTransportException -> true
         is AppInstallException -> false
         is ElevatedAccessUnavailableException,
         is RootUnavailableException,
@@ -336,18 +337,27 @@ class AppInstaller @Inject constructor(
         val shellMode = if (mode == Mode.ROOT) ShellOps.Mode.ROOT else ShellOps.Mode.ADB
         val userId = userManager2.currentUser().handle.handleId
 
-        val created = shellOps.execute(
-            ShellOpsCmd("pm install-create -r -t -S ${plan.totalBytes} --user $userId"),
-            shellMode,
-        )
-        val sessionId = SESSION_ID_PATTERN.find(created.output.joinToString("\n"))
-            ?.groupValues?.getOrNull(1)
-            ?.toIntOrNull()
-            ?.takeIf { created.isSuccess }
-            ?: throw AppInstallSessionException(created.failureText())
-
+        // Opened before the session can exist: a create that half-succeeded, or one whose answer we
+        // cannot read, still leaves a session holding the space it was told to reserve.
+        var sessionId: Int? = null
         var committed = false
         try {
+            val created = shellOps.execute(
+                ShellOpsCmd("pm install-create -r -t -S ${plan.totalBytes} --user $userId"),
+                shellMode,
+            )
+            // Both streams: OEM `pm` replacements and Shizuku-style wrappers put the created line on
+            // stderr, and losing the id there would leak the session it announces.
+            sessionId = SESSION_ID_PATTERN.find((created.output + created.errors).joinToString("\n"))
+                ?.groupValues?.getOrNull(1)
+                ?.toIntOrNull()
+            when {
+                !created.isSuccess -> throw AppInstallSessionException(created.failureText())
+                // `pm` reported success in a shape we cannot read: that is the shell answering
+                // oddly, not the package being rejected, so the next mode is still worth trying.
+                sessionId == null -> throw AppInstallTransportException(created.failureText())
+            }
+
             staged.forEachIndexed { index, entry ->
                 send(
                     AppInstallEvent.Progress(
@@ -381,12 +391,13 @@ class AppInstaller @Inject constructor(
             }
             committed = true
         } finally {
-            if (!committed) {
+            val abandonable = sessionId?.takeIf { !committed }
+            if (abandonable != null) {
                 withContext(NonCancellable) {
                     try {
-                        shellOps.execute(ShellOpsCmd("pm install-abandon $sessionId"), shellMode)
+                        shellOps.execute(ShellOpsCmd("pm install-abandon $abandonable"), shellMode)
                     } catch (e: Exception) {
-                        log(TAG, WARN) { "Failed to abandon session $sessionId: ${e.asLog()}" }
+                        log(TAG, WARN) { "Failed to abandon session $abandonable: ${e.asLog()}" }
                     }
                 }
             }

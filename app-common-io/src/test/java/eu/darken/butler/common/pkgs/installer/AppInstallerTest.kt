@@ -56,6 +56,10 @@ class AppInstallerTest : BaseTest() {
     private var commitSucceeds = true
     private var writeSucceeds = true
     private var sessionCreateOutput = listOf("Success: created install session [42]")
+    private var sessionCreateErrors = emptyList<String>()
+
+    /** The mode whose `pm install-create` answers success in a shape the installer cannot read. */
+    private var unreadableCreateMode: ShellOps.Mode? = null
 
     private val shellOps = mockk<ShellOps>()
     private val gatewaySwitch = mockk<GatewaySwitch>()
@@ -74,7 +78,10 @@ class AppInstallerTest : BaseTest() {
             executed += mode to line
             if (rootTransportBroken && mode == ShellOps.Mode.ROOT) throw ShellOpsException("no root transport")
             when {
-                line.startsWith("pm install-create") -> ShellOpsResult(0, sessionCreateOutput, emptyList())
+                line.startsWith("pm install-create") -> when (mode) {
+                    unreadableCreateMode -> ShellOpsResult(0, listOf("Success: created install session"), emptyList())
+                    else -> ShellOpsResult(0, sessionCreateOutput, sessionCreateErrors)
+                }
                 line.startsWith("pm install-write") -> when {
                     writeSucceeds -> ShellOpsResult(0, listOf("Success: streamed"), emptyList())
                     else -> ShellOpsResult(1, emptyList(), listOf("Error: INSTALL_FAILED_INVALID_APK"))
@@ -193,9 +200,31 @@ class AppInstallerTest : BaseTest() {
 
         val events = installer().install(plan(), AppInstaller.Mode.ROOT).toList()
 
+        // Unreadable, not rejected: the APK was never judged, so this must not end the run for the
+        // other modes when they are still available.
         events.last().shouldBeInstanceOf<AppInstallEvent.Failure>()
-            .error.shouldBeInstanceOf<AppInstallSessionException>()
+            .error.shouldBeInstanceOf<AppInstallTransportException>()
         pmCommands() shouldContainExactly listOf("pm install-create -r -t -S ${apk.file.length()} --user 11")
+    }
+
+    @Test
+    fun `a create response on stderr still yields the session`() = runTest2 {
+        sessionCreateOutput = emptyList()
+        sessionCreateErrors = listOf("Success: created install session [42]")
+
+        val events = installer().install(plan(), AppInstaller.Mode.ROOT).toList()
+
+        events.last().shouldBeInstanceOf<AppInstallEvent.Success>().viaMode shouldBe AppInstaller.Mode.ROOT
+        pmCommands().last() shouldBe "pm install-commit 42"
+    }
+
+    @Test
+    fun `an unreadable create response falls through to the next mode`() = runTest2 {
+        unreadableCreateMode = ShellOps.Mode.ROOT
+
+        val events = installer().install(plan(), AppInstaller.Mode.AUTO).toList()
+
+        events.last().shouldBeInstanceOf<AppInstallEvent.Success>().viaMode shouldBe AppInstaller.Mode.ADB
     }
 
     @Test
