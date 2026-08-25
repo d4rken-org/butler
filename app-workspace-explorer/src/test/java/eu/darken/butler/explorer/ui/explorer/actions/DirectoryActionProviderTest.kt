@@ -173,6 +173,19 @@ class DirectoryActionProviderTest : BaseTest() {
     }
 
     @Test
+    fun `a writable network location enables Cut and Delete`() {
+        val networkLocation = ExplorerLocation.Directory(
+            items = null,
+            info = ExplorerLocation.Directory.Info(isWritable = true),
+            path = SmbPath(LOCATION_ID, listOf("media")),
+        )
+        val actions = selectionActions(networkLocation, setOf(networkFile("remote.txt")))
+
+        actions.filterIsInstance<ExplorerActionBarItem.Directory.Cut>().single().isEnabled shouldBe true
+        actions.filterIsInstance<ExplorerActionBarItem.Directory.Delete>().single().isEnabled shouldBe true
+    }
+
+    @Test
     fun `a real archive file offers Extract`() {
         val actions = selectionActions(directory(null), setOf(MockDataProvider.createMockRegularFile("real.zip")))
 
