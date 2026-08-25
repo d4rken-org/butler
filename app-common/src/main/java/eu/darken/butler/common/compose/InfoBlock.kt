@@ -25,7 +25,11 @@ data class InfoEntry(
     val value: String,
     val pairable: Boolean,
     val valueMaxLines: Int = 2,
-)
+    val valueStyle: ValueStyle = ValueStyle.DEFAULT,
+) {
+    /** [PATH] pins the value to a single line so the trailing file name survives truncation. */
+    enum class ValueStyle { DEFAULT, PATH }
+}
 
 /** Groups consecutive pairable entries two-per-row; non-pairable entries get a row of their own. */
 fun groupInfoEntries(entries: List<InfoEntry>): List<List<InfoEntry>> {
@@ -65,15 +69,17 @@ fun InfoBlock(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
+        val isPath = entry.valueStyle == InfoEntry.ValueStyle.PATH
         val value: @Composable () -> Unit = {
             Text(
                 text = entry.value,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Medium,
-                // Plain ellipsis: MiddleEllipsis degrades to clipping on multiline Android text.
-                maxLines = entry.valueMaxLines,
-                overflow = TextOverflow.Ellipsis,
+                // MiddleEllipsis degrades to clipping on multiline Android text, so it only ever
+                // pairs with maxLines = 1 and [valueMaxLines] does not apply to it.
+                maxLines = if (isPath) 1 else entry.valueMaxLines,
+                overflow = if (isPath) TextOverflow.MiddleEllipsis else TextOverflow.Ellipsis,
             )
         }
         if (valueLeading != null) {
@@ -135,6 +141,23 @@ private fun InfoBlockUncappedValuePreview() {
             value = "Moved 12 files, moved 3 folders, skipped 2 files, overwrote 1 file",
             pairable = false,
             valueMaxLines = Int.MAX_VALUE,
+        ),
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun InfoBlockPathValuePreview() {
+    InfoBlock(
+        modifier = Modifier
+            .width(320.dp)
+            .padding(16.dp),
+        entry = InfoEntry(
+            label = "Destination path",
+            value = "/storage/emulated/0/Documents/Projects/Archive/2026/Quarter-01/reports/final-report.pdf",
+            pairable = false,
+            valueStyle = InfoEntry.ValueStyle.PATH,
         ),
     )
 }
