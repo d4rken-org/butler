@@ -192,6 +192,19 @@
         <item quantity="other">Delete %1$d items from \"%2$s\".</item>
     </plurals>
 
+    <!-- App Install Operation (shared across workspaces) -->
+    <string name="workspace_operation_install_title">App installation</string>
+    <string name="workspace_operation_install_description">Install \"%1$s\".</string>
+    <string name="workspace_operation_install_progress_inspecting">Reading package…</string>
+    <string name="workspace_operation_install_progress_extracting">Unpacking…</string>
+    <string name="workspace_operation_install_progress_writing">Handing files to the installer…</string>
+    <string name="workspace_operation_install_progress_committing">Finishing installation…</string>
+    <string name="workspace_operation_install_progress_placing_obb">Placing expansion files…</string>
+    <string name="workspace_operation_install_summary_success">%1$s was installed.</string>
+    <string name="workspace_operation_install_summary_success_partial">%1$s was installed, but its expansion files couldn\'t be placed.</string>
+    <string name="workspace_install_unknown_sources_required">Butler needs permission to install apps. Grant it in the settings that just opened, then try again.</string>
+    <string name="workspace_install_obb_failed">The app was installed, but its expansion files couldn\'t be placed: %1$s</string>
+
     <!-- Delete Operation Reports -->
     <plurals name="workspace_operation_report_files_deleted">
         <item quantity="one">%1$d file deleted.</item>
