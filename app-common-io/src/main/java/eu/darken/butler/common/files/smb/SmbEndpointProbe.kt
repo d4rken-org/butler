@@ -1,0 +1,293 @@
+package eu.darken.butler.common.files.smb
+
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+import eu.darken.butler.common.coroutine.AppScope
+import eu.darken.butler.common.coroutine.DispatcherProvider
+import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
+import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.asLog
+import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.smb.location.SmbLocation
+import eu.darken.butler.common.network.NetworkStateProvider
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withTimeoutOrNull
+import java.net.InetAddress
+import java.net.InetSocketAddress
+import java.net.Socket
+import javax.inject.Inject
+import javax.inject.Singleton
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
+import kotlin.uuid.Uuid
+
+/**
+ * Where a stored network location resolves to, and whether its port answers.
+ *
+ * Address and reachability are separate: a host that resolves but whose port refuses still has an
+ * address worth showing next to "unavailable".
+ */
+data class SmbEndpointState(
+    val address: String? = null,
+    val reachability: Reachability = Reachability.CHECKING,
+) {
+    enum class Reachability {
+        CHECKING,
+        REACHABLE,
+        UNREACHABLE,
+    }
+}
+
+/**
+ * Resolves and TCP-pings the stored network locations so the Network list can show where a server is
+ * and whether it answers.
+ *
+ * No SMB negotiation and no authentication happen here, a probe is a DNS lookup plus a connect that
+ * is closed again, so it costs the server no login attempt.
+ *
+ * Probes run on the application scope and are never structured children of whoever asked for them:
+ * neither [InetAddress.getAllByName] nor [Socket.connect] becomes cancellable by running on an IO
+ * dispatcher, so a probe that was a child of a loader would make the loader's teardown wait for a
+ * DNS lookup to return. Leaving the Network view therefore only stops the observation.
+ */
+@Singleton
+class SmbEndpointProbe @Inject constructor(
+    @AppScope private val appScope: CoroutineScope,
+    private val dispatcherProvider: DispatcherProvider,
+    private val resolver: Resolver,
+    private val connector: Connector,
+    private val clock: Clock,
+    private val networkStateProvider: NetworkStateProvider,
+) {
+
+    /** Injected so multi-address fallback can be driven without a name server. */
+    fun interface Resolver {
+        /** @throws java.net.UnknownHostException */
+        fun resolve(host: String): List<InetAddress>
+    }
+
+    /** Injected so timeouts and refusals can be driven without a server. */
+    interface Connector {
+        /** Opens a connection and closes it again, throwing if it cannot be established. */
+        suspend fun connect(address: InetAddress, port: Int, timeout: Duration)
+    }
+
+    /** Injected so cache expiry is reachable without waiting for it. */
+    fun interface Clock {
+        fun now(): Instant
+    }
+
+    private val tag = logTag("SMB", "EndpointProbe")
+
+    private data class Endpoint(val host: String, val port: Int)
+
+    private data class CacheEntry(val state: SmbEndpointState, val probedAt: Instant)
+
+    private val mutex = Mutex()
+    private val cache = mutableMapOf<Endpoint, CacheEntry>()
+    private val inFlight = mutableMapOf<Endpoint, Deferred<SmbEndpointState>>()
+
+    /** What each id was last probed for, so an edited host reports as unknown again. */
+    private val probedEndpoints = mutableMapOf<Uuid, Endpoint>()
+
+    @Volatile private var watched: List<SmbLocation> = emptyList()
+
+    private val _states = MutableStateFlow<Map<Uuid, SmbEndpointState>>(emptyMap())
+    val states: StateFlow<Map<Uuid, SmbEndpointState>> = _states.asStateFlow()
+
+    init {
+        // Expiry and connectivity only matter while somebody is looking, and the connectivity
+        // callback should not stay registered for the life of the app either.
+        _states.subscriptionCount
+            .map { it > 0 }
+            .distinctUntilChanged()
+            .flatMapLatest { isWatched ->
+                if (!isWatched) {
+                    emptyFlow()
+                } else {
+                    merge(
+                        expiryTicks().map { Trigger.EXPIRY },
+                        networkStateProvider.networkState.drop(1).map { Trigger.CONNECTIVITY },
+                    )
+                }
+            }
+            .onEach { trigger ->
+                log(tag) { "Re-probing after $trigger" }
+                if (trigger == Trigger.CONNECTIVITY) mutex.withLock { cache.clear() }
+                probeAll(watched, force = false)
+            }
+            .launchIn(appScope)
+    }
+
+    private enum class Trigger { EXPIRY, CONNECTIVITY }
+
+    private fun expiryTicks() = flow {
+        while (true) {
+            delay(EXPIRY_CHECK_INTERVAL)
+            emit(Unit)
+        }
+    }
+
+    /**
+     * Publishes a state for every given location, probing the ones whose cached result is missing or
+     * stale. [force] skips the cache, which is what an explicit user refresh does.
+     */
+    fun probe(locations: Collection<SmbLocation>, force: Boolean = false) {
+        log(tag) { "probe(${locations.size} locations, force=$force)" }
+        watched = locations.toList()
+        appScope.launch { probeAll(locations, force) }
+    }
+
+    private suspend fun probeAll(locations: Collection<SmbLocation>, force: Boolean) = coroutineScope {
+        val known = locations.map { it.id }.toSet()
+        _states.value = _states.value.filterKeys { it in known }
+        locations.forEach { location -> launch { probeLocation(location, force) } }
+    }
+
+    private suspend fun probeLocation(location: SmbLocation, force: Boolean) {
+        val endpoint = Endpoint(location.host, location.port)
+
+        val probe = mutex.withLock {
+            if (force) cache.remove(endpoint)
+            val cached = cache[endpoint]
+            if (cached != null && clock.now() - cached.probedAt < CACHE_TTL) {
+                probedEndpoints[location.id] = endpoint
+                publish(location.id, cached.state)
+                return
+            }
+            // A second view asking for the same server joins the running probe instead of opening
+            // another connection to it.
+            if (probedEndpoints[location.id] != endpoint) {
+                probedEndpoints[location.id] = endpoint
+                publish(location.id, SmbEndpointState())
+            }
+            inFlight[endpoint] ?: appScope
+                .async(dispatcherProvider.IO) { runProbe(endpoint) }
+                .also { inFlight[endpoint] = it }
+        }
+
+        val state = try {
+            probe.await()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            log(tag, WARN) { "Probe of $endpoint failed: ${e.asLog()}" }
+            SmbEndpointState(reachability = SmbEndpointState.Reachability.UNREACHABLE)
+        }
+
+        mutex.withLock {
+            if (inFlight[endpoint] === probe) {
+                inFlight.remove(endpoint)
+                cache[endpoint] = CacheEntry(state, clock.now())
+            }
+            publish(location.id, state)
+        }
+    }
+
+    private fun publish(id: Uuid, state: SmbEndpointState) {
+        _states.value = _states.value + (id to state)
+    }
+
+    private suspend fun runProbe(endpoint: Endpoint): SmbEndpointState {
+        return withTimeoutOrNull(OVERALL_TIMEOUT) {
+            val addresses = try {
+                resolver.resolve(endpoint.host)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                log(tag, VERBOSE) { "${endpoint.host} does not resolve: ${e.asLog()}" }
+                emptyList<InetAddress>()
+            }
+            if (addresses.isEmpty()) return@withTimeoutOrNull SmbEndpointState(
+                reachability = SmbEndpointState.Reachability.UNREACHABLE,
+            )
+
+            // getByName alone would be enough for the address, but it can hand back an IPv6 address
+            // that is unreachable on a host that answers perfectly well over IPv4.
+            addresses.forEach { address ->
+                try {
+                    connector.connect(address, endpoint.port, ATTEMPT_TIMEOUT)
+                    return@withTimeoutOrNull SmbEndpointState(
+                        address = address.hostAddress,
+                        reachability = SmbEndpointState.Reachability.REACHABLE,
+                    )
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    log(tag, VERBOSE) { "${address.hostAddress}:${endpoint.port} did not answer: ${e.asLog()}" }
+                }
+            }
+
+            SmbEndpointState(
+                address = addresses.first().hostAddress,
+                reachability = SmbEndpointState.Reachability.UNREACHABLE,
+            )
+        } ?: SmbEndpointState(reachability = SmbEndpointState.Reachability.UNREACHABLE)
+    }
+
+    companion object {
+        /** One attempt per resolved address, the whole probe is bounded by [OVERALL_TIMEOUT]. */
+        private val ATTEMPT_TIMEOUT = 3.seconds
+        private val OVERALL_TIMEOUT = 8.seconds
+        private val CACHE_TTL = 60.seconds
+        private val EXPIRY_CHECK_INTERVAL = 15.seconds
+    }
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+object SmbEndpointProbeModule {
+
+    @Provides
+    @Singleton
+    fun resolver(): SmbEndpointProbe.Resolver = SmbEndpointProbe.Resolver { host ->
+        InetAddress.getAllByName(host).toList()
+    }
+
+    @Provides
+    @Singleton
+    fun connector(): SmbEndpointProbe.Connector = object : SmbEndpointProbe.Connector {
+        override suspend fun connect(address: InetAddress, port: Int, timeout: Duration) {
+            val socket = Socket()
+            // A blocking connect only ends when the socket is closed, so cancellation has to do
+            // that from the outside instead of waiting for the attempt to time out.
+            val closeOnCancel = currentCoroutineContext().job.invokeOnCompletion { runCatching { socket.close() } }
+            try {
+                socket.connect(InetSocketAddress(address, port), timeout.inWholeMilliseconds.toInt())
+            } finally {
+                closeOnCancel.dispose()
+                runCatching { socket.close() }
+            }
+        }
+    }
+
+    @Provides
+    @Singleton
+    fun clock(): SmbEndpointProbe.Clock = SmbEndpointProbe.Clock { kotlin.time.Clock.System.now() }
+}
