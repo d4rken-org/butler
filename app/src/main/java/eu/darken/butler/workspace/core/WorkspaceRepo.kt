@@ -86,7 +86,7 @@ class WorkspaceRepo @Inject constructor(
 
     private val _pendingConfirmations = MutableStateFlow<Map<String, PendingWorkspaceConfirmation>>(emptyMap())
     val pendingConfirmations: Flow<Map<String, PendingWorkspaceConfirmation>> = _pendingConfirmations
-        .setupCommonEventHandlers(TAG, enabled = Bugs.isDebug) { "PendingConfirmations" }
+        .setupCommonEventHandlers(TAG, enabled = { Bugs.isDebug }) { "PendingConfirmations" }
         .replayingShare(appScope)
 
     /**
@@ -169,11 +169,11 @@ class WorkspaceRepo @Inject constructor(
         )
     }
         .distinctUntilChanged()
-        .setupCommonEventHandlers(TAG, enabled = Bugs.isTrace) { "WorkspaceState" }
+        .setupCommonEventHandlers(TAG, enabled = { Bugs.isTrace }) { "WorkspaceState" }
         .replayingShare(appScope)
 
     override val events: Flow<WorkspaceEvent> = _events
-        .setupCommonEventHandlers(TAG, enabled = Bugs.isDebug) { "WorkspaceEvents" }
+        .setupCommonEventHandlers(TAG, enabled = { Bugs.isDebug }) { "WorkspaceEvents" }
         .replayingShare(appScope)
 
     override suspend fun emitEvent(event: WorkspaceEvent) {
