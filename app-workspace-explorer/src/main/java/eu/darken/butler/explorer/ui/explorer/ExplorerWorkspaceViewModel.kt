@@ -628,9 +628,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     } ?: emptyList()
 
                     val availableActions = pickerHelper.filterActionsForPicker(rawActions, pickerConfig)
-                        // Refreshing would re-list under a live selection, so it's off while selecting.
-                        // Filtered here because the Device and Home providers offer it unconditionally.
-                        .filter { !selectionState.isSelectionMode || it !is ExplorerActionBarItem.Common.Refresh }
                         .map { action ->
                             when (action) {
                                 is ExplorerActionBarItem.Common.Filter -> {
