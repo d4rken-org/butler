@@ -13,6 +13,7 @@ import eu.darken.butler.common.files.smb.location.SmbLocation
 import eu.darken.butler.common.files.smb.location.SmbLocationManager
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -93,8 +94,14 @@ class SmbConnectionPoolTest : BaseTest() {
         val shares = mutableListOf<DiskShare>()
         val clients = mutableListOf<SMBClient>()
 
+        /** Index-aligned with [shares], so a test can kill one share without killing its connection. */
+        val shareConnected = mutableListOf<Boolean>()
+
         override fun create(config: com.hierynomus.smbj.SmbConfig): SMBClient {
-            val share = mockk<DiskShare>(relaxed = true)
+            val index = shares.size
+            val share = mockk<DiskShare>(relaxed = true) {
+                every { isConnected } answers { shareConnected[index] }
+            }
             val session = mockk<Session>(relaxed = true) {
                 every { connectShare(any()) } returns share
             }
@@ -106,6 +113,7 @@ class SmbConnectionPoolTest : BaseTest() {
                 every { connect(any<String>(), any<Int>()) } returns connection
             }
             shares.add(share)
+            shareConnected.add(true)
             clients.add(client)
             return client
         }
@@ -285,6 +293,28 @@ class SmbConnectionPoolTest : BaseTest() {
             verify(exactly = 0) { lease.share.close() }
             lease.close()
         }
+    }
+
+    /**
+     * A dead transport closes every share first and only reports itself disconnected tens of seconds
+     * later, so a cached generation can hold a share smbj already closed while its connection still
+     * claims to be connected.
+     */
+    @Test
+    fun `a share that was closed under us is never handed out`() = runTest {
+        val factory = FakeClientFactory()
+        val pool = pool(factory)
+        val first = pool.acquire(locationA.id)
+        first.close()
+
+        factory.shareConnected[0] = false
+
+        val second = pool.acquire(locationA.id)
+
+        second.share shouldNotBe first.share
+        second.share.isConnected shouldBe true
+        factory.clients.size shouldBe 2
+        second.close()
     }
 
     @Test
