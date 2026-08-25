@@ -46,22 +46,24 @@ class ExplorerDialogController(
 
     /**
      * Applies [block] to the open network info sheet, and does nothing at all unless the sheet
-     * showing right now is still the one for [locationId].
+     * showing right now is still the very opening identified by [locationId] and [sheetInstanceId].
      *
      * Everything an open sheet loads in the background lands here rather than through [show]: two
      * async completions would otherwise overwrite each other, write onto a stale item, or resurrect
-     * a sheet the user already dismissed. [MutableStateFlow.update] makes the check and the write
-     * one step.
+     * a sheet the user already dismissed. Matching the location alone is not enough, dismissing and
+     * reopening the same share would let the first sheet's password land on the second.
+     * [MutableStateFlow.update] makes the check and the write one step.
      */
     fun updateSingleNetwork(
         locationId: Uuid,
+        sheetInstanceId: Uuid,
         block: (ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork) ->
         ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork,
     ) {
         dialogStateFlow.update { current ->
             val context = (current as? ExplorerDialogState.ItemInfo)?.context
                 as? ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork
-            if (context == null || context.locationId != locationId) {
+            if (context == null || context.locationId != locationId || context.sheetInstanceId != sheetInstanceId) {
                 current
             } else {
                 ExplorerDialogState.ItemInfo(block(context))
