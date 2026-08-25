@@ -12,9 +12,11 @@ import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.archive.ArchiveEntryMeta
+import eu.darken.butler.common.files.archive.ArchiveEntrySafety
 import eu.darken.butler.common.files.archive.ArchiveIndex
 import eu.darken.butler.common.files.archive.ArchivePasswordRequiredException
 import eu.darken.butler.common.files.archive.ArchiveService
+import eu.darken.butler.common.files.extensions.Segments
 import eu.darken.butler.common.pkgs.apk.ApkArchiveParser
 import eu.darken.butler.common.root.RootManager
 import eu.darken.butler.common.root.canUseRootNow
@@ -76,26 +78,31 @@ class AppInstallInspector @Inject constructor(
     private suspend fun inspectBundle(path: APath<*>, format: AppInstallFormat): AppInstallPlan {
         val index = indexOrFail(path)
         if (index.isEncrypted) throw AppInstallProtectedBundleException(path)
+        if (index.skippedUnsafe != 0) {
+            throw AppInstallUnsupportedBundleException(path, "${index.skippedUnsafe} entries failed the name policy")
+        }
         if (index.entriesBySegments.size > MAX_INDEX_ENTRIES) {
             throw AppInstallUnsupportedBundleException(path, "index holds ${index.entriesBySegments.size} entries")
         }
 
         val rootApks = index.entriesBySegments.values
-            .filter { !it.isDirectory && !it.isSymlink }
+            .filter { !it.isDirectory }
             .filter { it.segments.size == 1 && it.segments.single().endsWith(APK_SUFFIX, ignoreCase = true) }
-            .filter { isUsableSize(it) }
 
         if (format == AppInstallFormat.APKS) rejectApkSets(path, index, rootApks)
-        if (rootApks.isEmpty()) throw AppInstallUnsupportedBundleException(path, "no APK entries")
-        if (rootApks.size > MAX_SPLITS) {
-            throw AppInstallUnsupportedBundleException(path, "declares ${rootApks.size} APKs")
-        }
 
         val manifest = readManifest(path, format)
-        val baseEntry = pickBase(rootApks, manifest)
-        val ordered = listOf(baseEntry) + rootApks
-            .filter { it !== baseEntry }
-            .sortedBy { it.segments.single().lowercase() }
+        val ordered = resolveManifestSplits(path, index, format, manifest) ?: run {
+            if (rootApks.isEmpty()) throw AppInstallUnsupportedBundleException(path, "no APK entries")
+            val baseEntry = pickBase(rootApks, manifest)
+            listOf(baseEntry) + rootApks
+                .filter { it !== baseEntry }
+                .sortedBy { it.segments.single().lowercase() }
+        }
+        if (ordered.size > MAX_SPLITS) {
+            throw AppInstallUnsupportedBundleException(path, "declares ${ordered.size} APKs")
+        }
+        ordered.forEach { requireInstallable(path, it) }
 
         // Running sum only so a declared-size set that cannot be added up is caught here rather
         // than wrapping around into a bogus `pm install-create -S` total.
@@ -114,9 +121,9 @@ class AppInstallInspector @Inject constructor(
             )
         }
 
-        val baseInfo = apkArchiveParser.parseFile(ArchivePath(container = path, segments = baseEntry.segments))
+        val baseInfo = apkArchiveParser.parseFile(ArchivePath(container = path, segments = ordered.first().segments))
         val obbEntries = if (format == AppInstallFormat.XAPK) {
-            collectObbEntries(index, manifest, baseInfo?.id?.name)
+            collectObbEntries(path, index, manifest, baseInfo?.id?.name)
         } else {
             emptyList()
         }
@@ -172,6 +179,45 @@ class AppInstallInspector @Inject constructor(
         if (standalones.size > 1 && standalones.size == rootApks.size) throw AppInstallUnsupportedApkSetException(path)
     }
 
+    /**
+     * Every split an XAPK manifest declares, the base one first, or null when there is nothing to
+     * go by and the root-level scan decides instead.
+     *
+     * Matching is on the exact raw entry name, so a split stored in a subdirectory - which the
+     * root-level scan never sees - is included. A declared split that is not in the container fails
+     * the bundle: installing the remainder produces an app that is missing part of itself.
+     */
+    private fun resolveManifestSplits(
+        path: APath<*>,
+        index: ArchiveIndex,
+        format: AppInstallFormat,
+        manifest: BundleManifest?,
+    ): List<ArchiveEntryMeta>? {
+        if (format != AppInstallFormat.XAPK) return null
+        val declared = manifest?.splits?.takeIf { it.isNotEmpty() } ?: return null
+
+        val byRawName = index.entriesBySegments.values.filter { !it.isDirectory }.associateBy { it.rawName }
+        return declared
+            .sortedBy { if (it.id == BASE_SPLIT_ID) 0 else 1 }
+            .map { split ->
+                byRawName[split.file]
+                    ?: throw AppInstallUnsupportedBundleException(path, "declared split ${split.file} is missing")
+            }
+    }
+
+    /**
+     * A container that cannot be installed as declared is refused rather than repaired: silently
+     * dropping a part Butler cannot read installs an app that only looks complete.
+     */
+    private fun requireInstallable(path: APath<*>, entry: ArchiveEntryMeta) {
+        if (entry.isSymlink) {
+            throw AppInstallUnsupportedBundleException(path, "entry ${entry.rawName} is a symlink")
+        }
+        if (!isUsableSize(entry)) {
+            throw AppInstallUnsupportedBundleException(path, "entry ${entry.rawName} has no usable size")
+        }
+    }
+
     private fun pickBase(apks: List<ArchiveEntryMeta>, manifest: BundleManifest?): ArchiveEntryMeta {
         fun byName(name: String?) = name
             ?.substringAfterLast('/')
@@ -193,48 +239,80 @@ class AppInstallInspector @Inject constructor(
     }
 
     /**
-     * Expansion files, taken from the entries under `Android/obb` in the archive plus anything the
-     * manifest points at. Both are only candidates: an entry survives only if it names a plain file
-     * directly under the package directory of the package the base APK declares.
+     * Expansion files: what the manifest declares plus what the archive already stores under
+     * `Android/obb`. A candidate survives only if its destination is a plain file directly under
+     * the directory of the package the base APK declares, and two candidates that would land on the
+     * same name fail the bundle instead of overwriting each other.
      */
     private fun collectObbEntries(
+        path: APath<*>,
         index: ArchiveIndex,
         manifest: BundleManifest?,
         basePackageName: String?,
     ): List<AppInstallPlan.ObbEntry> {
         if (basePackageName == null) return emptyList()
 
-        val declared = manifest?.expansionPaths.orEmpty()
-            .mapNotNull { raw -> index.entriesBySegments.values.firstOrNull { it.rawName == raw } }
-        val scanned = index.entriesBySegments.values.filter {
-            it.segments.size >= 2 && it.segments[0].equals("Android", true) && it.segments[1].equals("obb", true)
+        val byRawName = index.entriesBySegments.values.filter { !it.isDirectory }.associateBy { it.rawName }
+        // The manifest is the only place that says where an expansion has to land when the archive
+        // does not already store it in its destination shape, so it is consulted first.
+        val declared = manifest?.expansions.orEmpty().mapNotNull { expansion ->
+            val entry = byRawName[expansion.sourceFile]
+            val destination = obbDestinationName(expansion.installPath, basePackageName)
+            if (entry == null || destination == null) {
+                log(TAG, WARN) { "Dropping expansion ${expansion.sourceFile} -> ${expansion.installPath}" }
+                null
+            } else {
+                entry to destination
+            }
         }
-
-        return (scanned + declared)
-            .filter { !it.isDirectory && !it.isSymlink }
-            .filter { isUsableSize(it) }
-            .filter { entry ->
+        val scanned = index.entriesBySegments.values
+            .filter { !it.isDirectory }
+            .filter { it.segments.size >= 2 && it.segments[0].equals("Android", true) }
+            .filter { it.segments[1].equals("obb", true) }
+            .mapNotNull { entry ->
                 // Exactly Android/obb/<package>/<file>: anything deeper or shallower is not a
                 // destination we would build, and a foreign package is not ours to write into.
                 val ok = entry.segments.size == 4 && entry.segments[2] == basePackageName
                 if (!ok) log(TAG, WARN) { "Dropping expansion entry ${entry.rawName}" }
-                ok
+                if (ok) entry to entry.segments[3] else null
             }
-            .distinctBy { it.segments[3] }
-            .take(MAX_OBB_ENTRIES)
-            .map {
-                AppInstallPlan.ObbEntry(
-                    entryPath = it.segments.joinToString("/"),
-                    fileName = it.segments[3],
-                    size = it.size ?: 0L,
-                )
-            }
+
+        val candidates = LinkedHashMap<Segments, Pair<ArchiveEntryMeta, String>>()
+        (declared + scanned).forEach { candidate -> candidates.getOrPut(candidate.first.segments) { candidate } }
+        if (candidates.size > MAX_OBB_ENTRIES) {
+            throw AppInstallUnsupportedBundleException(path, "declares ${candidates.size} expansions")
+        }
+        val collisions = candidates.values.groupBy { it.second.lowercase() }.filterValues { it.size > 1 }
+        if (collisions.isNotEmpty()) {
+            throw AppInstallUnsupportedBundleException(path, "expansions collide on ${collisions.keys.first()}")
+        }
+
+        return candidates.values.map { (entry, destination) ->
+            requireInstallable(path, entry)
+            AppInstallPlan.ObbEntry(
+                entryPath = entry.segments.joinToString("/"),
+                fileName = destination,
+                size = entry.size ?: 0L,
+            )
+        }
+    }
+
+    /**
+     * The basename an expansion may be written under, or null when the manifest points at anything
+     * other than `Android/obb/<base package>/<plain name>`.
+     */
+    private fun obbDestinationName(installPath: String, basePackageName: String): String? {
+        val segments = ArchiveEntrySafety.parseEntryName(installPath) ?: return null
+        if (segments.size != 4) return null
+        if (!segments[0].equals("Android", true) || !segments[1].equals("obb", true)) return null
+        if (segments[2] != basePackageName) return null
+        return segments[3]
     }
 
     internal fun isUsableSize(entry: ArchiveEntryMeta): Boolean {
         val size = entry.size
         if (size == null || size < 0L) {
-            log(TAG, WARN) { "Dropping entry with unusable size: ${entry.rawName} ($size)" }
+            log(TAG, WARN) { "Unusable size on ${entry.rawName} ($size)" }
             return false
         }
         return true
@@ -267,8 +345,8 @@ class AppInstallInspector @Inject constructor(
             when (format) {
                 AppInstallFormat.XAPK -> BundleManifest(
                     packageName = root.string("package_name"),
-                    baseFile = root.splitApks().firstOrNull { it.second == "base" }?.first,
-                    expansionPaths = root.expansionPaths(),
+                    splits = root.splitApks(),
+                    expansions = root.expansions(),
                 )
 
                 else -> BundleManifest(packageName = root.string("pname"))
@@ -300,30 +378,48 @@ class AppInstallInspector @Inject constructor(
      */
     private data class BundleManifest(
         val packageName: String? = null,
-        val baseFile: String? = null,
-        val expansionPaths: List<String> = emptyList(),
+        val splits: List<ManifestSplit> = emptyList(),
+        val expansions: List<ManifestExpansion> = emptyList(),
+    ) {
+        val baseFile: String? get() = splits.firstOrNull { it.id == BASE_SPLIT_ID }?.file
+    }
+
+    /** [file] is an archive entry name, [id] the split name the producer gave it. */
+    private data class ManifestSplit(
+        val file: String,
+        val id: String?,
+    )
+
+    /** [sourceFile] is an archive entry name, [installPath] where the producer wants it placed. */
+    private data class ManifestExpansion(
+        val sourceFile: String,
+        val installPath: String,
     )
 
     /** Reads a field that producers encode as either a JSON string or a bare number. */
     private fun JsonObject.string(key: String): String? =
         (this[key] as? JsonPrimitive)?.content?.takeIf { it.isNotBlank() }
 
-    private fun JsonObject.splitApks(): List<Pair<String, String?>> =
+    private fun JsonObject.splitApks(): List<ManifestSplit> =
         (this["split_apks"] as? JsonArray)
             ?.filterIsInstance<JsonObject>()
-            ?.mapNotNull { entry -> entry.string("file")?.let { it to entry.string("id") } }
+            ?.mapNotNull { entry -> entry.string("file")?.let { ManifestSplit(file = it, id = entry.string("id")) } }
             ?: emptyList()
 
-    private fun JsonObject.expansionPaths(): List<String> =
+    private fun JsonObject.expansions(): List<ManifestExpansion> =
         (this["expansions"] as? JsonArray)
             ?.filterIsInstance<JsonObject>()
-            ?.mapNotNull { it.string("install_path") ?: it.string("file") ?: it.string("install_location") }
+            ?.mapNotNull { entry ->
+                val source = entry.string("file") ?: entry.string("install_path") ?: return@mapNotNull null
+                ManifestExpansion(sourceFile = source, installPath = entry.string("install_path") ?: source)
+            }
             ?: emptyList()
 
     companion object {
         private val TAG = logTag("Pkg", "Installer", "Inspector")
         private const val APK_SUFFIX = ".apk"
         private const val BASE_APK_NAME = "base.apk"
+        private const val BASE_SPLIT_ID = "base"
         private const val MAX_INDEX_ENTRIES = 10_000
         private const val MAX_SPLITS = 256
         private const val MAX_OBB_ENTRIES = 64
