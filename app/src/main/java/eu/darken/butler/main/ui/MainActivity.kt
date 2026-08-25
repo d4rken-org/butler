@@ -414,7 +414,10 @@ class MainActivity : Activity2() {
 
     companion object {
         private val TAG = logTag("Main", "Activity")
-        private const val BACK_PRESS_INTERVAL = 2000L // 2 seconds
+        // Must outlast the Toast.LENGTH_SHORT prompt (~2s) that asks for the second press: a window
+        // closing while that instruction is still on screen leaves every slower press restarting
+        // the prompt instead of exiting.
+        private const val BACK_PRESS_INTERVAL = 3500L
         private const val MIME_DOCUMENT_ROOT = "vnd.android.document/root"
         private const val MIME_DOCUMENT_DIRECTORY = "vnd.android.document/directory"
     }
