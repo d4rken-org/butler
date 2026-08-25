@@ -35,11 +35,10 @@ class NetworkActionProviderTest : BaseTest() {
     }
 
     @Test
-    fun `one selected location offers edit, rename, info and remove`() {
+    fun `one selected location offers edit, info and remove`() {
         val actions = actionsFor(first)
 
         actions.any { it is ExplorerActionBarItem.Network.EditLocation } shouldBe true
-        actions.any { it is ExplorerActionBarItem.Network.RenameLocation } shouldBe true
         actions.any { it is ExplorerActionBarItem.Common.Info } shouldBe true
         actions.any { it is ExplorerActionBarItem.Network.RemoveLocation } shouldBe true
         actions.any { it is ExplorerActionBarItem.Network.AddLocation } shouldBe false
@@ -51,7 +50,6 @@ class NetworkActionProviderTest : BaseTest() {
 
         actions.any { it is ExplorerActionBarItem.Network.RemoveLocation } shouldBe true
         actions.any { it is ExplorerActionBarItem.Network.EditLocation } shouldBe false
-        actions.any { it is ExplorerActionBarItem.Network.RenameLocation } shouldBe false
         // The sheet describes one share, there is nothing to show for a stack of them.
         actions.any { it is ExplorerActionBarItem.Common.Info } shouldBe false
     }

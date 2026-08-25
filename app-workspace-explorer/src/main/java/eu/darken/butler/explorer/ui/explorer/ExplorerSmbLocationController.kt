@@ -60,17 +60,6 @@ class ExplorerSmbLocationController(
         dialogs.show(ExplorerDialogState.SmbLocationForm(existing = location))
     }
 
-    fun showRenameDialog(item: ExplorerItem.Storage.Network) {
-        log(tag) { "showRenameDialog(${item.location.id})" }
-        dialogs.show(
-            ExplorerDialogState.LocationStorageName(
-                locationId = item.location.id.toString(),
-                currentName = item.location.label,
-                kind = ExplorerDialogState.LocationStorageName.Kind.NETWORK,
-            )
-        )
-    }
-
     fun showRemoveConfirmation(items: List<ExplorerItem.Storage.Network>) {
         log(tag) { "showRemoveConfirmation(${items.size} items)" }
         dialogs.show(ExplorerDialogState.RemoveLocationConfirmation(items))
@@ -208,19 +197,6 @@ class ExplorerSmbLocationController(
             items.forEach { locationManager.delete(it.location.id) }
         } catch (e: Exception) {
             log(tag, ERROR) { "onRemoveConfirmed(): Failed: ${e.asLog()}" }
-            onError(e)
-        }
-        clearSelection()
-        refreshUnlessLive()
-    }
-
-    fun onRename(locationId: String, name: String?) = doLaunch {
-        log(tag) { "onRename($locationId, $name)" }
-        dialogs.dismiss()
-        try {
-            locationManager.setLabel(Uuid.parse(locationId), name?.trim()?.takeIf { it.isNotEmpty() })
-        } catch (e: Exception) {
-            log(tag, ERROR) { "onRename(): Failed: ${e.asLog()}" }
             onError(e)
         }
         clearSelection()

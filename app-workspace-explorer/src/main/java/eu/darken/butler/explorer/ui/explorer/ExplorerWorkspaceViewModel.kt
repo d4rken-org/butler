@@ -1068,17 +1068,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     .single()
                 smbLocations.showEditForm(selectedItem.location.id)
             }
-            is ExplorerActionBarItem.Network.RenameLocation -> {
-                val selectedItem = selection.selectedItems.value
-                    .filterIsInstance<ExplorerItem.Storage.Network>()
-                    .single()
-                // The selection holds the row as it was drawn, the listing holds the current name.
-                val current = stateSnap.currentLocation?.items
-                    ?.filterIsInstance<ExplorerItem.Storage.Network>()
-                    ?.firstOrNull { it.id == selectedItem.id }
-                    ?: selectedItem
-                smbLocations.showRenameDialog(current)
-            }
             is ExplorerActionBarItem.Network.RemoveLocation -> {
                 val selectedItems = selection.selectedItems.value
                     .filterIsInstance<ExplorerItem.Storage.Network>()
@@ -1483,15 +1472,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         trash.emptyTrash()
     }
 
-    fun onLocationStorageName(name: String?) {
-        val dialogState = dialogs.current() as? ExplorerDialogState.LocationStorageName ?: return
-        when (dialogState.kind) {
-            ExplorerDialogState.LocationStorageName.Kind.SAF -> safLocations.onLocationStorageName(name)
-            ExplorerDialogState.LocationStorageName.Kind.NETWORK -> {
-                smbLocations.onRename(dialogState.locationId, name)
-            }
-        }
-    }
+    fun onLocationStorageName(name: String?) = safLocations.onLocationStorageName(name)
 
     fun onRename(result: RenameResult) = launch {
         log(tag) { "onRename($result)" }

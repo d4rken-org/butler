@@ -148,11 +148,6 @@ class SmbLocationManagerImpl @Inject constructor(
         credentialStore.remove(id)
     }
 
-    override suspend fun setLabel(id: Uuid, label: String?) {
-        val existing = dao.get(id) ?: return
-        dao.upsert(existing.copy(label = label, updatedAt = Clock.System.now()))
-    }
-
     private suspend fun writeCredential(location: SmbLocation, password: CharArray?) {
         when (location.authType) {
             SmbLocation.AuthType.GUEST -> credentialStore.remove(location.id)

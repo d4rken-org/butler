@@ -55,6 +55,4 @@ interface SmbLocationManager {
     ): SmbLocation
 
     suspend fun delete(id: Uuid)
-
-    suspend fun setLabel(id: Uuid, label: String?)
 }
