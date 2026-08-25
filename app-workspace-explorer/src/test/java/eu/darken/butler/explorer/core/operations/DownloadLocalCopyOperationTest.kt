@@ -15,8 +15,10 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.filesystem.FileSystemHinter
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.operations.OperationPathPlan
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -216,5 +218,14 @@ class DownloadLocalCopyOperationTest : BaseTest() {
         moves.shouldBeEmpty()
         // Nothing was destroyed, so the temp is a discardable orphan and gets cleaned up.
         coVerify { gatewaySwitch.delete(match<APath<*>> { it.name.endsWith(".part") }, any<Boolean>()) }
+    }
+
+    @Test
+    fun `the path plan targets the source and lands in the destination folder`() {
+        val plan = operation().metadata.pathPlan!!
+
+        plan.targets shouldContainExactly listOf(sourcePath)
+        plan.destination shouldBe OperationPathPlan.Destination.Container(destDir)
+        plan.scopePaths shouldContainExactly listOf(sourcePath, destDir)
     }
 }

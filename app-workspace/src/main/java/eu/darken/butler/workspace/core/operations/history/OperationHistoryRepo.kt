@@ -131,7 +131,7 @@ class OperationHistoryRepo @Inject constructor(
             partialErrorCount = state.report?.partialErrorCount ?: 0,
             pathsTruncated = reportedChanges.size > MAX_PATHS_PER_OP,
             primaryPath = reportedChanges.firstOrNull()?.path
-                ?: metadata.intendedPaths?.firstOrNull()?.userReadablePath?.get(context),
+                ?: metadata.pathPlan?.representativePath?.userReadablePath?.get(context),
         )
 
         dao.insertWithPathsAndTrim(
@@ -223,8 +223,9 @@ class OperationHistoryRepo @Inject constructor(
     }
 
     /**
-     * The search index that backs the path-scope filter: intended paths, reported paths and move
-     * sources, plus every one of their parent directories. Never displayed as a change.
+     * The search index that backs the path-scope filter: the operation's planned scope paths,
+     * reported paths and move sources, plus every one of their parent directories. Never displayed
+     * as a change.
      *
      * Uncapped: a scope only matches a row exactly or as its ancestor prefix, so dropping any path
      * would silently make that path unfilterable - an ancestor row can't stand in for it. The total
@@ -238,7 +239,7 @@ class OperationHistoryRepo @Inject constructor(
         state: Operation.State.Completed,
     ): List<String> {
         val candidates = buildList<APath<*>> {
-            metadata.intendedPaths?.let { addAll(it) }
+            metadata.pathPlan?.let { addAll(it.allPaths) }
             state.report?.affectedPaths?.forEach { change ->
                 add(change.path)
                 change.previousPath?.let { add(it) }

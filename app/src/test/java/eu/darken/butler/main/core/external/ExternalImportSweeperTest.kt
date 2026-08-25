@@ -10,6 +10,7 @@ import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.operations.OperationPathPlan
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.ui.session.WorkspaceSessionManager
 import io.kotest.matchers.shouldBe
@@ -179,7 +180,7 @@ class ExternalImportSweeperTest : BaseTest() {
         val path = mockk<APath<*>>()
         every { path.path } returns "$baseDir/${busy.name}/payload.bin"
         val metadata = mockk<Operation.Metadata>()
-        every { metadata.intendedPaths } returns listOf(path)
+        every { metadata.pathPlan } returns OperationPathPlan(targets = listOf(path))
         val managed = mockk<ManagedOperation>()
         every { managed.operation } returns mockk<Operation>().also { every { it.metadata } returns metadata }
         every { operationsManager.operations } returns flowOf(listOf(managed))

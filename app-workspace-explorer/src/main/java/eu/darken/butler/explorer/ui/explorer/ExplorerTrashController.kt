@@ -35,7 +35,7 @@ class ExplorerTrashController(
         restoreViaOperation(
             command = ExplorerCommand.Restore(
                 rootItemIds = items.map { it.itemId }.toSet(),
-                intendedPaths = items.map { it.originalLookup.lookedUp },
+                restoredPaths = items.map { it.originalLookup.lookedUp },
             ),
         )
     }
@@ -119,7 +119,7 @@ class ExplorerTrashController(
                         relativePath = it.relativePath,
                     )
                 },
-                intendedPaths = items.map { it.originalRestoredPath },
+                restoredPaths = items.map { it.originalRestoredPath },
             ),
         )
     }

@@ -124,7 +124,7 @@ sealed interface ExplorerCommand {
     data class Restore(
         val rootItemIds: Set<Uuid> = emptySet(),
         val nestedItems: List<NestedTarget> = emptyList(),
-        val intendedPaths: List<APath<*>>,
+        val restoredPaths: List<APath<*>>,
     ) : ExplorerCommand {
         data class NestedTarget(
             val parentId: Uuid,

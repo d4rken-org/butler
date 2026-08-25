@@ -13,7 +13,9 @@ import eu.darken.butler.workspace.core.filesystem.FileSystemEvent
 import eu.darken.butler.workspace.core.filesystem.FileSystemHinter
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.operations.OperationPathPlan
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
@@ -141,5 +143,14 @@ class CreateTextFileOperationTest : BaseTest() {
             it.change shouldBe Operation.Report.PathChange.Change.ADDED
         }
         events.single().shouldBeInstanceOf<FileSystemEvent.Added>().paths.single().lookedUp shouldBe renamedPath
+    }
+
+    @Test
+    fun `the path plan targets the file being created`() {
+        val plan = operation(mockk(), FileSystemHinter()).metadata.pathPlan!!
+
+        plan.targets shouldContainExactly listOf(requestedPath)
+        plan.destination shouldBe null
+        plan.scopePaths shouldContainExactly listOf(requestedPath)
     }
 }

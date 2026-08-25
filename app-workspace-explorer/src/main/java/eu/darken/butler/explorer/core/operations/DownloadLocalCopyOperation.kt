@@ -23,6 +23,7 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.filesystem.FileSystemHinter
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.operations.OperationPathPlan
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
@@ -59,7 +60,10 @@ class DownloadLocalCopyOperation @AssistedInject constructor(
             )
         }
         override val kind = Operation.Metadata.Kind.COPY
-        override val intendedPaths = listOf(command.source, command.destinationDir)
+        override val pathPlan = OperationPathPlan(
+            targets = listOf(command.source),
+            destination = OperationPathPlan.Destination.Container(command.destinationDir),
+        )
     }
 
     override fun perform(operationContext: Operation.Context): Flow<State> = channelFlow {

@@ -7,6 +7,7 @@ import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.workspace.core.operations.CompletedOperationSnapshot
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.operations.OperationPathPlan
 import eu.darken.butler.workspace.core.operations.history.db.OperationHistoryDatabase
 import eu.darken.butler.workspace.core.operations.history.db.OperationHistoryEntity
 import eu.darken.butler.workspace.core.operations.history.db.OperationHistoryScopeEntity
@@ -139,7 +140,7 @@ class OperationHistoryPersistTest : BaseTest() {
             testSnapshot(
                 metadata = testMetadata(
                     operationKind = Operation.Metadata.Kind.COPY,
-                    intended = listOf(source, destinationFolder),
+                    plan = planInto(source, destination = destinationFolder),
                 ),
                 state = TestCompletedState(
                     report = TestReport(
@@ -167,7 +168,7 @@ class OperationHistoryPersistTest : BaseTest() {
             testSnapshot(
                 metadata = testMetadata(
                     operationKind = Operation.Metadata.Kind.COPY,
-                    intended = listOf(source, destinationFolder),
+                    plan = planInto(source, destination = destinationFolder),
                 ),
                 state = TestCompletedState(
                     report = TestReport(
@@ -194,7 +195,7 @@ class OperationHistoryPersistTest : BaseTest() {
             testSnapshot(
                 metadata = testMetadata(
                     operationKind = Operation.Metadata.Kind.COPY,
-                    intended = listOf(source, destinationFolder),
+                    plan = planInto(source, destination = destinationFolder),
                 ),
                 state = TestCompletedState(
                     report = null,
@@ -222,7 +223,7 @@ class OperationHistoryPersistTest : BaseTest() {
             testSnapshot(
                 metadata = testMetadata(
                     operationKind = Operation.Metadata.Kind.DELETE,
-                    intended = listOf(target),
+                    plan = planOver(target),
                 ),
                 state = TestCompletedState(
                     report = null,
@@ -238,12 +239,12 @@ class OperationHistoryPersistTest : BaseTest() {
     @Test
     fun `the affected count derives from reported changes only`() = runTest {
         val reported = (1..3).map { LocalPath.build("/sdcard/Backup/file_$it.txt") }
-        val intended = (1..7).map { LocalPath.build("/sdcard/Download/file_$it.txt") }
+        val sources = (1..7).map { LocalPath.build("/sdcard/Download/file_$it.txt") }
         val id = persist(
             testSnapshot(
                 metadata = testMetadata(
                     operationKind = Operation.Metadata.Kind.COPY,
-                    intended = intended + destinationFolder,
+                    plan = planInto(*sources.toTypedArray(), destination = destinationFolder),
                 ),
                 state = TestCompletedState(
                     report = TestReport(
@@ -273,7 +274,7 @@ class OperationHistoryPersistTest : BaseTest() {
             testSnapshot(
                 metadata = testMetadata(
                     operationKind = Operation.Metadata.Kind.DELETE,
-                    intended = directories,
+                    plan = planOver(*directories.toTypedArray()),
                 ),
                 state = TestCompletedState(
                     report = TestReport(
@@ -288,6 +289,134 @@ class OperationHistoryPersistTest : BaseTest() {
         val lastDirectory = directories.last().path
         allScopePaths(id).map { it.path } shouldContain lastDirectory
         idsForScopes(lastDirectory) shouldContainExactly listOf(id)
+    }
+
+    /*
+     * The two producers that override OperationPathPlan.scopePaths, pinned as exact ordered row
+     * lists - this is the only place their overrides are observable, and the attempted-paths sheet
+     * renders exactly this order.
+     */
+
+    private val savedA = LocalPath.build("/sdcard/Backup/a.txt")
+    private val savedB = LocalPath.build("/sdcard/Backup/b.txt")
+    private val archived = LocalPath.build("/sdcard/Backup/bundle.zip")
+    private val downloadA = LocalPath.build("/sdcard/Download/a.txt")
+    private val downloadB = LocalPath.build("/sdcard/Download/b.txt")
+
+    /** Mirrors SaveFilesOperation: the planned files are the scope, the target directory is not. */
+    private fun saveFilesPlan() = OperationPathPlan(
+        targets = listOf(savedA, savedB),
+        destination = OperationPathPlan.Destination.Container(destinationFolder),
+        scopePaths = listOf(savedA, savedB),
+    )
+
+    /** Mirrors CompressOperation: the destination DIRECTORY is the scope, not the archive path. */
+    private fun compressPlan() = OperationPathPlan(
+        targets = listOf(downloadA, downloadB),
+        destination = OperationPathPlan.Destination.RequestedTarget(archived),
+        scopePaths = listOf(downloadA, downloadB, destinationFolder),
+    )
+
+    @Test
+    fun `a successful save indexes the written files and their folder, nothing above it`() = runTest {
+        val id = persist(
+            testSnapshot(
+                metadata = testMetadata(
+                    operationKind = Operation.Metadata.Kind.SAVE,
+                    plan = saveFilesPlan(),
+                ),
+                state = TestCompletedState(
+                    report = TestReport(
+                        affectedPaths = listOf(
+                            changeOf(savedA, Operation.Report.PathChange.Change.ADDED),
+                            changeOf(savedB, Operation.Report.PathChange.Change.ADDED),
+                        ),
+                    ),
+                ),
+            )
+        )
+
+        allScopePaths(id).map { it.path } shouldContainExactly listOf(
+            "/sdcard/Backup",
+            "/sdcard/Backup/a.txt",
+            "/sdcard/Backup/b.txt",
+        )
+    }
+
+    @Test
+    fun `a failed save indexes the same rows a successful one would`() = runTest {
+        val id = persist(
+            testSnapshot(
+                metadata = testMetadata(
+                    operationKind = Operation.Metadata.Kind.SAVE,
+                    plan = saveFilesPlan(),
+                ),
+                state = TestCompletedState(
+                    report = null,
+                    error = IOException("No space left on device"),
+                ),
+            )
+        )
+
+        allScopePaths(id).map { it.path } shouldContainExactly listOf(
+            "/sdcard/Backup",
+            "/sdcard/Backup/a.txt",
+            "/sdcard/Backup/b.txt",
+        )
+        database.operationHistoryDao().getById(id)!!.entry.primaryPath shouldBe savedA.path
+    }
+
+    @Test
+    fun `a successful compression indexes the sources, the destination folder and the archive`() = runTest {
+        val id = persist(
+            testSnapshot(
+                metadata = testMetadata(
+                    operationKind = Operation.Metadata.Kind.COMPRESS,
+                    plan = compressPlan(),
+                ),
+                state = TestCompletedState(
+                    report = TestReport(
+                        affectedPaths = listOf(
+                            changeOf(archived, Operation.Report.PathChange.Change.ADDED),
+                        ),
+                    ),
+                ),
+            )
+        )
+
+        allScopePaths(id).map { it.path } shouldContainExactly listOf(
+            "/sdcard/Download",
+            "/sdcard",
+            "/sdcard/Backup",
+            "/sdcard/Download/a.txt",
+            "/sdcard/Download/b.txt",
+            "/sdcard/Backup/bundle.zip",
+        )
+    }
+
+    @Test
+    fun `a failed compression still indexes the destination folder`() = runTest {
+        val id = persist(
+            testSnapshot(
+                metadata = testMetadata(
+                    operationKind = Operation.Metadata.Kind.COMPRESS,
+                    plan = compressPlan(),
+                ),
+                state = TestCompletedState(
+                    report = null,
+                    error = IOException("No space left on device"),
+                ),
+            )
+        )
+
+        allScopePaths(id).map { it.path } shouldContainExactly listOf(
+            "/sdcard/Download",
+            "/sdcard",
+            "/sdcard/Download/a.txt",
+            "/sdcard/Download/b.txt",
+            "/sdcard/Backup",
+        )
+        database.operationHistoryDao().getById(id)!!.entry.primaryPath shouldBe downloadA.path
     }
 
     @Test

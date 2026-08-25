@@ -169,14 +169,14 @@ class OperationHistoryScopeQueryTest : BaseTest() {
     }
 
     @Test
-    fun `intended sources and reported destinations both reach the index`() = runTest {
+    fun `planned sources and reported destinations both reach the index`() = runTest {
         val id = persist(
             testSnapshot(
                 metadata = testMetadata(
                     operationKind = Operation.Metadata.Kind.COPY,
-                    intended = listOf(
+                    plan = planInto(
                         LocalPath.build("/sdcard/Old/file.txt"),
-                        LocalPath.build("/sdcard/New"),
+                        destination = LocalPath.build("/sdcard/New"),
                     ),
                 ),
                 state = TestCompletedState(
@@ -197,12 +197,15 @@ class OperationHistoryScopeQueryTest : BaseTest() {
     }
 
     @Test
-    fun `a move source reaches the index even when it was never an intended path`() = runTest {
+    fun `a move source reaches the index even when the path plan never named it`() = runTest {
         val id = persist(
             testSnapshot(
                 metadata = testMetadata(
                     operationKind = Operation.Metadata.Kind.MOVE,
-                    intended = null,
+                    plan = planInto(
+                        LocalPath.build("/sdcard/Current/notes.txt"),
+                        destination = LocalPath.build("/sdcard/New"),
+                    ),
                     operationIntent = Operation.Metadata.Intent.RENAME,
                 ),
                 state = TestCompletedState(

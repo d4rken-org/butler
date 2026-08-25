@@ -17,9 +17,11 @@ import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.workspace.core.filesystem.FileSystemHinter
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.operations.OperationPathPlan
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.string.shouldNotContain
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -227,5 +229,28 @@ class CompressOperationTest : BaseTest() {
         val password = "hunter2".toCharArray()
         operation(command(password)).onDiscarded()
         password.all { it == Char(0) } shouldBe true
+    }
+
+    @Test
+    fun `the path plan points at the archive while the scope keeps the destination folder`() {
+        val plan = operation(command()).metadata.pathPlan!!
+
+        plan.targets shouldContainExactly listOf(sourcePath)
+        plan.destination shouldBe OperationPathPlan.Destination.RequestedTarget(outputPath)
+        plan.scopePaths shouldContainExactly listOf(sourcePath, destinationDir)
+        plan.representativePath shouldBe sourcePath
+    }
+
+    @Test
+    fun `an alias extension is not doubled onto the archive path`() {
+        val aliased = ExplorerCommand.Compress(
+            sources = setOf(sourcePath),
+            destinationDir = destinationDir,
+            archiveName = "out.tgz",
+            format = ArchiveFormat.TAR_GZ,
+        )
+
+        operation(aliased).metadata.pathPlan!!.destination shouldBe
+            OperationPathPlan.Destination.RequestedTarget(destinationDir.child("out.tgz"))
     }
 }

@@ -32,6 +32,7 @@ import eu.darken.butler.saver.R
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.operations.OperationPathPlan
 import eu.darken.butler.workspace.core.operations.buildTransferProgressMetrics
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
@@ -62,6 +63,8 @@ class SaveFilesOperation @AssistedInject constructor(
         )
     }
 
+    private val plannedFiles = command.sources.map { command.targetDirectory.child(it.filename) }
+
     override val metadata: Operation.Metadata = object : Operation.Metadata {
         override val origin: Operation.Metadata.Origin = Operation.Metadata.Origin.Saver(workspaceId)
         override val icon: ImageVector = Icons.TwoTone.Save
@@ -75,7 +78,13 @@ class SaveFilesOperation @AssistedInject constructor(
             )
         }
         override val kind = Operation.Metadata.Kind.SAVE
-        override val intendedPaths = command.sources.map { command.targetDirectory.child(it.filename) }
+        override val pathPlan = OperationPathPlan(
+            targets = plannedFiles,
+            destination = OperationPathPlan.Destination.Container(command.targetDirectory),
+            // The target directory is already the parent of every planned file; promoting it to a
+            // candidate of its own would add ITS parent to the attempted-paths rows.
+            scopePaths = plannedFiles,
+        )
     }
 
     override fun perform(operationContext: Operation.Context): Flow<Operation.State> = channelFlow {

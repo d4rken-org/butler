@@ -28,6 +28,7 @@ import eu.darken.butler.explorer.R
 import eu.darken.butler.workspace.core.filesystem.FileSystemHinter
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.operations.OperationPathPlan
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.Flow
@@ -47,6 +48,9 @@ class CompressOperation @AssistedInject constructor(
 
     private val tag = logTag("Explorer", "Workspace", workspaceId.shortTag, "Operation", "Compress")
 
+    /** [ExplorerCommand.Compress.archiveName] already carries the format's extension. */
+    private val outputPath = command.destinationDir.child(command.archiveName)
+
     override val metadata: Operation.Metadata = object : Operation.Metadata {
         override val origin = Operation.Metadata.Origin.Explorer(workspaceId)
         override val icon: ImageVector = Icons.TwoTone.Compress
@@ -60,7 +64,13 @@ class CompressOperation @AssistedInject constructor(
             )
         }
         override val kind = Operation.Metadata.Kind.COMPRESS
-        override val intendedPaths = command.sources + command.destinationDir
+        override val pathPlan = OperationPathPlan(
+            targets = command.sources.toList(),
+            destination = OperationPathPlan.Destination.RequestedTarget(outputPath),
+            // The archive itself is already indexed as a reported change; keeping the directory as
+            // the scope candidate is what puts its parent in the attempted-paths rows.
+            scopePaths = command.sources.toList() + command.destinationDir,
+        )
     }
 
     override fun perform(operationContext: Operation.Context): Flow<State> = channelFlow {
@@ -87,8 +97,6 @@ class CompressOperation @AssistedInject constructor(
     ) {
         var stateActive = State.Active(startedAt = operationContext.startedAt)
         send(stateActive)
-
-        val outputPath = command.destinationDir.child(command.archiveName)
 
         // Never let the growing archive become one of its own inputs.
         command.sources.forEach { source ->
