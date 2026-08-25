@@ -23,7 +23,9 @@ import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.label
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.LocalWorkspacePageHosts
+import eu.darken.butler.workspace.ui.LocalWorkspaceTitles
 import eu.darken.butler.workspace.ui.WorkspacePageHostEntry
+import eu.darken.butler.workspace.ui.tabLabel
 import eu.darken.butler.workspace.ui.floatingbar.LocalWorkspaceBarCollapseStates
 import eu.darken.butler.workspace.ui.floatingbar.WorkspaceBarCollapseStates
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
@@ -87,6 +89,8 @@ class WorkspacePreviewCaptureService @Inject constructor(
             }
 
             val themeState = generalSettings.themeStateBlocking
+            val workspaceTitles = workspaceRepo.peekInfos()
+                .associate { it.id to it.tabLabel.get(captureContext) }
 
             withContext(dispatcherProvider.Main) {
                 composableBitmapRenderer.renderToBitmap(
@@ -96,7 +100,10 @@ class WorkspacePreviewCaptureService @Inject constructor(
                 ) {
                     // Only the page host's Content is rendered (via WorkspaceMapper) — a preview
                     // thumbnail must never compose a workspace's dialogs or sheets.
-                    WorkspacePreviewCompositionLocals(pageHosts = pageHosts) {
+                    WorkspacePreviewCompositionLocals(
+                        pageHosts = pageHosts,
+                        workspaceTitles = workspaceTitles,
+                    ) {
                         ButlerTheme(state = themeState) {
                             WorkspaceMapper(
                                 info = WorkspacePaneInfo(
@@ -136,7 +143,9 @@ class WorkspacePreviewCaptureService @Inject constructor(
  * registered" error content, and reading a local that has no default (the guided-tour controller)
  * throws outright — which the service's catch-all would silently turn into a null thumbnail.
  * Focus is off so no page pops the keyboard, and the view-state registries are deliberately fresh
- * detached ones so a capture cannot read or clobber the live scroll and bar-collapse state.
+ * detached ones so a capture cannot read or clobber the live scroll and bar-collapse state. The
+ * workspace titles are the live ones, so a captured clipboard bar names its origin the same way the
+ * on-screen one does.
  *
  * Extracted from [WorkspacePreviewCaptureService] so this set can be asserted on: the renderer
  * itself needs a VirtualDisplay and real bitmaps, neither of which exist in a unit test.
@@ -144,6 +153,7 @@ class WorkspacePreviewCaptureService @Inject constructor(
 @Composable
 internal fun WorkspacePreviewCompositionLocals(
     pageHosts: Map<Workspace.Type, @JvmSuppressWildcards WorkspacePageHostEntry>,
+    workspaceTitles: Map<Workspace.Id, String>,
     content: @Composable () -> Unit,
 ) {
     val previewScrollPositions = remember { WorkspaceScrollPositions() }
@@ -154,6 +164,7 @@ internal fun WorkspacePreviewCompositionLocals(
         LocalWorkspaceScrollPositions provides previewScrollPositions,
         LocalWorkspaceBarCollapseStates provides previewBarCollapse,
         LocalGuidedTourController provides NoOpGuidedTourAccess,
+        LocalWorkspaceTitles provides workspaceTitles,
         content = content,
     )
 }
