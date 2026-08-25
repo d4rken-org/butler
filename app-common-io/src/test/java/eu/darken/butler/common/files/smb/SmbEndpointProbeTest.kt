@@ -7,6 +7,9 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
@@ -16,6 +19,7 @@ import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import testhelpers.coroutine.TestDispatcherProvider
@@ -68,12 +72,28 @@ class SmbEndpointProbeTest : BaseTest() {
         override fun now(): Instant = current
     }
 
+    private val appScopes = mutableListOf<CoroutineScope>()
+
+    @AfterEach
+    fun cancelAppScopes() {
+        appScopes.forEach { it.cancel() }
+        appScopes.clear()
+    }
+
+    /**
+     * `backgroundScope` cannot stand in for the app scope here: `advanceUntilIdle` stops as soon as
+     * only background work is left, so a probe launched there would never run. This scope shares the
+     * test's scheduler but counts as foreground work.
+     */
+    private fun TestScope.appScope() = CoroutineScope(StandardTestDispatcher(testScheduler) + SupervisorJob())
+        .also { appScopes.add(it) }
+
     private fun TestScope.createProbe(
         resolver: SmbEndpointProbe.Resolver,
         connector: SmbEndpointProbe.Connector,
         clock: SmbEndpointProbe.Clock = FakeClock(),
     ) = SmbEndpointProbe(
-        appScope = backgroundScope,
+        appScope = appScope(),
         dispatcherProvider = TestDispatcherProvider(StandardTestDispatcher(testScheduler)),
         resolver = resolver,
         connector = connector,
