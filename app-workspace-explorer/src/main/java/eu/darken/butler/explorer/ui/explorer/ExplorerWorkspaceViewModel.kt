@@ -19,6 +19,9 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.storage.StorageEnvironment
+import eu.darken.butler.common.storage.saf.SAFPickerIntentBuilder
+import eu.darken.butler.common.storage.saf.StorageProviderSuggester
+import eu.darken.butler.common.storage.saf.StorageProviderSuggestion
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.common.files.archive.CompressionPreset
@@ -149,6 +152,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val filenameValidator: FilenameValidator,
     private val gatewaySwitch: GatewaySwitch,
     internal val safLocationManager: SAFLocationManager,
+    private val safPickerIntentBuilder: SAFPickerIntentBuilder,
+    private val storageProviderSuggester: StorageProviderSuggester,
     private val trashManager: TrashManager,
     private val trashRepo: TrashRepo,
     private val itemInfoCalculator: ItemInfoCalculator,
@@ -196,7 +201,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val safLocations = ExplorerSafLocationController(
         context = context,
         safLocationManager = safLocationManager,
+        safPickerIntentBuilder = safPickerIntentBuilder,
+        storageProviderSuggester = storageProviderSuggester,
         dialogs = dialogs,
+        scope = vmScope,
         workspace = ::getWorkspace,
         currentLocation = { getState().currentLocation },
         clearSelection = ::clearSelection,
@@ -1762,6 +1770,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     fun dismissAddStorageSheet() = safLocations.dismissAddStorageSheet()
 
     fun addSAFLocation() = safLocations.addSAFLocation()
+
+    val storageSuggestions get() = safLocations.storageSuggestions
+
+    fun addSuggestedSAFLocation(suggestion: StorageProviderSuggestion) =
+        safLocations.addSuggestedSAFLocation(suggestion)
 
     suspend fun handleSAFPickerResult(treeUri: Uri) = safLocations.handleSAFPickerResult(treeUri)
 

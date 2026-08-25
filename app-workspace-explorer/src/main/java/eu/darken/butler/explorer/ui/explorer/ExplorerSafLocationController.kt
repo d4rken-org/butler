@@ -7,6 +7,9 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.flow.SingleEventFlow
+import eu.darken.butler.common.storage.saf.SAFPickerIntentBuilder
+import eu.darken.butler.common.storage.saf.StorageProviderSuggester
+import eu.darken.butler.common.storage.saf.StorageProviderSuggestion
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.ExplorerWorkspace
@@ -18,7 +21,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.stateIn
 
 /**
  * SAF storage location management: the add-storage sheet, the system directory picker
@@ -27,7 +35,10 @@ import kotlinx.coroutines.flow.StateFlow
 class ExplorerSafLocationController(
     private val context: Context,
     private val safLocationManager: SAFLocationManager,
+    private val safPickerIntentBuilder: SAFPickerIntentBuilder,
+    private val storageProviderSuggester: StorageProviderSuggester,
     private val dialogs: ExplorerDialogController,
+    private val scope: CoroutineScope,
     private val workspace: suspend () -> ExplorerWorkspace,
     private val currentLocation: suspend () -> ExplorerLocation?,
     private val clearSelection: () -> Unit,
@@ -38,6 +49,20 @@ class ExplorerSafLocationController(
 
     private val showAddStorageSheetFlow = MutableStateFlow(false)
     val showAddStorageSheet: StateFlow<Boolean> = showAddStorageSheetFlow
+
+    /**
+     * Derived from the sheet, never written by a side job: [flatMapLatest] cancels a load whose
+     * sheet was closed or reopened, so a stale list can neither overwrite a newer one nor be shown
+     * again after an app was uninstalled.
+     */
+    val storageSuggestions: StateFlow<List<StorageProviderSuggestion>> = showAddStorageSheetFlow
+        .flatMapLatest { visible ->
+            when {
+                visible -> flow { emit(storageProviderSuggester.getSuggestions()) }
+                else -> flowOf(emptyList())
+            }
+        }
+        .stateIn(scope, SharingStarted.Eagerly, emptyList())
 
     private val _pendingSAFPickerGrant = MutableStateFlow<SAFPickerGrant?>(null)
     val pendingSAFPickerGrant: Flow<SAFPickerGrant?> = _pendingSAFPickerGrant
@@ -68,6 +93,22 @@ class ExplorerSafLocationController(
         safPickerEvents.emit(intent)
     }
 
+    fun addSuggestedSAFLocation(suggestion: StorageProviderSuggestion) = doLaunch {
+        log(tag) { "addSuggestedSAFLocation($suggestion)" }
+        _pendingSAFPickerGrant.value = null
+        val known = suggestion.known
+        val intent = when {
+            known != null -> safPickerIntentBuilder.buildPickerIntent(
+                authority = known.authorityFor(suggestion.packageName),
+                rootDocumentId = known.rootDocumentIdFor(suggestion.packageName),
+            )
+            else -> Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
+                putExtra("android.content.extra.SHOW_ADVANCED", true)
+            }
+        }
+        safPickerEvents.emit(intent)
+    }
+
     suspend fun handleSAFPickerResult(treeUri: Uri) {
         log(tag) { "handleSAFPickerResult(treeUri=$treeUri)" }
         try {
@@ -79,7 +120,8 @@ class ExplorerSafLocationController(
 
             val locationId = safLocationManager.grantPermission(treeUri)
 
-            dialogs.show(ExplorerDialogState.LocationStorageName(locationId, currentName = null))
+            val providerLabel = treeUri.authority?.let { storageProviderSuggester.labelForAuthority(it) }
+            dialogs.show(ExplorerDialogState.LocationStorageName(locationId, currentName = providerLabel))
 
             // Auto-refresh if currently viewing Device location to show new SAF storage immediately
             if (currentLocation() is ExplorerLocation.Device) {
