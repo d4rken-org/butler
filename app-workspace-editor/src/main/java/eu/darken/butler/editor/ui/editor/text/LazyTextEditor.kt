@@ -462,7 +462,6 @@ private fun DualColumnEditorContent(
     }
     rememberCoroutineScope()
     val density = LocalDensity.current
-    val contentPaddingTopPx = with(density) { contentPadding.calculateTopPadding().toPx() }
 
     // Track measured heights for each line when word wrap is enabled
     val lineHeights = remember { mutableStateMapOf<Long, Int>() }
@@ -1013,7 +1012,6 @@ private fun DualColumnEditorContent(
                 textLayouts = textLayouts,
                 visibleLineContent = currentVisibleLineContent,
                 tabSize = tabSize,
-                contentPaddingTop = contentPaddingTopPx,
                 lineStartColumn = startColumns[start.line] ?: 0L,
             )
 
@@ -1047,7 +1045,6 @@ private fun DualColumnEditorContent(
                 textLayouts = textLayouts,
                 visibleLineContent = currentVisibleLineContent,
                 tabSize = tabSize,
-                contentPaddingTop = contentPaddingTopPx,
                 lineStartColumn = startColumns[end.line] ?: 0L,
             )
         }
