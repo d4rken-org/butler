@@ -29,13 +29,7 @@ sealed interface ExplorerDialogState {
     data class LocationStorageName(
         val locationId: String,
         val currentName: String?,
-        val kind: Kind = Kind.SAF,
-    ) : ExplorerDialogState {
-        enum class Kind {
-            SAF,
-            NETWORK,
-        }
-    }
+    ) : ExplorerDialogState
 
     /**
      * Add or edit a network location. [isTesting] and [error] are driven by the view model while the

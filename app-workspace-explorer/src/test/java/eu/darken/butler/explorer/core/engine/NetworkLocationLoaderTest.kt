@@ -77,7 +77,6 @@ class NetworkLocationLoaderTest : BaseTest() {
         ): SmbLocation = throw UnsupportedOperationException()
 
         override suspend fun delete(id: Uuid) = throw UnsupportedOperationException()
-        override suspend fun setLabel(id: Uuid, label: String?) = throw UnsupportedOperationException()
     }
 
     private val endpointStates = MutableStateFlow<Map<Uuid, SmbEndpointState>>(emptyMap())

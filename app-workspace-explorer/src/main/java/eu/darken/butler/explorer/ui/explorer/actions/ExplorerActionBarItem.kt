@@ -262,14 +262,6 @@ sealed interface ExplorerActionBarItem : WorkspaceActionBarItem {
             override val label = R.string.explorer_network_edit_location_action.toCaString()
         }
 
-        data class RenameLocation(
-            override val isEnabled: Boolean = true,
-            override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.PRIMARY,
-        ) : Network {
-            override val icon = Icons.TwoTone.DriveFileRenameOutline
-            override val label = R.string.explorer_location_rename_action.toCaString()
-        }
-
         data class RemoveLocation(
             override val isEnabled: Boolean = true,
             override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.PRIMARY,

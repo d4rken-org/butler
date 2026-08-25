@@ -218,8 +218,7 @@ class ExplorerPickerHelper @Inject constructor() {
             // Administering network locations, also offered by the empty Network view
             is ExplorerActionBarItem.Network.AddLocation,
             is ExplorerActionBarItem.Network.EditLocation,
-            is ExplorerActionBarItem.Network.RemoveLocation,
-            is ExplorerActionBarItem.Network.RenameLocation -> allowsNetworkManagementActions(config)
+            is ExplorerActionBarItem.Network.RemoveLocation -> allowsNetworkManagementActions(config)
 
             // Blocked: modification, clipboard, device, file, and recycle bin actions
             is ExplorerActionBarItem.Directory.Copy,
