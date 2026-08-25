@@ -7,6 +7,7 @@ import androidx.compose.material.icons.twotone.ContentCut
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.DeleteForever
 import androidx.compose.material.icons.twotone.FolderZip
+import androidx.compose.material.icons.twotone.InstallMobile
 import androidx.compose.material.icons.twotone.OpenInBrowser
 import androidx.compose.material.icons.twotone.SaveAlt
 import androidx.compose.material.icons.twotone.Share
@@ -20,9 +21,9 @@ import eu.darken.butler.common.R as CommonR
 /**
  * Workspace-level actions for the viewer, shown in the bottom action bar.
  *
- * [BrowseArchive], [OpenWith] and [Share] stay visible on the narrowest pane; the rest are SECONDARY
- * and fall into the overflow menu as space runs out, [Delete] first because it is the one a mis-tap
- * costs most.
+ * [Install], [BrowseArchive], [OpenWith] and [Share] stay visible on the narrowest pane; the rest are
+ * SECONDARY and fall into the overflow menu as space runs out, [Delete] first because it is the one
+ * a mis-tap costs most.
  */
 sealed interface ViewerActionBarItem : WorkspaceActionBarItem {
     override val icon: ImageVector
@@ -40,6 +41,12 @@ sealed interface ViewerActionBarItem : WorkspaceActionBarItem {
     data object SaveCopy : ViewerActionBarItem {
         override val icon = Icons.TwoTone.SaveAlt
         override val label = R.string.viewer_save_copy_action.toCaString()
+    }
+
+    /** Install the APK or app bundle this tab is showing. */
+    data object Install : ViewerActionBarItem {
+        override val icon = Icons.TwoTone.InstallMobile
+        override val label = R.string.viewer_install_action.toCaString()
     }
 
     /**

@@ -3,6 +3,7 @@ package eu.darken.butler.viewer.core
 import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.common.pkgs.apk.ApkArchiveInfo
+import eu.darken.butler.common.pkgs.installer.AppInstallFormat
 
 /**
  * What the viewer resolved the target file to. [Loading] is the seed state, everything else is
@@ -16,6 +17,22 @@ sealed interface ViewerContent {
     data class Apk(
         val mime: MimeInfo,
         val apkInfo: ApkArchiveInfo,
+        val installState: ApkInstallState,
+    ) : ViewerContent
+
+    /**
+     * A multi-APK install container. It is also a browsable zip, so it keeps the browse offer that
+     * [Archive] has - what it does not keep is being browsed on tap, because installing it is the
+     * more likely intent.
+     */
+    data class AppBundle(
+        val mime: MimeInfo,
+        val format: AppInstallFormat,
+        val apkInfo: ApkArchiveInfo,
+        val splitCount: Int,
+        val hasObb: Boolean,
+        /** Expansion files are present but nothing here can write them without root or ADB. */
+        val needsElevationForObb: Boolean,
         val installState: ApkInstallState,
     ) : ViewerContent
 

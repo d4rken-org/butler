@@ -9,6 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.caString
+import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
@@ -22,6 +23,9 @@ import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.issue.Issue
+import eu.darken.butler.common.pkgs.installer.AppInstallEvent
+import eu.darken.butler.common.pkgs.installer.AppInstallInspector
+import eu.darken.butler.common.pkgs.installer.AppInstaller
 import eu.darken.butler.common.trash.TrashSettings
 import eu.darken.butler.common.ui.ViewModel3
 import eu.darken.butler.viewer.R
@@ -50,6 +54,7 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import eu.darken.butler.workspace.core.createAndFocus
+import eu.darken.butler.workspace.core.operations.AppInstallOperation
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.partitionByTrashSupport
@@ -66,6 +71,7 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -101,6 +107,9 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
     private val clipboardRepo: ClipboardRepo,
     private val trashSettings: TrashSettings,
     private val operationsManager: OperationsManager,
+    private val appInstallInspector: AppInstallInspector,
+    private val appInstaller: AppInstaller,
+    private val appInstallOperationFactory: AppInstallOperation.Factory,
     private val apkIconExporter: ApkIconExporter,
     private val filenameValidator: FilenameValidator,
     chromeFactory: WorkspacePageChrome.Factory,
@@ -593,6 +602,52 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
         )
     }
 
+    /**
+     * Installs the APK or app bundle this tab is showing.
+     *
+     * Inspection runs here rather than inside the operation so an unreadable, protected or
+     * unsupported container is answered right away instead of behind a progress bar. The
+     * unknown-sources check is a preflight for the same reason: without elevated access the platform
+     * installer is the only route, and it refuses to run until Butler is an authorized install
+     * source, so the user goes to the settings page and no operation is created.
+     */
+    fun install() = launch {
+        val path = workspaceSource.first().storedPath ?: return@launch
+        log(tag, INFO) { "install($path)" }
+        try {
+            val plan = appInstallInspector.inspect(path)
+            if (!appInstaller.hasElevation() && !appInstaller.canUseSystemInstaller()) {
+                log(tag, INFO) { "install($path): Butler is not an authorized install source yet" }
+                context.startActivity(appInstaller.unknownSourcesSettings())
+                toastEvents.emit(WorkspaceR.string.workspace_install_unknown_sources_required.toCaString())
+                return@launch
+            }
+
+            val events = MutableSharedFlow<AppInstallEvent>(extraBufferCapacity = 16)
+            // Subscribed before submitting, so an event emitted right at the start is not missed.
+            events
+                .filterIsInstance<AppInstallEvent.ObbFailed>()
+                .onEach { toastEvents.emit(WorkspaceR.string.workspace_install_obb_failed.toCaString(it.reason)) }
+                .launchInViewModel()
+
+            // Closing this tab cancels the operation outright, which abandons the install session.
+            // If the system's confirm dialog is already on screen the platform owns it from there
+            // and may still complete the install on its own.
+            operationsManager.submit(
+                appInstallOperationFactory.create(
+                    installOrigin = Operation.Metadata.Origin.Viewer(id),
+                    plan = plan,
+                    events = events,
+                )
+            )
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            log(tag, ERROR) { "install($path) failed: ${e.asLog()}" }
+            errorEvents.emit(e)
+        }
+    }
+
     /** Non-null while the user is being asked to confirm the delete. */
     private val deleteRequestFlow = MutableStateFlow<Set<APath<*>>?>(null)
     val deleteRequest: StateFlow<Set<APath<*>>?> = deleteRequestFlow
@@ -911,9 +966,10 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
  * that has all of them.
  *
  * For a stored file the only thing that varies is applicability: there is no parent folder at a
- * storage root, delete only reads as recoverable when this file can really reach the trash, and
- * browsing is offered only for a container that can actually be opened where it lies - which is why
- * the resolved [content] is an input here rather than just the source.
+ * storage root, delete only reads as recoverable when this file can really reach the trash, only a
+ * package file can be installed, and browsing is offered only for a container that can actually be
+ * opened where it lies - which is why the resolved [content] is an input here rather than just the
+ * source.
  *
  * The trash question goes through [partitionByTrashSupport] rather than the setting alone: the
  * setting can be on for a file the trash cannot hold, and the confirmation dialog asks the same
@@ -934,10 +990,18 @@ internal fun viewerActions(
 
     is ViewerSource.Stored -> buildList {
         if (!isGone) {
+            // Leads for a package file: it is what the user came for, and everything below applies
+            // to the file rather than to the app it would install.
+            if (content is ViewerContent.Apk || content is ViewerContent.AppBundle) {
+                add(ViewerActionBarItem.Install)
+            }
             // Leads for a container the Explorer can open in place: it is what the user came for,
             // and the file actions below apply to the container, not to what is inside it. Opening
             // a container that is gone would land the Explorer on nothing, so it goes with them.
-            if ((content as? ViewerContent.Archive)?.access == ViewerContent.Archive.Access.BROWSABLE) {
+            // A bundle keeps the offer too - it is a browsable zip, and a tap no longer browses it.
+            val browsable = (content as? ViewerContent.Archive)?.access ==
+                ViewerContent.Archive.Access.BROWSABLE
+            if (browsable || content is ViewerContent.AppBundle) {
                 add(ViewerActionBarItem.BrowseArchive)
             }
             // Handing a file to another app needs a file:// or content:// URI, which a file on a
