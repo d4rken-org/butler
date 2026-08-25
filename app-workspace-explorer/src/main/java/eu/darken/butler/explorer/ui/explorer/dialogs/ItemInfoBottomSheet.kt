@@ -92,6 +92,15 @@ private fun ItemInfoContent(
     onRevealPassword: (Uuid) -> Unit,
     onHidePassword: (Uuid) -> Unit,
 ) {
+    // What the row this sheet was opened from shows under its name, so the sheet says which of
+    // several similarly named shares it describes.
+    val subtitle = when (context) {
+        is ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork -> {
+            context.item?.subtitle?.get(LocalContext.current)
+        }
+        else -> null
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -105,6 +114,14 @@ private fun ItemInfoContent(
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
         )
+
+        subtitle?.let {
+            Text(
+                text = it,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
 
         HorizontalDivider()
 
