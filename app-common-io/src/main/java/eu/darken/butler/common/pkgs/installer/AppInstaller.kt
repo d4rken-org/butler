@@ -228,7 +228,11 @@ class AppInstaller @Inject constructor(
                     label = split.stagedName,
                 )
             )
-            val staged = gatewaySwitch.openInputStream(plan.source).use { writeSplit(plan, split, it) }
+            // A provider is allowed to report no size at all, and folding that to zero would reject
+            // the APK on its first read. Nothing is lost: the declared size came from the same
+            // mutable file, and what actually gets installed is settled by [verifyStagedBase].
+            val staged = gatewaySwitch.openInputStream(plan.source)
+                .use { writeSplit(plan, split, it, enforceSize = split.size > 0L) }
             verifyStagedBase(plan, staged)
             return listOf(staged)
         }
@@ -271,7 +275,7 @@ class AppInstaller @Inject constructor(
                             label = split.stagedName,
                         )
                     )
-                    staged[split] = writeSplit(plan, split, stream)
+                    staged[split] = writeSplit(plan, split, stream, enforceSize = true)
                     done += split.size
                 } else if (expansion != null && obbTarget != null) {
                     send(
@@ -292,19 +296,21 @@ class AppInstaller @Inject constructor(
             plan: AppInstallPlan,
             split: AppInstallPlan.Split,
             input: InputStream,
+            enforceSize: Boolean,
         ): StagedSplit = when {
             localDir != null -> {
                 val target = File(localDir, split.stagedName)
-                target.outputStream().use { out -> copyChecked(input, out, split.size, plan.source) }
-                StagedSplit(split, LocalPath.build(target)) { target.inputStream() }
+                val written = target.outputStream()
+                    .use { out -> copyChecked(input, out, split.size.takeIf { enforceSize }, plan.source) }
+                StagedSplit(split, LocalPath.build(target), written) { target.inputStream() }
             }
 
             else -> {
                 val target = shellDir!!.child(split.stagedName)
                 gatewaySwitch.createFile(target, createParents = false)
-                gatewaySwitch.openOutputStream(target, append = false)
-                    .use { out -> copyChecked(input, out, split.size, plan.source) }
-                StagedSplit(split, target) { gatewaySwitch.openInputStream(target) }
+                val written = gatewaySwitch.openOutputStream(target, append = false)
+                    .use { out -> copyChecked(input, out, split.size.takeIf { enforceSize }, plan.source) }
+                StagedSplit(split, target, written) { gatewaySwitch.openInputStream(target) }
             }
         }
 
@@ -529,6 +535,8 @@ class AppInstaller @Inject constructor(
         val split: AppInstallPlan.Split,
         /** Where the staged bytes live; also what the elevated shell is pointed at. */
         val path: LocalPath,
+        /** What was actually written, which is what the session has to be sized from. */
+        val size: Long,
         val open: suspend () -> InputStream,
     )
 
@@ -639,24 +647,25 @@ class AppInstaller @Inject constructor(
     private fun entrySegments(entryPath: String): List<String> = entryPath.split('/').filter { it.isNotEmpty() }
 
     /**
-     * Copies exactly [declaredSize] bytes. Anything else is a lie about the container rather than an
-     * unusual file: more would fill storage, less is a different entry than the one that was
-     * inspected, and both abort instead of installing what arrived.
+     * Copies exactly [declaredSize] bytes, or all of them when nothing was declared. A length other
+     * than the declared one is a lie about the container rather than an unusual file: more would
+     * fill storage, less is a different entry than the one that was inspected, and both abort
+     * instead of installing what arrived.
      */
-    private fun copyChecked(input: InputStream, out: OutputStream, declaredSize: Long, source: APath<*>): Long {
+    private fun copyChecked(input: InputStream, out: OutputStream, declaredSize: Long?, source: APath<*>): Long {
         val buffer = ByteArray(COPY_BUFFER_SIZE)
         var written = 0L
         while (true) {
             val read = input.read(buffer)
             if (read == -1) break
             written += read
-            if (written > declaredSize) {
+            if (declaredSize != null && written > declaredSize) {
                 throw AppInstallUnsupportedBundleException(source, "entry exceeds its declared size")
             }
             out.write(buffer, 0, read)
         }
         out.flush()
-        if (written != declaredSize) {
+        if (declaredSize != null && written != declaredSize) {
             throw AppInstallUnsupportedBundleException(source, "entry is shorter than its declared size")
         }
         return written
@@ -777,8 +786,10 @@ class AppInstaller @Inject constructor(
         var sessionId: Int? = null
         var committed = false
         try {
+            // Sized from what staging actually wrote, not from what the container declared: for a
+            // plain APK behind a provider that reports no size there is no declared total at all.
             val created = shellOps.execute(
-                ShellOpsCmd("pm install-create -r -t -S ${plan.totalBytes} --user $userId"),
+                ShellOpsCmd("pm install-create -r -t -S ${staged.sumOf { it.size }} --user $userId"),
                 shellMode,
             )
             // Both streams: OEM `pm` replacements and Shizuku-style wrappers put the created line on
@@ -804,7 +815,7 @@ class AppInstaller @Inject constructor(
                 )
                 val written = shellOps.execute(
                     ShellOpsCmd(
-                        "pm install-write -S ${entry.split.size} $sessionId " +
+                        "pm install-write -S ${entry.size} $sessionId " +
                             "${quote(entry.split.stagedName)} ${quote(entry.path.path)}"
                     ),
                     shellMode,
@@ -869,9 +880,9 @@ class AppInstaller @Inject constructor(
                             label = entry.split.stagedName,
                         )
                     )
-                    val out = session.openWrite(entry.split.stagedName, 0, entry.split.size)
+                    val out = session.openWrite(entry.split.stagedName, 0, entry.size)
                     try {
-                        entry.open().use { input -> copyChecked(input, out, entry.split.size, plan.source) }
+                        entry.open().use { input -> copyChecked(input, out, entry.size, plan.source) }
                         session.fsync(out)
                     } finally {
                         out.close()

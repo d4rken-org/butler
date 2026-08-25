@@ -281,6 +281,19 @@ class AppInstallerTest : BaseTest() {
     }
 
     @Test
+    fun `an APK whose size the provider never reported still installs`() = runTest2 {
+        // SAF providers may leave COLUMN_SIZE unset, which the lookup folds to zero.
+        val sizeless = plan().let { it.copy(splits = listOf(it.splits.single().copy(size = 0L))) }
+
+        val events = installer().install(sizeless, AppInstaller.Mode.ROOT).toList()
+
+        events.last().shouldBeInstanceOf<AppInstallEvent.Success>()
+        // Sized from what staging wrote, there being nothing declared to size it from.
+        pmCommands()[0] shouldBe "pm install-create -r -t -S ${apk.file.length()} --user 11"
+        pmCommands()[1] shouldContain "pm install-write -S ${apk.file.length()} 42"
+    }
+
+    @Test
     fun `the shell sweep removes leftovers one by one, never the whole root`() = runTest2 {
         shellStagingChildren = listOf(SHELL_ROOT, "$SHELL_ROOT/$LEFTOVER_NAME")
 
