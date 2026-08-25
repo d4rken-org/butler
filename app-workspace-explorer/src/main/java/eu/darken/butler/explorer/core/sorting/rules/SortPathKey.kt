@@ -14,9 +14,10 @@ import eu.darken.butler.common.files.SAFPath
  * named `Budget:2026` cannot collide with `Budget/2026`, and so the archive marker - the only
  * unescaped `!` a key can contain - cannot collide with a real filename containing `!`.
  *
- * SAF keys are deliberately grant-independent: the document ID is parsed exactly the way
- * [SAFPath.userReadablePath] parses it, so a broad `primary:` grant and a narrow
- * `primary:Pictures/Trips` grant of the same folder produce the same key AND the same ancestor list.
+ * SAF keys are deliberately grant-independent: the document ID is split on `:` the way
+ * [SAFPath.userReadablePath] splits colon-form and bare-volume IDs, so a broad `primary:` grant and
+ * a narrow `primary:Pictures/Trips` grant of the same folder produce the same key AND the same
+ * ancestor list. A path-shaped ID has no volume part and simply becomes the whole `storageId`.
  */
 fun APath<*>.sortPathKey(): String = keyComponents().components.joinKey()
 
@@ -50,7 +51,7 @@ private fun APath<*>.keyComponents(): KeyComponents = when (this) {
 
     is SAFPath -> {
         val documentId = treeRootUri.path?.let { TREE_DOCUMENT_ID_REGEX.matchEntire(it)?.groupValues?.get(1) }
-        // Same parse as SAFPath.userReadablePath: split once on ':', then split the base path on '/'
+        // Split once on ':', then split the base path on '/'
         val parts = documentId?.split(":", limit = 2)
         val storageId = parts?.getOrNull(0) ?: treeRootUri.rawUri
         val basePath = parts?.getOrNull(1)?.split("/")?.filter { it.isNotEmpty() } ?: emptyList()

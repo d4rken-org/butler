@@ -83,6 +83,8 @@ fun StorageGrid(
     isEnabled: Boolean = true,
     decorations: ItemDecorations = ItemDecorations(),
 ) {
+    val context = LocalContext.current
+
     FileGridBase(
         modifier = modifier,
         item = item,
@@ -101,13 +103,12 @@ fun StorageGrid(
                 modifier = Modifier.size(20.dp)
             )
         },
-        primaryText = item.displayName.get(LocalContext.current),
+        primaryText = item.displayName.get(context),
         secondaryText = run {
             val totalBytes = item.totalBytes
             val availableBytes = item.availableBytes
             when {
                 totalBytes != null && availableBytes != null -> {
-                    val context = LocalContext.current
                     val total = eu.darken.butler.common.formatFileSize(context, totalBytes, shortFormat = true)
                     val free = eu.darken.butler.common.formatFileSize(context, availableBytes, shortFormat = true)
                     val typeLabel = when (item) {
@@ -119,7 +120,7 @@ fun StorageGrid(
                 else -> null
             }
         },
-        tertiaryText = item.target.path.path,
+        tertiaryText = item.target.path.userReadablePath.get(context),
         backgroundColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
         trailingContent = if (item is ExplorerItem.Storage.SAF) {
             { PermissionIndicator(item.location) }

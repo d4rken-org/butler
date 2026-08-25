@@ -168,6 +168,15 @@ class SAFPathTest : BaseTest() {
             "seg1",
             "seg2",
         ).userReadablePath.get(mockk()) shouldBe "[3135-3132]/seg1/seg2"
+        SAFPath.build(
+            "content://com.termux.documents/tree/%2Fdata%2Fdata%2Fcom.termux%2Ffiles%2Fhome",
+            "seg1",
+            "seg2",
+        ).userReadablePath.get(mockk()) shouldBe "/data/data/com.termux/files/home/seg1/seg2"
+        SAFPath.build(
+            "content://com.example.documents/tree/%2Fsrv%2Fbackup%3A2026",
+            "seg1",
+        ).userReadablePath.get(mockk()) shouldBe "/srv/backup:2026/seg1"
     }
 
     @Test
