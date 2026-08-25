@@ -269,8 +269,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     )
 
     /** What the open network info sheet loads; both end when that sheet goes away. */
-    private var networkRevealJob: Job? = null
-    private var networkCapacityJob: Job? = null
+    @Volatile private var networkRevealJob: Job? = null
+    @Volatile private var networkCapacityJob: Job? = null
 
     val issueState: StateFlow<Issue?> get() = conflicts.issueState
     val showIssueSheet: StateFlow<Boolean> get() = conflicts.showIssueSheet
@@ -382,19 +382,24 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             }
             .launchInViewModel()
 
-        // What an open network info sheet loads belongs to that sheet: dismissing it, or replacing
-        // it with any other dialog, ends the work started for it.
+        // What an open network info sheet loads belongs to that sheet, so it both starts and ends
+        // here: one coroutine, cancel before start, no ordering to get wrong. Keyed by sheet
+        // instance because reopening the same location is a new sheet with the same locationId,
+        // and a StateFlow would not report the reopen at all if it were keyed by that.
         dialogs.state
-            .map { ((it as? ItemInfo)?.context as? ItemInfo.InfoContext.SingleNetwork)?.locationId }
-            .distinctUntilChanged()
-            .onEach {
-                // This ends the delivery of a result, not the work behind it: the capacity read is
-                // blocking socket I/O that only its own connect and request timeouts can stop. A
-                // late result is harmless because updateSingleNetwork checks who it belongs to.
+            .map { (it as? ItemInfo)?.context as? ItemInfo.InfoContext.SingleNetwork }
+            .distinctUntilChangedBy { it?.sheetInstanceId }
+            .onEach { sheet ->
+                // Cancelling ends the delivery of a result, not the work behind it: the capacity
+                // read is blocking socket I/O that only its own connect and request timeouts can
+                // stop. A late result is harmless because updateSingleNetwork checks who it
+                // belongs to.
                 networkRevealJob?.cancel()
                 networkRevealJob = null
                 networkCapacityJob?.cancel()
                 networkCapacityJob = null
+                if (sheet == null) return@onEach
+                loadNetworkCapacity(sheet.locationId, getState().currentLocation?.items)
             }
             .launchInViewModel()
 
@@ -1046,12 +1051,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
                     // The display list lags behind metadata-only refreshes, resolve against the raw location items
                     val infoContext = itemInfoCalculator.calculateInfo(selectedItems, stateSnap.currentLocation?.items)
-                    infoContext?.let { context ->
-                        dialogs.show(ItemInfo(context))
-                        if (context is ItemInfo.InfoContext.SingleNetwork) {
-                            loadNetworkCapacity(context.locationId, stateSnap.currentLocation?.items)
-                        }
-                    }
+                    infoContext?.let { dialogs.show(ItemInfo(it)) }
                 }
             }
             is ExplorerActionBarItem.Common.Rename -> {
@@ -1521,14 +1521,14 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     }
 
     /**
-     * Reads how full the share is, for an open info sheet only.
+     * Reads how full the share is, for an open info sheet only. Started from the sheet watcher,
+     * which has already ended whatever the sheet before it was loading.
      *
      * This is the one place that spends an authenticated session on a location the user merely
      * looked at; drawing the Network list still costs no login attempt. Skipped entirely when there
      * is nothing to sign in with or nothing to reach, so no field appears for it.
      */
     private fun loadNetworkCapacity(locationId: Uuid, items: List<ExplorerItem>?) {
-        networkCapacityJob?.cancel()
         val item = items
             ?.filterIsInstance<ExplorerItem.Storage.Network>()
             ?.firstOrNull { it.location.id == locationId }
