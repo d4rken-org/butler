@@ -227,6 +227,13 @@
 
     <!-- Performance Graph -->
     <string name="workspace_operation_performance_not_enough_data">Not enough data</string>
+    <string name="workspace_operation_performance_graph_expand">Expand performance graph</string>
+    <string name="workspace_operation_performance_graph_collapse">Collapse performance graph</string>
+    <string name="workspace_operation_performance_unit_bytes">B/s</string>
+    <string name="workspace_operation_performance_unit_kilobytes">kB/s</string>
+    <string name="workspace_operation_performance_unit_megabytes">MB/s</string>
+    <string name="workspace_operation_performance_unit_gigabytes">GB/s</string>
+    <string name="workspace_operation_performance_unit_items">items/s</string>
 
     <!-- Error Display (shared across workspaces) -->
     <string name="workspace_error_show_details_action">Show technical details</string>

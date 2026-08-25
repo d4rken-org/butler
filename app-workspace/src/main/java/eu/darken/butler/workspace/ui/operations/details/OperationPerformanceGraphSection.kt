@@ -26,12 +26,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.files.local.operations.core.PerformanceHistory
 import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 
 @Composable
 internal fun OperationPerformanceGraphSection(
     operation: OperationDisplay,
+    graphContent: @Composable (PerformanceHistory) -> Unit = { OperationPerformanceGraph(performanceHistory = it) },
 ) {
     // Extract performance history from the operation state
     val performanceHistory = when (val state = operation.state) {
@@ -79,9 +81,9 @@ internal fun OperationPerformanceGraphSection(
                         Icons.TwoTone.ExpandMore
                     },
                     contentDescription = if (isExpanded) {
-                        "Collapse performance graph"
+                        stringResource(R.string.workspace_operation_performance_graph_collapse)
                     } else {
-                        "Expand performance graph"
+                        stringResource(R.string.workspace_operation_performance_graph_expand)
                     },
                     modifier = Modifier.size(20.dp),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
@@ -91,10 +93,7 @@ internal fun OperationPerformanceGraphSection(
             // Graph content
             AnimatedVisibility(visible = isExpanded) {
                 Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                    OperationPerformanceGraph(
-                        modifier = Modifier.fillMaxWidth(),
-                        performanceHistory = performanceHistory,
-                    )
+                    graphContent(performanceHistory)
                 }
             }
         }
