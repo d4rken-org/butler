@@ -166,8 +166,9 @@ fun OperationPerformanceGraph(
                 label = axisLabel,
                 guideline = null,  // Hide grid lines
                 itemPlacer = remember { VerticalAxis.ItemPlacer.count(count = { 5 }) },
-                valueFormatter = remember(maxBytes, maxItems, byteSpeeds != null) {
-                    speedValueFormatter(if (byteSpeeds != null) maxBytes else maxItems)
+                // Label precision follows the actual series maxima, not the padded axis range
+                valueFormatter = remember(graphData.maxByteSpeed, graphData.maxItemSpeed, byteSpeeds != null) {
+                    speedValueFormatter(if (byteSpeeds != null) graphData.maxByteSpeed else graphData.maxItemSpeed)
                 },
                 title = bytesUnitLabel ?: itemsUnitLabel,
                 titleComponent = rememberAxisLabelComponent(
@@ -179,7 +180,7 @@ fun OperationPerformanceGraph(
                     label = axisLabel,
                     guideline = null,  // Hide grid lines
                     itemPlacer = remember { VerticalAxis.ItemPlacer.count(count = { 5 }) },
-                    valueFormatter = remember(maxItems) { speedValueFormatter(maxItems) },
+                    valueFormatter = remember(graphData.maxItemSpeed) { speedValueFormatter(graphData.maxItemSpeed) },
                     title = itemsUnitLabel,
                     titleComponent = rememberAxisLabelComponent(color = itemsLineColor),
                 )

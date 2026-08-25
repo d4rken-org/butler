@@ -50,12 +50,24 @@ data class PerformanceGraphData(
             val finalSample = history.samples.last()
             if (samples.last() !== finalSample) {
                 val finalX = history.progressOf(finalSample)
-                if (finalX == progress.last()) {
-                    samples[samples.lastIndex] = finalSample
-                    progress[progress.lastIndex] = finalX
-                } else {
-                    samples.add(finalSample)
-                    progress.add(finalX)
+                when {
+                    finalX == progress.last() -> {
+                        samples[samples.lastIndex] = finalSample
+                        progress[progress.lastIndex] = finalX
+                    }
+                    // A revised down total moves the final sample back onto steps that were already plotted
+                    finalX < progress.last() -> {
+                        while (progress.isNotEmpty() && progress.last() >= finalX) {
+                            samples.removeAt(samples.lastIndex)
+                            progress.removeAt(progress.lastIndex)
+                        }
+                        samples.add(finalSample)
+                        progress.add(finalX)
+                    }
+                    else -> {
+                        samples.add(finalSample)
+                        progress.add(finalX)
+                    }
                 }
             }
 

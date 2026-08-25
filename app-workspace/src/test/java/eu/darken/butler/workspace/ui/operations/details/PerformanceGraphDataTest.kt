@@ -282,15 +282,29 @@ class PerformanceGraphDataTest : BaseTest() {
     }
 
     @Test
-    fun `a final sample that lands on a new step is appended`() {
+    fun `a final sample below earlier progress truncates back to it`() {
         val samples = (0 until 10).map { i ->
             sample(index = i, itemsPerSecond = 5f, totalItemsProcessed = i + 1)
         } + sample(index = 10, itemsPerSecond = 5f, totalItemsProcessed = 4)  // Progress reported lower
 
         val data = PerformanceGraphData.from(history(samples, totalItems = 10)).shouldNotBeNull()
 
-        data.progress shouldHaveSize 11
-        data.progress.last() shouldBe 40f
+        data.progress shouldBe listOf(10f, 20f, 30f, 40f)
+        data.progress shouldBe data.progress.distinct()
+    }
+
+    @Test
+    fun `a final sample above the last kept step is appended`() {
+        // 1 of 1000 items per sample, so most samples round onto the same 0.5% step
+        val samples = (0 until 11).map { i ->
+            sample(index = i, itemsPerSecond = 5f, totalItemsProcessed = i + 1)
+        } + sample(index = 11, itemsPerSecond = 5f, totalItemsProcessed = 100)  // A batch of items landed at once
+
+        val data = PerformanceGraphData.from(history(samples, totalItems = 1000)).shouldNotBeNull()
+
+        data.progress shouldBe listOf(0f, 0.5f, 1f, 10f)
+        data.progress shouldBe data.progress.distinct()
+        data.progress.zipWithNext().forEach { (previous, next) -> (next > previous) shouldBe true }
     }
 
     // ============ SMOOTHING ============
