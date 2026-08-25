@@ -27,6 +27,7 @@ import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.files.saf.location.SAFLocation
 import eu.darken.butler.common.files.smb.SmbEndpointState
+import eu.darken.butler.common.files.smb.credentials.SmbCredentialStore
 import eu.darken.butler.common.files.smb.location.SmbLocation
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.common.progress.Progress
@@ -578,7 +579,10 @@ object MockDataProvider {
             displayIcon = Icons.TwoTone.Lan,
             target = ExplorerNavigation.Target.Directory(location.rootPath),
             subtitle = location.endpointLabel.toCaString(),
-            status = status,
+            credentials = when (status) {
+                ExplorerItem.Storage.Network.Status.AVAILABLE -> SmbCredentialStore.Availability.AVAILABLE
+                ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED -> SmbCredentialStore.Availability.MISSING
+            },
             endpoint = endpoint,
         )
     }

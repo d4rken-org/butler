@@ -117,6 +117,22 @@
     <string name="explorer_info_saf_permission_read">Read</string>
     <string name="explorer_info_saf_permission_write">Write</string>
 
+    <!-- Network Info -->
+    <string name="explorer_info_network_server_label">Server</string>
+    <string name="explorer_info_network_port_label">Port</string>
+    <string name="explorer_info_network_share_label">Share</string>
+    <string name="explorer_info_network_folder_label">Folder</string>
+    <string name="explorer_info_network_address_label">Address</string>
+    <string name="explorer_info_network_status_label">Status</string>
+    <string name="explorer_info_network_auth_label">Sign-in</string>
+    <string name="explorer_info_network_domain_label">Domain</string>
+    <string name="explorer_info_network_password_label">Password</string>
+    <string name="explorer_info_network_password_available">Available</string>
+    <string name="explorer_info_network_password_missing">Missing, sign in again</string>
+    <string name="explorer_info_network_password_locked">Stored, but this device cannot unlock it</string>
+    <string name="explorer_info_network_added_label">Added</string>
+    <string name="explorer_info_network_updated_label">Updated</string>
+
     <!-- Multiple Items Info -->
     <string name="explorer_info_selected_label">Selected</string>
     <string name="explorer_info_files_label">Files</string>

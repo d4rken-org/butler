@@ -24,6 +24,7 @@ class NetworkActionProvider @Inject constructor() : ExplorerActionProvider {
             if (selectedNetworkItems.size == 1) {
                 actions.add(ExplorerActionBarItem.Network.EditLocation())
                 actions.add(ExplorerActionBarItem.Network.RenameLocation())
+                actions.add(ExplorerActionBarItem.Common.Info())
             }
 
             if (selectedNetworkItems.isNotEmpty()) {

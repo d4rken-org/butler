@@ -3,6 +3,7 @@ package eu.darken.butler.explorer.ui.explorer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Lan
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.files.smb.credentials.SmbCredentialStore
 import eu.darken.butler.common.files.smb.location.SmbLocation
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.engine.ExplorerItem
@@ -38,7 +39,10 @@ class ExplorerItemListChangeTest : BaseTest() {
             displayIcon = Icons.TwoTone.Lan,
             target = ExplorerNavigation.Target.Directory(location.rootPath),
             subtitle = location.endpointLabel.toCaString(),
-            status = status,
+            credentials = when (status) {
+                ExplorerItem.Storage.Network.Status.AVAILABLE -> SmbCredentialStore.Availability.AVAILABLE
+                ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED -> SmbCredentialStore.Availability.MISSING
+            },
         )
     }
 

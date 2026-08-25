@@ -49,6 +49,18 @@ class ItemInfoCalculatorTest : BaseTest() {
         result.item shouldBe item
     }
 
+    /** Only the location, so the sheet reads the live row instead of the one it was opened from. */
+    @Test
+    fun `a network location maps to its id`() {
+        val item = MockDataProvider.createMockStorageNetwork()
+
+        val result = calculator.calculateInfo(listOf(item), listOf(item))
+
+        result.shouldBeInstanceOf<ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork>()
+        result.locationId shouldBe item.location.id
+        result.item shouldBe null
+    }
+
     @Test
     fun `local storage capacity is taken from the live items`() {
         val stale = createLocalStorage(totalBytes = null, availableBytes = null)
