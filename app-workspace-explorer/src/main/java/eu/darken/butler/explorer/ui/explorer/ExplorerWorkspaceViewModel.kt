@@ -1554,7 +1554,12 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         networkCapacityJob = vmScope.launch {
             val capacity = try {
                 val fileSystem = withContext(dispatchers.IO) {
-                    gatewaySwitch.getFileSystem(item.location.rootPath)
+                    // Same bracket a directory load uses: without an active lease on the gateway the
+                    // SMB gateway's resource never opens, and the session this read logs in is left
+                    // to the pool's idle sweep instead of being closed when the read is done.
+                    gatewaySwitch.useRes {
+                        gatewaySwitch.getFileSystem(item.location.rootPath)
+                    }
                 }
                 val total = fileSystem.totalSpace
                 val free = fileSystem.freeSpace
