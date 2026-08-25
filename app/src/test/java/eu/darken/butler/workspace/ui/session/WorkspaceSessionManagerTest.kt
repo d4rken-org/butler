@@ -27,10 +27,13 @@ import eu.darken.butler.workspace.ui.floatingbar.WorkspaceBarCollapseStates
 import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPosition
 import eu.darken.butler.workspace.ui.restore.WorkspaceViewPrefs
 import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPositions
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import java.io.IOException
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -484,6 +487,39 @@ class WorkspaceSessionManagerTest : BaseTest() {
             upsertedEntities.size shouldBe 2
             upsertedEntities.single { it.workspaceId == wsIdB }.orderIndex shouldBe 0
             upsertedEntities.single { it.workspaceId == wsIdA }.orderIndex shouldBe 1
+        }
+
+        /**
+         * The incremental-save cache is what lets the next save skip a row. If it is updated while
+         * the transaction is still open, a commit that then fails leaves the cache claiming rows the
+         * database rolled back, and the row is never written again.
+         */
+        @Test
+        fun `a failed commit leaves rows to be re-saved`() = runTest {
+            val mockDatabase = storage.database
+            coEvery { mockDatabase.withTransaction(any<suspend () -> Any?>()) } coAnswers {
+                @Suppress("UNCHECKED_CAST")
+                val block = args[1] as suspend () -> Any?
+                block()
+                throw IOException("commit failed")
+            }
+
+            repoStateFlow.value = WorkspaceRemote.State(
+                infos = listOf(makeInfo(wsIdA), makeInfo(wsIdB)),
+            )
+            shouldThrow<IOException> { sessionManager.saveSession() }
+            upsertedEntities.clear()
+
+            // Commit works again; the same unchanged state must still be written, because nothing
+            // from the failed attempt reached the database.
+            coEvery { mockDatabase.withTransaction(any<suspend () -> Any?>()) } coAnswers {
+                @Suppress("UNCHECKED_CAST")
+                val block = args[1] as suspend () -> Any?
+                block()
+            }
+            sessionManager.saveSession()
+
+            upsertedEntities.map { it.workspaceId } shouldContainExactlyInAnyOrder listOf(wsIdA, wsIdB)
         }
 
         @Test
