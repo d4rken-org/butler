@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 @Singleton
@@ -117,6 +118,9 @@ class SmbLocationManagerImpl @Inject constructor(
             rememberCredential = rememberCredential,
             credentialVersion = if (credentialChanged) existing.credentialVersion + 1 else existing.credentialVersion,
             updatedAt = Clock.System.now(),
+            // A different server was never seen at all, whatever the old one answered says nothing
+            // about it. Everything else - a new label, a new password - keeps the timestamp.
+            lastSeenAt = existing.lastSeenAt.takeIf { host == existing.host && port == existing.port },
         )
         log(TAG, INFO) { "update(): $updated" }
 
@@ -146,6 +150,10 @@ class SmbLocationManagerImpl @Inject constructor(
         log(TAG, INFO) { "delete(): $id" }
         dao.delete(id)
         credentialStore.remove(id)
+    }
+
+    override suspend fun recordSeen(id: Uuid, host: String, port: Int, at: Instant) {
+        dao.markSeen(locationId = id, host = host, port = port, at = at)
     }
 
     private suspend fun writeCredential(location: SmbLocation, password: CharArray?) {
@@ -187,6 +195,7 @@ class SmbLocationManagerImpl @Inject constructor(
         credentialVersion = credentialVersion,
         createdAt = createdAt,
         updatedAt = updatedAt,
+        lastSeenAt = lastSeenAt,
     )
 
     private fun SmbLocation.toEntity() = SmbLocationEntity(
@@ -203,6 +212,7 @@ class SmbLocationManagerImpl @Inject constructor(
         credentialVersion = credentialVersion,
         createdAt = createdAt,
         updatedAt = updatedAt,
+        lastSeenAt = lastSeenAt,
     )
 
     companion object {

@@ -22,4 +22,6 @@ data class SmbLocationEntity(
     val credentialVersion: Int,
     val createdAt: Instant,
     val updatedAt: Instant,
+    /** When a probe last found this host's port answering, null if that never happened. */
+    val lastSeenAt: Instant? = null,
 )

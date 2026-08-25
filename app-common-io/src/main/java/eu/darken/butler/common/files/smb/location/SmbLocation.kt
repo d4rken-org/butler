@@ -30,6 +30,11 @@ data class SmbLocation(
     val credentialVersion: Int,
     val createdAt: Instant,
     val updatedAt: Instant,
+    /**
+     * When a probe last found this host's port answering. A probe performs no SMB negotiation and
+     * no login, so this says the server was seen, not that it was signed in to.
+     */
+    val lastSeenAt: Instant? = null,
 ) {
 
     enum class AuthType {

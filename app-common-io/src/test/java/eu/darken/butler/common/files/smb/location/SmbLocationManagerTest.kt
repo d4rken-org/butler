@@ -16,6 +16,7 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
+import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 class SmbLocationManagerTest : BaseTest() {
@@ -37,6 +38,17 @@ class SmbLocationManagerTest : BaseTest() {
         override suspend fun delete(locationId: Uuid) {
             checkWriteAllowed()
             rows.value = rows.value.filterNot { it.locationId == locationId }
+        }
+
+        override suspend fun markSeen(locationId: Uuid, host: String, port: Int, at: Instant) {
+            checkWriteAllowed()
+            rows.value = rows.value.map {
+                if (it.locationId == locationId && it.host == host && it.port == port) {
+                    it.copy(lastSeenAt = at)
+                } else {
+                    it
+                }
+            }
         }
 
         private fun checkWriteAllowed() {
@@ -460,6 +472,69 @@ class SmbLocationManagerTest : BaseTest() {
 
         credentialsDao.rows.value shouldBe emptyList()
         String(credentialStore.resolve(location).password) shouldBe "hunter2"
+    }
+
+    @Test
+    fun `a sighting is only recorded for the endpoint it was seen at`() = runTest {
+        val manager = manager()
+        val location = manager.createSample()
+        val seenAt = Instant.fromEpochMilliseconds(5_000)
+
+        manager.recordSeen(location.id, "nas.local", 445, seenAt)
+        manager.get(location.id)!!.lastSeenAt shouldBe seenAt
+
+        // A result that arrives after the endpoint was edited describes another server
+        manager.recordSeen(location.id, "other.nas", 445, Instant.fromEpochMilliseconds(9_000))
+        manager.get(location.id)!!.lastSeenAt shouldBe seenAt
+    }
+
+    @Test
+    fun `editing the endpoint forgets when the location was last seen`() = runTest {
+        val manager = manager()
+        val location = manager.createSample()
+        manager.recordSeen(location.id, "nas.local", 445, Instant.fromEpochMilliseconds(5_000))
+
+        val updated = manager.update(
+            id = location.id,
+            label = location.label,
+            host = "other.nas",
+            port = location.port,
+            share = location.share,
+            basePath = location.basePath,
+            domain = null,
+            username = location.username,
+            authType = SmbLocation.AuthType.PASSWORD,
+            rememberCredential = true,
+            password = null,
+        )
+
+        updated.lastSeenAt shouldBe null
+        manager.get(location.id)!!.lastSeenAt shouldBe null
+    }
+
+    @Test
+    fun `editing anything but the endpoint keeps when the location was last seen`() = runTest {
+        val manager = manager()
+        val location = manager.createSample()
+        val seenAt = Instant.fromEpochMilliseconds(5_000)
+        manager.recordSeen(location.id, "nas.local", 445, seenAt)
+
+        val updated = manager.update(
+            id = location.id,
+            label = "Renamed",
+            host = location.host,
+            port = location.port,
+            share = location.share,
+            basePath = location.basePath,
+            domain = null,
+            username = location.username,
+            authType = SmbLocation.AuthType.PASSWORD,
+            rememberCredential = true,
+            password = "newpass".toCharArray(),
+        )
+
+        updated.lastSeenAt shouldBe seenAt
+        manager.get(location.id)!!.lastSeenAt shouldBe seenAt
     }
 
     @Test
