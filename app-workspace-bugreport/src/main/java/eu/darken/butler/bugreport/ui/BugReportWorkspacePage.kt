@@ -62,10 +62,12 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.compose.runtime.LaunchedEffect
 import eu.darken.butler.bugreport.R
 import eu.darken.butler.bugreport.ui.detail.BugReportDetailContent
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.DateTimeStyle
@@ -116,13 +118,7 @@ fun BugReportWorkspacePageHost(
     state?.let { s ->
         // While the detail view is open, back returns to the list — but let an open dialog consume
         // back first so it isn't dismissed together with the detail.
-        WorkspaceBackHandler(
-            enabled = s.detail != null &&
-                overlayState.shareConsentReportId == null &&
-                !overlayState.showShortRecordingWarning,
-        ) {
-            vm.closeReport()
-        }
+        WorkspaceBackHandler(enabled = s.detail != null && overlayState.activeDialog == null) { vm.closeReport() }
 
         BugReportWorkspacePage(
             design = design,
@@ -131,7 +127,7 @@ fun BugReportWorkspacePageHost(
             onBack = { vm.closeReport() },
             onShareReport = { report -> vm.requestShareConsent(report.id) },
             onDeleteReport = { id -> vm.delete(id) },
-            onDeleteAll = { vm.deleteAll() },
+            onDeleteAll = { vm.requestDeleteAllConfirmation() },
             onStartRecording = { vm.startRecording() },
             onStopRecording = { vm.stopRecording() },
         )
@@ -638,6 +634,43 @@ internal fun ShortRecordingWarningDialog(
             TextButton(onClick = onKeepRecording) { Text(stringResource(R.string.bugreport_recording_short_keep_action)) }
         },
     )
+}
+
+@Composable
+internal fun DeleteAllConfirmationDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    PaneBoundAlertDialog(
+        onDismissRequest = onDismiss,
+        icon = {
+            Icon(
+                imageVector = Icons.TwoTone.DeleteSweep,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.error,
+            )
+        },
+        title = { Text(stringResource(R.string.bugreport_delete_all_confirm_title)) },
+        text = { Text(stringResource(R.string.bugreport_delete_all_confirm_message)) },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text(
+                    text = stringResource(R.string.bugreport_delete_all_action),
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.bugreport_cancel_action)) }
+        },
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun DeleteAllConfirmationDialogPreview() {
+    DeleteAllConfirmationDialog(onConfirm = {}, onDismiss = {})
 }
 
 @Composable

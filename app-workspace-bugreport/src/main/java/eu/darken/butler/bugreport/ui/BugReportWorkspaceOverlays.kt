@@ -9,6 +9,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import eu.darken.butler.bugreport.R
+import eu.darken.butler.bugreport.ui.BugReportWorkspaceViewModel.ActiveDialog
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -62,6 +63,8 @@ fun BugReportWorkspaceOverlaysHost(
             vm.dismissShortRecordingWarning()
             vm.forceStopRecording()
         },
+        onConfirmDeleteAll = { vm.deleteAll() },
+        onDismissDeleteAll = { vm.dismissDeleteAllConfirmation() },
     )
 
     // Last on purpose: layers stack in composition order, so an error raised while one of
@@ -76,19 +79,26 @@ fun BugReportWorkspaceOverlays(
     onDismissShareConsent: () -> Unit = {},
     onKeepRecording: () -> Unit = {},
     onStopRecordingAnyway: () -> Unit = {},
+    onConfirmDeleteAll: () -> Unit = {},
+    onDismissDeleteAll: () -> Unit = {},
 ) {
-    overlayState.shareConsentReportId?.let { reportId ->
-        ShareConsentDialog(
-            onConfirm = { onShareConsent(reportId) },
+    when (val dialog = overlayState.activeDialog) {
+        is ActiveDialog.ShareConsent -> ShareConsentDialog(
+            onConfirm = { onShareConsent(dialog.reportId) },
             onDismiss = onDismissShareConsent,
         )
-    }
 
-    if (overlayState.showShortRecordingWarning) {
-        ShortRecordingWarningDialog(
+        ActiveDialog.ShortRecordingWarning -> ShortRecordingWarningDialog(
             onKeepRecording = onKeepRecording,
             onStopAnyway = onStopRecordingAnyway,
         )
+
+        ActiveDialog.DeleteAllConfirmation -> DeleteAllConfirmationDialog(
+            onConfirm = onConfirmDeleteAll,
+            onDismiss = onDismissDeleteAll,
+        )
+
+        null -> Unit
     }
 }
 
@@ -97,7 +107,7 @@ fun BugReportWorkspaceOverlays(
 @Composable
 private fun BugReportWorkspaceOverlaysShareConsentPreview() {
     BugReportWorkspaceOverlays(
-        overlayState = BugReportWorkspaceViewModel.OverlayState(shareConsentReportId = "report-1"),
+        overlayState = BugReportWorkspaceViewModel.OverlayState(ActiveDialog.ShareConsent("report-1")),
     )
 }
 
@@ -106,6 +116,15 @@ private fun BugReportWorkspaceOverlaysShareConsentPreview() {
 @Composable
 private fun BugReportWorkspaceOverlaysShortRecordingPreview() {
     BugReportWorkspaceOverlays(
-        overlayState = BugReportWorkspaceViewModel.OverlayState(showShortRecordingWarning = true),
+        overlayState = BugReportWorkspaceViewModel.OverlayState(ActiveDialog.ShortRecordingWarning),
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun BugReportWorkspaceOverlaysDeleteAllPreview() {
+    BugReportWorkspaceOverlays(
+        overlayState = BugReportWorkspaceViewModel.OverlayState(ActiveDialog.DeleteAllConfirmation),
     )
 }
