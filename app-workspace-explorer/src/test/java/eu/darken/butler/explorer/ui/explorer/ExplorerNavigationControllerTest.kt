@@ -1,6 +1,7 @@
 package eu.darken.butler.explorer.ui.explorer
 
 import eu.darken.butler.common.files.APathLookup
+import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.explorer.core.ExplorerNavigation
@@ -116,6 +117,39 @@ class ExplorerNavigationControllerTest : BaseTest() {
 
         val dialog = dialogs.current().shouldBeInstanceOf<ExplorerDialogState.FileOptions>()
         dialog.item shouldBe item
+    }
+
+    @Test
+    fun `a zip tap browses into the archive`() = runTest {
+        val workspace = mockWorkspace()
+        val controller = controller(workspace = workspace)
+        val item = fileItem("photos.zip")
+
+        controller.navigate(item as ExplorerItem)
+        runCurrent()
+
+        coVerify {
+            workspace.navigate(
+                ExplorerNavigation.Target.Directory(ArchivePath.root(item.lookup.lookedUp)),
+            )
+        }
+    }
+
+    @Test
+    fun `an app install bundle tap opens the options sheet instead of browsing`() = runTest {
+        // Bundles are zips, but browsing on tap would move Install off the primary gesture.
+        listOf("app.xapk", "app.apks", "app.apkm").forEach { name ->
+            val workspace = mockWorkspace()
+            val dialogs = dialogs()
+            val controller = controller(workspace = workspace, dialogs = dialogs)
+            val item = fileItem(name)
+
+            controller.navigate(item as ExplorerItem)
+            runCurrent()
+
+            coVerify(exactly = 0) { workspace.navigate(any()) }
+            dialogs.current().shouldBeInstanceOf<ExplorerDialogState.FileOptions>().item shouldBe item
+        }
     }
 
     @Test

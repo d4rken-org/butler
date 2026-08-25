@@ -22,6 +22,23 @@ class ArchiveFormatTest : BaseTest() {
     }
 
     @Test
+    fun `app install bundles are browsable zips`() {
+        ArchiveFormat.fromFileName("app.apks") shouldBe ArchiveFormat.ZIP
+        ArchiveFormat.fromFileName("app.xapk") shouldBe ArchiveFormat.ZIP
+        ArchiveFormat.fromFileName("app.apkm") shouldBe ArchiveFormat.ZIP
+        ArchiveFormat.fromFileName("APP.XAPK") shouldBe ArchiveFormat.ZIP
+        // A plain APK is not browsed, it is viewed.
+        ArchiveFormat.fromFileName("app.apk") shouldBe null
+    }
+
+    @Test
+    fun `stemOf strips bundle extensions whole`() {
+        ArchiveFormat.stemOf("app.apks") shouldBe "app"
+        ArchiveFormat.stemOf("app.xapk") shouldBe "app"
+        ArchiveFormat.stemOf("app.apkm") shouldBe "app"
+    }
+
+    @Test
     fun `plain gz is not a browsable archive`() {
         ArchiveFormat.fromFileName("notes.txt.gz") shouldBe null
         ArchiveFormat.fromFileName("archive.gz") shouldBe null

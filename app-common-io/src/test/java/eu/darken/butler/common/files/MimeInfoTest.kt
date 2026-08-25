@@ -40,6 +40,9 @@ class MimeInfoTest : BaseTest() {
         "txt" to "text/plain",
         "md" to "text/markdown",
         "apk" to "application/vnd.android.package-archive",
+        "apks" to "application/zip",
+        "xapk" to "application/zip",
+        "apkm" to "application/zip",
     )
 
     @Test
@@ -79,6 +82,10 @@ class MimeInfoTest : BaseTest() {
         MimeInfo.fromFileName("FOO.APK").isApk shouldBe true
         MimeInfo.fromFileName("foo.zip").isApk shouldBe false
         MimeInfo.fromFileName("foo.jpg").isApk shouldBe false
+        // Bundles are zips, so they must not answer the single-APK question.
+        MimeInfo.fromFileName("foo.apks").isApk shouldBe false
+        MimeInfo.fromFileName("foo.xapk").isApk shouldBe false
+        MimeInfo.fromFileName("foo.apkm").isApk shouldBe false
     }
 
     @Test

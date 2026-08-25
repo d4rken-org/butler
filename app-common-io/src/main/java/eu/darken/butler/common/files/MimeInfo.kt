@@ -83,6 +83,9 @@ data class MimeInfo(
 
                 // Android
                 "apk" -> MIME_APK
+                // App-install bundles are zip containers. There is deliberately no bundle-specific
+                // MIME type: "Open with" and every other intent path would resolve to nothing.
+                "apks", "xapk", "apkm" -> "application/zip"
 
                 else -> "application/octet-stream"
             }

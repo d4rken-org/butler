@@ -22,6 +22,8 @@ enum class ArchiveFormat(val displayExtension: String) {
             val lower = fileName.lowercase()
             return when {
                 lower.endsWith(".zip") -> ZIP
+                // App-install bundles are plain zips; browsing them is how their contents get seen.
+                lower.endsWith(".apks") || lower.endsWith(".xapk") || lower.endsWith(".apkm") -> ZIP
                 lower.endsWith(".tar.gz") || lower.endsWith(".tgz") -> TAR_GZ
                 lower.endsWith(".tar.bz2") || lower.endsWith(".tbz2") -> TAR_BZ2
                 lower.endsWith(".tar") -> TAR
@@ -31,7 +33,7 @@ enum class ArchiveFormat(val displayExtension: String) {
 
         // Compound suffixes first so ".tar.gz" is stripped whole rather than leaving ".tar".
         private val STEM_SUFFIXES = listOf(
-            ".tar.gz", ".tar.bz2", ".tbz2", ".tgz", ".tar", ".zip",
+            ".tar.gz", ".tar.bz2", ".tbz2", ".tgz", ".tar", ".apks", ".xapk", ".apkm", ".zip",
         )
 
         /**
