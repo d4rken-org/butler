@@ -121,6 +121,24 @@ class SAFPickerIntentBuilder @Inject constructor(
         }
     }
 
+    /**
+     * Builds a SAF picker intent pre-navigated to a provider's own storage root.
+     *
+     * @param authority The documents provider authority
+     * @param rootDocumentId The provider's root document ID
+     */
+    fun buildPickerIntent(authority: String, rootDocumentId: String): Intent {
+        val treeUri = DocumentsContract.buildTreeDocumentUri(authority, rootDocumentId)
+        val navTreeUri = DocumentsContract.buildDocumentUriUsingTree(treeUri, rootDocumentId)
+
+        log(TAG) { "Created picker intent for $authority ($rootDocumentId) -> navigation URI: $navTreeUri" }
+
+        return Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
+            putExtra("android.content.extra.SHOW_ADVANCED", true)
+            putExtra(DocumentsContract.EXTRA_INITIAL_URI, navTreeUri)
+        }
+    }
+
     companion object {
         private val TAG = logTag("SAF", "PickerBuilder")
     }

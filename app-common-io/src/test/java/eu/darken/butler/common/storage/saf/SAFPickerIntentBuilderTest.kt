@@ -173,4 +173,33 @@ class SAFPickerIntentBuilderTest : BaseTest() {
 
         navUri.toString() shouldBe "content://com.android.externalstorage.documents/tree/primary%3AAndroid%2Fdata%2Fcom.example.app%2Ffiles/document/primary%3AAndroid%2Fdata%2Fcom.example.app%2Ffiles"
     }
+
+    @Test
+    fun `test builds correct URI for a path shaped document id`() {
+        val builder = SAFPickerIntentBuilder(mockk<StorageManager2>())
+
+        val intent = builder.buildPickerIntent(
+            authority = "com.termux.documents",
+            rootDocumentId = "/data/data/com.termux/files/home",
+        )
+
+        val navUri = intent.getParcelableExtra<Uri>(DocumentsContract.EXTRA_INITIAL_URI)
+        navUri.shouldNotBeNull()
+
+        navUri.toString() shouldBe "content://com.termux.documents/tree/%2Fdata%2Fdata%2Fcom.termux%2Ffiles%2Fhome/document/%2Fdata%2Fdata%2Fcom.termux%2Ffiles%2Fhome"
+    }
+
+    @Test
+    fun `test provider picker intent carries both extras`() {
+        val builder = SAFPickerIntentBuilder(mockk<StorageManager2>())
+
+        val intent = builder.buildPickerIntent(
+            authority = "com.termux.documents",
+            rootDocumentId = "/data/data/com.termux/files/home",
+        )
+
+        intent.action shouldBe Intent.ACTION_OPEN_DOCUMENT_TREE
+        intent.hasExtra("android.content.extra.SHOW_ADVANCED") shouldBe true
+        intent.hasExtra(DocumentsContract.EXTRA_INITIAL_URI) shouldBe true
+    }
 }
