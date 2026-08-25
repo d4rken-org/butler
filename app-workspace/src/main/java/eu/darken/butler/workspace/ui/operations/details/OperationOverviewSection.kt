@@ -200,8 +200,8 @@ private fun OperationOverviewGrid(
             maxWidth >= OverviewPairingMinWidth -> baseEntries
             else -> baseEntries.map { it.copy(pairable = false) }
         }
-        // Status is always first, and referential identity is what carries the state icon - the
-        // label string is localized and would not survive a translation.
+        // Status is always first, and referential identity is what carries the state icon -
+        // identity cannot collide, whereas a label comparison breaks once two entries share a label.
         val statusEntry = entries.first()
 
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
