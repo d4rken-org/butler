@@ -29,6 +29,7 @@ import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.extensions.matches
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.files.smb.SmbConnectionTester
+import eu.darken.butler.common.files.smb.SmbEndpointState
 import eu.darken.butler.common.files.smb.credentials.SmbCredentialStore
 import eu.darken.butler.common.files.smb.credentials.SmbCredentialUnavailableException
 import eu.darken.butler.common.files.smb.location.SmbLocationManager
@@ -78,6 +79,7 @@ import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogEvent
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
 import eu.darken.butler.explorer.ui.explorer.dialogs.SmbLocationFormInput
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.*
+import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork.Capacity as SingleNetworkCapacity
 import eu.darken.butler.explorer.ui.explorer.dialogs.FilterOptionsResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.RenameResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.RevealedPassword
@@ -134,6 +136,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -265,8 +268,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         tag = tag,
     )
 
-    /** Reveals the password of the open network info sheet, ended when that sheet goes away. */
+    /** What the open network info sheet loads; both end when that sheet goes away. */
     private var networkRevealJob: Job? = null
+    private var networkCapacityJob: Job? = null
 
     val issueState: StateFlow<Issue?> get() = conflicts.issueState
     val showIssueSheet: StateFlow<Boolean> get() = conflicts.showIssueSheet
@@ -384,8 +388,13 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             .map { ((it as? ItemInfo)?.context as? ItemInfo.InfoContext.SingleNetwork)?.locationId }
             .distinctUntilChanged()
             .onEach {
+                // This ends the delivery of a result, not the work behind it: the capacity read is
+                // blocking socket I/O that only its own connect and request timeouts can stop. A
+                // late result is harmless because updateSingleNetwork checks who it belongs to.
                 networkRevealJob?.cancel()
                 networkRevealJob = null
+                networkCapacityJob?.cancel()
+                networkCapacityJob = null
             }
             .launchInViewModel()
 
@@ -1039,6 +1048,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     val infoContext = itemInfoCalculator.calculateInfo(selectedItems, stateSnap.currentLocation?.items)
                     infoContext?.let { context ->
                         dialogs.show(ItemInfo(context))
+                        if (context is ItemInfo.InfoContext.SingleNetwork) {
+                            loadNetworkCapacity(context.locationId, stateSnap.currentLocation?.items)
+                        }
                     }
                 }
             }
@@ -1505,6 +1517,47 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 log(tag, WARN) { "onRevealNetworkPassword(): Nothing to reveal: ${e.asLog()}" }
             }
             dialogs.updateSingleNetwork(locationId) { it.copy(revealed = revealed, isRevealing = false) }
+        }
+    }
+
+    /**
+     * Reads how full the share is, for an open info sheet only.
+     *
+     * This is the one place that spends an authenticated session on a location the user merely
+     * looked at; drawing the Network list still costs no login attempt. Skipped entirely when there
+     * is nothing to sign in with or nothing to reach, so no field appears for it.
+     */
+    private fun loadNetworkCapacity(locationId: Uuid, items: List<ExplorerItem>?) {
+        networkCapacityJob?.cancel()
+        val item = items
+            ?.filterIsInstance<ExplorerItem.Storage.Network>()
+            ?.firstOrNull { it.location.id == locationId }
+            ?: return
+        if (item.credentials != SmbCredentialStore.Availability.AVAILABLE) return
+        if (item.endpoint.reachability == SmbEndpointState.Reachability.UNREACHABLE) return
+
+        log(tag) { "loadNetworkCapacity($locationId)" }
+        dialogs.updateSingleNetwork(locationId) { it.copy(capacity = SingleNetworkCapacity.Loading) }
+        networkCapacityJob = vmScope.launch {
+            val capacity = try {
+                val fileSystem = withContext(dispatchers.IO) {
+                    gatewaySwitch.getFileSystem(item.location.rootPath)
+                }
+                val total = fileSystem.totalSpace
+                val free = fileSystem.freeSpace
+                if (total != null && free != null) {
+                    SingleNetworkCapacity.Data(totalBytes = total, freeBytes = free)
+                } else {
+                    SingleNetworkCapacity.Unavailable
+                }
+            } catch (e: CancellationException) {
+                // A cancelled read must not publish anything: the sheet it belonged to has moved on.
+                throw e
+            } catch (e: Exception) {
+                log(tag, WARN) { "loadNetworkCapacity($locationId) failed: ${e.asLog()}" }
+                SingleNetworkCapacity.Unavailable
+            }
+            dialogs.updateSingleNetwork(locationId) { it.copy(capacity = capacity) }
         }
     }
 
