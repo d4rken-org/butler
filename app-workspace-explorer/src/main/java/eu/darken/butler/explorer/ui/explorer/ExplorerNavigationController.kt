@@ -14,6 +14,7 @@ import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.flow.SingleEventFlow
+import eu.darken.butler.common.pkgs.installer.AppInstallFormat
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.ExplorerWorkspace
 import eu.darken.butler.explorer.core.engine.ExplorerItem
@@ -98,8 +99,11 @@ class ExplorerNavigationController(
 
                     // Archives open like folders. Pickers keep treating them as selectable files,
                     // and archives nested inside another archive only offer the options sheet.
+                    // App-install bundles are zips too, but a tap on one has to behave like a tap on
+                    // a plain .apk - open the viewer - so Install stays on the primary gesture.
                     val isBrowsableArchive = config == null &&
                         ArchiveFormat.fromFileName(item.lookup.name) != null &&
+                        AppInstallFormat.fromFileName(item.lookup.name)?.isBundle != true &&
                         item.lookup.lookedUp !is ArchivePath
                     if (isBrowsableArchive) {
                         log(tag, INFO) { "Browsing into archive: ${item.lookup.name}" }
