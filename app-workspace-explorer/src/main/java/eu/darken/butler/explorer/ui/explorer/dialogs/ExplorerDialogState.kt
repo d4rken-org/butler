@@ -123,6 +123,12 @@ sealed interface ExplorerDialogState {
                 val revealed: RevealedPassword? = null,
                 val isRevealing: Boolean = false,
                 val capacity: Capacity? = null,
+                /**
+                 * Identifies this opening of the sheet rather than the location it describes:
+                 * dismissing and reopening the same share are two sheets, and work started for the
+                 * first one must not land on the second.
+                 */
+                val sheetInstanceId: Uuid = Uuid.random(),
             ) : InfoContext {
 
                 /**

@@ -6,9 +6,11 @@ import eu.darken.butler.explorer.core.FilterState
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogEvent
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import java.io.File
+import kotlin.uuid.Uuid
 
 class ExplorerDialogControllerTest : BaseTest() {
 
@@ -105,6 +107,42 @@ class ExplorerDialogControllerTest : BaseTest() {
         controller.dismissIfCurrent(ExplorerDialogState.DeleteConfirmation(setOf(path("a")))) shouldBe false
 
         controller.current() shouldBe ExplorerDialogState.CreateItem
+    }
+
+    @Test
+    fun `reopening the network info sheet for one location yields a new sheet`() {
+        val locationId = Uuid.random()
+
+        val first = ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork(locationId)
+        val second = ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork(locationId)
+
+        second.sheetInstanceId shouldNotBe first.sheetInstanceId
+    }
+
+    @Test
+    fun `what an open network info sheet loads keeps its identity`() {
+        val controller = controller()
+        val opened = ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork(Uuid.random())
+        controller.show(ExplorerDialogState.ItemInfo(opened))
+
+        controller.updateSingleNetwork(opened.locationId) { it.copy(isRevealing = true) }
+
+        val current = (controller.current() as ExplorerDialogState.ItemInfo).context
+            as ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork
+        current.isRevealing shouldBe true
+        current.sheetInstanceId shouldBe opened.sheetInstanceId
+    }
+
+    @Test
+    fun `a result for a sheet that is gone is dropped`() {
+        val controller = controller()
+        val opened = ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork(Uuid.random())
+        controller.show(ExplorerDialogState.ItemInfo(opened))
+        controller.dismiss()
+
+        controller.updateSingleNetwork(opened.locationId) { it.copy(isRevealing = true) }
+
+        controller.current() shouldBe ExplorerDialogState.None
     }
 
     @Test
