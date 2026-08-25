@@ -8,8 +8,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.FolderShared
-import androidx.compose.material3.Card
+import androidx.compose.material.icons.twotone.Visibility
+import androidx.compose.material.icons.twotone.VisibilityOff
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -47,6 +50,10 @@ import eu.darken.butler.workspace.ui.dialogs.InfoCard
 import eu.darken.butler.workspace.ui.dialogs.InfoField
 import eu.darken.butler.workspace.ui.dialogs.InfoValueStyle
 import kotlin.time.Clock
+import kotlin.uuid.Uuid
+
+/** Fixed width, so a hidden password does not leak its length. */
+private const val PASSWORD_MASK = "••••••••"
 
 @Composable
 fun ItemInfoBottomSheet(
@@ -54,6 +61,8 @@ fun ItemInfoBottomSheet(
     onDismiss: () -> Unit,
     onCopyToClipboard: (String) -> Unit,
     modifier: Modifier = Modifier,
+    onRevealPassword: (Uuid) -> Unit = {},
+    onHidePassword: (Uuid) -> Unit = {},
     topInset: Dp = 0.dp,
     bottomInset: Dp = 0.dp,
 ) {
@@ -67,6 +76,8 @@ fun ItemInfoBottomSheet(
         ItemInfoContent(
             context = context,
             onCopyToClipboard = onCopyToClipboard,
+            onRevealPassword = onRevealPassword,
+            onHidePassword = onHidePassword,
         )
     }
 }
@@ -75,6 +86,8 @@ fun ItemInfoBottomSheet(
 private fun ItemInfoContent(
     context: ExplorerDialogState.ItemInfo.InfoContext,
     onCopyToClipboard: (String) -> Unit,
+    onRevealPassword: (Uuid) -> Unit,
+    onHidePassword: (Uuid) -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -111,7 +124,16 @@ private fun ItemInfoContent(
 
             is ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork -> {
                 // Null while the location is on its way out of the listing, e.g. after a removal.
-                context.item?.let { NetworkStorageInfo(item = it, onCopyToClipboard = onCopyToClipboard) }
+                context.item?.let { item ->
+                    NetworkStorageInfo(
+                        item = item,
+                        revealed = context.revealed,
+                        isRevealing = context.isRevealing,
+                        onCopyToClipboard = onCopyToClipboard,
+                        onRevealPassword = { onRevealPassword(context.locationId) },
+                        onHidePassword = { onHidePassword(context.locationId) },
+                    )
+                }
             }
 
             is ExplorerDialogState.ItemInfo.InfoContext.MultipleItems -> {
@@ -314,11 +336,20 @@ private fun SingleSAFInfo(
     }
 }
 
-/** Everything about a share except its password: no ciphertext, no length, no hint. */
+/**
+ * Everything about a share, including the stored password once the user asks to see it.
+ *
+ * No biometric or device-credential gate in front of that: Butler has no app lock anywhere else, so
+ * prompting for this one field would be a lone checkpoint rather than a boundary.
+ */
 @Composable
 private fun NetworkStorageInfo(
     item: ExplorerItem.Storage.Network,
+    revealed: RevealedPassword?,
+    isRevealing: Boolean,
     onCopyToClipboard: (String) -> Unit,
+    onRevealPassword: () -> Unit,
+    onHidePassword: () -> Unit,
 ) {
     val context = LocalContext.current
     val location = item.location
@@ -403,19 +434,41 @@ private fun NetworkStorageInfo(
             }
 
             // From the vault, not from the "remember password" switch: that one says what should be
-            // kept, this one says what can actually be produced.
+            // kept, this one says what can actually be produced. Only an available credential has
+            // something to reveal, the other two states keep the wording and no button.
+            val canReveal = item.credentials == SmbCredentialStore.Availability.AVAILABLE
             InfoField(
                 label = stringResource(R.string.explorer_info_network_password_label),
                 value = when (item.credentials) {
-                    SmbCredentialStore.Availability.AVAILABLE -> {
-                        stringResource(R.string.explorer_info_network_password_available)
-                    }
+                    SmbCredentialStore.Availability.AVAILABLE -> revealed?.value ?: PASSWORD_MASK
                     SmbCredentialStore.Availability.MISSING -> {
                         stringResource(R.string.explorer_info_network_password_missing)
                     }
                     SmbCredentialStore.Availability.KEY_UNAVAILABLE -> {
                         stringResource(R.string.explorer_info_network_password_locked)
                     }
+                },
+                trailingContent = if (canReveal) {
+                    {
+                        IconButton(
+                            onClick = { if (revealed != null) onHidePassword() else onRevealPassword() },
+                            enabled = !isRevealing,
+                        ) {
+                            Icon(
+                                imageVector = if (revealed != null) {
+                                    Icons.TwoTone.VisibilityOff
+                                } else {
+                                    Icons.TwoTone.Visibility
+                                },
+                                contentDescription = stringResource(
+                                    if (revealed != null) R.string.explorer_info_network_password_hide_action
+                                    else R.string.explorer_info_network_password_show_action
+                                ),
+                            )
+                        }
+                    }
+                } else {
+                    null
                 },
             )
         }
@@ -660,6 +713,25 @@ private fun ItemInfoBottomSheetPreviewNetworkReachable() {
 
     ItemInfoBottomSheet(
         context = ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork(item.location.id, item),
+        onDismiss = {},
+        onCopyToClipboard = {}
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ItemInfoBottomSheetPreviewNetworkRevealedPassword() {
+    val item = MockDataProvider.createMockStorageNetwork(
+        endpoint = SmbEndpointState("192.168.1.50", SmbEndpointState.Reachability.REACHABLE),
+    )
+
+    ItemInfoBottomSheet(
+        context = ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork(
+            locationId = item.location.id,
+            item = item,
+            revealed = RevealedPassword("hunter2"),
+        ),
         onDismiss = {},
         onCopyToClipboard = {}
     )

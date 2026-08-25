@@ -127,7 +127,8 @@
     <string name="explorer_info_network_auth_label">Sign-in</string>
     <string name="explorer_info_network_domain_label">Domain</string>
     <string name="explorer_info_network_password_label">Password</string>
-    <string name="explorer_info_network_password_available">Available</string>
+    <string name="explorer_info_network_password_show_action">Show password</string>
+    <string name="explorer_info_network_password_hide_action">Hide password</string>
     <string name="explorer_info_network_password_missing">Missing, sign in again</string>
     <string name="explorer_info_network_password_locked">Stored, but this device cannot unlock it</string>
     <string name="explorer_info_network_added_label">Added</string>

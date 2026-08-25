@@ -267,6 +267,8 @@ fun ExplorerDialogHost(
                         context = context,
                         onDismiss = { vm?.dismissDialog() },
                         onCopyToClipboard = { text -> vm?.copyPathToSystemClipboard(text) },
+                        onRevealPassword = { locationId -> vm?.onRevealNetworkPassword(locationId) },
+                        onHidePassword = { locationId -> vm?.onHideNetworkPassword(locationId) },
                         topInset = topInset,
                         bottomInset = bottomInset,
                     )

@@ -11,9 +11,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.ContentCopy
+import androidx.compose.material.icons.twotone.Visibility
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -60,9 +62,10 @@ fun InfoField(
     modifier: Modifier = Modifier,
     onCopy: (() -> Unit)? = null,
     valueStyle: InfoValueStyle = InfoValueStyle.NORMAL,
+    trailingContent: (@Composable () -> Unit)? = null,
 ) {
     val copyLabel = stringResource(R.string.workspace_file_info_copy_action)
-    Column(
+    Row(
         modifier = modifier
             .fillMaxWidth()
             .then(
@@ -75,39 +78,46 @@ fun InfoField(
                 },
             )
             .padding(horizontal = 12.dp, vertical = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            if (onCopy != null) {
-                Icon(
-                    imageVector = Icons.TwoTone.ContentCopy,
-                    contentDescription = null,
-                    modifier = Modifier.size(14.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        Column(modifier = Modifier.weight(1f)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                if (onCopy != null) {
+                    Icon(
+                        imageVector = Icons.TwoTone.ContentCopy,
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
+
+            Text(
+                text = value,
+                style = when (valueStyle) {
+                    InfoValueStyle.NORMAL -> MaterialTheme.typography.bodyMedium
+                    InfoValueStyle.MONOSPACE -> {
+                        MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace)
+                    }
+                },
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = when (valueStyle) {
+                    InfoValueStyle.NORMAL -> 3
+                    InfoValueStyle.MONOSPACE -> Int.MAX_VALUE
+                },
+                overflow = TextOverflow.Ellipsis,
+            )
         }
 
-        Text(
-            text = value,
-            style = when (valueStyle) {
-                InfoValueStyle.NORMAL -> MaterialTheme.typography.bodyMedium
-                InfoValueStyle.MONOSPACE -> MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace)
-            },
-            color = MaterialTheme.colorScheme.onSurface,
-            maxLines = when (valueStyle) {
-                InfoValueStyle.NORMAL -> 3
-                InfoValueStyle.MONOSPACE -> Int.MAX_VALUE
-            },
-            overflow = TextOverflow.Ellipsis,
-        )
+        trailingContent?.invoke()
     }
 }
 
@@ -141,6 +151,24 @@ private fun InfoFieldMonospacePreview() {
         value = "/storage/emulated/0/Documents/Reports/2026/annual-report-2026-final.txt",
         onCopy = {},
         valueStyle = InfoValueStyle.MONOSPACE,
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun InfoFieldTrailingPreview() {
+    InfoField(
+        label = "Password",
+        value = "••••••••",
+        trailingContent = {
+            IconButton(onClick = {}) {
+                Icon(
+                    imageVector = Icons.TwoTone.Visibility,
+                    contentDescription = null,
+                )
+            }
+        },
     )
 }
 

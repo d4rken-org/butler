@@ -120,6 +120,8 @@ sealed interface ExplorerDialogState {
             data class SingleNetwork(
                 val locationId: Uuid,
                 val item: ExplorerItem.Storage.Network? = null,
+                val revealed: RevealedPassword? = null,
+                val isRevealing: Boolean = false,
             ) : InfoContext
 
             data class MultipleItems(
@@ -135,4 +137,15 @@ sealed interface ExplorerDialogState {
             data class HomeView(val location: eu.darken.butler.explorer.core.engine.ExplorerLocation.Home) : InfoContext
         }
     }
+}
+
+/**
+ * A stored password on its way to the screen.
+ *
+ * Deliberately neither a data class nor a bare String: the dialog states are data classes whose
+ * generated `toString()` is reachable from logging, and a plaintext password must never be able to
+ * arrive in a log line that way.
+ */
+class RevealedPassword(val value: String) {
+    override fun toString(): String = "RevealedPassword(***)"
 }
