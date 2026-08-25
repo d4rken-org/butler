@@ -241,6 +241,18 @@ private fun FileOptionsContent(
         }
         val installFormat = remember(item.lookup.name) { AppInstallFormat.fromFileName(item.lookup.name) }
 
+        // Above "Extract" and "Open": an app bundle is also an archive, but installing it is what
+        // the user came for. Suppressed inside a picker like every other action that would spawn a
+        // workspace while the caller is still blocked waiting for a result.
+        if (openActionsEnabled && installFormat != null) {
+            FileActionRow(
+                icon = Icons.TwoTone.InstallMobile,
+                title = stringResource(R.string.explorer_file_action_install),
+                subtitle = stringResource(R.string.explorer_file_action_install_subtitle),
+                onClick = { onAction(ExplorerActionBarItem.File.Install(item)) },
+            )
+        }
+
         if (isArchiveFile) {
             FileActionRow(
                 icon = Icons.TwoTone.Unarchive,
@@ -253,16 +265,6 @@ private fun FileOptionsContent(
         // Inside a picker these would spawn a workspace while the caller is still blocked waiting
         // for a result, so the picker suppresses them here just like on the action bar.
         if (openActionsEnabled) {
-            // Above "Open": for a package file, installing it is what the user came for.
-            if (installFormat != null) {
-                FileActionRow(
-                    icon = Icons.TwoTone.InstallMobile,
-                    title = stringResource(R.string.explorer_file_action_install),
-                    subtitle = stringResource(R.string.explorer_file_action_install_subtitle),
-                    onClick = { onAction(ExplorerActionBarItem.File.Install(item)) },
-                )
-            }
-
             if (isTextFile) {
                 FileActionRow(
                     icon = Workspace.Type.EDITOR.icon,
