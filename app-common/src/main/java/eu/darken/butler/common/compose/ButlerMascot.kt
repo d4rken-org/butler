@@ -9,7 +9,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.preferredFrameRate
 import androidx.compose.ui.res.painterResource
@@ -83,6 +88,7 @@ private val randomCyclingSequences: List<List<Int>> = listOf(
     listOf(R.raw.mascot_lottie_hatoff),
 )
 
+
 private suspend fun loadComposition(
     context: Context,
     @androidx.annotation.RawRes resId: Int,
@@ -96,7 +102,15 @@ fun ButlerMascot(
     contentDescription: String? = null,
     variant: ButlerMascotMode = Static.Normal(),
 ) {
-    val hatDrawable = resolveHat(variant.hat)
+    // SD Maid drops by via MascotCameo. The animatable keeps rendering its last composition after
+    // animate() returns, so her styling has to key off what is on screen rather than off a flag the
+    // cycle clears - otherwise Butler's hat and scaling snap back over her still-visible last frame.
+    val animatable = rememberLottieAnimatable()
+    var cameoComposition by remember { mutableStateOf<LottieComposition?>(null) }
+    val showingCameo = cameoComposition != null && animatable.composition === cameoComposition
+
+    // Butler's hat overlay is positioned for his head in a 512x512 frame, so it sits her visit out.
+    val hatDrawable = if (showingCameo) null else resolveHat(variant.hat)
 
     Box(modifier = modifier) {
         when (variant) {
@@ -115,7 +129,17 @@ fun ButlerMascot(
 
         is Animated -> {
             val userActivity = LocalUserActivity.current
-            val animatedDescription = contentDescription ?: stringResource(variant.description)
+            val animatedDescription = contentDescription ?: stringResource(
+                if (showingCameo) R.string.butler_mascot_animation_cameo_description else variant.description
+            )
+            // SD Maid's artwork fills only the middle of its 1080x1920 canvas, so fitting that
+            // canvas into Butler's square slot would draw her at half his size. Cropping the empty
+            // canvas away instead lands her within a few percent of him.
+            val contentScale = if (showingCameo || variant is Animated.Cameo) {
+                ContentScale.Crop
+            } else {
+                ContentScale.Fit
+            }
             val semanticsModifier = Modifier
                 .fillMaxSize()
                 .preferredFrameRate(MASCOT_FRAME_RATE)
@@ -124,7 +148,20 @@ fun ButlerMascot(
             when (variant) {
                 is Animated.RandomCycling -> {
                     val context = LocalContext.current
-                    val animatable = rememberLottieAnimatable()
+
+                    // Butler's clips are pure vector, but SD Maid's is built from raster layers and
+                    // loadComposition() drops those - she renders as a lone coffee cup. Composing her
+                    // only once the draw is won keeps Butler's clips on the on-demand path.
+                    var cameoRequested by remember { mutableStateOf(false) }
+                    var cameoSettled by remember { mutableStateOf(false) }
+                    if (cameoRequested) {
+                        val result = rememberLottieComposition(RawRes(R.raw.mascot_lottie_cameo_sdmaid))
+                        LaunchedEffect(result) {
+                            // await() also completes on a parse failure, where the value stays null
+                            cameoComposition = runCatching { result.await() }.getOrNull()
+                            cameoSettled = true
+                        }
+                    }
 
                     LaunchedEffect(variant, userActivity) {
                         val isUserActive = userActivity.isActive(MASCOT_IDLE_AFTER)
@@ -133,16 +170,32 @@ fun ButlerMascot(
                             // screen would redraw at panel rate forever. Rest until someone looks.
                             isUserActive.first { it }
 
-                            // Load on demand, one at a time - parsing all upfront saturates the CPU during startup
                             var animated = false
-                            for (resId in randomCyclingSequences.random()) {
-                                val composition = loadComposition(context, resId) ?: continue
-                                animated = true
-                                animatable.animate(
-                                    composition = composition,
-                                    iterations = 1,
-                                    speed = variant.speed,
-                                )
+                            if (MascotCameo.claim()) {
+                                cameoRequested = true
+                                // Waits for the load to settle either way, so a failed parse falls
+                                // through to a Butler clip instead of stalling the cycle forever
+                                snapshotFlow { cameoSettled }.first { it }
+                                cameoComposition?.let {
+                                    animated = true
+                                    animatable.animate(
+                                        composition = it,
+                                        iterations = 1,
+                                        speed = variant.speed,
+                                    )
+                                }
+                            }
+                            if (!animated) {
+                                // Load on demand, one at a time - parsing all upfront saturates the CPU during startup
+                                for (resId in randomCyclingSequences.random()) {
+                                    val composition = loadComposition(context, resId) ?: continue
+                                    animated = true
+                                    animatable.animate(
+                                        composition = composition,
+                                        iterations = 1,
+                                        speed = variant.speed,
+                                    )
+                                }
                             }
                             if (!animated) {
                                 delay(1.seconds)
@@ -159,6 +212,7 @@ fun ButlerMascot(
                             composition = animatable.composition,
                             progress = { animatable.progress },
                             modifier = semanticsModifier,
+                            contentScale = contentScale,
                         )
                     } else {
                         Image(
@@ -210,13 +264,12 @@ fun ButlerMascot(
                                 is Animated.Drink -> if (variant.standalone) R.raw.mascot_lottie_drink_standalone else R.raw.mascot_lottie_drink
                                 is Animated.HatOff -> R.raw.mascot_lottie_hatoff
                                 is Animated.MoustacheStroke -> R.raw.mascot_lottie_moustache_stroke
+                                is Animated.Cameo -> R.raw.mascot_lottie_cameo_sdmaid
                                 is Animated.Sleep -> error("Handled above")
                                 is Animated.RandomCycling -> error("Handled above")
                             }
                         )
                     )
-
-                    val animatable = rememberLottieAnimatable()
 
                     LaunchedEffect(composition, variant.loop, variant.loopDelay, variant.speed, userActivity) {
                         composition ?: return@LaunchedEffect
@@ -250,6 +303,7 @@ fun ButlerMascot(
                             composition = animatable.composition,
                             progress = { animatable.progress },
                             modifier = semanticsModifier,
+                            contentScale = contentScale,
                         )
                     } else {
                         Image(
@@ -356,6 +410,15 @@ sealed interface ButlerMascotMode {
             override val description: Int = R.string.butler_mascot_animation_moustache_description
         }
 
+        data class Cameo(
+            override val loop: Boolean = false,
+            override val loopDelay: Duration = Duration.ZERO,
+            override val speed: Float = 1f,
+        ) : Animated {
+            override val hat: Hat = Hat.NO_HAT
+            override val description: Int = R.string.butler_mascot_animation_cameo_description
+        }
+
         sealed interface Sleep : Animated {
             override val loop: Boolean get() = false
             override val loopDelay: Duration get() = Duration.ZERO
@@ -413,6 +476,13 @@ private fun ButlerMascotAnimatedPreview() {
     ButlerMascot(Modifier.size(96.dp), variant = Animated.Sleep.EyesClose())
     ButlerMascot(Modifier.size(96.dp), variant = Animated.Sleep.Snoring())
     ButlerMascot(Modifier.size(96.dp), variant = Animated.Sleep.WakeUp())
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ButlerMascotCameoPreview() {
+    ButlerMascot(Modifier.size(96.dp), variant = Animated.Cameo())
 }
 
 @Preview2

@@ -15,6 +15,7 @@
     <string name="butler_mascot_animation_sleep_closing_description">Butler mascot closing eyes to sleep</string>
     <string name="butler_mascot_animation_sleep_snoring_description">Butler mascot snoring</string>
     <string name="butler_mascot_animation_sleep_waking_description">Butler mascot waking up</string>
+    <string name="butler_mascot_animation_cameo_description">SD Maid mascot making a guest appearance</string>
 
     <string name="slogan_general_message_0">At your service.</string>
     <string name="slogan_general_message_1">Everything in its place.</string>

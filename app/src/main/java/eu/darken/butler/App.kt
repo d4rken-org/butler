@@ -12,6 +12,7 @@ import coil3.SingletonImageLoader
 import dagger.hilt.android.HiltAndroidApp
 import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.BuildWrap
+import eu.darken.butler.common.compose.MascotCameo
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.AutomaticBugReporter
@@ -104,6 +105,10 @@ open class App : Application(), Configuration.Provider, SingletonImageLoader.Fac
         // Always-on, before anything else: retains recent log lines in memory so a crash or
         // Bugs.report can attach the trail leading up to it, even in release builds.
         Logging.install(ringLogBuffer)
+
+        // Draw for the SD Maid cameo once per process, so the odds don't scale with the number of
+        // mascots on screen.
+        MascotCameo.roll()
 
         if (BuildConfigWrap.DEBUG) {
             // LogCatLogger is installed by the reactive combine block below (the single owner);
