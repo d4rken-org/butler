@@ -20,6 +20,7 @@ import androidx.compose.material.icons.twotone.ContentCut
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.DriveFileRenameOutline
 import androidx.compose.material.icons.twotone.Info
+import androidx.compose.material.icons.twotone.InstallMobile
 import androidx.compose.material.icons.twotone.OpenInBrowser
 import androidx.compose.material.icons.twotone.Share
 import androidx.compose.material.icons.twotone.Unarchive
@@ -57,6 +58,7 @@ import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.toCaString
+import eu.darken.butler.common.pkgs.installer.AppInstallFormat
 import eu.darken.butler.common.DateTimeStyle
 import eu.darken.butler.common.formatDateTime
 import eu.darken.butler.common.formatFileSize
@@ -237,6 +239,7 @@ private fun FileOptionsContent(
         val isArchiveFile = remember(item.lookup.name, isArchiveEntry) {
             !isArchiveEntry && ArchiveFormat.fromFileName(item.lookup.name) != null
         }
+        val installFormat = remember(item.lookup.name) { AppInstallFormat.fromFileName(item.lookup.name) }
 
         if (isArchiveFile) {
             FileActionRow(
@@ -250,6 +253,16 @@ private fun FileOptionsContent(
         // Inside a picker these would spawn a workspace while the caller is still blocked waiting
         // for a result, so the picker suppresses them here just like on the action bar.
         if (openActionsEnabled) {
+            // Above "Open": for a package file, installing it is what the user came for.
+            if (installFormat != null) {
+                FileActionRow(
+                    icon = Icons.TwoTone.InstallMobile,
+                    title = stringResource(R.string.explorer_file_action_install),
+                    subtitle = stringResource(R.string.explorer_file_action_install_subtitle),
+                    onClick = { onAction(ExplorerActionBarItem.File.Install(item)) },
+                )
+            }
+
             if (isTextFile) {
                 FileActionRow(
                     icon = Workspace.Type.EDITOR.icon,
