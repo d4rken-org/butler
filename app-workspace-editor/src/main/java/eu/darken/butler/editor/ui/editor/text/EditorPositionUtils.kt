@@ -276,12 +276,11 @@ internal fun calculatePositionFromOffset(
     charWidthPx: Float,
     tabSize: Int,
     textLayouts: Map<Long, TextLayoutResult> = emptyMap(),
-    contentPaddingTop: Float = 0f,
     lineStartColumns: Map<Long, Long> = emptyMap(),
 ): PositionCalculationResult? {
     val layoutInfo = contentListState.layoutInfo
-    // Adjust Y for content padding - tap offset includes padding, item.offset doesn't
-    val adjustedY = offset.y - contentPaddingTop
+    // The tap covers the whole list, item offsets start below its top content padding.
+    val adjustedY = layoutInfo.containerToItemY(offset.y)
     val clickedItem = layoutInfo.visibleItemsInfo.find { item ->
         adjustedY >= item.offset && adjustedY < (item.offset + item.size)
     }
