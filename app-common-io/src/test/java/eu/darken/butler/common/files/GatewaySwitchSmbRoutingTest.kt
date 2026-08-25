@@ -1,6 +1,7 @@
 package eu.darken.butler.common.files
 
 import eu.darken.butler.common.files.archive.ArchiveGateway
+import eu.darken.butler.common.files.io.ProxyPfdFactory
 import eu.darken.butler.common.files.local.LocalGateway
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
@@ -27,6 +28,7 @@ class GatewaySwitchSmbRoutingTest : BaseTest() {
     private val locationId = Uuid.parse("11111111-2222-3333-4444-555555555555")
 
     private val smbGateway: SmbGateway = mockk(relaxed = true)
+    private val proxyPfdFactory: ProxyPfdFactory = mockk(relaxed = true)
 
     private val gatewaySwitch = GatewaySwitch(
         appScope = TestScope(),
@@ -36,6 +38,7 @@ class GatewaySwitchSmbRoutingTest : BaseTest() {
         archiveGateway = mockk<ArchiveGateway>(relaxed = true),
         smbGateway = smbGateway,
         safLocationManager = mockk<SAFLocationManager>(relaxed = true),
+        proxyPfdFactory = proxyPfdFactory,
     )
 
     private val smbOps = MockFileSystemOps<SmbPath, SmbPathLookup> { path, type, size, modifiedAt, _, _, createdAt ->

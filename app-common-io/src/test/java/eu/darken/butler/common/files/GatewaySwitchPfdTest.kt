@@ -8,6 +8,7 @@ import eu.darken.butler.common.files.io.ProxyPfdFactory
 import eu.darken.butler.common.files.local.LocalGateway
 import eu.darken.butler.common.files.saf.SAFGateway
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
+import eu.darken.butler.common.files.smb.SmbGateway
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
@@ -53,6 +54,7 @@ class GatewaySwitchPfdTest : BaseTest() {
     private lateinit var localGateway: LocalGateway
     private lateinit var safGateway: SAFGateway
     private lateinit var archiveGateway: ArchiveGateway
+    private lateinit var smbGateway: SmbGateway
     private lateinit var safLocationManager: SAFLocationManager
     private lateinit var proxyPfdFactory: ProxyPfdFactory
     private lateinit var gatewaySwitch: GatewaySwitch
@@ -62,6 +64,7 @@ class GatewaySwitchPfdTest : BaseTest() {
         localGateway = mockk(relaxed = true)
         safGateway = mockk(relaxed = true)
         archiveGateway = mockk(relaxed = true)
+        smbGateway = mockk(relaxed = true)
         safLocationManager = mockk(relaxed = true)
         proxyPfdFactory = mockk(relaxed = true)
         gatewaySwitch = GatewaySwitch(
@@ -70,6 +73,7 @@ class GatewaySwitchPfdTest : BaseTest() {
             safGateway = safGateway,
             localGateway = localGateway,
             archiveGateway = archiveGateway,
+            smbGateway = smbGateway,
             safLocationManager = safLocationManager,
             proxyPfdFactory = proxyPfdFactory,
         )
@@ -189,6 +193,7 @@ class GatewaySwitchPfdTest : BaseTest() {
             safGateway = safGateway,
             localGateway = localGateway,
             archiveGateway = archiveGateway,
+            smbGateway = smbGateway,
             safLocationManager = safLocationManager,
             proxyPfdFactory = proxyPfdFactory,
         )
