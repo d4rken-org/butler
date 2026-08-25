@@ -2,6 +2,7 @@ package eu.darken.butler.common.files.smb.location
 
 import eu.darken.butler.common.files.extensions.Segments
 import kotlinx.coroutines.flow.Flow
+import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 /**
@@ -55,4 +56,12 @@ interface SmbLocationManager {
     ): SmbLocation
 
     suspend fun delete(id: Uuid)
+
+    /**
+     * Remembers that [host]:[port] answered at [at].
+     *
+     * The endpoint is passed along rather than looked up: a result that arrives after the user
+     * edited the location describes a server it no longer stands for, and must then change nothing.
+     */
+    suspend fun recordSeen(id: Uuid, host: String, port: Int, at: Instant)
 }

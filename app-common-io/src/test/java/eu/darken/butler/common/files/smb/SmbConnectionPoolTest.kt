@@ -84,6 +84,8 @@ class SmbConnectionPoolTest : BaseTest() {
         ): SmbLocation = throw UnsupportedOperationException()
 
         override suspend fun delete(id: Uuid) = throw UnsupportedOperationException()
+        override suspend fun recordSeen(id: Uuid, host: String, port: Int, at: Instant) =
+            throw UnsupportedOperationException()
     }
 
     /** Hands out a fresh mock stack per connect so sessions can be told apart. */

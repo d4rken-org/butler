@@ -12,6 +12,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.smb.location.SmbLocation
+import eu.darken.butler.common.files.smb.location.SmbLocationManager
 import eu.darken.butler.common.network.NetworkStateProvider
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -85,6 +86,7 @@ class SmbEndpointProbe @Inject constructor(
     private val resolver: Resolver,
     private val connector: Connector,
     private val clock: Clock,
+    private val lastSeenRecorder: LastSeenRecorder,
     private val networkStateProvider: NetworkStateProvider,
 ) {
 
@@ -105,6 +107,11 @@ class SmbEndpointProbe @Inject constructor(
         fun now(): Instant
     }
 
+    /** Injected like the seams above, so this class stays testable without a database. */
+    fun interface LastSeenRecorder {
+        suspend fun recordSeen(id: Uuid, host: String, port: Int, at: Instant)
+    }
+
     private val tag = logTag("SMB", "EndpointProbe")
 
     private data class Endpoint(val host: String, val port: Int)
@@ -119,6 +126,9 @@ class SmbEndpointProbe @Inject constructor(
 
     /** What each id last published a state for, so only an edited host resets its row to unknown. */
     private val probedEndpoints = mutableMapOf<Uuid, Endpoint>()
+
+    /** Which probe an id already recorded a sighting for, so waiters do not each write one. */
+    private val lastRecorded = mutableMapOf<Uuid, Deferred<SmbEndpointState>>()
 
     /** Bumped on every connectivity change, results from an earlier epoch describe another network. */
     private var connectivityEpoch = 0
@@ -238,17 +248,39 @@ class SmbEndpointProbe @Inject constructor(
             SmbEndpointState(reachability = SmbEndpointState.Reachability.UNREACHABLE)
         }
 
-        mutex.withLock {
+        val shouldRecord = mutex.withLock {
             if (inFlight[endpoint]?.deferred === probe.deferred) inFlight.remove(endpoint)
             // The host may have been edited and the network may have changed while this ran, either
             // makes the result describe something else than what the id stands for now.
             val isCurrent = probe.epoch == connectivityEpoch && currentEndpoint(location.id) == endpoint
             if (!isCurrent) {
                 log(tag, VERBOSE) { "Dropping outdated result for $endpoint: $state" }
-                return@withLock
+                return@withLock false
             }
             cache[endpoint] = CacheEntry(state, clock.now())
             publish(location.id, state)
+
+            // Every caller that joined this one probe resumes here, so without the guard one
+            // physical probe would write once per waiter. Two locations that share an endpoint
+            // still get one write each, which is what they need.
+            val record = state.reachability == SmbEndpointState.Reachability.REACHABLE &&
+                lastRecorded[location.id] !== probe.deferred
+            if (record) lastRecorded[location.id] = probe.deferred
+            record
+        }
+
+        if (!shouldRecord) return
+
+        // Deliberately outside the lock: this suspends on a database write, and probe() reassigns
+        // `watched` without holding the mutex, so suspending inside would let the endpoint change
+        // under the write and would queue every endpoint of a pass behind disk I/O.
+        try {
+            lastSeenRecorder.recordSeen(location.id, endpoint.host, endpoint.port, clock.now())
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            // A missing timestamp must never cost us a perfectly good reachability result.
+            log(tag, WARN) { "Failed to record $endpoint as seen: ${e.asLog()}" }
         }
     }
 
@@ -345,4 +377,12 @@ object SmbEndpointProbeModule {
     @Provides
     @Singleton
     fun clock(): SmbEndpointProbe.Clock = SmbEndpointProbe.Clock { kotlin.time.Clock.System.now() }
+
+    @Provides
+    @Singleton
+    fun lastSeenRecorder(
+        locationManager: SmbLocationManager,
+    ): SmbEndpointProbe.LastSeenRecorder = SmbEndpointProbe.LastSeenRecorder { id, host, port, at ->
+        locationManager.recordSeen(id, host, port, at)
+    }
 }

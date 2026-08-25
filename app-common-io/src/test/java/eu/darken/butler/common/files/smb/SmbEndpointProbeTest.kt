@@ -3,6 +3,7 @@ package eu.darken.butler.common.files.smb
 import eu.darken.butler.common.files.smb.location.SmbLocation
 import eu.darken.butler.common.network.NetworkStateProvider
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
@@ -78,6 +79,19 @@ class SmbEndpointProbeTest : BaseTest() {
         override fun now(): Instant = current
     }
 
+    private class FakeRecorder(
+        private val behavior: () -> Unit = {},
+    ) : SmbEndpointProbe.LastSeenRecorder {
+        data class Sighting(val id: Uuid, val host: String, val port: Int, val at: Instant)
+
+        val recorded = mutableListOf<Sighting>()
+
+        override suspend fun recordSeen(id: Uuid, host: String, port: Int, at: Instant) {
+            recorded.add(Sighting(id, host, port, at))
+            behavior()
+        }
+    }
+
     private val appScopes = mutableListOf<CoroutineScope>()
 
     @AfterEach
@@ -98,6 +112,7 @@ class SmbEndpointProbeTest : BaseTest() {
         resolver: SmbEndpointProbe.Resolver,
         connector: SmbEndpointProbe.Connector,
         clock: SmbEndpointProbe.Clock = FakeClock(),
+        recorder: SmbEndpointProbe.LastSeenRecorder = FakeRecorder(),
         networkStates: Flow<NetworkStateProvider.State> = emptyFlow(),
     ) = SmbEndpointProbe(
         appScope = appScope(),
@@ -105,6 +120,7 @@ class SmbEndpointProbeTest : BaseTest() {
         resolver = resolver,
         connector = connector,
         clock = clock,
+        lastSeenRecorder = recorder,
         networkStateProvider = mockk<NetworkStateProvider>().apply {
             every { networkState } returns networkStates
         },
@@ -394,6 +410,170 @@ class SmbEndpointProbeTest : BaseTest() {
 
         watching.cancel()
         runCurrent()
+    }
+
+    @Test
+    fun `a server that answered is recorded as seen`() = runTest {
+        val recorder = FakeRecorder()
+        val clock = FakeClock(Instant.fromEpochMilliseconds(7_000))
+        val probe = createProbe(FakeResolver { listOf(ipv4) }, FakeConnector(), clock, recorder)
+
+        probe.probe(listOf(location()))
+        advanceUntilIdle()
+
+        recorder.recorded shouldBe listOf(
+            FakeRecorder.Sighting(locationId, "nas.local", 445, Instant.fromEpochMilliseconds(7_000)),
+        )
+    }
+
+    @Test
+    fun `a server that did not answer is not recorded`() = runTest {
+        val recorder = FakeRecorder()
+        val probe = createProbe(
+            FakeResolver { listOf(ipv4) },
+            FakeConnector { throw IOException("refused") },
+            recorder = recorder,
+        )
+
+        probe.probe(listOf(location()))
+        advanceUntilIdle()
+
+        recorder.recorded.shouldBeEmpty()
+    }
+
+    @Test
+    fun `a result served from the cache records nothing`() = runTest {
+        val recorder = FakeRecorder()
+        val probe = createProbe(FakeResolver { listOf(ipv4) }, FakeConnector(), recorder = recorder)
+
+        probe.probe(listOf(location()))
+        advanceUntilIdle()
+        recorder.recorded.size shouldBe 1
+
+        probe.probe(listOf(location()))
+        advanceUntilIdle()
+        recorder.recorded.size shouldBe 1
+    }
+
+    @Test
+    fun `an explicit refresh records the sighting again`() = runTest {
+        val recorder = FakeRecorder()
+        val probe = createProbe(FakeResolver { listOf(ipv4) }, FakeConnector(), recorder = recorder)
+
+        probe.probe(listOf(location()))
+        advanceUntilIdle()
+        recorder.recorded.size shouldBe 1
+
+        probe.probe(listOf(location()), force = true)
+        advanceUntilIdle()
+        recorder.recorded.size shouldBe 2
+    }
+
+    /** Every waiter runs the block that records, one physical probe must still write once. */
+    @Test
+    fun `two callers waiting on one probe record one sighting`() = runTest {
+        val gate = CompletableDeferred<Unit>()
+        val recorder = FakeRecorder()
+        val probe = createProbe(
+            FakeResolver { listOf(ipv4) },
+            FakeConnector { gate.await() },
+            recorder = recorder,
+        )
+
+        probe.probe(listOf(location()))
+        runCurrent()
+        probe.probe(listOf(location()))
+        runCurrent()
+
+        gate.complete(Unit)
+        advanceUntilIdle()
+
+        recorder.recorded.size shouldBe 1
+    }
+
+    @Test
+    fun `two locations on the same server each record their own sighting`() = runTest {
+        val recorder = FakeRecorder()
+        val probe = createProbe(FakeResolver { listOf(ipv4) }, FakeConnector(), recorder = recorder)
+
+        probe.probe(listOf(location(), location(id = otherLocationId)))
+        advanceUntilIdle()
+
+        recorder.recorded.map { it.id }.toSet() shouldBe setOf(locationId, otherLocationId)
+    }
+
+    @Test
+    fun `a result for a host that was edited away records nothing`() = runTest {
+        val oldHost = CompletableDeferred<Unit>()
+        val recorder = FakeRecorder()
+        val probe = createProbe(
+            FakeResolver { host -> if (host == "old.nas") listOf(ipv6) else listOf(ipv4) },
+            FakeConnector { address -> if (address == ipv6) oldHost.await() },
+            recorder = recorder,
+        )
+
+        probe.probe(listOf(location(host = "old.nas")))
+        runCurrent()
+        probe.probe(listOf(location(host = "new.nas")))
+        advanceUntilIdle()
+        recorder.recorded.map { it.host } shouldBe listOf("new.nas")
+
+        oldHost.complete(Unit)
+        advanceUntilIdle()
+
+        recorder.recorded.map { it.host } shouldBe listOf("new.nas")
+    }
+
+    @Test
+    fun `a probe started on the previous network records nothing`() = runTest {
+        val gates = mutableListOf<CompletableDeferred<Unit>>()
+        val recorder = FakeRecorder()
+        val networkStates = MutableStateFlow<NetworkStateProvider.State>(wifi)
+        val probe = createProbe(
+            FakeResolver { listOf(ipv4) },
+            FakeConnector {
+                val gate = CompletableDeferred<Unit>()
+                gates.add(gate)
+                gate.await()
+            },
+            recorder = recorder,
+            networkStates = networkStates,
+        )
+
+        val watching = probe.states.launchIn(this)
+        runCurrent()
+        probe.probe(listOf(location()))
+        runCurrent()
+        gates.size shouldBe 1
+
+        networkStates.value = mobile
+        runCurrent()
+        gates.size shouldBe 2
+
+        gates[0].complete(Unit)
+        runCurrent()
+        recorder.recorded.shouldBeEmpty()
+
+        gates[1].complete(Unit)
+        runCurrent()
+        recorder.recorded.size shouldBe 1
+
+        watching.cancel()
+        runCurrent()
+    }
+
+    @Test
+    fun `a recorder that blows up still lets the state through`() = runTest {
+        val recorder = FakeRecorder { throw IllegalStateException("no disk") }
+        val probe = createProbe(FakeResolver { listOf(ipv4) }, FakeConnector(), recorder = recorder)
+
+        probe.probe(listOf(location()))
+        advanceUntilIdle()
+
+        probe.states.value[locationId] shouldBe SmbEndpointState(
+            address = ipv4.hostAddress,
+            reachability = SmbEndpointState.Reachability.REACHABLE,
+        )
     }
 
     @Test
