@@ -12,7 +12,6 @@ import androidx.compose.material.icons.twotone.DeleteForever
 import androidx.compose.material.icons.twotone.Deselect
 import androidx.compose.material.icons.twotone.DriveFileRenameOutline
 import androidx.compose.material.icons.twotone.Edit
-import androidx.compose.material.icons.twotone.Lan
 import androidx.compose.material.icons.twotone.FilterList
 import androidx.compose.material.icons.twotone.FolderShared
 import androidx.compose.material.icons.twotone.GridView
@@ -29,6 +28,7 @@ import androidx.compose.material.icons.twotone.Visibility
 import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.compose.icons.LanAdd
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerViewStyle
@@ -251,7 +251,7 @@ sealed interface ExplorerActionBarItem : WorkspaceActionBarItem {
             override val isEnabled: Boolean = true,
             override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.PRIMARY,
         ) : Network {
-            override val icon = Icons.TwoTone.Lan
+            override val icon = Icons.TwoTone.LanAdd
             override val label = R.string.explorer_network_add_location_action.toCaString()
         }
 
