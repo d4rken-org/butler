@@ -70,6 +70,12 @@
     <string name="app_install_error_no_elevation_title">No elevated access</string>
     <string name="app_install_error_no_elevation_description">Root or ADB access is currently unavailable.</string>
 
+    <!-- App install confirmation -->
+    <string name="app_install_confirm_pending_title">Confirmation required</string>
+    <string name="app_install_confirm_pending_description">Android needs you to confirm the installation of \"%1$s\" before it can finish.</string>
+    <string name="app_install_confirm_pending_description_unnamed">Android needs you to confirm this installation before it can finish.</string>
+    <string name="app_install_confirm_pending_action">Confirm installation</string>
+
     <!-- Service connection errors -->
     <string name="service_connection_lost_error_title">File operation interrupted</string>
     <string name="service_connection_lost_error_message">The file operation service stopped unexpectedly. Please try again.</string>

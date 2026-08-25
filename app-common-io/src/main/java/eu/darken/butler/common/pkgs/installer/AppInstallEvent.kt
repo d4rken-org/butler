@@ -18,6 +18,12 @@ sealed interface AppInstallEvent {
     /** Expansion files could not be placed. The install itself already succeeded. */
     data class ObbFailed(val reason: String) : AppInstallEvent
 
+    /**
+     * The platform installer is waiting for the user's confirmation. The run stays alive until they
+     * answer; [issue] is how they get back to the dialog if it never appeared or was dismissed.
+     */
+    data class ConfirmationRequired(val issue: AppInstallConfirmationIssue) : AppInstallEvent
+
     data class Success(
         val pkgId: Pkg.Id?,
         val viaMode: AppInstaller.Mode,
