@@ -160,6 +160,16 @@ class FileOptionsBottomSheetTest : ComposeTest() {
     }
 
     @Test
+    fun `install sits above extract for a bundle`() {
+        setSheetContent("app.xapk")
+
+        val install = composeTestRule.onNodeWithText("Install").performScrollTo().getUnclippedBoundsInRoot()
+        val extract = composeTestRule.onNodeWithText("Extract").performScrollTo().getUnclippedBoundsInRoot()
+
+        (install.top.value < extract.top.value) shouldBe true
+    }
+
+    @Test
     fun `install is not offered for other files`() {
         setSheetContent(fileNamed("notes.txt"), trashEnabled = true)
 
