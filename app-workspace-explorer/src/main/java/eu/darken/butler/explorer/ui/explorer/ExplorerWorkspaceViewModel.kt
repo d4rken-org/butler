@@ -399,7 +399,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 networkCapacityJob?.cancel()
                 networkCapacityJob = null
                 if (sheet == null) return@onEach
-                loadNetworkCapacity(sheet.locationId, getState().currentLocation?.items)
+                loadNetworkCapacity(sheet, getState().currentLocation?.items)
             }
             .launchInViewModel()
 
@@ -1493,8 +1493,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
      */
     fun onRevealNetworkPassword(locationId: Uuid) {
         log(tag) { "onRevealNetworkPassword($locationId)" }
+        val sheetInstanceId = openNetworkSheet(locationId)?.sheetInstanceId ?: return
         networkRevealJob?.cancel()
-        dialogs.updateSingleNetwork(locationId) { it.copy(isRevealing = true) }
+        dialogs.updateSingleNetwork(locationId, sheetInstanceId) { it.copy(isRevealing = true) }
         networkRevealJob = vmScope.launch {
             val revealed = try {
                 val location = smbLocationManager.get(locationId)
@@ -1522,7 +1523,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 errorEvents.emit(e)
                 null
             }
-            dialogs.updateSingleNetwork(locationId) { it.copy(revealed = revealed, isRevealing = false) }
+            dialogs.updateSingleNetwork(locationId, sheetInstanceId) {
+                it.copy(revealed = revealed, isRevealing = false)
+            }
         }
     }
 
@@ -1534,7 +1537,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
      * looked at; drawing the Network list still costs no login attempt. Skipped entirely when there
      * is nothing to sign in with or nothing to reach, so no field appears for it.
      */
-    private fun loadNetworkCapacity(locationId: Uuid, items: List<ExplorerItem>?) {
+    private fun loadNetworkCapacity(sheet: ItemInfo.InfoContext.SingleNetwork, items: List<ExplorerItem>?) {
+        val locationId = sheet.locationId
+        val sheetInstanceId = sheet.sheetInstanceId
         val item = items
             ?.filterIsInstance<ExplorerItem.Storage.Network>()
             ?.firstOrNull { it.location.id == locationId }
@@ -1543,7 +1548,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         if (item.endpoint.reachability == SmbEndpointState.Reachability.UNREACHABLE) return
 
         log(tag) { "loadNetworkCapacity($locationId)" }
-        dialogs.updateSingleNetwork(locationId) { it.copy(capacity = SingleNetworkCapacity.Loading) }
+        dialogs.updateSingleNetwork(locationId, sheetInstanceId) {
+            it.copy(capacity = SingleNetworkCapacity.Loading)
+        }
         networkCapacityJob = vmScope.launch {
             val capacity = try {
                 val fileSystem = withContext(dispatchers.IO) {
@@ -1563,16 +1570,29 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 log(tag, WARN) { "loadNetworkCapacity($locationId) failed: ${e.asLog()}" }
                 SingleNetworkCapacity.Unavailable
             }
-            dialogs.updateSingleNetwork(locationId) { it.copy(capacity = capacity) }
+            dialogs.updateSingleNetwork(locationId, sheetInstanceId) { it.copy(capacity = capacity) }
         }
     }
 
     fun onHideNetworkPassword(locationId: Uuid) {
         log(tag) { "onHideNetworkPassword($locationId)" }
+        val sheetInstanceId = openNetworkSheet(locationId)?.sheetInstanceId ?: return
         networkRevealJob?.cancel()
         networkRevealJob = null
-        dialogs.updateSingleNetwork(locationId) { it.copy(revealed = null, isRevealing = false) }
+        dialogs.updateSingleNetwork(locationId, sheetInstanceId) {
+            it.copy(revealed = null, isRevealing = false)
+        }
     }
+
+    /**
+     * The network info sheet showing right now, if it is the one for [locationId].
+     *
+     * Its sheet instance id is what every later write has to carry: dismissing and reopening the
+     * same share are two sheets, and the first one's password must not land on the second.
+     */
+    private fun openNetworkSheet(locationId: Uuid): ItemInfo.InfoContext.SingleNetwork? =
+        ((dialogs.current() as? ItemInfo)?.context as? ItemInfo.InfoContext.SingleNetwork)
+            ?.takeIf { it.locationId == locationId }
 
     /**
      * The system had no activity to handle our SAF picker intent (DocumentsUI disabled or missing).

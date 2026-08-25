@@ -5,6 +5,7 @@ import eu.darken.butler.explorer.core.FileTypeFilter
 import eu.darken.butler.explorer.core.FilterState
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogEvent
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
+import eu.darken.butler.explorer.ui.explorer.dialogs.RevealedPassword
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import org.junit.jupiter.api.Test
@@ -125,7 +126,7 @@ class ExplorerDialogControllerTest : BaseTest() {
         val opened = ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork(Uuid.random())
         controller.show(ExplorerDialogState.ItemInfo(opened))
 
-        controller.updateSingleNetwork(opened.locationId) { it.copy(isRevealing = true) }
+        controller.updateSingleNetwork(opened.locationId, opened.sheetInstanceId) { it.copy(isRevealing = true) }
 
         val current = (controller.current() as ExplorerDialogState.ItemInfo).context
             as ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork
@@ -140,9 +141,32 @@ class ExplorerDialogControllerTest : BaseTest() {
         controller.show(ExplorerDialogState.ItemInfo(opened))
         controller.dismiss()
 
-        controller.updateSingleNetwork(opened.locationId) { it.copy(isRevealing = true) }
+        controller.updateSingleNetwork(opened.locationId, opened.sheetInstanceId) { it.copy(isRevealing = true) }
 
         controller.current() shouldBe ExplorerDialogState.None
+    }
+
+    @Test
+    fun `a result for a dismissed sheet does not land on its reopening`() {
+        val controller = controller()
+        val locationId = Uuid.random()
+
+        val first = ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork(locationId)
+        controller.show(ExplorerDialogState.ItemInfo(first))
+        controller.dismiss()
+
+        val second = ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork(locationId)
+        controller.show(ExplorerDialogState.ItemInfo(second))
+
+        // The reveal the user started on the first sheet, arriving after they opened the second one.
+        controller.updateSingleNetwork(locationId, first.sheetInstanceId) {
+            it.copy(revealed = RevealedPassword("hunter2"), isRevealing = false)
+        }
+
+        val current = (controller.current() as ExplorerDialogState.ItemInfo).context
+            as ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork
+        current.sheetInstanceId shouldBe second.sheetInstanceId
+        current.revealed shouldBe null
     }
 
     @Test
