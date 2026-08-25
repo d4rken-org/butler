@@ -112,6 +112,7 @@ import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import eu.darken.butler.workspace.core.clipboard.ClipboardSettings
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.operations.OperationPathPlan
 import eu.darken.butler.workspace.core.operations.OperationFocusRequest
 import eu.darken.butler.workspace.ui.page.WorkspacePageChrome
 import eu.darken.butler.workspace.core.returnResult
@@ -1627,7 +1628,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         getWorkspace().execute(
             ExplorerCommand.Move(
                 sources = setOf(result.item),
-                destination = currentLocation.path.child(result.newName),
+                destination = OperationPathPlan.Destination.RequestedTarget(
+                    currentLocation.path.child(result.newName),
+                ),
                 intent = Operation.Metadata.Intent.RENAME,
             )
         )
@@ -1774,12 +1777,12 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     val command = when (clip.mode) {
                         ClipboardClip.Paths.Mode.COPY -> ExplorerCommand.Copy(
                             sources = clip.paths.map { it.lookedUp }.toSet(),
-                            destination = currentLocation.path,
+                            destination = OperationPathPlan.Destination.Container(currentLocation.path),
                             intent = Operation.Metadata.Intent.PASTE_COPY,
                         )
                         ClipboardClip.Paths.Mode.CUT -> ExplorerCommand.Move(
                             sources = clip.paths.map { it.lookedUp }.toSet(),
-                            destination = currentLocation.path,
+                            destination = OperationPathPlan.Destination.Container(currentLocation.path),
                             intent = Operation.Metadata.Intent.PASTE_MOVE,
                         )
                     }
@@ -1871,13 +1874,13 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val command = if (move) {
             ExplorerCommand.Move(
                 sources = sources,
-                destination = target,
+                destination = OperationPathPlan.Destination.Container(target),
                 intent = Operation.Metadata.Intent.DROP_MOVE,
             )
         } else {
             ExplorerCommand.Copy(
                 sources = sources,
-                destination = target,
+                destination = OperationPathPlan.Destination.Container(target),
                 intent = Operation.Metadata.Intent.DROP_COPY,
             )
         }

@@ -52,14 +52,14 @@ class CopyOperation @AssistedInject constructor(
                     R.string.explorer_operation_copy_description_single,
                     source.name,
                     source.parent?.userReadablePath?.get(cx) ?: source.userReadablePath.get(cx),
-                    command.destination.userReadablePath.get(cx)
+                    command.destination.path.userReadablePath.get(cx)
                 )
             } else {
                 cx.getQuantityString2(
                     R.plurals.explorer_operation_copy_description,
                     command.sources.size,
                     command.sources.size,
-                    command.destination.userReadablePath.get(cx)
+                    command.destination.path.userReadablePath.get(cx)
                 )
             }
         }
@@ -67,7 +67,7 @@ class CopyOperation @AssistedInject constructor(
         override val intent = command.intent
         override val pathPlan = OperationPathPlan(
             targets = command.sources.toList(),
-            destination = OperationPathPlan.Destination.Container(command.destination),
+            destination = command.destination,
         )
     }
 
@@ -85,7 +85,7 @@ class CopyOperation @AssistedInject constructor(
         val result = command.sources
             .copy(
                 gateway = gatewaySwitch,
-                destination = command.destination,
+                destination = command.destination.path,
                 options = CopyAction.Options(
                     preserveAttributes = command.options.preserveAttributes,
                     followSymlinks = command.options.followSymlinks,
