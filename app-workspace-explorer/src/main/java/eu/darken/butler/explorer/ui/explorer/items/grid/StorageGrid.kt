@@ -8,29 +8,31 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Block
-import androidx.compose.material.icons.twotone.CloudOff
 import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material.icons.twotone.Lock
 import androidx.compose.material.icons.twotone.Visibility
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.icons.NetworkOffline
+import eu.darken.butler.common.compose.icons.NetworkOnline
 import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
 import eu.darken.butler.common.files.saf.location.SAFLocation
 import eu.darken.butler.common.files.smb.SmbEndpointState
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
-import eu.darken.butler.explorer.ui.explorer.items.endpointLabel
 import eu.darken.butler.explorer.ui.explorer.items.statusLabel
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
@@ -122,23 +124,21 @@ fun StorageGrid(
                     }
                     stringResource(R.string.explorer_file_storage_size_format, typeLabel, total, free)
                 }
-                item is ExplorerItem.Storage.Network -> item.statusLabel(context)
+                // Network tiles carry their status in the trailing slot, icon and wording together.
                 else -> null
             }
         },
         // A network path is a UUID, the location's own subtitle is what identifies it to the user.
-        tertiaryText = when (item) {
-            is ExplorerItem.Storage.Network -> item.endpointLabel(LocalContext.current)
-            else -> item.subtitle?.get(LocalContext.current) ?: item.target.path.path
-        },
+        tertiaryText = item.subtitle?.get(LocalContext.current) ?: item.target.path.path,
         backgroundColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
         trailingContent = when {
             item is ExplorerItem.Storage.SAF -> {
                 { PermissionIndicator(item.location) }
             }
 
-            item is ExplorerItem.Storage.Network && item.hasIssue -> {
-                { NetworkIssueIndicator(item) }
+            // Icon plus wording together, because this slot replaces the tile's status text.
+            item is ExplorerItem.Storage.Network -> {
+                { NetworkStatusIndicator(item) }
             }
 
             else -> null
@@ -146,27 +146,52 @@ fun StorageGrid(
     )
 }
 
+/**
+ * The tile's own status text, since this slot takes the place of it in [FileGridBase].
+ *
+ * Nothing is drawn for the icon while the probe is still checking, so the tile does not flash a
+ * wrong verdict; the wording still says so.
+ */
 @Composable
-private fun NetworkIssueIndicator(item: ExplorerItem.Storage.Network) {
+private fun NetworkStatusIndicator(item: ExplorerItem.Storage.Network) {
+    val context = LocalContext.current
     Row(
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         if (item.status == ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED) {
             Icon(
                 imageVector = Icons.TwoTone.Lock,
-                contentDescription = stringResource(R.string.explorer_network_sign_in_required_label),
-                tint = Color.White,
-                modifier = Modifier.size(16.dp),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.error,
+                modifier = Modifier.size(14.dp),
             )
         }
-        if (item.endpoint.reachability == SmbEndpointState.Reachability.UNREACHABLE) {
-            Icon(
-                imageVector = Icons.TwoTone.CloudOff,
-                contentDescription = stringResource(R.string.explorer_network_status_unavailable_label),
+        when (item.endpoint.reachability) {
+            SmbEndpointState.Reachability.CHECKING -> Unit
+
+            SmbEndpointState.Reachability.REACHABLE -> Icon(
+                imageVector = Icons.TwoTone.NetworkOnline,
+                contentDescription = null,
                 tint = Color.White,
-                modifier = Modifier.size(16.dp),
+                modifier = Modifier.size(14.dp),
+            )
+
+            SmbEndpointState.Reachability.UNREACHABLE -> Icon(
+                imageVector = Icons.TwoTone.NetworkOffline,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.error,
+                modifier = Modifier.size(14.dp),
             )
         }
+        Text(
+            text = item.statusLabel(context),
+            style = MaterialTheme.typography.labelSmall,
+            color = if (item.hasIssue) MaterialTheme.colorScheme.error else Color.White,
+            maxLines = 1,
+            overflow = TextOverflow.MiddleEllipsis,
+            modifier = Modifier.weight(1f, fill = false),
+        )
     }
 }
 

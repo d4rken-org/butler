@@ -89,6 +89,8 @@ internal fun FileRowBase(
     secondaryEndText: String? = null,
     tertiaryText: String? = null,
     tertiaryEndText: String? = null,
+    /** Overrides the muted default, for a tertiary line that carries a state worth noticing. */
+    tertiaryColor: Color? = null,
     trailingContent: (@Composable () -> Unit)? = null,
     hasProblematicChars: Boolean = false,
 ) {
@@ -199,7 +201,7 @@ internal fun FileRowBase(
                     Text(
                         text = tertiaryText.orEmpty(),
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                        color = tertiaryColor ?: MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f),

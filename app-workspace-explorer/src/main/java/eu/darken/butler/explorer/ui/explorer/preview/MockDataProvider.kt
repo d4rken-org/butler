@@ -6,7 +6,6 @@ import androidx.compose.material.icons.twotone.ContentCut
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.FolderOpen
 import androidx.compose.material.icons.twotone.FolderShared
-import androidx.compose.material.icons.twotone.Lan
 import androidx.compose.material.icons.twotone.Home
 import androidx.compose.material.icons.twotone.PhoneAndroid
 import androidx.compose.material.icons.twotone.Storage
@@ -15,6 +14,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.common.SafUri
 import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.compose.icons.SmbShare
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.LocalPath
@@ -576,7 +576,7 @@ object MockDataProvider {
         return ExplorerItem.Storage.Network(
             location = location,
             displayName = name.toCaString(),
-            displayIcon = Icons.TwoTone.Lan,
+            displayIcon = Icons.TwoTone.SmbShare,
             target = ExplorerNavigation.Target.Directory(location.rootPath),
             subtitle = location.endpointLabel.toCaString(),
             credentials = when (status) {
