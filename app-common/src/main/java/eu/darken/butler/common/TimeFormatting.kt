@@ -4,8 +4,10 @@ import android.content.Context
 import android.icu.text.RelativeDateTimeFormatter
 import android.text.format.DateFormat
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -14,6 +16,7 @@ import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
 
 enum class DurationFormat {
@@ -68,6 +71,20 @@ fun formatRelativeTime(
         )
     }
 }
+
+/**
+ * The current time, re-read once a minute.
+ *
+ * For a relative label whose source rarely changes: an unchanged state emits nothing, so nothing
+ * recomposes and "1 minute ago" can still say that an hour later. Only what reads this recomposes.
+ */
+@Composable
+fun rememberMinuteTick(): Instant = produceState(Clock.System.now()) {
+    while (true) {
+        delay(1.minutes)
+        value = Clock.System.now()
+    }
+}.value
 
 @Composable
 fun formatDuration(

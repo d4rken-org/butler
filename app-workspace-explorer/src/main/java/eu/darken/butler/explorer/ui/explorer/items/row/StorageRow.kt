@@ -25,6 +25,7 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.icons.NetworkOffline
 import eu.darken.butler.common.compose.icons.NetworkOnline
+import eu.darken.butler.common.rememberMinuteTick
 import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
 import eu.darken.butler.common.files.saf.location.SAFLocation
 import eu.darken.butler.common.files.smb.SmbEndpointState
@@ -92,7 +93,7 @@ fun StorageRow(
                 }
                 item is ExplorerItem.Storage.SAF -> stringResource(R.string.explorer_file_storage_saf_label)
                 item is ExplorerItem.Storage.Local -> stringResource(R.string.explorer_file_storage_local_label)
-                item is ExplorerItem.Storage.Network -> item.statusLabel(context)
+                item is ExplorerItem.Storage.Network -> item.statusLabel(context, rememberMinuteTick())
                 else -> null
             }
         },
@@ -223,6 +224,19 @@ private fun StorageRowNetworkUnreachablePreview() {
     StorageRow(
         item = MockDataProvider.createMockStorageNetwork(
             endpoint = SmbEndpointState("192.168.1.50", SmbEndpointState.Reachability.UNREACHABLE),
+        ),
+        onClick = {}
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun StorageRowNetworkUnreachableSincePreview() {
+    StorageRow(
+        item = MockDataProvider.createMockStorageNetwork(
+            endpoint = SmbEndpointState("192.168.1.50", SmbEndpointState.Reachability.UNREACHABLE),
+            lastSeenAt = MockDataProvider.MockTimes.hoursAgo(3),
         ),
         onClick = {}
     )

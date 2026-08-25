@@ -28,6 +28,7 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.icons.NetworkOffline
 import eu.darken.butler.common.compose.icons.NetworkOnline
+import eu.darken.butler.common.rememberMinuteTick
 import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
 import eu.darken.butler.common.files.saf.location.SAFLocation
 import eu.darken.butler.common.files.smb.SmbEndpointState
@@ -185,7 +186,7 @@ private fun NetworkStatusIndicator(item: ExplorerItem.Storage.Network) {
             )
         }
         Text(
-            text = item.statusLabel(context),
+            text = item.statusLabel(context, rememberMinuteTick()),
             style = MaterialTheme.typography.labelSmall,
             color = if (item.hasIssue) MaterialTheme.colorScheme.error else Color.White,
             maxLines = 1,
