@@ -145,4 +145,5 @@
     <string name="history_cleared_success">History cleared</string>
     <string name="history_workspace_title_kind_restore">Restores</string>
     <string name="history_filter_kind_restore">Restore</string>
+    <string name="history_filter_kind_install">Install</string>
 </resources>

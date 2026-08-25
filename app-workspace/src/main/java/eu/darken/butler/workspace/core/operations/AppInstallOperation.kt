@@ -51,7 +51,7 @@ class AppInstallOperation @AssistedInject constructor(
         override val description = caString {
             it.getString(R.string.workspace_operation_install_description, displayName)
         }
-        // kind stays null: installing an app changes no file, so it has no place in file history.
+        override val kind = Operation.Metadata.Kind.INSTALL
         override val intendedPaths = listOf(plan.source)
     }
 

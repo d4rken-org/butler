@@ -59,7 +59,7 @@ interface Operation {
          */
         val pathPlan: OperationPathPlan? get() = null
 
-        enum class Kind { COPY, MOVE, DELETE, RESTORE, CREATE_FOLDER, CREATE_FILE, SAVE, COMPRESS, EXTRACT }
+        enum class Kind { COPY, MOVE, DELETE, RESTORE, CREATE_FOLDER, CREATE_FILE, SAVE, COMPRESS, EXTRACT, INSTALL }
 
         enum class Intent { RENAME, PASTE_COPY, PASTE_MOVE, DROP_COPY, DROP_MOVE }
 
