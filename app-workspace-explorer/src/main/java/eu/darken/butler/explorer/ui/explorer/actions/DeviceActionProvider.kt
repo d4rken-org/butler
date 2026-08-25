@@ -48,9 +48,8 @@ class DeviceActionProvider @Inject constructor(
             actions.add(ExplorerActionBarItem.Common.Filter())
 
             actions.add(ExplorerActionBarItem.Common.UpdateViewStyle(viewStyle.toggled()))
+            actions.add(ExplorerActionBarItem.Common.Refresh())
         }
-
-        actions.add(ExplorerActionBarItem.Common.Refresh())
 
         return actions
     }

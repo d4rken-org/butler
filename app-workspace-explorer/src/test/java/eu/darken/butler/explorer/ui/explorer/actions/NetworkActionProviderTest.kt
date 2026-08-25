@@ -62,11 +62,11 @@ class NetworkActionProviderTest : BaseTest() {
         actions.any { it is ExplorerActionBarItem.Directory.OpenInNewTabs } shouldBe false
     }
 
+    /** Refreshing is blocked while items are selected, so it must not be offered there either. */
     @Test
-    fun `refreshing is offered either way`() {
-        listOf(actionsFor(), actionsFor(first)).forEach { actions ->
-            actions.any { it is ExplorerActionBarItem.Common.Refresh } shouldBe true
-        }
+    fun `refreshing is only offered without a selection`() {
+        actionsFor().any { it is ExplorerActionBarItem.Common.Refresh } shouldBe true
+        actionsFor(first).any { it is ExplorerActionBarItem.Common.Refresh } shouldBe false
     }
 
     @Test
