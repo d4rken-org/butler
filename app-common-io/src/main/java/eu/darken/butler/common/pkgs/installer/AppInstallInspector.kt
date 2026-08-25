@@ -194,9 +194,9 @@ class AppInstallInspector @Inject constructor(
     }
 
     /**
-     * Expansion files, taken from the archive's own `Android/obb/**` tree plus anything the manifest
-     * points at. Both are only candidates: an entry survives only if it names a plain file directly
-     * under the package directory of the package the base APK declares.
+     * Expansion files, taken from the entries under `Android/obb` in the archive plus anything the
+     * manifest points at. Both are only candidates: an entry survives only if it names a plain file
+     * directly under the package directory of the package the base APK declares.
      */
     private fun collectObbEntries(
         index: ArchiveIndex,
