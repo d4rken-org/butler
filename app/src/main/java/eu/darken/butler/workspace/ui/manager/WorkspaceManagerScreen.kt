@@ -14,6 +14,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
@@ -57,12 +58,18 @@ fun WorkspaceManagerScreen(
     onDismissBadgeExplanation: () -> Unit,
     onDismissLongPressHint: () -> Unit,
     onCloseAllWorkspaces: () -> Unit,
+    onStartSelection: (Workspace.Id) -> Unit = {},
+    onToggleSelection: (Workspace.Id) -> Unit = {},
+    onSelectAllWorkspaces: (List<Workspace.Id>) -> Unit = {},
+    onClearSelection: () -> Unit = {},
+    onCloseSelectedWorkspaces: () -> Unit = {},
     onRenameWorkspace: (Workspace.Id, String?) -> Unit = { _, _ -> },
     onTabsClick: () -> Unit = {},
     onOperationsFilterClick: () -> Unit = {},
     onAttentionFilterClick: () -> Unit = {},
 ) {
     var showCloseAllDialog by remember { mutableStateOf(false) }
+    var showCloseSelectedDialog by remember { mutableStateOf(false) }
     var isFabVisible by remember { mutableStateOf(true) }
 
     // Held as an id, not a captured item: the item is a snapshot whose automatic title can change,
@@ -93,38 +100,84 @@ fun WorkspaceManagerScreen(
             .nestedScroll(scrollBehavior.nestedScrollConnection)
             .nestedScroll(fabScrollConnection),
         topBar = {
-            TopAppBar(
-                title = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.TwoTone.Workspaces,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(32.dp)
-                        )
+            // Selection replaces the whole bar rather than adding to it: the manager's own dismiss
+            // and a batch close are both a Close icon, and side by side they read as the same action.
+            if (state.isSelectionActive) {
+                TopAppBar(
+                    navigationIcon = {
+                        IconButton(onClick = onClearSelection) {
+                            Icon(
+                                imageVector = Icons.TwoTone.Close,
+                                contentDescription = stringResource(R.string.workspace_manager_selection_cancel_content_desc),
+                            )
+                        }
+                    },
+                    title = {
                         Text(
-                            text = stringResource(R.string.workspace_manager_title),
-                            style = MaterialTheme.typography.headlineSmall
+                            text = stringResource(
+                                R.string.workspace_manager_selection_count,
+                                state.selectedCount,
+                            ),
+                            style = MaterialTheme.typography.titleLarge,
                         )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.TwoTone.Close,
-                            contentDescription = stringResource(R.string.workspace_manager_dismiss_content_desc)
-                        )
-                    }
-                },
-                scrollBehavior = scrollBehavior
-            )
+                    },
+                    actions = {
+                        if (!state.allSelected) {
+                            TextButton(
+                                onClick = {
+                                    onSelectAllWorkspaces(state.filteredWorkspaces.map { it.id })
+                                },
+                            ) {
+                                Text(stringResource(R.string.workspace_manager_selection_select_all))
+                            }
+                        }
+                        IconButton(onClick = { showCloseSelectedDialog = true }) {
+                            Icon(
+                                imageVector = Icons.TwoTone.Close,
+                                contentDescription = stringResource(R.string.workspace_manager_selection_close_content_desc),
+                                tint = MaterialTheme.colorScheme.error,
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    ),
+                    scrollBehavior = scrollBehavior,
+                )
+            } else {
+                TopAppBar(
+                    title = {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.TwoTone.Workspaces,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(32.dp)
+                            )
+                            Text(
+                                text = stringResource(R.string.workspace_manager_title),
+                                style = MaterialTheme.typography.headlineSmall
+                            )
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(
+                                imageVector = Icons.TwoTone.Close,
+                                contentDescription = stringResource(R.string.workspace_manager_dismiss_content_desc)
+                            )
+                        }
+                    },
+                    scrollBehavior = scrollBehavior
+                )
+            }
         },
         floatingActionButton = {
             Box(modifier = Modifier.padding(16.dp)) {
-                ScrollPop(isVisible = isFabVisible) {
+                ScrollPop(isVisible = isFabVisible && !state.isSelectionActive) {
                     WorkspaceManagerFAB(
                         workspaceCount = state.workspaceCount,
                         quickCreateItems = state.quickCreateItems,
@@ -148,6 +201,8 @@ fun WorkspaceManagerScreen(
             onPauseWorkspace = onPauseWorkspace,
             onResumeWorkspace = onResumeWorkspace,
             onDismissBadgeExplanation = onDismissBadgeExplanation,
+            onStartSelection = onStartSelection,
+            onToggleSelection = onToggleSelection,
             onRenameWorkspace = { renameTargetId = it },
             onTabsClick = onTabsClick,
             onOperationsFilterClick = onOperationsFilterClick,
@@ -174,8 +229,7 @@ fun WorkspaceManagerScreen(
         }
     }
 
-    // Close all confirmation dialog
-    CloseAllWorkspacesDialog(
+    CloseWorkspacesDialog(
         visible = showCloseAllDialog,
         workspaceCount = state.workspaceCount,
         hasUnsavedChanges = state.hasUnsavedChanges,
@@ -183,6 +237,18 @@ fun WorkspaceManagerScreen(
         onConfirm = {
             onCloseAllWorkspaces()
             showCloseAllDialog = false
+        }
+    )
+
+    CloseWorkspacesDialog(
+        visible = showCloseSelectedDialog,
+        workspaceCount = state.selectedCount,
+        hasUnsavedChanges = state.selectionHasUnsavedChanges,
+        isSelection = true,
+        onDismiss = { showCloseSelectedDialog = false },
+        onConfirm = {
+            onCloseSelectedWorkspaces()
+            showCloseSelectedDialog = false
         }
     )
 }
@@ -206,7 +272,7 @@ private fun WorkspaceManagerScreenPreview() {
                     autoTitle = "New".toCaString(),
                     subtitle = null,
                     isFocused = true,
-                    isSelected = true,
+                    isVisibleInPane = true,
                     paneNumber = 0,
                 ),
                 WorkspaceManagerViewModel.WorkspaceItem(
@@ -216,7 +282,7 @@ private fun WorkspaceManagerScreenPreview() {
                     title = "/storage/emulated/0/Download".toCaString(),
                     autoTitle = "/storage/emulated/0/Download".toCaString(),
                     subtitle = null,
-                    isSelected = true,
+                    isVisibleInPane = true,
                     paneNumber = 1,
                 ),
                 WorkspaceManagerViewModel.WorkspaceItem(
@@ -267,5 +333,56 @@ private fun WorkspaceManagerScreenEmptyPreview() {
         onDismissBadgeExplanation = {},
         onDismissLongPressHint = {},
         onCloseAllWorkspaces = {}
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspaceManagerScreenSelectionPreview() {
+    val explorerId = Workspace.Id()
+    val searcherId = Workspace.Id()
+    val editorId = Workspace.Id()
+    WorkspaceManagerScreen(
+        state = WorkspaceManagerViewModel.State(
+            workspaces = listOf(
+                WorkspaceManagerViewModel.WorkspaceItem(
+                    id = explorerId,
+                    topId = explorerId,
+                    type = Workspace.Type.EXPLORER,
+                    title = "/storage/emulated/0/Download".toCaString(),
+                    autoTitle = "/storage/emulated/0/Download".toCaString(),
+                    subtitle = null,
+                ),
+                WorkspaceManagerViewModel.WorkspaceItem(
+                    id = searcherId,
+                    topId = searcherId,
+                    type = Workspace.Type.SEARCHER,
+                    title = "report".toCaString(),
+                    autoTitle = "report".toCaString(),
+                    subtitle = "SD card".toCaString(),
+                ),
+                WorkspaceManagerViewModel.WorkspaceItem(
+                    id = editorId,
+                    topId = editorId,
+                    type = Workspace.Type.EDITOR,
+                    title = "notes.md".toCaString(),
+                    autoTitle = "notes.md".toCaString(),
+                    subtitle = "/storage/emulated/0/Documents".toCaString(),
+                ),
+            ),
+            selectedIds = setOf(explorerId, editorId),
+        ),
+        onCloseWorkspace = {},
+        onReorderWorkspaces = {},
+        onSelectWorkspace = {},
+        onPauseWorkspace = {},
+        onResumeWorkspace = {},
+        onCreateWorkspace = {},
+        onQuickCreate = {},
+        onNavigateBack = {},
+        onDismissBadgeExplanation = {},
+        onDismissLongPressHint = {},
+        onCloseAllWorkspaces = {},
     )
 }

@@ -337,6 +337,11 @@
     <string name="workspace_manager_close_all_message_singular">tab</string>
     <string name="workspace_manager_close_all_message_plural">tabs</string>
     <string name="workspace_manager_close_all_action">Close all</string>
+    <string name="workspace_manager_selection_count">%1$d selected</string>
+    <string name="workspace_manager_selection_select_all">Select all</string>
+    <string name="workspace_manager_selection_cancel_content_desc">Leave selection mode</string>
+    <string name="workspace_manager_selection_close_content_desc">Close selected tabs</string>
+    <string name="workspace_row_select_content_desc">Select tab</string>
     <string name="general_cancel_action">Cancel</string>
 
     <!-- Workspace Manager FAB -->

@@ -97,6 +97,11 @@
     <string name="workspace_manager_close_all_action">Close all</string>
     <string name="workspace_manager_close_all_unsaved_warning">Some tabs have unsaved changes that will be lost.</string>
     <string name="workspace_manager_close_all_unsaved_action">Discard all</string>
+    <string name="workspace_manager_close_selected_title">Close selected tabs?</string>
+    <string name="workspace_manager_close_selected_message">This will close %1$d selected %2$s. This action cannot be undone.</string>
+    <string name="workspace_manager_close_selected_action">Close selected</string>
+    <string name="workspace_manager_close_selected_unsaved_warning">Some selected tabs have unsaved changes that will be lost.</string>
+    <string name="workspace_manager_close_selected_unsaved_action">Discard selected</string>
     <string name="workspace_fab_close_all">Close all tabs</string>
     <string name="general_cancel_action">Cancel</string>
 

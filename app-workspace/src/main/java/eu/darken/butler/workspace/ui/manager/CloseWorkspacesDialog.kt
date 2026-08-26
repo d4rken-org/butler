@@ -13,11 +13,17 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.workspace.R
 
+/**
+ * Confirms a batch close. [isSelection] switches the wording between closing every open tab and
+ * closing the subset picked in the tab manager; [workspaceCount] and [hasUnsavedChanges] are the
+ * caller's to scope to whichever set it is about to close.
+ */
 @Composable
-fun CloseAllWorkspacesDialog(
+fun CloseWorkspacesDialog(
     visible: Boolean,
     workspaceCount: Int,
     hasUnsavedChanges: Boolean = false,
+    isSelection: Boolean = false,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
 ) {
@@ -25,7 +31,17 @@ fun CloseAllWorkspacesDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.workspace_manager_close_all_title)) },
+        title = {
+            Text(
+                stringResource(
+                    if (isSelection) {
+                        R.string.workspace_manager_close_selected_title
+                    } else {
+                        R.string.workspace_manager_close_all_title
+                    }
+                )
+            )
+        },
         text = {
             Column {
                 val workspaceString = if (workspaceCount == 1) {
@@ -35,7 +51,11 @@ fun CloseAllWorkspacesDialog(
                 }
                 Text(
                     stringResource(
-                        R.string.workspace_manager_close_all_message,
+                        if (isSelection) {
+                            R.string.workspace_manager_close_selected_message
+                        } else {
+                            R.string.workspace_manager_close_all_message
+                        },
                         workspaceCount,
                         workspaceString
                     )
@@ -43,7 +63,13 @@ fun CloseAllWorkspacesDialog(
                 if (hasUnsavedChanges) {
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        text = stringResource(R.string.workspace_manager_close_all_unsaved_warning),
+                        text = stringResource(
+                            if (isSelection) {
+                                R.string.workspace_manager_close_selected_unsaved_warning
+                            } else {
+                                R.string.workspace_manager_close_all_unsaved_warning
+                            }
+                        ),
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodyMedium,
                     )
@@ -54,10 +80,11 @@ fun CloseAllWorkspacesDialog(
             TextButton(onClick = onConfirm) {
                 Text(
                     text = stringResource(
-                        if (hasUnsavedChanges) {
-                            R.string.workspace_manager_close_all_unsaved_action
-                        } else {
-                            R.string.workspace_manager_close_all_action
+                        when {
+                            isSelection && hasUnsavedChanges -> R.string.workspace_manager_close_selected_unsaved_action
+                            isSelection -> R.string.workspace_manager_close_selected_action
+                            hasUnsavedChanges -> R.string.workspace_manager_close_all_unsaved_action
+                            else -> R.string.workspace_manager_close_all_action
                         }
                     ),
                     color = MaterialTheme.colorScheme.error

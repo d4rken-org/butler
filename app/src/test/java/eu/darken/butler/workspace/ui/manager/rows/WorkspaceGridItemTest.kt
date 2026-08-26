@@ -8,6 +8,7 @@ import androidx.compose.ui.semantics.SemanticsNode
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
@@ -363,4 +364,81 @@ class WorkspaceGridItemTest : ComposeTest() {
     private fun SemanticsNode.contentDescriptions(): List<String> =
         config.getOrNull(SemanticsProperties.ContentDescription).orEmpty() +
             children.flatMap { it.contentDescriptions() }
+
+    @Test
+    fun `selection mode swaps the per-card actions for a checkbox`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                WorkspaceGridItem(
+                    reorderableScope = noopReorderableScope,
+                    workspace = item(canPause = true),
+                    onClose = {},
+                    onSelect = {},
+                    livePreview = false,
+                    isSelectionActive = true,
+                    isChecked = false,
+                )
+            }
+        }
+
+        composeTestRule.onAllNodesWithContentDescription("Close tab").assertCountEquals(0)
+        composeTestRule.onAllNodesWithContentDescription("More options").assertCountEquals(0)
+        composeTestRule.onNode(isToggleable()).assertExists()
+    }
+
+    @Test
+    fun `the checkbox toggles the selection instead of opening the tab`() {
+        var toggled = 0
+        var selected = 0
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                WorkspaceGridItem(
+                    reorderableScope = noopReorderableScope,
+                    workspace = item(),
+                    onClose = {},
+                    onSelect = { selected++ },
+                    onToggleSelection = { toggled++ },
+                    livePreview = false,
+                    isSelectionActive = true,
+                    isChecked = false,
+                )
+            }
+        }
+
+        composeTestRule.onNode(isToggleable()).performClick()
+
+        toggled shouldBe 1
+        selected shouldBe 0
+    }
+
+    /**
+     * A recovery card cannot be opened, so it never reacts to a plain tap - but it is exactly the
+     * kind of card a bulk close is for, so it still takes part in a selection.
+     */
+    @Test
+    fun `a recovery card can be checked even though it cannot be opened`() {
+        var toggled = 0
+        var selected = 0
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                WorkspaceGridItem(
+                    reorderableScope = noopReorderableScope,
+                    workspace = item(isRecovery = true),
+                    onClose = {},
+                    onSelect = { selected++ },
+                    onToggleSelection = { toggled++ },
+                    livePreview = false,
+                    isSelectionActive = true,
+                    isChecked = false,
+                )
+            }
+        }
+
+        composeTestRule.onNode(isToggleable()).performClick()
+
+        toggled shouldBe 1
+        selected shouldBe 0
+    }
 }

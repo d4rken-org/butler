@@ -335,9 +335,18 @@ fun WorkspacesScreenHost(
         }
     }
 
+    // Selection mode is a state inside the overlay, so back leaves it first; dismissing the manager
+    // outright would drop a selection the user is still assembling.
     ManagerOverlayBackHandler(
         isOverlayVisible = pageManagerState.isManagerOverlayVisible,
-        onDismiss = { vm.workspacePageManager.hideManagerOverlay() },
+        onDismiss = {
+            // Asks the ViewModel rather than the collected state: a long-press reaches selectionFlow
+            // a frame before managerState reflects it, and back in that window must not dismiss the
+            // whole manager out from under a selection that has already started.
+            if (!managerVm.clearSelectionIfActive()) {
+                vm.workspacePageManager.hideManagerOverlay()
+            }
+        },
     )
 
     val state by vm.state.collectAsState(initial = null)
@@ -386,6 +395,11 @@ fun WorkspacesScreenHost(
                     onDismissBadgeExplanation = managerVm::dismissBadgeExplanation,
                     onDismissLongPressHint = managerVm::dismissLongPressHint,
                     onCloseAllWorkspaces = managerVm::closeAllWorkspaces,
+                    onStartSelection = managerVm::startSelection,
+                    onToggleSelection = managerVm::toggleSelection,
+                    onSelectAllWorkspaces = managerVm::selectAllWorkspaces,
+                    onClearSelection = managerVm::clearSelection,
+                    onCloseSelectedWorkspaces = managerVm::closeSelectedWorkspaces,
                     onRenameWorkspace = managerVm::renameWorkspace,
                     onTabsClick = managerVm::clearFilters,
                     onOperationsFilterClick = managerVm::toggleOperationsFilter,

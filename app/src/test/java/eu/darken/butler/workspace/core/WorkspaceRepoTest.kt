@@ -1560,6 +1560,55 @@ class WorkspaceRepoTest : BaseTest() {
             repo.pendingConfirmations.first() shouldBe emptyMap()
         }
 
+    /**
+     * The tab manager's selection is confirmed once, for the whole set. Routing it through Close
+     * would re-ask per dirty tab, leaving those tabs open behind dialogs the user has no reason to
+     * expect after already choosing "Discard selected".
+     */
+    @Test
+    fun `CloseSelected closes a dirty workspace without asking again`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val clean = repo.createTab()
+            val dirty = repo.createTab()
+            markDirty(dirty)
+
+            val result = repo.execute(WorkspaceAction.CloseSelected(setOf(clean, dirty)))
+
+            result shouldBe WorkspaceAction.CloseSelected.Result(closed = 2)
+            fake(clean).released shouldBe true
+            fake(dirty).released shouldBe true
+            repo.retrieve(dirty).first() shouldBe null
+            repo.pendingConfirmations.first() shouldBe emptyMap()
+        }
+
+    @Test
+    fun `CloseSelected leaves unselected tabs open`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val closing = repo.createTab()
+        val keeping = repo.createTab()
+
+        repo.execute(WorkspaceAction.CloseSelected(setOf(closing)))
+
+        repo.retrieve(closing).first() shouldBe null
+        repo.retrieve(keeping).first() shouldNotBe null
+        fake(keeping).released shouldBe false
+    }
+
+    /** A selection can name a tab that closed from another surface while the manager was open. */
+    @Test
+    fun `CloseSelected skips ids whose tab is already gone`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val live = repo.createTab()
+        val gone = repo.createTab()
+        repo.execute(WorkspaceAction.Close(gone))
+
+        val result = repo.execute(WorkspaceAction.CloseSelected(setOf(live, gone)))
+
+        result shouldBe WorkspaceAction.CloseSelected.Result(closed = 1)
+        repo.retrieve(live).first() shouldBe null
+    }
+
     @Test
     fun `repeated close on a dirty workspace queues only one confirmation`() =
         runTest(UnconfinedTestDispatcher()) {

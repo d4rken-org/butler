@@ -43,6 +43,8 @@ fun WorkspaceManagerGridLayout(
     onPauseWorkspace: (Workspace.Id) -> Unit,
     onResumeWorkspace: (Workspace.Id) -> Unit,
     onDismissBadgeExplanation: () -> Unit,
+    onStartSelection: (Workspace.Id) -> Unit = {},
+    onToggleSelection: (Workspace.Id) -> Unit = {},
     onRenameWorkspace: (Workspace.Id) -> Unit = {},
     onTabsClick: () -> Unit = {},
     onOperationsFilterClick: () -> Unit = {},
@@ -145,6 +147,8 @@ fun WorkspaceManagerGridLayout(
                         workspace = workspace,
                         onClose = { onCloseWorkspace(workspace.id) },
                         onSelect = { onSelectWorkspace(workspace.id) },
+                        onStartSelection = { onStartSelection(workspace.id) },
+                        onToggleSelection = { onToggleSelection(workspace.id) },
                         onRename = { onRenameWorkspace(workspace.id) },
                         onPause = { onPauseWorkspace(workspace.id) },
                         onResume = { onResumeWorkspace(workspace.id) },
@@ -156,7 +160,9 @@ fun WorkspaceManagerGridLayout(
                             onReorderWorkspaces(localWorkspaceItems.map { it.id })
                         },
                         isFocused = workspace.isFocused,
-                        isSelected = workspace.isSelected,
+                        isVisibleInPane = workspace.isVisibleInPane,
+                        isSelectionActive = state.isSelectionActive,
+                        isChecked = state.selectedIds?.contains(workspace.id) == true,
                         currentPaneCount = state.currentPaneCount,
                     )
                 }
@@ -195,7 +201,7 @@ private fun WorkspaceManagerGridLayoutPreview() {
                         autoTitle = "New".toCaString(),
                         subtitle = null,
                         isFocused = true,
-                        isSelected = true,
+                        isVisibleInPane = true,
                     ),
                     WorkspaceManagerViewModel.WorkspaceItem(
                         id = explorerId,
@@ -242,7 +248,7 @@ private fun WorkspaceManagerGridLayoutTabletPreview() {
                         autoTitle = "New".toCaString(),
                         subtitle = null,
                         isFocused = true,
-                        isSelected = true,
+                        isVisibleInPane = true,
                         paneNumber = 0,
                     ),
                     WorkspaceManagerViewModel.WorkspaceItem(
@@ -252,7 +258,7 @@ private fun WorkspaceManagerGridLayoutTabletPreview() {
                         title = "Trash".toCaString(),
                         autoTitle = "Trash".toCaString(),
                         subtitle = "Recover deleted files".toCaString(),
-                        isSelected = true,
+                        isVisibleInPane = true,
                         paneNumber = 1,
                     ),
                     WorkspaceManagerViewModel.WorkspaceItem(

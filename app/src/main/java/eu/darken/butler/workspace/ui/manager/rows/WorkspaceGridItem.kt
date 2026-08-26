@@ -2,6 +2,7 @@ package eu.darken.butler.workspace.ui.manager.rows
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +19,7 @@ import androidx.compose.material.icons.twotone.PauseCircle
 import androidx.compose.material.icons.twotone.PlayCircle
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -39,6 +41,8 @@ import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
@@ -66,6 +70,8 @@ fun WorkspaceGridItem(
     workspace: WorkspaceManagerViewModel.WorkspaceItem,
     onClose: () -> Unit,
     onSelect: () -> Unit,
+    onStartSelection: () -> Unit = {},
+    onToggleSelection: () -> Unit = {},
     onRename: () -> Unit = {},
     onPause: () -> Unit = {},
     onResume: () -> Unit = {},
@@ -74,10 +80,22 @@ fun WorkspaceGridItem(
     onDragStarted: () -> Unit = {},
     onDragStopped: () -> Unit = {},
     isFocused: Boolean = false,
-    isSelected: Boolean = false,
+    isVisibleInPane: Boolean = false,
+    isSelectionActive: Boolean = false,
+    isChecked: Boolean = false,
     currentPaneCount: Int = 1,
 ) {
     val haptic = LocalHapticFeedback.current
+    val onCardClick = {
+        when {
+            isSelectionActive -> onToggleSelection()
+            // A recovery card stands in for a workspace no pane renders, so there is nothing to
+            // focus - it only offers Close, and joining a batch close is the one bulk action it takes
+            // part in.
+            workspace.isRecovery -> Unit
+            else -> onSelect()
+        }
+    }
     val needsAttention = workspace.attentionCount > 0
     val attentionColor = MaterialTheme.colorScheme.error
     var showOverflowMenu by remember { mutableStateOf(false) }
@@ -104,8 +122,9 @@ fun WorkspaceGridItem(
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(
                 containerColor = when {
+                    isChecked -> MaterialTheme.colorScheme.secondaryContainer
                     isFocused -> MaterialTheme.colorScheme.primaryContainer
-                    isSelected -> MaterialTheme.colorScheme.surfaceContainerHighest
+                    isVisibleInPane -> MaterialTheme.colorScheme.surfaceContainerHighest
                     else -> MaterialTheme.colorScheme.surfaceVariant
                 }
             ),
@@ -117,9 +136,9 @@ fun WorkspaceGridItem(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    // A recovery card stands in for a workspace no pane renders, so there is nothing
-                    // to select - it only offers Close.
-                    .then(if (workspace.isRecovery) Modifier else Modifier.clickable { onSelect() }),
+                    // Tap only. A long press here would outrank the header's drag handle below and
+                    // silently kill reorder, so entering selection lives on the preview instead.
+                    .clickable { onCardClick() },
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 Row(
@@ -132,6 +151,7 @@ fun WorkspaceGridItem(
                             // axis, so a press-based detector turns every scroll that starts on a
                             // card header into a reorder.
                             .longPressDraggableHandle(
+                                enabled = !isSelectionActive,
                                 onDragStarted = {
                                     onDragStarted()
                                     haptic.performHapticFeedback(HapticFeedbackType.GestureThresholdActivate)
@@ -169,7 +189,7 @@ fun WorkspaceGridItem(
                     // offers Pause itself, because children only ever go down with their owner.
                     val canRename = !workspace.isSubWorkspace
                     val canPauseFromCard = !workspace.isSubWorkspace && workspace.canPause
-                    if (canRename || canPauseFromCard || workspace.isPaused) {
+                    if (!isSelectionActive && (canRename || canPauseFromCard || workspace.isPaused)) {
                         Box {
                             IconButton(
                                 modifier = Modifier.size(24.dp),
@@ -235,20 +255,43 @@ fun WorkspaceGridItem(
                         }
                     }
 
-                    IconButton(
-                        modifier = Modifier.size(24.dp),
-                        onClick = onClose,
-                    ) {
-                        Icon(
-                            modifier = Modifier.size(18.dp),
-                            imageVector = Icons.TwoTone.Close,
-                            contentDescription = stringResource(R.string.workspace_row_close_content_desc),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                    // Per-card actions step aside while a batch close is being assembled: the
+                    // header is also the drag handle, and both are off during selection.
+                    if (isSelectionActive) {
+                        val selectLabel = stringResource(R.string.workspace_row_select_content_desc)
+                        Checkbox(
+                            modifier = Modifier
+                                .size(24.dp)
+                                .semantics { contentDescription = selectLabel },
+                            checked = isChecked,
+                            onCheckedChange = { onToggleSelection() },
                         )
+                    } else {
+                        IconButton(
+                            modifier = Modifier.size(24.dp),
+                            onClick = onClose,
+                        ) {
+                            Icon(
+                                modifier = Modifier.size(18.dp),
+                                imageVector = Icons.TwoTone.Close,
+                                contentDescription = stringResource(R.string.workspace_row_close_content_desc),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                            )
+                        }
                     }
                 }
 
-                Box(modifier = Modifier.fillMaxWidth()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .combinedClickable(
+                            onClick = onCardClick,
+                            onLongClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                if (isSelectionActive) onToggleSelection() else onStartSelection()
+                            },
+                        ),
+                ) {
                     WorkspacePreview(
                         modifier = Modifier.fillMaxWidth(),
                         // The card collapses a whole stack, so it previews what is on top of the tab
@@ -475,14 +518,14 @@ private fun WorkspaceGridItemFocusStatesPreview() {
                 autoTitle = "/storage/emulated/0/Download".toCaString(),
                 subtitle = null,
                 isFocused = true,
-                isSelected = true,
+                isVisibleInPane = true,
                 paneNumber = 0,
             ),
             onClose = {},
             onSelect = {},
             livePreview = false,
             isFocused = true,
-            isSelected = true,
+            isVisibleInPane = true,
             currentPaneCount = 2,
         )
 
@@ -498,14 +541,14 @@ private fun WorkspaceGridItemFocusStatesPreview() {
                 autoTitle = "report".toCaString(),
                 subtitle = "SD card".toCaString(),
                 isFocused = false,
-                isSelected = true,
+                isVisibleInPane = true,
                 paneNumber = 1,
             ),
             onClose = {},
             onSelect = {},
             livePreview = false,
             isFocused = false,
-            isSelected = true,
+            isVisibleInPane = true,
             currentPaneCount = 2,
         )
 
@@ -521,14 +564,14 @@ private fun WorkspaceGridItemFocusStatesPreview() {
                 autoTitle = "notes.md".toCaString(),
                 subtitle = "/storage/emulated/0/Documents".toCaString(),
                 isFocused = false,
-                isSelected = false,
+                isVisibleInPane = false,
                 paneNumber = null,
             ),
             onClose = {},
             onSelect = {},
             livePreview = false,
             isFocused = false,
-            isSelected = false,
+            isVisibleInPane = false,
             currentPaneCount = 2,
         )
     }
@@ -690,4 +733,50 @@ private fun WorkspaceGridItemRecoveryPreview() {
         onSelect = {},
         livePreview = false,
     )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspaceGridItemSelectionPreview() {
+    Column(
+        modifier = Modifier.padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        val checkedId = Workspace.Id()
+        WorkspaceGridItem(
+            reorderableScope = createMockReorderableScope(),
+            workspace = WorkspaceManagerViewModel.WorkspaceItem(
+                id = checkedId,
+                topId = checkedId,
+                type = Workspace.Type.EXPLORER,
+                title = "/storage/emulated/0/Download".toCaString(),
+                autoTitle = "/storage/emulated/0/Download".toCaString(),
+                subtitle = null,
+            ),
+            onClose = {},
+            onSelect = {},
+            livePreview = false,
+            isSelectionActive = true,
+            isChecked = true,
+        )
+
+        val uncheckedId = Workspace.Id()
+        WorkspaceGridItem(
+            reorderableScope = createMockReorderableScope(),
+            workspace = WorkspaceManagerViewModel.WorkspaceItem(
+                id = uncheckedId,
+                topId = uncheckedId,
+                type = Workspace.Type.EDITOR,
+                title = "notes.md".toCaString(),
+                autoTitle = "notes.md".toCaString(),
+                subtitle = "/storage/emulated/0/Documents".toCaString(),
+            ),
+            onClose = {},
+            onSelect = {},
+            livePreview = false,
+            isSelectionActive = true,
+            isChecked = false,
+        )
+    }
 }
