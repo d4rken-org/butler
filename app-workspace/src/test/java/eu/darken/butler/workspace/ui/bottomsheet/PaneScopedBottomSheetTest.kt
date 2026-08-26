@@ -3,6 +3,7 @@ package eu.darken.butler.workspace.ui.bottomsheet
 import androidx.activity.OnBackPressedDispatcher
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,6 +27,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.click
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
@@ -592,6 +594,46 @@ class PaneScopedBottomSheetTest : ComposeTest() {
         itemBounds(ITEM_COUNT - 1).bottom shouldBeLessThanOrEqualTo card.bottom - 32.dp
     }
 
+    /**
+     * The sheet's own press observers have to inherit the pane's press gate, not just sit under a
+     * boundary that happens to consume first.
+     *
+     * The pane-focus count is what shows the difference. Those observers read the down with
+     * consumption ignored, so a scrim or card tap still asks for the pane after the boundary has
+     * consumed it — the dismissal being withheld would be the boundary's doing, but a request
+     * arriving would be the surface's own.
+     */
+    @Test
+    fun `a sheet withholds the presses its pane withholds`() {
+        var dismissals = 0
+        var contentClicks = 0
+        var paneFocusRequests = 0
+
+        composeTestRule.setContent {
+            CompositionLocalProvider(
+                LocalWorkspaceFocusRequest provides { paneFocusRequests++ },
+            ) {
+                Case(allowPresses = { false }, onDismiss = { dismissals++ }) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(ITEM_HEIGHT)
+                            .testTag(NESTED_TAG)
+                            .clickable { contentClicks++ },
+                    )
+                }
+            }
+        }
+
+        composeTestRule.onNodeWithTag(SCRIM_TAG).performTouchInput { click(Offset(4f, 4f)) }
+        composeTestRule.onNodeWithTag(NESTED_TAG).performClick()
+        composeTestRule.waitForIdle()
+
+        dismissals shouldBe 0
+        contentClicks shouldBe 0
+        paneFocusRequests shouldBe 0
+    }
+
     @Composable
     private fun Case(
         visible: Boolean = true,
@@ -602,6 +644,7 @@ class PaneScopedBottomSheetTest : ComposeTest() {
         topInset: Dp = 0.dp,
         bottomInset: Dp = 0.dp,
         paneFocused: Boolean = true,
+        allowPresses: () -> Boolean = { true },
         content: @Composable () -> Unit,
     ) {
         PreviewWrapper {
@@ -610,6 +653,7 @@ class PaneScopedBottomSheetTest : ComposeTest() {
                     .fillMaxSize()
                     .testTag(PANE_TAG),
                 paneFocused = paneFocused,
+                allowPresses = allowPresses,
             ) {
                 PaneScopedBottomSheet(
                     visible = visible,
@@ -737,6 +781,7 @@ class PaneScopedBottomSheetTest : ComposeTest() {
         private const val NESTED_TAG = "sheet.nested"
         private const val FIELD_TAG = "sheet.field"
         private val CARD_TAG = PaneScopedBottomSheetDefaults.CARD_TEST_TAG
+        private val SCRIM_TAG = PaneScopedBottomSheetDefaults.SCRIM_TEST_TAG
 
         private val ITEM_HEIGHT = 60.dp
         private const val ITEM_COUNT = 20

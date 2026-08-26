@@ -67,14 +67,16 @@ class PagerRestStateTest : ComposeTest() {
             }
         }
         composeTestRule.waitForIdle()
-        restState!!.isRestingOn(0) shouldBe true
+        val pager = pagerState!!
+        val rest = restState!!
+        rest.isRestingOn(0) shouldBe true
 
         session = ScrollSession()
         composeTestRule.waitForIdle()
 
         // Non-vacuity: a session that never opened would fail here instead of asserting nothing.
-        pagerState!!.isScrollInProgress shouldBe true
-        restState!!.isRestingOn(0) shouldBe false
+        pager.isScrollInProgress shouldBe true
+        rest.isRestingOn(0) shouldBe false
     }
 
     /**
@@ -124,15 +126,17 @@ class PagerRestStateTest : ComposeTest() {
             }
         }
         composeTestRule.waitForIdle()
-        restState!!.isRestingOn(0) shouldBe true
+        val pager = pagerState!!
+        val rest = restState!!
+        rest.isRestingOn(0) shouldBe true
 
         val drag = DragInteraction.Start()
         interactions.tryEmit(drag) shouldBe true
         val dragSession = ScrollSession(by = dragBy)
         session = dragSession
         composeTestRule.waitForIdle()
-        pagerState!!.isScrollInProgress shouldBe true
-        restState!!.isRestingOn(0) shouldBe false
+        pager.isScrollInProgress shouldBe true
+        rest.isRestingOn(0) shouldBe false
 
         // The drag ends: its scroll session closes and the finger lifts, both before the fling's
         // session opens. The pager reports no scroll at all in here.
@@ -141,24 +145,24 @@ class PagerRestStateTest : ComposeTest() {
         interactions.tryEmit(DragInteraction.Stop(drag)) shouldBe true
         composeTestRule.waitForIdle()
 
-        pagerState!!.isScrollInProgress shouldBe false
-        pagerState!!.settledPage shouldBe 0
-        assertGapSignature(pagerState!!)
+        pager.isScrollInProgress shouldBe false
+        pager.settledPage shouldBe 0
+        assertGapSignature(pager)
         stillInsideQuiescence(gapStart)
-        restState!!.isRestingOn(0) shouldBe false
+        rest.isRestingOn(0) shouldBe false
 
         // The fling picks the gesture up again, still inside the quiescence window.
         val flingSession = ScrollSession()
         session = flingSession
         composeTestRule.waitForIdle()
         stillInsideQuiescence(gapStart)
-        pagerState!!.isScrollInProgress shouldBe true
-        restState!!.isRestingOn(0) shouldBe false
+        pager.isScrollInProgress shouldBe true
+        rest.isRestingOn(0) shouldBe false
 
         flingSession.gate.complete(Unit)
         composeTestRule.waitForIdle()
         composeTestRule.mainClock.advanceTimeBy(REST_QUIESCENCE_MS * 4)
-        restState!!.isRestingOn(0) shouldBe true
+        rest.isRestingOn(0) shouldBe true
     }
 
     private fun stillInsideQuiescence(since: Long) {
