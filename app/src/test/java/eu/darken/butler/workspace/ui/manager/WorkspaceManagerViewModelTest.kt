@@ -309,6 +309,26 @@ class WorkspaceManagerViewModelTest : BaseTest() {
     }
 
     @Test
+    fun `a dirty member marks the whole unit unsaved`() = runTest {
+        val overlay = childInfo(caller = idA, pausableAsChild = true).copy(hasUnsavedChanges = true)
+        repoState.value = WorkspaceRemote.State(infos = listOf(readyInfo(idA), overlay))
+
+        items().single().let {
+            it.hasUnsavedChanges shouldBe true
+            // Editing without saving yet is not a fault, so it must not inflate the attention count
+            it.attentionCount shouldBe 0
+        }
+    }
+
+    @Test
+    fun `a clean unit is not marked unsaved`() = runTest {
+        val overlay = childInfo(caller = idA, pausableAsChild = true).copy(attentionCount = 2)
+        repoState.value = WorkspaceRemote.State(infos = listOf(readyInfo(idA), overlay))
+
+        items().single().hasUnsavedChanges shouldBe false
+    }
+
+    @Test
     fun `an orphan subtree becomes a single recovery card`() = runTest {
         val orphan = readyInfo(Workspace.Id()).copy(callerWorkspaceId = Workspace.Id())
         val descendant = readyInfo(Workspace.Id()).copy(callerWorkspaceId = orphan.id)

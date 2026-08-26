@@ -86,6 +86,7 @@ class WorkspaceManagerViewModel @Inject constructor(
                     paneNumber = visibleAssignments.entries.find { it.value == owner.id }?.key,
                     operationCount = members.sumOf { it.operationCount },
                     attentionCount = members.sumOf { it.attentionCount },
+                    hasUnsavedChanges = members.any { it.hasUnsavedChanges },
                     isSubWorkspace = owner.isSubWorkspace,
                     isRecovery = stacks.recoveryUnits.containsKey(owner.id),
                     isPaused = owner.isPaused,
@@ -313,6 +314,12 @@ class WorkspaceManagerViewModel @Inject constructor(
         val paneNumber: Int? = null,
         val operationCount: Int = 0,
         val attentionCount: Int = 0,
+        /**
+         * True when any member of the unit holds unsaved in-memory changes. Deliberately separate
+         * from [attentionCount]: editing without having saved yet is a normal working state, not a
+         * fault, so it must not glow like one.
+         */
+        val hasUnsavedChanges: Boolean = false,
         val customTitle: String? = null,
         /**
          * A stacked workspace only ever gets a card of its own when its ownership cannot be resolved
