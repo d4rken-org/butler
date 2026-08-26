@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -29,6 +30,7 @@ import androidx.compose.ui.unit.width
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
 import eu.darken.butler.workspace.ui.modal.PaneLayerHost
 import io.kotest.matchers.shouldBe
 import org.junit.Test
@@ -287,6 +289,52 @@ class PaneBoundAlertDialogTest : ComposeTest() {
         val scrimBounds = composeTestRule.onNodeWithTag(scrim).getUnclippedBoundsInRoot()
         scrimBounds.width shouldBe paneBounds.width
         scrimBounds.height shouldBe paneBounds.height
+    }
+
+    /**
+     * The dialog's own press observers have to inherit the pane's press gate, not just sit under a
+     * boundary that happens to consume first.
+     *
+     * The pane-focus count is what shows the difference. Those observers read the down with
+     * consumption ignored, so a scrim or button tap still asks for the pane after the boundary has
+     * consumed it — the dismissal being withheld would be the boundary's doing, but a request
+     * arriving would be the dialog's own.
+     */
+    @Test
+    fun `a dialog withholds the presses its pane withholds`() {
+        var dismissed = 0
+        var confirmed = 0
+        var paneFocusRequests = 0
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                CompositionLocalProvider(
+                    LocalWorkspaceFocusRequest provides { paneFocusRequests++ },
+                ) {
+                    PaneLayerHost(
+                        modifier = Modifier.fillMaxSize(),
+                        paneFocused = true,
+                        allowPresses = { false },
+                    ) {
+                        PaneBoundAlertDialog(
+                            onDismissRequest = { dismissed++ },
+                            title = { Text("Title") },
+                            confirmButton = { TextButton(onClick = { confirmed++ }) { Text("OK") } },
+                        )
+                    }
+                }
+            }
+        }
+
+        composeTestRule.onNodeWithTag(scrim).performTouchInput { click(Offset(4f, 4f)) }
+        composeTestRule.onNodeWithTag(surface).performClick()
+        composeTestRule.onNodeWithText("OK").performClick()
+
+        composeTestRule.runOnIdle {
+            dismissed shouldBe 0
+            confirmed shouldBe 0
+            paneFocusRequests shouldBe 0
+        }
     }
 
     companion object {
