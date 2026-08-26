@@ -2071,6 +2071,12 @@ class WorkspaceRepo @Inject constructor(
             }
             log(TAG, INFO) { "UndoClose restored ${snapshot.members.size} workspace(s) under ${root.id}" }
             return WorkspaceAction.UndoClose.Result.Success(root.id, snapshot.members.map { it.id })
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            log(TAG, ERROR) { "UndoClose failed after the preflight passed: ${e.asLog()}" }
+            Bugs.report(e)
+            return WorkspaceAction.UndoClose.Result.Failed(e)
         } finally {
             closedStash.endRestore()
         }
