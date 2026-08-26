@@ -150,7 +150,27 @@ class WorkspaceManagerViewModel @Inject constructor(
     }
 
     fun closeWorkspace(id: Workspace.Id) = launch {
-        workspaceRepo.execute(WorkspaceAction.Close(id))
+        log(tag) { "closeWorkspace($id)" }
+        workspaceRepo.execute(WorkspaceAction.Close(id, sourceWorkspaceId = closeConfirmationHost()))
+    }
+
+    /**
+     * Whose pane hosts a close confirmation raised from here: the focused tab's pane when that is
+     * one of the panes on screen, otherwise the first that is. Null when no pane shows anything.
+     *
+     * The overlay can be gone before the confirmation is published - dismissing it right after the
+     * tap is enough - and an unanchored confirmation then falls back to the closing tab itself,
+     * whose pane may be off screen. Naming a pane that is on screen leaves a host that can compose
+     * the dialog either way.
+     *
+     * The focused id can name a stacked child rather than a tab, so it is resolved to its ownership
+     * root before it is looked for among the panes.
+     */
+    private fun closeConfirmationHost(): Workspace.Id? {
+        val pageState = workspacePageManager.state.value
+        val visibleIds = pageState.visiblePaneAssignments.entries.sortedBy { it.key }.map { it.value }
+        val focusedRoot = pageState.focusedWorkspaceId?.let { workspaceRepo.peekOwnershipRoot(it) }
+        return visibleIds.firstOrNull { it == focusedRoot } ?: visibleIds.firstOrNull()
     }
 
     /**
