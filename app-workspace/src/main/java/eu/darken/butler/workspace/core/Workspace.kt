@@ -31,6 +31,19 @@ interface Workspace<ArgT : Workspace.Arguments> {
      */
     suspend fun createArguments(): ArgT
 
+    /**
+     * Synchronous snapshot of the mutable state [createArguments] reads and [info] does not
+     * publish - the query and filter of a search, the folder an explorer navigated to.
+     *
+     * Compared by value across a window in which [createArguments] was allowed to suspend: an equal
+     * fingerprint means the arguments captured in that window still describe this workspace. Null
+     * (the default) is for types whose [createArguments] returns their creation arguments verbatim
+     * or reports nothing beyond [Info.contentPath].
+     *
+     * Must not suspend and must not do I/O; it is read while WorkspaceRepo holds its lock.
+     */
+    val restorableStateFingerprint: Any? get() = null
+
     suspend fun release() {
 
     }

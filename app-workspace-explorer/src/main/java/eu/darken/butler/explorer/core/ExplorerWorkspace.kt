@@ -123,6 +123,10 @@ class ExplorerWorkspace @AssistedInject constructor(
         )
     }
 
+    /** The location [createArguments] reports; the tab's info publishes no content path. */
+    override val restorableStateFingerprint: Any?
+        get() = (_state.value as? State.Ready)?.currentTarget
+
     /**
      * The item to highlight once this tab has settled on the location it was created for, handed
      * out exactly ONCE.

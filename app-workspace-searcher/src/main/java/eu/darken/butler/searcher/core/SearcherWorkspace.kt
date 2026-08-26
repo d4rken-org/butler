@@ -111,6 +111,13 @@ class SearcherWorkspace @AssistedInject constructor(
         )
     }
 
+    /**
+     * The query, filter and targets [createArguments] reports. The tab's info republishes only the
+     * identity fields, so a filter or symlink-mode change is invisible there.
+     */
+    override val restorableStateFingerprint: Any?
+        get() = listOf(_searchState.value.currentSearchQuery, searchEngine.targetState.value)
+
     // Same derivation the factory hands the paused stand-in, so both name this tab identically
     private val seedDisplay = deriveSearcherDisplay(creationArguments)
 

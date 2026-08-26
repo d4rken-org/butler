@@ -86,6 +86,10 @@ class HistoryWorkspace @AssistedInject constructor(
         filter = filterFlow.value,
     )
 
+    /** The filter [createArguments] reports; the info names the tab, not its filter. */
+    override val restorableStateFingerprint: Any?
+        get() = filterFlow.value
+
     // Same derivation the factory hands the paused stand-in, so both name this tab identically
     private val seedDisplay = deriveHistoryDisplay(creationArguments)
 

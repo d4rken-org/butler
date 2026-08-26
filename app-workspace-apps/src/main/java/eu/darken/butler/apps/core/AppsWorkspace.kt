@@ -129,6 +129,12 @@ class AppsWorkspace @AssistedInject constructor(
         )
     }
 
+    /** Filter, sorting and view style [createArguments] reports; none of it reaches the info. */
+    override val restorableStateFingerprint: Any?
+        get() = (_state.value as? State.Ready)?.let {
+            listOf(it.filterConfig, it.sortSettings, it.viewStyle)
+        }
+
     /**
      * Number of package operations (enable/disable/uninstall/clear) currently running. Package
      * operations don't go through OperationsManager, so this is the only signal that keeps a pause
