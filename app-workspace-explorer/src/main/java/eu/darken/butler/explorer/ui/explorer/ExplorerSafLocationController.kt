@@ -122,9 +122,10 @@ class ExplorerSafLocationController(
 
             val providerLabel = treeUri.authority?.let { storageProviderSuggester.labelForAuthority(it) }
             // Seed the label before the refresh below, otherwise the list renders the path-derived
-            // fallback name until the naming dialog is confirmed.
-            if (providerLabel != null) safLocationManager.setLocationLabel(locationId, providerLabel)
-            dialogs.show(ExplorerDialogState.LocationStorageName(locationId, currentName = providerLabel))
+            // fallback name until the naming dialog is confirmed. Re-granting a location the user
+            // renamed keeps that name, which is what gets offered in the dialog then.
+            val currentName = providerLabel?.let { safLocationManager.seedLocationLabel(locationId, it) }
+            dialogs.show(ExplorerDialogState.LocationStorageName(locationId, currentName = currentName))
 
             // Auto-refresh if currently viewing Device location to show new SAF storage immediately
             if (currentLocation() is ExplorerLocation.Device) {

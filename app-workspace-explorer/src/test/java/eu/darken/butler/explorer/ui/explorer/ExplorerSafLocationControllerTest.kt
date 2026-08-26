@@ -46,6 +46,7 @@ class ExplorerSafLocationControllerTest : BaseTest() {
             coEvery { grantPermission(any()) } returns locationId
             coEvery { revokePermission(any()) } just Runs
             coEvery { setLocationLabel(any(), any()) } just Runs
+            coEvery { seedLocationLabel(any(), any()) } answers { secondArg() }
         }
 
     private fun mockWorkspace(): ExplorerWorkspace = mockk<ExplorerWorkspace>().apply {
@@ -141,14 +142,32 @@ class ExplorerSafLocationControllerTest : BaseTest() {
         val dialogs = dialogs()
         var dialogWhenLabeled: ExplorerDialogState? = null
         val locationManager = mockLocationManager(locationId = "loc-42").apply {
-            coEvery { setLocationLabel(any(), any()) } answers { dialogWhenLabeled = dialogs.current() }
+            coEvery { seedLocationLabel(any(), any()) } answers {
+                dialogWhenLabeled = dialogs.current()
+                secondArg()
+            }
         }
         val controller = controller(locationManager = locationManager, dialogs = dialogs)
 
         controller.handleSAFPickerResult(mockUri("com.termux.documents"))
 
-        coVerify { locationManager.setLocationLabel("loc-42", "Termux") }
+        coVerify { locationManager.seedLocationLabel("loc-42", "Termux") }
         dialogWhenLabeled shouldBe ExplorerDialogState.None
+    }
+
+    @Test
+    fun `re-granting a renamed location keeps the custom name`() = runTest {
+        val dialogs = dialogs()
+        val locationManager = mockLocationManager(locationId = "loc-42").apply {
+            coEvery { seedLocationLabel(any(), any()) } returns "My Termux"
+        }
+        val controller = controller(locationManager = locationManager, dialogs = dialogs)
+
+        controller.handleSAFPickerResult(mockUri("com.termux.documents"))
+
+        coVerify(exactly = 0) { locationManager.setLocationLabel(any(), any()) }
+        val dialog = dialogs.current().shouldBeInstanceOf<ExplorerDialogState.LocationStorageName>()
+        dialog.currentName shouldBe "My Termux"
     }
 
     @Test
@@ -158,6 +177,7 @@ class ExplorerSafLocationControllerTest : BaseTest() {
 
         controller.handleSAFPickerResult(mockUri("com.android.externalstorage.documents"))
 
+        coVerify(exactly = 0) { locationManager.seedLocationLabel(any(), any()) }
         coVerify(exactly = 0) { locationManager.setLocationLabel(any(), any()) }
     }
 
