@@ -54,6 +54,8 @@ class WorkspaceSettings @Inject constructor(
         json,
     )
 
+    val undoCloseEnabled = dataStore.createValue("workspace.session.undoclose.enabled", true)
+
     override val mapper = PreferenceStoreMapper(
         debugSettings.isDebugMode,
         showTipBadgeExplanation,
@@ -66,6 +68,7 @@ class WorkspaceSettings @Inject constructor(
         sessionRestoreEnabled,
         autoPauseEnabled,
         autoPauseIdleTimeout,
+        undoCloseEnabled,
     )
 
     companion object {

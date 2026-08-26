@@ -9,11 +9,16 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.flow.replayingShare
 import eu.darken.butler.common.flow.setupCommonEventHandlers
 import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.upgrade.isProForUi
 import eu.darken.butler.workspace.core.operations.OperationsManager
+import eu.darken.butler.workspace.core.undo.ClosedWorkspaceMember
+import eu.darken.butler.workspace.core.undo.ClosedWorkspaceRestoreTicket
+import eu.darken.butler.workspace.core.undo.ClosedWorkspaceSnapshot
+import eu.darken.butler.workspace.core.undo.ClosedWorkspaceStash
 import eu.darken.butler.workspace.core.usage.WorkspaceUsageRepo
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -46,6 +51,7 @@ class WorkspaceRepo @Inject constructor(
     private val operationsManager: OperationsManager,
     private val upgradeRepo: UpgradeRepo,
     private val usageRepo: WorkspaceUsageRepo,
+    private val closedStash: ClosedWorkspaceStash,
 ) : WorkspaceProvider, WorkspaceRemote {
 
     private val lock = Mutex()
@@ -137,6 +143,26 @@ class WorkspaceRepo @Inject constructor(
 
     private fun Workspace.Info.withCustomTitle(titles: Map<Workspace.Id, String>) =
         copy(customTitle = titles[id])
+
+    /**
+     * The only way [_workspaces] is written. Must be called while holding [lock].
+     *
+     * Compares the published id SET before and after and tells [closedStash] when it changed, in the
+     * same critical section as the mutation - a pending undo is only honest while the workspaces it
+     * was captured against still exist, and an asynchronous observer of [_workspaces] could not make
+     * that decision before the entry is committed.
+     *
+     * The set, not the list: pausing or resuming swaps instances in place and reorders shuffle them,
+     * neither of which invalidates an entry (position is re-derived from its neighbours at restore
+     * time). Closing a tab next to a paused one resumes that neighbour on focus, so a coarser rule
+     * would drop the entry milliseconds after committing it, on the default settings.
+     */
+    private fun publishWorkspaces(workspaces: List<Workspace<*>>) {
+        val before = _workspaces.value.mapTo(mutableSetOf()) { it.id }
+        _workspaces.value = workspaces
+        val after = workspaces.mapTo(mutableSetOf()) { it.id }
+        if (before != after) closedStash.onWorkspaceIdSetChanged()
+    }
 
     private val infos: Flow<List<Workspace.Info>> = _workspaces.flatMapLatest { workspaces ->
         if (workspaces.isEmpty()) {
@@ -266,6 +292,7 @@ class WorkspaceRepo @Inject constructor(
             // The slot's age belongs to the instance, not to the tab: a morph is a new workspace
             createdAtById = createdAtById - idToReplace
             resultReturningIds = resultReturningIds - idToReplace
+            closedStash.dropIncarnation(idToReplace)
             // A custom name belongs to the tab slot, not the instance: the Templates->X morph keeps
             // the name the user gave the tab. Migrated before publishing the new list so the infos
             // combine can never pair the new workspace with a stale title.
@@ -288,8 +315,11 @@ class WorkspaceRepo @Inject constructor(
         } else {
             resultReturningIds - newWorkspace.id
         }
+        // A logical creation, including a morph that keeps the tab's id: the instance under this id
+        // is a new one, so anything still holding the previous incarnation's close must not act on it.
+        closedStash.stampIncarnation(newWorkspace.id)
 
-        _workspaces.value = wip
+        publishWorkspaces(wip)
 
         if (idToReplace != null && newWorkspace.id != idToReplace) {
             // Close sub-workspaces orphaned by the replace — their parent instance is gone
@@ -438,6 +468,13 @@ class WorkspaceRepo @Inject constructor(
             is WorkspaceAction.CreateBatch -> upgradeRepo.isProForUi()
             else -> false
         }
+        // Same reason: reading the setting suspends on DataStore. A close that never asks to be
+        // undoable does not read it at all.
+        if (action is WorkspaceAction.Close) {
+            val undoEnabled = action.undoable && workspaceSettings.undoCloseEnabled.value()
+            log(TAG, INFO) { "execute($action), undoEnabled=$undoEnabled" }
+            return executeCloseAction(action, undoEnabled)
+        }
         return lock.withLock {
         log(TAG, INFO) { "execute($action)" }
         if (Bugs.isDebug) when (action) {
@@ -527,7 +564,8 @@ class WorkspaceRepo @Inject constructor(
                         subtitle = display?.subtitle,
                     )
                     createdAtById = createdAtById + (paused.id to (action.createdAt ?: Clock.System.now()))
-                    _workspaces.value = _workspaces.value + paused
+                    closedStash.stampIncarnation(paused.id)
+                    publishWorkspaces(_workspaces.value + paused)
                     _events.emit(
                         WorkspaceEvent.Created(
                             workspaceId = paused.id,
@@ -631,90 +669,12 @@ class WorkspaceRepo @Inject constructor(
                 WorkspaceAction.ReleaseContentPath.Result
             }
 
-            is WorkspaceAction.Close -> {
-                log(TAG, INFO) { "Closing workspace with id ${action.id}" }
+            // Handled by executeCloseAction before the lock is taken: its capture window has to
+            // release the mutex in the middle, which a branch inside it cannot do.
+            is WorkspaceAction.Close -> throw IllegalStateException("Close must not reach the dispatcher")
 
-                val workspace = _workspaces.value.firstOrNull { it.id == action.id }
+            is WorkspaceAction.UndoClose -> executeUndoClose()
 
-                // Closing a tab takes its whole modal stack down with it, so the guard has to
-                // cover everything executeClose would destroy, not just the id the close names: a
-                // clean tab can own a dirty child (a Saver still holding shared content), and that
-                // child is precisely the thing whose loss has to be confirmed.
-                val dirtyMembers = closingSubtreeOf(action.id)
-                    .filter { it.info.value.hasUnsavedChanges }
-                val needsConfirmation = action.requireConfirmation || dirtyMembers.isNotEmpty()
-
-                if (needsConfirmation) {
-                    // The dialog has to name something. Usually that is the close target, but a
-                    // close of an id nothing holds still has to be confirmable when it would take
-                    // a dirty orphan down with it.
-                    val naming = dirtyMembers.firstOrNull() ?: workspace
-                    if (naming == null) {
-                        log(TAG, WARN) { "Cannot request close confirmation - workspace ${action.id} not found" }
-                        return@withLock WorkspaceAction.Close.Result
-                    }
-
-                    // Two closes overlap when one's subtree holds the other's target: answering
-                    // either decides workspaces the other also claims. Only one of them may be
-                    // pending, or the screen renders a single dialog for several queued answers and
-                    // one dismissal only retires one of them.
-                    val closingIds = closingIdsOf(action.id)
-                    val overlapping = _pendingConfirmations.value.filterValues { pending ->
-                        val data = pending.data
-                        data is PendingWorkspaceConfirmation.ConfirmationData.WorkspaceCloseConfirmation &&
-                            (data.workspaceId in closingIds || action.id in closingIdsOf(data.workspaceId))
-                    }
-                    val duplicate = overlapping.values.any {
-                        val data = it.data as PendingWorkspaceConfirmation.ConfirmationData.WorkspaceCloseConfirmation
-                        data.workspaceId == action.id
-                    }
-                    if (duplicate) {
-                        log(TAG) { "Close confirmation already pending for ${action.id}, ignoring duplicate" }
-                        return@withLock WorkspaceAction.Close.Result
-                    }
-                    // The newer request replaces the older rather than being dropped by it: a close
-                    // the user just asked for must not be swallowed by one they have not answered.
-                    overlapping.keys.forEach { supersededId ->
-                        log(TAG, INFO) { "Close confirmation $supersededId overlaps ${action.id}, superseding it" }
-                        pendingActions.remove(supersededId)
-                    }
-
-                    // The unsaved copy reads "<name> has unsaved changes", so it has to name a
-                    // member holding them; without a dirty member the target names itself.
-                    val workspaceInfo = naming.info.value.withCustomTitle(_customTitles.value)
-                    val confirmationId = Uuid.random().toString()
-
-                    log(TAG, INFO) { "Requesting confirmation to close workspace: ${action.id}, naming ${workspaceInfo.displayTitle}" }
-
-                    pendingActions[confirmationId] = {
-                        executeClose(action.id)
-                        null
-                    }
-
-                    _pendingConfirmations.update {
-                        it - overlapping.keys + (confirmationId to PendingWorkspaceConfirmation(
-                            id = confirmationId,
-                            // Anchors the dialog to the workspace the close was invoked from, which
-                            // is the overlay on top when a unit is closed from one of its children.
-                            sourceWorkspaceId = action.sourceWorkspaceId ?: action.id,
-                            data = PendingWorkspaceConfirmation.ConfirmationData.WorkspaceCloseConfirmation(
-                                workspaceId = action.id,
-                                workspaceTitle = workspaceInfo.displayTitle,
-                                hasUnsavedChanges = dirtyMembers.isNotEmpty(),
-                                // The close takes the whole subtree, so naming one member while
-                                // discarding several would understate what is lost
-                                unsavedCount = dirtyMembers.size,
-                            ),
-                        ))
-                    }
-
-                    return@withLock WorkspaceAction.Close.Result
-                }
-
-                executeClose(action.id)
-
-                WorkspaceAction.Close.Result
-            }
             is WorkspaceAction.Reorder -> {
                 log(TAG, INFO) { "Reordering workspaces: ${action.ownerIds}" }
 
@@ -734,7 +694,7 @@ class WorkspaceRepo @Inject constructor(
                     return WorkspaceAction.Reorder.Result(false)
                 }
 
-                _workspaces.value = expanded
+                publishWorkspaces(expanded)
                 _events.emit(WorkspaceEvent.Reordered(workspaceIds = expanded.map { it.id }))
 
                 WorkspaceAction.Reorder.Result(true)
@@ -777,11 +737,15 @@ class WorkspaceRepo @Inject constructor(
                     it.release()
                     operationsManager.removeWorkspace(it.id)
                 }
-                _workspaces.value = emptyList()
+                publishWorkspaces(emptyList())
                 contentClaims.clear()
                 _customTitles.value = emptyMap()
                 createdAtById = emptyMap()
                 resultReturningIds = emptySet()
+                closedStash.clearIncarnations()
+                // Nothing the stash holds could be restored beside an emptied session without
+                // contradicting what the user just asked for.
+                closedStash.dismiss()
                 // Every pending confirmation asks about tabs that no longer exist. Left behind, a
                 // limit dialog would survive with its blocked create still parked and re-open a tab
                 // moments after the user emptied the session.
@@ -897,7 +861,7 @@ class WorkspaceRepo @Inject constructor(
                 carriedInfo = member.info.value,
             )
         }
-        _workspaces.value = _workspaces.value.map { standIns[it.id] ?: it }
+        publishWorkspaces(_workspaces.value.map { standIns[it.id] ?: it })
 
         // Phase 5: deepest-first, so an owner is never released before what it owns
         captured.asReversed().forEach { (member, _) ->
@@ -976,7 +940,7 @@ class WorkspaceRepo @Inject constructor(
 
                 val wip = _workspaces.value.toMutableList()
                 wip[wip.indexOfFirst { it.id == paused.id }] = resumed
-                _workspaces.value = wip
+                publishWorkspaces(wip)
 
                 log(TAG, INFO) { "Resumed workspace ${paused.id} (${paused.type})" }
                 outcomes[info.id] = WorkspaceAction.Resume.MemberOutcome.Resumed
@@ -1142,7 +1106,8 @@ class WorkspaceRepo @Inject constructor(
 
     /**
      * Id of a live non-sub-workspace of [type] publishing [contentPath] via [Workspace.Info.contentPath],
-     * or holding a claim on it. [excludeId] keeps a workspace from matching itself (claim flows).
+     * or holding a claim on it. [excludeId] keeps a workspace from matching itself (claim flows),
+     * [excludeIds] does the same for a whole unit that is on its way out.
      * Content paths are not exclusive (Save-As convergence, restored duplicates) — ties resolve to
      * the first workspace in list order. Must be called while holding [lock].
      */
@@ -1150,12 +1115,14 @@ class WorkspaceRepo @Inject constructor(
         type: Workspace.Type,
         contentPath: APath<*>,
         excludeId: Workspace.Id? = null,
+        excludeIds: Set<Workspace.Id> = emptySet(),
     ): Workspace.Id? {
+        val excluded = excludeIds + setOfNotNull(excludeId)
         _workspaces.value.firstOrNull { ws ->
-            ws.id != excludeId && ws.type == type && !ws.info.value.isSubWorkspace &&
+            ws.id !in excluded && ws.type == type && !ws.info.value.isSubWorkspace &&
                 ws.info.value.contentPath == contentPath
         }?.id?.let { return it }
-        return contentClaims[type to contentPath]?.takeIf { it != excludeId }
+        return contentClaims[type to contentPath]?.takeIf { it !in excluded }
     }
 
     /**
@@ -1660,9 +1627,499 @@ class WorkspaceRepo @Inject constructor(
         return ids
     }
 
+    /** What the members of a unit looked like when the undo capture started. */
+    private class UndoMemberCapture(
+        val workspace: Workspace<out Workspace.Arguments>,
+        val type: Workspace.Type,
+        val callerWorkspaceId: Workspace.Id?,
+        val contentPath: APath<*>?,
+        val fingerprint: Any?,
+    ) {
+        val id: Workspace.Id get() = workspace.id
+    }
+
+    private class UndoCapturePlan(
+        val closeToken: Long,
+        val rootId: Workspace.Id,
+        val members: List<UndoMemberCapture>,
+        val baselineContentHolders: Map<APath<*>, Workspace.Id?>,
+        val baselineSingletonOccupant: Pair<Workspace.Type, Workspace.Id?>?,
+    ) {
+        val memberIds: Set<Workspace.Id> get() = members.mapTo(mutableSetOf()) { it.id }
+    }
+
+    private enum class CloseVerdict { UNDOABLE, NEEDS_CONFIRMATION, PLAIN }
+
+    /**
+     * A close with an undo capture wrapped around it: eligibility and identity under [lock], the
+     * suspending argument capture without it, then revalidate-and-close under [lock] again.
+     *
+     * The window in the middle exists because [Workspace.createArguments] suspends, and holding the
+     * repo's single mutex across it stalls every unrelated create, close and resume. What it costs
+     * is that the world can move while the window is open, which is what phase 3 re-checks: anything
+     * that no longer matches degrades to an ordinary close.
+     *
+     * Not a branch of [execute]'s dispatcher: three other callers hold [lock] across [executeClose],
+     * so the unlock window has to live here, above it.
+     */
+    private suspend fun executeCloseAction(
+        action: WorkspaceAction.Close,
+        undoEnabled: Boolean,
+    ): WorkspaceAction.Close.Result {
+        // Phase 1
+        val plan = lock.withLock {
+            log(TAG, INFO) { "Closing workspace with id ${action.id}" }
+
+            // Closing a tab takes its whole modal stack down with it, so the guard has to
+            // cover everything executeClose would destroy, not just the id the close names: a
+            // clean tab can own a dirty child (a Saver still holding shared content), and that
+            // child is precisely the thing whose loss has to be confirmed.
+            val dirtyMembers = closingSubtreeOf(action.id)
+                .filter { it.info.value.hasUnsavedChanges }
+            val needsConfirmation = action.requireConfirmation || dirtyMembers.isNotEmpty()
+
+            if (needsConfirmation) {
+                // Never undoable: the user is being asked about losing something, and an undo bar
+                // after they answered would offer to take back the answer they just gave.
+                parkCloseConfirmationLocked(action.copy(undoable = false))
+                return@withLock null
+            }
+
+            val plan = if (undoEnabled) planUndoCapture(action.id) else null
+            if (plan == null) {
+                executeClose(action.id)
+                null
+            } else {
+                closedStash.armClose(plan.closeToken, plan.rootId, plan.memberIds)
+                plan
+            }
+        } ?: return WorkspaceAction.Close.Result
+
+        // Phase 2, no lock held
+        val captured: Map<Workspace.Id, Workspace.Arguments>? = try {
+            plan.members.associate { it.id to it.workspace.createArguments() }
+        } catch (e: CancellationException) {
+            // Nothing was closed and nothing may stay armed; the close goes with its caller.
+            closedStash.abortClose(plan.closeToken)
+            throw e
+        } catch (e: Exception) {
+            log(TAG, WARN) { "Undo capture of ${action.id} failed, closing without it: ${e.asLog()}" }
+            null
+        }
+
+        // Phase 3
+        lock.withLock {
+            val verdict = if (captured == null) CloseVerdict.PLAIN else revalidateUndoCapture(plan, captured)
+            when (verdict) {
+                CloseVerdict.UNDOABLE -> {
+                    val snapshot = buildClosedSnapshot(plan, captured!!)
+                    executeClose(action.id, closeToken = plan.closeToken)
+                    closedStash.commitIdentity(snapshot)
+                    closedStash.disarm(plan.closeToken)
+                }
+                CloseVerdict.NEEDS_CONFIRMATION -> {
+                    // A unit that turned dirty inside the window must not be closed silently just
+                    // because this path started out undoable: the discard question is what the
+                    // single-lock close guarantees, and skipping it loses the user's edit.
+                    closedStash.abortClose(plan.closeToken)
+                    parkCloseConfirmationLocked(action.copy(undoable = false, requireConfirmation = true))
+                }
+                CloseVerdict.PLAIN -> {
+                    closedStash.abortClose(plan.closeToken)
+                    executeClose(action.id)
+                }
+            }
+        }
+
+        return WorkspaceAction.Close.Result
+    }
+
+    /**
+     * Installs the close confirmation for [action] WITHOUT acquiring [lock] - the caller already
+     * holds it. Parking is pure map writes; the parked lambda runs later under a fresh acquisition
+     * via [resolveConfirmation], so this cannot re-enter the mutex.
+     */
+    private fun parkCloseConfirmationLocked(action: WorkspaceAction.Close) {
+        val workspace = _workspaces.value.firstOrNull { it.id == action.id }
+        val dirtyMembers = closingSubtreeOf(action.id)
+            .filter { it.info.value.hasUnsavedChanges }
+
+        // The dialog has to name something. Usually that is the close target, but a
+        // close of an id nothing holds still has to be confirmable when it would take
+        // a dirty orphan down with it.
+        val naming = dirtyMembers.firstOrNull() ?: workspace
+        if (naming == null) {
+            log(TAG, WARN) { "Cannot request close confirmation - workspace ${action.id} not found" }
+            return
+        }
+
+        // Two closes overlap when one's subtree holds the other's target: answering
+        // either decides workspaces the other also claims. Only one of them may be
+        // pending, or the screen renders a single dialog for several queued answers and
+        // one dismissal only retires one of them.
+        val closingIds = closingIdsOf(action.id)
+        val overlapping = _pendingConfirmations.value.filterValues { pending ->
+            val data = pending.data
+            data is PendingWorkspaceConfirmation.ConfirmationData.WorkspaceCloseConfirmation &&
+                (data.workspaceId in closingIds || action.id in closingIdsOf(data.workspaceId))
+        }
+        val duplicate = overlapping.values.any {
+            val data = it.data as PendingWorkspaceConfirmation.ConfirmationData.WorkspaceCloseConfirmation
+            data.workspaceId == action.id
+        }
+        if (duplicate) {
+            log(TAG) { "Close confirmation already pending for ${action.id}, ignoring duplicate" }
+            return
+        }
+        // The newer request replaces the older rather than being dropped by it: a close
+        // the user just asked for must not be swallowed by one they have not answered.
+        overlapping.keys.forEach { supersededId ->
+            log(TAG, INFO) { "Close confirmation $supersededId overlaps ${action.id}, superseding it" }
+            pendingActions.remove(supersededId)
+        }
+
+        // The unsaved copy reads "<name> has unsaved changes", so it has to name a
+        // member holding them; without a dirty member the target names itself.
+        val workspaceInfo = naming.info.value.withCustomTitle(_customTitles.value)
+        val confirmationId = Uuid.random().toString()
+
+        log(TAG, INFO) { "Requesting confirmation to close workspace: ${action.id}, naming ${workspaceInfo.displayTitle}" }
+
+        pendingActions[confirmationId] = {
+            executeClose(action.id)
+            null
+        }
+
+        _pendingConfirmations.update {
+            it - overlapping.keys + (confirmationId to PendingWorkspaceConfirmation(
+                id = confirmationId,
+                // Anchors the dialog to the workspace the close was invoked from, which
+                // is the overlay on top when a unit is closed from one of its children.
+                sourceWorkspaceId = action.sourceWorkspaceId ?: action.id,
+                data = PendingWorkspaceConfirmation.ConfirmationData.WorkspaceCloseConfirmation(
+                    workspaceId = action.id,
+                    workspaceTitle = workspaceInfo.displayTitle,
+                    hasUnsavedChanges = dirtyMembers.isNotEmpty(),
+                    // The close takes the whole subtree, so naming one member while
+                    // discarding several would understate what is lost
+                    unsavedCount = dirtyMembers.size,
+                ),
+            ))
+        }
+    }
+
+    /**
+     * What a close of [targetId] would have to bring back, or null when this close cannot be undone.
+     * Must be called while holding [lock].
+     *
+     * [targetId] has to be its own unit root. Two chrome paths can hand us something else - the
+     * button menu falls back to the current workspace before its unit mapping has emitted, and a
+     * card for an unresolvable unit names one of its members - and for those the set captured here
+     * is not the set [executeClose] removes, which would leave an Undo button that can never work.
+     */
+    private fun planUndoCapture(targetId: Workspace.Id): UndoCapturePlan? {
+        val stacks = peekStacks()
+        val unit = stacks.unitOf(targetId)
+        if (unit == null || unit.first().id != targetId) {
+            log(TAG) { "Close($targetId) is not undoable: not its own ownership root" }
+            return null
+        }
+
+        val members = unit.map { info ->
+            val workspace = _workspaces.value.firstOrNull { it.id == info.id } ?: return null
+            UndoMemberCapture(
+                workspace = workspace,
+                type = workspace.type,
+                callerWorkspaceId = info.callerWorkspaceId,
+                contentPath = info.contentPath,
+                fingerprint = workspace.restorableStateFingerprint,
+            )
+        }
+        val memberIds = members.mapTo(mutableSetOf()) { it.id }
+
+        val blocker = when {
+            // Its result collector lives in the caller's ViewModel and is gone once the unit closes,
+            // so bringing the picker back would bring back something nobody is listening to.
+            memberIds.any { it in resultReturningIds } -> "a member owes its caller a result"
+            members.any { it.workspace.info.value.hasUnsavedChanges } -> "a member has unsaved changes"
+            unit.drop(1).any { !it.pausableAsChild } -> "a stacked member does not survive being held"
+            contentClaims.values.any { it in memberIds } -> "a member holds a content claim"
+            else -> null
+        }
+        if (blocker != null) {
+            log(TAG) { "Close($targetId) is not undoable: $blocker" }
+            return null
+        }
+
+        val root = members.first()
+        // Root only: creation deliberately skips singleton and content dedup for stacked members, so
+        // asking the same question of a child would refuse a viewer merely because an unrelated tab
+        // shows the same file.
+        val baselineContentHolders = listOfNotNull(root.contentPath).associateWith { path ->
+            findContentPathHolder(root.type, path, excludeIds = memberIds)
+        }
+        val baselineSingletonOccupant = if (root.type.isSingleton) {
+            root.type to _workspaces.value
+                .firstOrNull { it.type == root.type && !it.info.value.isSubWorkspace && it.id !in memberIds }
+                ?.id
+        } else {
+            null
+        }
+
+        return UndoCapturePlan(
+            closeToken = closedStash.nextToken(),
+            rootId = targetId,
+            members = members,
+            baselineContentHolders = baselineContentHolders,
+            baselineSingletonOccupant = baselineSingletonOccupant,
+        )
+    }
+
+    /**
+     * Whether what was captured still describes what is about to be closed. Must be called while
+     * holding [lock].
+     *
+     * Object identity is the load-bearing check: ids, types, topology and list order all survive a
+     * pause, a resume or a same-id replacement, so only the instance itself tells us that the thing
+     * we captured arguments from is still the thing we are closing. It does not catch a live
+     * instance mutating its own state, which is what [Workspace.restorableStateFingerprint] and the
+     * content path are for - closing the tab the user just navigated while stashing where it was
+     * before would restore the wrong place.
+     */
+    private fun revalidateUndoCapture(
+        plan: UndoCapturePlan,
+        captured: Map<Workspace.Id, Workspace.Arguments>,
+    ): CloseVerdict {
+        // Before anything else: a dirty flip decides the whole close, not just its undoability.
+        // Asked of what the close would destroy right now rather than of the captured instances,
+        // because every other verdict below degrades to a plain close, which never asks again.
+        if (closingSubtreeOf(plan.rootId).any { it.info.value.hasUnsavedChanges }) {
+            log(TAG, INFO) { "Close(${plan.rootId}) turned dirty while capturing, asking first" }
+            return CloseVerdict.NEEDS_CONFIRMATION
+        }
+
+        val unit = peekStacks().unitOf(plan.rootId)
+        if (unit == null || unit.first().id != plan.rootId || unit.map { it.id } != plan.members.map { it.id }) {
+            log(TAG) { "Close(${plan.rootId}): the unit changed while capturing, closing without undo" }
+            return CloseVerdict.PLAIN
+        }
+
+        val memberIds = plan.memberIds
+        plan.members.forEach { member ->
+            val live = _workspaces.value.firstOrNull { it.id == member.id }
+            val arguments = captured[member.id]
+            val info = live?.info?.value
+            val mismatch = when {
+                live !== member.workspace -> "the instance was swapped"
+                arguments == null -> "nothing was captured"
+                arguments.type != member.type -> "the captured arguments are of another type"
+                member.id in resultReturningIds -> "it started owing a result"
+                contentClaims.values.any { it == member.id } -> "it took a content claim"
+                info?.contentPath != member.contentPath -> "its content path moved"
+                info.callerWorkspaceId != member.callerWorkspaceId -> "its owner changed"
+                member.id != plan.rootId && member.callerWorkspaceId !in memberIds ->
+                    "its owner is outside the unit"
+                member.id != plan.rootId && !arguments.isPausableAsChild ->
+                    "the captured arguments do not survive being held"
+                (arguments as? Workspace.ArgumentsWithCaller)?.callerWorkspaceId != member.callerWorkspaceId ->
+                    "the captured arguments name another owner"
+                // Only when the arguments name a path at all: a type may legitimately report none
+                // while its tab still advertises one (an editor whose engine holds no content).
+                (arguments as? Workspace.ArgumentsWithContentPath)?.contentPath
+                    ?.let { it != info.contentPath } == true -> "the captured arguments name another file"
+                live.restorableStateFingerprint != member.fingerprint -> "its restorable state moved on"
+                else -> null
+            }
+            if (mismatch != null) {
+                log(TAG, INFO) { "Close(${plan.rootId}) is not undoable after all, ${member.id}: $mismatch" }
+                return CloseVerdict.PLAIN
+            }
+        }
+        return CloseVerdict.UNDOABLE
+    }
+
+    /**
+     * The identity half of the stash entry. Must be called while holding [lock].
+     *
+     * List position, neighbours and custom titles are re-read here rather than validated against
+     * phase 1: a reorder or a rename inside the window is not a reason to refuse the undo, it just
+     * means the tab belongs somewhere else now.
+     */
+    private fun buildClosedSnapshot(
+        plan: UndoCapturePlan,
+        captured: Map<Workspace.Id, Workspace.Arguments>,
+    ): ClosedWorkspaceSnapshot {
+        val owners = peekStacks().unitOwners.map { it.id }
+        val index = owners.indexOf(plan.rootId).coerceAtLeast(0)
+        val customTitles = _customTitles.value
+        return ClosedWorkspaceSnapshot(
+            members = plan.members.map { member ->
+                val info = member.workspace.info.value
+                ClosedWorkspaceMember(
+                    id = member.id,
+                    type = member.type,
+                    arguments = captured.getValue(member.id),
+                    createdAt = createdAtById[member.id],
+                    customTitle = customTitles[member.id],
+                    automaticTitle = info.title,
+                    automaticSubtitle = info.subtitle,
+                    callerWorkspaceId = member.callerWorkspaceId,
+                )
+            },
+            unitOrderIndex = index,
+            precedingNeighbourIds = owners.take(index).asReversed(),
+            followingNeighbourIds = owners.drop(index + 1),
+            closeToken = plan.closeToken,
+            baselineContentHolders = plan.baselineContentHolders,
+            baselineSingletonOccupant = plan.baselineSingletonOccupant,
+        )
+    }
+
+    /**
+     * Brings the stashed unit back as paused stand-ins, in one critical section. Must be called
+     * while holding [lock] - and never through [execute], whose mutex is not reentrant.
+     *
+     * Every member is constructed here instead of going through [WorkspaceAction.RegisterPaused]
+     * (which refuses sub-workspaces) or [WorkspaceAction.Resume]: a stand-in seeded from the
+     * captured arguments reports the same ownership, presentation and content path a live member
+     * did, so the topology rebuilds from the stand-ins alone and focus resumes the unit as usual.
+     *
+     * Nothing is mutated before the preflight passes, so a refusal leaves the entry intact and the
+     * bar can be tried again.
+     */
+    private suspend fun executeUndoClose(): WorkspaceAction.UndoClose.Result {
+        val entry = closedStash.peekEntry() ?: run {
+            log(TAG, INFO) { "UndoClose: nothing stashed" }
+            return WorkspaceAction.UndoClose.Result.Unavailable
+        }
+        val snapshot = entry.snapshot
+        val root = snapshot.root
+
+        val taken = snapshot.members.firstOrNull { member -> _workspaces.value.any { it.id == member.id } }
+        if (taken != null) {
+            log(TAG, WARN) { "UndoClose refused: ${taken.id} exists again" }
+            return WorkspaceAction.UndoClose.Result.Refused
+        }
+        // Against the baseline, not against emptiness: content paths are explicitly non-exclusive,
+        // so a duplicate that already existed when the tab closed is not a conflict the undo creates.
+        val contentConflict = snapshot.baselineContentHolders.entries.firstOrNull { (path, baseline) ->
+            findContentPathHolder(root.type, path) != baseline
+        }
+        if (contentConflict != null) {
+            log(TAG, WARN) { "UndoClose refused: ${contentConflict.key} is held by someone else now" }
+            return WorkspaceAction.UndoClose.Result.Refused
+        }
+        snapshot.baselineSingletonOccupant?.let { (type, baseline) ->
+            val occupant = _workspaces.value.firstOrNull { it.type == type && !it.info.value.isSubWorkspace }?.id
+            if (occupant != baseline) {
+                log(TAG, WARN) { "UndoClose refused: the $type slot is taken by $occupant" }
+                return WorkspaceAction.UndoClose.Result.Refused
+            }
+        }
+        val memberIds = snapshot.memberIds
+        val topologyBroken = root.callerWorkspaceId != null ||
+            snapshot.members.drop(1).any { it.callerWorkspaceId !in memberIds }
+        if (topologyBroken) {
+            log(TAG, ERROR) { "UndoClose refused: the captured unit does not describe a valid stack" }
+            return WorkspaceAction.UndoClose.Result.Refused
+        }
+
+        closedStash.beginRestore()
+        try {
+            val standIns = snapshot.members.map { member ->
+                PausedWorkspace(
+                    id = member.id,
+                    type = member.type,
+                    heldArguments = member.arguments,
+                    title = member.automaticTitle,
+                    subtitle = member.automaticSubtitle,
+                )
+            }
+            snapshot.members.forEach { member ->
+                createdAtById = createdAtById + (member.id to (member.createdAt ?: Clock.System.now()))
+                val customTitle = member.customTitle
+                if (customTitle != null) _customTitles.update { it + (member.id to customTitle) }
+            }
+            val restoreToken = snapshot.members
+                .associate { it.id to closedStash.stampIncarnation(it.id) }
+                .getValue(root.id)
+
+            val wip = _workspaces.value.toMutableList()
+            wip.addAll(insertionIndexFor(snapshot), standIns)
+            publishWorkspaces(wip)
+
+            closedStash.armRestoreTicket(
+                ClosedWorkspaceRestoreTicket(
+                    rootId = root.id,
+                    restoreToken = restoreToken,
+                    slots = entry.slots,
+                    placement = entry.placement,
+                )
+            )
+            // Only now: until the stand-ins are published, the stash is the only thing naming
+            // whatever the closed workspaces pointed at, and dropping it earlier would leave an
+            // instant in which nothing does.
+            closedStash.consume(snapshot.closeToken)
+
+            snapshot.members.forEach { member ->
+                _events.emit(
+                    WorkspaceEvent.Created(
+                        workspaceId = member.id,
+                        restoreToken = restoreToken,
+                    )
+                )
+            }
+            log(TAG, INFO) { "UndoClose restored ${snapshot.members.size} workspace(s) under ${root.id}" }
+            return WorkspaceAction.UndoClose.Result.Success(root.id, snapshot.members.map { it.id })
+        } finally {
+            closedStash.endRestore()
+        }
+    }
+
+    /**
+     * Where the restored unit goes: beside whichever of its former neighbours is still open,
+     * nearest first, and at its old unit index when none of them is. Must be called while holding
+     * [lock].
+     */
+    private fun insertionIndexFor(snapshot: ClosedWorkspaceSnapshot): Int {
+        val current = _workspaces.value
+        val stacks = peekStacks()
+
+        fun memberIndices(ownerId: Workspace.Id): List<Int> = stacks.unitOf(ownerId)
+            .orEmpty()
+            .mapNotNull { member -> current.indexOfFirst { it.id == member.id }.takeIf { it >= 0 } }
+
+        snapshot.precedingNeighbourIds.forEach { ownerId ->
+            memberIndices(ownerId).maxOrNull()?.let { return it + 1 }
+        }
+        snapshot.followingNeighbourIds.forEach { ownerId ->
+            memberIndices(ownerId).minOrNull()?.let { return it }
+        }
+
+        val owners = stacks.unitOwners
+        if (snapshot.unitOrderIndex >= owners.size) return current.size
+        val ownerAtIndex = owners[snapshot.unitOrderIndex].id
+        return current.indexOfFirst { it.id == ownerAtIndex }.takeIf { it >= 0 } ?: current.size
+    }
+
+    /**
+     * Restores the stashed close on [appScope], so neither the publication nor the events that
+     * carry it to the UI die with the caller that asked for it - a screen going away mid-undo would
+     * otherwise leave the tab back but unplaced.
+     */
+    fun undoLastClose(): Deferred<WorkspaceAction.UndoClose.Result> = appScope.async {
+        execute(WorkspaceAction.UndoClose) as WorkspaceAction.UndoClose.Result
+    }
+
+    /**
+     * @param closeToken carried into every [WorkspaceEvent.Closed] this recursion emits while the
+     * unit is being stashed for undo, so each consumer can contribute what it is about to destroy
+     * before it does.
+     */
     private suspend fun executeClose(
         workspaceId: Workspace.Id,
         visited: MutableSet<Workspace.Id> = mutableSetOf(),
+        closeToken: Long? = null,
     ) {
         // Caller ids are not validated at creation time, so a cycle is reachable; without this the
         // recursion below never terminates, because a member is only removed after its children close.
@@ -1684,7 +2141,7 @@ class WorkspaceRepo @Inject constructor(
         val childWorkspaces = _workspaces.value.filter { it.info.value.callerWorkspaceId == workspaceId }
         if (childWorkspaces.isNotEmpty()) {
             log(TAG) { "Auto-closing ${childWorkspaces.size} child workspace(s)" }
-            childWorkspaces.forEach { executeClose(it.id, visited) }
+            childWorkspaces.forEach { executeClose(it.id, visited, closeToken) }
         }
 
         // Get caller workspace ID before removal (for returning to caller)
@@ -1705,8 +2162,15 @@ class WorkspaceRepo @Inject constructor(
         _customTitles.update { it - workspaceId }
         createdAtById = createdAtById - workspaceId
         resultReturningIds = resultReturningIds - workspaceId
-        _workspaces.value = _workspaces.value.filter { it.id != workspaceId }
-        _events.emit(WorkspaceEvent.Closed(workspaceId = workspaceId, callerWorkspaceId = callerWorkspaceId))
+        closedStash.dropIncarnation(workspaceId)
+        publishWorkspaces(_workspaces.value.filter { it.id != workspaceId })
+        _events.emit(
+            WorkspaceEvent.Closed(
+                workspaceId = workspaceId,
+                callerWorkspaceId = callerWorkspaceId,
+                closeToken = closeToken,
+            )
+        )
     }
 
     companion object {

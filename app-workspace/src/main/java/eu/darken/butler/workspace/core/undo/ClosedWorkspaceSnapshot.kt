@@ -34,10 +34,12 @@ data class ClosedWorkspaceMember(
  * @param members root first, owners before what they own - the order [WorkspaceAction.UndoClose]
  * has to insert them in.
  * @param unitOrderIndex position of the unit's root among the unit owners, the fallback for
- * re-inserting when none of [neighbourIds] survived.
- * @param neighbourIds unit owners that surrounded the closed one, nearest first, preceding
- * neighbours before following ones. Position is re-derived from these at restore time, so a reorder
- * during the undo window puts the tab back beside its neighbours instead of at a stale index.
+ * re-inserting when no neighbour survived.
+ * @param precedingNeighbourIds unit owners that came before the closed one, nearest first.
+ * @param followingNeighbourIds unit owners that came after it, nearest first. Position is re-derived
+ * from the neighbours at restore time, so a reorder during the undo window puts the tab back beside
+ * them instead of at a stale index; the two directions are separate because "after the one on my
+ * left" and "before the one on my right" are different insert points.
  * @param baselineContentHolders workspace publishing each content path of the unit ROOT at close
  * time, null when nobody did. Only a holder that is new or different since then blocks the undo -
  * content paths are explicitly non-exclusive, so a duplicate that predates the close is not a
@@ -47,7 +49,8 @@ data class ClosedWorkspaceMember(
 data class ClosedWorkspaceSnapshot(
     val members: List<ClosedWorkspaceMember>,
     val unitOrderIndex: Int,
-    val neighbourIds: List<Workspace.Id>,
+    val precedingNeighbourIds: List<Workspace.Id>,
+    val followingNeighbourIds: List<Workspace.Id>,
     val closeToken: Long,
     val baselineContentHolders: Map<APath<*>, Workspace.Id?>,
     val baselineSingletonOccupant: Pair<Workspace.Type, Workspace.Id?>?,
