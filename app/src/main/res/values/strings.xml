@@ -332,7 +332,7 @@
     <string name="workspace_badge_tip_title">Tip: Tab button indicators</string>
     <string name="workspace_badge_open_workspaces">Number of open tabs</string>
     <string name="workspace_badge_active_operations">Active operations (file copies, searches, etc.)</string>
-    <string name="workspace_badge_attention_items">Items needing attention (errors, unsaved changes)</string>
+    <string name="workspace_badge_attention_items">Items needing attention (failed or waiting operations, unreachable files)</string>
 
     <!-- Workspace Manager Actions -->
     <string name="workspace_manager_dismiss_content_desc">Dismiss</string>
@@ -360,6 +360,7 @@
     <string name="workspace_row_pause_action">Pause</string>
     <string name="workspace_row_resume_action">Resume</string>
     <string name="workspace_row_stacked_content_desc">Stacked on this tab</string>
+    <string name="workspace_row_unsaved_content_desc">Unsaved changes</string>
 
     <!-- Settings Index -->
     <string name="workspace_settings_subtitle">Configure tab behavior.</string>
