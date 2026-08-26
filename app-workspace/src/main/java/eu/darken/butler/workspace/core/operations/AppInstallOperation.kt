@@ -12,7 +12,7 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.issue.Issue
+import eu.darken.butler.common.pkgs.installer.AppInstallConfirmationIssue
 import eu.darken.butler.common.pkgs.installer.AppInstallEvent
 import eu.darken.butler.common.pkgs.installer.AppInstallPlan
 import eu.darken.butler.common.pkgs.installer.AppInstaller
@@ -142,9 +142,9 @@ class AppInstallOperation @AssistedInject constructor(
     private data class WaitingState(
         override val startedAt: Instant,
         override val waitingSince: Instant = Clock.System.now(),
-        override val issue: Issue,
+        override val issue: AppInstallConfirmationIssue,
     ) : Operation.State.Waiting {
-        override val reason: CaString get() = issue.title
+        override val reason: CaString get() = issue.reason
     }
 
     private data class CompletedState(

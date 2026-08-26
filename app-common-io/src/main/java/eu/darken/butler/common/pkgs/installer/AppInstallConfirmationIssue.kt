@@ -22,6 +22,9 @@ data class AppInstallConfirmationIssue(
 
     override val title: CaString = R.string.app_install_confirm_pending_title.toCaString()
 
+    /** What the operation is waiting for, short enough for a notification line. */
+    val reason: CaString = R.string.app_install_confirm_pending_reason.toCaString()
+
     override val description: CaString = caString {
         when (label) {
             null -> it.getString(R.string.app_install_confirm_pending_description_unnamed)
