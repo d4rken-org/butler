@@ -28,6 +28,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf
@@ -165,6 +166,11 @@ class AppInstallerTest : BaseTest() {
         obbEntries = emptyList(),
         warnings = emptyList(),
     )
+
+    /** A plain APK behind a provider that reports no size, as SAF providers may. */
+    private fun sizelessPlan(inspected: ApkArchiveInfo) = plan().let {
+        it.copy(baseInfo = inspected, splits = listOf(it.splits.single().copy(size = 0L)))
+    }
 
     private fun pmCommands() = executed.map { it.second }.filter { it.startsWith("pm ") }
 
@@ -381,6 +387,37 @@ class AppInstallerTest : BaseTest() {
         // Sized from what staging wrote, there being nothing declared to size it from.
         pmCommands()[0] shouldBe "pm install-create -r -t -S ${apk.file.length()} --user 11"
         pmCommands()[1] shouldContain "pm install-write -S ${apk.file.length()} 42"
+    }
+
+    @Test
+    fun `an unknown-size APK staged for adb is held against the inspection`() = runTest2 {
+        val inspected = baseInfo(certSha256 = "aa")
+        coEvery { apkArchiveParser.parseFile(any(), any()) } returns baseInfo(certSha256 = "bb")
+
+        val events = installer().install(sizelessPlan(inspected), AppInstaller.Mode.ADB).toList()
+
+        // Shell staging cannot be read back, so without the local copy nothing would bind these
+        // bytes to the inspected package at all.
+        events.last().shouldBeInstanceOf<AppInstallEvent.Failure>()
+            .error.shouldBeInstanceOf<AppInstallUnsupportedBundleException>()
+        pmCommands().isEmpty() shouldBe true
+    }
+
+    @Test
+    fun `an unknown-size APK staged for adb installs the bytes that were verified`() = runTest2 {
+        val inspected = baseInfo(certSha256 = "aa")
+        coEvery { apkArchiveParser.parseFile(any(), any()) } returns inspected
+
+        val events = installer().install(sizelessPlan(inspected), AppInstaller.Mode.ADB).toList()
+
+        events.last().shouldBeInstanceOf<AppInstallEvent.Success>().viaMode shouldBe AppInstaller.Mode.ADB
+        pmCommands()[0] shouldBe "pm install-create -r -t -S ${apk.file.length()} --user 11"
+        val write = pmCommands()[1]
+        write shouldContain "pm install-write -S ${apk.file.length()} 42 'base.apk'"
+        write shouldContain "/data/local/tmp/butler-install/"
+        // The shell copy comes from the verified file: a second read of the provider could serve
+        // something else entirely.
+        coVerify(exactly = 1) { gatewaySwitch.openInputStream(apk) }
     }
 
     @Test
