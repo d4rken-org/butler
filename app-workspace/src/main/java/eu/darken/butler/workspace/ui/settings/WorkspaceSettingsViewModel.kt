@@ -29,9 +29,10 @@ class WorkspaceSettingsViewModel @Inject constructor(
         workspaceSettings.sessionRestoreEnabled.flow,
         workspaceSettings.autoPauseEnabled.flow,
         workspaceSettings.autoPauseIdleTimeout.flow,
+        workspaceSettings.undoCloseEnabled.flow,
         sessionStorage.getWorkspaceCount(WorkspaceSessionStorage.DEFAULT_SESSION_ID),
         sessionStorage.getDatabaseSizeBytes(WorkspaceSessionStorage.DEFAULT_SESSION_ID),
-    ) { swipeGesturesEnabled, onDemandWorkspaceCreation, livePreview, layoutModePortrait, layoutModeLandscape, paneClickToFocus, sessionRestoreEnabled, autoPauseEnabled, autoPauseIdleTimeout, sessionWorkspaceCount, sessionDatabaseSizeBytes ->
+    ) { swipeGesturesEnabled, onDemandWorkspaceCreation, livePreview, layoutModePortrait, layoutModeLandscape, paneClickToFocus, sessionRestoreEnabled, autoPauseEnabled, autoPauseIdleTimeout, undoCloseEnabled, sessionWorkspaceCount, sessionDatabaseSizeBytes ->
         State(
             swipeGesturesEnabled = swipeGesturesEnabled,
             onDemandWorkspaceCreation = onDemandWorkspaceCreation,
@@ -42,6 +43,7 @@ class WorkspaceSettingsViewModel @Inject constructor(
             sessionRestoreEnabled = sessionRestoreEnabled,
             autoPauseEnabled = autoPauseEnabled,
             autoPauseIdleTimeout = WorkspaceSettings.clampIdleTimeout(autoPauseIdleTimeout),
+            undoCloseEnabled = undoCloseEnabled,
             sessionWorkspaceCount = sessionWorkspaceCount,
             sessionDatabaseSizeBytes = sessionDatabaseSizeBytes,
         )
@@ -92,6 +94,11 @@ class WorkspaceSettingsViewModel @Inject constructor(
         workspaceSettings.autoPauseIdleTimeout.value(WorkspaceSettings.clampIdleTimeout(timeout))
     }
 
+    fun toggleUndoClose() = launch {
+        val current = workspaceSettings.undoCloseEnabled.value()
+        workspaceSettings.undoCloseEnabled.value(!current)
+    }
+
     data class State(
         val swipeGesturesEnabled: Boolean,
         val onDemandWorkspaceCreation: Boolean,
@@ -102,6 +109,7 @@ class WorkspaceSettingsViewModel @Inject constructor(
         val sessionRestoreEnabled: Boolean,
         val autoPauseEnabled: Boolean = true,
         val autoPauseIdleTimeout: Duration = WorkspaceSettings.AUTO_PAUSE_IDLE_TIMEOUT_DEFAULT,
+        val undoCloseEnabled: Boolean = true,
         val sessionWorkspaceCount: Int = 0,
         val sessionDatabaseSizeBytes: Long = 0L,
     )

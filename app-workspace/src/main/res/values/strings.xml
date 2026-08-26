@@ -370,11 +370,16 @@
     <string name="workspace_settings_autopause_desc">Tabs you haven\'t looked at for a while are paused to save memory and battery. Opening one resumes it.</string>
     <string name="workspace_settings_autopause_delay_title">Pause after</string>
     <string name="workspace_settings_autopause_delay_desc">How long a tab stays out of sight before it is paused.</string>
+    <string name="workspace_settings_undoclose_title">Undo closing tabs</string>
+    <string name="workspace_settings_undoclose_desc">Closing a tab offers to bring it back for a few seconds.</string>
     <string name="workspace_settings_session_data_title">Session data</string>
     <plurals name="workspace_settings_session_data_desc">
         <item quantity="one">%1$d tab • %2$s</item>
         <item quantity="other">%1$d tabs • %2$s</item>
     </plurals>
+
+    <!-- Undo close -->
+    <string name="workspace_closed_undo_message">Closed \"%1$s\"</string>
 
     <!-- Session Restoration Error -->
     <string name="workspace_session_restoration_error_title">Session Restoration Failed</string>

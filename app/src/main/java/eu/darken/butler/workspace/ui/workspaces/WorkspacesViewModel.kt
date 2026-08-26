@@ -38,6 +38,7 @@ import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.WorkspaceSettings
+import eu.darken.butler.workspace.core.undo.ClosedWorkspaceStash
 import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import eu.darken.butler.workspace.core.session.SessionRestorationException
 import eu.darken.butler.workspace.ui.WorkspacePageManager
@@ -76,6 +77,7 @@ class WorkspacesViewModel @Inject constructor(
     private val openInNewTabsUseCase: OpenInNewTabsUseCase,
     private val reviewTool: ReviewTool,
     private val guidedTourController: GuidedTourController,
+    private val closedStash: ClosedWorkspaceStash,
     val pageHosts: Map<Workspace.Type, @JvmSuppressWildcards WorkspacePageHostEntry>,
     val scrollPositions: WorkspaceScrollPositions,
     val barCollapseStates: WorkspaceBarCollapseStates,
@@ -86,6 +88,9 @@ class WorkspacesViewModel @Inject constructor(
 
     private val _bannerStates = MutableStateFlow<Map<Workspace.Id, BannerState>>(emptyMap())
     val bannerStates = _bannerStates.asStateFlow()
+
+    /** The undo bar, offered only once the close it belongs to is complete and safe to take back. */
+    val closedFeedback = closedStash.feedback
 
     private val _showClearSessionConfirmation = MutableStateFlow(false)
     val showClearSessionConfirmation = _showClearSessionConfirmation.asStateFlow()
@@ -443,6 +448,24 @@ class WorkspacesViewModel @Inject constructor(
     fun confirmManagerDialog(dialogState: ManagerDialog.WorkspaceTargeted) = launch {
         log(tag) { "confirmManagerDialog($dialogState)" }
         workspaceRepo.resolveConfirmation(dialogState.id, confirmed = true)
+    }
+
+    fun undoClose() = launch {
+        log(tag, INFO) { "undoClose()" }
+        // The restore runs on the repo's app scope, so this screen going away cannot abort it
+        // half-way; awaiting it here only decides what we still have to place ourselves.
+        when (val result = workspaceRepo.undoLastClose().await()) {
+            is WorkspaceAction.UndoClose.Result.Success -> {
+                // Backstop for the ticket the restore's own event usually applies. Whoever gets
+                // there first wins, the other finds nothing to do.
+                workspacePageManager.awaitAndApplyRestore(result.rootId)
+            }
+            is WorkspaceAction.UndoClose.Result.Failed -> {
+                log(tag, ERROR) { "Undo failed: ${result.error.asLog()}" }
+                errorEvents.emit(result.error)
+            }
+            else -> log(tag, WARN) { "Undo did not restore anything: $result" }
+        }
     }
 
     fun dismissBanner(workspaceId: Workspace.Id) = launch {
