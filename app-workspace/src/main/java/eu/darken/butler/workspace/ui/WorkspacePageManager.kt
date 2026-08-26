@@ -115,7 +115,7 @@ class WorkspacePageManager @Inject constructor(
                         // The root's event is the last one of a close, so its handler returning is
                         // what makes the entry safe to act on: until here an undo would restore ids
                         // that the teardown still running above would strip again.
-                        if (closeToken != null && closedStash.armedUnit(closeToken)?.first == event.workspaceId) {
+                        if (closeToken != null && closedStash.pendingUnitOf(closeToken)?.first == event.workspaceId) {
                             closedStash.markDestructionComplete(closeToken)
                         }
                     }
@@ -745,7 +745,7 @@ class WorkspacePageManager @Inject constructor(
     )
 
     private fun capturePlacementFor(closeToken: Long, state: State = _state.value) {
-        val (rootId, memberIds) = closedStash.armedUnit(closeToken) ?: return
+        val (rootId, memberIds) = closedStash.pendingUnitOf(closeToken) ?: return
         closedStash.capturePlacement(closeToken, placementOf(state, rootId, memberIds))
     }
 

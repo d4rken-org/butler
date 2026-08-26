@@ -355,7 +355,7 @@ class WorkspaceButtonTest : ComposeTest() {
         composeTestRule.onNodeWithText("Close current tab").performClick()
 
         provider.actions shouldBe listOf(
-            WorkspaceAction.Close(id = currentId, sourceWorkspaceId = currentId)
+            WorkspaceAction.Close(id = currentId, sourceWorkspaceId = currentId, undoable = true)
         )
     }
 
@@ -379,7 +379,7 @@ class WorkspaceButtonTest : ComposeTest() {
         // sourceWorkspaceId stays the overlay: a close confirmation is hosted in its target's pane
         // layer, so anchoring it to the owner would hide it under the overlay that asked for it.
         provider.actions shouldBe listOf(
-            WorkspaceAction.Close(id = ownerId, sourceWorkspaceId = overlayId)
+            WorkspaceAction.Close(id = ownerId, sourceWorkspaceId = overlayId, undoable = true)
         )
     }
 

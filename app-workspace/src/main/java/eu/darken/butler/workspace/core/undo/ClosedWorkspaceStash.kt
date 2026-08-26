@@ -45,9 +45,8 @@ class ClosedWorkspaceStash @Inject constructor(
      * Current logical incarnation of every workspace that exists, stamped by the repo when one is
      * created or replaced in place and preserved across pause/resume.
      *
-     * The authority for "is this [WorkspaceEvent.Closed] still the truth": a consumer that would
-     * destroy something belonging to the id can tell a close that stands from one an undo has
-     * already taken back.
+     * The authority for "is this close still the truth": a consumer that would destroy something
+     * belonging to the id can tell a close that stands from one an undo has already taken back.
      */
     private val incarnations = mutableMapOf<Workspace.Id, Long>()
 
@@ -178,7 +177,7 @@ class ClosedWorkspaceStash @Inject constructor(
     }
 
     /** Root and members of the close [closeToken] belongs to, or null when it is no longer pending. */
-    fun armedUnit(closeToken: Long): Pair<Workspace.Id, Set<Workspace.Id>>? = synchronized(lock) {
+    fun pendingUnitOf(closeToken: Long): Pair<Workspace.Id, Set<Workspace.Id>>? = synchronized(lock) {
         pending?.takeIf { it.closeToken == closeToken }?.let { it.rootId to it.memberIds }
     }
 
@@ -284,12 +283,6 @@ class ClosedWorkspaceStash @Inject constructor(
             ticket
         }
 
-    /** Drops a ticket whose workspace never made it into the list. */
-    fun dropRestoreTicket(rootId: Workspace.Id) = synchronized(lock) {
-        tickets.remove(rootId)
-        Unit
-    }
-
     private fun publishIfReadyLocked(assembly: Assembly) {
         if (assembly.published) return
         val snapshot = assembly.snapshot
@@ -341,9 +334,9 @@ class ClosedWorkspaceStash @Inject constructor(
         private val TAG = logTag("Workspace", "ClosedStash")
 
         /** How long the undo bar stays up once the entry is complete. */
-        internal val FEEDBACK_TIMEOUT: Duration = 5.seconds
+        val FEEDBACK_TIMEOUT: Duration = 5.seconds
 
         /** How long an identity half waits for its UI half before it is dropped unoffered. */
-        internal val ASSEMBLY_TIMEOUT: Duration = 5.seconds
+        val ASSEMBLY_TIMEOUT: Duration = 5.seconds
     }
 }

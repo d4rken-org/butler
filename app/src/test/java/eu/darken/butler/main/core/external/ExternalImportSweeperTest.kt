@@ -179,6 +179,36 @@ class ExternalImportSweeperTest : BaseTest() {
     }
 
     @Test
+    fun `an import a closed tab could still be brought back to survives`() = runTest {
+        // The undo window is exactly when nothing else names the file: the tab is gone, but the
+        // user can still take the close back.
+        val stashed = importDir("cccccccc-cccc-cccc-cccc-cccccccccccc")
+        val arguments = mockk<Workspace.Arguments>()
+        every { arguments.type } returns Workspace.Type.VIEWER
+        every { closedStash.peekStashedArguments() } returns listOf(arguments)
+        val factory = mockk<WorkspaceFactory<Workspace.Arguments>>()
+        every { factory.serialize(any(), any()) } returns
+            JsonPrimitive("""{"filePath":"$baseDir/${stashed.name}/payload.bin"}""")
+
+        create(mapOf(Workspace.Type.VIEWER to factory)).sweep() shouldBe 0
+
+        stashed.exists() shouldBe true
+    }
+
+    @Test
+    fun `a stashed argument that cannot be read aborts the sweep`() = runTest {
+        // Fail closed: a partial reference set deletes files that are actually referenced.
+        val orphan = importDir("dddddddd-dddd-dddd-dddd-dddddddddddd")
+        val arguments = mockk<Workspace.Arguments>()
+        every { arguments.type } returns Workspace.Type.VIEWER
+        every { closedStash.peekStashedArguments() } returns listOf(arguments)
+
+        create(factoryMap = emptyMap()).sweep() shouldBe 0
+
+        orphan.exists() shouldBe true
+    }
+
+    @Test
     fun `an import an operation is working on survives`() = runTest {
         val busy = importDir("55555555-5555-5555-5555-555555555555")
         val path = mockk<APath<*>>()
