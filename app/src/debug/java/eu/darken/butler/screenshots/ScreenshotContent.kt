@@ -194,8 +194,6 @@ internal fun ScreenshotPaneFrame(
             onPaneMenuToggle = {},
             onScreenAction = {},
             managerDialogStates = emptyMap(),
-            onDismissManagerDialog = {},
-            onConfirmManagerDialog = {},
             bannerStates = emptyMap(),
             onDismissBanner = {},
             clickToFocus = true,

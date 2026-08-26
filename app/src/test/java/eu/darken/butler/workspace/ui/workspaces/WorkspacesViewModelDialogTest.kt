@@ -19,13 +19,17 @@ import eu.darken.butler.workspace.core.WorkspaceSettings
 import eu.darken.butler.workspace.ui.WorkspacePageManager
 import eu.darken.butler.workspace.ui.WorkspaceVisibilityTracker
 import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
+import eu.darken.butler.workspace.ui.dialogs.ManagerDialogAction
 import eu.darken.butler.workspace.ui.floatingbar.WorkspaceBarCollapseStates
 import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPositions
 import eu.darken.butler.workspace.ui.session.WorkspaceSessionManager
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
@@ -178,5 +182,43 @@ class WorkspacesViewModelDialogTest : BaseTest() {
                 .shouldBeInstanceOf<ManagerDialog.WorkspaceTargeted.CloseConfirmation>()
             dialog.closingWorkspaceId shouldBe editor
             dialog.targetWorkspaceId shouldBe focused
+        }
+
+    @Test fun `resolving acts on the confirmation id it was given`() = runTest2(context = testDispatcher) {
+        val vm = vm()
+
+        vm.executeScreenAction(
+            WorkspaceScreenAction.HandleDialog(ManagerDialogAction.Resolve("c1", confirmed = true)),
+        )
+        advanceUntilIdle()
+
+        verify(exactly = 1) { workspaceRepo.resolveConfirmation("c1", true) }
+    }
+
+    @Test fun `going to a tab resolves the confirmation before the selection lands`() =
+        runTest2(context = testDispatcher) {
+            val editor = Workspace.Id()
+            val host = Workspace.Id()
+            val order = mutableListOf<String>()
+            every { workspaceRepo.resolveConfirmation(any(), any()) } answers { order += "resolve" }
+            coEvery { pageManager.handleWorkspaceSelection(any(), any()) } answers { order += "select" }
+
+            val vm = vm()
+            vm.executeScreenAction(
+                WorkspaceScreenAction.HandleDialog(
+                    ManagerDialogAction.CancelAndGoToWorkspace(
+                        confirmationId = "c1",
+                        workspaceId = editor,
+                        sourceWorkspaceId = host,
+                    ),
+                ),
+            )
+            advanceUntilIdle()
+
+            // A still-pending confirmation would re-render in the destination pane the moment the
+            // selection puts that tab on screen.
+            order shouldBe listOf("resolve", "select")
+            verify(exactly = 1) { workspaceRepo.resolveConfirmation("c1", false) }
+            coVerify(exactly = 1) { pageManager.handleWorkspaceSelection(editor, host) }
         }
 }

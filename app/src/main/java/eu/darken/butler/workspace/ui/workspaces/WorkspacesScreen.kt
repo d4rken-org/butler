@@ -76,8 +76,6 @@ fun WorkspaceScreen(
     onReviewDismiss: () -> Unit = {},
     onReviewNow: (Activity) -> Unit = {},
     onDismissBanner: (Workspace.Id) -> Unit = {},
-    onDismissManagerDialog: (Workspace.Id) -> Unit = {},
-    onConfirmManagerDialog: (ManagerDialog.WorkspaceTargeted) -> Unit = {},
     onShareError: (Workspace.Id, Throwable) -> Unit = { _, _ -> },
 ) {
     val workspaceActionHandler = LocalWorkspaceButtonProvider.current
@@ -168,8 +166,6 @@ fun WorkspaceScreen(
                 },
                 onScreenAction = onScreenAction,
                 managerDialogStates = managerDialogStates,
-                onDismissManagerDialog = onDismissManagerDialog,
-                onConfirmManagerDialog = onConfirmManagerDialog,
                 bannerStates = bannerStates,
                 onDismissBanner = onDismissBanner,
                 onRenameWorkspace = { renameTargetId = it },
@@ -191,8 +187,6 @@ fun WorkspaceScreen(
                 isOverlayVisible = isOverlayVisible,
                 onWorkspaceScreenAction = onScreenAction,
                 managerDialogStates = managerDialogStates,
-                onDismissManagerDialog = onDismissManagerDialog,
-                onConfirmManagerDialog = onConfirmManagerDialog,
                 bannerStates = bannerStates,
                 onDismissBanner = onDismissBanner,
                 paneLocalModalChains = state.paneLocalModalChains,
@@ -396,8 +390,6 @@ fun WorkspacesScreenHost(
                 onReviewDismiss = { vm.reviewDismiss() },
                 onReviewNow = { vm.reviewNow(it) },
                 onDismissBanner = { vm.dismissBanner(it) },
-                onDismissManagerDialog = { vm.dismissManagerDialog(it) },
-                onConfirmManagerDialog = { vm.confirmManagerDialog(it) },
                 onShareError = { workspaceId, error -> vm.shareWorkspaceError(workspaceId, error) },
             )
         }
