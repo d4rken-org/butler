@@ -372,11 +372,15 @@ class AppInstallInspector @Inject constructor(
                 AppInstallFormat.XAPK -> BundleManifest(
                     packageName = root.string("package_name"),
                     splits = root.splitApks(),
-                    expansions = root.expansions(),
+                    expansions = root.expansions(path),
                 )
 
                 else -> BundleManifest(packageName = root.string("pname"))
             }
+        } catch (e: AppInstallUnsupportedBundleException) {
+            // A manifest Butler cannot read at all is one to fall back from; one that declares
+            // something unreadable is a container that must not be installed as if it had not.
+            throw e
         } catch (e: Exception) {
             log(TAG, WARN) { "Unparseable $entryName in $path: ${e.asLog()}" }
             null
@@ -436,18 +440,30 @@ class AppInstallInspector @Inject constructor(
             ?.mapNotNull { entry -> entry.string("file")?.let { ManifestSplit(file = it, id = entry.string("id")) } }
             ?: emptyList()
 
-    private fun JsonObject.expansions(): List<ManifestExpansion> =
-        (this["expansions"] as? JsonArray)
-            ?.filterIsInstance<JsonObject>()
-            ?.mapNotNull { entry ->
-                val source = entry.string("file") ?: entry.string("install_path") ?: return@mapNotNull null
-                ManifestExpansion(
-                    sourceFile = source,
-                    installPath = entry.string("install_path"),
-                    installLocation = entry.string("install_location"),
-                )
-            }
-            ?: emptyList()
+    /**
+     * Every expansion the manifest declares, or none when it declares none.
+     *
+     * A declaration that cannot be read is not the same as no declaration: dropping it installs an
+     * app that is missing its expansion data and reports that as an unqualified success, which is
+     * exactly what the checks further down refuse to do.
+     */
+    private fun JsonObject.expansions(path: APath<*>): List<ManifestExpansion> {
+        fun reject(reason: String): Nothing = throw AppInstallUnsupportedBundleException(path, reason)
+
+        val declared = this["expansions"] ?: return emptyList()
+        val entries = declared as? JsonArray ?: reject("expansions are not a list")
+        return entries.map { element ->
+            val entry = element as? JsonObject ?: reject("an expansion declaration is not an object")
+            val source = entry.string("file")
+                ?: entry.string("install_path")
+                ?: reject("an expansion declaration names no file")
+            ManifestExpansion(
+                sourceFile = source,
+                installPath = entry.string("install_path"),
+                installLocation = entry.string("install_location"),
+            )
+        }
+    }
 
     companion object {
         private val TAG = logTag("Pkg", "Installer", "Inspector")
