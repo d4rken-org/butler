@@ -23,9 +23,9 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.undo.ClosedWorkspaceFeedback
 import eu.darken.butler.common.R as CommonR
+import eu.darken.butler.workspace.R as WorkspaceR
 
 /**
  * Names the tab that was just closed and offers to bring it back. Butler has no
@@ -66,7 +66,7 @@ fun WorkspaceClosedFeedbackBar(
         ) {
             Text(
                 modifier = Modifier.weight(1f),
-                text = stringResource(R.string.workspace_closed_undo_message, label),
+                text = stringResource(WorkspaceR.string.workspace_closed_undo_message, label),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
