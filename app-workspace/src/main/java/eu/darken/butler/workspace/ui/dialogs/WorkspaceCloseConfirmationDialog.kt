@@ -1,9 +1,11 @@
 package eu.darken.butler.workspace.ui.dialogs
 
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -13,8 +15,20 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.ui.dialogs.AdaptiveAlertDialog
+import eu.darken.butler.workspace.ui.modal.PaneLayerHost
 import eu.darken.butler.common.R as CommonR
 
+/**
+ * Asks whether a tab may be closed, and with unsaved changes whether they may be discarded.
+ *
+ * One composable for every caller: the host follows from where it is composed. Inside a pane it is
+ * pane-bound and leaves the other panes alone; from the tab manager, which covers the whole screen,
+ * it is a window dialog.
+ *
+ * [onGoToWorkspace] is offered when the tab being closed is not the one the user is looking at, so
+ * they can reach it - to save first - instead of only choosing between discarding and cancelling.
+ */
 @Composable
 fun WorkspaceCloseConfirmationDialog(
     workspaceTitle: CaString,
@@ -23,8 +37,9 @@ fun WorkspaceCloseConfirmationDialog(
     unsavedCount: Int = 0,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
+    onGoToWorkspace: (() -> Unit)? = null,
 ) {
-    PaneBoundAlertDialog(
+    AdaptiveAlertDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
@@ -78,6 +93,13 @@ fun WorkspaceCloseConfirmationDialog(
                 Text(text = stringResource(CommonR.string.general_cancel_action))
             }
         },
+        neutralButton = onGoToWorkspace?.let { goTo ->
+            {
+                TextButton(onClick = goTo) {
+                    Text(text = stringResource(CommonR.string.general_tab_close_goto_action))
+                }
+            }
+        },
     )
 }
 
@@ -116,4 +138,34 @@ private fun WorkspaceCloseConfirmationDialogUnsavedMultiplePreview() {
         onDismiss = {},
         onConfirm = {},
     )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspaceCloseConfirmationDialogGoToPreview() {
+    WorkspaceCloseConfirmationDialog(
+        workspaceTitle = "notes.txt".toCaString(),
+        hasUnsavedChanges = true,
+        onDismiss = {},
+        onConfirm = {},
+        onGoToWorkspace = {},
+    )
+}
+
+/** The same dialog inside a pane: composing it under a [PaneLayerHost] is what makes it pane-bound. */
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun PaneBoundWorkspaceCloseConfirmationDialogPreview() {
+    PreviewWrapper {
+        PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = true) {
+            WorkspaceCloseConfirmationDialog(
+                workspaceTitle = "notes.txt".toCaString(),
+                hasUnsavedChanges = true,
+                onDismiss = {},
+                onConfirm = {},
+            )
+        }
+    }
 }
