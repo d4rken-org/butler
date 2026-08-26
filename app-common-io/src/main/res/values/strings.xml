@@ -67,6 +67,9 @@
     <string name="app_install_error_session_title">Installation failed</string>
     <string name="app_install_error_session_description">The system rejected the installation: %1$s</string>
 
+    <string name="app_install_error_busy_title">Another installation is in progress</string>
+    <string name="app_install_error_busy_description">\"%1$s\" is still being installed. Confirm or cancel that installation before starting another one.</string>
+
     <string name="app_install_error_no_elevation_title">No elevated access</string>
     <string name="app_install_error_no_elevation_description">Root or ADB access is currently unavailable.</string>
 

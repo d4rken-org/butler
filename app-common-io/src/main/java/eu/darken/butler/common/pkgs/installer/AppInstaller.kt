@@ -77,6 +77,7 @@ class AppInstaller @Inject constructor(
     private val apkArchiveParser: ApkArchiveParser,
     private val storageEnvironment: StorageEnvironment,
     private val statusRelay: AppInstallStatusRelay,
+    private val systemInstallGate: SystemInstallGate,
     private val dispatcherProvider: DispatcherProvider,
 ) {
 
@@ -179,16 +180,42 @@ class AppInstaller @Inject constructor(
         mode: Mode,
         send: suspend (AppInstallEvent) -> Unit,
     ): Boolean {
-        val staging = openStaging(mode)
+        // Taken before anything is staged: a run that may not commit anyway would otherwise extract
+        // gigabytes first, only to be turned away at the very end.
+        val claim = if (mode == Mode.SYSTEM) claimSystemInstaller(plan) else null
         try {
-            val staged = staging.stage(plan, send)
-            when (mode) {
-                Mode.SYSTEM -> installViaSystem(plan, staged, send)
-                else -> installViaShell(plan, staged, mode, send)
+            val staging = openStaging(mode)
+            try {
+                val staged = staging.stage(plan, send)
+                when (mode) {
+                    Mode.SYSTEM -> installViaSystem(plan, staged, send)
+                    else -> installViaShell(plan, staged, mode, send)
+                }
+                return staging.placeObb(plan, send)
+            } finally {
+                withContext(NonCancellable) { staging.discardQuietly() }
             }
-            return staging.placeObb(plan, send)
         } finally {
-            withContext(NonCancellable) { staging.discardQuietly() }
+            claim?.let { systemInstallGate.release(it) }
+        }
+    }
+
+    /**
+     * Reserves the platform installer for [plan], or refuses the run outright.
+     *
+     * Refusing rather than queueing: what is being waited for is an answer only the user can give,
+     * and a queued run would sit on its staged copy of the container - a whole bundle in the cache -
+     * for as long as the dialog stays unanswered, with nothing on screen saying why. Being told
+     * which install is in the way leaves them something to do about it right away.
+     */
+    private fun claimSystemInstaller(plan: AppInstallPlan): SystemInstallGate.Claim {
+        val label = plan.baseInfo?.label ?: plan.pkgId?.name ?: plan.source.name
+        return when (val outcome = systemInstallGate.claim(label)) {
+            is SystemInstallGate.Outcome.Granted -> outcome.claim
+            is SystemInstallGate.Outcome.Busy -> {
+                log(TAG, WARN) { "claimSystemInstaller(): busy with ${outcome.label}" }
+                throw AppInstallBusyException(outcome.label)
+            }
         }
     }
 

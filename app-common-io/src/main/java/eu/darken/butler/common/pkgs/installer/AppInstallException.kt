@@ -86,6 +86,23 @@ class AppInstallTransportException(
     )
 }
 
+/**
+ * The platform installer is already busy with another install.
+ *
+ * [pendingLabel] names it: the way out is to finish that one, and saying which it is turns an
+ * otherwise unexplainable refusal into something the user can act on.
+ */
+class AppInstallBusyException(
+    val pendingLabel: String,
+) : AppInstallException("The system installer is busy with $pendingLabel") {
+
+    override fun getLocalizedError(context: LocalizedErrorContext) = LocalizedError(
+        throwable = this,
+        label = R.string.app_install_error_busy_title.toCaString(),
+        description = caString { it.getString(R.string.app_install_error_busy_description, pendingLabel) },
+    )
+}
+
 /** Root or ADB was explicitly requested but is not available right now. */
 class AppInstallNoElevationException(
     val requestedMode: AppInstaller.Mode,
