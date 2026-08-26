@@ -333,7 +333,7 @@ private fun BugReportToolbarCard(
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             // Header row — either the normal title + actions, or (while collapsed and recording) a
-            // compact recording summary that keeps Stop reachable without expanding the card.
+            // compact recording readout: dot, elapsed time and log size.
             // The min height keeps the bar tappable/visible even in states with no action buttons or
             // cutout (e.g. idle-collapsed in a multi-pane layout), where vertical padding is 0.
             Row(

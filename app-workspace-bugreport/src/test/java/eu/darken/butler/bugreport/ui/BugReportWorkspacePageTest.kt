@@ -1,15 +1,18 @@
 package eu.darken.butler.bugreport.ui
 
 import android.content.Context
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.hasScrollToIndexAction
 import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToIndex
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.bugreport.R
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -125,7 +128,11 @@ class BugReportWorkspacePageTest : ComposeTest() {
         var deleteAlls = 0
         setPage(reports = listOf(report(1)), onDeleteAll = { deleteAlls++ })
 
-        composeTestRule.onNodeWithContentDescription(deleteAllLabel).performClick()
+        // CutoutCard's Auto mode subcomposes the toolbar twice (measure + card), so the toolbar
+        // controls exist twice in the semantics tree; both close over the same callback.
+        composeTestRule.onAllNodesWithContentDescription(deleteAllLabel)
+            .onFirst()
+            .performSemanticsAction(SemanticsActions.OnClick)
 
         composeTestRule.runOnIdle { deleteAlls shouldBe 1 }
     }
