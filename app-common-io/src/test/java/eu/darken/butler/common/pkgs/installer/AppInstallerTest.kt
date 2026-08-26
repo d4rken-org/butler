@@ -23,6 +23,7 @@ import eu.darken.butler.common.storage.StorageEnvironment
 import eu.darken.butler.common.user.UserHandle2
 import eu.darken.butler.common.user.UserManager2
 import eu.darken.butler.common.user.UserProfile2
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
@@ -91,6 +92,8 @@ class AppInstallerTest : BaseTest() {
 
     /** Paths a run tried to remove through the gateway, whether or not the removal worked. */
     private val gatewayRemovals = mutableListOf<String>()
+
+    private val systemInstallGate = SystemInstallGate()
 
     private val shellOps = mockk<ShellOps>()
     private val gatewaySwitch = mockk<GatewaySwitch>()
@@ -184,6 +187,7 @@ class AppInstallerTest : BaseTest() {
         apkArchiveParser = apkArchiveParser,
         storageEnvironment = storageEnvironment,
         statusRelay = AppInstallStatusRelay(),
+        systemInstallGate = systemInstallGate,
         dispatcherProvider = dispatcherProvider,
     )
 
@@ -397,6 +401,40 @@ class AppInstallerTest : BaseTest() {
         events.single().shouldBeInstanceOf<AppInstallEvent.Failure>()
             .error.shouldBeInstanceOf<AppInstallNoElevationException>()
         executed.isEmpty() shouldBe true
+    }
+
+    @Test
+    fun `a system install is refused while another one holds the installer`() = runTest2 {
+        systemInstallGate.claim("Pending App")
+
+        val events = installer().install(plan(), AppInstaller.Mode.SYSTEM).toList()
+
+        events.single().shouldBeInstanceOf<AppInstallEvent.Failure>()
+            .error.shouldBeInstanceOf<AppInstallBusyException>()
+            .pendingLabel shouldBe "Pending App"
+        // Android answers one confirmation at a time and answers it against the session that asked
+        // first, so a second session must not exist at all - not even its staging.
+        File(context.cacheDir, "install-staging").listFiles()?.toList().orEmpty().shouldBeEmpty()
+    }
+
+    @Test
+    fun `an elevated install runs while the system installer is held`() = runTest2 {
+        systemInstallGate.claim("Pending App")
+
+        val events = installer().install(plan(), AppInstaller.Mode.ROOT).toList()
+
+        // Nothing to contend over: `pm` installs without ever asking the user to confirm.
+        events.last().shouldBeInstanceOf<AppInstallEvent.Success>().viaMode shouldBe AppInstaller.Mode.ROOT
+    }
+
+    @Test
+    fun `a system install that failed hands the installer back`() = runTest2 {
+        coEvery { gatewaySwitch.openInputStream(any()) } throws IOException("Source is gone")
+
+        installer().install(plan(), AppInstaller.Mode.SYSTEM).toList()
+            .single().shouldBeInstanceOf<AppInstallEvent.Failure>()
+
+        systemInstallGate.claim("Next App").shouldBeInstanceOf<SystemInstallGate.Outcome.Granted>()
     }
 
     @Test
