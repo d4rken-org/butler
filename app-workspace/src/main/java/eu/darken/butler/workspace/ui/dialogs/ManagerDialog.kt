@@ -41,6 +41,7 @@ sealed interface ManagerDialog {
      * In multi-pane layouts, these appear overlaid on the specific workspace pane.
      */
     sealed interface WorkspaceTargeted : ManagerDialog {
+        /** The workspace whose pane hosts this dialog, which is not necessarily what it acts on. */
         val targetWorkspaceId: Workspace.Id
 
         /**
@@ -56,10 +57,14 @@ sealed interface ManagerDialog {
 
         /**
          * Confirmation dialog for closing a workspace.
+         *
+         * [closingWorkspaceId] is the tab this asks about; it differs from [targetWorkspaceId]
+         * whenever the close was invoked from somewhere other than that tab's own pane.
          */
         data class CloseConfirmation(
             override val id: String,
             override val targetWorkspaceId: Workspace.Id,
+            val closingWorkspaceId: Workspace.Id,
             val workspaceTitle: CaString,
             val hasUnsavedChanges: Boolean = false,
             /** Unsaved members in the closing subtree; [workspaceTitle] names only one of them. */

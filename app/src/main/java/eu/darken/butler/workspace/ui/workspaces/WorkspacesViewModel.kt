@@ -159,6 +159,7 @@ class WorkspacesViewModel @Inject constructor(
                             ManagerDialog.WorkspaceTargeted.CloseConfirmation(
                                 id = confirmationId,
                                 targetWorkspaceId = targetId,
+                                closingWorkspaceId = data.workspaceId,
                                 workspaceTitle = data.workspaceTitle,
                                 hasUnsavedChanges = data.hasUnsavedChanges,
                                 unsavedCount = data.unsavedCount,
