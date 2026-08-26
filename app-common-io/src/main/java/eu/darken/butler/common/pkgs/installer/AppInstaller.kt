@@ -127,6 +127,12 @@ class AppInstaller @Inject constructor(
                     return@withContext
                 } catch (e: CancellationException) {
                     throw e
+                } catch (e: InstallDeclinedException) {
+                    // A choice the user made, not something that went wrong: reporting it as a
+                    // failure would show an error for an answer they gave on purpose.
+                    log(TAG, INFO) { "install(): the user declined the confirmation" }
+                    send(AppInstallEvent.Cancelled)
+                    return@withContext
                 } catch (e: Exception) {
                     if (isTransportFailure(e) && index < modes.lastIndex) {
                         log(TAG, WARN) { "install(): $candidate transport failed, trying next: ${e.asLog()}" }
@@ -988,6 +994,8 @@ class AppInstaller @Inject constructor(
                     ?: throw AppInstallSessionException("The system installer never reported a result")
                 when (status.status) {
                     PackageInstaller.STATUS_SUCCESS -> return@coroutineScope
+                    // The platform's own status for an install the user turned down.
+                    PackageInstaller.STATUS_FAILURE_ABORTED -> throw InstallDeclinedException()
                     PackageInstaller.STATUS_PENDING_USER_ACTION -> {
                         val confirm = status.userAction
                             ?: throw AppInstallSessionException("No install confirmation was offered")
@@ -1074,6 +1082,13 @@ class AppInstaller @Inject constructor(
     }
 
     // endregion
+
+    /**
+     * The user answered the system's confirmation dialog with "Cancel". Carried as an exception so
+     * every session and every staging directory is torn down on the way out, then turned into
+     * [AppInstallEvent.Cancelled]; it never reaches anyone as an error.
+     */
+    private class InstallDeclinedException : Exception("The user declined the install")
 
     /** Single-quotes an argument so nothing an archive named can be read as shell syntax. */
     private fun quote(arg: String): String = "'" + arg.replace("'", "'\\''") + "'"
