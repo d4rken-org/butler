@@ -10,6 +10,10 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.WorkspaceStacks
+import eu.darken.butler.workspace.core.undo.ClosedWorkspaceMemberSlots
+import eu.darken.butler.workspace.core.undo.ClosedWorkspacePlacement
+import eu.darken.butler.workspace.core.undo.ClosedWorkspaceRestoreTicket
+import eu.darken.butler.workspace.core.undo.ClosedWorkspaceStash
 import eu.darken.butler.workspace.ui.floatingbar.WorkspaceBarCollapseStates
 import eu.darken.butler.workspace.ui.restore.WorkspaceViewPrefs
 import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPositions
@@ -37,6 +41,7 @@ class WorkspacePageManager @Inject constructor(
     private val scrollPositions: WorkspaceScrollPositions,
     private val barCollapseStates: WorkspaceBarCollapseStates,
     private val viewPrefs: WorkspaceViewPrefs,
+    private val closedStash: ClosedWorkspaceStash,
 ) {
     @Parcelize
     @TypeParceler<Instant, InstantParceler>
@@ -83,14 +88,36 @@ class WorkspacePageManager @Inject constructor(
                             replacedId = event.replacedId,
                             autoFocus = event.autoFocus,
                             sourceWorkspaceId = event.sourceWorkspaceId,
+                            restoreToken = event.restoreToken,
                         )
                     }
 
                     is WorkspaceEvent.Closed -> {
-                        scrollPositions.forget(event.workspaceId)
-                        barCollapseStates.forget(event.workspaceId)
-                        viewPrefs.forget(event.workspaceId)
-                        handleWorkspaceClosed(event.workspaceId, event.callerWorkspaceId)
+                        val closeToken = event.closeToken
+                        if (closeToken != null) {
+                            // Before anything below destroys it. Per member, because a unit's
+                            // members are closed child-first and each one forgets its own slots -
+                            // a single snapshot at the root's event would already be missing them.
+                            capturePlacementFor(closeToken)
+                            closedStash.contributeSlots(closeToken, event.workspaceId, slotsOf(event.workspaceId))
+                        }
+                        // Defensive: this collector sees events in emission order, so an undo
+                        // cannot have restored the id before we get here. It costs one map lookup
+                        // to not depend on that.
+                        if (closedStash.currentTokenOf(event.workspaceId) == null) {
+                            scrollPositions.forget(event.workspaceId)
+                            barCollapseStates.forget(event.workspaceId)
+                            viewPrefs.forget(event.workspaceId)
+                            handleWorkspaceClosed(event.workspaceId, event.callerWorkspaceId)
+                        } else {
+                            log(TAG) { "Workspace ${event.workspaceId} exists again, not tearing it down" }
+                        }
+                        // The root's event is the last one of a close, so its handler returning is
+                        // what makes the entry safe to act on: until here an undo would restore ids
+                        // that the teardown still running above would strip again.
+                        if (closeToken != null && closedStash.armedUnit(closeToken)?.first == event.workspaceId) {
+                            closedStash.markDestructionComplete(closeToken)
+                        }
                     }
 
                     is WorkspaceEvent.ResultEvent -> {
@@ -143,6 +170,21 @@ class WorkspacePageManager @Inject constructor(
                 // surviving workspace after a close is owned solely by handleWorkspaceClosed(), which is
                 // the only path that knows the closing workspace's callerWorkspaceId (for picker return).
                 if (cleanedFocusedId != currentState.focusedWorkspaceId || cleanedSelectedIds != currentState.selectedWorkspaces) {
+                    // This collector and the Closed handler both destroy pane and focus, and either
+                    // can run first - the repo publishes the list before it emits the event. So the
+                    // capture happens at both points, and the first one to fire is the one that
+                    // still saw the truth.
+                    val stripped = buildSet {
+                        currentState.focusedWorkspaceId
+                            ?.takeIf { it !in validWorkspaceIds }
+                            ?.let { add(it) }
+                        addAll(currentState.selectedWorkspaces.values.filterNot { it in validWorkspaceIds })
+                    }
+                    stripped
+                        .mapNotNull { closedStash.closeTokenFor(it) }
+                        .distinct()
+                        .forEach { closeToken -> capturePlacementFor(closeToken, currentState) }
+
                     _state.update {
                         it.copy(
                             focusedWorkspaceId = cleanedFocusedId,
@@ -476,10 +518,22 @@ class WorkspacePageManager @Inject constructor(
         replacedId: Workspace.Id?,
         autoFocus: Boolean,
         sourceWorkspaceId: Workspace.Id?,
+        restoreToken: Long? = null,
     ) {
         log(TAG) {
             "handleWorkspaceCreated: workspaceId=$workspaceId, replacedId=$replacedId, " +
-                "autoFocus=$autoFocus, sourceWorkspaceId=$sourceWorkspaceId"
+                "autoFocus=$autoFocus, sourceWorkspaceId=$sourceWorkspaceId, restoreToken=$restoreToken"
+        }
+
+        if (restoreToken != null) {
+            // An undo brought this one back: where it goes was captured when it closed, and running
+            // the creation policy instead would place it like a brand new tab. Applied from here
+            // rather than from the caller because this handler already waits for the workspace to
+            // reach state - a caller-side write races the cleanup collector, which would strip an
+            // id it has not seen yet and leave the tab unplaced with nothing to re-place it.
+            workspaceRemote.state.first { repoState -> repoState.infos.any { it.id == workspaceId } }
+            applyRestoreTicket(workspaceId)
+            return
         }
 
         // A replace (e.g. the Templates tile morphing a tab into an Explorer) retires the old
@@ -680,6 +734,124 @@ class WorkspacePageManager @Inject constructor(
                 selectedWorkspaces = finalSelections,
                 focusedWorkspaceId = newFocus,
             )
+        }
+    }
+
+    /** Everything the registries hold for one workspace, as the stash needs to file it. */
+    private fun slotsOf(workspaceId: Workspace.Id) = ClosedWorkspaceMemberSlots(
+        scrollPositions = scrollPositions.snapshot()[workspaceId].orEmpty(),
+        barCollapseStates = barCollapseStates.snapshot()[workspaceId].orEmpty(),
+        viewPrefs = viewPrefs.snapshot()[workspaceId].orEmpty(),
+    )
+
+    private fun capturePlacementFor(closeToken: Long, state: State = _state.value) {
+        val (rootId, memberIds) = closedStash.armedUnit(closeToken) ?: return
+        closedStash.capturePlacement(closeToken, placementOf(state, rootId, memberIds))
+    }
+
+    /**
+     * Where the closing unit was, and whether it should come back focused.
+     *
+     * Focus that names a live workspace outside the unit means this was a background close, and a
+     * restore that stole focus would evict a visible pane for a tab the user never left. The
+     * access-time fallback is only for focus that is already gone: every workspace is stamped at
+     * creation, so using it unconditionally would make every close look like a focused one.
+     */
+    private fun placementOf(
+        state: State,
+        rootId: Workspace.Id,
+        memberIds: Set<Workspace.Id>,
+    ): ClosedWorkspacePlacement {
+        val focusedId = state.focusedWorkspaceId
+        val focusedMemberId = when {
+            focusedId != null && focusedId in memberIds -> focusedId
+            focusedId == null -> memberIds.maxByOrNull {
+                state.workspaceAccessTimes[it] ?: Instant.DISTANT_PAST
+            }
+            else -> null
+        }
+        return ClosedWorkspacePlacement(
+            paneIndex = state.selectedWorkspaces.entries.find { it.value == rootId }?.key,
+            focusedMemberId = focusedMemberId,
+        )
+    }
+
+    /**
+     * Applies the view state and placement filed for a restored unit, once.
+     *
+     * Two callers on purpose - the restore's own Created event and whoever asked for the undo -
+     * because publication is the point of no return and a caller that dies right after it must not
+     * be the only one that could still place the tab. The ticket is handed out once, so the second
+     * caller finds nothing to do.
+     */
+    suspend fun applyRestoreTicket(rootId: Workspace.Id, restoreToken: Long? = null) {
+        val ticket = closedStash.takeRestoreTicket(rootId, restoreToken) ?: return
+        log(TAG) { "applyRestoreTicket($rootId): ${ticket.placement}" }
+        ticket.slots.forEach { (memberId, slots) ->
+            if (slots.scrollPositions.isNotEmpty()) {
+                scrollPositions.restore(mapOf(memberId to slots.scrollPositions))
+            }
+            if (slots.barCollapseStates.isNotEmpty()) {
+                barCollapseStates.restore(mapOf(memberId to slots.barCollapseStates))
+            }
+            if (slots.viewPrefs.isNotEmpty()) {
+                viewPrefs.restore(mapOf(memberId to slots.viewPrefs))
+            }
+        }
+        restoreClosedPlacement(ticket)
+    }
+
+    /** Waits for [rootId] to exist, then applies its ticket if nobody has yet. */
+    suspend fun awaitAndApplyRestore(rootId: Workspace.Id) {
+        workspaceRemote.state.first { repoState -> repoState.infos.any { it.id == rootId } }
+        applyRestoreTicket(rootId)
+    }
+
+    /**
+     * Puts a restored unit back on screen, in one state update.
+     *
+     * A restore that had focus has to end up in a pane - a focused workspace with no pane is
+     * invisible - so it may evict, exactly like an explicit selection. One that did not is placed
+     * like an ordinary background create: into its old pane if that is still free, otherwise
+     * nowhere, reachable from the rail. A missing pane index (neither capture point saw one) is
+     * treated as "no pane to go back to" rather than as pane 0.
+     */
+    private fun restoreClosedPlacement(ticket: ClosedWorkspaceRestoreTicket) {
+        val rootId = ticket.rootId
+        val focusedMemberId = ticket.placement.focusedMemberId
+        _state.update { currentState ->
+            val paneCount = currentState.currentPaneCount
+            val targetPane = ticket.placement.paneIndex?.coerceAtMost(paneCount - 1)?.takeIf { it >= 0 }
+            val occupant = targetPane?.let { currentState.selectedWorkspaces[it] }
+
+            val selections = when {
+                focusedMemberId == null -> {
+                    if (targetPane != null && occupant == null) {
+                        currentState.selectedWorkspaces + (targetPane to rootId)
+                    } else {
+                        currentState.selectedWorkspaces
+                    }
+                }
+                paneCount == 1 -> mapOf(0 to rootId)
+                targetPane != null && occupant == null -> currentState.selectedWorkspaces + (targetPane to rootId)
+                else -> assignPane(
+                    currentState = currentState,
+                    workspaceId = rootId,
+                    sourcePaneIndex = null,
+                    allowEviction = true,
+                )
+            }
+
+            if (focusedMemberId == null) {
+                currentState.copy(selectedWorkspaces = selections)
+            } else {
+                currentState.copy(
+                    selectedWorkspaces = selections,
+                    focusedWorkspaceId = focusedMemberId,
+                    workspaceAccessTimes = currentState.workspaceAccessTimes +
+                        (focusedMemberId to Clock.System.now()),
+                )
+            }
         }
     }
 
