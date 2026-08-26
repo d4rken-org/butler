@@ -3,6 +3,7 @@ package eu.darken.butler.common.pkgs.installer
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.adb.AdbManager
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.archive.ArchiveEntryMeta
@@ -149,7 +150,7 @@ class AppInstallerTest : BaseTest() {
             val path = firstArg<LocalPath>().path
             path in shellStagingChildren || path in obbDirChildren || path.endsWith(PARTIAL_SUFFIX)
         }
-        coEvery { gatewaySwitch.delete(any(), any()) } answers {
+        coEvery { gatewaySwitch.delete(any<APath<*>>(), any<Boolean>()) } answers {
             gatewayRemovals += firstArg<LocalPath>().path
             if (gatewayRemovalFails) throw IOException("No elevated access")
             true
