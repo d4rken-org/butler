@@ -155,6 +155,7 @@ class WorkspaceAutoPauseManagerTest : BaseTest() {
             every { this@apply.upgradeInfo } returns MutableStateFlow(upgradeInfo)
             coEvery { refresh() } just Runs
         }
+        val closedStash = ClosedWorkspaceStash(scope)
         repo = WorkspaceRepo(
             appScope = scope,
             factoryMap = Workspace.Type.entries.associateWith { FakeFactory() },
@@ -162,7 +163,7 @@ class WorkspaceAutoPauseManagerTest : BaseTest() {
             operationsManager = mockk(relaxed = true),
             upgradeRepo = upgradeRepo,
             usageRepo = mockk(relaxed = true),
-            closedStash = ClosedWorkspaceStash(scope),
+            closedStash = closedStash,
         )
         pageManager = WorkspacePageManager(
             appScope = scope,
@@ -170,7 +171,7 @@ class WorkspaceAutoPauseManagerTest : BaseTest() {
             scrollPositions = WorkspaceScrollPositions(),
             barCollapseStates = WorkspaceBarCollapseStates(),
             viewPrefs = WorkspaceViewPrefs(),
-            closedStash = ClosedWorkspaceStash(scope),
+            closedStash = closedStash,
         )
     }
 
