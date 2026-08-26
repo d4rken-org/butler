@@ -2,14 +2,12 @@ package eu.darken.butler.workspace.ui.workspaces
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.Workspace
@@ -68,23 +66,23 @@ class WorkspacePaneManagerDialogTest : ComposeTest() {
                 CompositionLocalProvider(
                     LocalWorkspacePageHosts provides mapOf(Workspace.Type.EXPLORER to EmptyPageHost()),
                 ) {
-                    Box(modifier = Modifier.size(width = 400.dp, height = 800.dp)) {
-                        WorkspacePane(
-                            modifier = Modifier.fillMaxSize(),
-                            info = info,
-                            design = design,
-                            paneFocused = true,
-                            activeWorkspaceId = info.id,
-                            onRequestPaneFocus = {},
-                            managerDialogStates = mapOf(hostId to dialog),
-                            onScreenAction = { actions += it },
-                            bannerStates = emptyMap(),
-                            onDismissBanner = {},
-                            onShareError = { _, _ -> },
-                            onCloseWorkspace = {},
-                            onResumeWorkspace = {},
-                        )
-                    }
+                    // No fixed-size wrapper: it would overflow the Robolectric root and taps would
+                    // land in empty space while still reporting success.
+                    WorkspacePane(
+                        modifier = Modifier.fillMaxSize(),
+                        info = info,
+                        design = design,
+                        paneFocused = true,
+                        activeWorkspaceId = info.id,
+                        onRequestPaneFocus = {},
+                        managerDialogStates = mapOf(hostId to dialog),
+                        onScreenAction = { actions += it },
+                        bannerStates = emptyMap(),
+                        onDismissBanner = {},
+                        onShareError = { _, _ -> },
+                        onCloseWorkspace = {},
+                        onResumeWorkspace = {},
+                    )
                 }
             }
         }
