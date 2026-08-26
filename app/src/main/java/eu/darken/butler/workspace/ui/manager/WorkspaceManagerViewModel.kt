@@ -50,13 +50,12 @@ class WorkspaceManagerViewModel @Inject constructor(
     val state = combine(
         workspaceRepo.state,
         workspaceSettings.showTipBadgeExplanation.flow,
-        workspaceSettings.showTipFabLongPress.flow,
         workspaceSettings.livePreview.flow,
         workspacePageManager.state,
         filterOperationsFlow,
         filterAttentionFlow,
         quickCreateItems,
-    ) { repoState, showBadge, showFabLongPressHint, livePreview, pageManagerState, filterOps, filterAtt, quickCreate ->
+    ) { repoState, showBadge, livePreview, pageManagerState, filterOps, filterAtt, quickCreate ->
         val stacks = WorkspaceStacks(repoState.infos)
         val focusedId = pageManagerState.focusedWorkspaceId
         val topChains = stacks.topChainByRoot(focusedId)
@@ -95,7 +94,6 @@ class WorkspaceManagerViewModel @Inject constructor(
             },
             useLivePreview = livePreview,
             showBadgeExplanation = showBadge,
-            showLongPressHint = showFabLongPressHint,
             operationsCount = repoState.operationCount,
             attentionCount = repoState.attentionCount,
             currentPaneCount = pageManagerState.currentPaneCount,
@@ -236,10 +234,6 @@ class WorkspaceManagerViewModel @Inject constructor(
         workspaceSettings.showTipBadgeExplanation.value(false)
     }
 
-    fun dismissLongPressHint() = launch {
-        workspaceSettings.showTipFabLongPress.value(false)
-    }
-
     fun closeAllWorkspaces() = launch {
         log(tag) { "closeAllWorkspaces()" }
         workspaceRepo.execute(WorkspaceAction.CloseAll)
@@ -269,7 +263,6 @@ class WorkspaceManagerViewModel @Inject constructor(
     data class State(
         val workspaces: List<WorkspaceItem> = emptyList(),
         val showBadgeExplanation: Boolean = true,
-        val showLongPressHint: Boolean = true,
         val useLivePreview: Boolean = true,
         val operationsCount: Int = 0,
         val attentionCount: Int = 0,

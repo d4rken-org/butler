@@ -50,6 +50,7 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerScreen
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerViewModel
+import eu.darken.butler.workspace.ui.manager.tour.WorkspaceManagerTour
 import eu.darken.butler.workspace.ui.floatingbar.LocalWorkspaceBarCollapseStates
 import eu.darken.butler.workspace.ui.manager.rememberWindowSizeInfo
 import eu.darken.butler.workspace.ui.scroll.LocalWorkspaceScrollPositions
@@ -335,6 +336,19 @@ fun WorkspacesScreenHost(
         }
     }
 
+    val tourController = LocalGuidedTourController.current
+    // Gated on the manager's own state, not just the overlay flag: a restored session makes the
+    // overlay visible before that state arrives, and the manager - with the tour's only anchor -
+    // is composed no earlier than the state is non-null. A tour started in that window finds no
+    // anchor, grace-skips its single step, and suppresses itself for the rest of the process.
+    val managerTourReady = pageManagerState.isManagerOverlayVisible && managerState != null
+    LaunchedEffect(managerTourReady) {
+        if (!managerTourReady) return@LaunchedEffect
+        // No attempted-flag: this key already runs the body once per open, and tryStart itself
+        // refuses a tour that is completed, dismissed, or skipped this process.
+        tourController.tryStart(WorkspaceManagerTour.definition)
+    }
+
     ManagerOverlayBackHandler(
         isOverlayVisible = pageManagerState.isManagerOverlayVisible,
         onDismiss = { vm.workspacePageManager.hideManagerOverlay() },
@@ -384,7 +398,6 @@ fun WorkspacesScreenHost(
                     onQuickCreate = managerVm::createWorkspace,
                     onNavigateBack = managerVm::navigateBack,
                     onDismissBadgeExplanation = managerVm::dismissBadgeExplanation,
-                    onDismissLongPressHint = managerVm::dismissLongPressHint,
                     onCloseAllWorkspaces = managerVm::closeAllWorkspaces,
                     onRenameWorkspace = managerVm::renameWorkspace,
                     onTabsClick = managerVm::clearFilters,
