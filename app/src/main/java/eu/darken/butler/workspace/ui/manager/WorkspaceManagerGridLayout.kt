@@ -47,6 +47,7 @@ fun WorkspaceManagerGridLayout(
     onToggleSelection: (Workspace.Id) -> Unit = {},
     onRenameWorkspace: (Workspace.Id) -> Unit = {},
     onTabsClick: () -> Unit = {},
+    onClearSelection: () -> Unit = {},
     onOperationsFilterClick: () -> Unit = {},
     onAttentionFilterClick: () -> Unit = {},
 ) {
@@ -117,7 +118,9 @@ fun WorkspaceManagerGridLayout(
                     attentionCount = state.attentionCount,
                     isOperationsFilterActive = state.filterOperations,
                     isAttentionFilterActive = state.filterAttention,
+                    selectedCount = state.selectedIds?.size,
                     onTabsClick = onTabsClick,
+                    onClearSelection = onClearSelection,
                     onOperationsClick = onOperationsFilterClick,
                     onAttentionClick = onAttentionFilterClick,
                 )
@@ -170,7 +173,7 @@ fun WorkspaceManagerGridLayout(
         }
 
         // Explanation cards with responsive column spans
-        if (state.showBadgeExplanation) {
+        if (state.showBadgeExplanation && !state.isSelectionActive) {
             item(
                 key = WorkspaceManagerColumnItemKey.Explanation.BadgeExplanation,
                 span = { GridItemSpan(explanationSpan) }

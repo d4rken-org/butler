@@ -2,8 +2,10 @@ package eu.darken.butler.workspace.ui.manager
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -41,7 +43,13 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.ScrollPop
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.actions.WorkspaceActionBar
 import eu.darken.butler.workspace.ui.dialogs.WorkspaceRenameDialog
+import eu.darken.butler.workspace.ui.floatingbar.BarPosition
+import eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior
+import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
+import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
+import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
 import eu.darken.butler.workspace.ui.template.QuickCreateItem
 
 @Composable
@@ -60,9 +68,10 @@ fun WorkspaceManagerScreen(
     onCloseAllWorkspaces: () -> Unit,
     onStartSelection: (Workspace.Id) -> Unit = {},
     onToggleSelection: (Workspace.Id) -> Unit = {},
-    onSelectAllWorkspaces: (List<Workspace.Id>) -> Unit = {},
+    onSelectAllTabs: () -> Unit = {},
     onClearSelection: () -> Unit = {},
     onCloseSelectedWorkspaces: () -> Unit = {},
+    onPauseSelectedWorkspaces: () -> Unit = {},
     onRenameWorkspace: (Workspace.Id, String?) -> Unit = { _, _ -> },
     onTabsClick: () -> Unit = {},
     onOperationsFilterClick: () -> Unit = {},
@@ -70,7 +79,8 @@ fun WorkspaceManagerScreen(
 ) {
     var showCloseAllDialog by remember { mutableStateOf(false) }
     var showCloseSelectedDialog by remember { mutableStateOf(false) }
-    var isFabVisible by remember { mutableStateOf(true) }
+    var showPausePartialDialog by remember { mutableStateOf(false) }
+    val barStackState = rememberFloatingBarStackState(BarPosition.BOTTOM)
 
     // Held as an id, not a captured item: the item is a snapshot whose automatic title can change,
     // that another surface can rename, or whose tab can close while the dialog is open.
@@ -78,136 +88,145 @@ fun WorkspaceManagerScreen(
 
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
-    // FAB visibility scroll connection
-    val fabScrollConnection = remember {
-        object : NestedScrollConnection {
-            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                val delta = available.y
-                if (kotlin.math.abs(delta) > 5f) { // Threshold to avoid jitter
-                    when {
-                        delta < 0 -> isFabVisible = false // Scrolling down - hide FAB
-                        delta > 0 -> isFabVisible = true  // Scrolling up - show FAB
-                    }
-                }
-                return Offset.Zero
-            }
-        }
-    }
-
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
-            .nestedScroll(scrollBehavior.nestedScrollConnection)
-            .nestedScroll(fabScrollConnection),
+            .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            // Selection replaces the whole bar rather than adding to it: the manager's own dismiss
-            // and a batch close are both a Close icon, and side by side they read as the same action.
-            if (state.isSelectionActive) {
-                TopAppBar(
-                    navigationIcon = {
-                        IconButton(onClick = onClearSelection) {
-                            Icon(
-                                imageVector = Icons.TwoTone.Close,
-                                contentDescription = stringResource(R.string.workspace_manager_selection_cancel_content_desc),
-                            )
-                        }
-                    },
-                    title = {
-                        Text(
-                            text = stringResource(
-                                R.string.workspace_manager_selection_count,
-                                state.selectedCount,
-                            ),
-                            style = MaterialTheme.typography.titleLarge,
+            TopAppBar(
+                title = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.TwoTone.Workspaces,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(32.dp)
                         )
-                    },
-                    actions = {
-                        if (!state.allSelected) {
-                            TextButton(
-                                onClick = {
-                                    onSelectAllWorkspaces(state.filteredWorkspaces.map { it.id })
-                                },
-                            ) {
-                                Text(stringResource(R.string.workspace_manager_selection_select_all))
-                            }
-                        }
-                        IconButton(onClick = { showCloseSelectedDialog = true }) {
-                            Icon(
-                                imageVector = Icons.TwoTone.Close,
-                                contentDescription = stringResource(R.string.workspace_manager_selection_close_content_desc),
-                                tint = MaterialTheme.colorScheme.error,
-                            )
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    ),
-                    scrollBehavior = scrollBehavior,
-                )
-            } else {
-                TopAppBar(
-                    title = {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.TwoTone.Workspaces,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(32.dp)
-                            )
-                            Text(
-                                text = stringResource(R.string.workspace_manager_title),
-                                style = MaterialTheme.typography.headlineSmall
-                            )
-                        }
-                    },
-                    actions = {
-                        IconButton(onClick = onNavigateBack) {
-                            Icon(
-                                imageVector = Icons.TwoTone.Close,
-                                contentDescription = stringResource(R.string.workspace_manager_dismiss_content_desc)
-                            )
-                        }
-                    },
-                    scrollBehavior = scrollBehavior
-                )
-            }
-        },
-        floatingActionButton = {
-            Box(modifier = Modifier.padding(16.dp)) {
-                ScrollPop(isVisible = isFabVisible && !state.isSelectionActive) {
-                    WorkspaceManagerFAB(
-                        workspaceCount = state.workspaceCount,
-                        quickCreateItems = state.quickCreateItems,
-                        onCreateWorkspace = onCreateWorkspace,
-                        onQuickCreate = onQuickCreate,
-                        onShowCloseAllDialog = { showCloseAllDialog = true },
-                        showLongPressHint = state.showLongPressHint,
-                        onDismissLongPressHint = onDismissLongPressHint
-                    )
-                }
-            }
+                        Text(
+                            text = stringResource(R.string.workspace_manager_title),
+                            style = MaterialTheme.typography.headlineSmall
+                        )
+                    }
+                },
+                actions = {
+                    // The one X leaves whatever mode you are in: selection first, then the manager.
+                    // It stays put while selecting because the count chip scrolls away with the
+                    // grid, which would otherwise leave no visible way out.
+                    IconButton(onClick = { if (state.isSelectionActive) onClearSelection() else onNavigateBack() }) {
+                        Icon(
+                            imageVector = Icons.TwoTone.Close,
+                            contentDescription = stringResource(
+                                if (state.isSelectionActive) {
+                                    R.string.workspace_manager_selection_cancel_content_desc
+                                } else {
+                                    R.string.workspace_manager_dismiss_content_desc
+                                }
+                            ),
+                        )
+                    }
+                },
+                scrollBehavior = scrollBehavior
+            )
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
-        AdaptiveWorkspaceManagerContent(
-            state = state,
-            paddingValues = paddingValues,
-            onCloseWorkspace = onCloseWorkspace,
-            onReorderWorkspaces = onReorderWorkspaces,
-            onSelectWorkspace = onSelectWorkspace,
-            onPauseWorkspace = onPauseWorkspace,
-            onResumeWorkspace = onResumeWorkspace,
-            onDismissBadgeExplanation = onDismissBadgeExplanation,
-            onStartSelection = onStartSelection,
-            onToggleSelection = onToggleSelection,
-            onRenameWorkspace = { renameTargetId = it },
-            onTabsClick = onTabsClick,
-            onOperationsFilterClick = onOperationsFilterClick,
-            onAttentionFilterClick = onAttentionFilterClick,
-        )
+        // Only selection actions exist so far, so the bar is absent the rest of the time rather
+        // than drawn empty; sort/view/filter entries will populate the non-selection case later.
+        val actions = remember(state.isSelectionActive, state.allSelected, state.selectionPausableCount) {
+            if (!state.isSelectionActive) {
+                emptyList()
+            } else {
+                listOf(
+                    WorkspaceManagerActionBarItem.SelectAll(isEnabled = !state.allSelected),
+                    WorkspaceManagerActionBarItem.PauseSelected(isEnabled = state.selectionPausableCount > 0),
+                    WorkspaceManagerActionBarItem.CloseSelected,
+                )
+            }
+        }
+
+        Box(modifier = Modifier.fillMaxSize()) {
+            AdaptiveWorkspaceManagerContent(
+                modifier = Modifier.nestedScroll(barStackState.nestedScrollConnection),
+                state = state,
+                paddingValues = PaddingValues(
+                    top = paddingValues.calculateTopPadding(),
+                    bottom = paddingValues.calculateBottomPadding() + barStackState.contentPaddingDp(),
+                ),
+                onCloseWorkspace = onCloseWorkspace,
+                onReorderWorkspaces = onReorderWorkspaces,
+                onSelectWorkspace = onSelectWorkspace,
+                onPauseWorkspace = onPauseWorkspace,
+                onResumeWorkspace = onResumeWorkspace,
+                onDismissBadgeExplanation = onDismissBadgeExplanation,
+                onStartSelection = onStartSelection,
+                onToggleSelection = onToggleSelection,
+                onRenameWorkspace = { renameTargetId = it },
+                onTabsClick = onTabsClick,
+                onClearSelection = onClearSelection,
+                onOperationsFilterClick = onOperationsFilterClick,
+                onAttentionFilterClick = onAttentionFilterClick,
+            )
+
+            FloatingBarStack(
+                position = BarPosition.BOTTOM,
+                state = barStackState,
+            ) {
+                // Declared first, so the action bar below it sits closest to the screen edge.
+                FloatingBar(
+                    key = "manager_fab",
+                    visible = !state.isSelectionActive,
+                    scrollBehavior = BarScrollBehavior.HideOnScroll,
+                ) {
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.CenterEnd,
+                    ) {
+                        WorkspaceManagerFAB(
+                            workspaceCount = state.workspaceCount,
+                            quickCreateItems = state.quickCreateItems,
+                            onCreateWorkspace = onCreateWorkspace,
+                            onQuickCreate = onQuickCreate,
+                            onShowCloseAllDialog = { showCloseAllDialog = true },
+                            showLongPressHint = state.showLongPressHint,
+                            onDismissLongPressHint = onDismissLongPressHint,
+                        )
+                    }
+                }
+
+                // Static, not HideOnScroll: scrolling a long grid mid-selection must not take the
+                // batch actions away with it.
+                FloatingBar(
+                    key = "manager_actions",
+                    visible = actions.isNotEmpty(),
+                    scrollBehavior = BarScrollBehavior.Static,
+                    revealOn = state.selectedIds,
+                ) {
+                    WorkspaceActionBar(
+                        actions = actions,
+                        onActionClick = { action ->
+                            when (action) {
+                                is WorkspaceManagerActionBarItem.SelectAll -> onSelectAllTabs()
+                                is WorkspaceManagerActionBarItem.PauseSelected -> {
+                                    // A fully pausable selection just pauses; the dialog exists only
+                                    // to report what a partial one will skip.
+                                    if (state.selectionPausableCount < state.selectedCount) {
+                                        showPausePartialDialog = true
+                                    } else {
+                                        onPauseSelectedWorkspaces()
+                                    }
+                                }
+                                is WorkspaceManagerActionBarItem.CloseSelected -> {
+                                    showCloseSelectedDialog = true
+                                }
+                            }
+                        },
+                    )
+                }
+            }
+        }
     }
 
     renameTargetId?.let { targetId ->
@@ -237,6 +256,17 @@ fun WorkspaceManagerScreen(
         onConfirm = {
             onCloseAllWorkspaces()
             showCloseAllDialog = false
+        }
+    )
+
+    PausePartialSelectionDialog(
+        visible = showPausePartialDialog,
+        pausableCount = state.selectionPausableCount,
+        selectedCount = state.selectedCount,
+        onDismiss = { showPausePartialDialog = false },
+        onConfirm = {
+            onPauseSelectedWorkspaces()
+            showPausePartialDialog = false
         }
     )
 

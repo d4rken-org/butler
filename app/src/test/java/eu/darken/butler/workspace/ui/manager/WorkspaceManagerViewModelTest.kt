@@ -397,7 +397,7 @@ class WorkspaceManagerViewModelTest : BaseTest() {
                 WorkspaceRemote.State(infos = listOf(readyInfo(idA), readyInfo(idB), overlay))
             val vm = createViewModel()
 
-            vm.selectAllWorkspaces(listOf(idA, idB, overlay.id))
+            vm.selectAllTabs()
 
             vm.currentState().let {
                 it.selectedIds shouldBe setOf(idA, idB)
@@ -406,25 +406,48 @@ class WorkspaceManagerViewModelTest : BaseTest() {
         }
 
     /**
-     * The filter chips narrow what the grid shows, and a selection assembled from that list is what
-     * a confirm closes - selecting past the filter would close tabs that were never on screen.
+     * The chip that triggers this shows the unfiltered tab count, so it has to deliver that many.
+     * Clearing the filters in the same step is what keeps the selection from holding cards the grid
+     * is hiding.
      */
     @Test
-    fun `select all covers only the filtered cards`() = runTest(UnconfinedTestDispatcher()) {
+    fun `select all clears the filters and takes every tab`() = runTest(UnconfinedTestDispatcher()) {
         val busy = readyInfo(idA).copy(operationCount = 1)
         repoState.value = WorkspaceRemote.State(infos = listOf(busy, readyInfo(idB)))
         val vm = createViewModel()
         vm.toggleOperationsFilter()
+        vm.currentState().filteredWorkspaces.map { it.id } shouldBe listOf(idA)
 
-        val visible = vm.currentState().filteredWorkspaces.map { it.id }
-        visible shouldBe listOf(idA)
-
-        vm.selectAllWorkspaces(visible)
+        vm.selectAllTabs()
 
         vm.currentState().let {
-            it.selectedIds shouldBe setOf(idA)
+            it.selectedIds shouldBe setOf(idA, idB)
             it.allSelected shouldBe true
+            it.filterOperations shouldBe false
+            it.filteredWorkspaces.map { w -> w.id } shouldBe listOf(idA, idB)
         }
+    }
+
+    /**
+     * The focused tab is never pausable, and select-all always includes it, so a partly pausable
+     * selection is the normal case - pausing has to act on the eligible subset rather than refuse.
+     */
+    @Test
+    fun `pausing a selection pauses only the pausable tabs`() = runTest(UnconfinedTestDispatcher()) {
+        repoState.value = WorkspaceRemote.State(infos = listOf(readyInfo(idA), readyInfo(idB)))
+        pageState.value = WorkspacePageManager.State(focusedWorkspaceId = idA)
+        val vm = createViewModel()
+
+        vm.selectAllTabs()
+        vm.currentState().let {
+            it.selectedCount shouldBe 2
+            it.selectionPausableCount shouldBe 1
+        }
+
+        vm.pauseSelectedWorkspaces()
+
+        coVerify(exactly = 1) { workspaceRepo.execute(WorkspaceAction.Pause(idB)) }
+        coVerify(exactly = 0) { workspaceRepo.execute(WorkspaceAction.Pause(idA)) }
     }
 
     @Test

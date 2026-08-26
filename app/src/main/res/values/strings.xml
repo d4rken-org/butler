@@ -339,8 +339,11 @@
     <string name="workspace_manager_close_all_action">Close all</string>
     <string name="workspace_manager_selection_count">%1$d selected</string>
     <string name="workspace_manager_selection_select_all">Select all</string>
+    <string name="workspace_manager_selection_pause_action">Pause selected</string>
+    <string name="workspace_manager_selection_close_action">Close selected</string>
     <string name="workspace_manager_selection_cancel_content_desc">Leave selection mode</string>
-    <string name="workspace_manager_selection_close_content_desc">Close selected tabs</string>
+    <string name="workspace_manager_selection_clear_content_desc">Clear selection</string>
+    <string name="workspace_manager_select_all_tabs_desc">Select all tabs</string>
     <string name="workspace_row_select_content_desc">Select tab</string>
     <string name="general_cancel_action">Cancel</string>
 

@@ -274,13 +274,16 @@ class WorkspaceManagerViewModel @Inject constructor(
     }
 
     /**
-     * [ids] is what the manager is actually showing, which the operations/attention filters can
-     * narrow. Selecting the full set instead would check tabs that are off screen and then close
-     * them on confirm, so the visible list is the caller's to supply.
+     * Selects every open tab. The filters are cleared in the same step, so the selection can never
+     * hold a card the grid is hiding: the tabs chip that triggers this shows the UNFILTERED count,
+     * and selecting fewer tabs than the number on that chip is the surprise worth avoiding.
      */
-    fun selectAllWorkspaces(ids: Collection<Workspace.Id>) {
-        log(tag) { "selectAllWorkspaces(${ids.size})" }
-        selectionFlow.value = ids.toSet().ifEmpty { null }
+    fun selectAllTabs() = launch {
+        val all = workspaceRepo.peekStacks().unitOwners.map { it.id }.toSet()
+        log(tag) { "selectAllTabs() -> ${all.size}" }
+        filterOperationsFlow.value = false
+        filterAttentionFlow.value = false
+        selectionFlow.value = all.ifEmpty { null }
     }
 
     fun clearSelection() {
@@ -301,6 +304,39 @@ class WorkspaceManagerViewModel @Inject constructor(
         if (confirmed.isEmpty()) return
         log(tag) { "closeSelectedWorkspaces() - ${confirmed.size} confirmed" }
         launch { workspaceRepo.execute(WorkspaceAction.CloseSelected(confirmed)) }
+    }
+
+    /**
+     * Pauses the pausable members of the selection and leaves the rest untouched, reporting what
+     * actually happened rather than what looked eligible: [WorkspaceItem.canPause] is eventually
+     * consistent and the repo can still refuse. Ids are captured before suspending for the same
+     * reason [closeSelectedWorkspaces] does it.
+     */
+    fun pauseSelectedWorkspaces() {
+        val confirmed = selectionFlow.value.orEmpty()
+        selectionFlow.value = null
+        if (confirmed.isEmpty()) return
+        launch {
+            val stacks = workspaceRepo.peekStacks()
+            val focusedId = workspacePageManager.state.value.focusedWorkspaceId
+            val eligible = stacks.unitOwners
+                .filter { confirmed.contains(it.id) && it.canBePausedManually(stacks, focusedId) }
+                .map { it.id }
+            log(tag) { "pauseSelectedWorkspaces() - ${eligible.size} of ${confirmed.size} eligible" }
+            var paused = 0
+            eligible.forEach { id ->
+                val leaseKey = workspaceRepo.peekOwnershipRoot(id)
+                val result = workspacePauseGate.withLease(leaseKey) {
+                    workspaceRepo.execute(WorkspaceAction.Pause(id))
+                }
+                if (result is WorkspaceAction.Pause.Result.Success) {
+                    paused++
+                } else {
+                    log(tag, WARN) { "Pausing $id did not succeed: $result" }
+                }
+            }
+            log(tag, INFO) { "pauseSelectedWorkspaces() - paused $paused of ${confirmed.size}" }
+        }
     }
 
     /**
@@ -362,10 +398,19 @@ class WorkspaceManagerViewModel @Inject constructor(
 
         val selectedCount: Int = selectedIds?.size ?: 0
 
-        /** Whether every card currently on screen is checked; a filter can make that a subset. */
+        /** Whether every open tab is checked. Selecting freezes the filters, so this is unambiguous. */
         val allSelected: Boolean
-            get() = selectedIds != null && filteredWorkspaces.isNotEmpty() &&
-                    filteredWorkspaces.all { selectedIds.contains(it.id) }
+            get() = selectedIds != null && workspaces.isNotEmpty() &&
+                    workspaces.all { selectedIds.contains(it.id) }
+
+        /**
+         * How many of the selected tabs can currently be paused. Always short of [selectedCount]
+         * after a select-all: the focused tab is never pausable, so "some were skipped" is the
+         * normal case rather than the exception.
+         */
+        val selectionPausableCount: Int = selectedIds
+            ?.let { ids -> workspaces.count { ids.contains(it.id) && it.canPause } }
+            ?: 0
 
         val selectionHasUnsavedChanges: Boolean = selectedIds
             ?.let { ids -> workspaces.any { ids.contains(it.id) && it.hasUnsavedChanges } }

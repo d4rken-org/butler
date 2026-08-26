@@ -12,18 +12,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.CheckCircle
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material.icons.twotone.MoreVert
 import androidx.compose.material.icons.twotone.PauseCircle
 import androidx.compose.material.icons.twotone.PlayCircle
+import androidx.compose.material.icons.twotone.RadioButtonUnchecked
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -258,14 +260,30 @@ fun WorkspaceGridItem(
                     // Per-card actions step aside while a batch close is being assembled: the
                     // header is also the drag handle, and both are off during selection.
                     if (isSelectionActive) {
-                        val selectLabel = stringResource(R.string.workspace_row_select_content_desc)
-                        Checkbox(
-                            modifier = Modifier
-                                .size(24.dp)
-                                .semantics { contentDescription = selectLabel },
+                        // An 18dp glyph rather than a Checkbox, to sit at the same weight as the
+                        // type icon opposite it. The IconToggleButton around it keeps a real touch
+                        // target and the checkbox semantics; the glyph alone would be a ~18dp
+                        // target, well under any usable minimum.
+                        IconToggleButton(
+                            modifier = Modifier.size(24.dp),
                             checked = isChecked,
                             onCheckedChange = { onToggleSelection() },
-                        )
+                        ) {
+                            Icon(
+                                modifier = Modifier.size(18.dp),
+                                imageVector = if (isChecked) {
+                                    Icons.TwoTone.CheckCircle
+                                } else {
+                                    Icons.TwoTone.RadioButtonUnchecked
+                                },
+                                contentDescription = stringResource(R.string.workspace_row_select_content_desc),
+                                tint = if (isChecked) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                },
+                            )
+                        }
                     } else {
                         IconButton(
                             modifier = Modifier.size(24.dp),

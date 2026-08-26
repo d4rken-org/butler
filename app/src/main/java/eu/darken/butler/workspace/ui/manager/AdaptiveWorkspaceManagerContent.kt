@@ -20,6 +20,7 @@ import eu.darken.butler.workspace.core.Workspace
 
 @Composable
 fun AdaptiveWorkspaceManagerContent(
+    modifier: Modifier = Modifier,
     state: WorkspaceManagerViewModel.State,
     paddingValues: PaddingValues,
     onCloseWorkspace: (Workspace.Id) -> Unit,
@@ -32,11 +33,12 @@ fun AdaptiveWorkspaceManagerContent(
     onToggleSelection: (Workspace.Id) -> Unit = {},
     onRenameWorkspace: (Workspace.Id) -> Unit = {},
     onTabsClick: () -> Unit = {},
+    onClearSelection: () -> Unit = {},
     onOperationsFilterClick: () -> Unit = {},
     onAttentionFilterClick: () -> Unit = {},
 ) {
     BoxWithConstraints(
-        modifier = Modifier.fillMaxSize()
+        modifier = modifier.fillMaxSize()
     ) {
         val screenWidth = maxWidth
 
@@ -65,6 +67,7 @@ fun AdaptiveWorkspaceManagerContent(
             onToggleSelection = onToggleSelection,
             onRenameWorkspace = onRenameWorkspace,
             onTabsClick = onTabsClick,
+            onClearSelection = onClearSelection,
             onOperationsFilterClick = onOperationsFilterClick,
             onAttentionFilterClick = onAttentionFilterClick,
         )
