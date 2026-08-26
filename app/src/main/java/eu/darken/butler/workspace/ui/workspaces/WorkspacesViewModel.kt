@@ -369,12 +369,14 @@ class WorkspacesViewModel @Inject constructor(
                 }
                 is ManagerDialogAction.CancelAndGoToWorkspace -> {
                     // Sequential inside one coroutine: the confirmation has to be gone before the
-                    // selection puts its tab on screen, or the dialog re-renders in that pane.
+                    // selection puts its tab on screen, or the dialog re-renders in that pane, and
+                    // the overlay only comes down once the tab it would cover is actually there.
                     workspaceRepo.resolveConfirmation(dialogAction.confirmationId, confirmed = false)
                     workspacePageManager.handleWorkspaceSelection(
                         workspaceId = dialogAction.workspaceId,
                         sourceWorkspaceId = dialogAction.sourceWorkspaceId,
                     )
+                    if (dialogAction.hideManagerOverlay) workspacePageManager.hideManagerOverlay()
                 }
             }
             is WorkspaceScreenAction.OpenDropInPane -> {

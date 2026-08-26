@@ -124,13 +124,15 @@ class WorkspacePaneManagerDialogTest : ComposeTest() {
 
         composeTestRule.onNodeWithText("Go to tab").performClick()
 
-        // The source is the host pane, so the tab lands where the user is already looking.
+        // The source is the host pane, so the tab lands where the user is already looking. No
+        // overlay is up on this route, so the jump takes nothing down.
         actions shouldBe listOf(
             WorkspaceScreenAction.HandleDialog(
                 ManagerDialogAction.CancelAndGoToWorkspace(
                     confirmationId = "c1",
                     workspaceId = closingId,
                     sourceWorkspaceId = hostId,
+                    hideManagerOverlay = false,
                 ),
             ),
         )

@@ -210,6 +210,7 @@ class WorkspacesViewModelDialogTest : BaseTest() {
                         confirmationId = "c1",
                         workspaceId = editor,
                         sourceWorkspaceId = host,
+                        hideManagerOverlay = false,
                     ),
                 ),
             )
@@ -221,4 +222,50 @@ class WorkspacesViewModelDialogTest : BaseTest() {
             verify(exactly = 1) { workspaceRepo.resolveConfirmation("c1", false) }
             coVerify(exactly = 1) { pageManager.handleWorkspaceSelection(editor, host) }
         }
+
+    @Test fun `the jump from the manager takes the overlay down once the tab is placed`() =
+        runTest2(context = testDispatcher) {
+            val editor = Workspace.Id()
+            val order = mutableListOf<String>()
+            coEvery { pageManager.handleWorkspaceSelection(any(), any()) } answers { order += "select" }
+            every { pageManager.hideManagerOverlay() } answers { order += "hide" }
+
+            val vm = vm()
+            vm.executeScreenAction(
+                WorkspaceScreenAction.HandleDialog(
+                    ManagerDialogAction.CancelAndGoToWorkspace(
+                        confirmationId = "c1",
+                        workspaceId = editor,
+                        sourceWorkspaceId = null,
+                        hideManagerOverlay = true,
+                    ),
+                ),
+            )
+            advanceUntilIdle()
+
+            // The overlay covers every pane, so a jump that leaves it up reveals nothing.
+            order shouldBe listOf("select", "hide")
+        }
+
+    @Test fun `the jump from a pane leaves the overlay alone`() = runTest2(context = testDispatcher) {
+        val editor = Workspace.Id()
+        val host = Workspace.Id()
+
+        val vm = vm()
+        vm.executeScreenAction(
+            WorkspaceScreenAction.HandleDialog(
+                ManagerDialogAction.CancelAndGoToWorkspace(
+                    confirmationId = "c1",
+                    workspaceId = editor,
+                    sourceWorkspaceId = host,
+                    hideManagerOverlay = false,
+                ),
+            ),
+        )
+        advanceUntilIdle()
+
+        // Nothing is covering the panes on this route, so hiding would dismiss an overlay the user
+        // opened in the meantime.
+        verify(exactly = 0) { pageManager.hideManagerOverlay() }
+    }
 }

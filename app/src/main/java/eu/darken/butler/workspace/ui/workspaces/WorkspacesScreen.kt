@@ -425,6 +425,7 @@ fun WorkspacesScreenHost(
                                         // No pane hosts this one, so the pane the user last worked
                                         // in is where the tab should land.
                                         sourceWorkspaceId = pageManagerState.focusedWorkspaceId,
+                                        hideManagerOverlay = true,
                                     ),
                                 ),
                             )
