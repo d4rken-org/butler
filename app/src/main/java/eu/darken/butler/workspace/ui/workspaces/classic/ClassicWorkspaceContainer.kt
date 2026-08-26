@@ -40,6 +40,7 @@ import eu.darken.butler.workspace.ui.insets.paneHorizontalInsetPadding
 import eu.darken.butler.workspace.ui.manager.LocalWorkspaceButtonProvider
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
+import eu.darken.butler.workspace.ui.modal.suppressPressesUnless
 import eu.darken.butler.workspace.ui.workspaces.WorkspacePane
 import eu.darken.butler.workspace.ui.workspaces.WorkspaceScreenAction
 import eu.darken.butler.workspace.ui.workspaces.WorkspaceSwitchIndicator
@@ -177,6 +178,8 @@ internal fun ClassicWorkspaceContainer(
         },
     )
 
+    val restState = rememberPagerRestState(pagerState)
+
     val hasBlockingDialog = managerDialogs.any { it.isBlocking }
 
     val scope = rememberCoroutineScope()
@@ -274,6 +277,12 @@ internal fun ClassicWorkspaceContainer(
 
                 if (tabInfo == null) {
                     CreatingWorkspacePlaceholder(
+                        // Gated at the down, not on the click: `clickable` fires on the up, so a
+                        // finger put down on the placeholder's sliver mid-swipe and held through
+                        // the settle would create a workspace the gesture never asked for. `page`
+                        // is the composed page identity, so the gate cannot drift onto another
+                        // index while the list changes under the finger.
+                        modifier = Modifier.suppressPressesUnless { restState.isRestingOn(page) },
                         isCreating = isPlaceholderPage && creationController.isCreating,
                         onClick = { creationController.onPlaceholderClick() },
                     )
@@ -312,6 +321,13 @@ internal fun ClassicWorkspaceContainer(
                         // widened press variant: no page may arm a back handler while focus names
                         // no tab.
                         backActive = paneHoldsFocus && pagerState.isSettledOnPage(page),
+                        // The press-side mirror of backActive above: while the pager is moving,
+                        // two pages share the viewport, so a finger-down starting the next swipe
+                        // lands on the partially visible neighbour. Answering it would select a
+                        // tab the gesture never chose, and the swipe would end somewhere else.
+                        // Stricter than isSettledOnPage, which is briefly true in the gap between
+                        // a drag and its fling.
+                        allowPresses = { restState.isRestingOn(page) },
                         activeWorkspaceId = activeId,
                         childModals = chain.map { it.asPaneInfo() },
                         // Always the page's own tab: a Focus() for a stacked child is dropped.
