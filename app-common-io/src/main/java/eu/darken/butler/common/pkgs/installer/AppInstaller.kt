@@ -201,6 +201,8 @@ class AppInstaller @Inject constructor(
         /** Names the directory this staging owns, and what a concurrent run's sweep skips. */
         val name: String,
         val localDir: File?,
+        /** Readable-back scratch for what ADB staging writes but this process cannot read. */
+        val scratchDir: File?,
         val shellDir: LocalPath?,
     ) {
 
@@ -231,10 +233,40 @@ class AppInstaller @Inject constructor(
             // A provider is allowed to report no size at all, and folding that to zero would reject
             // the APK on its first read. Nothing is lost: the declared size came from the same
             // mutable file, and what actually gets installed is settled by [verifyStagedBase].
+            val enforceSize = split.size > 0L
+            if (!enforceSize && localDir == null && plan.baseInfo != null) {
+                return listOf(stageApkViaScratch(plan, split))
+            }
             val staged = gatewaySwitch.openInputStream(plan.source)
-                .use { writeSplit(plan, split, it, enforceSize = split.size > 0L) }
+                .use { writeSplit(plan, split, it, enforceSize = enforceSize) }
             verifyStagedBase(plan, staged)
             return listOf(staged)
+        }
+
+        /**
+         * Stages an APK of unknown length for the elevated shell, through a local copy.
+         *
+         * With no declared length there is nothing to hold the read against, and the shell staging
+         * directory is not readable from this process, so nothing would bind those bytes to the
+         * inspected package at all. The copy is made where it can be read back and verified, and the
+         * shell copy is taken from that verified file: reopening the provider afterwards would stage
+         * whatever it serves the second time.
+         */
+        private suspend fun stageApkViaScratch(plan: AppInstallPlan, split: AppInstallPlan.Split): StagedSplit {
+            val dir = scratchDir ?: throw AppInstallSessionException("No cache directory available for staging")
+            val local = File(dir, split.stagedName)
+            val written = gatewaySwitch.openInputStream(plan.source).use { input ->
+                local.outputStream().use { out -> copyChecked(input, out, declaredSize = null, source = plan.source) }
+            }
+            verifyLocalBase(plan, LocalPath.build(local))
+
+            val target = shellDir!!.child(split.stagedName)
+            gatewaySwitch.createFile(target, createParents = false)
+            val copied = local.inputStream().use { input ->
+                gatewaySwitch.openOutputStream(target, append = false)
+                    .use { out -> copyChecked(input, out, declaredSize = written, source = plan.source) }
+            }
+            return StagedSplit(split, target, copied) { gatewaySwitch.openInputStream(target) }
         }
 
         /**
@@ -325,10 +357,15 @@ class AppInstaller @Inject constructor(
          * the shell UID and is not readable from this process.
          */
         private suspend fun verifyStagedBase(plan: AppInstallPlan, staged: StagedSplit) {
-            val expected = plan.baseInfo ?: return
             if (localDir == null) return
+            verifyLocalBase(plan, staged.path)
+        }
 
-            val actual = apkArchiveParser.parseFile(staged.path, includeIcon = false)
+        /** [verifyStagedBase] against a file this process can read, wherever it was staged. */
+        private suspend fun verifyLocalBase(plan: AppInstallPlan, path: LocalPath) {
+            val expected = plan.baseInfo ?: return
+
+            val actual = apkArchiveParser.parseFile(path, includeIcon = false)
                 ?: throw AppInstallUnsupportedBundleException(plan.source, "the staged file is not a readable APK")
             val matches = actual.id == expected.id &&
                 actual.versionCode == expected.versionCode &&
@@ -493,7 +530,7 @@ class AppInstaller @Inject constructor(
 
         /** Creates what this staging owns. Its owner already exists, so a failure here is cleanable. */
         suspend fun create() {
-            localDir?.let {
+            listOfNotNull(localDir, scratchDir).forEach {
                 if (!it.mkdirs() && !it.isDirectory) throw AppInstallSessionException("Cannot create staging $it")
             }
             shellDir?.let { gatewaySwitch.createDir(it, createParents = true) }
@@ -502,7 +539,7 @@ class AppInstaller @Inject constructor(
         suspend fun discard() {
             obbPartials.toList().forEach { if (deleteQuietly(it.path)) forget(it) }
             try {
-                localDir?.let {
+                listOfNotNull(localDir, scratchDir).forEach {
                     if (!it.deleteRecursively() && it.exists()) {
                         throw AppInstallSessionException("Cannot remove staging $it")
                     }
@@ -517,7 +554,7 @@ class AppInstaller @Inject constructor(
             } catch (e: Throwable) {
                 // Scratch this run could not remove has to stay sweepable: the flag is what stops
                 // every later run in this process from looking for it at all.
-                if (localDir != null) localSwept.set(false)
+                if (localDir != null || scratchDir != null) localSwept.set(false)
                 if (shellDir != null) shellSwept.set(false)
                 throw e
             } finally {
@@ -570,14 +607,24 @@ class AppInstaller @Inject constructor(
         val name = Uuid.random().toString()
         activeStagingNames += name
         val staging = try {
+            val localRoot = context.cacheDir?.let { File(it, LOCAL_STAGING_DIRNAME) }
             if (mode == Mode.ADB) {
                 sweepShellStaging()
-                Staging(mode, name, localDir = null, shellDir = LocalPath.build(SHELL_STAGING_ROOT, name))
+                // ADB staging owns a local directory too: what it writes for the shell cannot be
+                // read back here, and some of it has to be verified before the shell may have it.
+                sweepLocalStaging()
+                Staging(
+                    mode = mode,
+                    name = name,
+                    localDir = null,
+                    scratchDir = localRoot?.let { File(it, name) },
+                    shellDir = LocalPath.build(SHELL_STAGING_ROOT, name),
+                )
             } else {
                 sweepLocalStaging()
-                val root = context.cacheDir?.let { File(it, LOCAL_STAGING_DIRNAME) }
+                val root = localRoot
                     ?: throw AppInstallSessionException("No cache directory available for staging")
-                Staging(mode, name, localDir = File(root, name), shellDir = null)
+                Staging(mode, name, localDir = File(root, name), scratchDir = null, shellDir = null)
             }
         } catch (e: Throwable) {
             activeStagingNames.remove(name)
