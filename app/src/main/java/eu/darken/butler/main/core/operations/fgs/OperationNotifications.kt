@@ -107,12 +107,15 @@ class OperationNotifications @Inject constructor(
         return builder.build()
     }
 
-    /** Attention notification for a [Operation.State.Waiting] conflict, on the alerting channel. */
+    /** Attention notification for a [Operation.State.Waiting] operation, on the alerting channel. */
     fun buildAttention(
         notificationId: Int,
         operation: ManagedOperation,
     ): android.app.Notification {
-        val text = context.getString(R.string.ops_notification_state_attention_text)
+        // What the operation itself says it is waiting for: not every wait is a file conflict, and
+        // an install confirmation announced as one misdescribes what is being asked.
+        val text = (operation.state.value as? Operation.State.Waiting)?.reason?.get(context)
+            ?: context.getString(R.string.ops_notification_state_attention_text)
         return NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ATTENTION)
             .setSmallIcon(R.drawable.ic_notification_operations)
             .setContentTitle(
