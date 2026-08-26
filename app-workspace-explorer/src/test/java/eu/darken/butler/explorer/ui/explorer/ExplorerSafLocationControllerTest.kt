@@ -137,6 +137,31 @@ class ExplorerSafLocationControllerTest : BaseTest() {
     }
 
     @Test
+    fun `picker result seeds the provider label before the dialog is shown`() = runTest {
+        val dialogs = dialogs()
+        var dialogWhenLabeled: ExplorerDialogState? = null
+        val locationManager = mockLocationManager(locationId = "loc-42").apply {
+            coEvery { setLocationLabel(any(), any()) } answers { dialogWhenLabeled = dialogs.current() }
+        }
+        val controller = controller(locationManager = locationManager, dialogs = dialogs)
+
+        controller.handleSAFPickerResult(mockUri("com.termux.documents"))
+
+        coVerify { locationManager.setLocationLabel("loc-42", "Termux") }
+        dialogWhenLabeled shouldBe ExplorerDialogState.None
+    }
+
+    @Test
+    fun `picker result without a provider label leaves the default name`() = runTest {
+        val locationManager = mockLocationManager()
+        val controller = controller(locationManager = locationManager)
+
+        controller.handleSAFPickerResult(mockUri("com.android.externalstorage.documents"))
+
+        coVerify(exactly = 0) { locationManager.setLocationLabel(any(), any()) }
+    }
+
+    @Test
     fun `picker result on device location triggers a refresh`() = runTest {
         val workspace = mockWorkspace()
         val controller = controller(
