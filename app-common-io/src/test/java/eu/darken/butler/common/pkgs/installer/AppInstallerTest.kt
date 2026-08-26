@@ -44,6 +44,7 @@ import testhelpers.coroutine.TestDispatcherProvider
 import testhelpers.coroutine.runTest2
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.IOException
 import java.io.InputStream
 
 @RunWith(RobolectricTestRunner::class)
@@ -78,10 +79,23 @@ class AppInstallerTest : BaseTest() {
     /** Makes the removal of a run's own staging directory fail, leaving it behind. */
     private var stagingRemovalFails = false
 
+    /** What the expansion destination directory holds when a run looks at it. */
+    private var obbDirChildren = emptyList<String>()
+
+    /** Makes writing an expansion partial fail, as a lost elevated connection would. */
+    private var obbStagingFails = false
+
+    /** Makes every removal through the gateway fail, so nothing a run wrote can be cleaned up. */
+    private var gatewayRemovalFails = false
+
+    /** Paths a run tried to remove through the gateway, whether or not the removal worked. */
+    private val gatewayRemovals = mutableListOf<String>()
+
     private val shellOps = mockk<ShellOps>()
     private val gatewaySwitch = mockk<GatewaySwitch>()
     private val archiveService = mockk<ArchiveService>()
     private val apkArchiveParser = mockk<ApkArchiveParser>()
+    private val storageEnvironment = mockk<StorageEnvironment>(relaxed = true)
 
     @Before
     fun setup() {
@@ -125,13 +139,30 @@ class AppInstallerTest : BaseTest() {
 
         coEvery { gatewaySwitch.openInputStream(any()) } answers { firstArg<LocalPath>().file.inputStream() }
         coEvery { gatewaySwitch.createDir(any(), any()) } answers { gatewayWrites += firstArg<LocalPath>().path }
-        coEvery { gatewaySwitch.createFile(any(), any()) } answers { gatewayWrites += firstArg<LocalPath>().path }
+        coEvery { gatewaySwitch.createFile(any(), any()) } answers {
+            val path = firstArg<LocalPath>().path
+            gatewayWrites += path
+            if (obbStagingFails && path.endsWith(PARTIAL_SUFFIX)) throw IOException("No elevated access")
+        }
         coEvery { gatewaySwitch.openOutputStream(any(), any()) } answers { ByteArrayOutputStream() }
-        coEvery { gatewaySwitch.exists(any()) } answers { firstArg<LocalPath>().path in shellStagingChildren }
+        coEvery { gatewaySwitch.exists(any()) } answers {
+            val path = firstArg<LocalPath>().path
+            path in shellStagingChildren || path in obbDirChildren || path.endsWith(PARTIAL_SUFFIX)
+        }
+        coEvery { gatewaySwitch.delete(any(), any()) } answers {
+            gatewayRemovals += firstArg<LocalPath>().path
+            if (gatewayRemovalFails) throw IOException("No elevated access")
+            true
+        }
+        coEvery { gatewaySwitch.canonicalize(any()) } answers { firstArg<LocalPath>() }
         coEvery { gatewaySwitch.listFiles(any()) } answers {
             val parent = firstArg<LocalPath>().path
-            shellStagingChildren.filter { it != parent }.map { LocalPath.build(it) }
+            when (parent) {
+                OBB_DIR -> obbDirChildren.map { LocalPath.build(it) }
+                else -> shellStagingChildren.filter { it != parent }.map { LocalPath.build(it) }
+            }
         }
+        every { storageEnvironment.publicObbDirs } returns listOf(LocalPath.build(OBB_ROOT))
     }
 
     @After
@@ -150,7 +181,7 @@ class AppInstallerTest : BaseTest() {
         gatewaySwitch = gatewaySwitch,
         archiveService = archiveService,
         apkArchiveParser = apkArchiveParser,
-        storageEnvironment = mockk<StorageEnvironment>(relaxed = true),
+        storageEnvironment = storageEnvironment,
         statusRelay = AppInstallStatusRelay(),
         dispatcherProvider = dispatcherProvider,
     )
@@ -194,29 +225,45 @@ class AppInstallerTest : BaseTest() {
         indexEntryCount = 1,
     )
 
-    private fun stubBundleArchive() {
-        val entry = ArchiveEntryMeta(
-            segments = listOf("base.apk"),
-            rawName = "base.apk",
-            isDirectory = false,
-            size = apk.file.length(),
-            modifiedAt = null,
-        )
+    /** The same bundle plus one expansion payload, which only elevated access can place. */
+    private fun obbBundlePlan(inspected: ApkArchiveInfo) = bundlePlan(inspected).copy(
+        obbEntries = listOf(
+            AppInstallPlan.ObbEntry(entryPath = OBB_NAME, fileName = OBB_NAME, size = apk.file.length()),
+        ),
+        warnings = listOf(AppInstallPlan.Warning.OBB_PRESENT),
+        indexEntryCount = 2,
+    )
+
+    private fun stubBundleArchive(withObb: Boolean = false) {
+        val entries = buildList {
+            add(entryMeta("base.apk"))
+            if (withObb) add(entryMeta(OBB_NAME))
+        }
         coEvery { archiveService.invalidate(any()) } returns Unit
         coEvery { archiveService.index(any()) } returns ArchiveIndex(
             container = apk,
             format = ArchiveFormat.ZIP,
             fingerprint = "fingerprint",
-            entriesBySegments = mapOf(entry.segments to entry),
+            entriesBySegments = entries.associateBy { it.segments },
             childrenBySegments = emptyMap(),
             skippedUnsafe = 0,
             skippedSpecial = 0,
         )
         coEvery { archiveService.useEntryStreams(any(), any(), any()) } coAnswers {
+            val wanted = secondArg<Collection<ArchiveEntryMeta>>()
             val action = thirdArg<suspend (ArchiveEntryMeta, InputStream) -> Unit>()
-            apk.file.inputStream().use { action(entry, it) }
+            wanted.forEach { meta -> apk.file.inputStream().use { action(meta, it) } }
         }
     }
+
+    /** Every entry is [apk], so anything the installer stages is readable back as one. */
+    private fun entryMeta(name: String) = ArchiveEntryMeta(
+        segments = listOf(name),
+        rawName = name,
+        isDirectory = false,
+        size = apk.file.length(),
+        modifiedAt = null,
+    )
 
     @Test
     fun `root install runs create, write and commit in order`() = runTest2 {
@@ -390,6 +437,31 @@ class AppInstallerTest : BaseTest() {
     }
 
     @Test
+    fun `an expansion partial that could not be removed stops being protected`() = runTest2 {
+        stubBundleArchive(withObb = true)
+        val inspected = baseInfo(certSha256 = "aa")
+        coEvery { apkArchiveParser.parseFile(any(), any()) } returns inspected
+        obbStagingFails = true
+        gatewayRemovalFails = true
+        val installer = installer()
+
+        val events = installer.install(obbBundlePlan(inspected), AppInstaller.Mode.ROOT).toList()
+
+        events.any { it is AppInstallEvent.ObbFailed } shouldBe true
+        val partial = gatewayWrites.single { it.endsWith(PARTIAL_SUFFIX) }
+
+        // What the failed run gave up on is what the next run finds in the destination.
+        obbDirChildren = listOf(partial)
+        gatewayRemovals.clear()
+
+        installer.install(obbBundlePlan(inspected), AppInstaller.Mode.ROOT).toList()
+
+        // Protected while its own run was still trying to remove it, sweepable once that run gave
+        // up: staying registered would keep several GB under Android/obb for the whole process.
+        gatewayRemovals shouldContain partial
+    }
+
+    @Test
     fun `an unknown-size APK staged for adb is held against the inspection`() = runTest2 {
         val inspected = baseInfo(certSha256 = "aa")
         coEvery { apkArchiveParser.parseFile(any(), any()) } returns baseInfo(certSha256 = "bb")
@@ -448,5 +520,9 @@ class AppInstallerTest : BaseTest() {
     companion object {
         private const val SHELL_ROOT = "/data/local/tmp/butler-install"
         private const val LEFTOVER_NAME = "0f9d8f4e-0000-4000-8000-00000000cafe"
+        private const val OBB_ROOT = "/storage/emulated/0/Android/obb"
+        private const val OBB_DIR = "$OBB_ROOT/com.example.app"
+        private const val OBB_NAME = "main.1.obb"
+        private const val PARTIAL_SUFFIX = ".part"
     }
 }

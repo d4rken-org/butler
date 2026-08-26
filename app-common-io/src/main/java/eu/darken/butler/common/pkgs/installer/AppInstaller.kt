@@ -537,8 +537,8 @@ class AppInstaller @Inject constructor(
         }
 
         suspend fun discard() {
-            obbPartials.toList().forEach { if (deleteQuietly(it.path)) forget(it) }
             try {
+                obbPartials.toList().forEach { if (deleteQuietly(it.path)) forget(it) }
                 listOfNotNull(localDir, scratchDir).forEach {
                     if (!it.deleteRecursively() && it.exists()) {
                         throw AppInstallSessionException("Cannot remove staging $it")
@@ -559,8 +559,10 @@ class AppInstaller @Inject constructor(
                 throw e
             } finally {
                 // Even when removal failed: what is left is nobody's any more, and a name that stays
-                // registered is one no sweep would ever pick up.
+                // registered is one no sweep would ever pick up. Same for a partial this run could
+                // not remove - protected until the last attempt, several GB nobody reclaims after.
                 activeStagingNames.remove(name)
+                obbPartials.toList().forEach { forget(it) }
             }
         }
 
