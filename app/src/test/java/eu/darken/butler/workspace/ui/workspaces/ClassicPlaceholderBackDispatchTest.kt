@@ -229,6 +229,7 @@ class ClassicPlaceholderBackDispatchTest : ComposeTest() {
                 ManagerDialog.WorkspaceTargeted.CloseConfirmation(
                     id = "close-confirmation",
                     targetWorkspaceId = idB,
+                    closingWorkspaceId = idB,
                     workspaceTitle = "Explorer".toCaString(),
                 ),
             ),
