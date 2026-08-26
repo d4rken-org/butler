@@ -19,8 +19,14 @@ class SystemInstallGate @Inject constructor() {
 
     /** Takes the installer for [label], or names who is holding it right now. */
     fun claim(label: String): Outcome = synchronized(lock) {
-        holder?.let { return Outcome.Busy(it.label) }
-        Claim(label).also { holder = it }.let { Outcome.Granted(it) }
+        val held = holder
+        if (held != null) {
+            Outcome.Busy(held.label)
+        } else {
+            val claim = Claim(label)
+            holder = claim
+            Outcome.Granted(claim)
+        }
     }
 
     /** Hands the installer back. A claim that is no longer the current one changes nothing. */
