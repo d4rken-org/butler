@@ -24,6 +24,11 @@ data class PendingWorkspaceConfirmation(
             val workspaceId: Workspace.Id,
             val workspaceTitle: CaString,
             val hasUnsavedChanges: Boolean = false,
+            /**
+             * How many workspaces in the closing subtree hold unsaved changes. [workspaceTitle]
+             * names one of them, so anything above 1 has to be said out loud.
+             */
+            val unsavedCount: Int = 0,
         ) : ConfirmationData
 
         /**

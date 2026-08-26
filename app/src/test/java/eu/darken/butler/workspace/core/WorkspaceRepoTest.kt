@@ -1548,6 +1548,180 @@ class WorkspaceRepoTest : BaseTest() {
         }
 
     @Test
+    fun `a dirty child blocks the close of its clean owner`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val tabId = repo.createTab()
+            val childId = repo.createSubWorkspace(caller = tabId)
+            markDirty(childId)
+
+            repo.execute(WorkspaceAction.Close(tabId))
+
+            // Closing the tab would take the child down with it, so nothing may be released yet
+            fake(tabId).released shouldBe false
+            fake(childId).released shouldBe false
+            repo.pendingConfirmations.first().closeConfirmationsFor(tabId) shouldBe 1
+        }
+
+    @Test
+    fun `the close confirmation names the member holding the unsaved changes`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val tabId = repo.createTab()
+            val childId = repo.createSubWorkspace(caller = tabId)
+            markDirty(childId)
+
+            repo.execute(WorkspaceAction.Close(tabId))
+
+            val data = repo.pendingConfirmations.first().values
+                .map { it.data }
+                .filterIsInstance<PendingWorkspaceConfirmation.ConfirmationData.WorkspaceCloseConfirmation>()
+                .single()
+            data.workspaceId shouldBe tabId
+            data.hasUnsavedChanges shouldBe true
+            data.workspaceTitle shouldBe repo.infoFor(childId).displayTitle
+        }
+
+    @Test
+    fun `a dirty orphan is not reaped by a close of its missing caller`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val tabId = repo.createTab()
+            val childId = repo.createSubWorkspace(caller = tabId)
+            markDirty(childId)
+            // executeClose enumerates children before it looks the target up, so a close naming an
+            // id nothing holds still reaps whatever points at it
+            val missingId = Workspace.Id()
+            fake(childId).info.update { it.copy(callerWorkspaceId = missingId) }
+
+            repo.execute(WorkspaceAction.Close(missingId))
+
+            fake(childId).released shouldBe false
+            repo.pendingConfirmations.first().closeConfirmationsFor(missingId) shouldBe 1
+        }
+
+    @Test
+    fun `every unsaved member of the closing subtree is counted`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val tabId = repo.createTab()
+            val firstChild = repo.createSubWorkspace(caller = tabId)
+            val secondChild = repo.createSubWorkspace(caller = tabId)
+            markDirty(tabId)
+            markDirty(firstChild)
+            markDirty(secondChild)
+
+            repo.execute(WorkspaceAction.Close(tabId))
+
+            val data = repo.pendingConfirmations.first().values
+                .map { it.data }
+                .filterIsInstance<PendingWorkspaceConfirmation.ConfirmationData.WorkspaceCloseConfirmation>()
+                .single()
+            data.hasUnsavedChanges shouldBe true
+            data.unsavedCount shouldBe 3
+        }
+
+    @Test
+    fun `a broader close supersedes a pending confirmation for one of its members`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val tabId = repo.createTab()
+            val childId = repo.createSubWorkspace(caller = tabId)
+            markDirty(childId)
+
+            repo.execute(WorkspaceAction.Close(childId))
+            repo.execute(WorkspaceAction.Close(tabId))
+
+            // One dialog, one answer: the tab's close already decides the child's fate
+            val pending = repo.pendingConfirmations.first()
+            pending.closeConfirmationsFor(childId) shouldBe 0
+            pending.closeConfirmationsFor(tabId) shouldBe 1
+        }
+
+    @Test
+    fun `a narrower close supersedes a pending confirmation for its owner`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val tabId = repo.createTab()
+            val childId = repo.createSubWorkspace(caller = tabId)
+            markDirty(childId)
+
+            repo.execute(WorkspaceAction.Close(tabId))
+            repo.execute(WorkspaceAction.Close(childId))
+
+            // The newest request wins rather than being dropped by the one it overlaps
+            val pending = repo.pendingConfirmations.first()
+            pending.closeConfirmationsFor(tabId) shouldBe 0
+            pending.closeConfirmationsFor(childId) shouldBe 1
+        }
+
+    @Test
+    fun `closes of unrelated units keep their own confirmations`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val firstId = repo.createTab()
+            val secondId = repo.createTab()
+            markDirty(firstId)
+            markDirty(secondId)
+
+            repo.execute(WorkspaceAction.Close(firstId))
+            repo.execute(WorkspaceAction.Close(secondId))
+
+            val pending = repo.pendingConfirmations.first()
+            pending.closeConfirmationsFor(firstId) shouldBe 1
+            pending.closeConfirmationsFor(secondId) shouldBe 1
+        }
+
+    @Test
+    fun `a superseded confirmation cannot still close its target`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val tabId = repo.createTab()
+            val childId = repo.createSubWorkspace(caller = tabId)
+            markDirty(childId)
+
+            repo.execute(WorkspaceAction.Close(tabId))
+            val supersededId = repo.pendingConfirmations.first().keys.single()
+            repo.execute(WorkspaceAction.Close(childId))
+
+            // Resolving the id the superseded dialog carried must not reach a dropped action
+            repo.resolveConfirmation(supersededId, confirmed = true)
+
+            fake(tabId).released shouldBe false
+            fake(childId).released shouldBe false
+        }
+
+    @Test
+    fun `a clean subtree closes without confirmation`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val tabId = repo.createTab()
+            val childId = repo.createSubWorkspace(caller = tabId)
+
+            repo.execute(WorkspaceAction.Close(tabId))
+
+            fake(tabId).released shouldBe true
+            fake(childId).released shouldBe true
+            repo.pendingConfirmations.first() shouldBe emptyMap()
+        }
+
+    @Test
+    fun `closing a clean child does not consult its dirty owner`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val tabId = repo.createTab()
+            val childId = repo.createSubWorkspace(caller = tabId)
+            markDirty(tabId)
+
+            // A close names a subtree, not a whole unit: the owner outlives this and keeps its edits
+            repo.execute(WorkspaceAction.Close(childId))
+
+            fake(childId).released shouldBe true
+            fake(tabId).released shouldBe false
+            repo.pendingConfirmations.first() shouldBe emptyMap()
+        }
+
+    @Test
     fun `closing a clean workspace closes immediately without confirmation`() =
         runTest(UnconfinedTestDispatcher()) {
             val repo = createRepo()

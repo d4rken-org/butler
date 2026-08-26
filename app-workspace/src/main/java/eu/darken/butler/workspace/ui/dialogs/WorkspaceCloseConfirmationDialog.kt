@@ -19,6 +19,8 @@ import eu.darken.butler.common.R as CommonR
 fun WorkspaceCloseConfirmationDialog(
     workspaceTitle: CaString,
     hasUnsavedChanges: Boolean = false,
+    /** Unsaved members the close would discard; [workspaceTitle] names only one of them. */
+    unsavedCount: Int = 0,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
 ) {
@@ -36,15 +38,25 @@ fun WorkspaceCloseConfirmationDialog(
             )
         },
         text = {
+            val name = workspaceTitle.get(LocalContext.current)
             Text(
-                text = stringResource(
-                    if (hasUnsavedChanges) {
-                        CommonR.string.general_tab_close_unsaved_message
-                    } else {
-                        CommonR.string.general_tab_close_confirmation_message
-                    },
-                    workspaceTitle.get(LocalContext.current)
-                )
+                text = when {
+                    // Closing a tab discards its whole modal stack, so naming one dirty member
+                    // while several go down would understate what the user is agreeing to
+                    hasUnsavedChanges && unsavedCount > 1 -> stringResource(
+                        CommonR.string.general_tab_close_unsaved_message_multiple,
+                        name,
+                        unsavedCount - 1,
+                    )
+                    hasUnsavedChanges -> stringResource(
+                        CommonR.string.general_tab_close_unsaved_message,
+                        name,
+                    )
+                    else -> stringResource(
+                        CommonR.string.general_tab_close_confirmation_message,
+                        name,
+                    )
+                }
             )
         },
         confirmButton = {
@@ -87,6 +99,20 @@ private fun WorkspaceCloseConfirmationDialogUnsavedPreview() {
     WorkspaceCloseConfirmationDialog(
         workspaceTitle = "notes.txt".toCaString(),
         hasUnsavedChanges = true,
+        unsavedCount = 1,
+        onDismiss = {},
+        onConfirm = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspaceCloseConfirmationDialogUnsavedMultiplePreview() {
+    WorkspaceCloseConfirmationDialog(
+        workspaceTitle = "notes.txt".toCaString(),
+        hasUnsavedChanges = true,
+        unsavedCount = 3,
         onDismiss = {},
         onConfirm = {},
     )

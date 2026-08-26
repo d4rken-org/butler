@@ -25,6 +25,7 @@ fun ManagerDialogHost(
         is ManagerDialog.WorkspaceTargeted.CloseConfirmation -> WorkspaceCloseConfirmationDialog(
             workspaceTitle = dialog.workspaceTitle,
             hasUnsavedChanges = dialog.hasUnsavedChanges,
+            unsavedCount = dialog.unsavedCount,
             onDismiss = { onDismiss(dialog) },
             onConfirm = { onConfirm(dialog) },
         )
