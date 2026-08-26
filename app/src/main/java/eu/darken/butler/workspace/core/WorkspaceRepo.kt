@@ -1916,7 +1916,7 @@ class WorkspaceRepo @Inject constructor(
                 member.id in resultReturningIds -> "it started owing a result"
                 contentClaims.values.any { it == member.id } -> "it took a content claim"
                 info?.contentPath != member.contentPath -> "its content path moved"
-                info.callerWorkspaceId != member.callerWorkspaceId -> "its owner changed"
+                info?.callerWorkspaceId != member.callerWorkspaceId -> "its owner changed"
                 member.id != plan.rootId && member.callerWorkspaceId !in memberIds ->
                     "its owner is outside the unit"
                 member.id != plan.rootId && !arguments.isPausableAsChild ->
@@ -1926,7 +1926,7 @@ class WorkspaceRepo @Inject constructor(
                 // Only when the arguments name a path at all: a type may legitimately report none
                 // while its tab still advertises one (an editor whose engine holds no content).
                 (arguments as? Workspace.ArgumentsWithContentPath)?.contentPath
-                    ?.let { it != info.contentPath } == true -> "the captured arguments name another file"
+                    ?.let { it != info?.contentPath } == true -> "the captured arguments name another file"
                 live.restorableStateFingerprint != member.fingerprint -> "its restorable state moved on"
                 else -> null
             }
