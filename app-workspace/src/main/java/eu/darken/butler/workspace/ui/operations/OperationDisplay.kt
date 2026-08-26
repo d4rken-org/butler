@@ -2,7 +2,6 @@ package eu.darken.butler.workspace.ui.operations
 
 import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.common.ca.CaString
-import eu.darken.butler.common.error.causes
 import eu.darken.butler.common.files.local.operations.core.PerformanceHistory
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.workspace.core.operations.ManagedOperation
@@ -79,7 +78,9 @@ fun ManagedOperation.toDisplayModel(): OperationDisplay {
                 // Extract performanceHistory from report if available
                 val performanceHistory = (state as? Operation.HasPerformanceHistory)?.performanceHistory
                 when {
-                    errorValue?.causes?.any { it is CancellationException } == true -> {
+                    // The same check History and the failure notification go by, so one cancelled
+                    // run is never described as cancelled in one place and failed in another.
+                    errorValue is CancellationException -> {
                         OperationDisplay.State.Cancelled(
                             completedAt = state.completedAt,
                             report = state.report,
