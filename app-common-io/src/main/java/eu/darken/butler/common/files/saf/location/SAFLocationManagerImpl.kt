@@ -214,10 +214,10 @@ class SAFLocationManagerImpl @Inject constructor(
     override suspend fun seedLocationLabel(locationId: String, label: String): String? {
         log(TAG, VERBOSE) { "seedLocationLabel(locationId=$locationId, label=$label)" }
         // Read the entity, not `locations`: that one drops hidden locations, whose label needs the same protection.
-        val existing = dao.getPreference(locationId)?.userLabel
+        val existing = dao.getPreference(locationId)
         if (existing != null) {
-            log(TAG) { "seedLocationLabel(...): Keeping existing label '$existing' for $locationId" }
-            return existing
+            log(TAG) { "seedLocationLabel(...): Keeping existing label '${existing.userLabel}' for $locationId" }
+            return existing.userLabel
         }
         setLocationLabel(locationId, label)
         return label

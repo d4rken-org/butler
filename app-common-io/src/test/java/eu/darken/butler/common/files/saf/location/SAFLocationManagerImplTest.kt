@@ -614,6 +614,24 @@ class SAFLocationManagerImplTest : BaseTest() {
     }
 
     /**
+     * A cleared label is a choice, not an absence: the stored row must survive a re-grant.
+     */
+    @Test
+    fun `seedLocationLabel keeps a deliberately cleared label`() {
+        val locationId = grantedLocationId()
+        preferences.value = listOf(SAFLocationEntity(locationId, userLabel = null, isHidden = true))
+
+        var seeded: String? = "unset"
+        val seed = testScope.launch { seeded = manager.seedLocationLabel(locationId, "Termux") }
+        testDispatcher.scheduler.runCurrent()
+
+        seed.isCompleted shouldBe true
+        seeded shouldBe null
+        coVerify(exactly = 0) { dao.upsert(any()) }
+        preferences.value.single() shouldBe SAFLocationEntity(locationId, userLabel = null, isHidden = true)
+    }
+
+    /**
      * Callers refresh right after a label change, so the write must not return before
      * the location cache carries it.
      */
