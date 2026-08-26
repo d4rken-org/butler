@@ -28,6 +28,10 @@ import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
  * focus clear, no focus request, no swallow report. Clearing keyboard focus there would dismiss the
  * IME on behalf of a page the user never chose, and nothing would put it back.
  *
+ * That withholding is unconditional; the pane focus half is not. A [LocalWorkspaceFocusRequest] is
+ * optional, and without one in scope there is nowhere to hand focus to — a press that passes the
+ * gate is then observed and nothing more, while one the gate closes on is still consumed.
+ *
  * @param consumeWhenUnfocused consume the down event of every press arriving while the pane is not
  *        the focused one. Applied on an ancestor of the pane content, the down reaches the
  *        content's tap detectors already claimed, so a press into an unfocused pane only focuses
@@ -52,12 +56,11 @@ fun Modifier.requestPaneFocusOnPress(
     consumeWhenUnfocused: Boolean = false,
     onPressSwallowed: ((Offset) -> Unit)? = null,
 ): Modifier {
-    val requestFocus = LocalWorkspaceFocusRequest.current ?: return this
     val focusManager = LocalFocusManager.current
     val paneFocused = rememberUpdatedState(LocalPaneFocused.current)
     // Read when a press arrives instead of keying the handler on it: a changed lambda identity
     // would restart the event loop mid-gesture.
-    val currentRequestFocus = rememberUpdatedState(requestFocus)
+    val currentRequestFocus = rememberUpdatedState(LocalWorkspaceFocusRequest.current)
     val currentOnPressSwallowed = rememberUpdatedState(onPressSwallowed)
     val pressesAllowed = rememberUpdatedState(LocalPanePressesAllowed.current)
     return this.pointerInput(consumeWhenUnfocused) {
@@ -77,6 +80,10 @@ fun Modifier.requestPaneFocusOnPress(
                     newDowns.forEach { it.consume() }
                     continue
                 }
+                // Everything past the gate needs somewhere to send the pane focus to. Without a
+                // request in scope the press is left alone entirely: clearing focus or reporting a
+                // swallow would be work in service of a hand-over that cannot happen.
+                val requestFocus = currentRequestFocus.value ?: continue
                 if (!paneFocused.value) {
                     // The pane-focus request only resolves a round trip later, but whatever was
                     // pressed asks for keyboard focus on the *up* event. Release the old pane's
@@ -92,7 +99,7 @@ fun Modifier.requestPaneFocusOnPress(
                         }
                     }
                 }
-                currentRequestFocus.value.invoke()
+                requestFocus.invoke()
             }
         }
     }

@@ -2013,6 +2013,50 @@ class PaneLayerHostTest : ComposeTest() {
         }
     }
 
+    /**
+     * A host with no [LocalWorkspaceFocusRequest] above it still withholds presses. Nothing to hand
+     * pane focus to is a reason to skip the hand-over, not a reason to let a press through that the
+     * pane said it cannot answer for.
+     *
+     * The second half is the control: the same press on the same target lands once the gate opens,
+     * so the suppression above is the gate and not the missing provider making the target inert.
+     */
+    @Test
+    fun `presses are withheld even with no pane focus request in scope`() {
+        var allowPresses by mutableStateOf(false)
+        var clicked = 0
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                PaneLayerHost(
+                    modifier = Modifier.fillMaxSize(),
+                    paneFocused = false,
+                    clickToFocus = false,
+                    allowPresses = { allowPresses },
+                ) {
+                    PaneLayer(rank = PaneLayerRank.CONTENT, modal = false) {
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .testTag(PRESS_TARGET_TAG)
+                                .clickable { clicked++ },
+                        )
+                    }
+                }
+            }
+        }
+
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG).performClick()
+        composeTestRule.waitForIdle()
+        composeTestRule.runOnIdle { clicked shouldBe 0 }
+
+        composeTestRule.runOnIdle { allowPresses = true }
+
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG).performClick()
+        composeTestRule.waitForIdle()
+        composeTestRule.runOnIdle { clicked shouldBe 1 }
+    }
+
     companion object {
         private const val PULSE_DURATION_MS = 420L
         private const val PULSE_COMPOSE_FRAMES = 4
