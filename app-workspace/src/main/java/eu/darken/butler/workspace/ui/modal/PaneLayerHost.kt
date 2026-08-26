@@ -85,10 +85,11 @@ internal const val TAG_PANE_HOVER_BARRIER = "pane:hoverBarrier"
  *        [paneFocused], so a layout that cannot park off its panes needs no extra wiring.
  * @param allowPresses whether presses arriving in this pane may act, read at event time. Published
  *        as [LocalPanePressesAllowed] so the per-surface observers on dialogs and sheets withhold
- *        the same presses the boundary does. Answering false makes the pane tap-inert and stops it
- *        asking to be focused; it stays scrollable and draggable. A pager-driven layout answers
- *        false while it is not resting on this pane's page, where two pages share the viewport and
- *        a down starting the next swipe lands on the neighbour.
+ *        the same presses the boundary does. Answering false withholds taps and long-presses — and
+ *        with them the cross-pane drag `WorkspaceDragSource` arms from a long click — and stops the
+ *        pane asking to be focused; scroll, pager drag and sheet drag still work. A pager-driven
+ *        layout answers false while it is not resting on this pane's page, where two pages share
+ *        the viewport and a down starting the next swipe lands on the neighbour.
  */
 @Composable
 fun PaneLayerHost(
