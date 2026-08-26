@@ -43,6 +43,7 @@ import eu.darken.butler.workspace.core.session.SessionRestorationException
 import eu.darken.butler.workspace.ui.WorkspacePageManager
 import eu.darken.butler.workspace.ui.WorkspaceVisibilityTracker
 import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
+import eu.darken.butler.workspace.ui.dialogs.ManagerDialogAction
 import eu.darken.butler.workspace.ui.feedback.BannerState
 import eu.darken.butler.workspace.ui.floatingbar.WorkspaceBarCollapseStates
 import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPositions
@@ -362,6 +363,20 @@ class WorkspacesViewModel @Inject constructor(
                     }
                 }
             }
+            is WorkspaceScreenAction.HandleDialog -> when (val dialogAction = action.action) {
+                is ManagerDialogAction.Resolve -> {
+                    workspaceRepo.resolveConfirmation(dialogAction.confirmationId, dialogAction.confirmed)
+                }
+                is ManagerDialogAction.CancelAndGoToWorkspace -> {
+                    // Sequential inside one coroutine: the confirmation has to be gone before the
+                    // selection puts its tab on screen, or the dialog re-renders in that pane.
+                    workspaceRepo.resolveConfirmation(dialogAction.confirmationId, confirmed = false)
+                    workspacePageManager.handleWorkspaceSelection(
+                        workspaceId = dialogAction.workspaceId,
+                        sourceWorkspaceId = dialogAction.sourceWorkspaceId,
+                    )
+                }
+            }
             is WorkspaceScreenAction.OpenDropInPane -> {
                 val item = action.payload.items.singleOrNull()
                 if (item == null) {
@@ -429,21 +444,6 @@ class WorkspacesViewModel @Inject constructor(
     fun reviewDismiss() = launch {
         log(tag) { "reviewDismiss()" }
         reviewTool.dismiss()
-    }
-
-    fun dismissManagerDialog(workspaceId: Workspace.Id) = launch {
-        log(tag) { "dismissManagerDialog($workspaceId)" }
-        val dialogState = _managerDialogs.value
-            .filterIsInstance<ManagerDialog.WorkspaceTargeted>()
-            .firstOrNull { it.targetWorkspaceId == workspaceId } ?: return@launch
-
-        log(tag) { "Confirmation dialog dismissed, resolving as cancelled" }
-        workspaceRepo.resolveConfirmation(dialogState.id, confirmed = false)
-    }
-
-    fun confirmManagerDialog(dialogState: ManagerDialog.WorkspaceTargeted) = launch {
-        log(tag) { "confirmManagerDialog($dialogState)" }
-        workspaceRepo.resolveConfirmation(dialogState.id, confirmed = true)
     }
 
     fun dismissBanner(workspaceId: Workspace.Id) = launch {

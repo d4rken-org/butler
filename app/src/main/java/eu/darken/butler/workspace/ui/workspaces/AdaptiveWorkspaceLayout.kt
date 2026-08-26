@@ -47,8 +47,6 @@ fun AdaptiveWorkspaceLayout(
     onPaneMenuToggle: (Boolean) -> Unit,
     onScreenAction: (WorkspaceScreenAction) -> Unit,
     managerDialogStates: Map<Workspace.Id, ManagerDialog.WorkspaceTargeted>,
-    onDismissManagerDialog: (Workspace.Id) -> Unit,
-    onConfirmManagerDialog: (ManagerDialog.WorkspaceTargeted) -> Unit,
     bannerStates: Map<Workspace.Id, eu.darken.butler.workspace.ui.feedback.BannerState>,
     onDismissBanner: (Workspace.Id) -> Unit,
     /** Whether an unfocused pane has to be clicked once before it reacts to anything. */
@@ -165,8 +163,7 @@ fun AdaptiveWorkspaceLayout(
                                 childModals = chain.map { it.asPaneInfo() },
                                 activeWorkspaceId = activeId,
                                 managerDialogStates = managerDialogStates,
-                                onDismissManagerDialog = onDismissManagerDialog,
-                                onConfirmManagerDialog = onConfirmManagerDialog,
+                                onScreenAction = onScreenAction,
                                 bannerStates = bannerStates,
                                 onDismissBanner = onDismissBanner,
                                 paneEdges = paneDesign.paneEdges,

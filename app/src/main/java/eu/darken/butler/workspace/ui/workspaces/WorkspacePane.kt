@@ -54,6 +54,8 @@ import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
  * @param onRequestPaneFocus must always request focus for the pane's *parent* workspace, including
  *        from a child modal's layers: a focus request for a pane-local modal is silently dropped,
  *        which would leave a different pane active while the user interacts with this one.
+ * @param onScreenAction where the manager dialog hosted in this pane reports back to, translated
+ *        from the dialog layer's own action channel.
  */
 @Composable
 fun WorkspacePane(
@@ -66,8 +68,7 @@ fun WorkspacePane(
     allowPresses: () -> Boolean = { true },
     onRequestPaneFocus: () -> Unit,
     managerDialogStates: Map<Workspace.Id, ManagerDialog.WorkspaceTargeted>,
-    onDismissManagerDialog: (Workspace.Id) -> Unit,
-    onConfirmManagerDialog: (ManagerDialog.WorkspaceTargeted) -> Unit,
+    onScreenAction: (WorkspaceScreenAction) -> Unit,
     bannerStates: Map<Workspace.Id, BannerState>,
     onDismissBanner: (Workspace.Id) -> Unit,
     onShareError: (Workspace.Id, Throwable) -> Unit,
@@ -102,8 +103,7 @@ fun WorkspacePane(
                     depth = 0,
                     contentIsModal = false,
                     managerDialogStates = managerDialogStates,
-                    onDismissManagerDialog = onDismissManagerDialog,
-                    onConfirmManagerDialog = onConfirmManagerDialog,
+                    onScreenAction = onScreenAction,
                     bannerStates = bannerStates,
                     onDismissBanner = onDismissBanner,
                     onShareError = onShareError,
@@ -124,8 +124,7 @@ fun WorkspacePane(
                             depth = index + 1,
                             contentIsModal = true,
                             managerDialogStates = managerDialogStates,
-                            onDismissManagerDialog = onDismissManagerDialog,
-                            onConfirmManagerDialog = onConfirmManagerDialog,
+                            onScreenAction = onScreenAction,
                             bannerStates = bannerStates,
                             onDismissBanner = onDismissBanner,
                             onShareError = onShareError,
@@ -147,8 +146,7 @@ private fun BoxScope.WorkspaceLayers(
     depth: Int,
     contentIsModal: Boolean,
     managerDialogStates: Map<Workspace.Id, ManagerDialog.WorkspaceTargeted>,
-    onDismissManagerDialog: (Workspace.Id) -> Unit,
-    onConfirmManagerDialog: (ManagerDialog.WorkspaceTargeted) -> Unit,
+    onScreenAction: (WorkspaceScreenAction) -> Unit,
     bannerStates: Map<Workspace.Id, BannerState>,
     onDismissBanner: (Workspace.Id) -> Unit,
     onShareError: (Workspace.Id, Throwable) -> Unit,
@@ -229,8 +227,7 @@ private fun BoxScope.WorkspaceLayers(
             PaneLayer(modifier = Modifier.fillMaxSize(), rank = PaneLayerRank.managerAt(depth)) {
                 ManagerDialogHost(
                     dialog = dialog,
-                    onDismiss = { onDismissManagerDialog(it.targetWorkspaceId) },
-                    onConfirm = onConfirmManagerDialog,
+                    onAction = { onScreenAction(WorkspaceScreenAction.HandleDialog(it)) },
                 )
             }
         }

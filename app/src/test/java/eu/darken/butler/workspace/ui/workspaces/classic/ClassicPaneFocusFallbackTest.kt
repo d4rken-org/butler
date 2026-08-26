@@ -126,8 +126,6 @@ class ClassicPaneFocusFallbackTest : ComposeTest() {
                     state = state,
                     onWorkspaceScreenAction = onAction,
                     managerDialogStates = emptyMap(),
-                    onDismissManagerDialog = {},
-                    onConfirmManagerDialog = {},
                     bannerStates = emptyMap(),
                     onDismissBanner = {},
                     paneLocalModalChains = state.paneLocalModalChains,

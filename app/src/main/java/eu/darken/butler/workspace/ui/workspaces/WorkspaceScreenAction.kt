@@ -2,6 +2,7 @@ package eu.darken.butler.workspace.ui.workspaces
 
 import eu.darken.butler.workspace.contracts.dnd.WorkspaceDragPayload
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.dialogs.ManagerDialogAction
 
 sealed interface WorkspaceScreenAction {
     data class Select(
@@ -40,6 +41,14 @@ sealed interface WorkspaceScreenAction {
 
     data class CreateForPane(
         val paneIndex: Int,
+    ) : WorkspaceScreenAction
+
+    /**
+     * A manager dialog reported back. The dialog layer lives in `app-workspace` and cannot name
+     * this type, so its own action channel stops at the module boundary and is bridged here.
+     */
+    data class HandleDialog(
+        val action: ManagerDialogAction,
     ) : WorkspaceScreenAction
 
     /** A single item was dropped on an empty pane; open it there. */
