@@ -121,6 +121,21 @@ val LocalPaneFocused = compositionLocalOf { true }
  */
 val LocalPaneBackActive = compositionLocalOf { true }
 
+/**
+ * Whether a press arriving in this pane may act on it.
+ *
+ * A lambda rather than a boolean because it is read at event time: a pager-driven layout answers
+ * false for a page it is not resting on, which flips several times per swipe and must take effect
+ * without waiting for the subtree to recompose.
+ *
+ * Withholds taps and press-to-focus-the-pane, NOT interaction as such: a withheld down is consumed,
+ * and scroll, drag, sheet-drag and drag-and-drop detectors all accept a consumed down — the pager's
+ * own swipe depends on that. A pane whose gate is closed can still be scrolled and dragged.
+ *
+ * Defaults to `{ true }`: outside a pager-driven pane there is nothing to withhold.
+ */
+val LocalPanePressesAllowed = compositionLocalOf<() -> Boolean> { { true } }
+
 /** Rank a layer registers at when it doesn't pick one explicitly. */
 val LocalPaneLayerRank = compositionLocalOf { PaneLayerRank.CONTENT }
 

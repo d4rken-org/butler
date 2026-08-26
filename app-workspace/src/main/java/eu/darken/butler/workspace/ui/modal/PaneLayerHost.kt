@@ -83,6 +83,12 @@ internal const val TAG_PANE_HOVER_BARRIER = "pane:hoverBarrier"
  *        because a pane can be the focused one while not being on screen — the classic pager parks
  *        on its trailing placeholder page without focus leaving the last tab. Defaults to
  *        [paneFocused], so a layout that cannot park off its panes needs no extra wiring.
+ * @param allowPresses whether presses arriving in this pane may act, read at event time. Published
+ *        as [LocalPanePressesAllowed] so the per-surface observers on dialogs and sheets withhold
+ *        the same presses the boundary does. Answering false makes the pane tap-inert and stops it
+ *        asking to be focused; it stays scrollable and draggable. A pager-driven layout answers
+ *        false while it is not resting on this pane's page, where two pages share the viewport and
+ *        a down starting the next swipe lands on the neighbour.
  */
 @Composable
 fun PaneLayerHost(
@@ -90,6 +96,7 @@ fun PaneLayerHost(
     paneFocused: Boolean,
     clickToFocus: Boolean = true,
     backActive: Boolean = paneFocused,
+    allowPresses: () -> Boolean = { true },
     paneEdges: PaneEdges = LocalPaneEdges.current,
     content: @Composable BoxScope.() -> Unit,
 ) {
@@ -106,6 +113,9 @@ fun PaneLayerHost(
         // and overrides LocalLayerActive for its subtree, so a value narrowed there would be
         // discarded by every nested dialog and sheet.
         LocalPaneBackActive provides backActive,
+        // Provided above the host's own press observer below, so the boundary is gated by the same
+        // value the dialogs and sheets inside it read.
+        LocalPanePressesAllowed provides allowPresses,
         LocalPaneLayerRank provides PaneLayerRank.CONTENT,
         LocalPaneEdges provides paneEdges,
         // Shared dialogs from app-common (ErrorDialog above all) become pane-bound inside a pane

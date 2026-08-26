@@ -24,6 +24,10 @@ import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
  * [consumeWhenUnfocused] unset it never consumes itself, so buttons and text fields inside keep
  * working.
  *
+ * While [LocalPanePressesAllowed] answers false the down is consumed and nothing else happens — no
+ * focus clear, no focus request, no swallow report. Clearing keyboard focus there would dismiss the
+ * IME on behalf of a page the user never chose, and nothing would put it back.
+ *
  * @param consumeWhenUnfocused consume the down event of every press arriving while the pane is not
  *        the focused one. Applied on an ancestor of the pane content, the down reaches the
  *        content's tap detectors already claimed, so a press into an unfocused pane only focuses
@@ -40,7 +44,8 @@ import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
  * @param onPressSwallowed invoked once per down that is actually consumed, with that pointer's
  *        position in this element's coordinate space. Fires only in the [consumeWhenUnfocused] case
  *        — exactly the presses that produce no feedback of their own, since the content's tap
- *        detectors never start.
+ *        detectors never start. A down withheld by [LocalPanePressesAllowed] reports nothing: it is
+ *        not answering the wrong page, it is declining to answer at all.
  */
 @Composable
 fun Modifier.requestPaneFocusOnPress(
@@ -54,6 +59,7 @@ fun Modifier.requestPaneFocusOnPress(
     // would restart the event loop mid-gesture.
     val currentRequestFocus = rememberUpdatedState(requestFocus)
     val currentOnPressSwallowed = rememberUpdatedState(onPressSwallowed)
+    val pressesAllowed = rememberUpdatedState(LocalPanePressesAllowed.current)
     return this.pointerInput(consumeWhenUnfocused) {
         awaitPointerEventScope {
             // A raw event loop over every new down instead of one first-down per gesture: while a
@@ -64,6 +70,13 @@ fun Modifier.requestPaneFocusOnPress(
                 val event = awaitPointerEvent(PointerEventPass.Initial)
                 val newDowns = event.changes.filter { it.changedToDownIgnoreConsumed() }
                 if (newDowns.isEmpty()) continue
+                if (!pressesAllowed.value()) {
+                    // Consuming is the whole of it. The press must not reach the content either —
+                    // a text field taking keyboard focus here would have PaneLayer ask for this
+                    // pane through the focus-arrival path, which this gate does not cover.
+                    newDowns.forEach { it.consume() }
+                    continue
+                }
                 if (!paneFocused.value) {
                     // The pane-focus request only resolves a round trip later, but whatever was
                     // pressed asks for keyboard focus on the *up* event. Release the old pane's
@@ -80,6 +93,32 @@ fun Modifier.requestPaneFocusOnPress(
                     }
                 }
                 currentRequestFocus.value.invoke()
+            }
+        }
+    }
+}
+
+/**
+ * Consumes the down of every press arriving while [allowPresses] answers false.
+ *
+ * The press-withholding half of [requestPaneFocusOnPress] on its own, for content that sits outside
+ * a pane and therefore inherits no [LocalPanePressesAllowed]. Gating the DOWN is what distinguishes
+ * this from wrapping a click callback: `clickable` fires on the up, so a down taken while the gate
+ * was closed, held, and released after it opened would still act.
+ *
+ * @param allowPresses read when a press arrives instead of being keyed on, for the reason
+ *        [requestPaneFocusOnPress] gives: a changed lambda identity would restart the event loop
+ *        mid-gesture.
+ */
+@Composable
+fun Modifier.suppressPressesUnless(allowPresses: () -> Boolean): Modifier {
+    val currentAllowPresses = rememberUpdatedState(allowPresses)
+    return this.pointerInput(Unit) {
+        awaitPointerEventScope {
+            while (true) {
+                val event = awaitPointerEvent(PointerEventPass.Initial)
+                if (currentAllowPresses.value()) continue
+                event.changes.filter { it.changedToDownIgnoreConsumed() }.forEach { it.consume() }
             }
         }
     }
