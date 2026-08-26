@@ -4,6 +4,7 @@ import android.os.Parcel
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
+import eu.darken.butler.workspace.core.undo.ClosedWorkspaceStash
 import eu.darken.butler.workspace.ui.WorkspacePageManager
 import eu.darken.butler.workspace.ui.WorkspaceVisibilityTracker
 import eu.darken.butler.workspace.ui.floatingbar.WorkspaceBarCollapseStates
@@ -161,6 +162,7 @@ class WorkspaceAutoPauseManagerTest : BaseTest() {
             operationsManager = mockk(relaxed = true),
             upgradeRepo = upgradeRepo,
             usageRepo = mockk(relaxed = true),
+            closedStash = ClosedWorkspaceStash(scope),
         )
         pageManager = WorkspacePageManager(
             appScope = scope,
@@ -168,6 +170,7 @@ class WorkspaceAutoPauseManagerTest : BaseTest() {
             scrollPositions = WorkspaceScrollPositions(),
             barCollapseStates = WorkspaceBarCollapseStates(),
             viewPrefs = WorkspaceViewPrefs(),
+            closedStash = ClosedWorkspaceStash(scope),
         )
     }
 

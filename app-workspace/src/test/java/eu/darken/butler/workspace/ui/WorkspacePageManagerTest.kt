@@ -5,6 +5,7 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceRemote
+import eu.darken.butler.workspace.core.undo.ClosedWorkspaceStash
 import eu.darken.butler.workspace.ui.floatingbar.WorkspaceBarCollapseStates
 import eu.darken.butler.workspace.ui.restore.WorkspaceViewPrefs
 import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPosition
@@ -35,6 +36,7 @@ class WorkspacePageManagerTest : BaseTest() {
     private lateinit var scrollPositions: WorkspaceScrollPositions
     private lateinit var barCollapseStates: WorkspaceBarCollapseStates
     private lateinit var viewPrefs: WorkspaceViewPrefs
+    private lateinit var closedStash: ClosedWorkspaceStash
 
     @BeforeEach
     fun setup() {
@@ -50,12 +52,14 @@ class WorkspacePageManagerTest : BaseTest() {
         scrollPositions = WorkspaceScrollPositions()
         barCollapseStates = WorkspaceBarCollapseStates()
         viewPrefs = WorkspaceViewPrefs()
+        closedStash = ClosedWorkspaceStash(testScope)
         pageManager = WorkspacePageManager(
             appScope = testScope,
             workspaceRemote = workspaceRemote,
             scrollPositions = scrollPositions,
             barCollapseStates = barCollapseStates,
             viewPrefs = viewPrefs,
+            closedStash = closedStash,
         )
     }
 
@@ -314,6 +318,7 @@ class WorkspacePageManagerTest : BaseTest() {
             scrollPositions = scrollPositions,
             barCollapseStates = barCollapseStates,
             viewPrefs = viewPrefs,
+            closedStash = closedStash,
         )
         recreated.initializeFromSavedState(savedStateHandle)
 

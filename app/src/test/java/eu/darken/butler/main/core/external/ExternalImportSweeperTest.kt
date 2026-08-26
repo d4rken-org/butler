@@ -12,6 +12,7 @@ import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationPathPlan
 import eu.darken.butler.workspace.core.operations.OperationsManager
+import eu.darken.butler.workspace.core.undo.ClosedWorkspaceStash
 import eu.darken.butler.workspace.ui.session.WorkspaceSessionManager
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
@@ -43,6 +44,7 @@ class ExternalImportSweeperTest : BaseTest() {
     private val sessionManager = mockk<WorkspaceSessionManager>()
     private val operationsManager = mockk<OperationsManager>()
     private val clipboardRepo = mockk<ClipboardRepo>()
+    private val closedStash = mockk<ClosedWorkspaceStash>()
 
     private val now = Instant.fromEpochMilliseconds(1_700_000_000_000)
     private val clock = object : Clock {
@@ -59,6 +61,7 @@ class ExternalImportSweeperTest : BaseTest() {
         every { operationsManager.operations } returns flowOf(emptyList())
         every { clipboardRepo.state } returns flowOf(ClipboardRepo.State())
         every { sessionManager.state } returns MutableStateFlow(WorkspaceSessionManager.State.Restoring)
+        every { closedStash.peekStashedArguments() } returns emptyList()
     }
 
     private fun create(
@@ -71,6 +74,7 @@ class ExternalImportSweeperTest : BaseTest() {
         sessionManager = sessionManager,
         operationsManager = operationsManager,
         clipboardRepo = clipboardRepo,
+        closedStash = closedStash,
         factoryMap = factoryMap,
         json = Json,
         clock = clock,
