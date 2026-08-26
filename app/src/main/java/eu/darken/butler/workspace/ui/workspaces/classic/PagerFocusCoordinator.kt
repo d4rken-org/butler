@@ -25,7 +25,7 @@ import kotlinx.coroutines.flow.first
 private val TAG = logTag("Workspace", "Container", "Classic", "PagerCoord")
 
 /** How long the pager must have been quiet before a page counts as resting under the finger. */
-private const val REST_QUIESCENCE_MS = 50L
+internal const val REST_QUIESCENCE_MS = 50L
 
 class PagerFocusCoordinatorState internal constructor() {
     // A depth counter, not a flag: animateScrollToPage goes through Compose's MutatorMutex, so a
