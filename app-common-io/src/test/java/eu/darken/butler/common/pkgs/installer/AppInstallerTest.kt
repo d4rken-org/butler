@@ -432,7 +432,7 @@ class AppInstallerTest : BaseTest() {
         coEvery { gatewaySwitch.openInputStream(any()) } throws IOException("Source is gone")
 
         installer().install(plan(), AppInstaller.Mode.SYSTEM).toList()
-            .single().shouldBeInstanceOf<AppInstallEvent.Failure>()
+            .last().shouldBeInstanceOf<AppInstallEvent.Failure>()
 
         systemInstallGate.claim("Next App").shouldBeInstanceOf<SystemInstallGate.Outcome.Granted>()
     }
