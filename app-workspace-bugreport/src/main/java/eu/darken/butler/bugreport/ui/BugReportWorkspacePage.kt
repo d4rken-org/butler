@@ -107,14 +107,6 @@ fun BugReportWorkspacePageHost(
     val state by vm.state.collectAsState(initial = null)
     val overlayState by vm.overlayState.collectAsState()
 
-    LaunchedEffect(Unit) {
-        vm.events.collect { event ->
-            when (event) {
-                BugReportWorkspaceViewModel.Event.ShowShortRecordingWarning -> vm.showShortRecordingWarning()
-            }
-        }
-    }
-
     state?.let { s ->
         // While the detail view is open, back returns to the list — but let an open dialog consume
         // back first so it isn't dismissed together with the detail.

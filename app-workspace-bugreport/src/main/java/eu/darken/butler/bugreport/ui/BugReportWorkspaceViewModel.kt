@@ -13,7 +13,6 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.ui.ViewModel3
 import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.CancellationException
@@ -33,12 +32,6 @@ class BugReportWorkspaceViewModel @AssistedInject constructor(
     private val bugReportRepo: BugReportRepo,
     private val bugReportRecorder: BugReportRecorder,
 ) : ViewModel3(dispatchers, logTag("BugReport", "Workspace", id.shortTag, "Page")) {
-
-    sealed interface Event {
-        data object ShowShortRecordingWarning : Event
-    }
-
-    val events = SingleEventFlow<Event>()
 
     /** The report currently shown in the full-screen detail view, or null while on the list. */
     private val selectedReportId = MutableStateFlow<String?>(null)
@@ -61,8 +54,6 @@ class BugReportWorkspaceViewModel @AssistedInject constructor(
     fun dismissShareConsent() = _overlayState.update {
         if (it.activeDialog is ActiveDialog.ShareConsent) it.copy(activeDialog = null) else it
     }
-
-    fun showShortRecordingWarning() = requestDialog(ActiveDialog.ShortRecordingWarning)
 
     fun dismissShortRecordingWarning() = _overlayState.update {
         if (it.activeDialog is ActiveDialog.ShortRecordingWarning) it.copy(activeDialog = null) else it
@@ -173,7 +164,7 @@ class BugReportWorkspaceViewModel @AssistedInject constructor(
     fun stopRecording() = launch {
         log(tag, INFO) { "stopRecording()" }
         when (bugReportRecorder.requestStop()) {
-            is BugReportRecorder.StopResult.TooShort -> events.tryEmit(Event.ShowShortRecordingWarning)
+            is BugReportRecorder.StopResult.TooShort -> requestDialog(ActiveDialog.ShortRecordingWarning)
             is BugReportRecorder.StopResult.Stopped -> {}
             is BugReportRecorder.StopResult.NotRecording -> {}
         }
