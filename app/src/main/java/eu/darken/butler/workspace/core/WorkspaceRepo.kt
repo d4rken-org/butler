@@ -379,10 +379,14 @@ class WorkspaceRepo @Inject constructor(
 
     fun resolveConfirmation(confirmationId: String, confirmed: Boolean) {
         log(TAG, INFO) { "resolveConfirmation($confirmationId, confirmed=$confirmed)" }
+        // Claim before publishing the removal, not after. This runs off the action lock, so an
+        // overlapping close superseding this confirmation is concurrent with it: whoever takes the
+        // action out of the map wins. Dropping the entry first would leave a window where the
+        // supersede takes an action the user has already confirmed, and the close would be lost.
+        val action = pendingActions.remove(confirmationId)
         _pendingConfirmations.update { it - confirmationId }
         // Dismissing a limit dialog drops its parked create too, or it would outlive the dialog
         pendingLimitRecoveries.remove(confirmationId)
-        val action = pendingActions.remove(confirmationId)
         if (confirmed && action != null) {
             appScope.launch {
                 lock.withLock { action() }
@@ -619,31 +623,55 @@ class WorkspaceRepo @Inject constructor(
 
                 val workspace = _workspaces.value.firstOrNull { it.id == action.id }
 
-                // Confirm when explicitly requested OR when the workspace has unsaved changes.
-                val needsConfirmation = action.requireConfirmation ||
-                    workspace?.info?.value?.hasUnsavedChanges == true
+                // Closing a tab takes its whole modal stack down with it, so the guard has to
+                // cover everything executeClose would destroy, not just the id the close names: a
+                // clean tab can own a dirty child (a Saver still holding shared content), and that
+                // child is precisely the thing whose loss has to be confirmed.
+                val dirtyMembers = closingSubtreeOf(action.id)
+                    .filter { it.info.value.hasUnsavedChanges }
+                val needsConfirmation = action.requireConfirmation || dirtyMembers.isNotEmpty()
 
                 if (needsConfirmation) {
-                    if (workspace == null) {
+                    // The dialog has to name something. Usually that is the close target, but a
+                    // close of an id nothing holds still has to be confirmable when it would take
+                    // a dirty orphan down with it.
+                    val naming = dirtyMembers.firstOrNull() ?: workspace
+                    if (naming == null) {
                         log(TAG, WARN) { "Cannot request close confirmation - workspace ${action.id} not found" }
                         return@withLock WorkspaceAction.Close.Result
                     }
 
-                    // De-dupe: don't queue a second close confirmation for the same workspace.
-                    val alreadyPending = _pendingConfirmations.value.values.any {
-                        val data = it.data
+                    // Two closes overlap when one's subtree holds the other's target: answering
+                    // either decides workspaces the other also claims. Only one of them may be
+                    // pending, or the screen renders a single dialog for several queued answers and
+                    // one dismissal only retires one of them.
+                    val closingIds = closingIdsOf(action.id)
+                    val overlapping = _pendingConfirmations.value.filterValues { pending ->
+                        val data = pending.data
                         data is PendingWorkspaceConfirmation.ConfirmationData.WorkspaceCloseConfirmation &&
-                            data.workspaceId == action.id
+                            (data.workspaceId in closingIds || action.id in closingIdsOf(data.workspaceId))
                     }
-                    if (alreadyPending) {
+                    val duplicate = overlapping.values.any {
+                        val data = it.data as PendingWorkspaceConfirmation.ConfirmationData.WorkspaceCloseConfirmation
+                        data.workspaceId == action.id
+                    }
+                    if (duplicate) {
                         log(TAG) { "Close confirmation already pending for ${action.id}, ignoring duplicate" }
                         return@withLock WorkspaceAction.Close.Result
                     }
+                    // The newer request replaces the older rather than being dropped by it: a close
+                    // the user just asked for must not be swallowed by one they have not answered.
+                    overlapping.keys.forEach { supersededId ->
+                        log(TAG, INFO) { "Close confirmation $supersededId overlaps ${action.id}, superseding it" }
+                        pendingActions.remove(supersededId)
+                    }
 
-                    val workspaceInfo = workspace.info.value.withCustomTitle(_customTitles.value)
+                    // The unsaved copy reads "<name> has unsaved changes", so it has to name a
+                    // member holding them; without a dirty member the target names itself.
+                    val workspaceInfo = naming.info.value.withCustomTitle(_customTitles.value)
                     val confirmationId = Uuid.random().toString()
 
-                    log(TAG, INFO) { "Requesting confirmation to close workspace: ${workspaceInfo.displayTitle}" }
+                    log(TAG, INFO) { "Requesting confirmation to close workspace: ${action.id}, naming ${workspaceInfo.displayTitle}" }
 
                     pendingActions[confirmationId] = {
                         executeClose(action.id)
@@ -651,7 +679,7 @@ class WorkspaceRepo @Inject constructor(
                     }
 
                     _pendingConfirmations.update {
-                        it + (confirmationId to PendingWorkspaceConfirmation(
+                        it - overlapping.keys + (confirmationId to PendingWorkspaceConfirmation(
                             id = confirmationId,
                             // Anchors the dialog to the workspace the close was invoked from, which
                             // is the overlay on top when a unit is closed from one of its children.
@@ -659,7 +687,10 @@ class WorkspaceRepo @Inject constructor(
                             data = PendingWorkspaceConfirmation.ConfirmationData.WorkspaceCloseConfirmation(
                                 workspaceId = action.id,
                                 workspaceTitle = workspaceInfo.displayTitle,
-                                hasUnsavedChanges = workspaceInfo.hasUnsavedChanges,
+                                hasUnsavedChanges = dirtyMembers.isNotEmpty(),
+                                // The close takes the whole subtree, so naming one member while
+                                // discarding several would understate what is lost
+                                unsavedCount = dirtyMembers.size,
                             ),
                         ))
                     }
@@ -1566,6 +1597,38 @@ class WorkspaceRepo @Inject constructor(
             results = results,
             skippedCount = totalSkipped,
         )
+    }
+
+    /**
+     * Everything a close of [workspaceId] destroys: the workspace itself plus every descendant,
+     * walking the same caller relation [executeClose] recurses over.
+     *
+     * The walk starts from the id rather than from a resolved workspace, because [executeClose]
+     * enumerates children before it looks the target up: an id nothing holds still reaps whatever
+     * names it as caller, and those orphans are exactly what a guard must not miss.
+     *
+     * Cycle-guarded for the same reason [executeClose] is: caller ids are not validated at creation.
+     */
+    private fun closingSubtreeOf(workspaceId: Workspace.Id): List<Workspace<*>> {
+        val ids = closingIdsOf(workspaceId)
+        return _workspaces.value.filter { it.id in ids }
+    }
+
+    /**
+     * [closingSubtreeOf] as bare ids, always including [workspaceId] itself even when nothing holds
+     * it. Two closes overlap exactly when either one's id set contains the other's target, which is
+     * what tells a confirmation that a second one would decide the same workspaces over again.
+     */
+    private fun closingIdsOf(workspaceId: Workspace.Id): Set<Workspace.Id> {
+        val childrenOf = _workspaces.value.groupBy { it.info.value.callerWorkspaceId }
+        val ids = mutableSetOf<Workspace.Id>()
+        val pending = ArrayDeque(listOf(workspaceId))
+        while (pending.isNotEmpty()) {
+            val nextId = pending.removeFirst()
+            if (!ids.add(nextId)) continue
+            childrenOf[nextId].orEmpty().forEach { pending += it.id }
+        }
+        return ids
     }
 
     private suspend fun executeClose(
