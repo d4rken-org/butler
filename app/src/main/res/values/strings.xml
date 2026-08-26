@@ -273,6 +273,8 @@
     <string name="acknowledgement_kotlin_extensions_subtitle">Coroutines and Serialization libraries. (APACHE 2.0)</string>
     <string name="acknowledgement_coil_title">Coil</string>
     <string name="acknowledgement_coil_subtitle">Image loading library backed by Kotlin Coroutines. (APACHE 2.0)</string>
+    <string name="acknowledgement_smbj_title">SMBJ</string>
+    <string name="acknowledgement_smbj_subtitle">SMB2 and SMB3 client library, used to talk to network shares. (APACHE 2.0)</string>
     <string name="acknowledgement_square_libraries_title">Square libraries</string>
     <string name="acknowledgement_square_libraries_subtitle">Retrofit, OkHttp, and OkIO networking libraries. (APACHE 2.0)</string>
     <string name="acknowledgement_accompanist_title">Accompanist</string>
