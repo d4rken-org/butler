@@ -18,6 +18,7 @@ import eu.darken.butler.common.pkgs.installer.AppInstallPlan
 import eu.darken.butler.common.pkgs.installer.AppInstaller
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.workspace.R
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.channelFlow
@@ -76,6 +77,7 @@ class AppInstallOperation @AssistedInject constructor(
                     WaitingState(startedAt = operationContext.startedAt, issue = event.issue)
                 )
                 is AppInstallEvent.Success -> terminal = event
+                is AppInstallEvent.Cancelled -> terminal = event
                 is AppInstallEvent.Failure -> terminal = event
             }
         }
@@ -97,6 +99,13 @@ class AppInstallOperation @AssistedInject constructor(
                         },
                     )
                 )
+            }
+
+            // The same way every other operation reports a user who called it off, so the run is
+            // recorded as cancelled instead of alerting about an error they chose.
+            is AppInstallEvent.Cancelled -> {
+                log(tag, INFO) { "perform(): the install was declined" }
+                throw CancellationException("The user declined the install")
             }
 
             is AppInstallEvent.Failure -> throw result.error

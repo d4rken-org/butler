@@ -3,8 +3,8 @@ package eu.darken.butler.common.pkgs.installer
 import eu.darken.butler.common.pkgs.Pkg
 
 /**
- * What an install run reports. Every path ends in exactly one [Success] or [Failure]; the flow never
- * completes without a terminal event.
+ * What an install run reports. Every path ends in exactly one [Success], [Cancelled] or [Failure];
+ * the flow never completes without a terminal event.
  */
 sealed interface AppInstallEvent {
 
@@ -29,6 +29,9 @@ sealed interface AppInstallEvent {
         val viaMode: AppInstaller.Mode,
         val obbPlaced: Boolean,
     ) : AppInstallEvent
+
+    /** The user declined the system's install confirmation. Their answer, not a failure. */
+    data object Cancelled : AppInstallEvent
 
     data class Failure(val error: Throwable) : AppInstallEvent
 
