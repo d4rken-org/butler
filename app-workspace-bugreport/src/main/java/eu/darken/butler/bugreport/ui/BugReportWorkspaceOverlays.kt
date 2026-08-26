@@ -26,9 +26,8 @@ private val TAG = logTag("BugReport", "Workspace", "Overlays")
 /**
  * Overlay slot of the bug report page.
  *
- * Shares the ViewModel with [BugReportWorkspacePageHost]; the event collector that raises the
- * short-recording warning stays there and must not be repeated here. The error handler lives here
- * instead, because it renders a dialog that has to be pane-bound.
+ * Shares the ViewModel with [BugReportWorkspacePageHost]. The error handler lives here because it
+ * renders a dialog that has to be pane-bound.
  */
 @Composable
 fun BugReportWorkspaceOverlaysHost(
