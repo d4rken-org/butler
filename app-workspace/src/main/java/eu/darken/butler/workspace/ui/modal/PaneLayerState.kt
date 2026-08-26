@@ -128,9 +128,12 @@ val LocalPaneBackActive = compositionLocalOf { true }
  * false for a page it is not resting on, which flips several times per swipe and must take effect
  * without waiting for the subtree to recompose.
  *
- * Withholds taps and press-to-focus-the-pane, NOT interaction as such: a withheld down is consumed,
- * and scroll, drag, sheet-drag and drag-and-drop detectors all accept a consumed down — the pager's
- * own swipe depends on that. A pane whose gate is closed can still be scrolled and dragged.
+ * Withholds taps, long-presses and press-to-focus-the-pane, NOT interaction as such: a withheld
+ * down is consumed, and scroll, pager drag and sheet drag all accept a consumed down — the pager's
+ * own swipe depends on that. Long-presses go with the taps because the click detector behind them
+ * waits for an unconsumed down, which also leaves the cross-pane drag `WorkspaceDragSource` arms
+ * from its long-click callback unarmed for that press. A pane whose gate is closed can still be
+ * scrolled and swiped.
  *
  * Defaults to `{ true }`: outside a pager-driven pane there is nothing to withhold.
  */
