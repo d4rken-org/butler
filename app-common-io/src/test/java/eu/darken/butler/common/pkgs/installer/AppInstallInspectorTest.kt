@@ -412,6 +412,65 @@ class AppInstallInspectorTest : BaseTest() {
     }
 
     @Test
+    fun `an expansion list of the wrong shape fails the bundle`() = runTest2 {
+        val container = bundle(
+            "wrongshape.xapk",
+            mapOf(
+                "manifest.json" to """{"package_name":"$testPkg","expansions":{"file":"payload.obb"}}""",
+                "base.apk" to "base",
+                "payload.obb" to "payload",
+            ),
+        )
+
+        shouldThrow<AppInstallUnsupportedBundleException> { inspector().inspect(container) }
+    }
+
+    @Test
+    fun `an expansion declaration that is not an object fails the bundle`() = runTest2 {
+        val container = bundle(
+            "notanobject.xapk",
+            mapOf(
+                "manifest.json" to """{"package_name":"$testPkg","expansions":["payload.obb"]}""",
+                "base.apk" to "base",
+                "payload.obb" to "payload",
+            ),
+        )
+
+        shouldThrow<AppInstallUnsupportedBundleException> { inspector().inspect(container) }
+    }
+
+    @Test
+    fun `an expansion declaration without a source fails the bundle`() = runTest2 {
+        // Dropped rather than rejected, this would have installed the app without its expansion
+        // data and reported that as a success.
+        val container = bundle(
+            "nosource.xapk",
+            mapOf(
+                "manifest.json" to """
+                    {"package_name":"$testPkg","expansions":[{"install_location":"EXTERNAL_STORAGE"}]}
+                """.trimIndent(),
+                "base.apk" to "base",
+                "payload.obb" to "payload",
+            ),
+        )
+
+        shouldThrow<AppInstallUnsupportedBundleException> { inspector().inspect(container) }
+    }
+
+    @Test
+    fun `a manifest without expansions declares none`() = runTest2 {
+        val container = bundle(
+            "noexpansions.xapk",
+            mapOf(
+                "manifest.json" to """{"package_name":"$testPkg"}""",
+                "base.apk" to "base",
+            ),
+        )
+
+        inspector().inspect(container).obbEntries.shouldBeEmpty()
+    }
+
+    @Test
     fun `a declared expansion pointing at a foreign package fails the bundle`() = runTest2 {
         val container = bundle(
             "foreigndeclared.xapk",
