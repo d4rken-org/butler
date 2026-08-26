@@ -1526,6 +1526,11 @@ class WorkspaceRepoTest : BaseTest() {
         ws.info.value = ws.info.value.copy(hasUnsavedChanges = true)
     }
 
+    private fun markClean(id: Workspace.Id) {
+        val ws = fake(id)
+        ws.info.value = ws.info.value.copy(hasUnsavedChanges = false)
+    }
+
     private fun Map<String, PendingWorkspaceConfirmation>.closeConfirmationsFor(id: Workspace.Id): Int =
         values.count {
             val data = it.data
@@ -1801,6 +1806,42 @@ class WorkspaceRepoTest : BaseTest() {
         result shouldBe WorkspaceAction.CloseSelected.Result(closed = 1)
         repo.retrieve(live).first() shouldBe null
     }
+
+    @Test
+    fun `a confirmation hosted by another tab dies with the tab it asks about`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val dirty = repo.createTab()
+            val host = repo.createTab()
+            markDirty(dirty)
+            repo.execute(WorkspaceAction.Close(dirty, sourceWorkspaceId = host))
+            repo.pendingConfirmations.first().closeConfirmationsFor(dirty) shouldBe 1
+
+            // Closed by another route (session cleanup, its owner going away, a discarded edit)
+            markClean(dirty)
+            repo.execute(WorkspaceAction.Close(dirty))
+
+            // Surviving it would leave a blocking dialog naming a dead tab, and confirming it would
+            // close a workspace that no longer exists.
+            repo.pendingConfirmations.first() shouldBe emptyMap()
+        }
+
+    @Test
+    fun `a confirmation dies with the tab whose pane hosts it`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val dirty = repo.createTab()
+            val host = repo.createTab()
+            markDirty(dirty)
+            repo.execute(WorkspaceAction.Close(dirty, sourceWorkspaceId = host))
+            repo.pendingConfirmations.first().closeConfirmationsFor(dirty) shouldBe 1
+
+            repo.execute(WorkspaceAction.Close(host))
+
+            // Its host pane is gone, so there is nothing left to render it in.
+            repo.pendingConfirmations.first() shouldBe emptyMap()
+            repo.retrieve(dirty).first() shouldNotBe null
+        }
 
     @Test
     fun `repeated close on a dirty workspace queues only one confirmation`() =
