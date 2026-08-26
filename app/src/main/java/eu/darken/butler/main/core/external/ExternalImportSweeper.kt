@@ -13,6 +13,7 @@ import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import eu.darken.butler.workspace.core.operations.OperationsManager
+import eu.darken.butler.workspace.core.undo.ClosedWorkspaceStash
 import eu.darken.butler.workspace.ui.session.WorkspaceSessionManager
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -66,6 +67,7 @@ class ExternalImportSweeper(
     private val sessionManager: WorkspaceSessionManager,
     private val operationsManager: OperationsManager,
     private val clipboardRepo: ClipboardRepo,
+    private val closedStash: ClosedWorkspaceStash,
     private val factoryMap: Map<Workspace.Type, @JvmSuppressWildcards WorkspaceFactory<*>>,
     private val json: Json,
     private val clock: Clock,
@@ -79,6 +81,7 @@ class ExternalImportSweeper(
         sessionManager: WorkspaceSessionManager,
         operationsManager: OperationsManager,
         clipboardRepo: ClipboardRepo,
+        closedStash: ClosedWorkspaceStash,
         factoryMap: Map<Workspace.Type, @JvmSuppressWildcards WorkspaceFactory<*>>,
         json: Json,
     ) : this(
@@ -89,6 +92,7 @@ class ExternalImportSweeper(
         sessionManager,
         operationsManager,
         clipboardRepo,
+        closedStash,
         factoryMap,
         json,
         Clock.System,
@@ -234,6 +238,26 @@ class ExternalImportSweeper(
      */
     private suspend fun collectReferences(): Set<String>? {
         val references = mutableSetOf<String>()
+
+        // Asked FIRST, and before the live workspaces: a tab the user can still bring back holds
+        // whatever it pointed at just as much as an open one does, and the window between the close
+        // and the undo is exactly when the import looks unreachable.
+        closedStash.peekStashedArguments().forEach { arguments ->
+            @Suppress("UNCHECKED_CAST")
+            val factory = factoryMap[arguments.type] as? WorkspaceFactory<Workspace.Arguments> ?: run {
+                log(TAG, WARN) { "No factory for stashed ${arguments.type}, cannot read its references" }
+                return null
+            }
+            val serialized = try {
+                factory.serialize(json, arguments).toString()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                log(TAG, WARN) { "Could not read stashed ${arguments.type} arguments: ${e.asLog()}" }
+                return null
+            }
+            references.add(serialized)
+        }
 
         // peekAll(), never state: the state flow is an asynchronous share whose replay can still be
         // mid-restore and list fewer workspaces than exist, and a workspace missing from that list

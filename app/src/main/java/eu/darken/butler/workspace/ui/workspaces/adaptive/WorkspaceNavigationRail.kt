@@ -677,7 +677,7 @@ private fun DraggableWorkspaceRailItem(
                 onClick = {
                     showPaneMenu = false
                     onPaneMenuToggle(false)  // Explicitly hide overlays before closing
-                    onTabAction(WorkspaceAction.Close(workspace.id))
+                    onTabAction(WorkspaceAction.Close(workspace.id, undoable = true))
                 },
             )
         }

@@ -16,6 +16,7 @@ import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.WorkspaceSettings
 import eu.darken.butler.workspace.core.preview.WorkspacePreviewModel
+import eu.darken.butler.workspace.core.undo.ClosedWorkspaceStash
 import eu.darken.butler.workspace.ui.WorkspacePageManager
 import eu.darken.butler.workspace.ui.session.WorkspaceSessionManager
 import kotlinx.coroutines.CoroutineScope
@@ -54,6 +55,7 @@ class WorkspacePreviewManager @Inject constructor(
     private val imageLoader: ImageLoader,
     private val workspacePreviewKeyer: WorkspacePreviewKeyer,
     private val sessionManager: WorkspaceSessionManager,
+    private val closedStash: ClosedWorkspaceStash,
 ) {
 
     init {
@@ -100,8 +102,15 @@ class WorkspacePreviewManager @Inject constructor(
             .onEach { event ->
                 when (event) {
                     is WorkspaceEvent.Closed -> {
-                        log(TAG, INFO) { "Deleting preview for closed workspace ${event.workspaceId.shortTag}" }
-                        invalidatePreviewCache(event.workspaceId)
+                        // Checked as late as possible: an undo can restore the workspace while this
+                        // event is in flight, and dropping its thumbnail then leaves the manager
+                        // showing a placeholder until the next capture.
+                        if (closedStash.currentTokenOf(event.workspaceId) != null) {
+                            log(TAG, INFO) { "Workspace ${event.workspaceId.shortTag} is back, keeping its preview" }
+                        } else {
+                            log(TAG, INFO) { "Deleting preview for closed workspace ${event.workspaceId.shortTag}" }
+                            invalidatePreviewCache(event.workspaceId)
+                        }
                     }
                     is WorkspaceEvent.AllClosed -> {
                         log(TAG, INFO) { "All workspaces closed - clearing all preview caches" }

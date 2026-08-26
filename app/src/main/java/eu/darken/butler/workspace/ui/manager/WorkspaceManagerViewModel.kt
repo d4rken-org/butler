@@ -150,7 +150,7 @@ class WorkspaceManagerViewModel @Inject constructor(
     }
 
     fun closeWorkspace(id: Workspace.Id) = launch {
-        workspaceRepo.execute(WorkspaceAction.Close(id))
+        workspaceRepo.execute(WorkspaceAction.Close(id, undoable = true))
     }
 
     /**
