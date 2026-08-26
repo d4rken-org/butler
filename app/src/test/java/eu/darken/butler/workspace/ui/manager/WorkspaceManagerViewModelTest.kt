@@ -51,7 +51,6 @@ class WorkspaceManagerViewModelTest : BaseTest() {
         }
         workspaceSettings = mockk(relaxed = true) {
             every { showTipBadgeExplanation } returns mockk { every { flow } returns flowOf(false) }
-            every { showTipFabLongPress } returns mockk { every { flow } returns flowOf(false) }
             every { livePreview } returns mockk { every { flow } returns flowOf(true) }
         }
         workspacePageManager = mockk(relaxed = true) {

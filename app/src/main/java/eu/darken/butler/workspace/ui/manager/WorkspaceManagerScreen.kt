@@ -55,7 +55,6 @@ fun WorkspaceManagerScreen(
     onQuickCreate: (QuickCreateItem) -> Unit,
     onNavigateBack: () -> Unit,
     onDismissBadgeExplanation: () -> Unit,
-    onDismissLongPressHint: () -> Unit,
     onCloseAllWorkspaces: () -> Unit,
     onRenameWorkspace: (Workspace.Id, String?) -> Unit = { _, _ -> },
     onTabsClick: () -> Unit = {},
@@ -131,8 +130,6 @@ fun WorkspaceManagerScreen(
                         onCreateWorkspace = onCreateWorkspace,
                         onQuickCreate = onQuickCreate,
                         onShowCloseAllDialog = { showCloseAllDialog = true },
-                        showLongPressHint = state.showLongPressHint,
-                        onDismissLongPressHint = onDismissLongPressHint
                     )
                 }
             }
@@ -241,7 +238,6 @@ private fun WorkspaceManagerScreenPreview() {
         onQuickCreate = {},
         onNavigateBack = {},
         onDismissBadgeExplanation = {},
-        onDismissLongPressHint = {},
         onCloseAllWorkspaces = {}
     )
 }
@@ -265,7 +261,6 @@ private fun WorkspaceManagerScreenEmptyPreview() {
         onQuickCreate = {},
         onNavigateBack = {},
         onDismissBadgeExplanation = {},
-        onDismissLongPressHint = {},
         onCloseAllWorkspaces = {}
     )
 }
