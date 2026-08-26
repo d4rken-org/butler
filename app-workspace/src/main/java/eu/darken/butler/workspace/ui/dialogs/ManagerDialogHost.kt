@@ -36,6 +36,7 @@ fun ManagerDialogHost(
                             confirmationId = dialog.id,
                             workspaceId = dialog.closingWorkspaceId,
                             sourceWorkspaceId = dialog.targetWorkspaceId,
+                            hideManagerOverlay = false,
                         )
                     )
                 }

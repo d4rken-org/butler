@@ -23,10 +23,15 @@ sealed interface ManagerDialogAction {
      *
      * [sourceWorkspaceId] is the pane the selection should place the tab near - the dialog's host
      * pane, or the focused workspace when the dialog had no pane host.
+     *
+     * [hideManagerOverlay] is set by the tab manager, which covers the panes the selection puts the
+     * tab in: leaving it up would hide the very tab the jump went to. A pane host never sets it -
+     * there is no overlay to take down, and doing so anyway would dismiss one the user opened since.
      */
     data class CancelAndGoToWorkspace(
         val confirmationId: String,
         val workspaceId: Workspace.Id,
         val sourceWorkspaceId: Workspace.Id?,
+        val hideManagerOverlay: Boolean,
     ) : ManagerDialogAction
 }
