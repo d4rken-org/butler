@@ -18,6 +18,7 @@ import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationPathPlan
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
@@ -46,6 +47,7 @@ class SaveFilesOperationTest : BaseTest() {
     private val sourceUri = mockk<Uri>()
     private val targetDirectory = LocalPath.build("/save")
     private val targetPath = targetDirectory.child("file.txt")
+    private val secondPath = targetDirectory.child("second.txt")
 
     private val capturedIssues = mutableListOf<PathActionIssue>()
     private var conflictResolution: PathActionIssue.Resolution =
@@ -84,10 +86,10 @@ class SaveFilesOperationTest : BaseTest() {
         }
     }
 
-    private fun operation() = SaveFilesOperation(
+    private fun operation(filenames: List<String> = listOf("file.txt")) = SaveFilesOperation(
         workspaceId = workspaceId,
         command = SaveFilesOperation.Command(
-            sources = listOf(SaveFilesOperation.Command.SourceFile(sourceUri, "file.txt", 4L)),
+            sources = filenames.map { SaveFilesOperation.Command.SourceFile(sourceUri, it, 4L) },
             targetDirectory = targetDirectory,
         ),
         context = context,
@@ -95,8 +97,8 @@ class SaveFilesOperationTest : BaseTest() {
         issueHandler = issueHandler,
     )
 
-    private suspend fun performToReport(): SaveFilesReport {
-        val states = operation()
+    private suspend fun performToReport(filenames: List<String> = listOf("file.txt")): SaveFilesReport {
+        val states = operation(filenames)
             .perform(Operation.Context(id = Operation.Id(), startedAt = Clock.System.now()))
             .toList()
         return states.last()
@@ -148,6 +150,39 @@ class SaveFilesOperationTest : BaseTest() {
         capturedIssues.filterIsInstance<PathActionIssue.InsufficientPermission>()
             .single().exception.shouldBeInstanceOf<WriteException>()
         coVerify(exactly = 0) { gatewaySwitch.createFile(any(), any()) }
+    }
+
+    /*
+     * A save takes many files, so its history label is defined by the PLAN order, not by whichever
+     * file happened to succeed first.
+     */
+
+    @Test
+    fun `the subject is the first planned file when everything succeeds`() = runTest2 {
+        val report = performToReport(listOf("file.txt", "second.txt"))
+
+        report.successes.map { it.savedPath } shouldContainExactly listOf(targetPath, secondPath)
+        report.subjectPath shouldBe targetPath
+    }
+
+    @Test
+    fun `the subject moves on when the first planned file is skipped`() = runTest2 {
+        conflictResolution = PathActionIssue.PathAlreadyExists.Resolution.Skip()
+
+        val report = performToReport(listOf("file.txt", "second.txt"))
+
+        report.results.first().shouldBeInstanceOf<SaveFilesReport.FileResult.Skipped>()
+        report.subjectPath shouldBe secondPath
+    }
+
+    @Test
+    fun `a save that wrote nothing names no subject`() = runTest2 {
+        conflictResolution = PathActionIssue.PathAlreadyExists.Resolution.Skip()
+
+        val report = performToReport(listOf("file.txt"))
+
+        report.successes.shouldBeEmpty()
+        report.subjectPath shouldBe null
     }
 
     @Test
