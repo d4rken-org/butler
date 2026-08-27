@@ -83,6 +83,15 @@ class ExplorerItemListChangeTest : BaseTest() {
         old.hasSameItemsAs(new) shouldBe false
     }
 
+    /** Storage rows take the full-equality branch, not the id-and-type one that would match here. */
+    @Test
+    fun `a renamed SAF location gets through`() {
+        val old = listOf(MockDataProvider.createMockStorageSAF(name = "SD Card", id = "saf-sdcard"))
+        val new = listOf(MockDataProvider.createMockStorageSAF(name = "Photos", id = "saf-sdcard"))
+
+        old.hasSameItemsAs(new) shouldBe false
+    }
+
     @Test
     fun `a changed network status gets through`() {
         val old = listOf(networkItem())
