@@ -1784,40 +1784,47 @@ class WorkspaceRepo @Inject constructor(
             }
         } ?: return WorkspaceAction.Close.Result
 
-        // Phase 2, no lock held
-        val captured: Map<Workspace.Id, Workspace.Arguments>? = try {
-            plan.members.associate { it.id to it.workspace.createArguments() }
-        } catch (e: CancellationException) {
-            // Nothing was closed and nothing may stay armed; the close goes with its caller.
-            closedStash.abortClose(plan.closeToken)
-            throw e
-        } catch (e: Exception) {
-            log(TAG, WARN) { "Undo capture of ${action.id} failed, closing without it: ${e.asLog()}" }
-            null
-        }
+        // The token is armed from here on, and an armed token exempts its own publications from
+        // invalidating the stash - so every exit, cancellation and failure included, has to give it
+        // back. Only [abortClose] also discards the assembly, which is why the branches below keep
+        // calling it rather than relying on this.
+        try {
+            // Phase 2, no lock held
+            val captured: Map<Workspace.Id, Workspace.Arguments>? = try {
+                plan.members.associate { it.id to it.workspace.createArguments() }
+            } catch (e: CancellationException) {
+                // Nothing was closed and nothing may stay armed; the close goes with its caller.
+                closedStash.abortClose(plan.closeToken)
+                throw e
+            } catch (e: Exception) {
+                log(TAG, WARN) { "Undo capture of ${action.id} failed, closing without it: ${e.asLog()}" }
+                null
+            }
 
-        // Phase 3
-        lock.withLock {
-            val verdict = if (captured == null) CloseVerdict.PLAIN else revalidateUndoCapture(plan, captured)
-            when (verdict) {
-                CloseVerdict.UNDOABLE -> {
-                    val snapshot = buildClosedSnapshot(plan, captured!!)
-                    executeClose(action.id, closeToken = plan.closeToken)
-                    closedStash.commitIdentity(snapshot)
-                    closedStash.disarm(plan.closeToken)
-                }
-                CloseVerdict.NEEDS_CONFIRMATION -> {
-                    // A unit that turned dirty inside the window must not be closed silently just
-                    // because this path started out undoable: the discard question is what the
-                    // single-lock close guarantees, and skipping it loses the user's edit.
-                    closedStash.abortClose(plan.closeToken)
-                    parkCloseConfirmationLocked(action.copy(undoable = false, requireConfirmation = true))
-                }
-                CloseVerdict.PLAIN -> {
-                    closedStash.abortClose(plan.closeToken)
-                    executeClose(action.id)
+            // Phase 3
+            lock.withLock {
+                val verdict = if (captured == null) CloseVerdict.PLAIN else revalidateUndoCapture(plan, captured)
+                when (verdict) {
+                    CloseVerdict.UNDOABLE -> {
+                        val snapshot = buildClosedSnapshot(plan, captured!!)
+                        executeClose(action.id, closeToken = plan.closeToken)
+                        closedStash.commitIdentity(snapshot)
+                    }
+                    CloseVerdict.NEEDS_CONFIRMATION -> {
+                        // A unit that turned dirty inside the window must not be closed silently
+                        // just because this path started out undoable: the discard question is what
+                        // the single-lock close guarantees, and skipping it loses the user's edit.
+                        closedStash.abortClose(plan.closeToken)
+                        parkCloseConfirmationLocked(action.copy(undoable = false, requireConfirmation = true))
+                    }
+                    CloseVerdict.PLAIN -> {
+                        closedStash.abortClose(plan.closeToken)
+                        executeClose(action.id)
+                    }
                 }
             }
+        } finally {
+            closedStash.disarm(plan.closeToken)
         }
 
         return WorkspaceAction.Close.Result
