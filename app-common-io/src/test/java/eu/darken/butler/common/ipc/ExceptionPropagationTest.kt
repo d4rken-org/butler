@@ -33,7 +33,7 @@ class ExceptionPropagationTest : BaseTest(), IpcHostModule, IpcClientModule {
 
     private val app: Application get() = ApplicationProvider.getApplicationContext()
 
-    private val path = LocalPath.build("/storage/emulated/0/report.txt")
+    private val filePath = LocalPath.build("/storage/emulated/0/report.txt")
 
     private fun Throwable.propagate(): Throwable = wrapToPropagate().refineException()
 
@@ -41,7 +41,7 @@ class ExceptionPropagationTest : BaseTest(), IpcHostModule, IpcClientModule {
 
     @Test
     fun `round-trip - PATH_READ`() {
-        val original = ReadException("Can't read from path.", path)
+        val original = ReadException("Can't read from path.", filePath)
 
         original.propagate().shouldBeTypeOf<ReadException>().apply {
             message shouldBe original.message
@@ -51,7 +51,7 @@ class ExceptionPropagationTest : BaseTest(), IpcHostModule, IpcClientModule {
 
     @Test
     fun `round-trip - PATH_WRITE`() {
-        val original = WriteException("Can't write to path.", path)
+        val original = WriteException("Can't write to path.", filePath)
 
         original.propagate().shouldBeTypeOf<WriteException>().apply {
             message shouldBe original.message
@@ -61,7 +61,7 @@ class ExceptionPropagationTest : BaseTest(), IpcHostModule, IpcClientModule {
 
     @Test
     fun `round-trip - PATH_ALREADY_EXISTS`() {
-        val original = PathAlreadyExistsException(path = path)
+        val original = PathAlreadyExistsException(path = filePath)
 
         original.propagate().shouldBeTypeOf<PathAlreadyExistsException>().apply {
             message shouldBe original.message
@@ -72,7 +72,7 @@ class ExceptionPropagationTest : BaseTest(), IpcHostModule, IpcClientModule {
     @Test
     fun `round-trip - PATH_PERMISSION_DENIED`() {
         val original = PathPermissionDeniedException(
-            path = path,
+            path = filePath,
             operation = "createFile",
             reason = PathPermissionDeniedException.Reason.NOT_PERMITTED,
         )
@@ -89,7 +89,7 @@ class ExceptionPropagationTest : BaseTest(), IpcHostModule, IpcClientModule {
     fun `round-trip - PATH_UNKNOWN_FILE_TYPE`() {
         val original = UnknownFileTypeException(
             lookup = LocalPathLookup(
-                lookedUp = path,
+                lookedUp = filePath,
                 fileType = FileType.SYMBOLIC_LINK,
                 size = null,
                 modifiedAt = null,
@@ -98,7 +98,7 @@ class ExceptionPropagationTest : BaseTest(), IpcHostModule, IpcClientModule {
 
         original.propagate().shouldBeTypeOf<UnknownFileTypeException>().apply {
             message shouldBe original.message
-            lookup.lookedUp.path shouldBe path.path
+            lookup.lookedUp.path shouldBe filePath.path
             lookup.fileType shouldBe FileType.SYMBOLIC_LINK
         }
     }
@@ -184,7 +184,7 @@ class ExceptionPropagationTest : BaseTest(), IpcHostModule, IpcClientModule {
 
     @Test
     fun `cause chain survives so EROFS is not reclassified as a plain denial`() {
-        val original = WriteException("Can't write to path.", path, IOException("Read-only file system"))
+        val original = WriteException("Can't write to path.", filePath, IOException("Read-only file system"))
 
         val decoded = original.propagate()
 
@@ -239,7 +239,7 @@ class ExceptionPropagationTest : BaseTest(), IpcHostModule, IpcClientModule {
 
     @Test
     fun `carrier survives a Parcel round-trip`() {
-        val original = ReadException("Can't read from path.", path)
+        val original = ReadException("Can't read from path.", filePath)
         val carrier = original.wrapToPropagate()
         val parcel = Parcel.obtain()
 
@@ -257,7 +257,7 @@ class ExceptionPropagationTest : BaseTest(), IpcHostModule, IpcClientModule {
 
     @Test
     fun `decoded ReadException renders its localized error`() {
-        val original = ReadException("Can't read from path.", path, IOException("Read-only file system"))
+        val original = ReadException("Can't read from path.", filePath, IOException("Read-only file system"))
 
         val decoded = original.propagate().shouldBeTypeOf<ReadException>()
         val text = decoded.getLocalizedError(LocalizedErrorContext()).description.get(app)
