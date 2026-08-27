@@ -9,6 +9,7 @@ import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
+import eu.darken.butler.workspace.core.undo.ClosedWorkspaceFeedback
 import eu.darken.butler.workspace.ui.LocalWorkspaceTitles
 import eu.darken.butler.workspace.ui.WorkspacePageHostEntry
 import eu.darken.butler.workspace.ui.WorkspacePageManager
@@ -94,6 +95,7 @@ class WorkspacesScreenHostTitlesTest : ComposeTest() {
         every { bannerStates } returns MutableStateFlow(emptyMap())
         every { showClearSessionConfirmation } returns MutableStateFlow(false)
         every { managerDialogs } returns MutableStateFlow(emptyList())
+        every { closedFeedback } returns MutableStateFlow<ClosedWorkspaceFeedback?>(null)
         every { workspacePageManager } returns pageManager
         every { pageHosts } returns mapOf(Workspace.Type.EXPLORER to pageHost)
         every { scrollPositions } returns WorkspaceScrollPositions()
