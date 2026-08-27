@@ -78,6 +78,7 @@ class AppInstaller @Inject constructor(
     private val storageEnvironment: StorageEnvironment,
     private val statusRelay: AppInstallStatusRelay,
     private val systemInstallGate: SystemInstallGate,
+    private val systemInstallSessions: SystemInstallSessions,
     private val dispatcherProvider: DispatcherProvider,
 ) {
 
@@ -86,6 +87,7 @@ class AppInstaller @Inject constructor(
     private val sweepMutex = Mutex()
     private val localSwept = AtomicBoolean(false)
     private val shellSwept = AtomicBoolean(false)
+    private val systemSessionsReconciled = AtomicBoolean(false)
 
     /** Expansion partials some install is filling right now, so no sweep mistakes them for scratch. */
     private val activeObbPartials: MutableSet<String> = ConcurrentHashMap.newKeySet()
@@ -184,6 +186,7 @@ class AppInstaller @Inject constructor(
         // gigabytes first, only to be turned away at the very end.
         val claim = if (mode == Mode.SYSTEM) claimSystemInstaller(plan) else null
         try {
+            if (claim != null) reconcileSystemSessions()
             val staging = openStaging(mode)
             try {
                 val staged = staging.stage(plan, send)
@@ -217,6 +220,36 @@ class AppInstaller @Inject constructor(
                 throw AppInstallBusyException(outcome.label)
             }
         }
+    }
+
+    /**
+     * Clears the platform sessions an earlier process left behind, before this one may create any.
+     *
+     * A committed session outlives the process that opened it, while [SystemInstallGate] holds its
+     * claim in memory only. After a crash with a confirmation still unanswered, that surviving
+     * session is the one Android applies the answer to, and a session created next to it would wait
+     * out its own timeout without ever hearing a verdict. Nothing else here opens platform sessions,
+     * so whatever is found belongs to a run that no longer exists.
+     *
+     * Runs under the claim, which is what keeps two first installs out of here at once, and before
+     * staging, so a refusal costs no extraction. A failed attempt stays pending for the next run.
+     */
+    private fun reconcileSystemSessions() {
+        if (systemSessionsReconciled.get()) return
+        val remaining = try {
+            systemInstallSessions.sessionIds().forEach { sessionId ->
+                log(TAG, INFO) { "reconcileSystemSessions(): abandoning orphaned session $sessionId" }
+                systemInstallSessions.abandon(sessionId)
+            }
+            systemInstallSessions.sessionIds()
+        } catch (e: Exception) {
+            log(TAG, ERROR) { "reconcileSystemSessions(): failed: ${e.asLog()}" }
+            throw AppInstallSessionException("An earlier install session could not be cleared", e)
+        }
+        if (remaining.isNotEmpty()) {
+            throw AppInstallSessionException("Install sessions $remaining from an earlier run are still open")
+        }
+        systemSessionsReconciled.set(true)
     }
 
     // region staging
