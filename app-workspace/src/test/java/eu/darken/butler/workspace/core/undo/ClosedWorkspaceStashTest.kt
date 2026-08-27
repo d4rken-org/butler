@@ -233,6 +233,30 @@ class ClosedWorkspaceStashTest : BaseTest() {
     }
 
     @Test
+    fun `a close abandoned before it committed stops being exempt`() = runTest {
+        val abandoned = Workspace.Id()
+        val abandonedToken = armed(abandoned)
+        // Cancelled after its capture and before it could commit anything, giving its token back
+        stash.disarm(abandonedToken)
+
+        // A later close supersedes the abandoned one's assembly and completes
+        val id = Workspace.Id()
+        val token = armed(id)
+        contributeUiHalf(token, id)
+        stash.commitIdentity(snapshotOf(token, id))
+        stash.disarm(token)
+        stash.markDestructionComplete(token)
+        stash.feedback.value?.closeToken shouldBe token
+
+        // Superseding an assembly deliberately leaves its close armed, but this one was disarmed on
+        // the way out, so a publication carrying its token is an ordinary mutation again
+        stash.onWorkspaceIdSetChanged(abandonedToken)
+
+        stash.feedback.value shouldBe null
+        stash.peekEntry() shouldBe null
+    }
+
+    @Test
     fun `an identity half whose UI half never lands is dropped unoffered`() = runTest {
         val id = Workspace.Id()
         val token = armed(id)

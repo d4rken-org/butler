@@ -20,11 +20,9 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -480,52 +478,6 @@ class WorkspaceUndoCloseTest : BaseTest() {
         closeUndoable(closed)
 
         openIds().contains(closed) shouldBe false
-        stash.feedback.value shouldBe null
-        undo() shouldBe WorkspaceAction.UndoClose.Result.Unavailable
-    }
-
-    @Test
-    fun `a close cancelled after capturing gives its token back`() = runTest(UnconfinedTestDispatcher()) {
-        val blocker = createTab()
-        val target = createTab()
-        val later = createTab()
-
-        // Parks a close INSIDE the repo's critical section: a close ends on an event emission that
-        // waits for every collector, and this collector does not take it until told to.
-        val parked = CompletableDeferred<Unit>()
-        val release = CompletableDeferred<Unit>()
-        backgroundScope.launch {
-            repo.events.collect { event ->
-                if (event is WorkspaceEvent.Closed && event.workspaceId == blocker) {
-                    parked.complete(Unit)
-                    release.await()
-                }
-            }
-        }
-
-        var capturedToken: Long? = null
-        fake(target).whileCapturingArguments = {
-            capturedToken = stash.closeTokenFor(target)
-            scope.launch { repo.execute(WorkspaceAction.Close(blocker)) }
-            parked.await()
-        }
-
-        val closing = launch { repo.execute(WorkspaceAction.Close(target, undoable = true)) }
-        // Capture is done and the close is now waiting for the lock the parked one still holds
-        closing.cancel()
-        release.complete(Unit)
-        settle()
-
-        capturedToken shouldNotBe null
-        openIds() shouldBe listOf(target, later)
-
-        closeUndoable(later)
-        stash.feedback.value shouldNotBe null
-
-        // Nothing is in flight under the cancelled close's token any more, so a publication carrying
-        // it is an ordinary mutation and the entry that came after it may not survive one.
-        stash.onWorkspaceIdSetChanged(capturedToken)
-
         stash.feedback.value shouldBe null
         undo() shouldBe WorkspaceAction.UndoClose.Result.Unavailable
     }
