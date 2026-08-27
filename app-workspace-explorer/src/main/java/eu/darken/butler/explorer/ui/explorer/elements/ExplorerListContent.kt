@@ -19,6 +19,7 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.dragselect.listDragSelect
+import eu.darken.butler.common.files.errors.PathNotFoundException
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionBarItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
@@ -62,8 +63,18 @@ internal fun ExplorerListContent(
         contentPadding = contentPadding,
     ) {
         if (state.items == null) {
-            if (state.error == null) {
-                items(10, key = { "skeleton-$it" }) {
+            when {
+                // Fills the content area instead of floating over it: there is no content left to
+                // look at, and the state carries the way out of the location.
+                state.error is PathNotFoundException -> item(key = "notfound") {
+                    PathNotFoundState(
+                        modifier = Modifier.fillParentMaxSize(),
+                        onRetry = { vm?.retryNavigation() },
+                        onLeave = { vm?.dismissNavigationError() },
+                    )
+                }
+
+                state.error == null -> items(10, key = { "skeleton-$it" }) {
                     SkeletonListItem()
                 }
             }

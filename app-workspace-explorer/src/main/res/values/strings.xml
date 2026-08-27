@@ -325,6 +325,9 @@
     <string name="explorer_empty_folder_label">Empty folder</string>
     <string name="explorer_empty_filtered_title">No matching items</string>
     <string name="explorer_empty_filtered_caption">Try adjusting your filters</string>
+    <string name="explorer_path_not_found_title">This folder is gone</string>
+    <string name="explorer_path_not_found_caption">It was deleted, renamed or moved somewhere else.</string>
+    <string name="explorer_path_not_found_back_action">Go back</string>
 
     <!-- Status Messages -->
     <string name="explorer_loading">Loading…</string>

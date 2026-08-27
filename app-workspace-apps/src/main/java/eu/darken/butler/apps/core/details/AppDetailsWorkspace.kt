@@ -17,12 +17,15 @@ import eu.darken.butler.apps.core.details.components.ComponentEntry
 import eu.darken.butler.apps.core.details.components.ComponentToggleAvailability
 import eu.darken.butler.apps.core.details.components.ComponentToggleState
 import eu.darken.butler.common.adb.AdbManager
+import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.pkgs.PkgRepo
@@ -33,6 +36,9 @@ import eu.darken.butler.common.pkgs.pkgops.PkgOpsException
 import eu.darken.butler.common.pkgs.pkgs
 import eu.darken.butler.common.pkgs.toPkgId
 import eu.darken.butler.common.root.RootManager
+import eu.darken.butler.permissions.core.PathPermissionCheck
+import eu.darken.butler.permissions.core.PathRequirements
+import eu.darken.butler.setup.core.SetupModule
 import eu.darken.butler.workspace.contracts.apps.AppDetailsArguments
 import eu.darken.butler.workspace.contracts.apps.DetailTab
 import eu.darken.butler.workspace.core.Workspace
@@ -49,13 +55,19 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -74,6 +86,8 @@ class AppDetailsWorkspace @AssistedInject constructor(
     private val pkgOps: PkgOps,
     private val apkArchiveParser: ApkArchiveParser,
     private val appSizeCache: AppSizeCache,
+    private val gatewaySwitch: GatewaySwitch,
+    private val pathPermissionCheck: PathPermissionCheck,
     private val rootManager: RootManager,
     private val adbManager: AdbManager,
     private val workspaceRemote: WorkspaceRemote,
@@ -176,6 +190,105 @@ class AppDetailsWorkspace @AssistedInject constructor(
 
     private val _sizeLoading = MutableStateFlow(false)
 
+    private data class StorageCandidate(
+        val path: APath<*>,
+        val label: CaString,
+        /**
+         * Only paths visible from every mount namespace may be withheld. The root host launches
+         * without mount-master, so its view of emulated storage does not carry other apps'
+         * `Android/data` and a stat there answers false for an app that does have external data.
+         */
+        val mayBeWithheld: Boolean = false,
+    )
+
+    /** What the row for a path needs, but only I/O can answer. */
+    private data class PathInsight(
+        val availability: Availability = Availability.UNKNOWN,
+        val requirements: PathRequirements? = null,
+    )
+
+    private enum class Availability {
+        EXISTS,
+        ABSENT,
+
+        /** Nothing was learned; the row is offered and the Explorer reports whatever it finds. */
+        UNKNOWN,
+    }
+
+    // Fixed for the workspace's whole life: its install identity is immutable.
+    // TODO These are user 0's directories while the install carries a user handle, so a
+    //  work-profile install points at the wrong ones.
+    private val storageCandidates: List<StorageCandidate> = listOf(
+        StorageCandidate(
+            path = LocalPath.build("/data/data/${args.packageName}"),
+            label = R.string.apps_path_internal_data_label.toCaString(),
+            mayBeWithheld = true,
+        ),
+        StorageCandidate(
+            path = LocalPath.build("/storage/emulated/0/Android/data/${args.packageName}"),
+            label = R.string.apps_path_external_data_label.toCaString(),
+        ),
+    )
+
+    private val isPrimaryUser = args.installId.userHandle.handleId == 0
+
+    /**
+     * Resolved once per root state instead of inside the state combine, which re-runs on every
+     * emission of its inputs. A pause releases the workspace, so a resume rebuilds this from
+     * scratch and a directory created in the meantime (external app storage is created lazily)
+     * shows up again.
+     */
+    private val pathInsights: StateFlow<Map<APath<*>, PathInsight>> = rootManager.useRoot
+        .distinctUntilChanged()
+        .flatMapLatest { hasRoot ->
+            flow {
+                // The first render must not wait for I/O, and no knowledge means "offer the row".
+                emit(emptyMap<APath<*>, PathInsight>())
+                val known = storageCandidates.associate { candidate ->
+                    candidate.path to PathInsight(availability = resolveAvailability(candidate, hasRoot))
+                }
+                emit(known)
+                // Setup tracking can stall on a module that never resolves, so it is published on
+                // its own and cannot hold back what is already known.
+                emit(known.mapValues { (path, insight) -> insight.copy(requirements = resolveRequirements(path)) })
+            }
+        }
+        .stateIn(scope, SharingStarted.Eagerly, emptyMap())
+
+    /**
+     * [eu.darken.butler.common.files.FileSystemOps.exists] answers false both for "not there" and
+     * for "could not look" - a denied stat returns false without throwing - so a false answer is
+     * only worth trusting with root, and only for the user these paths belong to.
+     *
+     * TODO A strict IO-layer probe reporting present/absent/could-not-tell per backend would say
+     *  which of the two a false answer is, which is what withholding the external row again needs.
+     */
+    private suspend fun resolveAvailability(candidate: StorageCandidate, hasRoot: Boolean): Availability {
+        val path = candidate.path
+        if (!candidate.mayBeWithheld) return Availability.UNKNOWN
+        if (!hasRoot || !isPrimaryUser) return Availability.UNKNOWN
+        return try {
+            val exists = gatewaySwitch.exists(path)
+            currentCoroutineContext().ensureActive()
+            if (exists) Availability.EXISTS else Availability.ABSENT
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            // A failed probe says nothing; absent has to be a positive answer.
+            log(tag, WARN) { "Existence check failed for $path: ${e.asLog()}" }
+            Availability.UNKNOWN
+        }
+    }
+
+    private suspend fun resolveRequirements(path: APath<*>): PathRequirements? = try {
+        pathPermissionCheck.monitor(path).first().also { currentCoroutineContext().ensureActive() }
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        log(tag, WARN) { "Requirement check failed for $path: ${e.asLog()}" }
+        null
+    }
+
     data class State(
         val app: AppInfo? = null,
         val selectedTab: DetailTab = DetailTab.OVERVIEW,
@@ -204,8 +317,9 @@ class AppDetailsWorkspace @AssistedInject constructor(
         appSizeCache.isAvailable,
         _sizeLoading,
         packageInfoLoader.state,
+        pathInsights,
     ) { app, selectedTab, hasRoot, hasAdb, componentToggleState, sizeSnapshot, sizesAvailable, isLoadingSize,
-        packageInfo ->
+        packageInfo, insights ->
         val withSize = app?.let { info ->
             val size = sizeSnapshot.sizes[info.installId] ?: return@let info
             info.copy(
@@ -214,7 +328,7 @@ class AppDetailsWorkspace @AssistedInject constructor(
                 cacheSize = size.cacheBytes,
             )
         }
-        val paths = withSize?.let { buildAppPaths(it) } ?: emptyList()
+        val paths = if (withSize != null) buildAppPaths(insights) else emptyList()
         State(
             selectedTab = selectedTab,
             app = withSize,
@@ -280,24 +394,30 @@ class AppDetailsWorkspace @AssistedInject constructor(
         ),
     )
 
-    private fun buildAppPaths(app: AppInfo): List<AppPath> = buildList {
-        // Internal data directory (/data/data/package.name)
-        val internalDataPath = LocalPath.build("/data/data/${app.packageName}")
-        add(
+    private fun buildAppPaths(insights: Map<APath<*>, PathInsight>): List<AppPath> = storageCandidates
+        .mapNotNull { candidate ->
+            val insight = insights[candidate.path] ?: PathInsight()
+            // A row for a directory that is not there only leads to a failed navigation.
+            if (insight.availability == Availability.ABSENT) return@mapNotNull null
             AppPath(
-                path = internalDataPath,
-                label = R.string.apps_path_internal_data_label.toCaString(),
+                path = candidate.path,
+                label = candidate.label,
+                requirement = insight.requirements?.let { requirementLabel(it) },
             )
-        )
+        }
 
-        // External storage directory (/storage/emulated/0/Android/data/package.name)
-        val externalDataPath = LocalPath.build("/storage/emulated/0/Android/data/${app.packageName}")
-        add(
-            AppPath(
-                path = externalDataPath,
-                label = R.string.apps_path_external_data_label.toCaString(),
-            )
-        )
+    /** Null while access is available, including through an existing SAF grant or the SAF picker. */
+    private fun requirementLabel(requirements: PathRequirements): CaString? {
+        if (!requirements.needsSetup) return null
+        // Combos are alternatives, so single-module ones read as "either of these".
+        val alternatives = requirements.combos.takeIf { combos -> combos.all { it.size == 1 } }?.flatten()?.toSet()
+        return when (alternatives) {
+            setOf(SetupModule.Type.ROOT) -> R.string.apps_path_requires_root_label
+            setOf(SetupModule.Type.SHIZUKU) -> R.string.apps_path_requires_shizuku_label
+            setOf(SetupModule.Type.ROOT, SetupModule.Type.SHIZUKU) ->
+                R.string.apps_path_requires_root_or_shizuku_label
+            else -> R.string.apps_path_requires_access_label
+        }.toCaString()
     }
 
     fun updateSelectedTab(tab: DetailTab) {

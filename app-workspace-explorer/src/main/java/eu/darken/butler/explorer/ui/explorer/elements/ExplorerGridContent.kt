@@ -25,6 +25,7 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.dragselect.gridDragSelect
+import eu.darken.butler.common.files.errors.PathNotFoundException
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionBarItem
@@ -88,8 +89,21 @@ internal fun ExplorerGridContent(
         contentPadding = contentPadding,
     ) {
         if (state.items == null) {
-            if (state.error == null) {
-                items(12, key = { "skeleton-grid-$it" }) {
+            when {
+                // Fills the content area instead of floating over it: there is no content left to
+                // look at, and the state carries the way out of the location.
+                state.error is PathNotFoundException -> item(
+                    span = { GridItemSpan(maxLineSpan) },
+                    key = "notfound",
+                ) {
+                    PathNotFoundState(
+                        modifier = Modifier.fillMaxSize(),
+                        onRetry = { vm?.retryNavigation() },
+                        onLeave = { vm?.dismissNavigationError() },
+                    )
+                }
+
+                state.error == null -> items(12, key = { "skeleton-grid-$it" }) {
                     SkeletonGridItem()
                 }
             }

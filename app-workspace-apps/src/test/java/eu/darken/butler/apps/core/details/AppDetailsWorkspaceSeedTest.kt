@@ -3,15 +3,19 @@ package eu.darken.butler.apps.core.details
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.apps.core.AppSizeCache
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.pkgs.Pkg
 import eu.darken.butler.common.pkgs.features.InstallId
 import eu.darken.butler.common.user.UserHandle2
+import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.workspace.contracts.apps.AppDetailsArguments
 import eu.darken.butler.workspace.core.Workspace
 import io.kotest.matchers.shouldBe
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -50,6 +54,9 @@ class AppDetailsWorkspaceSeedTest {
                 every { snapshot } returns MutableStateFlow(AppSizeCache.Snapshot())
                 every { isAvailable } returns MutableStateFlow(false)
             },
+            // Explicit, not relaxed: a false exists() would mean ABSENT and silently drop rows.
+            gatewaySwitch = mockk { coEvery { exists(any()) } returns true },
+            pathPermissionCheck = mockk { every { monitor(any<APath<*>>()) } returns flowOf(PathRequirements()) },
             rootManager = mockk(relaxed = true),
             adbManager = mockk(relaxed = true),
             workspaceRemote = mockk(relaxed = true),

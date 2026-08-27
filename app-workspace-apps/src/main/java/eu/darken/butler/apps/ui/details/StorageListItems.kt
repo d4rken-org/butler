@@ -40,7 +40,9 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.R as CommonR
+import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.formatFileSize
 
 @Composable
@@ -212,6 +214,14 @@ fun StorageListItems(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+                    // The row stays clickable: browsing there is what leads to the setup options.
+                    appPath.requirement?.let {
+                        Text(
+                            text = it.get(context),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.tertiary,
+                        )
+                    }
                 }
             }
 
@@ -267,6 +277,28 @@ private fun StorageListItemsPreview() {
         onBrowsePath = {},
         onOpenSetup = {},
         app = null
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun StorageListItemsWithPathsPreview() {
+    StorageListItems(
+        availablePaths = listOf(
+            AppPath(
+                path = LocalPath.build("/data/data/com.android.chrome"),
+                label = R.string.apps_path_internal_data_label.toCaString(),
+                requirement = R.string.apps_path_requires_root_label.toCaString(),
+            ),
+            AppPath(
+                path = LocalPath.build("/storage/emulated/0/Android/data/com.android.chrome"),
+                label = R.string.apps_path_external_data_label.toCaString(),
+            ),
+        ),
+        onBrowsePath = {},
+        onOpenSetup = {},
+        app = AppsMockDataProvider.Presets.chrome,
     )
 }
 

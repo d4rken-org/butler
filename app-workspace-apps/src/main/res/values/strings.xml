@@ -68,6 +68,10 @@
     <string name="apps_details_storage_locations_label">Storage locations</string>
     <string name="apps_path_internal_data_label">Internal data</string>
     <string name="apps_path_external_data_label">External storage</string>
+    <string name="apps_path_requires_root_label">Requires root</string>
+    <string name="apps_path_requires_shizuku_label">Requires Shizuku</string>
+    <string name="apps_path_requires_root_or_shizuku_label">Requires root or Shizuku</string>
+    <string name="apps_path_requires_access_label">Requires additional access</string>
     <string name="apps_storage_breakdown_label">Storage Breakdown</string>
     <string name="apps_storage_app_label">Application</string>
 

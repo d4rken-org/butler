@@ -6,8 +6,12 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onNodeWithText
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.archive.ArchiveNotSeekableException
+import eu.darken.butler.common.files.errors.PathNotFoundException
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.engine.BrowsingAbortedException
+import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
@@ -17,15 +21,15 @@ import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
 import org.junit.Test
 import testhelpers.ComposeTest
 
-/** A cancelled load is answered by the aborted dialog in the overlay slot, not by an error card. */
+/** Which errors reach the floating error card, and which ones have their own presentation. */
 class ExplorerReadyContentErrorTest : ComposeTest() {
 
-    private fun setContent(error: Throwable) {
+    private fun setContent(state: ExplorerWorkspaceViewModel.State) {
         composeTestRule.setContent {
             PreviewWrapper {
                 ExplorerReadyContent(
                     workspaceId = Workspace.Id(),
-                    state = MockDataProvider.createReadyState().copy(error = error),
+                    state = state,
                     vm = null,
                     listState = rememberLazyListState(),
                     gridState = rememberLazyGridState(),
@@ -44,6 +48,8 @@ class ExplorerReadyContentErrorTest : ComposeTest() {
         }
     }
 
+    private fun setContent(error: Throwable) = setContent(MockDataProvider.createReadyState().copy(error = error))
+
     @Test
     fun `an ordinary navigation error raises the error card`() {
         setContent(RuntimeException("nope"))
@@ -56,5 +62,38 @@ class ExplorerReadyContentErrorTest : ComposeTest() {
         setContent(BrowsingAbortedException(ExplorerNavigation.Target.Home))
 
         composeTestRule.onNodeWithText("Navigation failed").assertDoesNotExist()
+    }
+
+    @Test
+    fun `a vanished target fills the content area instead of raising an error card`() {
+        setContent(MockDataProvider.createErrorState(PathNotFoundException(MISSING_PATH)))
+        // The state fades in after a short delay.
+        composeTestRule.mainClock.advanceTimeBy(500)
+
+        composeTestRule.onNodeWithText("This folder is gone").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Navigation failed").assertDoesNotExist()
+    }
+
+    @Test
+    fun `an ordinary error without content still raises the error card`() {
+        setContent(MockDataProvider.createErrorState(RuntimeException("nope")))
+        composeTestRule.mainClock.advanceTimeBy(500)
+
+        composeTestRule.onNodeWithText("Navigation failed").assertIsDisplayed()
+        composeTestRule.onNodeWithText("This folder is gone").assertDoesNotExist()
+    }
+
+    @Test
+    fun `a stream-only archive still raises the archive card`() {
+        setContent(MockDataProvider.createErrorState(ArchiveNotSeekableException(ARCHIVE_PATH)))
+        composeTestRule.mainClock.advanceTimeBy(500)
+
+        composeTestRule.onNodeWithText("Archive can't be browsed here").assertIsDisplayed()
+        composeTestRule.onNodeWithText("This folder is gone").assertDoesNotExist()
+    }
+
+    companion object {
+        private val MISSING_PATH = LocalPath.build("/data/data/eu.darken.butler")
+        private val ARCHIVE_PATH = LocalPath.build("/storage/emulated/0/Download/archive.zip")
     }
 }
