@@ -1692,6 +1692,25 @@ class WorkspaceRepoTest : BaseTest() {
         }
 
     @Test
+    fun `a dirty member inside a caller cycle still blocks the close`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val first = Workspace.Id()
+            val second = Workspace.Id()
+            val repo = createRepo()
+            // The guard walks the same unvalidated caller relation the close recursion does, so it
+            // has to terminate on a cycle rather than spin looking for unsaved members
+            repo.createSubWorkspaceWithId(id = first, caller = second)
+            repo.createSubWorkspaceWithId(id = second, caller = first)
+            markDirty(second)
+
+            repo.execute(WorkspaceAction.Close(first))
+
+            fake(first).released shouldBe false
+            fake(second).released shouldBe false
+            repo.pendingConfirmations.first().closeConfirmationsFor(first) shouldBe 1
+        }
+
+    @Test
     fun `a clean subtree closes without confirmation`() =
         runTest(UnconfinedTestDispatcher()) {
             val repo = createRepo()
