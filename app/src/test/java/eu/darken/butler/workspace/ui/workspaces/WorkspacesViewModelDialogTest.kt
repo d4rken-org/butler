@@ -16,6 +16,7 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.WorkspaceSettings
+import eu.darken.butler.workspace.core.undo.ClosedWorkspaceStash
 import eu.darken.butler.workspace.ui.WorkspacePageManager
 import eu.darken.butler.workspace.ui.WorkspaceVisibilityTracker
 import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
@@ -37,6 +38,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
@@ -78,7 +80,7 @@ class WorkspacesViewModelDialogTest : BaseTest() {
             every { flow } returns flowOf(value)
         }
 
-    private fun vm(
+    private fun TestScope.vm(
         infos: List<Workspace.Info> = emptyList(),
         confirmations: Map<String, PendingWorkspaceConfirmation> = emptyMap(),
         focusedWorkspaceId: Workspace.Id? = null,
@@ -132,6 +134,7 @@ class WorkspacesViewModelDialogTest : BaseTest() {
             openInNewTabsUseCase = mockk<OpenInNewTabsUseCase>(relaxed = true),
             reviewTool = reviewTool,
             guidedTourController = guidedTourController,
+            closedStash = ClosedWorkspaceStash(backgroundScope),
             pageHosts = emptyMap(),
             scrollPositions = mockk<WorkspaceScrollPositions>(relaxed = true),
             barCollapseStates = mockk<WorkspaceBarCollapseStates>(relaxed = true),
