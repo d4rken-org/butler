@@ -235,14 +235,41 @@ class ExternalImportSweeper(
     private suspend fun collectReferences(): Set<String>? {
         val references = mutableSetOf<String>()
 
-        // peekAll(), never state: the state flow is an asynchronous share whose replay can still be
-        // mid-restore and list fewer workspaces than exist, and a workspace missing from that list
-        // reads as "nobody holds this import". peekAll() is the same authoritative list the session
-        // save confirms its own deletions against.
+        // One snapshot for all three, taken in a single critical section of the repo. Read one
+        // after the other they can straddle a close: the stash read before the close is armed and
+        // the workspace list after the tab was removed names the import in neither, and a sweep
+        // running right then deletes the file the fresh undo entry would restore.
+        //
+        // A tab the user can still bring back holds whatever it pointed at just as much as an open
+        // one does, and the window between the close and the undo is exactly when the import looks
+        // unreachable.
+        val holders = workspaceRepo.peekReferenceHolders()
+
+        holders.stashedArguments.forEach { arguments ->
+            @Suppress("UNCHECKED_CAST")
+            val factory = factoryMap[arguments.type] as? WorkspaceFactory<Workspace.Arguments> ?: run {
+                log(TAG, WARN) { "No factory for stashed ${arguments.type}, cannot read its references" }
+                return null
+            }
+            val serialized = try {
+                factory.serialize(json, arguments).toString()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                log(TAG, WARN) { "Could not read stashed ${arguments.type} arguments: ${e.asLog()}" }
+                return null
+            }
+            references.add(serialized)
+        }
+
+        // The repo's own list, never state: the state flow is an asynchronous share whose replay can
+        // still be mid-restore and list fewer workspaces than exist, and a workspace missing from
+        // that list reads as "nobody holds this import". The snapshot carries the same authoritative
+        // list the session save confirms its own deletions against.
         //
         // Live AND paused: a paused tab is a stand-in that still holds its arguments and is restored
         // on focus, so its import has to survive.
-        workspaceRepo.peekAll().forEach { workspace ->
+        holders.liveWorkspaces.forEach { workspace ->
             val info = workspace.info.value
             @Suppress("UNCHECKED_CAST")
             val factory = factoryMap[info.type] as? WorkspaceFactory<Workspace.Arguments> ?: run {
@@ -263,7 +290,7 @@ class ExternalImportSweeper(
         // A create the free-tier limit blocked is a holder too. It owns an import that was already
         // written but has no workspace yet, and its dialog can sit open for as long as the user
         // leaves it, so nothing time-based can stand in for asking.
-        workspaceRepo.peekPendingCreateArguments().forEach { arguments ->
+        holders.pendingCreateArguments.forEach { arguments ->
             @Suppress("UNCHECKED_CAST")
             val factory = factoryMap[arguments.type] as? WorkspaceFactory<Workspace.Arguments> ?: run {
                 log(TAG, WARN) { "No factory for parked ${arguments.type}, cannot read its references" }
@@ -278,6 +305,15 @@ class ExternalImportSweeper(
                 return null
             }
             references.add(serialized)
+        }
+
+        // Asking a workspace what it holds suspends, so everything above ran outside the repo's
+        // lock. Anything published meanwhile may have moved a reference the set no longer contains,
+        // and a partial set deletes files that are in use - so fail closed and retry on the next
+        // sweep instead.
+        if (!workspaceRepo.isReferenceSnapshotCurrent(holders)) {
+            log(TAG, WARN) { "Workspaces changed while reading their references, skipping sweep" }
+            return null
         }
 
         operationsManager.operations.first().forEach { managed ->

@@ -104,6 +104,20 @@ class EditorWorkspace @AssistedInject constructor(
         )
     }
 
+    /** File, caret and viewport [createArguments] reports; the info publishes only the file. */
+    override val restorableStateFingerprint: Any?
+        get() {
+            val engine = _engine.value ?: return null
+            val ready = (_state.value as? State.Ready)?.editor
+            return listOf(
+                engine.filePath,
+                engine.state.value is EngineState.Empty,
+                ready?.cursorPosition,
+                ready?.visibleRange,
+                charsetOverride?.name(),
+            )
+        }
+
     private val workspaceScope = CoroutineScope(
         SupervisorJob() +
             CoroutineExceptionHandler { _, throwable ->

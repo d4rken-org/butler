@@ -4,6 +4,7 @@ import android.os.Parcel
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
+import eu.darken.butler.workspace.core.undo.ClosedWorkspaceStash
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
@@ -88,6 +89,7 @@ class WorkspacePauseGateTest : BaseTest() {
             operationsManager = mockk(relaxed = true),
             upgradeRepo = upgradeRepo,
             usageRepo = mockk(relaxed = true),
+            closedStash = ClosedWorkspaceStash(backgroundScope),
         )
     }
 

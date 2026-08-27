@@ -9,6 +9,7 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.workspace.contracts.viewer.ViewerArguments
 import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
+import eu.darken.butler.workspace.core.undo.ClosedWorkspaceStash
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.usage.WorkspaceUsageRepo
 import io.kotest.assertions.throwables.shouldThrow
@@ -190,7 +191,11 @@ class WorkspaceRepoTest : BaseTest() {
         every { getString(any()) } answers { "res-${firstArg<Int>()}" }
     }
 
+    /** The stash the repo under test writes to; replaced per [createRepo] call. */
+    private lateinit var closedStash: ClosedWorkspaceStash
+
     private fun TestScope.createRepo(isPro: Boolean = false): WorkspaceRepo {
+        closedStash = ClosedWorkspaceStash(backgroundScope)
         val upgradeInfo = mockk<UpgradeRepo.Info>().apply {
             every { this@apply.isPro } returns isPro
             every { isSettled } returns true
@@ -215,6 +220,7 @@ class WorkspaceRepoTest : BaseTest() {
             operationsManager = operationsManager,
             upgradeRepo = upgradeRepo,
             usageRepo = usageRepo,
+            closedStash = closedStash,
         )
     }
 

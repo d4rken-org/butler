@@ -104,6 +104,10 @@ class AppDetailsWorkspace @AssistedInject constructor(
         )
     }
 
+    /** Sub-tab and resolved label [createArguments] reports; the info carries neither. */
+    override val restorableStateFingerprint: Any?
+        get() = listOf(selectedTabFlow.value, cachedAppLabel)
+
     private val selectedTabFlow = MutableStateFlow(args.initialTab)
     private var wasAppSeen = false
 

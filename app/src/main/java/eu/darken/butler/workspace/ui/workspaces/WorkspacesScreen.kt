@@ -54,6 +54,8 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerScreen
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerViewModel
 import eu.darken.butler.workspace.ui.manager.tour.WorkspaceManagerTour
+import eu.darken.butler.workspace.ui.floatingbar.BarPosition
+import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
 import eu.darken.butler.workspace.ui.floatingbar.LocalWorkspaceBarCollapseStates
 import eu.darken.butler.workspace.ui.manager.rememberWindowSizeInfo
 import eu.darken.butler.workspace.ui.scroll.LocalWorkspaceScrollPositions
@@ -306,6 +308,7 @@ fun WorkspacesScreenHost(
     val showClearSessionConfirmationRaw by vm.showClearSessionConfirmation.collectAsState(initial = false)
     val showClearSessionConfirmation = showClearSessionConfirmationRaw ?: false
     val managerDialogs by vm.managerDialogs.collectAsState()
+    val closedFeedback by vm.closedFeedback.collectAsState()
     val pageManagerState by vm.workspacePageManager.state.collectAsState()
     val managerState by managerVm.state.collectAsState(initial = null)
     val state by vm.state.collectAsState(initial = null)
@@ -452,6 +455,26 @@ fun WorkspacesScreenHost(
                     onOperationsFilterClick = managerVm::toggleOperationsFilter,
                     onAttentionFilterClick = managerVm::toggleAttentionFilter,
                 )
+            }
+        }
+
+        // After the manager overlay on purpose: the manager stays open when a card closes a tab,
+        // and a bar drawn inside the workspace surface would sit underneath it - invisible for the
+        // most likely first use of this feature. The dialogs below still cover it, which is right:
+        // anything asking the user a question outranks an offer they can also just ignore.
+        closedFeedback?.let { feedback ->
+            Box(modifier = Modifier.fillMaxSize()) {
+                FloatingBarStack(
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                    position = BarPosition.BOTTOM,
+                ) {
+                    FloatingBar(key = "workspace-closed-undo") {
+                        WorkspaceClosedFeedbackBar(
+                            feedback = feedback,
+                            onUndo = { vm.undoClose() },
+                        )
+                    }
+                }
             }
         }
 

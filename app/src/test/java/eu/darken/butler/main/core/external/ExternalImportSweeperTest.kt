@@ -44,6 +44,10 @@ class ExternalImportSweeperTest : BaseTest() {
     private val operationsManager = mockk<OperationsManager>()
     private val clipboardRepo = mockk<ClipboardRepo>()
 
+    /** What the repo reports as one snapshot, assembled from the stubs each test sets. */
+    private var generation = 0L
+    private var stashedArguments: List<Workspace.Arguments> = emptyList()
+
     private val now = Instant.fromEpochMilliseconds(1_700_000_000_000)
     private val clock = object : Clock {
         override fun now(): Instant = now
@@ -59,6 +63,19 @@ class ExternalImportSweeperTest : BaseTest() {
         every { operationsManager.operations } returns flowOf(emptyList())
         every { clipboardRepo.state } returns flowOf(ClipboardRepo.State())
         every { sessionManager.state } returns MutableStateFlow(WorkspaceSessionManager.State.Restoring)
+        generation = 0L
+        stashedArguments = emptyList()
+        coEvery { workspaceRepo.peekReferenceHolders() } answers {
+            WorkspaceRepo.ReferenceHolderSnapshot(
+                generation = generation,
+                stashedArguments = stashedArguments,
+                liveWorkspaces = workspaceRepo.peekAll(),
+                pendingCreateArguments = workspaceRepo.peekPendingCreateArguments(),
+            )
+        }
+        coEvery { workspaceRepo.isReferenceSnapshotCurrent(any()) } answers {
+            firstArg<WorkspaceRepo.ReferenceHolderSnapshot>().generation == generation
+        }
     }
 
     private fun create(
@@ -172,6 +189,56 @@ class ExternalImportSweeperTest : BaseTest() {
         create(mapOf(Workspace.Type.VIEWER to factory)).sweep() shouldBe 0
 
         parked.exists() shouldBe true
+    }
+
+    @Test
+    fun `an import a closed tab could still be brought back to survives`() = runTest {
+        // The undo window is exactly when nothing else names the file: the tab is gone, but the
+        // user can still take the close back.
+        val stashed = importDir("cccccccc-cccc-cccc-cccc-cccccccccccc")
+        val arguments = mockk<Workspace.Arguments>()
+        every { arguments.type } returns Workspace.Type.VIEWER
+        stashedArguments = listOf(arguments)
+        val factory = mockk<WorkspaceFactory<Workspace.Arguments>>()
+        every { factory.serialize(any(), any()) } returns
+            JsonPrimitive("""{"filePath":"$baseDir/${stashed.name}/payload.bin"}""")
+
+        create(mapOf(Workspace.Type.VIEWER to factory)).sweep() shouldBe 0
+
+        stashed.exists() shouldBe true
+    }
+
+    @Test
+    fun `a stashed argument that cannot be read aborts the sweep`() = runTest {
+        // Fail closed: a partial reference set deletes files that are actually referenced.
+        val orphan = importDir("dddddddd-dddd-dddd-dddd-dddddddddddd")
+        val arguments = mockk<Workspace.Arguments>()
+        every { arguments.type } returns Workspace.Type.VIEWER
+        stashedArguments = listOf(arguments)
+
+        create(factoryMap = emptyMap()).sweep() shouldBe 0
+
+        orphan.exists() shouldBe true
+    }
+
+    @Test
+    fun `a workspace list that moved while it was read aborts the sweep`() = runTest {
+        // Asking a workspace what it holds suspends, so a close can commit in the middle of the
+        // enumeration. The answer then describes a list that no longer exists and may be missing a
+        // holder entirely - the exact shape that deletes an import the new undo entry still names.
+        val orphan = importDir("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee")
+        val workspace = fakeWorkspace()
+        coEvery { workspace.createArguments() } answers {
+            generation++
+            mockk()
+        }
+        every { workspaceRepo.peekAll() } returns listOf(workspace)
+        val factory = mockk<WorkspaceFactory<Workspace.Arguments>>()
+        every { factory.serialize(any(), any()) } returns JsonPrimitive("{}")
+
+        create(mapOf(Workspace.Type.VIEWER to factory)).sweep() shouldBe 0
+
+        orphan.exists() shouldBe true
     }
 
     @Test

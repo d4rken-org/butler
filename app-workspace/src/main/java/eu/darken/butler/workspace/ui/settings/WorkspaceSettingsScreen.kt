@@ -19,6 +19,7 @@ import androidx.compose.material.icons.twotone.StayPrimaryLandscape
 import androidx.compose.material.icons.twotone.StayPrimaryPortrait
 import androidx.compose.material.icons.twotone.Storage
 import androidx.compose.material.icons.twotone.SwipeLeft
+import androidx.compose.material.icons.twotone.SettingsBackupRestore
 import androidx.compose.material.icons.twotone.Timer
 import androidx.compose.material.icons.twotone.Visibility
 import androidx.compose.material3.AlertDialog
@@ -73,6 +74,7 @@ fun WorkspaceSettingsScreen(
     onToggleSessionRestore: () -> Unit,
     onToggleAutoPause: () -> Unit,
     onSetAutoPauseIdleTimeout: (Duration) -> Unit,
+    onToggleUndoClose: () -> Unit,
 ) {
     var showPortraitDialog by remember { mutableStateOf(false) }
     var showLandscapeDialog by remember { mutableStateOf(false) }
@@ -208,6 +210,16 @@ fun WorkspaceSettingsScreen(
                     value = state.autoPauseIdleTimeout.formatCoarse(),
                     onClick = { showAutoPauseTimeoutDialog = true },
                     enabled = state.autoPauseEnabled,
+                )
+            }
+
+            item {
+                SettingsSwitchItem(
+                    icon = Icons.TwoTone.SettingsBackupRestore,
+                    title = stringResource(R.string.workspace_settings_undoclose_title),
+                    subtitle = stringResource(R.string.workspace_settings_undoclose_desc),
+                    checked = state.undoCloseEnabled,
+                    onCheckedChange = { onToggleUndoClose() },
                 )
             }
 
@@ -363,6 +375,7 @@ private fun WorkspaceSettingsScreenPreview() {
             layoutModeLandscape = WorkspacePanelMode.AUTO,
             paneClickToFocus = true,
             sessionRestoreEnabled = true,
+            undoCloseEnabled = true,
             sessionWorkspaceCount = 3,
             sessionDatabaseSizeBytes = 131072,
         ),
@@ -376,6 +389,7 @@ private fun WorkspaceSettingsScreenPreview() {
         onToggleSessionRestore = {},
         onToggleAutoPause = {},
         onSetAutoPauseIdleTimeout = {},
+        onToggleUndoClose = {},
     )
 }
 
@@ -399,6 +413,7 @@ fun WorkspaceSettingsScreenHost(vm: WorkspaceSettingsViewModel = hiltViewModel()
             onToggleSessionRestore = { vm.toggleSessionRestore() },
             onToggleAutoPause = { vm.toggleAutoPause() },
             onSetAutoPauseIdleTimeout = { timeout -> vm.setAutoPauseIdleTimeout(timeout) },
+            onToggleUndoClose = { vm.toggleUndoClose() },
         )
     }
 }

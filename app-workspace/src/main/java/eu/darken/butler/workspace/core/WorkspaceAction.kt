@@ -268,8 +268,55 @@ sealed interface WorkspaceAction {
         val id: Workspace.Id,
         val requireConfirmation: Boolean = false,
         val sourceWorkspaceId: Workspace.Id? = null,
+        /**
+         * Offers this close as undoable: the closed unit is stashed and can be brought back by
+         * [UndoClose] for a few seconds.
+         *
+         * Off by default, so a close is only undoable where a user closed a whole tab from the
+         * chrome. An in-page close is part of that page's own flow (a picker cancelling, an editor
+         * finishing) and offering to undo it would raise a bar about something the user did not
+         * experience as closing a tab.
+         *
+         * Only a request: the repo refuses it for anything a stash could not faithfully bring back
+         * (see [UndoClose]).
+         */
+        val undoable: Boolean = false,
     ) : WorkspaceAction {
         data object Result : WorkspaceAction.Result
+    }
+
+    /**
+     * Restores the ownership unit of the most recent undoable [Close], as paused stand-ins in the
+     * list position, pane and focus it was closed from.
+     *
+     * At most one close is stashed at a time and the entry is dropped as soon as the workspace set
+     * changes, so this either restores exactly what was closed or reports [Result.Unavailable].
+     */
+    data object UndoClose : WorkspaceAction {
+        sealed interface Result : WorkspaceAction.Result {
+            /**
+             * @param restoreToken incarnation stamped for [rootId] by this restore. Anything that
+             * still has to place the tab passes it back, so a unit closed again in the meantime -
+             * or replaced under the same id - is not placed as if it were this one.
+             */
+            data class Success(
+                val rootId: Workspace.Id,
+                val memberIds: List<Workspace.Id>,
+                val restoreToken: Long,
+            ) : Result
+
+            /** Nothing is stashed (never was, expired, or invalidated by a workspace change). */
+            data object Unavailable : Result
+
+            /**
+             * The stash is intact but restoring it right now would collide with what is open: an id
+             * came back, or another workspace took over the content path / singleton slot. The entry
+             * is kept, so the user can try again.
+             */
+            data object Refused : Result
+
+            data class Failed(val error: Throwable) : Result
+        }
     }
 
     /**

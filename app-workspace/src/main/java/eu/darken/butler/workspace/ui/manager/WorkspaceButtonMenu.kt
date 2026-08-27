@@ -141,6 +141,7 @@ fun WorkspaceButtonMenu(
                         WorkspaceAction.Close(
                             id = closeTargetId,
                             sourceWorkspaceId = currentWorkspaceId,
+                            undoable = true,
                         )
                     )
                 },

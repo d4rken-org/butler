@@ -14,6 +14,7 @@ import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceFactory
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.WorkspaceRepo
+import eu.darken.butler.workspace.core.undo.ClosedWorkspaceStash
 import eu.darken.butler.workspace.core.WorkspaceSettings
 import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import eu.darken.butler.workspace.core.session.WorkspaceSessionStorage
@@ -763,6 +764,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
                 every { this@apply.upgradeInfo } returns MutableStateFlow(upgradeInfo)
                 coEvery { refresh() } just Runs
             }
+            val closedStash = ClosedWorkspaceStash(restoreScope)
             repo = WorkspaceRepo(
                 appScope = restoreScope,
                 factoryMap = factoryMap,
@@ -770,6 +772,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
                 operationsManager = mockk(relaxed = true),
                 upgradeRepo = upgradeRepo,
                 usageRepo = mockk(relaxed = true),
+                closedStash = closedStash,
             )
             pageManager = WorkspacePageManager(
                 appScope = restoreScope,
@@ -777,6 +780,7 @@ class WorkspaceSessionManagerTest : BaseTest() {
                 scrollPositions = scrollPositions,
                 barCollapseStates = barCollapseStates,
                 viewPrefs = viewPrefs,
+                closedStash = closedStash,
             )
         }
 

@@ -385,7 +385,9 @@ class WorkspaceManagerViewModelTest : BaseTest() {
             // The overlay can be dismissed before the confirmation is published, so the host has to
             // be a pane that is on screen either way - the closing tab's own may not be.
             coVerify(exactly = 1) {
-                workspaceRepo.execute(WorkspaceAction.Close(closing, sourceWorkspaceId = idB))
+                workspaceRepo.execute(
+                    WorkspaceAction.Close(closing, sourceWorkspaceId = idB, undoable = true)
+                )
             }
         }
 
@@ -403,7 +405,9 @@ class WorkspaceManagerViewModelTest : BaseTest() {
             createViewModel().closeWorkspace(closing)
 
             coVerify(exactly = 1) {
-                workspaceRepo.execute(WorkspaceAction.Close(closing, sourceWorkspaceId = idA))
+                workspaceRepo.execute(
+                    WorkspaceAction.Close(closing, sourceWorkspaceId = idA, undoable = true)
+                )
             }
         }
 
@@ -423,7 +427,9 @@ class WorkspaceManagerViewModelTest : BaseTest() {
 
             // Focus can sit on a stacked child, which occupies no pane of its own
             coVerify(exactly = 1) {
-                workspaceRepo.execute(WorkspaceAction.Close(closing, sourceWorkspaceId = idB))
+                workspaceRepo.execute(
+                    WorkspaceAction.Close(closing, sourceWorkspaceId = idB, undoable = true)
+                )
             }
         }
 
@@ -435,7 +441,9 @@ class WorkspaceManagerViewModelTest : BaseTest() {
         createViewModel().closeWorkspace(closing)
 
         coVerify(exactly = 1) {
-            workspaceRepo.execute(WorkspaceAction.Close(closing, sourceWorkspaceId = null))
+            workspaceRepo.execute(
+                WorkspaceAction.Close(closing, sourceWorkspaceId = null, undoable = true)
+            )
         }
     }
 

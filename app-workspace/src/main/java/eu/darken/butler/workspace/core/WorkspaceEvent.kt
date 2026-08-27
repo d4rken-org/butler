@@ -12,11 +12,23 @@ sealed interface WorkspaceEvent {
         val replacedId: Workspace.Id? = null,
         val autoFocus: Boolean = false,
         val sourceWorkspaceId: Workspace.Id? = null,
+        /**
+         * Set when this workspace came back through [WorkspaceAction.UndoClose]: the UI restores the
+         * view state and placement filed under this token instead of placing a new workspace.
+         */
+        val restoreToken: Long? = null,
     ) : WorkspaceEvent
 
+    /**
+     * @param closeToken set only while this close is being stashed for undo
+     * ([WorkspaceAction.Close.undoable]). Everything that destroys per-workspace state contributes
+     * it under this token before doing so, and everything that would be wrong to do to a restored
+     * incarnation checks it.
+     */
     data class Closed(
         val workspaceId: Workspace.Id,
         val callerWorkspaceId: Workspace.Id? = null,
+        val closeToken: Long? = null,
     ) : WorkspaceEvent
 
     data class Reordered(
