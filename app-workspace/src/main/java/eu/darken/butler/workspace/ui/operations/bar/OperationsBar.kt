@@ -272,6 +272,7 @@ private fun OperationsBarPreview() {
                 report = object : Operation.Report {
                     override val summary = "Success".toCaString()
                     override val affectedPaths = emptyList<Operation.Report.PathChange>()
+                    override val subjectPath = null
                 }
             ),
             canCancel = false,
@@ -356,6 +357,7 @@ private fun OperationsBarExpandedPreview() {
                 report = object : Operation.Report {
                     override val summary = "Success".toCaString()
                     override val affectedPaths = emptyList<Operation.Report.PathChange>()
+                    override val subjectPath = null
                 }
             ),
             canCancel = false,

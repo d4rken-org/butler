@@ -1,5 +1,6 @@
 package eu.darken.butler.viewer.core.operations
 
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.local.operations.core.PerformanceHistory
 import eu.darken.butler.workspace.core.operations.BaseDeleteOperationReport
@@ -14,6 +15,7 @@ data class DeleteOperationReport(
     override val deletedDirectories: Int,
     override val bytesFreed: Long,
     override val performanceHistory: PerformanceHistory?,
+    override val subjectPath: APath<*>?,
 ) : BaseDeleteOperationReport(
     affectedPaths = affectedPaths,
     skipped = skipped,
@@ -23,6 +25,7 @@ data class DeleteOperationReport(
     deletedDirectories = deletedDirectories,
     bytesFreed = bytesFreed,
     performanceHistory = performanceHistory,
+    subjectPath = subjectPath,
 ), ViewerOperation.Report {
 
     override fun toString(): String {
@@ -40,6 +43,7 @@ data class DeleteOperationReport(
             deletedDirectories = deletedDirectories,
             bytesFreed = _bytesFreed,
             performanceHistory = _performanceHistory,
+            subjectPath = _subjectPath,
         )
     }
 }

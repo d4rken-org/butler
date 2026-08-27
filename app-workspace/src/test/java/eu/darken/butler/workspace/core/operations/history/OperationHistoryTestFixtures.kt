@@ -31,6 +31,7 @@ import kotlin.time.Instant
 
 internal class TestReport(
     override val affectedPaths: Collection<Operation.Report.PathChange>,
+    override val subjectPath: APath<*>? = null,
     override val partialErrorCount: Int = 0,
     override val summary: CaString = "report".toCaString(),
 ) : Operation.Report

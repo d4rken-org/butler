@@ -3,6 +3,7 @@ package eu.darken.butler.workspace.core.operations
 import android.text.format.Formatter
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.caString
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.local.operations.core.PerformanceHistory
@@ -19,6 +20,7 @@ abstract class BaseDeleteOperationReport(
     open val deletedDirectories: Int,
     open val bytesFreed: Long,
     override val performanceHistory: PerformanceHistory?,
+    override val subjectPath: APath<*>?,
 ) : Operation.Report, Operation.HasPerformanceHistory {
 
     override val summary: CaString = caString {
@@ -89,6 +91,7 @@ abstract class BaseDeleteOperationReport(
         protected var deletedDirectories: Int = 0
         protected var _bytesFreed: Long = 0
         protected var _performanceHistory: PerformanceHistory? = null
+        protected var _subjectPath: APath<*>? = null
 
         fun setTrashed(items: Set<APathLookup<*>>) {
             items.forEach {
@@ -114,6 +117,11 @@ abstract class BaseDeleteOperationReport(
 
         fun setPerformanceHistory(history: PerformanceHistory?) {
             this._performanceHistory = history
+        }
+
+        /** The target the user selected, not whichever descendant the engine reached first. */
+        fun setSubjectPath(path: APath<*>?) {
+            this._subjectPath = path
         }
 
         abstract fun build(): T

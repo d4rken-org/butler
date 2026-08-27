@@ -373,6 +373,7 @@ object MockDataProvider {
                 report = object : Operation.Report {
                     override val summary = description.toCaString()
                     override val affectedPaths = emptyList<Operation.Report.PathChange>()
+                    override val subjectPath = null
                 }
             ),
             canCancel = false,

@@ -44,8 +44,10 @@ data class OperationHistoryEntity(
     /** True when [operation_history_paths] only stores a capped subset (default cap: 200). */
     val pathsTruncated: Boolean = false,
     /**
-     * One representative path (first reported change, else first intended path). Lets the list show
-     * a filename and folder for operations that reported no changes, without loading child rows.
+     * The path the operation was about: the report's subject, else the path plan's representative
+     * path. Lets the list name a file and folder without loading child rows, and stays correct for
+     * operations whose reported changes are an audit trail rather than a subject (an extraction's
+     * entries, a recursive delete's descendants).
      */
     val primaryPath: String? = null,
 )

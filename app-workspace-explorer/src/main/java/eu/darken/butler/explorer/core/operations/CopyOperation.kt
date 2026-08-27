@@ -155,6 +155,12 @@ class CopyOperation @AssistedInject constructor(
         val copiedDestinations = result.copied.map { it.second }.toSet()
         fileSystemHinter.trackPathsAdded(operationContext.id, copiedDestinations.toSet())
 
+        // Identified by the source it pairs with, so a directory copy names the top-level
+        // destination instead of whichever descendant the engine happened to write first.
+        val firstSource = command.sources.firstOrNull()
+        reportBuilder.setSubjectPath(
+            result.copied.firstOrNull { (source, _) -> source.lookedUp == firstSource }?.second?.lookedUp
+        )
         reportBuilder.addCopiedItems(copiedDestinations)
         reportBuilder.setSkipped(result.skipped)
         reportBuilder.setCopiedBytes(result.copiedBytes)

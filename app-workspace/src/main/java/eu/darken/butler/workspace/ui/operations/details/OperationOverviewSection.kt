@@ -266,6 +266,7 @@ private fun OperationOverviewGrid(
 private fun previewReport(text: String) = object : Operation.Report {
     override val summary = text.toCaString()
     override val affectedPaths = emptyList<Operation.Report.PathChange>()
+    override val subjectPath = null
 }
 
 @Preview2

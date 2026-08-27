@@ -47,6 +47,7 @@ class OperationOverviewSectionTest : ComposeTest() {
             report = object : Operation.Report {
                 override val summary = "Moved 12 files".toCaString()
                 override val affectedPaths = emptyList<Operation.Report.PathChange>()
+                override val subjectPath = null
             },
         ),
     )

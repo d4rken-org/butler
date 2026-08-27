@@ -159,6 +159,13 @@ class MoveOperation @AssistedInject constructor(
         val movedDestinations = result.movedFiles.map { it.second }.toSet()
         fileSystemHinter.trackPathsAdded(operationContext.id, movedDestinations.toSet())
 
+        // Identified by the source it pairs with, so a directory move names the top-level
+        // destination instead of whichever descendant the engine happened to move first.
+        val firstSource = command.sources.firstOrNull()
+        reportBuilder.setSubjectPath(
+            result.movedFiles.firstOrNull { (source, _) -> source.lookedUp == firstSource }?.second?.lookedUp
+        )
+
         // Build report
         reportBuilder.addMovedItems(result.movedFiles)
         reportBuilder.setSkipped(result.skippedFiles)

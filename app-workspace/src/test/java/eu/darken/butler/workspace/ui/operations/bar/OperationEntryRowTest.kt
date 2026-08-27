@@ -99,6 +99,7 @@ class OperationEntryRowTest : ComposeTest() {
                             report = object : Operation.Report {
                                 override val summary = "Deleted 5 items".toCaString()
                                 override val affectedPaths = emptyList<Operation.Report.PathChange>()
+                                override val subjectPath = null
                             },
                         )
                     ),

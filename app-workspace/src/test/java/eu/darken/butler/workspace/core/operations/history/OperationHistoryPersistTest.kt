@@ -251,6 +251,7 @@ class OperationHistoryPersistTest : BaseTest() {
                         affectedPaths = reported.map {
                             changeOf(it, Operation.Report.PathChange.Change.ADDED)
                         },
+                        subjectPath = reported.first(),
                     ),
                 ),
             )
@@ -310,11 +311,15 @@ class OperationHistoryPersistTest : BaseTest() {
         scopePaths = listOf(savedA, savedB),
     )
 
-    /** Mirrors CompressOperation: the destination DIRECTORY is the scope, not the archive path. */
+    /**
+     * Mirrors CompressOperation: the destination DIRECTORY is the scope, not the archive path, and
+     * the archive - not a source - is what a failed compression names.
+     */
     private fun compressPlan() = OperationPathPlan(
         targets = listOf(downloadA, downloadB),
         destination = OperationPathPlan.Destination.RequestedTarget(archived),
         scopePaths = listOf(downloadA, downloadB, destinationFolder),
+        representativePath = archived,
     )
 
     @Test
@@ -416,7 +421,7 @@ class OperationHistoryPersistTest : BaseTest() {
             "/sdcard/Download/b.txt",
             "/sdcard/Backup",
         )
-        database.operationHistoryDao().getById(id)!!.entry.primaryPath shouldBe downloadA.path
+        database.operationHistoryDao().getById(id)!!.entry.primaryPath shouldBe archived.path
     }
 
     @Test

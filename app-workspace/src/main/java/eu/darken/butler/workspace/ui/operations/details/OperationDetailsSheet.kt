@@ -189,6 +189,7 @@ private fun createMockReport(
 ): Operation.Report = object : Operation.Report {
     override val summary = "Completed successfully".toCaString()
     override val affectedPaths = affectedPaths
+    override val subjectPath = null
 }
 
 @Preview2

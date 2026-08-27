@@ -130,7 +130,7 @@ class OperationHistoryRepo @Inject constructor(
             affectedPathsCount = reportedChanges.size,
             partialErrorCount = state.report?.partialErrorCount ?: 0,
             pathsTruncated = reportedChanges.size > MAX_PATHS_PER_OP,
-            primaryPath = reportedChanges.firstOrNull()?.path
+            primaryPath = state.report?.subjectPath?.userReadablePath?.get(context)
                 ?: metadata.pathPlan?.representativePath?.userReadablePath?.get(context),
         )
 

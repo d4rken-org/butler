@@ -59,7 +59,12 @@ class RestoreOperation @AssistedInject constructor(
         val restoredPaths: Set<APath<*>>,
         val conflictCount: Int,
         val failedCount: Int,
+        /** The subset of [restoredPaths] that came from a trash item the user selected directly. */
+        val rootRestoredPaths: Set<APath<*>> = emptySet(),
     ) : ExplorerOperation.Report {
+        override val subjectPath: APath<*>? =
+            rootRestoredPaths.firstOrNull() ?: restoredPaths.firstOrNull()
+
         override val summary: CaString = caString { cx ->
             cx.getQuantityString2(
                 eu.darken.butler.workspace.R.plurals.workspace_operation_restore_summary,
@@ -79,6 +84,7 @@ class RestoreOperation @AssistedInject constructor(
         send(State.Active(startedAt = operationContext.startedAt))
 
         val restoredPaths = mutableSetOf<APath<*>>()
+        val rootRestoredPaths = mutableSetOf<APath<*>>()
         var conflicts = 0
         var failed = 0
 
@@ -89,6 +95,7 @@ class RestoreOperation @AssistedInject constructor(
                 if (repoItems.isNotEmpty()) {
                     val result = trashManager.restore(repoItems)
                     restoredPaths += result.restored
+                    rootRestoredPaths += result.restored
                     conflicts += result.conflicts.size
                     failed += result.failed.size
                 }
@@ -146,6 +153,7 @@ class RestoreOperation @AssistedInject constructor(
                     restoredPaths = restoredPaths,
                     conflictCount = conflicts,
                     failedCount = failed,
+                    rootRestoredPaths = rootRestoredPaths,
                 ),
                 error = when {
                     restoredPaths.isEmpty() && conflicts + failed > 0 ->

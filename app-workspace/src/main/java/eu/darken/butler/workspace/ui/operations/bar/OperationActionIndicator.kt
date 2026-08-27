@@ -129,6 +129,7 @@ private fun OperationActionIndicatorPreview() {
                 report = object : Operation.Report {
                     override val summary = "Done".toCaString()
                     override val affectedPaths = emptyList<Operation.Report.PathChange>()
+                    override val subjectPath = null
                 }
             ),
             modifier = Modifier.size(24.dp)
@@ -140,6 +141,7 @@ private fun OperationActionIndicatorPreview() {
                 report = object : Operation.Report {
                     override val summary = "Error".toCaString()
                     override val affectedPaths = emptyList<Operation.Report.PathChange>()
+                    override val subjectPath = null
                 }
             ),
             modifier = Modifier.size(24.dp)
@@ -150,6 +152,7 @@ private fun OperationActionIndicatorPreview() {
                 report = object : Operation.Report {
                     override val summary = "Cancelled".toCaString()
                     override val affectedPaths = emptyList<Operation.Report.PathChange>()
+                    override val subjectPath = null
                 }
             ),
             modifier = Modifier.size(24.dp)

@@ -78,6 +78,14 @@ data class SaveFilesReport(
         }
 
     /**
+     * A save takes many files, so the label is pinned to the first PLANNED file rather than to
+     * whichever one happened to succeed: `[a.txt, b.txt]` with `a.txt` skipped names `b.txt`.
+     */
+    override val subjectPath: APath<*>?
+        get() = (results.firstOrNull() as? FileResult.Success)?.savedPath
+            ?: successes.firstOrNull()?.savedPath
+
+    /**
      * Per-file failures (errors). Skipped files are user-acknowledged choices and not counted.
      * When `errors` is non-empty alongside successes, [HistoryOutcome.PARTIAL] is recorded.
      */

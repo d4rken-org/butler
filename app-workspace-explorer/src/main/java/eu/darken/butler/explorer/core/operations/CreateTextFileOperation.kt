@@ -115,6 +115,8 @@ class CreateTextFileOperation @AssistedInject constructor(
             )
 
             // Build report
+            reportBuilder.setSubjectPath(createdPath)
+
             @Suppress("UNCHECKED_CAST")
             reportBuilder.addPathEvent(
                 FileSystemEvent.Added(
