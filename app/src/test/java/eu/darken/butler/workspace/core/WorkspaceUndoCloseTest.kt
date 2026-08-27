@@ -359,6 +359,26 @@ class WorkspaceUndoCloseTest : BaseTest() {
     }
 
     @Test
+    fun `a second close inside the capture window is the one that stays offered`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val first = createTab()
+            val second = createTab()
+            fake(first).whileCapturingArguments = {
+                // Two closes in quick succession: the second one runs start to finish while the
+                // first is still capturing, so both are in flight at the same time
+                repo.execute(WorkspaceAction.Close(second, undoable = true))
+            }
+
+            closeUndoable(first)
+
+            openIds() shouldBe emptyList()
+            // Latest wins, and the older close's own removals must not take the newer entry down
+            stash.feedback.value shouldNotBe null
+            undo().shouldBeInstanceOf<WorkspaceAction.UndoClose.Result.Success>()
+            openIds() shouldBe listOf(second)
+        }
+
+    @Test
     fun `a tab that turns dirty while capturing asks before closing`() = runTest(UnconfinedTestDispatcher()) {
         val id = createTab(Workspace.Type.EDITOR)
         fake(id).whileCapturingArguments = {

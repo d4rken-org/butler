@@ -52,10 +52,19 @@ class ClosedWorkspaceStash @Inject constructor(
 
     private var pending: Assembly? = null
 
-    /** Token of the close operation currently in flight; only ITS OWN publications may not invalidate. */
-    private var armedToken: Long? = null
+    /**
+     * Tokens of the close operations currently in flight; only THEIR OWN publications may not
+     * invalidate.
+     *
+     * A set rather than a slot because a close releases the repo lock while it captures arguments,
+     * so a second close can arm and finish inside that window. Both closes then publish under their
+     * own token, and a slot would leave the older one's publications looking like somebody else's
+     * mutation - dropping the newer entry that just superseded it. [pending] stays a single slot:
+     * still at most one entry, still latest wins.
+     */
+    private val armedTokens = mutableSetOf<Long>()
 
-    /** Set while an undo restore is publishing, for the same reason as [armedToken]. */
+    /** Set while an undo restore is publishing, for the same reason as [armedTokens]. */
     private var restoring = false
 
     private val tickets = mutableMapOf<Workspace.Id, ClosedWorkspaceRestoreTicket>()
@@ -126,12 +135,12 @@ class ClosedWorkspaceStash @Inject constructor(
         log(TAG) { "armClose($closeToken, root=$rootId, members=${memberIds.size})" }
         dropPendingLocked("superseded by close $closeToken")
         pending = Assembly(closeToken, rootId, memberIds)
-        armedToken = closeToken
+        armedTokens += closeToken
     }
 
     /** The close is not going to be undoable after all (revalidation failed, or it was cancelled). */
     fun abortClose(closeToken: Long) = synchronized(lock) {
-        if (armedToken == closeToken) armedToken = null
+        armedTokens -= closeToken
         if (pending?.closeToken != closeToken) return@synchronized
         log(TAG) { "abortClose($closeToken)" }
         dropPendingLocked("aborted")
@@ -150,7 +159,7 @@ class ClosedWorkspaceStash @Inject constructor(
 
     /** The close operation is over; from here its publications are ordinary mutations again. */
     fun disarm(closeToken: Long) = synchronized(lock) {
-        if (armedToken == closeToken) armedToken = null
+        armedTokens -= closeToken
     }
 
     /**
@@ -161,9 +170,12 @@ class ClosedWorkspaceStash @Inject constructor(
      * the bar would appear and vanish again in the same breath, on the default settings.
      *
      * [closeToken] names the close operation the publication belongs to, and only a publication
-     * carrying the pending entry's own token is exempt. Being armed is not enough on its own: the
-     * capture window runs without the repo mutex, so an unrelated create or close can publish while
-     * it is open, and that is exactly the kind of change the entry may not survive.
+     * carrying the token of a close that is still in flight is exempt. Carrying no token is not
+     * enough on its own: the capture window runs without the repo mutex, so an unrelated create or
+     * registration can publish while it is open, and that is exactly the kind of change the entry
+     * may not survive. Another close IS exempt, even when the entry belongs to a different one: a
+     * close frees a slot rather than taking one, and position is re-derived from the surviving
+     * neighbours at restore time.
      *
      * Called synchronously from every publish site while the repo holds its lock, so an entry can
      * never be committed against a list that already moved on.
@@ -171,9 +183,7 @@ class ClosedWorkspaceStash @Inject constructor(
     fun onWorkspaceIdSetChanged(closeToken: Long? = null) = synchronized(lock) {
         if (restoring) return@synchronized
         val assembly = pending ?: return@synchronized
-        if (closeToken != null && closeToken == assembly.closeToken && armedToken == assembly.closeToken) {
-            return@synchronized
-        }
+        if (closeToken != null && closeToken in armedTokens) return@synchronized
         log(TAG) { "Workspace set changed, dropping undo entry ${assembly.closeToken}" }
         dropPendingLocked("workspace set changed")
     }
@@ -333,7 +343,8 @@ class ClosedWorkspaceStash @Inject constructor(
         log(TAG) { "Dropping undo entry ${assembly.closeToken}: $reason" }
         assembly.timeoutJob?.cancel()
         pending = null
-        if (armedToken == assembly.closeToken) armedToken = null
+        // Deliberately keeps the token armed: losing the entry is not the close being over, and its
+        // remaining publications must not invalidate whatever entry took this one's place.
         _feedback.value = null
     }
 

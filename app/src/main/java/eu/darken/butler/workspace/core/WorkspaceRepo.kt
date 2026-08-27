@@ -205,9 +205,10 @@ class WorkspaceRepo @Inject constructor(
      * time). Closing a tab next to a paused one resumes that neighbour on focus, so a coarser rule
      * would drop the entry milliseconds after committing it, on the default settings.
      *
-     * [closeToken] is passed ONLY by the close recursion that is currently being stashed. Every
-     * other publication - a create, a session registration, an unrelated close - is somebody else's
-     * mutation even when it lands inside the capture window, and the entry may not survive it.
+     * [closeToken] is passed ONLY by a close recursion that armed the stash for its own undo
+     * capture. Every other publication - a create, a session registration, a close that stashes
+     * nothing - is somebody else's mutation even when it lands inside the capture window, and the
+     * entry may not survive it.
      */
     private fun publishWorkspaces(workspaces: List<Workspace<*>>, closeToken: Long? = null) {
         val before = _workspaces.value.mapTo(mutableSetOf()) { it.id }

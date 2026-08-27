@@ -193,6 +193,46 @@ class ClosedWorkspaceStashTest : BaseTest() {
     }
 
     @Test
+    fun `an older close still in flight does not drop the entry that superseded it`() = runTest {
+        val first = Workspace.Id()
+        val firstToken = armed(first)
+
+        // A second close arms while the first one is still capturing, and finishes inside that window
+        val second = Workspace.Id()
+        val secondToken = armed(second)
+        contributeUiHalf(secondToken, second)
+        stash.commitIdentity(snapshotOf(secondToken, second))
+        stash.disarm(secondToken)
+        stash.markDestructionComplete(secondToken)
+        stash.feedback.value?.closeToken shouldBe secondToken
+
+        // The first close now runs its own removals, under its own token
+        stash.onWorkspaceIdSetChanged(firstToken)
+        stash.commitIdentity(snapshotOf(firstToken, first))
+        stash.disarm(firstToken)
+        stash.markDestructionComplete(firstToken)
+
+        stash.feedback.value?.closeToken shouldBe secondToken
+        stash.peekEntry() shouldNotBe null
+    }
+
+    @Test
+    fun `a finished close's token stops being exempt`() = runTest {
+        val id = Workspace.Id()
+        val token = armed(id)
+        contributeUiHalf(token, id)
+        stash.commitIdentity(snapshotOf(token, id))
+        stash.disarm(token)
+        stash.markDestructionComplete(token)
+
+        // Nothing is in flight under this token any more, so it is no longer a licence to mutate
+        stash.onWorkspaceIdSetChanged(token)
+
+        stash.feedback.value shouldBe null
+        stash.peekEntry() shouldBe null
+    }
+
+    @Test
     fun `an identity half whose UI half never lands is dropped unoffered`() = runTest {
         val id = Workspace.Id()
         val token = armed(id)
