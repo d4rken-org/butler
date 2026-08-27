@@ -412,7 +412,7 @@ private fun WorkspaceManagerBody() {
                     autoTitle = "/storage/emulated/0/Download".toCaString(),
                     subtitle = null,
                     isFocused = true,
-                    isSelected = true,
+                    isVisibleInPane = true,
                     paneNumber = 1,
                 ),
                 WorkspaceManagerViewModel.WorkspaceItem(

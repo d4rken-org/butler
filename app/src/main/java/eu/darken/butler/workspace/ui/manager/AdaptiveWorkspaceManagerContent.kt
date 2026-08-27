@@ -20,6 +20,7 @@ import eu.darken.butler.workspace.core.Workspace
 
 @Composable
 fun AdaptiveWorkspaceManagerContent(
+    modifier: Modifier = Modifier,
     state: WorkspaceManagerViewModel.State,
     paddingValues: PaddingValues,
     onCloseWorkspace: (Workspace.Id) -> Unit,
@@ -28,13 +29,16 @@ fun AdaptiveWorkspaceManagerContent(
     onPauseWorkspace: (Workspace.Id) -> Unit,
     onResumeWorkspace: (Workspace.Id) -> Unit,
     onDismissBadgeExplanation: () -> Unit,
+    onStartSelection: (Workspace.Id) -> Unit = {},
+    onToggleSelection: (Workspace.Id) -> Unit = {},
     onRenameWorkspace: (Workspace.Id) -> Unit = {},
     onTabsClick: () -> Unit = {},
+    onClearSelection: () -> Unit = {},
     onOperationsFilterClick: () -> Unit = {},
     onAttentionFilterClick: () -> Unit = {},
 ) {
     BoxWithConstraints(
-        modifier = Modifier.fillMaxSize()
+        modifier = modifier.fillMaxSize()
     ) {
         val screenWidth = maxWidth
 
@@ -59,8 +63,11 @@ fun AdaptiveWorkspaceManagerContent(
             onPauseWorkspace = onPauseWorkspace,
             onResumeWorkspace = onResumeWorkspace,
             onDismissBadgeExplanation = onDismissBadgeExplanation,
+            onStartSelection = onStartSelection,
+            onToggleSelection = onToggleSelection,
             onRenameWorkspace = onRenameWorkspace,
             onTabsClick = onTabsClick,
+            onClearSelection = onClearSelection,
             onOperationsFilterClick = onOperationsFilterClick,
             onAttentionFilterClick = onAttentionFilterClick,
         )
@@ -86,7 +93,7 @@ private fun AdaptiveWorkspaceManagerContentListPreview() {
                         autoTitle = "New".toCaString(),
                         subtitle = null,
                         isFocused = true,
-                        isSelected = true,
+                        isVisibleInPane = true,
                         paneNumber = 0,
                     ),
                     WorkspaceManagerViewModel.WorkspaceItem(
@@ -142,7 +149,7 @@ private fun AdaptiveWorkspaceManagerContentGridPreview() {
                         autoTitle = "New".toCaString(),
                         subtitle = null,
                         isFocused = true,
-                        isSelected = true,
+                        isVisibleInPane = true,
                         paneNumber = 0,
                     ),
                     WorkspaceManagerViewModel.WorkspaceItem(
@@ -152,7 +159,7 @@ private fun AdaptiveWorkspaceManagerContentGridPreview() {
                         title = "Trash".toCaString(),
                         autoTitle = "Trash".toCaString(),
                         subtitle = "Recover deleted files".toCaString(),
-                        isSelected = true,
+                        isVisibleInPane = true,
                         paneNumber = 1,
                     ),
                     WorkspaceManagerViewModel.WorkspaceItem(

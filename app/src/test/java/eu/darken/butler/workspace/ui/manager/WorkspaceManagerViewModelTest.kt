@@ -104,7 +104,7 @@ class WorkspaceManagerViewModelTest : BaseTest() {
         }
         items.single { it.id == idB }.let {
             it.isFocused shouldBe false
-            it.isSelected shouldBe true
+            it.isVisibleInPane shouldBe true
             it.canPause shouldBe true
         }
     }
@@ -272,7 +272,7 @@ class WorkspaceManagerViewModelTest : BaseTest() {
             it.stackDepth shouldBe 1
             // Focus sits on the overlay, but the pane holds the tab
             it.isFocused shouldBe true
-            it.isSelected shouldBe true
+            it.isVisibleInPane shouldBe true
             it.paneNumber shouldBe 0
         }
     }
@@ -369,4 +369,202 @@ class WorkspaceManagerViewModelTest : BaseTest() {
             coVerify(exactly = 1) { workspacePageManager.selectWorkspaceFromManager(idA) }
             coVerify(exactly = 1) { workspacePageManager.hideManagerOverlay() }
         }
+
+    private suspend fun WorkspaceManagerViewModel.currentState() = state.filterNotNull().first()
+
+    @Test
+    fun `selection mode is off until a card starts it`() = runTest(UnconfinedTestDispatcher()) {
+        repoState.value = WorkspaceRemote.State(infos = listOf(readyInfo(idA), readyInfo(idB)))
+        val vm = createViewModel()
+
+        vm.currentState().let {
+            it.selectedIds shouldBe null
+            it.isSelectionActive shouldBe false
+            it.selectedCount shouldBe 0
+        }
+
+        vm.startSelection(idA)
+
+        vm.currentState().let {
+            it.selectedIds shouldBe setOf(idA)
+            it.isSelectionActive shouldBe true
+            it.allSelected shouldBe false
+        }
+    }
+
+    @Test
+    fun `deselecting the last card leaves selection mode`() = runTest(UnconfinedTestDispatcher()) {
+        repoState.value = WorkspaceRemote.State(infos = listOf(readyInfo(idA), readyInfo(idB)))
+        val vm = createViewModel()
+
+        vm.startSelection(idA)
+        vm.toggleSelection(idB)
+        vm.currentState().selectedIds shouldBe setOf(idA, idB)
+        vm.currentState().allSelected shouldBe true
+
+        vm.toggleSelection(idB)
+        vm.toggleSelection(idA)
+
+        vm.currentState().isSelectionActive shouldBe false
+    }
+
+    @Test
+    fun `only unit owners survive a selection, so a stacked child never becomes its own entry`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val overlay = childInfo(caller = idA, pausableAsChild = true)
+            repoState.value =
+                WorkspaceRemote.State(infos = listOf(readyInfo(idA), readyInfo(idB), overlay))
+            val vm = createViewModel()
+
+            vm.selectAllTabs()
+
+            vm.currentState().let {
+                it.selectedIds shouldBe setOf(idA, idB)
+                it.allSelected shouldBe true
+            }
+        }
+
+    /**
+     * The chip that triggers this shows the unfiltered tab count, so it has to deliver that many.
+     * Clearing the filters in the same step is what keeps the selection from holding cards the grid
+     * is hiding.
+     */
+    @Test
+    fun `select all clears the filters and takes every tab`() = runTest(UnconfinedTestDispatcher()) {
+        val busy = readyInfo(idA).copy(operationCount = 1)
+        repoState.value = WorkspaceRemote.State(infos = listOf(busy, readyInfo(idB)))
+        val vm = createViewModel()
+        vm.toggleOperationsFilter()
+        vm.currentState().filteredWorkspaces.map { it.id } shouldBe listOf(idA)
+
+        vm.selectAllTabs()
+
+        vm.currentState().let {
+            it.selectedIds shouldBe setOf(idA, idB)
+            it.allSelected shouldBe true
+            it.filterOperations shouldBe false
+            it.filteredWorkspaces.map { w -> w.id } shouldBe listOf(idA, idB)
+        }
+    }
+
+    /**
+     * The focused tab is never pausable, and select-all always includes it, so a partly pausable
+     * selection is the normal case - pausing has to act on the eligible subset rather than refuse.
+     */
+    @Test
+    fun `pausing a selection pauses only the pausable tabs`() = runTest(UnconfinedTestDispatcher()) {
+        repoState.value = WorkspaceRemote.State(infos = listOf(readyInfo(idA), readyInfo(idB)))
+        pageState.value = WorkspacePageManager.State(focusedWorkspaceId = idA)
+        val vm = createViewModel()
+
+        vm.selectAllTabs()
+        vm.currentState().let {
+            it.selectedCount shouldBe 2
+            it.selectionPausableCount shouldBe 1
+        }
+
+        vm.pauseSelectedWorkspaces()
+
+        coVerify(exactly = 1) { workspaceRepo.execute(WorkspaceAction.Pause(idB)) }
+        coVerify(exactly = 0) { workspaceRepo.execute(WorkspaceAction.Pause(idA)) }
+    }
+
+    @Test
+    fun `a tab that closes elsewhere drops out of the exposed selection`() =
+        runTest(UnconfinedTestDispatcher()) {
+            repoState.value = WorkspaceRemote.State(infos = listOf(readyInfo(idA), readyInfo(idB)))
+            val vm = createViewModel()
+
+            vm.startSelection(idA)
+            vm.toggleSelection(idB)
+
+            repoState.value = WorkspaceRemote.State(infos = listOf(readyInfo(idA)))
+
+            vm.currentState().let {
+                it.selectedIds shouldBe setOf(idA)
+                it.allSelected shouldBe true
+            }
+        }
+
+    /**
+     * The set is closed as one already-confirmed batch, never as per-tab [WorkspaceAction.Close] -
+     * that path raises its own confirmation for an unsaved tab, which would re-ask after the user
+     * already confirmed. Skipping ids whose tab has since closed is the repo's job.
+     */
+    @Test
+    fun `closing a selection sends one confirmed batch, not per-tab closes`() =
+        runTest(UnconfinedTestDispatcher()) {
+            repoState.value = WorkspaceRemote.State(infos = listOf(readyInfo(idA), readyInfo(idB)))
+            val vm = createViewModel()
+
+            vm.startSelection(idA)
+            vm.toggleSelection(idB)
+            vm.closeSelectedWorkspaces()
+
+            coVerify(exactly = 1) {
+                workspaceRepo.execute(WorkspaceAction.CloseSelected(setOf(idA, idB)))
+            }
+            // Matched by type: building a Close with any() mints a Workspace.Id whose Uuid is null,
+            // and MockK stringifies the call for its matcher log, which trips Id.shortTag.
+            coVerify(exactly = 0) { workspaceRepo.execute(ofType<WorkspaceAction.Close>()) }
+            vm.currentState().isSelectionActive shouldBe false
+        }
+
+    /**
+     * The confirming dialog dismisses the moment it is tapped, so anything that happens between the
+     * confirm and the coroutine must not change what gets closed.
+     */
+    @Test
+    fun `the confirmed set is captured before the close suspends`() =
+        runTest(UnconfinedTestDispatcher()) {
+            repoState.value = WorkspaceRemote.State(infos = listOf(readyInfo(idA), readyInfo(idB)))
+            val vm = createViewModel()
+
+            vm.startSelection(idA)
+            vm.closeSelectedWorkspaces()
+            // A new selection started right after confirming must not join the batch
+            vm.startSelection(idB)
+
+            coVerify(exactly = 1) { workspaceRepo.execute(WorkspaceAction.CloseSelected(setOf(idA))) }
+            vm.currentState().selectedIds shouldBe setOf(idB)
+        }
+
+    @Test
+    fun `selection mode ends when every selected tab closes elsewhere`() =
+        runTest(UnconfinedTestDispatcher()) {
+            repoState.value = WorkspaceRemote.State(infos = listOf(readyInfo(idA), readyInfo(idB)))
+            val vm = createViewModel()
+
+            vm.startSelection(idA)
+            repoState.value = WorkspaceRemote.State(infos = listOf(readyInfo(idB)))
+
+            vm.currentState().let {
+                it.selectedIds shouldBe null
+                it.isSelectionActive shouldBe false
+            }
+        }
+
+    @Test
+    fun `back leaves selection mode first and dismisses the manager only after`() =
+        runTest(UnconfinedTestDispatcher()) {
+            repoState.value = WorkspaceRemote.State(infos = listOf(readyInfo(idA)))
+            val vm = createViewModel()
+
+            vm.clearSelectionIfActive() shouldBe false
+
+            vm.startSelection(idA)
+            vm.clearSelectionIfActive() shouldBe true
+            vm.clearSelectionIfActive() shouldBe false
+        }
+
+    @Test
+    fun `reopening the manager never lands in selection mode`() = runTest(UnconfinedTestDispatcher()) {
+        repoState.value = WorkspaceRemote.State(infos = listOf(readyInfo(idA)))
+        val vm = createViewModel()
+
+        vm.startSelection(idA)
+        vm.onScreenAppeared()
+
+        vm.currentState().isSelectionActive shouldBe false
+    }
 }

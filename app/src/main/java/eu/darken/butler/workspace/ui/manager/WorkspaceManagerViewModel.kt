@@ -44,6 +44,13 @@ class WorkspaceManagerViewModel @Inject constructor(
     private val filterOperationsFlow = MutableStateFlow(false)
     private val filterAttentionFlow = MutableStateFlow(false)
 
+    /**
+     * Null means selection mode is off; a set (never empty) means it is on. Ids can name tabs that
+     * closed from elsewhere while the manager was open, so what the UI sees is pruned in [state]
+     * and what a batch close acts on is re-resolved against the repo.
+     */
+    private val selectionFlow = MutableStateFlow<Set<Workspace.Id>?>(null)
+
     private val quickCreateItems = workspaceTemplates.availableTemplates()
         .map { templates -> templates.filter { it.isQuickCreate }.map { it.toQuickCreateItem() } }
 
@@ -55,7 +62,8 @@ class WorkspaceManagerViewModel @Inject constructor(
         filterOperationsFlow,
         filterAttentionFlow,
         quickCreateItems,
-    ) { repoState, showBadge, livePreview, pageManagerState, filterOps, filterAtt, quickCreate ->
+        selectionFlow,
+    ) { repoState, showBadge, livePreview, pageManagerState, filterOps, filterAtt, quickCreate, selection ->
         val stacks = WorkspaceStacks(repoState.infos)
         val focusedId = pageManagerState.focusedWorkspaceId
         val topChains = stacks.topChainByRoot(focusedId)
@@ -78,10 +86,10 @@ class WorkspaceManagerViewModel @Inject constructor(
                     subtitle = top.subtitle,
                     autoTitle = top.title,
                     customTitle = owner.customTitle,
-                    // A pane holds tabs, so pane and selection state are the owner's; focus may sit
+                    // A pane holds tabs, so pane placement and focus are the owner's; focus may sit
                     // anywhere in the unit
                     isFocused = members.any { it.id == focusedId },
-                    isSelected = visibleAssignments.values.contains(owner.id),
+                    isVisibleInPane = visibleAssignments.values.contains(owner.id),
                     paneNumber = visibleAssignments.entries.find { it.value == owner.id }?.key,
                     operationCount = members.sumOf { it.operationCount },
                     attentionCount = members.sumOf { it.attentionCount },
@@ -102,6 +110,12 @@ class WorkspaceManagerViewModel @Inject constructor(
             filterAttention = filterAtt,
             quickCreateItems = quickCreate,
             hasUnsavedChanges = repoState.infos.any { it.hasUnsavedChanges },
+            selectedIds = selection
+                ?.intersect(stacks.unitOwners.map { it.id }.toSet())
+                // An empty result is not "selection mode with nothing picked": every selected tab
+                // closed from elsewhere, so the mode is over. Left as an empty set the bar would sit
+                // at "0 selected" with no way back except Cancel.
+                ?.ifEmpty { null },
         )
     }.asStateFlow()
 
@@ -240,9 +254,105 @@ class WorkspaceManagerViewModel @Inject constructor(
         workspaceRepo.execute(WorkspaceAction.CloseAll)
     }
 
-    fun onScreenAppeared() = launch {
+    fun startSelection(id: Workspace.Id) {
+        log(tag) { "startSelection($id)" }
+        selectionFlow.value = setOf(id)
+    }
+
+    /** Deselecting the last card leaves selection mode, so the contextual bar never sits at zero. */
+    fun toggleSelection(id: Workspace.Id) {
+        val current = selectionFlow.value ?: return
+        val next = if (current.contains(id)) current - id else current + id
+        log(tag) { "toggleSelection($id) -> ${next.size} selected" }
+        selectionFlow.value = next.ifEmpty { null }
+    }
+
+    /**
+     * Selects every open tab. The filters are cleared in the same step, so the selection can never
+     * hold a card the grid is hiding: the tabs chip that triggers this shows the UNFILTERED count,
+     * and selecting fewer tabs than the number on that chip is the surprise worth avoiding.
+     */
+    fun selectAllTabs() = launch {
+        val all = workspaceRepo.peekStacks().unitOwners.map { it.id }.toSet()
+        log(tag) { "selectAllTabs() -> ${all.size}" }
+        filterOperationsFlow.value = false
+        filterAttentionFlow.value = false
+        selectionFlow.value = all.ifEmpty { null }
+    }
+
+    fun clearSelection() {
+        log(tag) { "clearSelection()" }
+        selectionFlow.value = null
+    }
+
+    /**
+     * Closes every selected tab. The set is captured and cleared synchronously, before any
+     * suspension: the confirming dialog dismisses immediately, so a toggle landing between the
+     * confirm and this coroutine would otherwise change what gets closed - or be erased by the
+     * clear. The repo then re-resolves the captured ids, because a tab can close from another
+     * surface while the manager is open and the shared state flow's replay cache can lag that.
+     */
+    fun closeSelectedWorkspaces() {
+        val confirmed = selectionFlow.value.orEmpty()
+        selectionFlow.value = null
+        if (confirmed.isEmpty()) return
+        log(tag) { "closeSelectedWorkspaces() - ${confirmed.size} confirmed" }
+        launch { workspaceRepo.execute(WorkspaceAction.CloseSelected(confirmed)) }
+    }
+
+    /**
+     * Pauses the pausable members of the selection and leaves the rest untouched, reporting what
+     * actually happened rather than what looked eligible: [WorkspaceItem.canPause] is eventually
+     * consistent and the repo can still refuse. Ids are captured before suspending for the same
+     * reason [closeSelectedWorkspaces] does it.
+     */
+    fun pauseSelectedWorkspaces() {
+        val confirmed = selectionFlow.value.orEmpty()
+        selectionFlow.value = null
+        if (confirmed.isEmpty()) return
+        launch {
+            val stacks = workspaceRepo.peekStacks()
+            val focusedId = workspacePageManager.state.value.focusedWorkspaceId
+            val eligible = stacks.unitOwners
+                .filter { confirmed.contains(it.id) && it.canBePausedManually(stacks, focusedId) }
+                .map { it.id }
+            log(tag) { "pauseSelectedWorkspaces() - ${eligible.size} of ${confirmed.size} eligible" }
+            var paused = 0
+            eligible.forEach { id ->
+                val leaseKey = workspaceRepo.peekOwnershipRoot(id)
+                val result = workspacePauseGate.withLease(leaseKey) {
+                    workspaceRepo.execute(WorkspaceAction.Pause(id))
+                }
+                if (result is WorkspaceAction.Pause.Result.Success) {
+                    paused++
+                } else {
+                    log(tag, WARN) { "Pausing $id did not succeed: $result" }
+                }
+            }
+            log(tag, INFO) { "pauseSelectedWorkspaces() - paused $paused of ${confirmed.size}" }
+        }
+    }
+
+    /**
+     * Leaves selection mode if it is on, reporting whether it did. Back has to make that decision
+     * from the authoritative flow rather than from a collected snapshot of [state], which lags a
+     * long-press by a frame and would dismiss the whole manager instead.
+     */
+    fun clearSelectionIfActive(): Boolean {
+        if (selectionFlow.value == null) return false
+        log(tag) { "clearSelectionIfActive() - leaving selection mode" }
+        selectionFlow.value = null
+        return true
+    }
+
+    fun onScreenAppeared() {
         log(tag) { "onScreenAppeared() - invalidating focused workspace preview" }
-        workspacePreviewManager.invalidateFocusedWorkspacePreview()
+        // Cleared before the launch, not inside it: a reopened manager can accept a long-press
+        // before a coroutine gets scheduled, and the reset would then wipe that fresh selection.
+        // The manager can be dismissed mid-selection from outside this ViewModel, so a fresh opening
+        // resets it here rather than relying on every dismissal path to do so.
+        selectionFlow.value = null
+        launch { workspacePreviewManager.invalidateFocusedWorkspacePreview() }
     }
 
     fun toggleOperationsFilter() {
@@ -272,8 +382,32 @@ class WorkspaceManagerViewModel @Inject constructor(
         val filterAttention: Boolean = false,
         val quickCreateItems: List<QuickCreateItem> = emptyList(),
         val hasUnsavedChanges: Boolean = false,
+        /** Null when selection mode is off. Pruned to tabs that are still open. */
+        val selectedIds: Set<Workspace.Id>? = null,
     ) {
         val workspaceCount: Int = workspaces.size
+
+        val isSelectionActive: Boolean = selectedIds != null
+
+        val selectedCount: Int = selectedIds?.size ?: 0
+
+        /** Whether every open tab is checked. Selecting freezes the filters, so this is unambiguous. */
+        val allSelected: Boolean
+            get() = selectedIds != null && workspaces.isNotEmpty() &&
+                    workspaces.all { selectedIds.contains(it.id) }
+
+        /**
+         * How many of the selected tabs can currently be paused. Always short of [selectedCount]
+         * after a select-all: the focused tab is never pausable, so "some were skipped" is the
+         * normal case rather than the exception.
+         */
+        val selectionPausableCount: Int = selectedIds
+            ?.let { ids -> workspaces.count { ids.contains(it.id) && it.canPause } }
+            ?: 0
+
+        val selectionHasUnsavedChanges: Boolean = selectedIds
+            ?.let { ids -> workspaces.any { ids.contains(it.id) && it.hasUnsavedChanges } }
+            ?: false
 
         val filteredWorkspaces: List<WorkspaceItem>
             get() {
@@ -303,7 +437,8 @@ class WorkspaceManagerViewModel @Inject constructor(
         /** The automatic title, shown in the card's info bar and as the rename dialog's placeholder. */
         val autoTitle: CaString,
         val isFocused: Boolean = false,
-        val isSelected: Boolean = false,
+        /** True when a pane currently renders this tab. Unrelated to multi-select. */
+        val isVisibleInPane: Boolean = false,
         val paneNumber: Int? = null,
         val operationCount: Int = 0,
         val attentionCount: Int = 0,

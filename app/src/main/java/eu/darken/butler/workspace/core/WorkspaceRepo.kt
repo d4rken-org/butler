@@ -755,6 +755,22 @@ class WorkspaceRepo @Inject constructor(
 
                 WorkspaceAction.Rename.Result(true)
             }
+            is WorkspaceAction.CloseSelected -> {
+                log(TAG, INFO) { "Closing ${action.ownerIds.size} selected workspace(s)" }
+                // executeClose is the post-confirmation path, so an unsaved member goes down with
+                // the rest instead of parking another dialog the caller already asked about.
+                var closed = 0
+                action.ownerIds.forEach { id ->
+                    if (_workspaces.value.none { it.id == id }) {
+                        log(TAG) { "Selected workspace $id already gone, skipping" }
+                        return@forEach
+                    }
+                    executeClose(id)
+                    closed++
+                }
+                WorkspaceAction.CloseSelected.Result(closed)
+            }
+
             WorkspaceAction.CloseAll -> {
                 log(TAG, INFO) { "Closing all workspaces" }
                 _workspaces.value.forEach {

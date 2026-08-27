@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.CheckBox
 import androidx.compose.material.icons.twotone.CheckCircle
 import androidx.compose.material.icons.twotone.Sync
 import androidx.compose.material.icons.twotone.Tab
@@ -35,10 +36,13 @@ fun WorkspaceStatusCard(
     modifier: Modifier = Modifier,
     isOperationsFilterActive: Boolean = false,
     isAttentionFilterActive: Boolean = false,
+    selectedCount: Int? = null,
     onTabsClick: () -> Unit = {},
+    onClearSelection: () -> Unit = {},
     onOperationsClick: () -> Unit = {},
     onAttentionClick: () -> Unit = {},
 ) {
+    val isSelecting = selectedCount != null
     val tabsLabel = if (workspaceCount == 1) {
         stringResource(R.string.workspace_status_tab_singular)
     } else {
@@ -50,7 +54,8 @@ fun WorkspaceStatusCard(
         stringResource(R.string.workspace_status_operation_plural)
     }
     val attentionLabel = stringResource(R.string.workspace_status_attention_label)
-    val tabsDesc = stringResource(R.string.workspace_status_filter_tabs_desc)
+    val tabsDesc = stringResource(R.string.workspace_manager_select_all_tabs_desc)
+    val selectionDesc = stringResource(R.string.workspace_manager_selection_clear_content_desc)
     val operationsDesc = stringResource(R.string.workspace_status_filter_operations_desc)
     val attentionDesc = stringResource(R.string.workspace_status_filter_attention_desc)
 
@@ -62,20 +67,35 @@ fun WorkspaceStatusCard(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        ButlerChip(
-            modifier = Modifier.semantics { contentDescription = tabsDesc },
-            label = "$workspaceCount $tabsLabel",
-            leadingIcon = Icons.TwoTone.Tab,
-            size = ButlerChipSize.Large,
-            onClick = onTabsClick,
-        )
+        // Tapping the count selects every tab, matching how the other workspaces' count chips
+        // behave. While selecting, the same slot reports the selection and only its trailing X
+        // clears it - putting clear on the chip body would wipe a hand-picked set on a stray tap.
+        if (isSelecting) {
+            ButlerChip(
+                modifier = Modifier.semantics { contentDescription = selectionDesc },
+                label = stringResource(R.string.workspace_manager_selection_count, selectedCount),
+                leadingIcon = Icons.TwoTone.CheckBox,
+                size = ButlerChipSize.Large,
+                colors = ButlerChipDefaults.highlightColors(),
+                onRemove = onClearSelection,
+            )
+        } else {
+            ButlerChip(
+                modifier = Modifier.semantics { contentDescription = tabsDesc },
+                label = "$workspaceCount $tabsLabel",
+                leadingIcon = Icons.TwoTone.Tab,
+                size = ButlerChipSize.Large,
+                enabled = workspaceCount > 0,
+                onClick = onTabsClick,
+            )
+        }
 
         ButlerChip(
             modifier = Modifier.semantics { contentDescription = operationsDesc },
             label = "$operationsCount $operationsLabel",
             leadingIcon = if (isOperationsFilterActive) Icons.TwoTone.CheckCircle else Icons.TwoTone.Sync,
             size = ButlerChipSize.Large,
-            enabled = operationsCount > 0,
+            enabled = operationsCount > 0 && !isSelecting,
             selected = isOperationsFilterActive,
             colors = if (isOperationsFilterActive) {
                 ButlerChipDefaults.highlightColors()
@@ -92,7 +112,7 @@ fun WorkspaceStatusCard(
             label = "$attentionCount $attentionLabel",
             leadingIcon = if (isAttentionFilterActive) Icons.TwoTone.CheckCircle else Icons.TwoTone.Warning,
             size = ButlerChipSize.Large,
-            enabled = attentionCount > 0,
+            enabled = attentionCount > 0 && !isSelecting,
             selected = isAttentionFilterActive,
             colors = if (isAttentionFilterActive) {
                 ButlerChipDefaults.errorColors()
@@ -144,6 +164,26 @@ private fun WorkspaceStatusCardFilterActivePreview() {
             operationsCount = 3,
             attentionCount = 2,
             isAttentionFilterActive = true,
+        )
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspaceStatusCardSelectionPreview() {
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        WorkspaceStatusCard(
+            workspaceCount = 5,
+            operationsCount = 3,
+            attentionCount = 2,
+            selectedCount = 2,
+        )
+        WorkspaceStatusCard(
+            workspaceCount = 5,
+            operationsCount = 3,
+            attentionCount = 2,
+            selectedCount = 5,
         )
     }
 }

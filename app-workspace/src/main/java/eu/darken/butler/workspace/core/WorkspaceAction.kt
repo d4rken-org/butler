@@ -311,5 +311,18 @@ sealed interface WorkspaceAction {
         data object Result : WorkspaceAction.Result
     }
 
+    /**
+     * Closes several units that the user has ALREADY confirmed closing, as the tab manager's
+     * selection does. Unlike [Close], an unsaved member does not raise its own confirmation: the
+     * caller's one dialog covered the whole set, and re-asking per tab would leave those tabs open
+     * behind a dialog the user has no reason to expect. Ids naming a tab that is already gone are
+     * skipped.
+     */
+    data class CloseSelected(
+        val ownerIds: Set<Workspace.Id>,
+    ) : WorkspaceAction {
+        data class Result(val closed: Int) : WorkspaceAction.Result
+    }
+
     interface Result
 }
