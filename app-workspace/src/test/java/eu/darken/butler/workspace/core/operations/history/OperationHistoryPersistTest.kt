@@ -424,6 +424,100 @@ class OperationHistoryPersistTest : BaseTest() {
         database.operationHistoryDao().getById(id)!!.entry.primaryPath shouldBe archived.path
     }
 
+    /*
+     * The row label. Every fixture below carries THREE distinct paths - a subject, a leading
+     * reported change and a representative path - so each assertion can only pass for one reason.
+     */
+
+    private val subject = LocalPath.build("/sdcard/Backup/nested")
+    private val firstReported = LocalPath.build("/sdcard/Backup/nested/aaa.txt")
+    private val planned = LocalPath.build("/sdcard/Download/nested")
+
+    private fun labelSnapshot(
+        report: Operation.Report?,
+        error: Throwable? = null,
+    ) = testSnapshot(
+        metadata = testMetadata(
+            operationKind = Operation.Metadata.Kind.COPY,
+            plan = planOver(planned),
+        ),
+        state = TestCompletedState(report = report, error = error),
+    )
+
+    private suspend fun primaryPathOf(snapshot: CompletedOperationSnapshot): String? =
+        database.operationHistoryDao().getById(persist(snapshot))!!.entry.primaryPath
+
+    @Test
+    fun `the subject wins over both the reported changes and the plan`() = runTest {
+        primaryPathOf(
+            labelSnapshot(
+                TestReport(
+                    affectedPaths = listOf(changeOf(firstReported, Operation.Report.PathChange.Change.ADDED)),
+                    subjectPath = subject,
+                ),
+            )
+        ) shouldBe subject.path
+    }
+
+    @Test
+    fun `a report that names no subject falls back to the plan, not to a reported change`() = runTest {
+        primaryPathOf(
+            labelSnapshot(
+                TestReport(
+                    affectedPaths = listOf(changeOf(firstReported, Operation.Report.PathChange.Change.ADDED)),
+                    subjectPath = null,
+                ),
+            )
+        ) shouldBe planned.path
+    }
+
+    @Test
+    fun `an operation without a report falls back to the plan`() = runTest {
+        primaryPathOf(labelSnapshot(report = null, error = IOException("boom"))) shouldBe planned.path
+    }
+
+    @Test
+    fun `a partial failure is still labelled with its subject`() = runTest {
+        primaryPathOf(
+            labelSnapshot(
+                report = TestReport(
+                    affectedPaths = listOf(changeOf(firstReported, Operation.Report.PathChange.Change.ADDED)),
+                    subjectPath = subject,
+                    partialErrorCount = 1,
+                ),
+                error = IOException("one item failed"),
+            )
+        ) shouldBe subject.path
+    }
+
+    @Test
+    fun `a recursive delete is labelled with the selected folder, not a descendant`() = runTest {
+        val folder = LocalPath.build("/sdcard/Download/nested")
+        val descendant = folder.child("aaa.txt")
+        val id = persist(
+            testSnapshot(
+                metadata = testMetadata(
+                    operationKind = Operation.Metadata.Kind.DELETE,
+                    plan = planOver(folder),
+                ),
+                state = TestCompletedState(
+                    report = TestReport(
+                        // Post-order removal: the folder is the last change, not the first.
+                        affectedPaths = listOf(
+                            changeOf(descendant, Operation.Report.PathChange.Change.REMOVED),
+                            changeOf(folder, Operation.Report.PathChange.Change.REMOVED),
+                        ),
+                        subjectPath = folder,
+                    ),
+                ),
+            )
+        )
+
+        val stored = database.operationHistoryDao().getById(id)!!
+        stored.paths.first().path shouldBe descendant.path
+        stored.entry.primaryPath shouldBe folder.path
+    }
+
     @Test
     fun `the database is trimmed back under the size limit`() = runTest {
         val now = Clock.System.now()

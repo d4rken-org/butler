@@ -27,9 +27,11 @@ import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationPathPlan
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -396,6 +398,88 @@ class ExtractOperationTest : BaseTest() {
         report.extractedFiles shouldBe 0
         report.skippedEntries shouldContain "sub/evil.txt"
         moves shouldBe emptyList()
+    }
+
+    /*
+     * The subject is what the history row is labelled with. An extraction reports one change per
+     * written entry, in archive-enumeration order, so it must never be derived from those.
+     */
+
+    @Test
+    fun `a successful extraction is about the archive, not an entry inside it`() = runTest2 {
+        mockSeekable(meta("aaa.txt"), meta("sub", "bbb.txt"))
+
+        val report = operation(command()).perform(context()).toList().completed().report
+            as ExtractOperationReport
+
+        report.subjectPath shouldBe archivePath
+        report.affectedPaths.map { it.path } shouldNotContain archivePath
+    }
+
+    @Test
+    fun `a dismissed password prompt still names the archive`() = runTest2 {
+        mockSeekable(meta("a.txt"))
+        coEvery { archiveService.requiresPassword(archivePath) } returns true
+        coEvery { issueHandler.handleIssue(any(), any()) } returns
+            PathActionIssue.ArchivePasswordRequired.Resolution.Cancel()
+
+        val report = operation(command()).perform(context()).toList().completed().report
+            as ExtractOperationReport
+
+        report.subjectPath shouldBe archivePath
+        report.affectedPaths.shouldBeEmpty()
+    }
+
+    @Test
+    fun `a dismissed merge prompt still names the archive`() = runTest2 {
+        mockNotSeekable()
+        coEvery { gatewaySwitch.exists(baseDir) } returns true
+        coEvery { issueHandler.handleIssue(any(), any()) } returns
+            PathActionIssue.PathAlreadyExists.Resolution.Cancel()
+
+        val report = operation(command()).perform(context()).toList().completed().report
+            as ExtractOperationReport
+
+        report.subjectPath shouldBe archivePath
+    }
+
+    @Test
+    fun `a declined merge into a file at the base path still names the archive`() = runTest2 {
+        mockNotSeekable()
+        coEvery { gatewaySwitch.exists(baseDir) } returns true
+        // A regular file at the base path cannot be merged under, so Skip aborts the extraction.
+        coEvery { gatewaySwitch.lookup(baseDir, any<LookupOptions>()) } answers {
+            @Suppress("UNCHECKED_CAST")
+            lookupOf(baseDir, isDir = false) as APathLookup<APath<*>>
+        }
+        coEvery { issueHandler.handleIssue(any(), any()) } returns
+            PathActionIssue.PathAlreadyExists.Resolution.Skip()
+
+        val report = operation(command()).perform(context()).toList().completed().report
+            as ExtractOperationReport
+
+        report.subjectPath shouldBe archivePath
+        coVerify(exactly = 0) { archiveService.extractZipSequential(any(), any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `a partial failure names the archive, not the entry that made it through`() = runTest2 {
+        mockNotSeekable()
+        coEvery { archiveService.extractZipSequential(any(), any(), any(), any(), any()) } coAnswers {
+            val action = arg<suspend (SequentialEntry, InputStream) -> SequentialOutcome>(4)
+            action(
+                SequentialEntry(ordinal = 0, segments = listOf("a.txt"), rawName = "a.txt", isEncrypted = false),
+                ByteArrayInputStream("alpha".toByteArray()),
+            )
+            throw SequentialAbortException("corrupted stream", archivePath, 1, 0)
+        }
+
+        val completed = operation(command()).perform(context()).toList().completed()
+
+        completed.error.shouldBeInstanceOf<SequentialAbortException>()
+        val report = completed.report as ExtractOperationReport
+        report.affectedPaths.map { it.path } shouldBe listOf(baseDir.child("a.txt"))
+        report.subjectPath shouldBe archivePath
     }
 
     @Test

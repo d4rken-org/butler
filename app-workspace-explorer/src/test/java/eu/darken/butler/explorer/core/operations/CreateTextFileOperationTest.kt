@@ -142,6 +142,7 @@ class CreateTextFileOperationTest : BaseTest() {
             it.path shouldBe renamedPath
             it.change shouldBe Operation.Report.PathChange.Change.ADDED
         }
+        completed.report.subjectPath shouldBe renamedPath
         events.single().shouldBeInstanceOf<FileSystemEvent.Added>().paths.single().lookedUp shouldBe renamedPath
     }
 

@@ -108,6 +108,7 @@ class DownloadLocalCopyOperationTest : BaseTest() {
         report.copiedFiles shouldBe 1
         report.copiedBytes shouldBe content.size.toLong()
         report.affectedPaths.single().path shouldBe destPath
+        report.subjectPath shouldBe destPath
 
         val (temp, dest) = moves.single()
         dest shouldBe destPath
@@ -153,6 +154,8 @@ class DownloadLocalCopyOperationTest : BaseTest() {
         val report = completed.report as CopyOperationReport
         report.copiedFiles shouldBe 0
         report.affectedPaths.shouldBeEmpty()
+        // The row still has to name the copy that was asked for, not fall back to the source.
+        report.subjectPath shouldBe destPath
         coVerify(exactly = 0) { gatewaySwitch.openInputStream(any()) }
     }
 

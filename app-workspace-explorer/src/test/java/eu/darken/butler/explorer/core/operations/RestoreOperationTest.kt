@@ -146,6 +146,82 @@ class RestoreOperationTest : BaseTest() {
     }
 
     @Test
+    fun `a mixed restore is about a root item, not a nested one`(): Unit = runTest {
+        val rootPath = LocalPath.build(File("/tmp/restore-test/root-folder"))
+        val nestedPath = LocalPath.build(File("/tmp/restore-test/parent/nested.txt"))
+        val rootId = Uuid.random()
+        val parentId = Uuid.random()
+        val parentItem = mockk<TrashRepo.TrashItem>()
+        val trashRepo = mockk<TrashRepo> {
+            coEvery { getById(rootId) } returns mockk()
+            coEvery { getById(parentId) } returns parentItem
+        }
+        val trashManager = mockk<TrashManager> {
+            coEvery { restore(any()) } returns TrashManager.TrashRestoreReport(
+                restored = setOf(rootPath),
+                failed = emptySet(),
+                conflicts = emptySet(),
+            )
+            coEvery { restoreNested(parentItem, "nested.txt") } returns TrashManager.TrashRestoreReport(
+                restored = setOf(nestedPath),
+                failed = emptySet(),
+                conflicts = emptySet(),
+            )
+        }
+        val op = operation(
+            trashRepo = trashRepo,
+            trashManager = trashManager,
+            command = ExplorerCommand.Restore(
+                rootItemIds = setOf(rootId),
+                nestedItems = listOf(
+                    ExplorerCommand.Restore.NestedTarget(parentId = parentId, relativePath = "nested.txt"),
+                ),
+                restoredPaths = listOf(rootPath, nestedPath),
+            ),
+        )
+
+        val completed = op.perform(Operation.Context(id = Operation.Id(), startedAt = Instant.DISTANT_PAST))
+            .last() as ExplorerOperation.State.Completed
+
+        val report = completed.report.shouldBeInstanceOf<RestoreOperation.Report>()
+        report.restoredPaths shouldBe setOf(rootPath, nestedPath)
+        // A nested restore names a file the user reached through a parent, so a root item wins.
+        report.subjectPath shouldBe rootPath
+    }
+
+    @Test
+    fun `a nested-only restore names the nested path`(): Unit = runTest {
+        val nestedPath = LocalPath.build(File("/tmp/restore-test/parent/nested.txt"))
+        val parentId = Uuid.random()
+        val parentItem = mockk<TrashRepo.TrashItem>()
+        val trashRepo = mockk<TrashRepo> {
+            coEvery { getById(parentId) } returns parentItem
+        }
+        val trashManager = mockk<TrashManager> {
+            coEvery { restoreNested(parentItem, "nested.txt") } returns TrashManager.TrashRestoreReport(
+                restored = setOf(nestedPath),
+                failed = emptySet(),
+                conflicts = emptySet(),
+            )
+        }
+        val op = operation(
+            trashRepo = trashRepo,
+            trashManager = trashManager,
+            command = ExplorerCommand.Restore(
+                nestedItems = listOf(
+                    ExplorerCommand.Restore.NestedTarget(parentId = parentId, relativePath = "nested.txt"),
+                ),
+                restoredPaths = listOf(nestedPath),
+            ),
+        )
+
+        val completed = op.perform(Operation.Context(id = Operation.Id(), startedAt = Instant.DISTANT_PAST))
+            .last() as ExplorerOperation.State.Completed
+
+        completed.report.shouldBeInstanceOf<RestoreOperation.Report>().subjectPath shouldBe nestedPath
+    }
+
+    @Test
     fun `the path plan targets the paths being restored`() {
         val plan = operation(
             trashRepo = mockk(),
