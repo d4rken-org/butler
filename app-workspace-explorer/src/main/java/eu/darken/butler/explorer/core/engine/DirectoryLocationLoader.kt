@@ -8,14 +8,17 @@ import eu.darken.butler.common.adb.canUseAdbNow
 import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.SmbPath
+import eu.darken.butler.common.files.errors.PathNotFoundException
 import eu.darken.butler.common.files.extensions.getFileSystemInfo
 import eu.darken.butler.common.files.extensions.isAncestorOfOrSelf
 import eu.darken.butler.common.files.metadata.FileType
@@ -29,6 +32,7 @@ import eu.darken.butler.explorer.R
 import eu.darken.butler.workspace.core.preview.FolderPreviewResolver
 import eu.darken.butler.permissions.core.PathPermissionCheck
 import eu.darken.butler.workspace.core.Workspace
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
@@ -104,24 +108,66 @@ class DirectoryLocationLoader @AssistedInject constructor(
                     currentCoroutineContext().ensureActive()
                     context.loadFileSystemInfo()
 
-                    currentCoroutineContext().ensureActive()
-                    context.loadPeek()
+                    // Covers every pass, not just the first: the directory can be deleted after the
+                    // peek listing succeeded and before either lookup call.
+                    context.asNotFoundIfGone {
+                        currentCoroutineContext().ensureActive()
+                        context.loadPeek()
 
-                    currentCoroutineContext().ensureActive()
-                    context.loadContent()
+                        currentCoroutineContext().ensureActive()
+                        context.loadContent()
 
-                    currentCoroutineContext().ensureActive()
-                    // A second pass over the network would mean one more round trip per item for
-                    // ownership and permissions an SMB share does not report anyway.
-                    when (context.targetPath) {
-                        is SmbPath -> context.loadNetworkWritability()
-                        else -> context.loadContentExtended()
+                        currentCoroutineContext().ensureActive()
+                        // A second pass over the network would mean one more round trip per item for
+                        // ownership and permissions an SMB share does not report anyway.
+                        when (context.targetPath) {
+                            is SmbPath -> context.loadNetworkWritability()
+                            else -> context.loadContentExtended()
+                        }
                     }
                 }
 
                 currentCoroutineContext().ensureActive()
                 context.updateState { copy(progress = null) }
             }
+        }
+    }
+
+    /**
+     * Turns "the target is gone" into a state the page can render instead of a failure card.
+     *
+     * Restricted to [LocalPath], the only type whose `exists()` reports an actual stat. For SAF a
+     * false answer also covers a provider that is unreachable, crashing or mid-update, and for SMB
+     * and archives it covers an unreachable host or an unreadable container - in each of those the
+     * original error carries the signal the user needs, see `DirectoryLocationLoaderTest`.
+     */
+    private suspend fun <T> LocationLoaderContext<ExplorerLocation.Directory>.asNotFoundIfGone(
+        block: suspend () -> T,
+    ): T {
+        val target = targetPath
+        try {
+            return block()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            if (target !is LocalPath) throw e
+
+            currentCoroutineContext().ensureActive()
+            val stillThere = try {
+                gatewaySwitch.exists(target)
+            } catch (probeError: CancellationException) {
+                throw probeError
+            } catch (probeError: Exception) {
+                log(tag, WARN) { "asNotFoundIfGone(): Probe failed for $target: ${probeError.asLog()}" }
+                true
+            }
+            // The probe can outlive its coroutine, and a cancelled load must not turn into a
+            // "folder gone" state for a target the user has already navigated away from.
+            currentCoroutineContext().ensureActive()
+            if (stillThere) throw e
+
+            log(tag, INFO) { "asNotFoundIfGone(): $target is gone, original error was ${e.asLog()}" }
+            throw PathNotFoundException(target)
         }
     }
 

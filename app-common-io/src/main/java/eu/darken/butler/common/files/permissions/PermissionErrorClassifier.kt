@@ -3,6 +3,7 @@ package eu.darken.butler.common.files.permissions
 import eu.darken.butler.common.ElevatedAccessUnavailableException
 import eu.darken.butler.common.error.causeChain
 import eu.darken.butler.common.files.errors.PathException
+import eu.darken.butler.common.files.errors.PathNotFoundException
 import eu.darken.butler.common.files.errors.PathPermissionDeniedException
 import eu.darken.butler.common.files.errors.PathPermissionDeniedException.Reason
 import java.io.IOException
@@ -37,6 +38,8 @@ object PermissionErrorClassifier {
         // Pass 3: Generic permission-style exception types without a more specific message.
         for (t in error.causeChain) {
             when (t) {
+                // A path that isn't there is not a path we were kept out of.
+                is PathNotFoundException -> return null
                 is PathException -> return Reason.ACCESS_DENIED
                 is SecurityException -> return Reason.ACCESS_DENIED
                 is java.nio.file.AccessDeniedException -> return Reason.ACCESS_DENIED

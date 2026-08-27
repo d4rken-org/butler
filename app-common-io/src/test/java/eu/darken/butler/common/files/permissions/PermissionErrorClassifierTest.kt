@@ -2,6 +2,7 @@ package eu.darken.butler.common.files.permissions
 
 import eu.darken.butler.common.ElevatedAccessUnavailableException
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.errors.PathNotFoundException
 import eu.darken.butler.common.files.errors.PathPermissionDeniedException
 import eu.darken.butler.common.files.errors.PathPermissionDeniedException.Reason
 import eu.darken.butler.common.files.errors.WriteException
@@ -83,5 +84,13 @@ class PermissionErrorClassifierTest : BaseTest() {
     @Test
     fun `IOException without permission keywords returns null`() {
         PermissionErrorClassifier.classify(IOException("Disk full")) shouldBe null
+    }
+
+    @Test
+    fun `a missing path is not a permission failure`() {
+        val e = PathNotFoundException(LocalPath.build("/data/data/eu.darken.butler"))
+
+        PermissionErrorClassifier.classify(e) shouldBe null
+        PermissionErrorClassifier.isPermissionError(e) shouldBe false
     }
 }
