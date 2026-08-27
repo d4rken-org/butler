@@ -101,7 +101,7 @@ class AppInstallerTest : BaseTest() {
     /** Makes listing the platform sessions fail, as a dead installer service would. */
     private var sessionListingFails = false
 
-    /** How abandoning a platform session behaves: it may throw, or leave the session in place. */
+    /** Whether abandoning a platform session works or throws, as a dead installer service would. */
     private var abandonBehaviour = AbandonBehaviour.WORKS
 
     /** What a system run did in which order, for the steps whose order is what is being checked. */
@@ -165,7 +165,6 @@ class AppInstallerTest : BaseTest() {
             when (abandonBehaviour) {
                 AbandonBehaviour.WORKS -> systemSessionIds.remove(sessionId)
                 AbandonBehaviour.THROWS -> throw SecurityException("Session $sessionId is not yours")
-                AbandonBehaviour.SILENTLY_KEEPS_IT -> Unit
             }
         }
 
@@ -481,7 +480,7 @@ class AppInstallerTest : BaseTest() {
 
         // The gate lives in memory, the session outlives the process holding it: the survivor has to
         // be gone before this run reads a byte, let alone opens the session it would be answered for.
-        timeline shouldContainExactly listOf("sessions", "abandon:77", "sessions", "stage")
+        timeline shouldContainExactly listOf("sessions", "abandon:77", "stage")
     }
 
     @Test
@@ -493,7 +492,7 @@ class AppInstallerTest : BaseTest() {
         val installer = installer()
 
         installer.install(plan(), AppInstaller.Mode.SYSTEM).toList()
-        timeline shouldContainExactly listOf("sessions", "sessions", "stage")
+        timeline shouldContainExactly listOf("sessions", "stage")
 
         timeline.clear()
         // Only a session from before this process started can be orphaned, and this one is not: it
@@ -506,45 +505,56 @@ class AppInstallerTest : BaseTest() {
     }
 
     @Test
-    fun `an install is refused when the surviving sessions cannot be listed`() = runTest2 {
+    fun `an install runs when the surviving sessions cannot be listed`() = runTest2 {
         sessionListingFails = true
+        coEvery { gatewaySwitch.openInputStream(any()) } answers {
+            timeline += "stage"
+            throw IOException("Source is gone")
+        }
 
         val events = installer().install(plan(), AppInstaller.Mode.SYSTEM).toList()
 
-        events.last().shouldBeInstanceOf<AppInstallEvent.Failure>()
-            .error.shouldBeInstanceOf<AppInstallSessionException>()
-        timeline shouldContainExactly listOf("sessions")
+        // Clearing orphans is housekeeping, so the run it was done for goes ahead and fails for its
+        // own reason - here the source that disappeared, not the sessions that could not be read.
+        events.last().shouldBeInstanceOf<AppInstallEvent.Failure>().error.shouldBeInstanceOf<IOException>()
+        timeline shouldContainExactly listOf("sessions", "stage")
         systemInstallGate.claim("Next App").shouldBeInstanceOf<SystemInstallGate.Outcome.Granted>()
     }
 
     @Test
-    fun `an install is refused when a surviving session cannot be abandoned`() = runTest2 {
+    fun `an install runs when a surviving session cannot be abandoned`() = runTest2 {
         systemSessionIds = mutableSetOf(77)
         abandonBehaviour = AbandonBehaviour.THROWS
+        coEvery { gatewaySwitch.openInputStream(any()) } answers {
+            timeline += "stage"
+            throw IOException("Source is gone")
+        }
 
         val events = installer().install(plan(), AppInstaller.Mode.SYSTEM).toList()
 
-        events.last().shouldBeInstanceOf<AppInstallEvent.Failure>()
-            .error.shouldBeInstanceOf<AppInstallSessionException>()
-        // Refused rather than run beside it: a second session would be committed into the same
-        // single confirmation and then wait out its own timeout.
-        timeline shouldContainExactly listOf("sessions", "abandon:77")
-        File(context.cacheDir, "install-staging").listFiles()?.toList().orEmpty().shouldBeEmpty()
+        events.last().shouldBeInstanceOf<AppInstallEvent.Failure>().error.shouldBeInstanceOf<IOException>()
+        timeline shouldContainExactly listOf("sessions", "abandon:77", "stage")
         systemInstallGate.claim("Next App").shouldBeInstanceOf<SystemInstallGate.Outcome.Granted>()
     }
 
     @Test
-    fun `an install is refused when a session survives being abandoned`() = runTest2 {
+    fun `a sweep that could not clear a session is retried by the next install`() = runTest2 {
         systemSessionIds = mutableSetOf(77)
-        abandonBehaviour = AbandonBehaviour.SILENTLY_KEEPS_IT
+        abandonBehaviour = AbandonBehaviour.THROWS
+        coEvery { gatewaySwitch.openInputStream(any()) } answers {
+            timeline += "stage"
+            throw IOException("Source is gone")
+        }
+        val installer = installer()
 
-        val events = installer().install(plan(), AppInstaller.Mode.SYSTEM).toList()
+        installer.install(plan(), AppInstaller.Mode.SYSTEM).toList()
+        timeline.clear()
+        abandonBehaviour = AbandonBehaviour.WORKS
 
-        // An abandon that reports nothing is not one that worked; the listing afterwards is.
-        events.last().shouldBeInstanceOf<AppInstallEvent.Failure>()
-            .error.shouldBeInstanceOf<AppInstallSessionException>()
-        timeline shouldContainExactly listOf("sessions", "abandon:77", "sessions")
-        systemInstallGate.claim("Next App").shouldBeInstanceOf<SystemInstallGate.Outcome.Granted>()
+        installer.install(plan(), AppInstaller.Mode.SYSTEM).toList()
+
+        timeline shouldContainExactly listOf("sessions", "abandon:77", "stage")
+        systemSessionIds.shouldBeEmpty()
     }
 
     @Test
@@ -678,7 +688,7 @@ class AppInstallerTest : BaseTest() {
         executed.count { it.second == "rm -rf '$SHELL_ROOT/$LEFTOVER_NAME'" } shouldBe 2
     }
 
-    private enum class AbandonBehaviour { WORKS, THROWS, SILENTLY_KEEPS_IT }
+    private enum class AbandonBehaviour { WORKS, THROWS }
 
     companion object {
         private const val SHELL_ROOT = "/data/local/tmp/butler-install"

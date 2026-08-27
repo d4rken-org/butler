@@ -226,30 +226,37 @@ class AppInstaller @Inject constructor(
      * Clears the platform sessions an earlier process left behind, before this one may create any.
      *
      * A committed session outlives the process that opened it, while [SystemInstallGate] holds its
-     * claim in memory only. After a crash with a confirmation still unanswered, that surviving
-     * session is the one Android applies the answer to, and a session created next to it would wait
-     * out its own timeout without ever hearing a verdict. Nothing else here opens platform sessions,
-     * so whatever is found belongs to a run that no longer exists.
+     * claim in memory only. Nothing else here opens platform sessions, so whatever is found belongs
+     * to a run that no longer exists - there is no in-flight operation left to restore it to.
+     *
+     * Housekeeping, never a gate: the install this runs for is not refused over anything that could
+     * not be cleared. Android rejects a commit that really collides with a session still open, and
+     * an abandon lands asynchronously, so a check for what survived would fail runs whose cleanup
+     * did work. A sweep that did not get through stays pending for the next run.
      *
      * Runs under the claim, which is what keeps two first installs out of here at once, and before
-     * staging, so a refusal costs no extraction. A failed attempt stays pending for the next run.
+     * staging, so it cannot mistake a session this process is about to open for an orphan.
      */
     private fun reconcileSystemSessions() {
         if (systemSessionsReconciled.get()) return
-        val remaining = try {
-            systemInstallSessions.sessionIds().forEach { sessionId ->
-                log(TAG, INFO) { "reconcileSystemSessions(): abandoning orphaned session $sessionId" }
-                systemInstallSessions.abandon(sessionId)
-            }
+        val swept = try {
             systemInstallSessions.sessionIds()
+                .map { sessionId ->
+                    log(TAG, INFO) { "reconcileSystemSessions(): abandoning orphaned session $sessionId" }
+                    try {
+                        systemInstallSessions.abandon(sessionId)
+                        true
+                    } catch (e: Exception) {
+                        log(TAG, WARN) { "reconcileSystemSessions(): cannot abandon $sessionId: ${e.asLog()}" }
+                        false
+                    }
+                }
+                .all { it }
         } catch (e: Exception) {
-            log(TAG, ERROR) { "reconcileSystemSessions(): failed: ${e.asLog()}" }
-            throw AppInstallSessionException("An earlier install session could not be cleared", e)
+            log(TAG, WARN) { "reconcileSystemSessions(): cannot list sessions: ${e.asLog()}" }
+            false
         }
-        if (remaining.isNotEmpty()) {
-            throw AppInstallSessionException("Install sessions $remaining from an earlier run are still open")
-        }
-        systemSessionsReconciled.set(true)
+        if (swept) systemSessionsReconciled.set(true)
     }
 
     // region staging
