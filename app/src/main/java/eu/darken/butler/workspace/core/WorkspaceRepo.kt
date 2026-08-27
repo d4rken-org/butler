@@ -2044,9 +2044,11 @@ class WorkspaceRepo @Inject constructor(
                 val customTitle = member.customTitle
                 if (customTitle != null) _customTitles.update { it + (member.id to customTitle) }
             }
-            val restoreToken = snapshot.members
-                .associate { it.id to closedStash.stampIncarnation(it.id) }
-                .getValue(root.id)
+            // Kept per member: each one's Created event carries its own incarnation, so the UI can
+            // tell the tab it just restored from the pre-close one a replayed state emission still
+            // names. Only the root's token is the ticket's, because only the root carries placement.
+            val restoreTokens = snapshot.members.associate { it.id to closedStash.stampIncarnation(it.id) }
+            val restoreToken = restoreTokens.getValue(root.id)
 
             val wip = _workspaces.value.toMutableList()
             wip.addAll(insertionIndexFor(snapshot), standIns)
@@ -2069,12 +2071,16 @@ class WorkspaceRepo @Inject constructor(
                 _events.emit(
                     WorkspaceEvent.Created(
                         workspaceId = member.id,
-                        restoreToken = restoreToken,
+                        restoreToken = restoreTokens.getValue(member.id),
                     )
                 )
             }
             log(TAG, INFO) { "UndoClose restored ${snapshot.members.size} workspace(s) under ${root.id}" }
-            return WorkspaceAction.UndoClose.Result.Success(root.id, snapshot.members.map { it.id })
+            return WorkspaceAction.UndoClose.Result.Success(
+                rootId = root.id,
+                memberIds = snapshot.members.map { it.id },
+                restoreToken = restoreToken,
+            )
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {

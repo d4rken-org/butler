@@ -458,7 +458,7 @@ class WorkspacesViewModel @Inject constructor(
             is WorkspaceAction.UndoClose.Result.Success -> {
                 // Backstop for the ticket the restore's own event usually applies. Whoever gets
                 // there first wins, the other finds nothing to do.
-                workspacePageManager.awaitAndApplyRestore(result.rootId)
+                workspacePageManager.awaitAndApplyRestore(result.rootId, result.restoreToken)
             }
             is WorkspaceAction.UndoClose.Result.Failed -> {
                 log(tag, ERROR) { "Undo failed: ${result.error.asLog()}" }

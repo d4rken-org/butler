@@ -371,6 +371,56 @@ class WorkspaceUndoPlacementTest : BaseTest() {
     }
 
     @Test
+    fun `a replayed pre-close emission cannot strip a restored tab`() = runTest(UnconfinedTestDispatcher()) {
+        val restored = Workspace.Id()
+        val other = Workspace.Id()
+        publishInfos(other, restored)
+        pageManager.setPaneCount(2)
+        pageManager.setLayout(mapOf(0 to other), focusedId = other)
+
+        val token = restore(restored, paneIndex = 1, focusedMemberId = restored)
+        pageManager.applyRestoreTicket(restored, token)
+
+        // The close's own state emission, arriving after the restore already published. The id it
+        // omits is the one the undo just brought back, and the ticket that placed it is spent.
+        publishInfos(other)
+        testScope.testScheduler.runCurrent()
+
+        pageManager.state.value.selectedWorkspaces shouldBe mapOf(0 to other, 1 to restored)
+        pageManager.state.value.focusedWorkspaceId shouldBe restored
+    }
+
+    @Test
+    fun `a tab that really closed still loses its pane and focus`() = runTest(UnconfinedTestDispatcher()) {
+        val closing = Workspace.Id()
+        stash.stampIncarnation(closing)
+        publishInfos(closing)
+        pageManager.setPaneCount(1)
+        pageManager.setLayout(mapOf(0 to closing), focusedId = closing)
+
+        // What the repo does as part of a close, before it publishes the shortened list
+        stash.dropIncarnation(closing)
+        publishInfos()
+        testScope.testScheduler.runCurrent()
+
+        pageManager.state.value.selectedWorkspaces shouldBe emptyMap()
+        pageManager.state.value.focusedWorkspaceId shouldBe null
+    }
+
+    @Test
+    fun `a restore wait gives up once its incarnation is gone`() = runTest(UnconfinedTestDispatcher()) {
+        val restored = Workspace.Id()
+        val token = restore(restored, paneIndex = 0, focusedMemberId = restored)
+        // Closed again before its state emission ever listed it: the ticket is void and nothing
+        // will ever name the id, so waiting on presence alone would never return.
+        stash.dropIncarnation(restored)
+
+        pageManager.awaitAndApplyRestore(restored, token)
+
+        pageManager.state.value.selectedWorkspaces shouldBe emptyMap()
+    }
+
+    @Test
     fun `the backstop places a restore whose event never arrived`() = runTest(UnconfinedTestDispatcher()) {
         val restored = Workspace.Id()
         publishInfos(restored)

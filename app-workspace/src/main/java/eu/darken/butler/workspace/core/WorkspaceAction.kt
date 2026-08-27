@@ -294,7 +294,16 @@ sealed interface WorkspaceAction {
      */
     data object UndoClose : WorkspaceAction {
         sealed interface Result : WorkspaceAction.Result {
-            data class Success(val rootId: Workspace.Id, val memberIds: List<Workspace.Id>) : Result
+            /**
+             * @param restoreToken incarnation stamped for [rootId] by this restore. Anything that
+             * still has to place the tab passes it back, so a unit closed again in the meantime -
+             * or replaced under the same id - is not placed as if it were this one.
+             */
+            data class Success(
+                val rootId: Workspace.Id,
+                val memberIds: List<Workspace.Id>,
+                val restoreToken: Long,
+            ) : Result
 
             /** Nothing is stashed (never was, expired, or invalidated by a workspace change). */
             data object Unavailable : Result

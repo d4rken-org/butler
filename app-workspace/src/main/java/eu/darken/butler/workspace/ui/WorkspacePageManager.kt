@@ -162,8 +162,9 @@ class WorkspacePageManager @Inject constructor(
             .onEach { repoState ->
                 val validWorkspaceIds = repoState.infos.map { it.id }.toSet()
                 val currentState = _state.value
-                val cleanedFocusedId = currentState.focusedWorkspaceId?.takeIf { it in validWorkspaceIds }
-                val cleanedSelectedIds = currentState.selectedWorkspaces.filterValues { it in validWorkspaceIds }
+                val cleanedFocusedId = currentState.focusedWorkspaceId?.takeIf { it.stillExists(validWorkspaceIds) }
+                val cleanedSelectedIds = currentState.selectedWorkspaces
+                    .filterValues { it.stillExists(validWorkspaceIds) }
 
                 // Update state if cleanup removed any IDs.
                 // Note: this only clears stale IDs; it never picks a replacement focus. Re-focusing a
@@ -176,9 +177,11 @@ class WorkspacePageManager @Inject constructor(
                     // still saw the truth.
                     val stripped = buildSet {
                         currentState.focusedWorkspaceId
-                            ?.takeIf { it !in validWorkspaceIds }
+                            ?.takeIf { !it.stillExists(validWorkspaceIds) }
                             ?.let { add(it) }
-                        addAll(currentState.selectedWorkspaces.values.filterNot { it in validWorkspaceIds })
+                        addAll(
+                            currentState.selectedWorkspaces.values.filterNot { it.stillExists(validWorkspaceIds) }
+                        )
                     }
                     stripped
                         .mapNotNull { closedStash.closeTokenFor(it) }
@@ -195,6 +198,18 @@ class WorkspacePageManager @Inject constructor(
             }
             .launchIn(appScope)
     }
+
+    /**
+     * Whether this id still names something that may hold a pane and focus.
+     *
+     * Not id presence alone: a close and the undo that takes it back deliberately reuse the id, and
+     * [WorkspaceRemote.state] can still replay a pre-close snapshot after the restore has published.
+     * The close drops the incarnation and the restore stamps a fresh one, so a stamped id exists
+     * again no matter which emission is being processed - and stripping it would leave the restored
+     * tab focused with no pane, or with no focus at all, after its ticket was already consumed.
+     */
+    private fun Workspace.Id.stillExists(validWorkspaceIds: Set<Workspace.Id>): Boolean =
+        this in validWorkspaceIds || closedStash.currentTokenOf(this) != null
 
     /**
      * Initialize state from SavedStateHandle for persistence
@@ -531,8 +546,8 @@ class WorkspacePageManager @Inject constructor(
             // rather than from the caller because this handler already waits for the workspace to
             // reach state - a caller-side write races the cleanup collector, which would strip an
             // id it has not seen yet and leave the tab unplaced with nothing to re-place it.
-            workspaceRemote.state.first { repoState -> repoState.infos.any { it.id == workspaceId } }
-            applyRestoreTicket(workspaceId)
+            awaitRestoredIncarnation(workspaceId, restoreToken)
+            applyRestoreTicket(workspaceId, restoreToken)
             return
         }
 
@@ -802,9 +817,25 @@ class WorkspacePageManager @Inject constructor(
     }
 
     /** Waits for [rootId] to exist, then applies its ticket if nobody has yet. */
-    suspend fun awaitAndApplyRestore(rootId: Workspace.Id) {
-        workspaceRemote.state.first { repoState -> repoState.infos.any { it.id == rootId } }
-        applyRestoreTicket(rootId)
+    suspend fun awaitAndApplyRestore(rootId: Workspace.Id, restoreToken: Long? = null) {
+        awaitRestoredIncarnation(rootId, restoreToken)
+        applyRestoreTicket(rootId, restoreToken)
+    }
+
+    /**
+     * Waits until [workspaceId] is listed, or until [restoreToken] is no longer the incarnation
+     * living under that id.
+     *
+     * The second exit is what keeps this from waiting on something that is not coming: a restore
+     * that was closed again, or superseded by a same-id replacement, stamps a different token, and
+     * the ticket it would apply is already void. Waiting on the id alone cannot see either, because
+     * a close and its undo reuse the same id by design.
+     */
+    private suspend fun awaitRestoredIncarnation(workspaceId: Workspace.Id, restoreToken: Long?) {
+        workspaceRemote.state.first { repoState ->
+            repoState.infos.any { it.id == workspaceId } ||
+                (restoreToken != null && closedStash.currentTokenOf(workspaceId) != restoreToken)
+        }
     }
 
     /**
