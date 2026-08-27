@@ -102,7 +102,7 @@ class WorkspaceUndoPlacementTest : BaseTest() {
         followingNeighbourIds = emptyList(),
         closeToken = closeToken,
         baselineContentHolders = emptyMap(),
-        baselineSingletonOccupant = null,
+        baselineSingletonOccupants = null,
     )
 
     /** Everything the repo would contribute, so [ClosedWorkspaceStash.peekEntry] can be read. */

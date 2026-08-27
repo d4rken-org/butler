@@ -28,6 +28,19 @@ data class ClosedWorkspaceMember(
 )
 
 /**
+ * One workspace that held a content path or a singleton slot, pinned to the incarnation that held
+ * it.
+ *
+ * The token is what separates "the same tab is still there" from "something else took its place":
+ * a replacement keeps the id but stamps a new incarnation, and a restore may not walk into a slot
+ * whose occupant was swapped out from under it.
+ */
+data class ClosedWorkspaceHolder(
+    val workspaceId: Workspace.Id,
+    val incarnationToken: Long?,
+)
+
+/**
  * The half of a stashed close that the repo owns: who was closed, where in the list, and what the
  * conflict situation looked like before the close.
  *
@@ -40,11 +53,13 @@ data class ClosedWorkspaceMember(
  * from the neighbours at restore time, so a reorder during the undo window puts the tab back beside
  * them instead of at a stale index; the two directions are separate because "after the one on my
  * left" and "before the one on my right" are different insert points.
- * @param baselineContentHolders workspace publishing each content path of the unit ROOT at close
- * time, null when nobody did. Only a holder that is new or different since then blocks the undo -
- * content paths are explicitly non-exclusive, so a duplicate that predates the close is not a
- * conflict the user created by undoing.
- * @param baselineSingletonOccupant same for the singleton slot of the root's type.
+ * @param baselineContentHolders everything holding each content path of the unit ROOT at close time,
+ * empty when nobody did. Only a holder the baseline did not have blocks the undo - content paths are
+ * explicitly non-exclusive, so a duplicate that predates the close is not a conflict the user
+ * created by undoing, and one that has since gone away is one conflict fewer. A set rather than a
+ * single id, because two tabs may legitimately share a path (Save-As convergence, session restore)
+ * and picking one of them would read every later change to the others as a conflict.
+ * @param baselineSingletonOccupants same for the singleton slot of the root's type.
  */
 data class ClosedWorkspaceSnapshot(
     val members: List<ClosedWorkspaceMember>,
@@ -52,8 +67,8 @@ data class ClosedWorkspaceSnapshot(
     val precedingNeighbourIds: List<Workspace.Id>,
     val followingNeighbourIds: List<Workspace.Id>,
     val closeToken: Long,
-    val baselineContentHolders: Map<APath<*>, Workspace.Id?>,
-    val baselineSingletonOccupant: Pair<Workspace.Type, Workspace.Id?>?,
+    val baselineContentHolders: Map<APath<*>, Set<ClosedWorkspaceHolder>>,
+    val baselineSingletonOccupants: Pair<Workspace.Type, Set<ClosedWorkspaceHolder>>?,
 ) {
     val root: ClosedWorkspaceMember get() = members.first()
     val memberIds: Set<Workspace.Id> get() = members.mapTo(mutableSetOf()) { it.id }

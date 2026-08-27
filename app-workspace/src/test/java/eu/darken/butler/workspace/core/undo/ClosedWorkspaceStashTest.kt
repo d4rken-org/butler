@@ -56,7 +56,7 @@ class ClosedWorkspaceStashTest : BaseTest() {
         followingNeighbourIds = emptyList(),
         closeToken = closeToken,
         baselineContentHolders = emptyMap(),
-        baselineSingletonOccupant = null,
+        baselineSingletonOccupants = null,
     )
 
     private fun armed(id: Workspace.Id): Long {

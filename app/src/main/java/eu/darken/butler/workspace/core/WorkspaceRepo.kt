@@ -15,6 +15,7 @@ import eu.darken.butler.common.flow.setupCommonEventHandlers
 import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.upgrade.isProForUi
 import eu.darken.butler.workspace.core.operations.OperationsManager
+import eu.darken.butler.workspace.core.undo.ClosedWorkspaceHolder
 import eu.darken.butler.workspace.core.undo.ClosedWorkspaceMember
 import eu.darken.butler.workspace.core.undo.ClosedWorkspaceRestoreTicket
 import eu.darken.butler.workspace.core.undo.ClosedWorkspaceSnapshot
@@ -1130,6 +1131,41 @@ class WorkspaceRepo @Inject constructor(
     }
 
     /**
+     * EVERY holder of [contentPath], each pinned to its current incarnation. Must be called while
+     * holding [lock].
+     *
+     * The undo baseline needs all of them, not the first one [findContentPathHolder] would dedup a
+     * create to: a path may legitimately be open twice, and comparing a single representative reads
+     * a surviving duplicate's move as a conflict while missing an occupant that was replaced in
+     * place under the same id.
+     */
+    private fun findContentPathHolders(
+        type: Workspace.Type,
+        contentPath: APath<*>,
+        excludeIds: Set<Workspace.Id> = emptySet(),
+    ): Set<ClosedWorkspaceHolder> {
+        val holders = _workspaces.value
+            .filter { ws ->
+                ws.id !in excludeIds && ws.type == type && !ws.info.value.isSubWorkspace &&
+                    ws.info.value.contentPath == contentPath
+            }
+            .map { it.id }
+        val claimant = contentClaims[type to contentPath]?.takeIf { it !in excludeIds }
+        return (holders + listOfNotNull(claimant)).mapTo(mutableSetOf()) { holderIdentityOf(it) }
+    }
+
+    /** Occupants of the singleton slot of [type], as [findContentPathHolders] reports content ones. */
+    private fun findSingletonOccupants(
+        type: Workspace.Type,
+        excludeIds: Set<Workspace.Id> = emptySet(),
+    ): Set<ClosedWorkspaceHolder> = _workspaces.value
+        .filter { it.id !in excludeIds && it.type == type && !it.info.value.isSubWorkspace }
+        .mapTo(mutableSetOf()) { holderIdentityOf(it.id) }
+
+    private fun holderIdentityOf(id: Workspace.Id) =
+        ClosedWorkspaceHolder(workspaceId = id, incarnationToken = closedStash.currentTokenOf(id))
+
+    /**
      * Returns the id of an existing workspace already holding the content path [action] would open
      * (see [Workspace.ArgumentsWithContentPath]), or null when creation should proceed. Same skip
      * rules as [findExistingSingleton], including replace targeting the holder itself.
@@ -1646,8 +1682,8 @@ class WorkspaceRepo @Inject constructor(
         val closeToken: Long,
         val rootId: Workspace.Id,
         val members: List<UndoMemberCapture>,
-        val baselineContentHolders: Map<APath<*>, Workspace.Id?>,
-        val baselineSingletonOccupant: Pair<Workspace.Type, Workspace.Id?>?,
+        val baselineContentHolders: Map<APath<*>, Set<ClosedWorkspaceHolder>>,
+        val baselineSingletonOccupants: Pair<Workspace.Type, Set<ClosedWorkspaceHolder>>?,
     ) {
         val memberIds: Set<Workspace.Id> get() = members.mapTo(mutableSetOf()) { it.id }
     }
@@ -1860,12 +1896,10 @@ class WorkspaceRepo @Inject constructor(
         // asking the same question of a child would refuse a viewer merely because an unrelated tab
         // shows the same file.
         val baselineContentHolders = listOfNotNull(root.contentPath).associateWith { path ->
-            findContentPathHolder(root.type, path, excludeIds = memberIds)
+            findContentPathHolders(root.type, path, excludeIds = memberIds)
         }
-        val baselineSingletonOccupant = if (root.type.isSingleton) {
-            root.type to _workspaces.value
-                .firstOrNull { it.type == root.type && !it.info.value.isSubWorkspace && it.id !in memberIds }
-                ?.id
+        val baselineSingletonOccupants = if (root.type.isSingleton) {
+            root.type to findSingletonOccupants(root.type, excludeIds = memberIds)
         } else {
             null
         }
@@ -1875,7 +1909,7 @@ class WorkspaceRepo @Inject constructor(
             rootId = targetId,
             members = members,
             baselineContentHolders = baselineContentHolders,
-            baselineSingletonOccupant = baselineSingletonOccupant,
+            baselineSingletonOccupants = baselineSingletonOccupants,
         )
     }
 
@@ -1975,7 +2009,7 @@ class WorkspaceRepo @Inject constructor(
             followingNeighbourIds = owners.drop(index + 1),
             closeToken = plan.closeToken,
             baselineContentHolders = plan.baselineContentHolders,
-            baselineSingletonOccupant = plan.baselineSingletonOccupant,
+            baselineSingletonOccupants = plan.baselineSingletonOccupants,
         )
     }
 
@@ -2006,17 +2040,20 @@ class WorkspaceRepo @Inject constructor(
         }
         // Against the baseline, not against emptiness: content paths are explicitly non-exclusive,
         // so a duplicate that already existed when the tab closed is not a conflict the undo creates.
+        // Only holders the baseline did not name block it - a baseline holder that has since moved
+        // on or closed is one conflict fewer, while one replaced in place carries a new incarnation
+        // and so reads as the newcomer it is.
         val contentConflict = snapshot.baselineContentHolders.entries.firstOrNull { (path, baseline) ->
-            findContentPathHolder(root.type, path) != baseline
+            (findContentPathHolders(root.type, path) - baseline).isNotEmpty()
         }
         if (contentConflict != null) {
             log(TAG, WARN) { "UndoClose refused: ${contentConflict.key} is held by someone else now" }
             return WorkspaceAction.UndoClose.Result.Refused
         }
-        snapshot.baselineSingletonOccupant?.let { (type, baseline) ->
-            val occupant = _workspaces.value.firstOrNull { it.type == type && !it.info.value.isSubWorkspace }?.id
-            if (occupant != baseline) {
-                log(TAG, WARN) { "UndoClose refused: the $type slot is taken by $occupant" }
+        snapshot.baselineSingletonOccupants?.let { (type, baseline) ->
+            val arrived = findSingletonOccupants(type) - baseline
+            if (arrived.isNotEmpty()) {
+                log(TAG, WARN) { "UndoClose refused: the $type slot is taken by $arrived" }
                 return WorkspaceAction.UndoClose.Result.Refused
             }
         }

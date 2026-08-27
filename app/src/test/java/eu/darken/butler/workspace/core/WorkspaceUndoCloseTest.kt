@@ -540,6 +540,52 @@ class WorkspaceUndoCloseTest : BaseTest() {
     }
 
     @Test
+    fun `a duplicate holder that has moved on does not block the undo`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val path: APath<*> = LocalPath.build("/storage/emulated/0/notes.txt")
+            val holder = createTab(Workspace.Type.EDITOR)
+            fake(holder).info.value = fake(holder).info.value.copy(contentPath = path)
+            val closed = createTab(Workspace.Type.EDITOR)
+            fake(closed).info.value = fake(closed).info.value.copy(contentPath = path)
+
+            closeUndoable(closed)
+            // The tab that made the path a duplicate opened something else in the undo window
+            fake(holder).info.value = fake(holder).info.value.copy(
+                contentPath = LocalPath.build("/storage/emulated/0/other.txt"),
+            )
+
+            // Nothing holds the path any more, so the undo creates no conflict at all
+            undo().shouldBeInstanceOf<WorkspaceAction.UndoClose.Result.Success>()
+            openIds() shouldBe listOf(holder, closed)
+        }
+
+    @Test
+    fun `a baseline holder replaced in place blocks the undo`() = runTest(UnconfinedTestDispatcher()) {
+        val path: APath<*> = LocalPath.build("/storage/emulated/0/notes.txt")
+        val holder = createTab(Workspace.Type.EDITOR)
+        fake(holder).info.value = fake(holder).info.value.copy(contentPath = path)
+        val closed = createTab(Workspace.Type.EDITOR)
+        fake(closed).info.value = fake(closed).info.value.copy(contentPath = path)
+
+        closeUndoable(closed)
+        // A morph keeps the tab's id, so the id set never changes and the entry survives - but the
+        // workspace on the path is a different one now, which is what the baseline is compared for.
+        repo.execute(
+            WorkspaceAction.Create(
+                type = Workspace.Type.EDITOR,
+                arguments = FakeArguments(Workspace.Type.EDITOR),
+                replace = holder,
+                id = holder,
+            )
+        )
+        settle()
+        fake(holder).info.value = fake(holder).info.value.copy(contentPath = path)
+
+        undo() shouldBe WorkspaceAction.UndoClose.Result.Refused
+        openIds() shouldBe listOf(holder)
+    }
+
+    @Test
     fun `a second undo does nothing`() = runTest(UnconfinedTestDispatcher()) {
         val id = createTab()
 
