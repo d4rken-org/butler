@@ -6,12 +6,14 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
+import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.undo.ClosedWorkspaceStash
 import eu.darken.butler.workspace.ui.WorkspacePageManager
 import eu.darken.butler.workspace.ui.floatingbar.WorkspaceBarCollapseStates
 import eu.darken.butler.workspace.ui.restore.WorkspaceViewPrefs
 import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPosition
 import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPositions
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -33,6 +35,7 @@ import kotlinx.serialization.json.JsonNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -132,6 +135,7 @@ class WorkspaceUndoCloseTest : BaseTest() {
     private lateinit var repo: WorkspaceRepo
     private lateinit var pageManager: WorkspacePageManager
     private lateinit var scrollPositions: WorkspaceScrollPositions
+    private lateinit var operationsManager: OperationsManager
 
     @BeforeEach
     fun setup() {
@@ -140,6 +144,7 @@ class WorkspaceUndoCloseTest : BaseTest() {
         scope = TestScope(UnconfinedTestDispatcher())
         stash = ClosedWorkspaceStash(scope)
         scrollPositions = WorkspaceScrollPositions()
+        operationsManager = mockk(relaxed = true)
 
         val upgradeInfo = mockk<UpgradeRepo.Info>().apply {
             every { isPro } returns false
@@ -154,7 +159,7 @@ class WorkspaceUndoCloseTest : BaseTest() {
             appScope = scope,
             factoryMap = Workspace.Type.entries.associateWith { FakeFactory() },
             workspaceSettings = workspaceSettings,
-            operationsManager = mockk(relaxed = true),
+            operationsManager = operationsManager,
             upgradeRepo = upgradeRepo,
             usageRepo = mockk(relaxed = true),
             closedStash = stash,
@@ -481,6 +486,33 @@ class WorkspaceUndoCloseTest : BaseTest() {
         stash.feedback.value shouldBe null
         undo() shouldBe WorkspaceAction.UndoClose.Result.Unavailable
     }
+
+    @Test
+    fun `a close cancelled while it commits stops shielding a later entry`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val abandoned = createTab()
+            var abandonedToken: Long? = null
+            fake(abandoned).whileCapturingArguments = { abandonedToken = stash.closeTokenFor(abandoned) }
+            // Cancelled past its capture window, while the close was already tearing the tab down
+            coEvery { operationsManager.removeWorkspace(abandoned) } throws CancellationException("cancelled")
+
+            shouldThrow<CancellationException> {
+                repo.execute(WorkspaceAction.Close(abandoned, undoable = true))
+            }
+            settle()
+            val token = abandonedToken!!
+
+            // A later close builds an entry of its own and is the one being offered
+            closeUndoable(createTab())
+            stash.feedback.value shouldNotBe null
+
+            // The abandoned close has to give its token back on every way out, cancellation
+            // included; otherwise a publication carrying it stays exempt forever and the entry that
+            // superseded it survives changes it should not have.
+            stash.onWorkspaceIdSetChanged(token)
+
+            stash.feedback.value shouldBe null
+        }
 
     @Test
     fun `a reorder keeps the entry and the tab returns beside its neighbours`() =
