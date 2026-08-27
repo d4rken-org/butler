@@ -95,11 +95,24 @@ class AppInstallerTest : BaseTest() {
 
     private val systemInstallGate = SystemInstallGate()
 
+    /** Platform sessions this package owns, as an earlier process would have left them behind. */
+    private var systemSessionIds = mutableSetOf<Int>()
+
+    /** Makes listing the platform sessions fail, as a dead installer service would. */
+    private var sessionListingFails = false
+
+    /** How abandoning a platform session behaves: it may throw, or leave the session in place. */
+    private var abandonBehaviour = AbandonBehaviour.WORKS
+
+    /** What a system run did in which order, for the steps whose order is what is being checked. */
+    private val timeline = mutableListOf<String>()
+
     private val shellOps = mockk<ShellOps>()
     private val gatewaySwitch = mockk<GatewaySwitch>()
     private val archiveService = mockk<ArchiveService>()
     private val apkArchiveParser = mockk<ApkArchiveParser>()
     private val storageEnvironment = mockk<StorageEnvironment>(relaxed = true)
+    private val systemInstallSessions = mockk<SystemInstallSessions>()
 
     @Before
     fun setup() {
@@ -141,7 +154,25 @@ class AppInstallerTest : BaseTest() {
             }
         }
 
-        coEvery { gatewaySwitch.openInputStream(any()) } answers { firstArg<LocalPath>().file.inputStream() }
+        every { systemInstallSessions.sessionIds() } answers {
+            timeline += "sessions"
+            if (sessionListingFails) throw SecurityException("Package installer unavailable")
+            systemSessionIds.toList()
+        }
+        every { systemInstallSessions.abandon(any()) } answers {
+            val sessionId = firstArg<Int>()
+            timeline += "abandon:$sessionId"
+            when (abandonBehaviour) {
+                AbandonBehaviour.WORKS -> systemSessionIds.remove(sessionId)
+                AbandonBehaviour.THROWS -> throw SecurityException("Session $sessionId is not yours")
+                AbandonBehaviour.SILENTLY_KEEPS_IT -> Unit
+            }
+        }
+
+        coEvery { gatewaySwitch.openInputStream(any()) } answers {
+            timeline += "stage"
+            firstArg<LocalPath>().file.inputStream()
+        }
         coEvery { gatewaySwitch.createDir(any(), any()) } answers { gatewayWrites += firstArg<LocalPath>().path }
         coEvery { gatewaySwitch.createFile(any(), any()) } answers {
             val path = firstArg<LocalPath>().path
@@ -188,6 +219,7 @@ class AppInstallerTest : BaseTest() {
         storageEnvironment = storageEnvironment,
         statusRelay = AppInstallStatusRelay(),
         systemInstallGate = systemInstallGate,
+        systemInstallSessions = systemInstallSessions,
         dispatcherProvider = dispatcherProvider,
     )
 
@@ -438,6 +470,96 @@ class AppInstallerTest : BaseTest() {
     }
 
     @Test
+    fun `a session an earlier process left behind is abandoned before anything is staged`() = runTest2 {
+        systemSessionIds = mutableSetOf(77)
+        coEvery { gatewaySwitch.openInputStream(any()) } answers {
+            timeline += "stage"
+            throw IOException("Source is gone")
+        }
+
+        installer().install(plan(), AppInstaller.Mode.SYSTEM).toList()
+
+        // The gate lives in memory, the session outlives the process holding it: the survivor has to
+        // be gone before this run reads a byte, let alone opens the session it would be answered for.
+        timeline shouldContainExactly listOf("sessions", "abandon:77", "sessions", "stage")
+    }
+
+    @Test
+    fun `surviving sessions are cleared once per process, not once per install`() = runTest2 {
+        coEvery { gatewaySwitch.openInputStream(any()) } answers {
+            timeline += "stage"
+            throw IOException("Source is gone")
+        }
+        val installer = installer()
+
+        installer.install(plan(), AppInstaller.Mode.SYSTEM).toList()
+        timeline shouldContainExactly listOf("sessions", "sessions", "stage")
+
+        timeline.clear()
+        // Only a session from before this process started can be orphaned, and this one is not: it
+        // would belong to an install this very process is running.
+        systemSessionIds = mutableSetOf(88)
+
+        installer.install(plan(), AppInstaller.Mode.SYSTEM).toList()
+
+        timeline shouldContainExactly listOf("stage")
+    }
+
+    @Test
+    fun `an install is refused when the surviving sessions cannot be listed`() = runTest2 {
+        sessionListingFails = true
+
+        val events = installer().install(plan(), AppInstaller.Mode.SYSTEM).toList()
+
+        events.last().shouldBeInstanceOf<AppInstallEvent.Failure>()
+            .error.shouldBeInstanceOf<AppInstallSessionException>()
+        timeline shouldContainExactly listOf("sessions")
+        systemInstallGate.claim("Next App").shouldBeInstanceOf<SystemInstallGate.Outcome.Granted>()
+    }
+
+    @Test
+    fun `an install is refused when a surviving session cannot be abandoned`() = runTest2 {
+        systemSessionIds = mutableSetOf(77)
+        abandonBehaviour = AbandonBehaviour.THROWS
+
+        val events = installer().install(plan(), AppInstaller.Mode.SYSTEM).toList()
+
+        events.last().shouldBeInstanceOf<AppInstallEvent.Failure>()
+            .error.shouldBeInstanceOf<AppInstallSessionException>()
+        // Refused rather than run beside it: a second session would be committed into the same
+        // single confirmation and then wait out its own timeout.
+        timeline shouldContainExactly listOf("sessions", "abandon:77")
+        File(context.cacheDir, "install-staging").listFiles()?.toList().orEmpty().shouldBeEmpty()
+        systemInstallGate.claim("Next App").shouldBeInstanceOf<SystemInstallGate.Outcome.Granted>()
+    }
+
+    @Test
+    fun `an install is refused when a session survives being abandoned`() = runTest2 {
+        systemSessionIds = mutableSetOf(77)
+        abandonBehaviour = AbandonBehaviour.SILENTLY_KEEPS_IT
+
+        val events = installer().install(plan(), AppInstaller.Mode.SYSTEM).toList()
+
+        // An abandon that reports nothing is not one that worked; the listing afterwards is.
+        events.last().shouldBeInstanceOf<AppInstallEvent.Failure>()
+            .error.shouldBeInstanceOf<AppInstallSessionException>()
+        timeline shouldContainExactly listOf("sessions", "abandon:77", "sessions")
+        systemInstallGate.claim("Next App").shouldBeInstanceOf<SystemInstallGate.Outcome.Granted>()
+    }
+
+    @Test
+    fun `an elevated install neither looks at nor clears surviving sessions`() = runTest2 {
+        systemSessionIds = mutableSetOf(77)
+
+        val events = installer().install(plan(), AppInstaller.Mode.ROOT).toList()
+
+        events.last().shouldBeInstanceOf<AppInstallEvent.Success>().viaMode shouldBe AppInstaller.Mode.ROOT
+        // `pm` never asks for a confirmation, so nothing here contends with a pending one.
+        timeline shouldContainExactly listOf("stage")
+        systemSessionIds shouldContain 77
+    }
+
+    @Test
     fun `a bundle whose staged base is not the inspected one is rejected`() = runTest2 {
         stubBundleArchive()
         val inspected = baseInfo(certSha256 = "aa")
@@ -555,6 +677,8 @@ class AppInstallerTest : BaseTest() {
         // Twice: a run whose own cleanup failed must not leave the root marked as swept.
         executed.count { it.second == "rm -rf '$SHELL_ROOT/$LEFTOVER_NAME'" } shouldBe 2
     }
+
+    private enum class AbandonBehaviour { WORKS, THROWS, SILENTLY_KEEPS_IT }
 
     companion object {
         private const val SHELL_ROOT = "/data/local/tmp/butler-install"
