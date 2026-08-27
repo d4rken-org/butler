@@ -126,6 +126,8 @@ class FileOpsHost @Inject constructor(
         }.catch { e ->
             if (e is kotlinx.coroutines.CancellationException) throw e
             log(TAG, ERROR) { "walkStreamV2($path) fatal: ${e.asLog()}" }
+            // Only the message crosses here, not the exception itself: the client rebuilds a fresh
+            // ReadException from it, so type, cause chain and host stack are lost on this path.
             emit(WalkEvent.FatalError(path, e.message ?: e.toString()))
         }
         events.toEventRemoteStream(appScope + dispatcherProvider.IO)
@@ -314,7 +316,8 @@ class FileOpsHost @Inject constructor(
                 log(TAG, VERBOSE) { "deleteStream() completed successfully" }
             } catch (e: Exception) {
                 log(TAG, ERROR) { "deleteStream() operation failed: ${e.asLog()}" }
-                // Send error event instead of throwing
+                // Send error event instead of throwing. Only the message crosses, so type, cause
+                // chain and host stack are lost on this path.
                 send(
                     DeleteOperationEvent.Error(
                         error = e.message ?: "Unknown error",
