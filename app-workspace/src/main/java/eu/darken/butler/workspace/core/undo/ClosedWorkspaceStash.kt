@@ -340,8 +340,14 @@ class ClosedWorkspaceStash @Inject constructor(
     companion object {
         private val TAG = logTag("Workspace", "ClosedStash")
 
-        /** How long the undo bar stays up once the entry is complete. */
-        val FEEDBACK_TIMEOUT: Duration = 5.seconds
+        /**
+         * How long the undo bar stays up once the entry is complete.
+         *
+         * Longer than the favorites bar it is modelled on: noticing the bar, reading which tab it
+         * names and reaching it costs most of a shorter window, and closing a tab is rarer and more
+         * consequential than removing a favorite.
+         */
+        val FEEDBACK_TIMEOUT: Duration = 8.seconds
 
         /** How long an identity half waits for its UI half before it is dropped unoffered. */
         val ASSEMBLY_TIMEOUT: Duration = 5.seconds

@@ -816,7 +816,7 @@ class WorkspacePageManager @Inject constructor(
         restoreClosedPlacement(ticket)
     }
 
-    /** Waits for [rootId] to exist, then applies its ticket if nobody has yet. */
+    /** Waits for the restored [rootId], then applies its ticket if nobody has yet. */
     suspend fun awaitAndApplyRestore(rootId: Workspace.Id, restoreToken: Long? = null) {
         awaitRestoredIncarnation(rootId, restoreToken)
         applyRestoreTicket(rootId, restoreToken)
