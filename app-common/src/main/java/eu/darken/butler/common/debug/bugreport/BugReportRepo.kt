@@ -96,7 +96,7 @@ class BugReportRepo @Inject constructor(
         // Belt-and-suspenders: even snapshot()/buildReport() allocation can fail under OOM. The caller
         // also guards this, but the method itself must never throw.
         try {
-            val report = buildReport(throwable, thread, BugReport.Type.CRASH)
+            val report = buildReport(throwable, thread.name, BugReport.Type.CRASH)
             writeReport(report, ringLogBuffer.snapshot())
         } catch (_: Throwable) {
         }
@@ -105,9 +105,12 @@ class BugReportRepo @Inject constructor(
     /** Async, silent capture for manual [eu.darken.butler.common.debug.Bugs.report] calls. */
     fun captureReport(throwable: Throwable) {
         val snapshot = ringLogBuffer.snapshot()
+        // The name, not the Thread: the report is built on a dispatcher thread, and a Thread handed
+        // over is also free to be renamed before buildReport reads it.
+        val threadName = Thread.currentThread().name
         appScope.launch(dispatcherProvider.IO) {
             try {
-                val report = buildReport(throwable, Thread.currentThread(), BugReport.Type.REPORTED)
+                val report = buildReport(throwable, threadName, BugReport.Type.REPORTED)
                 writeReport(report, snapshot)
                 prune()
                 refresh()
@@ -219,7 +222,7 @@ class BugReportRepo @Inject constructor(
         refreshTrigger.update { it + 1 }
     }
 
-    private fun buildReport(throwable: Throwable, thread: Thread, type: BugReport.Type): BugReport {
+    private fun buildReport(throwable: Throwable, threadName: String, type: BugReport.Type): BugReport {
         val now = Clock.System.now()
         return BugReport(
             id = "${type.name.lowercase()}_${now.toEpochMilliseconds()}_${Uuid.random().toString().take(8)}",
@@ -228,7 +231,7 @@ class BugReportRepo @Inject constructor(
             errorClass = safeField { throwable.javaClass.name },
             errorMessage = safeField { throwable.message ?: throwable.javaClass.simpleName },
             stackTrace = safeField { throwable.asLog() },
-            threadName = safeField { thread.name },
+            threadName = safeField { threadName },
             appVersion = safeField { BuildConfigWrap.VERSION_DESCRIPTION },
             deviceFingerprint = safeField { Build.FINGERPRINT },
             apiLevel = safeField { Build.VERSION.SDK_INT.toString() },
