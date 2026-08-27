@@ -13,6 +13,7 @@ dagger = "2.60.1"
 androidx-hilt = "1.4.0"
 kotlinx-serialization = "1.11.0"
 okio = "3.13.0"
+smbj = "0.15.0"
 commons-compress = "1.28.0"
 zip4j = "2.11.6"
 retrofit = "2.11.0"
@@ -59,6 +60,7 @@ androidx-test-runner = "1.7.0"
 espresso = "3.7.0"
 robolectric = "4.16.1"
 arch-core-testing = "1.1.1"
+testcontainers = "2.0.5"
 # Testing (app-common-test pins newer versions; align via Dependabot later)
 jupiter-ct = "5.13.0"
 mockk-ct = "1.14.2"
@@ -95,6 +97,7 @@ coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", ve
 serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlinx-serialization" }
 serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
+smbj = { module = "com.hierynomus:smbj", version.ref = "smbj" }
 commons-compress = { module = "org.apache.commons:commons-compress", version.ref = "commons-compress" }
 zip4j = { module = "net.lingala.zip4j:zip4j", version.ref = "zip4j" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
@@ -192,6 +195,8 @@ espresso-intents = { module = "androidx.test.espresso:espresso-intents", version
 espresso-idling-concurrent = { module = "androidx.test.espresso.idling:idling-concurrent", version.ref = "espresso" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 arch-core-testing = { module = "android.arch.core:core-testing", version.ref = "arch-core-testing" }
+testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers" }
+testcontainers-junit-jupiter = { module = "org.testcontainers:testcontainers-junit-jupiter", version.ref = "testcontainers" }
 # Testing (app-common-test pinned versions)
 junit-vintage-engine-ct = { module = "org.junit.vintage:junit-vintage-engine", version.ref = "jupiter-ct" }
 jupiter-engine-ct = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "jupiter-ct" }

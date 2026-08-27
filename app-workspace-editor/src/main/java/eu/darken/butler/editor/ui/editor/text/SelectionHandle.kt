@@ -55,7 +55,6 @@ internal fun SelectionHandle(
     textLayouts: Map<Long, TextLayoutResult> = emptyMap(),
     visibleLineContent: Map<Long, String> = emptyMap(),
     tabSize: Int = 4,
-    contentPaddingTop: Float = 0f,
     lineStartColumn: Long = 0L,
 ) {
     // [position.column] is an absolute engine column; the rendered line starts at its window anchor.
@@ -169,8 +168,10 @@ internal fun SelectionHandle(
 
                     // Use translation for GPU-accelerated positioning
                     translationX = xPosition
-                    // Add visual line offset for wrapped text positioning and content padding top
-                    translationY = currentYPos + visualLineOffsetY + contentPaddingTop
+                    // The anchor is an item offset, the handle is placed over the whole list; the
+                    // visual line offset then picks the wrapped line the caret sits on.
+                    val anchorY = contentListState.layoutInfo.itemToContainerY(currentYPos)
+                    translationY = anchorY + visualLineOffsetY
                 }
                 .pointerInput(lineNumberWidthPx, wordWrap, charWidth) {
                     detectDragGestures(
@@ -194,8 +195,8 @@ internal fun SelectionHandle(
 
                         // Convert handle-relative position to LazyColumn coordinates
                         val lazyColumnX = (change.position.x + xPosition) - lineNumberWidthPx + horizontalScrollOffset
-                        // Add contentPaddingTop to match tap coordinate space (full LazyColumn area)
-                        val lazyColumnY = change.position.y + currentYPosition + visualLineOffsetY + contentPaddingTop
+                        val anchorY = contentListState.layoutInfo.itemToContainerY(currentYPosition)
+                        val lazyColumnY = change.position.y + anchorY + visualLineOffsetY
 
                         currentOnDrag(Offset(lazyColumnX, lazyColumnY))
                         change.consume()

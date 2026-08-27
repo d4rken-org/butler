@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Block
 import androidx.compose.material.icons.twotone.Edit
+import androidx.compose.material.icons.twotone.Lock
 import androidx.compose.material.icons.twotone.Visibility
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -22,10 +23,15 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.icons.NetworkOffline
+import eu.darken.butler.common.compose.icons.NetworkOnline
+import eu.darken.butler.common.rememberMinuteTick
 import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
 import eu.darken.butler.common.files.saf.location.SAFLocation
+import eu.darken.butler.common.files.smb.SmbEndpointState
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.ui.explorer.items.statusLabel
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
 @Composable
@@ -69,7 +75,8 @@ fun StorageRow(
             }
         },
         primaryText = item.displayName.get(context),
-        secondaryText = item.target.path.userReadablePath.get(context),
+        // A network path is a UUID, the location's own subtitle is what identifies it to the user.
+        secondaryText = item.subtitle?.get(context) ?: item.target.path.userReadablePath.get(context),
         tertiaryText = run {
             val totalBytes = item.totalBytes
             val availableBytes = item.availableBytes
@@ -80,18 +87,68 @@ fun StorageRow(
                     val typeLabel = when (item) {
                         is ExplorerItem.Storage.Local -> stringResource(R.string.explorer_file_storage_local_label)
                         is ExplorerItem.Storage.SAF -> stringResource(R.string.explorer_file_storage_saf_label)
+                        is ExplorerItem.Storage.Network -> stringResource(R.string.explorer_network_storage_label)
                     }
                     stringResource(R.string.explorer_file_storage_size_format, typeLabel, total, free)
                 }
                 item is ExplorerItem.Storage.SAF -> stringResource(R.string.explorer_file_storage_saf_label)
                 item is ExplorerItem.Storage.Local -> stringResource(R.string.explorer_file_storage_local_label)
+                item is ExplorerItem.Storage.Network -> item.statusLabel(context, rememberMinuteTick())
                 else -> null
             }
         },
-        trailingContent = if (item is ExplorerItem.Storage.SAF) {
-            { PermissionIndicator(item.location) }
-        } else null
+        // Only a state worth acting on gets colour; "Available" is the normal case and stays muted.
+        tertiaryColor = when {
+            item !is ExplorerItem.Storage.Network -> null
+            item.hasIssue -> MaterialTheme.colorScheme.error
+            else -> null
+        },
+        trailingContent = when {
+            item is ExplorerItem.Storage.SAF -> {
+                { PermissionIndicator(item.location) }
+            }
+
+            item is ExplorerItem.Storage.Network -> {
+                { NetworkStatusIndicator(item) }
+            }
+
+            else -> null
+        }
     )
+}
+
+/** Nothing is drawn while the probe is still checking, so the row does not flash a wrong verdict. */
+@Composable
+private fun NetworkStatusIndicator(item: ExplorerItem.Storage.Network) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (item.status == ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED) {
+            Icon(
+                imageVector = Icons.TwoTone.Lock,
+                contentDescription = stringResource(R.string.explorer_network_sign_in_required_label),
+                tint = MaterialTheme.colorScheme.error,
+                modifier = Modifier.size(18.dp),
+            )
+        }
+        when (item.endpoint.reachability) {
+            SmbEndpointState.Reachability.CHECKING -> Unit
+
+            SmbEndpointState.Reachability.REACHABLE -> Icon(
+                imageVector = Icons.TwoTone.NetworkOnline,
+                contentDescription = stringResource(R.string.explorer_network_status_available_label),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(18.dp),
+            )
+
+            SmbEndpointState.Reachability.UNREACHABLE -> Icon(
+                imageVector = Icons.TwoTone.NetworkOffline,
+                contentDescription = stringResource(R.string.explorer_network_status_unavailable_label),
+                tint = MaterialTheme.colorScheme.error,
+                modifier = Modifier.size(18.dp),
+            )
+        }
+    }
 }
 
 @Composable
@@ -134,6 +191,66 @@ private fun PermissionIndicator(location: SAFLocation) {
 private fun StorageRowLocalPreview() {
     StorageRow(
         item = MockDataProvider.createMockStorageLocal(),
+        onClick = {}
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun StorageRowNetworkCheckingPreview() {
+    StorageRow(
+        item = MockDataProvider.createMockStorageNetwork(),
+        onClick = {}
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun StorageRowNetworkReachablePreview() {
+    StorageRow(
+        item = MockDataProvider.createMockStorageNetwork(
+            endpoint = SmbEndpointState("192.168.1.50", SmbEndpointState.Reachability.REACHABLE),
+        ),
+        onClick = {}
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun StorageRowNetworkUnreachablePreview() {
+    StorageRow(
+        item = MockDataProvider.createMockStorageNetwork(
+            endpoint = SmbEndpointState("192.168.1.50", SmbEndpointState.Reachability.UNREACHABLE),
+        ),
+        onClick = {}
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun StorageRowNetworkUnreachableSincePreview() {
+    StorageRow(
+        item = MockDataProvider.createMockStorageNetwork(
+            endpoint = SmbEndpointState("192.168.1.50", SmbEndpointState.Reachability.UNREACHABLE),
+            lastSeenAt = MockDataProvider.MockTimes.hoursAgo(3),
+        ),
+        onClick = {}
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun StorageRowNetworkSignInRequiredPreview() {
+    StorageRow(
+        item = MockDataProvider.createMockStorageNetwork(
+            name = "Work NAS",
+            status = ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED,
+        ),
         onClick = {}
     )
 }

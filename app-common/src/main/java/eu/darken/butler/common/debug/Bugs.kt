@@ -23,7 +23,12 @@ object Bugs {
         }
     }
 
+    // Written from App's settings observer, read from arbitrary flow-collection threads that gate
+    // their logging on them.
+    @Volatile
     var isDebug = false
+
+    @Volatile
     var isTrace = false
 
     var processTag: String = "Default"

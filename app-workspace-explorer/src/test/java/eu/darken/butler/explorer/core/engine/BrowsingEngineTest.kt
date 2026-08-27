@@ -3,8 +3,10 @@ package eu.darken.butler.explorer.core.engine
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.files.smb.SmbEndpointState
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.core.ExplorerNavigation
+import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.filesystem.FileSystemEvent
 import eu.darken.butler.workspace.core.operations.Operation
@@ -265,6 +267,7 @@ class BrowsingEngineTest : BaseTest() {
                 dispatcherProvider = TestDispatcherProvider(dispatcher),
                 homeLocationLoaderFactory = mockk(relaxed = true),
                 deviceLocationLoaderFactory = mockk(relaxed = true),
+                networkLocationLoaderFactory = mockk(relaxed = true),
                 trashLocationLoaderFactory = mockk(relaxed = true),
                 directoryLoaderFactory = mockk {
                     every { create(any()) } returns directoryLoader
@@ -835,5 +838,173 @@ class BrowsingEngineTest : BaseTest() {
                 refreshId shouldBe 2
             }
         }
+    }
+
+    /**
+     * The Network loader does not complete: after it has settled it keeps emitting as reachability
+     * probes report in. The engine has to publish those late emissions, keep them as the restore
+     * point, and still cancel the subscription on the next command.
+     */
+    @Nested
+    inner class LiveNetworkLoaderTests {
+
+        private val networkTarget = ExplorerNavigation.Target.Network
+        private val directoryTarget = ExplorerNavigation.Target.Directory(path)
+
+        private val checking = MockDataProvider.createMockStorageNetwork(name = "Home NAS")
+        private val reachable = checking.copy(
+            endpoint = SmbEndpointState("192.168.1.50", SmbEndpointState.Reachability.REACHABLE),
+        )
+
+        private val runs = ArrayDeque<Flow<ExplorerLocation>>()
+
+        private fun newRun() = MutableSharedFlow<ExplorerLocation>(extraBufferCapacity = 8)
+            .also { runs.addLast(it) }
+
+        private suspend fun MutableSharedFlow<ExplorerLocation>.publish(location: ExplorerLocation) {
+            subscriptionCount.first { it > 0 }
+            emit(location)
+        }
+
+        private fun listed(vararg items: ExplorerItem.Storage.Network) = ExplorerLocation.Network(
+            items = items.toList(),
+            info = ExplorerLocation.Network.Info(locationCount = items.size),
+            progress = null,
+        )
+
+        private fun listing(items: List<ExplorerItem>? = null) = ExplorerLocation.Network(
+            items = items,
+            progress = Progress.Data(),
+        )
+
+        private fun CoroutineScope.newEngine(dispatcher: CoroutineDispatcher): BrowsingEngine {
+            val networkLoader = mockk<NetworkLocationLoader>().apply {
+                every { loadNetwork(any()) } answers { runs.removeFirst() }
+            }
+            val directoryLoader = mockk<DirectoryLocationLoader>().apply {
+                every { loadDirectory(any()) } answers { runs.removeFirst() }
+            }
+            return BrowsingEngine(
+                workspaceId = Workspace.Id(),
+                workspaceScope = this,
+                dispatcherProvider = TestDispatcherProvider(dispatcher),
+                homeLocationLoaderFactory = mockk(relaxed = true),
+                deviceLocationLoaderFactory = mockk(relaxed = true),
+                networkLocationLoaderFactory = mockk {
+                    every { create(any()) } returns networkLoader
+                },
+                trashLocationLoaderFactory = mockk(relaxed = true),
+                directoryLoaderFactory = mockk {
+                    every { create(any()) } returns directoryLoader
+                },
+                breadcrumbGenerator = mockk(relaxed = true),
+            )
+        }
+
+        @Test
+        fun `a probe result after the listing settled becomes the content and the restore point`() =
+            runTest(UnconfinedTestDispatcher()) {
+                val dispatcher = UnconfinedTestDispatcher(testScheduler)
+                val initial = newRun()
+                val engine = backgroundScope.newEngine(dispatcher)
+
+                engine.setTarget(networkTarget)
+                initial.publish(listed(checking))
+                advanceUntilIdle()
+                engine.location.value.location?.items shouldBe listOf(checking)
+
+                initial.publish(listed(reachable))
+                advanceUntilIdle()
+                engine.location.value.location?.items shouldBe listOf(reachable)
+
+                // Cancelling the next navigation must come back to what the probe reported, not to
+                // the snapshot the list settled with.
+                newRun()
+                engine.setTarget(directoryTarget)
+                advanceUntilIdle()
+                engine.cancelLoad() shouldBe BrowsingEngine.CancelResult.NavigationRestored(networkTarget)
+                advanceUntilIdle()
+
+                engine.location.value.location?.items shouldBe listOf(reachable)
+            }
+
+        @Test
+        fun `a refresh replaces the live subscription and keeps the rows while it reloads`() =
+            runTest(UnconfinedTestDispatcher()) {
+                val dispatcher = UnconfinedTestDispatcher(testScheduler)
+                val initial = newRun()
+                val engine = backgroundScope.newEngine(dispatcher)
+
+                engine.setTarget(networkTarget)
+                initial.publish(listed(checking))
+                advanceUntilIdle()
+
+                val reload = newRun()
+                engine.refresh()
+                advanceUntilIdle()
+                initial.subscriptionCount.value shouldBe 0
+
+                reload.publish(listing())
+                advanceUntilIdle()
+                engine.location.value.run {
+                    isRefreshing shouldBe true
+                    location?.items shouldBe listOf(checking)
+                }
+
+                reload.publish(listed(reachable))
+                advanceUntilIdle()
+                engine.location.value.run {
+                    isRefreshing shouldBe false
+                    location?.items shouldBe listOf(reachable)
+                }
+            }
+
+        @Test
+        fun `navigating away while a probe is still out drops the subscription`() =
+            runTest(UnconfinedTestDispatcher()) {
+                val dispatcher = UnconfinedTestDispatcher(testScheduler)
+                val initial = newRun()
+                val engine = backgroundScope.newEngine(dispatcher)
+
+                engine.setTarget(networkTarget)
+                initial.publish(listed(checking))
+                advanceUntilIdle()
+
+                val next = newRun()
+                engine.setTarget(directoryTarget)
+                advanceUntilIdle()
+                initial.subscriptionCount.value shouldBe 0
+
+                next.publish(loaded(entry("a")))
+                advanceUntilIdle()
+                engine.location.value.location?.items shouldBe listOf(entry("a"))
+            }
+
+        @Test
+        fun `an emission of a cancelled reload never replaces the restored listing`() =
+            runTest(UnconfinedTestDispatcher()) {
+                // See the directory case: the loader side runs inline while the engine's own
+                // collection has to be advanced, so an emission can sit between the two.
+                val engineScope = CoroutineScope(StandardTestDispatcher(testScheduler) + Job())
+                val initial = newRun()
+                val engine = engineScope.newEngine(UnconfinedTestDispatcher(testScheduler))
+
+                engine.setTarget(networkTarget)
+                advanceUntilIdle()
+                initial.publish(listed(reachable))
+                advanceUntilIdle()
+                engine.location.value.location?.items shouldBe listOf(reachable)
+
+                val reload = newRun()
+                engine.refresh()
+                advanceUntilIdle()
+
+                reload.emit(listing(listOf(checking)))
+                engine.cancelLoad() shouldBe BrowsingEngine.CancelResult.RefreshCancelled
+                advanceUntilIdle()
+
+                engine.location.value.location?.items shouldBe listOf(reachable)
+                engine.release()
+            }
     }
 }

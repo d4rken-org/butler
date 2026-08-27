@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.common.SafUri
 import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.compose.icons.SmbShare
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.LocalPath
@@ -25,6 +26,9 @@ import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.files.saf.location.SAFLocation
+import eu.darken.butler.common.files.smb.SmbEndpointState
+import eu.darken.butler.common.files.smb.credentials.SmbCredentialStore
+import eu.darken.butler.common.files.smb.location.SmbLocation
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.R
@@ -543,6 +547,45 @@ object MockDataProvider {
             totalBytes = totalBytes,
             availableBytes = availableBytes,
             target = ExplorerNavigation.Target.Directory(SAFPath.build(treeUri)),
+        )
+    }
+
+    fun createMockStorageNetwork(
+        name: String = "Home NAS",
+        host: String = "nas.local",
+        share: String = "media",
+        status: ExplorerItem.Storage.Network.Status = ExplorerItem.Storage.Network.Status.AVAILABLE,
+        id: Uuid = Uuid.parse("11111111-2222-3333-4444-555555555555"),
+        endpoint: SmbEndpointState = SmbEndpointState(),
+        username: String? = "hoffmann",
+        domain: String? = null,
+        lastSeenAt: Instant? = null,
+    ): ExplorerItem.Storage.Network {
+        val location = SmbLocation(
+            id = id,
+            label = name,
+            host = host,
+            share = share,
+            domain = domain,
+            username = username,
+            authType = SmbLocation.AuthType.PASSWORD,
+            rememberCredential = true,
+            credentialVersion = 1,
+            createdAt = MockTimes.daysAgo(7),
+            updatedAt = MockTimes.daysAgo(7),
+            lastSeenAt = lastSeenAt,
+        )
+        return ExplorerItem.Storage.Network(
+            location = location,
+            displayName = name.toCaString(),
+            displayIcon = Icons.TwoTone.SmbShare,
+            target = ExplorerNavigation.Target.Directory(location.rootPath),
+            subtitle = location.endpointLabel.toCaString(),
+            credentials = when (status) {
+                ExplorerItem.Storage.Network.Status.AVAILABLE -> SmbCredentialStore.Availability.AVAILABLE
+                ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED -> SmbCredentialStore.Availability.MISSING
+            },
+            endpoint = endpoint,
         )
     }
 
@@ -1106,10 +1149,10 @@ object MockDataProvider {
     fun createDefaultHomeActions(
         viewStyle: ExplorerViewStyle = ExplorerViewStyle.default(),
     ): List<ExplorerActionBarItem> = listOf(
-        ExplorerActionBarItem.Common.Refresh(),
         ExplorerActionBarItem.Common.Sort(),
         ExplorerActionBarItem.Common.Filter(),
         ExplorerActionBarItem.Common.UpdateViewStyle(viewStyle.toggled()),
+        ExplorerActionBarItem.Common.Refresh(),
     )
 
     /**

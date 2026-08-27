@@ -53,6 +53,16 @@ fun ExplorerDialogHost(
             )
         }
 
+        is ExplorerDialogState.SmbLocationForm -> {
+            SmbLocationFormSheet(
+                state = dialogState,
+                onDismiss = { vm?.dismissDialog() },
+                onSubmit = { input -> vm?.onSmbLocationFormSubmit(input) },
+                topInset = topInset,
+                bottomInset = bottomInset,
+            )
+        }
+
         is ExplorerDialogState.Rename -> {
             RenameDialog(
                 item = dialogState.item,
@@ -250,12 +260,15 @@ fun ExplorerDialogHost(
                 // Keep Explorer-specific contexts with original ItemInfoBottomSheet
                 is ExplorerDialogState.ItemInfo.InfoContext.SingleSAF,
                 is ExplorerDialogState.ItemInfo.InfoContext.SingleLocalStorage,
+                is ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork,
                 is ExplorerDialogState.ItemInfo.InfoContext.DeviceView,
                 is ExplorerDialogState.ItemInfo.InfoContext.HomeView -> {
                     ItemInfoBottomSheet(
                         context = context,
                         onDismiss = { vm?.dismissDialog() },
                         onCopyToClipboard = { text -> vm?.copyPathToSystemClipboard(text) },
+                        onRevealPassword = { locationId -> vm?.onRevealNetworkPassword(locationId) },
+                        onHidePassword = { locationId -> vm?.onHideNetworkPassword(locationId) },
                         topInset = topInset,
                         bottomInset = bottomInset,
                     )

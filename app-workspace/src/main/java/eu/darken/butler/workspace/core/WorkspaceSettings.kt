@@ -32,8 +32,6 @@ class WorkspaceSettings @Inject constructor(
 
     val showTipBadgeExplanation = dataStore.createValue("workspace.manager.tip.badgeexplanation.show", true)
 
-    val showTipFabLongPress = dataStore.createValue("workspace.manager.tip.addtablongpress.show", true)
-
     val swipeGesturesEnabled = dataStore.createValue("workspace.swipe.gestures.enabled", true)
 
     val onDemandWorkspaceCreation = dataStore.createValue("workspace.swipe.ondemand.enabled", true)
@@ -59,7 +57,6 @@ class WorkspaceSettings @Inject constructor(
     override val mapper = PreferenceStoreMapper(
         debugSettings.isDebugMode,
         showTipBadgeExplanation,
-        showTipFabLongPress,
         swipeGesturesEnabled,
         onDemandWorkspaceCreation,
         livePreview,

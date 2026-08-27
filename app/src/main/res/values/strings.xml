@@ -273,6 +273,8 @@
     <string name="acknowledgement_kotlin_extensions_subtitle">Coroutines and Serialization libraries. (APACHE 2.0)</string>
     <string name="acknowledgement_coil_title">Coil</string>
     <string name="acknowledgement_coil_subtitle">Image loading library backed by Kotlin Coroutines. (APACHE 2.0)</string>
+    <string name="acknowledgement_smbj_title">SMBJ</string>
+    <string name="acknowledgement_smbj_subtitle">SMB2 and SMB3 client library, used to talk to network shares. (APACHE 2.0)</string>
     <string name="acknowledgement_square_libraries_title">Square libraries</string>
     <string name="acknowledgement_square_libraries_subtitle">Retrofit, OkHttp, and OkIO networking libraries. (APACHE 2.0)</string>
     <string name="acknowledgement_accompanist_title">Accompanist</string>
@@ -317,6 +319,8 @@
     <!-- Workspace > Guided tour -->
     <string name="tour_first_tab_title">Start with a tab</string>
     <string name="tour_first_tab_body">Butler works in tabs, like a browser: each one is a tool of its own — Explorer, Searcher, Editor, and more. Create your first tab.</string>
+    <string name="tour_manager_add_tab_title">Add a tab</string>
+    <string name="tour_manager_add_tab_body">Tap this to pick a tool for a new tab. Long-press it instead for a shortcut list of the tools you use most, and for closing every tab at once.</string>
 
     <string name="workspace_creating_placeholder">Creating tab…</string>
     <string name="workspace_ondemand_swipe_title">Swipe to create new tab</string>
@@ -342,7 +346,6 @@
     <!-- Workspace Manager FAB -->
     <string name="workspace_fab_add_workspace">Add tab</string>
     <string name="workspace_fab_close_all">Close all tabs</string>
-    <string name="workspace_fab_longpress_hint">Tip: Long-press for quick access to all tab types</string>
 
     <!-- Workspace Navigation Rail -->
     <string name="workspace_pane_assign_action">Assign to pane %1$d</string>

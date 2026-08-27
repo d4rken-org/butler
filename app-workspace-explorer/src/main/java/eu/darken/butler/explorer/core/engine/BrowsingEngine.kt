@@ -40,6 +40,7 @@ class BrowsingEngine @AssistedInject constructor(
     private val dispatcherProvider: DispatcherProvider,
     homeLocationLoaderFactory: HomeLocationLoader.Factory,
     deviceLocationLoaderFactory: DeviceLocationLoader.Factory,
+    networkLocationLoaderFactory: NetworkLocationLoader.Factory,
     trashLocationLoaderFactory: TrashLocationLoader.Factory,
     directoryLoaderFactory: DirectoryLocationLoader.Factory,
     private val breadcrumbGenerator: BreadcrumbGenerator,
@@ -48,6 +49,7 @@ class BrowsingEngine @AssistedInject constructor(
     private val tag = logTag("Explorer", "Workspace", workspaceId.shortTag, "BrowsingEngine")
     private val homeLocationLoader = homeLocationLoaderFactory.create(workspaceId)
     private val deviceLocationLoader = deviceLocationLoaderFactory.create(workspaceId)
+    private val networkLocationLoader = networkLocationLoaderFactory.create(workspaceId)
     private val trashLocationLoader = trashLocationLoaderFactory.create(workspaceId)
     private val directoryLoader = directoryLoaderFactory.create(workspaceId)
 
@@ -280,7 +282,7 @@ class BrowsingEngine @AssistedInject constructor(
         loadGeneration: Int,
         isRefresh: Boolean,
     ): Flow<Load> {
-        return loaderFor(target)
+        return loaderFor(target, isRefresh)
             .flowOn(dispatcherProvider.IO)
             .map {
                 Load(
@@ -306,9 +308,11 @@ class BrowsingEngine @AssistedInject constructor(
             }
     }
 
-    private fun loaderFor(target: ExplorerNavigation.Target): Flow<ExplorerLocation> = when (target) {
+    /** [isRefresh] is what the user asking for fresh data looks like down here, see the Network loader. */
+    private fun loaderFor(target: ExplorerNavigation.Target, isRefresh: Boolean): Flow<ExplorerLocation> = when (target) {
         is ExplorerNavigation.Target.Home -> homeLocationLoader.loadHome()
         is ExplorerNavigation.Target.Device -> deviceLocationLoader.loadDevice()
+        is ExplorerNavigation.Target.Network -> networkLocationLoader.loadNetwork(force = isRefresh)
         is ExplorerNavigation.Target.Trash.Root -> trashLocationLoader.loadRoot()
         is ExplorerNavigation.Target.Trash.Nested -> trashLocationLoader.loadNested(
             target.parentItem,
@@ -556,6 +560,9 @@ internal fun ExplorerLocation.retainContentFrom(previous: ExplorerLocation): Exp
         is ExplorerLocation.Device -> (previous as? ExplorerLocation.Device)
             ?.let { copy(items = it.items, info = it.info) }
 
+        is ExplorerLocation.Network -> (previous as? ExplorerLocation.Network)
+            ?.let { copy(items = it.items, info = it.info) }
+
         is ExplorerLocation.Directory -> (previous as? ExplorerLocation.Directory)
             ?.let { copy(items = it.items, info = it.info) }
 
@@ -571,6 +578,7 @@ internal fun ExplorerLocation.retainContentFrom(previous: ExplorerLocation): Exp
 internal fun ExplorerLocation.withoutProgress(): ExplorerLocation = when (this) {
     is ExplorerLocation.Home -> copy(progress = null)
     is ExplorerLocation.Device -> copy(progress = null)
+    is ExplorerLocation.Network -> copy(progress = null)
     is ExplorerLocation.Directory -> copy(progress = null)
     is ExplorerLocation.Trash.Root -> copy(progress = null)
     is ExplorerLocation.Trash.Nested -> copy(progress = null)

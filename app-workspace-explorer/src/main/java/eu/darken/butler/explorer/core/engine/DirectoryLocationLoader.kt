@@ -15,6 +15,7 @@ import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.files.SmbPath
 import eu.darken.butler.common.files.extensions.getFileSystemInfo
 import eu.darken.butler.common.files.extensions.isAncestorOfOrSelf
 import eu.darken.butler.common.files.metadata.FileType
@@ -110,7 +111,12 @@ class DirectoryLocationLoader @AssistedInject constructor(
                     context.loadContent()
 
                     currentCoroutineContext().ensureActive()
-                    context.loadContentExtended()
+                    // A second pass over the network would mean one more round trip per item for
+                    // ownership and permissions an SMB share does not report anyway.
+                    when (context.targetPath) {
+                        is SmbPath -> context.loadNetworkWritability()
+                        else -> context.loadContentExtended()
+                    }
                 }
 
                 currentCoroutineContext().ensureActive()
@@ -205,6 +211,30 @@ class DirectoryLocationLoader @AssistedInject constructor(
                 items = items,
                 info = newInfo,
             )
+        }
+    }
+
+    /**
+     * The skipped extended pass is what normally resolves the directory's own writability, which the
+     * action bar gates Cut/Delete on, so evaluate it here without any lookup.
+     */
+    private suspend fun LocationLoaderContext<ExplorerLocation.Directory>.loadNetworkWritability() {
+        val writable = writabilityEvaluator.evaluate(
+            path = targetPath,
+            permissions = null,
+            ownership = null,
+            // Root/ADB/SAF/Unix bits have no meaning on a share, the server decides access.
+            context = WritabilityContext(
+                hasRoot = false,
+                hasAdb = false,
+                appUid = 0,
+                safLocation = null,
+            ),
+        )
+        log(tag) { "loadNetworkWritability(): $targetPath is writable: $writable" }
+
+        updateState {
+            copy(info = info?.copy(isWritable = writable != false))
         }
     }
 

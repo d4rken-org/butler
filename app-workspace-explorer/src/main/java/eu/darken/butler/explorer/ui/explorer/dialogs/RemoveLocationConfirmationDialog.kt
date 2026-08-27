@@ -26,21 +26,34 @@ import eu.darken.butler.common.R as CommonR
 
 @Composable
 fun RemoveLocationConfirmationDialog(
-    items: List<ExplorerItem.Storage.SAF>,
+    items: List<ExplorerItem.Storage>,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
 ) {
     val context = LocalContext.current
     val itemCount = items.size
 
+    // Removing a network location forgets a password too, which the SAF wording does not cover.
+    val isNetwork = items.all { it is ExplorerItem.Storage.Network }
+
     PaneBoundAlertDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                text = if (itemCount == 1) {
-                    stringResource(R.string.explorer_device_remove_confirmation_title)
-                } else {
-                    pluralStringResource(
+                text = when {
+                    itemCount == 1 && isNetwork -> {
+                        stringResource(R.string.explorer_network_remove_confirmation_title)
+                    }
+
+                    itemCount == 1 -> stringResource(R.string.explorer_device_remove_confirmation_title)
+
+                    isNetwork -> pluralStringResource(
+                        R.plurals.explorer_network_remove_confirmation_title_multiple,
+                        itemCount,
+                        itemCount
+                    )
+
+                    else -> pluralStringResource(
                         R.plurals.explorer_device_remove_confirmation_title_multiple,
                         itemCount,
                         itemCount
@@ -54,7 +67,10 @@ fun RemoveLocationConfirmationDialog(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = stringResource(R.string.explorer_device_remove_confirmation_message),
+                    text = stringResource(
+                        if (isNetwork) R.string.explorer_network_remove_confirmation_message
+                        else R.string.explorer_device_remove_confirmation_message
+                    ),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -81,7 +97,10 @@ fun RemoveLocationConfirmationDialog(
                 onClick = onConfirm
             ) {
                 Text(
-                    stringResource(R.string.explorer_device_action_remove_location),
+                    stringResource(
+                        if (isNetwork) R.string.explorer_network_remove_location_action
+                        else R.string.explorer_device_action_remove_location
+                    ),
                     color = MaterialTheme.colorScheme.error
                 )
             }
@@ -101,6 +120,19 @@ private fun RemoveLocationConfirmationDialogPreview() {
     RemoveLocationConfirmationDialog(
         items = listOf(
             MockDataProvider.createMockStorageSAF(name = "SD Card"),
+        ),
+        onDismiss = {},
+        onConfirm = {}
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun RemoveLocationConfirmationDialogNetworkPreview() {
+    RemoveLocationConfirmationDialog(
+        items = listOf(
+            MockDataProvider.createMockStorageNetwork(name = "Home NAS"),
         ),
         onDismiss = {},
         onConfirm = {}

@@ -24,6 +24,18 @@
         <item quantity="one">%d item from %s</item>
         <item quantity="other">%d items from %s</item>
     </plurals>
+    <plurals name="clipboard_paths_locations">
+        <item quantity="one">%d location</item>
+        <item quantity="other">%d locations</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy_multi">
+        <item quantity="one">%1$d item from %2$s</item>
+        <item quantity="other">%1$d items from %2$s</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut_multi">
+        <item quantity="one">%1$d item from %2$s</item>
+        <item quantity="other">%1$d items from %2$s</item>
+    </plurals>
     <string name="clipboard_text_title">Text snippet</string>
     <plurals name="clipboard_text_description">
         <item quantity="one">%1$d character</item>
@@ -39,11 +51,14 @@
     <string name="clipboard_info_operation">Operation</string>
     <string name="clipboard_info_items">Items</string>
     <string name="clipboard_info_source">Source</string>
+    <string name="clipboard_info_sources">Sources</string>
     <string name="clipboard_info_workspace">Workspace</string>
+    <string name="clipboard_info_workspace_closed">Closed</string>
     <string name="clipboard_info_time">Time</string>
     <string name="clipboard_info_items_with_count">Items (%1$d)</string>
     <string name="clipboard_info_actions">Actions</string>
     <string name="clipboard_info_go_to_source">Go to source</string>
+    <string name="clipboard_info_go_to_first_source">Go to first source</string>
     <string name="clipboard_info_remove">Remove from clipboard</string>
 
     <!-- Clipboard Settings -->
@@ -227,6 +242,13 @@
 
     <!-- Performance Graph -->
     <string name="workspace_operation_performance_not_enough_data">Not enough data</string>
+    <string name="workspace_operation_performance_graph_expand">Expand performance graph</string>
+    <string name="workspace_operation_performance_graph_collapse">Collapse performance graph</string>
+    <string name="workspace_operation_performance_unit_bytes">B/s</string>
+    <string name="workspace_operation_performance_unit_kilobytes">kB/s</string>
+    <string name="workspace_operation_performance_unit_megabytes">MB/s</string>
+    <string name="workspace_operation_performance_unit_gigabytes">GB/s</string>
+    <string name="workspace_operation_performance_unit_items">items/s</string>
 
     <!-- Error Display (shared across workspaces) -->
     <string name="workspace_error_show_details_action">Show technical details</string>

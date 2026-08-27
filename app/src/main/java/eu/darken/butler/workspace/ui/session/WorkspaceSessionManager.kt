@@ -316,6 +316,16 @@ class WorkspaceSessionManager @Inject constructor(
         val session = storage.dao.getSession(DEFAULT_SESSION_ID) ?: newDefaultSession()
         val uiState = buildUiState(workspaceRepo.state.first())
         storage.dao.upsertSession(session.copy(updatedAt = Clock.System.now(), uiState = uiState))
+
+        // This writer persists focus and panes too, and the ON_STOP flush runs it without a
+        // following full save - so without this the last layout before an app kill, the one that
+        // decides which tabs come back, would never reach the log.
+        if (layoutMoved(session.uiState, uiState)) {
+            log(TAG, INFO) {
+                "Session layout: focus=${uiState.focusedWorkspaceId?.shortTag}," +
+                    " panes=${uiState.paneSelections.size}"
+            }
+        }
         log(TAG) {
             "Saved UI state: focused=${uiState.focusedWorkspaceId}," +
                 " scroll=${uiState.scrollPositions.size}, bars=${uiState.barCollapse.size}," +
@@ -382,13 +392,23 @@ class WorkspaceSessionManager @Inject constructor(
     }
 
     private suspend fun doSaveSession() {
-        log(TAG, INFO) { "Saving session" }
+        log(TAG) { "Saving session" }
+
+        // Every mutation below lands here first and is published to [lastSavedWorkspaces] only once
+        // the transaction has committed. Mutating the live cache inside the transaction meant a
+        // failed commit rolled the database back while the cache kept the new keys, so the next save
+        // saw "already saved" and skipped an upsert the database never received.
+        val staged = lastSavedWorkspaces.toMutableMap()
 
         var defaultSession = storage.dao.getSession(DEFAULT_SESSION_ID)
         if (defaultSession == null) {
             defaultSession = newDefaultSession()
             log(TAG) { "Default session will be created: $defaultSession" }
         }
+        // The layout as the database currently holds it. Both writers compare against this rather
+        // than a process-local field, so whichever of them commits a focus change first is the one
+        // that reports it and the other sees no movement.
+        val persistedUiState = defaultSession.uiState
         storage.dao.upsertSession(defaultSession)
 
         // Pull workspace data
@@ -402,6 +422,7 @@ class WorkspaceSessionManager @Inject constructor(
         val now = Clock.System.now()
 
         // Perform incremental save within transaction
+        var counts = SaveCounts()
         storage.database.withTransaction {
             // 1. Upsert session metadata (including UI state)
             storage.dao.upsertSession(
@@ -426,12 +447,16 @@ class WorkspaceSessionManager @Inject constructor(
             val removedIds = (existingIds - currentIds).filter { workspaceRepo.peek(it) == null }
             if (removedIds.isNotEmpty()) {
                 storage.dao.deleteWorkspacesByIds(removedIds)
-                removedIds.forEach { lastSavedWorkspaces.remove(it) }
+                removedIds.forEach { staged.remove(it) }
                 log(TAG) { "Removed ${removedIds.size} deleted workspaces from session" }
             }
 
             // 3. Upsert only changed workspaces
             var changedCount = 0
+            var added = 0
+            var replaced = 0
+            var retitled = 0
+            var reordered = 0
             workspacesToSave.forEachIndexed { index, info ->
                 // peek() instead of retrieve(): a paused workspace must still be saved with the
                 // arguments it holds, and retrieve() reports paused entries as absent.
@@ -455,13 +480,24 @@ class WorkspaceSessionManager @Inject constructor(
                         customTitle = info.customTitle,
                     )
 
-                    if (lastSavedWorkspaces[info.id] != saveKey) {
+                    if (staged[info.id] != saveKey) {
                         // The repo knows when the tab was actually created; the stored value is only
                         // the instant of its FIRST save, which collapses every tab created between
                         // two debounced saves onto one timestamp. Pre-existing rows keep theirs
                         // (still monotonic in save order), so no migration is needed.
                         val existingEntity = storage.dao.getWorkspaceById(info.id)
                         val createdAt = workspaceRepo.peekCreatedAt(info.id) ?: existingEntity?.createdAt ?: now
+
+                        // Counted against the stored row, not against the in-memory cache: a cache
+                        // that was never seeded (or was seeded and lost) would otherwise make an
+                        // existing row look newly added.
+                        if (existingEntity == null) {
+                            added++
+                        } else {
+                            if (existingEntity.type != info.type) replaced++
+                            if (existingEntity.customTitle != info.customTitle) retitled++
+                            if (existingEntity.orderIndex != index) reordered++
+                        }
 
                         storage.dao.upsertWorkspace(
                             WorkspaceInstanceEntity(
@@ -475,21 +511,78 @@ class WorkspaceSessionManager @Inject constructor(
                                 customTitle = info.customTitle,
                             )
                         )
-                        lastSavedWorkspaces[info.id] = saveKey
+                        staged[info.id] = saveKey
                         changedCount++
                     }
+                } catch (e: CancellationException) {
+                    // Must not be absorbed by the catch below: swallowing it here would let a
+                    // cancelled save run on to commit a partial transaction.
+                    throw e
                 } catch (e: Exception) {
                     log(TAG, ERROR) { "Failed to save workspace ${info.id}: ${e.asLog()}" }
                 }
             }
 
             log(TAG) { "Updated $changedCount of ${workspacesToSave.size} workspaces" }
+
+            // Rows the database holds once this transaction commits: what it had, minus what this
+            // pass deleted, plus what this pass inserted. Deliberately not derived from
+            // [workspacesToSave] - that snapshot is allowed to be partial (see the delete pass
+            // above), so a row missing from it is not a row missing from the database.
+            counts = SaveCounts(
+                tabs = existingIds.size - removedIds.size + added,
+                added = added,
+                removed = removedIds.size,
+                replaced = replaced,
+                retitled = retitled,
+                reordered = reordered,
+            )
         }
 
-        log(TAG, INFO) {
-            "Saved session with ${workspacesToSave.size} workspaces, focused=${uiState.focusedWorkspaceId}"
+        // Past the commit: safe to publish.
+        lastSavedWorkspaces.clear()
+        lastSavedWorkspaces.putAll(staged)
+
+        log(TAG) { "Saved session with ${workspacesToSave.size} workspaces" }
+
+        if (counts.moved || layoutMoved(persistedUiState, uiState)) {
+            log(TAG, INFO) {
+                "Session layout: tabs=${counts.tabs}, added=${counts.added}, removed=${counts.removed}," +
+                    " replaced=${counts.replaced}, retitled=${counts.retitled}," +
+                    " reordered=${counts.reordered}, focus=${uiState.focusedWorkspaceId?.shortTag}," +
+                    " panes=${uiState.paneSelections.size}"
+            }
         }
     }
+
+    /**
+     * What a committed save changed about the session's durable shape.
+     *
+     * Deliberately not the incremental-save counter: that also ticks for serialized-argument
+     * changes, so it fires on ordinary directory navigation while missing both removals and
+     * focus-only moves - wrong in both directions for the bug class these counts serve, which is
+     * "my tabs came back wrong".
+     */
+    private data class SaveCounts(
+        val tabs: Int = 0,
+        val added: Int = 0,
+        val removed: Int = 0,
+        val replaced: Int = 0,
+        val retitled: Int = 0,
+        val reordered: Int = 0,
+    ) {
+        val moved: Boolean
+            get() = added > 0 || removed > 0 || replaced > 0 || retitled > 0 || reordered > 0
+    }
+
+    /**
+     * Whether focus or pane assignment differs between the stored layout and the one about to
+     * replace it. Scroll offsets, bar fractions and view prefs are excluded: they change constantly
+     * and say nothing about which tabs the user gets back.
+     */
+    private fun layoutMoved(before: WorkspaceUIState, after: WorkspaceUIState): Boolean =
+        before.focusedWorkspaceId != after.focusedWorkspaceId ||
+            before.paneSelections != after.paneSelections
 
     private data class RestoreCandidate(
         val id: Workspace.Id,

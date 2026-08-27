@@ -18,6 +18,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -45,15 +46,24 @@ class WorkspacePreviewCaptureServiceTest : BaseTest() {
     }
     private val pauseGate = WorkspacePauseGate()
 
-    private fun info(id: Workspace.Id, lifecycleState: Workspace.LifecycleState) = Workspace.Info(
+    private fun info(
+        id: Workspace.Id,
+        lifecycleState: Workspace.LifecycleState,
+        customTitle: String? = null,
+    ) = Workspace.Info(
         id = id,
         type = Workspace.Type.EXPLORER,
         title = "Workspace".toCaString(),
         lifecycleState = lifecycleState,
+        customTitle = customTitle,
     )
 
-    private fun workspace(id: Workspace.Id, lifecycleState: Workspace.LifecycleState): Workspace<Workspace.Arguments> {
-        val infoState = MutableStateFlow(info(id, lifecycleState))
+    private fun workspace(
+        id: Workspace.Id,
+        lifecycleState: Workspace.LifecycleState,
+        customTitle: String? = null,
+    ): Workspace<Workspace.Arguments> {
+        val infoState = MutableStateFlow(info(id, lifecycleState, customTitle))
         return mockk<Workspace<Workspace.Arguments>>().apply { every { info } returns infoState }
     }
 
@@ -73,6 +83,8 @@ class WorkspacePreviewCaptureServiceTest : BaseTest() {
     private val workspaceRepo = mockk<WorkspaceRepo>().apply {
         every { state } returns repoState
         every { peek(any()) } answers { liveWorkspaces[firstArg()] }
+        // The authoritative snapshot, i.e. what the repo would report while holding its own lock
+        coEvery { peekInfos() } answers { liveWorkspaces.values.map { it.info.value } }
         // Captures lease the ownership root, so a pause of the whole unit holds them off. These are
         // flat topologies, so every workspace is its own root.
         every { peekOwnershipRoot(any()) } answers { firstArg() }
@@ -87,11 +99,16 @@ class WorkspacePreviewCaptureServiceTest : BaseTest() {
         pageHosts = emptyMap(),
     )
 
+    // The capture composition names a clipboard entry's origin, so it resolves every live title
+    private val captureContext = mockk<Context>().apply {
+        every { getString(any()) } returns "Explorer"
+    }
+
     private suspend fun capture(id: Workspace.Id) = service.captureWorkspace(
         workspaceId = id,
         workspaceType = Workspace.Type.EXPLORER,
         size = DpSize(width = 360.dp, height = 640.dp),
-        captureContext = mockk<Context>(),
+        captureContext = captureContext,
     )
 
     @Test
@@ -177,6 +194,22 @@ class WorkspacePreviewCaptureServiceTest : BaseTest() {
         capture.await() shouldBe null
         coVerify(exactly = 0) { renderer.renderToBitmap(any(), any(), any(), any(), any()) }
     }
+
+    @Test
+    fun `a capture names workspaces from the authoritative snapshot, not the shared state flow`() =
+        runTest(UnconfinedTestDispatcher()) {
+            // A rename that is already committed, while the share still replays the old names
+            liveWorkspaces[idA] = workspace(idA, Workspace.LifecycleState.Ready, customTitle = "Renamed")
+            liveWorkspaces[idB] = workspace(idB, Workspace.LifecycleState.Ready, customTitle = "Also renamed")
+
+            capture(idA) shouldBe bitmap
+
+            coVerify(exactly = 1) { workspaceRepo.peekInfos() }
+            verify(exactly = 0) { workspaceRepo.state }
+            // Names off the stale snapshot carry no custom title and would fall back to the type's
+            // generic label, which is the only thing here that resolves against a Context
+            verify(exactly = 0) { captureContext.getString(any()) }
+        }
 
     @Test
     fun `a capture is not blocked by a pause of another workspace`() = runTest(UnconfinedTestDispatcher()) {

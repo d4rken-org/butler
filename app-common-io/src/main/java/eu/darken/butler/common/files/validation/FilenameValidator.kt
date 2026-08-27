@@ -3,6 +3,8 @@ package eu.darken.butler.common.files.validation
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.files.SmbPath
+import eu.darken.butler.common.files.smb.SmbLocationInput
 import javax.inject.Inject
 
 class FilenameValidator @Inject constructor() {
@@ -10,13 +12,23 @@ class FilenameValidator @Inject constructor() {
     enum class StorageContext {
         PUBLIC,  // Android scoped storage restrictions
         ROOT,    // Minimal Linux filesystem restrictions
-        SAF      // Storage Access Framework restrictions
+        SAF,     // Storage Access Framework restrictions
+        SMB      // Windows/SMB server restrictions
     }
 
     sealed class ValidationResult {
         data object Valid : ValidationResult()
         data class Invalid(
             val invalidChars: Set<Char>,
+            val context: StorageContext
+        ) : ValidationResult()
+
+        /**
+         * The name is unusable as a whole rather than because of a character it contains, e.g. `..`
+         * or a trailing dot. Reported separately because there is no character to point at.
+         */
+        data class InvalidName(
+            val reason: SmbLocationInput.NameIssue,
             val context: StorageContext
         ) : ValidationResult()
     }
@@ -29,15 +41,17 @@ class FilenameValidator @Inject constructor() {
             StorageContext.PUBLIC -> ANDROID_SCOPED_STORAGE_CHARS
             StorageContext.ROOT -> LINUX_FILESYSTEM_CHARS
             StorageContext.SAF -> SAF_RESTRICTED_CHARS
+            StorageContext.SMB -> SmbLocationInput.RESTRICTED_NAME_CHARS
         }
 
         val foundInvalidChars = name.filter { it in restrictedChars }.toSet()
+        if (foundInvalidChars.isNotEmpty()) return ValidationResult.Invalid(foundInvalidChars, context)
 
-        return if (foundInvalidChars.isEmpty()) {
-            ValidationResult.Valid
-        } else {
-            ValidationResult.Invalid(foundInvalidChars, context)
+        if (context == StorageContext.SMB) {
+            SmbLocationInput.nameIssue(name)?.let { return ValidationResult.InvalidName(it, context) }
         }
+
+        return ValidationResult.Valid
     }
 
     private fun detectStorageContext(path: APath<*>): StorageContext {
@@ -48,6 +62,7 @@ class FilenameValidator @Inject constructor() {
                 else -> StorageContext.ROOT
             }
             is SAFPath -> StorageContext.SAF
+            is SmbPath -> StorageContext.SMB
             else -> StorageContext.ROOT
         }
     }

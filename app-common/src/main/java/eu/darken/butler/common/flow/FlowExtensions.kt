@@ -74,13 +74,49 @@ fun <T> Flow<T>.takeUntilAfter(predicate: suspend (T) -> Boolean) = transformWhi
     !fullfilled // We keep emitting until condition is fullfilled = true
 }
 
-fun <T> Flow<T>.setupCommonEventHandlers(tag: String, enabled: Boolean = true, identifier: () -> String) = this
-    .onStart { log(tag, VERBOSE) { "${identifier()}.onStart()" } }
-    .onEach { log(tag, VERBOSE) { "${identifier()}.onEach(): $it" } }
-    .onCompletion { log(tag, VERBOSE) { "${identifier()}.onCompletion()" } }
+/**
+ * Renders a flow emission for a log line.
+ *
+ * Only self-describing scalars are printed by value. Everything else degrades to its type name
+ * (plus element count for collections/maps), because these lines reach two places a raw
+ * `toString()` must not: logcat, and the bug-report file a user attaches to an issue. An Explorer
+ * state emission, for example, carries the whole directory listing.
+ *
+ * Numbers are excluded from by-value printing on purpose: this helper cannot tell a list size from
+ * an account id or a PIN, and it is applied to every flow in the app. A call site that knows its
+ * number is safe should log it itself.
+ *
+ *     true                    -> "true"
+ *     Type.EXPLORER           -> "EXPLORER"
+ *     42                      -> "Int"
+ *     Directory(items=[...])  -> "Directory"
+ *     listOf(a, b, c)         -> "ArrayList(3)"
+ */
+private fun Any?.asFlowLogValue(): String = when (this) {
+    null -> "null"
+    is Boolean -> toString()
+    // name, not toString(): an enum may override toString() to render a user-facing value.
+    is Enum<*> -> name
+    is Collection<*> -> "${this::class.simpleName}($size)"
+    is Map<*, *> -> "${this::class.simpleName}($size)"
+    else -> this::class.simpleName ?: this::class.java.name
+}
+
+/**
+ * @param enabled evaluated per emission, not once at flow construction: callers gate on
+ *   [eu.darken.butler.common.debug.Bugs] flags that the user toggles long after DI built the flow.
+ */
+fun <T> Flow<T>.setupCommonEventHandlers(
+    tag: String,
+    enabled: () -> Boolean = { true },
+    identifier: () -> String,
+) = this
+    .onStart { if (enabled()) log(tag, VERBOSE) { "${identifier()}.onStart()" } }
+    .onEach { if (enabled()) log(tag, VERBOSE) { "${identifier()}.onEach(): ${it.asFlowLogValue()}" } }
+    .onCompletion { if (enabled()) log(tag, VERBOSE) { "${identifier()}.onCompletion()" } }
     .catch {
         if (it.hasCause(CancellationException::class)) {
-            log(tag, VERBOSE) { "${identifier()} cancelled" }
+            if (enabled()) log(tag, VERBOSE) { "${identifier()} cancelled" }
         } else {
             log(tag, ERROR) { "${identifier()} failed: ${it.asLog()}" }
             throw it

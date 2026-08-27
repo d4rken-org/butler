@@ -47,7 +47,10 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapp
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.createBitmap
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
+import eu.darken.butler.common.compose.InfoBlock
+import eu.darken.butler.common.compose.InfoEntry
 import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.groupInfoEntries
 import eu.darken.butler.common.pkgs.apk.ApkArchiveInfo
 import eu.darken.butler.common.pkgs.apk.ApkSignature
 import eu.darken.butler.common.pkgs.apk.apkVersionText

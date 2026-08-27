@@ -19,6 +19,10 @@ sealed interface ExplorerNavigation {
             override val label: CaString = R.string.explorer_navigation_device.toCaString()
         }
 
+        data object Network : Target {
+            override val label: CaString = R.string.explorer_navigation_network.toCaString()
+        }
+
         sealed interface Trash : Target {
             data object Root : Trash {
                 override val label: CaString = R.string.explorer_navigation_trash.toCaString()

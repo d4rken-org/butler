@@ -86,7 +86,7 @@ class WorkspaceRepo @Inject constructor(
 
     private val _pendingConfirmations = MutableStateFlow<Map<String, PendingWorkspaceConfirmation>>(emptyMap())
     val pendingConfirmations: Flow<Map<String, PendingWorkspaceConfirmation>> = _pendingConfirmations
-        .setupCommonEventHandlers(TAG, enabled = Bugs.isDebug) { "PendingConfirmations" }
+        .setupCommonEventHandlers(TAG, enabled = { Bugs.isDebug }) { "PendingConfirmations" }
         .replayingShare(appScope)
 
     /**
@@ -169,11 +169,11 @@ class WorkspaceRepo @Inject constructor(
         )
     }
         .distinctUntilChanged()
-        .setupCommonEventHandlers(TAG, enabled = Bugs.isTrace) { "WorkspaceState" }
+        .setupCommonEventHandlers(TAG, enabled = { Bugs.isTrace }) { "WorkspaceState" }
         .replayingShare(appScope)
 
     override val events: Flow<WorkspaceEvent> = _events
-        .setupCommonEventHandlers(TAG, enabled = Bugs.isDebug) { "WorkspaceEvents" }
+        .setupCommonEventHandlers(TAG, enabled = { Bugs.isDebug }) { "WorkspaceEvents" }
         .replayingShare(appScope)
 
     override suspend fun emitEvent(event: WorkspaceEvent) {
@@ -344,6 +344,19 @@ class WorkspaceRepo @Inject constructor(
      * fewer workspaces than actually exist.
      */
     fun peekAll(): List<Workspace<out Workspace.Arguments>> = _workspaces.value
+
+    /**
+     * The current workspaces with their custom names applied, read from the authoritative state
+     * rather than [state], whose replay can still hold the snapshot from before a create, close or
+     * rename that has already been committed. Preview capture and fetch start right after such a
+     * mutation, so naming from the replay is what bakes a stale name into a cached thumbnail.
+     *
+     * [lock] is NOT reentrant, so this must not be called from a path that already holds it.
+     */
+    suspend fun peekInfos(): List<Workspace.Info> = lock.withLock {
+        val titles = _customTitles.value
+        _workspaces.value.map { it.info.value.withCustomTitle(titles) }
+    }
 
     /**
      * When [id] was created, or null when it is unknown. Survives a pause/resume round-trip - the

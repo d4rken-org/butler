@@ -7,6 +7,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.files.SmbPath
 import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.extensions.filterDistinctRoots
 import eu.darken.butler.common.files.extensions.isDescendantOfOrSelf
@@ -66,6 +67,7 @@ class PathPermissionCheck @Inject constructor(
         }
         is SAFPath -> false
         is ArchivePath -> false
+        is SmbPath -> false
     }
 
     private suspend fun determineModuleRequirements(path: APath<*>): PathRequirements {
