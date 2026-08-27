@@ -370,6 +370,83 @@ class WorkspaceManagerViewModelTest : BaseTest() {
             coVerify(exactly = 1) { workspacePageManager.hideManagerOverlay() }
         }
 
+    @Test
+    fun `a close from the manager is hosted by the pane the user works in`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val closing = Workspace.Id()
+            pageState.value = WorkspacePageManager.State(
+                focusedWorkspaceId = idB,
+                selectedWorkspaces = mapOf(0 to idA, 1 to idB),
+                currentPaneCount = 2,
+            )
+
+            createViewModel().closeWorkspace(closing)
+
+            // The overlay can be dismissed before the confirmation is published, so the host has to
+            // be a pane that is on screen either way - the closing tab's own may not be.
+            coVerify(exactly = 1) {
+                workspaceRepo.execute(
+                    WorkspaceAction.Close(closing, sourceWorkspaceId = idB, undoable = true)
+                )
+            }
+        }
+
+    @Test
+    fun `a close from the manager falls back to the first pane on screen`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val closing = Workspace.Id()
+            pageState.value = WorkspacePageManager.State(
+                focusedWorkspaceId = closing,
+                // Pane 2 is retained from a wider layout and renders nothing
+                selectedWorkspaces = mapOf(0 to idA, 2 to idB),
+                currentPaneCount = 2,
+            )
+
+            createViewModel().closeWorkspace(closing)
+
+            coVerify(exactly = 1) {
+                workspaceRepo.execute(
+                    WorkspaceAction.Close(closing, sourceWorkspaceId = idA, undoable = true)
+                )
+            }
+        }
+
+    @Test
+    fun `a close from the manager is hosted by the tab under the focused overlay`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val overlay = childInfo(caller = idB, pausableAsChild = true)
+            val closing = Workspace.Id()
+            every { workspaceRepo.peekOwnershipRoot(overlay.id) } returns idB
+            pageState.value = WorkspacePageManager.State(
+                focusedWorkspaceId = overlay.id,
+                selectedWorkspaces = mapOf(0 to idA, 1 to idB),
+                currentPaneCount = 2,
+            )
+
+            createViewModel().closeWorkspace(closing)
+
+            // Focus can sit on a stacked child, which occupies no pane of its own
+            coVerify(exactly = 1) {
+                workspaceRepo.execute(
+                    WorkspaceAction.Close(closing, sourceWorkspaceId = idB, undoable = true)
+                )
+            }
+        }
+
+    @Test
+    fun `a close with no pane on screen stays unanchored`() = runTest(UnconfinedTestDispatcher()) {
+        val closing = Workspace.Id()
+        pageState.value = WorkspacePageManager.State(focusedWorkspaceId = closing)
+
+        createViewModel().closeWorkspace(closing)
+
+        coVerify(exactly = 1) {
+            workspaceRepo.execute(
+                WorkspaceAction.Close(closing, sourceWorkspaceId = null, undoable = true)
+            )
+        }
+    }
+
     private suspend fun WorkspaceManagerViewModel.currentState() = state.filterNotNull().first()
 
     @Test

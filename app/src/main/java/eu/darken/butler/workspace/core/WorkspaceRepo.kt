@@ -2237,9 +2237,17 @@ class WorkspaceRepo @Inject constructor(
             return
         }
 
-        // Cancel any pending confirmations for this workspace
+        // Cancel any pending confirmations for this workspace - both the ones hosted in its pane
+        // and the ones asking about it. A confirmation hosted elsewhere would otherwise survive its
+        // subject: a blocking dialog naming a dead tab, whose confirm re-runs this for a workspace
+        // that no longer exists and emits a second Closed event.
         _pendingConfirmations.value
-            .filter { (_, confirmation) -> confirmation.sourceWorkspaceId == workspaceId }
+            .filter { (_, confirmation) ->
+                val data = confirmation.data
+                confirmation.sourceWorkspaceId == workspaceId ||
+                    (data is PendingWorkspaceConfirmation.ConfirmationData.WorkspaceCloseConfirmation &&
+                        data.workspaceId == workspaceId)
+            }
             .forEach { (confirmationId, _) ->
                 log(TAG, INFO) { "Workspace closing, cancelling confirmation $confirmationId" }
                 _pendingConfirmations.update { it - confirmationId }

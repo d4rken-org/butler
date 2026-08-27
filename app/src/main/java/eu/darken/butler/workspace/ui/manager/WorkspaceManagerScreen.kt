@@ -43,6 +43,8 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.actions.WorkspaceActionBar
+import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
+import eu.darken.butler.workspace.ui.dialogs.WorkspaceCloseConfirmationDialog
 import eu.darken.butler.workspace.ui.dialogs.WorkspaceRenameDialog
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior
@@ -54,6 +56,10 @@ import eu.darken.butler.workspace.ui.template.QuickCreateItem
 @Composable
 fun WorkspaceManagerScreen(
     state: WorkspaceManagerViewModel.State,
+    /** The close confirmation this overlay hosts while it covers the panes, or null. */
+    closeConfirmation: ManagerDialog.WorkspaceTargeted.CloseConfirmation? = null,
+    onCloseConfirmationResolve: (Boolean) -> Unit = {},
+    onCloseConfirmationGoTo: () -> Unit = {},
     onCloseWorkspace: (Workspace.Id) -> Unit,
     onReorderWorkspaces: (List<Workspace.Id>) -> Unit,
     onSelectWorkspace: (Workspace.Id) -> Unit,
@@ -244,6 +250,22 @@ fun WorkspaceManagerScreen(
         }
     }
 
+    // Hosted here rather than in the closing tab's pane: this overlay covers every pane, so a
+    // pane-hosted confirmation renders underneath it - or off screen entirely when that tab is not
+    // the one on display - and the close sits pending with nothing to answer it.
+    closeConfirmation?.let { confirmation ->
+        key(confirmation.id) {
+            WorkspaceCloseConfirmationDialog(
+                workspaceTitle = confirmation.workspaceTitle,
+                hasUnsavedChanges = confirmation.hasUnsavedChanges,
+                unsavedCount = confirmation.unsavedCount,
+                onDismiss = { onCloseConfirmationResolve(false) },
+                onConfirm = { onCloseConfirmationResolve(true) },
+                onGoToWorkspace = onCloseConfirmationGoTo,
+            )
+        }
+    }
+
     CloseWorkspacesDialog(
         visible = showCloseAllDialog,
         workspaceCount = state.workspaceCount,
@@ -396,6 +418,48 @@ private fun WorkspaceManagerScreenSelectionPreview() {
                 ),
             ),
             selectedIds = setOf(explorerId, editorId),
+        ),
+        onCloseWorkspace = {},
+        onReorderWorkspaces = {},
+        onSelectWorkspace = {},
+        onPauseWorkspace = {},
+        onResumeWorkspace = {},
+        onCreateWorkspace = {},
+        onQuickCreate = {},
+        onNavigateBack = {},
+        onDismissBadgeExplanation = {},
+        onCloseAllWorkspaces = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspaceManagerScreenCloseConfirmationPreview() {
+    val editorId = Workspace.Id()
+    WorkspaceManagerScreen(
+        state = WorkspaceManagerViewModel.State(
+            workspaces = listOf(
+                WorkspaceManagerViewModel.WorkspaceItem(
+                    id = editorId,
+                    topId = editorId,
+                    type = Workspace.Type.EDITOR,
+                    title = "notes.txt".toCaString(),
+                    autoTitle = "notes.txt".toCaString(),
+                    subtitle = null,
+                    isFocused = true,
+                    isVisibleInPane = true,
+                    paneNumber = 0,
+                ),
+            ),
+            attentionCount = 1,
+        ),
+        closeConfirmation = ManagerDialog.WorkspaceTargeted.CloseConfirmation(
+            id = "close-confirmation",
+            targetWorkspaceId = editorId,
+            closingWorkspaceId = editorId,
+            workspaceTitle = "notes.txt".toCaString(),
+            hasUnsavedChanges = true,
         ),
         onCloseWorkspace = {},
         onReorderWorkspaces = {},

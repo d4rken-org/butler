@@ -78,8 +78,6 @@ internal fun ClassicWorkspaceContainer(
     isOverlayVisible: Boolean = false,
     onWorkspaceScreenAction: (WorkspaceScreenAction) -> Unit,
     managerDialogStates: Map<Workspace.Id, ManagerDialog.WorkspaceTargeted>,
-    onDismissManagerDialog: (Workspace.Id) -> Unit,
-    onConfirmManagerDialog: (ManagerDialog.WorkspaceTargeted) -> Unit,
     bannerStates: Map<Workspace.Id, eu.darken.butler.workspace.ui.feedback.BannerState>,
     onDismissBanner: (Workspace.Id) -> Unit,
     /** Modal chains stacked inside their owning tab's page, keyed by that tab. */
@@ -335,8 +333,7 @@ internal fun ClassicWorkspaceContainer(
                             onWorkspaceScreenAction(WorkspaceScreenAction.Select(tabInfo.id))
                         },
                         managerDialogStates = managerDialogStates,
-                        onDismissManagerDialog = onDismissManagerDialog,
-                        onConfirmManagerDialog = onConfirmManagerDialog,
+                        onScreenAction = onWorkspaceScreenAction,
                         bannerStates = bannerStates,
                         onDismissBanner = onDismissBanner,
                         paneEdges = design.paneEdges,

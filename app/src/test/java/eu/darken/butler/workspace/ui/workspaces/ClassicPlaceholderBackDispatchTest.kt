@@ -149,8 +149,6 @@ class ClassicPlaceholderBackDispatchTest : ComposeTest() {
                         // or the desync these tests are built on would repair itself.
                         onWorkspaceScreenAction = { outcome.screenActions.add(it) },
                         managerDialogStates = emptyMap(),
-                        onDismissManagerDialog = {},
-                        onConfirmManagerDialog = {},
                         bannerStates = emptyMap(),
                         onDismissBanner = {},
                         onShareError = { _, _ -> },
@@ -229,6 +227,7 @@ class ClassicPlaceholderBackDispatchTest : ComposeTest() {
                 ManagerDialog.WorkspaceTargeted.CloseConfirmation(
                     id = "close-confirmation",
                     targetWorkspaceId = idB,
+                    closingWorkspaceId = idB,
                     workspaceTitle = "Explorer".toCaString(),
                 ),
             ),

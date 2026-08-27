@@ -44,6 +44,7 @@ import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import eu.darken.butler.workspace.ui.dialogs.ClearSessionConfirmationDialog
 import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
+import eu.darken.butler.workspace.ui.dialogs.ManagerDialogAction
 import eu.darken.butler.workspace.ui.dialogs.WorkspaceLimitDialog
 import eu.darken.butler.workspace.ui.dialogs.WorkspaceRenameDialog
 import eu.darken.butler.workspace.ui.feedback.BannerState
@@ -78,8 +79,6 @@ fun WorkspaceScreen(
     onReviewDismiss: () -> Unit = {},
     onReviewNow: (Activity) -> Unit = {},
     onDismissBanner: (Workspace.Id) -> Unit = {},
-    onDismissManagerDialog: (Workspace.Id) -> Unit = {},
-    onConfirmManagerDialog: (ManagerDialog.WorkspaceTargeted) -> Unit = {},
     onShareError: (Workspace.Id, Throwable) -> Unit = { _, _ -> },
 ) {
     val workspaceActionHandler = LocalWorkspaceButtonProvider.current
@@ -170,8 +169,6 @@ fun WorkspaceScreen(
                 },
                 onScreenAction = onScreenAction,
                 managerDialogStates = managerDialogStates,
-                onDismissManagerDialog = onDismissManagerDialog,
-                onConfirmManagerDialog = onConfirmManagerDialog,
                 bannerStates = bannerStates,
                 onDismissBanner = onDismissBanner,
                 onRenameWorkspace = { renameTargetId = it },
@@ -193,8 +190,6 @@ fun WorkspaceScreen(
                 isOverlayVisible = isOverlayVisible,
                 onWorkspaceScreenAction = onScreenAction,
                 managerDialogStates = managerDialogStates,
-                onDismissManagerDialog = onDismissManagerDialog,
-                onConfirmManagerDialog = onConfirmManagerDialog,
                 bannerStates = bannerStates,
                 onDismissBanner = onDismissBanner,
                 paneLocalModalChains = state.paneLocalModalChains,
@@ -316,13 +311,20 @@ fun WorkspacesScreenHost(
     val closedFeedback by vm.closedFeedback.collectAsState()
     val pageManagerState by vm.workspacePageManager.state.collectAsState()
     val managerState by managerVm.state.collectAsState(initial = null)
+    val state by vm.state.collectAsState(initial = null)
 
-    // Derive dialog states from unified registry
-    val managerDialogStates = remember(managerDialogs) {
-        managerDialogs
-            .filterIsInstance<ManagerDialog.WorkspaceTargeted>()
-            .associateBy { it.targetWorkspaceId }
+    // Derive dialog states from unified registry. Both hosts compose here, so this is where the
+    // routing between them belongs.
+    val tabOrder = state?.tabWorkspaces?.map { it.id }.orEmpty()
+    val dialogRouting = remember(managerDialogs, pageManagerState.isManagerOverlayVisible, tabOrder) {
+        routeManagerDialogs(
+            dialogs = managerDialogs,
+            isManagerOverlayVisible = pageManagerState.isManagerOverlayVisible,
+            tabOrder = tabOrder,
+        )
     }
+    val managerDialogStates = dialogRouting.paneHosted
+    val managerCloseConfirmation = dialogRouting.managerHosted
     val workspaceLimitDialog = remember(managerDialogs) {
         managerDialogs.filterIsInstance<ManagerDialog.Global.WorkspaceLimitReached>().firstOrNull()
     }
@@ -368,8 +370,6 @@ fun WorkspacesScreenHost(
         },
     )
 
-    val state by vm.state.collectAsState(initial = null)
-
     val workspaceTitles = state?.let { current ->
         remember(current.all, context) {
             current.all.associate { it.id to it.tabLabel.get(context) }
@@ -399,8 +399,6 @@ fun WorkspacesScreenHost(
                 onReviewDismiss = { vm.reviewDismiss() },
                 onReviewNow = { vm.reviewNow(it) },
                 onDismissBanner = { vm.dismissBanner(it) },
-                onDismissManagerDialog = { vm.dismissManagerDialog(it) },
-                onConfirmManagerDialog = { vm.confirmManagerDialog(it) },
                 onShareError = { workspaceId, error -> vm.shareWorkspaceError(workspaceId, error) },
             )
         }
@@ -410,6 +408,32 @@ fun WorkspacesScreenHost(
             managerState?.let { currentManagerState ->
                 WorkspaceManagerScreen(
                     state = currentManagerState,
+                    closeConfirmation = managerCloseConfirmation,
+                    onCloseConfirmationResolve = { confirmed ->
+                        managerCloseConfirmation?.let {
+                            vm.executeScreenAction(
+                                WorkspaceScreenAction.HandleDialog(
+                                    ManagerDialogAction.Resolve(it.id, confirmed = confirmed),
+                                ),
+                            )
+                        }
+                    },
+                    onCloseConfirmationGoTo = {
+                        managerCloseConfirmation?.let {
+                            vm.executeScreenAction(
+                                WorkspaceScreenAction.HandleDialog(
+                                    ManagerDialogAction.CancelAndGoToWorkspace(
+                                        confirmationId = it.id,
+                                        workspaceId = it.closingWorkspaceId,
+                                        // No pane hosts this one, so the pane the user last worked
+                                        // in is where the tab should land.
+                                        sourceWorkspaceId = pageManagerState.focusedWorkspaceId,
+                                        hideManagerOverlay = true,
+                                    ),
+                                ),
+                            )
+                        }
+                    },
                     onCloseWorkspace = managerVm::closeWorkspace,
                     onReorderWorkspaces = managerVm::reorderWorkspaces,
                     onSelectWorkspace = managerVm::selectWorkspace,

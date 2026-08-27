@@ -182,6 +182,28 @@ internal fun shouldRevealFocused(
     isScrolling: Boolean,
 ): Boolean = focusedIndex >= 0 && !isDragging && !isScrolling && focusedIndex !in fullyVisibleIndices
 
+/**
+ * Whose pane hosts the close confirmation for a rail entry, or null to leave the close unanchored.
+ *
+ * The rail lists every tab while only some occupy panes. A tab with a pane of its own keeps the
+ * unanchored close: the repo then hosts the confirmation in that pane, which is on screen. A tab
+ * that occupies no visible pane has nowhere of its own to render it, so it borrows a pane that is
+ * on screen - the focused one when that is one of them, otherwise the first.
+ *
+ * [focusedId] is only ever used to pick among [visibleAssignments], never on its own: it is
+ * nullable and can name a stacked child rather than a tab, and a host that is not on screen would
+ * put the dialog exactly where it cannot be seen.
+ */
+internal fun railCloseHost(
+    closingPaneIndex: Int?,
+    visibleAssignments: Map<Int, WorkspacePaneInfo>,
+    focusedId: Workspace.Id?,
+): Workspace.Id? {
+    if (closingPaneIndex != null) return null
+    val visibleIds = visibleAssignments.entries.sortedBy { it.key }.map { it.value.id }
+    return visibleIds.firstOrNull { it == focusedId } ?: visibleIds.firstOrNull()
+}
+
 @Composable
 fun WorkspaceNavigationRail(
     modifier: Modifier = Modifier,
@@ -276,6 +298,11 @@ fun WorkspaceNavigationRail(
                         workspace = ws,
                         isFocused = focusedId == ws.id,
                         currentPaneIndex = paneIndex,
+                        closeHostId = railCloseHost(
+                            closingPaneIndex = paneIndex,
+                            visibleAssignments = selected,
+                            focusedId = focusedId,
+                        ),
                         onTabAction = onTabAction,
                         onPaneAssignment = onPaneAssignment,
                         onRename = onRename,
@@ -585,6 +612,8 @@ private fun DraggableWorkspaceRailItem(
     workspace: Workspace.Info,
     isFocused: Boolean,
     currentPaneIndex: Int?,
+    /** The pane that hosts this entry's close confirmation; null hosts it in the closing tab's own. */
+    closeHostId: Workspace.Id? = null,
     onTabAction: (WorkspaceAction) -> Unit,
     onPaneAssignment: (workspaceId: Workspace.Id, paneIndex: Int) -> Unit,
     onRename: (Workspace.Id) -> Unit,
@@ -677,7 +706,9 @@ private fun DraggableWorkspaceRailItem(
                 onClick = {
                     showPaneMenu = false
                     onPaneMenuToggle(false)  // Explicitly hide overlays before closing
-                    onTabAction(WorkspaceAction.Close(workspace.id, undoable = true))
+                    onTabAction(
+                        WorkspaceAction.Close(workspace.id, sourceWorkspaceId = closeHostId, undoable = true)
+                    )
                 },
             )
         }

@@ -12,22 +12,37 @@ import androidx.compose.runtime.Composable
 @Composable
 fun ManagerDialogHost(
     dialog: ManagerDialog.WorkspaceTargeted?,
-    onDismiss: (ManagerDialog.WorkspaceTargeted) -> Unit,
-    onConfirm: (ManagerDialog.WorkspaceTargeted) -> Unit,
+    onAction: (ManagerDialogAction) -> Unit,
 ) {
     when (dialog) {
         null -> Unit
         is ManagerDialog.WorkspaceTargeted.BatchCreationConfirmation -> OpenInNewTabsConfirmationDialog(
             totalCount = dialog.totalCount,
-            onDismiss = { onDismiss(dialog) },
-            onConfirm = { onConfirm(dialog) },
+            onDismiss = { onAction(ManagerDialogAction.Resolve(dialog.id, confirmed = false)) },
+            onConfirm = { onAction(ManagerDialogAction.Resolve(dialog.id, confirmed = true)) },
         )
         is ManagerDialog.WorkspaceTargeted.CloseConfirmation -> WorkspaceCloseConfirmationDialog(
             workspaceTitle = dialog.workspaceTitle,
             hasUnsavedChanges = dialog.hasUnsavedChanges,
             unsavedCount = dialog.unsavedCount,
-            onDismiss = { onDismiss(dialog) },
-            onConfirm = { onConfirm(dialog) },
+            onDismiss = { onAction(ManagerDialogAction.Resolve(dialog.id, confirmed = false)) },
+            onConfirm = { onAction(ManagerDialogAction.Resolve(dialog.id, confirmed = true)) },
+            // This pane belongs to a different tab than the one being closed, so the tab the dialog
+            // names is elsewhere and needs a way to be reached.
+            onGoToWorkspace = if (dialog.closingWorkspaceId != dialog.targetWorkspaceId) {
+                {
+                    onAction(
+                        ManagerDialogAction.CancelAndGoToWorkspace(
+                            confirmationId = dialog.id,
+                            workspaceId = dialog.closingWorkspaceId,
+                            sourceWorkspaceId = dialog.targetWorkspaceId,
+                            hideManagerOverlay = false,
+                        )
+                    )
+                }
+            } else {
+                null
+            },
         )
     }
 }
