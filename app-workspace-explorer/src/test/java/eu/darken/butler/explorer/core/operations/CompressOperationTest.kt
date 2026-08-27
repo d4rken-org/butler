@@ -238,7 +238,8 @@ class CompressOperationTest : BaseTest() {
         plan.targets shouldContainExactly listOf(sourcePath)
         plan.destination shouldBe OperationPathPlan.Destination.RequestedTarget(outputPath)
         plan.scopePaths shouldContainExactly listOf(sourcePath, destinationDir)
-        plan.representativePath shouldBe sourcePath
+        // A compression that fails before it reports anything still names the archive it was for.
+        plan.representativePath shouldBe outputPath
     }
 
     @Test

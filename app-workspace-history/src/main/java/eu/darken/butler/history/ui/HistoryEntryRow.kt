@@ -167,8 +167,8 @@ private fun HistoryEntry.subline(timeAgo: String): String {
     return if (pathHint.isNotEmpty()) "$originLabel  ·  $timeAgo  ·  $pathHint" else "$originLabel  ·  $timeAgo"
 }
 
-/** Falls back to the stored representative path so failed and cancelled ops still name a file. */
-private fun HistoryEntry.displayPath(): String? = paths.firstOrNull()?.path ?: primaryPath
+/** The reported changes are an audit trail, so they only stand in when no subject was stored. */
+private fun HistoryEntry.displayPath(): String? = primaryPath ?: paths.firstOrNull()?.path
 
 private fun Operation.Metadata.Kind.entryHeadlineLabel(): String = when (this) {
     Operation.Metadata.Kind.COPY -> "Copied"

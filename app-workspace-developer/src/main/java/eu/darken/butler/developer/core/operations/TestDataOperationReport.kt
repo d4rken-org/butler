@@ -15,6 +15,12 @@ data class TestDataOperationReport(
     val totalSize: Long,
 ) : DeveloperOperation.Report {
 
+    /**
+     * The generators add inner files before the directory the user named, and test data never
+     * enters history (its metadata kind is null), so there is no honest subject to name.
+     */
+    override val subjectPath: APath<*>? = null
+
     override val summary: CaString = caString { context ->
         buildString {
             if (filesCreated > 0) {

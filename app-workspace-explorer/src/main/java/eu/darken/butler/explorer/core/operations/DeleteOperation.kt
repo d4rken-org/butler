@@ -69,6 +69,7 @@ class DeleteOperation @AssistedInject constructor(
         send(stateActive)
 
         val reportBuilder = DeleteOperationReport.Builder()
+        reportBuilder.setSubjectPath(command.targets.firstOrNull())
 
         coreDeleteExecutor.execute(
             targets = command.targets,

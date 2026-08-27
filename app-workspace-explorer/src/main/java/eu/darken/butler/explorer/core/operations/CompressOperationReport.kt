@@ -17,6 +17,8 @@ data class CompressOperationReport(
     override val performanceHistory: PerformanceHistory?,
 ) : ExplorerOperation.Report {
 
+    override val subjectPath: APath<*> get() = outputArchive
+
     override val summary: CaString = caString {
         buildString {
             append(it.getQuantityString2(R.plurals.explorer_operation_report_files_compressed, compressedFiles))

@@ -70,6 +70,9 @@ class CompressOperation @AssistedInject constructor(
             // The archive itself is already indexed as a reported change; keeping the directory as
             // the scope candidate is what puts its parent in the attempted-paths rows.
             scopePaths = command.sources.toList() + command.destinationDir,
+            // Covers the failure before any report exists: the row names the archive the user asked
+            // for, not whichever source happens to lead the list.
+            representativePath = outputPath,
         )
     }
 

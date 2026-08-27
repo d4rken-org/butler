@@ -118,6 +118,9 @@ class CreateOperation @AssistedInject constructor(
 
             // Build report
             @Suppress("UNCHECKED_CAST")
+            reportBuilder.setSubjectPath((result.created as APathLookup<*>).lookedUp)
+
+            @Suppress("UNCHECKED_CAST")
             reportBuilder.addPathEvent(
                 FileSystemEvent.Added(
                     operationId = operationContext.id,

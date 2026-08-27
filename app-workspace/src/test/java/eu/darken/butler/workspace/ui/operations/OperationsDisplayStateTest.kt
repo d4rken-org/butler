@@ -35,6 +35,7 @@ class OperationsDisplayStateTest : BaseTest() {
     private val dummyReport = object : Operation.Report {
         override val summary = "done".toCaString()
         override val affectedPaths = emptyList<Operation.Report.PathChange>()
+        override val subjectPath = null
     }
 
     @Test

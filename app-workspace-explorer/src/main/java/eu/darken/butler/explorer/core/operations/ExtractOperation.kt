@@ -107,7 +107,12 @@ class ExtractOperation @AssistedInject constructor(
             )
             if (resolution !is PathActionIssue.ArchivePasswordRequired.Resolution.Submit) {
                 log(tag, INFO) { "Password prompt dismissed, aborting extract" }
-                send(State.Completed(startedAt = ctx.startedAt, report = ExtractOperationReport.Builder().build()))
+                send(
+                    State.Completed(
+                        startedAt = ctx.startedAt,
+                        report = ExtractOperationReport.Builder(command.archive).build(),
+                    ),
+                )
                 return
             }
             attemptFailed = true // any subsequent loop means the previous attempt didn't verify
@@ -186,7 +191,12 @@ class ExtractOperation @AssistedInject constructor(
                 is PathActionIssue.PathAlreadyExists.Resolution.Skip -> ConflictDecision.SKIP
                 else -> {
                     log(tag, INFO) { "Merge prompt dismissed, aborting sequential extract" }
-                    send(State.Completed(startedAt = ctx.startedAt, report = ExtractOperationReport.Builder().build()))
+                    send(
+                    State.Completed(
+                        startedAt = ctx.startedAt,
+                        report = ExtractOperationReport.Builder(command.archive).build(),
+                    ),
+                )
                     return
                 }
             }
@@ -199,7 +209,12 @@ class ExtractOperation @AssistedInject constructor(
                     }
                 } else {
                     log(tag, INFO) { "Base path is a file and merge was declined, aborting" }
-                    send(State.Completed(startedAt = ctx.startedAt, report = ExtractOperationReport.Builder().build()))
+                    send(
+                    State.Completed(
+                        startedAt = ctx.startedAt,
+                        report = ExtractOperationReport.Builder(command.archive).build(),
+                    ),
+                )
                     return
                 }
             }
@@ -347,7 +362,11 @@ class ExtractOperation @AssistedInject constructor(
         // destination - lexical segment sanitization alone can't catch a pre-existing symlink at the
         // destination. For SAF/root this is effectively identity (no symlinks), so it just passes through.
         val canonicalBase = runCatching { gatewaySwitch.canonicalize(baseDir) }.getOrDefault(baseDir)
-        return ExtractSession(baseDir = baseDir, canonicalBase = canonicalBase)
+        return ExtractSession(
+            baseDir = baseDir,
+            canonicalBase = canonicalBase,
+            reportBuilder = ExtractOperationReport.Builder(command.archive),
+        )
     }
 
     private suspend fun ProducerScope<State>.finish(
@@ -368,7 +387,7 @@ class ExtractOperation @AssistedInject constructor(
     private class ExtractSession(
         val baseDir: APath<*>,
         val canonicalBase: APath<*>,
-        val reportBuilder: ExtractOperationReport.Builder = ExtractOperationReport.Builder(),
+        val reportBuilder: ExtractOperationReport.Builder,
         val addedLookups: MutableList<APathLookup<*>> = mutableListOf(),
     )
 

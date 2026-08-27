@@ -100,7 +100,9 @@ class DownloadLocalCopyOperation @AssistedInject constructor(
                     send(
                         State.Completed(
                             startedAt = operationContext.startedAt,
-                            report = CopyOperationReport.Builder().build(),
+                            report = CopyOperationReport.Builder()
+                                .apply { setSubjectPath(destPath) }
+                                .build(),
                         ),
                     )
                     return@channelFlow
@@ -172,6 +174,7 @@ class DownloadLocalCopyOperation @AssistedInject constructor(
         fileSystemHinter.trackPathsAdded(operationContext.id, listOf(destLookup))
 
         val report = CopyOperationReport.Builder().apply {
+            setSubjectPath(destPath)
             addCopiedItems(listOf(destLookup))
             setCopiedBytes(written)
         }.build()

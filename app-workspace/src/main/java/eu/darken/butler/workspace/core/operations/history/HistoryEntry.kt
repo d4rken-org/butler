@@ -29,8 +29,9 @@ data class HistoryEntry(
     val pathsTruncated: Boolean,
     val paths: List<PathChange>,
     /**
-     * Representative path for entries without reported changes (failed/cancelled ops), so the list
-     * can still show a filename and folder. Null when the operation named no paths at all.
+     * The path the operation was about, used as the row label. Not necessarily [paths]`[0]`: an
+     * extraction names its archive, a recursive delete names the folder that was selected. Null
+     * when neither the report nor the path plan named one.
      */
     val primaryPath: String? = null,
 ) {

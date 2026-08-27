@@ -107,6 +107,19 @@ interface Operation {
         val affectedPaths: Collection<PathChange>
 
         /**
+         * The path this operation was ABOUT, shown as its history row label.
+         *
+         * The conflict-resolved path of what the user selected, or - for operations that fan out -
+         * the container or archive the user acted on. Never a path whose name the user did not
+         * choose: an extraction's entries and a recursive delete's descendants are audit records,
+         * not subjects.
+         *
+         * Null when THIS REPORT cannot name one (nothing completed, or the operation is not
+         * history-eligible). The history then falls back to the path plan's representative path.
+         */
+        val subjectPath: APath<*>?
+
+        /**
          * Number of sub-items that DIDN'T complete as intended even though the operation as a whole
          * didn't fail (e.g., save with mixed permissions: some files succeed, some fail per-file
          * with the top-level [Operation.State.Completed.error] still null). Drives the

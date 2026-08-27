@@ -11,6 +11,7 @@ import eu.darken.butler.workspace.core.operations.Operation.Report.PathChange
 
 data class ExtractOperationReport(
     override val affectedPaths: Collection<PathChange>,
+    override val subjectPath: APath<*>,
     val extractedFiles: Int,
     val skippedEntries: Collection<String>,
     val extractedBytes: Long,
@@ -46,7 +47,8 @@ data class ExtractOperationReport(
         }
     }
 
-    class Builder {
+    /** [archive] is required: an extraction is about the archive, never about an entry inside it. */
+    class Builder(private val archive: APath<*>) {
         private val affectedPaths = mutableListOf<PathChange>()
         private val skipped = mutableListOf<String>()
         private var extractedFiles = 0
@@ -69,6 +71,7 @@ data class ExtractOperationReport(
 
         fun build(): ExtractOperationReport = ExtractOperationReport(
             affectedPaths = affectedPaths.distinct(),
+            subjectPath = archive,
             extractedFiles = extractedFiles,
             skippedEntries = skipped,
             extractedBytes = extractedBytes,

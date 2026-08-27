@@ -3,6 +3,7 @@ package eu.darken.butler.explorer.core.operations
 import android.text.format.Formatter.*
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.caString
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.local.operations.core.PerformanceHistory
@@ -12,6 +13,7 @@ import eu.darken.butler.workspace.core.operations.Operation.Report.*
 
 data class CopyOperationReport(
     override val affectedPaths: Collection<PathChange>,
+    override val subjectPath: APath<*>?,
     val skipped: Collection<APathLookup<*>>,
     val copiedFiles: Int,
     val copiedDirectories: Int,
@@ -65,6 +67,7 @@ data class CopyOperationReport(
         private var copiedDirectories: Int = 0
         private var copiedBytes: Long = 0
         private var performanceHistory: PerformanceHistory? = null
+        private var subjectPath: APath<*>? = null
 
         fun addCopiedItems(lookups: Collection<APathLookup<*>>) {
             val affected = lookups.map { lookup ->
@@ -86,8 +89,14 @@ data class CopyOperationReport(
             this.performanceHistory = history
         }
 
+        /** The top-level destination, not whichever descendant the engine copied first. */
+        fun setSubjectPath(path: APath<*>?) {
+            this.subjectPath = path
+        }
+
         fun build(): CopyOperationReport = CopyOperationReport(
             affectedPaths = affectedPaths.distinct(),
+            subjectPath = subjectPath,
             skipped = skipped,
             copiedFiles = copiedFiles,
             copiedDirectories = copiedDirectories,
