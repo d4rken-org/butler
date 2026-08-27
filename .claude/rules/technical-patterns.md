@@ -43,6 +43,8 @@
 - **When bumping a `@Database` version**: add the `Migration` to the database's `MIGRATIONS` array and commit the newly exported schema JSON. Enforcement:
     - Per-database `*MigrationTest` (Robolectric + `MigrationTestHelper`) fails if any schema version is unreachable from version 1 via `MIGRATIONS`.
     - CI fails if schema JSONs change without being committed (catches entity changes without a version bump).
+    - Per-database `*SchemaIdentityTest` pins the `identityHash` of every exported version, so a version bump also means adding the new version's hash to the test's expected map.
+    - A hash MISMATCH on an already-exported version is fixed by a version bump plus a migration, never by updating the expected hash — the sole exception is a version that has genuinely never shipped. A missing or malformed schema asset is a broken asset, not a schema change.
 
 ## Logging
 

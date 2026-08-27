@@ -16,11 +16,13 @@ class HomeActionProvider @Inject constructor() : ExplorerActionProvider {
     ): List<ExplorerActionBarItem> {
         val actions = mutableListOf<ExplorerActionBarItem>()
 
-        actions.add(ExplorerActionBarItem.Common.Refresh())
-        actions.add(ExplorerActionBarItem.Common.Sort())
-        actions.add(ExplorerActionBarItem.Common.Filter())
+        if (!selectionState.isSelectionMode) {
+            actions.add(ExplorerActionBarItem.Common.Sort())
+            actions.add(ExplorerActionBarItem.Common.Filter())
 
-        actions.add(ExplorerActionBarItem.Common.UpdateViewStyle(viewStyle.toggled()))
+            actions.add(ExplorerActionBarItem.Common.UpdateViewStyle(viewStyle.toggled()))
+            actions.add(ExplorerActionBarItem.Common.Refresh())
+        }
 
         return actions
     }

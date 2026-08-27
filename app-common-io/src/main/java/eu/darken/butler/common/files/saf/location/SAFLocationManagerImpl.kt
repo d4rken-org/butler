@@ -28,13 +28,16 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import java.io.File
 import java.security.MessageDigest
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
 /**
@@ -208,6 +211,18 @@ class SAFLocationManagerImpl @Inject constructor(
         updateLocation(locationId) { it.copy(userLabel = label) }
     }
 
+    override suspend fun seedLocationLabel(locationId: String, label: String): String? {
+        log(TAG, VERBOSE) { "seedLocationLabel(locationId=$locationId, label=$label)" }
+        // Read the entity, not `locations`: that one drops hidden locations, whose label needs the same protection.
+        val existing = dao.getPreference(locationId)
+        if (existing != null) {
+            log(TAG) { "seedLocationLabel(...): Keeping existing label '${existing.userLabel}' for $locationId" }
+            return existing.userLabel
+        }
+        setLocationLabel(locationId, label)
+        return label
+    }
+
     override suspend fun setLocationHidden(locationId: String, hidden: Boolean) {
         log(TAG, VERBOSE) { "setLocationHidden(locationId=$locationId, hidden=$hidden)" }
         updateLocation(locationId) { it.copy(isHidden = hidden) }
@@ -220,8 +235,22 @@ class SAFLocationManagerImpl @Inject constructor(
 
     private suspend fun updateLocation(locationId: String, update: (SAFLocationEntity) -> SAFLocationEntity) {
         val current = dao.getPreference(locationId) ?: SAFLocationEntity(locationId = locationId)
-        val updated = update(current)
-        dao.upsert(updated.copy(locationId = locationId))
+        val updated = update(current).copy(locationId = locationId)
+        dao.upsert(updated)
+
+        // Room delivers the query invalidation asynchronously, so returning here would let callers
+        // refresh from a cache that still holds the old values. Await the private cache, the public
+        // one omits hidden locations and would never satisfy a hide.
+        val observed = withTimeoutOrNull(CACHE_SYNC_TIMEOUT) {
+            cachedLocations.first { locations ->
+                locations.any {
+                    it.id == locationId && it.userLabel == updated.userLabel && it.isHidden == updated.isHidden
+                }
+            }
+        }
+        if (observed == null) {
+            log(TAG, WARN) { "updateLocation($locationId): Cache did not reflect $updated within $CACHE_SYNC_TIMEOUT" }
+        }
     }
 
     suspend fun cleanup(activeLocationIds: List<String>) = withContext(dispatcherProvider.IO) {
@@ -405,6 +434,7 @@ class SAFLocationManagerImpl @Inject constructor(
     }
 
     companion object {
+        private val CACHE_SYNC_TIMEOUT = 2.seconds
         private val TAG = logTag("SAF", "Location", "Manager")
     }
 }

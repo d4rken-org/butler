@@ -10,6 +10,9 @@ import eu.darken.butler.common.files.metadata.FileMetadata
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.files.saf.location.SAFLocation
+import eu.darken.butler.common.files.smb.SmbEndpointState
+import eu.darken.butler.common.files.smb.credentials.SmbCredentialStore
+import eu.darken.butler.common.files.smb.location.SmbLocation
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
@@ -46,6 +49,9 @@ sealed interface ExplorerItem {
         val totalBytes: Long?
         val availableBytes: Long?
 
+        /** Shown instead of the raw path where the path is not meaningful to the user. */
+        val subtitle: CaString? get() = null
+
         /** Whether this storage location is writable. Null means unknown (treated as writable). */
         val canWrite: Boolean?
 
@@ -71,6 +77,46 @@ sealed interface ExplorerItem {
         ) : Storage {
             override val id: String get() = "saf-${location.id}"
             override val canWrite: Boolean? get() = location.hasWritePermission
+        }
+
+        /**
+         * A stored network location. Capacity stays null: reading it would mean opening a session on
+         * every server just to draw the Network view, which a reachability probe does not do.
+         *
+         * [endpoint] arrives after the row is first drawn, [credentials] is the vault's verdict.
+         */
+        data class Network(
+            val location: SmbLocation,
+            override val displayName: CaString,
+            override val displayIcon: ImageVector,
+            override val target: ExplorerNavigation.Target.Directory,
+            override val subtitle: CaString,
+            val credentials: SmbCredentialStore.Availability,
+            val endpoint: SmbEndpointState = SmbEndpointState(),
+        ) : Storage {
+            override val id: String get() = "network-${location.id}"
+            override val totalBytes: Long? get() = null
+            override val availableBytes: Long? get() = null
+            override val canWrite: Boolean get() = true
+
+            /** What a row can say about [credentials]: either the vault can produce one, or it cannot. */
+            val status: Status
+                get() = when (credentials) {
+                    SmbCredentialStore.Availability.AVAILABLE -> Status.AVAILABLE
+                    else -> Status.SIGN_IN_REQUIRED
+                }
+
+            /** Whether the row has something to flag: a credential problem, an absent server, or both. */
+            val hasIssue: Boolean
+                get() = status == Status.SIGN_IN_REQUIRED ||
+                    endpoint.reachability == SmbEndpointState.Reachability.UNREACHABLE
+
+            enum class Status {
+                AVAILABLE,
+
+                /** A password location whose credential the vault cannot produce. */
+                SIGN_IN_REQUIRED,
+            }
         }
     }
 
@@ -255,3 +301,10 @@ sealed interface ExplorerItem {
         }
     }
 }
+
+/**
+ * A network location whose credential the vault cannot produce. Butler cannot open it, so it has to
+ * reach the sign-in form instead of a listing, and no picker may hand it back to its caller.
+ */
+fun ExplorerItem.needsSignIn(): Boolean = this is ExplorerItem.Storage.Network &&
+    status == ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED

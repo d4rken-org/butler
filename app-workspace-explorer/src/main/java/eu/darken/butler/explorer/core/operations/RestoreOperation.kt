@@ -22,6 +22,7 @@ import eu.darken.butler.common.trash.TrashRepo
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.filesystem.FileSystemHinter
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.operations.OperationPathPlan
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 
@@ -41,7 +42,7 @@ class RestoreOperation @AssistedInject constructor(
         override val icon: ImageVector = Icons.TwoTone.Restore
         override val title = eu.darken.butler.workspace.R.string.workspace_operation_restore_title.toCaString()
         override val description = caString { cx ->
-            val count = command.intendedPaths.size
+            val count = command.restoredPaths.size
             cx.getQuantityString2(
                 eu.darken.butler.workspace.R.plurals.workspace_operation_restore_description,
                 count,
@@ -49,7 +50,9 @@ class RestoreOperation @AssistedInject constructor(
             )
         }
         override val kind = Operation.Metadata.Kind.RESTORE
-        override val intendedPaths = command.intendedPaths
+        override val pathPlan = OperationPathPlan(
+            targets = command.restoredPaths,
+        )
     }
 
     data class Report(

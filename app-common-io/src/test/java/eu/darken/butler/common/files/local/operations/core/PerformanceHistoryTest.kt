@@ -751,8 +751,7 @@ class PerformanceHistoryTest : BaseTest() {
         var history = PerformanceHistory()
         val totalBytes = 2_000_000_000L
 
-        // Create 2000 samples evenly distributed
-        repeat(2000) { i ->
+        fun addSample(i: Int) {
             history = history.addSample(
                 PerformanceSample(
                     timestamp = startTime + (i * 10).milliseconds,
@@ -766,21 +765,119 @@ class PerformanceHistoryTest : BaseTest() {
             )
         }
 
-        // Group by buckets
+        // The bound only holds right after a compaction, mid-amortization there are up to ~200
+        // uncompacted trailing samples that all land in the same bucket
+        repeat(1001) { addSample(it) }
+
         val buckets = history.samples.groupBy { sample ->
             val percentage = (sample.totalBytesProcessed.toDouble() / totalBytes) * 100.0
             (percentage / 5.0).toInt().coerceIn(0, 19)
         }
 
-        // Calculate average samples per bucket
         val avgSamplesPerBucket = history.samples.size.toDouble() / 20
 
-        // No bucket should have more than 2x the average (allowing some variance)
         buckets.values.forEach { samplesInBucket ->
             samplesInBucket.size shouldBeLessThanOrEqual (avgSamplesPerBucket * 2).toInt()
         }
 
         println("Bucket distribution: ${buckets.mapValues { it.value.size }}")
+
+        // The cap still holds while amortizing towards the next compaction
+        (1001 until 2000).forEach { addSample(it) }
+        history.samples.size shouldBeLessThanOrEqual 1000
+    }
+
+    @Test
+    fun `compaction is amortized - one compaction lands on the target`() {
+        val startTime = Instant.fromEpochMilliseconds(1000)
+        var history = PerformanceHistory()
+        val totalBytes = 1_001_000_000L
+
+        repeat(1001) { i ->
+            history = history.addSample(
+                PerformanceSample(
+                    timestamp = startTime + (i * 10).milliseconds,
+                    bytesPerSecond = 1_000_000L,
+                    itemsPerSecond = 10f,
+                    totalBytesProcessed = (i + 1) * (totalBytes / 1001),
+                    totalItemsProcessed = i + 1
+                ),
+                totalBytes = totalBytes,
+                totalItems = 1001
+            )
+        }
+
+        history.samples shouldHaveSize 800
+    }
+
+    @Test
+    fun `final sample survives compaction`() {
+        val startTime = Instant.fromEpochMilliseconds(1000)
+        var history = PerformanceHistory()
+        val totalBytes = 1_001_000_000L
+        lateinit var lastSample: PerformanceSample
+
+        // Even distribution puts 50+ samples into every bucket, so every bucket gets downsampled
+        repeat(1001) { i ->
+            lastSample = PerformanceSample(
+                timestamp = startTime + (i * 10).milliseconds,
+                bytesPerSecond = 1_000_000L,
+                itemsPerSecond = 10f,
+                totalBytesProcessed = (i + 1) * (totalBytes / 1001),
+                totalItemsProcessed = i + 1
+            )
+            history = history.addSample(lastSample, totalBytes = totalBytes, totalItems = 1001)
+        }
+
+        history.samples.last() shouldBe lastSample
+    }
+
+    @Test
+    fun `totals jumping on the cap-crossing add drive bucket assignment`() {
+        val startTime = Instant.fromEpochMilliseconds(1000)
+        var history = PerformanceHistory()
+
+        // 1000 samples that look complete under the old total of 1000 items
+        repeat(1000) { i ->
+            history = history.addSample(
+                PerformanceSample(
+                    timestamp = startTime + (i * 10).milliseconds,
+                    bytesPerSecond = 0L,
+                    itemsPerSecond = 10f,
+                    totalBytesProcessed = 0L,
+                    totalItemsProcessed = i + 1
+                ),
+                totalBytes = 0L,
+                totalItems = 1000
+            )
+        }
+
+        // The add that crosses the cap discovers 9000 more items
+        history = history.addSample(
+            PerformanceSample(
+                timestamp = startTime + 10_010.milliseconds,
+                bytesPerSecond = 0L,
+                itemsPerSecond = 10f,
+                totalBytesProcessed = 0L,
+                totalItemsProcessed = 1001
+            ),
+            totalBytes = 0L,
+            totalItems = 10_000
+        )
+
+        history.totalItems shouldBe 10_000
+
+        // Under the new denominator everything sits below 11%, so only the first three buckets
+        // are populated: 40 + 40 + 2. Stale totals would have spread them over all 20 buckets.
+        history.samples shouldHaveSize 82
+
+        history.samples.forEach { sample ->
+            val percentage = (sample.totalItemsProcessed.toDouble() / history.totalItems) * 100.0
+            (percentage / 5.0).toInt() shouldBeLessThanOrEqual 2
+        }
+
+        history.samples.first().totalItemsProcessed shouldBe 1
+        history.samples.last().totalItemsProcessed shouldBe 1001
     }
 
     // ============ BYTE-BASED VS ITEM-BASED OPERATIONS ============
@@ -877,8 +974,36 @@ class PerformanceHistoryTest : BaseTest() {
             )
         }
 
-        // Should fallback to takeLast(1000)
-        history.samples.size shouldBe 1000
+        // Should fallback to takeLast(800): add 1001 compacts, the remaining 199 adds accumulate
+        history.samples.size shouldBe 999
+    }
+
+    @Test
+    fun `fallback compaction keeps chronological order`() {
+        val startTime = Instant.fromEpochMilliseconds(1000)
+        var history = PerformanceHistory()
+
+        // Stop at the first compaction, later adds would append past the sorted block again
+        repeat(1001) { i ->
+            // Every tenth sample is recorded out of insertion order
+            val offsetMs = if (i % 10 == 0) (i * 10) - 25 else i * 10
+            history = history.addSample(
+                PerformanceSample(
+                    timestamp = startTime + offsetMs.milliseconds,
+                    bytesPerSecond = 1_000_000L,
+                    itemsPerSecond = 10f,
+                    totalBytesProcessed = 0L,
+                    totalItemsProcessed = 0
+                ),
+                totalBytes = 0L,  // No total to calculate percentage
+                totalItems = 0
+            )
+        }
+
+        history.samples shouldHaveSize 800
+        history.samples.zipWithNext().forEach { (prev, next) ->
+            (prev.timestamp <= next.timestamp) shouldBe true
+        }
     }
 
     // ============ EDGE CASES ============

@@ -7,6 +7,7 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.CompletedOperationSnapshot
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.operations.OperationPathPlan
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.history.db.OperationHistoryDao
 import eu.darken.butler.workspace.core.operations.history.db.OperationHistoryDatabase
@@ -44,7 +45,7 @@ internal class TestCompletedState(
 
 internal fun testMetadata(
     operationKind: Operation.Metadata.Kind,
-    intended: Collection<APath<*>>? = null,
+    plan: OperationPathPlan? = null,
     operationIntent: Operation.Metadata.Intent? = null,
 ): Operation.Metadata = mockk<Operation.Metadata>().apply {
     every { origin } returns Operation.Metadata.Origin.Explorer(Workspace.Id())
@@ -53,8 +54,20 @@ internal fun testMetadata(
     every { description } returns "description".toCaString()
     every { kind } returns operationKind
     every { intent } returns operationIntent
-    every { intendedPaths } returns intended
+    every { pathPlan } returns plan
 }
+
+/** The plan a copy/move producer builds: sources plus the directory they land in. */
+internal fun planInto(
+    vararg sources: APath<*>,
+    destination: APath<*>,
+) = OperationPathPlan(
+    targets = sources.toList(),
+    destination = OperationPathPlan.Destination.Container(destination),
+)
+
+/** The plan a delete/create producer builds: targets only, no destination. */
+internal fun planOver(vararg targets: APath<*>) = OperationPathPlan(targets = targets.toList())
 
 internal fun testSnapshot(
     metadata: Operation.Metadata,

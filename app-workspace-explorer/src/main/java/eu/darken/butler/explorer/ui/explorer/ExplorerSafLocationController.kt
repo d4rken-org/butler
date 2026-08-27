@@ -7,9 +7,13 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.flow.SingleEventFlow
+import eu.darken.butler.common.storage.saf.SAFPickerIntentBuilder
+import eu.darken.butler.common.storage.saf.StorageProviderSuggester
+import eu.darken.butler.common.storage.saf.StorageProviderSuggestion
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.ExplorerWorkspace
+import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
 import eu.darken.butler.permissions.core.SAFPickerGrant
@@ -18,7 +22,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.stateIn
 
 /**
  * SAF storage location management: the add-storage sheet, the system directory picker
@@ -27,7 +36,10 @@ import kotlinx.coroutines.flow.StateFlow
 class ExplorerSafLocationController(
     private val context: Context,
     private val safLocationManager: SAFLocationManager,
+    private val safPickerIntentBuilder: SAFPickerIntentBuilder,
+    private val storageProviderSuggester: StorageProviderSuggester,
     private val dialogs: ExplorerDialogController,
+    private val scope: CoroutineScope,
     private val workspace: suspend () -> ExplorerWorkspace,
     private val currentLocation: suspend () -> ExplorerLocation?,
     private val clearSelection: () -> Unit,
@@ -38,6 +50,20 @@ class ExplorerSafLocationController(
 
     private val showAddStorageSheetFlow = MutableStateFlow(false)
     val showAddStorageSheet: StateFlow<Boolean> = showAddStorageSheetFlow
+
+    /**
+     * Derived from the sheet, never written by a side job: [flatMapLatest] cancels a load whose
+     * sheet was closed or reopened, so a stale list can neither overwrite a newer one nor be shown
+     * again after an app was uninstalled.
+     */
+    val storageSuggestions: StateFlow<List<StorageProviderSuggestion>> = showAddStorageSheetFlow
+        .flatMapLatest { visible ->
+            when {
+                visible -> flow { emit(storageProviderSuggester.getSuggestions()) }
+                else -> flowOf(emptyList())
+            }
+        }
+        .stateIn(scope, SharingStarted.Eagerly, emptyList())
 
     private val _pendingSAFPickerGrant = MutableStateFlow<SAFPickerGrant?>(null)
     val pendingSAFPickerGrant: Flow<SAFPickerGrant?> = _pendingSAFPickerGrant
@@ -68,6 +94,22 @@ class ExplorerSafLocationController(
         safPickerEvents.emit(intent)
     }
 
+    fun addSuggestedSAFLocation(suggestion: StorageProviderSuggestion) = doLaunch {
+        log(tag) { "addSuggestedSAFLocation($suggestion)" }
+        _pendingSAFPickerGrant.value = null
+        val known = suggestion.known
+        val intent = when {
+            known != null -> safPickerIntentBuilder.buildPickerIntent(
+                authority = known.authorityFor(suggestion.packageName),
+                rootId = known.rootIdFor(suggestion.packageName),
+            )
+            else -> Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
+                putExtra("android.content.extra.SHOW_ADVANCED", true)
+            }
+        }
+        safPickerEvents.emit(intent)
+    }
+
     suspend fun handleSAFPickerResult(treeUri: Uri) {
         log(tag) { "handleSAFPickerResult(treeUri=$treeUri)" }
         try {
@@ -79,7 +121,12 @@ class ExplorerSafLocationController(
 
             val locationId = safLocationManager.grantPermission(treeUri)
 
-            dialogs.show(ExplorerDialogState.LocationStorageName(locationId, currentName = null))
+            val providerLabel = treeUri.authority?.let { storageProviderSuggester.labelForAuthority(it) }
+            // Seed the label before the refresh below, otherwise the list renders the path-derived
+            // fallback name until the naming dialog is confirmed. Re-granting a location the user
+            // renamed keeps that name, which is what gets offered in the dialog then.
+            val currentName = providerLabel?.let { safLocationManager.seedLocationLabel(locationId, it) }
+            dialogs.show(ExplorerDialogState.LocationStorageName(locationId, currentName = currentName))
 
             // Auto-refresh if currently viewing Device location to show new SAF storage immediately
             if (currentLocation() is ExplorerLocation.Device) {
@@ -163,9 +210,9 @@ class ExplorerSafLocationController(
 
         dialogs.dismiss()
 
-        dialogState.items.forEach { item ->
-            safLocationManager.revokePermission(item.location.id)
-        }
+        dialogState.items
+            .filterIsInstance<ExplorerItem.Storage.SAF>()
+            .forEach { item -> safLocationManager.revokePermission(item.location.id) }
         clearSelection()
 
         workspace().navigate(ExplorerNavigation.Refresh)

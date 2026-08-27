@@ -2,25 +2,27 @@ package eu.darken.butler.workspace.ui.dialogs
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.ContentCopy
+import androidx.compose.material.icons.twotone.Visibility
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
@@ -49,7 +51,7 @@ fun InfoCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 4.dp),
+                .padding(vertical = 2.dp),
             content = content,
         )
     }
@@ -62,9 +64,11 @@ fun InfoField(
     modifier: Modifier = Modifier,
     onCopy: (() -> Unit)? = null,
     valueStyle: InfoValueStyle = InfoValueStyle.NORMAL,
+    valueColor: Color? = null,
+    trailingContent: (@Composable () -> Unit)? = null,
 ) {
     val copyLabel = stringResource(R.string.workspace_file_info_copy_action)
-    Column(
+    Row(
         modifier = modifier
             .fillMaxWidth()
             .then(
@@ -76,41 +80,93 @@ fun InfoField(
                     Modifier
                 },
             )
-            .padding(horizontal = 12.dp, vertical = 4.dp),
+            .padding(horizontal = 12.dp, vertical = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            if (onCopy != null) {
-                Icon(
-                    imageVector = Icons.TwoTone.ContentCopy,
-                    contentDescription = null,
-                    modifier = Modifier.size(14.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        Column(modifier = Modifier.weight(1f)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                if (onCopy != null) {
+                    Icon(
+                        imageVector = Icons.TwoTone.ContentCopy,
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
+
+            Text(
+                text = value,
+                style = when (valueStyle) {
+                    InfoValueStyle.NORMAL -> MaterialTheme.typography.bodyMedium
+                    InfoValueStyle.MONOSPACE -> {
+                        MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace)
+                    }
+                },
+                color = valueColor ?: MaterialTheme.colorScheme.onSurface,
+                maxLines = when (valueStyle) {
+                    InfoValueStyle.NORMAL -> 3
+                    InfoValueStyle.MONOSPACE -> Int.MAX_VALUE
+                },
+                overflow = TextOverflow.Ellipsis,
+            )
         }
 
-        Spacer(modifier = Modifier.height(1.dp))
+        trailingContent?.invoke()
+    }
+}
 
-        Text(
-            text = value,
-            style = when (valueStyle) {
-                InfoValueStyle.NORMAL -> MaterialTheme.typography.bodyMedium
-                InfoValueStyle.MONOSPACE -> MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace)
+/**
+ * Two fields sharing one row, each getting half of it.
+ *
+ * The weight sits on the wrapper boxes and not on the slots: a `RowScope` receiver cannot force a
+ * caller to apply it, and without it the two halves are sized by their content instead. No
+ * horizontal padding of its own, so an [InfoField] in [left] lines up with a full-width one above.
+ */
+@Composable
+fun InfoFieldPair(
+    modifier: Modifier = Modifier,
+    left: @Composable () -> Unit,
+    right: @Composable () -> Unit,
+) {
+    Row(modifier = modifier.fillMaxWidth()) {
+        Box(modifier = Modifier.weight(1f)) { left() }
+        Box(modifier = Modifier.weight(1f)) { right() }
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun InfoFieldPairPreview() {
+    InfoCard {
+        InfoFieldPair(
+            left = {
+                InfoField(
+                    label = "Name",
+                    value = "Home NAS",
+                )
             },
-            color = MaterialTheme.colorScheme.onSurface,
-            maxLines = when (valueStyle) {
-                InfoValueStyle.NORMAL -> 3
-                InfoValueStyle.MONOSPACE -> Int.MAX_VALUE
+            right = {
+                InfoField(
+                    label = "Status",
+                    value = "Available",
+                )
             },
-            overflow = TextOverflow.Ellipsis,
+        )
+        InfoField(
+            label = "Server",
+            value = "nas.local",
+            onCopy = {},
+            valueStyle = InfoValueStyle.MONOSPACE,
         )
     }
 }
@@ -145,6 +201,24 @@ private fun InfoFieldMonospacePreview() {
         value = "/storage/emulated/0/Documents/Reports/2026/annual-report-2026-final.txt",
         onCopy = {},
         valueStyle = InfoValueStyle.MONOSPACE,
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun InfoFieldTrailingPreview() {
+    InfoField(
+        label = "Password",
+        value = "••••••••",
+        trailingContent = {
+            IconButton(onClick = {}) {
+                Icon(
+                    imageVector = Icons.TwoTone.Visibility,
+                    contentDescription = null,
+                )
+            }
+        },
     )
 }
 

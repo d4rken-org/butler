@@ -64,6 +64,7 @@ import eu.darken.butler.common.R as CommonR
 import eu.darken.butler.workspace.R as WorkspaceR
 
 const val TEST_TAG_WORKSPACE_CARD_HEADER = "workspace_card_header"
+const val TEST_TAG_WORKSPACE_CARD_UNSAVED = "workspace_card_unsaved"
 
 @Composable
 fun WorkspaceGridItem(
@@ -184,6 +185,19 @@ fun WorkspaceGridItem(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
+
+                    // Deliberately not the error-red attention glow: an edit that has not been
+                    // saved yet is a normal working state, not a fault.
+                    if (workspace.hasUnsavedChanges) {
+                        Icon(
+                            modifier = Modifier
+                                .size(14.dp)
+                                .testTag(TEST_TAG_WORKSPACE_CARD_UNSAVED),
+                            imageVector = Icons.TwoTone.Edit,
+                            contentDescription = stringResource(R.string.workspace_row_unsaved_content_desc),
+                            tint = MaterialTheme.colorScheme.tertiary,
+                        )
+                    }
 
                     // Sub-workspaces are not persisted, so a rename on them would silently be lost -
                     // but a paused one still needs its Resume entry: a tab is now paused together
@@ -751,6 +765,53 @@ private fun WorkspaceGridItemRecoveryPreview() {
         onSelect = {},
         livePreview = false,
     )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspaceGridItemUnsavedPreview() {
+    Column(
+        modifier = Modifier.padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        // Unsaved edits alone: the tertiary marker, no error glow
+        val dirtyId = Workspace.Id()
+        WorkspaceGridItem(
+            reorderableScope = createMockReorderableScope(),
+            workspace = WorkspaceManagerViewModel.WorkspaceItem(
+                id = dirtyId,
+                topId = dirtyId,
+                type = Workspace.Type.EDITOR,
+                title = "notes.txt".toCaString(),
+                autoTitle = "notes.txt".toCaString(),
+                subtitle = "/storage/emulated/0/Documents".toCaString(),
+                hasUnsavedChanges = true,
+            ),
+            onClose = {},
+            onSelect = {},
+            livePreview = false,
+        )
+
+        // Both at once: the two signals have to stay tellable apart
+        val bothId = Workspace.Id()
+        WorkspaceGridItem(
+            reorderableScope = createMockReorderableScope(),
+            workspace = WorkspaceManagerViewModel.WorkspaceItem(
+                id = bothId,
+                topId = bothId,
+                type = Workspace.Type.EDITOR,
+                title = "config.xml".toCaString(),
+                autoTitle = "config.xml".toCaString(),
+                subtitle = "Save failed".toCaString(),
+                attentionCount = 1,
+                hasUnsavedChanges = true,
+            ),
+            onClose = {},
+            onSelect = {},
+            livePreview = false,
+        )
+    }
 }
 
 @Preview2

@@ -470,7 +470,6 @@ private fun WorkspaceManagerBody() {
                 ),
             ),
             showBadgeExplanation = false,
-            showLongPressHint = false,
             operationsCount = 2,
             attentionCount = 1,
         ),
@@ -483,7 +482,6 @@ private fun WorkspaceManagerBody() {
         onQuickCreate = {},
         onNavigateBack = {},
         onDismissBadgeExplanation = {},
-        onDismissLongPressHint = {},
         onCloseAllWorkspaces = {},
     )
 }

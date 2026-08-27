@@ -20,6 +20,8 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.dragselect.listDragSelect
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionBarItem
+import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.ui.explorer.dragselect.explorerDragSelectClaims
 import eu.darken.butler.explorer.ui.explorer.dragselect.explorerDragSelectItems
 import eu.darken.butler.explorer.ui.explorer.dragselect.explorerDragSelectKeys
@@ -78,12 +80,19 @@ internal fun ExplorerListContent(
                     modifier = emptyModifier,
                     contentAlignment = Alignment.Center
                 ) {
-                    if (state.isFilteredEmpty) {
-                        EmptyFilteredState(
+                    when {
+                        state.isFilteredEmpty -> EmptyFilteredState(
                             onResetFilters = { vm?.resetFilters() },
                         )
-                    } else {
-                        EmptyDirectoryState()
+
+                        state.currentLocation is ExplorerLocation.Network -> EmptyNetworkState(
+                            onAddLocation = {
+                                vm?.executeAction(ExplorerActionBarItem.Network.AddLocation())
+                            },
+                            showAddAction = state.networkManagementEnabled,
+                        )
+
+                        else -> EmptyDirectoryState()
                     }
                 }
             }

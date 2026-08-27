@@ -3,6 +3,7 @@ package eu.darken.butler.explorer.ui.explorer.dialogs
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.archive.ArchiveFormat
+import eu.darken.butler.common.files.smb.location.SmbLocation
 import eu.darken.butler.common.files.archive.CompressionPreset
 import eu.darken.butler.explorer.core.FileTypeFilter
 import eu.darken.butler.explorer.core.SortSettings
@@ -10,6 +11,7 @@ import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.operations.ExplorerCommand
 import eu.darken.butler.workspace.contracts.dnd.WorkspaceDragPayload
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
+import kotlin.uuid.Uuid
 
 sealed interface ExplorerDialogState {
 
@@ -22,11 +24,21 @@ sealed interface ExplorerDialogState {
         val initialPermanentDelete: Boolean = false,
     ) : ExplorerDialogState
 
-    data class RemoveLocationConfirmation(val items: List<ExplorerItem.Storage.SAF>) : ExplorerDialogState
+    data class RemoveLocationConfirmation(val items: List<ExplorerItem.Storage>) : ExplorerDialogState
 
     data class LocationStorageName(
         val locationId: String,
         val currentName: String?,
+    ) : ExplorerDialogState
+
+    /**
+     * Add or edit a network location. [isTesting] and [error] are driven by the view model while the
+     * sheet stays open, the entered fields live in the sheet itself.
+     */
+    data class SmbLocationForm(
+        val existing: SmbLocation? = null,
+        val isTesting: Boolean = false,
+        val error: CaString? = null,
     ) : ExplorerDialogState
 
     data class Rename(val item: APath<*>) : ExplorerDialogState
@@ -99,6 +111,37 @@ sealed interface ExplorerDialogState {
             data class SingleDirectory(val item: ExplorerItem.Directory) : InfoContext
             data class SingleSAF(val item: ExplorerItem.Storage.SAF) : InfoContext
             data class SingleLocalStorage(val item: ExplorerItem.Storage.Local) : InfoContext
+
+            /**
+             * Only the location is remembered, [item] is filled in from the listing every time the
+             * UI state is built: a sheet opened while the address was still being looked up has to
+             * show the answer when it arrives, not the row it was opened from.
+             */
+            data class SingleNetwork(
+                val locationId: Uuid,
+                val item: ExplorerItem.Storage.Network? = null,
+                val revealed: RevealedPassword? = null,
+                val isRevealing: Boolean = false,
+                val capacity: Capacity? = null,
+                /**
+                 * Identifies this opening of the sheet rather than the location it describes:
+                 * dismissing and reopening the same share are two sheets, and work started for the
+                 * first one must not land on the second.
+                 */
+                val sheetInstanceId: Uuid = Uuid.random(),
+            ) : InfoContext {
+
+                /**
+                 * How full the share is. Null means it was never asked for, because there is
+                 * nothing to sign in with or nothing to reach.
+                 */
+                sealed interface Capacity {
+                    data object Loading : Capacity
+                    data object Unavailable : Capacity
+                    data class Data(val totalBytes: Long, val freeBytes: Long) : Capacity
+                }
+            }
+
             data class MultipleItems(
                 val selectedItems: List<ExplorerItem>,
                 val fileCount: Int,
@@ -112,4 +155,15 @@ sealed interface ExplorerDialogState {
             data class HomeView(val location: eu.darken.butler.explorer.core.engine.ExplorerLocation.Home) : InfoContext
         }
     }
+}
+
+/**
+ * A stored password on its way to the screen.
+ *
+ * Deliberately neither a data class nor a bare String: the dialog states are data classes whose
+ * generated `toString()` is reachable from logging, and a plaintext password must never be able to
+ * arrive in a log line that way.
+ */
+class RevealedPassword(val value: String) {
+    override fun toString(): String = "RevealedPassword(***)"
 }

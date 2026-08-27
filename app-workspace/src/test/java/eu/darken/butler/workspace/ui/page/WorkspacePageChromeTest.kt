@@ -45,6 +45,7 @@ class WorkspacePageChromeTest : BaseTest() {
             every { icon } returns mockk()
             every { title } returns "op".toCaString()
             every { description } returns "desc".toCaString()
+            every { pathPlan } returns null
         }
         return op
     }

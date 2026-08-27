@@ -16,7 +16,9 @@ import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.operations.OperationPathPlan
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -146,5 +148,15 @@ class SaveFilesOperationTest : BaseTest() {
         capturedIssues.filterIsInstance<PathActionIssue.InsufficientPermission>()
             .single().exception.shouldBeInstanceOf<WriteException>()
         coVerify(exactly = 0) { gatewaySwitch.createFile(any(), any()) }
+    }
+
+    @Test
+    fun `the path plan targets the files to write and keeps the folder out of the scope`() {
+        val plan = operation().metadata.pathPlan!!
+
+        plan.targets shouldContainExactly listOf(targetPath)
+        plan.destination shouldBe OperationPathPlan.Destination.Container(targetDirectory)
+        plan.scopePaths shouldContainExactly listOf(targetPath)
+        plan.representativePath shouldBe targetPath
     }
 }

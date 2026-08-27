@@ -62,6 +62,8 @@ sealed interface ManagerDialog {
             override val targetWorkspaceId: Workspace.Id,
             val workspaceTitle: CaString,
             val hasUnsavedChanges: Boolean = false,
+            /** Unsaved members in the closing subtree; [workspaceTitle] names only one of them. */
+            val unsavedCount: Int = 0,
         ) : WorkspaceTargeted {
             override val isBlocking: Boolean = true
         }

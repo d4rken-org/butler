@@ -1,11 +1,5 @@
 package eu.darken.butler.editor.ui.editor.text
 
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.keyframes
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -19,7 +13,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -51,6 +47,11 @@ import eu.darken.butler.editor.core.engine.SearchResult
 import eu.darken.butler.editor.core.engine.TextPosition
 import eu.darken.butler.editor.core.syntax.Token
 import eu.darken.butler.editor.core.syntax.TokenType
+import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
+
+/** Half a blink period: the caret is opaque for this long, then hidden for the same. */
+private val CURSOR_BLINK_INTERVAL = 530.milliseconds
 
 private data class SelectionBounds(
     val left: Float,
@@ -103,30 +104,22 @@ internal fun TextLineItem(
         }
     }
 
-    // Blinking animation when focused
-    val infiniteTransition = rememberInfiniteTransition(label = "cursor_blink")
-    val cursorAlpha by infiniteTransition.animateFloat(
-        initialValue = 1f,
-        targetValue = if (isFocused) 0f else 1f,
-        animationSpec = if (isFocused) {
-            infiniteRepeatable(
-                animation = keyframes {
-                    durationMillis = 1060
-                    1f at 0
-                    1f at 530
-                    0f at 531
-                    0f at 1060
-                },
-                repeatMode = RepeatMode.Restart
-            )
-        } else {
-            infiniteRepeatable(
-                animation = tween(1),
-                repeatMode = RepeatMode.Restart
-            )
-        },
-        label = "cursor_alpha"
-    )
+    // Blink only on the line that actually draws a caret; every other line holds a constant alpha
+    // and never schedules a frame.
+    val shouldBlink = isFocused && isCurrentLine && selection == null
+    var cursorAlpha by remember { mutableFloatStateOf(1f) }
+    LaunchedEffect(shouldBlink) {
+        if (!shouldBlink) {
+            cursorAlpha = 1f
+            return@LaunchedEffect
+        }
+        while (true) {
+            cursorAlpha = 1f
+            delay(CURSOR_BLINK_INTERVAL)
+            cursorAlpha = 0f
+            delay(CURSOR_BLINK_INTERVAL)
+        }
+    }
 
     // When word wrap is OFF, highlight entire line. When ON, we'll draw only the cursor's visual line.
     val backgroundColor = if (isCurrentLine && !wordWrap) {

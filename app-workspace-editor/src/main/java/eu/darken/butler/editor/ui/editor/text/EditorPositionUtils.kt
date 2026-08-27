@@ -1,5 +1,6 @@
 package eu.darken.butler.editor.ui.editor.text
 
+import androidx.compose.foundation.lazy.LazyListLayoutInfo
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.TextLayoutResult
@@ -254,6 +255,19 @@ internal fun expandedColumnFromX(adjustedX: Float, charWidthPx: Float, maxColumn
     return column.coerceIn(0, maxColumn.coerceAtLeast(0))
 }
 
+/**
+ * Container space (pointer offsets over the whole lazy layout, top content padding included) to item
+ * space ([androidx.compose.foundation.lazy.LazyListItemInfo.offset], measured from the content
+ * region's origin below that padding).
+ *
+ * [LazyListLayoutInfo.viewportStartOffset] is the negated top content padding of the layout being
+ * read, so a live read stays exact while an animated padding shrinks or grows.
+ */
+internal fun LazyListLayoutInfo.containerToItemY(containerY: Float): Float = containerY + viewportStartOffset
+
+/** Inverse of [containerToItemY]. */
+internal fun LazyListLayoutInfo.itemToContainerY(itemY: Float): Float = itemY - viewportStartOffset
+
 internal fun calculatePositionFromOffset(
     offset: Offset,
     contentListState: LazyListState,
@@ -262,12 +276,11 @@ internal fun calculatePositionFromOffset(
     charWidthPx: Float,
     tabSize: Int,
     textLayouts: Map<Long, TextLayoutResult> = emptyMap(),
-    contentPaddingTop: Float = 0f,
     lineStartColumns: Map<Long, Long> = emptyMap(),
 ): PositionCalculationResult? {
     val layoutInfo = contentListState.layoutInfo
-    // Adjust Y for content padding - tap offset includes padding, item.offset doesn't
-    val adjustedY = offset.y - contentPaddingTop
+    // The tap covers the whole list, item offsets start below its top content padding.
+    val adjustedY = layoutInfo.containerToItemY(offset.y)
     val clickedItem = layoutInfo.visibleItemsInfo.find { item ->
         adjustedY >= item.offset && adjustedY < (item.offset + item.size)
     }

@@ -22,6 +22,9 @@ class ItemInfoCalculator @Inject constructor() {
                     is ExplorerItem.Directory -> ExplorerDialogState.ItemInfo.InfoContext.SingleDirectory(item)
                     is ExplorerItem.Storage.SAF -> ExplorerDialogState.ItemInfo.InfoContext.SingleSAF(item)
                     is ExplorerItem.Storage.Local -> ExplorerDialogState.ItemInfo.InfoContext.SingleLocalStorage(item)
+                    is ExplorerItem.Storage.Network -> {
+                        ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork(item.location.id)
+                    }
                     else -> null
                 }
             }

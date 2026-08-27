@@ -95,6 +95,13 @@ fun Project.addIO() {
     add("implementation", "okio")
 }
 
+fun Project.addNetworkFs() {
+    add("implementation", "smbj")
+
+    add("testImplementation", "testcontainers")
+    add("testImplementation", "testcontainers-junit-jupiter")
+}
+
 fun Project.addArchive() {
     add("implementation", "commons-compress")
     add("implementation", "zip4j")

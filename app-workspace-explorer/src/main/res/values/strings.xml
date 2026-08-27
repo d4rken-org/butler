@@ -117,6 +117,26 @@
     <string name="explorer_info_saf_permission_read">Read</string>
     <string name="explorer_info_saf_permission_write">Write</string>
 
+    <!-- Network Info -->
+    <string name="explorer_info_network_server_label">Server</string>
+    <string name="explorer_info_network_port_label">Port</string>
+    <string name="explorer_info_network_share_label">Share</string>
+    <string name="explorer_info_network_folder_label">Folder</string>
+    <string name="explorer_info_network_address_label">Address</string>
+    <string name="explorer_info_network_status_label">Status</string>
+    <string name="explorer_info_network_type_value">SMB</string>
+    <string name="explorer_info_network_auth_label">Sign-in</string>
+    <string name="explorer_info_network_domain_label">Domain</string>
+    <string name="explorer_info_network_password_label">Password</string>
+    <string name="explorer_info_network_password_show_action">Show password</string>
+    <string name="explorer_info_network_password_hide_action">Hide password</string>
+    <string name="explorer_info_network_password_missing">Missing, sign in again</string>
+    <string name="explorer_info_network_password_locked">Stored, but this device cannot unlock it</string>
+    <string name="explorer_info_network_added_label">Added</string>
+    <string name="explorer_info_network_updated_label">Updated</string>
+    <string name="explorer_info_network_last_seen_label">Last seen</string>
+    <string name="explorer_info_network_last_seen_never">Never</string>
+
     <!-- Multiple Items Info -->
     <string name="explorer_info_selected_label">Selected</string>
     <string name="explorer_info_files_label">Files</string>
@@ -140,6 +160,7 @@
     <string name="explorer_breadcrumb_copy_path_action">Copy path</string>
     <string name="explorer_breadcrumb_copy_path_confirmation">Path copied to clipboard</string>
     <string name="explorer_navigation_device">Device</string>
+    <string name="explorer_navigation_network">Network</string>
     <string name="explorer_navigation_trash">Trash</string>
     <string name="explorer_navigation_trash_desc">Recover deleted files</string>
     <string name="explorer_navigation_trash_nested_desc">Inside trashed folder</string>
@@ -191,6 +212,8 @@
     <string name="explorer_loader_progress_device_loading">Loading device</string>
     <string name="explorer_loader_progress_device_locations">Loading storage locations</string>
 
+    <string name="explorer_loader_progress_network_loading">Loading network storage</string>
+
     <string name="explorer_loader_progress_home_loading">Loading home</string>
     <string name="explorer_loader_progress_trash_loading">Loading trash…</string>
 
@@ -222,6 +245,9 @@
     <string name="explorer_add_device_storage_desc">Use the Storage Access Framework (SAF) to grant Butler access to additional storage locations such as usb drives, virtual app folders and more.</string>
     <string name="explorer_add_device_storage_continue">Continue</string>
     <string name="explorer_add_device_storage_cancel">Cancel</string>
+    <string name="explorer_add_device_storage_suggestions_title">Apps with storage</string>
+    <string name="explorer_add_device_storage_suggestion_desc_direct">Opens this app\'s folder</string>
+    <string name="explorer_add_device_storage_suggestion_desc_pick">Select it in the system picker</string>
 
     <!-- Device Storage Actions -->
     <string name="explorer_device_action_remove_location">Remove location</string>
@@ -231,6 +257,60 @@
         <item quantity="other">Remove %1$d storage locations?</item>
     </plurals>
     <string name="explorer_device_remove_confirmation_message">This will revoke Butler\'s access to this location. Your files will not be deleted.</string>
+
+    <!-- Network Storage -->
+    <plurals name="explorer_network_location_count">
+        <item quantity="one">%d network location</item>
+        <item quantity="other">%d network locations</item>
+    </plurals>
+    <string name="explorer_network_storage_label">Network</string>
+    <string name="explorer_network_add_location_action">Add network storage</string>
+    <string name="explorer_network_edit_location_action">Edit network storage</string>
+    <string name="explorer_network_remove_location_action">Remove network storage</string>
+    <string name="explorer_network_sign_in_required_label">Sign-in required</string>
+    <string name="explorer_network_status_checking_label">Checking…</string>
+    <string name="explorer_network_status_available_label">Available</string>
+    <string name="explorer_network_status_unavailable_label">Unavailable</string>
+    <string name="explorer_network_status_unavailable_since_format">Unavailable (%1$s)</string>
+    <string name="explorer_network_empty_title">No network storage yet</string>
+    <string name="explorer_network_empty_caption">Add a Windows share or NAS folder to browse it here.</string>
+    <string name="explorer_network_remove_confirmation_title">Remove network storage?</string>
+    <plurals name="explorer_network_remove_confirmation_title_multiple">
+        <item quantity="one">Remove %1$d network storage?</item>
+        <item quantity="other">Remove %1$d network storages?</item>
+    </plurals>
+    <string name="explorer_network_remove_confirmation_message">Butler forgets the server details and the saved password. Nothing on the server is deleted.</string>
+
+    <!-- Network Storage Form -->
+    <string name="explorer_network_form_add_title">Add network storage</string>
+    <string name="explorer_network_form_edit_title">Edit network storage</string>
+    <string name="explorer_network_form_label_label">Name (optional)</string>
+    <string name="explorer_network_form_host_label">Server address</string>
+    <string name="explorer_network_form_host_hint">nas.local or 192.168.1.10</string>
+    <string name="explorer_network_form_port_label">Port</string>
+    <string name="explorer_network_form_share_label">Share</string>
+    <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_base_path_label">Folder inside the share (optional)</string>
+    <string name="explorer_network_form_auth_guest">Guest</string>
+    <string name="explorer_network_form_auth_password">Username and password</string>
+    <string name="explorer_network_form_username_label">Username</string>
+    <string name="explorer_network_form_domain_label">Domain (optional)</string>
+    <string name="explorer_network_form_password_label">Password</string>
+    <string name="explorer_network_form_password_kept_hint">Leave empty to keep the saved password</string>
+    <string name="explorer_network_form_remember_label">Remember password</string>
+    <string name="explorer_network_form_remember_hint">Stored encrypted on this device only</string>
+    <string name="explorer_network_form_test_and_save_action">Test &amp; save</string>
+    <string name="explorer_network_form_testing">Connecting…</string>
+    <string name="explorer_network_form_error_host_blank">Enter a server address</string>
+    <string name="explorer_network_form_error_host_not_bare">Enter only the server address, without a scheme or path</string>
+    <string name="explorer_network_form_error_host_malformed">This is not a valid server address</string>
+    <string name="explorer_network_form_error_port">Enter a port between 1 and 65535</string>
+    <string name="explorer_network_form_error_share_blank">Enter a share name</string>
+    <string name="explorer_network_form_error_share_not_single">Enter only the share name, put subfolders below</string>
+    <string name="explorer_network_form_error_share_malformed">This is not a valid share name</string>
+    <string name="explorer_network_form_error_base_path">This folder path cannot be used</string>
+    <string name="explorer_network_form_error_username_blank">Enter a username</string>
+    <string name="explorer_network_form_error_password_required">Enter the password again to change the username or domain</string>
 
     <!-- Location Naming -->
     <string name="explorer_location_name_title">Name location</string>
@@ -317,7 +397,7 @@
     <string name="explorer_file_info_size_label">Size</string>
     <string name="explorer_file_info_modified_label">Modified</string>
     <string name="explorer_file_action_open">Open</string>
-    <string name="explorer_file_action_open_subtitle">View in Butler</string>
+    <string name="explorer_file_action_open_subtitle">View here, back returns to this folder</string>
     <string name="explorer_file_action_open_in_tab">Open in new tab</string>
     <string name="explorer_file_action_open_in_tab_subtitle">View in Butler as its own tab</string>
     <string name="explorer_file_action_open_in_editor">Open in editor</string>

@@ -11,6 +11,7 @@
     <string name="bugreport_type_recording">Recording</string>
 
     <string name="bugreport_record_action">Record debug log</string>
+    <string name="bugreport_record_short_action">Record</string>
     <string name="bugreport_stop_action">Stop recording</string>
     <string name="bugreport_stop_short_action">Stop</string>
     <string name="bugreport_recording_ongoing_label">Recording…</string>
@@ -22,6 +23,8 @@
     <string name="bugreport_share_action">Share</string>
     <string name="bugreport_delete_action">Delete</string>
     <string name="bugreport_delete_all_action">Delete all</string>
+    <string name="bugreport_delete_all_confirm_title">Delete all debug logs?</string>
+    <string name="bugreport_delete_all_confirm_message">This will permanently delete all recorded debug log sessions. Active recordings will not be affected.</string>
     <string name="bugreport_cancel_action">Cancel</string>
 
     <string name="bugreport_share_chooser_title">Share bug report</string>

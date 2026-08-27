@@ -22,6 +22,7 @@ import eu.darken.butler.workspace.core.filesystem.FileSystemHinter
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.operations.OperationPathPlan
 import eu.darken.butler.workspace.core.operations.buildTransferProgressMetrics
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
@@ -51,20 +52,23 @@ class MoveOperation @AssistedInject constructor(
                     R.string.explorer_operation_move_description_single,
                     source.name,
                     source.parent?.userReadablePath?.get(cx) ?: source.userReadablePath.get(cx),
-                    command.destination.userReadablePath.get(cx)
+                    command.destination.path.userReadablePath.get(cx)
                 )
             } else {
                 cx.getQuantityString2(
                     R.plurals.explorer_operation_move_description,
                     command.sources.size,
                     command.sources.size,
-                    command.destination.userReadablePath.get(cx)
+                    command.destination.path.userReadablePath.get(cx)
                 )
             }
         }
         override val kind = Operation.Metadata.Kind.MOVE
         override val intent = command.intent
-        override val intendedPaths = command.sources + command.destination
+        override val pathPlan = OperationPathPlan(
+            targets = command.sources.toList(),
+            destination = command.destination,
+        )
     }
 
     override fun perform(
@@ -81,7 +85,7 @@ class MoveOperation @AssistedInject constructor(
         val result = command.sources
             .move(
                 gateway = gatewaySwitch,
-                destination = command.destination,
+                destination = command.destination.path,
                 options = MoveAction.Options(
                     preserveAttributes = command.options.preserveAttributes,
                 ),

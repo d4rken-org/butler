@@ -19,6 +19,9 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.storage.StorageEnvironment
+import eu.darken.butler.common.storage.saf.SAFPickerIntentBuilder
+import eu.darken.butler.common.storage.saf.StorageProviderSuggester
+import eu.darken.butler.common.storage.saf.StorageProviderSuggestion
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.common.files.archive.CompressionPreset
@@ -28,6 +31,11 @@ import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.extensions.matches
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
+import eu.darken.butler.common.files.smb.SmbConnectionTester
+import eu.darken.butler.common.files.smb.SmbEndpointState
+import eu.darken.butler.common.files.smb.credentials.SmbCredentialStore
+import eu.darken.butler.common.files.smb.credentials.SmbCredentialUnavailableException
+import eu.darken.butler.common.files.smb.location.SmbLocationManager
 import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.flow.combine as combineMany
@@ -51,6 +59,7 @@ import eu.darken.butler.workspace.core.preview.FolderPreviewObserver
 import eu.darken.butler.workspace.core.preview.FolderPreviewResolver
 import eu.darken.butler.explorer.core.FilterState
 import eu.darken.butler.explorer.core.SortSettings
+import eu.darken.butler.explorer.core.smbSignInLocationId
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.favorites.ExplorerFavoritesRepo
@@ -71,9 +80,12 @@ import eu.darken.butler.explorer.ui.explorer.dialogs.CreateItemResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.CreateItemType
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogEvent
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
+import eu.darken.butler.explorer.ui.explorer.dialogs.SmbLocationFormInput
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.*
+import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork.Capacity as SingleNetworkCapacity
 import eu.darken.butler.explorer.ui.explorer.dialogs.FilterOptionsResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.RenameResult
+import eu.darken.butler.explorer.ui.explorer.dialogs.RevealedPassword
 import eu.darken.butler.explorer.ui.explorer.dialogs.SortOptionsResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.SortScope
 import eu.darken.butler.explorer.ui.explorer.dnd.validateDropDestination
@@ -103,6 +115,7 @@ import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import eu.darken.butler.workspace.core.clipboard.ClipboardSettings
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.operations.OperationPathPlan
 import eu.darken.butler.workspace.core.operations.OperationFocusRequest
 import eu.darken.butler.workspace.ui.page.WorkspacePageChrome
 import eu.darken.butler.workspace.core.returnResult
@@ -115,6 +128,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterIsInstance
@@ -126,15 +140,20 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.PolymorphicSerializer
 import kotlinx.serialization.json.Json
+import kotlin.uuid.Uuid
 
 @HiltViewModel(assistedFactory = ExplorerWorkspaceViewModel.Factory::class)
 class ExplorerWorkspaceViewModel @AssistedInject constructor(
     @Assisted private val id: Workspace.Id,
     @ApplicationContext private val context: Context,
-    dispatchers: DispatcherProvider,
+    private val dispatchers: DispatcherProvider,
     workspaceProvider: WorkspaceProvider,
     private val workspaceRemote: WorkspaceRemote,
     private val actionProvider: DefaultActionProvider,
@@ -149,6 +168,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val filenameValidator: FilenameValidator,
     private val gatewaySwitch: GatewaySwitch,
     internal val safLocationManager: SAFLocationManager,
+    private val safPickerIntentBuilder: SAFPickerIntentBuilder,
+    private val storageProviderSuggester: StorageProviderSuggester,
+    private val smbLocationManager: SmbLocationManager,
+    private val smbCredentialStore: SmbCredentialStore,
+    private val smbConnectionTester: SmbConnectionTester,
     private val trashManager: TrashManager,
     private val trashRepo: TrashRepo,
     private val itemInfoCalculator: ItemInfoCalculator,
@@ -196,9 +220,24 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val safLocations = ExplorerSafLocationController(
         context = context,
         safLocationManager = safLocationManager,
+        safPickerIntentBuilder = safPickerIntentBuilder,
+        storageProviderSuggester = storageProviderSuggester,
         dialogs = dialogs,
+        scope = vmScope,
         workspace = ::getWorkspace,
         currentLocation = { getState().currentLocation },
+        clearSelection = ::clearSelection,
+        onError = { errorEvents.tryEmit(it) },
+        doLaunch = doLaunch,
+        tag = tag,
+    )
+    private val smbLocations = ExplorerSmbLocationController(
+        locationManager = smbLocationManager,
+        credentialStore = smbCredentialStore,
+        connectionTester = smbConnectionTester,
+        dialogs = dialogs,
+        workspace = ::getWorkspace,
+        currentLocation = { cachedCurrentLocation },
         clearSelection = ::clearSelection,
         onError = { errorEvents.tryEmit(it) },
         doLaunch = doLaunch,
@@ -237,6 +276,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         doLaunch = doLaunch,
         tag = tag,
     )
+
+    /** What the open network info sheet loads; both end when that sheet goes away. */
+    @Volatile private var networkRevealJob: Job? = null
+    @Volatile private var networkCapacityJob: Job? = null
 
     val issueState: StateFlow<Issue?> get() = conflicts.issueState
     val showIssueSheet: StateFlow<Boolean> get() = conflicts.showIssueSheet
@@ -330,10 +373,42 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 selection.pruneAgainst(location)
             }
             .launchInViewModel()
+
+        // A directory that fails because the password is gone or wrong opens the sign-in form
+        // instead of a dead error screen; saving it refreshes the location.
+        workspaceReadyState
+            .distinctUntilChangedBy { it?.error }
+            .onEach { state ->
+                val locationId = state?.smbSignInLocationId() ?: return@onEach
+                smbLocations.promptSignIn(locationId)
+            }
+            .launchInViewModel()
+
         // Handle dialog events
         dialogEvents
             .onEach { event ->
                 dialogs.handle(event)
+            }
+            .launchInViewModel()
+
+        // What an open network info sheet loads belongs to that sheet, so it both starts and ends
+        // here: one coroutine, cancel before start, no ordering to get wrong. Keyed by sheet
+        // instance because reopening the same location is a new sheet with the same locationId,
+        // and a StateFlow would not report the reopen at all if it were keyed by that.
+        dialogs.state
+            .map { (it as? ItemInfo)?.context as? ItemInfo.InfoContext.SingleNetwork }
+            .distinctUntilChangedBy { it?.sheetInstanceId }
+            .onEach { sheet ->
+                // Cancelling ends the delivery of a result, not the work behind it: the capacity
+                // read is blocking socket I/O that only its own connect and request timeouts can
+                // stop. A late result is harmless because updateSingleNetwork checks who it
+                // belongs to.
+                networkRevealJob?.cancel()
+                networkRevealJob = null
+                networkCapacityJob?.cancel()
+                networkCapacityJob = null
+                if (sheet == null) return@onEach
+                loadNetworkCapacity(sheet, getState().currentLocation?.items)
             }
             .launchInViewModel()
 
@@ -419,6 +494,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val sortSettings: SortSettings = SortSettings(),
         val trashEnabled: Boolean = false,
         val fileOpenActionsEnabled: Boolean = true,
+        /** A picker returns a network location, it does not add or remove one. */
+        val networkManagementEnabled: Boolean = true,
         val saveAsFilename: String = "",
         val disabledItems: Set<ExplorerItem> = emptySet(),
         val canConfirmSelection: Boolean = true,
@@ -461,17 +538,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             // Show when in selection mode (normal browsing)
             return selectionState.selectedItems.isNotEmpty()
         }
-    }
-
-    /**
-     * Compares two item lists by ID and type, allowing phase transitions
-     * (Peek → Lookup) while filtering same-phase duplicates.
-     */
-    private fun List<ExplorerItem>?.hasSameItemsAs(other: List<ExplorerItem>?): Boolean {
-        if (this === other) return true
-        if (this == null || other == null) return false
-        if (size != other.size) return false
-        return zip(other).all { (a, b) -> a.id == b.id && a::class == b::class }
     }
 
     // Sorted/filtered items, shared to prevent duplicate processing
@@ -571,9 +637,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     } ?: emptyList()
 
                     val availableActions = pickerHelper.filterActionsForPicker(rawActions, pickerConfig)
-                        // Refreshing would re-list under a live selection, so it's off while selecting.
-                        // Filtered here because the Device and Home providers offer it unconditionally.
-                        .filter { !selectionState.isSelectionMode || it !is ExplorerActionBarItem.Common.Refresh }
                         .map { action ->
                             when (action) {
                                 is ExplorerActionBarItem.Common.Filter -> {
@@ -607,7 +670,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                         canGoBack = wsStateInner.canGoBack,
                         canGoForward = wsStateInner.canGoForward,
                         availableActions = availableActions,
-                        dialogState = dialogState,
+                        dialogState = dialogState.withLiveNetworkItem(wsStateInner.currentLocation?.items),
                         setupRequirements = wsStateInner.currentLocation?.setupRequirements ?: PathRequirements(),
                         isPro = upgradeInfo.isPro,
                         filterState = filterState,
@@ -618,6 +681,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                         sortSettings = matchedSort?.resolution?.settings ?: SortSettings(),
                         trashEnabled = recycleBinEnabled,
                         fileOpenActionsEnabled = pickerHelper.allowsFileOpenActions(pickerConfig),
+                        networkManagementEnabled = pickerHelper.allowsNetworkManagementActions(pickerConfig),
                         saveAsFilename = saveAsFilename,
                         disabledItems = disabledItems,
                         canConfirmSelection = canConfirmSelection,
@@ -993,9 +1057,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
                     // The display list lags behind metadata-only refreshes, resolve against the raw location items
                     val infoContext = itemInfoCalculator.calculateInfo(selectedItems, stateSnap.currentLocation?.items)
-                    infoContext?.let { context ->
-                        dialogs.show(ItemInfo(context))
-                    }
+                    infoContext?.let { dialogs.show(ItemInfo(it)) }
                 }
             }
             is ExplorerActionBarItem.Common.Rename -> {
@@ -1034,6 +1096,20 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                         currentName = selectedItem.location.userLabel,
                     )
                 )
+            }
+            is ExplorerActionBarItem.Network.AddLocation -> {
+                smbLocations.showAddForm()
+            }
+            is ExplorerActionBarItem.Network.EditLocation -> {
+                val selectedItem = selection.selectedItems.value
+                    .filterIsInstance<ExplorerItem.Storage.Network>()
+                    .single()
+                smbLocations.showEditForm(selectedItem.location.id)
+            }
+            is ExplorerActionBarItem.Network.RemoveLocation -> {
+                val selectedItems = selection.selectedItems.value
+                    .filterIsInstance<ExplorerItem.Storage.Network>()
+                if (selectedItems.isNotEmpty()) smbLocations.showRemoveConfirmation(selectedItems)
             }
             is ExplorerActionBarItem.Trash.SelectAll -> {
                 selection.set(stateSnap.selectionState.selectableItems)
@@ -1404,7 +1480,133 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun onRemoveLocationConfirmed() = safLocations.onRemoveLocationConfirmed()
+    fun onRemoveLocationConfirmed() {
+        val items = (dialogs.current() as? ExplorerDialogState.RemoveLocationConfirmation)?.items ?: return
+        val networkItems = items.filterIsInstance<ExplorerItem.Storage.Network>()
+        if (networkItems.isNotEmpty()) {
+            smbLocations.onRemoveConfirmed(networkItems)
+        } else {
+            safLocations.onRemoveLocationConfirmed()
+        }
+    }
+
+    fun onSmbLocationFormSubmit(input: SmbLocationFormInput) = smbLocations.onFormSubmit(input)
+
+    /**
+     * Puts the stored password of an open network info sheet on screen.
+     *
+     * The [CharArray] the vault hands over is zeroed again right away, but what reaches the sheet is
+     * an immutable String, so hiding it again and dismissing the sheet can only drop the live
+     * reference - earlier flow emissions and Compose snapshots may hold it until they are collected.
+     * That is why this never travels through SavedStateHandle or any other serialization path.
+     */
+    fun onRevealNetworkPassword(locationId: Uuid) {
+        log(tag) { "onRevealNetworkPassword($locationId)" }
+        val sheetInstanceId = openNetworkSheet(locationId)?.sheetInstanceId ?: return
+        networkRevealJob?.cancel()
+        dialogs.updateSingleNetwork(locationId, sheetInstanceId) { it.copy(isRevealing = true) }
+        networkRevealJob = vmScope.launch {
+            val revealed = try {
+                val location = smbLocationManager.get(locationId)
+                location?.let {
+                    withContext(dispatchers.IO) {
+                        val credential = smbCredentialStore.resolve(it)
+                        try {
+                            RevealedPassword(String(credential.password))
+                        } finally {
+                            credential.wipe()
+                        }
+                    }
+                }
+            } catch (e: CancellationException) {
+                // The sheet this belonged to has moved on, and its button went with it.
+                throw e
+            } catch (e: SmbCredentialUnavailableException) {
+                // No toast: the field itself already states that the vault has nothing to produce.
+                log(tag, WARN) { "onRevealNetworkPassword(): Nothing to reveal: ${e.asLog()}" }
+                null
+            } catch (e: Exception) {
+                // An unusable keystore key - a changed screen lock - or a failed read, while the
+                // field still says the password is there. That needs saying, unlike the case above.
+                log(tag, ERROR) { "onRevealNetworkPassword(): Failed to reveal: ${e.asLog()}" }
+                errorEvents.emit(e)
+                null
+            }
+            dialogs.updateSingleNetwork(locationId, sheetInstanceId) {
+                it.copy(revealed = revealed, isRevealing = false)
+            }
+        }
+    }
+
+    /**
+     * Reads how full the share is, for an open info sheet only. Started from the sheet watcher,
+     * which has already ended whatever the sheet before it was loading.
+     *
+     * This is the one place that spends an authenticated session on a location the user merely
+     * looked at; drawing the Network list still costs no login attempt. Skipped entirely when there
+     * is nothing to sign in with or nothing to reach, so no field appears for it.
+     */
+    private fun loadNetworkCapacity(sheet: ItemInfo.InfoContext.SingleNetwork, items: List<ExplorerItem>?) {
+        val locationId = sheet.locationId
+        val sheetInstanceId = sheet.sheetInstanceId
+        val item = items
+            ?.filterIsInstance<ExplorerItem.Storage.Network>()
+            ?.firstOrNull { it.location.id == locationId }
+            ?: return
+        if (item.credentials != SmbCredentialStore.Availability.AVAILABLE) return
+        if (item.endpoint.reachability == SmbEndpointState.Reachability.UNREACHABLE) return
+
+        log(tag) { "loadNetworkCapacity($locationId)" }
+        dialogs.updateSingleNetwork(locationId, sheetInstanceId) {
+            it.copy(capacity = SingleNetworkCapacity.Loading)
+        }
+        networkCapacityJob = vmScope.launch {
+            val capacity = try {
+                val fileSystem = withContext(dispatchers.IO) {
+                    // Same bracket a directory load uses: without an active lease on the gateway the
+                    // SMB gateway's resource never opens, and the session this read logs in is left
+                    // to the pool's idle sweep instead of being closed when the read is done.
+                    gatewaySwitch.useRes {
+                        gatewaySwitch.getFileSystem(item.location.rootPath)
+                    }
+                }
+                val total = fileSystem.totalSpace
+                val free = fileSystem.freeSpace
+                if (total != null && free != null) {
+                    SingleNetworkCapacity.Data(totalBytes = total, freeBytes = free)
+                } else {
+                    SingleNetworkCapacity.Unavailable
+                }
+            } catch (e: CancellationException) {
+                // A cancelled read must not publish anything: the sheet it belonged to has moved on.
+                throw e
+            } catch (e: Exception) {
+                log(tag, WARN) { "loadNetworkCapacity($locationId) failed: ${e.asLog()}" }
+                SingleNetworkCapacity.Unavailable
+            }
+            dialogs.updateSingleNetwork(locationId, sheetInstanceId) { it.copy(capacity = capacity) }
+        }
+    }
+
+    fun onHideNetworkPassword(locationId: Uuid) {
+        log(tag) { "onHideNetworkPassword($locationId)" }
+        val sheetInstanceId = openNetworkSheet(locationId)?.sheetInstanceId ?: return
+        networkRevealJob?.cancel()
+        networkRevealJob = null
+        dialogs.updateSingleNetwork(locationId, sheetInstanceId) {
+            it.copy(revealed = null, isRevealing = false)
+        }
+    }
+
+    /**
+     * The network info sheet showing right now, if it is the one for [locationId].
+     *
+     * Its sheet instance id is what every later write has to carry: dismissing and reopening the
+     * same share are two sheets, and the first one's password must not land on the second.
+     */
+    private fun openNetworkSheet(locationId: Uuid): ItemInfo.InfoContext.SingleNetwork? =
+        ((dialogs.current() as? ItemInfo)?.context as? ItemInfo.InfoContext.SingleNetwork)
+            ?.takeIf { it.locationId == locationId }
 
     /**
      * The system had no activity to handle our SAF picker intent (DocumentsUI disabled or missing).
@@ -1434,7 +1636,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         getWorkspace().execute(
             ExplorerCommand.Move(
                 sources = setOf(result.item),
-                destination = currentLocation.path.child(result.newName),
+                destination = OperationPathPlan.Destination.RequestedTarget(
+                    currentLocation.path.child(result.newName),
+                ),
                 intent = Operation.Metadata.Intent.RENAME,
             )
         )
@@ -1581,12 +1785,12 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     val command = when (clip.mode) {
                         ClipboardClip.Paths.Mode.COPY -> ExplorerCommand.Copy(
                             sources = clip.paths.map { it.lookedUp }.toSet(),
-                            destination = currentLocation.path,
+                            destination = OperationPathPlan.Destination.Container(currentLocation.path),
                             intent = Operation.Metadata.Intent.PASTE_COPY,
                         )
                         ClipboardClip.Paths.Mode.CUT -> ExplorerCommand.Move(
                             sources = clip.paths.map { it.lookedUp }.toSet(),
-                            destination = currentLocation.path,
+                            destination = OperationPathPlan.Destination.Container(currentLocation.path),
                             intent = Operation.Metadata.Intent.PASTE_MOVE,
                         )
                     }
@@ -1678,13 +1882,13 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val command = if (move) {
             ExplorerCommand.Move(
                 sources = sources,
-                destination = target,
+                destination = OperationPathPlan.Destination.Container(target),
                 intent = Operation.Metadata.Intent.DROP_MOVE,
             )
         } else {
             ExplorerCommand.Copy(
                 sources = sources,
-                destination = target,
+                destination = OperationPathPlan.Destination.Container(target),
                 intent = Operation.Metadata.Intent.DROP_COPY,
             )
         }
@@ -1762,6 +1966,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     fun dismissAddStorageSheet() = safLocations.dismissAddStorageSheet()
 
     fun addSAFLocation() = safLocations.addSAFLocation()
+
+    val storageSuggestions get() = safLocations.storageSuggestions
+
+    fun addSuggestedSAFLocation(suggestion: StorageProviderSuggestion) =
+        safLocations.addSuggestedSAFLocation(suggestion)
 
     suspend fun handleSAFPickerResult(treeUri: Uri) = safLocations.handleSAFPickerResult(treeUri)
 
@@ -1951,6 +2160,43 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     companion object {
         private const val NAVIGATION_AWAIT_MS = 5_000L
+    }
+}
+
+/**
+ * Pairs an open network info sheet with the row as it is right now.
+ *
+ * The dialog only remembers which location it was opened for, so a sheet opened while the address
+ * was still being looked up shows the answer as soon as the probe reports it. A null item means the
+ * location is no longer in the listing, e.g. because it was removed while the sheet was open.
+ */
+internal fun ExplorerDialogState.withLiveNetworkItem(items: List<ExplorerItem>?): ExplorerDialogState {
+    val context = (this as? ItemInfo)?.context as? ItemInfo.InfoContext.SingleNetwork ?: return this
+    val item = items
+        ?.filterIsInstance<ExplorerItem.Storage.Network>()
+        ?.firstOrNull { it.location.id == context.locationId }
+    return ItemInfo(context.copy(item = item))
+}
+
+/**
+ * Whether two listings would render the same, i.e. whether the newer one can be dropped.
+ *
+ * Lookups are compared by id and type, which lets a phase transition (Peek to Lookup) through while
+ * filtering same-phase duplicates. A storage row instead carries its whole presentation - name,
+ * status, address - in its own fields, so those are compared in full: by id alone a renamed or
+ * re-probed location would keep rendering its old row.
+ *
+ * Top-level for the same reason as `applyFavoritePriority`: unit-testable without VM scaffolding.
+ */
+internal fun List<ExplorerItem>?.hasSameItemsAs(other: List<ExplorerItem>?): Boolean {
+    if (this === other) return true
+    if (this == null || other == null) return false
+    if (size != other.size) return false
+    return zip(other).all { (a, b) ->
+        when {
+            a is ExplorerItem.Storage || b is ExplorerItem.Storage -> a == b
+            else -> a.id == b.id && a::class == b::class
+        }
     }
 }
 

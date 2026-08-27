@@ -161,6 +161,7 @@ class WorkspacesViewModel @Inject constructor(
                                 targetWorkspaceId = targetId,
                                 workspaceTitle = data.workspaceTitle,
                                 hasUnsavedChanges = data.hasUnsavedChanges,
+                                unsavedCount = data.unsavedCount,
                             )
                         }
                     }

@@ -11,6 +11,7 @@ import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.ExplorerWorkspace
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
+import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.contracts.explorer.PickerConfig
 import io.kotest.matchers.shouldBe
 import io.mockk.Runs
@@ -261,6 +262,59 @@ class ExplorerSelectionControllerTest : BaseTest() {
         val storage = storageItem("vol")
         dirSingle.onItemLongClick(storage)
         dirSingle.selectedItems.value shouldBe setOf(storage)
+    }
+
+    @Test
+    fun `a picker routes a location that needs a sign-in to the form instead of selecting it`() = runTest {
+        val signInRequired = MockDataProvider.createMockStorageNetwork(
+            name = "Work NAS",
+            status = ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED,
+        )
+        var navigated: ExplorerItem? = null
+        val controller = controller(
+            config = pickerConfig(PickerConfig.Selection.DirectorySingle),
+            selectableItems = setOf(signInRequired),
+            navigate = { navigated = it },
+        )
+
+        controller.onItemClick(signInRequired)
+        runCurrent()
+        navigated shouldBe signInRequired
+        controller.selectedItems.value shouldBe emptySet()
+
+        navigated = null
+        controller.onItemLongClick(signInRequired)
+        runCurrent()
+        navigated shouldBe signInRequired
+        controller.selectedItems.value shouldBe emptySet()
+    }
+
+    @Test
+    fun `normal browsing selects a location that needs a sign-in so it can be managed`() = runTest {
+        val signInRequired = MockDataProvider.createMockStorageNetwork(
+            name = "Work NAS",
+            status = ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED,
+        )
+        var navigated: ExplorerItem? = null
+        val controller = controller(navigate = { navigated = it })
+
+        // A tap on its own still opens the sign-in form
+        controller.onItemClick(signInRequired)
+        runCurrent()
+        navigated shouldBe signInRequired
+        controller.selectedItems.value shouldBe emptySet()
+
+        // A long press selects it, which is what Remove, Edit and Rename need
+        navigated = null
+        controller.onItemLongClick(signInRequired)
+        controller.selectedItems.value shouldBe setOf(signInRequired)
+        navigated shouldBe null
+
+        // With a selection active the tap toggles instead of navigating
+        controller.onItemClick(signInRequired)
+        runCurrent()
+        controller.selectedItems.value shouldBe emptySet()
+        navigated shouldBe null
     }
 
     @Test

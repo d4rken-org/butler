@@ -15,6 +15,7 @@
     <string name="butler_mascot_animation_sleep_closing_description">Butler mascot closing eyes to sleep</string>
     <string name="butler_mascot_animation_sleep_snoring_description">Butler mascot snoring</string>
     <string name="butler_mascot_animation_sleep_waking_description">Butler mascot waking up</string>
+    <string name="butler_mascot_animation_cameo_description">SD Maid mascot making a guest appearance</string>
 
     <string name="slogan_general_message_0">At your service.</string>
     <string name="slogan_general_message_1">Everything in its place.</string>
@@ -241,6 +242,7 @@
     <string name="general_tab_close_confirmation_message">Are you sure you want to close \"%1$s\"?</string>
     <string name="general_tab_close_unsaved_title">Unsaved changes</string>
     <string name="general_tab_close_unsaved_message">\"%1$s\" has unsaved changes. Close and discard them?</string>
+    <string name="general_tab_close_unsaved_message_multiple">\"%1$s\" and %2$d more have unsaved changes. Close and discard them?</string>
     <string name="general_discard_action">Discard</string>
 
     <!-- Exit app -->

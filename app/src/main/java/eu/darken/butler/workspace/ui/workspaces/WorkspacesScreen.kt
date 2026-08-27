@@ -36,6 +36,8 @@ import eu.darken.butler.main.ui.motd.MotdCard
 import eu.darken.butler.main.ui.review.ReviewCard
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.LocalWorkspacePageHosts
+import eu.darken.butler.workspace.ui.LocalWorkspaceTitles
+import eu.darken.butler.workspace.ui.tabLabel
 import eu.darken.butler.workspace.ui.LocalWorkspacePagerVisibility
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceRemote
@@ -50,6 +52,7 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerScreen
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerViewModel
+import eu.darken.butler.workspace.ui.manager.tour.WorkspaceManagerTour
 import eu.darken.butler.workspace.ui.floatingbar.LocalWorkspaceBarCollapseStates
 import eu.darken.butler.workspace.ui.manager.rememberWindowSizeInfo
 import eu.darken.butler.workspace.ui.scroll.LocalWorkspaceScrollPositions
@@ -335,6 +338,19 @@ fun WorkspacesScreenHost(
         }
     }
 
+    val tourController = LocalGuidedTourController.current
+    // Gated on the manager's own state, not just the overlay flag: a restored session makes the
+    // overlay visible before that state arrives, and the manager - with the tour's only anchor -
+    // is composed no earlier than the state is non-null. A tour started in that window finds no
+    // anchor, grace-skips its single step, and suppresses itself for the rest of the process.
+    val managerTourReady = pageManagerState.isManagerOverlayVisible && managerState != null
+    LaunchedEffect(managerTourReady) {
+        if (!managerTourReady) return@LaunchedEffect
+        // No attempted-flag: this key already runs the body once per open, and tryStart itself
+        // refuses a tour that is completed, dismissed, or skipped this process.
+        tourController.tryStart(WorkspaceManagerTour.definition)
+    }
+
     // Selection mode is a state inside the overlay, so back leaves it first; dismissing the manager
     // outright would drop a selection the user is still assembling.
     ManagerOverlayBackHandler(
@@ -351,12 +367,19 @@ fun WorkspacesScreenHost(
 
     val state by vm.state.collectAsState(initial = null)
 
+    val workspaceTitles = state?.let { current ->
+        remember(current.all, context) {
+            current.all.associate { it.id to it.tabLabel.get(context) }
+        }
+    }
+
     CompositionLocalProvider(
         LocalWorkspaceButtonProvider provides workspaceButtonVm,
         LocalWorkspacePageHosts provides vm.pageHosts,
         LocalWorkspaceScrollPositions provides vm.scrollPositions,
         LocalWorkspaceBarCollapseStates provides vm.barCollapseStates,
         LocalWorkspacePagerVisibility provides vm.pagerVisibility,
+        LocalWorkspaceTitles provides workspaceTitles,
     ) {
         state?.let { state ->
             WorkspaceScreen(
@@ -393,7 +416,6 @@ fun WorkspacesScreenHost(
                     onQuickCreate = managerVm::createWorkspace,
                     onNavigateBack = managerVm::navigateBack,
                     onDismissBadgeExplanation = managerVm::dismissBadgeExplanation,
-                    onDismissLongPressHint = managerVm::dismissLongPressHint,
                     onCloseAllWorkspaces = managerVm::closeAllWorkspaces,
                     onStartSelection = managerVm::startSelection,
                     onToggleSelection = managerVm::toggleSelection,

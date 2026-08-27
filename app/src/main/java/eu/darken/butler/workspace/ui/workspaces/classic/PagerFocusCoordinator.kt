@@ -1,21 +1,31 @@
 package eu.darken.butler.workspace.ui.workspaces.classic
 
+import androidx.compose.foundation.interaction.DragInteraction
+import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 
 private val TAG = logTag("Workspace", "Container", "Classic", "PagerCoord")
+
+/** How long the pager must have been quiet before a page counts as resting under the finger. */
+internal const val REST_QUIESCENCE_MS = 50L
 
 class PagerFocusCoordinatorState internal constructor() {
     // A depth counter, not a flag: animateScrollToPage goes through Compose's MutatorMutex, so a
@@ -70,6 +80,93 @@ class PagerFocusCoordinatorState internal constructor() {
  */
 internal fun PagerState.isSettledOnPage(page: Int): Boolean =
     !isScrollInProgress && settledPage == page
+
+/**
+ * Whether the pager is genuinely at rest, as opposed to merely reporting no scroll session.
+ *
+ * Stricter than [PagerState.isSettledOnPage], for a case that back dispatch does not have to care
+ * about: a drag's scroll session ends a moment before its fling session begins, and in that gap the
+ * pager reports no scroll while `settledPage` falls back to `currentPage` — which past the drag's
+ * halfway point already names the neighbour. A press landing there belongs to the swipe in
+ * progress, not to the page under the finger.
+ *
+ * The page offset is deliberately not part of the answer. `PagerState`'s saver persists the current
+ * offset fraction, so a configuration change during a swipe restores a non-zero offset with no
+ * scroll session open and no drag to end it — an offset term would leave every page permanently
+ * press-inert, unrecoverable once swipe gestures are off. `settledPage == page` carries the
+ * alignment requirement instead.
+ */
+class PagerRestState internal constructor(
+    private val pagerState: PagerState,
+    restingAtCreation: Boolean,
+) {
+
+    // True between DragInteraction.Start and its terminal Stop/Cancel: the pager's own
+    // isScrollInProgress is false in the gap described above, while the finger is still down.
+    internal var dragInProgress by mutableStateOf(false)
+
+    // The latch: false the moment the pager stops being idle, true again once the idle has held for
+    // REST_QUIESCENCE_MS. Snapshot-backed, so anything reading it through composition follows it.
+    internal var quiescent by mutableStateOf(restingAtCreation)
+
+    internal val isIdle: Boolean
+        get() = !pagerState.isScrollInProgress && !dragInProgress
+
+    /**
+     * Whether the pager is resting on [page] at this instant.
+     *
+     * [isIdle] is re-read here rather than trusted to [quiescent] alone: the latch is driven by a
+     * snapshotFlow collector, which is asynchronous, so a scroll that has just started can still
+     * find it true.
+     */
+    fun isRestingOn(page: Int): Boolean = quiescent && isIdle && pagerState.settledPage == page
+}
+
+/**
+ * Remembers a [PagerRestState] for [pagerState].
+ *
+ * @param interactions test seam; defaults to the pager's own interaction stream, which cannot be
+ *     driven from test code
+ */
+@Composable
+fun rememberPagerRestState(
+    pagerState: PagerState,
+    interactions: Flow<Interaction> = pagerState.interactionSource.interactions,
+): PagerRestState {
+    // Seeded from the instantaneous predicate, not from false: a holder cannot come into existence
+    // mid-gesture, and starting closed would make every page press-inert for the quiescence window
+    // after each composition.
+    val restState = remember(pagerState) {
+        PagerRestState(pagerState, restingAtCreation = !pagerState.isScrollInProgress)
+    }
+
+    LaunchedEffect(restState, interactions) {
+        interactions.collect { interaction ->
+            when (interaction) {
+                is DragInteraction.Start -> restState.dragInProgress = true
+                is DragInteraction.Stop, is DragInteraction.Cancel -> restState.dragInProgress = false
+                else -> Unit
+            }
+        }
+    }
+
+    LaunchedEffect(restState) {
+        snapshotFlow { restState.isIdle }
+            .distinctUntilChanged()
+            // collectLatest, so the fling session starting cancels the pending open and the latch
+            // never opens inside a single swipe.
+            .collectLatest { idle ->
+                if (!idle) {
+                    restState.quiescent = false
+                    return@collectLatest
+                }
+                delay(REST_QUIESCENCE_MS)
+                restState.quiescent = true
+            }
+    }
+
+    return restState
+}
 
 /**
  * Coordinates a [PagerState] with externally-driven workspace focus.

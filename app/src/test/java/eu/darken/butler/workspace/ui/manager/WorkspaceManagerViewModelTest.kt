@@ -51,7 +51,6 @@ class WorkspaceManagerViewModelTest : BaseTest() {
         }
         workspaceSettings = mockk(relaxed = true) {
             every { showTipBadgeExplanation } returns mockk { every { flow } returns flowOf(false) }
-            every { showTipFabLongPress } returns mockk { every { flow } returns flowOf(false) }
             every { livePreview } returns mockk { every { flow } returns flowOf(true) }
         }
         workspacePageManager = mockk(relaxed = true) {
@@ -306,6 +305,26 @@ class WorkspaceManagerViewModelTest : BaseTest() {
             it.operationCount shouldBe 3
             it.attentionCount shouldBe 7
         }
+    }
+
+    @Test
+    fun `a dirty member marks the whole unit unsaved`() = runTest {
+        val overlay = childInfo(caller = idA, pausableAsChild = true).copy(hasUnsavedChanges = true)
+        repoState.value = WorkspaceRemote.State(infos = listOf(readyInfo(idA), overlay))
+
+        items().single().let {
+            it.hasUnsavedChanges shouldBe true
+            // Editing without saving yet is not a fault, so it must not inflate the attention count
+            it.attentionCount shouldBe 0
+        }
+    }
+
+    @Test
+    fun `a clean unit is not marked unsaved`() = runTest {
+        val overlay = childInfo(caller = idA, pausableAsChild = true).copy(attentionCount = 2)
+        repoState.value = WorkspaceRemote.State(infos = listOf(readyInfo(idA), overlay))
+
+        items().single().hasUnsavedChanges shouldBe false
     }
 
     @Test

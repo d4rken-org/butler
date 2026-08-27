@@ -25,8 +25,10 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.filesystem.FileSystemHinter
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.operations.OperationPathPlan
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
@@ -394,5 +396,15 @@ class ExtractOperationTest : BaseTest() {
         report.extractedFiles shouldBe 0
         report.skippedEntries shouldContain "sub/evil.txt"
         moves shouldBe emptyList()
+    }
+
+    @Test
+    fun `the path plan targets the archive and lands in the destination folder`() {
+        val plan = operation(command()).metadata.pathPlan!!
+
+        plan.targets shouldContainExactly listOf(archivePath)
+        plan.destination shouldBe OperationPathPlan.Destination.Container(destDir)
+        plan.scopePaths shouldContainExactly listOf(archivePath, destDir)
+        plan.representativePath shouldBe archivePath
     }
 }

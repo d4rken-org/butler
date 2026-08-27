@@ -92,6 +92,7 @@ class ClassicPlaceholderBackDispatchTest : ComposeTest() {
 
     private class Outcome {
         val closedTabs = mutableListOf<Workspace.Id>()
+        val screenActions = mutableListOf<WorkspaceScreenAction>()
         var overlayDismissed = false
         var reachedAppRoot = false
         var dispatcher: OnBackPressedDispatcher? = null
@@ -144,7 +145,9 @@ class ClassicPlaceholderBackDispatchTest : ComposeTest() {
                         state = state,
                         managerDialogs = managerDialogs,
                         isOverlayVisible = overlayVisible,
-                        onWorkspaceScreenAction = {},
+                        // Recorded but not applied: focus must still never follow the swipe,
+                        // or the desync these tests are built on would repair itself.
+                        onWorkspaceScreenAction = { outcome.screenActions.add(it) },
                         managerDialogStates = emptyMap(),
                         onDismissManagerDialog = {},
                         onConfirmManagerDialog = {},
@@ -260,6 +263,30 @@ class ClassicPlaceholderBackDispatchTest : ComposeTest() {
         outcome.closedTabs shouldBe emptyList()
         outcome.reachedAppRoot shouldBe false
         // Nothing moved either: the container swallows the press rather than acting on it.
+        composeTestRule.onNodeWithTag(pageTag(idA)).assertIsDisplayed()
+    }
+
+    /**
+     * The repair for the state above. Consuming the press is only acceptable because it also ends
+     * the disagreement: focus adopts the page the pager rests on, so the next press reaches that
+     * page instead of being consumed again. Without this the container would swallow every press
+     * for as long as focus stayed behind.
+     *
+     * The pager deliberately does not move. The user swiped to this page; back must not undo that.
+     */
+    @Test
+    fun `back at rest hands focus to the page the pager rests on`() {
+        val outcome = compose()
+
+        composeTestRule.onNodeWithTag(pageTag(idB)).performTouchInput { swipeRight() }
+        composeTestRule.waitForIdle()
+        composeTestRule.onNodeWithTag(pageTag(idA)).assertIsDisplayed()
+        // The settle itself reports a selection; only what the press adds is under test.
+        outcome.screenActions.clear()
+
+        outcome.pressBack()
+
+        outcome.screenActions shouldBe listOf(WorkspaceScreenAction.Select(idA))
         composeTestRule.onNodeWithTag(pageTag(idA)).assertIsDisplayed()
     }
 

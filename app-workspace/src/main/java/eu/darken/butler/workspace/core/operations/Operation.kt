@@ -51,12 +51,13 @@ interface Operation {
         val intent: Intent? get() = null
 
         /**
-         * Paths the operation INTENDED to act on (sources for Copy/Move/Delete; parent for Create).
-         * Captured at submit time so failed/cancelled ops are still queryable by path scope, even
-         * when [Report.affectedPaths] is null/empty (because nothing was actually completed).
-         * Persistence stores the union of intended + actually-affected paths.
+         * What the operation set out to do, in paths: its targets, an optional destination, and the
+         * per-consumer views ([OperationPathPlan.scopePaths], [OperationPathPlan.representativePath])
+         * derived from them. Captured at submit time so failed/cancelled ops are still queryable by
+         * path scope, even when [Report.affectedPaths] is null/empty (because nothing was actually
+         * completed). Persistence stores the union of planned + actually-affected paths.
          */
-        val intendedPaths: Collection<APath<*>>? get() = null
+        val pathPlan: OperationPathPlan? get() = null
 
         enum class Kind { COPY, MOVE, DELETE, RESTORE, CREATE_FOLDER, CREATE_FILE, SAVE, COMPRESS, EXTRACT }
 

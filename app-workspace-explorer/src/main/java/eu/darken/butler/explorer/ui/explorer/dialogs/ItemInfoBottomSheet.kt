@@ -3,17 +3,24 @@ package eu.darken.butler.explorer.ui.explorer.dialogs
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.FolderShared
-import androidx.compose.material3.Card
+import androidx.compose.material.icons.twotone.Visibility
+import androidx.compose.material.icons.twotone.VisibilityOff
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -25,25 +32,37 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.icons.SmbShare
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.saf.location.SAFLocation
+import eu.darken.butler.common.files.smb.SmbEndpointState
+import eu.darken.butler.common.files.smb.credentials.SmbCredentialStore
+import eu.darken.butler.common.files.smb.location.SmbLocation
 import eu.darken.butler.common.files.toCaString
 import eu.darken.butler.common.DateTimeStyle
 import eu.darken.butler.common.formatDateTime
 import eu.darken.butler.common.formatFileSize
+import eu.darken.butler.common.rememberMinuteTick
+import eu.darken.butler.common.theming.success
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
+import eu.darken.butler.explorer.ui.explorer.items.statusLabel
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 import eu.darken.butler.workspace.ui.dialogs.InfoCard
 import eu.darken.butler.workspace.ui.dialogs.InfoField
+import eu.darken.butler.workspace.ui.dialogs.InfoFieldPair
 import eu.darken.butler.workspace.ui.dialogs.InfoValueStyle
 import kotlin.time.Clock
+import kotlin.uuid.Uuid
+
+/** Fixed width, so a hidden password does not leak its length. */
+private const val PASSWORD_MASK = "••••••••"
 
 @Composable
 fun ItemInfoBottomSheet(
@@ -51,6 +70,8 @@ fun ItemInfoBottomSheet(
     onDismiss: () -> Unit,
     onCopyToClipboard: (String) -> Unit,
     modifier: Modifier = Modifier,
+    onRevealPassword: (Uuid) -> Unit = {},
+    onHidePassword: (Uuid) -> Unit = {},
     topInset: Dp = 0.dp,
     bottomInset: Dp = 0.dp,
 ) {
@@ -64,6 +85,8 @@ fun ItemInfoBottomSheet(
         ItemInfoContent(
             context = context,
             onCopyToClipboard = onCopyToClipboard,
+            onRevealPassword = onRevealPassword,
+            onHidePassword = onHidePassword,
         )
     }
 }
@@ -72,20 +95,56 @@ fun ItemInfoBottomSheet(
 private fun ItemInfoContent(
     context: ExplorerDialogState.ItemInfo.InfoContext,
     onCopyToClipboard: (String) -> Unit,
+    onRevealPassword: (Uuid) -> Unit,
+    onHidePassword: (Uuid) -> Unit,
 ) {
+    // What the row this sheet was opened from shows under its name, so the sheet says which of
+    // several similarly named shares it describes.
+    val subtitle = when (context) {
+        is ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork -> {
+            context.item?.subtitle?.get(LocalContext.current)
+        }
+        else -> null
+    }
+
+    val titleIcon: ImageVector? = when (context) {
+        is ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork -> Icons.TwoTone.SmbShare
+        else -> null
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .padding(bottom = 32.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+            .padding(bottom = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         // Title
-        Text(
-            text = stringResource(R.string.explorer_info_title),
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            titleIcon?.let {
+                Icon(
+                    imageVector = it,
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                )
+            }
+            Text(
+                text = stringResource(R.string.explorer_info_title),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+            )
+        }
+
+        subtitle?.let {
+            Text(
+                text = it,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
 
         HorizontalDivider()
 
@@ -104,6 +163,21 @@ private fun ItemInfoContent(
 
             is ExplorerDialogState.ItemInfo.InfoContext.SingleLocalStorage -> {
                 LocalStorageInfo(item = context.item, onCopyToClipboard = onCopyToClipboard)
+            }
+
+            is ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork -> {
+                // Null while the location is on its way out of the listing, e.g. after a removal.
+                context.item?.let { item ->
+                    NetworkStorageInfo(
+                        item = item,
+                        revealed = context.revealed,
+                        isRevealing = context.isRevealing,
+                        capacity = context.capacity,
+                        onCopyToClipboard = onCopyToClipboard,
+                        onRevealPassword = { onRevealPassword(context.locationId) },
+                        onHidePassword = { onHidePassword(context.locationId) },
+                    )
+                }
             }
 
             is ExplorerDialogState.ItemInfo.InfoContext.MultipleItems -> {
@@ -182,7 +256,7 @@ private fun SingleFileInfo(
     }
 
     if (item is ExplorerItem.SymbolicLink) {
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(6.dp))
         InfoCard {
             InfoField(
                 label = stringResource(R.string.explorer_info_symlink_target_label),
@@ -302,6 +376,204 @@ private fun SingleSAFInfo(
         InfoField(
             label = stringResource(R.string.explorer_info_saf_granted_label),
             value = formatDateTime(item.location.grantedAt, DateTimeStyle.DETAILED),
+        )
+    }
+}
+
+/**
+ * Everything about a share, including the stored password once the user asks to see it.
+ *
+ * No biometric or device-credential gate in front of that: Butler has no app lock anywhere else, so
+ * prompting for this one field would be a lone checkpoint rather than a boundary.
+ */
+@Composable
+private fun NetworkStorageInfo(
+    item: ExplorerItem.Storage.Network,
+    revealed: RevealedPassword?,
+    isRevealing: Boolean,
+    capacity: ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork.Capacity?,
+    onCopyToClipboard: (String) -> Unit,
+    onRevealPassword: () -> Unit,
+    onHidePassword: () -> Unit,
+) {
+    val context = LocalContext.current
+    val location = item.location
+
+    InfoCard {
+        InfoFieldPair(
+            left = {
+                InfoField(
+                    label = stringResource(R.string.explorer_info_name_label),
+                    value = item.displayName.get(context),
+                )
+            },
+            right = {
+                InfoField(
+                    label = stringResource(R.string.explorer_info_network_status_label),
+                    // Same wording as the row in the list, so a credential problem still outranks
+                    // reachability instead of reading "Available" next to a red row.
+                    value = item.statusLabel(context, rememberMinuteTick()),
+                    valueColor = when {
+                        item.hasIssue -> MaterialTheme.colorScheme.error
+                        item.endpoint.reachability == SmbEndpointState.Reachability.REACHABLE -> {
+                            MaterialTheme.colorScheme.success
+                        }
+                        else -> null
+                    },
+                )
+            },
+        )
+
+        InfoField(
+            label = stringResource(R.string.explorer_info_network_server_label),
+            value = location.host,
+            onCopy = { onCopyToClipboard(location.host) },
+            valueStyle = InfoValueStyle.MONOSPACE,
+        )
+
+        val address = item.endpoint.address
+        InfoFieldPair(
+            left = {
+                InfoField(
+                    label = stringResource(R.string.explorer_info_network_address_label),
+                    value = address ?: stringResource(R.string.explorer_info_unknown),
+                    onCopy = address?.let { { onCopyToClipboard(it) } },
+                    valueStyle = InfoValueStyle.MONOSPACE,
+                )
+            },
+            right = {
+                InfoField(
+                    label = stringResource(R.string.explorer_info_network_port_label),
+                    value = location.port.toString(),
+                )
+            },
+        )
+
+        InfoField(
+            label = stringResource(R.string.explorer_info_network_share_label),
+            value = location.share,
+        )
+
+        InfoField(
+            label = stringResource(R.string.explorer_info_type_label),
+            value = stringResource(R.string.explorer_info_network_type_value),
+        )
+
+        if (location.basePath.isNotEmpty()) {
+            InfoField(
+                label = stringResource(R.string.explorer_info_network_folder_label),
+                value = location.basePath.joinToString("/"),
+                valueStyle = InfoValueStyle.MONOSPACE,
+            )
+        }
+
+        // Same four labels as a local storage sheet, so the two read alike.
+        if (capacity is ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork.Capacity.Data) {
+            InfoField(
+                label = stringResource(R.string.explorer_info_total_capacity_label),
+                value = formatFileSize(capacity.totalBytes),
+            )
+
+            InfoField(
+                label = stringResource(R.string.explorer_info_free_space_label),
+                value = formatFileSize(capacity.freeBytes),
+            )
+
+            InfoField(
+                label = stringResource(R.string.explorer_info_used_space_label),
+                value = formatFileSize(capacity.totalBytes - capacity.freeBytes),
+            )
+
+            if (capacity.totalBytes > 0L) {
+                val percentage = ((capacity.totalBytes - capacity.freeBytes).toDouble() /
+                    capacity.totalBytes * 100).toInt()
+                InfoField(
+                    label = stringResource(R.string.explorer_info_usage_label),
+                    value = "$percentage%",
+                )
+            }
+        }
+    }
+
+    Spacer(modifier = Modifier.height(6.dp))
+
+    InfoCard {
+        InfoField(
+            label = stringResource(R.string.explorer_info_network_auth_label),
+            value = when (location.authType) {
+                SmbLocation.AuthType.GUEST -> stringResource(R.string.explorer_network_form_auth_guest)
+                SmbLocation.AuthType.PASSWORD -> stringResource(R.string.explorer_network_form_auth_password)
+            },
+        )
+
+        if (location.authType == SmbLocation.AuthType.PASSWORD) {
+            InfoField(
+                label = stringResource(R.string.explorer_network_form_username_label),
+                value = location.username ?: stringResource(R.string.explorer_info_unknown),
+            )
+
+            location.domain?.takeIf { it.isNotBlank() }?.let { domain ->
+                InfoField(
+                    label = stringResource(R.string.explorer_info_network_domain_label),
+                    value = domain,
+                )
+            }
+
+            // From the vault, not from the "remember password" switch: that one says what should be
+            // kept, this one says what can actually be produced. Only an available credential has
+            // something to reveal, the other two states keep the wording and no button.
+            val canReveal = item.credentials == SmbCredentialStore.Availability.AVAILABLE
+            InfoField(
+                label = stringResource(R.string.explorer_info_network_password_label),
+                value = when (item.credentials) {
+                    SmbCredentialStore.Availability.AVAILABLE -> revealed?.value ?: PASSWORD_MASK
+                    SmbCredentialStore.Availability.MISSING -> {
+                        stringResource(R.string.explorer_info_network_password_missing)
+                    }
+                    SmbCredentialStore.Availability.KEY_UNAVAILABLE -> {
+                        stringResource(R.string.explorer_info_network_password_locked)
+                    }
+                },
+                trailingContent = if (canReveal) {
+                    {
+                        IconButton(
+                            onClick = { if (revealed != null) onHidePassword() else onRevealPassword() },
+                            enabled = !isRevealing,
+                        ) {
+                            Icon(
+                                imageVector = if (revealed != null) {
+                                    Icons.TwoTone.VisibilityOff
+                                } else {
+                                    Icons.TwoTone.Visibility
+                                },
+                                contentDescription = stringResource(
+                                    if (revealed != null) R.string.explorer_info_network_password_hide_action
+                                    else R.string.explorer_info_network_password_show_action
+                                ),
+                            )
+                        }
+                    }
+                } else {
+                    null
+                },
+            )
+        }
+
+        InfoField(
+            label = stringResource(R.string.explorer_info_network_added_label),
+            value = formatDateTime(location.createdAt, DateTimeStyle.DETAILED),
+        )
+
+        InfoField(
+            label = stringResource(R.string.explorer_info_network_updated_label),
+            value = formatDateTime(location.updatedAt, DateTimeStyle.DETAILED),
+        )
+
+        InfoField(
+            label = stringResource(R.string.explorer_info_network_last_seen_label),
+            value = location.lastSeenAt
+                ?.let { formatDateTime(it, DateTimeStyle.DETAILED) }
+                ?: stringResource(R.string.explorer_info_network_last_seen_never),
         )
     }
 }
@@ -519,6 +791,91 @@ private fun ItemInfoBottomSheetPreviewSAF() {
 
     ItemInfoBottomSheet(
         context = ExplorerDialogState.ItemInfo.InfoContext.SingleSAF(mockSAF),
+        onDismiss = {},
+        onCopyToClipboard = {}
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ItemInfoBottomSheetPreviewNetworkReachable() {
+    val item = MockDataProvider.createMockStorageNetwork(
+        endpoint = SmbEndpointState("192.168.1.50", SmbEndpointState.Reachability.REACHABLE),
+    )
+
+    ItemInfoBottomSheet(
+        context = ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork(item.location.id, item),
+        onDismiss = {},
+        onCopyToClipboard = {}
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ItemInfoBottomSheetPreviewNetworkWithCapacity() {
+    val item = MockDataProvider.createMockStorageNetwork(
+        endpoint = SmbEndpointState("192.168.1.50", SmbEndpointState.Reachability.REACHABLE),
+    )
+
+    ItemInfoBottomSheet(
+        context = ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork(
+            locationId = item.location.id,
+            item = item,
+            capacity = ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork.Capacity.Data(
+                totalBytes = MockDataProvider.MockSizes.gb(8),
+                freeBytes = MockDataProvider.MockSizes.gb(3),
+            ),
+        ),
+        onDismiss = {},
+        onCopyToClipboard = {}
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ItemInfoBottomSheetPreviewNetworkRevealedPassword() {
+    val item = MockDataProvider.createMockStorageNetwork(
+        endpoint = SmbEndpointState("192.168.1.50", SmbEndpointState.Reachability.REACHABLE),
+    )
+
+    ItemInfoBottomSheet(
+        context = ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork(
+            locationId = item.location.id,
+            item = item,
+            revealed = RevealedPassword("hunter2"),
+        ),
+        onDismiss = {},
+        onCopyToClipboard = {}
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ItemInfoBottomSheetPreviewNetworkChecking() {
+    val item = MockDataProvider.createMockStorageNetwork()
+
+    ItemInfoBottomSheet(
+        context = ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork(item.location.id, item),
+        onDismiss = {},
+        onCopyToClipboard = {}
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ItemInfoBottomSheetPreviewNetworkSignInRequired() {
+    val item = MockDataProvider.createMockStorageNetwork(
+        status = ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED,
+        endpoint = SmbEndpointState("192.168.1.50", SmbEndpointState.Reachability.UNREACHABLE),
+    )
+
+    ItemInfoBottomSheet(
+        context = ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork(item.location.id, item),
         onDismiss = {},
         onCopyToClipboard = {}
     )

@@ -7,6 +7,7 @@ import eu.darken.butler.common.compose.tour.NoOpGuidedTourAccess
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.LocalWorkspacePageHosts
+import eu.darken.butler.workspace.ui.LocalWorkspaceTitles
 import eu.darken.butler.workspace.ui.WorkspacePageHostEntry
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import io.kotest.matchers.shouldBe
@@ -38,6 +39,10 @@ class WorkspacePreviewCompositionLocalsTest : ComposeTest() {
         Workspace.Type.TEMPLATES to BlankPageHost,
     )
 
+    private val workspaceTitles = mapOf(
+        Workspace.Id() to "Downloads",
+    )
+
     @Test
     fun `a captured page can read the tour controller, the page hosts and the focus flag`() {
         var tourAccess: GuidedTourAccess? = null
@@ -45,7 +50,10 @@ class WorkspacePreviewCompositionLocalsTest : ComposeTest() {
         var focused: Boolean? = null
 
         composeTestRule.setContent {
-            WorkspacePreviewCompositionLocals(pageHosts = pageHosts) {
+            WorkspacePreviewCompositionLocals(
+                pageHosts = pageHosts,
+                workspaceTitles = workspaceTitles,
+            ) {
                 tourAccess = LocalGuidedTourController.current
                 seenHosts = LocalWorkspacePageHosts.current
                 focused = LocalWorkspaceFocused.current
@@ -58,5 +66,24 @@ class WorkspacePreviewCompositionLocalsTest : ComposeTest() {
         tourAccess shouldBe NoOpGuidedTourAccess
         seenHosts shouldBe pageHosts
         focused shouldBe false
+    }
+
+    @Test
+    fun `a captured page reads the live workspace titles, not an empty registry`() {
+        var seenTitles: Map<Workspace.Id, String>? = null
+
+        composeTestRule.setContent {
+            WorkspacePreviewCompositionLocals(
+                pageHosts = pageHosts,
+                workspaceTitles = workspaceTitles,
+            ) {
+                seenTitles = LocalWorkspaceTitles.current
+            }
+        }
+        composeTestRule.waitForIdle()
+
+        // An unprovided (null) registry would omit a clipboard entry's origin, an empty one would
+        // label every live workspace as closed.
+        seenTitles shouldBe workspaceTitles
     }
 }

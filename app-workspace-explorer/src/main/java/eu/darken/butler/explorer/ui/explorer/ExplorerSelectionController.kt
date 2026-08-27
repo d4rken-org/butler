@@ -5,6 +5,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.explorer.core.ExplorerWorkspace
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
+import eu.darken.butler.explorer.core.engine.needsSignIn
 import eu.darken.butler.workspace.contracts.explorer.PickerConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -153,6 +154,13 @@ class ExplorerSelectionController(
         val pickerConfig = workspace.pickerConfig
 
         when {
+            // A location that needs a sign-in cannot be opened, so a tap that would open it goes to
+            // the form that fixes that (navigate() shows it, see ExplorerNavigationController). A
+            // picker has nothing else to offer for it, in normal browsing an existing selection
+            // still takes precedence so the row can be picked for Remove, Edit or Rename.
+            item.needsSignIn() && (pickerConfig != null || selectedItemsFlow.value.isEmpty()) -> {
+                navigate(item)
+            }
             // FileMulti mode: tap file to toggle selection
             pickerConfig?.selection is PickerConfig.Selection.FileMulti && item is ExplorerItem.File -> {
                 toggle(item)
@@ -186,6 +194,14 @@ class ExplorerSelectionController(
         }
 
         val pickerConfig = pickerConfig()
+
+        // A picker cannot return a location that needs a sign-in, so the long press goes to the form
+        // as well. In normal browsing it selects like any other row: Remove, Edit and Rename need a
+        // selected row, and a location whose credential broke is what they exist for.
+        if (pickerConfig != null && item.needsSignIn()) {
+            navigate(item)
+            return
+        }
 
         // Enable long-press selection in:
         // - Normal mode (no picker)

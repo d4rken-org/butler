@@ -281,7 +281,7 @@ class ExternalImportSweeper(
         }
 
         operationsManager.operations.first().forEach { managed ->
-            managed.operation.metadata.intendedPaths?.forEach { references.add(it.path) }
+            managed.operation.metadata.pathPlan?.allPaths?.forEach { references.add(it.path) }
         }
 
         clipboardRepo.state.first().entries.forEach { clip ->

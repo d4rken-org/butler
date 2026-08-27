@@ -52,6 +52,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
+import eu.darken.butler.common.files.SmbPath
 import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
@@ -64,6 +65,7 @@ import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionBarItem
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.icon
+import eu.darken.butler.workspace.core.operations.partitionByTrashSupport
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 
 @Composable
@@ -227,6 +229,9 @@ private fun FileOptionsContent(
         // loading) stays permissive.
         val isArchiveEntry = item.lookup.lookedUp is ArchivePath
         val isWritable = !isArchiveEntry && item.canWrite != false
+        // Handing a file to another app needs a file:// or content:// URI, which a file on a server
+        // does not have, so those entries are not offered for it.
+        val isNetworkFile = item.lookup.lookedUp is SmbPath
         // Offer Extract only for real archive files. An entry that is itself inside an archive (a nested
         // archive) can't be opened as a container, so extraction would fail.
         val isArchiveFile = remember(item.lookup.name, isArchiveEntry) {
@@ -257,7 +262,17 @@ private fun FileOptionsContent(
             FileActionRow(
                 icon = Workspace.Type.VIEWER.icon,
                 title = stringResource(R.string.explorer_file_action_open),
-                subtitle = stringResource(R.string.explorer_file_action_open_subtitle),
+                // Only a Viewer stacks inside this tab and returns here on back. A text file
+                // routes to the Editor, which is a tab of its own, making this row do exactly
+                // what the "open in new tab" row below does. Routing pinned by
+                // OpenInNewTabsUseCaseTest.
+                subtitle = stringResource(
+                    if (isTextFile) {
+                        R.string.explorer_file_action_open_in_tab_subtitle
+                    } else {
+                        R.string.explorer_file_action_open_subtitle
+                    },
+                ),
                 onClick = { onAction(ExplorerActionBarItem.File.Open(item)) },
             )
 
@@ -268,20 +283,24 @@ private fun FileOptionsContent(
                 onClick = { onAction(ExplorerActionBarItem.File.OpenInTab(item)) },
             )
 
-            FileActionRow(
-                icon = Icons.TwoTone.OpenInBrowser,
-                title = stringResource(R.string.explorer_file_action_open_with),
-                subtitle = stringResource(R.string.explorer_file_action_open_with_subtitle),
-                onClick = { onAction(ExplorerActionBarItem.File.OpenWith(item)) },
-            )
+            if (!isNetworkFile) {
+                FileActionRow(
+                    icon = Icons.TwoTone.OpenInBrowser,
+                    title = stringResource(R.string.explorer_file_action_open_with),
+                    subtitle = stringResource(R.string.explorer_file_action_open_with_subtitle),
+                    onClick = { onAction(ExplorerActionBarItem.File.OpenWith(item)) },
+                )
+            }
         }
 
-        FileActionRow(
-            icon = Icons.TwoTone.Share,
-            title = stringResource(R.string.explorer_file_action_share),
-            subtitle = stringResource(R.string.explorer_file_action_share_subtitle),
-            onClick = { onAction(ExplorerActionBarItem.File.Share(item)) },
-        )
+        if (!isNetworkFile) {
+            FileActionRow(
+                icon = Icons.TwoTone.Share,
+                title = stringResource(R.string.explorer_file_action_share),
+                subtitle = stringResource(R.string.explorer_file_action_share_subtitle),
+                onClick = { onAction(ExplorerActionBarItem.File.Share(item)) },
+            )
+        }
 
         HorizontalDivider()
 
@@ -311,18 +330,22 @@ private fun FileOptionsContent(
         HorizontalDivider()
 
         if (isWritable) {
+            // The setting can be on for a file the trash cannot hold, e.g. one on a server. Asking
+            // [partitionByTrashSupport], the same function the delete itself asks, keeps the promise
+            // made here and what actually happens from drifting apart.
+            val canTrash = trashEnabled && partitionByTrashSupport(setOf(item.path)).trashable.isNotEmpty()
             FileActionRow(
                 icon = Icons.TwoTone.Delete,
                 title = stringResource(
-                    if (trashEnabled) R.string.explorer_file_action_move_to_trash
+                    if (canTrash) R.string.explorer_file_action_move_to_trash
                     else R.string.explorer_file_action_delete
                 ),
                 subtitle = stringResource(
-                    if (trashEnabled) R.string.explorer_file_action_move_to_trash_subtitle
+                    if (canTrash) R.string.explorer_file_action_move_to_trash_subtitle
                     else R.string.explorer_file_action_delete_subtitle
                 ),
                 onClick = { onAction(ExplorerActionBarItem.File.Delete(item)) },
-                isDestructive = !trashEnabled,
+                isDestructive = !canTrash,
             )
         }
 

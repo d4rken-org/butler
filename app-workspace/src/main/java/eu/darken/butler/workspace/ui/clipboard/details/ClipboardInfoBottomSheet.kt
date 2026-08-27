@@ -35,6 +35,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -61,7 +62,11 @@ import eu.darken.butler.common.formatRelativeTime
 import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
+import eu.darken.butler.workspace.ui.LocalWorkspaceTitles
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
+import eu.darken.butler.workspace.ui.dialogs.InfoField
+import eu.darken.butler.workspace.ui.dialogs.InfoValueStyle
+import eu.darken.butler.workspace.ui.originWorkspaceLabel
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
 import kotlin.uuid.Uuid
@@ -112,13 +117,16 @@ private fun ClipboardInfoContent(
     ) {
         when (clip) {
             is ClipboardClip.Paths -> {
+                val context = LocalContext.current
+                val sources = clip.sourceLocations(context)
+
                 // Header Section
                 ClipboardInfoHeader(clip = clip)
 
                 Spacer(modifier = Modifier.height(1.dp))
 
                 // Overview Section
-                ClipboardOverviewSection(clip = clip)
+                ClipboardOverviewSection(clip = clip, sources = sources)
 
                 // Files Section
                 if (clip.paths.isNotEmpty()) {
@@ -135,6 +143,7 @@ private fun ClipboardInfoContent(
                         onNavigateToSource = onNavigateToSource,
                         onPaste = onPaste,
                         onRemove = onRemove,
+                        multipleSources = sources.size > 1,
                     )
                 }
             }
@@ -204,7 +213,7 @@ private fun ClipboardInfoHeader(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+                overflow = TextOverflow.MiddleEllipsis,
             )
         }
     }
@@ -213,6 +222,7 @@ private fun ClipboardInfoHeader(
 @Composable
 private fun ClipboardOverviewSection(
     clip: ClipboardClip.Paths,
+    sources: List<String>,
 ) {
     Card(
         colors = CardDefaults.cardColors(
@@ -222,10 +232,11 @@ private fun ClipboardOverviewSection(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
+                .padding(vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
+                modifier = Modifier.padding(horizontal = 12.dp),
                 text = stringResource(R.string.clipboard_info_overview).uppercase(),
                 style = MaterialTheme.typography.labelMedium,
                 fontFamily = FontFamily.Monospace,
@@ -233,6 +244,7 @@ private fun ClipboardOverviewSection(
             )
 
             HorizontalDivider(
+                modifier = Modifier.padding(horizontal = 12.dp),
                 thickness = 0.5.dp,
                 color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
             )
@@ -240,99 +252,57 @@ private fun ClipboardOverviewSection(
             Column(
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                // Operation type
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(
-                        text = stringResource(R.string.clipboard_info_operation),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Text(
-                        text = when (clip.mode) {
+                    InfoField(
+                        modifier = Modifier.weight(1f),
+                        label = stringResource(R.string.clipboard_info_operation),
+                        value = when (clip.mode) {
                             ClipboardClip.Paths.Mode.COPY -> stringResource(R.string.clipboard_copy)
                             ClipboardClip.Paths.Mode.CUT -> stringResource(R.string.clipboard_cut)
                         },
-                        style = MaterialTheme.typography.bodyMedium,
+                    )
+
+                    InfoField(
+                        modifier = Modifier.weight(1f),
+                        label = stringResource(R.string.clipboard_info_items),
+                        value = clip.paths.size.toString(),
                     )
                 }
 
-                // Item count
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(
-                        text = stringResource(R.string.clipboard_info_items),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Text(
-                        text = clip.paths.size.toString(),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-
-                // Source location
-                if (clip.paths.isNotEmpty()) {
-                    val sourcePath = clip.paths.first().parent
-                        ?.userReadablePath?.get(LocalContext.current)
-                        ?: "/"
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = stringResource(R.string.clipboard_info_source),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    val workspaceLabel = originWorkspaceLabel(clip.origin)
+                    if (workspaceLabel != null) {
+                        InfoField(
+                            modifier = Modifier.weight(1f),
+                            label = stringResource(R.string.clipboard_info_workspace),
+                            value = workspaceLabel,
                         )
-                        Text(
-                            text = sourcePath,
-                            style = MaterialTheme.typography.bodyMedium,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
+                    } else {
+                        Spacer(modifier = Modifier.weight(1f))
                     }
-                }
 
-                // Origin workspace
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = stringResource(R.string.clipboard_info_workspace),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Text(
-                        text = clip.origin.shortTag,
-                        style = MaterialTheme.typography.bodyMedium,
+                    InfoField(
+                        modifier = Modifier.weight(1f),
+                        label = stringResource(R.string.clipboard_info_time),
+                        value = formatRelativeTime(clip.clippedAt),
                     )
                 }
 
-                // Time timestamp
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = stringResource(R.string.clipboard_info_time),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Text(
-                        text = formatRelativeTime(clip.clippedAt),
-                        style = MaterialTheme.typography.bodyMedium,
+                if (clip.paths.isNotEmpty()) {
+                    InfoField(
+                        label = stringResource(
+                            if (sources.size == 1) {
+                                R.string.clipboard_info_source
+                            } else {
+                                R.string.clipboard_info_sources
+                            },
+                        ),
+                        value = sources.joinToString("\n"),
+                        valueStyle = InfoValueStyle.MONOSPACE,
                     )
                 }
             }
@@ -485,7 +455,7 @@ private fun ClipboardTextInfoHeader(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+                overflow = TextOverflow.MiddleEllipsis,
             )
         }
     }
@@ -503,10 +473,11 @@ private fun ClipboardTextOverviewSection(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
+                .padding(vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
+                modifier = Modifier.padding(horizontal = 12.dp),
                 text = stringResource(R.string.clipboard_info_overview).uppercase(),
                 style = MaterialTheme.typography.labelMedium,
                 fontFamily = FontFamily.Monospace,
@@ -514,6 +485,7 @@ private fun ClipboardTextOverviewSection(
             )
 
             HorizontalDivider(
+                modifier = Modifier.padding(horizontal = 12.dp),
                 thickness = 0.5.dp,
                 color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
             )
@@ -521,93 +493,48 @@ private fun ClipboardTextOverviewSection(
             Column(
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                // Character count
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(
-                        text = stringResource(R.string.clipboard_text_info_characters),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    InfoField(
+                        modifier = Modifier.weight(1f),
+                        label = stringResource(R.string.clipboard_text_info_characters),
+                        value = clip.content.length.toString(),
                     )
-                    Text(
-                        text = clip.content.length.toString(),
-                        style = MaterialTheme.typography.bodyMedium,
+
+                    InfoField(
+                        modifier = Modifier.weight(1f),
+                        label = stringResource(R.string.clipboard_text_info_lines),
+                        value = (clip.content.count { it == '\n' } + 1).toString(),
                     )
                 }
 
-                // Line count
-                val lineCount = clip.content.count { it == '\n' } + 1
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(
-                        text = stringResource(R.string.clipboard_text_info_lines),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Text(
-                        text = lineCount.toString(),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-
-                // Source file (if any)
-                clip.sourcePath?.let { sourcePath ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = stringResource(R.string.clipboard_info_source),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    val workspaceLabel = originWorkspaceLabel(clip.origin)
+                    if (workspaceLabel != null) {
+                        InfoField(
+                            modifier = Modifier.weight(1f),
+                            label = stringResource(R.string.clipboard_info_workspace),
+                            value = workspaceLabel,
                         )
-                        Text(
-                            text = sourcePath.userReadablePath.get(LocalContext.current),
-                            style = MaterialTheme.typography.bodyMedium,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
+                    } else {
+                        Spacer(modifier = Modifier.weight(1f))
                     }
-                }
 
-                // Origin workspace
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = stringResource(R.string.clipboard_info_workspace),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Text(
-                        text = clip.origin.shortTag,
-                        style = MaterialTheme.typography.bodyMedium,
+                    InfoField(
+                        modifier = Modifier.weight(1f),
+                        label = stringResource(R.string.clipboard_info_time),
+                        value = formatRelativeTime(clip.clippedAt),
                     )
                 }
 
-                // Time timestamp
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = stringResource(R.string.clipboard_info_time),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Text(
-                        text = formatRelativeTime(clip.clippedAt),
-                        style = MaterialTheme.typography.bodyMedium,
+                clip.sourcePath?.let { sourcePath ->
+                    InfoField(
+                        label = stringResource(R.string.clipboard_info_source),
+                        value = sourcePath.userReadablePath.get(LocalContext.current),
+                        valueStyle = InfoValueStyle.MONOSPACE,
                     )
                 }
             }
@@ -697,6 +624,7 @@ private fun ClipboardActionsSection(
     onNavigateToSource: (() -> Unit)? = null,
     onPaste: (() -> Unit)? = null,
     onRemove: (() -> Unit)? = null,
+    multipleSources: Boolean = false,
 ) {
     Card(
         colors = CardDefaults.cardColors(
@@ -736,7 +664,15 @@ private fun ClipboardActionsSection(
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(stringResource(R.string.clipboard_info_go_to_source))
+                        Text(
+                            stringResource(
+                                if (multipleSources) {
+                                    R.string.clipboard_info_go_to_first_source
+                                } else {
+                                    R.string.clipboard_info_go_to_source
+                                },
+                            )
+                        )
                     }
                 }
 
@@ -783,8 +719,9 @@ private fun getPathIcon(path: APathLookup<*>): ImageVector = when (path.fileType
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ClipboardInfoBottomSheetPreview() {
+    val origin = Workspace.Id(Uuid.random())
     val mockClip = ClipboardClip.Paths(
-        origin = Workspace.Id(Uuid.random()),
+        origin = origin,
         mode = ClipboardClip.Paths.Mode.COPY,
         paths = listOf(
             mockFileLookup("/storage/emulated/0/Pictures/photo1.jpg"),
@@ -795,14 +732,16 @@ private fun ClipboardInfoBottomSheetPreview() {
     )
 
     PreviewWrapper {
-        ClipboardInfoBottomSheet(
-            clip = mockClip,
-            onDismiss = {},
-            onNavigateToSource = {},
-            onPaste = {},
-            onRemove = {},
-            onCopyPath = {},
-        )
+        CompositionLocalProvider(LocalWorkspaceTitles provides mapOf(origin to "Pictures")) {
+            ClipboardInfoBottomSheet(
+                clip = mockClip,
+                onDismiss = {},
+                onNavigateToSource = {},
+                onPaste = {},
+                onRemove = {},
+                onCopyPath = {},
+            )
+        }
     }
 }
 
@@ -810,8 +749,9 @@ private fun ClipboardInfoBottomSheetPreview() {
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ClipboardInfoSingleFilePreview() {
+    val origin = Workspace.Id(Uuid.random())
     val mockClip = ClipboardClip.Paths(
-        origin = Workspace.Id(Uuid.random()),
+        origin = origin,
         mode = ClipboardClip.Paths.Mode.CUT,
         paths = listOf(
             mockFileLookup("/storage/emulated/0/Documents/important_document.pdf"),
@@ -820,13 +760,74 @@ private fun ClipboardInfoSingleFilePreview() {
     )
 
     PreviewWrapper {
-        ClipboardInfoBottomSheet(
-            clip = mockClip,
-            onDismiss = {},
-            onNavigateToSource = {},
-            onPaste = {},
-            onRemove = {},
-        )
+        CompositionLocalProvider(LocalWorkspaceTitles provides mapOf(origin to "Documents")) {
+            ClipboardInfoBottomSheet(
+                clip = mockClip,
+                onDismiss = {},
+                onNavigateToSource = {},
+                onPaste = {},
+                onRemove = {},
+            )
+        }
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ClipboardInfoLongPathPreview() {
+    val origin = Workspace.Id(Uuid.random())
+    val mockClip = ClipboardClip.Paths(
+        origin = origin,
+        mode = ClipboardClip.Paths.Mode.CUT,
+        paths = listOf(
+            mockFileLookup(
+                "/storage/emulated/0/Android/data/eu.darken.butler/files/backups/2026/quarterly-financial-review-final.pdf"
+            ),
+        ),
+        clippedAt = Clock.System.now() - 12.minutes,
+    )
+
+    PreviewWrapper {
+        CompositionLocalProvider(LocalWorkspaceTitles provides mapOf(origin to "Backups")) {
+            ClipboardInfoBottomSheet(
+                clip = mockClip,
+                onDismiss = {},
+                onNavigateToSource = {},
+                onPaste = {},
+                onRemove = {},
+            )
+        }
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ClipboardInfoMultiSourcePreview() {
+    val origin = Workspace.Id(Uuid.random())
+    val mockClip = ClipboardClip.Paths(
+        origin = origin,
+        mode = ClipboardClip.Paths.Mode.COPY,
+        paths = listOf(
+            mockFileLookup("/storage/emulated/0/Pictures/photo1.jpg"),
+            mockFileLookup("/storage/emulated/0/Documents/report.pdf"),
+            mockFileLookup("/storage/emulated/0/Download/installer.apk"),
+        ),
+        clippedAt = Clock.System.now() - 7.minutes,
+    )
+
+    PreviewWrapper {
+        CompositionLocalProvider(LocalWorkspaceTitles provides mapOf(origin to "Home")) {
+            ClipboardInfoBottomSheet(
+                clip = mockClip,
+                onDismiss = {},
+                onNavigateToSource = {},
+                onPaste = {},
+                onRemove = {},
+                onCopyPath = {},
+            )
+        }
     }
 }
 
@@ -834,19 +835,22 @@ private fun ClipboardInfoSingleFilePreview() {
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ClipboardInfoTextPreview() {
+    val origin = Workspace.Id(Uuid.random())
     val mockClip = ClipboardClip.Text(
-        origin = Workspace.Id(Uuid.random()),
+        origin = origin,
         content = "Hello, this is a sample text snippet that was copied from the editor.\nIt contains multiple lines.\nAnd more text here.",
         sourcePath = LocalPath.build("/storage/emulated/0/Documents/notes.txt"),
         clippedAt = Clock.System.now() - 3.minutes,
     )
 
     PreviewWrapper {
-        ClipboardInfoBottomSheet(
-            clip = mockClip,
-            onDismiss = {},
-            onPaste = {},
-            onRemove = {},
-        )
+        CompositionLocalProvider(LocalWorkspaceTitles provides mapOf(origin to "Notes")) {
+            ClipboardInfoBottomSheet(
+                clip = mockClip,
+                onDismiss = {},
+                onPaste = {},
+                onRemove = {},
+            )
+        }
     }
 }

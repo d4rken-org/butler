@@ -7,6 +7,7 @@ import eu.darken.butler.common.files.local.operations.core.PerformanceHistory
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.operations.OperationPathPlan
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Instant
 
@@ -18,6 +19,7 @@ data class OperationDisplay(
     val description: CaString,
     val state: State = State.Queued,
     val canCancel: Boolean = false,
+    val pathPlan: OperationPathPlan? = null,
 ) {
     sealed interface State {
         data object Queued : State
@@ -58,6 +60,7 @@ fun ManagedOperation.toDisplayModel(): OperationDisplay {
         title = metadata.title,
         description = metadata.description,
         canCancel = canCancel,
+        pathPlan = metadata.pathPlan,
         state = when (state) {
             is Operation.State.Queued -> OperationDisplay.State.Queued
             is Operation.State.Active -> {

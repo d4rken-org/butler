@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Add
 import androidx.compose.material.icons.twotone.Close
@@ -15,17 +14,12 @@ import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults
-import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,9 +34,10 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
+import eu.darken.butler.common.compose.tour.guidedTourTarget
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.manager.tour.WorkspaceManagerTour
 import eu.darken.butler.workspace.ui.template.QuickCreateItem
-import kotlinx.coroutines.launch
 
 @Composable
 fun WorkspaceManagerFAB(
@@ -52,75 +47,37 @@ fun WorkspaceManagerFAB(
     onQuickCreate: (QuickCreateItem) -> Unit,
     onShowCloseAllDialog: () -> Unit,
     modifier: Modifier = Modifier,
-    showLongPressHint: Boolean = true,
-    onDismissLongPressHint: () -> Unit = {},
 ) {
     var showDropdown by remember { mutableStateOf(false) }
-    var showLongPressHintThisSession by remember { mutableStateOf(showLongPressHint) }
     val hapticFeedback = LocalHapticFeedback.current
-    val tooltipState = rememberTooltipState(isPersistent = true)
-    val scope = rememberCoroutineScope()
 
     Box(modifier = modifier) {
-        TooltipBox(
-            positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(
-                spacingBetweenTooltipAndAnchor = 16.dp
-            ),
-            tooltip = {
-                PlainTooltip(
-                    modifier = Modifier.widthIn(max = 280.dp)
-                ) {
-                    Text(stringResource(R.string.workspace_fab_longpress_hint))
-                }
-            },
-            state = tooltipState,
-            enableUserInput = false,
+        Surface(
+            modifier = Modifier.guidedTourTarget(WorkspaceManagerTour.ADD_TAB_TARGET),
+            shape = FloatingActionButtonDefaults.extendedFabShape,
+            color = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            tonalElevation = 6.dp,
+            shadowElevation = 6.dp,
         ) {
-            Surface(
-                shape = FloatingActionButtonDefaults.extendedFabShape,
-                color = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                tonalElevation = 6.dp,
-                shadowElevation = 6.dp,
-            ) {
-                Row(
-                    modifier = Modifier
-                        .combinedClickable(
-                            onClick = {
-                                if (showLongPressHint) {
-                                    if (showLongPressHintThisSession) {
-                                        scope.launch { tooltipState.show() }
-                                        showLongPressHintThisSession = false
-                                    } else {
-                                        onDismissLongPressHint()
-                                        scope.launch { tooltipState.dismiss() }
-                                    }
-                                }
-                                // Always execute action
-                                onCreateWorkspace(Workspace.Type.TEMPLATES)
-                            },
-                            onLongClick = {
-                                // Long press: dismiss tooltip if showing, show dropdown
-                                if (showLongPressHint) {
-                                    onDismissLongPressHint()
-                                    scope.launch { tooltipState.dismiss() }
-                                    showLongPressHintThisSession = false
-                                }
-
-                                hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                                showDropdown = true
-                            }
-                        )
-                        .padding(horizontal = 16.dp, vertical = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.TwoTone.Add,
-                        contentDescription = null
+            Row(
+                modifier = Modifier
+                    .combinedClickable(
+                        onClick = { onCreateWorkspace(Workspace.Type.TEMPLATES) },
+                        onLongClick = {
+                            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                            showDropdown = true
+                        }
                     )
-                    Text(stringResource(R.string.workspace_fab_add_workspace))
-                }
+                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.TwoTone.Add,
+                    contentDescription = null
+                )
+                Text(stringResource(R.string.workspace_fab_add_workspace))
             }
         }
 
@@ -178,7 +135,5 @@ private fun WorkspaceManagerFABPreview() {
         onCreateWorkspace = {},
         onQuickCreate = {},
         onShowCloseAllDialog = {},
-        showLongPressHint = true,
-        onDismissLongPressHint = {}
     )
 }

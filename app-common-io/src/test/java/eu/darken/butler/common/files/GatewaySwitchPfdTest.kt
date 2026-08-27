@@ -8,6 +8,7 @@ import eu.darken.butler.common.files.io.ProxyPfdFactory
 import eu.darken.butler.common.files.local.LocalGateway
 import eu.darken.butler.common.files.saf.SAFGateway
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
+import eu.darken.butler.common.files.smb.SmbGateway
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
@@ -31,6 +32,7 @@ import org.robolectric.annotation.Config
 import testhelpers.BaseTest
 import testhelpers.EmptyApp
 import testhelpers.coroutine.TestDispatcherProvider
+import kotlin.uuid.Uuid
 
 /**
  * Covers which lane [GatewaySwitch.openReadPFD] serves a path from, and that no descriptor is left
@@ -53,6 +55,7 @@ class GatewaySwitchPfdTest : BaseTest() {
     private lateinit var localGateway: LocalGateway
     private lateinit var safGateway: SAFGateway
     private lateinit var archiveGateway: ArchiveGateway
+    private lateinit var smbGateway: SmbGateway
     private lateinit var safLocationManager: SAFLocationManager
     private lateinit var proxyPfdFactory: ProxyPfdFactory
     private lateinit var gatewaySwitch: GatewaySwitch
@@ -62,6 +65,7 @@ class GatewaySwitchPfdTest : BaseTest() {
         localGateway = mockk(relaxed = true)
         safGateway = mockk(relaxed = true)
         archiveGateway = mockk(relaxed = true)
+        smbGateway = mockk(relaxed = true)
         safLocationManager = mockk(relaxed = true)
         proxyPfdFactory = mockk(relaxed = true)
         gatewaySwitch = GatewaySwitch(
@@ -70,6 +74,7 @@ class GatewaySwitchPfdTest : BaseTest() {
             safGateway = safGateway,
             localGateway = localGateway,
             archiveGateway = archiveGateway,
+            smbGateway = smbGateway,
             safLocationManager = safLocationManager,
             proxyPfdFactory = proxyPfdFactory,
         )
@@ -122,6 +127,20 @@ class GatewaySwitchPfdTest : BaseTest() {
         every { proxyPfdFactory.create(handle, "r") } throws IllegalStateException("no proxy fd")
 
         gatewaySwitch.openReadPFD(path) shouldBe null
+    }
+
+    @Test
+    fun `a network file is served through the proxy lane`() = runTest {
+        val path = SmbPath(Uuid.parse("11111111-2222-3333-4444-555555555555"), listOf("a.pdf"))
+        val handle = mockk<FileHandle>(relaxed = true)
+        val proxyPfd = seekablePfd()
+        coEvery { smbGateway.file(path, false) } returns handle
+        every { proxyPfdFactory.create(handle, "r") } returns proxyPfd
+
+        gatewaySwitch.openReadPFD(path) shouldBe proxyPfd
+
+        coVerify(exactly = 1) { smbGateway.file(path, false) }
+        verify(exactly = 1) { proxyPfdFactory.create(handle, "r") }
     }
 
     @Test
@@ -189,6 +208,7 @@ class GatewaySwitchPfdTest : BaseTest() {
             safGateway = safGateway,
             localGateway = localGateway,
             archiveGateway = archiveGateway,
+            smbGateway = smbGateway,
             safLocationManager = safLocationManager,
             proxyPfdFactory = proxyPfdFactory,
         )

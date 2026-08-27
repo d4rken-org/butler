@@ -17,6 +17,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.files.SmbPath
 import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.viewer.R
 import eu.darken.butler.viewer.core.ViewerContent
@@ -28,6 +29,7 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import io.kotest.matchers.shouldBe
 import org.junit.Test
 import testhelpers.ComposeTest
+import kotlin.uuid.Uuid
 import eu.darken.butler.common.R as CommonR
 
 class ViewerWorkspacePageTest : ComposeTest() {
@@ -123,6 +125,26 @@ class ViewerWorkspacePageTest : ComposeTest() {
 
         viewerActions(ViewerSource.Stored(safPath), trashEnabled = true)
             .filterIsInstance<ViewerActionBarItem.Delete>().single().isDestructive shouldBe true
+    }
+
+    @Test
+    fun `a file on a network share is not offered to other apps`() {
+        val smbPath = SmbPath(Uuid.parse("11111111-2222-3333-4444-555555555555"), listOf("notes.txt"))
+
+        val networkActions = viewerActions(ViewerSource.Stored(smbPath), trashEnabled = false)
+        networkActions.contains(ViewerActionBarItem.OpenWith) shouldBe false
+        networkActions.contains(ViewerActionBarItem.Share) shouldBe false
+        networkActions.contains(ViewerActionBarItem.Copy) shouldBe true
+        networkActions.contains(ViewerActionBarItem.Cut) shouldBe true
+        networkActions.filterIsInstance<ViewerActionBarItem.OpenLocation>().single().isEnabled shouldBe true
+        networkActions.filterIsInstance<ViewerActionBarItem.Delete>().size shouldBe 1
+
+        val localActions = viewerActions(
+            ViewerSource.Stored(LocalPath.build("/storage/emulated/0/Documents/notes.txt")),
+            trashEnabled = false,
+        )
+        localActions.contains(ViewerActionBarItem.OpenWith) shouldBe true
+        localActions.contains(ViewerActionBarItem.Share) shouldBe true
     }
 
     private fun unsupportedState(content: ViewerContent) = ViewerWorkspaceViewModel.State.Ready(

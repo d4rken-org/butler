@@ -1773,6 +1773,290 @@ class PaneLayerHostTest : ComposeTest() {
         composeTestRule.onNodeWithTag(TAG_PANE_HOVER_BARRIER).assertDoesNotExist()
     }
 
+    /**
+     * A pane that withholds presses answers a down by consuming it and by doing nothing else.
+     *
+     * Each of the three "nothing else" parts is its own defect if it slips: a focus request commits
+     * the pane the user has not chosen, a forced focus clear dismisses the IME with nothing left to
+     * restore it, and a pulse tells the user a press was taken when none was.
+     */
+    @Test
+    fun `a press into a pane that withholds presses does nothing at all`() {
+        var clicked = 0
+        var paneFocusRequests = 0
+        var elsewhereHasFocus = false
+        val elsewhereFocus = FocusRequester()
+
+        composeTestRule.mainClock.autoAdvance = false
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                Row {
+                    Box(
+                        modifier = Modifier
+                            .size(24.dp)
+                            .focusRequester(elsewhereFocus)
+                            .onFocusChanged { elsewhereHasFocus = it.isFocused }
+                            .focusable(),
+                    )
+                    CompositionLocalProvider(
+                        LocalWorkspaceFocusRequest provides { paneFocusRequests++ },
+                    ) {
+                        PaneLayerHost(paneFocused = false, allowPresses = { false }) {
+                            PaneLayer(rank = PaneLayerRank.CONTENT, modal = false) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(48.dp)
+                                        .testTag(PRESS_TARGET_TAG)
+                                        .clickable { clicked++ },
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        composeTestRule.mainClock.advanceTimeByFrame()
+        composeTestRule.runOnIdle { elsewhereFocus.requestFocus() }
+        composeTestRule.mainClock.advanceTimeByFrame()
+        composeTestRule.runOnIdle { elsewhereHasFocus shouldBe true }
+
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG).performClick()
+        // Far enough for a pulse to have composed, far short of one having faded out again
+        repeat(PULSE_COMPOSE_FRAMES) { composeTestRule.mainClock.advanceTimeByFrame() }
+
+        composeTestRule.runOnIdle {
+            clicked shouldBe 0
+            paneFocusRequests shouldBe 0
+            elsewhereHasFocus shouldBe true
+        }
+        composeTestRule.onNodeWithTag(TAG_PANE_FOCUS_PULSE).assertDoesNotExist()
+    }
+
+    /**
+     * With click-to-focus off the boundary consumes nothing of its own accord, so a press reaches
+     * the content — and content that takes keyboard focus reaches the pane through the *focus
+     * arrival* path, which the gate deliberately does not cover. A press that got that far would
+     * therefore commit the pane anyway, by the back door.
+     *
+     * The target is a real focusable, not a click counter: a counter stays at zero whether the
+     * press was withheld or merely not counted, and would pass without pinning that door shut.
+     *
+     * The last two steps are the control. A programmatic focus request under the very same closed
+     * gate still reaches the pane, so "no request arrived" above is about the press being withheld
+     * and not about the arrival path being broken for everyone.
+     */
+    @Test
+    fun `a withheld press cannot reach content that would take keyboard focus`() {
+        var fieldClicks = 0
+        var fieldHasFocus = false
+        var paneFocusRequests = 0
+        var elsewhereHasFocus = false
+        val elsewhereFocus = FocusRequester()
+        val fieldFocus = FocusRequester()
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                Row {
+                    Box(
+                        modifier = Modifier
+                            .size(24.dp)
+                            .focusRequester(elsewhereFocus)
+                            .onFocusChanged { elsewhereHasFocus = it.isFocused }
+                            .focusable(),
+                    )
+                    CompositionLocalProvider(
+                        LocalWorkspaceFocusRequest provides { paneFocusRequests++ },
+                    ) {
+                        PaneLayerHost(
+                            paneFocused = false,
+                            clickToFocus = false,
+                            allowPresses = { false },
+                        ) {
+                            PaneLayer(rank = PaneLayerRank.CONTENT, modal = false) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(48.dp)
+                                        .testTag(PRESS_TARGET_TAG)
+                                        .focusRequester(fieldFocus)
+                                        .onFocusChanged { fieldHasFocus = it.isFocused }
+                                        .focusable()
+                                        .clickable {
+                                            fieldClicks++
+                                            fieldFocus.requestFocus()
+                                        },
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        composeTestRule.runOnIdle { elsewhereFocus.requestFocus() }
+        composeTestRule.runOnIdle { elsewhereHasFocus shouldBe true }
+
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG).performClick()
+        composeTestRule.waitForIdle()
+
+        composeTestRule.runOnIdle {
+            fieldClicks shouldBe 0
+            fieldHasFocus shouldBe false
+            elsewhereHasFocus shouldBe true
+            paneFocusRequests shouldBe 0
+        }
+
+        composeTestRule.runOnIdle { fieldFocus.requestFocus() }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.runOnIdle {
+            fieldHasFocus shouldBe true
+            (paneFocusRequests > 0) shouldBe true
+        }
+    }
+
+    /**
+     * Keyboard traversal into a pane the pager is not resting on legitimately wants the pager to
+     * follow, and a dropped arrival request is not retried — it waits out its timeout and then
+     * gives the focus up. So the arrival path stays ungated while presses are withheld.
+     */
+    @Test
+    fun `focus arriving while presses are withheld still asks for the pane`() {
+        var paneFocusRequests = 0
+        var fieldHasFocus = false
+        val fieldFocus = FocusRequester()
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                CompositionLocalProvider(
+                    LocalWorkspaceFocusRequest provides { paneFocusRequests++ },
+                ) {
+                    PaneLayerHost(
+                        modifier = Modifier.fillMaxSize(),
+                        paneFocused = false,
+                        allowPresses = { false },
+                    ) {
+                        PaneLayer(rank = PaneLayerRank.CONTENT, modal = false) {
+                            Box(
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .focusRequester(fieldFocus)
+                                    .onFocusChanged { fieldHasFocus = it.isFocused }
+                                    .focusable(),
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        composeTestRule.runOnIdle { fieldFocus.requestFocus() }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.runOnIdle {
+            fieldHasFocus shouldBe true
+            (paneFocusRequests > 0) shouldBe true
+        }
+    }
+
+    /**
+     * The control for the two tests above: the very same press on the very same target lands once
+     * the gate opens, so "nothing happened" there is about the gate and not about the press having
+     * been aimed at something that never answers.
+     */
+    @Test
+    fun `the same press lands once the pane allows presses again`() {
+        var allowPresses by mutableStateOf(false)
+        var clicked = 0
+        var paneFocusRequests = 0
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                CompositionLocalProvider(
+                    LocalWorkspaceFocusRequest provides { paneFocusRequests++ },
+                ) {
+                    PaneLayerHost(
+                        modifier = Modifier.fillMaxSize(),
+                        paneFocused = false,
+                        clickToFocus = false,
+                        allowPresses = { allowPresses },
+                    ) {
+                        PaneLayer(rank = PaneLayerRank.CONTENT, modal = false) {
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .testTag(PRESS_TARGET_TAG)
+                                    .clickable { clicked++ },
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG).performClick()
+        composeTestRule.waitForIdle()
+        composeTestRule.runOnIdle {
+            clicked shouldBe 0
+            paneFocusRequests shouldBe 0
+        }
+
+        composeTestRule.runOnIdle { allowPresses = true }
+
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG).performClick()
+        composeTestRule.waitForIdle()
+
+        composeTestRule.runOnIdle {
+            clicked shouldBe 1
+            paneFocusRequests shouldBe 1
+        }
+    }
+
+    /**
+     * A host with no [LocalWorkspaceFocusRequest] above it still withholds presses. Nothing to hand
+     * pane focus to is a reason to skip the hand-over, not a reason to let a press through that the
+     * pane said it cannot answer for.
+     *
+     * The second half is the control: the same press on the same target lands once the gate opens,
+     * so the suppression above is the gate and not the missing provider making the target inert.
+     */
+    @Test
+    fun `presses are withheld even with no pane focus request in scope`() {
+        var allowPresses by mutableStateOf(false)
+        var clicked = 0
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                PaneLayerHost(
+                    modifier = Modifier.fillMaxSize(),
+                    paneFocused = false,
+                    clickToFocus = false,
+                    allowPresses = { allowPresses },
+                ) {
+                    PaneLayer(rank = PaneLayerRank.CONTENT, modal = false) {
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .testTag(PRESS_TARGET_TAG)
+                                .clickable { clicked++ },
+                        )
+                    }
+                }
+            }
+        }
+
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG).performClick()
+        composeTestRule.waitForIdle()
+        composeTestRule.runOnIdle { clicked shouldBe 0 }
+
+        composeTestRule.runOnIdle { allowPresses = true }
+
+        composeTestRule.onNodeWithTag(PRESS_TARGET_TAG).performClick()
+        composeTestRule.waitForIdle()
+        composeTestRule.runOnIdle { clicked shouldBe 1 }
+    }
+
     companion object {
         private const val PULSE_DURATION_MS = 420L
         private const val PULSE_COMPOSE_FRAMES = 4

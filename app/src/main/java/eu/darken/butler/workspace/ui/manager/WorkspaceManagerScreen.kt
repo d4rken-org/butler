@@ -41,7 +41,6 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.compose.ScrollPop
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.actions.WorkspaceActionBar
 import eu.darken.butler.workspace.ui.dialogs.WorkspaceRenameDialog
@@ -64,7 +63,6 @@ fun WorkspaceManagerScreen(
     onQuickCreate: (QuickCreateItem) -> Unit,
     onNavigateBack: () -> Unit,
     onDismissBadgeExplanation: () -> Unit,
-    onDismissLongPressHint: () -> Unit,
     onCloseAllWorkspaces: () -> Unit,
     onStartSelection: (Workspace.Id) -> Unit = {},
     onToggleSelection: (Workspace.Id) -> Unit = {},
@@ -190,8 +188,6 @@ fun WorkspaceManagerScreen(
                             onCreateWorkspace = onCreateWorkspace,
                             onQuickCreate = onQuickCreate,
                             onShowCloseAllDialog = { showCloseAllDialog = true },
-                            showLongPressHint = state.showLongPressHint,
-                            onDismissLongPressHint = onDismissLongPressHint,
                         )
                     }
                 }
@@ -337,7 +333,6 @@ private fun WorkspaceManagerScreenPreview() {
         onQuickCreate = {},
         onNavigateBack = {},
         onDismissBadgeExplanation = {},
-        onDismissLongPressHint = {},
         onCloseAllWorkspaces = {}
     )
 }
@@ -361,7 +356,6 @@ private fun WorkspaceManagerScreenEmptyPreview() {
         onQuickCreate = {},
         onNavigateBack = {},
         onDismissBadgeExplanation = {},
-        onDismissLongPressHint = {},
         onCloseAllWorkspaces = {}
     )
 }
@@ -412,7 +406,6 @@ private fun WorkspaceManagerScreenSelectionPreview() {
         onQuickCreate = {},
         onNavigateBack = {},
         onDismissBadgeExplanation = {},
-        onDismissLongPressHint = {},
         onCloseAllWorkspaces = {},
     )
 }

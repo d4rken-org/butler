@@ -51,6 +51,7 @@ class WorkspaceGridItemTest : ComposeTest() {
         canPause: Boolean = false,
         isRecovery: Boolean = false,
         stackDepth: Int = 0,
+        hasUnsavedChanges: Boolean = false,
     ): WorkspaceManagerViewModel.WorkspaceItem {
         val id = Workspace.Id()
         return WorkspaceManagerViewModel.WorkspaceItem(
@@ -65,7 +66,48 @@ class WorkspaceGridItemTest : ComposeTest() {
             isPaused = isPaused,
             canPause = canPause,
             stackDepth = stackDepth,
+            hasUnsavedChanges = hasUnsavedChanges,
         )
+    }
+
+    @Test
+    fun `a dirty tab is marked on the card`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                WorkspaceGridItem(
+                    reorderableScope = noopReorderableScope,
+                    workspace = item(hasUnsavedChanges = true),
+                    onClose = {},
+                    onSelect = {},
+                    livePreview = false,
+                )
+            }
+        }
+
+        composeTestRule
+            .onAllNodesWithTag(TEST_TAG_WORKSPACE_CARD_UNSAVED, useUnmergedTree = true)
+            .assertCountEquals(1)
+        // The marker is icon-only, so the description is the whole of what TalkBack can announce
+        composeTestRule.onNodeWithContentDescription("Unsaved changes").assertExists()
+    }
+
+    @Test
+    fun `a clean tab carries no unsaved marker`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                WorkspaceGridItem(
+                    reorderableScope = noopReorderableScope,
+                    workspace = item(),
+                    onClose = {},
+                    onSelect = {},
+                    livePreview = false,
+                )
+            }
+        }
+
+        composeTestRule
+            .onAllNodesWithTag(TEST_TAG_WORKSPACE_CARD_UNSAVED, useUnmergedTree = true)
+            .assertCountEquals(0)
     }
 
     @Test

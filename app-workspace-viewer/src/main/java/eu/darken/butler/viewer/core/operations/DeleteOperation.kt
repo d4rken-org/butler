@@ -16,6 +16,7 @@ import eu.darken.butler.workspace.core.filesystem.FileSystemHinter
 import eu.darken.butler.workspace.core.operations.CoreDeleteExecutor
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.operations.OperationPathPlan
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.onEach
@@ -48,7 +49,9 @@ class DeleteOperation @AssistedInject constructor(
             )
         }
         override val kind = Operation.Metadata.Kind.DELETE
-        override val intendedPaths = command.targets
+        override val pathPlan = OperationPathPlan(
+            targets = command.targets.toList(),
+        )
     }
 
     override fun perform(

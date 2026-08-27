@@ -57,14 +57,13 @@ class WorkspaceManagerViewModel @Inject constructor(
     val state = combine(
         workspaceRepo.state,
         workspaceSettings.showTipBadgeExplanation.flow,
-        workspaceSettings.showTipFabLongPress.flow,
         workspaceSettings.livePreview.flow,
         workspacePageManager.state,
         filterOperationsFlow,
         filterAttentionFlow,
         quickCreateItems,
         selectionFlow,
-    ) { repoState, showBadge, showFabLongPressHint, livePreview, pageManagerState, filterOps, filterAtt, quickCreate, selection ->
+    ) { repoState, showBadge, livePreview, pageManagerState, filterOps, filterAtt, quickCreate, selection ->
         val stacks = WorkspaceStacks(repoState.infos)
         val focusedId = pageManagerState.focusedWorkspaceId
         val topChains = stacks.topChainByRoot(focusedId)
@@ -94,17 +93,16 @@ class WorkspaceManagerViewModel @Inject constructor(
                     paneNumber = visibleAssignments.entries.find { it.value == owner.id }?.key,
                     operationCount = members.sumOf { it.operationCount },
                     attentionCount = members.sumOf { it.attentionCount },
+                    hasUnsavedChanges = members.any { it.hasUnsavedChanges },
                     isSubWorkspace = owner.isSubWorkspace,
                     isRecovery = stacks.recoveryUnits.containsKey(owner.id),
                     isPaused = owner.isPaused,
                     canPause = owner.canBePausedManually(stacks, focusedId),
                     stackDepth = chain?.modals?.size ?: 0,
-                    hasUnsavedChanges = members.any { it.hasUnsavedChanges },
                 )
             },
             useLivePreview = livePreview,
             showBadgeExplanation = showBadge,
-            showLongPressHint = showFabLongPressHint,
             operationsCount = repoState.operationCount,
             attentionCount = repoState.attentionCount,
             currentPaneCount = pageManagerState.currentPaneCount,
@@ -251,10 +249,6 @@ class WorkspaceManagerViewModel @Inject constructor(
         workspaceSettings.showTipBadgeExplanation.value(false)
     }
 
-    fun dismissLongPressHint() = launch {
-        workspaceSettings.showTipFabLongPress.value(false)
-    }
-
     fun closeAllWorkspaces() = launch {
         log(tag) { "closeAllWorkspaces()" }
         workspaceRepo.execute(WorkspaceAction.CloseAll)
@@ -380,7 +374,6 @@ class WorkspaceManagerViewModel @Inject constructor(
     data class State(
         val workspaces: List<WorkspaceItem> = emptyList(),
         val showBadgeExplanation: Boolean = true,
-        val showLongPressHint: Boolean = true,
         val useLivePreview: Boolean = true,
         val operationsCount: Int = 0,
         val attentionCount: Int = 0,
@@ -449,6 +442,12 @@ class WorkspaceManagerViewModel @Inject constructor(
         val paneNumber: Int? = null,
         val operationCount: Int = 0,
         val attentionCount: Int = 0,
+        /**
+         * True when any member of the unit holds unsaved in-memory changes. Deliberately separate
+         * from [attentionCount]: editing without having saved yet is a normal working state, not a
+         * fault, so it must not glow like one.
+         */
+        val hasUnsavedChanges: Boolean = false,
         val customTitle: String? = null,
         /**
          * A stacked workspace only ever gets a card of its own when its ownership cannot be resolved
@@ -465,7 +464,5 @@ class WorkspaceManagerViewModel @Inject constructor(
         val canPause: Boolean = false,
         /** How many sub-workspaces are stacked on this tab; 0 for a plain tab. Drives the stack badge. */
         val stackDepth: Int = 0,
-        /** True when any member of the unit holds unsaved work; drives the batch-close warning. */
-        val hasUnsavedChanges: Boolean = false,
     )
 }

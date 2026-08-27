@@ -15,9 +15,11 @@ import eu.darken.butler.common.storage.StorageVolumeX
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
@@ -48,6 +50,7 @@ class SAFLocationManagerImplTest : BaseTest() {
     private lateinit var contentResolver: ContentResolver
     private lateinit var database: SAFLocationDatabase
     private lateinit var dao: SAFLocationsDao
+    private lateinit var preferences: MutableStateFlow<List<SAFLocationEntity>>
     private lateinit var dispatcherProvider: DispatcherProvider
     private lateinit var storageManager2: StorageManager2
     private lateinit var manager: SAFLocationManagerImpl
@@ -59,12 +62,17 @@ class SAFLocationManagerImplTest : BaseTest() {
         context = mockk(relaxed = true)
         contentResolver = mockk(relaxed = true)
 
-        // Mock DAO with empty preferences
+        // Mock DAO backed by an in-memory table, upserts land in the preference flow like Room's would
+        preferences = MutableStateFlow(emptyList())
         dao = mockk(relaxed = true) {
-            // Return empty list - no stored preferences
-            every { getAllPreferences() } returns flowOf(emptyList<SAFLocationEntity>())
+            every { getAllPreferences() } returns preferences
             // Mock cleanup method to do nothing in tests
             coEvery { cleanup(any()) } returns Unit
+            coEvery { getPreference(any()) } answers { preferences.value.find { it.locationId == firstArg() } }
+            coEvery { upsert(any()) } answers {
+                val entity = firstArg<SAFLocationEntity>()
+                preferences.value = preferences.value.filterNot { it.locationId == entity.locationId } + entity
+            }
         }
 
         // Mock database to return the DAO
@@ -568,6 +576,84 @@ class SAFLocationManagerImplTest : BaseTest() {
         localPath!!.path shouldBe "/storage/emulated/0/Pictures/photo.jpg"
     }
 
+    // --- Preference Update Tests ---
+
+    /**
+     * Seeding a label on a location that has none writes it through.
+     */
+    @Test
+    fun `seedLocationLabel writes when no label is stored`() {
+        val locationId = grantedLocationId()
+
+        var seeded: String? = null
+        val seed = testScope.launch { seeded = manager.seedLocationLabel(locationId, "Termux") }
+        testDispatcher.scheduler.runCurrent()
+
+        seed.isCompleted shouldBe true
+        seeded shouldBe "Termux"
+        preferences.value.single().userLabel shouldBe "Termux"
+    }
+
+    /**
+     * A re-grant must not clobber a name the user set, not even on a hidden location
+     * (those are absent from the public `locations` flow).
+     */
+    @Test
+    fun `seedLocationLabel keeps an existing label`() {
+        val locationId = grantedLocationId()
+        preferences.value = listOf(SAFLocationEntity(locationId, userLabel = "My Termux", isHidden = true))
+
+        var seeded: String? = null
+        val seed = testScope.launch { seeded = manager.seedLocationLabel(locationId, "Termux") }
+        testDispatcher.scheduler.runCurrent()
+
+        seed.isCompleted shouldBe true
+        seeded shouldBe "My Termux"
+        coVerify(exactly = 0) { dao.upsert(any()) }
+        preferences.value.single().userLabel shouldBe "My Termux"
+    }
+
+    /**
+     * A cleared label is a choice, not an absence: the stored row must survive a re-grant.
+     */
+    @Test
+    fun `seedLocationLabel keeps a deliberately cleared label`() {
+        val locationId = grantedLocationId()
+        preferences.value = listOf(SAFLocationEntity(locationId, userLabel = null, isHidden = true))
+
+        var seeded: String? = "unset"
+        val seed = testScope.launch { seeded = manager.seedLocationLabel(locationId, "Termux") }
+        testDispatcher.scheduler.runCurrent()
+
+        seed.isCompleted shouldBe true
+        seeded shouldBe null
+        coVerify(exactly = 0) { dao.upsert(any()) }
+        preferences.value.single() shouldBe SAFLocationEntity(locationId, userLabel = null, isHidden = true)
+    }
+
+    /**
+     * Callers refresh right after a label change, so the write must not return before
+     * the location cache carries it.
+     */
+    @Test
+    fun `label update waits for the cache to catch up`() {
+        val locationId = grantedLocationId()
+
+        var written: SAFLocationEntity? = null
+        coEvery { dao.upsert(any()) } answers { written = firstArg() }
+
+        val update = testScope.launch { manager.setLocationLabel(locationId, "Termux") }
+        testDispatcher.scheduler.runCurrent()
+
+        written!!.userLabel shouldBe "Termux"
+        update.isCompleted shouldBe false
+
+        preferences.value = listOf(written!!)
+        testDispatcher.scheduler.runCurrent()
+
+        update.isCompleted shouldBe true
+    }
+
     // --- Helper Methods ---
 
     /**
@@ -585,6 +671,16 @@ class SAFLocationManagerImplTest : BaseTest() {
             every { isWritePermission } returns write
             every { this@mockk.persistedTime } returns persistedTime
         }
+    }
+
+    /**
+     * Register a single granted permission and return its location ID (an MD5 of the tree URI).
+     */
+    private fun grantedLocationId(): String {
+        val permissionUri = Uri.parse("content://$baseAuthority/tree/primary%3AFolderA")
+        every { contentResolver.persistedUriPermissions } returns listOf(mockUriPermission(permissionUri))
+        refreshCache()
+        return manager.findPermissionFor(SAFPath.build(permissionUri))!!.location.id
     }
 
     /**

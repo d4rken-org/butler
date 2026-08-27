@@ -5,6 +5,7 @@ import android.os.Environment
 import android.os.StatFs
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Delete
+import androidx.compose.material.icons.twotone.Lan
 import androidx.compose.material.icons.twotone.PhoneAndroid
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -15,6 +16,7 @@ import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.smb.location.SmbLocationManager
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.common.trash.TrashRepo
@@ -31,6 +33,7 @@ class HomeLocationLoader @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
     private val trashRepo: TrashRepo,
     private val trashSettings: TrashSettings,
+    private val smbLocationManager: SmbLocationManager,
 ) {
 
     private val tag = logTag("Explorer", "Workspace", workspaceId.shortTag, "HomeLoader")
@@ -60,6 +63,7 @@ class HomeLocationLoader @AssistedInject constructor(
         val trashSize = trashItems.sumOf { it.size }
         val trashCount = trashItems.size
         val trashEnabled = trashSettings.enabled.value()
+        val networkCount = smbLocationManager.locations.first().size
 
         val shortcuts = buildList {
             add(
@@ -69,6 +73,22 @@ class HomeLocationLoader @AssistedInject constructor(
                     displayName = R.string.explorer_navigation_device.toCaString(),
                     target = ExplorerNavigation.Target.Device,
                     subtitle = caString { "${Build.MODEL} (Android ${Build.VERSION.RELEASE}, API ${Build.VERSION.SDK_INT})" },
+                )
+            )
+
+            add(
+                ExplorerItem.Shortcut(
+                    shortcutId = "network",
+                    displayIcon = Icons.TwoTone.Lan,
+                    displayName = R.string.explorer_navigation_network.toCaString(),
+                    target = ExplorerNavigation.Target.Network,
+                    subtitle = caString { cx ->
+                        cx.resources.getQuantityString(
+                            R.plurals.explorer_network_location_count,
+                            networkCount,
+                            networkCount,
+                        )
+                    },
                 )
             )
 

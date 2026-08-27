@@ -42,6 +42,9 @@ import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
  * @param backActive whether system Back may be dispatched into this pane. Defaults to
  *        [paneFocused]; a pager-driven layout narrows it, because its focused pane can be scrolled
  *        off screen while focus stays put.
+ * @param allowPresses whether presses arriving in this pane may act, read at event time. The
+ *        press-side counterpart of [backActive]: a pager-driven layout answers false while it is
+ *        not resting on this pane's page. Forwarded to [PaneLayerHost].
  * @param activeWorkspaceId the workspace the user is actually talking to: the deepest occupant of
  *        a focused pane, or null while the pane is unfocused. Deliberately *not* compared against
  *        the globally focused id — a picker opened via `launchPicker` never becomes the focused
@@ -60,6 +63,7 @@ fun WorkspacePane(
     paneFocused: Boolean,
     clickToFocus: Boolean = true,
     backActive: Boolean = paneFocused,
+    allowPresses: () -> Boolean = { true },
     onRequestPaneFocus: () -> Unit,
     managerDialogStates: Map<Workspace.Id, ManagerDialog.WorkspaceTargeted>,
     onDismissManagerDialog: (Workspace.Id) -> Unit,
@@ -86,6 +90,7 @@ fun WorkspacePane(
             paneFocused = paneFocused,
             clickToFocus = clickToFocus,
             backActive = backActive,
+            allowPresses = allowPresses,
             paneEdges = paneEdges,
         ) {
             CompositionLocalProvider(

@@ -8,6 +8,7 @@ import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionBarItem
+import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.contracts.explorer.PickerConfig
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
+import kotlin.uuid.Uuid
 
 class ExplorerPickerHelperTest : BaseTest() {
 
@@ -90,6 +92,13 @@ class ExplorerPickerHelperTest : BaseTest() {
         return mockk<ExplorerLocation.Device>()
     }
 
+    private fun mockNetworkLocation(): ExplorerLocation.Network = mockk<ExplorerLocation.Network>()
+
+    private fun mockNetworkStorage(
+        status: ExplorerItem.Storage.Network.Status = ExplorerItem.Storage.Network.Status.AVAILABLE,
+        id: Uuid = Uuid.parse("11111111-2222-3333-4444-555555555555"),
+    ): ExplorerItem.Storage.Network = MockDataProvider.createMockStorageNetwork(status = status, id = id)
+
     // ═══════════════════════════════════════════════════════════════
     // canConfirmSelection Tests
     // ═══════════════════════════════════════════════════════════════
@@ -151,6 +160,65 @@ class ExplorerPickerHelperTest : BaseTest() {
                     selectedItems = setOf(mockStorage(canWrite = true)),
                     saveAsFilename = "",
                 ) shouldBe true
+            }
+
+            @Test
+            fun `enabled when an available network location is selected`() {
+                val config = PickerConfig(
+                    callerWorkspaceId = mockk(),
+                    selection = PickerConfig.Selection.DirectorySingle,
+                )
+                helper.canConfirmSelection(
+                    config = config,
+                    currentLocation = mockNetworkLocation(),
+                    selectedItems = setOf(mockNetworkStorage()),
+                    saveAsFilename = "",
+                ) shouldBe true
+            }
+
+            @Test
+            fun `disabled at the network overview without a selection`() {
+                val config = PickerConfig(
+                    callerWorkspaceId = mockk(),
+                    selection = PickerConfig.Selection.DirectorySingle,
+                )
+                helper.canConfirmSelection(
+                    config = config,
+                    currentLocation = mockNetworkLocation(),
+                    selectedItems = emptySet(),
+                    saveAsFilename = "",
+                ) shouldBe false
+            }
+
+            @Test
+            fun `disabled when the selected network location needs a sign-in`() {
+                val config = PickerConfig(
+                    callerWorkspaceId = mockk(),
+                    selection = PickerConfig.Selection.DirectorySingle,
+                )
+                helper.canConfirmSelection(
+                    config = config,
+                    currentLocation = mockNetworkLocation(),
+                    selectedItems = setOf(
+                        mockNetworkStorage(ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED)
+                    ),
+                    saveAsFilename = "",
+                ) shouldBe false
+            }
+
+            @Test
+            fun `the selected network location is what gets returned`() {
+                val config = PickerConfig(
+                    callerWorkspaceId = mockk(),
+                    selection = PickerConfig.Selection.DirectorySingle,
+                )
+                val item = mockNetworkStorage()
+
+                helper.extractSelectedPaths(
+                    config = config,
+                    currentLocation = mockNetworkLocation(),
+                    selectedItems = setOf(item),
+                ) shouldBe listOf(item.target.path)
             }
 
             @Test
@@ -270,6 +338,53 @@ class ExplorerPickerHelperTest : BaseTest() {
                     selectedItems = emptySet(),
                     saveAsFilename = "",
                 ) shouldBe false
+            }
+        }
+
+        @Nested
+        inner class MultiSelect {
+
+            @Test
+            fun `blocked when a selected network location needs a sign-in`() {
+                listOf(
+                    PickerConfig.Selection.DirectoryMulti,
+                    PickerConfig.Selection.MixedMulti,
+                ).forEach { selection ->
+                    val config = PickerConfig(callerWorkspaceId = mockk(), selection = selection)
+                    helper.canConfirmSelection(
+                        config = config,
+                        currentLocation = mockNetworkLocation(),
+                        selectedItems = setOf(
+                            mockNetworkStorage(),
+                            mockNetworkStorage(
+                                status = ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED,
+                                id = Uuid.parse("99999999-8888-7777-6666-555555555555"),
+                            ),
+                        ),
+                        saveAsFilename = "",
+                    ) shouldBe false
+                }
+            }
+
+            @Test
+            fun `enabled when every selected network location is available`() {
+                listOf(
+                    PickerConfig.Selection.DirectoryMulti,
+                    PickerConfig.Selection.MixedMulti,
+                ).forEach { selection ->
+                    val config = PickerConfig(callerWorkspaceId = mockk(), selection = selection)
+                    helper.canConfirmSelection(
+                        config = config,
+                        currentLocation = mockNetworkLocation(),
+                        selectedItems = setOf(
+                            mockNetworkStorage(),
+                            mockNetworkStorage(
+                                id = Uuid.parse("99999999-8888-7777-6666-555555555555"),
+                            ),
+                        ),
+                        saveAsFilename = "",
+                    ) shouldBe true
+                }
             }
         }
 
@@ -524,6 +639,44 @@ class ExplorerPickerHelperTest : BaseTest() {
                 ExplorerActionBarItem.File.OpenInTab(item),
                 ExplorerActionBarItem.File.OpenWith(item),
                 ExplorerActionBarItem.File.OpenInEditor(item),
+            )
+
+            helper.filterActionsForPicker(actions, config).shouldBeEmpty()
+            helper.filterActionsForPicker(actions, config = null) shouldBe actions
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // allowsNetworkManagementActions Tests
+    // ═══════════════════════════════════════════════════════════════
+
+    @Nested
+    inner class AllowsNetworkManagementActions {
+
+        @Test
+        fun `allowed when not in picker mode`() {
+            helper.allowsNetworkManagementActions(config = null) shouldBe true
+        }
+
+        @Test
+        fun `blocked in picker mode`() {
+            val config = PickerConfig(
+                callerWorkspaceId = mockk(),
+                selection = PickerConfig.Selection.DirectorySingle,
+            )
+            helper.allowsNetworkManagementActions(config) shouldBe false
+        }
+
+        @Test
+        fun `the action bar agrees with the empty network view`() {
+            val config = PickerConfig(
+                callerWorkspaceId = mockk(),
+                selection = PickerConfig.Selection.DirectorySingle,
+            )
+            val actions = listOf(
+                ExplorerActionBarItem.Network.AddLocation(),
+                ExplorerActionBarItem.Network.EditLocation(),
+                ExplorerActionBarItem.Network.RemoveLocation(),
             )
 
             helper.filterActionsForPicker(actions, config).shouldBeEmpty()
