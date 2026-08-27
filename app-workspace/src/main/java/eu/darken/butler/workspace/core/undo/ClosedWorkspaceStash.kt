@@ -52,7 +52,7 @@ class ClosedWorkspaceStash @Inject constructor(
 
     private var pending: Assembly? = null
 
-    /** Token of the close operation currently in flight; its own publications must not invalidate. */
+    /** Token of the close operation currently in flight; only ITS OWN publications may not invalidate. */
     private var armedToken: Long? = null
 
     /** Set while an undo restore is publishing, for the same reason as [armedToken]. */
@@ -160,13 +160,20 @@ class ClosedWorkspaceStash @Inject constructor(
      * and closing a tab next to a paused one resumes that neighbour on focus - under a coarser rule
      * the bar would appear and vanish again in the same breath, on the default settings.
      *
+     * [closeToken] names the close operation the publication belongs to, and only a publication
+     * carrying the pending entry's own token is exempt. Being armed is not enough on its own: the
+     * capture window runs without the repo mutex, so an unrelated create or close can publish while
+     * it is open, and that is exactly the kind of change the entry may not survive.
+     *
      * Called synchronously from every publish site while the repo holds its lock, so an entry can
      * never be committed against a list that already moved on.
      */
-    fun onWorkspaceIdSetChanged() = synchronized(lock) {
+    fun onWorkspaceIdSetChanged(closeToken: Long? = null) = synchronized(lock) {
         if (restoring) return@synchronized
         val assembly = pending ?: return@synchronized
-        if (assembly.closeToken == armedToken) return@synchronized
+        if (closeToken != null && closeToken == assembly.closeToken && armedToken == assembly.closeToken) {
+            return@synchronized
+        }
         log(TAG) { "Workspace set changed, dropping undo entry ${assembly.closeToken}" }
         dropPendingLocked("workspace set changed")
     }

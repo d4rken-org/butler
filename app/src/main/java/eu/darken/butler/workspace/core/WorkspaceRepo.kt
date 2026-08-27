@@ -156,12 +156,16 @@ class WorkspaceRepo @Inject constructor(
      * neither of which invalidates an entry (position is re-derived from its neighbours at restore
      * time). Closing a tab next to a paused one resumes that neighbour on focus, so a coarser rule
      * would drop the entry milliseconds after committing it, on the default settings.
+     *
+     * [closeToken] is passed ONLY by the close recursion that is currently being stashed. Every
+     * other publication - a create, a session registration, an unrelated close - is somebody else's
+     * mutation even when it lands inside the capture window, and the entry may not survive it.
      */
-    private fun publishWorkspaces(workspaces: List<Workspace<*>>) {
+    private fun publishWorkspaces(workspaces: List<Workspace<*>>, closeToken: Long? = null) {
         val before = _workspaces.value.mapTo(mutableSetOf()) { it.id }
         _workspaces.value = workspaces
         val after = workspaces.mapTo(mutableSetOf()) { it.id }
-        if (before != after) closedStash.onWorkspaceIdSetChanged()
+        if (before != after) closedStash.onWorkspaceIdSetChanged(closeToken)
     }
 
     private val infos: Flow<List<Workspace.Info>> = _workspaces.flatMapLatest { workspaces ->
@@ -2169,7 +2173,7 @@ class WorkspaceRepo @Inject constructor(
         createdAtById = createdAtById - workspaceId
         resultReturningIds = resultReturningIds - workspaceId
         closedStash.dropIncarnation(workspaceId)
-        publishWorkspaces(_workspaces.value.filter { it.id != workspaceId })
+        publishWorkspaces(_workspaces.value.filter { it.id != workspaceId }, closeToken = closeToken)
         _events.emit(
             WorkspaceEvent.Closed(
                 workspaceId = workspaceId,

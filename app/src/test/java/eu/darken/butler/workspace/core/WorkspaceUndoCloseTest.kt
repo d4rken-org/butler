@@ -442,6 +442,27 @@ class WorkspaceUndoCloseTest : BaseTest() {
     }
 
     @Test
+    fun `a tab created while capturing drops the entry`() = runTest(UnconfinedTestDispatcher()) {
+        val closed = createTab()
+        fake(closed).whileCapturingArguments = {
+            // The capture window runs without the repo lock: this is not the close's own mutation,
+            // even though the close it lands in the middle of is the one that armed the stash.
+            repo.execute(
+                WorkspaceAction.Create(
+                    type = Workspace.Type.EXPLORER,
+                    arguments = FakeArguments(Workspace.Type.EXPLORER),
+                )
+            )
+        }
+
+        closeUndoable(closed)
+
+        openIds().contains(closed) shouldBe false
+        stash.feedback.value shouldBe null
+        undo() shouldBe WorkspaceAction.UndoClose.Result.Unavailable
+    }
+
+    @Test
     fun `a reorder keeps the entry and the tab returns beside its neighbours`() =
         runTest(UnconfinedTestDispatcher()) {
             val first = createTab()

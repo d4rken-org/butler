@@ -104,18 +104,37 @@ class ClosedWorkspaceStashTest : BaseTest() {
     }
 
     @Test
-    fun `a workspace change while the close is in flight does not drop its own entry`() = runTest {
+    fun `the close's own removals do not drop its entry`() = runTest {
         val id = Workspace.Id()
         val token = armed(id)
 
-        // The close's own removal publishes a changed id set
-        stash.onWorkspaceIdSetChanged()
+        // The close's own recursion publishes a changed id set, once per member, under its token
+        stash.onWorkspaceIdSetChanged(token)
+        stash.onWorkspaceIdSetChanged(token)
         contributeUiHalf(token, id)
         stash.commitIdentity(snapshotOf(token, id))
         stash.disarm(token)
         stash.markDestructionComplete(token)
 
         stash.feedback.value shouldNotBe null
+    }
+
+    @Test
+    fun `an unrelated change while the close is in flight drops the entry`() = runTest {
+        val id = Workspace.Id()
+        val token = armed(id)
+
+        // The capture window runs without the repo lock, so somebody else can publish inside it.
+        // Being armed does not make that mutation the close's own.
+        stash.onWorkspaceIdSetChanged()
+
+        contributeUiHalf(token, id)
+        stash.commitIdentity(snapshotOf(token, id))
+        stash.disarm(token)
+        stash.markDestructionComplete(token)
+
+        stash.feedback.value shouldBe null
+        stash.peekEntry() shouldBe null
     }
 
     @Test
