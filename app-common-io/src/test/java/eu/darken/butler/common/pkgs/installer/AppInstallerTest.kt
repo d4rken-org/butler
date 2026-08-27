@@ -101,8 +101,11 @@ class AppInstallerTest : BaseTest() {
     /** Makes listing the platform sessions fail, as a dead installer service would. */
     private var sessionListingFails = false
 
-    /** Whether abandoning a platform session works or throws, as a dead installer service would. */
+    /** What abandoning a platform session does, from landing at once to not landing at all. */
     private var abandonBehaviour = AbandonBehaviour.WORKS
+
+    /** Sessions abandoned but not gone yet, as Android lists them for a moment afterwards. */
+    private val lingeringSessionIds = mutableSetOf<Int>()
 
     /** What a system run did in which order, for the steps whose order is what is being checked. */
     private val timeline = mutableListOf<String>()
@@ -157,13 +160,19 @@ class AppInstallerTest : BaseTest() {
         every { systemInstallSessions.sessionIds() } answers {
             timeline += "sessions"
             if (sessionListingFails) throw SecurityException("Package installer unavailable")
-            systemSessionIds.toList()
+            val listed = systemSessionIds.toList()
+            // A lingering session is listed once more before the abandon it got lands.
+            systemSessionIds.removeAll(lingeringSessionIds)
+            lingeringSessionIds.clear()
+            listed
         }
         every { systemInstallSessions.abandon(any()) } answers {
             val sessionId = firstArg<Int>()
             timeline += "abandon:$sessionId"
             when (abandonBehaviour) {
                 AbandonBehaviour.WORKS -> systemSessionIds.remove(sessionId)
+                AbandonBehaviour.LINGERS -> lingeringSessionIds.add(sessionId)
+                AbandonBehaviour.NEVER_LANDS -> Unit
                 AbandonBehaviour.THROWS -> throw SecurityException("Session $sessionId is not yours")
             }
         }
@@ -479,8 +488,9 @@ class AppInstallerTest : BaseTest() {
         installer().install(plan(), AppInstaller.Mode.SYSTEM).toList()
 
         // The gate lives in memory, the session outlives the process holding it: the survivor has to
-        // be gone before this run reads a byte, let alone opens the session it would be answered for.
-        timeline shouldContainExactly listOf("sessions", "abandon:77", "stage")
+        // be gone before this run reads a byte, let alone opens the session it would be answered
+        // for - and gone is what the enumeration after the abandon establishes.
+        timeline shouldContainExactly listOf("sessions", "abandon:77", "sessions", "stage")
     }
 
     @Test
@@ -553,8 +563,78 @@ class AppInstallerTest : BaseTest() {
 
         installer.install(plan(), AppInstaller.Mode.SYSTEM).toList()
 
-        timeline shouldContainExactly listOf("sessions", "abandon:77", "stage")
+        timeline shouldContainExactly listOf("sessions", "abandon:77", "sessions", "stage")
         systemSessionIds.shouldBeEmpty()
+    }
+
+    @Test
+    fun `a session still listed right after being abandoned does not block the install`() = runTest2 {
+        systemSessionIds = mutableSetOf(77)
+        abandonBehaviour = AbandonBehaviour.LINGERS
+        coEvery { gatewaySwitch.openInputStream(any()) } answers {
+            timeline += "stage"
+            throw IOException("Source is gone")
+        }
+
+        val events = installer().install(plan(), AppInstaller.Mode.SYSTEM).toList()
+
+        // Android's abandon lands after the call returns, so the survivor is listed once more. This
+        // run may not commit next to a session that is still live - the confirmation would be
+        // answered against that one - so it waits for the removal, then goes ahead and fails for its
+        // own reason.
+        events.last().shouldBeInstanceOf<AppInstallEvent.Failure>().error.shouldBeInstanceOf<IOException>()
+        timeline shouldContainExactly listOf("sessions", "abandon:77", "sessions", "sessions", "stage")
+        systemSessionIds.shouldBeEmpty()
+    }
+
+    @Test
+    fun `a session that never goes away lets the install proceed anyway`() = runTest2 {
+        systemSessionIds = mutableSetOf(77)
+        abandonBehaviour = AbandonBehaviour.NEVER_LANDS
+        coEvery { gatewaySwitch.openInputStream(any()) } answers {
+            timeline += "stage"
+            throw IOException("Source is gone")
+        }
+
+        val events = installer().install(plan(), AppInstaller.Mode.SYSTEM).toList()
+
+        // Housekeeping is never a gate: a survivor that outlasts the wait is a possible collision,
+        // an install refused over it is a certain one.
+        events.last().shouldBeInstanceOf<AppInstallEvent.Failure>().error.shouldBeInstanceOf<IOException>()
+        timeline.first() shouldBe "sessions"
+        timeline shouldContain "abandon:77"
+        timeline.last() shouldBe "stage"
+        systemInstallGate.claim("Next App").shouldBeInstanceOf<SystemInstallGate.Outcome.Granted>()
+    }
+
+    @Test
+    fun `an install that ended with its own session open has the next one sweep again`() = runTest2 {
+        val installer = installer()
+
+        // Cut short once this run's own platform session exists. Whether the abandonment it does on
+        // the way out landed is not observable from here, which is the case the next run sweeps for.
+        val events = mutableListOf<AppInstallEvent>()
+        runCatching {
+            installer.install(plan(), AppInstaller.Mode.SYSTEM).collect { event ->
+                events += event
+                val committing = event is AppInstallEvent.Progress &&
+                    event.stage == AppInstallEvent.Stage.COMMITTING
+                if (committing) throw StopCollecting()
+            }
+        }
+        events.last().shouldBeInstanceOf<AppInstallEvent.Progress>()
+            .stage shouldBe AppInstallEvent.Stage.COMMITTING
+
+        timeline.clear()
+        coEvery { gatewaySwitch.openInputStream(any()) } answers {
+            timeline += "stage"
+            throw IOException("Source is gone")
+        }
+
+        installer.install(plan(), AppInstaller.Mode.SYSTEM).toList()
+
+        // Once per process only holds while every session this process opened is accounted for.
+        timeline shouldContainExactly listOf("sessions", "stage")
     }
 
     @Test
@@ -688,7 +768,14 @@ class AppInstallerTest : BaseTest() {
         executed.count { it.second == "rm -rf '$SHELL_ROOT/$LEFTOVER_NAME'" } shouldBe 2
     }
 
-    private enum class AbandonBehaviour { WORKS, THROWS }
+    /**
+     * WORKS: gone right away. LINGERS: listed once more, then gone, as a device does it.
+     * NEVER_LANDS: the call returns and the session stays. THROWS: a dead installer service.
+     */
+    private enum class AbandonBehaviour { WORKS, LINGERS, NEVER_LANDS, THROWS }
+
+    /** Ends a collection at a chosen event, cancelling the run that is producing it. */
+    private class StopCollecting : Exception("stop collecting")
 
     companion object {
         private const val SHELL_ROOT = "/data/local/tmp/butler-install"

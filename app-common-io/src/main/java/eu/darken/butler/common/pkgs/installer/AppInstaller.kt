@@ -41,6 +41,7 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.filter
@@ -229,34 +230,60 @@ class AppInstaller @Inject constructor(
      * claim in memory only. Nothing else here opens platform sessions, so whatever is found belongs
      * to a run that no longer exists - there is no in-flight operation left to restore it to.
      *
-     * Housekeeping, never a gate: the install this runs for is not refused over anything that could
-     * not be cleared. Android rejects a commit that really collides with a session still open, and
-     * an abandon lands asynchronously, so a check for what survived would fail runs whose cleanup
-     * did work. A sweep that did not get through stays pending for the next run.
+     * An abandon lands asynchronously - the session is still listed for a moment after the call
+     * returns - so the removal is waited for before this run may create anything. Committing next to
+     * a survivor that is still live is the situation the sweep exists to prevent: the confirmation
+     * would be answered against that one, and this run would never hear a verdict at all.
+     *
+     * Housekeeping, never a gate: a listing that threw, an abandon that threw, a session still there
+     * when the wait ran out - each is logged and the install goes ahead. The in-process
+     * [SystemInstallGate] already covers what this process can see, and a refused install is a
+     * certain harm where the race is a possible one. A sweep that did not get through stays pending
+     * for the next run.
      *
      * Runs under the claim, which is what keeps two first installs out of here at once, and before
      * staging, so it cannot mistake a session this process is about to open for an orphan.
      */
-    private fun reconcileSystemSessions() {
+    private suspend fun reconcileSystemSessions() {
         if (systemSessionsReconciled.get()) return
-        val swept = try {
-            systemInstallSessions.sessionIds()
-                .map { sessionId ->
-                    log(TAG, INFO) { "reconcileSystemSessions(): abandoning orphaned session $sessionId" }
-                    try {
-                        systemInstallSessions.abandon(sessionId)
-                        true
-                    } catch (e: Exception) {
-                        log(TAG, WARN) { "reconcileSystemSessions(): cannot abandon $sessionId: ${e.asLog()}" }
-                        false
-                    }
+        val outcomes = try {
+            systemInstallSessions.sessionIds().associateWith { sessionId ->
+                log(TAG, INFO) { "reconcileSystemSessions(): abandoning orphaned session $sessionId" }
+                try {
+                    systemInstallSessions.abandon(sessionId)
+                    true
+                } catch (e: Exception) {
+                    log(TAG, WARN) { "reconcileSystemSessions(): cannot abandon $sessionId: ${e.asLog()}" }
+                    false
                 }
-                .all { it }
+            }
         } catch (e: Exception) {
             log(TAG, WARN) { "reconcileSystemSessions(): cannot list sessions: ${e.asLog()}" }
-            false
+            return
         }
-        if (swept) systemSessionsReconciled.set(true)
+        val abandoned = outcomes.filterValues { it }.keys
+        val gone = abandoned.isEmpty() || awaitSessionsGone(abandoned)
+        if (gone && outcomes.values.all { it }) systemSessionsReconciled.set(true)
+    }
+
+    /** Whether [abandoned] stopped being listed within [SESSION_SWEEP_MAX_WAIT_MS]. */
+    private suspend fun awaitSessionsGone(abandoned: Set<Int>): Boolean {
+        var waited = 0L
+        while (true) {
+            val remaining = try {
+                systemInstallSessions.sessionIds().filter { it in abandoned }
+            } catch (e: Exception) {
+                log(TAG, WARN) { "awaitSessionsGone(): cannot list sessions: ${e.asLog()}" }
+                return false
+            }
+            if (remaining.isEmpty()) return true
+            if (waited >= SESSION_SWEEP_MAX_WAIT_MS) {
+                log(TAG, WARN) { "awaitSessionsGone(): $remaining still listed, continuing anyway" }
+                return false
+            }
+            delay(SESSION_SWEEP_POLL_INTERVAL_MS)
+            waited += SESSION_SWEEP_POLL_INTERVAL_MS
+        }
     }
 
     // region staging
@@ -1029,6 +1056,10 @@ class AppInstaller @Inject constructor(
             succeeded = true
         } finally {
             if (!succeeded) {
+                // The abandon below is best effort and lands asynchronously either way, so whether
+                // this session is really gone is not knowable here: the next run sweeps for it
+                // rather than trusting that it did.
+                systemSessionsReconciled.set(false)
                 withContext(NonCancellable) {
                     try {
                         installer.abandonSession(sessionId)
@@ -1167,6 +1198,8 @@ class AppInstaller @Inject constructor(
         private const val PARTIAL_SUFFIX = ".part"
         private const val BACKUP_SUFFIX = ".btlbak"
         private const val COPY_BUFFER_SIZE = 64 * 1024
+        private const val SESSION_SWEEP_POLL_INTERVAL_MS = 100L
+        private const val SESSION_SWEEP_MAX_WAIT_MS = 1_000L
         private const val SESSION_POLL_INTERVAL_MS = 2_000L
         private const val SESSION_GONE_GRACE_MS = 4_000L
         private const val SESSION_MAX_WAIT_MS = 10 * 60 * 1000L
