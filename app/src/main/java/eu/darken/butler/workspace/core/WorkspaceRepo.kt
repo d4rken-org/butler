@@ -131,6 +131,53 @@ class WorkspaceRepo @Inject constructor(
         pendingLimitRecoveries.values.mapNotNull { it.arguments }
 
     /**
+     * Counts every publication of [_workspaces]. Written under [lock], read for
+     * [ReferenceHolderSnapshot] only.
+     */
+    @Volatile
+    private var publishGeneration: Long = 0L
+
+    /**
+     * Everything that can still name a resource, as it was at one instant.
+     *
+     * @param generation what [isReferenceSnapshotCurrent] compares against.
+     */
+    data class ReferenceHolderSnapshot(
+        val generation: Long,
+        val stashedArguments: List<Workspace.Arguments>,
+        val liveWorkspaces: List<Workspace<out Workspace.Arguments>>,
+        val pendingCreateArguments: List<Workspace.Arguments>,
+    )
+
+    /**
+     * The holders of anything reclaimable, read in one critical section.
+     *
+     * Asking each source separately is not equivalent: a close removes the workspace and stashes it
+     * for undo at two different moments, so a reader that took the stash before the close and the
+     * workspace list after it would find the resource named by neither and reclaim something the
+     * user can still bring back.
+     */
+    suspend fun peekReferenceHolders(): ReferenceHolderSnapshot = lock.withLock {
+        ReferenceHolderSnapshot(
+            generation = publishGeneration,
+            stashedArguments = closedStash.peekStashedArguments(),
+            liveWorkspaces = _workspaces.value,
+            pendingCreateArguments = peekPendingCreateArguments(),
+        )
+    }
+
+    /**
+     * Whether nothing was published since [snapshot] was taken.
+     *
+     * Asking a workspace what it holds suspends, so the reading itself cannot happen under [lock].
+     * This is how the reader finds out that its answer describes a list that no longer exists - and
+     * an answer that may already be missing a holder must not be acted on.
+     */
+    suspend fun isReferenceSnapshotCurrent(snapshot: ReferenceHolderSnapshot): Boolean = lock.withLock {
+        publishGeneration == snapshot.generation
+    }
+
+    /**
      * Normalized user-set name, or null when the input clears it. Single source of truth for what a
      * custom title may be: no control characters (they must never reach the DB or the tab strip),
      * trimmed, capped at [WorkspaceAction.Rename.MAX_CUSTOM_TITLE_LENGTH], blank == clear.
@@ -165,6 +212,7 @@ class WorkspaceRepo @Inject constructor(
     private fun publishWorkspaces(workspaces: List<Workspace<*>>, closeToken: Long? = null) {
         val before = _workspaces.value.mapTo(mutableSetOf()) { it.id }
         _workspaces.value = workspaces
+        publishGeneration++
         val after = workspaces.mapTo(mutableSetOf()) { it.id }
         if (before != after) closedStash.onWorkspaceIdSetChanged(closeToken)
     }

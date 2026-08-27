@@ -12,7 +12,6 @@ import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationPathPlan
 import eu.darken.butler.workspace.core.operations.OperationsManager
-import eu.darken.butler.workspace.core.undo.ClosedWorkspaceStash
 import eu.darken.butler.workspace.ui.session.WorkspaceSessionManager
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
@@ -44,7 +43,10 @@ class ExternalImportSweeperTest : BaseTest() {
     private val sessionManager = mockk<WorkspaceSessionManager>()
     private val operationsManager = mockk<OperationsManager>()
     private val clipboardRepo = mockk<ClipboardRepo>()
-    private val closedStash = mockk<ClosedWorkspaceStash>()
+
+    /** What the repo reports as one snapshot, assembled from the stubs each test sets. */
+    private var generation = 0L
+    private var stashedArguments: List<Workspace.Arguments> = emptyList()
 
     private val now = Instant.fromEpochMilliseconds(1_700_000_000_000)
     private val clock = object : Clock {
@@ -61,7 +63,19 @@ class ExternalImportSweeperTest : BaseTest() {
         every { operationsManager.operations } returns flowOf(emptyList())
         every { clipboardRepo.state } returns flowOf(ClipboardRepo.State())
         every { sessionManager.state } returns MutableStateFlow(WorkspaceSessionManager.State.Restoring)
-        every { closedStash.peekStashedArguments() } returns emptyList()
+        generation = 0L
+        stashedArguments = emptyList()
+        coEvery { workspaceRepo.peekReferenceHolders() } answers {
+            WorkspaceRepo.ReferenceHolderSnapshot(
+                generation = generation,
+                stashedArguments = stashedArguments,
+                liveWorkspaces = workspaceRepo.peekAll(),
+                pendingCreateArguments = workspaceRepo.peekPendingCreateArguments(),
+            )
+        }
+        coEvery { workspaceRepo.isReferenceSnapshotCurrent(any()) } answers {
+            firstArg<WorkspaceRepo.ReferenceHolderSnapshot>().generation == generation
+        }
     }
 
     private fun create(
@@ -74,7 +88,6 @@ class ExternalImportSweeperTest : BaseTest() {
         sessionManager = sessionManager,
         operationsManager = operationsManager,
         clipboardRepo = clipboardRepo,
-        closedStash = closedStash,
         factoryMap = factoryMap,
         json = Json,
         clock = clock,
@@ -185,7 +198,7 @@ class ExternalImportSweeperTest : BaseTest() {
         val stashed = importDir("cccccccc-cccc-cccc-cccc-cccccccccccc")
         val arguments = mockk<Workspace.Arguments>()
         every { arguments.type } returns Workspace.Type.VIEWER
-        every { closedStash.peekStashedArguments() } returns listOf(arguments)
+        stashedArguments = listOf(arguments)
         val factory = mockk<WorkspaceFactory<Workspace.Arguments>>()
         every { factory.serialize(any(), any()) } returns
             JsonPrimitive("""{"filePath":"$baseDir/${stashed.name}/payload.bin"}""")
@@ -201,9 +214,29 @@ class ExternalImportSweeperTest : BaseTest() {
         val orphan = importDir("dddddddd-dddd-dddd-dddd-dddddddddddd")
         val arguments = mockk<Workspace.Arguments>()
         every { arguments.type } returns Workspace.Type.VIEWER
-        every { closedStash.peekStashedArguments() } returns listOf(arguments)
+        stashedArguments = listOf(arguments)
 
         create(factoryMap = emptyMap()).sweep() shouldBe 0
+
+        orphan.exists() shouldBe true
+    }
+
+    @Test
+    fun `a workspace list that moved while it was read aborts the sweep`() = runTest {
+        // Asking a workspace what it holds suspends, so a close can commit in the middle of the
+        // enumeration. The answer then describes a list that no longer exists and may be missing a
+        // holder entirely - the exact shape that deletes an import the new undo entry still names.
+        val orphan = importDir("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee")
+        val workspace = fakeWorkspace()
+        coEvery { workspace.createArguments() } answers {
+            generation++
+            mockk()
+        }
+        every { workspaceRepo.peekAll() } returns listOf(workspace)
+        val factory = mockk<WorkspaceFactory<Workspace.Arguments>>()
+        every { factory.serialize(any(), any()) } returns JsonPrimitive("{}")
+
+        create(mapOf(Workspace.Type.VIEWER to factory)).sweep() shouldBe 0
 
         orphan.exists() shouldBe true
     }
