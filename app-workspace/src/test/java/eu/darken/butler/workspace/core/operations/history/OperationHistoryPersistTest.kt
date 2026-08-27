@@ -169,7 +169,7 @@ class OperationHistoryPersistTest : BaseTest() {
             testSnapshot(
                 metadata = testMetadata(
                     operationKind = Operation.Metadata.Kind.INSTALL,
-                    intended = listOf(container),
+                    plan = planOver(container),
                 ),
                 state = TestCompletedState(report = null),
             )
