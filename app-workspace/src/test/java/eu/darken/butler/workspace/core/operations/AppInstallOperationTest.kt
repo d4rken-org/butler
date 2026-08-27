@@ -54,7 +54,7 @@ class AppInstallOperationTest : BaseTest() {
 
         metadata.kind shouldBe Operation.Metadata.Kind.INSTALL
         // Nothing else identifies the row: an install reports no path changes of its own.
-        metadata.intendedPaths shouldBe listOf(source)
+        metadata.pathPlan shouldBe OperationPathPlan(targets = listOf(source))
     }
 
     @Test

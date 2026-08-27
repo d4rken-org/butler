@@ -53,7 +53,7 @@ class AppInstallOperation @AssistedInject constructor(
             it.getString(R.string.workspace_operation_install_description, displayName)
         }
         override val kind = Operation.Metadata.Kind.INSTALL
-        override val intendedPaths = listOf(plan.source)
+        override val pathPlan = OperationPathPlan(targets = listOf(plan.source))
     }
 
     override fun perform(operationContext: Operation.Context): Flow<Operation.State> = channelFlow {
