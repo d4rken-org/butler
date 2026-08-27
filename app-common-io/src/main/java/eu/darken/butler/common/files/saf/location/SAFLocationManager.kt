@@ -117,6 +117,18 @@ interface SAFLocationManager {
     suspend fun setLocationLabel(locationId: String, label: String?)
 
     /**
+     * Set a display label only if the location doesn't have one yet.
+     *
+     * Location IDs are derived from the tree URI, so re-granting an already known location
+     * targets the same entry, including one the user renamed. This never overwrites such a name.
+     *
+     * @param locationId The location ID
+     * @param label Label to apply if none is stored yet
+     * @return The label the location now has: the pre-existing one if there was any, otherwise [label]
+     */
+    suspend fun seedLocationLabel(locationId: String, label: String): String?
+
+    /**
      * Hide a location from the Device view in Explorer.
      *
      * Hidden locations are excluded from getGrantedLocations() but

@@ -35,6 +35,15 @@ data class SAFPath(
             val documentId = treeRootPath?.let { TREE_DOCUMENT_ID_REGEX.matchEntire(it)?.groupValues?.get(1) }
 
             if (documentId != null) {
+                // Path shaped document ID, e.g. "/data/data/com.termux/files/home": there is no
+                // volume to name, and it reads as a plain path. Keyed on the leading slash, not on
+                // the absence of a colon: "primary" has no colon either, and a POSIX path may
+                // contain one.
+                if (documentId.startsWith("/")) {
+                    val allSegments = documentId.split("/").filter { it.isNotEmpty() } + segments
+                    return caString { "/${allSegments.joinToString("/")}" }
+                }
+
                 // Parse document ID: "primary" or "primary:Folder1" or "primary:Folder1/SubFolder"
                 val parts = documentId.split(":", limit = 2)
                 val storageId = parts[0]

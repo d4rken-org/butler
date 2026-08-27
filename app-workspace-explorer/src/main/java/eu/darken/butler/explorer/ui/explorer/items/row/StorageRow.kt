@@ -76,7 +76,7 @@ fun StorageRow(
         },
         primaryText = item.displayName.get(context),
         // A network path is a UUID, the location's own subtitle is what identifies it to the user.
-        secondaryText = item.subtitle?.get(context) ?: item.target.path.path,
+        secondaryText = item.subtitle?.get(context) ?: item.target.path.userReadablePath.get(context),
         tertiaryText = run {
             val totalBytes = item.totalBytes
             val availableBytes = item.availableBytes

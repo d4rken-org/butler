@@ -11,6 +11,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.issue.Issue
+import eu.darken.butler.common.storage.saf.StorageProviderSuggestion
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.engine.BrowsingAbortedException
 import eu.darken.butler.explorer.ui.explorer.dialogs.AddDeviceStorageSheet
@@ -51,6 +52,7 @@ fun ExplorerWorkspaceOverlaysHost(
     val issueState by vm.issueState.collectAsState()
     val showIssueSheet by vm.showIssueSheet.collectAsState()
     val showAddStorageSheet by vm.showAddStorageSheet.collectAsState()
+    val storageSuggestions by vm.storageSuggestions.collectAsState()
     val operationDialogState by vm.operationDialogState.collectAsState()
     val cancelConfirmation by vm.cancelOperationConfirmation.collectAsState()
 
@@ -64,6 +66,7 @@ fun ExplorerWorkspaceOverlaysHost(
         cancelConfirmationFor = cancelConfirmation,
         issue = issueState.takeIf { showIssueSheet },
         showAddStorageSheet = showAddStorageSheet,
+        storageSuggestions = storageSuggestions,
         navigationError = state?.error,
         vm = vm,
     )
@@ -86,6 +89,7 @@ fun ExplorerWorkspaceOverlays(
     cancelConfirmationFor: Operation.Id? = null,
     issue: Issue? = null,
     showAddStorageSheet: Boolean = false,
+    storageSuggestions: List<StorageProviderSuggestion> = emptyList(),
     navigationError: Throwable? = null,
     vm: ExplorerWorkspaceViewModel? = null,
 ) {
@@ -129,6 +133,8 @@ fun ExplorerWorkspaceOverlays(
         AddDeviceStorageSheet(
             onDismiss = { vm?.dismissAddStorageSheet() },
             onContinue = { vm?.addSAFLocation() },
+            suggestions = storageSuggestions,
+            onSuggestion = { vm?.addSuggestedSAFLocation(it) },
             topInset = statusBarInset,
             bottomInset = navBarInset,
         )

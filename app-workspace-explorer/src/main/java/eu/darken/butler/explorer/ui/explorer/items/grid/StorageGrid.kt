@@ -91,6 +91,8 @@ fun StorageGrid(
     isEnabled: Boolean = true,
     decorations: ItemDecorations = ItemDecorations(),
 ) {
+    val context = LocalContext.current
+
     FileGridBase(
         modifier = modifier,
         item = item,
@@ -109,7 +111,7 @@ fun StorageGrid(
                 modifier = Modifier.size(20.dp)
             )
         },
-        primaryText = item.displayName.get(LocalContext.current),
+        primaryText = item.displayName.get(context),
         secondaryText = run {
             val context = LocalContext.current
             val totalBytes = item.totalBytes
@@ -130,7 +132,7 @@ fun StorageGrid(
             }
         },
         // A network path is a UUID, the location's own subtitle is what identifies it to the user.
-        tertiaryText = item.subtitle?.get(LocalContext.current) ?: item.target.path.path,
+        tertiaryText = item.subtitle?.get(context) ?: item.target.path.userReadablePath.get(context),
         backgroundColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
         trailingContent = when {
             item is ExplorerItem.Storage.SAF -> {

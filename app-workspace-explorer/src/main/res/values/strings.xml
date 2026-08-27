@@ -245,6 +245,9 @@
     <string name="explorer_add_device_storage_desc">Use the Storage Access Framework (SAF) to grant Butler access to additional storage locations such as usb drives, virtual app folders and more.</string>
     <string name="explorer_add_device_storage_continue">Continue</string>
     <string name="explorer_add_device_storage_cancel">Cancel</string>
+    <string name="explorer_add_device_storage_suggestions_title">Apps with storage</string>
+    <string name="explorer_add_device_storage_suggestion_desc_direct">Opens this app\'s folder</string>
+    <string name="explorer_add_device_storage_suggestion_desc_pick">Select it in the system picker</string>
 
     <!-- Device Storage Actions -->
     <string name="explorer_device_action_remove_location">Remove location</string>
