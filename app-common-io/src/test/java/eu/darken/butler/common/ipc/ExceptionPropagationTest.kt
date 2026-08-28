@@ -161,6 +161,23 @@ class ExceptionPropagationTest : BaseTest(), IpcHostModule, IpcClientModule {
     }
 
     @Test
+    fun `fallback - unusable payload keeps class name, causes and host stack`() {
+        val decoded = payload(
+            """
+            {"className":"com.host.Boom","rawMessage":"Something broke",
+            "causeChain":["java.io.IOException: Read-only file system"],
+            "hostStack":[{"className":"com.host.Native","methodName":"nativeCall","lineNumber":-2}]}
+            """.trimIndent()
+        ).refineException()
+
+        decoded.shouldBeTypeOf<UnwrappedIPCException>().apply {
+            message shouldBe "com.host.Boom: Something broke"
+            cause!!.message shouldBe "java.io.IOException: Read-only file system"
+            stackTrace.first() shouldBe StackTraceElement("com.host.Native", "nativeCall", null, -2)
+        }
+    }
+
+    @Test
     fun `fallback - path code without a path`() {
         val decoded = payload(
             """{"code":"PATH_READ","className":"com.host.Boom","rawMessage":"Can't read from path."}"""
@@ -224,6 +241,19 @@ class ExceptionPropagationTest : BaseTest(), IpcHostModule, IpcClientModule {
         val original = IOException("x".repeat(10_000))
 
         original.propagate().message!!.length shouldBe 4000
+    }
+
+    @Test
+    fun `bounds - oversized extras are truncated`() {
+        val original = PathPermissionDeniedException(
+            path = filePath,
+            operation = "o".repeat(10_000),
+            reason = PathPermissionDeniedException.Reason.NOT_PERMITTED,
+        )
+
+        val decoded = original.propagate().shouldBeTypeOf<PathPermissionDeniedException>()
+
+        decoded.operation.length shouldBe 4000
     }
 
     @Test
