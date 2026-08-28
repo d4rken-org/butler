@@ -87,23 +87,26 @@ object IpcErrorCodec {
 
         val body = runCatching { json.parseToJsonElement(raw) as? JsonObject }.getOrNull()
         if (body == null) {
-            log(TAG, WARN) { "Undecodable IPC error payload: $raw" }
-            return UnwrappedIPCException("$UNDECODABLE$raw")
+            log(TAG, WARN) { "Undecodable IPC error payload: ${raw.truncate()}" }
+            return UnwrappedIPCException("$UNDECODABLE${raw.truncate()}")
         }
 
         val payload = runCatching { json.decodeFromJsonElement(SERIALIZER, body) }.getOrNull()
         if (payload == null) {
             log(TAG, WARN) { "Unusable IPC error payload, salvaging diagnostics: $raw" }
-            return body.salvage(localStack)
+            return runCatching { body.salvage(localStack) }.getOrNull()
+                ?: UnwrappedIPCException("$UNDECODABLE${raw.truncate()}")
         }
 
-        val cause = payload.causeChain.synthesizeCause()
+        // A payload that decoded is still a payload some other build wrote: its own bounds are not
+        // this decoder's bounds, so everything that gets retained or rendered is capped again here.
+        val cause = payload.causeChain.take(MAX_CAUSE_DEPTH).map { it.truncate() }.synthesizeCause()
         val rebuilt = runCatching { payload.rebuild(cause) }.getOrNull() ?: run {
             log(TAG, WARN) { "Can't rebuild ${payload.className} as ${payload.code}, unwrapping instead" }
             payload.asUnwrapped(cause)
         }
 
-        rebuilt.attachHostStack(payload.hostStack, localStack)
+        rebuilt.attachHostStack(payload.hostStack.take(MAX_STACK_FRAMES).map { it.truncate() }, localStack)
         return rebuilt
     }
 
@@ -248,12 +251,13 @@ object IpcErrorCodec {
         (this[key] as? JsonPrimitive)?.takeIf { it.isString }?.content?.truncate()
 
     private fun JsonObject.strings(key: String): List<String> = (this[key] as? JsonArray)
+        ?.take(MAX_CAUSE_DEPTH)
         ?.mapNotNull { (it as? JsonPrimitive)?.takeIf { primitive -> primitive.isString }?.content?.truncate() }
         ?: emptyList()
 
     private fun JsonObject.frames(key: String): List<IpcStackFrame> = (this[key] as? JsonArray)
-        ?.mapNotNull { runCatching { json.decodeFromJsonElement(FRAME_SERIALIZER, it) }.getOrNull() }
         ?.take(MAX_STACK_FRAMES)
+        ?.mapNotNull { runCatching { json.decodeFromJsonElement(FRAME_SERIALIZER, it) }.getOrNull() }
         ?: emptyList()
 
     private fun Throwable.attachHostStack(hostStack: List<IpcStackFrame>, localStack: Array<StackTraceElement>) {
@@ -267,6 +271,13 @@ object IpcErrorCodec {
     }
 
     private fun String.truncate(): String = if (length <= MAX_STRING_LENGTH) this else take(MAX_STRING_LENGTH)
+
+    private fun IpcStackFrame.truncate() = IpcStackFrame(
+        className = className.truncate(),
+        methodName = methodName.truncate(),
+        fileName = fileName?.truncate(),
+        lineNumber = lineNumber,
+    )
 
     private val json = Json {
         encodeDefaults = false
