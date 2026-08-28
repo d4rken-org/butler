@@ -11,6 +11,10 @@ package eu.darken.butler.common.ipc
  *
  * The enum entry NAME is the wire identity, never the ordinal: a host process can outlive an
  * in-place app update, so both sides of a transaction may come from different builds.
+ *
+ * That holds only while both sides speak the marker format. A host from a build predating it emits
+ * no marker, and markerless carriers are passed through untouched, so such a host's errors surface
+ * unrecognized until it restarts.
  */
 enum class IpcErrorCode {
     PATH_READ,
