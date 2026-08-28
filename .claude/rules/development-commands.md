@@ -22,6 +22,18 @@
 ./gradlew :app:bundleFossRelease
 ```
 
+## Validating a Constructor Change
+
+A production compile does not compile unit test sources. Adding a parameter to an injected
+constructor therefore breaks every test that builds that class with named arguments while
+`compileFossDebugKotlin` still succeeds, and the failure only surfaces once tests are run.
+Compile the test sources too:
+
+```bash
+# Compile unit test sources without running them
+./gradlew :app:compileFossDebugUnitTestKotlin
+```
+
 ## Code Quality
 
 ```bash
