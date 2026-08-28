@@ -15,6 +15,9 @@ import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import java.io.IOException
 import java.util.Collections
 import java.util.IdentityHashMap
@@ -73,17 +76,25 @@ object IpcErrorCodec {
         // the transaction buffer must degrade, not add a second failure on top of the first.
         if (encoded != null && encoded.toByteArray().size <= MAX_PAYLOAD_BYTES) return encoded
 
-        return runCatching { MARKER + json.encodeToString(SERIALIZER, error.toMinimalPayload()) }
-            .getOrDefault(MARKER)
+        val minimal = runCatching { MARKER + json.encodeToString(SERIALIZER, error.toMinimalPayload()) }.getOrNull()
+        if (minimal != null && minimal.toByteArray().size <= MAX_PAYLOAD_BYTES) return minimal
+
+        return MARKER + UNENCODABLE
     }
 
     fun decode(carrierMessage: String, localStack: Array<StackTraceElement>): Throwable {
         val raw = carrierMessage.removePrefix(MARKER)
 
-        val payload = runCatching { json.decodeFromString(SERIALIZER, raw) }.getOrNull()
-        if (payload == null) {
+        val body = runCatching { json.parseToJsonElement(raw) as? JsonObject }.getOrNull()
+        if (body == null) {
             log(TAG, WARN) { "Undecodable IPC error payload: $raw" }
             return UnwrappedIPCException("$UNDECODABLE$raw")
+        }
+
+        val payload = runCatching { json.decodeFromJsonElement(SERIALIZER, body) }.getOrNull()
+        if (payload == null) {
+            log(TAG, WARN) { "Unusable IPC error payload, salvaging diagnostics: $raw" }
+            return body.salvage(localStack)
         }
 
         val cause = payload.causeChain.synthesizeCause()
@@ -98,7 +109,7 @@ object IpcErrorCodec {
 
     private fun Throwable.toPayload() = IpcErrorPayload(
         code = classify(),
-        className = javaClass.name,
+        className = javaClass.name.truncate(),
         rawMessage = rawMessage()?.truncate(),
         rawPath = (this as? PathException)?.path?.path?.truncate(),
         extras = extras(),
@@ -115,7 +126,7 @@ object IpcErrorCodec {
 
     private fun Throwable.toMinimalPayload() = IpcErrorPayload(
         code = IpcErrorCode.UNMAPPED,
-        className = javaClass.name,
+        className = javaClass.name.truncate(),
         rawMessage = message?.truncate(),
     )
 
@@ -141,10 +152,13 @@ object IpcErrorCodec {
         return message?.removeSuffix(" <-> ${path.path}")
     }
 
-    private fun Throwable.extras(): Map<String, String> = when (this) {
-        is PathPermissionDeniedException -> mapOf(KEY_REASON to reason.name, KEY_OPERATION to operation)
-        is UnknownFileTypeException -> mapOf(KEY_FILE_TYPE to lookup.fileType.name)
-        else -> emptyMap()
+    private fun Throwable.extras(): Map<String, String> {
+        val extras = when (this) {
+            is PathPermissionDeniedException -> mapOf(KEY_REASON to reason.name, KEY_OPERATION to operation)
+            is UnknownFileTypeException -> mapOf(KEY_FILE_TYPE to lookup.fileType.name)
+            else -> emptyMap()
+        }
+        return extras.entries.associate { it.key.truncate() to it.value.truncate() }
     }
 
     /**
@@ -208,6 +222,40 @@ object IpcErrorCodec {
         cause = cause,
     )
 
+    /**
+     * A body that isn't a valid [IpcErrorPayload] can still carry usable diagnostics, e.g. when the
+     * required `code` didn't survive. Every field is read on its own, so one malformed entry costs
+     * only itself.
+     */
+    private fun JsonObject.salvage(localStack: Array<StackTraceElement>): Throwable {
+        val className = string(FIELD_CLASS_NAME)
+        val rawMessage = string(FIELD_RAW_MESSAGE)
+        val message = when {
+            className == null -> "$UNDECODABLE${rawMessage ?: toString()}".truncate()
+            rawMessage == null -> className
+            else -> "$className: $rawMessage"
+        }
+
+        val salvaged = UnwrappedIPCException(
+            message = message,
+            cause = strings(FIELD_CAUSE_CHAIN).synthesizeCause(),
+        )
+        salvaged.attachHostStack(frames(FIELD_HOST_STACK), localStack)
+        return salvaged
+    }
+
+    private fun JsonObject.string(key: String): String? =
+        (this[key] as? JsonPrimitive)?.takeIf { it.isString }?.content?.truncate()
+
+    private fun JsonObject.strings(key: String): List<String> = (this[key] as? JsonArray)
+        ?.mapNotNull { (it as? JsonPrimitive)?.takeIf { primitive -> primitive.isString }?.content?.truncate() }
+        ?: emptyList()
+
+    private fun JsonObject.frames(key: String): List<IpcStackFrame> = (this[key] as? JsonArray)
+        ?.mapNotNull { runCatching { json.decodeFromJsonElement(FRAME_SERIALIZER, it) }.getOrNull() }
+        ?.take(MAX_STACK_FRAMES)
+        ?: emptyList()
+
     private fun Throwable.attachHostStack(hostStack: List<IpcStackFrame>, localStack: Array<StackTraceElement>) {
         if (hostStack.isEmpty()) return
         val remote = hostStack.map { StackTraceElement(it.className, it.methodName, it.fileName, it.lineNumber) }
@@ -225,9 +273,19 @@ object IpcErrorCodec {
         ignoreUnknownKeys = true
     }
     private val SERIALIZER = IpcErrorPayload.serializer()
+    private val FRAME_SERIALIZER = IpcStackFrame.serializer()
 
     private val TAG = logTag("IPC", "ErrorCodec")
     private const val UNDECODABLE = "Undecodable IPC error payload: "
+
+    /** Last resort when even the minimal payload doesn't fit: constant, valid, and within bounds. */
+    private const val UNENCODABLE = """{"code":"UNMAPPED","className":"eu.darken.butler.common.ipc.""" +
+        """IpcErrorCodec","rawMessage":"Host error too large to encode"}"""
+
+    private const val FIELD_CLASS_NAME = "className"
+    private const val FIELD_RAW_MESSAGE = "rawMessage"
+    private const val FIELD_CAUSE_CHAIN = "causeChain"
+    private const val FIELD_HOST_STACK = "hostStack"
     private const val KEY_REASON = "reason"
     private const val KEY_OPERATION = "operation"
     private const val KEY_FILE_TYPE = "fileType"
