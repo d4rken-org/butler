@@ -268,6 +268,23 @@ class ExceptionPropagationTest : BaseTest(), IpcHostModule, IpcClientModule {
     }
 
     @Test
+    fun `bounds - salvaged payload caps causes and stack`() {
+        val causes = (0 until 50).joinToString(",") { "\"java.io.IOException: cause $it\"" }
+        val frames = (0 until 500).joinToString(",") {
+            """{"className":"com.host.Deep","methodName":"call$it","fileName":"Deep.kt","lineNumber":$it}"""
+        }
+
+        val decoded = payload(
+            """{"className":"com.host.Boom","causeChain":[$causes],"hostStack":[$frames]}"""
+        ).refineException()
+
+        decoded.shouldBeTypeOf<UnwrappedIPCException>().apply {
+            generateSequence(cause) { it.cause }.count() shouldBe 10
+            stackTrace.count { it.className == "com.host.Deep" } shouldBe 100
+        }
+    }
+
+    @Test
     fun `carrier survives a Parcel round-trip`() {
         val original = ReadException("Can't read from path.", filePath)
         val carrier = original.wrapToPropagate()
