@@ -93,7 +93,7 @@ object IpcErrorCodec {
 
         val payload = runCatching { json.decodeFromJsonElement(SERIALIZER, body) }.getOrNull()
         if (payload == null) {
-            log(TAG, WARN) { "Unusable IPC error payload, salvaging diagnostics: $raw" }
+            log(TAG, WARN) { "Unusable IPC error payload, salvaging diagnostics: ${raw.truncate()}" }
             return runCatching { body.salvage(localStack) }.getOrNull()
                 ?: UnwrappedIPCException("$UNDECODABLE${raw.truncate()}")
         }
