@@ -1,0 +1,120 @@
+package eu.darken.butler.common.error
+
+import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
+import eu.darken.butler.common.adb.AdbSettings
+import eu.darken.butler.common.adb.shizuku.ShizukuManager
+import eu.darken.butler.common.coroutine.DispatcherProvider
+import eu.darken.butler.common.datastore.value
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.RingLogBuffer
+import eu.darken.butler.common.debug.logging.asLog
+import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.root.RootManager
+import eu.darken.butler.common.root.RootSettings
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.withContext
+import java.io.File
+import javax.inject.Inject
+import javax.inject.Singleton
+import kotlin.time.Clock
+import kotlin.time.Instant
+import kotlin.uuid.Uuid
+
+/**
+ * Freezes an error into an [ErrorIncident] at the moment it happens.
+ *
+ * Access-mode state is read from settings and from probe results those classes already hold. This
+ * must never trigger a probe or a bind: building a report is not a reason to start a privileged
+ * session.
+ */
+@Singleton
+class ErrorIncidentFactory @Inject constructor(
+    @ApplicationContext private val context: Context,
+    private val ringLogBuffer: RingLogBuffer,
+    private val dispatcherProvider: DispatcherProvider,
+    private val rootSettings: RootSettings,
+    private val adbSettings: AdbSettings,
+    private val rootManager: RootManager,
+    private val shizukuManager: ShizukuManager,
+) {
+
+    private val spoolDir = File(File(context.cacheDir, ErrorReportPackager.REPORTS_DIR), SPOOL_DIR)
+
+    /**
+     * @param occurredAt when the error actually happened, if the site knows; otherwise now, marked
+     *        as approximate on the incident.
+     */
+    suspend fun freeze(
+        error: Throwable,
+        context: Map<String, String?> = emptyMap(),
+        occurredAt: Instant? = null,
+    ): ErrorIncident {
+        val incidentId = Uuid.random().toString().take(8)
+        log(TAG) { "freeze($incidentId): ${error.javaClass.name}" }
+
+        val merged = buildMap {
+            context.forEach { (key, value) -> if (value != null) put(key, value) }
+            put("access.root.consent", safeRead { rootSettings.useRoot.value() }.orUnknown())
+            put("access.root.lastKnown", safeRead { rootManager.lastKnownRooted }.orUnknown())
+            put("access.adb.consent", safeRead { adbSettings.useShizuku.value() }.orUnknown())
+            put("access.adb.lastKnown", safeRead { shizukuManager.lastShizukudResult }.orUnknown())
+        }
+
+        return ErrorIncident(
+            incidentId = incidentId,
+            occurredAt = occurredAt ?: Clock.System.now(),
+            occurredAtIsApproximate = occurredAt == null,
+            error = error,
+            context = merged,
+            logFile = spoolLog(incidentId),
+        )
+    }
+
+    private suspend fun spoolLog(incidentId: String): File? = withContext(dispatcherProvider.IO) {
+        try {
+            spoolDir.mkdirs()
+            val target = File(spoolDir, "$incidentId.log")
+            target.writeText(ringLogBuffer.snapshot())
+            pruneSpool()
+            target
+        } catch (e: CancellationException) {
+            throw e
+        } catch (t: Throwable) {
+            log(TAG, WARN) { "Failed to spool log for $incidentId: ${t.asLog()}" }
+            null
+        }
+    }
+
+    /** Incidents whose report is never shared would otherwise accumulate one spool file each. */
+    private fun pruneSpool() {
+        spoolDir.listFiles()
+            ?.filter { it.isFile }
+            ?.sortedByDescending { it.lastModified() }
+            ?.drop(MAX_SPOOLED)
+            ?.forEach { runCatching { it.delete() } }
+    }
+
+    /**
+     * A report must be producible from a broken install too: any single field may be unreadable
+     * (a corrupt DataStore file) without taking the freeze with it. Explorer freezes inside a flow
+     * collector whose handler turns an escaped throwable into a fatal workspace error.
+     */
+    private inline fun <T> safeRead(block: () -> T?): T? = try {
+        block()
+    } catch (e: CancellationException) {
+        throw e
+    } catch (t: Throwable) {
+        log(TAG, WARN) { "Capability read failed: ${t.asLog()}" }
+        null
+    }
+
+    private fun Any?.orUnknown(): String = this?.toString() ?: "unknown"
+
+    companion object {
+        private val TAG = logTag("Error", "Incident", "Factory")
+        private const val SPOOL_DIR = "incidents"
+        private const val MAX_SPOOLED = 10
+    }
+}
