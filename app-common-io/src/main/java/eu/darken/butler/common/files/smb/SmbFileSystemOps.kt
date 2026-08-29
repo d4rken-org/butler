@@ -135,8 +135,9 @@ class SmbFileSystemOps @Inject constructor(
      */
     override suspend fun existsStrict(path: SmbPath): Existence = try {
         read(path, "existsStrict") { lease ->
-            // The lease itself is the proof: it only exists once the share was reached.
-            if (path.segments.isEmpty()) return@read Existence.PRESENT
+            // The lease itself is the proof: it only exists once the share was reached. That proof
+            // covers the share root only, a base path addresses a directory inside it and is probed.
+            if (path.segments.isEmpty() && lease.location.basePath.isEmpty()) return@read Existence.PRESENT
             try {
                 lease.share.getFileInformation(lease.smbPath(path))
                 Existence.PRESENT
