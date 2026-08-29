@@ -2,7 +2,9 @@ package eu.darken.butler.explorer.core
 
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.error.ErrorIncidentFactory
+import eu.darken.butler.common.error.ErrorIncidentStore
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.explorer.core.engine.BrowsingAbortedException
 import eu.darken.butler.explorer.core.engine.BrowsingEngine
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.workspace.contracts.explorer.ExplorerArguments
@@ -19,16 +21,19 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.io.File
 import java.io.IOException
+import java.nio.file.Files
 
 /**
- * The engine republishes its failure on every state change around it. Re-freezing on each of those
- * would restamp the report with a time and a state from long after the navigation actually failed,
- * and spool a second log trail for the same incident.
+ * The engine republishes its failure on every state change around it, and a retry clears the error
+ * card before the same failure comes back. Neither may produce a second incident: the report would
+ * carry a time and a state from long after the navigation failed, plus a second log trail.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
@@ -39,13 +44,20 @@ class ExplorerWorkspaceErrorIncidentTest {
     private val engine = mockk<BrowsingEngine>(relaxed = true).apply {
         every { location } returns engineLocation
     }
-    private val incidentFactory: ErrorIncidentFactory = recordingIncidentFactory()
+    private val spoolDir = Files.createTempDirectory("incident-spool").toFile()
+    private val incidentFactory: ErrorIncidentFactory = recordingIncidentFactory(spoolDir)
+    private val incidentStore = ErrorIncidentStore(incidentFactory)
+
+    @After
+    fun teardown() {
+        spoolDir.deleteRecursively()
+    }
 
     private fun TestScope.startedOnHome() = testExplorerWorkspace(
         ExplorerArguments.Default(startTarget = ExplorerStartTarget.HOME),
         UnconfinedTestDispatcher(testScheduler),
         browsingEngine = engine,
-        errorIncidentFactory = incidentFactory,
+        errorIncidentStore = incidentStore,
     )
 
     private suspend fun ExplorerWorkspace.ready() = state.first() as ExplorerWorkspace.State.Ready
@@ -62,11 +74,19 @@ class ExplorerWorkspaceErrorIncidentTest {
         refreshId = refreshId,
     )
 
+    private fun loaded() = BrowsingEngine.State(
+        location = ExplorerLocation.Home(items = emptyList(), progress = null),
+        breadcrumbs = emptyList(),
+        target = home,
+    )
+
     private fun breadcrumb(path: String) = ExplorerBreadcrumb(
         target = ExplorerNavigation.Target.Directory(LocalPath.build(path)),
         label = path.toCaString(),
         icon = mockk(),
     )
+
+    private fun spooledLogs(): List<File> = spoolDir.listFiles()?.toList() ?: emptyList()
 
     @Test
     fun `the same failure republished keeps the incident it was frozen with`() = runTest {
@@ -78,12 +98,12 @@ class ExplorerWorkspaceErrorIncidentTest {
             engineLocation.value = failed(boom, breadcrumbs = listOf(breadcrumb("/sdcard")), refreshId = 1)
             advanceUntilIdle()
 
-            val first = workspace.ready().errorIncident.shouldNotBeNull()
+            val first = incidentStore.get(boom).shouldNotBeNull()
 
             engineLocation.value = failed(boom, breadcrumbs = listOf(breadcrumb("/sdcard/Pictures")), refreshId = 7)
             advanceUntilIdle()
 
-            val second = workspace.ready().errorIncident.shouldNotBeNull()
+            val second = incidentStore.get(boom).shouldNotBeNull()
             second.incidentId shouldBe first.incidentId
             second.occurredAt shouldBe first.occurredAt
             second.context shouldBe first.context
@@ -102,13 +122,15 @@ class ExplorerWorkspaceErrorIncidentTest {
 
         try {
             advanceUntilIdle()
-            engineLocation.value = failed(IOException("first"), breadcrumbs = null, refreshId = 1)
+            val firstError = IOException("first")
+            engineLocation.value = failed(firstError, breadcrumbs = null, refreshId = 1)
             advanceUntilIdle()
-            val first = workspace.ready().errorIncident.shouldNotBeNull()
+            val first = incidentStore.get(firstError).shouldNotBeNull()
 
-            engineLocation.value = failed(IOException("second"), breadcrumbs = null, refreshId = 2)
+            val secondError = IOException("second")
+            engineLocation.value = failed(secondError, breadcrumbs = null, refreshId = 2)
             advanceUntilIdle()
-            val second = workspace.ready().errorIncident.shouldNotBeNull()
+            val second = incidentStore.get(secondError).shouldNotBeNull()
 
             second.incidentId shouldNotBe first.incidentId
             second.error.message shouldBe "second"
@@ -118,24 +140,87 @@ class ExplorerWorkspaceErrorIncidentTest {
     }
 
     @Test
-    fun `a cleared failure drops the incident`() = runTest {
+    fun `clearing the error card keeps the incident the share still needs`() = runTest {
+        val boom = IOException("nope")
         val workspace = startedOnHome()
 
         try {
             advanceUntilIdle()
-            engineLocation.value = failed(IOException("nope"), breadcrumbs = null, refreshId = 1)
+            engineLocation.value = failed(boom, breadcrumbs = null, refreshId = 1)
             advanceUntilIdle()
-            workspace.ready().errorIncident.shouldNotBeNull()
+            val incident = incidentStore.get(boom).shouldNotBeNull()
 
-            engineLocation.value = BrowsingEngine.State(
-                location = ExplorerLocation.Home(items = emptyList(), progress = null),
-                breadcrumbs = emptyList(),
-                target = home,
-            )
+            engineLocation.value = loaded()
             advanceUntilIdle()
 
-            workspace.ready().errorIncident shouldBe null
             workspace.ready().error shouldBe null
+            incidentStore.get(boom)?.incidentId shouldBe incident.incidentId
+        } finally {
+            workspace.release()
+        }
+    }
+
+    @Test
+    fun `a retry that fails the same way stays one incident`() = runTest {
+        val boom = IOException("nope")
+        val workspace = startedOnHome()
+
+        try {
+            advanceUntilIdle()
+            engineLocation.value = failed(boom, breadcrumbs = null, refreshId = 1)
+            advanceUntilIdle()
+            val first = incidentStore.get(boom).shouldNotBeNull()
+
+            // What Retry does: the card is cleared, then the engine reports the same failure again.
+            workspace.navigate(ExplorerNavigation.Refresh)
+            advanceUntilIdle()
+            workspace.ready().error shouldBe null
+            engineLocation.value = failed(boom, breadcrumbs = null, refreshId = 2)
+            advanceUntilIdle()
+
+            val second = incidentStore.get(boom).shouldNotBeNull()
+            second.incidentId shouldBe first.incidentId
+            second.occurredAt shouldBe first.occurredAt
+            spooledLogs().size shouldBe 1
+        } finally {
+            workspace.release()
+        }
+    }
+
+    @Test
+    fun `a cancelled load is never frozen`() = runTest {
+        val aborted = BrowsingAbortedException(home)
+        val workspace = startedOnHome()
+
+        try {
+            advanceUntilIdle()
+            engineLocation.value = failed(aborted, breadcrumbs = null, refreshId = 1)
+            advanceUntilIdle()
+
+            workspace.ready().error shouldBe aborted
+            incidentStore.get(aborted) shouldBe null
+            spooledLogs() shouldBe emptyList()
+        } finally {
+            workspace.release()
+        }
+    }
+
+    @Test
+    fun `the share action hands over the incident the failure was remembered with`() = runTest {
+        val sentinel = IOException("sentinel")
+        val workspace = startedOnHome()
+
+        try {
+            advanceUntilIdle()
+            engineLocation.value = failed(sentinel, breadcrumbs = null, refreshId = 1)
+            advanceUntilIdle()
+
+            // What the page's share action does with the state it renders the card from.
+            val shared = incidentStore.getOrFreeze(workspace.ready().error!!)
+
+            shared.error shouldBe sentinel
+            (shared.error === sentinel) shouldBe true
+            shared.context.containsKey("incident.frozenAtShare") shouldBe false
         } finally {
             workspace.release()
         }

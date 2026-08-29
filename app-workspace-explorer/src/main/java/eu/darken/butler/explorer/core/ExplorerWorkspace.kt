@@ -15,10 +15,10 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.error.ErrorIncident
-import eu.darken.butler.common.error.ErrorIncidentFactory
+import eu.darken.butler.common.error.ErrorIncidentStore
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.explorer.core.engine.BrowsingAbortedException
 import eu.darken.butler.explorer.core.engine.BrowsingEngine
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.workspace.core.filesystem.FileSystemHinter
@@ -92,7 +92,7 @@ class ExplorerWorkspace @AssistedInject constructor(
     private val downloadLocalCopyOperationFactory: DownloadLocalCopyOperation.Factory,
     private val restoreOperationFactory: RestoreOperation.Factory,
     private val explorerSettings: ExplorerSettings,
-    private val errorIncidentFactory: ErrorIncidentFactory,
+    private val errorIncidentStore: ErrorIncidentStore,
 ) : Workspace<ExplorerArguments> {
 
     private val tag = logTag("Explorer", "Workspace", id.shortTag)
@@ -256,14 +256,12 @@ class ExplorerWorkspace @AssistedInject constructor(
             val currentTarget: ExplorerNavigation.Target? = null,
             val currentLocation: ExplorerLocation? = null,
             val currentBreadcrumbs: List<ExplorerBreadcrumb>? = null,
-            /** The failed navigation, frozen when it failed rather than when the user shares it. */
-            val errorIncident: ErrorIncident? = null,
+            val error: Throwable? = null,
             /** A refresh of the location that is already displayed is running, not a load for a new target. */
             val isRefreshing: Boolean = false,
             /** Counts refreshes, so one that starts and finishes between two collections is still noticed. */
             val refreshId: Int = 0,
         ) : State {
-            val error: Throwable? get() = errorIncident?.error
             val canGoBack: Boolean get() = historyIndex > 0
             val canGoForward: Boolean get() = historyIndex < navigationHistory.size - 1
         }
@@ -281,58 +279,47 @@ class ExplorerWorkspace @AssistedInject constructor(
         }
     }
 
-    /**
-     * The engine republishes the same failure on every state change around it (a new refreshId, new
-     * breadcrumbs). Only a throwable we have not seen yet becomes a new incident; the one already
-     * held is carried on unchanged, so the report keeps the moment the navigation actually failed.
-     */
-    private suspend fun resolveEngineIncident(engineState: BrowsingEngine.State): ErrorIncident? {
-        val error = engineState.error ?: return null
-        val current = (_state.value as? State.Ready)?.errorIncident
-        if (current != null && current.error === error) return current
-        return freezeNavigationIncident(
-            error = error,
-            location = engineState.location,
-            breadcrumbs = engineState.breadcrumbs,
-            isRefreshing = engineState.isRefreshing,
-            refreshId = engineState.refreshId,
-        )
-    }
-
-    private suspend fun freezeNavigationIncident(
-        error: Throwable,
+    /** What the tab was doing when a navigation failed, as the report's context. */
+    private fun navContext(
         location: ExplorerLocation?,
         breadcrumbs: List<ExplorerBreadcrumb>? = null,
         isRefreshing: Boolean? = null,
         refreshId: Int? = null,
-    ): ErrorIncident {
+    ): Map<String, String?> {
         val ready = _state.value as? State.Ready
-        return errorIncidentFactory.freeze(
-            error = error,
-            context = mapOf(
-                "nav.target" to ready?.currentTarget?.toString(),
-                "nav.location" to location?.locationId,
-                "nav.breadcrumbs" to (breadcrumbs ?: ready?.currentBreadcrumbs)
-                    ?.joinToString("/") { it.target.toString() },
-                "nav.historyIndex" to ready?.historyIndex?.toString(),
-                "nav.isRefreshing" to (isRefreshing ?: ready?.isRefreshing)?.toString(),
-                "nav.refreshId" to (refreshId ?: ready?.refreshId)?.toString(),
-            ),
+        return mapOf(
+            "nav.target" to ready?.currentTarget?.toString(),
+            "nav.location" to location?.locationId,
+            "nav.breadcrumbs" to (breadcrumbs ?: ready?.currentBreadcrumbs)
+                ?.joinToString("/") { it.target.toString() },
+            "nav.historyIndex" to ready?.historyIndex?.toString(),
+            "nav.isRefreshing" to (isRefreshing ?: ready?.isRefreshing)?.toString(),
+            "nav.refreshId" to (refreshId ?: ready?.refreshId)?.toString(),
         )
     }
 
     init {
         browsingEngine.location
             .onEach { engineState ->
-                // Frozen out here, never inside the update lambda: MutableStateFlow.update re-runs its
-                // lambda on contention, which would mint a second id, re-stamp the timestamp and
-                // re-spool the log for one and the same failure.
-                val incident = resolveEngineIncident(engineState)
+                // A cancelled load is not offered for sharing (the aborted dialog answers it), so
+                // freezing one would only spool a log trail and push a real incident out of the store.
+                val error = engineState.error
+                if (error != null && error !is BrowsingAbortedException) {
+                    errorIncidentStore.remember(
+                        error = error,
+                        context = navContext(
+                            location = engineState.location,
+                            breadcrumbs = engineState.breadcrumbs,
+                            isRefreshing = engineState.isRefreshing,
+                            refreshId = engineState.refreshId,
+                        ),
+                    )
+                }
                 updateReady {
                     copy(
                         currentLocation = engineState.location,
                         currentBreadcrumbs = engineState.breadcrumbs ?: currentBreadcrumbs,
-                        errorIncident = incident,
+                        error = engineState.error,
                         isRefreshing = engineState.isRefreshing,
                         refreshId = engineState.refreshId,
                     )
@@ -345,7 +332,7 @@ class ExplorerWorkspace @AssistedInject constructor(
         navigationRequests
             .onEach { request ->
                 log(tag, INFO) { "New navigation request: $request" }
-                updateReady { copy(errorIncident = null) }
+                updateReady { copy(error = null) }
                 try {
                     processNavigationRequest(request)
                 } catch (e: Exception) {
@@ -358,9 +345,9 @@ class ExplorerWorkspace @AssistedInject constructor(
 
                         else -> {
                             log(tag, ERROR) { "Navigation failed: $e" }
-                            val incident = freezeNavigationIncident(e, location = null)
+                            errorIncidentStore.remember(e, navContext(location = null))
                             updateReady {
-                                copy(currentLocation = null, errorIncident = incident, isRefreshing = false)
+                                copy(currentLocation = null, error = e, isRefreshing = false)
                             }
                         }
                     }

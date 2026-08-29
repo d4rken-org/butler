@@ -2,6 +2,7 @@ package eu.darken.butler.explorer.core
 
 import eu.darken.butler.common.error.ErrorIncident
 import eu.darken.butler.common.error.ErrorIncidentFactory
+import eu.darken.butler.common.error.ErrorIncidentStore
 import eu.darken.butler.explorer.core.engine.BrowsingEngine
 import eu.darken.butler.workspace.contracts.explorer.ExplorerArguments
 import eu.darken.butler.workspace.core.Workspace
@@ -14,6 +15,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import testhelpers.coroutine.TestDispatcherProvider
+import java.io.File
 import kotlin.time.Clock
 import kotlin.time.Instant
 
@@ -32,7 +34,7 @@ internal fun testExplorerWorkspace(
     dispatcher: CoroutineDispatcher = StandardTestDispatcher(),
     id: Workspace.Id = Workspace.Id(),
     browsingEngine: BrowsingEngine? = null,
-    errorIncidentFactory: ErrorIncidentFactory = recordingIncidentFactory(),
+    errorIncidentStore: ErrorIncidentStore = recordingIncidentStore(),
 ) = ExplorerWorkspace(
     id = id,
     creationArguments = arguments,
@@ -56,24 +58,33 @@ internal fun testExplorerWorkspace(
     downloadLocalCopyOperationFactory = mockk(relaxed = true),
     restoreOperationFactory = mockk(relaxed = true),
     explorerSettings = mockk(relaxed = true),
-    errorIncidentFactory = errorIncidentFactory,
+    errorIncidentStore = errorIncidentStore,
 )
+
+/** The real store, so identity keying and mint-once behave as they do in production. */
+internal fun recordingIncidentStore(spoolDir: File? = null): ErrorIncidentStore =
+    ErrorIncidentStore(recordingIncidentFactory(spoolDir))
 
 /**
  * Freezes real [ErrorIncident]s (a relaxed mock would hand back a mocked throwable, and the states
  * under test are read through `error`), with a fresh id per call so a test can tell a re-freeze
- * from a carried-over incident.
+ * from a carried-over incident. With a [spoolDir] it also writes one file per freeze, which is what
+ * a test counting log trails goes by.
  */
-internal fun recordingIncidentFactory(): ErrorIncidentFactory = mockk {
+internal fun recordingIncidentFactory(spoolDir: File? = null): ErrorIncidentFactory = mockk {
     var counter = 0
     coEvery { freeze(any(), any(), any()) } answers {
+        val incidentId = "incident-${counter++}"
         ErrorIncident(
-            incidentId = "incident-${counter++}",
+            incidentId = incidentId,
             occurredAt = thirdArg<Instant?>() ?: Clock.System.now(),
             occurredAtIsApproximate = thirdArg<Instant?>() == null,
             error = firstArg(),
             context = secondArg<Map<String, String?>>().filterValues { it != null }.mapValues { it.value!! },
-            logFile = null,
+            logFile = spoolDir?.let { dir ->
+                dir.mkdirs()
+                File(dir, "$incidentId.log").apply { writeText("log trail") }
+            },
         )
     }
 }

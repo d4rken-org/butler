@@ -16,6 +16,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.error.ErrorIncidentStore
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.storage.StorageEnvironment
@@ -196,6 +197,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val appInstallOperationFactory: AppInstallOperation.Factory,
     private val operationsManager: OperationsManager,
     private val json: Json,
+    private val errorIncidentStore: ErrorIncidentStore,
     chromeFactory: WorkspacePageChrome.Factory,
 ) : ViewModel4(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page")) {
 
@@ -2103,7 +2105,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun shareNavigationError() = launch {
         log(tag) { "shareNavigationError()" }
-        workspaceReadyState.first()?.errorIncident?.let { chrome.shareWorkspaceError(it) }
+        val error = workspaceReadyState.first()?.error ?: return@launch
+        chrome.shareWorkspaceError(errorIncidentStore.getOrFreeze(error))
     }
 
     fun retryNavigation() = navigation.retryNavigation()
