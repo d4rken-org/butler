@@ -111,7 +111,7 @@ class ExplorerWorkspaceErrorIncidentTest {
             second.context["nav.refreshId"] shouldBe "1"
 
             // One freeze means one spooled log trail for this failure
-            coVerify(exactly = 1) { incidentFactory.freeze(boom, any(), any()) }
+            coVerify(exactly = 1) { incidentFactory.freeze(boom, any(), any(), any()) }
         } finally {
             workspace.release()
         }
@@ -221,6 +221,7 @@ class ExplorerWorkspaceErrorIncidentTest {
 
             shared.error shouldBe sentinel
             (shared.error === sentinel) shouldBe true
+            shared.occurredAtIsApproximate shouldBe false
             shared.context.containsKey("incident.frozenAtShare") shouldBe false
         } finally {
             workspace.release()

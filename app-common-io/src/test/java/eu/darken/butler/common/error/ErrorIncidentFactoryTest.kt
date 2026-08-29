@@ -127,13 +127,27 @@ class ErrorIncidentFactoryTest : BaseTest() {
     }
 
     @Test
-    fun `an explicit error time is not marked approximate`() = runTest {
+    fun `the approximate marker comes from the caller, not from a missing timestamp`() = runTest {
         val exact = Instant.fromEpochMilliseconds(1_700_000_000_000)
 
         val stamped = factory().freeze(IOException("boom"), occurredAt = exact)
         stamped.occurredAt shouldBe exact
         stamped.occurredAtIsApproximate shouldBe false
 
-        factory().freeze(IOException("boom")).occurredAtIsApproximate shouldBe true
+        factory().freeze(IOException("boom")).occurredAtIsApproximate shouldBe false
+        factory()
+            .freeze(IOException("boom"), occurredAtIsApproximate = true)
+            .occurredAtIsApproximate shouldBe true
+    }
+
+    @Test
+    fun `the startup cleanup empties the spool directory`() = runTest {
+        val incident = factory().freeze(IOException("boom"))
+        incident.logFile!!.exists() shouldBe true
+
+        factory().clearStaleSpools()
+
+        incident.logFile!!.exists() shouldBe false
+        spoolDir.listFiles()!!.toList() shouldBe emptyList()
     }
 }

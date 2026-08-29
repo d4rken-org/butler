@@ -195,6 +195,7 @@ class ViewerRenderFailureTest : BaseTest() {
 
         val incident = shared.single()
         (incident.error === sentinel) shouldBe true
+        incident.occurredAtIsApproximate shouldBe false
         incident.context.containsKey("incident.frozenAtShare") shouldBe false
         incident.context["viewer.contentType"] shouldBe "image/jpeg"
     }

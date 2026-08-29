@@ -64,7 +64,7 @@ class ErrorIncidentStoreTest : BaseTest() {
     private fun gatedFactory(held: Throwable, gate: CompletableDeferred<Unit>) = mockk<ErrorIncidentFactory>().apply {
         var counter = 0
         coEvery { clearStaleSpools() } just Runs
-        coEvery { freeze(any(), any(), any()) } coAnswers {
+        coEvery { freeze(any(), any(), any(), any()) } coAnswers {
             if (firstArg<Throwable>() === held) gate.await()
             ErrorIncident(
                 incidentId = "incident-${counter++}",
@@ -144,7 +144,7 @@ class ErrorIncidentStoreTest : BaseTest() {
         var attempts = 0
         val factory = mockk<ErrorIncidentFactory>().apply {
             coEvery { clearStaleSpools() } just Runs
-            coEvery { freeze(any(), any(), any()) } coAnswers {
+            coEvery { freeze(any(), any(), any(), any()) } coAnswers {
                 if (attempts++ == 0) throw IllegalStateException("spool broke")
                 ErrorIncident(
                     incidentId = "incident-retry",

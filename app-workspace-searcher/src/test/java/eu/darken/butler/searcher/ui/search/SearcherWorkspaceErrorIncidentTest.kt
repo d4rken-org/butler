@@ -116,6 +116,7 @@ class SearcherWorkspaceErrorIncidentTest {
 
         val incident = shared.single()
         (incident.error === sentinel) shouldBe true
+        incident.occurredAtIsApproximate shouldBe false
         incident.context.containsKey("incident.frozenAtShare") shouldBe false
     }
 
@@ -131,6 +132,7 @@ class SearcherWorkspaceErrorIncidentTest {
         val incident = shared.single()
         (incident.error === sentinel) shouldBe true
         incident.context["search.targetPath"] shouldBe "/sdcard/Android/data"
+        incident.occurredAtIsApproximate shouldBe false
         incident.context.containsKey("incident.frozenAtShare") shouldBe false
     }
 }

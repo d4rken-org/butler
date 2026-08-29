@@ -43,13 +43,15 @@ class ErrorIncidentFactory @Inject constructor(
     private val spoolDir = File(File(context.cacheDir, ErrorReportPackager.REPORTS_DIR), SPOOL_DIR)
 
     /**
-     * @param occurredAt when the error actually happened, if the site knows; otherwise now, marked
-     *        as approximate on the incident.
+     * @param occurredAt when the error actually happened, if the site knows; otherwise now.
+     * @param occurredAtIsApproximate see [ErrorIncident.occurredAtIsApproximate]; only the caller
+     *        knows whether the stamp names the failure or the request to share it.
      */
     suspend fun freeze(
         error: Throwable,
         siteContext: Map<String, String?> = emptyMap(),
         occurredAt: Instant? = null,
+        occurredAtIsApproximate: Boolean = false,
     ): ErrorIncident {
         // Both taken before the settings reads below: those suspend, and the ring buffer keeps
         // evicting while they do, which would cost the log trail leading up to the failure.
@@ -70,7 +72,7 @@ class ErrorIncidentFactory @Inject constructor(
         return ErrorIncident(
             incidentId = incidentId,
             occurredAt = frozenAt,
-            occurredAtIsApproximate = occurredAt == null,
+            occurredAtIsApproximate = occurredAtIsApproximate,
             error = error,
             context = merged,
             logFile = spoolLog(incidentId, logSnapshot),

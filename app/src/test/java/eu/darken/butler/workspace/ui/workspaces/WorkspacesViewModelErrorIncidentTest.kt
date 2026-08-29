@@ -158,6 +158,7 @@ class WorkspacesViewModelErrorIncidentTest : BaseTest() {
 
             val incident = vm.pendingErrorShare.value!!.incident
             (incident.error === sentinel) shouldBe true
+            incident.occurredAtIsApproximate shouldBe false
             incident.context["workspace.type"] shouldBe "EXPLORER"
             incident.context.containsKey("incident.frozenAtShare") shouldBe false
         }
@@ -179,6 +180,7 @@ class WorkspacesViewModelErrorIncidentTest : BaseTest() {
 
             val incident = vm.pendingErrorShare.value!!.incident
             (incident.error === sentinel) shouldBe true
+            incident.occurredAtIsApproximate shouldBe false
             incident.context.containsKey("session.phase") shouldBe true
             incident.context.containsKey("incident.frozenAtShare") shouldBe false
         }

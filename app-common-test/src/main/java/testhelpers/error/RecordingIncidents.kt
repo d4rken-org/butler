@@ -20,12 +20,12 @@ import kotlin.time.Instant
 fun recordingIncidentFactory(spoolDir: File? = null): ErrorIncidentFactory = mockk {
     var counter = 0
     coEvery { clearStaleSpools() } just Runs
-    coEvery { freeze(any(), any(), any()) } answers {
+    coEvery { freeze(any(), any(), any(), any()) } answers {
         val incidentId = "incident-${counter++}"
         ErrorIncident(
             incidentId = incidentId,
             occurredAt = thirdArg<Instant?>() ?: Clock.System.now(),
-            occurredAtIsApproximate = thirdArg<Instant?>() == null,
+            occurredAtIsApproximate = arg(3),
             error = firstArg(),
             context = secondArg<Map<String, String?>>().filterValues { it != null }.mapValues { it.value!! },
             logFile = spoolDir?.let { dir ->

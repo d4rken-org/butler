@@ -52,6 +52,9 @@ class ErrorIncidentStore @Inject constructor(
     /**
      * Freezes [error] unless it is already held, in which case the incident it was frozen with is
      * returned unchanged - same id, same timestamp, same spooled log trail.
+     *
+     * Called where the failure reaches the user, so the stamp names the failure itself: either the
+     * exact [occurredAt] the site recorded, or the moment it published the error.
      */
     suspend fun remember(
         error: Throwable,
@@ -59,7 +62,12 @@ class ErrorIncidentStore @Inject constructor(
         occurredAt: Instant? = null,
     ): ErrorIncident {
         clearStaleSpoolsOnce()
-        return mint(error = error, context = context, occurredAt = occurredAt)
+        return mint(
+            error = error,
+            context = context,
+            occurredAt = occurredAt,
+            occurredAtIsApproximate = false,
+        )
     }
 
     fun get(error: Throwable): ErrorIncident? = synchronized(lock) { incidents[IdentityKey(error)] }
@@ -77,10 +85,12 @@ class ErrorIncidentStore @Inject constructor(
     ): ErrorIncident {
         get(error)?.let { return it }
         log(TAG, WARN) { "No incident held for ${error.javaClass.name}, freezing at share time" }
-        return remember(
+        clearStaleSpoolsOnce()
+        return mint(
             error = error,
             context = context + ("incident.frozenAtShare" to "true"),
             occurredAt = occurredAt,
+            occurredAtIsApproximate = true,
         )
     }
 
@@ -104,6 +114,7 @@ class ErrorIncidentStore @Inject constructor(
         error: Throwable,
         context: Map<String, String?>,
         occurredAt: Instant?,
+        occurredAtIsApproximate: Boolean,
     ): ErrorIncident {
         val key = IdentityKey(error)
         var owned = false
@@ -117,7 +128,12 @@ class ErrorIncidentStore @Inject constructor(
         if (!owned) return pending.await()
 
         val incident = try {
-            incidentFactory.freeze(error = error, siteContext = context, occurredAt = occurredAt)
+            incidentFactory.freeze(
+                error = error,
+                siteContext = context,
+                occurredAt = occurredAt,
+                occurredAtIsApproximate = occurredAtIsApproximate,
+            )
         } catch (t: Throwable) {
             // A failed freeze must not wedge the next caller naming this throwable.
             synchronized(lock) { inFlight.remove(key) }
