@@ -3,7 +3,9 @@ package testhelpers.error
 import eu.darken.butler.common.error.ErrorIncident
 import eu.darken.butler.common.error.ErrorIncidentFactory
 import eu.darken.butler.common.error.ErrorIncidentStore
+import io.mockk.Runs
 import io.mockk.coEvery
+import io.mockk.just
 import io.mockk.mockk
 import java.io.File
 import kotlin.time.Clock
@@ -17,6 +19,7 @@ import kotlin.time.Instant
  */
 fun recordingIncidentFactory(spoolDir: File? = null): ErrorIncidentFactory = mockk {
     var counter = 0
+    coEvery { clearStaleSpools() } just Runs
     coEvery { freeze(any(), any(), any()) } answers {
         val incidentId = "incident-${counter++}"
         ErrorIncident(

@@ -77,6 +77,17 @@ class ErrorIncidentFactory @Inject constructor(
         )
     }
 
+    /**
+     * Drops the spool files left behind by a previous process. Reached only through
+     * [ErrorIncidentStore], which calls it before it holds any incident of its own.
+     */
+    suspend fun clearStaleSpools() = withContext(dispatcherProvider.IO) {
+        val stale = spoolDir.listFiles() ?: return@withContext
+        if (stale.isEmpty()) return@withContext
+        log(TAG, INFO) { "clearStaleSpools(): dropping ${stale.size} spooled log trails" }
+        stale.forEach { runCatching { it.delete() } }
+    }
+
     private suspend fun spoolLog(incidentId: String, logSnapshot: String): File? = withContext(dispatcherProvider.IO) {
         try {
             spoolDir.mkdirs()

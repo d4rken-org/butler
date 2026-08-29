@@ -1,8 +1,11 @@
 package eu.darken.butler.common.error
 
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
@@ -30,11 +33,21 @@ class ErrorIncidentStore @Inject constructor(
         override fun equals(other: Any?): Boolean = other is IdentityKey && other.error === error
     }
 
-    // Held across the freeze, which suspends: two callers racing on one throwable must mint once.
-    private val mintLock = Mutex()
+    // Guards both maps below, neither of which is read from a suspending section.
+    private val lock = Any()
 
-    // Guards the map itself, which [get] reads without suspending.
     private val incidents = LinkedHashMap<IdentityKey, ErrorIncident>()
+
+    /**
+     * The freezes currently running, one per identity. Two callers racing on the same throwable
+     * still mint once, while two unrelated failures freeze side by side: a freeze reads settings
+     * and writes a log trail to disk, and the second failure's ring buffer keeps evicting for as
+     * long as it would spend waiting.
+     */
+    private val inFlight = HashMap<IdentityKey, CompletableDeferred<ErrorIncident>>()
+
+    private val spoolCleanupLock = Mutex()
+    private var spoolsCleared = false
 
     /**
      * Freezes [error] unless it is already held, in which case the incident it was frozen with is
@@ -44,14 +57,12 @@ class ErrorIncidentStore @Inject constructor(
         error: Throwable,
         context: Map<String, String?> = emptyMap(),
         occurredAt: Instant? = null,
-    ): ErrorIncident = mintLock.withLock {
-        get(error)?.let { return@withLock it }
-        val incident = incidentFactory.freeze(error = error, siteContext = context, occurredAt = occurredAt)
-        store(error, incident)
-        incident
+    ): ErrorIncident {
+        clearStaleSpoolsOnce()
+        return mint(error = error, context = context, occurredAt = occurredAt)
     }
 
-    fun get(error: Throwable): ErrorIncident? = synchronized(incidents) { incidents[IdentityKey(error)] }
+    fun get(error: Throwable): ErrorIncident? = synchronized(lock) { incidents[IdentityKey(error)] }
 
     /**
      * The share side's fallback: an error nobody remembered is still worth a report, it just costs
@@ -74,23 +85,69 @@ class ErrorIncidentStore @Inject constructor(
     }
 
     /** Points [wrapper] at the incident already held for [original], for a site that publishes a wrapper. */
-    suspend fun alias(wrapper: Throwable, original: Throwable) = mintLock.withLock {
+    suspend fun alias(wrapper: Throwable, original: Throwable) {
         val incident = get(original)
         if (incident == null) {
             log(TAG, WARN) { "alias(): Nothing remembered for ${original.javaClass.name}" }
-            return@withLock
+            return
         }
         store(wrapper, incident)
     }
 
-    suspend fun forget(error: Throwable) = mintLock.withLock {
-        val dropped = synchronized(incidents) { incidents.remove(IdentityKey(error)) } ?: return@withLock
+    suspend fun forget(error: Throwable) {
+        val dropped = synchronized(lock) { incidents.remove(IdentityKey(error)) } ?: return
         log(TAG) { "forget(${dropped.incidentId})" }
         deleteSpoolOf(dropped)
     }
 
+    private suspend fun mint(
+        error: Throwable,
+        context: Map<String, String?>,
+        occurredAt: Instant?,
+    ): ErrorIncident {
+        val key = IdentityKey(error)
+        var owned = false
+        val pending = synchronized(lock) {
+            incidents[key]?.let { return it }
+            inFlight[key] ?: CompletableDeferred<ErrorIncident>().also {
+                inFlight[key] = it
+                owned = true
+            }
+        }
+        if (!owned) return pending.await()
+
+        val incident = try {
+            incidentFactory.freeze(error = error, siteContext = context, occurredAt = occurredAt)
+        } catch (t: Throwable) {
+            // A failed freeze must not wedge the next caller naming this throwable.
+            synchronized(lock) { inFlight.remove(key) }
+            pending.completeExceptionally(t)
+            throw t
+        }
+        synchronized(lock) { inFlight.remove(key) }
+        store(error, incident)
+        pending.complete(incident)
+        return incident
+    }
+
+    /**
+     * The spool outlives the process, the map naming its owners does not: whatever is on disk when
+     * this store is first used belongs to a previous session and nothing can reach it again.
+     */
+    private suspend fun clearStaleSpoolsOnce() = spoolCleanupLock.withLock {
+        if (spoolsCleared) return@withLock
+        try {
+            incidentFactory.clearStaleSpools()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (t: Throwable) {
+            log(TAG, WARN) { "clearStaleSpools() failed: ${t.asLog()}" }
+        }
+        spoolsCleared = true
+    }
+
     private fun store(error: Throwable, incident: ErrorIncident) {
-        val evicted = synchronized(incidents) {
+        val evicted = synchronized(lock) {
             incidents[IdentityKey(error)] = incident
             if (incidents.size <= MAX_ENTRIES) return@synchronized null
             val eldest = incidents.keys.first()
@@ -104,7 +161,7 @@ class ErrorIncidentStore @Inject constructor(
     private fun deleteSpoolOf(incident: ErrorIncident) {
         val logFile = incident.logFile ?: return
         // An aliased throwable keeps the incident alive under a second key.
-        val stillReferenced = synchronized(incidents) { incidents.values.any { it === incident } }
+        val stillReferenced = synchronized(lock) { incidents.values.any { it === incident } }
         if (stillReferenced) return
         runCatching { logFile.delete() }
     }

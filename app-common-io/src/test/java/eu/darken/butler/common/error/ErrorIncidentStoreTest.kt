@@ -9,14 +9,20 @@ import eu.darken.butler.common.datastore.DataStoreValue
 import eu.darken.butler.common.debug.logging.RingLogBuffer
 import eu.darken.butler.common.root.RootManager
 import eu.darken.butler.common.root.RootSettings
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.mockk.Runs
+import io.mockk.coEvery
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
@@ -27,6 +33,7 @@ import testhelpers.EmptyApp
 import testhelpers.coroutine.TestDispatcherProvider
 import java.io.File
 import java.io.IOException
+import kotlin.time.Clock
 
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [29], application = EmptyApp::class)
@@ -52,6 +59,23 @@ class ErrorIncidentStoreTest : BaseTest() {
     )
 
     private fun value() = mockk<DataStoreValue<Boolean?>>().apply { every { flow } returns flowOf(null) }
+
+    /** A factory whose freeze can be held open, to observe what a freeze in flight blocks. */
+    private fun gatedFactory(held: Throwable, gate: CompletableDeferred<Unit>) = mockk<ErrorIncidentFactory>().apply {
+        var counter = 0
+        coEvery { clearStaleSpools() } just Runs
+        coEvery { freeze(any(), any(), any()) } coAnswers {
+            if (firstArg<Throwable>() === held) gate.await()
+            ErrorIncident(
+                incidentId = "incident-${counter++}",
+                occurredAt = Clock.System.now(),
+                occurredAtIsApproximate = false,
+                error = firstArg(),
+                context = emptyMap(),
+                logFile = null,
+            )
+        }
+    }
 
     private fun spooled(): List<File> = spoolDir.listFiles()?.toList() ?: emptyList()
 
@@ -93,6 +117,62 @@ class ErrorIncidentStoreTest : BaseTest() {
         val incidents = List(8) { async { store.remember(boom) } }.awaitAll()
 
         incidents.map { it.incidentId }.distinct().size shouldBe 1
+        spooled().size shouldBe 1
+    }
+
+    @Test
+    fun `an unrelated failure does not queue behind a freeze in flight`() = runTest {
+        val gate = CompletableDeferred<Unit>()
+        val blocked = IOException("blocked")
+        val store = ErrorIncidentStore(gatedFactory(blocked, gate))
+
+        val held = async { store.remember(blocked) }
+        runCurrent()
+
+        val other = store.remember(IOException("unrelated"))
+
+        // The unrelated failure is frozen while the first freeze is still held open.
+        held.isCompleted shouldBe false
+
+        gate.complete(Unit)
+        held.await().incidentId shouldNotBe other.incidentId
+    }
+
+    @Test
+    fun `a freeze that fails does not wedge the next caller`() = runTest {
+        val boom = IOException("boom")
+        var attempts = 0
+        val factory = mockk<ErrorIncidentFactory>().apply {
+            coEvery { clearStaleSpools() } just Runs
+            coEvery { freeze(any(), any(), any()) } coAnswers {
+                if (attempts++ == 0) throw IllegalStateException("spool broke")
+                ErrorIncident(
+                    incidentId = "incident-retry",
+                    occurredAt = Clock.System.now(),
+                    occurredAtIsApproximate = false,
+                    error = firstArg(),
+                    context = emptyMap(),
+                    logFile = null,
+                )
+            }
+        }
+        val store = ErrorIncidentStore(factory)
+
+        shouldThrow<IllegalStateException> { store.remember(boom) }
+
+        store.remember(boom).incidentId shouldBe "incident-retry"
+    }
+
+    @Test
+    fun `spool files from a previous process are dropped before the first freeze`() = runTest {
+        val store = store()
+        spoolDir.mkdirs()
+        val stale = File(spoolDir, "stale.log").apply { writeText("previous process") }
+
+        val incident = store.remember(IOException("boom"))
+
+        stale.exists() shouldBe false
+        incident.logFile!!.exists() shouldBe true
         spooled().size shouldBe 1
     }
 
