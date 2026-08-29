@@ -4,8 +4,12 @@ import eu.darken.butler.common.files.ArchivePath
 
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.coroutine.DispatcherProvider
+import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.asLog
+import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APathGateway
+import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.actions.CopyAction
@@ -21,6 +25,7 @@ import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.ipc.fileHandle
 import eu.darken.butler.common.sharedresource.SharedResource
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -90,6 +95,34 @@ class ArchiveGateway @Inject constructor(
             path.segments.isEmpty() || index.entriesBySegments.containsKey(path.segments)
         } catch (e: ReadException) {
             false
+        }
+    }
+
+    /**
+     * Indexing reads the container, so its failure alone cannot say whether the entry is there.
+     * A deleted archive fails exactly like a corrupt one (indexing stats the container first), so
+     * the container is probed before answering: only a container that is provably gone makes the
+     * entry ABSENT.
+     */
+    override suspend fun existsStrict(path: ArchivePath): Existence = runIO {
+        val index = try {
+            service.index(path.container)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            // Not just ReadException: tar scanning propagates raw IOExceptions from commons-compress.
+            return@runIO when (service.containerExistsStrict(path.container)) {
+                Existence.ABSENT -> Existence.ABSENT
+                else -> {
+                    log(TAG, WARN) { "existsStrict($path) could not be answered: ${e.asLog()}" }
+                    Existence.UNKNOWN
+                }
+            }
+        }
+        when {
+            path.segments.isEmpty() -> Existence.PRESENT
+            index.entriesBySegments.containsKey(path.segments) -> Existence.PRESENT
+            else -> Existence.ABSENT
         }
     }
 

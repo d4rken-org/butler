@@ -8,6 +8,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.errors.ReadException
@@ -137,6 +138,13 @@ class ArchiveService @Inject constructor(
         val stripe = commitLockStripes[(output.path.hashCode() and Int.MAX_VALUE) % COMMIT_LOCK_STRIPES]
         stripe.withLock { block() }
     }
+
+    /**
+     * Strict existence of the container itself, for callers that have to tell a deleted archive
+     * apart from an unreadable one. Routed through here because [ArchiveGateway] only holds this
+     * service - the gateway switch is behind a Lazy to break the cycle between the two.
+     */
+    suspend fun containerExistsStrict(container: APath<*>): Existence = gatewaySwitch.existsStrict(container)
 
     /** Container stat used both as cache fingerprint and for archive-root lookups. */
     suspend fun statContainer(container: APath<*>): ContainerStat {
