@@ -1,8 +1,6 @@
 package eu.darken.butler.workspace.ui.manager
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.Dp
@@ -47,29 +45,25 @@ fun rememberWindowSizeInfo(): WindowSizeInfo {
     val widthDp = configuration.screenWidthDp.dp
     val heightDp = configuration.screenHeightDp.dp
 
-    // Use derivedStateOf to only recompose when size class changes, not on every dp change
-    val windowSizeInfo by remember {
-        derivedStateOf {
-            val widthSizeClass = when {
-                widthDp < 600.dp -> WindowSizeInfo.SizeClass.COMPACT
-                widthDp < 840.dp -> WindowSizeInfo.SizeClass.MEDIUM
-                else -> WindowSizeInfo.SizeClass.EXPANDED
-            }
-
-            val heightSizeClass = when {
-                heightDp < 480.dp -> WindowSizeInfo.SizeClass.COMPACT
-                heightDp < 900.dp -> WindowSizeInfo.SizeClass.MEDIUM
-                else -> WindowSizeInfo.SizeClass.EXPANDED
-            }
-
-            WindowSizeInfo(
-                widthDp = widthDp,
-                heightDp = heightDp,
-                widthSizeClass = widthSizeClass,
-                heightSizeClass = heightSizeClass,
-            )
+    // Keyed on the measurements so the same instance survives recompositions at an unchanged size
+    return remember(widthDp, heightDp) {
+        val widthSizeClass = when {
+            widthDp < 600.dp -> WindowSizeInfo.SizeClass.COMPACT
+            widthDp < 840.dp -> WindowSizeInfo.SizeClass.MEDIUM
+            else -> WindowSizeInfo.SizeClass.EXPANDED
         }
-    }
 
-    return windowSizeInfo
+        val heightSizeClass = when {
+            heightDp < 480.dp -> WindowSizeInfo.SizeClass.COMPACT
+            heightDp < 900.dp -> WindowSizeInfo.SizeClass.MEDIUM
+            else -> WindowSizeInfo.SizeClass.EXPANDED
+        }
+
+        WindowSizeInfo(
+            widthDp = widthDp,
+            heightDp = heightDp,
+            widthSizeClass = widthSizeClass,
+            heightSizeClass = heightSizeClass,
+        )
+    }
 }
