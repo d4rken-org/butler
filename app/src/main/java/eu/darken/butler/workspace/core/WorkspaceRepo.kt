@@ -1854,6 +1854,9 @@ class WorkspaceRepo @Inject constructor(
         // pending, or the screen renders a single dialog for several queued answers and
         // one dismissal only retires one of them.
         val closingIds = closingIdsOf(action.id)
+        // Anchors the dialog to the workspace the close was invoked from, which is the overlay on
+        // top when a unit is closed from one of its children.
+        val hostId = action.sourceWorkspaceId ?: action.id
         val overlapping = _pendingConfirmations.value.filterValues { pending ->
             val data = pending.data
             data is PendingWorkspaceConfirmation.ConfirmationData.WorkspaceCloseConfirmation &&
@@ -1889,9 +1892,7 @@ class WorkspaceRepo @Inject constructor(
         _pendingConfirmations.update {
             it - overlapping.keys + (confirmationId to PendingWorkspaceConfirmation(
                 id = confirmationId,
-                // Anchors the dialog to the workspace the close was invoked from, which
-                // is the overlay on top when a unit is closed from one of its children.
-                sourceWorkspaceId = action.sourceWorkspaceId ?: action.id,
+                sourceWorkspaceId = hostId,
                 data = PendingWorkspaceConfirmation.ConfirmationData.WorkspaceCloseConfirmation(
                     workspaceId = action.id,
                     workspaceTitle = workspaceInfo.displayTitle,
@@ -1899,6 +1900,7 @@ class WorkspaceRepo @Inject constructor(
                     // The close takes the whole subtree, so naming one member while
                     // discarding several would understate what is lost
                     unsavedCount = dirtyMembers.size,
+                    hostInClosingSubtree = hostId in closingIds,
                 ),
             ))
         }

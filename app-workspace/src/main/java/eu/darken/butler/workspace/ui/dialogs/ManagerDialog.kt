@@ -13,7 +13,8 @@ sealed interface ManagerDialog {
     val isBlocking: Boolean
 
     /**
-     * Global dialogs that are not targeted to a specific workspace.
+     * Dialogs no workspace hosts: they are composed at screen level, above every pane. Some of them
+     * still name a workspace - what a dialog is about and where it renders are separate questions.
      */
     sealed interface Global : ManagerDialog {
         /**
@@ -31,6 +32,25 @@ sealed interface ManagerDialog {
             val candidates: List<WorkspaceLimitCandidate> = emptyList(),
             val canRecover: Boolean = false,
             val minToClose: Int = 1,
+        ) : Global {
+            override val isBlocking: Boolean = true
+        }
+
+        /**
+         * Confirmation for closing a tab that nothing on screen can host the question for.
+         *
+         * [selectionSourceWorkspaceId] is the pane the jump to [closingWorkspaceId] acts FROM, not
+         * where that tab lands: it protects that pane from eviction and orders the search for an
+         * empty one. Null when nothing on screen can play that part.
+         */
+        data class CloseConfirmation(
+            override val id: String,
+            val closingWorkspaceId: Workspace.Id,
+            val workspaceTitle: CaString,
+            val hasUnsavedChanges: Boolean = false,
+            /** Unsaved members in the closing subtree; [workspaceTitle] names only one of them. */
+            val unsavedCount: Int = 0,
+            val selectionSourceWorkspaceId: Workspace.Id?,
         ) : Global {
             override val isBlocking: Boolean = true
         }
