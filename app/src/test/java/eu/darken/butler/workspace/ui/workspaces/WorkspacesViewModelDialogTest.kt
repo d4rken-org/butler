@@ -6,7 +6,6 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.tour.GuidedTourController
 import eu.darken.butler.common.datastore.DataStoreValue
 import eu.darken.butler.common.debug.bugreport.BugReportRepo
-import eu.darken.butler.common.error.ErrorIncidentFactory
 import eu.darken.butler.common.error.ErrorReportPackager
 import eu.darken.butler.common.error.ErrorReportTool
 import eu.darken.butler.common.review.ReviewTool
@@ -55,6 +54,7 @@ import testhelpers.BaseTest
 import testhelpers.TestApplication
 import testhelpers.coroutine.TestDispatcherProvider
 import testhelpers.coroutine.runTest2
+import testhelpers.error.recordingIncidentStore
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -133,7 +133,7 @@ class WorkspacesViewModelDialogTest : BaseTest() {
             webpageTool = mockk<WebpageTool>(relaxed = true),
             errorReportTool = mockk<ErrorReportTool>(relaxed = true),
             errorReportPackager = mockk<ErrorReportPackager>(relaxed = true),
-            errorIncidentFactory = mockk<ErrorIncidentFactory>(relaxed = true),
+            errorIncidentStore = recordingIncidentStore(),
             bugReportRepo = bugReportRepo,
             openInNewTabsUseCase = mockk<OpenInNewTabsUseCase>(relaxed = true),
             reviewTool = reviewTool,

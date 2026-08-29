@@ -17,7 +17,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.error.ErrorIncidentFactory
+import eu.darken.butler.common.error.ErrorIncidentStore
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.extensions.commonParent
@@ -114,7 +114,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private val trashSettings: TrashSettings,
     private val folderPreviewResolver: FolderPreviewResolver,
     private val apiLevel: ApiLevel,
-    private val errorIncidentFactory: ErrorIncidentFactory,
+    private val errorIncidentStore: ErrorIncidentStore,
     itemSorterFactory: SearchItemSorter.Factory,
     chromeFactory: WorkspacePageChrome.Factory,
 ) : ViewModel4(dispatchers, logTag("Searcher", "Workspace", id.shortTag, "Page")) {
@@ -193,6 +193,13 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     }
 
     init {
+        // The workspace normalizes what it caught before publishing it (a non-Exception throwable
+        // becomes an Exception wrapper), so the instance frozen here is the one the page renders
+        // and the one the share action will name.
+        workspaceSearchState
+            .onEach { state -> state.error?.let { errorIncidentStore.remember(it, searchContext(state)) } }
+            .launchIn(vmScope)
+
         // Initialize UI state from workspace (source of truth, already has defaults applied)
         // Non-blocking reactive initialization - waits for workspace to be ready
         workspaceSearchState
@@ -1218,20 +1225,24 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private fun resolveIssue(resolution: eu.darken.butler.common.files.actions.PathActionIssue.Resolution) =
         conflicts.resolve(resolution)
 
+    private fun searchContext(
+        state: SearcherWorkspace.State,
+        targetPath: String? = null,
+    ): Map<String, String?> = mapOf(
+        "search.query" to state.currentSearchQuery?.toString(),
+        "search.targets" to state.searchTargets.joinToString(", "),
+        "search.targetPath" to targetPath,
+    )
+
     /**
      * Unified handler for all page-level actions.
      * Dispatches to appropriate ViewModel methods based on action type.
      */
     private fun shareSearchError(action: SearcherPageAction.Error.Share) = launch {
         log(TAG) { "shareSearchError(${action.error.javaClass.simpleName})" }
-        val searchState = workspaceSearchState.first()
-        val incident = errorIncidentFactory.freeze(
+        val incident = errorIncidentStore.getOrFreeze(
             error = action.error,
-            context = mapOf(
-                "search.query" to searchState.currentSearchQuery?.toString(),
-                "search.targets" to searchState.searchTargets.joinToString(", "),
-                "search.targetPath" to action.targetPath,
-            ),
+            context = mapOf("search.targetPath" to action.targetPath),
         )
         chrome.shareWorkspaceError(incident)
     }
@@ -1460,6 +1471,13 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             }
             is SearcherPageAction.Overlays.ShowTargetError -> {
                 _overlayState.update { it.copy(targetError = TargetError(action.path, action.error)) }
+                // A per-target failure reaches the user here, not through the search state.
+                launch {
+                    errorIncidentStore.remember(
+                        error = action.error,
+                        context = searchContext(workspaceSearchState.first(), targetPath = action.path),
+                    )
+                }
             }
             is SearcherPageAction.Overlays.DismissTargetError -> {
                 _overlayState.update { it.copy(targetError = null) }

@@ -15,7 +15,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.error.ErrorIncidentFactory
+import eu.darken.butler.common.error.ErrorIncidentStore
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.MimeInfo
@@ -113,7 +113,7 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
     private val appInstallOperationFactory: AppInstallOperation.Factory,
     private val apkIconExporter: ApkIconExporter,
     private val filenameValidator: FilenameValidator,
-    private val errorIncidentFactory: ErrorIncidentFactory,
+    private val errorIncidentStore: ErrorIncidentStore,
     chromeFactory: WorkspacePageChrome.Factory,
 ) : ViewModel3(dispatchers, logTag("Viewer", "Workspace", id.shortTag, "Page")) {
 
@@ -159,9 +159,10 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
                 // global slot, so a disposed source reporting its failure late would otherwise
                 // poison whatever replaced it - a fresh attempt on the same source (caught here) or
                 // a different source this tab was rebound to (caught where the state is composed).
-                onError = {
+                onError = { error ->
                     if (attemptFlow.value == attempt) {
-                        renderErrorFlow.value = RenderFailure(source = source, error = it)
+                        renderErrorFlow.value = RenderFailure(source = source, error = error)
+                        vmScope.launch { errorIncidentStore.remember(error, viewerContext(source)) }
                     }
                 },
             )
@@ -240,6 +241,9 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
             renderError != null -> ViewerContent.Failed(renderError)
             else -> workspaceState.content
         }
+        // The instance that reaches the page is the one the share action will name: the workspace
+        // may have turned what it caught into a ViewerFileGoneException on the way here.
+        if (content is ViewerContent.Failed) errorIncidentStore.remember(content.error, viewerContext(source))
         // Every verdict that means "the content is unreachable" has to count. A reload clears the
         // probe's flag and reports the loss as a failure instead: as a gone file when the path
         // itself vanished, or as a broken symlink when the link survived its target. The actions
@@ -366,15 +370,17 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
             .launchIn(vmScope)
     }
 
+    private fun viewerContext(source: ViewerSource): Map<String, String?> = mapOf(
+        "viewer.contentPath" to (source as? ViewerSource.Stored)?.path?.path,
+        "viewer.contentType" to source.mime.rawType,
+    )
+
     fun shareError(error: Throwable) = launch {
         log(tag) { "shareError($error)" }
-        val ready = state.value as? State.Ready
-        val incident = errorIncidentFactory.freeze(
+        val source = (state.value as? State.Ready)?.source
+        val incident = errorIncidentStore.getOrFreeze(
             error = error,
-            context = mapOf(
-                "viewer.contentPath" to (ready?.source as? ViewerSource.Stored)?.path?.path,
-                "viewer.contentType" to ready?.source?.mime?.rawType,
-            ),
+            context = source?.let { viewerContext(it) } ?: emptyMap(),
         )
         chrome.shareWorkspaceError(incident)
     }

@@ -38,6 +38,7 @@ import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import testhelpers.coroutine.TestDispatcherProvider
 import testhelpers.coroutine.runTest2
+import testhelpers.error.recordingIncidentStore
 
 /**
  * PDF paging as the ViewModel drives it: which page the loader is asked for, and when it may be
@@ -90,6 +91,8 @@ class ViewerWorkspaceViewModelPagingTest : BaseTest() {
      * displays. They are the same flow in production; handing the branch its own lets a test pin the
      * window where the content is already a PDF but no page has been rendered yet.
      */
+    private val incidentStore = recordingIncidentStore()
+
     private fun makeViewModel(
         pdfPageState: MutableStateFlow<ViewerWorkspace.State> = workspaceState,
     ): ViewerWorkspaceViewModel {
@@ -135,7 +138,7 @@ class ViewerWorkspaceViewModelPagingTest : BaseTest() {
             // Unused by the paging cases, but the ViewModel now owns the APK icon export too.
             apkIconExporter = mockk(relaxed = true),
             filenameValidator = FilenameValidator(),
-            errorIncidentFactory = mockk(relaxed = true),
+            errorIncidentStore = incidentStore,
             chromeFactory = mockk<WorkspacePageChrome.Factory>().apply {
                 every { create(any(), any()) } returns chrome
             },

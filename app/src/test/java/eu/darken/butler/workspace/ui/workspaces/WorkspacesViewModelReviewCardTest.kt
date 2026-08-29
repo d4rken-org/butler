@@ -11,7 +11,6 @@ import eu.darken.butler.common.compose.tour.TourSession
 import eu.darken.butler.common.compose.tour.TourStep
 import eu.darken.butler.common.datastore.DataStoreValue
 import eu.darken.butler.common.debug.bugreport.BugReportRepo
-import eu.darken.butler.common.error.ErrorIncidentFactory
 import eu.darken.butler.common.error.ErrorReportPackager
 import eu.darken.butler.common.error.ErrorReportTool
 import eu.darken.butler.common.review.ReviewTool
@@ -59,6 +58,7 @@ import testhelpers.BaseTest
 import testhelpers.TestApplication
 import testhelpers.coroutine.TestDispatcherProvider
 import testhelpers.coroutine.runTest2
+import testhelpers.error.recordingIncidentStore
 import java.util.Locale
 import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.Uuid
@@ -180,7 +180,7 @@ class WorkspacesViewModelReviewCardTest : BaseTest() {
             webpageTool = mockk<WebpageTool>(relaxed = true),
             errorReportTool = mockk<ErrorReportTool>(relaxed = true),
             errorReportPackager = mockk<ErrorReportPackager>(relaxed = true),
-            errorIncidentFactory = mockk<ErrorIncidentFactory>(relaxed = true),
+            errorIncidentStore = recordingIncidentStore(),
             bugReportRepo = bugReportRepo,
             openInNewTabsUseCase = mockk<OpenInNewTabsUseCase>(relaxed = true),
             reviewTool = reviewTool,

@@ -13,7 +13,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.ErrorIncident
-import eu.darken.butler.common.error.ErrorIncidentFactory
+import eu.darken.butler.common.error.ErrorIncidentStore
 import eu.darken.butler.common.error.ErrorReportPackager
 import eu.darken.butler.common.error.ErrorReportTool
 import eu.darken.butler.common.flow.SingleEventFlow
@@ -56,9 +56,11 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.getAndUpdate
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.update
@@ -79,7 +81,7 @@ class WorkspacesViewModel @Inject constructor(
     private val webpageTool: WebpageTool,
     private val errorReportTool: ErrorReportTool,
     private val errorReportPackager: ErrorReportPackager,
-    private val errorIncidentFactory: ErrorIncidentFactory,
+    private val errorIncidentStore: ErrorIncidentStore,
     private val bugReportRepo: BugReportRepo,
     private val openInNewTabsUseCase: OpenInNewTabsUseCase,
     private val reviewTool: ReviewTool,
@@ -125,7 +127,7 @@ class WorkspacesViewModel @Inject constructor(
                 if (restorationState is WorkspaceSessionManager.State.Error) {
                     // Frozen here and captured by the callback rather than read back when the user
                     // taps Share: a dialog raised for an older failure must not share a newer one.
-                    val incident = errorIncidentFactory.freeze(
+                    val incident = errorIncidentStore.remember(
                         error = restorationState.exception,
                         context = mapOf("session.phase" to restorationState.toString()),
                     )
@@ -194,6 +196,29 @@ class WorkspacesViewModel @Inject constructor(
                     }
                 }
                 _managerDialogs.value = dialogs
+            }
+            .launchInViewModel()
+
+        // A tab that failed to initialize keeps showing that failure until it is closed, so the
+        // incident is frozen on the transition, not when the user reaches for Share.
+        workspaceRepo.state
+            .map { repoState ->
+                repoState.infos.mapNotNull { info ->
+                    (info.lifecycleState as? Workspace.LifecycleState.Error)
+                        ?.let { Triple(info.id, info.type, it.error) }
+                }
+            }
+            .distinctUntilChanged()
+            .onEach { failures ->
+                failures.forEach { (workspaceId, type, error) ->
+                    errorIncidentStore.remember(
+                        error = error,
+                        context = mapOf(
+                            "workspace.id" to workspaceId.toString(),
+                            "workspace.type" to type.name,
+                        ),
+                    )
+                }
             }
             .launchInViewModel()
 
@@ -545,13 +570,9 @@ class WorkspacesViewModel @Inject constructor(
 
     fun shareWorkspaceError(workspaceId: Workspace.Id, error: Throwable) = launch {
         log(tag) { "shareWorkspaceError($workspaceId, $error)" }
-        val incident = errorIncidentFactory.freeze(
+        val incident = errorIncidentStore.getOrFreeze(
             error = error,
-            context = mapOf(
-                "workspace.id" to workspaceId.toString(),
-                "workspace.type" to workspaceRepo.state.first().infos
-                    .firstOrNull { it.id == workspaceId }?.type?.name,
-            ),
+            context = mapOf("workspace.id" to workspaceId.toString()),
         )
         _pendingErrorShare.value = PendingErrorShare(incident, "Workspace initialization failed")
     }

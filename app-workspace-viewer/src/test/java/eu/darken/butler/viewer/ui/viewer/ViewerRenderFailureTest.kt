@@ -2,6 +2,7 @@ package eu.darken.butler.viewer.ui.viewer
 
 import androidx.core.net.toUri
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.error.ErrorIncident
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.validation.FilenameValidator
@@ -39,6 +40,7 @@ import org.robolectric.annotation.Config
 import testhelpers.BaseTest
 import testhelpers.coroutine.TestDispatcherProvider
 import testhelpers.coroutine.runTest2
+import testhelpers.error.recordingIncidentStore
 
 /**
  * Render failures the image source reports, and which source they belong to.
@@ -68,12 +70,16 @@ class ViewerRenderFailureTest : BaseTest() {
     /** The failure callback the image source was handed, per source it was created for. */
     private val onErrors = mutableMapOf<ViewerSource, (Throwable) -> Unit>()
 
+    /** What the share action handed to the chrome. */
+    private val shared = mutableListOf<ErrorIncident>()
+
     private lateinit var workspaces: MutableStateFlow<ViewerWorkspace>
 
     @Before
     fun setup() {
         Dispatchers.setMain(UnconfinedTestDispatcher())
         onErrors.clear()
+        shared.clear()
     }
 
     @After
@@ -91,6 +97,8 @@ class ViewerRenderFailureTest : BaseTest() {
         )
         every { reload() } just Runs
     }
+
+    private val incidentStore = recordingIncidentStore()
 
     private fun makeViewModel(): ViewerWorkspaceViewModel {
         workspaces = MutableStateFlow(makeWorkspace(streamed))
@@ -123,12 +131,13 @@ class ViewerRenderFailureTest : BaseTest() {
             appInstallOperationFactory = mockk(relaxed = true),
             apkIconExporter = mockk(relaxed = true),
             filenameValidator = FilenameValidator(),
-            errorIncidentFactory = mockk(relaxed = true),
+            errorIncidentStore = incidentStore,
             chromeFactory = mockk<WorkspacePageChrome.Factory>().apply {
                 every { create(any(), any()) } returns mockk<WorkspacePageChrome>().apply {
                     every { shareIntentEvent } returns SingleEventFlow()
                     every { pendingErrorShare } returns MutableStateFlow(null)
                     every { pendingConflicts } returns flowOf(emptyMap())
+                    every { shareWorkspaceError(any(), any()) } answers { shared += firstArg<ErrorIncident>() }
                 }
             },
         )
@@ -167,6 +176,27 @@ class ViewerRenderFailureTest : BaseTest() {
 
         vm.readyState.source shouldBe stored
         vm.readyState.content shouldBe ViewerContent.Image(mime)
+    }
+
+    /**
+     * The share action must find the incident frozen when the failure was published, not mint one
+     * from the log trail as it looks whenever the user reaches for Share.
+     */
+    @Test
+    fun `sharing a render failure hands over the incident it was frozen into`() = runTest2 {
+        val vm = makeViewModel()
+        startCollecting(vm)
+
+        val sentinel = IllegalStateException("decode failed")
+        onErrors.getValue(streamed)(sentinel)
+        vm.readyState.content shouldBe ViewerContent.Failed(sentinel)
+
+        vm.shareError(sentinel)
+
+        val incident = shared.single()
+        (incident.error === sentinel) shouldBe true
+        incident.context.containsKey("incident.frozenAtShare") shouldBe false
+        incident.context["viewer.contentType"] shouldBe "image/jpeg"
     }
 
     @Test
