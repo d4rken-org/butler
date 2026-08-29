@@ -225,10 +225,12 @@ class ViewerRenderFailureTest : BaseTest() {
         vm.shareError(published)
 
         val incident = shared.single()
+        // The pipeline can fail before any viewer source is resolved, so this incident carries no
+        // content context. `sharing a render failure hands over the incident it was frozen into`
+        // covers the populated case.
         (incident.error === published) shouldBe true
         incident.occurredAtIsApproximate shouldBe false
         incident.context.containsKey("incident.frozenAtShare") shouldBe false
-        incident.context["viewer.contentType"] shouldBe "image/jpeg"
     }
 
     @Test
