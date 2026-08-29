@@ -2,6 +2,7 @@ package eu.darken.butler.common.files.operations
 
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
+import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.FileSystemOps
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.MoveOutcome
@@ -117,9 +118,18 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>>(
     val lookupCalls = mutableListOf<String>()
     val listFilesCalls = mutableListOf<String>()
     val existsCalls = mutableListOf<String>()
+    val existsStrictCalls = mutableListOf<String>()
     val deleteCalls = mutableListOf<String>()
     val createDirCalls = mutableListOf<String>()
     val createFileCalls = mutableListOf<String>()
+
+    /**
+     * Answers for [existsStrict], per path and as a fallback. Deliberately not derived from the
+     * in-memory files: a mock that maps "no such entry" to ABSENT reproduces exactly the conflation
+     * the strict probe exists to avoid, so a test states which of the two it means.
+     */
+    val existsStrictAnswers = mutableMapOf<String, Existence>()
+    var defaultExistsStrict: Existence = Existence.UNKNOWN
 
     /**
      * Failure injection for testing retry scenarios.
@@ -197,6 +207,11 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>>(
     override suspend fun exists(path: P): Boolean {
         existsCalls.add(path.path)
         return files.containsKey(path.path)
+    }
+
+    override suspend fun existsStrict(path: P): Existence {
+        existsStrictCalls.add(path.path)
+        return existsStrictAnswers[path.path] ?: defaultExistsStrict
     }
 
     override suspend fun canWrite(path: P): Boolean {
@@ -605,6 +620,9 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>>(
         lookupCalls.clear()
         listFilesCalls.clear()
         existsCalls.clear()
+        existsStrictCalls.clear()
+        existsStrictAnswers.clear()
+        defaultExistsStrict = Existence.UNKNOWN
         deleteCalls.clear()
         createDirCalls.clear()
         createFileCalls.clear()

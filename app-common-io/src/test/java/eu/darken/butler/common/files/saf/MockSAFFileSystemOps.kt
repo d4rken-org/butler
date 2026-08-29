@@ -1,5 +1,6 @@
 package eu.darken.butler.common.files.saf
 
+import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.SAFPath
@@ -180,6 +181,12 @@ class MockSAFFileSystemOps : MockFileSystemOps<SAFPath, SAFPathLookup>(
         }
 
         return super.exists(path)
+    }
+
+    /** A missing grant means nobody was asked, which is not an absence - as in SAFFileSystemOps. */
+    override suspend fun existsStrict(path: SAFPath): Existence = when {
+        pathsWithoutPermission.contains(path.path) -> Existence.UNKNOWN
+        else -> super.existsStrict(path)
     }
 
     override suspend fun createSymlink(linkPath: SAFPath, targetPath: SAFPath): Boolean {
