@@ -184,7 +184,15 @@ class WorkspacePageChrome @AssistedInject constructor(
     }
 
     private fun requestErrorShare(incident: ErrorIncident, summary: String?) {
-        _pendingErrorShare.value = PendingErrorShare(incident = incident, summary = summary)
+        // Pinned for as long as the consent holds it: the store evicts at 32 entries and takes the
+        // evicted incident's log trail with it, which the packager still has to read.
+        errorIncidentStore.pin(incident)
+        val replaced = _pendingErrorShare.getAndUpdate {
+            PendingErrorShare(incident = incident, summary = summary)
+        }
+        replaced?.incident
+            ?.takeIf { it.incidentId != incident.incidentId }
+            ?.let { errorIncidentStore.unpin(it) }
     }
 
     /**
@@ -195,14 +203,18 @@ class WorkspacePageChrome @AssistedInject constructor(
         val pending = _pendingErrorShare.getAndUpdate { null } ?: return
         log(tag, INFO) { "confirmErrorShare(${pending.incident.incidentId})" }
         scope.launch {
-            val packaged = errorReportPackager.packageReport(pending.incident, pending.summary)
-            shareIntentEvent.tryEmit(errorReportTool.createShareChooserIntent(packaged))
+            try {
+                val packaged = errorReportPackager.packageReport(pending.incident, pending.summary)
+                shareIntentEvent.tryEmit(errorReportTool.createShareChooserIntent(packaged))
+            } finally {
+                errorIncidentStore.unpin(pending.incident)
+            }
         }
     }
 
     fun dismissErrorShare() {
         log(tag) { "dismissErrorShare()" }
-        _pendingErrorShare.value = null
+        _pendingErrorShare.getAndUpdate { null }?.let { errorIncidentStore.unpin(it.incident) }
     }
 
     fun closeWorkspace() {

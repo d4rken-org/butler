@@ -565,7 +565,7 @@ class WorkspacesViewModel @Inject constructor(
 
     private fun shareSessionError(incident: ErrorIncident) {
         log(tag) { "shareSessionError(${incident.incidentId})" }
-        _pendingErrorShare.value = PendingErrorShare(incident, "Session restoration failed")
+        requestErrorShare(incident, "Session restoration failed")
     }
 
     fun shareWorkspaceError(workspaceId: Workspace.Id, error: Throwable) = launch {
@@ -574,7 +574,17 @@ class WorkspacesViewModel @Inject constructor(
             error = error,
             context = mapOf("workspace.id" to workspaceId.toString()),
         )
-        _pendingErrorShare.value = PendingErrorShare(incident, "Workspace initialization failed")
+        requestErrorShare(incident, "Workspace initialization failed")
+    }
+
+    private fun requestErrorShare(incident: ErrorIncident, summary: String) {
+        // Pinned for as long as the consent holds it: the store evicts at 32 entries and takes the
+        // evicted incident's log trail with it, which the packager still has to read.
+        errorIncidentStore.pin(incident)
+        val replaced = _pendingErrorShare.getAndUpdate { PendingErrorShare(incident, summary) }
+        replaced?.incident
+            ?.takeIf { it.incidentId != incident.incidentId }
+            ?.let { errorIncidentStore.unpin(it) }
     }
 
     /**
@@ -584,13 +594,17 @@ class WorkspacesViewModel @Inject constructor(
     fun confirmErrorShare() = launch {
         val pending = _pendingErrorShare.getAndUpdate { null } ?: return@launch
         log(tag, INFO) { "confirmErrorShare(${pending.incident.incidentId})" }
-        val packaged = errorReportPackager.packageReport(pending.incident, pending.summary)
-        shareIntentEvent.tryEmit(errorReportTool.createShareChooserIntent(packaged))
+        try {
+            val packaged = errorReportPackager.packageReport(pending.incident, pending.summary)
+            shareIntentEvent.tryEmit(errorReportTool.createShareChooserIntent(packaged))
+        } finally {
+            errorIncidentStore.unpin(pending.incident)
+        }
     }
 
     fun dismissErrorShare() {
         log(tag) { "dismissErrorShare()" }
-        _pendingErrorShare.value = null
+        _pendingErrorShare.getAndUpdate { null }?.let { errorIncidentStore.unpin(it.incident) }
     }
 
     data class State(

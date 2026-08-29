@@ -190,6 +190,38 @@ class ErrorIncidentStoreTest : BaseTest() {
     }
 
     @Test
+    fun `a pinned incident keeps its place and its log trail`() = runTest {
+        val store = store()
+        val pinned = IOException("pinned")
+        val unpinned = IOException("unpinned")
+
+        val held = store.remember(pinned)
+        store.pin(held)
+        val evictable = store.remember(unpinned)
+        repeat(ErrorIncidentStore.MAX_ENTRIES) { store.remember(IOException("boom $it")) }
+
+        store.get(pinned)?.incidentId shouldBe held.incidentId
+        held.logFile!!.exists() shouldBe true
+        // The eldest unpinned entry was evicted in its place
+        store.get(unpinned) shouldBe null
+        evictable.logFile!!.exists() shouldBe false
+    }
+
+    @Test
+    fun `unpinning hands the incident back to eviction`() = runTest {
+        val store = store()
+        val eldest = IOException("eldest")
+
+        val incident = store.remember(eldest)
+        store.pin(incident)
+        store.unpin(incident)
+        repeat(ErrorIncidentStore.MAX_ENTRIES) { store.remember(IOException("boom $it")) }
+
+        store.get(eldest) shouldBe null
+        incident.logFile!!.exists() shouldBe false
+    }
+
+    @Test
     fun `an incident frozen at share time says so`() = runTest {
         val store = store()
         val boom = IOException("boom")

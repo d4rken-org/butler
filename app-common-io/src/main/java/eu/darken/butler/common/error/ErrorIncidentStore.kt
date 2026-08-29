@@ -46,6 +46,13 @@ class ErrorIncidentStore @Inject constructor(
      */
     private val inFlight = HashMap<IdentityKey, CompletableDeferred<ErrorIncident>>()
 
+    /**
+     * The incidents a consent dialog is currently holding, by id. Nothing calls [forget], so the
+     * map fills up with dismissed errors too, and at the cap the eldest entry's log trail is
+     * deleted - which, without this, could be the one the packager is about to read.
+     */
+    private val pinned = HashSet<String>()
+
     private val spoolCleanupLock = Mutex()
     private var spoolsCleared = false
 
@@ -110,6 +117,15 @@ class ErrorIncidentStore @Inject constructor(
         deleteSpoolOf(dropped)
     }
 
+    /** Holds [incident] against eviction for as long as a pending share needs it. */
+    fun pin(incident: ErrorIncident) {
+        synchronized(lock) { pinned.add(incident.incidentId) }
+    }
+
+    fun unpin(incident: ErrorIncident) {
+        synchronized(lock) { pinned.remove(incident.incidentId) }
+    }
+
     private suspend fun mint(
         error: Throwable,
         context: Map<String, String?>,
@@ -166,8 +182,9 @@ class ErrorIncidentStore @Inject constructor(
         val evicted = synchronized(lock) {
             incidents[IdentityKey(error)] = incident
             if (incidents.size <= MAX_ENTRIES) return@synchronized null
-            val eldest = incidents.keys.first()
-            incidents.remove(eldest)
+            val eldest = incidents.entries.firstOrNull { it.value.incidentId !in pinned }
+                ?: return@synchronized null
+            incidents.remove(eldest.key)
         } ?: return
         log(TAG) { "Evicted incident ${evicted.incidentId}" }
         deleteSpoolOf(evicted)
@@ -176,9 +193,11 @@ class ErrorIncidentStore @Inject constructor(
     /** The store owns the spool files, so a dropped incident takes its log trail with it. */
     private fun deleteSpoolOf(incident: ErrorIncident) {
         val logFile = incident.logFile ?: return
-        // An aliased throwable keeps the incident alive under a second key.
-        val stillReferenced = synchronized(lock) { incidents.values.any { it === incident } }
-        if (stillReferenced) return
+        val stillNeeded = synchronized(lock) {
+            // An aliased throwable keeps the incident alive under a second key.
+            incident.incidentId in pinned || incidents.values.any { it === incident }
+        }
+        if (stillNeeded) return
         runCatching { logFile.delete() }
     }
 
