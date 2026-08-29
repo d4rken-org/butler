@@ -92,7 +92,7 @@ internal class RoutedLocalFileSystemOps(
         router.routeFor(path, AccessIntent.Read).ops.existsStrict(path)
     } catch (e: CancellationException) {
         throw e
-    } catch (e: RouteUnavailableException) {
+    } catch (e: Exception) {
         Existence.UNKNOWN
     }
 
