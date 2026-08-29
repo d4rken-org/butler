@@ -7,10 +7,12 @@ import eu.darken.butler.common.adb.service.runModuleAction
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.causeChain
 import eu.darken.butler.common.files.APathGateway
+import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.FileSystemOps
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
@@ -59,6 +61,7 @@ import eu.darken.butler.common.root.service.runModuleAction
 import eu.darken.butler.common.sharedresource.SharedResource
 import eu.darken.butler.common.sharedresource.keepResourcesAlive
 import eu.darken.butler.common.storage.StorageManager2
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -624,6 +627,71 @@ class LocalGateway @Inject constructor(
         directOp = { fileSystemOps.exists(path) },
         clientOp = { it.exists(path) },
     )
+
+    override suspend fun existsStrict(path: LocalPath): Existence = existsStrict(path, Mode.AUTO)
+
+    /**
+     * Existence keeping "not there" apart from "could not look", so it cannot ride on
+     * [executeWithModeSelection]: that escalates on a thrown [IOException], and an UNKNOWN answer
+     * is a return value, not a throw. Escalation happens on UNKNOWN here instead, and a mode that
+     * cannot be reached at all is UNKNOWN rather than an error.
+     */
+    suspend fun existsStrict(
+        path: LocalPath,
+        mode: Mode = Mode.AUTO
+    ): Existence = runIO {
+        suspend fun direct(): Existence = probeExistence("existsStrict(DIRECT) -> $path") {
+            fileSystemOps.existsStrict(path)
+        }
+
+        suspend fun viaClient(clientMode: Mode): Existence =
+            probeExistence("existsStrict($clientMode) -> $path") {
+                clientOps(clientMode) { it.existsStrict(path) }
+            }
+
+        when (mode) {
+            Mode.DIRECT -> direct()
+            Mode.ISOLATED, Mode.ROOT, Mode.ADB -> viaClient(mode)
+            Mode.AUTO -> {
+                // For removable storage, prefer ISOLATED mode to protect against sudden disconnect
+                if (isOnRemovableStorage(path)) {
+                    return@runIO try {
+                        clientOps(Mode.ISOLATED) { it.existsStrict(path) }
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: ServiceBindException) {
+                        log(TAG, WARN) {
+                            "existsStrict: IsolatedService unavailable for removable storage, falling back to DIRECT"
+                        }
+                        direct()
+                    } catch (e: Exception) {
+                        log(TAG, WARN) { "existsStrict(AUTO:ISOLATED) -> $path failed: ${e.asLog()}" }
+                        Existence.UNKNOWN
+                    }
+                }
+
+                val directAnswer = when {
+                    accessChecker.shouldTryNormalAccess(path, false) -> direct()
+                    else -> Existence.UNKNOWN
+                }
+                if (directAnswer != Existence.UNKNOWN) return@runIO directAnswer
+
+                when (val escMode = selectEscalationModeOrNull()) {
+                    null -> Existence.UNKNOWN
+                    else -> viaClient(escMode)
+                }
+            }
+        }
+    }
+
+    private suspend fun probeExistence(label: String, block: suspend () -> Existence): Existence = try {
+        block()
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        log(TAG, WARN) { "$label failed: ${e.asLog()}" }
+        Existence.UNKNOWN
+    }
 
     override suspend fun canWrite(path: LocalPath): Boolean = canWrite(path, Mode.AUTO)
 
