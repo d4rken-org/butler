@@ -3,6 +3,7 @@ package eu.darken.butler.workspace.ui.operations
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.Operation
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.every
 import io.mockk.mockk
@@ -44,6 +45,14 @@ class OperationDisplayTest : BaseTest() {
         val display = managedOp(completed(CancellationException("The user declined the install"))).toDisplayModel()
 
         display.state.shouldBeInstanceOf<OperationDisplay.State.Cancelled>()
+    }
+
+    @Test
+    fun `a successful run without a report is completed`() {
+        // An install reports no path changes, so it completes with a null report.
+        val display = managedOp(completed(null)).toDisplayModel()
+
+        display.state.shouldBeInstanceOf<OperationDisplay.State.Completed>().report.shouldBeNull()
     }
 
     @Test

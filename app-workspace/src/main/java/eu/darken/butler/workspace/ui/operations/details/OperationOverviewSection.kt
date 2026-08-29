@@ -98,7 +98,7 @@ private fun OperationOverviewGrid(
     operation: OperationDisplay,
 ) {
     val reportSummary = when (operation.state) {
-        is OperationDisplay.State.Completed -> operation.state.report.summary
+        is OperationDisplay.State.Completed -> operation.state.report?.summary
         is OperationDisplay.State.Failed -> operation.state.report?.summary
         is OperationDisplay.State.Cancelled -> operation.state.report?.summary
         else -> null
