@@ -1,5 +1,6 @@
 package eu.darken.butler.common.files.local
 
+import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.MoveOutcome
@@ -24,10 +25,16 @@ import io.mockk.mockkConstructor
 import io.mockk.spyk
 import io.mockk.unmockkConstructor
 import kotlinx.coroutines.test.runTest
+import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import testhelpers.BaseTest
 import java.io.File
+import java.io.IOException
+import java.nio.file.AccessDeniedException
+import java.nio.file.FileSystems
+import java.nio.file.Files
+import java.nio.file.NoSuchFileException
 import kotlin.time.Instant
 
 class LocalFileSystemOpsTest : BaseTest() {
@@ -262,6 +269,56 @@ class LocalFileSystemOpsTest : BaseTest() {
         val path = LocalPath.build(tempDir, "non-existent.txt")
 
         fileSystemOps.exists(path) shouldBe false
+    }
+
+    @Test
+    fun `existsStrict reports an existing file as present`(@TempDir tempDir: File) = runTest {
+        val testFile = File(tempDir, "test.txt").apply { createNewFile() }
+
+        fileSystemOps.existsStrict(LocalPath.build(testFile)) shouldBe Existence.PRESENT
+    }
+
+    @Test
+    fun `existsStrict reports a missing file as absent`(@TempDir tempDir: File) = runTest {
+        fileSystemOps.existsStrict(LocalPath.build(tempDir, "non-existent.txt")) shouldBe Existence.ABSENT
+    }
+
+    /** The link itself is what is checked, so a target that is gone does not make the link absent. */
+    @Test
+    fun `existsStrict reports a dangling symlink as present`(@TempDir tempDir: File) = runTest {
+        val link = File(tempDir, "dangling")
+        Files.createSymbolicLink(link.toPath(), File(tempDir, "nowhere").toPath())
+
+        fileSystemOps.existsStrict(LocalPath.build(link)) shouldBe Existence.PRESENT
+    }
+
+    @Test
+    fun `a denied stat is not an absence`(@TempDir tempDir: File) = runTest {
+        val path = LocalPath.build(tempDir, "secret.txt")
+
+        fileSystemOps.classifyExistence(path, AccessDeniedException(path.path)) shouldBe Existence.UNKNOWN
+        fileSystemOps.classifyExistence(path, NoSuchFileException(path.path)) shouldBe Existence.ABSENT
+        fileSystemOps.classifyExistence(path, IOException("I/O error")) shouldBe Existence.UNKNOWN
+        fileSystemOps.classifyExistence(path, SecurityException("no")) shouldBe Existence.UNKNOWN
+    }
+
+    /** The same on a real file system, where the denial comes from the kernel rather than a stub. */
+    @Test
+    fun `a stat denied by the file system is not an absence`(@TempDir tempDir: File) = runTest {
+        assumeTrue(FileSystems.getDefault().supportedFileAttributeViews().contains("posix"))
+        val locked = File(tempDir, "locked").apply { mkdirs() }
+        val target = File(locked, "secret.txt").apply { writeText("content") }
+        val originalPermissions = Files.getPosixFilePermissions(locked.toPath())
+
+        try {
+            Files.setPosixFilePermissions(locked.toPath(), emptySet())
+            // Root ignores the permission bits, there is nothing to observe then.
+            assumeTrue(!Files.isReadable(locked.toPath()))
+
+            fileSystemOps.existsStrict(LocalPath.build(target)) shouldBe Existence.UNKNOWN
+        } finally {
+            Files.setPosixFilePermissions(locked.toPath(), originalPermissions)
+        }
     }
 
     @Test

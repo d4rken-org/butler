@@ -1,5 +1,6 @@
 package eu.darken.butler.common.files.smb
 
+import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.SmbPath
@@ -284,6 +285,38 @@ class SmbGatewayIntegrationTest : BaseTest() {
     }
 
     @Test
+    fun `strict existence tells a missing path from an unreachable host`() = runTest {
+        assumeTrue(dockerAvailable)
+        val rig = rig(sambaContainer)
+        val ops = rig.ops
+
+        val dir = path("strict")
+        ops.createDir(dir)
+
+        ops.existsStrict(dir) shouldBe Existence.PRESENT
+        ops.existsStrict(dir.child("nothing-here")) shouldBe Existence.ABSENT
+        // The share root has no path to query, the lease that reached it is the proof.
+        ops.existsStrict(path()) shouldBe Existence.PRESENT
+
+        ops.delete(dir, recursive = true) shouldBe true
+        ops.existsStrict(dir) shouldBe Existence.ABSENT
+
+        rig.pool.close()
+    }
+
+    @Test
+    fun `an unreachable host is never reported as an absence`() = runTest {
+        assumeTrue(dockerAvailable)
+        val rig = rig(sambaContainer)
+        // Nothing is listening there, so the probe cannot reach the share at all.
+        rig.location.value = rig.location.value.copy(port = UNUSED_PORT)
+
+        rig.ops.existsStrict(path("anything")) shouldBe Existence.UNKNOWN
+
+        rig.pool.close()
+    }
+
+    @Test
     fun `an SMB1-only server is rejected instead of downgraded`() = runTest {
         assumeTrue(dockerAvailable)
         val rig = rig(smb1Container)
@@ -302,6 +335,9 @@ class SmbGatewayIntegrationTest : BaseTest() {
 
         /** Well past Int.MAX_VALUE, the offset every 32-bit truncation bug shows up at. */
         private const val LARGE_OFFSET = 3L * 1024 * 1024 * 1024
+
+        /** Reserved by IANA as "do not use", so nothing is listening on it. */
+        private const val UNUSED_PORT = 47
 
         /** Generous room for the shared resource's own stop timeout. */
         private const val RESOURCE_TEARDOWN_TIMEOUT = 30_000L
