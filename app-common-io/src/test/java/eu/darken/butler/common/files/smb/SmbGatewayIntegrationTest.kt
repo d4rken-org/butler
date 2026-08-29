@@ -305,6 +305,18 @@ class SmbGatewayIntegrationTest : BaseTest() {
     }
 
     @Test
+    fun `a location root inside a deleted base path is an absence`() = runTest {
+        assumeTrue(dockerAvailable)
+        val rig = rig(sambaContainer)
+        // Reaching the share says nothing about a directory inside it, which is what a base path is.
+        rig.location.value = rig.location.value.copy(basePath = listOf("no-such-base"))
+
+        rig.ops.existsStrict(path()) shouldBe Existence.ABSENT
+
+        rig.pool.close()
+    }
+
+    @Test
     fun `an unreachable host is never reported as an absence`() = runTest {
         assumeTrue(dockerAvailable)
         val rig = rig(sambaContainer)
