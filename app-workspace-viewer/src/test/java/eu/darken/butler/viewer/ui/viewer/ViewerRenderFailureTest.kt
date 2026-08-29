@@ -23,8 +23,10 @@ import io.mockk.just
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
@@ -100,7 +102,7 @@ class ViewerRenderFailureTest : BaseTest() {
 
     private val incidentStore = recordingIncidentStore()
 
-    private fun makeViewModel(): ViewerWorkspaceViewModel {
+    private fun makeViewModel(trashEnabled: Flow<Boolean> = flowOf(false)): ViewerWorkspaceViewModel {
         workspaces = MutableStateFlow(makeWorkspace(streamed))
         return ViewerWorkspaceViewModel(
             id = workspaceId,
@@ -123,7 +125,7 @@ class ViewerRenderFailureTest : BaseTest() {
             shareIntentUseCase = mockk(relaxed = true),
             clipboardRepo = mockk(relaxed = true),
             trashSettings = mockk<TrashSettings>(relaxed = true).apply {
-                every { enabled.flow } returns flowOf(false)
+                every { enabled.flow } returns trashEnabled
             },
             operationsManager = mockk(relaxed = true),
             appInstallInspector = mockk(relaxed = true),
@@ -190,6 +192,33 @@ class ViewerRenderFailureTest : BaseTest() {
         val sentinel = IllegalStateException("decode failed")
         onErrors.getValue(streamed)(sentinel)
         vm.readyState.content shouldBe ViewerContent.Failed(sentinel)
+
+        vm.shareError(sentinel)
+
+        val incident = shared.single()
+        (incident.error === sentinel) shouldBe true
+        incident.occurredAtIsApproximate shouldBe false
+        incident.context.containsKey("incident.frozenAtShare") shouldBe false
+        incident.context["viewer.contentType"] shouldBe "image/jpeg"
+    }
+
+    /**
+     * A failure that reaches the state pipeline itself renders as an error card with the same Share
+     * action, so it has to be frozen there too.
+     */
+    @Test
+    fun `a failure of the state pipeline is frozen where it surfaces`() = runTest2 {
+        val sentinel = IllegalStateException("state pipeline blew up")
+        // One of the flows the state is composed from failing, after the viewer has seen the file.
+        val vm = makeViewModel(
+            trashEnabled = flow {
+                emit(false)
+                throw sentinel
+            },
+        )
+        startCollecting(vm)
+
+        vm.state.value shouldBe ViewerWorkspaceViewModel.State.Error(sentinel)
 
         vm.shareError(sentinel)
 

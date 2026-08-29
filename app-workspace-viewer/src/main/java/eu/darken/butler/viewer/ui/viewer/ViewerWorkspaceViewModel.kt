@@ -207,9 +207,16 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
                 }
         }
 
+    /**
+     * What [snapshots] last carried, for the failure handler below: by then the source flow has
+     * already thrown, and recollecting it to name the file would run the failing lookup again.
+     */
+    private var lastViewerContext: Map<String, String?> = emptyMap()
+
     private val snapshots = workspaceSource.flatMapLatest { workspace ->
         workspace.state.map { workspace.source to it }
     }
+        .onEach { (source, _) -> lastViewerContext = viewerContext(source) }
 
     /**
      * Kept out of [State] on purpose: the page needs it in every phase, and [State.Initializing] and
@@ -267,7 +274,12 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
             externalChange = workspaceState.externalChange,
         ) as State
     }
-        .catch { emit(State.Error(it)) }
+        .catch { error ->
+            // The page offers Share on this card too, so it needs an incident like every other
+            // failure the user is shown.
+            errorIncidentStore.remember(error, lastViewerContext)
+            emit(State.Error(error))
+        }
         // The replay cache must not retain the rendered PDF page bitmap after the page stops
         // collecting: keyed page ViewModels outlive their composables, so an infinite replay
         // expiration would accumulate one bitmap per visited PDF tab.
