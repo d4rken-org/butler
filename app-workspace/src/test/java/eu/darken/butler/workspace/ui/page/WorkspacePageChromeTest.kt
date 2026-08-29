@@ -11,6 +11,7 @@ import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import eu.darken.butler.workspace.core.operations.CompletedOperationSnapshot
 import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.operations.OperationErrorRecorder
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
@@ -87,7 +88,10 @@ class WorkspacePageChromeTest : BaseTest() {
         override val error: Throwable? = error
     }
 
-    /** Chrome with a single failed operation, plus the collaborators the consent path drives. */
+    /**
+     * Chrome with a single failed operation, plus the collaborators the consent path drives. The
+     * app-scoped recorder rides along: the freeze happens there, the chrome only shares it.
+     */
     private class ConsentFixture(
         val chrome: WorkspacePageChrome,
         val operationId: Operation.Id,
@@ -115,6 +119,11 @@ class WorkspacePageChromeTest : BaseTest() {
             )
         }
         val store = recordingIncidentStore()
+        OperationErrorRecorder(
+            appScope = this,
+            operationsManager = operationsManager,
+            errorIncidentStore = store,
+        )
         val chrome = chrome(
             operationsManager = operationsManager,
             errorReportTool = mockk<ErrorReportTool>().apply {

@@ -39,6 +39,7 @@ import eu.darken.butler.main.core.release.ReleaseManager
 import eu.darken.butler.main.core.operations.fgs.OperationFgsCoordinator
 import eu.darken.butler.main.core.shortcuts.DynamicShortcutManager
 import eu.darken.butler.provider.documents.core.DocumentsProviderManager
+import eu.darken.butler.workspace.core.operations.OperationErrorRecorder
 import eu.darken.butler.workspace.core.operations.history.OperationHistoryRepo
 import eu.darken.butler.workspace.ui.manager.preview.WorkspacePreviewManager
 import kotlinx.coroutines.CoroutineScope
@@ -88,6 +89,12 @@ open class App : Application(), Configuration.Provider, SingletonImageLoader.Fac
 
     /** Eagerly constructed so the operation foreground-service/notifications observe from app start. */
     @Inject lateinit var operationFgsCoordinator: dagger.Lazy<OperationFgsCoordinator>
+
+    /**
+     * Same deal: an operation that fails while no page is open must still be frozen into an error
+     * report, and completedOperations has no replay to catch up from later.
+     */
+    @Inject lateinit var operationErrorRecorder: dagger.Lazy<OperationErrorRecorder>
 
     /**
      * Nothing else injects it, so without an eager .get() its evaluation loop would never start and
@@ -178,6 +185,9 @@ open class App : Application(), Configuration.Provider, SingletonImageLoader.Fac
 
         // Eagerly construct OperationHistoryRepo so it subscribes to completedOperations from start.
         operationHistoryRepo.get()
+
+        // Same, for the error report frozen when an operation fails.
+        operationErrorRecorder.get()
 
         // Eagerly start the operation foreground-service/notification coordinator.
         val fgsCoordinator = operationFgsCoordinator.get()

@@ -23,6 +23,7 @@ import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.operations.OperationErrorRecorder
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.get
 import eu.darken.butler.workspace.core.operations.operationsForWorkspace
@@ -30,7 +31,6 @@ import eu.darken.butler.workspace.core.operations.withStateUpdates
 import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
 import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
 import eu.darken.butler.workspace.ui.operations.toOperationsDisplayState
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,9 +38,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.getAndUpdate
-import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 /**
@@ -97,22 +95,6 @@ class WorkspacePageChrome @AssistedInject constructor(
         }
         .distinctUntilChanged()
 
-    init {
-        // Exactly one emission per operation, at the moment it failed: the log trail around the
-        // failure is still in the ring buffer here, and long gone by the time Share is tapped.
-        operationsManager.completedOperations
-            .onEach { snapshot ->
-                val error = snapshot.state.error
-                if (error == null || error is CancellationException) return@onEach
-                errorIncidentStore.remember(
-                    error = error,
-                    context = operationContext(snapshot.id, snapshot.metadata, snapshot.state),
-                    occurredAt = snapshot.state.completedAt,
-                )
-            }
-            .launchIn(scope)
-    }
-
     fun removeClipboardEntry(clip: ClipboardClip) {
         log(tag) { "removeClipboardEntry($clip)" }
         scope.launch { clipboardRepo.remove(clip.id) }
@@ -145,16 +127,6 @@ class WorkspacePageChrome @AssistedInject constructor(
         scope.launch { operationsManager.clearCompleted() }
     }
 
-    private fun operationContext(
-        id: Operation.Id,
-        metadata: Operation.Metadata,
-        state: Operation.State.Completed,
-    ): Map<String, String?> = mapOf(
-        "op.id" to id.toString(),
-        "op.origin" to metadata.origin.toString(),
-        "op.completedAt" to state.completedAt.toString(),
-    )
-
     fun shareOperationError(id: Operation.Id) {
         log(tag) { "shareOperationError($id)" }
         scope.launch {
@@ -168,7 +140,7 @@ class WorkspacePageChrome @AssistedInject constructor(
 
             val incident = errorIncidentStore.getOrFreeze(
                 error = error,
-                context = operationContext(operation.id, operation.metadata, state),
+                context = OperationErrorRecorder.operationContext(operation.id, operation.metadata, state),
                 occurredAt = state.completedAt,
             )
             requestErrorShare(
