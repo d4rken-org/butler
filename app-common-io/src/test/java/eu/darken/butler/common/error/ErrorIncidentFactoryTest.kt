@@ -119,7 +119,7 @@ class ErrorIncidentFactoryTest : BaseTest() {
     fun `the site's own context keys survive and nulls are dropped`() = runTest {
         val incident = factory().freeze(
             error = IOException("boom"),
-            context = mapOf("nav.target" to "Home", "nav.location" to null),
+            siteContext = mapOf("nav.target" to "Home", "nav.location" to null),
         )
 
         incident.context["nav.target"] shouldBe "Home"
@@ -135,13 +135,5 @@ class ErrorIncidentFactoryTest : BaseTest() {
         stamped.occurredAtIsApproximate shouldBe false
 
         factory().freeze(IOException("boom")).occurredAtIsApproximate shouldBe true
-    }
-
-    @Test
-    fun `the spool keeps only the ten newest incidents`() = runTest {
-        val factory = factory()
-        repeat(12) { index -> factory.freeze(IOException("boom $index")) }
-
-        spoolDir.listFiles()!!.size shouldBe 10
     }
 }

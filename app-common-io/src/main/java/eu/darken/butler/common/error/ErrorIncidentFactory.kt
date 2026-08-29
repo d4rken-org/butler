@@ -48,14 +48,19 @@ class ErrorIncidentFactory @Inject constructor(
      */
     suspend fun freeze(
         error: Throwable,
-        context: Map<String, String?> = emptyMap(),
+        siteContext: Map<String, String?> = emptyMap(),
         occurredAt: Instant? = null,
     ): ErrorIncident {
+        // Both taken before the settings reads below: those suspend, and the ring buffer keeps
+        // evicting while they do, which would cost the log trail leading up to the failure.
+        val frozenAt = occurredAt ?: Clock.System.now()
+        val logSnapshot = ringLogBuffer.snapshot()
+
         val incidentId = Uuid.random().toString().take(8)
         log(TAG) { "freeze($incidentId): ${error.javaClass.name}" }
 
         val merged = buildMap {
-            context.forEach { (key, value) -> if (value != null) put(key, value) }
+            siteContext.forEach { (key, value) -> if (value != null) put(key, value) }
             put("access.root.consent", safeRead { rootSettings.useRoot.value() }.orUnknown())
             put("access.root.lastKnown", safeRead { rootManager.lastKnownRooted }.orUnknown())
             put("access.adb.consent", safeRead { adbSettings.useShizuku.value() }.orUnknown())
@@ -64,20 +69,19 @@ class ErrorIncidentFactory @Inject constructor(
 
         return ErrorIncident(
             incidentId = incidentId,
-            occurredAt = occurredAt ?: Clock.System.now(),
+            occurredAt = frozenAt,
             occurredAtIsApproximate = occurredAt == null,
             error = error,
             context = merged,
-            logFile = spoolLog(incidentId),
+            logFile = spoolLog(incidentId, logSnapshot),
         )
     }
 
-    private suspend fun spoolLog(incidentId: String): File? = withContext(dispatcherProvider.IO) {
+    private suspend fun spoolLog(incidentId: String, logSnapshot: String): File? = withContext(dispatcherProvider.IO) {
         try {
             spoolDir.mkdirs()
             val target = File(spoolDir, "$incidentId.log")
-            target.writeText(ringLogBuffer.snapshot())
-            pruneSpool()
+            target.writeText(logSnapshot)
             target
         } catch (e: CancellationException) {
             throw e
@@ -85,15 +89,6 @@ class ErrorIncidentFactory @Inject constructor(
             log(TAG, WARN) { "Failed to spool log for $incidentId: ${t.asLog()}" }
             null
         }
-    }
-
-    /** Incidents whose report is never shared would otherwise accumulate one spool file each. */
-    private fun pruneSpool() {
-        spoolDir.listFiles()
-            ?.filter { it.isFile }
-            ?.sortedByDescending { it.lastModified() }
-            ?.drop(MAX_SPOOLED)
-            ?.forEach { runCatching { it.delete() } }
     }
 
     /**
@@ -115,6 +110,5 @@ class ErrorIncidentFactory @Inject constructor(
     companion object {
         private val TAG = logTag("Error", "Incident", "Factory")
         private const val SPOOL_DIR = "incidents"
-        private const val MAX_SPOOLED = 10
     }
 }
