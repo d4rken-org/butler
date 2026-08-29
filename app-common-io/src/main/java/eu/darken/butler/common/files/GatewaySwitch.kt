@@ -194,6 +194,28 @@ class GatewaySwitch @Inject constructor(
     suspend fun exists(path: APath<*>, type: Type): Boolean =
         withFallback(path, type, "exists") { target -> useGateway(target) { exists(it) } }
 
+    override suspend fun existsStrict(path: APath<*>): Existence = existsStrict(path, Type.CURRENT)
+
+    /**
+     * [withFallback] cannot serve this one: it retries on a thrown [ReadException] and an UNKNOWN
+     * answer is a return value. The alternative is only tried for the local/SAF split, the only
+     * pair [toAlternative] can map, and a failure there leaves the primary answer standing.
+     */
+    suspend fun existsStrict(path: APath<*>, type: Type): Existence {
+        val primary = useGateway(path.toTargetType(type)) { existsStrict(it) }
+        if (type != Type.AUTO || primary != Existence.UNKNOWN) return primary
+        if (path !is LocalPath && path !is SAFPath) return primary
+
+        return try {
+            useGateway(path.toAlternative()) { existsStrict(it) }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            log(TAG, WARN) { "existsStrict(...): Alternative access failed either: ${e.asLog()}" }
+            primary
+        }
+    }
+
     override suspend fun canWrite(path: APath<*>): Boolean {
         return useGateway(path) { canWrite(path) }
     }
