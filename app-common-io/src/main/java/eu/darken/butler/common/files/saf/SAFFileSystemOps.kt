@@ -8,6 +8,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.FileSystemOps
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.SAFPath
@@ -311,6 +312,20 @@ class SAFFileSystemOps @Inject constructor(
         docFile.exists
     } catch (e: Exception) {
         throw ReadException(path = path, cause = e)
+    }
+
+    /**
+     * Uses [SAFDocFile.existsStrict], which addresses the provider through a client: no client means
+     * nobody was asked, while [SAFDocFile.exists] cannot tell that from a document that is gone.
+     */
+    override suspend fun existsStrict(path: SAFPath): Existence = try {
+        val docFile = path.resolveDocFile()
+        if (docFile.existsStrict()) Existence.PRESENT else Existence.ABSENT
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        log(TAG, WARN) { "existsStrict($path) could not be answered: ${e.asLog()}" }
+        Existence.UNKNOWN
     }
 
     override suspend fun delete(path: SAFPath, recursive: Boolean): Boolean {
