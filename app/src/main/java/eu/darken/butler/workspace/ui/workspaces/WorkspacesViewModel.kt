@@ -582,9 +582,9 @@ class WorkspacesViewModel @Inject constructor(
         // evicted incident's log trail with it, which the packager still has to read.
         errorIncidentStore.pin(incident)
         val replaced = _pendingErrorShare.getAndUpdate { PendingErrorShare(incident, summary) }
-        replaced?.incident
-            ?.takeIf { it.incidentId != incident.incidentId }
-            ?.let { errorIncidentStore.unpin(it) }
+        // Released even when it names the same incident: replacing a consent hands over one hold,
+        // while a confirmed share still packaging that incident keeps its own.
+        replaced?.let { errorIncidentStore.unpin(it.incident) }
     }
 
     /**

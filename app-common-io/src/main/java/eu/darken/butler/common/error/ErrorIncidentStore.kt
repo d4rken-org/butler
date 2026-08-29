@@ -47,11 +47,13 @@ class ErrorIncidentStore @Inject constructor(
     private val inFlight = HashMap<IdentityKey, CompletableDeferred<ErrorIncident>>()
 
     /**
-     * The incidents a consent dialog is currently holding, by id. Nothing calls [forget], so the
-     * map fills up with dismissed errors too, and at the cap the eldest entry's log trail is
-     * deleted - which, without this, could be the one the packager is about to read.
+     * How many holders each pinned incident has, by id. Nothing calls [forget], so the map fills up
+     * with dismissed errors too, and at the cap the eldest entry's log trail is deleted - which,
+     * without this, could be the one the packager is about to read. Counted rather than flagged:
+     * a confirmed share is still packaging while the same error can already be offered again, and
+     * the first holder's release must not drop the second one's claim.
      */
-    private val pinned = HashSet<String>()
+    private val pinned = HashMap<String, Int>()
 
     private val spoolCleanupLock = Mutex()
     private var spoolsCleared = false
@@ -119,11 +121,18 @@ class ErrorIncidentStore @Inject constructor(
 
     /** Holds [incident] against eviction for as long as a pending share needs it. */
     fun pin(incident: ErrorIncident) {
-        synchronized(lock) { pinned.add(incident.incidentId) }
+        synchronized(lock) { pinned[incident.incidentId] = (pinned[incident.incidentId] ?: 0) + 1 }
     }
 
     fun unpin(incident: ErrorIncident) {
-        synchronized(lock) { pinned.remove(incident.incidentId) }
+        synchronized(lock) {
+            val holders = pinned[incident.incidentId] ?: return
+            if (holders > 1) {
+                pinned[incident.incidentId] = holders - 1
+            } else {
+                pinned.remove(incident.incidentId)
+            }
+        }
     }
 
     private suspend fun mint(

@@ -246,6 +246,28 @@ class ErrorIncidentStoreTest : BaseTest() {
     }
 
     @Test
+    fun `an incident two shares hold survives the first release`() = runTest {
+        val store = store()
+        val shared = IOException("shared")
+
+        val incident = store.remember(shared)
+        // A confirmed share is still packaging while the same error is offered for sharing again
+        store.pin(incident)
+        store.pin(incident)
+        store.unpin(incident)
+        repeat(ErrorIncidentStore.MAX_ENTRIES) { store.remember(IOException("boom $it")) }
+
+        store.get(shared)?.incidentId shouldBe incident.incidentId
+        incident.logFile!!.exists() shouldBe true
+
+        store.unpin(incident)
+        store.remember(IOException("one more"))
+
+        store.get(shared) shouldBe null
+        incident.logFile!!.exists() shouldBe false
+    }
+
+    @Test
     fun `an incident frozen at share time says so`() = runTest {
         val store = store()
         val boom = IOException("boom")
