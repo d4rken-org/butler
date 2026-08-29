@@ -202,7 +202,14 @@ class GatewaySwitch @Inject constructor(
      * pair [toAlternative] can map, and a failure there leaves the primary answer standing.
      */
     suspend fun existsStrict(path: APath<*>, type: Type): Existence {
-        val primary = useGateway(path.toTargetType(type)) { existsStrict(it) }
+        val primary = try {
+            useGateway(path.toTargetType(type)) { existsStrict(it) }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            log(TAG, WARN) { "existsStrict(...): Primary access failed: ${e.asLog()}" }
+            Existence.UNKNOWN
+        }
         if (type != Type.AUTO || primary != Existence.UNKNOWN) return primary
         if (path !is LocalPath && path !is SAFPath) return primary
 
