@@ -72,6 +72,8 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
 
     val shareIntentEvent = chrome.shareIntentEvent
 
+    val pendingErrorShare = chrome.pendingErrorShare
+
     // Conflict sheet UI state — one atomic holder so the pending-conflict observer, the
     // notification-focus path, manual taps, auto-surface, resolve and dismiss can never interleave
     // into an inconsistent (operation, issue, visibility) combination.
@@ -402,6 +404,10 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun shareError(operationId: Operation.Id) = chrome.shareOperationError(operationId)
+
+    fun confirmErrorShare() = chrome.confirmErrorShare()
+
+    fun dismissErrorShare() = chrome.dismissErrorShare()
 
     @AssistedFactory
     interface Factory {

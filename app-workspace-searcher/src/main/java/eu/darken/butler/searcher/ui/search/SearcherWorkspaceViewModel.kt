@@ -17,6 +17,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.error.ErrorIncidentFactory
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.extensions.commonParent
@@ -113,6 +114,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private val trashSettings: TrashSettings,
     private val folderPreviewResolver: FolderPreviewResolver,
     private val apiLevel: ApiLevel,
+    private val errorIncidentFactory: ErrorIncidentFactory,
     itemSorterFactory: SearchItemSorter.Factory,
     chromeFactory: WorkspacePageChrome.Factory,
 ) : ViewModel4(dispatchers, logTag("Searcher", "Workspace", id.shortTag, "Page")) {
@@ -164,6 +166,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     val dialogEvents = SingleEventFlow<SearcherDialogEvent>()
 
     val shareIntentEvent = chrome.shareIntentEvent
+
+    val pendingErrorShare = chrome.pendingErrorShare
 
     // Observe workspace search state
     private val workspaceSearchState: Flow<SearcherWorkspace.State> = workspaceSource
@@ -1218,6 +1222,20 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
      * Unified handler for all page-level actions.
      * Dispatches to appropriate ViewModel methods based on action type.
      */
+    private fun shareSearchError(action: SearcherPageAction.Error.Share) = launch {
+        log(TAG) { "shareSearchError(${action.error.javaClass.simpleName})" }
+        val searchState = workspaceSearchState.first()
+        val incident = errorIncidentFactory.freeze(
+            error = action.error,
+            context = mapOf(
+                "search.query" to searchState.currentSearchQuery?.toString(),
+                "search.targets" to searchState.searchTargets.joinToString(", "),
+                "search.targetPath" to action.targetPath,
+            ),
+        )
+        chrome.shareWorkspaceError(incident)
+    }
+
     fun onPageAction(action: SearcherPageAction) {
         log(TAG, INFO) { "onPageAction(): $action" }
         when (action) {
@@ -1404,10 +1422,9 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             )
 
             // Error
-            is SearcherPageAction.Error.Share -> {
-                log(TAG) { "shareSearchError(${action.error.javaClass.simpleName})" }
-                chrome.shareWorkspaceError(action.error, "Search operation in workspace ${id.shortTag}")
-            }
+            is SearcherPageAction.Error.Share -> shareSearchError(action)
+            is SearcherPageAction.Error.ConfirmShare -> chrome.confirmErrorShare()
+            is SearcherPageAction.Error.DismissShare -> chrome.dismissErrorShare()
 
             // Overlays
             is SearcherPageAction.Overlays.ShowTemplates -> {

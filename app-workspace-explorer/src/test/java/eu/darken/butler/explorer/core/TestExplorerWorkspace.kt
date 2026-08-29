@@ -1,16 +1,21 @@
 package eu.darken.butler.explorer.core
 
+import eu.darken.butler.common.error.ErrorIncident
+import eu.darken.butler.common.error.ErrorIncidentFactory
 import eu.darken.butler.explorer.core.engine.BrowsingEngine
 import eu.darken.butler.workspace.contracts.explorer.ExplorerArguments
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.OperationsManager
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import testhelpers.coroutine.TestDispatcherProvider
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 /**
  * Workspace with every collaborator mocked away.
@@ -27,6 +32,7 @@ internal fun testExplorerWorkspace(
     dispatcher: CoroutineDispatcher = StandardTestDispatcher(),
     id: Workspace.Id = Workspace.Id(),
     browsingEngine: BrowsingEngine? = null,
+    errorIncidentFactory: ErrorIncidentFactory = recordingIncidentFactory(),
 ) = ExplorerWorkspace(
     id = id,
     creationArguments = arguments,
@@ -50,4 +56,24 @@ internal fun testExplorerWorkspace(
     downloadLocalCopyOperationFactory = mockk(relaxed = true),
     restoreOperationFactory = mockk(relaxed = true),
     explorerSettings = mockk(relaxed = true),
+    errorIncidentFactory = errorIncidentFactory,
 )
+
+/**
+ * Freezes real [ErrorIncident]s (a relaxed mock would hand back a mocked throwable, and the states
+ * under test are read through `error`), with a fresh id per call so a test can tell a re-freeze
+ * from a carried-over incident.
+ */
+internal fun recordingIncidentFactory(): ErrorIncidentFactory = mockk {
+    var counter = 0
+    coEvery { freeze(any(), any(), any()) } answers {
+        ErrorIncident(
+            incidentId = "incident-${counter++}",
+            occurredAt = thirdArg<Instant?>() ?: Clock.System.now(),
+            occurredAtIsApproximate = thirdArg<Instant?>() == null,
+            error = firstArg(),
+            context = secondArg<Map<String, String?>>().filterValues { it != null }.mapValues { it.value!! },
+            logFile = null,
+        )
+    }
+}

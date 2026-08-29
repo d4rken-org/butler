@@ -70,8 +70,10 @@
     <string name="general_error_unknown_label">Unknown error</string>
     <string name="general_error_invalid_input_label">Invalid input</string>
     <string name="general_share_error_action">Share Error</string>
-    <string name="general_error_report_title">Error Report</string>
-    <string name="general_error_report_share_subject">%1$s Error Report</string>
+    <string name="general_error_report_subject">%1$s Error Report (%2$s)</string>
+    <string name="general_error_report_consent_title">Share error report?</string>
+    <string name="general_error_report_consent_message">The report contains the error and the stack trace it produced, the app\'s recent log trail, and details about the state it was in: file names and paths, search queries, package names, URIs, network and SMB host names, your device and build information, and an anonymous install ID. Only share it with people you trust.</string>
+    <string name="general_error_report_consent_confirm">Share report</string>
     <string name="general_duration_input_label">Duration</string>
     <string name="general_size_input_label">Size</string>
     <string name="general_upgrade_action">Upgrade</string>

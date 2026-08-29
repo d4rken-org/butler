@@ -6,6 +6,8 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.tour.GuidedTourController
 import eu.darken.butler.common.datastore.DataStoreValue
 import eu.darken.butler.common.debug.bugreport.BugReportRepo
+import eu.darken.butler.common.error.ErrorIncidentFactory
+import eu.darken.butler.common.error.ErrorReportPackager
 import eu.darken.butler.common.error.ErrorReportTool
 import eu.darken.butler.common.review.ReviewTool
 import eu.darken.butler.main.core.motd.MotdRepo
@@ -130,6 +132,8 @@ class WorkspacesViewModelDialogTest : BaseTest() {
             motdRepo = motdRepo,
             webpageTool = mockk<WebpageTool>(relaxed = true),
             errorReportTool = mockk<ErrorReportTool>(relaxed = true),
+            errorReportPackager = mockk<ErrorReportPackager>(relaxed = true),
+            errorIncidentFactory = mockk<ErrorIncidentFactory>(relaxed = true),
             bugReportRepo = bugReportRepo,
             openInNewTabsUseCase = mockk<OpenInNewTabsUseCase>(relaxed = true),
             reviewTool = reviewTool,

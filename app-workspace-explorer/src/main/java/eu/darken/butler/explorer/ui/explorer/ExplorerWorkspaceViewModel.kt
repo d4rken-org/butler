@@ -302,6 +302,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     val shareIntentEvent = chrome.shareIntentEvent
 
+    val pendingErrorShare = chrome.pendingErrorShare
+
     val toastEvents = SingleEventFlow<CaString>()
 
     // Reveal and highlight functionality
@@ -2041,6 +2043,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun shareError(id: Operation.Id) = chrome.shareOperationError(id)
 
+    fun confirmErrorShare() = chrome.confirmErrorShare()
+
+    fun dismissErrorShare() = chrome.dismissErrorShare()
+
     fun cancelOperation(id: Operation.Id) = chrome.cancelOperation(id)
 
     fun dismissOperation(id: Operation.Id) = chrome.dismissOperation(id)
@@ -2097,9 +2103,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun shareNavigationError() = launch {
         log(tag) { "shareNavigationError()" }
-        workspaceReadyState.first()?.error?.let { throwable ->
-            chrome.shareWorkspaceError(throwable, "Navigation error in workspace ${id.shortTag}")
-        }
+        workspaceReadyState.first()?.errorIncident?.let { chrome.shareWorkspaceError(it) }
     }
 
     fun retryNavigation() = navigation.retryNavigation()

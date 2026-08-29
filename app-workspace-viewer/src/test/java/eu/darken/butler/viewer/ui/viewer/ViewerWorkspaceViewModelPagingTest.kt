@@ -104,6 +104,7 @@ class ViewerWorkspaceViewModelPagingTest : BaseTest() {
         }
         val chrome = mockk<WorkspacePageChrome>().apply {
             every { shareIntentEvent } returns SingleEventFlow()
+            every { pendingErrorShare } returns MutableStateFlow(null)
             // The ViewModel derives its issue sheet from this at construction time.
             every { pendingConflicts } returns flowOf(emptyMap())
         }
@@ -134,6 +135,7 @@ class ViewerWorkspaceViewModelPagingTest : BaseTest() {
             // Unused by the paging cases, but the ViewModel now owns the APK icon export too.
             apkIconExporter = mockk(relaxed = true),
             filenameValidator = FilenameValidator(),
+            errorIncidentFactory = mockk(relaxed = true),
             chromeFactory = mockk<WorkspacePageChrome.Factory>().apply {
                 every { create(any(), any()) } returns chrome
             },

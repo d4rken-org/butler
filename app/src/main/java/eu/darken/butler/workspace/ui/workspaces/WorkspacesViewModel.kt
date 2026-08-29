@@ -12,6 +12,9 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.error.ErrorIncident
+import eu.darken.butler.common.error.ErrorIncidentFactory
+import eu.darken.butler.common.error.ErrorReportPackager
 import eu.darken.butler.common.error.ErrorReportTool
 import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.flow.combine
@@ -55,6 +58,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.update
@@ -74,6 +78,8 @@ class WorkspacesViewModel @Inject constructor(
     private val motdRepo: MotdRepo,
     private val webpageTool: WebpageTool,
     private val errorReportTool: ErrorReportTool,
+    private val errorReportPackager: ErrorReportPackager,
+    private val errorIncidentFactory: ErrorIncidentFactory,
     private val bugReportRepo: BugReportRepo,
     private val openInNewTabsUseCase: OpenInNewTabsUseCase,
     private val reviewTool: ReviewTool,
@@ -100,19 +106,33 @@ class WorkspacesViewModel @Inject constructor(
     private val _managerDialogs = MutableStateFlow<List<ManagerDialog>>(emptyList())
     val managerDialogs: StateFlow<List<ManagerDialog>> = _managerDialogs
 
-    private var currentSessionError: Throwable? = null
     val shareIntentEvent = SingleEventFlow<Intent>()
+
+    private val _pendingErrorShare = MutableStateFlow<PendingErrorShare?>(null)
+
+    /** A frozen incident waiting for the user to consent to sharing it. */
+    val pendingErrorShare: StateFlow<PendingErrorShare?> = _pendingErrorShare
+
+    data class PendingErrorShare(
+        val incident: ErrorIncident,
+        val summary: String?,
+    )
 
     init {
         sessionManager.state
             .onEach { restorationState ->
                 log(tag, INFO) { "Restoration state updated: $restorationState" }
                 if (restorationState is WorkspaceSessionManager.State.Error) {
-                    currentSessionError = restorationState.exception
+                    // Frozen here and captured by the callback rather than read back when the user
+                    // taps Share: a dialog raised for an older failure must not share a newer one.
+                    val incident = errorIncidentFactory.freeze(
+                        error = restorationState.exception,
+                        context = mapOf("session.phase" to restorationState.toString()),
+                    )
                     val exception = SessionRestorationException(
                         cause = restorationState.exception,
                         onRequestClearSession = { _showClearSessionConfirmation.value = true },
-                        onRequestShareError = { shareSessionError() },
+                        onRequestShareError = { shareSessionError(incident) },
                     )
                     errorEvents.emitBlocking(exception)
                 }
@@ -518,27 +538,38 @@ class WorkspacesViewModel @Inject constructor(
         sessionManager.clearSession()
     }
 
-    private fun shareSessionError() {
-        log(tag) { "shareSessionError()" }
-        val error = currentSessionError ?: return
-        val report = errorReportTool.buildReport(
-            throwable = error,
-            message = "Session restoration failed",
-            errorContext = "WorkspacesViewModel",
-        )
-        val intent = errorReportTool.createShareChooserIntent(report)
-        shareIntentEvent.tryEmit(intent)
+    private fun shareSessionError(incident: ErrorIncident) {
+        log(tag) { "shareSessionError(${incident.incidentId})" }
+        _pendingErrorShare.value = PendingErrorShare(incident, "Session restoration failed")
     }
 
-    fun shareWorkspaceError(workspaceId: Workspace.Id, error: Throwable) {
+    fun shareWorkspaceError(workspaceId: Workspace.Id, error: Throwable) = launch {
         log(tag) { "shareWorkspaceError($workspaceId, $error)" }
-        val report = errorReportTool.buildReport(
-            throwable = error,
-            message = "Workspace initialization failed",
-            errorContext = "Workspace:${workspaceId.shortTag}",
+        val incident = errorIncidentFactory.freeze(
+            error = error,
+            context = mapOf(
+                "workspace.id" to workspaceId.toString(),
+                "workspace.type" to workspaceRepo.state.first().infos
+                    .firstOrNull { it.id == workspaceId }?.type?.name,
+            ),
         )
-        val intent = errorReportTool.createShareChooserIntent(report)
-        shareIntentEvent.tryEmit(intent)
+        _pendingErrorShare.value = PendingErrorShare(incident, "Workspace initialization failed")
+    }
+
+    /**
+     * Takes the pending share and clears it in one step, so a double tap on the consent packages
+     * once instead of twice.
+     */
+    fun confirmErrorShare() = launch {
+        val pending = _pendingErrorShare.getAndUpdate { null } ?: return@launch
+        log(tag, INFO) { "confirmErrorShare(${pending.incident.incidentId})" }
+        val packaged = errorReportPackager.packageReport(pending.incident, pending.summary)
+        shareIntentEvent.tryEmit(errorReportTool.createShareChooserIntent(packaged))
+    }
+
+    fun dismissErrorShare() {
+        log(tag) { "dismissErrorShare()" }
+        _pendingErrorShare.value = null
     }
 
     data class State(

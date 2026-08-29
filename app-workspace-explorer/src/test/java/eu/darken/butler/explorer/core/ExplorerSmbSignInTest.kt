@@ -1,5 +1,6 @@
 package eu.darken.butler.explorer.core
 
+import eu.darken.butler.common.error.ErrorIncident
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SmbPath
 import eu.darken.butler.common.files.errors.ReadException
@@ -8,6 +9,7 @@ import eu.darken.butler.common.files.smb.SmbShareAccessDeniedException
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
+import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 class ExplorerSmbSignInTest : BaseTest() {
@@ -21,7 +23,16 @@ class ExplorerSmbSignInTest : BaseTest() {
         currentTarget = target,
         // A failed load publishes the error with no loaded location left
         currentLocation = null,
-        error = error,
+        errorIncident = error?.let {
+            ErrorIncident(
+                incidentId = "test",
+                occurredAt = Instant.fromEpochMilliseconds(0),
+                occurredAtIsApproximate = false,
+                error = it,
+                context = emptyMap(),
+                logFile = null,
+            )
+        },
     )
 
     @Test

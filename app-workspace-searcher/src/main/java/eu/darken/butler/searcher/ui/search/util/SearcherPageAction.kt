@@ -329,9 +329,16 @@ sealed interface SearcherPageAction {
      */
     sealed interface Error : SearcherPageAction {
         /**
-         * Share error details
+         * Offer to share this error; [targetPath] names the search target it belongs to when the
+         * site knows one.
          */
-        data class Share(val error: Throwable) : Error
+        data class Share(val error: Throwable, val targetPath: String? = null) : Error
+
+        /** The user consented to the offered share. */
+        data object ConfirmShare : Error
+
+        /** The user declined the offered share. */
+        data object DismissShare : Error
     }
 
     /**

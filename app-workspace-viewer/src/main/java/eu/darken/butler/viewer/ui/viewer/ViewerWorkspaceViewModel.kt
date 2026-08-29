@@ -15,6 +15,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.error.ErrorIncidentFactory
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.MimeInfo
@@ -112,12 +113,15 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
     private val appInstallOperationFactory: AppInstallOperation.Factory,
     private val apkIconExporter: ApkIconExporter,
     private val filenameValidator: FilenameValidator,
+    private val errorIncidentFactory: ErrorIncidentFactory,
     chromeFactory: WorkspacePageChrome.Factory,
 ) : ViewModel3(dispatchers, logTag("Viewer", "Workspace", id.shortTag, "Page")) {
 
     private val chrome = chromeFactory.create(workspaceId = id, scope = vmScope)
 
     val shareIntentEvent = chrome.shareIntentEvent
+
+    val pendingErrorShare = chrome.pendingErrorShare
 
     /** One-shot confirmations, e.g. after an icon was written to disk. */
     val toastEvents = SingleEventFlow<CaString>()
@@ -362,10 +366,22 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
             .launchIn(vmScope)
     }
 
-    fun shareError(error: Throwable) {
+    fun shareError(error: Throwable) = launch {
         log(tag) { "shareError($error)" }
-        chrome.shareWorkspaceError(error, "Viewer workspace ${id.shortTag}")
+        val ready = state.value as? State.Ready
+        val incident = errorIncidentFactory.freeze(
+            error = error,
+            context = mapOf(
+                "viewer.contentPath" to (ready?.source as? ViewerSource.Stored)?.path?.path,
+                "viewer.contentType" to ready?.source?.mime?.rawType,
+            ),
+        )
+        chrome.shareWorkspaceError(incident)
     }
+
+    fun confirmErrorShare() = chrome.confirmErrorShare()
+
+    fun dismissErrorShare() = chrome.dismissErrorShare()
 
     /**
      * Suspends rather than launching: the page polls this on a timer, and a fire-and-forget probe

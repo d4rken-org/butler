@@ -1,58 +1,52 @@
 package eu.darken.butler.common.error
 
+import android.content.ClipData
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import dagger.Reusable
 import dagger.hilt.android.qualifiers.ApplicationContext
-import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.R
-import eu.darken.butler.common.SystemClipboardHelper
-import eu.darken.butler.common.debug.logging.asLog
 import javax.inject.Inject
 
+/**
+ * Builds the share intent for a packaged error report. The zip carries the details; the mail body
+ * only has to route it — no stack frames, which a mail client would rewrap into something unreadable
+ * anyway.
+ */
 @Reusable
 class ErrorReportTool @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val systemClipboardHelper: SystemClipboardHelper,
 ) {
-    fun buildReport(
-        throwable: Throwable,
-        message: String? = null,
-        errorContext: String? = null,
-        metadata: Map<String, String?> = emptyMap(),
-    ): ErrorReport = ErrorReport(
-        title = context.getString(R.string.general_error_report_title),
-        deviceFingerprint = Build.FINGERPRINT,
-        appVersion = BuildConfigWrap.VERSION_DESCRIPTION,
-        customMessage = message,
-        context = errorContext,
-        errorMessage = throwable.message ?: throwable.javaClass.simpleName,
-        stackTrace = throwable.asLog(),
-        metadata = metadata,
-    )
 
-    fun copyToClipboard(report: ErrorReport) {
-        systemClipboardHelper.copyToClipboard(report.toMarkdown())
-    }
-
-    fun createShareIntent(report: ErrorReport): Intent {
-        val shareText = report.toMarkdown()
-        val subject = context.getString(
-            R.string.general_error_report_share_subject,
-            context.getString(R.string.app_name),
-        )
-
-        return Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_SUBJECT, subject)
-            putExtra(Intent.EXTRA_TEXT, shareText)
+    fun createShareChooserIntent(packaged: PackagedErrorReport): Intent {
+        val payload = packaged.payload
+        val sendIntent = Intent(Intent.ACTION_SEND).apply {
+            type = "application/zip"
+            putExtra(
+                Intent.EXTRA_SUBJECT,
+                context.getString(
+                    R.string.general_error_report_subject,
+                    context.getString(R.string.app_name),
+                    payload.incidentId,
+                ),
+            )
+            putExtra(Intent.EXTRA_TEXT, buildRoutingBody(payload))
+            putExtra(Intent.EXTRA_STREAM, packaged.uri)
+            clipData = ClipData.newRawUri("", packaged.uri)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
+        return Intent.createChooser(sendIntent, context.getString(R.string.general_share_error_action))
     }
 
-    fun createShareChooserIntent(report: ErrorReport): Intent {
-        val sendIntent = createShareIntent(report)
-        return Intent.createChooser(sendIntent, context.getString(R.string.general_share_error_action))
+    private fun buildRoutingBody(payload: ErrorReportPayload): String = buildString {
+        appendLine(payload.app.version)
+        appendLine(payload.device.fingerprint)
+        appendLine("Incident: ${payload.incidentId}")
+        payload.summary?.let { appendLine(it) }
+        val firstMessageLine = payload.error.message?.lineSequence()?.firstOrNull()
+        appendLine(listOfNotNull(payload.error.className, firstMessageLine).joinToString(": "))
+        appendLine()
+        append("Details are in the attached zip.")
     }
 }

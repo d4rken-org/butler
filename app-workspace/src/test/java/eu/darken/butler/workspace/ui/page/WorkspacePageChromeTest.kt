@@ -61,6 +61,8 @@ class WorkspacePageChromeTest : BaseTest() {
         },
         operationsManager = operationsManager,
         errorReportTool = mockk(),
+        errorReportPackager = mockk(),
+        errorIncidentFactory = mockk(),
         systemClipboardHelper = mockk(),
         workspaceRemote = mockk(),
     )

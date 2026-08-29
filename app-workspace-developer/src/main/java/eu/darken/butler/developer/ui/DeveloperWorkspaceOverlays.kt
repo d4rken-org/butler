@@ -8,6 +8,7 @@ import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.Factory
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.ui.error.ErrorShareConsentDialog
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.details.CancelOperationConfirmationHost
 
@@ -28,12 +29,16 @@ fun DeveloperWorkspaceOverlaysHost(
 ) {
     val operationsState by vm.operations.collectAsState(initial = null)
     val cancelConfirmation by vm.cancelOperationConfirmation.collectAsState()
+    val pendingErrorShare by vm.pendingErrorShare.collectAsState()
 
     DeveloperWorkspaceOverlays(
         operations = operationsState?.operations,
         cancelConfirmationFor = cancelConfirmation,
         onDismissCancelConfirmation = { vm.dismissCancelOperationConfirmation() },
         onCancelOperation = { vm.cancelOperation(it) },
+        showErrorShareConsent = pendingErrorShare != null,
+        onConfirmErrorShare = { vm.confirmErrorShare() },
+        onDismissErrorShare = { vm.dismissErrorShare() },
     )
 
     // Last on purpose: layers stack in composition order, so an error raised while one of
@@ -48,7 +53,17 @@ fun DeveloperWorkspaceOverlays(
     cancelConfirmationFor: Operation.Id? = null,
     onDismissCancelConfirmation: () -> Unit = {},
     onCancelOperation: (Operation.Id) -> Unit = {},
+    showErrorShareConsent: Boolean = false,
+    onConfirmErrorShare: () -> Unit = {},
+    onDismissErrorShare: () -> Unit = {},
 ) {
+    if (showErrorShareConsent) {
+        ErrorShareConsentDialog(
+            onConfirm = onConfirmErrorShare,
+            onDismiss = onDismissErrorShare,
+        )
+    }
+
     CancelOperationConfirmationHost(
         pendingId = cancelConfirmationFor,
         operations = operations,

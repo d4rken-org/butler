@@ -26,6 +26,7 @@ import eu.darken.butler.workspace.ui.issues.IssuesBottomSheet
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
 import eu.darken.butler.workspace.ui.operations.details.CancelOperationConfirmationHost
+import eu.darken.butler.workspace.ui.error.ErrorShareConsentDialog
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
 
@@ -55,6 +56,7 @@ fun ExplorerWorkspaceOverlaysHost(
     val storageSuggestions by vm.storageSuggestions.collectAsState()
     val operationDialogState by vm.operationDialogState.collectAsState()
     val cancelConfirmation by vm.cancelOperationConfirmation.collectAsState()
+    val pendingErrorShare by vm.pendingErrorShare.collectAsState()
 
     ExplorerWorkspaceOverlays(
         design = design,
@@ -68,6 +70,7 @@ fun ExplorerWorkspaceOverlaysHost(
         showAddStorageSheet = showAddStorageSheet,
         storageSuggestions = storageSuggestions,
         navigationError = state?.error,
+        showErrorShareConsent = pendingErrorShare != null,
         vm = vm,
     )
 
@@ -91,6 +94,7 @@ fun ExplorerWorkspaceOverlays(
     showAddStorageSheet: Boolean = false,
     storageSuggestions: List<StorageProviderSuggestion> = emptyList(),
     navigationError: Throwable? = null,
+    showErrorShareConsent: Boolean = false,
     vm: ExplorerWorkspaceViewModel? = null,
 ) {
     val paneInsets = design.paneInsets()
@@ -149,6 +153,13 @@ fun ExplorerWorkspaceOverlays(
         )
     }
 
+    if (showErrorShareConsent) {
+        ErrorShareConsentDialog(
+            onConfirm = { vm?.confirmErrorShare() },
+            onDismiss = { vm?.dismissErrorShare() },
+        )
+    }
+
     CancelOperationConfirmationHost(
         pendingId = cancelConfirmationFor,
         operations = operationsState?.operations,
@@ -183,6 +194,13 @@ private fun ExplorerWorkspaceOverlaysBrowsingAbortedPreview() {
     ExplorerWorkspaceOverlays(
         navigationError = BrowsingAbortedException(ExplorerNavigation.Target.Home),
     )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ExplorerWorkspaceOverlaysErrorShareConsentPreview() {
+    ExplorerWorkspaceOverlays(showErrorShareConsent = true)
 }
 
 @Preview2
