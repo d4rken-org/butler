@@ -96,6 +96,7 @@ class WorkspacesScreenHostTitlesTest : ComposeTest() {
         every { showClearSessionConfirmation } returns MutableStateFlow(false)
         every { managerDialogs } returns MutableStateFlow(emptyList())
         every { closedFeedback } returns MutableStateFlow<ClosedWorkspaceFeedback?>(null)
+        every { pendingErrorShare } returns MutableStateFlow<WorkspacesViewModel.PendingErrorShare?>(null)
         every { workspacePageManager } returns pageManager
         every { pageHosts } returns mapOf(Workspace.Type.EXPLORER to pageHost)
         every { scrollPositions } returns WorkspaceScrollPositions()
