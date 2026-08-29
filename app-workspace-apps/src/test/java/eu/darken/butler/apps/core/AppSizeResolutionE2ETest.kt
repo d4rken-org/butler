@@ -5,6 +5,7 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.apps.core.details.AppDetailsWorkspace
 import eu.darken.butler.apps.core.engine.AppsEngine
+import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.pkgs.Pkg
 import eu.darken.butler.common.pkgs.PkgRepo
@@ -196,8 +197,8 @@ class AppSizeResolutionE2ETest : BaseTest() {
         pkgOps = pkgOps,
         apkArchiveParser = mockk(relaxed = true),
         appSizeCache = cache,
-        // Explicit, not relaxed: a false exists() would mean ABSENT and silently drop rows.
-        gatewaySwitch = mockk { coEvery { exists(any()) } returns true },
+        // Explicit, not relaxed: an ABSENT answer would silently drop rows.
+        gatewaySwitch = mockk { coEvery { existsStrict(any()) } returns Existence.PRESENT },
         pathPermissionCheck = mockk { every { monitor(any<APath<*>>()) } returns flowOf(PathRequirements()) },
         rootManager = mockk<eu.darken.butler.common.root.RootManager> {
             every { useRoot } returns flowOf(false)
