@@ -218,12 +218,14 @@ class ViewerRenderFailureTest : BaseTest() {
         )
         startCollecting(vm)
 
-        vm.state.value shouldBe ViewerWorkspaceViewModel.State.Error(sentinel)
+        // Crossing the coroutine boundary copies the throwable, so this is not the instance thrown above.
+        val published = (vm.state.value as ViewerWorkspaceViewModel.State.Error).error
+        published.message shouldBe "state pipeline blew up"
 
-        vm.shareError(sentinel)
+        vm.shareError(published)
 
         val incident = shared.single()
-        (incident.error === sentinel) shouldBe true
+        (incident.error === published) shouldBe true
         incident.occurredAtIsApproximate shouldBe false
         incident.context.containsKey("incident.frozenAtShare") shouldBe false
         incident.context["viewer.contentType"] shouldBe "image/jpeg"
