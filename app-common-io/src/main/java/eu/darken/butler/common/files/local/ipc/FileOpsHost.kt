@@ -11,6 +11,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.LookupOptions
@@ -190,6 +191,19 @@ class FileOpsHost @Inject constructor(
     } catch (e: Exception) {
         log(TAG, ERROR) { "exists(path=$path) failed\n${e.asLog()}" }
         throw e.wrapToPropagate()
+    }
+
+    /**
+     * Never throws across the binder: typed exceptions do not survive it in a minified build (R8
+     * strips the single-String constructor [eu.darken.butler.common.ipc.IpcClientModule] needs
+     * reflectively), a code does. A failure here is [Existence.UNKNOWN], the honest answer anyway.
+     */
+    override fun existsStrict(path: LocalPath): Int = try {
+        if (Bugs.isTrace) log(TAG, VERBOSE) { "existsStrict($path)..." }
+        runBlocking { fileSystemOps.existsStrict(path) }.ipcCode
+    } catch (e: Exception) {
+        log(TAG, ERROR) { "existsStrict(path=$path) failed\n${e.asLog()}" }
+        Existence.UNKNOWN.ipcCode
     }
 
     override fun delete(path: LocalPath, recursive: Boolean): Boolean = try {

@@ -8,6 +8,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.FileSystemOps
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
@@ -22,6 +23,7 @@ import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.OwnershipResolver
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.ipc.fileHandle
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import okio.FileHandle
@@ -246,6 +248,27 @@ class LocalFileSystemOps @Inject constructor(
         Files.exists(path.toNioPath(), LinkOption.NOFOLLOW_LINKS)
     } catch (e: Exception) {
         throw ReadException(path = path, cause = e)
+    }
+
+    /**
+     * `Files.exists` has no error channel - a stat it was not allowed to run reads as "not there".
+     * Reading the attributes instead makes the failure available for classification.
+     */
+    override suspend fun existsStrict(path: LocalPath): Existence = try {
+        Files.readAttributes(path.toNioPath(), BasicFileAttributes::class.java, LinkOption.NOFOLLOW_LINKS)
+        Existence.PRESENT
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        classifyExistence(path, e)
+    }
+
+    internal fun classifyExistence(path: LocalPath, error: Exception): Existence = when (error) {
+        is NoSuchFileException -> Existence.ABSENT
+        else -> {
+            log(TAG, WARN) { "existsStrict($path) could not be answered: ${error.asLog()}" }
+            Existence.UNKNOWN
+        }
     }
 
     override suspend fun delete(path: LocalPath, recursive: Boolean): Boolean = try {
