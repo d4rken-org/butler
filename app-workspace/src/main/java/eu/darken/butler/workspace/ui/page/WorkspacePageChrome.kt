@@ -39,6 +39,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 
 /**
@@ -73,6 +74,14 @@ class WorkspacePageChrome @AssistedInject constructor(
         val incident: ErrorIncident,
         val summary: String?,
     )
+
+    init {
+        // The consent can die with its holder (activity destroyed, tab closed from another pane),
+        // so neither confirm nor dismiss runs and the hold would outlive the process' need for it.
+        scope.coroutineContext.job.invokeOnCompletion {
+            _pendingErrorShare.getAndUpdate { null }?.let { errorIncidentStore.unpin(it.incident) }
+        }
+    }
 
     val clipboard: Flow<ClipboardDisplayState> = clipboardRepo.state
         .map { repoState -> ClipboardDisplayState(entries = repoState.entries) }

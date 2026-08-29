@@ -15,6 +15,7 @@ import eu.darken.butler.workspace.core.operations.OperationErrorRecorder
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
@@ -22,6 +23,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
@@ -32,6 +34,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import testhelpers.error.recordingIncidentStore
+import java.io.IOException
 import kotlin.time.Clock
 
 class WorkspacePageChromeTest : BaseTest() {
@@ -177,6 +180,28 @@ class WorkspacePageChromeTest : BaseTest() {
 
         fixture.chrome.pendingErrorShare.value shouldBe null
         coVerify(exactly = 0) { fixture.packager.packageReport(any(), any()) }
+    }
+
+    /**
+     * The dialog can die with its holder (activity destroyed, tab closed from another pane), and
+     * an unreleased hold exempts that incident from eviction for the life of the process.
+     */
+    @Test
+    fun `a consent dying with its scope releases the incident`() = runTest {
+        val scopeJob = Job()
+        val scope = CoroutineScope(coroutineContext + scopeJob)
+        val fixture = scope.consentFixture()
+        runCurrent()
+        fixture.chrome.shareOperationError(fixture.operationId)
+        runCurrent()
+        fixture.chrome.pendingErrorShare.value.shouldNotBeNull()
+
+        scopeJob.cancel()
+        runCurrent()
+
+        // Still held, the incident would have survived this and evicted a newcomer in its place
+        repeat(ErrorIncidentStore.MAX_ENTRIES) { fixture.store.remember(IOException("boom $it")) }
+        fixture.store.get(fixture.error) shouldBe null
     }
 
     @Test

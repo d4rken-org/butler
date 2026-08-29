@@ -607,6 +607,13 @@ class WorkspacesViewModel @Inject constructor(
         _pendingErrorShare.getAndUpdate { null }?.let { errorIncidentStore.unpin(it.incident) }
     }
 
+    override fun onCleared() {
+        // The consent can die with the activity, so neither confirm nor dismiss runs and the hold
+        // would outlive the process' need for it.
+        _pendingErrorShare.getAndUpdate { null }?.let { errorIncidentStore.unpin(it.incident) }
+        super.onCleared()
+    }
+
     data class State(
         private val state: WorkspaceRemote.State,
         val focusedWorkspace: Workspace.Id?,
