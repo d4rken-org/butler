@@ -2239,14 +2239,21 @@ class WorkspaceRepo @Inject constructor(
             return
         }
 
-        // Cancel any pending confirmations for this workspace - both the ones hosted in its pane
-        // and the ones asking about it. A confirmation hosted elsewhere would otherwise survive its
-        // subject: a blocking dialog naming a dead tab, whose confirm re-runs this for a workspace
-        // that no longer exists and emits a second Closed event.
+        // Cancel any pending confirmations for this workspace - both the ones this workspace renders
+        // and the ones asking about it. One asking about it would otherwise survive its subject: a
+        // blocking dialog naming a dead tab, whose confirm re-runs this for a workspace that no
+        // longer exists and emits a second Closed event.
+        //
+        // A close confirmation only renders in its anchor when the anchor goes down with the close;
+        // otherwise the anchor is a placement hint and a window dialog is what shows the question,
+        // so this workspace leaving takes nothing away from it.
         _pendingConfirmations.value
             .filter { (_, confirmation) ->
                 val data = confirmation.data
-                confirmation.sourceWorkspaceId == workspaceId ||
+                val anchoredHere = confirmation.sourceWorkspaceId == workspaceId &&
+                    (data !is PendingWorkspaceConfirmation.ConfirmationData.WorkspaceCloseConfirmation ||
+                        data.hostInClosingSubtree)
+                anchoredHere ||
                     (data is PendingWorkspaceConfirmation.ConfirmationData.WorkspaceCloseConfirmation &&
                         data.workspaceId == workspaceId)
             }

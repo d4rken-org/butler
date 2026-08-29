@@ -1841,7 +1841,7 @@ class WorkspaceRepoTest : BaseTest() {
         }
 
     @Test
-    fun `a confirmation dies with the tab whose pane hosts it`() =
+    fun `a confirmation outlives the tab it borrowed as an anchor`() =
         runTest(UnconfinedTestDispatcher()) {
             val repo = createRepo()
             val dirty = repo.createTab()
@@ -1852,9 +1852,27 @@ class WorkspaceRepoTest : BaseTest() {
 
             repo.execute(WorkspaceAction.Close(host))
 
-            // Its host pane is gone, so there is nothing left to render it in.
-            repo.pendingConfirmations.first() shouldBe emptyMap()
+            // The anchor is an unrelated tab, so it never rendered the question - losing it takes
+            // nothing away, while dropping the confirmation would silently abandon the close.
+            repo.pendingConfirmations.first().closeConfirmationsFor(dirty) shouldBe 1
             repo.retrieve(dirty).first() shouldNotBe null
+        }
+
+    @Test
+    fun `a confirmation dies with the child layer that asked it`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val tabId = repo.createTab()
+            val childId = repo.createSubWorkspace(caller = tabId)
+            markDirty(tabId)
+            repo.execute(WorkspaceAction.Close(tabId, sourceWorkspaceId = childId))
+            repo.pendingConfirmations.first().closeConfirmationsFor(tabId) shouldBe 1
+
+            repo.execute(WorkspaceAction.Close(childId))
+
+            // The layer rendering it is gone, so there is nothing left to answer in.
+            repo.pendingConfirmations.first() shouldBe emptyMap()
+            repo.retrieve(tabId).first() shouldNotBe null
         }
 
     @Test
