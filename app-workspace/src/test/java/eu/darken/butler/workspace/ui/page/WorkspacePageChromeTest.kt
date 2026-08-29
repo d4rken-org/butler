@@ -1,14 +1,14 @@
 package eu.darken.butler.workspace.ui.page
 
 import eu.darken.butler.common.ca.toCaString
-import eu.darken.butler.common.error.ErrorIncident
-import eu.darken.butler.common.error.ErrorIncidentFactory
+import eu.darken.butler.common.error.ErrorIncidentStore
 import eu.darken.butler.common.error.ErrorReportPackager
 import eu.darken.butler.common.error.ErrorReportTool
 import eu.darken.butler.common.error.PackagedErrorReport
 import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
+import eu.darken.butler.workspace.core.operations.CompletedOperationSnapshot
 import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
@@ -21,6 +21,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.launchIn
@@ -29,6 +30,7 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
+import testhelpers.error.recordingIncidentStore
 import kotlin.time.Clock
 
 class WorkspacePageChromeTest : BaseTest() {
@@ -61,7 +63,7 @@ class WorkspacePageChromeTest : BaseTest() {
         operationsManager: OperationsManager,
         errorReportTool: ErrorReportTool = mockk(),
         errorReportPackager: ErrorReportPackager = mockk(),
-        errorIncidentFactory: ErrorIncidentFactory = mockk(),
+        errorIncidentStore: ErrorIncidentStore = recordingIncidentStore(),
     ) = WorkspacePageChrome(
         workspaceId = workspaceId,
         scope = this,
@@ -72,7 +74,7 @@ class WorkspacePageChromeTest : BaseTest() {
         operationsManager = operationsManager,
         errorReportTool = errorReportTool,
         errorReportPackager = errorReportPackager,
-        errorIncidentFactory = errorIncidentFactory,
+        errorIncidentStore = errorIncidentStore,
         systemClipboardHelper = mockk(),
         workspaceRemote = mockk(),
     )
@@ -85,26 +87,26 @@ class WorkspacePageChromeTest : BaseTest() {
         override val error: Throwable? = error
     }
 
-    private val incident = ErrorIncident(
-        incidentId = "abcd1234",
-        occurredAt = Clock.System.now(),
-        occurredAtIsApproximate = false,
-        error = RuntimeException("boom"),
-        context = emptyMap(),
-        logFile = null,
-    )
-
     /** Chrome with a single failed operation, plus the collaborators the consent path drives. */
     private class ConsentFixture(
         val chrome: WorkspacePageChrome,
         val operationId: Operation.Id,
         val packager: ErrorReportPackager,
-    )
+        val error: Throwable,
+        val store: ErrorIncidentStore,
+    ) {
+        val incident get() = store.get(error)
+    }
 
     private fun CoroutineScope.consentFixture(): ConsentFixture {
-        val op = managedOp(MutableStateFlow(completedState(RuntimeException("boom"))))
+        val error = RuntimeException("boom")
+        val state = completedState(error)
+        val op = managedOp(MutableStateFlow(state))
         val operationsManager = mockk<OperationsManager>().apply {
             every { operations } returns MutableStateFlow(listOf(op))
+            every { completedOperations } returns MutableSharedFlow<CompletedOperationSnapshot>(replay = 1).apply {
+                tryEmit(CompletedOperationSnapshot(id = op.id, metadata = op.metadata, state = state))
+            }
         }
         val packager = mockk<ErrorReportPackager>().apply {
             coEvery { packageReport(any(), any()) } returns PackagedErrorReport(
@@ -112,28 +114,46 @@ class WorkspacePageChromeTest : BaseTest() {
                 payload = mockk(),
             )
         }
+        val store = recordingIncidentStore()
         val chrome = chrome(
             operationsManager = operationsManager,
             errorReportTool = mockk<ErrorReportTool>().apply {
                 every { createShareChooserIntent(any()) } returns mockk()
             },
             errorReportPackager = packager,
-            errorIncidentFactory = mockk<ErrorIncidentFactory>().apply {
-                coEvery { freeze(any(), any(), any()) } returns incident
-            },
+            errorIncidentStore = store,
         )
-        return ConsentFixture(chrome, op.id, packager)
+        return ConsentFixture(chrome, op.id, packager, error, store)
     }
 
     @Test
     fun `asking to share an operation error packages nothing yet`() = runTest {
         val fixture = backgroundScope.consentFixture()
+        runCurrent()
 
         fixture.chrome.shareOperationError(fixture.operationId)
         runCurrent()
 
-        fixture.chrome.pendingErrorShare.value?.incident shouldBe incident
+        fixture.chrome.pendingErrorShare.value?.incident shouldBe fixture.incident
         coVerify(exactly = 0) { fixture.packager.packageReport(any(), any()) }
+    }
+
+    /**
+     * The incident the consent offers has to be the one frozen when the operation completed: an
+     * incident minted at share time carries a log trail from minutes after the failure.
+     */
+    @Test
+    fun `the shared incident is the one the completion was frozen into`() = runTest {
+        val fixture = backgroundScope.consentFixture()
+        runCurrent()
+
+        fixture.chrome.shareOperationError(fixture.operationId)
+        runCurrent()
+
+        val shared = fixture.chrome.pendingErrorShare.value!!.incident
+        (shared.error === fixture.error) shouldBe true
+        shared.occurredAtIsApproximate shouldBe false
+        shared.context.containsKey("incident.frozenAtShare") shouldBe false
     }
 
     @Test
@@ -153,13 +173,15 @@ class WorkspacePageChromeTest : BaseTest() {
     @Test
     fun `consenting packages the report exactly once`() = runTest {
         val fixture = backgroundScope.consentFixture()
+        runCurrent()
         fixture.chrome.shareOperationError(fixture.operationId)
         runCurrent()
+        val pending = fixture.chrome.pendingErrorShare.value!!.incident
 
         fixture.chrome.confirmErrorShare()
         runCurrent()
 
-        coVerify(exactly = 1) { fixture.packager.packageReport(incident, any()) }
+        coVerify(exactly = 1) { fixture.packager.packageReport(pending, any()) }
     }
 
     @Test
@@ -185,6 +207,7 @@ class WorkspacePageChromeTest : BaseTest() {
         )
         val operationsManager = mockk<OperationsManager>().apply {
             every { operations } returns MutableStateFlow(listOf(managedOp(stateFlow)))
+            every { completedOperations } returns MutableSharedFlow()
         }
         val chrome = backgroundScope.chrome(operationsManager)
 
@@ -209,6 +232,7 @@ class WorkspacePageChromeTest : BaseTest() {
         val op = managedOp(stateFlow)
         val operationsManager = mockk<OperationsManager>().apply {
             every { operations } returns MutableStateFlow(listOf(op))
+            every { completedOperations } returns MutableSharedFlow()
         }
         val chrome = backgroundScope.chrome(operationsManager)
 

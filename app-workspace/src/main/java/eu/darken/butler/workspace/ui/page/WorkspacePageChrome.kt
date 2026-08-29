@@ -11,7 +11,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.ErrorIncident
-import eu.darken.butler.common.error.ErrorIncidentFactory
+import eu.darken.butler.common.error.ErrorIncidentStore
 import eu.darken.butler.common.error.ErrorReportPackager
 import eu.darken.butler.common.error.ErrorReportTool
 import eu.darken.butler.common.flow.SingleEventFlow
@@ -30,6 +30,7 @@ import eu.darken.butler.workspace.core.operations.withStateUpdates
 import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
 import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
 import eu.darken.butler.workspace.ui.operations.toOperationsDisplayState
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,7 +38,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.getAndUpdate
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 /**
@@ -54,7 +57,7 @@ class WorkspacePageChrome @AssistedInject constructor(
     private val operationsManager: OperationsManager,
     private val errorReportTool: ErrorReportTool,
     private val errorReportPackager: ErrorReportPackager,
-    private val errorIncidentFactory: ErrorIncidentFactory,
+    private val errorIncidentStore: ErrorIncidentStore,
     private val systemClipboardHelper: SystemClipboardHelper,
     private val workspaceRemote: WorkspaceRemote,
 ) {
@@ -94,6 +97,22 @@ class WorkspacePageChrome @AssistedInject constructor(
         }
         .distinctUntilChanged()
 
+    init {
+        // Exactly one emission per operation, at the moment it failed: the log trail around the
+        // failure is still in the ring buffer here, and long gone by the time Share is tapped.
+        operationsManager.completedOperations
+            .onEach { snapshot ->
+                val error = snapshot.state.error
+                if (error == null || error is CancellationException) return@onEach
+                errorIncidentStore.remember(
+                    error = error,
+                    context = operationContext(snapshot.id, snapshot.metadata, snapshot.state),
+                    occurredAt = snapshot.state.completedAt,
+                )
+            }
+            .launchIn(scope)
+    }
+
     fun removeClipboardEntry(clip: ClipboardClip) {
         log(tag) { "removeClipboardEntry($clip)" }
         scope.launch { clipboardRepo.remove(clip.id) }
@@ -126,10 +145,16 @@ class WorkspacePageChrome @AssistedInject constructor(
         scope.launch { operationsManager.clearCompleted() }
     }
 
-    /**
-     * The operation carries the moment it failed, so this is the one site whose incident timestamp
-     * is exact rather than the moment the user reached for Share.
-     */
+    private fun operationContext(
+        id: Operation.Id,
+        metadata: Operation.Metadata,
+        state: Operation.State.Completed,
+    ): Map<String, String?> = mapOf(
+        "op.id" to id.toString(),
+        "op.origin" to metadata.origin.toString(),
+        "op.completedAt" to state.completedAt.toString(),
+    )
+
     fun shareOperationError(id: Operation.Id) {
         log(tag) { "shareOperationError($id)" }
         scope.launch {
@@ -141,13 +166,9 @@ class WorkspacePageChrome @AssistedInject constructor(
             val state = operation.state.value as? Operation.State.Completed ?: return@launch
             val error = state.error ?: return@launch
 
-            val incident = errorIncidentFactory.freeze(
+            val incident = errorIncidentStore.getOrFreeze(
                 error = error,
-                context = mapOf(
-                    "op.id" to operation.id.toString(),
-                    "op.origin" to operation.metadata.origin.toString(),
-                    "op.completedAt" to state.completedAt.toString(),
-                ),
+                context = operationContext(operation.id, operation.metadata, state),
                 occurredAt = state.completedAt,
             )
             requestErrorShare(

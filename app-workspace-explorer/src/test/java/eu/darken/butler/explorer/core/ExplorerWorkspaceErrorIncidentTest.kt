@@ -26,6 +26,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import testhelpers.error.recordingIncidentFactory
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
