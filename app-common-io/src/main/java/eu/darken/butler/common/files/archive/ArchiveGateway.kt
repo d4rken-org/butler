@@ -111,7 +111,14 @@ class ArchiveGateway @Inject constructor(
             throw e
         } catch (e: Exception) {
             // Not just ReadException: tar scanning propagates raw IOExceptions from commons-compress.
-            return@runIO when (service.containerExistsStrict(path.container)) {
+            val container = try {
+                service.containerExistsStrict(path.container)
+            } catch (probeError: CancellationException) {
+                throw probeError
+            } catch (probeError: Exception) {
+                Existence.UNKNOWN
+            }
+            return@runIO when (container) {
                 Existence.ABSENT -> Existence.ABSENT
                 else -> {
                     log(TAG, WARN) { "existsStrict($path) could not be answered: ${e.asLog()}" }
