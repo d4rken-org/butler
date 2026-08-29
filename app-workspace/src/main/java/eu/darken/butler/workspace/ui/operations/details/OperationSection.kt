@@ -42,7 +42,8 @@ import eu.darken.butler.workspace.R
  * Card shell shared by every section of the operation details sheet: a clickable title row that
  * toggles [content] behind a divider.
  *
- * [title] is shown uppercased but reaches screen readers as-is, so pass it in natural case.
+ * [title] is uppercased for display and interpolated into the expand/collapse description in the
+ * case it was given, so pass it in natural case.
  */
 @Composable
 internal fun OperationSection(
