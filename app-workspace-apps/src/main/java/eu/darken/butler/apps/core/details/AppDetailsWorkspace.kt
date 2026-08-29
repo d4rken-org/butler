@@ -25,6 +25,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.flow.combine
@@ -260,25 +261,28 @@ class AppDetailsWorkspace @AssistedInject constructor(
         .stateIn(scope, SharingStarted.Eagerly, emptyMap())
 
     /**
-     * [eu.darken.butler.common.files.FileSystemOps.exists] answers false both for "not there" and
-     * for "could not look" - a denied stat returns false without throwing - so a false answer is
-     * only worth trusting with root, and only for the user these paths belong to.
+     * An absence is only trusted with root, and only for the user these paths belong to.
      *
-     * TODO A strict IO-layer probe reporting present/absent/could-not-tell per backend would say
-     *  which of the two a false answer is, which is what withholding the external row again needs.
+     * TODO Withholding the external row needs more than a strict probe: from API 30 on the probe
+     *  escalates to the privileged host, which stats in its own mount namespace and launches
+     *  without mount-master, so an ABSENT under `Android/data` says nothing about the app.
      */
     private suspend fun resolveAvailability(candidate: StorageCandidate, hasRoot: Boolean): Availability {
         val path = candidate.path
         if (!candidate.mayBeWithheld) return Availability.UNKNOWN
         if (!hasRoot || !isPrimaryUser) return Availability.UNKNOWN
         return try {
-            val exists = gatewaySwitch.exists(path)
+            val existence = gatewaySwitch.existsStrict(path)
             currentCoroutineContext().ensureActive()
-            if (exists) Availability.EXISTS else Availability.ABSENT
+            when (existence) {
+                Existence.PRESENT -> Availability.EXISTS
+                Existence.ABSENT -> Availability.ABSENT
+                // A probe that could not tell says nothing; absent has to be a positive answer.
+                Existence.UNKNOWN -> Availability.UNKNOWN
+            }
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            // A failed probe says nothing; absent has to be a positive answer.
             log(tag, WARN) { "Existence check failed for $path: ${e.asLog()}" }
             Availability.UNKNOWN
         }

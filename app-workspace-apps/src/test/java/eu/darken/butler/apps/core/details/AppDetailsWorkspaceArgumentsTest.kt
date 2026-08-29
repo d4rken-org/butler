@@ -2,6 +2,7 @@ package eu.darken.butler.apps.core.details
 
 import eu.darken.butler.apps.core.AppSizeCache
 import eu.darken.butler.common.adb.AdbManager
+import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.pkgs.Pkg
 import eu.darken.butler.common.pkgs.features.InstallId
@@ -47,8 +48,8 @@ class AppDetailsWorkspaceArgumentsTest : BaseTest() {
             every { snapshot } returns MutableStateFlow(AppSizeCache.Snapshot())
             every { isAvailable } returns MutableStateFlow(false)
         },
-        // Explicit, not relaxed: a false exists() would mean ABSENT and silently drop rows.
-        gatewaySwitch = mockk { coEvery { exists(any()) } returns true },
+        // Explicit, not relaxed: an ABSENT answer would silently drop rows.
+        gatewaySwitch = mockk { coEvery { existsStrict(any()) } returns Existence.PRESENT },
         pathPermissionCheck = mockk { every { monitor(any<APath<*>>()) } returns flowOf(PathRequirements()) },
         rootManager = mockk<RootManager> { every { useRoot } returns flowOf(false) },
         adbManager = mockk<AdbManager> { every { useAdb } returns flowOf(false) },
