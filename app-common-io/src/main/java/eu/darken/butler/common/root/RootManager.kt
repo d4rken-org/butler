@@ -69,7 +69,15 @@ class RootManager @Inject constructor(
         .replayingShare(appScope)
 
     private val cacheLock = Mutex()
-    private var cachedState: Boolean? = null
+
+    @Volatile private var cachedState: Boolean? = null
+
+    /**
+     * What [isRooted] last concluded, or null if it never completed. Reads the cache without
+     * probing, so a caller that must not start a root session (e.g. an error report) can still say
+     * what the access state was.
+     */
+    val lastKnownRooted: Boolean? get() = cachedState
 
     /**
      * Is the device rooted and we have access?
