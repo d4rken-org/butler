@@ -29,6 +29,11 @@ data class PendingWorkspaceConfirmation(
              * names one of them, so anything above 1 has to be said out loud.
              */
             val unsavedCount: Int = 0,
+            /**
+             * Whether the workspace this confirmation is anchored to ([sourceWorkspaceId]) is one of
+             * the workspaces the close removes. False means the anchor is an unrelated tab's.
+             */
+            val hostInClosingSubtree: Boolean,
         ) : ConfirmationData
 
         /**
