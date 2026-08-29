@@ -33,7 +33,7 @@ data class OperationDisplay(
         data class Completed(
             val summary: CaString,
             val completedAt: Instant,
-            val report: Operation.Report,
+            val report: Operation.Report?,
             val performanceHistory: PerformanceHistory? = null,
         ) : State
 
@@ -97,7 +97,7 @@ fun ManagedOperation.toDisplayModel(): OperationDisplay {
                         OperationDisplay.State.Completed(
                             summary = state.summary,
                             completedAt = state.completedAt,
-                            report = state.report!!,
+                            report = state.report,
                             performanceHistory = performanceHistory,
                         )
                     }

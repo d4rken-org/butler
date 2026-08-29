@@ -110,7 +110,7 @@ private fun OperationDetailsContent(
 
         // Affected Files Section (for completed operations with affected paths)
         val affectedPaths = when (operation.state) {
-            is OperationDisplay.State.Completed -> operation.state.report.affectedPaths
+            is OperationDisplay.State.Completed -> operation.state.report?.affectedPaths ?: emptyList()
             is OperationDisplay.State.Failed -> operation.state.report?.affectedPaths ?: emptyList()
             is OperationDisplay.State.Cancelled -> operation.state.report?.affectedPaths ?: emptyList()
             else -> emptyList()
