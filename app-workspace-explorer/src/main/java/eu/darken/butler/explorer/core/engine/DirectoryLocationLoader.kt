@@ -13,8 +13,8 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
+import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.GatewaySwitch
-import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.SmbPath
@@ -136,10 +136,9 @@ class DirectoryLocationLoader @AssistedInject constructor(
     /**
      * Turns "the target is gone" into a state the page can render instead of a failure card.
      *
-     * Restricted to [LocalPath], the only type whose `exists()` reports an actual stat. For SAF a
-     * false answer also covers a provider that is unreachable, crashing or mid-update, and for SMB
-     * and archives it covers an unreachable host or an unreadable container - in each of those the
-     * original error carries the signal the user needs, see `DirectoryLocationLoaderTest`.
+     * Only a probe that positively reports the target as absent qualifies. An unreachable host, an
+     * unresponsive document provider or an unreadable container answer [Existence.UNKNOWN], and
+     * there the original error carries the signal the user needs, see `DirectoryLocationLoaderTest`.
      */
     private suspend fun <T> LocationLoaderContext<ExplorerLocation.Directory>.asNotFoundIfGone(
         block: suspend () -> T,
@@ -150,21 +149,19 @@ class DirectoryLocationLoader @AssistedInject constructor(
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            if (target !is LocalPath) throw e
-
             currentCoroutineContext().ensureActive()
-            val stillThere = try {
-                gatewaySwitch.exists(target)
+            val existence = try {
+                gatewaySwitch.existsStrict(target)
             } catch (probeError: CancellationException) {
                 throw probeError
             } catch (probeError: Exception) {
                 log(tag, WARN) { "asNotFoundIfGone(): Probe failed for $target: ${probeError.asLog()}" }
-                true
+                Existence.UNKNOWN
             }
             // The probe can outlive its coroutine, and a cancelled load must not turn into a
             // "folder gone" state for a target the user has already navigated away from.
             currentCoroutineContext().ensureActive()
-            if (stillThere) throw e
+            if (existence != Existence.ABSENT) throw e
 
             log(tag, INFO) { "asNotFoundIfGone(): $target is gone, original error was ${e.asLog()}" }
             throw PathNotFoundException(target)
