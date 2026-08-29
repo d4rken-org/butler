@@ -209,7 +209,8 @@ class ViewerRenderFailureTest : BaseTest() {
     @Test
     fun `a failure of the state pipeline is frozen where it surfaces`() = runTest2 {
         val sentinel = IllegalStateException("state pipeline blew up")
-        // One of the flows the state is composed from failing, after the viewer has seen the file.
+        // One of the flows the state is composed from fails right after its first emission,
+        // possibly before the viewer has resolved any source.
         val vm = makeViewModel(
             trashEnabled = flow {
                 emit(false)
