@@ -32,6 +32,7 @@ import kotlinx.coroutines.withTimeout
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import testhelpers.coroutine.TestDispatcherProvider
+import testhelpers.error.recordingIncidentStore
 
 class SearcherWorkspaceDedupTest : BaseTest() {
 
@@ -76,6 +77,7 @@ class SearcherWorkspaceDedupTest : BaseTest() {
             searchEngineFactory = engineFactory,
             fileSystemHinter = FileSystemHinter(),
             folderPreviewResolver = mockk<FolderPreviewResolver>(relaxUnitFun = true),
+            errorIncidentStore = recordingIncidentStore(),
         )
     }
 

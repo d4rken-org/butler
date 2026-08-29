@@ -35,6 +35,7 @@ import kotlinx.coroutines.withTimeout
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import testhelpers.coroutine.TestDispatcherProvider
+import testhelpers.error.recordingIncidentStore
 
 /** Live pruning for MediaStore-only searches: no Path target scopes the removal events. */
 class SearcherWorkspaceMediaPruneTest : BaseTest() {
@@ -82,6 +83,7 @@ class SearcherWorkspaceMediaPruneTest : BaseTest() {
             searchEngineFactory = engineFactory,
             fileSystemHinter = hinter,
             folderPreviewResolver = mockk<FolderPreviewResolver>(relaxUnitFun = true),
+            errorIncidentStore = recordingIncidentStore(),
         )
     }
 

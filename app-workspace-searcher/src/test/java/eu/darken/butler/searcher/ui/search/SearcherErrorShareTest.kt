@@ -33,13 +33,14 @@ import testhelpers.coroutine.runTest2
 import testhelpers.error.recordingIncidentStore
 
 /**
- * A search failure is frozen when it enters the state the page renders, so the report carries the
- * log trail from around the failure rather than from whenever the user tapped Share.
+ * Sharing a failure hands over the incident it was already frozen into, so the report carries the
+ * log trail from around the failure rather than from whenever the user tapped Share. The search
+ * state's failure is frozen by the workspace, a target failure by the page that shows it.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
-class SearcherWorkspaceErrorIncidentTest {
+class SearcherErrorShareTest {
 
     private val workspaceId = Workspace.Id()
     private val searchState = MutableStateFlow(SearcherWorkspace.State())
@@ -107,6 +108,8 @@ class SearcherWorkspaceErrorIncidentTest {
         val vm = makeViewModel()
 
         val sentinel = IllegalStateException("search blew up")
+        // What the workspace does when it publishes the failure into the state the page renders
+        incidentStore.remember(sentinel, mapOf("search.targets" to ""))
         searchState.value = SearcherWorkspace.State(
             searchStatus = SearcherWorkspace.State.SearchStatus.ERROR,
             error = sentinel,

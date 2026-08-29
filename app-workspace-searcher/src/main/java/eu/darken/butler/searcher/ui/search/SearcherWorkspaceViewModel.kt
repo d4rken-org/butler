@@ -193,13 +193,6 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     }
 
     init {
-        // The workspace normalizes what it caught before publishing it (a non-Exception throwable
-        // becomes an Exception wrapper), so the instance frozen here is the one the page renders
-        // and the one the share action will name.
-        workspaceSearchState
-            .onEach { state -> state.error?.let { errorIncidentStore.remember(it, searchContext(state)) } }
-            .launchIn(vmScope)
-
         // Initialize UI state from workspace (source of truth, already has defaults applied)
         // Non-blocking reactive initialization - waits for workspace to be ready
         workspaceSearchState
@@ -1227,7 +1220,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
     private fun searchContext(
         state: SearcherWorkspace.State,
-        targetPath: String? = null,
+        targetPath: String,
     ): Map<String, String?> = mapOf(
         "search.query" to state.currentSearchQuery?.toString(),
         "search.targets" to state.searchTargets.joinToString(", "),
