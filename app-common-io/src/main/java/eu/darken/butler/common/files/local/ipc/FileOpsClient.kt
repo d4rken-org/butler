@@ -204,7 +204,7 @@ class FileOpsClient @AssistedInject constructor(
         Existence.fromIpcCode(fileOpsConnection.existsStrict(path))
     } catch (e: CancellationException) {
         throw e
-    } catch (e: Throwable) {
+    } catch (e: Exception) {
         // A dead service or a failed transport is not an answer about the path.
         log(TAG, WARN) { "existsStrict($path) failed: $e" }
         Existence.UNKNOWN
