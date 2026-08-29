@@ -15,6 +15,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.FileSystemOps
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.MoveOutcome
@@ -122,6 +123,32 @@ class SmbFileSystemOps @Inject constructor(
     } catch (e: Exception) {
         log(TAG, VERBOSE) { "exists($path) -> false ($e)" }
         false
+    }
+
+    /**
+     * One round trip, the same [com.hierynomus.smbj.share.DiskShare.getFileInformation] call
+     * [lookup] uses: probing file and folder separately would answer "neither" for a node that
+     * changes kind between the two calls, which is the false absence this exists to avoid.
+     *
+     * The status is classified inside the lease block, where the raw SMB exception is still
+     * available - [runOp] wraps it on the way out.
+     */
+    override suspend fun existsStrict(path: SmbPath): Existence = try {
+        read(path, "existsStrict") { lease ->
+            // The lease itself is the proof: it only exists once the share was reached.
+            if (path.segments.isEmpty()) return@read Existence.PRESENT
+            try {
+                lease.share.getFileInformation(lease.smbPath(path))
+                Existence.PRESENT
+            } catch (e: Exception) {
+                if (SmbStatusMapper.isMissing(e)) Existence.ABSENT else throw e
+            }
+        }
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        log(TAG, WARN) { "existsStrict($path) could not be answered: ${e.asLog()}" }
+        Existence.UNKNOWN
     }
 
     override suspend fun delete(path: SmbPath, recursive: Boolean): Boolean = mutate(path, "delete") { lease ->
