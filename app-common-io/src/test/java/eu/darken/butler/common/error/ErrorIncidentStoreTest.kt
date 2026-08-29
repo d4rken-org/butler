@@ -19,11 +19,13 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -33,6 +35,8 @@ import testhelpers.EmptyApp
 import testhelpers.coroutine.TestDispatcherProvider
 import java.io.File
 import java.io.IOException
+import java.util.concurrent.CyclicBarrier
+import java.util.concurrent.TimeUnit
 import kotlin.time.Clock
 
 @RunWith(AndroidJUnit4::class)
@@ -117,6 +121,26 @@ class ErrorIncidentStoreTest : BaseTest() {
         val incidents = List(8) { async { store.remember(boom) } }.awaitAll()
 
         incidents.map { it.incidentId }.distinct().size shouldBe 1
+        spooled().size shouldBe 1
+    }
+
+    @Test
+    fun `a caller racing the end of a freeze mints one incident`() = runTest {
+        val store = store()
+        val boom = IOException("boom")
+        val bothInside = CyclicBarrier(2)
+
+        val incidents = withContext(Dispatchers.Default) {
+            List(2) {
+                async {
+                    bothInside.await(5, TimeUnit.SECONDS)
+                    store.remember(boom)
+                }
+            }.awaitAll()
+        }
+
+        incidents.map { it.incidentId }.distinct().size shouldBe 1
+        store.get(boom)!!.incidentId shouldBe incidents.first().incidentId
         spooled().size shouldBe 1
     }
 

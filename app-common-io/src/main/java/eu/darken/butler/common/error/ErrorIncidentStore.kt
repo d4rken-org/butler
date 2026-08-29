@@ -156,9 +156,14 @@ class ErrorIncidentStore @Inject constructor(
             pending.completeExceptionally(t)
             throw t
         }
-        synchronized(lock) { inFlight.remove(key) }
-        store(error, incident)
+        // One step: a caller arriving between the removal and the install would see neither an
+        // in-flight freeze nor a stored incident, and freeze the same failure a second time.
+        val evicted = synchronized(lock) {
+            inFlight.remove(key)
+            install(error, incident)
+        }
         pending.complete(incident)
+        evicted?.let { dropEvicted(it) }
         return incident
     }
 
@@ -179,15 +184,24 @@ class ErrorIncidentStore @Inject constructor(
     }
 
     private fun store(error: Throwable, incident: ErrorIncident) {
-        val evicted = synchronized(lock) {
-            incidents[IdentityKey(error)] = incident
-            if (incidents.size <= MAX_ENTRIES) return@synchronized null
-            val eldest = incidents.entries.firstOrNull { it.value.incidentId !in pinned }
-                ?: return@synchronized null
-            incidents.remove(eldest.key)
-        } ?: return
-        log(TAG) { "Evicted incident ${evicted.incidentId}" }
-        deleteSpoolOf(evicted)
+        val evicted = synchronized(lock) { install(error, incident) }
+        evicted?.let { dropEvicted(it) }
+    }
+
+    /**
+     * Holds [incident] under [error] and returns whatever entry had to make room for it, to be
+     * dropped by the caller once it has left [lock] - which it must hold while calling this.
+     */
+    private fun install(error: Throwable, incident: ErrorIncident): ErrorIncident? {
+        incidents[IdentityKey(error)] = incident
+        if (incidents.size <= MAX_ENTRIES) return null
+        val eldest = incidents.entries.firstOrNull { it.value.incidentId !in pinned } ?: return null
+        return incidents.remove(eldest.key)
+    }
+
+    private fun dropEvicted(incident: ErrorIncident) {
+        log(TAG) { "Evicted incident ${incident.incidentId}" }
+        deleteSpoolOf(incident)
     }
 
     /** The store owns the spool files, so a dropped incident takes its log trail with it. */
