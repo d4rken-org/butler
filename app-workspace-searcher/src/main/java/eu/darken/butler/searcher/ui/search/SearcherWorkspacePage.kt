@@ -63,10 +63,11 @@ import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
 import eu.darken.butler.searcher.ui.search.util.SearchListItem
 import eu.darken.butler.searcher.ui.search.util.SearcherActionBarItem
 import eu.darken.butler.searcher.ui.search.util.SearcherPageAction
+import eu.darken.butler.searcher.ui.search.util.toPageAction
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.actions.WorkspaceActionBar
 import eu.darken.butler.workspace.ui.dnd.rememberWorkspaceDragSource
-import eu.darken.butler.workspace.ui.clipboard.bar.ClipboardBar
+import eu.darken.butler.workspace.ui.clipboard.bar.WorkspaceClipboardFloatingBar
 import eu.darken.butler.workspace.ui.common.WorkspacePaddings
 import eu.darken.butler.workspace.ui.error.ErrorCard
 import eu.darken.butler.workspace.ui.floatingbar.BarAnimation
@@ -78,9 +79,8 @@ import eu.darken.butler.workspace.ui.insets.rememberPaneFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
 import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
-import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
-import eu.darken.butler.workspace.ui.operations.bar.OperationsBar
+import eu.darken.butler.workspace.ui.operations.bar.WorkspaceOperationsFloatingBar
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.preview.ProvideFolderPreviews
 import eu.darken.butler.workspace.ui.scroll.rememberWorkspaceLazyGridState
@@ -204,14 +204,6 @@ fun SearcherWorkspacePage(
         topBarStackState.resetScrollCollapse()
         bottomBarStackState.resetScrollCollapse()
     }
-
-    val hasOperations = operationsState.operations.isNotEmpty()
-    val hasActiveOperations = operationsState.operations.any { op ->
-        op.state is OperationDisplay.State.Queued ||
-            op.state is OperationDisplay.State.Running ||
-            op.state is OperationDisplay.State.Waiting
-    }
-    val hasClipboard = clipboardState.entries.isNotEmpty()
 
     val hasActions by remember(mainState) {
         derivedStateOf {
@@ -729,49 +721,19 @@ fun SearcherWorkspacePage(
             modifier = Modifier.align(Alignment.BottomCenter),
             bars = {
                 // Operations bar - furthest from bottom edge
-                // Static when active operations, VanishOnScroll when only completed
-                FloatingBar(
+                WorkspaceOperationsFloatingBar(
                     key = SearcherBarKeys.OPERATIONS,
-                    visible = hasOperations,
-                    scrollBehavior = if (hasActiveOperations) BarScrollBehavior.Static else BarScrollBehavior.VanishOnScroll,
-                    animation = BarAnimation.Slide(),
-                ) {
-                    OperationsBar(
-                        operations = operationsState.operations,
-                        onRequestCancelOperation = {
-                            onPageAction(SearcherPageAction.Overlays.RequestCancelOperation(it))
-                        },
-                        onDismissOperation = { onPageAction(SearcherPageAction.Operations.Dismiss(it)) },
-                        onOperationClick = { operation ->
-                            when (operation.state) {
-                                is OperationDisplay.State.Waiting -> {
-                                    onPageAction(SearcherPageAction.Operations.ShowConflict(operation.id))
-                                }
-                                else -> {
-                                    onPageAction(SearcherPageAction.Overlays.ShowOperationDetails(operation.id))
-                                }
-                            }
-                        },
-                        onClearCompleted = { onPageAction(SearcherPageAction.Operations.ClearCompleted) },
-                    )
-                }
+                    operations = operationsState.operations,
+                    onAction = { onPageAction(it.toPageAction()) },
+                )
 
-                // Clipboard bar - middle, vanishes on scroll with bouncy animation
-                FloatingBar(
+                // Clipboard bar - middle
+                WorkspaceClipboardFloatingBar(
                     key = SearcherBarKeys.CLIPBOARD,
-                    visible = hasClipboard,
-                    scrollBehavior = BarScrollBehavior.VanishOnScroll,
-                    animation = BarAnimation.Bouncy,
-                ) {
-                    ClipboardBar(
-                        workspaceType = Workspace.Type.SEARCHER,
-                        clipboardEntries = clipboardState.entries,
-                        onPasteClick = { clip -> onPageAction(SearcherPageAction.Clipboard.OpenInExplorer(clip)) },
-                        onRemoveClick = { onPageAction(SearcherPageAction.Clipboard.RemoveEntry(it)) },
-                        onEntryClick = { onPageAction(SearcherPageAction.Clipboard.ClickEntry(it)) },
-                        onClearAll = { onPageAction(SearcherPageAction.Clipboard.ClearAll) },
-                    )
-                }
+                    workspaceType = Workspace.Type.SEARCHER,
+                    clipboardEntries = clipboardState.entries,
+                    onAction = { onPageAction(it.toPageAction()) },
+                )
 
                 // Action bar - closest to bottom edge, hides on scroll
                 FloatingBar(

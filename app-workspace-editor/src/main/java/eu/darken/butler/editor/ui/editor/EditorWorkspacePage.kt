@@ -37,7 +37,7 @@ import eu.darken.butler.editor.ui.editor.text.LazyTextEditor
 import eu.darken.butler.editor.ui.editor.text.SessionDelta
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
-import eu.darken.butler.workspace.ui.clipboard.bar.ClipboardBar
+import eu.darken.butler.workspace.ui.clipboard.bar.WorkspaceClipboardFloatingBar
 import eu.darken.butler.workspace.ui.floatingbar.BarAnimation
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior
@@ -120,7 +120,6 @@ fun EditorWorkspacePage(
         onPageAction(EditorPageAction.Navigation.ClearSelection(state.cursorPosition))
     }
 
-    val hasClipboard = clipboardState.entries.isNotEmpty()
     val hasActions = state.availableActions.isNotEmpty()
 
     val topBarStackState = rememberPaneFloatingBarStackState(
@@ -286,21 +285,12 @@ fun EditorWorkspacePage(
                         onReplaceAll = { onPageAction(EditorPageAction.Search.ReplaceAll) },
                     )
                 }
-                FloatingBar(
+                WorkspaceClipboardFloatingBar(
                     key = EditorBarKeys.CLIPBOARD,
-                    visible = hasClipboard,
-                    scrollBehavior = BarScrollBehavior.VanishOnScroll,
-                    animation = BarAnimation.Bouncy,
-                ) {
-                    ClipboardBar(
-                        workspaceType = Workspace.Type.EDITOR,
-                        clipboardEntries = clipboardState.entries,
-                        onPasteClick = { onPageAction(EditorPageAction.Clipboard.Paste(it)) },
-                        onRemoveClick = { onPageAction(EditorPageAction.Clipboard.Remove(it)) },
-                        onEntryClick = { onPageAction(EditorPageAction.Clipboard.ShowInfo(it)) },
-                        onClearAll = { onPageAction(EditorPageAction.Clipboard.Clear) },
-                    )
-                }
+                    workspaceType = Workspace.Type.EDITOR,
+                    clipboardEntries = clipboardState.entries,
+                    onAction = { onPageAction(it.toPageAction()) },
+                )
                 FloatingBar(
                     key = EditorBarKeys.ACTIONS,
                     visible = hasActions,
