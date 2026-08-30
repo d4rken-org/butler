@@ -19,7 +19,7 @@ enum class BarPosition(val persistedKey: String) {
 
     /**
      * Bars stack from the bottom edge upward.
-     * First declared bar is closest to the bottom edge.
+     * First declared bar is furthest from the bottom edge, last declared bar sits at it.
      */
     BOTTOM("BOTTOM"),
 }

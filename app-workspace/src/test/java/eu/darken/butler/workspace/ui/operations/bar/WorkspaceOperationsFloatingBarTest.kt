@@ -109,6 +109,12 @@ class WorkspaceOperationsFloatingBarTest : ComposeTest() {
 
     /**
      * An empty list composes no row at all, so its absence - not a hidden node - is the observable.
+     *
+     * Collapsing while empty is what tells the two candidates apart: `FloatingBarStack` snaps the
+     * collapse fraction back to 0 only when a bar's visibility actually flips, so a bar that was
+     * never hidden stays collapsed and keeps the title off-screen. The operation has to be terminal,
+     * an active one makes the bar [eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior.Static]
+     * and a static bar ignores the collapse fraction.
      */
     @Test
     fun `the bar appears only once there is an operation`() {
@@ -117,7 +123,8 @@ class WorkspaceOperationsFloatingBarTest : ComposeTest() {
 
         composeTestRule.onNodeWithText(FIRST_TITLE).assertDoesNotExist()
 
-        operations = listOf(operation(FIRST_TITLE))
+        collapseBar(1f)
+        operations = listOf(operation(FIRST_TITLE, completed()))
         composeTestRule.waitForIdle()
 
         composeTestRule.onNodeWithText(FIRST_TITLE).assertIsDisplayed()
