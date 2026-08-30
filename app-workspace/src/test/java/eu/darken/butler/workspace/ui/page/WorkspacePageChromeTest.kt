@@ -218,6 +218,31 @@ class WorkspacePageChromeTest : BaseTest() {
         coVerify(exactly = 1) { fixture.packager.packageReport(pending, any()) }
     }
 
+    /**
+     * The tab can close in the gap between the confirm and the packaging coroutine's first line.
+     * The confirm already took the pending share, so the scope handler no longer sees the hold.
+     */
+    @Test
+    fun `a confirmed share whose scope dies before packaging releases the incident`() = runTest {
+        val scopeJob = Job()
+        val scope = CoroutineScope(coroutineContext + scopeJob)
+        val fixture = scope.consentFixture()
+        runCurrent()
+        fixture.chrome.shareOperationError(fixture.operationId)
+        runCurrent()
+        fixture.chrome.pendingErrorShare.value.shouldNotBeNull()
+
+        // No runCurrent() in between: the packaging coroutine is queued and never enters its body
+        fixture.chrome.confirmErrorShare()
+        scopeJob.cancel()
+        runCurrent()
+
+        coVerify(exactly = 0) { fixture.packager.packageReport(any(), any()) }
+        // Still held, the incident would have survived this and evicted a newcomer in its place
+        repeat(ErrorIncidentStore.MAX_ENTRIES) { fixture.store.remember(IOException("boom $it")) }
+        fixture.store.get(fixture.error) shouldBe null
+    }
+
     @Test
     fun `a double tap on the consent still packages only once`() = runTest {
         val fixture = backgroundScope.consentFixture()

@@ -183,14 +183,13 @@ class WorkspacePageChrome @AssistedInject constructor(
     fun confirmErrorShare() {
         val pending = _pendingErrorShare.getAndUpdate { null } ?: return
         log(tag, INFO) { "confirmErrorShare(${pending.incident.incidentId})" }
-        scope.launch {
-            try {
-                val packaged = errorReportPackager.packageReport(pending.incident, pending.summary)
-                shareIntentEvent.tryEmit(errorReportTool.createShareChooserIntent(packaged))
-            } finally {
-                errorIncidentStore.unpin(pending.incident)
-            }
+        val packaging = scope.launch {
+            val packaged = errorReportPackager.packageReport(pending.incident, pending.summary)
+            shareIntentEvent.tryEmit(errorReportTool.createShareChooserIntent(packaged))
         }
+        // On the job, not in a finally: the take above puts this hold out of reach of the scope
+        // handler, and a coroutine cancelled before it starts never runs its own body.
+        packaging.invokeOnCompletion { errorIncidentStore.unpin(pending.incident) }
     }
 
     fun dismissErrorShare() {

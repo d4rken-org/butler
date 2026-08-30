@@ -64,6 +64,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.uuid.Uuid
 
@@ -591,15 +592,16 @@ class WorkspacesViewModel @Inject constructor(
      * Takes the pending share and clears it in one step, so a double tap on the consent packages
      * once instead of twice.
      */
-    fun confirmErrorShare() = launch {
-        val pending = _pendingErrorShare.getAndUpdate { null } ?: return@launch
+    fun confirmErrorShare() {
+        val pending = _pendingErrorShare.getAndUpdate { null } ?: return
         log(tag, INFO) { "confirmErrorShare(${pending.incident.incidentId})" }
-        try {
+        val packaging = vmScope.launch {
             val packaged = errorReportPackager.packageReport(pending.incident, pending.summary)
             shareIntentEvent.tryEmit(errorReportTool.createShareChooserIntent(packaged))
-        } finally {
-            errorIncidentStore.unpin(pending.incident)
         }
+        // On the job, not in a finally: the take above puts this hold out of reach of onCleared,
+        // and a coroutine cancelled before it starts never runs its own body.
+        packaging.invokeOnCompletion { errorIncidentStore.unpin(pending.incident) }
     }
 
     fun dismissErrorShare() {
