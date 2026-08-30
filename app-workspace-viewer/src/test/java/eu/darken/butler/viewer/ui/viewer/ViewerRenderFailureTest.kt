@@ -329,8 +329,12 @@ class ViewerRenderFailureTest : BaseTest() {
         workspaces.value = makeWorkspace(stored)
 
         // The disposed source reporting after the swap: it names the stream, not what is on display.
-        onErrors.getValue(streamed)(IllegalStateException("decode failed"))
+        val late = IllegalStateException("decode failed")
+        onErrors.getValue(streamed)(late)
 
         vm.readyState.content shouldBe ViewerContent.Image(mime)
+        // A failure the page never shows must not cost a store slot and a log trail either.
+        incidentStore.get(late) shouldBe null
+        spooledLogs().size shouldBe 0
     }
 }

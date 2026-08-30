@@ -162,7 +162,6 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
                 onError = { error ->
                     if (attemptFlow.value == attempt) {
                         renderErrorFlow.value = RenderFailure(source = source, error = error)
-                        vmScope.launch { errorIncidentStore.remember(error, viewerContext(source)) }
                     }
                 },
             )
