@@ -28,7 +28,7 @@ abstract class FloatingBarScope {
      *
      * Bars are rendered in declaration order:
      * - For [BarPosition.TOP]: first bar is closest to top edge
-     * - For [BarPosition.BOTTOM]: first bar is closest to bottom edge
+     * - For [BarPosition.BOTTOM]: first bar is furthest from bottom edge, last bar is at it
      *
      * @param modifier Modifier for the bar container.
      * @param key Stable identity of this bar within its stack, e.g. "toolbar". Required rather than

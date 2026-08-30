@@ -46,7 +46,7 @@ import kotlin.math.roundToInt
  * - Reactive content padding based on visible bars (use [FloatingBarStackState.contentPaddingDp])
  * - Coordinated scroll behaviors (static, collapse, hide)
  * - Gap-filling animations when bars show/hide
- * - Edge-first ordering (first bar closest to screen edge)
+ * - Bars render in declared top-to-bottom visual order, for both positions
  *
  * Content should be rendered separately, using [FloatingBarStackState.nestedScrollConnection]
  * for scroll coordination and [contentPaddingDp] for padding.
