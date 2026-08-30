@@ -303,6 +303,29 @@ class ErrorIncidentStoreTest : BaseTest() {
     }
 
     @Test
+    fun `an incident two throwables name survives the eviction of the first one`() = runTest {
+        val store = store()
+        val original = IOException("boom")
+        val wrapper = IllegalStateException("wrapped", original)
+
+        val incident = store.remember(original)
+        store.alias(wrapper, original)
+
+        // One entry over the cap: the eldest key goes, which is the one the incident was minted for
+        repeat(ErrorIncidentStore.MAX_ENTRIES - 1) { store.remember(IOException("boom $it")) }
+
+        store.get(original) shouldBe null
+        store.get(wrapper).shouldNotBeNull().incidentId shouldBe incident.incidentId
+        incident.logFile!!.exists() shouldBe true
+
+        // With the second key gone too, nothing can reach the log trail anymore
+        store.remember(IOException("one more"))
+
+        store.get(wrapper) shouldBe null
+        incident.logFile!!.exists() shouldBe false
+    }
+
+    @Test
     fun `a forgotten incident releases its log trail`() = runTest {
         val store = store()
         val boom = IOException("boom")

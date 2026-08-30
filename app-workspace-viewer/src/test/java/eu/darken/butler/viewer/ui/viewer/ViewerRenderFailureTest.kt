@@ -11,12 +11,15 @@ import eu.darken.butler.common.trash.TrashSettings
 import eu.darken.butler.viewer.core.GatewayZoomableImageSource
 import eu.darken.butler.viewer.core.ViewerContent
 import eu.darken.butler.viewer.core.ViewerSource
+import eu.darken.butler.viewer.core.ViewerUndecodableImageException
 import eu.darken.butler.viewer.core.ViewerWorkspace
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.ui.page.WorkspacePageChrome
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
@@ -43,9 +46,13 @@ import testhelpers.BaseTest
 import testhelpers.coroutine.TestDispatcherProvider
 import testhelpers.coroutine.runTest2
 import testhelpers.error.recordingIncidentStore
+import java.io.File
+import java.io.IOException
+import java.nio.file.Files
 
 /**
- * Render failures the image source reports, and which source they belong to.
+ * The failures this page shows - reported by the image source or resolved by the workspace - which
+ * source they belong to, and which incident each of them is frozen into.
  *
  * Saving a stream replaces this tab under its own id, so the ViewModel outlives the swap: a failure
  * recorded for the stream must not follow the tab onto the file that was written from it.
@@ -77,6 +84,11 @@ class ViewerRenderFailureTest : BaseTest() {
 
     private lateinit var workspaces: MutableStateFlow<ViewerWorkspace>
 
+    /** The state of the workspace this tab is currently bound to, to publish content into. */
+    private lateinit var workspaceState: MutableStateFlow<ViewerWorkspace.State>
+
+    private val spoolDir = Files.createTempDirectory("incident-spool").toFile()
+
     @Before
     fun setup() {
         Dispatchers.setMain(UnconfinedTestDispatcher())
@@ -87,10 +99,13 @@ class ViewerRenderFailureTest : BaseTest() {
     @After
     fun teardown() {
         Dispatchers.resetMain()
+        spoolDir.deleteRecursively()
     }
 
     private fun makeWorkspace(source: ViewerSource) = mockk<ViewerWorkspace>().apply {
-        every { state } returns MutableStateFlow(ViewerWorkspace.State(content = ViewerContent.Image(mime)))
+        val states = MutableStateFlow(ViewerWorkspace.State(content = ViewerContent.Image(mime)))
+        workspaceState = states
+        every { state } returns states
         every { this@apply.source } returns source
         every { storedPath } returns (source as? ViewerSource.Stored)?.path
         every { sharedCaption } returns null
@@ -100,7 +115,7 @@ class ViewerRenderFailureTest : BaseTest() {
         every { reload() } just Runs
     }
 
-    private val incidentStore = recordingIncidentStore()
+    private val incidentStore = recordingIncidentStore(spoolDir)
 
     private fun makeViewModel(trashEnabled: Flow<Boolean> = flowOf(false)): ViewerWorkspaceViewModel {
         workspaces = MutableStateFlow(makeWorkspace(streamed))
@@ -152,6 +167,13 @@ class ViewerRenderFailureTest : BaseTest() {
 
     private val ViewerWorkspaceViewModel.readyState: ViewerWorkspaceViewModel.State.Ready
         get() = state.value as ViewerWorkspaceViewModel.State.Ready
+
+    /** What the workspace resolved the file to, as the page sees it. */
+    private fun publish(content: ViewerContent) {
+        workspaceState.value = ViewerWorkspace.State(content = content)
+    }
+
+    private fun spooledLogs(): List<File> = spoolDir.listFiles()?.toList() ?: emptyList()
 
     @Test
     fun `a failure from the source on display is shown`() = runTest2 {
@@ -232,6 +254,71 @@ class ViewerRenderFailureTest : BaseTest() {
         (incident.error === published) shouldBe true
         incident.occurredAtIsApproximate shouldBe false
         incident.context.containsKey("incident.frozenAtShare") shouldBe false
+    }
+
+    /**
+     * The workspace reloads whenever the tab is resumed, so a file that cannot be decoded fails
+     * again on a fresh throwable. The report has to keep the time the user actually hit the failure
+     * and the log trail from around it, and one failure may only spool one trail.
+     */
+    @Test
+    fun `a failure that comes back on reload keeps the incident it was frozen with`() = runTest2 {
+        val vm = makeViewModel()
+        startCollecting(vm)
+
+        val first = ViewerUndecodableImageException("photo.jpg")
+        publish(ViewerContent.Failed(first))
+        vm.readyState.content shouldBe ViewerContent.Failed(first)
+        val incident = incidentStore.get(first).shouldNotBeNull()
+
+        // What a resume runs: the reload seeds Loading and the decode fails again, on a new instance
+        publish(ViewerContent.Loading)
+        vm.readyState.content shouldBe ViewerContent.Loading
+        val second = ViewerUndecodableImageException("photo.jpg")
+        publish(ViewerContent.Failed(second))
+        vm.readyState.content shouldBe ViewerContent.Failed(second)
+
+        val recurrence = incidentStore.get(second).shouldNotBeNull()
+        recurrence.incidentId shouldBe incident.incidentId
+        recurrence.occurredAt shouldBe incident.occurredAt
+        spooledLogs().size shouldBe 1
+    }
+
+    @Test
+    fun `a failure that differs in type or message is its own incident`() = runTest2 {
+        val vm = makeViewModel()
+        startCollecting(vm)
+
+        val first = IllegalStateException("decode failed")
+        publish(ViewerContent.Failed(first))
+        // Same message, different type
+        val second = IOException("decode failed")
+        publish(ViewerContent.Failed(second))
+        // Same type as the last one, different message
+        val third = IOException("stream closed")
+        publish(ViewerContent.Failed(third))
+
+        val incidents = listOf(first, second, third).map { incidentStore.get(it).shouldNotBeNull() }
+        incidents.map { it.incidentId }.distinct().size shouldBe 3
+        spooledLogs().size shouldBe 3
+    }
+
+    @Test
+    fun `a file that renders between two failures gets a fresh incident`() = runTest2 {
+        val vm = makeViewModel()
+        startCollecting(vm)
+
+        val first = ViewerUndecodableImageException("photo.jpg")
+        publish(ViewerContent.Failed(first))
+        publish(ViewerContent.Image(mime))
+        vm.readyState.content shouldBe ViewerContent.Image(mime)
+        val second = ViewerUndecodableImageException("photo.jpg")
+        publish(ViewerContent.Failed(second))
+
+        val before = incidentStore.get(first).shouldNotBeNull()
+        val after = incidentStore.get(second).shouldNotBeNull()
+        after.incidentId shouldNotBe before.incidentId
+        spooledLogs().size shouldBe 2
     }
 
     @Test

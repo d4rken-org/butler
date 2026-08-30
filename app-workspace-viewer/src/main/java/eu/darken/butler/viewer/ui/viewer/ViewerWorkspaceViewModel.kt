@@ -213,6 +213,12 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
      */
     private var lastViewerContext: Map<String, String?> = emptyMap()
 
+    /**
+     * The failure this tab froze an incident for, with the source it happened on. Read by
+     * [freezeFailure], which is the only thing that writes it.
+     */
+    private var frozenFailure: FrozenFailure? = null
+
     private val snapshots = workspaceSource.flatMapLatest { workspace ->
         workspace.state.map { workspace.source to it }
     }
@@ -250,7 +256,12 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
         }
         // The instance that reaches the page is the one the share action will name: the workspace
         // may have turned what it caught into a ViewerFileGoneException on the way here.
-        if (content is ViewerContent.Failed) errorIncidentStore.remember(content.error, viewerContext(source))
+        when {
+            content is ViewerContent.Failed -> freezeFailure(source, content.error)
+            // Loading is the seed of the very reload that republishes the failure, so only a load
+            // that resolved to something ends the failure the anchor stands for.
+            content !is ViewerContent.Loading -> frozenFailure = null
+        }
         // Every verdict that means "the content is unreachable" has to count. A reload clears the
         // probe's flag and reports the loss as a failure instead: as a gone file when the path
         // itself vanished, or as a broken symlink when the link survived its target. The actions
@@ -380,6 +391,29 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
                 saveCopyFlow.value = SaveCopyState.Idle
             }
             .launchIn(vmScope)
+    }
+
+    /**
+     * Freezes [error], unless it is the failure already frozen for [source] coming back on a fresh
+     * throwable: the workspace reloads whenever this tab is resumed, and the decode or lookup that
+     * failed fails again with a new instance. Minting for that one would stamp the report with the
+     * resume instead of the failure, and spool another log trail per resume.
+     *
+     * The anchor is left on the first throwable rather than moved forward, so the third and fourth
+     * recurrence point at the same incident instead of chaining onto each other.
+     */
+    private suspend fun freezeFailure(source: ViewerSource, error: Throwable) {
+        val anchor = frozenFailure
+        if (anchor != null &&
+            anchor.source == source &&
+            anchor.error.javaClass == error.javaClass &&
+            anchor.error.message == error.message
+        ) {
+            errorIncidentStore.alias(error, anchor.error)
+            return
+        }
+        errorIncidentStore.remember(error, viewerContext(source))
+        frozenFailure = FrozenFailure(source = source, error = error)
     }
 
     private fun viewerContext(source: ViewerSource): Map<String, String?> = mapOf(
@@ -957,6 +991,12 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
 
     /** A render failure and the source it came from, kept together so they cannot get out of step. */
     private data class RenderFailure(
+        val source: ViewerSource,
+        val error: Throwable,
+    )
+
+    /** The throwable an incident was frozen for, and the source it was showing. */
+    private data class FrozenFailure(
         val source: ViewerSource,
         val error: Throwable,
     )
