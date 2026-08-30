@@ -17,7 +17,7 @@ fun EditorActionBar(
     WorkspaceActionBar(
         modifier = modifier,
         actions = actions,
-        onActionClick = { action -> onActionClick(action as EditorActionBarItem) },
+        onActionClick = onActionClick,
     )
 }
 

@@ -158,7 +158,7 @@ fun AppsWorkspacePage(
                     WorkspaceActionBar(
                         actions = state.availableActions,
                         onActionClick = { action ->
-                            onPageAction(AppsPageAction.ActionBarClick(action as AppsActionBarItem))
+                            onPageAction(AppsPageAction.ActionBarClick(action))
                         },
                     )
                 }

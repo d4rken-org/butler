@@ -14,7 +14,6 @@ import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.favorites.FavoriteFeedback
 import eu.darken.butler.explorer.ui.explorer.ExplorerBarKeys
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
-import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionBarItem
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.Operation
@@ -197,7 +196,7 @@ internal fun FloatingBarScope.ExplorerBottomBars(
     ) {
         WorkspaceActionBar(
             actions = state.availableActions,
-            onActionClick = { action -> vm?.executeAction(action as ExplorerActionBarItem) },
+            onActionClick = { action -> vm?.executeAction(action) },
         )
     }
 }

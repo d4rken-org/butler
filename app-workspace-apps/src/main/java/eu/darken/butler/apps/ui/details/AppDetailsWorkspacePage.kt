@@ -399,7 +399,7 @@ fun AppDetailsWorkspacePage(
                     WorkspaceActionBar(
                         actions = componentActions,
                         onActionClick = { action ->
-                            onPageAction(AppDetailsPageAction.ComponentAction(action as ComponentsActionBarItem))
+                            onPageAction(AppDetailsPageAction.ComponentAction(action))
                         },
                     )
                 }
