@@ -24,6 +24,7 @@ import eu.darken.butler.common.pkgs.toPkgId
 import eu.darken.butler.setup.core.SetupAction
 import eu.darken.butler.setup.core.SetupItem
 import eu.darken.butler.setup.core.SetupModule
+import eu.darken.butler.setup.core.root.RootServiceState
 import eu.darken.butler.setup.core.root.RootSetupModule
 import eu.darken.butler.setup.core.shizuku.ShizukuSetupModule
 
@@ -43,11 +44,12 @@ fun RootShizukuActions(
         val connectionStatus = when (item.type) {
             SetupModule.Type.ROOT -> {
                 val rootState = state as? RootSetupModule.Result
-                when {
-                    rootState?.useRoot != true -> null
-                    !rootState.isInstalled -> stringResource(R.string.setup_status_not_installed)
-                    rootState.ourService -> stringResource(R.string.setup_status_connected)
-                    else -> stringResource(R.string.setup_status_not_connected)
+                when (rootState.toCardStatus()) {
+                    RootCardStatus.DISABLED -> null
+                    RootCardStatus.CONNECTED -> stringResource(R.string.setup_status_connected)
+                    RootCardStatus.CONNECTING -> stringResource(R.string.setup_status_connecting)
+                    RootCardStatus.NOT_INSTALLED -> stringResource(R.string.setup_status_not_installed)
+                    RootCardStatus.NOT_CONNECTED -> stringResource(R.string.setup_status_not_connected)
                 }
             }
             SetupModule.Type.SHIZUKU -> {
@@ -147,7 +149,48 @@ private fun RootActionsEnabledPreview() {
             state = RootSetupModule.Result(
                 useRoot = true,
                 isInstalled = true,
-                ourService = true,
+                serviceState = RootServiceState.Available,
+            ),
+            isRequired = true,
+            priority = 5,
+        ),
+        onExecuteAction = {},
+        switchLabel = "Use Root"
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun RootActionsConnectedWithoutManagerPreview() {
+    RootShizukuActions(
+        item = SetupItem(
+            type = SetupModule.Type.ROOT,
+            state = RootSetupModule.Result(
+                useRoot = true,
+                // A rooted device whose root manager is none of the ones we can look up.
+                isInstalled = false,
+                serviceState = RootServiceState.Available,
+            ),
+            isRequired = true,
+            priority = 5,
+        ),
+        onExecuteAction = {},
+        switchLabel = "Use Root"
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun RootActionsConnectingPreview() {
+    RootShizukuActions(
+        item = SetupItem(
+            type = SetupModule.Type.ROOT,
+            state = RootSetupModule.Result(
+                useRoot = true,
+                isInstalled = true,
+                serviceState = RootServiceState.Connecting,
             ),
             isRequired = true,
             priority = 5,

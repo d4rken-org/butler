@@ -58,29 +58,34 @@ class RootSetupModule @Inject constructor(
         if (useRoot != true) return@combine flowOf(baseState)
 
         rootManager.binder
-            .onStart { emit(null) }
             .map { connection ->
-                if (connection == null) return@map baseState
-
-                @Suppress("USELESS_CAST")
-                baseState.copy(
-                    ourService = try {
+                val serviceState = if (connection == null) {
+                    RootServiceState.Failed
+                } else {
+                    try {
                         // The round-trip is the liveness proof; the identity in its reply must still
                         // be the one the connection was gated on.
-                        IpcContract.decode(connection.ipc.checkBase()) == connection.hostIdentity
+                        val ours = IpcContract.decode(connection.ipc.checkBase()) == connection.hostIdentity
+                        if (ours) RootServiceState.Available else RootServiceState.Failed
                     } catch (e: CancellationException) {
                         throw e
                     } catch (e: Exception) {
                         log(TAG, WARN) { "Error while checking for root: $e" }
-                        false
-                    },
-                ) as SetupModule.State
+                        RootServiceState.Failed
+                    }
+                }
+
+                @Suppress("USELESS_CAST")
+                baseState.copy(serviceState = serviceState) as SetupModule.State
             }
+            // Resolving the connection can cold-bind an su session, so there is a window in which we
+            // know nothing yet. It is a connecting state, not a failed one.
+            .onStart { emit(baseState.copy(serviceState = RootServiceState.Connecting)) }
             // The service client rejects a host left over from an older app installation, so obtaining
             // the binder itself can fail. Report "no service" rather than erroring the whole setup flow.
             .catch { e ->
                 log(TAG, WARN) { "Root service unavailable: $e" }
-                emit(baseState as SetupModule.State)
+                emit(baseState.copy(serviceState = RootServiceState.Failed) as SetupModule.State)
             }
     }
         .flatMapLatest { it }
@@ -120,8 +125,11 @@ class RootSetupModule @Inject constructor(
     data class Result(
         val useRoot: Boolean?,
         override val isInstalled: Boolean = false,
-        val ourService: Boolean = false,
+        val serviceState: RootServiceState = RootServiceState.NotChecked,
     ) : SetupModule.State.Current {
+
+        val ourService: Boolean
+            get() = serviceState is RootServiceState.Available
 
         override val type: SetupModule.Type = SetupModule.Type.ROOT
 
