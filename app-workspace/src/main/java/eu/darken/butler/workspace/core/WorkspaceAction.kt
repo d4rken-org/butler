@@ -259,10 +259,12 @@ sealed interface WorkspaceAction {
      *
      * @param sourceWorkspaceId the workspace the close was invoked from, when that is not [id]
      * itself - closing a whole unit from one of its overlays is the case that needs it. It is where
-     * a close confirmation PREFERS to be hosted, and it is used as the host only while it is on
-     * screen and part of what the close removes: anchoring to [id] would compose the dialog
+     * a close confirmation PREFERS to be hosted: anchoring to [id] would compose the dialog
      * underneath the overlay that asked for the close, leaving it invisible and the close pending.
-     * Null means the invoking workspace is [id].
+     * It hosts unconditionally while it is the workspace a full-screen modal displays, since that
+     * window covers everything else; a pane hosts it only while it is rendered AND part of what the
+     * close removes, and otherwise the confirmation becomes a window dialog. Null means the
+     * invoking workspace is [id].
      */
     data class Close(
         val id: Workspace.Id,
