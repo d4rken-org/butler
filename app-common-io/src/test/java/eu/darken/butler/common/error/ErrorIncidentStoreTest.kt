@@ -295,11 +295,26 @@ class ErrorIncidentStoreTest : BaseTest() {
         val wrapper = IllegalStateException("wrapped", original)
 
         val incident = store.remember(original)
-        store.alias(wrapper, original)
+        store.alias(wrapper, original) shouldBe true
 
         store.get(wrapper).shouldNotBeNull().incidentId shouldBe incident.incidentId
         store.getOrFreeze(wrapper).context.containsKey("incident.frozenAtShare") shouldBe false
         spooled().size shouldBe 1
+    }
+
+    @Test
+    fun `aliasing an original that is no longer stored installs nothing and says so`() = runTest {
+        val store = store()
+        val original = IOException("boom")
+        val wrapper = IllegalStateException("wrapped", original)
+
+        store.remember(original)
+        repeat(ErrorIncidentStore.MAX_ENTRIES) { store.remember(IOException("boom $it")) }
+        store.get(original) shouldBe null
+
+        store.alias(wrapper, original) shouldBe false
+
+        store.get(wrapper) shouldBe null
     }
 
     @Test

@@ -3,6 +3,7 @@ package eu.darken.butler.viewer.ui.viewer
 import androidx.core.net.toUri
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.error.ErrorIncident
+import eu.darken.butler.common.error.ErrorIncidentStore
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.validation.FilenameValidator
@@ -282,6 +283,34 @@ class ViewerRenderFailureTest : BaseTest() {
         recurrence.incidentId shouldBe incident.incidentId
         recurrence.occurredAt shouldBe incident.occurredAt
         spooledLogs().size shouldBe 1
+    }
+
+    /**
+     * The store is bounded, so unrelated errors elsewhere in the app can drop the entry the tab
+     * anchored on while the failure is still on screen. The recurrence then has nothing to point at
+     * and has to be recorded in its own right - a report stamped with the recurrence beats one
+     * stamped with the moment the user reached for Share.
+     */
+    @Test
+    fun `a recurrence is recorded on its own once the anchored incident is gone`() = runTest2 {
+        val vm = makeViewModel()
+        startCollecting(vm)
+
+        val first = ViewerUndecodableImageException("photo.jpg")
+        publish(ViewerContent.Failed(first))
+        incidentStore.get(first).shouldNotBeNull()
+
+        repeat(ErrorIncidentStore.MAX_ENTRIES) { incidentStore.remember(IOException("elsewhere $it")) }
+        incidentStore.get(first) shouldBe null
+
+        publish(ViewerContent.Loading)
+        val second = ViewerUndecodableImageException("photo.jpg")
+        publish(ViewerContent.Failed(second))
+        vm.readyState.content shouldBe ViewerContent.Failed(second)
+
+        val recurrence = incidentStore.get(second).shouldNotBeNull()
+        recurrence.context.containsKey("incident.frozenAtShare") shouldBe false
+        recurrence.occurredAtIsApproximate shouldBe false
     }
 
     @Test

@@ -103,14 +103,31 @@ class ErrorIncidentStore @Inject constructor(
         )
     }
 
-    /** Points [wrapper] at the incident already held for [original], for a site that publishes a wrapper. */
-    suspend fun alias(wrapper: Throwable, original: Throwable) {
-        val incident = get(original)
-        if (incident == null) {
-            log(TAG, WARN) { "alias(): Nothing remembered for ${original.javaClass.name}" }
-            return
+    /**
+     * Points [wrapper] at the incident already held for [original], for a site that publishes a
+     * wrapper.
+     *
+     * False means [original] is not stored right now, not that it never was: eviction drops entries,
+     * and a freeze still minting for [original] is not consulted either. A caller that needs the
+     * wrapper to carry an incident has to fall back to [remember].
+     *
+     * Lookup and install share one turn under [lock]: apart, a freeze slipping between them could
+     * evict [original]'s last entry and delete its spool, and the wrapper would be installed against
+     * a log trail that is already gone.
+     */
+    fun alias(wrapper: Throwable, original: Throwable): Boolean {
+        var evicted: ErrorIncident? = null
+        val aliased = synchronized(lock) {
+            val incident = incidents[IdentityKey(original)] ?: return@synchronized false
+            evicted = install(wrapper, incident)
+            true
         }
-        store(wrapper, incident)
+        if (!aliased) {
+            log(TAG, WARN) { "alias(): Nothing currently held for ${original.javaClass.name}" }
+            return false
+        }
+        evicted?.let { dropEvicted(it) }
+        return true
     }
 
     suspend fun forget(error: Throwable) {
@@ -190,11 +207,6 @@ class ErrorIncidentStore @Inject constructor(
             log(TAG, WARN) { "clearStaleSpools() failed: ${t.asLog()}" }
         }
         spoolsCleared = true
-    }
-
-    private fun store(error: Throwable, incident: ErrorIncident) {
-        val evicted = synchronized(lock) { install(error, incident) }
-        evicted?.let { dropEvicted(it) }
     }
 
     /**

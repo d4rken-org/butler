@@ -399,7 +399,10 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
      * resume instead of the failure, and spool another log trail per resume.
      *
      * The anchor is left on the first throwable rather than moved forward, so the third and fourth
-     * recurrence point at the same incident instead of chaining onto each other.
+     * recurrence point at the same incident instead of chaining onto each other. Only for as long
+     * as the store still holds it: once enough unrelated errors have evicted the anchored entry,
+     * there is nothing left to alias against, and this re-bases on the recurrence at hand rather
+     * than leaving it with no incident at all.
      */
     private suspend fun freezeFailure(source: ViewerSource, error: Throwable) {
         val anchor = frozenFailure
@@ -408,8 +411,7 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
             anchor.error.javaClass == error.javaClass &&
             anchor.error.message == error.message
         ) {
-            errorIncidentStore.alias(error, anchor.error)
-            return
+            if (errorIncidentStore.alias(error, anchor.error)) return
         }
         errorIncidentStore.remember(error, viewerContext(source))
         frozenFailure = FrozenFailure(source = source, error = error)
