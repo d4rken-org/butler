@@ -18,6 +18,7 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -1377,5 +1378,136 @@ class WorkspacePageManagerTest : BaseTest() {
         val after = pageManager.state.value
         after.focusedWorkspaceId shouldBe paneTwo
         after.selectedWorkspaces shouldBe mapOf(0 to paneOne, 1 to paneTwo)
+    }
+
+    /**
+     * A session restore landing while [WorkspacePageManager.setPaneCount] is suspended on the
+     * workspace list must survive. The stub flow performs the restore and only then emits, so the
+     * write is guaranteed to land inside the suspension window.
+     *
+     * The candidates are ordered ahead of the restored ids on purpose: with them behind, the
+     * auto-fill's own map would coincide with the restored one and the test could not tell a
+     * discarded restore from a preserved one.
+     */
+    @Test
+    fun `a restore during the auto-fill suspension is not discarded`() = runTest {
+        val restoredA = Workspace.Id()
+        val restoredB = Workspace.Id()
+        val candidateC = Workspace.Id()
+        val candidateD = Workspace.Id()
+
+        val infos = listOf(
+            createWorkspaceInfo(id = candidateC),
+            createWorkspaceInfo(id = candidateD),
+            createWorkspaceInfo(id = restoredA),
+            createWorkspaceInfo(id = restoredB),
+        )
+        stateFlow.value = WorkspaceRemote.State(infos = infos)
+
+        every { workspaceRemote.state } returns flow {
+            pageManager.applyRestoredUIState(
+                focusedId = restoredA,
+                selectedWorkspaces = mapOf(0 to restoredA, 1 to restoredB),
+            )
+            emit(WorkspaceRemote.State(infos = infos))
+        }
+
+        pageManager.setPaneCount(2)
+
+        pageManager.state.value.selectedWorkspaces shouldBe mapOf(0 to restoredA, 1 to restoredB)
+    }
+
+    /** The workspace a concurrent write just placed must not be handed a second pane as well. */
+    @Test
+    fun `the auto-fill does not duplicate a workspace placed during its suspension`() = runTest {
+        val placed = Workspace.Id()
+        val candidate = Workspace.Id()
+
+        val infos = listOf(createWorkspaceInfo(id = placed), createWorkspaceInfo(id = candidate))
+        stateFlow.value = WorkspaceRemote.State(infos = infos)
+
+        every { workspaceRemote.state } returns flow {
+            pageManager.applyRestoredUIState(focusedId = placed, selectedWorkspaces = mapOf(0 to placed))
+            emit(WorkspaceRemote.State(infos = infos))
+        }
+
+        pageManager.setPaneCount(2)
+
+        pageManager.state.value.selectedWorkspaces shouldBe mapOf(0 to placed, 1 to candidate)
+    }
+
+    /** Respecting that write must not degrade into filling nothing at all. */
+    @Test
+    fun `the auto-fill still fills panes the concurrent write left empty`() = runTest {
+        val placed = Workspace.Id()
+        val candidate = Workspace.Id()
+
+        val infos = listOf(createWorkspaceInfo(id = placed), createWorkspaceInfo(id = candidate))
+        stateFlow.value = WorkspaceRemote.State(infos = infos)
+
+        every { workspaceRemote.state } returns flow {
+            pageManager.applyRestoredUIState(focusedId = placed, selectedWorkspaces = mapOf(0 to placed))
+            emit(WorkspaceRemote.State(infos = infos))
+        }
+
+        pageManager.setPaneCount(2)
+
+        val after = pageManager.state.value.selectedWorkspaces
+        after shouldBe mapOf(0 to placed, 1 to candidate)
+        after[1] shouldNotBe after[0]
+    }
+
+    /**
+     * Rotating, folding or resizing can complete a narrower pane count while a wider one is still
+     * suspended. The superseded request must not park workspaces on indices the current layout does
+     * not render - they are retained rather than pruned, so they would surface pre-filled the next
+     * time the user expands - and it must still fill the panes the layout does have, or the user is
+     * left staring at empty panes with nothing scheduled to fill them.
+     */
+    @Test
+    fun `a superseded pane count request does not populate panes the layout lost`() = runTest {
+        val infos = List(4) { createWorkspaceInfo() }
+        stateFlow.value = WorkspaceRemote.State(infos = infos)
+
+        var narrowed = false
+        every { workspaceRemote.state } returns flow {
+            if (!narrowed) {
+                narrowed = true
+                pageManager.setPaneCount(2)
+            }
+            emit(WorkspaceRemote.State(infos = infos))
+        }
+
+        pageManager.setPaneCount(4)
+
+        val after = pageManager.state.value
+        after.currentPaneCount shouldBe 2
+        after.selectedWorkspaces[2] shouldBe null
+        after.selectedWorkspaces[3] shouldBe null
+        after.selectedWorkspaces[0] shouldNotBe null
+        after.selectedWorkspaces[1] shouldNotBe null
+        after.selectedWorkspaces[1] shouldNotBe after.selectedWorkspaces[0]
+    }
+
+    /** Growing back into panes that still hold their retained assignments needs no workspace list. */
+    @Test
+    fun `a growth into fully assigned panes does not collect the workspace list`() = runTest {
+        val paneOne = Workspace.Id()
+        val paneTwo = Workspace.Id()
+
+        val infos = listOf(createWorkspaceInfo(id = paneOne), createWorkspaceInfo(id = paneTwo))
+        stateFlow.value = WorkspaceRemote.State(infos = infos)
+        pageManager.applyRestoredUIState(null, mapOf(0 to paneOne, 1 to paneTwo))
+
+        var collections = 0
+        every { workspaceRemote.state } returns flow {
+            collections++
+            emit(WorkspaceRemote.State(infos = infos))
+        }
+
+        pageManager.setPaneCount(2)
+
+        collections shouldBe 0
+        pageManager.state.value.selectedWorkspaces shouldBe mapOf(0 to paneOne, 1 to paneTwo)
     }
 }
