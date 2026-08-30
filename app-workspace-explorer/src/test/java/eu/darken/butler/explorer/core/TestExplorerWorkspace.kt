@@ -1,5 +1,6 @@
 package eu.darken.butler.explorer.core
 
+import eu.darken.butler.common.error.ErrorIncidentStore
 import eu.darken.butler.explorer.core.engine.BrowsingEngine
 import eu.darken.butler.workspace.contracts.explorer.ExplorerArguments
 import eu.darken.butler.workspace.core.Workspace
@@ -11,6 +12,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import testhelpers.coroutine.TestDispatcherProvider
+import testhelpers.error.recordingIncidentStore
 
 /**
  * Workspace with every collaborator mocked away.
@@ -27,6 +29,7 @@ internal fun testExplorerWorkspace(
     dispatcher: CoroutineDispatcher = StandardTestDispatcher(),
     id: Workspace.Id = Workspace.Id(),
     browsingEngine: BrowsingEngine? = null,
+    errorIncidentStore: ErrorIncidentStore = recordingIncidentStore(),
 ) = ExplorerWorkspace(
     id = id,
     creationArguments = arguments,
@@ -50,4 +53,5 @@ internal fun testExplorerWorkspace(
     downloadLocalCopyOperationFactory = mockk(relaxed = true),
     restoreOperationFactory = mockk(relaxed = true),
     explorerSettings = mockk(relaxed = true),
+    errorIncidentStore = errorIncidentStore,
 )

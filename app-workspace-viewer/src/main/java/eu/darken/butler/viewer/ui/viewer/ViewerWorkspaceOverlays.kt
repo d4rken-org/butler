@@ -9,6 +9,7 @@ import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.viewer.core.ViewerContent
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.dialogs.DeleteConfirmationDialog
+import eu.darken.butler.workspace.ui.error.ErrorShareConsentDialog
 import eu.darken.butler.workspace.ui.insets.paneInsets
 import eu.darken.butler.workspace.ui.issues.IssuesBottomSheet
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
@@ -34,6 +35,7 @@ fun ViewerWorkspaceOverlaysHost(
     val deleteRequest by vm.deleteRequest.collectAsState()
     val trashEnabled by vm.trashEnabled.collectAsState()
     val issue by vm.issueState.collectAsState()
+    val pendingErrorShare by vm.pendingErrorShare.collectAsState()
 
     val apkContent = (state as? ViewerWorkspaceViewModel.State.Ready)?.content as? ViewerContent.Apk
 
@@ -79,6 +81,13 @@ fun ViewerWorkspaceOverlaysHost(
             onDismiss = { /* Clears itself once the operation is resolved or cancelled */ },
             topInset = paneInsets.top,
             bottomInset = paneInsets.bottom,
+        )
+    }
+
+    if (pendingErrorShare != null) {
+        ErrorShareConsentDialog(
+            onConfirm = { vm.confirmErrorShare() },
+            onDismiss = { vm.dismissErrorShare() },
         )
     }
 

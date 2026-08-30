@@ -13,6 +13,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.error.ErrorIncidentStore
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.PathActionIssue
@@ -77,6 +78,7 @@ class SearcherWorkspace @AssistedInject constructor(
     searchEngineFactory: SearchEngine.Factory,
     private val fileSystemHinter: FileSystemHinter,
     private val folderPreviewResolver: FolderPreviewResolver,
+    private val errorIncidentStore: ErrorIncidentStore,
 ) : Workspace<SearcherArguments> {
 
     private val tag = logTag("Searcher", "Workspace", id.shortTag)
@@ -341,8 +343,23 @@ class SearcherWorkspace @AssistedInject constructor(
         return result
     }
 
+    /** What the tab was searching for when the search failed, as the report's context. */
+    private fun searchContext(state: State): Map<String, String?> = mapOf(
+        "search.query" to state.currentSearchQuery?.toString(),
+        "search.targets" to searchEngine.targetState.value.joinToString(", "),
+    )
+
     init {
         log(tag, INFO) { "Initialized" }
+
+        // Frozen here, in the scope that outlives the page: a search keeps running when the
+        // activity is destroyed, and a failure nobody is watching still has to be frozen with the
+        // log trail from around it. Every publication normalizes what it caught (a non-Exception
+        // throwable becomes an Exception wrapper), so this is the instance the page renders and
+        // the one the share action will name.
+        _searchState
+            .onEach { state -> state.error?.let { errorIncidentStore.remember(it, searchContext(state)) } }
+            .launchIn(scope)
 
         // Initialize search state from arguments
         scope.launch {

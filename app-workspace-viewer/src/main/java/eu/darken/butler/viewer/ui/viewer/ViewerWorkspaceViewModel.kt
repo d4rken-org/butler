@@ -15,6 +15,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.error.ErrorIncidentStore
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.MimeInfo
@@ -112,12 +113,15 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
     private val appInstallOperationFactory: AppInstallOperation.Factory,
     private val apkIconExporter: ApkIconExporter,
     private val filenameValidator: FilenameValidator,
+    private val errorIncidentStore: ErrorIncidentStore,
     chromeFactory: WorkspacePageChrome.Factory,
 ) : ViewModel3(dispatchers, logTag("Viewer", "Workspace", id.shortTag, "Page")) {
 
     private val chrome = chromeFactory.create(workspaceId = id, scope = vmScope)
 
     val shareIntentEvent = chrome.shareIntentEvent
+
+    val pendingErrorShare = chrome.pendingErrorShare
 
     /** One-shot confirmations, e.g. after an icon was written to disk. */
     val toastEvents = SingleEventFlow<CaString>()
@@ -155,9 +159,9 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
                 // global slot, so a disposed source reporting its failure late would otherwise
                 // poison whatever replaced it - a fresh attempt on the same source (caught here) or
                 // a different source this tab was rebound to (caught where the state is composed).
-                onError = {
+                onError = { error ->
                     if (attemptFlow.value == attempt) {
-                        renderErrorFlow.value = RenderFailure(source = source, error = it)
+                        renderErrorFlow.value = RenderFailure(source = source, error = error)
                     }
                 },
             )
@@ -202,9 +206,22 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
                 }
         }
 
+    /**
+     * What [snapshots] last carried, for the failure handler below: by then the source flow has
+     * already thrown, and recollecting it to name the file would run the failing lookup again.
+     */
+    private var lastViewerContext: Map<String, String?> = emptyMap()
+
+    /**
+     * The failure this tab froze an incident for, with the source it happened on. Read by
+     * [freezeFailure], which is the only thing that writes it.
+     */
+    private var frozenFailure: FrozenFailure? = null
+
     private val snapshots = workspaceSource.flatMapLatest { workspace ->
         workspace.state.map { workspace.source to it }
     }
+        .onEach { (source, _) -> lastViewerContext = viewerContext(source) }
 
     /**
      * Kept out of [State] on purpose: the page needs it in every phase, and [State.Initializing] and
@@ -236,6 +253,14 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
             renderError != null -> ViewerContent.Failed(renderError)
             else -> workspaceState.content
         }
+        // The instance that reaches the page is the one the share action will name: the workspace
+        // may have turned what it caught into a ViewerFileGoneException on the way here.
+        when {
+            content is ViewerContent.Failed -> freezeFailure(source, content.error)
+            // Loading is the seed of the very reload that republishes the failure, so only a load
+            // that resolved to something ends the failure the anchor stands for.
+            content !is ViewerContent.Loading -> frozenFailure = null
+        }
         // Every verdict that means "the content is unreachable" has to count. A reload clears the
         // probe's flag and reports the loss as a failure instead: as a gone file when the path
         // itself vanished, or as a broken symlink when the link survived its target. The actions
@@ -259,7 +284,12 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
             externalChange = workspaceState.externalChange,
         ) as State
     }
-        .catch { emit(State.Error(it)) }
+        .catch { error ->
+            // The page offers Share on this card too, so it needs an incident like every other
+            // failure the user is shown.
+            errorIncidentStore.remember(error, lastViewerContext)
+            emit(State.Error(error))
+        }
         // The replay cache must not retain the rendered PDF page bitmap after the page stops
         // collecting: keyed page ViewModels outlive their composables, so an infinite replay
         // expiration would accumulate one bitmap per visited PDF tab.
@@ -362,10 +392,49 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
             .launchIn(vmScope)
     }
 
-    fun shareError(error: Throwable) {
-        log(tag) { "shareError($error)" }
-        chrome.shareWorkspaceError(error, "Viewer workspace ${id.shortTag}")
+    /**
+     * Freezes [error], unless it is the failure already frozen for [source] coming back on a fresh
+     * throwable: the workspace reloads whenever this tab is resumed, and the decode or lookup that
+     * failed fails again with a new instance. Minting for that one would stamp the report with the
+     * resume instead of the failure, and spool another log trail per resume.
+     *
+     * The anchor is left on the first throwable rather than moved forward, so the third and fourth
+     * recurrence point at the same incident instead of chaining onto each other. Only for as long
+     * as the store still holds it: once enough unrelated errors have evicted the anchored entry,
+     * there is nothing left to alias against, and this re-bases on the recurrence at hand rather
+     * than leaving it with no incident at all.
+     */
+    private suspend fun freezeFailure(source: ViewerSource, error: Throwable) {
+        val anchor = frozenFailure
+        if (anchor != null &&
+            anchor.source == source &&
+            anchor.error.javaClass == error.javaClass &&
+            anchor.error.message == error.message
+        ) {
+            if (errorIncidentStore.alias(error, anchor.error)) return
+        }
+        errorIncidentStore.remember(error, viewerContext(source))
+        frozenFailure = FrozenFailure(source = source, error = error)
     }
+
+    private fun viewerContext(source: ViewerSource): Map<String, String?> = mapOf(
+        "viewer.contentPath" to (source as? ViewerSource.Stored)?.path?.path,
+        "viewer.contentType" to source.mime.rawType,
+    )
+
+    fun shareError(error: Throwable) = launch {
+        log(tag) { "shareError($error)" }
+        val source = (state.value as? State.Ready)?.source
+        val incident = errorIncidentStore.getOrFreeze(
+            error = error,
+            context = source?.let { viewerContext(it) } ?: emptyMap(),
+        )
+        chrome.shareWorkspaceError(incident)
+    }
+
+    fun confirmErrorShare() = chrome.confirmErrorShare()
+
+    fun dismissErrorShare() = chrome.dismissErrorShare()
 
     /**
      * Suspends rather than launching: the page polls this on a timer, and a fire-and-forget probe
@@ -923,6 +992,12 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
 
     /** A render failure and the source it came from, kept together so they cannot get out of step. */
     private data class RenderFailure(
+        val source: ViewerSource,
+        val error: Throwable,
+    )
+
+    /** The throwable an incident was frozen for, and the source it was showing. */
+    private data class FrozenFailure(
         val source: ViewerSource,
         val error: Throwable,
     )

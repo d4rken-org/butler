@@ -35,6 +35,7 @@ import kotlinx.coroutines.withTimeout
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import testhelpers.coroutine.TestDispatcherProvider
+import testhelpers.error.recordingIncidentStore
 import java.io.File
 import kotlin.time.Instant
 
@@ -90,6 +91,7 @@ class SearcherWorkspaceLiveUpdateTest : BaseTest() {
             searchEngineFactory = engineFactory,
             fileSystemHinter = hinter,
             folderPreviewResolver = resolver,
+            errorIncidentStore = recordingIncidentStore(),
         )
     }
 

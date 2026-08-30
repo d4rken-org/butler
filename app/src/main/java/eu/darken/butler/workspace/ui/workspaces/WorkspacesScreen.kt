@@ -48,6 +48,7 @@ import eu.darken.butler.workspace.ui.dialogs.ManagerDialogAction
 import eu.darken.butler.workspace.ui.dialogs.WorkspaceCloseConfirmationDialog
 import eu.darken.butler.workspace.ui.dialogs.WorkspaceLimitDialog
 import eu.darken.butler.workspace.ui.dialogs.WorkspaceRenameDialog
+import eu.darken.butler.workspace.ui.error.ErrorShareConsentDialog
 import eu.darken.butler.workspace.ui.feedback.BannerState
 import eu.darken.butler.workspace.ui.manager.LocalWorkspaceButtonProvider
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
@@ -317,6 +318,7 @@ fun WorkspacesScreenHost(
     val pageManagerState by vm.workspacePageManager.state.collectAsState()
     val managerState by managerVm.state.collectAsState(initial = null)
     val state by vm.state.collectAsState(initial = null)
+    val pendingErrorShare by vm.pendingErrorShare.collectAsState()
 
     // Derive dialog states from unified registry. Every host is composed from here or from the
     // screen below it, so this is where the routing between them belongs.
@@ -543,6 +545,13 @@ fun WorkspacesScreenHost(
                     },
                 )
             }
+        }
+
+        if (pendingErrorShare != null) {
+            ErrorShareConsentDialog(
+                onConfirm = { vm.confirmErrorShare() },
+                onDismiss = { vm.dismissErrorShare() },
+            )
         }
 
         // WorkspaceLimitDialog renders above everything - visible over both workspace and manager

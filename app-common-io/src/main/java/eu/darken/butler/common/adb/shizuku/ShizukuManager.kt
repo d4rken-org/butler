@@ -72,20 +72,37 @@ class ShizukuManager @Inject constructor(
     private val cacheLock = Mutex()
     private var isShizukudCache: Boolean? = null
 
+    @Volatile private var lastShizukudResultInternal: Boolean? = null
+
+    /**
+     * What [isShizukud] last answered, or null if it never completed. Reads a recorded result
+     * without probing, so a caller that must not start an ADB session (e.g. an error report) can
+     * still say what the access state was.
+     *
+     * Separate from [isShizukudCache], which the early negative returns deliberately leave unwritten
+     * and which would therefore read as "never probed" after a completed negative answer.
+     */
+    val lastShizukudResult: Boolean? get() = lastShizukudResultInternal
+
     /**
      * Is the device shizukud and we have access?
      */
     suspend fun isShizukud(): Boolean = cacheLock.withLock {
-        isShizukudCache?.let { return@withLock it }
+        isShizukudCache?.let {
+            lastShizukudResultInternal = it
+            return@withLock it
+        }
 
         if (!isInstalled()) {
             log(TAG) { "isShizukud(): Shizuku is not installed" }
+            lastShizukudResultInternal = false
             return@withLock false
         }
         log(TAG, VERBOSE) { "isShizukud(): Shizuku is installed" }
 
         if (!isCompatible()) {
             log(TAG) { "isShizukud(): Shizuku version is too old" }
+            lastShizukudResultInternal = false
             return@withLock false
         }
         log(TAG, VERBOSE) { "isShizukud(): Shizuku is recent enough" }
@@ -93,12 +110,14 @@ class ShizukuManager @Inject constructor(
         val granted = isGranted()
         if (granted == false) {
             log(TAG) { "isShizukud(): Permission not granted" }
+            lastShizukudResultInternal = false
             return@withLock false
         }
         log(TAG, VERBOSE) { "isShizukud(): Permission is granted" }
 
         if (granted == null) {
             log(TAG) { "isShizukud(): Binder unavailable" }
+            lastShizukudResultInternal = false
             return@withLock false
         }
         log(TAG, VERBOSE) { "isShizukud(): Binder available" }
@@ -110,6 +129,7 @@ class ShizukuManager @Inject constructor(
             // never cache it.
             currentCoroutineContext().ensureActive()
             isShizukudCache = it
+            lastShizukudResultInternal = it
             if (it) log(TAG, VERBOSE) { "isShizukud(): (Our) ShizukuService is available :)" }
             else log(TAG) { "isShizukud(): (Our) ShizukuService is unavailable" }
         }

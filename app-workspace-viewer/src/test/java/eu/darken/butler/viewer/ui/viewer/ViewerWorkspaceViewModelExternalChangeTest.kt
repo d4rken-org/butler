@@ -42,6 +42,7 @@ import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import testhelpers.coroutine.TestDispatcherProvider
 import testhelpers.coroutine.runTest2
+import testhelpers.error.recordingIncidentStore
 
 /**
  * How the external-change verdict reaches the page, and what Refresh has to survive: a render error
@@ -83,9 +84,12 @@ class ViewerWorkspaceViewModelExternalChangeTest : BaseTest() {
         Dispatchers.resetMain()
     }
 
+    private val incidentStore = recordingIncidentStore()
+
     private fun makeViewModel(): ViewerWorkspaceViewModel {
         val chrome = mockk<WorkspacePageChrome>().apply {
             every { shareIntentEvent } returns SingleEventFlow()
+            every { pendingErrorShare } returns MutableStateFlow(null)
             every { pendingConflicts } returns flowOf(emptyMap())
         }
         return ViewerWorkspaceViewModel(
@@ -117,6 +121,7 @@ class ViewerWorkspaceViewModelExternalChangeTest : BaseTest() {
             appInstallOperationFactory = mockk(relaxed = true),
             apkIconExporter = mockk(relaxed = true),
             filenameValidator = FilenameValidator(),
+            errorIncidentStore = incidentStore,
             chromeFactory = mockk<WorkspacePageChrome.Factory>().apply {
                 every { create(any(), any()) } returns chrome
             },

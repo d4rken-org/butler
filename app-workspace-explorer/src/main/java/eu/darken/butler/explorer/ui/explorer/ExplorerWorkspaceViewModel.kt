@@ -16,6 +16,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.error.ErrorIncidentStore
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.storage.StorageEnvironment
@@ -196,6 +197,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val appInstallOperationFactory: AppInstallOperation.Factory,
     private val operationsManager: OperationsManager,
     private val json: Json,
+    private val errorIncidentStore: ErrorIncidentStore,
     chromeFactory: WorkspacePageChrome.Factory,
 ) : ViewModel4(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page")) {
 
@@ -301,6 +303,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     val safPickerEvents get() = safLocations.safPickerEvents
 
     val shareIntentEvent = chrome.shareIntentEvent
+
+    val pendingErrorShare = chrome.pendingErrorShare
 
     val toastEvents = SingleEventFlow<CaString>()
 
@@ -2041,6 +2045,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun shareError(id: Operation.Id) = chrome.shareOperationError(id)
 
+    fun confirmErrorShare() = chrome.confirmErrorShare()
+
+    fun dismissErrorShare() = chrome.dismissErrorShare()
+
     fun cancelOperation(id: Operation.Id) = chrome.cancelOperation(id)
 
     fun dismissOperation(id: Operation.Id) = chrome.dismissOperation(id)
@@ -2097,9 +2105,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun shareNavigationError() = launch {
         log(tag) { "shareNavigationError()" }
-        workspaceReadyState.first()?.error?.let { throwable ->
-            chrome.shareWorkspaceError(throwable, "Navigation error in workspace ${id.shortTag}")
-        }
+        val error = workspaceReadyState.first()?.error ?: return@launch
+        chrome.shareWorkspaceError(errorIncidentStore.getOrFreeze(error))
     }
 
     fun retryNavigation() = navigation.retryNavigation()

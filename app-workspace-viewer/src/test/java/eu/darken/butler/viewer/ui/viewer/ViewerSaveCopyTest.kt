@@ -43,6 +43,7 @@ import org.robolectric.annotation.Config
 import testhelpers.BaseTest
 import testhelpers.coroutine.TestDispatcherProvider
 import testhelpers.coroutine.runTest2
+import testhelpers.error.recordingIncidentStore
 
 /**
  * "Save a copy" and the tab rebind that follows it: one Saver at a time, and only the one this
@@ -78,6 +79,8 @@ class ViewerSaveCopyTest : BaseTest() {
     fun teardown() {
         Dispatchers.resetMain()
     }
+
+    private val incidentStore = recordingIncidentStore()
 
     private fun makeViewModel(): ViewerWorkspaceViewModel {
         val workspace = mockk<ViewerWorkspace>().apply {
@@ -128,9 +131,11 @@ class ViewerSaveCopyTest : BaseTest() {
             appInstallOperationFactory = mockk(relaxed = true),
             apkIconExporter = mockk(relaxed = true),
             filenameValidator = FilenameValidator(),
+            errorIncidentStore = incidentStore,
             chromeFactory = mockk<WorkspacePageChrome.Factory>().apply {
                 every { create(any(), any()) } returns mockk<WorkspacePageChrome>().apply {
                     every { shareIntentEvent } returns SingleEventFlow()
+                    every { pendingErrorShare } returns MutableStateFlow(null)
                     every { pendingConflicts } returns flowOf(emptyMap())
                 }
             },

@@ -23,6 +23,7 @@ import eu.darken.butler.searcher.ui.search.util.SearcherPageAction
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 import eu.darken.butler.workspace.ui.bottomsheet.SheetContentScroll
+import eu.darken.butler.workspace.ui.error.ErrorShareConsentDialog
 import eu.darken.butler.workspace.ui.insets.paneInsets
 import eu.darken.butler.workspace.ui.issues.IssuesBottomSheet
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
@@ -50,6 +51,7 @@ fun SearcherWorkspaceOverlaysHost(
     ),
 ) {
     val overlayState by vm.overlayState.collectAsState()
+    val pendingErrorShare by vm.pendingErrorShare.collectAsState()
 
     SearcherWorkspaceOverlays(
         design = design,
@@ -57,6 +59,7 @@ fun SearcherWorkspaceOverlaysHost(
         operationsStateSource = vm.operations,
         issueStateSource = vm.issueState,
         overlayState = overlayState,
+        showErrorShareConsent = pendingErrorShare != null,
         onPageAction = vm::onPageAction,
     )
 
@@ -72,6 +75,7 @@ fun SearcherWorkspaceOverlays(
     operationsStateSource: Flow<OperationsDisplayState?> = flowOf(null),
     issueStateSource: Flow<Issue?> = flowOf(null),
     overlayState: SearcherWorkspaceViewModel.OverlayState = SearcherWorkspaceViewModel.OverlayState(),
+    showErrorShareConsent: Boolean = false,
     onPageAction: (SearcherPageAction) -> Unit = {},
 ) {
     // StateFlow check: use current value as initial for single-frame renderers (screenshot tests, previews)
@@ -97,7 +101,7 @@ fun SearcherWorkspaceOverlays(
             path = targetError.path,
             exception = targetError.error,
             onShareError = {
-                onPageAction(SearcherPageAction.Error.Share(targetError.error))
+                onPageAction(SearcherPageAction.Error.Share(targetError.error, targetError.path))
                 onPageAction(SearcherPageAction.Overlays.DismissTargetError)
             },
             onDismiss = { onPageAction(SearcherPageAction.Overlays.DismissTargetError) },
@@ -220,6 +224,13 @@ fun SearcherWorkspaceOverlays(
         bottomInset = navBarInset,
     )
 
+    if (showErrorShareConsent) {
+        ErrorShareConsentDialog(
+            onConfirm = { onPageAction(SearcherPageAction.Error.ConfirmShare) },
+            onDismiss = { onPageAction(SearcherPageAction.Error.DismissShare) },
+        )
+    }
+
     CancelOperationConfirmationHost(
         pendingId = overlayState.cancelOperationConfirmationFor,
         // Deliberately the raw value: null here means "not loaded yet", which the confirmation has
@@ -252,6 +263,16 @@ private fun SearcherWorkspaceOverlaysCancelOperationPreview() {
         stateSource = flowOf(SearcherMockDataProvider.createMockEmptyState()),
         operationsStateSource = flowOf(OperationsDisplayState(operations = listOf(operation))),
         overlayState = SearcherWorkspaceViewModel.OverlayState(cancelOperationConfirmationFor = operation.id),
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun SearcherWorkspaceOverlaysErrorShareConsentPreview() {
+    SearcherWorkspaceOverlays(
+        stateSource = flowOf(SearcherMockDataProvider.createMockEmptyState()),
+        showErrorShareConsent = true,
     )
 }
 

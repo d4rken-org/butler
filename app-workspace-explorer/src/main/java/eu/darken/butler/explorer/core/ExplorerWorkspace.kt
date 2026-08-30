@@ -15,8 +15,10 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.error.ErrorIncidentStore
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.explorer.core.engine.BrowsingAbortedException
 import eu.darken.butler.explorer.core.engine.BrowsingEngine
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.workspace.core.filesystem.FileSystemHinter
@@ -90,6 +92,7 @@ class ExplorerWorkspace @AssistedInject constructor(
     private val downloadLocalCopyOperationFactory: DownloadLocalCopyOperation.Factory,
     private val restoreOperationFactory: RestoreOperation.Factory,
     private val explorerSettings: ExplorerSettings,
+    private val errorIncidentStore: ErrorIncidentStore,
 ) : Workspace<ExplorerArguments> {
 
     private val tag = logTag("Explorer", "Workspace", id.shortTag)
@@ -276,9 +279,42 @@ class ExplorerWorkspace @AssistedInject constructor(
         }
     }
 
+    /** What the tab was doing when a navigation failed, as the report's context. */
+    private fun navContext(
+        location: ExplorerLocation?,
+        breadcrumbs: List<ExplorerBreadcrumb>? = null,
+        isRefreshing: Boolean? = null,
+        refreshId: Int? = null,
+    ): Map<String, String?> {
+        val ready = _state.value as? State.Ready
+        return mapOf(
+            "nav.target" to ready?.currentTarget?.toString(),
+            "nav.location" to location?.locationId,
+            "nav.breadcrumbs" to (breadcrumbs ?: ready?.currentBreadcrumbs)
+                ?.joinToString("/") { it.target.toString() },
+            "nav.historyIndex" to ready?.historyIndex?.toString(),
+            "nav.isRefreshing" to (isRefreshing ?: ready?.isRefreshing)?.toString(),
+            "nav.refreshId" to (refreshId ?: ready?.refreshId)?.toString(),
+        )
+    }
+
     init {
         browsingEngine.location
             .onEach { engineState ->
+                // A cancelled load is not offered for sharing (the aborted dialog answers it), so
+                // freezing one would only spool a log trail and push a real incident out of the store.
+                val error = engineState.error
+                if (error != null && error !is BrowsingAbortedException) {
+                    errorIncidentStore.remember(
+                        error = error,
+                        context = navContext(
+                            location = engineState.location,
+                            breadcrumbs = engineState.breadcrumbs,
+                            isRefreshing = engineState.isRefreshing,
+                            refreshId = engineState.refreshId,
+                        ),
+                    )
+                }
                 updateReady {
                     copy(
                         currentLocation = engineState.location,
@@ -309,7 +345,10 @@ class ExplorerWorkspace @AssistedInject constructor(
 
                         else -> {
                             log(tag, ERROR) { "Navigation failed: $e" }
-                            updateReady { copy(currentLocation = null, error = e, isRefreshing = false) }
+                            errorIncidentStore.remember(e, navContext(location = null))
+                            updateReady {
+                                copy(currentLocation = null, error = e, isRefreshing = false)
+                            }
                         }
                     }
                 }

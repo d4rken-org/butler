@@ -31,6 +31,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import testhelpers.coroutine.TestDispatcherProvider
+import testhelpers.error.recordingIncidentStore
 
 /**
  * The live workspace must publish its [Workspace.Info] through the same derivation the paused
@@ -73,6 +74,7 @@ class SearcherWorkspaceSeedTest {
             every { events } returns MutableSharedFlow<FileSystemEvent>()
         },
         folderPreviewResolver = mockk(relaxed = true),
+        errorIncidentStore = recordingIncidentStore(),
     )
 
     private fun assertSeedMatchesDerivation(arguments: SearcherArguments) {

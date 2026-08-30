@@ -87,6 +87,8 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
     private val chrome = chromeFactory.create(id, vmScope)
 
     val shareIntentEvent = chrome.shareIntentEvent
+
+    val pendingErrorShare = chrome.pendingErrorShare
     val operations = chrome.operations.asStateFlow()
 
     // The cancel confirmation is rendered by the overlay slot, which is a sibling of the page — a
@@ -448,6 +450,10 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
     fun clearCompletedOperations() = chrome.clearCompletedOperations()
 
     fun shareOperationError(operationId: Operation.Id) = chrome.shareOperationError(operationId)
+
+    fun confirmErrorShare() = chrome.confirmErrorShare()
+
+    fun dismissErrorShare() = chrome.dismissErrorShare()
 
     fun toggleDebugMode(enabled: Boolean) {
         log(tag) { "Debug mode toggled: $enabled" }

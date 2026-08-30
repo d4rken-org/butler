@@ -12,6 +12,9 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.error.ErrorIncident
+import eu.darken.butler.common.error.ErrorIncidentStore
+import eu.darken.butler.common.error.ErrorReportPackager
 import eu.darken.butler.common.error.ErrorReportTool
 import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.flow.combine
@@ -53,11 +56,15 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.getAndUpdate
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.uuid.Uuid
 
@@ -74,6 +81,8 @@ class WorkspacesViewModel @Inject constructor(
     private val motdRepo: MotdRepo,
     private val webpageTool: WebpageTool,
     private val errorReportTool: ErrorReportTool,
+    private val errorReportPackager: ErrorReportPackager,
+    private val errorIncidentStore: ErrorIncidentStore,
     private val bugReportRepo: BugReportRepo,
     private val openInNewTabsUseCase: OpenInNewTabsUseCase,
     private val reviewTool: ReviewTool,
@@ -100,19 +109,33 @@ class WorkspacesViewModel @Inject constructor(
     private val _managerDialogs = MutableStateFlow<List<ManagerDialog>>(emptyList())
     val managerDialogs: StateFlow<List<ManagerDialog>> = _managerDialogs
 
-    private var currentSessionError: Throwable? = null
     val shareIntentEvent = SingleEventFlow<Intent>()
+
+    private val _pendingErrorShare = MutableStateFlow<PendingErrorShare?>(null)
+
+    /** A frozen incident waiting for the user to consent to sharing it. */
+    val pendingErrorShare: StateFlow<PendingErrorShare?> = _pendingErrorShare
+
+    data class PendingErrorShare(
+        val incident: ErrorIncident,
+        val summary: String?,
+    )
 
     init {
         sessionManager.state
             .onEach { restorationState ->
                 log(tag, INFO) { "Restoration state updated: $restorationState" }
                 if (restorationState is WorkspaceSessionManager.State.Error) {
-                    currentSessionError = restorationState.exception
+                    // Frozen here and captured by the callback rather than read back when the user
+                    // taps Share: a dialog raised for an older failure must not share a newer one.
+                    val incident = errorIncidentStore.remember(
+                        error = restorationState.exception,
+                        context = mapOf("session.phase" to restorationState.toString()),
+                    )
                     val exception = SessionRestorationException(
                         cause = restorationState.exception,
                         onRequestClearSession = { _showClearSessionConfirmation.value = true },
-                        onRequestShareError = { shareSessionError() },
+                        onRequestShareError = { shareSessionError(incident) },
                     )
                     errorEvents.emitBlocking(exception)
                 }
@@ -210,6 +233,29 @@ class WorkspacesViewModel @Inject constructor(
             }
         }
             .onEach { _managerDialogs.value = it }
+            .launchInViewModel()
+
+        // A tab that failed to initialize keeps showing that failure until it is closed, so the
+        // incident is frozen on the transition, not when the user reaches for Share.
+        workspaceRepo.state
+            .map { repoState ->
+                repoState.infos.mapNotNull { info ->
+                    (info.lifecycleState as? Workspace.LifecycleState.Error)
+                        ?.let { Triple(info.id, info.type, it.error) }
+                }
+            }
+            .distinctUntilChanged()
+            .onEach { failures ->
+                failures.forEach { (workspaceId, type, error) ->
+                    errorIncidentStore.remember(
+                        error = error,
+                        context = mapOf(
+                            "workspace.id" to workspaceId.toString(),
+                            "workspace.type" to type.name,
+                        ),
+                    )
+                }
+            }
             .launchInViewModel()
 
         // Observe workspace events for banner feedback
@@ -583,27 +629,56 @@ class WorkspacesViewModel @Inject constructor(
         sessionManager.clearSession()
     }
 
-    private fun shareSessionError() {
-        log(tag) { "shareSessionError()" }
-        val error = currentSessionError ?: return
-        val report = errorReportTool.buildReport(
-            throwable = error,
-            message = "Session restoration failed",
-            errorContext = "WorkspacesViewModel",
-        )
-        val intent = errorReportTool.createShareChooserIntent(report)
-        shareIntentEvent.tryEmit(intent)
+    private fun shareSessionError(incident: ErrorIncident) {
+        log(tag) { "shareSessionError(${incident.incidentId})" }
+        requestErrorShare(incident, "Session restoration failed")
     }
 
-    fun shareWorkspaceError(workspaceId: Workspace.Id, error: Throwable) {
+    fun shareWorkspaceError(workspaceId: Workspace.Id, error: Throwable) = launch {
         log(tag) { "shareWorkspaceError($workspaceId, $error)" }
-        val report = errorReportTool.buildReport(
-            throwable = error,
-            message = "Workspace initialization failed",
-            errorContext = "Workspace:${workspaceId.shortTag}",
+        val incident = errorIncidentStore.getOrFreeze(
+            error = error,
+            context = mapOf("workspace.id" to workspaceId.toString()),
         )
-        val intent = errorReportTool.createShareChooserIntent(report)
-        shareIntentEvent.tryEmit(intent)
+        requestErrorShare(incident, "Workspace initialization failed")
+    }
+
+    private fun requestErrorShare(incident: ErrorIncident, summary: String) {
+        // Pinned for as long as the consent holds it: the store evicts at 32 entries and takes the
+        // evicted incident's log trail with it, which the packager still has to read.
+        errorIncidentStore.pin(incident)
+        val replaced = _pendingErrorShare.getAndUpdate { PendingErrorShare(incident, summary) }
+        // Released even when it names the same incident: replacing a consent hands over one hold,
+        // while a confirmed share still packaging that incident keeps its own.
+        replaced?.let { errorIncidentStore.unpin(it.incident) }
+    }
+
+    /**
+     * Takes the pending share and clears it in one step, so a double tap on the consent packages
+     * once instead of twice.
+     */
+    fun confirmErrorShare() {
+        val pending = _pendingErrorShare.getAndUpdate { null } ?: return
+        log(tag, INFO) { "confirmErrorShare(${pending.incident.incidentId})" }
+        val packaging = vmScope.launch {
+            val packaged = errorReportPackager.packageReport(pending.incident, pending.summary)
+            shareIntentEvent.tryEmit(errorReportTool.createShareChooserIntent(packaged))
+        }
+        // On the job, not in a finally: the take above puts this hold out of reach of onCleared,
+        // and a coroutine cancelled before it starts never runs its own body.
+        packaging.invokeOnCompletion { errorIncidentStore.unpin(pending.incident) }
+    }
+
+    fun dismissErrorShare() {
+        log(tag) { "dismissErrorShare()" }
+        _pendingErrorShare.getAndUpdate { null }?.let { errorIncidentStore.unpin(it.incident) }
+    }
+
+    override fun onCleared() {
+        // The consent can die with the activity, so neither confirm nor dismiss runs and the hold
+        // would outlive the process' need for it.
+        _pendingErrorShare.getAndUpdate { null }?.let { errorIncidentStore.unpin(it.incident) }
+        super.onCleared()
     }
 
     data class State(

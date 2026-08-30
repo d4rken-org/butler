@@ -10,6 +10,9 @@ import eu.darken.butler.common.SystemClipboardHelper
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.error.ErrorIncident
+import eu.darken.butler.common.error.ErrorIncidentStore
+import eu.darken.butler.common.error.ErrorReportPackager
 import eu.darken.butler.common.error.ErrorReportTool
 import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.flow.replayingShare
@@ -20,6 +23,7 @@ import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.operations.OperationErrorRecorder
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.get
 import eu.darken.butler.workspace.core.operations.operationsForWorkspace
@@ -29,8 +33,13 @@ import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
 import eu.darken.butler.workspace.ui.operations.toOperationsDisplayState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 
 /**
@@ -46,6 +55,8 @@ class WorkspacePageChrome @AssistedInject constructor(
     private val clipboardRepo: ClipboardRepo,
     private val operationsManager: OperationsManager,
     private val errorReportTool: ErrorReportTool,
+    private val errorReportPackager: ErrorReportPackager,
+    private val errorIncidentStore: ErrorIncidentStore,
     private val systemClipboardHelper: SystemClipboardHelper,
     private val workspaceRemote: WorkspaceRemote,
 ) {
@@ -53,6 +64,24 @@ class WorkspacePageChrome @AssistedInject constructor(
     private val tag = logTag("Workspace", "PageChrome", workspaceId.shortTag)
 
     val shareIntentEvent = SingleEventFlow<Intent>()
+
+    private val _pendingErrorShare = MutableStateFlow<PendingErrorShare?>(null)
+
+    /** A frozen incident waiting for the user to consent to sharing it. */
+    val pendingErrorShare: StateFlow<PendingErrorShare?> = _pendingErrorShare.asStateFlow()
+
+    data class PendingErrorShare(
+        val incident: ErrorIncident,
+        val summary: String?,
+    )
+
+    init {
+        // The consent can die with its holder (activity destroyed, tab closed from another pane),
+        // so neither confirm nor dismiss runs and the hold would outlive the process' need for it.
+        scope.coroutineContext.job.invokeOnCompletion {
+            _pendingErrorShare.getAndUpdate { null }?.let { errorIncidentStore.unpin(it.incident) }
+        }
+    }
 
     val clipboard: Flow<ClipboardDisplayState> = clipboardRepo.state
         .map { repoState -> ClipboardDisplayState(entries = repoState.entries) }
@@ -118,28 +147,54 @@ class WorkspacePageChrome @AssistedInject constructor(
             val state = operation.state.value as? Operation.State.Completed ?: return@launch
             val error = state.error ?: return@launch
 
-            val metadata = mapOf<String, String?>(
-                "OperationId" to operation.id.toString(),
-                "Source" to operation.metadata.origin.toString(),
-                "CompletedAt" to state.completedAt.toString(),
+            val incident = errorIncidentStore.getOrFreeze(
+                error = error,
+                context = OperationErrorRecorder.operationContext(operation.id, operation.metadata, state),
+                occurredAt = state.completedAt,
             )
-            val report = errorReportTool.buildReport(
-                throwable = error,
-                message = "${operation.metadata.title.get(context)}\n${operation.metadata.description.get(context)}",
-                errorContext = "Operation error in workspace ${workspaceId.shortTag}",
-                metadata = metadata,
+            requestErrorShare(
+                incident = incident,
+                summary = "${operation.metadata.title.get(context)}\n${operation.metadata.description.get(context)}",
             )
-            shareIntentEvent.tryEmit(errorReportTool.createShareChooserIntent(report))
         }
     }
 
-    fun shareWorkspaceError(error: Throwable, errorContext: String) {
-        log(tag, INFO) { "shareWorkspaceError($errorContext): ${error.message}" }
-        val report = errorReportTool.buildReport(
-            throwable = error,
-            errorContext = errorContext,
-        )
-        shareIntentEvent.tryEmit(errorReportTool.createShareChooserIntent(report))
+    fun shareWorkspaceError(incident: ErrorIncident, summary: String? = null) {
+        log(tag, INFO) { "shareWorkspaceError(${incident.incidentId}): ${incident.error.message}" }
+        requestErrorShare(incident, summary)
+    }
+
+    private fun requestErrorShare(incident: ErrorIncident, summary: String?) {
+        // Pinned for as long as the consent holds it: the store evicts at 32 entries and takes the
+        // evicted incident's log trail with it, which the packager still has to read.
+        errorIncidentStore.pin(incident)
+        val replaced = _pendingErrorShare.getAndUpdate {
+            PendingErrorShare(incident = incident, summary = summary)
+        }
+        // Released even when it names the same incident: replacing a consent hands over one hold,
+        // while a confirmed share still packaging that incident keeps its own.
+        replaced?.let { errorIncidentStore.unpin(it.incident) }
+    }
+
+    /**
+     * Takes the pending share and clears it in one step, so a double tap on the consent packages
+     * once instead of twice.
+     */
+    fun confirmErrorShare() {
+        val pending = _pendingErrorShare.getAndUpdate { null } ?: return
+        log(tag, INFO) { "confirmErrorShare(${pending.incident.incidentId})" }
+        val packaging = scope.launch {
+            val packaged = errorReportPackager.packageReport(pending.incident, pending.summary)
+            shareIntentEvent.tryEmit(errorReportTool.createShareChooserIntent(packaged))
+        }
+        // On the job, not in a finally: the take above puts this hold out of reach of the scope
+        // handler, and a coroutine cancelled before it starts never runs its own body.
+        packaging.invokeOnCompletion { errorIncidentStore.unpin(pending.incident) }
+    }
+
+    fun dismissErrorShare() {
+        log(tag) { "dismissErrorShare()" }
+        _pendingErrorShare.getAndUpdate { null }?.let { errorIncidentStore.unpin(it.incident) }
     }
 
     fun closeWorkspace() {

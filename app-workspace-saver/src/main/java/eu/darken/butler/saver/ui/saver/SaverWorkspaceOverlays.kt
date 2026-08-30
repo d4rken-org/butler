@@ -6,6 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.error.ErrorShareConsentDialog
 import eu.darken.butler.workspace.ui.insets.paneInsets
 import eu.darken.butler.workspace.ui.issues.IssuesBottomSheet
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
@@ -30,6 +31,7 @@ fun SaverWorkspaceOverlaysHost(
     ),
 ) {
     val conflictUiState by vm.conflictUiState.collectAsState()
+    val pendingErrorShare by vm.pendingErrorShare.collectAsState()
 
     val paneInsets = design.paneInsets()
 
@@ -41,6 +43,13 @@ fun SaverWorkspaceOverlaysHost(
             onDismiss = { vm.dismissConflictSheet() },
             topInset = paneInsets.top,
             bottomInset = paneInsets.bottom,
+        )
+    }
+
+    if (pendingErrorShare != null) {
+        ErrorShareConsentDialog(
+            onConfirm = { vm.confirmErrorShare() },
+            onDismiss = { vm.dismissErrorShare() },
         )
     }
 
