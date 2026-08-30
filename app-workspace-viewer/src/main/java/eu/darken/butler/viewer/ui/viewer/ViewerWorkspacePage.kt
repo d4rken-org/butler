@@ -401,9 +401,7 @@ fun ViewerWorkspacePage(
                         ) {
                             WorkspaceActionBar(
                                 actions = state.actions,
-                                // The bar is generic over all workspaces; only our own items can
-                                // reach it here, and anything else would have no handler anyway.
-                                onActionClick = { clicked -> (clicked as? ViewerActionBarItem)?.let(onAction) },
+                                onActionClick = onAction,
                             )
                         }
                     },

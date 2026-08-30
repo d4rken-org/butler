@@ -784,9 +784,9 @@ fun SearcherWorkspacePage(
                     WorkspaceActionBar(
                         actions = currentState.availableActions,
                         onActionClick = { action ->
-                            when (val searcherAction = action as SearcherActionBarItem) {
+                            when (action) {
                                 is SearcherActionBarItem.DeselectAll -> onPageAction(SearcherPageAction.Results.ExitSelectionMode)
-                                else -> onPageAction(SearcherPageAction.WorkspaceAction(searcherAction))
+                                else -> onPageAction(SearcherPageAction.WorkspaceAction(action))
                             }
                         },
                     )

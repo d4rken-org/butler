@@ -74,9 +74,9 @@ import eu.darken.butler.workspace.ui.modal.DismissWhenPaneUnfocused
  * @param modifier Modifier to apply to the action bar
  */
 @Composable
-fun WorkspaceActionBar(
-    actions: List<WorkspaceActionBarItem>,
-    onActionClick: (WorkspaceActionBarItem) -> Unit,
+fun <T : WorkspaceActionBarItem> WorkspaceActionBar(
+    actions: List<T>,
+    onActionClick: (T) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     BoxWithConstraints(modifier = modifier) {
