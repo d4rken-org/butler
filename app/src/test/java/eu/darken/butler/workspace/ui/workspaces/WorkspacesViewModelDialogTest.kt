@@ -16,6 +16,7 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.WorkspaceSettings
+import eu.darken.butler.workspace.core.WorkspaceStacks
 import eu.darken.butler.workspace.core.undo.ClosedWorkspaceStash
 import eu.darken.butler.workspace.ui.WorkspacePageManager
 import eu.darken.butler.workspace.ui.WorkspaceVisibilityTracker
@@ -32,6 +33,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
@@ -92,6 +94,7 @@ class WorkspacesViewModelDialogTest : BaseTest() {
         every { workspaceRepo.state } returns flowOf(WorkspaceRemote.State(infos = infos))
         every { workspaceRepo.events } returns emptyFlow()
         every { workspaceRepo.pendingConfirmations } returns flowOf(confirmations)
+        every { workspaceRepo.peekStacks() } answers { WorkspaceStacks(infos) }
 
         val workspaceSettings = mockk<WorkspaceSettings>(relaxed = true).apply {
             every { swipeGesturesEnabled } returns boolSetting(true)
@@ -252,7 +255,32 @@ class WorkspacesViewModelDialogTest : BaseTest() {
         dialog.unsavedCount shouldBe 2
         // The host is on screen, so the jump can act from its pane.
         dialog.selectionSourceWorkspaceId shouldBe host
+        dialog.canGoToWorkspace shouldBe true
     }
+
+    @Test fun `a close of a tab whose owner is gone offers no jump`() =
+        runTest2(context = testDispatcher) {
+            val orphan = Workspace.Id()
+            val onScreen = Workspace.Id()
+            val vm = vm(
+                infos = listOf(tab(onScreen), stackedChild(orphan, caller = Workspace.Id())),
+                confirmations = mapOf(closeConfirmation("c1", closing = orphan, host = onScreen)),
+                pageManagerState = MutableStateFlow(
+                    WorkspacePageManager.State(
+                        focusedWorkspaceId = onScreen,
+                        selectedWorkspaces = mapOf(0 to onScreen),
+                    ),
+                ),
+            )
+            advanceUntilIdle()
+
+            // A dirty orphan whose caller is gone is still closable, but nothing can put it on
+            // screen, so the question must not offer to go there.
+            val dialog = vm.settledDialogs()!!.single()
+                .shouldBeInstanceOf<ManagerDialog.Global.CloseConfirmation>()
+            dialog.closingWorkspaceId shouldBe orphan
+            dialog.canGoToWorkspace shouldBe false
+        }
 
     @Test fun `a close whose anchor nothing renders asks in a window dialog`() =
         runTest2(context = testDispatcher) {
@@ -337,7 +365,7 @@ class WorkspacesViewModelDialogTest : BaseTest() {
             every { workspaceRepo.resolveConfirmation(any(), any()) } answers { order += "resolve" }
             coEvery { pageManager.handleWorkspaceSelection(any(), any()) } answers { order += "select" }
 
-            val vm = vm()
+            val vm = vm(infos = listOf(tab(editor), tab(host)))
             vm.executeScreenAction(
                 WorkspaceScreenAction.HandleDialog(
                     ManagerDialogAction.CancelAndGoToWorkspace(
@@ -364,7 +392,7 @@ class WorkspacesViewModelDialogTest : BaseTest() {
             coEvery { pageManager.handleWorkspaceSelection(any(), any()) } answers { order += "select" }
             every { pageManager.hideManagerOverlay() } answers { order += "hide" }
 
-            val vm = vm()
+            val vm = vm(infos = listOf(tab(editor)))
             vm.executeScreenAction(
                 WorkspaceScreenAction.HandleDialog(
                     ManagerDialogAction.CancelAndGoToWorkspace(
@@ -381,11 +409,34 @@ class WorkspacesViewModelDialogTest : BaseTest() {
             order shouldBe listOf("select", "hide")
         }
 
+    @Test fun `the jump to a tab whose owner is gone still takes the overlay down`() =
+        runTest2(context = testDispatcher) {
+            val orphan = Workspace.Id()
+            // What the real selection does with an id the repo never publishes an info for.
+            coEvery { pageManager.handleWorkspaceSelection(any(), any()) } coAnswers { awaitCancellation() }
+
+            val vm = vm()
+            vm.executeScreenAction(
+                WorkspaceScreenAction.HandleDialog(
+                    ManagerDialogAction.CancelAndGoToWorkspace(
+                        confirmationId = "c1",
+                        workspaceId = orphan,
+                        sourceWorkspaceId = null,
+                        hideManagerOverlay = true,
+                    ),
+                ),
+            )
+            advanceUntilIdle()
+
+            coVerify(exactly = 0) { pageManager.handleWorkspaceSelection(any(), any()) }
+            verify(exactly = 1) { pageManager.hideManagerOverlay() }
+        }
+
     @Test fun `the jump from a pane leaves the overlay alone`() = runTest2(context = testDispatcher) {
         val editor = Workspace.Id()
         val host = Workspace.Id()
 
-        val vm = vm()
+        val vm = vm(infos = listOf(tab(editor), tab(host)))
         vm.executeScreenAction(
             WorkspaceScreenAction.HandleDialog(
                 ManagerDialogAction.CancelAndGoToWorkspace(

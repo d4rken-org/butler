@@ -38,6 +38,7 @@ class ManagerDialogRoutingTest : BaseTest() {
             workspaceTitle = "notes.txt".toCaString(),
             hasUnsavedChanges = true,
             selectionSourceWorkspaceId = null,
+            canGoToWorkspace = true,
         )
 
     private fun batchConfirmation(host: Workspace.Id) =

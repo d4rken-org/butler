@@ -42,6 +42,9 @@ sealed interface ManagerDialog {
          * [selectionSourceWorkspaceId] is the pane the jump to [closingWorkspaceId] acts FROM, not
          * where that tab lands: it protects that pane from eviction and orders the search for an
          * empty one. Null when nothing on screen can play that part.
+         *
+         * [canGoToWorkspace] is false when [closingWorkspaceId] has no resolvable ownership root -
+         * a broken unit cannot be put on screen, so the jump must not be offered for it.
          */
         data class CloseConfirmation(
             override val id: String,
@@ -51,17 +54,18 @@ sealed interface ManagerDialog {
             /** Unsaved members in the closing subtree; [workspaceTitle] names only one of them. */
             val unsavedCount: Int = 0,
             val selectionSourceWorkspaceId: Workspace.Id?,
+            val canGoToWorkspace: Boolean,
         ) : Global {
             override val isBlocking: Boolean = true
         }
     }
 
     /**
-     * Dialogs that target a specific workspace.
-     * In multi-pane layouts, these appear overlaid on the specific workspace pane.
+     * Dialogs a workspace hosts: they are composed by that workspace's pane, or by the full-screen
+     * modal layer while it is the one displaying that workspace.
      */
     sealed interface WorkspaceTargeted : ManagerDialog {
-        /** The workspace whose pane hosts this dialog, which is not necessarily what it acts on. */
+        /** The workspace whose layer hosts this dialog, which is not necessarily what it acts on. */
         val targetWorkspaceId: Workspace.Id
 
         /**
