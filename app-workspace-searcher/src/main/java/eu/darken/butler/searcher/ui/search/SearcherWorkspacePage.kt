@@ -205,22 +205,14 @@ fun SearcherWorkspacePage(
         bottomBarStackState.resetScrollCollapse()
     }
 
-    // Derived states for stable recomposition - at top level for immediate reactivity
-    val hasOperations by remember {
-        derivedStateOf { operationsState.operations.isNotEmpty() }
+    val hasOperations = operationsState.operations.isNotEmpty()
+    val hasActiveOperations = operationsState.operations.any { op ->
+        op.state is OperationDisplay.State.Queued ||
+            op.state is OperationDisplay.State.Running ||
+            op.state is OperationDisplay.State.Waiting
     }
-    val hasActiveOperations by remember {
-        derivedStateOf {
-            operationsState.operations.any { op ->
-                op.state is OperationDisplay.State.Queued ||
-                    op.state is OperationDisplay.State.Running ||
-                    op.state is OperationDisplay.State.Waiting
-            }
-        }
-    }
-    val hasClipboard by remember {
-        derivedStateOf { clipboardState.entries.isNotEmpty() }
-    }
+    val hasClipboard = clipboardState.entries.isNotEmpty()
+
     val hasActions by remember(mainState) {
         derivedStateOf {
             val currentState = mainState as? SearcherWorkspaceViewModel.State.Ready ?: return@derivedStateOf false

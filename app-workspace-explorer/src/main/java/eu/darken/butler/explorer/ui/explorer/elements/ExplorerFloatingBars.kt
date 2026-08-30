@@ -1,7 +1,6 @@
 package eu.darken.butler.explorer.ui.explorer.elements
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -121,17 +120,14 @@ internal fun FloatingBarScope.ExplorerBottomBars(
     initialClipboardExpanded: Boolean,
     onShowOperationDetails: (Operation.Id) -> Unit,
 ) {
-    // Derived states for stable recomposition
-    val hasOperations by derivedStateOf { operationsState.operations.isNotEmpty() }
-    val hasActiveOperations by derivedStateOf {
-        operationsState.operations.any { op ->
-            op.state is OperationDisplay.State.Queued ||
-                op.state is OperationDisplay.State.Running ||
-                op.state is OperationDisplay.State.Waiting
-        }
+    val hasOperations = operationsState.operations.isNotEmpty()
+    val hasActiveOperations = operationsState.operations.any { op ->
+        op.state is OperationDisplay.State.Queued ||
+            op.state is OperationDisplay.State.Running ||
+            op.state is OperationDisplay.State.Waiting
     }
-    val hasClipboard by derivedStateOf { clipboardState.entries.isNotEmpty() }
-    val hasActions by derivedStateOf { state.availableActions.isNotEmpty() }
+    val hasClipboard = clipboardState.entries.isNotEmpty()
+    val hasActions = state.availableActions.isNotEmpty()
 
     // Cache the last non-null favorite feedback so the bar has content to animate out when the
     // underlying state transitions back to null. FloatingBar keeps its content composed during

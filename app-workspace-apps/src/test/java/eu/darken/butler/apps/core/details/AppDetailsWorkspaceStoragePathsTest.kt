@@ -7,6 +7,7 @@ import eu.darken.butler.apps.core.AppSizeCache
 import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
 import eu.darken.butler.common.adb.AdbManager
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.pkgs.Pkg
@@ -42,8 +43,8 @@ import java.io.IOException
 
 /**
  * Only the internal data row can ever be withheld, and only when the directory is positively known
- * to be absent, which the gateway can only answer with root: `exists()` returns false for a denied
- * stat too. The external row is always offered, see `the external row is never withheld`.
+ * to be absent, which the gateway can only answer with root. The external row is always offered,
+ * see `the external row is never withheld`.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
@@ -55,7 +56,7 @@ class AppDetailsWorkspaceStoragePathsTest {
     private val workProfileInstallId = InstallId(Pkg.Id(PKG), UserHandle2(10))
 
     private val gatewaySwitch = mockk<GatewaySwitch>().apply {
-        coEvery { exists(any()) } returns true
+        coEvery { existsStrict(any()) } returns Existence.PRESENT
     }
     private val pathPermissionCheck = mockk<PathPermissionCheck>().apply {
         every { monitor(any<APath<*>>()) } returns flowOf(PathRequirements())
@@ -101,9 +102,17 @@ class AppDetailsWorkspaceStoragePathsTest {
 
     @Test
     fun `a directory that is not there is not offered`() = runTest {
-        coEvery { gatewaySwitch.exists(match { it.path == INTERNAL }) } returns false
+        coEvery { gatewaySwitch.existsStrict(match { it.path == INTERNAL }) } returns Existence.ABSENT
 
         pathsOf(createWorkspace()).map { it.path.path } shouldBe listOf(EXTERNAL)
+    }
+
+    /** A probe that could not tell is not an absence, the row stays offered. */
+    @Test
+    fun `a directory the probe could not check is still offered`() = runTest {
+        coEvery { gatewaySwitch.existsStrict(match { it.path == INTERNAL }) } returns Existence.UNKNOWN
+
+        pathsOf(createWorkspace()).map { it.path.path } shouldBe listOf(INTERNAL, EXTERNAL)
     }
 
     @Test
@@ -115,7 +124,7 @@ class AppDetailsWorkspaceStoragePathsTest {
     @Test
     fun `without root a negative answer is not trusted`() = runTest {
         useRootFlow.value = false
-        coEvery { gatewaySwitch.exists(any()) } returns false
+        coEvery { gatewaySwitch.existsStrict(any()) } returns Existence.ABSENT
 
         pathsOf(createWorkspace()).map { it.path.path } shouldBe listOf(INTERNAL, EXTERNAL)
     }
@@ -127,10 +136,10 @@ class AppDetailsWorkspaceStoragePathsTest {
      */
     @Test
     fun `the external row is never withheld`() = runTest {
-        coEvery { gatewaySwitch.exists(any()) } returns false
+        coEvery { gatewaySwitch.existsStrict(any()) } returns Existence.ABSENT
 
         pathsOf(createWorkspace()).map { it.path.path } shouldBe listOf(EXTERNAL)
-        coVerify(exactly = 0) { gatewaySwitch.exists(match { it.path == EXTERNAL }) }
+        coVerify(exactly = 0) { gatewaySwitch.existsStrict(match { it.path == EXTERNAL }) }
 
         useRootFlow.value = false
 
@@ -140,7 +149,7 @@ class AppDetailsWorkspaceStoragePathsTest {
     @Test
     @Config(sdk = [29])
     fun `the external row is never withheld on older Android versions either`() = runTest {
-        coEvery { gatewaySwitch.exists(any()) } returns false
+        coEvery { gatewaySwitch.existsStrict(any()) } returns Existence.ABSENT
 
         pathsOf(createWorkspace()).map { it.path.path } shouldBe listOf(EXTERNAL)
     }
@@ -148,14 +157,14 @@ class AppDetailsWorkspaceStoragePathsTest {
     /** The paths are user 0's, so for another user their absence says nothing. */
     @Test
     fun `a work profile install keeps its rows`() = runTest {
-        coEvery { gatewaySwitch.exists(any()) } returns false
+        coEvery { gatewaySwitch.existsStrict(any()) } returns Existence.ABSENT
 
         pathsOf(createWorkspace(workProfileInstallId)).map { it.path.path } shouldBe listOf(INTERNAL, EXTERNAL)
     }
 
     @Test
     fun `a failed probe keeps the rows`() = runTest {
-        coEvery { gatewaySwitch.exists(any()) } throws IOException("nope")
+        coEvery { gatewaySwitch.existsStrict(any()) } throws IOException("nope")
 
         pathsOf(createWorkspace()).map { it.path.path } shouldBe listOf(INTERNAL, EXTERNAL)
     }
@@ -163,7 +172,7 @@ class AppDetailsWorkspaceStoragePathsTest {
     /** Cancellation is not an answer, so it must not be caught and turned into one. */
     @Test
     fun `a cancelled probe resolves nothing`() = runTest {
-        coEvery { gatewaySwitch.exists(any()) } throws CancellationException("cancelled")
+        coEvery { gatewaySwitch.existsStrict(any()) } throws CancellationException("cancelled")
 
         pathsOf(createWorkspace()).map { it.path.path } shouldBe listOf(INTERNAL, EXTERNAL)
 
@@ -173,7 +182,7 @@ class AppDetailsWorkspaceStoragePathsTest {
     @Test
     fun `enabling root re-probes a row that was shown for lack of knowledge`() = runTest {
         useRootFlow.value = false
-        coEvery { gatewaySwitch.exists(match { it.path == INTERNAL }) } returns false
+        coEvery { gatewaySwitch.existsStrict(match { it.path == INTERNAL }) } returns Existence.ABSENT
         val workspace = createWorkspace()
 
         val seen = mutableListOf<AppDetailsWorkspace.State>()
@@ -196,10 +205,10 @@ class AppDetailsWorkspaceStoragePathsTest {
      */
     @Test
     fun `a resumed workspace probes again`() = runTest {
-        coEvery { gatewaySwitch.exists(match { it.path == INTERNAL }) } returns false
+        coEvery { gatewaySwitch.existsStrict(match { it.path == INTERNAL }) } returns Existence.ABSENT
         pathsOf(createWorkspace()).map { it.path.path } shouldBe listOf(EXTERNAL)
 
-        coEvery { gatewaySwitch.exists(any()) } returns true
+        coEvery { gatewaySwitch.existsStrict(any()) } returns Existence.PRESENT
 
         pathsOf(createWorkspace()).map { it.path.path } shouldBe listOf(INTERNAL, EXTERNAL)
     }

@@ -1,5 +1,6 @@
 package eu.darken.butler.common.files.local.routing
 
+import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.MoveOutcome
@@ -81,6 +82,19 @@ internal class RoutedLocalFileSystemOps(
 
     override suspend fun exists(path: LocalPath): Boolean =
         lookup(path, defaultLookupIntent, LookupOptions.BASE.copy(fallbackToUnknown = true)).fileType != FileType.UNKNOWN
+
+    /**
+     * Asks the route's ops directly instead of going through a fallback lookup like [exists] does:
+     * that lookup reports [FileType.UNKNOWN] for an entry it could not read, which is neither of
+     * the two answers a strict probe may give.
+     */
+    override suspend fun existsStrict(path: LocalPath): Existence = try {
+        router.routeFor(path, AccessIntent.Read).ops.existsStrict(path)
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        Existence.UNKNOWN
+    }
 
     override suspend fun delete(path: LocalPath, recursive: Boolean): Boolean {
         val route = router.routeFor(path, AccessIntent.Delete)

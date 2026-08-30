@@ -5,9 +5,9 @@ import androidx.compose.runtime.Composable
 /**
  * Renders the manager-controlled dialog for one workspace, if there is one.
  *
- * Composed by the pane layer host as its own layer above the workspace content, and deliberately
- * not gated on the workspace's lifecycle state — a close confirmation for a paused workspace must
- * still be reachable.
+ * Composed above the workspace content by whichever layer displays that workspace, the pane layer
+ * host or the full-screen modal one, and deliberately not gated on the workspace's lifecycle state
+ * — a close confirmation for a paused workspace must still be reachable.
  */
 @Composable
 fun ManagerDialogHost(

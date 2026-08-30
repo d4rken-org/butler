@@ -150,6 +150,8 @@
     <string name="operations_details_destination_folder">Destination folder</string>
     <string name="operations_details_destination_path">Destination path</string>
     <string name="operations_details_affected_paths_with_count">Affected paths (%d)</string>
+    <string name="operations_details_section_expand">Expand %1$s</string>
+    <string name="operations_details_section_collapse">Collapse %1$s</string>
     <string name="workspace_operations_performance_graph_label">Performance graph</string>
 
     <!-- Delete Confirmation Dialog -->
@@ -265,8 +267,6 @@
 
     <!-- Performance Graph -->
     <string name="workspace_operation_performance_not_enough_data">Not enough data</string>
-    <string name="workspace_operation_performance_graph_expand">Expand performance graph</string>
-    <string name="workspace_operation_performance_graph_collapse">Collapse performance graph</string>
     <string name="workspace_operation_performance_unit_bytes">B/s</string>
     <string name="workspace_operation_performance_unit_kilobytes">kB/s</string>
     <string name="workspace_operation_performance_unit_megabytes">MB/s</string>

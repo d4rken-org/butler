@@ -110,10 +110,28 @@ interface FileSystemOps<P : APath<P>, PL : APathLookup<P>> {
      * Does not follow symlinks - checks if the symlink itself exists, not its target.
      * Does not throw exceptions - returns false if path doesn't exist or cannot be accessed.
      *
+     * Use [existsStrict] when those two answers have to be told apart.
+     *
      * @param path The path to check
      * @return true if path exists, false otherwise
      */
     suspend fun exists(path: P): Boolean
+
+    /**
+     * Check if a path exists, keeping "not there" apart from "could not look".
+     *
+     * Does not follow symlinks - checks the symlink itself, not its target.
+     *
+     * Contract every implementation obeys:
+     * - [Existence.ABSENT] only from a definitive backend signal that there is no such path.
+     * - Every failure to answer - denied access, dead provider, unreachable host, unreadable
+     *   container, service bind failure - is [Existence.UNKNOWN].
+     * - Does not throw for access or backend failures.
+     * - [kotlinx.coroutines.CancellationException] is always rethrown.
+     *
+     * @param path The path to check
+     */
+    suspend fun existsStrict(path: P): Existence
 
     /**
      * Delete a file, symlink, or directory.

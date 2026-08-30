@@ -1544,6 +1544,14 @@ class WorkspaceRepoTest : BaseTest() {
                 data.workspaceId == id
         }
 
+    private suspend fun WorkspaceRepo.closeConfirmationData(
+        id: Workspace.Id,
+    ): PendingWorkspaceConfirmation.ConfirmationData.WorkspaceCloseConfirmation = pendingConfirmations.first()
+        .values
+        .map { it.data }
+        .filterIsInstance<PendingWorkspaceConfirmation.ConfirmationData.WorkspaceCloseConfirmation>()
+        .single { it.workspaceId == id }
+
     @Test
     fun `closing a dirty workspace queues a confirmation instead of closing`() =
         runTest(UnconfinedTestDispatcher()) {
@@ -1833,7 +1841,7 @@ class WorkspaceRepoTest : BaseTest() {
         }
 
     @Test
-    fun `a confirmation dies with the tab whose pane hosts it`() =
+    fun `a confirmation outlives the tab it borrowed as an anchor`() =
         runTest(UnconfinedTestDispatcher()) {
             val repo = createRepo()
             val dirty = repo.createTab()
@@ -1844,9 +1852,66 @@ class WorkspaceRepoTest : BaseTest() {
 
             repo.execute(WorkspaceAction.Close(host))
 
-            // Its host pane is gone, so there is nothing left to render it in.
-            repo.pendingConfirmations.first() shouldBe emptyMap()
+            // The anchor is an unrelated tab, so it never rendered the question - losing it takes
+            // nothing away, while dropping the confirmation would silently abandon the close.
+            repo.pendingConfirmations.first().closeConfirmationsFor(dirty) shouldBe 1
             repo.retrieve(dirty).first() shouldNotBe null
+        }
+
+    @Test
+    fun `a confirmation dies with the child layer that asked it`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val tabId = repo.createTab()
+            val childId = repo.createSubWorkspace(caller = tabId)
+            markDirty(tabId)
+            repo.execute(WorkspaceAction.Close(tabId, sourceWorkspaceId = childId))
+            repo.pendingConfirmations.first().closeConfirmationsFor(tabId) shouldBe 1
+
+            repo.execute(WorkspaceAction.Close(childId))
+
+            // The layer rendering it is gone, so there is nothing left to answer in.
+            repo.pendingConfirmations.first() shouldBe emptyMap()
+            repo.retrieve(tabId).first() shouldNotBe null
+        }
+
+    @Test
+    fun `a close names its own anchor as part of what it removes`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val id = repo.createTab()
+            markDirty(id)
+
+            repo.execute(WorkspaceAction.Close(id))
+
+            repo.closeConfirmationData(id).hostInClosingSubtree shouldBe true
+        }
+
+    @Test
+    fun `a close invoked from a child anchors inside what it removes`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val tabId = repo.createTab()
+            val childId = repo.createSubWorkspace(caller = tabId)
+            markDirty(tabId)
+
+            repo.execute(WorkspaceAction.Close(tabId, sourceWorkspaceId = childId))
+
+            // The child goes down with the tab, so the layer it asked from can host the question.
+            repo.closeConfirmationData(tabId).hostInClosingSubtree shouldBe true
+        }
+
+    @Test
+    fun `a close invoked from an unrelated tab anchors outside what it removes`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val dirty = repo.createTab()
+            val host = repo.createTab()
+            markDirty(dirty)
+
+            repo.execute(WorkspaceAction.Close(dirty, sourceWorkspaceId = host))
+
+            repo.closeConfirmationData(dirty).hostInClosingSubtree shouldBe false
         }
 
     @Test

@@ -45,6 +45,7 @@ import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import eu.darken.butler.workspace.ui.dialogs.ClearSessionConfirmationDialog
 import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
 import eu.darken.butler.workspace.ui.dialogs.ManagerDialogAction
+import eu.darken.butler.workspace.ui.dialogs.WorkspaceCloseConfirmationDialog
 import eu.darken.butler.workspace.ui.dialogs.WorkspaceLimitDialog
 import eu.darken.butler.workspace.ui.dialogs.WorkspaceRenameDialog
 import eu.darken.butler.workspace.ui.error.ErrorShareConsentDialog
@@ -71,6 +72,8 @@ fun WorkspaceScreen(
     bannerStates: Map<Workspace.Id, BannerState> = emptyMap(),
     managerDialogStates: Map<Workspace.Id, ManagerDialog.WorkspaceTargeted>,
     managerDialogs: List<ManagerDialog> = emptyList(),
+    /** The dialog the full-screen modal window hosts, which no pane may compose. */
+    modalDialogState: ManagerDialog.WorkspaceTargeted? = null,
     isOverlayVisible: Boolean = false,
     reviewActivity: Activity? = null,
     onScreenAction: (WorkspaceScreenAction) -> Unit,
@@ -252,6 +255,8 @@ fun WorkspaceScreen(
         WorkspaceModalDialog(
             workspace = fullScreenModal,
             design = design,
+            managerDialog = modalDialogState,
+            onScreenAction = onScreenAction,
             onDismissRequest = {
                 // Dismiss by closing the modal workspace
                 workspaceActionHandler?.executeWorkspaceAction(
@@ -315,14 +320,21 @@ fun WorkspacesScreenHost(
     val state by vm.state.collectAsState(initial = null)
     val pendingErrorShare by vm.pendingErrorShare.collectAsState()
 
-    // Derive dialog states from unified registry. Both hosts compose here, so this is where the
-    // routing between them belongs.
+    // Derive dialog states from unified registry. Every host is composed from here or from the
+    // screen below it, so this is where the routing between them belongs.
     val tabOrder = state?.tabWorkspaces?.map { it.id }.orEmpty()
-    val dialogRouting = remember(managerDialogs, pageManagerState.isManagerOverlayVisible, tabOrder) {
+    val fullScreenModalId = state?.fullScreenModalWorkspace?.id
+    val dialogRouting = remember(
+        managerDialogs,
+        pageManagerState.isManagerOverlayVisible,
+        tabOrder,
+        fullScreenModalId,
+    ) {
         routeManagerDialogs(
             dialogs = managerDialogs,
             isManagerOverlayVisible = pageManagerState.isManagerOverlayVisible,
             tabOrder = tabOrder,
+            fullScreenModalId = fullScreenModalId,
         )
     }
     val managerDialogStates = dialogRouting.paneHosted
@@ -392,6 +404,7 @@ fun WorkspacesScreenHost(
                 bannerStates = bannerStates,
                 managerDialogStates = managerDialogStates,
                 managerDialogs = managerDialogs,
+                modalDialogState = dialogRouting.modalHosted,
                 isOverlayVisible = pageManagerState.isManagerOverlayVisible,
                 reviewActivity = activity,
                 onScreenAction = { vm.executeScreenAction(it) },
@@ -485,6 +498,53 @@ fun WorkspacesScreenHost(
                 onDismiss = { vm.dismissClearSessionConfirmation() },
                 onConfirm = { vm.confirmClearSession() },
             )
+        }
+
+        // Composed here rather than in a pane, which is what makes it a window dialog: outside every
+        // PaneLayerHost the adaptive renderer resolves to the window one, so the question covers the
+        // screen instead of scrimming a pane that belongs to a tab the close leaves alone.
+        dialogRouting.globalHosted?.let { dialog ->
+            key(dialog.id) {
+                WorkspaceCloseConfirmationDialog(
+                    workspaceTitle = dialog.workspaceTitle,
+                    hasUnsavedChanges = dialog.hasUnsavedChanges,
+                    unsavedCount = dialog.unsavedCount,
+                    onDismiss = {
+                        vm.executeScreenAction(
+                            WorkspaceScreenAction.HandleDialog(
+                                ManagerDialogAction.Resolve(dialog.id, confirmed = false),
+                            ),
+                        )
+                    },
+                    onConfirm = {
+                        vm.executeScreenAction(
+                            WorkspaceScreenAction.HandleDialog(
+                                ManagerDialogAction.Resolve(dialog.id, confirmed = true),
+                            ),
+                        )
+                    },
+                    // A tab whose ownership chain is broken cannot be brought on screen, so the
+                    // jump is not offered rather than cancelling the close for nothing.
+                    onGoToWorkspace = if (dialog.canGoToWorkspace) {
+                        {
+                            vm.executeScreenAction(
+                                WorkspaceScreenAction.HandleDialog(
+                                    ManagerDialogAction.CancelAndGoToWorkspace(
+                                        confirmationId = dialog.id,
+                                        workspaceId = dialog.closingWorkspaceId,
+                                        sourceWorkspaceId = dialog.selectionSourceWorkspaceId,
+                                        // This dialog can be raised while the manager is up, and
+                                        // hiding one that is already down does nothing.
+                                        hideManagerOverlay = true,
+                                    ),
+                                ),
+                            )
+                        }
+                    } else {
+                        null
+                    },
+                )
+            }
         }
 
         if (pendingErrorShare != null) {

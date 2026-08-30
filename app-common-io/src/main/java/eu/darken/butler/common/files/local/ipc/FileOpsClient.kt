@@ -8,6 +8,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APathGateway
+import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.FileSystemOps
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MoveOutcome
@@ -197,6 +198,16 @@ class FileOpsClient @AssistedInject constructor(
         fileOpsConnection.exists(path)
     } catch (e: Exception) {
         throw e.refineException()
+    }
+
+    override suspend fun existsStrict(path: LocalPath): Existence = try {
+        Existence.fromIpcCode(fileOpsConnection.existsStrict(path))
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        // A dead service or a failed transport is not an answer about the path.
+        log(TAG, WARN) { "existsStrict($path) failed: $e" }
+        Existence.UNKNOWN
     }
 
     override suspend fun delete(path: LocalPath, recursive: Boolean): Boolean = try {

@@ -2,6 +2,7 @@ package eu.darken.butler.explorer.core.engine
 
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.ArchivePath
+import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
@@ -78,7 +79,7 @@ class DirectoryLocationLoaderTest : BaseTest() {
     @Test
     fun `a local target that is gone fails as not found`() = runTest {
         coEvery { gatewaySwitch.listFiles(any()) } throws IOException("no such file")
-        coEvery { gatewaySwitch.exists(any()) } returns false
+        coEvery { gatewaySwitch.existsStrict(any()) } returns Existence.ABSENT
 
         shouldThrow<PathNotFoundException> { loader().loadDirectory(LOCAL_PATH).toList() }
     }
@@ -87,7 +88,16 @@ class DirectoryLocationLoaderTest : BaseTest() {
     fun `a target that is still there keeps its original error`() = runTest {
         val original = IOException("something else")
         coEvery { gatewaySwitch.listFiles(any()) } throws original
-        coEvery { gatewaySwitch.exists(any()) } returns true
+        coEvery { gatewaySwitch.existsStrict(any()) } returns Existence.PRESENT
+
+        shouldThrow<IOException> { loader().loadDirectory(LOCAL_PATH).toList() } shouldBe original
+    }
+
+    @Test
+    fun `a probe that cannot tell keeps the original error`() = runTest {
+        val original = IOException("something else")
+        coEvery { gatewaySwitch.listFiles(any()) } throws original
+        coEvery { gatewaySwitch.existsStrict(any()) } returns Existence.UNKNOWN
 
         shouldThrow<IOException> { loader().loadDirectory(LOCAL_PATH).toList() } shouldBe original
     }
@@ -96,7 +106,7 @@ class DirectoryLocationLoaderTest : BaseTest() {
     fun `a failing existence probe keeps the original error`() = runTest {
         val original = IOException("something else")
         coEvery { gatewaySwitch.listFiles(any()) } throws original
-        coEvery { gatewaySwitch.exists(any()) } throws IOException("probe broke")
+        coEvery { gatewaySwitch.existsStrict(any()) } throws IOException("probe broke")
 
         shouldThrow<IOException> { loader().loadDirectory(LOCAL_PATH).toList() } shouldBe original
     }
@@ -105,7 +115,7 @@ class DirectoryLocationLoaderTest : BaseTest() {
     fun `a target that vanishes after the peek also fails as not found`() = runTest {
         coEvery { gatewaySwitch.listFiles(any()) } returns emptyList()
         coEvery { gatewaySwitch.lookupFiles(any(), any<LookupOptions>()) } throws IOException("no such file")
-        coEvery { gatewaySwitch.exists(any()) } returns false
+        coEvery { gatewaySwitch.existsStrict(any()) } returns Existence.ABSENT
 
         shouldThrow<PathNotFoundException> { loader().loadDirectory(LOCAL_PATH).toList() }
     }
@@ -117,18 +127,18 @@ class DirectoryLocationLoaderTest : BaseTest() {
     @Test
     fun `a cancelled load is never probed`() = runTest {
         coEvery { gatewaySwitch.listFiles(any()) } throws CancellationException("cancelled")
-        coEvery { gatewaySwitch.exists(any()) } returns false
+        coEvery { gatewaySwitch.existsStrict(any()) } returns Existence.ABSENT
 
         loader().loadDirectory(LOCAL_PATH).toList()
 
-        coVerify(exactly = 0) { gatewaySwitch.exists(any()) }
+        coVerify(exactly = 0) { gatewaySwitch.existsStrict(any()) }
     }
 
     /** A cancelled probe must not fall back to the original error either, see above. */
     @Test
     fun `a cancelled probe ends the load`() = runTest {
         coEvery { gatewaySwitch.listFiles(any()) } throws IOException("no such file")
-        coEvery { gatewaySwitch.exists(any()) } throws CancellationException("cancelled")
+        coEvery { gatewaySwitch.existsStrict(any()) } throws CancellationException("cancelled")
 
         loader().loadDirectory(LOCAL_PATH).toList()
     }
@@ -140,44 +150,59 @@ class DirectoryLocationLoaderTest : BaseTest() {
     @Test
     fun `a probe that returns after cancellation is not an answer`() = runTest {
         coEvery { gatewaySwitch.listFiles(any()) } throws IOException("no such file")
-        coEvery { gatewaySwitch.exists(any()) } coAnswers {
+        coEvery { gatewaySwitch.existsStrict(any()) } coAnswers {
             currentCoroutineContext().cancel()
-            false
+            Existence.ABSENT
         }
 
         val thrown = runCatching { loader().loadDirectory(LOCAL_PATH).toList() }.exceptionOrNull()
 
         val reported = listOfNotNull(thrown) + thrown?.suppressedExceptions.orEmpty()
         reported.any { it is PathNotFoundException } shouldBe false
-        coVerify(exactly = 1) { gatewaySwitch.exists(any()) }
+        coVerify(exactly = 1) { gatewaySwitch.existsStrict(any()) }
     }
 
     @Test
     fun `an unreachable share is never reported as a missing directory`() = runTest {
         val original = IOException("host unreachable")
         coEvery { gatewaySwitch.listFiles(any()) } throws original
-        coEvery { gatewaySwitch.exists(any()) } returns false
+        coEvery { gatewaySwitch.existsStrict(any()) } returns Existence.UNKNOWN
 
         val path = SmbPath(LOCATION_ID, listOf("media"))
 
         shouldThrow<IOException> { loader().loadDirectory(path).toList() } shouldBe original
-        coVerify(exactly = 0) { gatewaySwitch.exists(any()) }
     }
 
-    /**
-     * SAF's exists() is a document-id query whose failures are swallowed, so a false answer covers
-     * a provider that is unreachable, crashing or mid-update just as much as a deleted folder.
-     */
+    @Test
+    fun `a share folder that is gone fails as not found`() = runTest {
+        coEvery { gatewaySwitch.listFiles(any()) } throws IOException("no such file")
+        coEvery { gatewaySwitch.existsStrict(any()) } returns Existence.ABSENT
+
+        val path = SmbPath(LOCATION_ID, listOf("media"))
+
+        shouldThrow<PathNotFoundException> { loader().loadDirectory(path).toList() }
+    }
+
+    /** A provider that is unreachable, crashing or mid-update answers UNKNOWN, not ABSENT. */
     @Test
     fun `a failing document provider is never reported as a missing directory`() = runTest {
         val original = IOException("provider died")
         coEvery { gatewaySwitch.listFiles(any()) } throws original
-        coEvery { gatewaySwitch.exists(any()) } returns false
+        coEvery { gatewaySwitch.existsStrict(any()) } returns Existence.UNKNOWN
 
         val path = SAFPath(SAF_TREE_ROOT, listOf("Music"))
 
         shouldThrow<IOException> { loader().loadDirectory(path).toList() } shouldBe original
-        coVerify(exactly = 0) { gatewaySwitch.exists(any()) }
+    }
+
+    @Test
+    fun `a SAF folder that is gone fails as not found`() = runTest {
+        coEvery { gatewaySwitch.listFiles(any()) } throws IOException("no such document")
+        coEvery { gatewaySwitch.existsStrict(any()) } returns Existence.ABSENT
+
+        val path = SAFPath(SAF_TREE_ROOT, listOf("Music"))
+
+        shouldThrow<PathNotFoundException> { loader().loadDirectory(path).toList() }
     }
 
     @Test
@@ -185,12 +210,22 @@ class DirectoryLocationLoaderTest : BaseTest() {
         val container = LocalPath.build("/storage/emulated/0/Download/archive.zip")
         val original = ArchiveNotSeekableException(container)
         coEvery { gatewaySwitch.listFiles(any()) } throws original
-        coEvery { gatewaySwitch.exists(any()) } returns false
+        coEvery { gatewaySwitch.existsStrict(any()) } returns Existence.UNKNOWN
 
         val path = ArchivePath(container, emptyList())
 
         shouldThrow<ArchiveNotSeekableException> { loader().loadDirectory(path).toList() } shouldBe original
-        coVerify(exactly = 0) { gatewaySwitch.exists(any()) }
+    }
+
+    @Test
+    fun `an archive folder that is gone fails as not found`() = runTest {
+        val container = LocalPath.build("/storage/emulated/0/Download/archive.zip")
+        coEvery { gatewaySwitch.listFiles(any()) } throws IOException("entry not found")
+        coEvery { gatewaySwitch.existsStrict(any()) } returns Existence.ABSENT
+
+        val path = ArchivePath(container, listOf("docs"))
+
+        shouldThrow<PathNotFoundException> { loader().loadDirectory(path).toList() }
     }
 
     companion object {

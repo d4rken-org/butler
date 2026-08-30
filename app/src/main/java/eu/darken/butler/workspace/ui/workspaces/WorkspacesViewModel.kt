@@ -148,56 +148,91 @@ class WorkspacesViewModel @Inject constructor(
             .onEach { state -> savedStateHandle["workspaceUIState"] = state }
             .launchInViewModel()
 
-        // Observe pending confirmations and populate unified dialog registry
-        workspaceRepo.pendingConfirmations
-            .onEach { confirmations ->
-                log(tag) { "Pending confirmations updated: ${confirmations.size}" }
+        // Observe pending confirmations and populate unified dialog registry. The layout is an input
+        // because who can host a close confirmation changes with it: a pane reassignment, a modal
+        // opening or the anchor closing all move the question to a different host.
+        combine(
+            workspaceRepo.pendingConfirmations,
+            workspacePageManager.state,
+            workspaceRepo.state,
+        ) { confirmations, uiState, repoState ->
+            log(tag) { "Pending confirmations updated: ${confirmations.size}" }
+            val hosts = renderedHosts(infos = repoState.infos, uiState = uiState)
+            val stacks = WorkspaceStacks(repoState.infos)
 
-                val dialogs = confirmations.mapNotNull { (confirmationId, confirmation) ->
-                    when (val data = confirmation.data) {
-                        is PendingWorkspaceConfirmation.ConfirmationData.WorkspaceLimitReached -> {
-                            ManagerDialog.Global.WorkspaceLimitReached(
+            confirmations.mapNotNull { (confirmationId, confirmation) ->
+                when (val data = confirmation.data) {
+                    is PendingWorkspaceConfirmation.ConfirmationData.WorkspaceLimitReached -> {
+                        ManagerDialog.Global.WorkspaceLimitReached(
+                            id = confirmationId,
+                            currentCount = data.currentCount,
+                            limit = data.limit,
+                            candidates = data.candidates,
+                            canRecover = data.canRecover,
+                            minToClose = data.minToClose,
+                        )
+                    }
+                    is PendingWorkspaceConfirmation.ConfirmationData.BatchWorkspaceCreation -> {
+                        // Nothing to ask without a pane: the confirmation belongs to what that pane
+                        // was doing, and there is no window variant of it.
+                        val targetId = confirmation.sourceWorkspaceId
+                            ?: uiState.focusedWorkspaceId
+                            ?: run {
+                                log(tag, WARN) { "No target workspace for confirmation $confirmationId" }
+                                return@mapNotNull null
+                            }
+                        ManagerDialog.WorkspaceTargeted.BatchCreationConfirmation(
+                            id = confirmationId,
+                            targetWorkspaceId = targetId,
+                            totalCount = data.totalCount,
+                        )
+                    }
+                    is PendingWorkspaceConfirmation.ConfirmationData.WorkspaceCloseConfirmation -> {
+                        val anchorId = confirmation.sourceWorkspaceId ?: uiState.focusedWorkspaceId
+                        val anchorRendered = anchorId != null && anchorId in hosts.paneRenderedIds
+                        when {
+                            anchorId != null && anchorId == hosts.fullScreenModalId -> {
+                                ManagerDialog.WorkspaceTargeted.CloseConfirmation(
+                                    id = confirmationId,
+                                    targetWorkspaceId = anchorId,
+                                    closingWorkspaceId = data.workspaceId,
+                                    workspaceTitle = data.workspaceTitle,
+                                    hasUnsavedChanges = data.hasUnsavedChanges,
+                                    unsavedCount = data.unsavedCount,
+                                )
+                            }
+                            // A pane may only ask about a close that takes it down too. Anywhere
+                            // else the pane belongs to a tab the close leaves alone, and a dialog
+                            // scrimming it reads as that tab being the one about to go.
+                            anchorId != null && data.hostInClosingSubtree && anchorRendered -> {
+                                ManagerDialog.WorkspaceTargeted.CloseConfirmation(
+                                    id = confirmationId,
+                                    targetWorkspaceId = anchorId,
+                                    closingWorkspaceId = data.workspaceId,
+                                    workspaceTitle = data.workspaceTitle,
+                                    hasUnsavedChanges = data.hasUnsavedChanges,
+                                    unsavedCount = data.unsavedCount,
+                                )
+                            }
+                            else -> ManagerDialog.Global.CloseConfirmation(
                                 id = confirmationId,
-                                currentCount = data.currentCount,
-                                limit = data.limit,
-                                candidates = data.candidates,
-                                canRecover = data.canRecover,
-                                minToClose = data.minToClose,
-                            )
-                        }
-                        is PendingWorkspaceConfirmation.ConfirmationData.BatchWorkspaceCreation -> {
-                            val targetId = confirmation.sourceWorkspaceId
-                                ?: workspacePageManager.state.value.focusedWorkspaceId
-                                ?: run {
-                                    log(tag, WARN) { "No target workspace for confirmation $confirmationId" }
-                                    return@mapNotNull null
-                                }
-                            ManagerDialog.WorkspaceTargeted.BatchCreationConfirmation(
-                                id = confirmationId,
-                                targetWorkspaceId = targetId,
-                                totalCount = data.totalCount,
-                            )
-                        }
-                        is PendingWorkspaceConfirmation.ConfirmationData.WorkspaceCloseConfirmation -> {
-                            val targetId = confirmation.sourceWorkspaceId
-                                ?: workspacePageManager.state.value.focusedWorkspaceId
-                                ?: run {
-                                    log(tag, WARN) { "No target workspace for confirmation $confirmationId" }
-                                    return@mapNotNull null
-                                }
-                            ManagerDialog.WorkspaceTargeted.CloseConfirmation(
-                                id = confirmationId,
-                                targetWorkspaceId = targetId,
                                 closingWorkspaceId = data.workspaceId,
                                 workspaceTitle = data.workspaceTitle,
                                 hasUnsavedChanges = data.hasUnsavedChanges,
                                 unsavedCount = data.unsavedCount,
+                                // An anchor nothing renders protects no pane, and naming it would
+                                // make the jump defend a pane that is not there.
+                                selectionSourceWorkspaceId = anchorId?.takeIf { anchorRendered },
+                                // Nothing can put a tab on screen whose ownership chain is broken,
+                                // so a jump offered for it would cancel the close and go nowhere.
+                                canGoToWorkspace = stacks.rootOf(data.workspaceId) != null,
                             )
                         }
                     }
                 }
-                _managerDialogs.value = dialogs
             }
+        }
+            .onEach { _managerDialogs.value = it }
             .launchInViewModel()
 
         // A tab that failed to initialize keeps showing that failure until it is closed, so the
@@ -289,6 +324,30 @@ class WorkspacesViewModel @Inject constructor(
         } ?: return
 
         workspacePageManager.setLayout(mapOf(0 to targetId), focusedId = targetId)
+    }
+
+    /** What the layout currently on screen can host a workspace-targeted dialog in. */
+    private class RenderedHosts(
+        val fullScreenModalId: Workspace.Id?,
+        val paneRenderedIds: Set<Workspace.Id>,
+    )
+
+    /**
+     * Resolved from the same walk [State] renders by: a pane composes a dialog host for its assigned
+     * tab and for each modal stacked on it, the full-screen modal window only for its leaf.
+     */
+    private fun renderedHosts(
+        infos: List<Workspace.Info>,
+        uiState: WorkspacePageManager.State,
+    ): RenderedHosts {
+        val rendered = WorkspaceStacks(infos).renderedChains(focusedId = uiState.focusedWorkspaceId)
+        return RenderedHosts(
+            fullScreenModalId = rendered.fullScreen?.leaf?.id,
+            paneRenderedIds = uiState.visiblePaneAssignments.values
+                .flatMapTo(mutableSetOf<Workspace.Id>()) { tabId ->
+                    listOf(tabId) + rendered.paneLocal[tabId]?.modals.orEmpty().map { it.id }
+                },
+        )
     }
 
     private val visibleMotd = kotlinx.coroutines.flow.combine(motdRepo.motd, hiddenMotdIds) { motd, hiddenIds ->
@@ -423,10 +482,16 @@ class WorkspacesViewModel @Inject constructor(
                     // selection puts its tab on screen, or the dialog re-renders in that pane, and
                     // the overlay only comes down once the tab it would cover is actually there.
                     workspaceRepo.resolveConfirmation(dialogAction.confirmationId, confirmed = false)
-                    workspacePageManager.handleWorkspaceSelection(
-                        workspaceId = dialogAction.workspaceId,
-                        sourceWorkspaceId = dialogAction.sourceWorkspaceId,
-                    )
+                    // The selection waits for the tab to publish its info, which never happens for
+                    // one whose ownership chain is broken - and the overlay would wait with it.
+                    if (workspaceRepo.peekStacks().rootOf(dialogAction.workspaceId) != null) {
+                        workspacePageManager.handleWorkspaceSelection(
+                            workspaceId = dialogAction.workspaceId,
+                            sourceWorkspaceId = dialogAction.sourceWorkspaceId,
+                        )
+                    } else {
+                        log(tag, WARN) { "No ownership root for ${dialogAction.workspaceId}, not selecting it" }
+                    }
                     if (dialogAction.hideManagerOverlay) workspacePageManager.hideManagerOverlay()
                 }
             }

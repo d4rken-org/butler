@@ -17,6 +17,7 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.WorkspaceSettings
+import eu.darken.butler.workspace.core.WorkspaceStacks
 import eu.darken.butler.workspace.core.undo.ClosedWorkspaceStash
 import eu.darken.butler.workspace.ui.WorkspacePageManager
 import eu.darken.butler.workspace.ui.WorkspaceVisibilityTracker
@@ -33,6 +34,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
@@ -59,7 +61,8 @@ import kotlin.time.Duration.Companion.seconds
 
 /**
  * Who hosts a close confirmation and what it acts on are two different workspaces, and the dialog
- * actions have to keep them apart.
+ * actions have to keep them apart. A pane may only be the host when the close takes that pane's
+ * workspace down too and something on screen renders it; everything else is a window dialog.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], application = TestApplication::class)
@@ -86,19 +89,21 @@ class WorkspacesViewModelDialogTest : BaseTest() {
         infos: List<Workspace.Info> = emptyList(),
         confirmations: Map<String, PendingWorkspaceConfirmation> = emptyMap(),
         focusedWorkspaceId: Workspace.Id? = null,
+        pageManagerState: MutableStateFlow<WorkspacePageManager.State> = MutableStateFlow(
+            WorkspacePageManager.State(focusedWorkspaceId = focusedWorkspaceId),
+        ),
     ): WorkspacesViewModel {
         every { workspaceRepo.state } returns flowOf(WorkspaceRemote.State(infos = infos))
         every { workspaceRepo.events } returns emptyFlow()
         every { workspaceRepo.pendingConfirmations } returns flowOf(confirmations)
+        every { workspaceRepo.peekStacks() } answers { WorkspaceStacks(infos) }
 
         val workspaceSettings = mockk<WorkspaceSettings>(relaxed = true).apply {
             every { swipeGesturesEnabled } returns boolSetting(true)
             every { onDemandWorkspaceCreation } returns boolSetting(true)
             every { paneClickToFocus } returns boolSetting(true)
         }
-        every { pageManager.state } returns MutableStateFlow(
-            WorkspacePageManager.State(focusedWorkspaceId = focusedWorkspaceId),
-        )
+        every { pageManager.state } returns pageManagerState
         val sessionManager = mockk<WorkspaceSessionManager>(relaxed = true).apply {
             every { state } returns MutableStateFlow(WorkspaceSessionManager.State.Disabled)
         }
@@ -149,46 +154,200 @@ class WorkspacesViewModelDialogTest : BaseTest() {
     private suspend fun WorkspacesViewModel.settledDialogs() =
         withTimeoutOrNull(10.seconds) { managerDialogs.filterNotNull().first { it.isNotEmpty() } }
 
+    /** One instance: a CaString wraps a lambda, so two of them are never equal. */
+    private val closingTitle = "notes.txt".toCaString()
+
     private fun closeConfirmation(
         id: String,
         closing: Workspace.Id,
         host: Workspace.Id?,
+        hostInClosingSubtree: Boolean = host == null || host == closing,
     ) = id to PendingWorkspaceConfirmation(
         id = id,
         sourceWorkspaceId = host,
         data = PendingWorkspaceConfirmation.ConfirmationData.WorkspaceCloseConfirmation(
             workspaceId = closing,
-            workspaceTitle = "notes.txt".toCaString(),
+            workspaceTitle = closingTitle,
             hasUnsavedChanges = true,
+            unsavedCount = 2,
+            hostInClosingSubtree = hostInClosingSubtree,
         ),
     )
 
+    private fun tab(id: Workspace.Id) = Workspace.Info(
+        id = id,
+        type = Workspace.Type.EXPLORER,
+        title = "Explorer".toCaString(),
+    )
+
+    /** A modal stacked on [caller], which is what makes it render inside that tab's pane. */
+    private fun stackedChild(id: Workspace.Id, caller: Workspace.Id) = Workspace.Info(
+        id = id,
+        type = Workspace.Type.SAVER,
+        title = "Save as".toCaString(),
+        callerWorkspaceId = caller,
+    )
+
     @Test fun `the mapping keeps the closing tab and its host apart`() = runTest2(context = testDispatcher) {
-        val editor = Workspace.Id()
-        val host = Workspace.Id()
-        val vm = vm(confirmations = mapOf(closeConfirmation("c1", closing = editor, host = host)))
+        val tabId = Workspace.Id()
+        val child = Workspace.Id()
+        val vm = vm(
+            infos = listOf(tab(tabId), stackedChild(child, caller = tabId)),
+            confirmations = mapOf(
+                closeConfirmation("c1", closing = tabId, host = child, hostInClosingSubtree = true),
+            ),
+            pageManagerState = MutableStateFlow(
+                WorkspacePageManager.State(
+                    focusedWorkspaceId = child,
+                    selectedWorkspaces = mapOf(0 to tabId),
+                ),
+            ),
+        )
         advanceUntilIdle()
 
+        // The close takes the child down with it, so the layer it asked from is the right place for
+        // the question.
         val dialog = vm.settledDialogs()!!.single()
             .shouldBeInstanceOf<ManagerDialog.WorkspaceTargeted.CloseConfirmation>()
-        dialog.closingWorkspaceId shouldBe editor
-        dialog.targetWorkspaceId shouldBe host
+        dialog.closingWorkspaceId shouldBe tabId
+        dialog.targetWorkspaceId shouldBe child
     }
 
     @Test fun `a confirmation without a host falls back to the focused workspace`() =
         runTest2(context = testDispatcher) {
-            val editor = Workspace.Id()
-            val focused = Workspace.Id()
+            val tabId = Workspace.Id()
+            val child = Workspace.Id()
             val vm = vm(
-                confirmations = mapOf(closeConfirmation("c1", closing = editor, host = null)),
-                focusedWorkspaceId = focused,
+                infos = listOf(tab(tabId), stackedChild(child, caller = tabId)),
+                confirmations = mapOf(closeConfirmation("c1", closing = tabId, host = null)),
+                pageManagerState = MutableStateFlow(
+                    WorkspacePageManager.State(
+                        focusedWorkspaceId = child,
+                        selectedWorkspaces = mapOf(0 to tabId),
+                    ),
+                ),
             )
             advanceUntilIdle()
 
             val dialog = vm.settledDialogs()!!.single()
                 .shouldBeInstanceOf<ManagerDialog.WorkspaceTargeted.CloseConfirmation>()
-            dialog.closingWorkspaceId shouldBe editor
-            dialog.targetWorkspaceId shouldBe focused
+            dialog.closingWorkspaceId shouldBe tabId
+            dialog.targetWorkspaceId shouldBe child
+        }
+
+    @Test fun `a close of another tab asks in a window dialog`() = runTest2(context = testDispatcher) {
+        val editor = Workspace.Id()
+        val host = Workspace.Id()
+        val vm = vm(
+            infos = listOf(tab(editor), tab(host)),
+            confirmations = mapOf(closeConfirmation("c1", closing = editor, host = host)),
+            pageManagerState = MutableStateFlow(
+                WorkspacePageManager.State(
+                    focusedWorkspaceId = host,
+                    selectedWorkspaces = mapOf(0 to host),
+                ),
+            ),
+        )
+        advanceUntilIdle()
+
+        // Scrimming the host pane would read as that tab being the one about to close.
+        val dialog = vm.settledDialogs()!!.single()
+            .shouldBeInstanceOf<ManagerDialog.Global.CloseConfirmation>()
+        dialog.closingWorkspaceId shouldBe editor
+        dialog.workspaceTitle shouldBe closingTitle
+        dialog.hasUnsavedChanges shouldBe true
+        dialog.unsavedCount shouldBe 2
+        // The host is on screen, so the jump can act from its pane.
+        dialog.selectionSourceWorkspaceId shouldBe host
+        dialog.canGoToWorkspace shouldBe true
+    }
+
+    @Test fun `a close of a tab whose owner is gone offers no jump`() =
+        runTest2(context = testDispatcher) {
+            val orphan = Workspace.Id()
+            val onScreen = Workspace.Id()
+            val vm = vm(
+                infos = listOf(tab(onScreen), stackedChild(orphan, caller = Workspace.Id())),
+                confirmations = mapOf(closeConfirmation("c1", closing = orphan, host = onScreen)),
+                pageManagerState = MutableStateFlow(
+                    WorkspacePageManager.State(
+                        focusedWorkspaceId = onScreen,
+                        selectedWorkspaces = mapOf(0 to onScreen),
+                    ),
+                ),
+            )
+            advanceUntilIdle()
+
+            // A dirty orphan whose caller is gone is still closable, but nothing can put it on
+            // screen, so the question must not offer to go there.
+            val dialog = vm.settledDialogs()!!.single()
+                .shouldBeInstanceOf<ManagerDialog.Global.CloseConfirmation>()
+            dialog.closingWorkspaceId shouldBe orphan
+            dialog.canGoToWorkspace shouldBe false
+        }
+
+    @Test fun `a close whose anchor nothing renders asks in a window dialog`() =
+        runTest2(context = testDispatcher) {
+            val missing = Workspace.Id()
+            val onScreen = Workspace.Id()
+            val vm = vm(
+                infos = listOf(tab(onScreen)),
+                confirmations = mapOf(
+                    closeConfirmation("c1", closing = missing, host = missing),
+                ),
+                pageManagerState = MutableStateFlow(
+                    WorkspacePageManager.State(
+                        focusedWorkspaceId = onScreen,
+                        selectedWorkspaces = mapOf(0 to onScreen),
+                    ),
+                ),
+            )
+            advanceUntilIdle()
+
+            // A close of an id no workspace holds still has to be answerable, and no pane can
+            // compose a dialog for an id it does not render.
+            val dialog = vm.settledDialogs()!!.single()
+                .shouldBeInstanceOf<ManagerDialog.Global.CloseConfirmation>()
+            dialog.closingWorkspaceId shouldBe missing
+            // A dead anchor protects no pane from eviction.
+            dialog.selectionSourceWorkspaceId shouldBe null
+        }
+
+    @Test fun `reassigning the host pane moves the question to a window dialog`() =
+        runTest2(context = testDispatcher) {
+            val tabId = Workspace.Id()
+            val child = Workspace.Id()
+            val other = Workspace.Id()
+            val pageManagerState = MutableStateFlow(
+                WorkspacePageManager.State(
+                    focusedWorkspaceId = child,
+                    selectedWorkspaces = mapOf(0 to tabId),
+                ),
+            )
+            val vm = vm(
+                infos = listOf(tab(tabId), stackedChild(child, caller = tabId), tab(other)),
+                confirmations = mapOf(
+                    closeConfirmation("c1", closing = tabId, host = child, hostInClosingSubtree = true),
+                ),
+                pageManagerState = pageManagerState,
+            )
+            advanceUntilIdle()
+
+            vm.settledDialogs()!!.single()
+                .shouldBeInstanceOf<ManagerDialog.WorkspaceTargeted.CloseConfirmation>()
+
+            // The rail stays interactive while the confirmation is up, so the pane hosting it can be
+            // handed to another tab - with nothing pending changing at all.
+            pageManagerState.value = WorkspacePageManager.State(
+                focusedWorkspaceId = other,
+                selectedWorkspaces = mapOf(0 to other),
+            )
+            advanceUntilIdle()
+
+            val dialog = vm.managerDialogs.value.single()
+                .shouldBeInstanceOf<ManagerDialog.Global.CloseConfirmation>()
+            dialog.closingWorkspaceId shouldBe tabId
+            dialog.selectionSourceWorkspaceId shouldBe null
         }
 
     @Test fun `resolving acts on the confirmation id it was given`() = runTest2(context = testDispatcher) {
@@ -210,7 +369,7 @@ class WorkspacesViewModelDialogTest : BaseTest() {
             every { workspaceRepo.resolveConfirmation(any(), any()) } answers { order += "resolve" }
             coEvery { pageManager.handleWorkspaceSelection(any(), any()) } answers { order += "select" }
 
-            val vm = vm()
+            val vm = vm(infos = listOf(tab(editor), tab(host)))
             vm.executeScreenAction(
                 WorkspaceScreenAction.HandleDialog(
                     ManagerDialogAction.CancelAndGoToWorkspace(
@@ -237,7 +396,7 @@ class WorkspacesViewModelDialogTest : BaseTest() {
             coEvery { pageManager.handleWorkspaceSelection(any(), any()) } answers { order += "select" }
             every { pageManager.hideManagerOverlay() } answers { order += "hide" }
 
-            val vm = vm()
+            val vm = vm(infos = listOf(tab(editor)))
             vm.executeScreenAction(
                 WorkspaceScreenAction.HandleDialog(
                     ManagerDialogAction.CancelAndGoToWorkspace(
@@ -254,11 +413,34 @@ class WorkspacesViewModelDialogTest : BaseTest() {
             order shouldBe listOf("select", "hide")
         }
 
+    @Test fun `the jump to a tab whose owner is gone still takes the overlay down`() =
+        runTest2(context = testDispatcher) {
+            val orphan = Workspace.Id()
+            // What the real selection does with an id the repo never publishes an info for.
+            coEvery { pageManager.handleWorkspaceSelection(any(), any()) } coAnswers { awaitCancellation() }
+
+            val vm = vm()
+            vm.executeScreenAction(
+                WorkspaceScreenAction.HandleDialog(
+                    ManagerDialogAction.CancelAndGoToWorkspace(
+                        confirmationId = "c1",
+                        workspaceId = orphan,
+                        sourceWorkspaceId = null,
+                        hideManagerOverlay = true,
+                    ),
+                ),
+            )
+            advanceUntilIdle()
+
+            coVerify(exactly = 0) { pageManager.handleWorkspaceSelection(any(), any()) }
+            verify(exactly = 1) { pageManager.hideManagerOverlay() }
+        }
+
     @Test fun `the jump from a pane leaves the overlay alone`() = runTest2(context = testDispatcher) {
         val editor = Workspace.Id()
         val host = Workspace.Id()
 
-        val vm = vm()
+        val vm = vm(infos = listOf(tab(editor), tab(host)))
         vm.executeScreenAction(
             WorkspaceScreenAction.HandleDialog(
                 ManagerDialogAction.CancelAndGoToWorkspace(

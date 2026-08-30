@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.apps.core.AppSizeCache
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.pkgs.Pkg
 import eu.darken.butler.common.pkgs.PkgRepo
@@ -71,8 +72,8 @@ class AppDetailsWorkspaceLabelCaptureTest {
                 every { snapshot } returns MutableStateFlow(AppSizeCache.Snapshot())
                 every { isAvailable } returns MutableStateFlow(false)
             },
-            // Explicit, not relaxed: a false exists() would mean ABSENT and silently drop rows.
-            gatewaySwitch = mockk { coEvery { exists(any()) } returns true },
+            // Explicit, not relaxed: an ABSENT answer would silently drop rows.
+            gatewaySwitch = mockk { coEvery { existsStrict(any()) } returns Existence.PRESENT },
             pathPermissionCheck = mockk { every { monitor(any<APath<*>>()) } returns flowOf(PathRequirements()) },
             rootManager = mockk(relaxed = true),
             adbManager = mockk(relaxed = true),

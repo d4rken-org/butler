@@ -111,11 +111,18 @@ interface FileOpsConnection {
     /**
      * Streaming walk with error transport: the returned stream carries WalkEvent chunks
      * (Item/DirError terminated by Done or FatalError, see WalkEvent).
+     */
+    RemoteInputStream walkStreamV2(in LocalPath path, in LookupOptions options, in WalkSpec spec);
+
+    /**
+     * Existence that keeps "not there" apart from "could not look": the returned int is an
+     * Existence.ipcCode, never an exception. A typed exception would not survive the binder in a
+     * minified build, a code does.
      *
      * MUST stay the LAST method: AIDL transaction IDs are positional, and appending keeps every
      * pre-existing method's ID stable if host and client processes ever run different builds.
      * (That window is otherwise closed by host lifecycle: the root host dies with the app process
      * and the Shizuku user service is version-pinned via UserServiceArgs.version.)
      */
-    RemoteInputStream walkStreamV2(in LocalPath path, in LookupOptions options, in WalkSpec spec);
+    int existsStrict(in LocalPath path);
 }

@@ -7,9 +7,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleResumeEffect
@@ -122,7 +120,7 @@ fun EditorWorkspacePage(
         onPageAction(EditorPageAction.Navigation.ClearSelection(state.cursorPosition))
     }
 
-    val hasClipboard by remember { derivedStateOf { clipboardState.entries.isNotEmpty() } }
+    val hasClipboard = clipboardState.entries.isNotEmpty()
     val hasActions = state.availableActions.isNotEmpty()
 
     val topBarStackState = rememberPaneFloatingBarStackState(

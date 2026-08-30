@@ -28,8 +28,9 @@ class OperationPerformanceGraphSectionTest : ComposeTest() {
 
     private val context = ApplicationProvider.getApplicationContext<Context>()
 
-    private val expandLabel = context.getString(R.string.workspace_operation_performance_graph_expand)
-    private val collapseLabel = context.getString(R.string.workspace_operation_performance_graph_collapse)
+    private val title = context.getString(R.string.workspace_operations_performance_graph_label)
+    private val expandLabel = context.getString(R.string.operations_details_section_expand, title)
+    private val collapseLabel = context.getString(R.string.operations_details_section_collapse, title)
     private val graphTag = "test-graph"
 
     private val startTime = Instant.fromEpochMilliseconds(1000)

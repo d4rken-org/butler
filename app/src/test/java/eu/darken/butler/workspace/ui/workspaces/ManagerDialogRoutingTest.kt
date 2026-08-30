@@ -10,7 +10,8 @@ import testhelpers.BaseTest
 
 /**
  * The tab manager overlay covers every pane, so while it is up it - not the pane - has to host a
- * close confirmation. Exactly one host may compose a given dialog.
+ * close confirmation, and a full-screen modal window covers the overlay in turn. Exactly one host
+ * may compose a given dialog.
  */
 class ManagerDialogRoutingTest : BaseTest() {
 
@@ -29,6 +30,16 @@ class ManagerDialogRoutingTest : BaseTest() {
         workspaceTitle = "notes.txt".toCaString(),
         hasUnsavedChanges = true,
     )
+
+    private fun globalConfirmation(id: String, closing: Workspace.Id) =
+        ManagerDialog.Global.CloseConfirmation(
+            id = id,
+            closingWorkspaceId = closing,
+            workspaceTitle = "notes.txt".toCaString(),
+            hasUnsavedChanges = true,
+            selectionSourceWorkspaceId = null,
+            canGoToWorkspace = true,
+        )
 
     private fun batchConfirmation(host: Workspace.Id) =
         ManagerDialog.WorkspaceTargeted.BatchCreationConfirmation(
@@ -49,6 +60,8 @@ class ManagerDialogRoutingTest : BaseTest() {
 
         routing.paneHosted shouldBe mapOf(tabA to dialog)
         routing.managerHosted.shouldBeNull()
+        routing.modalHosted.shouldBeNull()
+        routing.globalHosted.shouldBeNull()
     }
 
     @Test
@@ -65,6 +78,8 @@ class ManagerDialogRoutingTest : BaseTest() {
         // renders it twice, the other renders it nowhere.
         routing.paneHosted shouldBe emptyMap()
         routing.managerHosted shouldBe dialog
+        routing.modalHosted.shouldBeNull()
+        routing.globalHosted.shouldBeNull()
     }
 
     @Test
@@ -153,7 +168,7 @@ class ManagerDialogRoutingTest : BaseTest() {
     }
 
     @Test
-    fun `global dialogs are not routed to either host`() {
+    fun `the limit dialog is not routed to any workspace host`() {
         val limit = ManagerDialog.Global.WorkspaceLimitReached(
             id = "limit",
             currentCount = 5,
@@ -168,5 +183,110 @@ class ManagerDialogRoutingTest : BaseTest() {
 
         routing.paneHosted shouldBe emptyMap()
         routing.managerHosted.shouldBeNull()
+        routing.modalHosted.shouldBeNull()
+        routing.globalHosted.shouldBeNull()
+    }
+
+    @Test
+    fun `the modal window hosts the confirmation anchored to it, not the manager`() {
+        val modal = Workspace.Id()
+        val dialog = closeConfirmation("c1", closing = tabA, host = modal)
+
+        val routing = routeManagerDialogs(
+            dialogs = listOf(dialog),
+            isManagerOverlayVisible = true,
+            tabOrder = tabOrder,
+            fullScreenModalId = modal,
+        )
+
+        // The modal is a window drawn above the overlay, so a dialog the manager composed would end
+        // up behind the workspace it is anchored to.
+        routing.modalHosted shouldBe dialog
+        routing.managerHosted.shouldBeNull()
+        routing.paneHosted shouldBe emptyMap()
+    }
+
+    @Test
+    fun `the modal window hosts the confirmation anchored to it, not a pane`() {
+        val modal = Workspace.Id()
+        val dialog = closeConfirmation("c1", closing = tabA, host = modal)
+
+        val routing = routeManagerDialogs(
+            dialogs = listOf(dialog),
+            isManagerOverlayVisible = false,
+            tabOrder = tabOrder,
+            fullScreenModalId = modal,
+        )
+
+        routing.modalHosted shouldBe dialog
+        routing.paneHosted shouldBe emptyMap()
+    }
+
+    @Test
+    fun `a confirmation anchored elsewhere stays off the modal`() {
+        val modal = Workspace.Id()
+        val dialog = closeConfirmation("c1", closing = tabA)
+
+        val routing = routeManagerDialogs(
+            dialogs = listOf(dialog),
+            isManagerOverlayVisible = false,
+            tabOrder = tabOrder,
+            fullScreenModalId = modal,
+        )
+
+        routing.modalHosted.shouldBeNull()
+        routing.paneHosted shouldBe mapOf(tabA to dialog)
+    }
+
+    @Test
+    fun `a global close confirmation reaches only the screen`() {
+        val dialog = globalConfirmation("c1", closing = tabA)
+
+        val routing = routeManagerDialogs(
+            dialogs = listOf(dialog),
+            isManagerOverlayVisible = false,
+            tabOrder = tabOrder,
+        )
+
+        routing.globalHosted shouldBe dialog
+        routing.paneHosted shouldBe emptyMap()
+        routing.managerHosted.shouldBeNull()
+        routing.modalHosted.shouldBeNull()
+    }
+
+    @Test
+    fun `the screen asks about one tab at a time`() {
+        val first = globalConfirmation("c2", closing = tabA)
+        val second = globalConfirmation("c1", closing = tabB)
+
+        val routing = routeManagerDialogs(
+            dialogs = listOf(second, first),
+            isManagerOverlayVisible = false,
+            tabOrder = tabOrder,
+        )
+
+        // A window dialog covers the screen, so a second one would render behind the first.
+        routing.globalHosted shouldBe first
+    }
+
+    @Test
+    fun `the overlay does not change who hosts a global close confirmation`() {
+        val dialog = globalConfirmation("c1", closing = tabA)
+
+        val whileVisible = routeManagerDialogs(
+            dialogs = listOf(dialog),
+            isManagerOverlayVisible = true,
+            tabOrder = tabOrder,
+        )
+        val afterHiding = routeManagerDialogs(
+            dialogs = listOf(dialog),
+            isManagerOverlayVisible = false,
+            tabOrder = tabOrder,
+        )
+
+        // A window dialog draws above the overlay, so the manager has nothing to take over.
+        whileVisible.globalHosted shouldBe dialog
+        whileVisible.managerHosted.shouldBeNull()
+        afterHiding.globalHosted shouldBe dialog
     }
 }

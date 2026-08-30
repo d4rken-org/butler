@@ -27,6 +27,8 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.LocalWorkspacePageHosts
+import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
+import eu.darken.butler.workspace.ui.dialogs.ManagerDialogHost
 import eu.darken.butler.workspace.ui.insets.paneHorizontalInsetPadding
 import eu.darken.butler.workspace.ui.manager.LocalWorkspaceButtonProvider
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
@@ -44,6 +46,8 @@ import eu.darken.butler.workspace.ui.modal.PaneLayerRank
  *
  * @param workspace The workspace to display
  * @param design The workspace design/layout configuration from the parent screen
+ * @param managerDialog The manager-level dialog anchored to [workspace], if any
+ * @param onScreenAction Reports what [managerDialog] resolves to
  * @param onDismissRequest Called when the user dismisses the dialog
  * @param onShareError Shares the failure of a workspace that could not initialize
  * @param onCloseWorkspace Closes this workspace, offered by the error placeholder
@@ -53,6 +57,8 @@ import eu.darken.butler.workspace.ui.modal.PaneLayerRank
 fun WorkspaceModalDialog(
     workspace: Workspace.Info,
     design: WorkspaceDesign,
+    managerDialog: ManagerDialog.WorkspaceTargeted? = null,
+    onScreenAction: (WorkspaceScreenAction) -> Unit = {},
     onDismissRequest: () -> Unit,
     onShareError: (Throwable) -> Unit = {},
     onCloseWorkspace: () -> Unit = {},
@@ -111,6 +117,8 @@ fun WorkspaceModalDialog(
                 WorkspaceModalContent(
                     workspace = workspace,
                     design = design,
+                    managerDialog = managerDialog,
+                    onScreenAction = onScreenAction,
                     onShareError = onShareError,
                     onCloseWorkspace = onCloseWorkspace,
                     onResumeWorkspace = onResumeWorkspace,
@@ -135,6 +143,8 @@ fun WorkspaceModalDialog(
 fun WorkspaceModalContent(
     workspace: Workspace.Info,
     design: WorkspaceDesign = WorkspaceDesign(),
+    managerDialog: ManagerDialog.WorkspaceTargeted? = null,
+    onScreenAction: (WorkspaceScreenAction) -> Unit = {},
     onShareError: (Throwable) -> Unit = {},
     onCloseWorkspace: () -> Unit = {},
     onResumeWorkspace: () -> Unit = {},
@@ -187,6 +197,18 @@ fun WorkspaceModalContent(
                     CompositionLocalProvider(LocalPaneLayerRank provides PaneLayerRank.OVERLAY) {
                         entry.Overlays(id = workspace.id, design = design)
                     }
+                }
+            }
+
+            // Depth zero: this window renders one leaf workspace, so there is a single tier of
+            // layers and this is its top one. Outside the lifecycle gate like a pane's, a close
+            // confirmation for a paused workspace must still be answerable.
+            managerDialog?.let { dialog ->
+                PaneLayer(modifier = Modifier.fillMaxSize(), rank = PaneLayerRank.managerAt(0)) {
+                    ManagerDialogHost(
+                        dialog = dialog,
+                        onAction = { onScreenAction(WorkspaceScreenAction.HandleDialog(it)) },
+                    )
                 }
             }
         }
