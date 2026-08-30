@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
@@ -162,36 +163,43 @@ class WorkspacePageManager @Inject constructor(
             .onEach { repoState ->
                 val validWorkspaceIds = repoState.infos.map { it.id }.toSet()
                 val currentState = _state.value
-                val cleanedFocusedId = currentState.focusedWorkspaceId?.takeIf { it.stillExists(validWorkspaceIds) }
-                val cleanedSelectedIds = currentState.selectedWorkspaces
-                    .filterValues { it.stillExists(validWorkspaceIds) }
 
-                // Update state if cleanup removed any IDs.
+                // This collector and the Closed handler both destroy pane and focus, and either
+                // can run first - the repo publishes the list before it emits the event. So the
+                // capture happens at both points, and the first one to fire is the one that
+                // still saw the truth. Kept outside the update below: it is not idempotent, and
+                // that block re-runs whenever a concurrent write beats it to the state.
+                val stripped = buildSet {
+                    currentState.focusedWorkspaceId
+                        ?.takeIf { !it.stillExists(validWorkspaceIds) }
+                        ?.let { add(it) }
+                    addAll(
+                        currentState.selectedWorkspaces.values.filterNot { it.stillExists(validWorkspaceIds) }
+                    )
+                }
+                stripped
+                    .mapNotNull { closedStash.closeTokenFor(it) }
+                    .distinct()
+                    .forEach { closeToken -> capturePlacementFor(closeToken, currentState) }
+
+                // The focus and selections installed by this update are derived from its `state`
+                // parameter, not from the `currentState` snapshot above. A concurrent assignment
+                // observed by the update, including on a CAS retry, is evaluated by stillExists()
+                // instead of being overwritten solely because it was absent from that snapshot.
                 // Note: this only clears stale IDs; it never picks a replacement focus. Re-focusing a
                 // surviving workspace after a close is owned solely by handleWorkspaceClosed(), which is
                 // the only path that knows the closing workspace's callerWorkspaceId (for picker return).
-                if (cleanedFocusedId != currentState.focusedWorkspaceId || cleanedSelectedIds != currentState.selectedWorkspaces) {
-                    // This collector and the Closed handler both destroy pane and focus, and either
-                    // can run first - the repo publishes the list before it emits the event. So the
-                    // capture happens at both points, and the first one to fire is the one that
-                    // still saw the truth.
-                    val stripped = buildSet {
-                        currentState.focusedWorkspaceId
-                            ?.takeIf { !it.stillExists(validWorkspaceIds) }
-                            ?.let { add(it) }
-                        addAll(
-                            currentState.selectedWorkspaces.values.filterNot { it.stillExists(validWorkspaceIds) }
-                        )
-                    }
-                    stripped
-                        .mapNotNull { closedStash.closeTokenFor(it) }
-                        .distinct()
-                        .forEach { closeToken -> capturePlacementFor(closeToken, currentState) }
+                _state.update { state ->
+                    val cleanedFocusedId = state.focusedWorkspaceId?.takeIf { it.stillExists(validWorkspaceIds) }
+                    val cleanedSelectedIds = state.selectedWorkspaces
+                        .filterValues { it.stillExists(validWorkspaceIds) }
 
-                    _state.update {
-                        it.copy(
+                    if (cleanedFocusedId == state.focusedWorkspaceId && cleanedSelectedIds == state.selectedWorkspaces) {
+                        state
+                    } else {
+                        state.copy(
                             focusedWorkspaceId = cleanedFocusedId,
-                            selectedWorkspaces = cleanedSelectedIds
+                            selectedWorkspaces = cleanedSelectedIds,
                         )
                     }
                 }
@@ -362,70 +370,78 @@ class WorkspacePageManager @Inject constructor(
     suspend fun setPaneCount(count: Int) {
         log(TAG) { "Setting pane count to $count" }
 
-        val currentState = _state.value
-        val oldPaneCount = currentState.currentPaneCount
+        val oldPaneCount = _state.getAndUpdate { it.copy(currentPaneCount = count) }.currentPaneCount
+        if (count <= oldPaneCount) return
 
-        // Update pane count first
-        _state.update { it.copy(currentPaneCount = count) }
+        log(TAG) { "Pane count increased from $oldPaneCount to $count, checking for empty panes to fill" }
 
-        // Auto-fill empty panes if pane count increased
-        if (count > oldPaneCount) {
-            log(TAG) { "Pane count increased from $oldPaneCount to $count, checking for empty panes to fill" }
+        // Only pay for the workspace list when a pane might need filling - growing back into
+        // retained assignments fills nothing. Allowed to race: the set that decides the actual
+        // assignments is derived in [autoFillPanes] from the state that wins the update, and
+        // skipping the collection here writes nothing at all.
+        val assignedPanes = _state.value.selectedWorkspaces
+        if ((0 until count).all { assignedPanes.containsKey(it) }) {
+            log(TAG) { "No empty panes to fill" }
+            return
+        }
 
-            val currentSelections = currentState.selectedWorkspaces
-            val emptyPaneIndices = (0 until count).filter { paneIndex ->
-                !currentSelections.containsKey(paneIndex)
-            }
+        val allWorkspaces = workspaceRemote.state.first().infos
 
-            if (emptyPaneIndices.isNotEmpty()) {
-                log(TAG) { "Found ${emptyPaneIndices.size} empty pane(s): $emptyPaneIndices" }
-
-                // Get all available workspaces
-                val allWorkspaces = workspaceRemote.state.first().infos
-
-                // Filter: exclude currently selected workspaces and modal workspaces
-                val selectedIds = currentSelections.values.toSet()
-                val availableWorkspaces = allWorkspaces.filter { workspace ->
-                    !selectedIds.contains(workspace.id) && !workspace.isSubWorkspace
+        val previous = _state.getAndUpdate { state -> autoFillPanes(state, allWorkspaces, count) }
+        // Replaying the transform on the state that won reproduces exactly what was installed, so
+        // the log below cannot narrate an attempt that lost the race.
+        val installed = autoFillPanes(previous, allWorkspaces, count)
+        val filled = installed.selectedWorkspaces - previous.selectedWorkspaces.keys
+        val fillableCount = minOf(count, previous.currentPaneCount)
+        val emptyPaneIndices = (0 until fillableCount).filterNot { previous.selectedWorkspaces.containsKey(it) }
+        if (fillableCount != count) {
+            log(TAG) { "Pane count is ${previous.currentPaneCount} now, limiting the auto-fill for $count to $fillableCount pane(s)" }
+        }
+        when {
+            emptyPaneIndices.isEmpty() -> log(TAG) { "No empty panes to fill" }
+            filled.isEmpty() -> log(TAG) { "No available workspaces to fill empty pane(s): $emptyPaneIndices" }
+            else -> {
+                filled.forEach { (paneIndex, workspaceId) ->
+                    log(TAG) { "Auto-filling pane $paneIndex with MRU workspace $workspaceId" }
                 }
-
-                if (availableWorkspaces.isNotEmpty()) {
-                    log(TAG) { "Found ${availableWorkspaces.size} available workspace(s)" }
-
-                    // Sort by MRU (most recent first)
-                    val sortedByMru = availableWorkspaces.sortedByDescending { workspace ->
-                        currentState.workspaceAccessTimes[workspace.id] ?: Instant.DISTANT_PAST
-                    }
-
-                    // Assign MRU workspaces to empty panes
-                    val newSelections = currentSelections.toMutableMap()
-                    var autoFocusId: Workspace.Id? = null
-
-                    emptyPaneIndices.zip(sortedByMru).forEach { (paneIndex, workspace) ->
-                        log(TAG) { "Auto-filling pane $paneIndex with MRU workspace ${workspace.id}" }
-                        newSelections[paneIndex] = workspace.id
-                        if (autoFocusId == null) {
-                            autoFocusId = workspace.id
-                        }
-                    }
-
-                    // Update state with new selections
-                    _state.update { state ->
-                        state.copy(
-                            selectedWorkspaces = newSelections,
-                            // Auto-focus first auto-filled workspace if nothing is focused
-                            focusedWorkspaceId = state.focusedWorkspaceId ?: autoFocusId,
-                        )
-                    }
-
-                    log(TAG) { "Auto-filled ${emptyPaneIndices.size} pane(s)" }
-                } else {
-                    log(TAG) { "No available workspaces to auto-fill empty panes" }
-                }
-            } else {
-                log(TAG) { "No empty panes to fill" }
+                log(TAG) { "Auto-filled ${filled.size} pane(s)" }
             }
         }
+    }
+
+    /**
+     * Fills the panes [count] added, as a pure transform so it can run inside a state update - it
+     * decides from the state it is applied to, not from one read before [setPaneCount] suspended on
+     * the workspace list, which would discard whatever was written meanwhile.
+     */
+    private fun autoFillPanes(state: State, infos: List<Workspace.Info>, count: Int): State {
+        // A later pane count can land while this one is still suspended, so the fill is limited to
+        // the panes the current layout actually has. Filling beyond them would park workspaces on
+        // indices no pane renders, and those are retained rather than pruned, so they would surface
+        // pre-filled the next time the layout grows - while dropping the fill entirely would leave
+        // the panes the layout does render empty.
+        val fillableCount = minOf(count, state.currentPaneCount)
+
+        val emptyPaneIndices = (0 until fillableCount).filterNot { state.selectedWorkspaces.containsKey(it) }
+        if (emptyPaneIndices.isEmpty()) return state
+
+        // Exclusion set from the same state: a workspace another writer just placed must not be
+        // handed a second pane here.
+        val selectedIds = state.selectedWorkspaces.values.toSet()
+        val availableByMru = infos
+            .filter { !selectedIds.contains(it.id) && !it.isSubWorkspace }
+            .sortedByDescending { state.workspaceAccessTimes[it.id] ?: Instant.DISTANT_PAST }
+
+        val fills = emptyPaneIndices.zip(availableByMru)
+        if (fills.isEmpty()) return state
+
+        return state.copy(
+            selectedWorkspaces = state.selectedWorkspaces + fills.associate { (paneIndex, workspace) ->
+                paneIndex to workspace.id
+            },
+            // Auto-focus the first auto-filled workspace if nothing is focused
+            focusedWorkspaceId = state.focusedWorkspaceId ?: fills.first().second.id,
+        )
     }
 
     fun toggleWorkspaceSelection(workspaceId: Workspace.Id, position: Int? = null) {
