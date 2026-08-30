@@ -46,6 +46,10 @@ class EditorFloatingBarsTest : ComposeTest() {
 
     private val pasteLabel: String
         get() = context.getString(WorkspaceR.string.clipboard_paste)
+    private val pasteAsFileLabel: String
+        get() = context.getString(WorkspaceR.string.clipboard_text_paste_as_file)
+    private val openInExplorerLabel: String
+        get() = context.getString(WorkspaceR.string.clipboard_open_in_explorer)
     private val clipboardHeaderTitle: String
         get() = context.getString(WorkspaceR.string.clipboard_header_title)
     private val searchPlaceholder: String
@@ -71,6 +75,11 @@ class EditorFloatingBarsTest : ComposeTest() {
                 modifiedAt = null,
             ),
         ),
+    )
+
+    private fun textClip() = ClipboardClip.Text(
+        origin = Workspace.Id(),
+        content = "Line 1",
     )
 
     private fun setPage(showSearchBar: Boolean = false) {
@@ -134,6 +143,21 @@ class EditorFloatingBarsTest : ComposeTest() {
         // Filtered: the text editor dispatches navigation actions of its own while it lays out.
         pageActions.filterIsInstance<EditorPageAction.Clipboard>() shouldBe
             listOf(EditorPageAction.Clipboard.Paste(clip))
+    }
+
+    /**
+     * A [ClipboardClip.Paths] clip renders the same paste affordance for every workspace type, so a
+     * text clip is what separates the type this page passes from the Explorer's and the Searcher's.
+     */
+    @Test
+    fun `a text clip keeps the editor's paste affordance`() {
+        setPage()
+        clipboardSource.value = ClipboardDisplayState(entries = listOf(textClip()))
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNodeWithContentDescription(pasteLabel).assertIsDisplayed()
+        composeTestRule.onNodeWithContentDescription(pasteAsFileLabel).assertDoesNotExist()
+        composeTestRule.onNodeWithContentDescription(openInExplorerLabel).assertDoesNotExist()
     }
 
     /**
