@@ -19,7 +19,8 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.ui.actions.WorkspaceActionBar
 import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
-import eu.darken.butler.workspace.ui.clipboard.bar.ClipboardBar
+import eu.darken.butler.workspace.ui.clipboard.bar.ClipboardBarAction
+import eu.darken.butler.workspace.ui.clipboard.bar.WorkspaceClipboardFloatingBar
 import eu.darken.butler.workspace.ui.floatingbar.BarAnimation
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior
@@ -27,9 +28,9 @@ import eu.darken.butler.workspace.ui.floatingbar.FloatingBarScope
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
 import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
-import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
-import eu.darken.butler.workspace.ui.operations.bar.OperationsBar
+import eu.darken.butler.workspace.ui.operations.bar.OperationsBarAction
+import eu.darken.butler.workspace.ui.operations.bar.WorkspaceOperationsFloatingBar
 
 /**
  * The Explorer's top floating bars: toolbar (with breadcrumbs/picker chrome) and info bar.
@@ -119,13 +120,6 @@ internal fun FloatingBarScope.ExplorerBottomBars(
     initialClipboardExpanded: Boolean,
     onShowOperationDetails: (Operation.Id) -> Unit,
 ) {
-    val hasOperations = operationsState.operations.isNotEmpty()
-    val hasActiveOperations = operationsState.operations.any { op ->
-        op.state is OperationDisplay.State.Queued ||
-            op.state is OperationDisplay.State.Running ||
-            op.state is OperationDisplay.State.Waiting
-    }
-    val hasClipboard = clipboardState.entries.isNotEmpty()
     val hasActions = state.availableActions.isNotEmpty()
 
     // Cache the last non-null favorite feedback so the bar has content to animate out when the
@@ -135,43 +129,35 @@ internal fun FloatingBarScope.ExplorerBottomBars(
     state.favoriteFeedback?.let { lastFavoriteFeedback = it }
     val showFavoritesFeedbackBar = state.favoriteFeedback != null && state.pickerConfig == null
 
-    FloatingBar(
+    WorkspaceOperationsFloatingBar(
         key = ExplorerBarKeys.OPERATIONS,
-        visible = hasOperations,
-        scrollBehavior = if (hasActiveOperations) BarScrollBehavior.Static else BarScrollBehavior.VanishOnScroll,
-        animation = BarAnimation.Slide(),
-    ) {
-        OperationsBar(
-            operations = operationsState.operations,
-            onRequestCancelOperation = { id -> vm?.requestCancelOperation(id) },
-            onDismissOperation = { id -> vm?.dismissOperation(id) },
-            onOperationClick = { operation ->
-                when (operation.state) {
-                    is OperationDisplay.State.Waiting -> vm?.showConflictSheet(operation.id)
-                    else -> onShowOperationDetails(operation.id)
-                }
-            },
-            onClearCompleted = { vm?.clearCompletedOperations() },
-            initialExpanded = initialOperationsExpanded,
-        )
-    }
+        operations = operationsState.operations,
+        initialExpanded = initialOperationsExpanded,
+        onAction = { action ->
+            when (action) {
+                is OperationsBarAction.RequestCancel -> vm?.requestCancelOperation(action.id)
+                is OperationsBarAction.Dismiss -> vm?.dismissOperation(action.id)
+                is OperationsBarAction.ShowConflict -> vm?.showConflictSheet(action.id)
+                is OperationsBarAction.ShowDetails -> onShowOperationDetails(action.id)
+                OperationsBarAction.ClearCompleted -> vm?.clearCompletedOperations()
+            }
+        },
+    )
 
-    FloatingBar(
+    WorkspaceClipboardFloatingBar(
         key = ExplorerBarKeys.CLIPBOARD,
-        visible = hasClipboard,
-        scrollBehavior = BarScrollBehavior.VanishOnScroll,
-        animation = BarAnimation.Bouncy,
-    ) {
-        ClipboardBar(
-            workspaceType = Workspace.Type.EXPLORER,
-            clipboardEntries = clipboardState.entries,
-            onPasteClick = { clip -> vm?.pasteClipboard(clip) },
-            onRemoveClick = { clip -> vm?.removeClipboardEntry(clip) },
-            onEntryClick = { clip -> vm?.showClipboardInfo(clip) },
-            onClearAll = { vm?.clearAllClipboard() },
-            initialExpanded = initialClipboardExpanded,
-        )
-    }
+        workspaceType = Workspace.Type.EXPLORER,
+        clipboardEntries = clipboardState.entries,
+        initialExpanded = initialClipboardExpanded,
+        onAction = { action ->
+            when (action) {
+                is ClipboardBarAction.Paste -> vm?.pasteClipboard(action.clip)
+                is ClipboardBarAction.Remove -> vm?.removeClipboardEntry(action.clip)
+                is ClipboardBarAction.ShowInfo -> vm?.showClipboardInfo(action.clip)
+                ClipboardBarAction.ClearAll -> vm?.clearAllClipboard()
+            }
+        },
+    )
 
     FloatingBar(
         key = ExplorerBarKeys.FAVORITES_FEEDBACK,
