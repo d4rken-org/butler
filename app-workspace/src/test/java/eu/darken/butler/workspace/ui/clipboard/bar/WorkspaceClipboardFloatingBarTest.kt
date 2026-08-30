@@ -4,10 +4,8 @@ import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
-import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -83,6 +81,10 @@ class WorkspaceClipboardFloatingBarTest : ComposeTest() {
 
     /**
      * An empty list composes no row at all, so its absence - not a hidden node - is the observable.
+     *
+     * Collapsing while empty is what tells the two candidates apart: `FloatingBarStack` snaps the
+     * collapse fraction back to 0 only when a bar's visibility actually flips, so a bar that was
+     * never hidden stays collapsed and keeps the path off-screen.
      */
     @Test
     fun `the bar appears only once there is a clip`() {
@@ -90,6 +92,9 @@ class WorkspaceClipboardFloatingBarTest : ComposeTest() {
         setBar { clips }
 
         composeTestRule.onNodeWithText(FIRST_PATH).assertDoesNotExist()
+
+        runBlocking { stackState.applyCollapse(mapOf(KEY to 1f)) }
+        composeTestRule.waitForIdle()
 
         clips = listOf(clip(FIRST_PATH))
         composeTestRule.waitForIdle()
@@ -160,18 +165,13 @@ class WorkspaceClipboardFloatingBarTest : ComposeTest() {
     @Test
     fun `the workspace type selects the row's action label`() {
         val clip = clip(FIRST_PATH)
+        var workspaceType by mutableStateOf(Workspace.Type.EXPLORER)
         composeTestRule.setContent {
             PreviewWrapper {
                 FloatingBarStack(position = BarPosition.BOTTOM) {
                     WorkspaceClipboardFloatingBar(
-                        key = "explorer-clipboard",
-                        workspaceType = Workspace.Type.EXPLORER,
-                        clipboardEntries = listOf(clip),
-                        onAction = {},
-                    )
-                    WorkspaceClipboardFloatingBar(
-                        key = "searcher-clipboard",
-                        workspaceType = Workspace.Type.SEARCHER,
+                        key = KEY,
+                        workspaceType = workspaceType,
                         clipboardEntries = listOf(clip),
                         onAction = {},
                     )
@@ -180,8 +180,14 @@ class WorkspaceClipboardFloatingBarTest : ComposeTest() {
         }
         composeTestRule.waitForIdle()
 
-        composeTestRule.onAllNodesWithContentDescription(pasteLabel).assertCountEquals(1)
-        composeTestRule.onAllNodesWithContentDescription(openInExplorerLabel).assertCountEquals(1)
+        composeTestRule.onNodeWithContentDescription(pasteLabel).assertIsDisplayed()
+        composeTestRule.onNodeWithContentDescription(openInExplorerLabel).assertDoesNotExist()
+
+        workspaceType = Workspace.Type.SEARCHER
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNodeWithContentDescription(openInExplorerLabel).assertIsDisplayed()
+        composeTestRule.onNodeWithContentDescription(pasteLabel).assertDoesNotExist()
     }
 
     companion object {
