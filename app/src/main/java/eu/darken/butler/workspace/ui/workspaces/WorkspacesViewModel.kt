@@ -135,6 +135,7 @@ class WorkspacesViewModel @Inject constructor(
         ) { confirmations, uiState, repoState ->
             log(tag) { "Pending confirmations updated: ${confirmations.size}" }
             val hosts = renderedHosts(infos = repoState.infos, uiState = uiState)
+            val stacks = WorkspaceStacks(repoState.infos)
 
             confirmations.mapNotNull { (confirmationId, confirmation) ->
                 when (val data = confirmation.data) {
@@ -199,6 +200,9 @@ class WorkspacesViewModel @Inject constructor(
                                 // An anchor nothing renders protects no pane, and naming it would
                                 // make the jump defend a pane that is not there.
                                 selectionSourceWorkspaceId = anchorId?.takeIf { anchorRendered },
+                                // Nothing can put a tab on screen whose ownership chain is broken,
+                                // so a jump offered for it would cancel the close and go nowhere.
+                                canGoToWorkspace = stacks.rootOf(data.workspaceId) != null,
                             )
                         }
                     }
@@ -432,10 +436,16 @@ class WorkspacesViewModel @Inject constructor(
                     // selection puts its tab on screen, or the dialog re-renders in that pane, and
                     // the overlay only comes down once the tab it would cover is actually there.
                     workspaceRepo.resolveConfirmation(dialogAction.confirmationId, confirmed = false)
-                    workspacePageManager.handleWorkspaceSelection(
-                        workspaceId = dialogAction.workspaceId,
-                        sourceWorkspaceId = dialogAction.sourceWorkspaceId,
-                    )
+                    // The selection waits for the tab to publish its info, which never happens for
+                    // one whose ownership chain is broken - and the overlay would wait with it.
+                    if (workspaceRepo.peekStacks().rootOf(dialogAction.workspaceId) != null) {
+                        workspacePageManager.handleWorkspaceSelection(
+                            workspaceId = dialogAction.workspaceId,
+                            sourceWorkspaceId = dialogAction.sourceWorkspaceId,
+                        )
+                    } else {
+                        log(tag, WARN) { "No ownership root for ${dialogAction.workspaceId}, not selecting it" }
+                    }
                     if (dialogAction.hideManagerOverlay) workspacePageManager.hideManagerOverlay()
                 }
             }

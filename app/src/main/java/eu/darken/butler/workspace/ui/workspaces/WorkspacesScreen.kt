@@ -521,19 +521,25 @@ fun WorkspacesScreenHost(
                             ),
                         )
                     },
-                    onGoToWorkspace = {
-                        vm.executeScreenAction(
-                            WorkspaceScreenAction.HandleDialog(
-                                ManagerDialogAction.CancelAndGoToWorkspace(
-                                    confirmationId = dialog.id,
-                                    workspaceId = dialog.closingWorkspaceId,
-                                    sourceWorkspaceId = dialog.selectionSourceWorkspaceId,
-                                    // This dialog can be raised while the manager is up, and hiding
-                                    // one that is already down does nothing.
-                                    hideManagerOverlay = true,
+                    // A tab whose ownership chain is broken cannot be brought on screen, so the
+                    // jump is not offered rather than cancelling the close for nothing.
+                    onGoToWorkspace = if (dialog.canGoToWorkspace) {
+                        {
+                            vm.executeScreenAction(
+                                WorkspaceScreenAction.HandleDialog(
+                                    ManagerDialogAction.CancelAndGoToWorkspace(
+                                        confirmationId = dialog.id,
+                                        workspaceId = dialog.closingWorkspaceId,
+                                        sourceWorkspaceId = dialog.selectionSourceWorkspaceId,
+                                        // This dialog can be raised while the manager is up, and
+                                        // hiding one that is already down does nothing.
+                                        hideManagerOverlay = true,
+                                    ),
                                 ),
-                            ),
-                        )
+                            )
+                        }
+                    } else {
+                        null
                     },
                 )
             }
