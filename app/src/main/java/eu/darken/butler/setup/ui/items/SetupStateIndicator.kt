@@ -33,17 +33,21 @@ fun SetupStateIndicator(
             val (icon, tint) = when (state.type) {
                 SetupModule.Type.ROOT -> {
                     val rootState = state as? RootSetupModule.Result
-                    when {
-                        rootState?.useRoot != true -> {
+                    when (rootState.toCardStatus()) {
+                        RootCardStatus.DISABLED -> {
                             Icons.TwoTone.PauseCircle to MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
                         }
-                        !rootState.isInstalled -> {
-                            Icons.TwoTone.Error to MaterialTheme.colorScheme.error
-                        }
-                        rootState.ourService -> {
+                        RootCardStatus.CONNECTED -> {
                             Icons.TwoTone.CheckCircle to MaterialTheme.colorScheme.primary
                         }
-                        else -> {
+                        // The same pending indicator the Shizuku card uses while it connects.
+                        RootCardStatus.CONNECTING -> {
+                            Icons.TwoTone.RadioButtonUnchecked to MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        }
+                        RootCardStatus.NOT_INSTALLED -> {
+                            Icons.TwoTone.Error to MaterialTheme.colorScheme.error
+                        }
+                        RootCardStatus.NOT_CONNECTED -> {
                             Icons.TwoTone.Error to MaterialTheme.colorScheme.tertiary
                         }
                     }

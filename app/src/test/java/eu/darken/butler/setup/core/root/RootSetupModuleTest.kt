@@ -154,4 +154,58 @@ class RootSetupModuleTest : BaseTest() {
 
         collector.latestValues.last().shouldBeInstanceOf<RootSetupModule.Result>().ourService shouldBe false
     }
+
+    @Test fun `an answering host counts even if we cannot name the root manager`() {
+        // The installed-manager lookup only knows a handful of package ids; a device rooted with
+        // anything else still has a working service, and the service is what root access needs.
+        coEvery { rootManager.isInstalled() } returns false
+        val mod = module()
+
+        val collector = mod.state.test(tag = "unknown-manager", scope = scope)
+        val state = collector.await { _, value -> value is RootSetupModule.Result && value.ourService }
+
+        val result = state.shouldBeInstanceOf<RootSetupModule.Result>()
+        result.serviceState shouldBe RootServiceState.Available
+        result.isInstalled shouldBe false
+        result.isComplete shouldBe true
+
+        runBlocking { collector.cancelAndJoin() }
+    }
+
+    @Test fun `an unknown root manager without a matching host stays incomplete`() {
+        coEvery { rootManager.isInstalled() } returns false
+        val leftover = hostIdentity.copy(lastUpdateTime = hostIdentity.lastUpdateTime - 5000)
+        every { ipc.checkBase() } answers { probeCount++; "${leftover.encode()}\nok" }
+        val mod = module()
+
+        val collector = mod.state.test(tag = "unknown-manager-no-host", scope = scope)
+        collector.await { _, value ->
+            value is RootSetupModule.Result && value.serviceState is RootServiceState.Failed
+        }
+
+        val result = collector.latestValues.last().shouldBeInstanceOf<RootSetupModule.Result>()
+        result.serviceState shouldBe RootServiceState.Failed
+        result.ourService shouldBe false
+        result.isComplete shouldBe false
+
+        runBlocking { collector.cancelAndJoin() }
+    }
+
+    @Test fun `the connecting state precedes the connected one`() {
+        // Obtaining the connection can cold-bind an su session. The card needs something to show for
+        // that window that isn't "no root".
+        val mod = module()
+
+        val collector = mod.state.test(tag = "connecting", scope = scope)
+        collector.await { _, value -> value is RootSetupModule.Result && value.ourService }
+
+        val results = collector.latestValues.filterIsInstance<RootSetupModule.Result>()
+        val connecting = results.indexOfFirst { it.serviceState is RootServiceState.Connecting }
+        val available = results.indexOfFirst { it.serviceState is RootServiceState.Available }
+
+        (connecting >= 0) shouldBe true
+        (connecting < available) shouldBe true
+
+        runBlocking { collector.cancelAndJoin() }
+    }
 }
