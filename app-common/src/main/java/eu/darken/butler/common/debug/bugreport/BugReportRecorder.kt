@@ -60,6 +60,7 @@ class BugReportRecorder @Inject constructor(
     private val butlerId: ButlerId,
     private val json: Json,
     private val storageLayout: BugReportStorageLayout,
+    private val recorderPathPublisher: RecorderPathPublisher,
     // Multibound set, never a single binding: the implementations live in the flavor source sets of
     // :app, and app-common must build (and record) whether or not one was contributed.
     private val upgradeDiagnostics: Set<@JvmSuppressWildcards UpgradeDiagnostics>,
@@ -118,6 +119,7 @@ class BugReportRecorder @Inject constructor(
             fileLogger = logger
 
             File(reportDir, BugReportStorage.RECORDING_SENTINEL).createNewFile()
+            recorderPathPublisher.publish(reportDir.path)
 
             logSessionInfos()
 
@@ -164,6 +166,7 @@ class BugReportRecorder @Inject constructor(
             it.stop()
         }
         fileLogger = null
+        recorderPathPublisher.publish(null)
         startedAtMonotonicMs = 0L
         val id = internalState.value.recordingId
         if (id != null) {

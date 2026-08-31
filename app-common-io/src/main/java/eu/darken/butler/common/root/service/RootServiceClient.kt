@@ -6,6 +6,7 @@ import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.DebugSettings
+import eu.darken.butler.common.debug.bugreport.RecorderPathPublisher
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
@@ -47,6 +48,7 @@ class RootServiceClient @Inject constructor(
     private val rootHostLauncher: RootHostLauncher,
     private val rootSettings: RootSettings,
     private val debugSettings: DebugSettings,
+    private val recorderPathPublisher: RecorderPathPublisher,
     private val fileOpsClientFactory: FileOpsClient.Factory,
     private val pkgOpsClientFactory: PkgOpsClient.Factory,
     private val shellOpsClientFactory: ShellOpsClient.Factory,
@@ -63,7 +65,7 @@ class RootServiceClient @Inject constructor(
         val initialOptions = RootHostOptions(
             isDebug = debugSettings.isDebugMode.value(),
             isTrace = debugSettings.isTraceMode.value(),
-            recorderPath = debugSettings.recorderPath.value(),
+            recorderPath = recorderPathPublisher.path.value,
         )
 
         val lastInternal = MutableStateFlow<RootConnection?>(null)
@@ -83,7 +85,7 @@ class RootServiceClient @Inject constructor(
         combine(
             debugSettings.isDebugMode.flow,
             debugSettings.isTraceMode.flow,
-            debugSettings.recorderPath.flow,
+            recorderPathPublisher.path,
             lastInternal.filterNotNull(),
         ) { isDebug, isTrace, recorderPath, lastConnection ->
             val dynamicOptions = RootHostOptions(
