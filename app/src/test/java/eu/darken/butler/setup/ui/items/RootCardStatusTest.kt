@@ -10,7 +10,7 @@ import testhelpers.BaseTest
  * The card's headline, its sub-line and its icon each render the same decision, so the decision is
  * made once, here, rather than re-derived per surface.
  */
-class RootServiceStatusTest : BaseTest() {
+class RootCardStatusTest : BaseTest() {
 
     private fun result(
         useRoot: Boolean?,
