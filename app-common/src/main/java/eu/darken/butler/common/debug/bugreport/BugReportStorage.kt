@@ -8,10 +8,12 @@ import java.io.File
  * manual snapshots) and [BugReportRecorder] (ongoing recordings) so the two never drift.
  *
  * ```
- * filesDir/bugreports/<id>/   meta.json | report.log | .seen? | .recording (while live)
- * filesDir/bugreports/.tmp-<id>/   snapshot two-phase writes
+ * <root>/bugreports/<id>/   meta.json | report.log | .seen? | .recording (while live)
+ * <root>/bugreports/.tmp-<id>/   snapshot two-phase writes
  * cacheDir/bugreports_share/<id>.zip
  * ```
+ *
+ * `<root>` is resolved by [BugReportStorageLayout], which owns the order of the two report roots.
  */
 internal object BugReportStorage {
     const val REPORTS_DIRNAME = "bugreports"
