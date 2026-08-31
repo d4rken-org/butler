@@ -193,6 +193,19 @@ class BugReportRepoTest : BaseTest() {
     }
 
     @Test
+    fun `delete refuses a report carrying a live recording sentinel`() = runTest {
+        val repo = createRepo()
+        // Mid-start: the directory and its sentinel exist while the recorder has not published the
+        // id yet, so the id check alone would let this delete through.
+        writeReportDir("recording_6_ffff", BugReport.Type.RECORDING, ongoing = true)
+        recorderState.value = BugReportRecorder.State()
+
+        shouldThrow<IllegalArgumentException> { repo.delete("recording_6_ffff") }
+
+        File(reportsDir, "recording_6_ffff").exists() shouldBe true
+    }
+
+    @Test
     fun `logSizeBytes reflects the on-disk log size`() = runTest {
         val repo = createRepo()
         repo.captureCrashBlocking(IllegalStateException("boom"), Thread.currentThread())

@@ -121,8 +121,8 @@ class BugReportRecorder @Inject constructor(
             File(reportDir, BugReportStorage.RECORDING_SENTINEL).createNewFile()
             recorderPathPublisher.publish(reportDir.path)
 
-            logSessionInfos()
-
+            // Committed before the session infos are logged: those reads take seconds, and until the
+            // id is published the finished report directory on disk has nothing marking it as live.
             startedAtMonotonicMs = startedAtMonotonic
             internalState.value = State(
                 isRecording = true,
@@ -131,6 +131,9 @@ class BugReportRecorder @Inject constructor(
                 currentLogSize = File(reportDir, BugReportStorage.LOG_FILE).length(),
             )
             startLogSizeUpdates(reportDir)
+
+            logSessionInfos()
+
             log(TAG, INFO) { "Recording started: $id" }
         } catch (e: Throwable) {
             log(TAG, ERROR) { "start() failed: ${e.asLog()}" }
