@@ -264,6 +264,12 @@ class ClosedWorkspaceStash @Inject constructor(
         dropPendingLocked("dismissed")
     }
 
+    /** The user dismissed the bar for a specific entry; a superseded token is a no-op. */
+    fun dismiss(closeToken: Long) = synchronized(lock) {
+        if (pending?.closeToken != closeToken) return@synchronized
+        dropPendingLocked("dismissed")
+    }
+
     /** Publications made while restoring are the restore itself and must not invalidate anything. */
     fun beginRestore() = synchronized(lock) {
         restoring = true

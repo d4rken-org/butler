@@ -484,10 +484,16 @@ fun WorkspacesScreenHost(
                     position = BarPosition.BOTTOM,
                 ) {
                     FloatingBar(key = "workspace-closed-undo") {
-                        WorkspaceClosedFeedbackBar(
-                            feedback = feedback,
-                            onUndo = { vm.undoClose() },
-                        )
+                        // A superseding entry can reach composition without an intervening null,
+                        // which would leave the swipe state parked at the previous entry's
+                        // dismissed anchor - rendering the new bar as a bare swipe background.
+                        key(feedback.closeToken) {
+                            WorkspaceClosedFeedbackBar(
+                                feedback = feedback,
+                                onUndo = { vm.undoClose() },
+                                onDismiss = { vm.dismissClosedFeedback(feedback.closeToken) },
+                            )
+                        }
                     }
                 }
             }

@@ -582,6 +582,13 @@ class WorkspacesViewModel @Inject constructor(
         }
     }
 
+    // Not launched: dismiss is a plain synchronized call, and dispatching it asynchronously would
+    // let a superseding entry land between the swipe settling and the coroutine running.
+    fun dismissClosedFeedback(closeToken: Long) {
+        log(tag) { "dismissClosedFeedback($closeToken)" }
+        closedStash.dismiss(closeToken)
+    }
+
     fun dismissBanner(workspaceId: Workspace.Id) = launch {
         log(tag) { "dismissBanner($workspaceId)" }
         _bannerStates.update { it - workspaceId }
