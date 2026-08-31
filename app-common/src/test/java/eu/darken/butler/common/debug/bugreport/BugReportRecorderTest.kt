@@ -260,6 +260,28 @@ class BugReportRecorderTest : BaseTest() {
     }
 
     @Test
+    fun `the recording id is published before the session infos are logged`() {
+        // Deletion keys "active recording" on the published id, and the report directory is already
+        // on disk while the session infos are being collected — a null id there is a deletable report.
+        var started: BugReportRecorder? = null
+        var idDuringDiagnostics: String? = null
+        val provider = object : UpgradeDiagnostics {
+            override suspend fun debugInfo(): String {
+                idDuringDiagnostics = started!!.state.value.recordingId
+                return "info"
+            }
+        }
+
+        withRecorder(upgradeDiagnostics = setOf(provider)) { recorder ->
+            started = recorder
+            recorder.start()
+
+            idDuringDiagnostics shouldNotBe null
+            idDuringDiagnostics shouldBe recorder.state.value.recordingId
+        }
+    }
+
+    @Test
     fun `force stop bypasses the duration threshold`() {
         // "Stop anyway" — the answer to the short-recording warning in the banner, the contact form
         // and the bug-report workspace dialog. It must stop a recording the threshold would reject.
