@@ -2,6 +2,8 @@ package eu.darken.butler.workspace.core
 
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.MimeInfo
+import eu.darken.butler.common.files.TextFileDetector
 import eu.darken.butler.workspace.contracts.editor.EditorArguments
 import eu.darken.butler.workspace.contracts.explorer.ExplorerArguments
 import eu.darken.butler.workspace.contracts.viewer.ViewerArguments
@@ -127,6 +129,25 @@ class OpenInNewTabsUseCaseTest : BaseTest() {
 
         items.forEach { item ->
             request(item).type shouldBe requests(analyze(item)).single().type
+        }
+    }
+
+    /**
+     * The plain "Open" row routes by the same predicate, so a yaml file must not land in the viewer.
+     * The Explorer feeds the [MimeInfo] overload, the Searcher the name one - both have to answer
+     * the same here.
+     */
+    @Test
+    fun `a yaml file routes to the editor`() {
+        val yamlFile = LocalPath.build("/storage/emulated/0/Documents/notes.yaml")
+
+        listOf(
+            TextFileDetector.isTextFile(MimeInfo.fromFileName("notes.yaml")),
+            TextFileDetector.isTextFile("notes.yaml"),
+        ).forEach { isText ->
+            useCase.classify(
+                OpenInNewTabsUseCase.Item.File(yamlFile, isText = isText),
+            ) shouldBe Workspace.Type.EDITOR
         }
     }
 
