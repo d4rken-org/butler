@@ -244,9 +244,10 @@ class EditorWorkspaceContentPathTest : BaseTest() {
         val file = File(tempDir, "doc.txt").apply { writeText("content") }
         val path = LocalPath.build(file)
         val gateway = createMockGateway()
-        // The load hangs on the first existence check, so cancellation deterministically lands
-        // mid-initialization
-        coEvery { gateway.exists(any()) } coAnswers { awaitCancellation() }
+        // The load hangs on the first gateway access, so cancellation deterministically lands
+        // mid-initialization. That access is the lookup: open() attempts the real read and only
+        // probes existence afterwards, to tell a deleted file apart from an unreadable one.
+        coEvery { gateway.lookup(any(), any()) } coAnswers { awaitCancellation() }
         val workspace = createWorkspace(path, gateway)
         try {
             // Seeded identity is visible while the load is stuck

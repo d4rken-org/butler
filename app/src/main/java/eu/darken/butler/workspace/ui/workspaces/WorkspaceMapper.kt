@@ -5,8 +5,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.visible
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import eu.darken.butler.common.files.errors.PathGoneError
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.states.PathGoneContent
 import eu.darken.butler.workspace.ui.states.WorkspacePausedContent
 import eu.darken.butler.workspace.ui.states.WorkspaceErrorContent
 import eu.darken.butler.workspace.ui.states.WorkspaceInitializingContent
@@ -58,14 +60,28 @@ fun WorkspaceMapper(
                 )
             }
             is Workspace.LifecycleState.Error -> {
-                WorkspaceErrorContent(
-                    modifier = Modifier.fillMaxSize(),
-                    design = design,
-                    error = lifecycleState.error,
-                    onShareError = { onShareError(lifecycleState.error) },
-                    onCloseWorkspace = onCloseWorkspace,
-                    currentWorkspaceId = info.id,
-                )
+                // A target that simply no longer exists is not a fault worth reporting, so it gets
+                // its own wording instead of the mascot-and-stack-trace treatment.
+                val error = lifecycleState.error
+                if (error is PathGoneError) {
+                    PathGoneContent(
+                        modifier = Modifier.fillMaxSize(),
+                        design = design,
+                        error = error,
+                        onShareError = { onShareError(error) },
+                        onCloseWorkspace = onCloseWorkspace,
+                        currentWorkspaceId = info.id,
+                    )
+                } else {
+                    WorkspaceErrorContent(
+                        modifier = Modifier.fillMaxSize(),
+                        design = design,
+                        error = error,
+                        onShareError = { onShareError(error) },
+                        onCloseWorkspace = onCloseWorkspace,
+                        currentWorkspaceId = info.id,
+                    )
+                }
             }
             is Workspace.LifecycleState.Ready -> {
                 // Page is visible - no overlay needed

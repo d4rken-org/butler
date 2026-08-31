@@ -26,9 +26,10 @@ class EditorEngineCancelInitTest : EditorEngineTestBase() {
     @Test
     fun `cancelInitialization aborts a hanging load and leaves the engine empty`() = runTest {
         // The load hangs on the very first gateway access, so the cancel deterministically
-        // lands mid-initialization
+        // lands mid-initialization. That access is the lookup: open() attempts the real read and
+        // only probes existence afterwards, to tell a deleted file apart from an unreadable one.
         val gateway = mockk<GatewaySwitch>().apply {
-            coEvery { exists(any()) } coAnswers { awaitCancellation() }
+            coEvery { lookup(any(), any()) } coAnswers { awaitCancellation() }
         }
         val fileFactory = object : FileDataSource.Factory {
             override fun create(

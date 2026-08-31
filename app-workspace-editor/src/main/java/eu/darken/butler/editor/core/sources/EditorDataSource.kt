@@ -1,10 +1,10 @@
 package eu.darken.butler.editor.core.sources
 
+import eu.darken.butler.common.files.errors.PathNotFoundException
 import eu.darken.butler.common.files.write.FileCommitContext
 import eu.darken.butler.editor.core.engine.ContentSource
 import kotlinx.coroutines.flow.StateFlow
 import okio.Source
-import java.io.FileNotFoundException
 import kotlin.time.Instant
 
 /**
@@ -21,7 +21,8 @@ interface EditorDataSource {
     /**
      * Opens the data source and prepares it for reading/writing.
      * @throws IOException if the resource cannot be opened
-     * @throws FileNotFoundException if the resource doesn't exist
+     * @throws PathNotFoundException if the resource doesn't exist
+     * @throws SaveArtifactsRemainException if it is gone but an interrupted save left artifacts
      */
     suspend fun open()
 

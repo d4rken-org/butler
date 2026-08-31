@@ -1,8 +1,12 @@
 package eu.darken.butler.common.files.permissions
 
 import eu.darken.butler.common.ElevatedAccessUnavailableException
+import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.error.LocalizedError
+import eu.darken.butler.common.error.LocalizedErrorContext
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.errors.PathAlreadyExistsException
+import eu.darken.butler.common.files.errors.PathGoneError
 import eu.darken.butler.common.files.errors.PathNotFoundException
 import eu.darken.butler.common.files.errors.PathPermissionDeniedException
 import eu.darken.butler.common.files.errors.PathPermissionDeniedException.Reason
@@ -159,6 +163,38 @@ class PermissionErrorClassifierTest : BaseTest() {
 
         PermissionErrorClassifier.classify(e) shouldBe null
         PermissionErrorClassifier.isPermissionError(e) shouldBe false
+    }
+
+    @Test
+    fun `a top-level gone marker is not a permission failure even when it is a PathException`() {
+        // The marker, not the one type, is what pass 4 answers to: a gone-error that also happens
+        // to be a PathException would otherwise fall through to ACCESS_DENIED and offer the user a
+        // permission fix for a file that is simply not there. Only the top level is covered - see
+        // the sibling test for what a nested marker does.
+        val e = object : ReadException(message = "Path does not exist", path = LocalPath.build("/sdcard/gone.txt")),
+            PathGoneError {
+            override fun getLocalizedError(context: LocalizedErrorContext) = LocalizedError(
+                throwable = this,
+                label = "gone".toCaString(),
+                description = "gone".toCaString(),
+            )
+        }
+
+        PermissionErrorClassifier.classify(e) shouldBe null
+        PermissionErrorClassifier.isPermissionError(e) shouldBe false
+    }
+
+    @Test
+    fun `a gone marker nested under a generic wrapper does not veto`() {
+        // Documents the limit rather than endorsing it: pass 4 answers for the first matching chain
+        // link, and the ReadException wrapper is reached before the marker underneath it. Nothing
+        // wraps a gone-error today; if something starts to, this is the test that will say so.
+        val wrapped = ReadException(
+            path = LocalPath.build("/sdcard/gone.txt"),
+            cause = PathNotFoundException(LocalPath.build("/sdcard/gone.txt")),
+        )
+
+        PermissionErrorClassifier.classify(wrapped) shouldBe Reason.ACCESS_DENIED
     }
 
     @Test

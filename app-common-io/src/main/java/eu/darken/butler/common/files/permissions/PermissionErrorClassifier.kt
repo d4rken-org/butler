@@ -4,7 +4,7 @@ import eu.darken.butler.common.ElevatedAccessUnavailableException
 import eu.darken.butler.common.error.causeChain
 import eu.darken.butler.common.files.errors.PathAlreadyExistsException
 import eu.darken.butler.common.files.errors.PathException
-import eu.darken.butler.common.files.errors.PathNotFoundException
+import eu.darken.butler.common.files.errors.PathGoneError
 import eu.darken.butler.common.files.errors.PathPermissionDeniedException
 import eu.darken.butler.common.files.errors.PathPermissionDeniedException.Reason
 import java.io.IOException
@@ -48,8 +48,13 @@ object PermissionErrorClassifier {
         // Pass 4: Generic permission-style exception types without a more specific message.
         for (t in error.causeChain) {
             when (t) {
-                // A path that isn't there is not a path we were kept out of.
-                is PathNotFoundException -> return null
+                // A path that isn't there is not a path we were kept out of. Keyed on the marker
+                // rather than one concrete type, so a gone-error that is also a PathException does
+                // not fall through to the denial below. Like every branch in this loop it answers
+                // for the first chain link that matches, so a marker nested UNDER a generic
+                // PathException wrapper does not veto - the wrapper is reached first. No producer
+                // wraps one today; both are thrown at the top level.
+                is PathGoneError -> return null
                 is PathException -> return Reason.ACCESS_DENIED
                 is SecurityException -> return Reason.ACCESS_DENIED
                 is java.nio.file.AccessDeniedException -> return Reason.ACCESS_DENIED

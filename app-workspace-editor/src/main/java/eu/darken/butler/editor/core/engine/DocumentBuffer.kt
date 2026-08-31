@@ -8,6 +8,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.errors.PathNotFoundException
 import eu.darken.butler.common.files.errors.PathPermissionDeniedException
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.ServiceConnectionLostException
@@ -1603,6 +1604,7 @@ class DocumentBuffer @AssistedInject constructor(
         if (chain.any {
                 it is PathPermissionDeniedException ||
                     it is MissingUriPermissionException ||
+                    it is PathNotFoundException ||
                     it is FileNotFoundException ||
                     it is NoSuchFileException
             }

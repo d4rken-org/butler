@@ -17,6 +17,9 @@
     <string name="path_action_file_exists_description">A file named \"%1$s\" already exists at \"%2$s\".</string>
     <string name="path_action_folder_exists_description">A folder named \"%1$s\" already exists at \"%2$s\".</string>
 
+    <string name="path_action_not_found_title">File is gone</string>
+    <string name="path_action_not_found_description">\"%1$s\" was deleted, renamed or moved somewhere else.</string>
+
     <string name="path_action_permission_denied_title">Permission denied</string>
     <string name="path_action_permission_denied_description">Cannot access \"%1$s\" at \"%2$s\" due to insufficient permissions.</string>
     <string name="path_action_permission_denied_no_mechanism_description">Cannot access \"%1$s\" at \"%2$s\". No method available to perform this operation.</string>
