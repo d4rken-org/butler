@@ -11,7 +11,8 @@ import kotlin.time.Clock
 
 /**
  * @param worldReadable when true the log file is made world read/writable (needed for the legacy
- *   external-storage debug logs). Bug-report recordings live in private `filesDir` and pass `false`.
+ *   external-storage debug logs). Bug-report recordings pass `false`, so `FileLogger` does not make
+ *   their log files world readable or writable.
  */
 class FileLogger(
     private val logFile: File,

@@ -14,6 +14,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.theming.ButlerRootSurface
 import eu.darken.butler.common.theming.ButlerTheme
 import eu.darken.butler.main.core.GeneralSettings
 import eu.darken.butler.main.core.themeStateBlocking
@@ -105,21 +106,23 @@ class WorkspacePreviewCaptureService @Inject constructor(
                         workspaceTitles = workspaceTitles,
                     ) {
                         ButlerTheme(state = themeState) {
-                            WorkspaceMapper(
-                                info = WorkspacePaneInfo(
-                                    id = workspaceId,
-                                    type = workspaceType,
-                                    lifecycleState = Workspace.LifecycleState.Ready,
-                                    // Only Ready is composed here, which draws the page, not a title
-                                    title = workspaceType.label,
-                                ),
-                                design = WorkspaceDesign(
-                                    layout = WorkspaceDesign.Layout.SINGLE
-                                ),
-                                onShareError = { /* No-op for preview */ },
-                                onCloseWorkspace = { /* No-op for preview */ },
-                                onResumeWorkspace = { /* No-op for preview */ },
-                            )
+                            ButlerRootSurface {
+                                WorkspaceMapper(
+                                    info = WorkspacePaneInfo(
+                                        id = workspaceId,
+                                        type = workspaceType,
+                                        lifecycleState = Workspace.LifecycleState.Ready,
+                                        // Only Ready is composed here, which draws the page, not a title
+                                        title = workspaceType.label,
+                                    ),
+                                    design = WorkspaceDesign(
+                                        layout = WorkspaceDesign.Layout.SINGLE
+                                    ),
+                                    onShareError = { /* No-op for preview */ },
+                                    onCloseWorkspace = { /* No-op for preview */ },
+                                    onResumeWorkspace = { /* No-op for preview */ },
+                                )
+                            }
                         }
                     }
                 }

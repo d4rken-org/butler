@@ -29,6 +29,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import java.io.File
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.time.Clock
@@ -52,9 +53,9 @@ class BugReportRepo @Inject constructor(
     private val bugReportRecorder: BugReportRecorder,
     private val butlerId: ButlerId,
     private val json: Json,
+    private val storageLayout: BugReportStorageLayout,
 ) {
 
-    private val reportsDir = BugReportStorage.reportsDir(context)
     private val shareDir = BugReportStorage.shareDir(context)
     private val refreshTrigger = MutableStateFlow(0)
 
@@ -121,8 +122,7 @@ class BugReportRepo @Inject constructor(
     }
 
     suspend fun markSeen(id: String) = withContext(dispatcherProvider.IO) {
-        val dir = File(reportsDir, id)
-        if (dir.isDirectory) {
+        resolveReportDir(id)?.let { dir ->
             val marker = File(dir, BugReportStorage.SEEN_MARKER)
             if (!marker.exists()) runCatching { marker.createNewFile() }
         }
@@ -130,8 +130,10 @@ class BugReportRepo @Inject constructor(
     }
 
     suspend fun delete(id: String) = withContext(dispatcherProvider.IO) {
-        require(id != bugReportRecorder.state.value.recordingId) { "Cannot delete an active recording" }
-        File(reportsDir, id).deleteRecursively()
+        require(!bugReportRecorder.isActiveOrStarting(id)) { "Cannot delete an active recording" }
+        // Every copy, not just the one scan() lists: dropping only the listed copy would let the
+        // shadowed one take its place in the very next scan.
+        storageLayout.allReportDirs(id).forEach { it.deleteRecursively() }
         File(shareDir, "$id.zip").delete()
         refresh()
     }
@@ -142,10 +144,12 @@ class BugReportRepo @Inject constructor(
         // before publishing the id to recorder state, so the sentinel check also covers a recording
         // that is mid-start when delete-all fires.
         val activeId = bugReportRecorder.state.value.recordingId
-        reportsDir.listFiles()?.forEach { entry ->
-            if (entry.name == activeId) return@forEach
-            if (entry.isDirectory && File(entry, BugReportStorage.RECORDING_SENTINEL).exists()) return@forEach
-            if (entry.isDirectory) entry.deleteRecursively() else entry.delete()
+        storageLayout.roots.forEach { root ->
+            root.listFiles()?.forEach { entry ->
+                if (entry.name == activeId) return@forEach
+                if (entry.isDirectory && File(entry, BugReportStorage.RECORDING_SENTINEL).exists()) return@forEach
+                if (entry.isDirectory) entry.deleteRecursively() else entry.delete()
+            }
         }
         shareDir.listFiles()?.forEach { zip ->
             if (activeId != null && zip.name == "$activeId.zip") return@forEach
@@ -156,7 +160,8 @@ class BugReportRepo @Inject constructor(
 
     /** Full log trail; loaded on demand because it can be large. Kept for callers needing the whole log. */
     suspend fun readLog(id: String): String = withContext(dispatcherProvider.IO) {
-        File(File(reportsDir, id), BugReportStorage.LOG_FILE).takeIf { it.exists() }?.readText() ?: ""
+        val dir = resolveReportDir(id) ?: return@withContext ""
+        File(dir, BugReportStorage.LOG_FILE).takeIf { it.exists() }?.readText() ?: ""
     }
 
     /**
@@ -166,7 +171,8 @@ class BugReportRepo @Inject constructor(
      */
     suspend fun readLogTail(id: String, maxLines: Int): LogTail = withContext(dispatcherProvider.IO) {
         require(maxLines > 0) { "maxLines must be > 0, was $maxLines" }
-        val file = File(File(reportsDir, id), BugReportStorage.LOG_FILE)
+        val dir = resolveReportDir(id) ?: return@withContext LogTail(emptyList(), 0)
+        val file = File(dir, BugReportStorage.LOG_FILE)
         if (!file.exists()) return@withContext LogTail(emptyList(), 0)
         val ring = ArrayDeque<String>(maxLines)
         var total = 0
@@ -190,18 +196,43 @@ class BugReportRepo @Inject constructor(
      * (Re)create the report's share zip under the cache dir and return a [FileProvider] uri. Used both
      * by [buildShareIntent] and by the support contact form when attaching a report to an email.
      */
-    suspend fun buildShareUri(id: String): Uri = withContext(dispatcherProvider.IO) {
+    suspend fun buildShareUri(id: String): Uri {
+        val zip = buildShareZip(id)
+        return FileProvider.getUriForFile(context, "${BuildConfigWrap.APPLICATION_ID}.provider", zip)
+    }
+
+    /**
+     * (Re)create the report's share zip: `meta.json`, `report.log` and the helper logs the privileged
+     * hosts wrote during a recording ([BugReportStorage.payloadFiles]).
+     *
+     * Built under a temporary name and renamed on success, because [Zipper] leaves its output behind
+     * when compression throws — a half-written `<id>.zip` would then be shared as if it were whole.
+     */
+    suspend fun buildShareZip(id: String): File = withContext(dispatcherProvider.IO) {
         require(id != bugReportRecorder.state.value.recordingId) { "Cannot share an active recording" }
-        val reportDir = File(reportsDir, id)
-        val files = listOf(File(reportDir, BugReportStorage.META_FILE), File(reportDir, BugReportStorage.LOG_FILE))
-            .filter { it.exists() }
+        val files = resolveReportDir(id)?.let { BugReportStorage.payloadFiles(it) } ?: emptyList()
         require(files.isNotEmpty()) { "No report files for $id" }
 
         if (!shareDir.exists()) shareDir.mkdirs()
-        val zip = File(shareDir, "$id.zip")
-        Zipper().zip(files.map { it.path }, zip.path)
+        val payloadSize = files.sumOf { it.length() }
+        val usableSpace = shareDir.usableSpace
+        // A recording can be tens of MB and the zip is a second copy of it. Failing here is a message
+        // the user can act on; filling the cache volume instead breaks unrelated features.
+        check(usableSpace > payloadSize) {
+            "Not enough space for the share zip of $id: needs up to $payloadSize bytes, $usableSpace available"
+        }
 
-        FileProvider.getUriForFile(context, "${BuildConfigWrap.APPLICATION_ID}.provider", zip)
+        val zip = File(shareDir, "$id.zip")
+        val tmpZip = File(shareDir, "$id.zip${BugReportStorage.TMP_SUFFIX}")
+        try {
+            Zipper().zip(files.map { it.path }, tmpZip.path)
+            zip.delete()
+            if (!tmpZip.renameTo(zip)) throw IOException("Could not finalize the share zip for $id")
+        } catch (t: Throwable) {
+            runCatching { tmpZip.delete() }
+            throw t
+        }
+        zip
     }
 
     /**
@@ -244,8 +275,9 @@ class BugReportRepo @Inject constructor(
 
     /** Two-phase write: build under `.tmp-<id>`, then atomically rename so the scanner never sees a partial dir. */
     private fun writeReport(report: BugReport, logSnapshot: String) {
-        val tmpDir = File(reportsDir, "${BugReportStorage.TMP_PREFIX}${report.id}")
-        val finalDir = File(reportsDir, report.id)
+        val writeRoot = storageLayout.writeRoot
+        val tmpDir = File(writeRoot, "${BugReportStorage.TMP_PREFIX}${report.id}")
+        val finalDir = File(writeRoot, report.id)
         try {
             if (tmpDir.exists()) tmpDir.deleteRecursively()
             tmpDir.mkdirs()
@@ -263,56 +295,81 @@ class BugReportRepo @Inject constructor(
         }
     }
 
+    /**
+     * The copy of [id] that [scan] surfaced: the first root holding a valid report directory. A
+     * corrupt external copy must not shadow the readable private one the list is showing.
+     */
+    private fun resolveReportDir(id: String): File? = storageLayout
+        .allReportDirs(id)
+        .firstOrNull { readReport(it) != null }
+
+    /** Parses a report directory, or null if it is a temp dir, incomplete, unreadable or mislabelled. */
+    private fun readReport(dir: File): BugReport? {
+        if (!dir.isDirectory) return null
+        // Skip (never delete) in-progress temp dirs — deleting here would race a concurrent
+        // write. Stale temp dirs are reaped on init via reapStaleTempDirs().
+        if (dir.name.startsWith(BugReportStorage.TMP_PREFIX)) return null
+        val meta = File(dir, BugReportStorage.META_FILE)
+        // Require both files so a partially-written/copied dir is never treated as complete.
+        // (An ongoing recording always has both: meta.json + report.log are created before the
+        // .recording sentinel.)
+        if (!meta.exists() || !File(dir, BugReportStorage.LOG_FILE).exists()) return null
+        val report = try {
+            json.decodeFromString(BugReport.serializer(), meta.readText())
+        } catch (e: Exception) {
+            log(TAG, WARN) { "Skipping unreadable report ${dir.name}: ${e.message}" }
+            return null
+        }
+        // id doubles as the storage path for delete/prune/share — reject any mismatch.
+        if (report.id != dir.name) {
+            log(TAG, WARN) { "Skipping report with id/dir mismatch: ${report.id} vs ${dir.name}" }
+            return null
+        }
+        return report
+    }
+
     private fun scan(): List<BugReportInfo> {
-        val children = reportsDir.listFiles() ?: return emptyList()
-        return children.mapNotNull { dir ->
-            if (!dir.isDirectory) return@mapNotNull null
-            // Skip (never delete) in-progress temp dirs — deleting here would race a concurrent
-            // write. Stale temp dirs are reaped on init via reapStaleTempDirs().
-            if (dir.name.startsWith(BugReportStorage.TMP_PREFIX)) return@mapNotNull null
-            val meta = File(dir, BugReportStorage.META_FILE)
-            val logFile = File(dir, BugReportStorage.LOG_FILE)
-            // Require both files so a partially-written/copied dir is never treated as complete.
-            // (An ongoing recording always has both: meta.json + report.log are created before the
-            // .recording sentinel.)
-            if (!meta.exists() || !logFile.exists()) return@mapNotNull null
-            val report = try {
-                json.decodeFromString(BugReport.serializer(), meta.readText())
-            } catch (e: Exception) {
-                log(TAG, WARN) { "Skipping unreadable report ${dir.name}: ${e.message}" }
-                return@mapNotNull null
+        // Keyed by id: the same report can exist under both roots, and two entries with the same key
+        // would crash the workspace list. First root wins, matching resolveReportDir().
+        val byId = LinkedHashMap<String, BugReportInfo>()
+        storageLayout.roots.forEach { root ->
+            root.listFiles()?.forEach { dir ->
+                val report = readReport(dir) ?: return@forEach
+                if (byId.containsKey(report.id)) {
+                    log(TAG, WARN) { "Duplicate report id ${report.id}, ignoring the copy in ${dir.path}" }
+                    return@forEach
+                }
+                val logFile = File(dir, BugReportStorage.LOG_FILE)
+                // "Ongoing" is tied to the live recorder, not just the sentinel: a recording interrupted
+                // by process death keeps a stale sentinel until the init sweep clears it, but it is a
+                // complete, surfaceable report — so it shows as a normal report immediately instead of
+                // vanishing from the list during the brief startup-cleanup window.
+                val isOngoing = File(dir, BugReportStorage.RECORDING_SENTINEL).exists() &&
+                    dir.name == bugReportRecorder.state.value.recordingId
+                byId[report.id] = BugReportInfo(
+                    report = report,
+                    // Ongoing recordings are implicitly "seen" — they never count as an unseen crash.
+                    isSeen = isOngoing || File(dir, BugReportStorage.SEEN_MARKER).exists(),
+                    isOngoingRecording = isOngoing,
+                    recordingLogSize = if (isOngoing) logFile.length() else 0L,
+                    logSizeBytes = logFile.length(),
+                )
             }
-            // id doubles as the storage path for delete/prune/share — reject any mismatch.
-            if (report.id != dir.name) {
-                log(TAG, WARN) { "Skipping report with id/dir mismatch: ${report.id} vs ${dir.name}" }
-                return@mapNotNull null
-            }
-            // "Ongoing" is tied to the live recorder, not just the sentinel: a recording interrupted
-            // by process death keeps a stale sentinel until the init sweep clears it, but it is a
-            // complete, surfaceable report — so it shows as a normal report immediately instead of
-            // vanishing from the list during the brief startup-cleanup window.
-            val isOngoing = File(dir, BugReportStorage.RECORDING_SENTINEL).exists() &&
-                dir.name == bugReportRecorder.state.value.recordingId
-            BugReportInfo(
-                report = report,
-                // Ongoing recordings are implicitly "seen" — they never count as an unseen crash.
-                isSeen = isOngoing || File(dir, BugReportStorage.SEEN_MARKER).exists(),
-                isOngoingRecording = isOngoing,
-                recordingLogSize = if (isOngoing) logFile.length() else 0L,
-                logSizeBytes = logFile.length(),
-            )
-        }.sortedByDescending { it.report.createdAt }
+        }
+        return byId.values.sortedByDescending { it.report.createdAt }
     }
 
     /** Remove temp dirs left by interrupted writes, but only past the write grace window. */
     private fun reapStaleTempDirs() {
         val now = System.currentTimeMillis()
-        reportsDir.listFiles()?.forEach { dir ->
-            if (dir.isDirectory &&
-                dir.name.startsWith(BugReportStorage.TMP_PREFIX) &&
-                now - dir.lastModified() > TMP_GRACE_MS
-            ) {
-                runCatching { dir.deleteRecursively() }
+        storageLayout.roots.forEach { root ->
+            root.listFiles()?.forEach { dir ->
+                if (dir.isDirectory &&
+                    dir.name.startsWith(BugReportStorage.TMP_PREFIX) &&
+                    now - dir.lastModified() > TMP_GRACE_MS
+                ) {
+                    runCatching { dir.deleteRecursively() }
+                }
             }
         }
     }
@@ -322,7 +379,7 @@ class BugReportRepo @Inject constructor(
         val valid = scan().filter { !it.isOngoingRecording }
         if (valid.size <= MAX_REPORTS) return
         valid.drop(MAX_REPORTS).forEach { stale ->
-            File(reportsDir, stale.id).deleteRecursively()
+            storageLayout.allReportDirs(stale.id).forEach { it.deleteRecursively() }
             File(shareDir, "${stale.id}.zip").delete()
             log(TAG) { "Pruned old report: ${stale.id}" }
         }

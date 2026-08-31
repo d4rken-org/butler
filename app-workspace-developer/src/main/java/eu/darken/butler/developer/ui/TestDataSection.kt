@@ -2,6 +2,7 @@ package eu.darken.butler.developer.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,7 +29,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
@@ -41,7 +41,7 @@ import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.*
 @Composable
 internal fun TestDataSection(
     testDataState: TestDataState,
-    bottomPadding: Dp = 0.dp,
+    contentPadding: PaddingValues = PaddingValues(0.dp),
     onAddPath: () -> Unit,
     onRemovePath: (APath<*>) -> Unit,
     onLargeFilesToggled: (Boolean) -> Unit,
@@ -143,7 +143,7 @@ internal fun TestDataSection(
         Button(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = bottomPadding),
+                .padding(contentPadding),
             onClick = onGenerateTestHistory,
         ) {
             Text(text = stringResource(R.string.developer_testdata_history_generate_action))

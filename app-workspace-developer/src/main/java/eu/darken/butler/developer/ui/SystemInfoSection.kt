@@ -13,7 +13,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
@@ -25,11 +24,11 @@ import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.SystemInfo
 @Composable
 internal fun SystemInfoSection(
     systemInfo: SystemInfo,
-    bottomPadding: Dp = 0.dp,
+    contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(8.dp),
-        contentPadding = PaddingValues(bottom = bottomPadding),
+        contentPadding = contentPadding,
     ) {
         // Device Section
         item {

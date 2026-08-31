@@ -14,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
@@ -21,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import eu.darken.butler.common.compose.ButlerChip
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
+import eu.darken.butler.common.compose.OnValueChange
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import androidx.compose.runtime.collectAsState
@@ -29,7 +31,11 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.DeveloperTab
 import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.Factory
+import eu.darken.butler.workspace.ui.floatingbar.BarPosition
+import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
+import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarContentPadding
 import eu.darken.butler.workspace.ui.insets.paneInsets
+import eu.darken.butler.workspace.ui.insets.rememberPaneFloatingBarStackState
 import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
 import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.OptionsState
 import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.State
@@ -48,7 +54,8 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceButtonDefaults
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
-import eu.darken.butler.workspace.ui.operations.bar.OperationsBar
+import eu.darken.butler.workspace.ui.operations.bar.OperationsBarAction
+import eu.darken.butler.workspace.ui.operations.bar.WorkspaceOperationsFloatingBar
 
 @Composable
 fun DeveloperWorkspacePageHost(
@@ -155,11 +162,22 @@ fun DeveloperWorkspacePage(
 ) {
     val paneInsets = design.paneInsets()
     val statusBarInset = paneInsets.top
-    val navBarInset = paneInsets.bottom
 
-    // Calculate bottom padding for content sections
-    val hasOperations = operationsState.operations.isNotEmpty()
-    val bottomPadding = navBarInset + if (hasOperations) 80.dp else 16.dp
+    val bottomBarStackState = rememberPaneFloatingBarStackState(
+        position = BarPosition.BOTTOM,
+        workspaceId = workspaceId,
+        design = design,
+        defaultSpacing = 8.dp,
+        edgePadding = 8.dp,
+        contentPadding = 16.dp,
+        estimatedContentPadding = 80.dp,
+    )
+
+    val contentPadding = rememberFloatingBarContentPadding(bottomStackState = bottomBarStackState)
+
+    // A different tab is fresh content; reset scroll-collapse so the bar doesn't stay hidden over it.
+    // Guarded on the transition: firing on initial composition would undo the restored collapse state.
+    OnValueChange(state.selectedTab) { _, _ -> bottomBarStackState.resetScrollCollapse() }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -208,16 +226,17 @@ fun DeveloperWorkspacePage(
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .nestedScroll(bottomBarStackState.nestedScrollConnection)
                 .padding(horizontal = WorkspacePaddings.ContentHorizontal)
         ) {
             when (state.selectedTab) {
                 DeveloperTab.SYSTEM -> SystemInfoSection(
                     systemInfo = state.systemInfo,
-                    bottomPadding = bottomPadding,
+                    contentPadding = contentPadding,
                 )
                 DeveloperTab.OPTIONS -> OptionsSection(
                     optionsState = state.optionsState,
-                    bottomPadding = bottomPadding,
+                    contentPadding = contentPadding,
                     onToggleDebugMode = onToggleDebugMode,
                     onToggleTraceMode = onToggleTraceMode,
                     onToggleFloatingLog = onToggleFloatingLog,
@@ -228,13 +247,13 @@ fun DeveloperWorkspacePage(
                 DeveloperTab.LOGS -> LogsSection(
                     logs = state.logLines,
                     isPaused = state.isLogPaused,
-                    bottomPadding = bottomPadding,
+                    contentPadding = contentPadding,
                     onTogglePause = onToggleLogPause,
                     onClear = onClearLogs,
                 )
                 DeveloperTab.TEST_DATA -> TestDataSection(
                     testDataState = state.testDataState,
-                    bottomPadding = bottomPadding,
+                    contentPadding = contentPadding,
                     onAddPath = onAddPath,
                     onRemovePath = onRemovePath,
                     onLargeFilesToggled = onLargeFilesToggled,
@@ -248,19 +267,28 @@ fun DeveloperWorkspacePage(
         }
 
         // Operations bar at bottom
-        if (operationsState.operations.isNotEmpty()) {
-            OperationsBar(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(horizontal = 16.dp)
-                    .padding(bottom = navBarInset + 16.dp),
-                operations = operationsState.operations,
-                onRequestCancelOperation = onRequestCancelOperation,
-                onDismissOperation = onDismissOperation,
-                onOperationClick = { onShowOperationDetails(it.id) },
-                onClearCompleted = onClearCompletedOperations,
-            )
-        }
+        FloatingBarStack(
+            state = bottomBarStackState,
+            position = BarPosition.BOTTOM,
+            modifier = Modifier.align(Alignment.BottomCenter),
+            bars = {
+                WorkspaceOperationsFloatingBar(
+                    key = DeveloperBarKeys.OPERATIONS,
+                    operations = operationsState.operations,
+                    onAction = { action ->
+                        when (action) {
+                            is OperationsBarAction.RequestCancel -> onRequestCancelOperation(action.id)
+                            is OperationsBarAction.Dismiss -> onDismissOperation(action.id)
+                            // No conflict sheet in this workspace, so a waiting operation opens details,
+                            // which is what the bar did before it moved onto the shared stack.
+                            is OperationsBarAction.ShowConflict -> onShowOperationDetails(action.id)
+                            is OperationsBarAction.ShowDetails -> onShowOperationDetails(action.id)
+                            OperationsBarAction.ClearCompleted -> onClearCompletedOperations()
+                        }
+                    },
+                )
+            },
+        )
     }
 }
 

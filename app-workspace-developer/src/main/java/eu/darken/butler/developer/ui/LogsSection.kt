@@ -22,7 +22,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
@@ -33,7 +32,7 @@ import eu.darken.butler.developer.R
 internal fun LogsSection(
     logs: List<String>,
     isPaused: Boolean,
-    bottomPadding: Dp = 0.dp,
+    contentPadding: PaddingValues = PaddingValues(0.dp),
     onTogglePause: () -> Unit,
     onClear: () -> Unit,
 ) {
@@ -75,7 +74,7 @@ internal fun LogsSection(
                 modifier = Modifier
                     .fillMaxSize()
                     .horizontalScroll(horizontalScrollState),
-                contentPadding = PaddingValues(bottom = bottomPadding),
+                contentPadding = contentPadding,
             ) {
                 items(logs) { line ->
                     Text(

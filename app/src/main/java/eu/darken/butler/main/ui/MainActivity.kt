@@ -57,6 +57,7 @@ import eu.darken.butler.common.navigation.NavigationDestination
 import eu.darken.butler.common.navigation.NavigationEntry
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.navigation.onboarding
+import eu.darken.butler.common.theming.ButlerRootSurface
 import eu.darken.butler.common.theming.ButlerTheme
 import eu.darken.butler.common.ui.Activity2
 import eu.darken.butler.common.hasApiLevel
@@ -158,38 +159,40 @@ class MainActivity : Activity2() {
                     window.decorView.setBackgroundColor(backgroundColor.toArgb())
                 }
 
-                CompositionLocalProvider(
-                    LocalNavigationController provides navCtrl,
-                    LocalUserActivity provides userActivityTracker,
-                ) {
-                    ErrorEventHandler(vm)
-                    NavigationEventHandler(vm)
+                ButlerRootSurface {
+                    CompositionLocalProvider(
+                        LocalNavigationController provides navCtrl,
+                        LocalUserActivity provides userActivityTracker,
+                    ) {
+                        ErrorEventHandler(vm)
+                        NavigationEventHandler(vm)
 
-                    vmState?.let { mainState ->
-                        LaunchedEffect(mainState) {
-                            log(TAG) { "Main state: $mainState" }
-                        }
-                        CompositionLocalProvider(
-                            LocalAvoidDisplayCutout provides mainState.avoidDisplayCutout,
-                        ) {
-                            Navigation(mainState)
+                        vmState?.let { mainState ->
+                            LaunchedEffect(mainState) {
+                                log(TAG) { "Main state: $mainState" }
+                            }
+                            CompositionLocalProvider(
+                                LocalAvoidDisplayCutout provides mainState.avoidDisplayCutout,
+                            ) {
+                                Navigation(mainState)
 
-                            // During onboarding the arrival stays pending: the dialog shows up once
-                            // the user is through and the workspace UI can actually take the file.
-                            val externalOpen by vm.externalOpen.collectAsState()
-                            externalOpen
-                                ?.takeIf { mainState.startScreen == MainViewModel.State.StartScreen.HOME }
-                                ?.let { arrival ->
-                                    ExternalOpenDialog(
-                                        displayName = arrival.displayName,
-                                        mime = arrival.mime,
-                                        sizeBytes = arrival.sizeBytes,
-                                        previewUri = arrival.originalUri.takeIf { arrival.mime.isImage },
-                                        options = arrival.options,
-                                        onOption = { vm.onExternalOpenAction(it) },
-                                        onDismiss = { vm.onExternalOpenDismiss() },
-                                    )
-                                }
+                                // During onboarding the arrival stays pending: the dialog shows up once
+                                // the user is through and the workspace UI can actually take the file.
+                                val externalOpen by vm.externalOpen.collectAsState()
+                                externalOpen
+                                    ?.takeIf { mainState.startScreen == MainViewModel.State.StartScreen.HOME }
+                                    ?.let { arrival ->
+                                        ExternalOpenDialog(
+                                            displayName = arrival.displayName,
+                                            mime = arrival.mime,
+                                            sizeBytes = arrival.sizeBytes,
+                                            previewUri = arrival.originalUri.takeIf { arrival.mime.isImage },
+                                            options = arrival.options,
+                                            onOption = { vm.onExternalOpenAction(it) },
+                                            onDismiss = { vm.onExternalOpenDismiss() },
+                                        )
+                                    }
+                            }
                         }
                     }
                 }

@@ -37,7 +37,10 @@ import kotlin.time.Instant
 class BugReportRecorderTest : BaseTest() {
 
     private val context: Context get() = ApplicationProvider.getApplicationContext()
-    private val reportsDir get() = File(context.filesDir, "bugreports")
+    private val storageLayout by lazy { BugReportStorageLayout(context) }
+    private val recorderPathPublisher = RecorderPathPublisher()
+    private val reportsDir get() = storageLayout.writeRoot
+    private val privateReportsDir get() = File(context.filesDir, "bugreports")
 
     /**
      * Test-controlled clocks, handed to the recorder's two seams. The durations under test are
@@ -60,6 +63,8 @@ class BugReportRecorderTest : BaseTest() {
         dispatcherProvider = TestDispatcherProvider(),
         butlerId = ButlerId(context),
         json = Json { ignoreUnknownKeys = true },
+        storageLayout = storageLayout,
+        recorderPathPublisher = recorderPathPublisher,
         upgradeDiagnostics = upgradeDiagnostics,
     ).apply {
         wallClock = { clocks.wall }
@@ -122,6 +127,39 @@ class BugReportRecorderTest : BaseTest() {
         File(dir, ".recording").exists() shouldBe false
         File(dir, "meta.json").exists() shouldBe true
         File(dir, "report.log").exists() shouldBe true
+    }
+
+    @Test
+    fun `start publishes the report directory to the privileged helpers`() = withRecorder { recorder ->
+        recorder.start()
+
+        val id = recorder.state.value.recordingId!!
+        recorderPathPublisher.path.value shouldBe File(reportsDir, id).path
+    }
+
+    @Test
+    fun `stopping retracts the published path`() = withRecorder { recorder ->
+        recorder.start()
+        recorderPathPublisher.path.value shouldNotBe null
+
+        recorder.forceStop()
+
+        recorderPathPublisher.path.value shouldBe null
+    }
+
+    @Test
+    fun `a start that cannot set up its files publishes no path`() {
+        // A plain file where the report root belongs: the report directory cannot be created, so
+        // start() rolls back before it would publish.
+        reportsDir.parentFile!!.mkdirs()
+        reportsDir.writeText("not a directory")
+
+        withRecorder { recorder ->
+            recorder.start()
+
+            recorder.state.value.isRecording shouldBe false
+            recorderPathPublisher.path.value shouldBe null
+        }
     }
 
     @Test
@@ -218,6 +256,28 @@ class BugReportRecorderTest : BaseTest() {
             clocks.monotonic += 3_000L
             recorder.requestStop().shouldBeInstanceOf<BugReportRecorder.StopResult.Stopped>()
             recorder.state.value.isRecording shouldBe false
+        }
+    }
+
+    @Test
+    fun `the recording id is published before the session infos are logged`() {
+        // Deletion keys "active recording" on the published id, and the report directory is already
+        // on disk while the session infos are being collected — a null id there is a deletable report.
+        var started: BugReportRecorder? = null
+        var idDuringDiagnostics: String? = null
+        val provider = object : UpgradeDiagnostics {
+            override suspend fun debugInfo(): String {
+                idDuringDiagnostics = started!!.state.value.recordingId
+                return "info"
+            }
+        }
+
+        withRecorder(upgradeDiagnostics = setOf(provider)) { recorder ->
+            started = recorder
+            recorder.start()
+
+            idDuringDiagnostics shouldNotBe null
+            idDuringDiagnostics shouldBe recorder.state.value.recordingId
         }
     }
 
@@ -337,6 +397,21 @@ class BugReportRecorderTest : BaseTest() {
         interrupted.exists() shouldBe true
         File(interrupted, ".recording").exists() shouldBe false
         incomplete.exists() shouldBe false
+    }
+
+    @Test
+    fun `sweep finalizes an interrupted recording in the legacy root`() = runTest {
+        // Written by a version that still recorded into filesDir: deleteAll() skips a directory with a
+        // sentinel, so a sweep that only looks at the write root would leave this one undeletable.
+        val interrupted = File(privateReportsDir, "recording_5_eeee").apply { mkdirs() }
+        File(interrupted, "meta.json").writeText("{}")
+        File(interrupted, "report.log").writeText("x")
+        File(interrupted, ".recording").createNewFile()
+
+        createRecorder(CoroutineScope(Dispatchers.Unconfined), TestClocks()).sweepOrphanedSentinels()
+
+        interrupted.exists() shouldBe true
+        File(interrupted, ".recording").exists() shouldBe false
     }
 
     private class RecordingLogger : Logging.Logger {

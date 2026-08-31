@@ -55,11 +55,13 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
+import eu.darken.butler.common.compose.tour.guidedTourTarget
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.icon
 import eu.darken.butler.workspace.core.label
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerViewModel
 import eu.darken.butler.workspace.ui.manager.rows.preview.WorkspacePreview
+import eu.darken.butler.workspace.ui.manager.tour.WorkspaceManagerTour
 import eu.darken.butler.common.R as CommonR
 import eu.darken.butler.workspace.R as WorkspaceR
 
@@ -86,6 +88,7 @@ fun WorkspaceGridItem(
     isVisibleInPane: Boolean = false,
     isSelectionActive: Boolean = false,
     isChecked: Boolean = false,
+    isTourAnchor: Boolean = false,
     currentPaneCount: Int = 1,
 ) {
     val haptic = LocalHapticFeedback.current
@@ -102,6 +105,19 @@ fun WorkspaceGridItem(
     val needsAttention = workspace.attentionCount > 0
     val attentionColor = MaterialTheme.colorScheme.error
     var showOverflowMenu by remember { mutableStateOf(false) }
+
+    // The tour cuts out the header and the preview separately, because the same long press means
+    // reorder on one and select on the other.
+    val reorderTourAnchor = if (isTourAnchor) {
+        Modifier.guidedTourTarget(WorkspaceManagerTour.REORDER_TARGET)
+    } else {
+        Modifier
+    }
+    val selectTourAnchor = if (isTourAnchor) {
+        Modifier.guidedTourTarget(WorkspaceManagerTour.SELECT_TARGET)
+    } else {
+        Modifier
+    }
 
     val glowModifier = if (needsAttention) {
         Modifier.drawBehind {
@@ -164,6 +180,7 @@ fun WorkspaceGridItem(
                                     haptic.performHapticFeedback(HapticFeedbackType.GestureEnd)
                                 },
                             )
+                            .then(reorderTourAnchor)
                     },
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -322,7 +339,8 @@ fun WorkspaceGridItem(
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 if (isSelectionActive) onToggleSelection() else onStartSelection()
                             },
-                        ),
+                        )
+                        .then(selectTourAnchor),
                 ) {
                     WorkspacePreview(
                         modifier = Modifier.fillMaxWidth(),

@@ -59,6 +59,8 @@ class BugReportRecorder @Inject constructor(
     private val dispatcherProvider: DispatcherProvider,
     private val butlerId: ButlerId,
     private val json: Json,
+    private val storageLayout: BugReportStorageLayout,
+    private val recorderPathPublisher: RecorderPathPublisher,
     // Multibound set, never a single binding: the implementations live in the flavor source sets of
     // :app, and app-common must build (and record) whether or not one was contributed.
     private val upgradeDiagnostics: Set<@JvmSuppressWildcards UpgradeDiagnostics>,
@@ -87,8 +89,6 @@ class BugReportRecorder @Inject constructor(
     private val internalState = MutableStateFlow(State())
     val state: StateFlow<State> = internalState.asStateFlow()
 
-    private val reportsDir: File get() = BugReportStorage.reportsDir(context)
-
     /** Begin a recording. Idempotent (no-op if already recording). Never throws. */
     suspend fun start() = mutex.withLock {
         try {
@@ -100,7 +100,7 @@ class BugReportRecorder @Inject constructor(
             // setup time from the measured duration, changing what the existing heuristic measures.
             val startedAtMonotonic = monotonicClock()
             val id = "${BugReportStorage.RECORDING_ID_PREFIX}${now.toEpochMilliseconds()}_${Uuid.random().toString().take(8)}"
-            val reportDir = File(reportsDir, id)
+            val reportDir = File(storageLayout.writeRoot, id)
             reportDir.mkdirs()
 
             // meta.json first: a crash mid-recording still leaves a complete, surfaceable report.
@@ -119,9 +119,10 @@ class BugReportRecorder @Inject constructor(
             fileLogger = logger
 
             File(reportDir, BugReportStorage.RECORDING_SENTINEL).createNewFile()
+            recorderPathPublisher.publish(reportDir.path)
 
-            logSessionInfos()
-
+            // Committed before the session infos are logged: those reads take seconds, and until the
+            // id is published the finished report directory on disk has nothing marking it as live.
             startedAtMonotonicMs = startedAtMonotonic
             internalState.value = State(
                 isRecording = true,
@@ -130,6 +131,9 @@ class BugReportRecorder @Inject constructor(
                 currentLogSize = File(reportDir, BugReportStorage.LOG_FILE).length(),
             )
             startLogSizeUpdates(reportDir)
+
+            logSessionInfos()
+
             log(TAG, INFO) { "Recording started: $id" }
         } catch (e: Throwable) {
             log(TAG, ERROR) { "start() failed: ${e.asLog()}" }
@@ -158,6 +162,15 @@ class BugReportRecorder @Inject constructor(
         id?.let { StopResult.Stopped(it) }
     }
 
+    /**
+     * Whether [id] is the recording this recorder currently owns. Takes [mutex] rather than reading
+     * [state] directly: [start] runs wholly under the lock, so a caller blocks until a start in
+     * flight has either published its id or rolled back, instead of observing the window in between.
+     */
+    internal suspend fun isActiveOrStarting(id: String): Boolean = mutex.withLock {
+        internalState.value.recordingId == id
+    }
+
     private fun stopInternal() {
         fileLogger?.let {
             log(TAG, INFO) { "Stopping recording logger: $it" }
@@ -165,10 +178,11 @@ class BugReportRecorder @Inject constructor(
             it.stop()
         }
         fileLogger = null
+        recorderPathPublisher.publish(null)
         startedAtMonotonicMs = 0L
         val id = internalState.value.recordingId
         if (id != null) {
-            runCatching { File(File(reportsDir, id), BugReportStorage.RECORDING_SENTINEL).delete() }
+            runCatching { File(File(storageLayout.writeRoot, id), BugReportStorage.RECORDING_SENTINEL).delete() }
         }
         internalState.value = State()
     }
@@ -197,22 +211,26 @@ class BugReportRecorder @Inject constructor(
     suspend fun sweepOrphanedSentinels() = mutex.withLock {
         if (!isMainProcess()) return@withLock
         val activeId = internalState.value.recordingId
-        reportsDir.listFiles()?.forEach { dir ->
-            if (!dir.isDirectory) return@forEach
-            if (dir.name.startsWith(BugReportStorage.TMP_PREFIX)) return@forEach
-            if (!dir.name.startsWith(BugReportStorage.RECORDING_ID_PREFIX)) return@forEach
-            if (dir.name == activeId) return@forEach
-            val logFile = File(dir, BugReportStorage.LOG_FILE)
-            if (logFile.exists()) {
-                val sentinel = File(dir, BugReportStorage.RECORDING_SENTINEL)
-                if (sentinel.exists()) {
-                    runCatching { sentinel.delete() }
-                    log(TAG, WARN) { "Finalized interrupted recording: ${dir.name}" }
+        // Every root: a sentinel left behind by a version that still wrote to the private root would
+        // otherwise stay forever, and a sentinel-bearing directory is skipped by deleteAll().
+        storageLayout.roots.forEach { root ->
+            root.listFiles()?.forEach { dir ->
+                if (!dir.isDirectory) return@forEach
+                if (dir.name.startsWith(BugReportStorage.TMP_PREFIX)) return@forEach
+                if (!dir.name.startsWith(BugReportStorage.RECORDING_ID_PREFIX)) return@forEach
+                if (dir.name == activeId) return@forEach
+                val logFile = File(dir, BugReportStorage.LOG_FILE)
+                if (logFile.exists()) {
+                    val sentinel = File(dir, BugReportStorage.RECORDING_SENTINEL)
+                    if (sentinel.exists()) {
+                        runCatching { sentinel.delete() }
+                        log(TAG, WARN) { "Finalized interrupted recording: ${dir.name}" }
+                    }
+                } else {
+                    // Died between meta.json and report.log creation — incomplete, never surfaceable.
+                    runCatching { dir.deleteRecursively() }
+                    log(TAG, WARN) { "Dropped incomplete recording dir: ${dir.name}" }
                 }
-            } else {
-                // Died between meta.json and report.log creation — incomplete, never surfaceable.
-                runCatching { dir.deleteRecursively() }
-                log(TAG, WARN) { "Dropped incomplete recording dir: ${dir.name}" }
             }
         }
     }

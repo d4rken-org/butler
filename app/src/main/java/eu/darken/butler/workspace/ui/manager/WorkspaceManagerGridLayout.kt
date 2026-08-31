@@ -6,8 +6,9 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,6 +32,11 @@ import eu.darken.butler.workspace.ui.manager.rows.WorkspaceStatusCard
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyGridState
 
+object WorkspaceManagerGridDefaults {
+    /** The status card occupies grid slot 0 whenever there is at least one tab. */
+    const val FIRST_WORKSPACE_CARD_INDEX = 1
+}
+
 @Composable
 fun WorkspaceManagerGridLayout(
     modifier: Modifier = Modifier,
@@ -50,6 +56,7 @@ fun WorkspaceManagerGridLayout(
     onClearSelection: () -> Unit = {},
     onOperationsFilterClick: () -> Unit = {},
     onAttentionFilterClick: () -> Unit = {},
+    lazyGridState: LazyGridState = rememberLazyGridState(),
 ) {
     val tag = logTag("Workspace", "Manager", "GridLayout")
     var localWorkspaceItems by remember { mutableStateOf(state.filteredWorkspaces) }
@@ -69,7 +76,6 @@ fun WorkspaceManagerGridLayout(
     // Calculate span for explanation cards - use 2 columns on large screens, full width otherwise
     val explanationSpan = if (columns == 3) 2 else columns
 
-    val lazyGridState = rememberLazyGridState()
     val reorderableLazyGridState = rememberReorderableLazyGridState(
         lazyGridState = lazyGridState
     ) { from, to ->
@@ -135,11 +141,11 @@ fun WorkspaceManagerGridLayout(
                 WorkspaceManagerEmptyState()
             }
         } else {
-            items(
+            itemsIndexed(
                 items = localWorkspaceItems,
-                key = { workspace -> WorkspaceManagerColumnItemKey.Workspace.Standard(workspace.id) },
-                span = { GridItemSpan(1) }
-            ) { workspace ->
+                key = { _, workspace -> WorkspaceManagerColumnItemKey.Workspace.Standard(workspace.id) },
+                span = { _, _ -> GridItemSpan(1) }
+            ) { index, workspace ->
                 ReorderableItem(
                     reorderableLazyGridState,
                     key = WorkspaceManagerColumnItemKey.Workspace.Standard(workspace.id)
@@ -166,6 +172,7 @@ fun WorkspaceManagerGridLayout(
                         isVisibleInPane = workspace.isVisibleInPane,
                         isSelectionActive = state.isSelectionActive,
                         isChecked = state.selectedIds?.contains(workspace.id) == true,
+                        isTourAnchor = index == 0,
                         currentPaneCount = state.currentPaneCount,
                     )
                 }

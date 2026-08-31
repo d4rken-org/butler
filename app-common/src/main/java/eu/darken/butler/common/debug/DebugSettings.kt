@@ -31,8 +31,4 @@ class DebugSettings @Inject constructor(
         "debug.logview.floating.visible",
         false,
     )
-    val recorderPath = dataStore.createValue<String?>(
-        "recorder.log.path",
-        null
-    )
 }

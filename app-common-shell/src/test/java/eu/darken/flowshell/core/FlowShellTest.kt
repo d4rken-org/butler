@@ -117,16 +117,23 @@ class FlowShellTest : BaseTest() {
 
         val session = sharedSession.first()
 
-        (1..loop).forEach {
-            val data = "$it# ${Uuid.random()}"
-            session.write("echo $data")
-            expected.add(data)
+        // Writing without a consumer deadlocks once OS pipe buffers fill, so the producer runs concurrently
+        val headStart = CompletableDeferred<Unit>()
+        val writer = launch(Dispatchers.IO) {
+            (1..loop).forEach {
+                val data = "$it# ${Uuid.random()}"
+                session.write("echo $data")
+                expected.add(data)
+                if (it == 50) headStart.complete(Unit)
+            }
+            session.close()
         }
-        session.close()
 
+        headStart.await()
         session.output.collect { output.add(it) }
+        writer.join()
 
-        sharedSession.first().waitFor() shouldBe FlowProcess.ExitCode.OK
+        session.waitFor() shouldBe FlowProcess.ExitCode.OK
         output shouldBe expected
         output.size shouldBe loop
     }

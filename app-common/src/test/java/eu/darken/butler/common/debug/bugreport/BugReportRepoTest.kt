@@ -5,9 +5,12 @@ import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.ButlerId
 import eu.darken.butler.common.debug.logging.RingLogBuffer
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -23,15 +26,25 @@ import org.robolectric.annotation.Config
 import testhelpers.BaseTest
 import testhelpers.coroutine.TestDispatcherProvider
 import java.io.File
+import java.util.zip.ZipFile
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [29])
 class BugReportRepoTest : BaseTest() {
 
     private val context: Context get() = ApplicationProvider.getApplicationContext()
-    private val reportsDir get() = File(context.filesDir, "bugreports")
+    private val storageLayout by lazy { BugReportStorageLayout(context) }
+
+    /** Where new reports go (external app-specific storage), and the legacy root older ones live in. */
+    private val reportsDir get() = storageLayout.writeRoot
+    private val privateReportsDir get() = File(context.filesDir, "bugreports")
     private val json = Json { ignoreUnknownKeys = true }
     private val recorderState = MutableStateFlow(BugReportRecorder.State())
+
+    /** Ids the recorder double reports as active-or-starting on top of the published recordingId. */
+    private val startingRecordingIds = mutableSetOf<String>()
 
     private fun createRepo(): BugReportRepo {
         val buffer = RingLogBuffer().apply {
@@ -39,6 +52,10 @@ class BugReportRepoTest : BaseTest() {
         }
         val recorder = mockk<BugReportRecorder>(relaxed = true) {
             every { state } returns recorderState
+            coEvery { isActiveOrStarting(any()) } answers {
+                val id = firstArg<String>()
+                id == recorderState.value.recordingId || id in startingRecordingIds
+            }
         }
         return BugReportRepo(
             context = context,
@@ -48,14 +65,22 @@ class BugReportRepoTest : BaseTest() {
             bugReportRecorder = recorder,
             butlerId = ButlerId(context),
             json = json,
+            storageLayout = storageLayout,
         )
     }
 
-    private fun writeReportDir(id: String, type: BugReport.Type, ongoing: Boolean) {
-        val dir = File(reportsDir, id).apply { mkdirs() }
+    private fun writeReportDir(
+        id: String,
+        type: BugReport.Type = BugReport.Type.REPORTED,
+        ongoing: Boolean = false,
+        root: File = reportsDir,
+        logText: String = "rec log",
+        createdAt: Instant = kotlin.time.Clock.System.now(),
+    ) {
+        val dir = File(root, id).apply { mkdirs() }
         val report = BugReport(
             id = id,
-            createdAt = kotlin.time.Clock.System.now(),
+            createdAt = createdAt,
             type = type,
             appVersion = "1.0",
             deviceFingerprint = "fp",
@@ -66,7 +91,7 @@ class BugReportRepoTest : BaseTest() {
             locale = "en",
         )
         File(dir, "meta.json").writeText(json.encodeToString(BugReport.serializer(), report))
-        File(dir, "report.log").writeText("rec log")
+        File(dir, "report.log").writeText(logText)
         if (ongoing) File(dir, ".recording").createNewFile()
     }
 
@@ -176,6 +201,33 @@ class BugReportRepoTest : BaseTest() {
     }
 
     @Test
+    fun `delete refuses a recording whose start has not published its id yet`() = runTest {
+        val repo = createRepo()
+        // Mid-start: the directory exists while the recorder has not published the id yet, so the
+        // published id alone would let this delete through.
+        writeReportDir("recording_6_ffff", BugReport.Type.RECORDING, ongoing = true)
+        recorderState.value = BugReportRecorder.State()
+        startingRecordingIds += "recording_6_ffff"
+
+        shouldThrow<IllegalArgumentException> { repo.delete("recording_6_ffff") }
+
+        File(reportsDir, "recording_6_ffff").exists() shouldBe true
+    }
+
+    @Test
+    fun `delete removes a report with a stale recording sentinel`() = runTest {
+        val repo = createRepo()
+        // Sentinel left behind by a stop that could not remove it (or by process death after the
+        // startup sweep): the recorder is idle, so the report is finished and must be deletable.
+        writeReportDir("recording_7_gggg", BugReport.Type.RECORDING, ongoing = true)
+
+        repo.delete("recording_7_gggg")
+
+        File(reportsDir, "recording_7_gggg").exists() shouldBe false
+        repo.reports.first() shouldHaveSize 0
+    }
+
+    @Test
     fun `logSizeBytes reflects the on-disk log size`() = runTest {
         val repo = createRepo()
         repo.captureCrashBlocking(IllegalStateException("boom"), Thread.currentThread())
@@ -187,8 +239,7 @@ class BugReportRepoTest : BaseTest() {
     @Test
     fun `readLogTail returns all lines for a short log`() = runTest {
         val repo = createRepo()
-        File(reportsDir, "tail_short").mkdirs()
-        File(File(reportsDir, "tail_short"), "report.log").writeText("a\nb\nc")
+        writeReportDir("tail_short", logText = "a\nb\nc")
 
         val tail = repo.readLogTail("tail_short", maxLines = 10)
         tail.totalLines shouldBe 3
@@ -198,8 +249,7 @@ class BugReportRepoTest : BaseTest() {
     @Test
     fun `readLogTail returns only the tail for a long log`() = runTest {
         val repo = createRepo()
-        File(reportsDir, "tail_long").mkdirs()
-        File(File(reportsDir, "tail_long"), "report.log").writeText((1..100).joinToString("\n") { "line$it" })
+        writeReportDir("tail_long", logText = (1..100).joinToString("\n") { "line$it" })
 
         val tail = repo.readLogTail("tail_long", maxLines = 10)
         tail.totalLines shouldBe 100
@@ -215,5 +265,127 @@ class BugReportRepoTest : BaseTest() {
         val tail = repo.readLogTail("does_not_exist", maxLines = 10)
         tail.totalLines shouldBe 0
         tail.lines shouldHaveSize 0
+    }
+
+    @Test
+    fun `reports from both roots are listed`() = runTest {
+        val repo = createRepo()
+        writeReportDir("external_1")
+        writeReportDir("legacy_1", root = privateReportsDir)
+
+        repo.reports.first().map { it.id } shouldContainExactlyInAnyOrder listOf("external_1", "legacy_1")
+    }
+
+    @Test
+    fun `an id present in both roots is listed once, from the external root`() = runTest {
+        val repo = createRepo()
+        writeReportDir("dupe_1", logText = "external log")
+        writeReportDir("dupe_1", root = privateReportsDir, logText = "legacy log")
+
+        repo.reports.first() shouldHaveSize 1
+        repo.readLog("dupe_1") shouldBe "external log"
+    }
+
+    @Test
+    fun `delete removes every physical copy of an id`() = runTest {
+        val repo = createRepo()
+        writeReportDir("dupe_2")
+        writeReportDir("dupe_2", root = privateReportsDir)
+
+        repo.delete("dupe_2")
+
+        File(reportsDir, "dupe_2").exists() shouldBe false
+        File(privateReportsDir, "dupe_2").exists() shouldBe false
+        repo.reports.first() shouldHaveSize 0
+    }
+
+    @Test
+    fun `a corrupt external copy does not shadow the readable legacy one`() = runTest {
+        val repo = createRepo()
+        writeReportDir("dupe_3", logText = "external log")
+        File(File(reportsDir, "dupe_3"), "meta.json").writeText("{ not valid json")
+        writeReportDir("dupe_3", root = privateReportsDir, logText = "legacy log")
+
+        repo.reports.first().single().id shouldBe "dupe_3"
+        repo.readLog("dupe_3") shouldBe "legacy log"
+        // Sharing must follow the same copy the list shows, not the corrupt one it skipped.
+        ZipFile(repo.buildShareZip("dupe_3")).use { zip ->
+            zip.getInputStream(zip.getEntry("report.log")).readBytes().decodeToString()
+        } shouldBe "legacy log"
+    }
+
+    @Test
+    fun `buildShareZip packages the report payload and nothing else`() = runTest {
+        val repo = createRepo()
+        writeReportDir("share_1", logText = "report log")
+        val dir = File(reportsDir, "share_1")
+        File(dir, "root.log").writeText("root log")
+        File(dir, "adb.log").writeText("adb log")
+        File(dir, ".seen").createNewFile()
+        File(dir, ".recording").createNewFile()
+        File(dir, "injected.txt").writeText("not mine")
+
+        val zip = repo.buildShareZip("share_1")
+
+        ZipFile(zip).use { it.entries().toList().map { entry -> entry.name } } shouldContainExactly
+            listOf("meta.json", "report.log", "root.log", "adb.log")
+    }
+
+    @Test
+    fun `a failed buildShareZip leaves no zip behind`() = runTest {
+        val repo = createRepo()
+        writeReportDir("share_2")
+        val shareDir = File(context.cacheDir, "bugreports_share")
+        // The zip is built under this name before being renamed into place; an (empty) directory
+        // sitting there makes the compression fail on its very first write.
+        File(shareDir, "share_2.zip.tmp").mkdirs()
+
+        shouldThrow<Exception> { repo.buildShareZip("share_2") }
+
+        File(shareDir, "share_2.zip").exists() shouldBe false
+        File(shareDir, "share_2.zip.tmp").exists() shouldBe false
+    }
+
+    @Test
+    fun `markSeen, readLog and readLogTail work on a report in the legacy root`() = runTest {
+        val repo = createRepo()
+        writeReportDir("legacy_2", root = privateReportsDir, logText = "l1\nl2")
+
+        repo.markSeen("legacy_2")
+
+        repo.reports.first().single { it.id == "legacy_2" }.isSeen shouldBe true
+        repo.readLog("legacy_2") shouldBe "l1\nl2"
+        repo.readLogTail("legacy_2", maxLines = 10).lines shouldBe listOf("l1", "l2")
+    }
+
+    @Test
+    fun `retention also prunes reports in the legacy root`() = runTest {
+        val repo = createRepo()
+        val base = kotlin.time.Clock.System.now()
+        repeat(30) { index ->
+            writeReportDir(
+                id = "legacy_prune_$index",
+                root = privateReportsDir,
+                createdAt = base - (30 - index).seconds,
+            )
+        }
+
+        // captureReport writes a fresh report and prunes afterwards.
+        repo.captureReport(IllegalStateException("boom"))
+
+        repo.reports.first() shouldHaveSize 25
+        File(privateReportsDir, "legacy_prune_0").exists() shouldBe false
+        File(privateReportsDir, "legacy_prune_29").exists() shouldBe true
+    }
+
+    @Test
+    fun `stale temp dirs are reaped in the legacy root`() = runTest {
+        val stale = File(privateReportsDir, ".tmp-legacy").apply { mkdirs() }
+        stale.setLastModified(System.currentTimeMillis() - 5 * 60_000L)
+
+        // The init cleanup runs the reaper.
+        createRepo()
+
+        stale.exists() shouldBe false
     }
 }

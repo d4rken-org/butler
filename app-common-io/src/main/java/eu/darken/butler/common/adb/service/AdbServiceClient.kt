@@ -12,6 +12,7 @@ import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.DebugSettings
+import eu.darken.butler.common.debug.bugreport.RecorderPathPublisher
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
@@ -51,6 +52,7 @@ class AdbServiceClient @Inject constructor(
     dispatcherProvider: DispatcherProvider,
     private val adbSettings: AdbSettings,
     private val debugSettings: DebugSettings,
+    private val recorderPathPublisher: RecorderPathPublisher,
     private val fileOpsClientFactory: FileOpsClient.Factory,
     private val pkgOpsClientFactory: PkgOpsClient.Factory,
     private val shellOpsClientFactory: ShellOpsClient.Factory,
@@ -68,7 +70,7 @@ class AdbServiceClient @Inject constructor(
         val optionsInitial = AdbHostOptions(
             isDebug = debugSettings.isDebugMode.value(),
             isTrace = debugSettings.isTraceMode.value(),
-            recorderPath = debugSettings.recorderPath.value(),
+            recorderPath = recorderPathPublisher.path.value,
             // Shizuku has no init args, so this initial push doubles as the host's launch arguments.
             hostIdentity = IpcContract.current(context).encode(),
         )
@@ -87,7 +89,7 @@ class AdbServiceClient @Inject constructor(
         combine(
             debugSettings.isDebugMode.flow,
             debugSettings.isTraceMode.flow,
-            debugSettings.recorderPath.flow,
+            recorderPathPublisher.path,
             lastInternal.filterNotNull(),
         ) { isDebug, isTrace, recorderPath, lastConnection ->
             val optionsDynamic = AdbHostOptions(

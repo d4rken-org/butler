@@ -303,6 +303,49 @@ class ExceptionPropagationTest : BaseTest(), IpcHostModule, IpcClientModule {
     }
 
     @Test
+    fun `compact - keeps the type and its extras but not the host stack`() {
+        val original = PathPermissionDeniedException(
+            path = filePath,
+            operation = "createFile",
+            reason = PathPermissionDeniedException.Reason.NOT_PERMITTED,
+        ).apply {
+            stackTrace = arrayOf(StackTraceElement("com.host.Native", "nativeCall", null, -2))
+        }
+
+        val decoded = IpcErrorCodec.decode(IpcErrorCodec.encodeCompact(original), Throwable().stackTrace)
+
+        decoded.shouldBeTypeOf<PathPermissionDeniedException>().apply {
+            message shouldBe original.message
+            this.path!!.path shouldBe original.path!!.path
+            operation shouldBe "createFile"
+            reason shouldBe PathPermissionDeniedException.Reason.NOT_PERMITTED
+        }
+        decoded.stackTrace.none { it.className == "com.host.Native" } shouldBe true
+    }
+
+    @Test
+    fun `compact - cause chain survives so EROFS is not reclassified as a plain denial`() {
+        val original = ReadException("Can't read from path.", filePath, IOException("Read-only file system"))
+
+        val decoded = IpcErrorCodec.decode(IpcErrorCodec.encodeCompact(original), Throwable().stackTrace)
+
+        decoded.shouldBeTypeOf<ReadException>().cause!!.message!! shouldContain "Read-only file system"
+        PermissionErrorClassifier.classify(decoded) shouldBe PathPermissionDeniedException.Reason.READONLY_FILESYSTEM
+    }
+
+    @Test
+    fun `decodeIfMarked - only a carrier starting with the marker is decoded`() {
+        val stack = Throwable().stackTrace
+
+        IpcErrorCodec.decodeIfMarked(null, stack) shouldBe null
+        IpcErrorCodec.decodeIfMarked("Permission denied", stack) shouldBe null
+        IpcErrorCodec.decodeIfMarked("EACCES ${IpcErrorCodec.MARKER}{}", stack) shouldBe null
+
+        IpcErrorCodec.decodeIfMarked(IpcErrorCodec.encode(IOException("boom")), stack)
+            .shouldBeTypeOf<IOException>().message shouldBe "boom"
+    }
+
+    @Test
     fun `decoded ReadException renders its localized error`() {
         val original = ReadException("Can't read from path.", filePath, IOException("Read-only file system"))
 
