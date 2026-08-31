@@ -46,11 +46,9 @@ import eu.darken.butler.workspace.R as WorkspaceR
  * The developer page's operations bar sits on the shared floating bar stack, which owns both the
  * bar's own geometry and the bottom content padding the four sections are laid out with.
  *
- * A bar that turns visible only after the first composition is not picked up by FloatingBarStack in
- * any Robolectric test that is not the first one executed in its class, because the stack
- * subcomposes its bars inside the SubcomposeLayout measure lambda, so they re-run only when a
- * re-measure is scheduled - which a device's frame loop always does and Robolectric's manual clock
- * need not. Arrival of a first operation is therefore untested here; it was verified on a device.
+ * Arrival of a first operation is not covered here. A test for it reproducibly failed in this
+ * harness whenever it did not run first in the class, and passed when it did; the cause was never
+ * diagnosed. The behaviour itself was verified on a device.
  */
 class DeveloperFloatingBarsTest : ComposeTest() {
 
