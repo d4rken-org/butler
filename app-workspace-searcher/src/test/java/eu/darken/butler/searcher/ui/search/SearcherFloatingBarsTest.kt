@@ -16,8 +16,12 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.formatFileSize
+import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearcherWorkspace
+import eu.darken.butler.searcher.core.resultKey
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
+import eu.darken.butler.searcher.ui.search.util.SearcherSelectionState
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
@@ -63,6 +67,10 @@ class SearcherFloatingBarsTest : ComposeTest() {
         get() = context.resources.getQuantityString(CommonR.plurals.common_folders_count, FOLDER_COUNT, FOLDER_COUNT)
     private val filesLabel: String
         get() = context.resources.getQuantityString(CommonR.plurals.common_files_count, FILE_COUNT, FILE_COUNT)
+    private val totalSizeLabel: String
+        get() = formatFileSize(context, TOTAL_SIZE)
+    private val selectedSizeLabel: String
+        get() = formatFileSize(context, SELECTED_SIZE)
 
     private fun setContent() {
         composeTestRule.setContent {
@@ -115,17 +123,25 @@ class SearcherFloatingBarsTest : ComposeTest() {
         ),
     )
 
+    private val mixedFolders: List<SearchItem> = List(FOLDER_COUNT) { index ->
+        SearcherMockDataProvider.createMockDirectory(name = "config-dir-$index")
+    }
+
+    private val mixedFiles: List<SearchItem> = FILE_SIZES_KB.mapIndexed { index, sizeKB ->
+        SearcherMockDataProvider.createMockTextFile(name = "config-$index.txt", sizeKB = sizeKB)
+    }
+
     /** A result set whose folder and file counts differ from each other and from the selection. */
-    private fun mixedResultsState() = SearcherWorkspaceViewModel.State.Ready(
+    private fun mixedResultsState(selection: List<SearchItem> = emptyList()) = SearcherWorkspaceViewModel.State.Ready(
         filenameQuery = "config",
         workspaceState = SearcherWorkspace.State(
             searchTargets = listOf(SearchTarget.Path.from(LocalPath.build("/storage/emulated/0"))),
             searchStatus = SearcherWorkspace.State.SearchStatus.IDLE,
-            results = List(FOLDER_COUNT) { index ->
-                SearcherMockDataProvider.createMockDirectory(name = "config-dir-$index")
-            } + List(FILE_COUNT) { index ->
-                SearcherMockDataProvider.createMockTextFile(name = "config-$index.txt")
-            },
+            results = mixedFolders + mixedFiles,
+        ),
+        selectionState = SearcherSelectionState(
+            selectableResults = mixedFolders + mixedFiles,
+            selectedResultIds = selection.map { it.resultKey }.toSet(),
         ),
     )
 
@@ -269,7 +285,10 @@ class SearcherFloatingBarsTest : ComposeTest() {
         )
     }
 
-    /** Pins the folder/file/size aggregates the info bar is fed with. */
+    /**
+     * Pins the folder/file/size aggregates the info bar is fed with. The size chip has two mutually
+     * exclusive branches, so the selected size needs its own test rather than a second assertion.
+     */
     @Test
     fun `the info bar counts folders and files separately`() {
         stateSource.value = mixedResultsState()
@@ -277,12 +296,29 @@ class SearcherFloatingBarsTest : ComposeTest() {
 
         composeTestRule.onNodeWithText(foldersLabel).assertIsDisplayed()
         composeTestRule.onNodeWithText(filesLabel).assertIsDisplayed()
+        composeTestRule.onNodeWithText(totalSizeLabel).assertIsDisplayed()
+    }
+
+    @Test
+    fun `the info bar sizes only the selection while a selection exists`() {
+        stateSource.value = mixedResultsState(selection = mixedFiles.take(SELECTED_FILE_COUNT))
+        setContent()
+
+        composeTestRule.onNodeWithText(selectedSizeLabel).assertIsDisplayed()
     }
 
     companion object {
         private const val OPERATION_TITLE = "Deleting files"
         private const val CLIP_PATH = "/storage/emulated/0/Documents/report.pdf"
         private const val FOLDER_COUNT = 2
-        private const val FILE_COUNT = 3
+        private const val KB = 1024L
+
+        /** Distinct enough that neither aggregate can be confused with a single result's own size. */
+        private val FILE_SIZES_KB = listOf(1024L, 2048L, 4096L)
+        private val FILE_COUNT = FILE_SIZES_KB.size
+        private val TOTAL_SIZE = FILE_SIZES_KB.sumOf { it * KB }
+
+        private const val SELECTED_FILE_COUNT = 2
+        private val SELECTED_SIZE = FILE_SIZES_KB.take(SELECTED_FILE_COUNT).sumOf { it * KB }
     }
 }
