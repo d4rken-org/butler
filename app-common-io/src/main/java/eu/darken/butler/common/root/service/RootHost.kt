@@ -5,7 +5,8 @@ import android.util.Log
 import androidx.annotation.Keep
 import dagger.Lazy
 import eu.darken.butler.common.debug.Bugs
-import eu.darken.butler.common.debug.logging.FileLogger
+import eu.darken.butler.common.debug.HostRecorderLog
+import eu.darken.butler.common.debug.bugreport.BugReportStorage
 import eu.darken.butler.common.debug.logging.Logging
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
@@ -19,7 +20,6 @@ import eu.darken.butler.common.sharedresource.adoptChildResource
 import eu.darken.butler.common.shell.SharedShell
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import java.io.File
 import java.util.concurrent.TimeoutException
 import javax.inject.Inject
 
@@ -57,7 +57,7 @@ class RootHost(_args: List<String>) : HasSharedResource<Any>, BaseRootHost("$TAG
         )
         log(iTag) { "IPC created: $ipc" }
 
-        var currentFileLogger: FileLogger? = null
+        val recorderLog = HostRecorderLog(BugReportStorage.ROOT_LOG_FILE, TAG)
 
         ipc.hostOptions
             .onEach { options ->
@@ -70,19 +70,7 @@ class RootHost(_args: List<String>) : HasSharedResource<Any>, BaseRootHost("$TAG
                     Logging.remove(logCatLogger)
                 }
 
-                if (options.recorderPath != null && currentFileLogger == null) {
-                    val path = File(options.recorderPath!!, "root.log")
-                    val logger = FileLogger(path).also {
-                        currentFileLogger = it
-                        it.start()
-                    }
-                    Logging.install(logger)
-                    log(TAG) { "FileLogger installed" }
-                } else if (options.recorderPath == null && currentFileLogger != null) {
-                    log(TAG) { "Removing FileLogger: $currentFileLogger" }
-                    currentFileLogger?.let { Logging.remove(it) }
-                    currentFileLogger = null
-                }
+                recorderLog.update(options.recorderPath)
 
                 Bugs.isDebug = options.isDebug
                 Bugs.isTrace = options.isTrace

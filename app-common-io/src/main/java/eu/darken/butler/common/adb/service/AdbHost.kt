@@ -7,7 +7,8 @@ import dagger.Lazy
 import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.adb.service.internal.BaseAdbHost
 import eu.darken.butler.common.debug.Bugs
-import eu.darken.butler.common.debug.logging.FileLogger
+import eu.darken.butler.common.debug.HostRecorderLog
+import eu.darken.butler.common.debug.bugreport.BugReportStorage
 import eu.darken.butler.common.debug.logging.LogCatLogger
 import eu.darken.butler.common.debug.logging.Logging
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
@@ -21,7 +22,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.runBlocking
-import java.io.File
 import javax.inject.Inject
 
 @Keep
@@ -58,7 +58,7 @@ class AdbHost(
 
         keepAliveToken = sharedResource.get()
 
-        var currentFileLogger: FileLogger? = null
+        val recorderLog = HostRecorderLog(BugReportStorage.ADB_LOG_FILE, TAG)
 
         currentOptions
             .onEach { options ->
@@ -71,19 +71,7 @@ class AdbHost(
                     Logging.remove(logCatLogger)
                 }
 
-                if (options.recorderPath != null && currentFileLogger == null) {
-                    val path = File(options.recorderPath!!, "adb.log")
-                    val logger = FileLogger(path).also {
-                        currentFileLogger = it
-                        it.start()
-                    }
-                    Logging.install(logger)
-                    log(TAG) { "FileLogger installed" }
-                } else if (options.recorderPath == null && currentFileLogger != null) {
-                    log(TAG) { "Removing FileLogger: $currentFileLogger" }
-                    currentFileLogger?.let { Logging.remove(it) }
-                    currentFileLogger = null
-                }
+                recorderLog.update(options.recorderPath)
 
                 Bugs.isDebug = options.isDebug
                 Bugs.isTrace = options.isTrace
