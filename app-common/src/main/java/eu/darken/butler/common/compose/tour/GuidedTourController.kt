@@ -32,10 +32,11 @@ class GuidedTourController @Inject constructor(
     @Volatile private var currentTopRoute: NavKey? = null
     @Volatile private var routeAtStart: NavKey? = null
 
-    // Whether the active session has had at least one step actually rendered (anchored or
-    // centerless). Reset on start, flipped by the host via [markStepRendered]. Guards against
-    // persisting "completed" for a tour that fell through entirely on missing-target grace-skips.
-    @Volatile private var sessionStepRendered: Boolean = false
+    // Step ids of the active session that actually rendered (anchored or centerless). Reset on
+    // start, filled by the host via [markStepRendered]. A tour is only persisted as "completed"
+    // once every one of its steps is in here: a missing one means that step's target never
+    // registered, and burning the tour on that would hide steps the user never saw.
+    private val sessionRenderedStepIds: MutableSet<String> = ConcurrentHashMap.newKeySet()
 
     // Singleton-scoped, so this resets on app restart — which is exactly what "skip for now" means:
     // suppress the tour for the current process lifetime, not persistently.
@@ -72,7 +73,7 @@ class GuidedTourController @Inject constructor(
             log(TAG) { "start(${definition.id.raw}): no steps, ignoring" }
             return false
         }
-        sessionStepRendered = false
+        sessionRenderedStepIds.clear()
         firstStep.prepareTarget?.invoke()
         log(TAG) { "start(${definition.id.raw})" }
         _session.value = TourSession(definition, stepIndex = 0)
@@ -166,23 +167,34 @@ class GuidedTourController @Inject constructor(
     }
 
     /**
-     * Signal from the host that the session for [tourId] has shown at least one step (anchored or
-     * centerless). Lets [completeLocked] tell "user walked the whole tour" apart from "every step
-     * grace-skipped because its target never registered". The id guard rejects a late callback
+     * Signal from the host that [stepId] of [tourId]'s session has been shown (anchored or
+     * centerless). Lets [completeLocked] tell "user walked the whole tour" apart from steps that
+     * grace-skipped because their target never registered. The id guard rejects a late callback
      * from a previous session that already ended (e.g. tour A's render arriving after tour B start).
      */
-    fun markStepRendered(tourId: TourId) {
-        if (_session.value?.definition?.id == tourId) sessionStepRendered = true
+    fun markStepRendered(tourId: TourId, stepId: String) {
+        if (_session.value?.definition?.id == tourId) sessionRenderedStepIds += stepId
     }
 
     private suspend fun completeLocked(): (suspend () -> Unit)? {
         val s = _session.value ?: return null
-        if (!sessionStepRendered) {
+        val renderedCount = sessionRenderedStepIds.size
+        if (renderedCount == 0) {
             // The whole tour fell through on missing-target grace-skips without a single step ever
             // being shown (anchors not registered yet, wrong target ids, or a transient layout
             // race). Persisting "completed" would burn the tour forever for something the user
             // never saw — treat it as skip-for-now instead, so it stays eligible after a restart.
             log(TAG, WARN) { "complete(${s.definition.id.raw}): no step ever rendered, skipping instead" }
+            skippedThisSession += s.definition.id.raw
+            _session.value = null
+            routeAtStart = null
+            return null
+        }
+        if (renderedCount < s.definition.steps.size) {
+            log(TAG, WARN) {
+                "complete(${s.definition.id.raw}): only $renderedCount of ${s.definition.steps.size} " +
+                    "steps rendered ($sessionRenderedStepIds), skipping instead"
+            }
             skippedThisSession += s.definition.id.raw
             _session.value = null
             routeAtStart = null
