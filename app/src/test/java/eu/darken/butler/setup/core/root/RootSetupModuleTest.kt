@@ -139,7 +139,9 @@ class RootSetupModuleTest : BaseTest() {
         val mod = module()
 
         val collector = mod.state.test(tag = "no-identity", scope = scope)
-        collector.await { values, _ -> values.any { it is RootSetupModule.Result } }
+        collector.await { _, value ->
+            value is RootSetupModule.Result && value.serviceState is RootServiceState.Failed
+        }
 
         collector.latestValues.last().shouldBeInstanceOf<RootSetupModule.Result>().ourService shouldBe false
     }
@@ -151,7 +153,9 @@ class RootSetupModuleTest : BaseTest() {
         val mod = module()
 
         val collector = mod.state.test(tag = "stale-host", scope = scope)
-        collector.await { values, _ -> values.any { it is RootSetupModule.Result } }
+        collector.await { _, value ->
+            value is RootSetupModule.Result && value.serviceState is RootServiceState.Failed
+        }
 
         collector.latestValues.last().shouldBeInstanceOf<RootSetupModule.Result>().ourService shouldBe false
     }

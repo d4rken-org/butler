@@ -18,7 +18,7 @@ import testhelpers.ComposeTest
 /**
  * The card is where the headline and the connection sub-line meet, so this is what catches them
  * disagreeing about one state. The icon is not asserted: it carries no content description and
- * Robolectric cannot draw, [RootServiceStatusTest] covers the decision both of them render.
+ * Robolectric cannot draw, [RootCardStatusTest] covers the decision both of them render.
  */
 class RootSetupCardStatusTest : ComposeTest() {
 
