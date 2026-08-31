@@ -182,4 +182,29 @@ class FileOptionsBottomSheetTest : ComposeTest() {
 
         countOf("Install") shouldBe 0
     }
+
+    @Test
+    fun `a yaml file can be opened in the editor`() {
+        setSheetContent(fileNamed("notes.yaml"))
+
+        composeTestRule.onNodeWithText("Open in editor").performScrollTo().assertIsDisplayed()
+        composeTestRule.onNodeWithText("Open in editor").performClick()
+
+        lastAction.shouldBeInstanceOf<ExplorerActionBarItem.File.OpenInEditor>()
+    }
+
+    @Test
+    fun `a yaml file is described as plain text`() {
+        setSheetContent(fileNamed("notes.yaml"))
+
+        countOf("Plain text") shouldBe 1
+        countOf("Unknown type") shouldBe 0
+    }
+
+    @Test
+    fun `a binary file is not offered to the editor`() {
+        setSheetContent(fileNamed("blob.bin"))
+
+        countOf("Open in editor") shouldBe 0
+    }
 }

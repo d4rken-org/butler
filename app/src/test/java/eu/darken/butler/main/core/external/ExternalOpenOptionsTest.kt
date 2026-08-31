@@ -115,6 +115,24 @@ class ExternalOpenOptionsTest : BaseTest() {
     }
 
     @Test
+    fun `yaml arriving without a declared type counts as text`() {
+        computeExternalOpenOptions(MimeInfo.fromFileName("notes.yaml"), 1024L) shouldBe listOf(
+            ExternalOpenOption.VIEW,
+            ExternalOpenOption.EDIT_AS_TEXT,
+            ExternalOpenOption.SAVE_AS,
+        )
+    }
+
+    @Test
+    fun `yaml declared by the sending app counts as text`() {
+        computeExternalOpenOptions(MimeInfo("application/yaml"), 1024L) shouldBe listOf(
+            ExternalOpenOption.VIEW,
+            ExternalOpenOption.EDIT_AS_TEXT,
+            ExternalOpenOption.SAVE_AS,
+        )
+    }
+
+    @Test
     fun `unknown content can be viewed or saved`() {
         computeExternalOpenOptions(MimeInfo("application/octet-stream"), 512L) shouldBe listOf(
             ExternalOpenOption.VIEW,
