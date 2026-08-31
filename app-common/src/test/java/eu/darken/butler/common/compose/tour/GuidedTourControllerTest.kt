@@ -5,7 +5,9 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.datastore.DataStoreValue
 import eu.darken.butler.common.tour.TourPreferences
 import eu.darken.butler.common.tour.TourSettings
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeSameInstanceAs
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -224,8 +226,8 @@ class GuidedTourControllerTest : BaseTest() {
         // tapped for. Without the identity guard both would advance.
         val ctrl = controller()
         ctrl.start(basicDefinition)
-        ctrl.next(basicDefinition.id, "a")
-        ctrl.next(basicDefinition.id, "a")
+        ctrl.next(basicDefinition.id, "a", basicDefinition)
+        ctrl.next(basicDefinition.id, "a", basicDefinition)
         ctrl.session.value!!.stepIndex shouldBe 1
     }
 
@@ -235,7 +237,7 @@ class GuidedTourControllerTest : BaseTest() {
         ctrl.start(basicDefinition)
         ctrl.nextFromCurrent()
         ctrl.session.value!!.stepIndex shouldBe 1
-        ctrl.next(basicDefinition.id, "a") // the step the session has already left
+        ctrl.next(basicDefinition.id, "a", basicDefinition) // the step the session has already left
         ctrl.session.value!!.stepIndex shouldBe 1
     }
 
@@ -244,7 +246,8 @@ class GuidedTourControllerTest : BaseTest() {
         // Step ids are not unique across definitions, so the tour has to be checked as well.
         val ctrl = controller()
         ctrl.start(basicDefinition)
-        ctrl.next(TourId("test.other"), "a")
+        // The live definition is passed, so the tour id is the only part of the identity that differs.
+        ctrl.next(TourId("test.other"), "a", basicDefinition)
         ctrl.session.value!!.stepIndex shouldBe 0
     }
 
@@ -255,7 +258,7 @@ class GuidedTourControllerTest : BaseTest() {
         ctrl.markAllStepsRendered(basicDefinition)
         ctrl.nextFromCurrent()
         ctrl.nextFromCurrent() // now on the last step "c"
-        ctrl.next(basicDefinition.id, "b")
+        ctrl.next(basicDefinition.id, "b", basicDefinition)
         ctrl.session.value!!.stepIndex shouldBe 2
         prefsFlow.value.completed shouldBe emptySet()
     }
@@ -609,6 +612,151 @@ class GuidedTourControllerTest : BaseTest() {
         ctrl.session.value shouldBe null
         prefsFlow.value.dismissed shouldBe setOf(def.id.raw)
     }
+
+    /** Stands in for one composition's build of the same tour: its hooks write to [sink]. */
+    private fun refreshableDefinition(
+        sink: MutableList<String>,
+        ownerKey: String? = "pane.1",
+        stepIds: List<String> = listOf("one", "two"),
+    ) = TourDefinition(
+        id = TourId("test.refresh"),
+        ownerKey = ownerKey,
+        steps = stepIds.map { stepId ->
+            TourStep(
+                stepId = stepId,
+                body = stepId.toCaString(),
+                prepareTarget = { sink += stepId },
+            )
+        },
+    )
+
+    @Test
+    fun `a refreshed definition swaps the prepare hooks in place`() = runTest {
+        val staleSink = mutableListOf<String>()
+        val freshSink = mutableListOf<String>()
+        val stale = refreshableDefinition(staleSink)
+        val fresh = refreshableDefinition(freshSink)
+        val ctrl = controller()
+        ctrl.start(stale)
+        // What an activity recreation looks like from here: same tour, rebuilt hooks.
+        ctrl.tryStart(fresh) shouldBe false
+        ctrl.next(fresh.id, "one", fresh)
+        // The step on screen is re-prepared, and the advance runs the fresh hook, not the stale one.
+        freshSink shouldBe listOf("one", "two")
+        staleSink shouldBe listOf("one")
+        ctrl.session.value!!.stepIndex shouldBe 1
+    }
+
+    @Test
+    fun `re-submitting the same definition instance does not re-run its prepare hook`() = runTest {
+        val sink = mutableListOf<String>()
+        val def = refreshableDefinition(sink)
+        val ctrl = controller()
+        ctrl.start(def)
+        ctrl.tryStart(def) shouldBe false
+        sink shouldBe listOf("one")
+    }
+
+    @Test
+    fun `a definition with different steps is not adopted`() = runTest {
+        val staleSink = mutableListOf<String>()
+        val otherSink = mutableListOf<String>()
+        val stale = refreshableDefinition(staleSink)
+        val other = refreshableDefinition(otherSink, stepIds = listOf("one", "different"))
+        val ctrl = controller()
+        ctrl.start(stale)
+        ctrl.tryStart(other) shouldBe false
+        ctrl.session.value!!.definition shouldBeSameInstanceAs stale
+        otherSink shouldBe emptyList()
+    }
+
+    @Test
+    fun `a second instance of the same tour does not adopt the first`() = runTest {
+        val firstSink = mutableListOf<String>()
+        val secondSink = mutableListOf<String>()
+        val first = refreshableDefinition(firstSink, ownerKey = "pane.1")
+        val second = refreshableDefinition(secondSink, ownerKey = "pane.2")
+        val ctrl = controller()
+        ctrl.start(first)
+        ctrl.tryStart(second) shouldBe false
+        ctrl.session.value!!.definition shouldBeSameInstanceAs first
+        secondSink shouldBe emptyList()
+    }
+
+    @Test
+    fun `a request naming the definition adoption replaced is dropped`() = runTest {
+        val prepareEntered = CompletableDeferred<Unit>()
+        val releasePrepare = CompletableDeferred<Unit>()
+        fun definition(prepare: (suspend () -> Unit)?) = TourDefinition(
+            id = TourId("test.adopt.race.identity"),
+            ownerKey = "pane.1",
+            steps = listOf(TourStep(stepId = "one", body = "one".toCaString(), prepareTarget = prepare)),
+        )
+        val stale = definition(null)
+        val fresh = definition {
+            prepareEntered.complete(Unit)
+            releasePrepare.await()
+        }
+        val ctrl = controller()
+        ctrl.start(stale)
+
+        val adoptJob = launch { ctrl.tryStart(fresh) }
+        runCurrentUntilIdle()
+        prepareEntered.isCompleted shouldBe true
+
+        // The grace window opened before the rebuild, so the request names the definition the
+        // adoption has since replaced.
+        val skipJob = launch { ctrl.next(fresh.id, "one", fromDefinition = stale) }
+        runCurrentUntilIdle()
+
+        releasePrepare.complete(Unit)
+        adoptJob.join()
+        skipJob.join()
+
+        val session = ctrl.session.value.shouldNotBeNull()
+        session.stepIndex shouldBe 0
+        session.definition shouldBeSameInstanceAs fresh
+    }
+
+    @Test
+    fun `a grace request captured while adoption is parked does not skip the restored step`() = runTest {
+        val prepareEntered = CompletableDeferred<Unit>()
+        val releasePrepare = CompletableDeferred<Unit>()
+        // One step only: a grace-skip on the last step runs the completion path, so a request that
+        // gets through here ends the session outright instead of merely advancing it.
+        fun definition(prepare: (suspend () -> Unit)?) = TourDefinition(
+            id = TourId("test.adopt.race.host"),
+            ownerKey = "pane.1",
+            steps = listOf(TourStep(stepId = "one", body = "one".toCaString(), prepareTarget = prepare)),
+        )
+        val stale = definition(null)
+        val fresh = definition {
+            prepareEntered.complete(Unit)
+            releasePrepare.await()
+        }
+        val ctrl = controller()
+        ctrl.start(stale)
+
+        val adoptJob = launch { ctrl.tryStart(fresh) }
+        runCurrentUntilIdle()
+        prepareEntered.isCompleted shouldBe true
+        releasePrepare.isCompleted shouldBe false
+
+        // GuidedTourHost keys its missing-target grace window on the session object, so a session
+        // republished mid-adoption restarts that timer, and the request it fires names whatever
+        // definition the session held at the moment the timer started.
+        val capturedByTimer = ctrl.session.value.shouldNotBeNull().definition
+        val skipJob = launch { ctrl.next(fresh.id, "one", fromDefinition = capturedByTimer) }
+        runCurrentUntilIdle()
+
+        releasePrepare.complete(Unit)
+        adoptJob.join()
+        skipJob.join()
+
+        val session = ctrl.session.value.shouldNotBeNull()
+        session.stepIndex shouldBe 0
+        session.definition shouldBeSameInstanceAs fresh
+    }
 }
 
 @Serializable
@@ -622,7 +770,7 @@ private fun GuidedTourController.markAllStepsRendered(definition: TourDefinition
 /** Advance from whatever step is current — the identity the real bubble would send. */
 private suspend fun GuidedTourController.nextFromCurrent() {
     val s = session.value ?: return
-    next(s.definition.id, s.currentStep.stepId)
+    next(s.definition.id, s.currentStep.stepId, s.definition)
 }
 
 private fun TestScope.runCurrentUntilIdle() {

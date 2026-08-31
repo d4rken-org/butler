@@ -1,6 +1,7 @@
 package eu.darken.butler.common.compose.tour
 
 import android.view.KeyEvent as NativeKeyEvent
+import android.view.View
 import androidx.activity.OnBackPressedDispatcherOwner
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
@@ -23,9 +25,13 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent as ComposeKeyEvent
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
+import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.junit4.ComposeContentTestRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
@@ -36,7 +42,11 @@ import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performKeyPress
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.Insets
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.PreviewWrapper
 import io.kotest.matchers.shouldBe
@@ -128,7 +138,7 @@ class GuidedTourHostTest : ComposeTest() {
         composeTestRule.setHostContent(
             sessionFlow,
             preregister = mapOf("first" to targetRect),
-            onNext = { _, _ -> nextCount++ },
+            onNext = { _, _, _ -> nextCount++ },
         ) {
             Text("CONTENT_MARKER")
         }
@@ -221,7 +231,7 @@ class GuidedTourHostTest : ComposeTest() {
         composeTestRule.setHostContent(
             sessionFlow,
             preregister = mapOf("first" to targetRect),
-            onNext = { _, _ -> nextCount++ },
+            onNext = { _, _, _ -> nextCount++ },
         ) {
             // Small clickable at top-start. The bubble (placeBelow = true given the target rect)
             // is anchored top-center, padded down 16dp from targetRect.bottom (~216dp) — its
@@ -315,7 +325,7 @@ class GuidedTourHostTest : ComposeTest() {
         composeTestRule.mainClock.autoAdvance = false
         composeTestRule.setHostContent(
             sessionFlow,
-            onNext = { tourId, stepId -> advances += tourId to stepId },
+            onNext = { tourId, stepId, _ -> advances += tourId to stepId },
         ) {
             Text("CONTENT_MARKER")
         }
@@ -337,7 +347,7 @@ class GuidedTourHostTest : ComposeTest() {
         composeTestRule.setHostContent(
             sessionFlow,
             preregister = mapOf("first" to targetRect),
-            onNext = { tourId, stepId -> advances += tourId to stepId },
+            onNext = { tourId, stepId, _ -> advances += tourId to stepId },
         ) {
             Text("CONTENT_MARKER")
         }
@@ -361,7 +371,7 @@ class GuidedTourHostTest : ComposeTest() {
         val sessionFlow = MutableStateFlow<TourSession?>(TourSession(centerlessDef, 0))
         var nextCount = 0
         composeTestRule.mainClock.autoAdvance = false
-        composeTestRule.setHostContent(sessionFlow, onNext = { _, _ -> nextCount++ }) {
+        composeTestRule.setHostContent(sessionFlow, onNext = { _, _, _ -> nextCount++ }) {
             Text("CONTENT_MARKER")
         }
         // Advance well past MISSING_TARGET_GRACE_MS — if grace-skip leaked, onNext would fire.
@@ -378,7 +388,7 @@ class GuidedTourHostTest : ComposeTest() {
         var nextCount = 0
         composeTestRule.setHostContent(
             sessionFlow,
-            onNext = { _, _ -> nextCount++ },
+            onNext = { _, _, _ -> nextCount++ },
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
                 Box(
@@ -421,7 +431,7 @@ class GuidedTourHostTest : ComposeTest() {
         composeTestRule.setHostContent(
             sessionFlow,
             preregister = mapOf("first" to targetRect),
-            onNext = { _, _ -> nextCount++ },
+            onNext = { _, _, _ -> nextCount++ },
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
                 Box(
@@ -647,7 +657,155 @@ class GuidedTourHostTest : ComposeTest() {
         composeTestRule.onAllNodesWithText("Skip the tour?").assertCountEquals(0)
         composeTestRule.onNodeWithText("Body of step 2").assertExists()
     }
+
+    @Test
+    fun `anchored bubble keeps its copy when the anchor leaves almost no room`() {
+        val def = TourDefinition(
+            id = TourId("test.cramped"),
+            steps = listOf(
+                TourStep(
+                    stepId = "only",
+                    title = "Cramped title".toCaString(),
+                    body = "Cramped body".toCaString(),
+                ),
+            ),
+        )
+        val anchor = with(composeTestRule.density) {
+            Rect(left = 0f, top = 20.dp.toPx(), right = 400.dp.toPx(), bottom = 180.dp.toPx())
+        }
+        composeTestRule.setHostContent(
+            session = MutableStateFlow(TourSession(def, stepIndex = 0)),
+            hostModifier = Modifier.size(width = 400.dp, height = 240.dp),
+            preregister = mapOf("only" to anchor),
+        ) { Box(Modifier.fillMaxSize()) }
+
+        composeTestRule.onNodeWithText("Cramped title").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Cramped body").assertIsDisplayed()
+    }
+
+    @Test
+    fun `bubble placed above the anchor also keeps its copy`() {
+        // Anchor near the bottom edge, so the bubble takes the above-the-target branch.
+        val def = TourDefinition(
+            id = TourId("test.cramped.above"),
+            steps = listOf(
+                TourStep(
+                    stepId = "only",
+                    title = "Cramped title".toCaString(),
+                    body = "Cramped body".toCaString(),
+                ),
+            ),
+        )
+        val anchor = with(composeTestRule.density) {
+            Rect(left = 0f, top = 200.dp.toPx(), right = 400.dp.toPx(), bottom = 230.dp.toPx())
+        }
+        composeTestRule.setHostContent(
+            session = MutableStateFlow(TourSession(def, stepIndex = 0)),
+            hostModifier = Modifier.size(width = 400.dp, height = 240.dp),
+            preregister = mapOf("only" to anchor),
+        ) { Box(Modifier.fillMaxSize()) }
+
+        composeTestRule.onNodeWithText("Cramped title").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Cramped body").assertIsDisplayed()
+    }
+
+    @Test
+    fun `non-zero insets do not push the bubble under the safe area`() {
+        val def = TourDefinition(
+            id = TourId("test.cramped.insets"),
+            steps = listOf(
+                TourStep(
+                    stepId = "only",
+                    title = "Cramped title".toCaString(),
+                    body = "Cramped body".toCaString(),
+                ),
+            ),
+        )
+        val anchor = with(composeTestRule.density) {
+            Rect(left = 0f, top = 20.dp.toPx(), right = 400.dp.toPx(), bottom = 180.dp.toPx())
+        }
+        var view: View? = null
+        composeTestRule.setHostContent(
+            session = MutableStateFlow(TourSession(def, stepIndex = 0)),
+            hostModifier = Modifier.size(width = 400.dp, height = 240.dp),
+            preregister = mapOf("only" to anchor),
+            onView = { view = it },
+        ) { Box(Modifier.fillMaxSize()) }
+        composeTestRule.runOnUiThread {
+            val insets = WindowInsetsCompat.Builder()
+                .setInsets(WindowInsetsCompat.Type.systemBars(), Insets.of(0, 0, 0, BOTTOM_INSET_PX))
+                .build()
+            ViewCompat.dispatchApplyWindowInsets(view!!, insets)
+        }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNodeWithText("Cramped title").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Cramped body").assertIsDisplayed()
+        // Room for the copy comes out of the target-side gap, never out of the safe area: the
+        // controls stay above the bottom inset.
+        // Single-step tour, so the advance button is the finishing one.
+        val controlsBottom = composeTestRule.onNodeWithContentDescription("Done")
+            .getUnclippedBoundsInRoot()
+            .bottom
+        (controlsBottom <= 240.dp - BOTTOM_INSET_PX.dp) shouldBe true
+    }
+
+    @Test
+    fun `the floor grows with font scale`() {
+        val def = TourDefinition(
+            id = TourId("test.cramped.fontscale"),
+            steps = listOf(
+                TourStep(
+                    stepId = "only",
+                    title = "Cramped title".toCaString(),
+                    body = "Cramped body".toCaString(),
+                ),
+            ),
+        )
+        val anchor = with(composeTestRule.density) {
+            Rect(left = 0f, top = 20.dp.toPx(), right = 400.dp.toPx(), bottom = 180.dp.toPx())
+        }
+        composeTestRule.setHostContent(
+            session = MutableStateFlow(TourSession(def, stepIndex = 0)),
+            hostModifier = Modifier.size(width = 400.dp, height = 240.dp),
+            preregister = mapOf("only" to anchor),
+            // A plain Density converts sp to dp linearly, so the reserved copy height doubles
+            // here — unlike text measurement, which Robolectric fakes at a fixed line height.
+            // That linearity is also this test's limit: from API 34 the platform damps large sp
+            // values instead, and a floor that fails to grow under that curve still passes here.
+            // This covers the arithmetic; only an on-device check covers the curve.
+            densityOverride = Density(density = 1f, fontScale = 2f),
+        ) { Box(Modifier.fillMaxSize()) }
+
+        composeTestRule.onNodeWithText("Cramped title").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Cramped body").assertIsDisplayed()
+    }
+
+    @Test
+    fun `centerless bubble keeps its copy on a short screen`() {
+        val def = TourDefinition(
+            id = TourId("test.centerless.cramped"),
+            steps = listOf(
+                TourStep(
+                    stepId = "only",
+                    targetId = null,
+                    title = "Cramped title".toCaString(),
+                    body = "Cramped body".toCaString(),
+                ),
+            ),
+        )
+        composeTestRule.setHostContent(
+            session = MutableStateFlow(TourSession(def, stepIndex = 0)),
+            hostModifier = Modifier.size(width = 400.dp, height = 140.dp),
+        ) { Box(Modifier.fillMaxSize()) }
+
+        composeTestRule.onNodeWithText("Cramped title").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Cramped body").assertIsDisplayed()
+    }
 }
+
+/** 40dp at the tests' density (1f), applied as a bottom system-bar inset. */
+private const val BOTTOM_INSET_PX = 40
 
 /**
  * Focused content that records every key event reaching it. Key events travel the focused node's
@@ -672,12 +830,15 @@ private fun KeyProbe(received: MutableList<Key>) {
 private fun ComposeContentTestRule.setHostContent(
     session: StateFlow<TourSession?>,
     preregister: Map<String, Rect> = emptyMap(),
-    onNext: (TourId, String) -> Unit = { _, _ -> },
+    onNext: (TourId, String, TourDefinition) -> Unit = { _, _, _ -> },
     onPrevious: () -> Unit = {},
     onDontShowAgain: () -> Unit = {},
     onDisableAllTours: () -> Unit = {},
     onStepRendered: (TourId, String) -> Unit = { _, _ -> },
     onBackOwner: (OnBackPressedDispatcherOwner) -> Unit = {},
+    onView: (View) -> Unit = {},
+    hostModifier: Modifier = Modifier.fillMaxSize(),
+    densityOverride: Density? = null,
     content: @Composable () -> Unit,
 ) {
     // Pre-seed a registry the host will use directly (skips real layout).
@@ -687,18 +848,22 @@ private fun ComposeContentTestRule.setHostContent(
         LocalOnBackPressedDispatcherOwner.current?.let { owner ->
             SideEffect { onBackOwner(owner) }
         }
+        val view = LocalView.current
+        SideEffect { onView(view) }
         PreviewWrapper {
-            GuidedTourHost(
-                session = session,
-                onNext = onNext,
-                onPrevious = onPrevious,
-                onDontShowAgain = onDontShowAgain,
-                onDisableAllTours = onDisableAllTours,
-                modifier = Modifier.fillMaxSize(),
-                registry = registry,
-                onStepRendered = onStepRendered,
-                content = content,
-            )
+            CompositionLocalProvider(LocalDensity provides (densityOverride ?: LocalDensity.current)) {
+                GuidedTourHost(
+                    session = session,
+                    onNext = onNext,
+                    onPrevious = onPrevious,
+                    onDontShowAgain = onDontShowAgain,
+                    onDisableAllTours = onDisableAllTours,
+                    modifier = hostModifier,
+                    registry = registry,
+                    onStepRendered = onStepRendered,
+                    content = content,
+                )
+            }
         }
     }
 }

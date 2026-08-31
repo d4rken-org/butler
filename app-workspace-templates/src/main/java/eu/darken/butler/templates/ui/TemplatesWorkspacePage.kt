@@ -102,11 +102,12 @@ fun TemplatesWorkspacePageHost(
     val listState = rememberWorkspaceLazyListState(id, slot = TemplatesScrollSlots.LIST)
 
     val tourController = LocalGuidedTourController.current
-    val tourDefinition = remember(listState) {
+    val tourDefinition = remember(listState, id) {
         TemplatesTour.definition(
             prepareFirstTemplate = {
                 listState.scrollToItem(TemplatesWorkspacePageDefaults.FIRST_TEMPLATE_ITEM_INDEX)
             },
+            ownerKey = id.longTag,
         )
     }
     // LocalLayerActive, not LocalWorkspaceFocused: a dialog open over this page leaves the pane

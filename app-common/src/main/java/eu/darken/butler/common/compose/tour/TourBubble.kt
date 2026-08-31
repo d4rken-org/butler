@@ -72,6 +72,7 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapp
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.takeOrElse
 import eu.darken.butler.common.R
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.ButlerMascot
@@ -87,6 +88,14 @@ private val MaxBubbleWidth = 480.dp
 private val SideMargin = 16.dp
 private val TargetGap = 16.dp
 private val NarrowThreshold = 360.dp
+
+// Fixed vertical chrome inside the bubble: 16dp top + 16dp bottom content padding, the 40dp control
+// row, and the 16dp gap under the copy. The tail, where there is one, sits on top of this.
+private val BubbleChrome = 88.dp
+
+// Gap between a step's title and its body. Shared by StepContent and the height floors below so the
+// space reserved for the copy and the space it actually occupies cannot drift apart.
+private val TitleBodyGap = 4.dp
 
 @Composable
 internal fun TourBubble(
@@ -208,22 +217,34 @@ private fun BoxScope.AnchoredBubble(
             (maxHPx - rect.top + gapPx).toDp()
         }
     }
-    val clampedY = if (placeBelow) {
-        rawY.coerceAtLeast(insets.calculateTopPadding())
-    } else {
-        rawY.coerceAtLeast(insets.calculateBottomPadding())
-    }
     // Far-side inset: keeps the bubble's *other* edge inside the safe area too.
     val farTopPad = insets.calculateTopPadding() + SideMargin
     val farBottomPad = insets.calculateBottomPadding() + SideMargin
+    val nearInset = if (placeBelow) insets.calculateTopPadding() else insets.calculateBottomPadding()
+    val farPad = if (placeBelow) farBottomPad else farTopPad
 
-    // The bubble's max height is whatever is left between the cutout-side gap and the
-    // far-side safe inset, so bottom edges never run under the nav bar.
-    val bubbleMaxHeight = if (placeBelow) {
-        (maxHeight - clampedY - farBottomPad).coerceAtLeast(160.dp)
-    } else {
-        (maxHeight - clampedY - farTopPad).coerceAtLeast(160.dp)
+    // Buy the minimum height out of the offset, not out of heightIn: padding runs ahead of heightIn
+    // in the same chain, so heightIn can only shrink what padding left over. Where the viewport
+    // cannot hold both the gap and a readable bubble, the bubble slides over part of the cutout -
+    // copy the user cannot read defeats the step, a partly covered spotlight does not.
+    // The copy allowance is one line of each style the bubble renders, taken from the theme and
+    // converted through the density the text itself uses, so it grows exactly as the text does. A
+    // standalone sp value cannot: from API 34 font scaling is non-linear, and a large sp constant
+    // lands deep in the damped region while the text it stands in for is still growing.
+    // lineHeight may be unspecified in a restyled theme and toDp() only accepts Sp, hence the
+    // fallback to the style's own font size.
+    val typography = MaterialTheme.typography
+    val wanted = with(density) {
+        BubbleChrome + TailHeight +
+            typography.titleMedium.lineHeight.takeOrElse { typography.titleMedium.fontSize }.toDp() +
+            typography.bodyLarge.lineHeight.takeOrElse { typography.bodyLarge.fontSize }.toDp() +
+            TitleBodyGap
     }
+    val floor = wanted.coerceAtMost((maxHeight - farPad - nearInset).coerceAtLeast(0.dp))
+    val clampedY = rawY
+        .coerceAtLeast(nearInset)
+        .coerceAtMost((maxHeight - farPad - floor).coerceAtLeast(nearInset))
+    val bubbleMaxHeight = (maxHeight - clampedY - farPad).coerceAtLeast(0.dp)
 
     Box(
         modifier = Modifier
@@ -275,13 +296,25 @@ private fun BoxScope.CenterlessBubble(
     onFocusWithinChanged: (Boolean) -> Unit,
 ) {
     // Cap height at the safe area; the body has its own vertical scroll for content that doesn't
-    // fit. Match the anchored 160.dp floor — multi-window / split-screen can leave available
-    // height below SideMargin * 2 and the bubble would otherwise collapse to an unusable sliver.
-    val bubbleMaxHeight = (maxHeight - topPad - bottomPad).coerceAtLeast(160.dp)
+    // fit. Same chain-order trap as AnchoredBubble: padding runs before heightIn, so the floor has
+    // to be bought out of the two SideMargins. Never out of the raw insets - the bubble would slide
+    // under the system bars. No tail here, so no tail height in the budget.
+    val typography = MaterialTheme.typography
+    val wanted = with(LocalDensity.current) {
+        BubbleChrome +
+            typography.titleMedium.lineHeight.takeOrElse { typography.titleMedium.fontSize }.toDp() +
+            typography.bodyLarge.lineHeight.takeOrElse { typography.bodyLarge.fontSize }.toDp() +
+            TitleBodyGap
+    }
+    val shortfall = (wanted - (maxHeight - topPad - bottomPad)).coerceAtLeast(0.dp)
+    val giveBack = (shortfall / 2f).coerceAtMost(SideMargin)
+    val effectiveTopPad = topPad - giveBack
+    val effectiveBottomPad = bottomPad - giveBack
+    val bubbleMaxHeight = (maxHeight - effectiveTopPad - effectiveBottomPad).coerceAtLeast(0.dp)
     Box(
         modifier = Modifier
             .align(Alignment.Center)
-            .padding(start = startPad, end = endPad, top = topPad, bottom = bottomPad)
+            .padding(start = startPad, end = endPad, top = effectiveTopPad, bottom = effectiveBottomPad)
             .widthIn(max = MaxBubbleWidth)
             .heightIn(max = bubbleMaxHeight),
     ) {
@@ -470,7 +503,7 @@ private fun StepContent(
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary,
                     )
-                    Spacer(Modifier.height(4.dp))
+                    Spacer(Modifier.height(TitleBodyGap))
                 }
                 Text(
                     text = step.body.get(context),

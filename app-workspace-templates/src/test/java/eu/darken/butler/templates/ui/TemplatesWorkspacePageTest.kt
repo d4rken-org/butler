@@ -172,6 +172,7 @@ class TemplatesWorkspacePageTest : ComposeTest() {
                 prepareFirstTemplate = {
                     listState.scrollToItem(TemplatesWorkspacePageDefaults.FIRST_TEMPLATE_ITEM_INDEX)
                 },
+                ownerKey = "pane",
             )
             .steps.first().prepareTarget!!
         runBlocking { prepare() }
