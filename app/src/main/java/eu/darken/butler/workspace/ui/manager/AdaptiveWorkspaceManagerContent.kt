@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.grid.LazyGridState
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,6 +38,7 @@ fun AdaptiveWorkspaceManagerContent(
     onClearSelection: () -> Unit = {},
     onOperationsFilterClick: () -> Unit = {},
     onAttentionFilterClick: () -> Unit = {},
+    lazyGridState: LazyGridState = rememberLazyGridState(),
 ) {
     BoxWithConstraints(
         modifier = modifier.fillMaxSize()
@@ -70,6 +73,7 @@ fun AdaptiveWorkspaceManagerContent(
             onClearSelection = onClearSelection,
             onOperationsFilterClick = onOperationsFilterClick,
             onAttentionFilterClick = onAttentionFilterClick,
+            lazyGridState = lazyGridState,
         )
     }
 }

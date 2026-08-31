@@ -8,18 +8,33 @@ import eu.darken.butler.common.compose.tour.TourId
 import eu.darken.butler.common.compose.tour.TourStep
 
 /**
- * Points at the tab manager's add-tab button, whose long-press shortcut is otherwise unadvertised.
+ * Walks the tab manager: the add-tab button, then the two card long-presses that are otherwise
+ * undiscoverable — the title row reorders, the preview below it starts a selection.
  *
- * No `prepareTarget`: the button hides itself while the grid scrolls down, but the overlay always
- * opens unscrolled, so the anchor is registered by the time the tour starts.
+ * [REORDER_TARGET] and [SELECT_TARGET] are registered by exactly one card, the first in the grid.
+ * That is what keeps the ids unique: tagging every card would file one rect per tab under a single
+ * id, and the last one positioned would win.
+ *
+ * The tour only starts once the grid holds at least one card, so those two anchors exist.
+ *
+ * Every step carries a `prepareTarget`. The status card above the cards is a wrapping `FlowRow` of
+ * chips and each preview is a fixed 160dp, so in a short window at large font scale the first
+ * card's preview sits below the viewport and never registers. The add-tab step prepares in the
+ * other direction: its button hides on scroll, so stepping back to it has to restore the top of
+ * the grid.
  */
 object WorkspaceManagerTour : GuidedTour {
 
     override val id: TourId = TourId("tour.workspace.manager")
 
     const val ADD_TAB_TARGET = "workspaceManager.addTab"
+    const val REORDER_TARGET = "workspaceManager.cardHeader"
+    const val SELECT_TARGET = "workspaceManager.cardPreview"
 
-    val definition: TourDefinition = TourDefinition(
+    fun definition(
+        prepareAddTab: suspend () -> Unit,
+        prepareFirstCard: suspend () -> Unit,
+    ): TourDefinition = TourDefinition(
         id = id,
         clickProtection = true,
         steps = listOf(
@@ -28,6 +43,21 @@ object WorkspaceManagerTour : GuidedTour {
                 targetId = ADD_TAB_TARGET,
                 title = R.string.tour_manager_add_tab_title.toCaString(),
                 body = R.string.tour_manager_add_tab_body.toCaString(),
+                prepareTarget = prepareAddTab,
+            ),
+            TourStep(
+                stepId = "reorder",
+                targetId = REORDER_TARGET,
+                title = R.string.tour_manager_reorder_title.toCaString(),
+                body = R.string.tour_manager_reorder_body.toCaString(),
+                prepareTarget = prepareFirstCard,
+            ),
+            TourStep(
+                stepId = "select",
+                targetId = SELECT_TARGET,
+                title = R.string.tour_manager_select_title.toCaString(),
+                body = R.string.tour_manager_select_body.toCaString(),
+                prepareTarget = prepareFirstCard,
             ),
         ),
     )
