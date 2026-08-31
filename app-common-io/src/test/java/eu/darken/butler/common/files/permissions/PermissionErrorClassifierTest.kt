@@ -2,9 +2,11 @@ package eu.darken.butler.common.files.permissions
 
 import eu.darken.butler.common.ElevatedAccessUnavailableException
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.errors.PathAlreadyExistsException
 import eu.darken.butler.common.files.errors.PathNotFoundException
 import eu.darken.butler.common.files.errors.PathPermissionDeniedException
 import eu.darken.butler.common.files.errors.PathPermissionDeniedException.Reason
+import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
 import io.kotest.matchers.shouldBe
 import org.junit.Test
@@ -87,8 +89,92 @@ class PermissionErrorClassifierTest : BaseTest() {
     }
 
     @Test
+    fun `a full disk is not a permission failure`() {
+        val wrapped = WriteException(
+            path = LocalPath.build("/sdcard/foo"),
+            cause = IOException("No space left on device"),
+        )
+
+        PermissionErrorClassifier.classify(wrapped) shouldBe null
+        PermissionErrorClassifier.isPermissionError(wrapped) shouldBe false
+    }
+
+    @Test
+    fun `a named non-permission errno wins over the generic wrapper type`() {
+        listOf(
+            "Disk quota exceeded",
+            "Input/output error",
+            "Invalid cross-device link",
+            "File exists",
+        ).forEach { errno ->
+            val wrapped = WriteException(path = LocalPath.build("/sdcard/foo"), cause = IOException(errno))
+
+            PermissionErrorClassifier.classify(wrapped) shouldBe null
+        }
+    }
+
+    @Test
+    fun `a path named after an errno does not suppress the denial`() {
+        val bare = WriteException(path = LocalPath.build("/sdcard/file exists"))
+
+        PermissionErrorClassifier.classify(bare) shouldBe Reason.ACCESS_DENIED
+        PermissionErrorClassifier.isPermissionError(bare) shouldBe true
+    }
+
+    @Test
+    fun `a path named after an errno does not suppress the nio denial`() {
+        val e = java.nio.file.AccessDeniedException("/sdcard/file exists")
+
+        PermissionErrorClassifier.classify(e) shouldBe Reason.ACCESS_DENIED
+        PermissionErrorClassifier.isPermissionError(e) shouldBe true
+    }
+
+    @Test
+    fun `an errno in the wrapper message still suppresses the denial`() {
+        val e = WriteException(message = "No space left on device", path = LocalPath.build("/sdcard/foo"))
+
+        PermissionErrorClassifier.classify(e) shouldBe null
+        PermissionErrorClassifier.isPermissionError(e) shouldBe false
+    }
+
+    @Test
+    fun `an errno in the nio reason still suppresses the denial`() {
+        val e = java.nio.file.AccessDeniedException("/sdcard/foo", null, "No space left on device")
+
+        PermissionErrorClassifier.classify(e) shouldBe null
+        PermissionErrorClassifier.isPermissionError(e) shouldBe false
+    }
+
+    @Test
+    fun `a wrapper without a named errno still reads as a denial`() {
+        val bare = ReadException(path = LocalPath.build("/data/data/eu.darken.butler"))
+
+        PermissionErrorClassifier.classify(bare) shouldBe Reason.ACCESS_DENIED
+        PermissionErrorClassifier.isPermissionError(bare) shouldBe true
+    }
+
+    @Test
     fun `a missing path is not a permission failure`() {
         val e = PathNotFoundException(LocalPath.build("/data/data/eu.darken.butler"))
+
+        PermissionErrorClassifier.classify(e) shouldBe null
+        PermissionErrorClassifier.isPermissionError(e) shouldBe false
+    }
+
+    @Test
+    fun `an existing path is not a permission failure`() {
+        val e = PathAlreadyExistsException(path = LocalPath.build("/sdcard/foo"))
+
+        PermissionErrorClassifier.classify(e) shouldBe null
+        PermissionErrorClassifier.isPermissionError(e) shouldBe false
+    }
+
+    @Test
+    fun `an existing path is not a permission failure - with the cause the gateway attaches`() {
+        val e = PathAlreadyExistsException(
+            path = LocalPath.build("/sdcard/foo"),
+            cause = java.nio.file.FileAlreadyExistsException("/sdcard/foo"),
+        )
 
         PermissionErrorClassifier.classify(e) shouldBe null
         PermissionErrorClassifier.isPermissionError(e) shouldBe false

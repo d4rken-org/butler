@@ -86,7 +86,7 @@ sealed interface DeleteOperationEvent : Parcelable {
     /**
      * Emitted when operation fails or is cancelled.
      *
-     * @param error Error message
+     * @param error An `IpcErrorCodec` carrier when the host encoded the failure, a plain message otherwise
      * @param cancelled True if user cancelled, false if error
      */
     @Parcelize

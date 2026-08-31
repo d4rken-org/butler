@@ -53,11 +53,12 @@ data class IpcStackFrame(
 )
 
 /**
- * Carries a host-side exception through a synchronous binder call.
+ * Carries a host-side exception across the IPC boundary, either as the exception of a synchronous
+ * binder call or in the error field of a streamed event.
  *
  * A `Parcel` transports only an exception's message, and only for the handful of types
  * `Parcel.writeException` knows about, so everything the app needs (type, path, causes, host stack)
- * is packed into that message as JSON behind [MARKER].
+ * is packed into that message as JSON behind [MARKER]. [encodeCompact] leaves out `hostStack`.
  */
 object IpcErrorCodec {
 
@@ -67,8 +68,16 @@ object IpcErrorCodec {
      */
     const val MARKER = "#BTLR_IPC_ERROR_V1#"
 
-    fun encode(error: Throwable): String {
-        val encoded = runCatching { MARKER + json.encodeToString(SERIALIZER, error.toPayload()) }
+    fun encode(error: Throwable): String = encodePayload(error, includeHostStack = true)
+
+    /**
+     * Without the host stack, for carriers a single operation can emit many of: one per unreadable
+     * directory of a walk. Everything else, including the cause chain, still crosses.
+     */
+    fun encodeCompact(error: Throwable): String = encodePayload(error, includeHostStack = false)
+
+    private fun encodePayload(error: Throwable, includeHostStack: Boolean): String {
+        val encoded = runCatching { MARKER + json.encodeToString(SERIALIZER, error.toPayload(includeHostStack)) }
             .onFailure { log(TAG, WARN) { "Failed to encode $error: ${it.asLog()}" } }
             .getOrNull()
 
@@ -80,6 +89,12 @@ object IpcErrorCodec {
         if (minimal != null && minimal.toByteArray().size <= MAX_PAYLOAD_BYTES) return minimal
 
         return MARKER + UNENCODABLE
+    }
+
+    /** Null when there is nothing encoded to decode, i.e. the carrier is a plain message or absent. */
+    fun decodeIfMarked(carrier: String?, localStack: Array<StackTraceElement>): Throwable? {
+        if (carrier == null || !carrier.startsWith(MARKER)) return null
+        return decode(carrier, localStack)
     }
 
     fun decode(carrierMessage: String, localStack: Array<StackTraceElement>): Throwable {
@@ -110,20 +125,23 @@ object IpcErrorCodec {
         return rebuilt
     }
 
-    private fun Throwable.toPayload() = IpcErrorPayload(
+    private fun Throwable.toPayload(includeHostStack: Boolean) = IpcErrorPayload(
         code = classify(),
         className = javaClass.name.truncate(),
         rawMessage = rawMessage()?.truncate(),
         rawPath = (this as? PathException)?.path?.path?.truncate(),
         extras = extras(),
         causeChain = boundedCauses().map { it.toString().truncate() },
-        hostStack = stackTrace.take(MAX_STACK_FRAMES).map {
-            IpcStackFrame(
-                className = it.className.truncate(),
-                methodName = it.methodName.truncate(),
-                fileName = it.fileName?.truncate(),
-                lineNumber = it.lineNumber,
-            )
+        hostStack = when {
+            includeHostStack -> stackTrace.take(MAX_STACK_FRAMES).map {
+                IpcStackFrame(
+                    className = it.className.truncate(),
+                    methodName = it.methodName.truncate(),
+                    fileName = it.fileName?.truncate(),
+                    lineNumber = it.lineNumber,
+                )
+            }
+            else -> emptyList()
         },
     )
 
