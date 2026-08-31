@@ -1,32 +1,10 @@
 package eu.darken.butler.common.files
 
+/**
+ * Call-shape convenience over [MimeInfo], which owns the table. Every overload answers from it, so
+ * a name, a type and a path never disagree about the same file.
+ */
 object TextFileDetector {
-    private val TEXT_FILE_EXTENSIONS = setOf(
-        // Plain text
-        "txt", "md", "markdown",
-
-        // Configuration
-        "json", "xml", "yml", "yaml", "toml", "ini", "cfg", "conf", "config",
-
-        // Web
-        "html", "htm", "css", "js", "jsx", "ts", "tsx", "scss", "sass", "less",
-
-        // Programming languages
-        "kt", "kts", "java", "py", "c", "cpp", "cc", "cxx", "h", "hpp",
-        "cs", "php", "rb", "go", "rs", "swift", "m", "mm", "sql",
-
-        // Shell scripts
-        "sh", "bash", "zsh", "fish", "bat", "cmd", "ps1",
-
-        // Build files
-        "gradle", "cmake", "make", "mk", "properties", "env",
-
-        // Documentation
-        "log", "rst", "adoc", "tex",
-
-        // Data
-        "csv", "tsv",
-    )
 
     /**
      * Checks if a file is a text file based on its MIME type
@@ -36,11 +14,10 @@ object TextFileDetector {
     }
 
     /**
-     * Checks if a file is a text file based on its file extension
+     * Checks if a file is a text file based on its file name
      */
     fun isTextFile(fileName: String): Boolean {
-        val extension = fileName.substringAfterLast('.', "").lowercase()
-        return extension in TEXT_FILE_EXTENSIONS
+        return MimeInfo.fromFileName(fileName).isText
     }
 
     /**
