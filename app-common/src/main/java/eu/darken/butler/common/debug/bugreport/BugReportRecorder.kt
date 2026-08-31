@@ -162,6 +162,15 @@ class BugReportRecorder @Inject constructor(
         id?.let { StopResult.Stopped(it) }
     }
 
+    /**
+     * Whether [id] is the recording this recorder currently owns. Takes [mutex] rather than reading
+     * [state] directly: [start] runs wholly under the lock, so a caller blocks until a start in
+     * flight has either published its id or rolled back, instead of observing the window in between.
+     */
+    internal suspend fun isActiveOrStarting(id: String): Boolean = mutex.withLock {
+        internalState.value.recordingId == id
+    }
+
     private fun stopInternal() {
         fileLogger?.let {
             log(TAG, INFO) { "Stopping recording logger: $it" }

@@ -130,16 +130,10 @@ class BugReportRepo @Inject constructor(
     }
 
     suspend fun delete(id: String) = withContext(dispatcherProvider.IO) {
-        require(id != bugReportRecorder.state.value.recordingId) { "Cannot delete an active recording" }
+        require(!bugReportRecorder.isActiveOrStarting(id)) { "Cannot delete an active recording" }
         // Every copy, not just the one scan() lists: dropping only the listed copy would let the
         // shadowed one take its place in the very next scan.
-        val dirs = storageLayout.allReportDirs(id)
-        // A live `.recording` sentinel counts as active too, same guard deleteAll() applies: the
-        // published id alone does not cover a recording whose start is still in progress.
-        require(dirs.none { File(it, BugReportStorage.RECORDING_SENTINEL).exists() }) {
-            "Cannot delete an active recording"
-        }
-        dirs.forEach { it.deleteRecursively() }
+        storageLayout.allReportDirs(id).forEach { it.deleteRecursively() }
         File(shareDir, "$id.zip").delete()
         refresh()
     }
