@@ -61,8 +61,49 @@ class GuidedTourController @Inject constructor(
         startLocked(definition)
     }
 
+    /**
+     * Adopt [definition] into a live session for the same tour at the same steps.
+     *
+     * A screen that recomposes from scratch - activity recreation - hands us a definition whose
+     * `prepareTarget` hooks capture that composition's state holders, while the ones the session
+     * holds capture the disposed ones. Scrolling a detached `LazyGridState` is a silent no-op, so
+     * the step's anchor never comes into view and the host grace-skips it. Step ids have to match
+     * as well as the tour id, or [TourSession.stepIndex] would carry over onto different steps.
+     */
+    private suspend fun adoptRefreshedDefinition(definition: TourDefinition): Boolean {
+        val live = _session.value ?: return false
+        if (!live.definition.describesSameSessionAs(definition)) return false
+        // Same instance: an effect re-ran inside one composition, nothing was rebuilt. Bail before
+        // the prepare below, or reopening the tab manager would re-scroll the grid under the user.
+        if (live.definition === definition) return true
+        log(TAG, VERBOSE) { "adoptRefreshedDefinition(${definition.id.raw}) at ${live.stepIndex}" }
+        // Publish only after the hook, like next() does: the host keys its missing-target grace
+        // window on the session object, so a timer running through the prepare below still names the
+        // old definition and next() drops it. Publishing first would restart that timer with the
+        // identity the guard accepts.
+        // The step already on screen needs the fresh hook too: its anchor may have gone with the old
+        // composition, and a single-step tour has no later navigation that would ever run it.
+        definition.steps[live.stepIndex].prepareTarget?.invoke()
+        // prepareTarget can suspend long enough for a grace-skip to advance or end the session.
+        val still = _session.value ?: return true
+        if (!still.definition.describesSameSessionAs(definition)) return true
+        _session.value = still.copy(definition = definition)
+        return true
+    }
+
+    /**
+     * Whether [other] is the same tour, from the same screen, at the same steps - i.e. a rebuild of
+     * what this session is already running rather than a different tour or a second live instance.
+     */
+    private fun TourDefinition.describesSameSessionAs(other: TourDefinition): Boolean =
+        id == other.id &&
+            ownerKey == other.ownerKey &&
+            steps.map { it.stepId } == other.steps.map { it.stepId }
+
     /** Publishes the session if the tour is eligible. Returns whether this call started it. */
     private suspend fun startLocked(definition: TourDefinition): Boolean {
+        // Same tour still live: the caller recomposed rather than asking for a new tour.
+        if (adoptRefreshedDefinition(definition)) return false
         if (!shouldStart(definition)) {
             log(TAG, VERBOSE) { "start(${definition.id.raw}): blocked by prefs or active session" }
             return false
@@ -88,12 +129,22 @@ class GuidedTourController @Inject constructor(
      * two would advance twice — on a two-step tour that shows the last step and immediately
      * completes it, persisting a tour the user never saw. Both parts of the identity are checked
      * because step ids are only unique within a definition.
+     *
+     * [fromDefinition] extends that identity to the build of the tour the request was made against.
+     * A request raised against a definition that has since been replaced by [adoptRefreshedDefinition]
+     * names a step that still matches by id, so the pair above would accept it and advance past the
+     * step the adoption just restored. It has no default: a caller that cannot name the build it
+     * raised its request against is exactly the unguarded case this exists to catch.
      */
-    suspend fun next(fromTour: TourId, fromStepId: String) {
+    suspend fun next(fromTour: TourId, fromStepId: String, fromDefinition: TourDefinition) {
         val onComplete: (suspend () -> Unit)? = mutationMutex.withLock {
             val s = _session.value ?: return@withLock null
             if (s.definition.id != fromTour || s.currentStep.stepId != fromStepId) {
                 log(TAG, VERBOSE) { "next(${fromTour.raw}/$fromStepId): no longer the current step" }
+                return@withLock null
+            }
+            if (fromDefinition !== s.definition) {
+                log(TAG, VERBOSE) { "next(${fromTour.raw}/$fromStepId): no longer the current definition" }
                 return@withLock null
             }
             if (s.isLast) return@withLock completeLocked()

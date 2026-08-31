@@ -7,7 +7,7 @@ import testhelpers.BaseTest
 
 class TemplatesTourTest : BaseTest() {
 
-    private val definition = TemplatesTour.definition(prepareFirstTemplate = {})
+    private val definition = TemplatesTour.definition(prepareFirstTemplate = {}, ownerKey = "pane")
 
     @Test
     fun `the tour id is stable`() {

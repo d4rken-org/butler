@@ -253,8 +253,8 @@ class MainActivity : Activity2() {
             CompositionLocalProvider(LocalGuidedTourController provides guidedTourController) {
                 GuidedTourHost(
                     session = guidedTourController.session,
-                    onNext = { tourId, stepId ->
-                        coroutineScope.launch { guidedTourController.next(tourId, stepId) }
+                    onNext = { tourId, stepId, definition ->
+                        coroutineScope.launch { guidedTourController.next(tourId, stepId, definition) }
                     },
                     onPrevious = { coroutineScope.launch { guidedTourController.previous() } },
                     onDontShowAgain = { coroutineScope.launch { guidedTourController.dismissForever() } },

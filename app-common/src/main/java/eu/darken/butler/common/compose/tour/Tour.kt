@@ -26,6 +26,13 @@ data class TourDefinition(
     val steps: List<TourStep>,
     val clickProtection: Boolean = true,
     /**
+     * Identifies the screen instance that built this definition, for tours that can be on screen
+     * more than once. `null` means the tour is single-instance app-wide. Two live instances of the
+     * same tour carry different keys, which is what stops one adopting the other's session and
+     * pointing its prepare hooks at the wrong pane.
+     */
+    val ownerKey: String? = null,
+    /**
      * Runs after a successful completion has been persisted and the active session has been
      * cleared. It is not invoked for skip, dismiss, disable-all, or a no-render grace-skip.
      */

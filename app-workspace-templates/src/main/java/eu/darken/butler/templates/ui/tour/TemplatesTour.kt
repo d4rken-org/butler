@@ -31,9 +31,16 @@ object TemplatesTour : GuidedTour {
      *
      * Both steps always run: every layout renders exactly one Butler button (Templates page in
      * single-pane, navigation rail otherwise), so a conditional step list would be dead code.
+     *
+     * [ownerKey] names the pane that built this definition: the picker can be open in two panes at
+     * once, and the keys are what keep one pane's session from adopting the other's prepare hooks.
      */
-    fun definition(prepareFirstTemplate: suspend () -> Unit): TourDefinition = TourDefinition(
+    fun definition(
+        prepareFirstTemplate: suspend () -> Unit,
+        ownerKey: String,
+    ): TourDefinition = TourDefinition(
         id = id,
+        ownerKey = ownerKey,
         clickProtection = true,
         steps = listOf(
             TourStep(
