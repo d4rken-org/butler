@@ -295,6 +295,7 @@ class ClosedWorkspaceStashTest : BaseTest() {
         stash.feedback.value shouldNotBe null
 
         stash.dismiss(token)
+        stash.peekEntry() shouldBe null
         stash.feedback.value shouldBe null
 
         scope.testScheduler.advanceTimeBy(ClosedWorkspaceStash.FEEDBACK_TIMEOUT + 1.seconds)
