@@ -66,4 +66,15 @@ class RootServiceStatusTest : BaseTest() {
     @Test fun `a failed probe with a known manager is not connected`() {
         result(true, isInstalled = true, RootServiceState.Failed).toCardStatus() shouldBe RootCardStatus.NOT_CONNECTED
     }
+
+    /**
+     * A timeout says nothing about the manager, only that the handshake never finished, so the
+     * installed-manager lookup does not get to change the answer here.
+     */
+    @Test fun `a handshake that ran out of time is a connection failure`() {
+        result(true, isInstalled = true, RootServiceState.TimedOut)
+            .toCardStatus() shouldBe RootCardStatus.CONNECTION_FAILED
+        result(true, isInstalled = false, RootServiceState.TimedOut)
+            .toCardStatus() shouldBe RootCardStatus.CONNECTION_FAILED
+    }
 }

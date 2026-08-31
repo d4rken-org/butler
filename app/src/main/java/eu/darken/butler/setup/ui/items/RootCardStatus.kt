@@ -10,6 +10,7 @@ enum class RootCardStatus {
     CONNECTED,
     NOT_INSTALLED,
     NOT_CONNECTED,
+    CONNECTION_FAILED,
 }
 
 /**
@@ -23,5 +24,6 @@ fun RootSetupModule.Result?.toCardStatus(): RootCardStatus = when {
         is RootServiceState.Available -> RootCardStatus.CONNECTED
         is RootServiceState.NotChecked, is RootServiceState.Connecting -> RootCardStatus.CONNECTING
         is RootServiceState.Failed -> if (isInstalled) RootCardStatus.NOT_CONNECTED else RootCardStatus.NOT_INSTALLED
+        is RootServiceState.TimedOut -> RootCardStatus.CONNECTION_FAILED
     }
 }

@@ -25,4 +25,13 @@ sealed interface RootServiceState {
      * logs the exception, and nothing downstream reads it.
      */
     data object Failed : RootServiceState
+
+    /**
+     * The connect attempt spent its whole budget without the binder resolving.
+     *
+     * Distinct from [Failed]: nothing said no, we simply stopped waiting. Acquiring the host can sit on
+     * an unanswered su prompt indefinitely, and a pending message that never resolves is worse than an
+     * answer.
+     */
+    data object TimedOut : RootServiceState
 }

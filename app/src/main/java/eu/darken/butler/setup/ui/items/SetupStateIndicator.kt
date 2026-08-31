@@ -50,6 +50,9 @@ fun SetupStateIndicator(
                         RootCardStatus.NOT_CONNECTED -> {
                             Icons.TwoTone.Error to MaterialTheme.colorScheme.tertiary
                         }
+                        RootCardStatus.CONNECTION_FAILED -> {
+                            Icons.TwoTone.Error to MaterialTheme.colorScheme.error
+                        }
                     }
                 }
                 SetupModule.Type.SHIZUKU -> {

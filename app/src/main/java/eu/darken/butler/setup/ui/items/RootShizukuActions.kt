@@ -50,6 +50,7 @@ fun RootShizukuActions(
                     RootCardStatus.CONNECTING -> stringResource(R.string.setup_status_connecting)
                     RootCardStatus.NOT_INSTALLED -> stringResource(R.string.setup_status_not_installed)
                     RootCardStatus.NOT_CONNECTED -> stringResource(R.string.setup_status_not_connected)
+                    RootCardStatus.CONNECTION_FAILED -> stringResource(R.string.setup_status_connection_failed)
                 }
             }
             SetupModule.Type.SHIZUKU -> {
@@ -191,6 +192,27 @@ private fun RootActionsConnectingPreview() {
                 useRoot = true,
                 isInstalled = true,
                 serviceState = RootServiceState.Connecting,
+            ),
+            isRequired = true,
+            priority = 5,
+        ),
+        onExecuteAction = {},
+        switchLabel = "Use Root"
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun RootActionsConnectionFailedPreview() {
+    RootShizukuActions(
+        item = SetupItem(
+            type = SetupModule.Type.ROOT,
+            state = RootSetupModule.Result(
+                useRoot = true,
+                isInstalled = true,
+                // The su prompt was never answered, so the handshake ran out its budget.
+                serviceState = RootServiceState.TimedOut,
             ),
             isRequired = true,
             priority = 5,
