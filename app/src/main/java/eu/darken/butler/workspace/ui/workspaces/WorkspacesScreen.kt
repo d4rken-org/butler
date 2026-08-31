@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -54,6 +55,7 @@ import eu.darken.butler.workspace.ui.manager.LocalWorkspaceButtonProvider
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerScreen
+import eu.darken.butler.workspace.ui.manager.WorkspaceManagerGridDefaults
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerViewModel
 import eu.darken.butler.workspace.ui.manager.tour.WorkspaceManagerTour
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
@@ -358,16 +360,31 @@ fun WorkspacesScreenHost(
     }
 
     val tourController = LocalGuidedTourController.current
+    // Hoisted out of the grid so the tour's prepareTarget hooks can scroll an anchor into the
+    // viewport before the step it belongs to is published.
+    val managerGridState = rememberLazyGridState()
+    val managerTourDefinition = remember(managerGridState) {
+        WorkspaceManagerTour.definition(
+            prepareAddTab = { managerGridState.scrollToItem(0) },
+            prepareFirstCard = {
+                managerGridState.scrollToItem(WorkspaceManagerGridDefaults.FIRST_WORKSPACE_CARD_INDEX)
+            },
+        )
+    }
     // Gated on the manager's own state, not just the overlay flag: a restored session makes the
-    // overlay visible before that state arrives, and the manager - with the tour's only anchor -
-    // is composed no earlier than the state is non-null. A tour started in that window finds no
-    // anchor, grace-skips its single step, and suppresses itself for the rest of the process.
-    val managerTourReady = pageManagerState.isManagerOverlayVisible && managerState != null
+    // overlay visible before that state arrives, and the manager - with the tour's anchors - is
+    // composed no earlier than the state is non-null. A tour started in that window finds no
+    // anchor, grace-skips every step, and suppresses itself for the rest of the process.
+    // The grid also has to hold a card: the manager is reachable with zero tabs, and there the two
+    // card steps have nothing to anchor on while the add-tab step still renders - enough for
+    // completion to be persisted, burning a tour whose gestures were never shown.
+    val managerTourReady = pageManagerState.isManagerOverlayVisible &&
+        managerState?.filteredWorkspaces?.isNotEmpty() == true
     LaunchedEffect(managerTourReady) {
         if (!managerTourReady) return@LaunchedEffect
         // No attempted-flag: this key already runs the body once per open, and tryStart itself
         // refuses a tour that is completed, dismissed, or skipped this process.
-        tourController.tryStart(WorkspaceManagerTour.definition)
+        tourController.tryStart(managerTourDefinition)
     }
 
     // Selection mode is a state inside the overlay, so back leaves it first; dismissing the manager
@@ -423,6 +440,7 @@ fun WorkspacesScreenHost(
             managerState?.let { currentManagerState ->
                 WorkspaceManagerScreen(
                     state = currentManagerState,
+                    lazyGridState = managerGridState,
                     closeConfirmation = managerCloseConfirmation,
                     onCloseConfirmationResolve = { confirmed ->
                         managerCloseConfirmation?.let {

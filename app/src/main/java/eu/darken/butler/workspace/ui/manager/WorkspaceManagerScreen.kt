@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.grid.LazyGridState
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.Workspaces
@@ -80,6 +82,7 @@ fun WorkspaceManagerScreen(
     onTabsClick: () -> Unit = {},
     onOperationsFilterClick: () -> Unit = {},
     onAttentionFilterClick: () -> Unit = {},
+    lazyGridState: LazyGridState = rememberLazyGridState(),
 ) {
     var showCloseAllDialog by remember { mutableStateOf(false) }
     var showCloseSelectedDialog by remember { mutableStateOf(false) }
@@ -172,6 +175,7 @@ fun WorkspaceManagerScreen(
                 onClearSelection = onClearSelection,
                 onOperationsFilterClick = onOperationsFilterClick,
                 onAttentionFilterClick = onAttentionFilterClick,
+                lazyGridState = lazyGridState,
             )
 
             FloatingBarStack(
