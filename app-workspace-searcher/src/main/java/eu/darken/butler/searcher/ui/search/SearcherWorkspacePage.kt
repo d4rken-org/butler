@@ -2,7 +2,6 @@ package eu.darken.butler.searcher.ui.search
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -67,7 +66,7 @@ import eu.darken.butler.workspace.ui.common.WorkspacePaddings
 import eu.darken.butler.workspace.ui.error.ErrorCard
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
-import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
+import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarContentPadding
 import eu.darken.butler.workspace.ui.insets.rememberPaneFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
@@ -257,12 +256,11 @@ fun SearcherWorkspacePage(
             }
         }
 
-        // Content padding - automatically calculated by FloatingBarStack
-        val contentPaddingValues = PaddingValues(
+        val contentPaddingValues = rememberFloatingBarContentPadding(
+            topStackState = topBarStackState,
+            bottomStackState = bottomBarStackState,
             start = WorkspacePaddings.ContentHorizontal,
             end = WorkspacePaddings.ContentHorizontal,
-            top = topBarStackState.contentPaddingDp(),
-            bottom = bottomBarStackState.contentPaddingDp(),
         )
 
         // Conditional rendering: Idle state (templates + history) vs Results mode
