@@ -1,7 +1,6 @@
 package eu.darken.butler.workspace.ui.workspaces
 
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -15,6 +14,8 @@ import androidx.compose.ui.test.swipeRight
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.undo.ClosedWorkspaceFeedback
+import eu.darken.butler.workspace.ui.floatingbar.BarPosition
+import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
 import io.kotest.matchers.shouldBe
 import org.junit.Test
 import testhelpers.ComposeTest
@@ -96,6 +97,11 @@ class WorkspaceClosedFeedbackBarTest : ComposeTest() {
         dismissCount shouldBe 0
     }
 
+    /**
+     * Drives [WorkspaceClosedUndoBar] rather than the bar itself: the keying that makes a
+     * superseding entry swipeable lives there, so a test that declared its own key would pass
+     * against a production composable that had lost it.
+     */
     @Test
     fun `a superseding entry is swipeable`() {
         val dismissedTokens = mutableListOf<Long>()
@@ -104,9 +110,8 @@ class WorkspaceClosedFeedbackBarTest : ComposeTest() {
         composeTestRule.setContent {
             PreviewWrapper {
                 val entry = feedback
-                key(entry.closeToken) {
-                    WorkspaceClosedFeedbackBar(
-                        modifier = Modifier.testTag("bar"),
+                FloatingBarStack(position = BarPosition.BOTTOM) {
+                    WorkspaceClosedUndoBar(
                         feedback = entry,
                         onUndo = {},
                         onDismiss = { dismissedTokens += entry.closeToken },
@@ -115,7 +120,7 @@ class WorkspaceClosedFeedbackBarTest : ComposeTest() {
             }
         }
 
-        composeTestRule.onNodeWithTag("bar").performTouchInput { swipeLeft() }
+        composeTestRule.onNodeWithText(MESSAGE).performTouchInput { swipeLeft() }
         composeTestRule.waitForIdle()
         dismissedTokens shouldBe listOf(1L)
 
@@ -123,9 +128,13 @@ class WorkspaceClosedFeedbackBarTest : ComposeTest() {
         composeTestRule.runOnIdle { feedback = feedbackOf(2L) }
         composeTestRule.waitForIdle()
 
-        composeTestRule.onNodeWithTag("bar").performTouchInput { swipeLeft() }
+        composeTestRule.onNodeWithText(MESSAGE).performTouchInput { swipeLeft() }
         composeTestRule.waitForIdle()
 
         dismissedTokens shouldBe listOf(1L, 2L)
+    }
+
+    companion object {
+        private const val MESSAGE = "Closed \"Downloads\""
     }
 }
