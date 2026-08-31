@@ -16,10 +16,12 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
+import eu.darken.butler.workspace.contracts.searcher.SearchTarget
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.LocalWorkspaceBarCollapseStates
 import eu.darken.butler.workspace.ui.floatingbar.WorkspaceBarCollapseStates
@@ -32,6 +34,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Test
 import testhelpers.ComposeTest
 import kotlin.time.Clock
+import eu.darken.butler.common.R as CommonR
 import eu.darken.butler.workspace.R as WorkspaceR
 
 /**
@@ -56,6 +59,10 @@ class SearcherFloatingBarsTest : ComposeTest() {
         get() = context.getString(WorkspaceR.string.clipboard_open_in_explorer)
     private val clipboardHeaderTitle: String
         get() = context.getString(WorkspaceR.string.clipboard_header_title)
+    private val foldersLabel: String
+        get() = context.resources.getQuantityString(CommonR.plurals.common_folders_count, FOLDER_COUNT, FOLDER_COUNT)
+    private val filesLabel: String
+        get() = context.resources.getQuantityString(CommonR.plurals.common_files_count, FILE_COUNT, FILE_COUNT)
 
     private fun setContent() {
         composeTestRule.setContent {
@@ -80,11 +87,15 @@ class SearcherFloatingBarsTest : ComposeTest() {
      * The page composes its stacks itself, so the collapse registry it writes its per-bar fractions
      * into is the read-only route to the keys the bars registered under.
      */
-    private fun bottomBarKeys(): Set<String> = barCollapseStates
+    private fun barKeys(position: BarPosition): Set<String> = barCollapseStates
         .snapshot()[workspaceId]
-        ?.get(BarPosition.BOTTOM.persistedKey)
+        ?.get(position.persistedKey)
         ?.keys
         .orEmpty()
+
+    private fun bottomBarKeys(): Set<String> = barKeys(BarPosition.BOTTOM)
+
+    private fun topBarKeys(): Set<String> = barKeys(BarPosition.TOP)
 
     private fun scrollResults() {
         composeTestRule.onRoot().performTouchInput { swipeUp(startY = centerY, endY = top) }
@@ -101,6 +112,20 @@ class SearcherFloatingBarsTest : ComposeTest() {
                 size = null,
                 modifiedAt = null,
             ),
+        ),
+    )
+
+    /** A result set whose folder and file counts differ from each other and from the selection. */
+    private fun mixedResultsState() = SearcherWorkspaceViewModel.State.Ready(
+        filenameQuery = "config",
+        workspaceState = SearcherWorkspace.State(
+            searchTargets = listOf(SearchTarget.Path.from(LocalPath.build("/storage/emulated/0"))),
+            searchStatus = SearcherWorkspace.State.SearchStatus.IDLE,
+            results = List(FOLDER_COUNT) { index ->
+                SearcherMockDataProvider.createMockDirectory(name = "config-dir-$index")
+            } + List(FILE_COUNT) { index ->
+                SearcherMockDataProvider.createMockTextFile(name = "config-$index.txt")
+            },
         ),
     )
 
@@ -230,8 +255,34 @@ class SearcherFloatingBarsTest : ComposeTest() {
         }
     }
 
+    /**
+     * The info bar's scroll behaviour is Static and so never a collapse target, which is why only
+     * the toolbar and the progress card can show up here.
+     */
+    @Test
+    fun `the top bars register under the keys the searcher persists`() {
+        setContent()
+
+        topBarKeys() shouldBe setOf(
+            SearcherBarKeys.TOOLBAR,
+            SearcherBarKeys.PROGRESS,
+        )
+    }
+
+    /** Pins the folder/file/size aggregates the info bar is fed with. */
+    @Test
+    fun `the info bar counts folders and files separately`() {
+        stateSource.value = mixedResultsState()
+        setContent()
+
+        composeTestRule.onNodeWithText(foldersLabel).assertIsDisplayed()
+        composeTestRule.onNodeWithText(filesLabel).assertIsDisplayed()
+    }
+
     companion object {
         private const val OPERATION_TITLE = "Deleting files"
         private const val CLIP_PATH = "/storage/emulated/0/Documents/report.pdf"
+        private const val FOLDER_COUNT = 2
+        private const val FILE_COUNT = 3
     }
 }
