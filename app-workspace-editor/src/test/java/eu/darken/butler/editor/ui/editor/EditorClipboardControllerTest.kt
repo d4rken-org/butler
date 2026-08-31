@@ -507,6 +507,23 @@ class EditorClipboardControllerTest : BaseTest() {
     }
 
     @Test
+    fun `pasteable clipboard suggests every extension the shared text table knows`() = runTest {
+        val clips = listOf("script.lua", "main.dart", "readme.rst", "rules.pro").map { name ->
+            ClipboardClip.Paths(
+                origin = workspaceId,
+                mode = ClipboardClip.Paths.Mode.COPY,
+                paths = listOf(fileLookup(name)),
+            )
+        }
+        val controller = controller(repo = mockRepo(clips))
+
+        val pasteable = controller.pasteableClipboard.first()
+
+        pasteable.flatMap { it.paths }.map { it.name } shouldBe
+            listOf("script.lua", "main.dart", "readme.rst", "rules.pro")
+    }
+
+    @Test
     fun `pasting a paths clip skips directories`() = runTest {
         val workspace = mockWorkspace()
         val controller = controller(workspace)

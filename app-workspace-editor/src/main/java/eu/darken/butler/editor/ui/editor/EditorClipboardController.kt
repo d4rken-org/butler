@@ -8,6 +8,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
+import eu.darken.butler.common.files.TextFileDetector
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.editor.core.EditorWorkspace
 import eu.darken.butler.editor.core.engine.ClipboardCapacityException
@@ -216,16 +217,14 @@ class EditorClipboardController(
 
     /**
      * Cheap, no-I/O suggestion heuristic for the paste sheet. Requires regular-file metadata (so
-     * directories/symlinks never surface) and then accepts a known text extension, a known text
-     * filename/dotfile, or any extensionless regular file. It only decides what is *suggested* -
-     * an explicitly picked file is always attempted and [PasteFileReader] rejects real binaries.
+     * directories/symlinks never surface) and then defers to the shared text table.
      */
     private fun isLikelyTextFile(lookup: APathLookup<*>): Boolean {
         if (lookup.fileType != FileType.FILE) return false
         val name = lookup.name
-        if (name in KNOWN_TEXT_FILENAMES) return true
-        val ext = name.substringAfterLast('.', "").lowercase()
-        return ext.isEmpty() || ext in TEXT_EXTENSIONS
+        // An extensionless file is still offered: the sheet only SUGGESTS, and PasteFileReader
+        // rejects real binaries when one is actually picked.
+        return name.substringAfterLast('.', "").isEmpty() || TextFileDetector.isTextFile(name)
     }
 
     companion object {
@@ -241,17 +240,5 @@ class EditorClipboardController(
          * Selections passing this may still fail the exact byte check in [addToButlerClipboard].
          */
         val BUTLER_CLIPBOARD_PREFILTER_CHARS = ClipboardClip.Text.MAX_SIZE_BYTES.toLong()
-
-        internal val TEXT_EXTENSIONS = setOf(
-            "txt", "md", "json", "xml", "html", "css", "js", "kt", "java", "py", "sh",
-            "yml", "yaml", "csv", "log", "conf", "ini", "properties", "gradle", "toml",
-            "c", "cpp", "h", "hpp", "rs", "go", "rb", "php", "sql", "ts", "tsx", "jsx",
-        )
-
-        /** Common extensionless / dotfile text files the extension heuristic would otherwise miss. */
-        internal val KNOWN_TEXT_FILENAMES = setOf(
-            ".env", ".gitignore", ".gitattributes", ".editorconfig", ".bashrc", ".zshrc",
-            ".profile", "Makefile", "Dockerfile", "LICENSE", "README", "CHANGELOG",
-        )
     }
 }
