@@ -28,15 +28,19 @@ import eu.darken.butler.common.files.local.walkers.DirectLocalWalker
 import eu.darken.butler.common.files.metadata.FileSystem
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
+import eu.darken.butler.common.ipc.IpcErrorCodec
 import eu.darken.butler.common.ipc.IpcHostModule
 import eu.darken.butler.common.ipc.RemoteFileHandle
 import eu.darken.butler.common.ipc.RemoteInputStream
 import eu.darken.butler.common.ipc.remoteFileHandle
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.runBlocking
 import java.io.IOException
@@ -118,7 +122,7 @@ class FileOpsHost @Inject constructor(
                     true
                 },
                 onError = { lookup, e ->
-                    emit(WalkEvent.DirError(lookup, e.message ?: e.toString()))
+                    emit(WalkEvent.DirError(lookup, IpcErrorCodec.encodeCompact(e)))
                     true
                 },
                 followSymlinks = spec.followSymlinks,
@@ -127,9 +131,8 @@ class FileOpsHost @Inject constructor(
         }.catch { e ->
             if (e is kotlinx.coroutines.CancellationException) throw e
             log(TAG, ERROR) { "walkStreamV2($path) fatal: ${e.asLog()}" }
-            // Only the message crosses here, not the exception itself: the client rebuilds a fresh
-            // ReadException from it, so type, cause chain and host stack are lost on this path.
-            emit(WalkEvent.FatalError(path, e.message ?: e.toString()))
+            // Full payload for the one terminal failure, the per-directory errors go compact.
+            emit(WalkEvent.FatalError(path, IpcErrorCodec.encode(e)))
         }
         events.toEventRemoteStream(appScope + dispatcherProvider.IO)
     } catch (e: Exception) {
@@ -330,11 +333,16 @@ class FileOpsHost @Inject constructor(
                 log(TAG, VERBOSE) { "deleteStream() completed successfully" }
             } catch (e: Exception) {
                 log(TAG, ERROR) { "deleteStream() operation failed: ${e.asLog()}" }
-                // Send error event instead of throwing. Only the message crosses, so type, cause
-                // chain and host stack are lost on this path.
+                if (e is CancellationException) {
+                    // A cancelled scope has to unwind; a cancelled operation is a terminal event.
+                    if (!currentCoroutineContext().isActive) throw e
+                    send(DeleteOperationEvent.Error(error = e.message ?: "Cancelled", cancelled = true))
+                    return@channelFlow
+                }
+                // Send error event instead of throwing
                 send(
                     DeleteOperationEvent.Error(
-                        error = e.message ?: "Unknown error",
+                        error = IpcErrorCodec.encode(e),
                         cancelled = false
                     )
                 )
@@ -400,10 +408,16 @@ class FileOpsHost @Inject constructor(
                 log(TAG, VERBOSE) { "copyStream() completed successfully" }
             } catch (e: Exception) {
                 log(TAG, ERROR) { "copyStream() operation failed: ${e.asLog()}" }
+                if (e is CancellationException) {
+                    // A cancelled scope has to unwind; a cancelled operation is a terminal event.
+                    if (!currentCoroutineContext().isActive) throw e
+                    send(CopyOperationEvent.Error(error = e.message ?: "Cancelled", cancelled = true))
+                    return@channelFlow
+                }
                 // Send error event instead of throwing
                 send(
                     CopyOperationEvent.Error(
-                        error = e.message ?: "Unknown error",
+                        error = IpcErrorCodec.encode(e),
                         cancelled = false
                     )
                 )
@@ -469,10 +483,16 @@ class FileOpsHost @Inject constructor(
                 log(TAG, VERBOSE) { "moveStream() completed successfully" }
             } catch (e: Exception) {
                 log(TAG, ERROR) { "moveStream() operation failed: ${e.asLog()}" }
+                if (e is CancellationException) {
+                    // A cancelled scope has to unwind; a cancelled operation is a terminal event.
+                    if (!currentCoroutineContext().isActive) throw e
+                    send(MoveOperationEvent.Error(error = e.message ?: "Cancelled", cancelled = true))
+                    return@channelFlow
+                }
                 // Send error event instead of throwing
                 send(
                     MoveOperationEvent.Error(
-                        error = e.message ?: "Unknown error",
+                        error = IpcErrorCodec.encode(e),
                         cancelled = false
                     )
                 )

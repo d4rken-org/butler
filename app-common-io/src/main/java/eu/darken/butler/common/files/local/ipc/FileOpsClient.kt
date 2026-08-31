@@ -26,7 +26,6 @@ import eu.darken.butler.common.ipc.IpcClientModule
 import eu.darken.butler.common.ipc.fileHandle
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import okio.FileHandle
 import okio.buffer
@@ -112,16 +111,18 @@ class FileOpsClient @AssistedInject constructor(
                 when (event) {
                     is WalkEvent.Item -> emit(event.lookup)
                     is WalkEvent.DirError -> {
-                        val error = ReadException(
-                            message = event.message ?: "Failed to read directory",
-                            path = event.lookup.lookedUp,
-                        )
+                        // onError takes an Exception; every type the codec rebuilds is one.
+                        val error = (decodeStreamError(event.message) as? Exception)
+                            ?: ReadException(
+                                message = event.message ?: "Failed to read directory",
+                                path = event.lookup.lookedUp,
+                            )
                         val continueWalk = walkOptions.onError?.invoke(event.lookup, error) ?: true
                         if (!continueWalk) throw error
                     }
                     is WalkEvent.FatalError -> {
                         terminated = true
-                        throw ReadException(
+                        throw decodeStreamError(event.message) ?: ReadException(
                             message = event.message ?: "Walk failed",
                             path = event.path ?: path,
                         )
@@ -256,19 +257,25 @@ class FileOpsClient @AssistedInject constructor(
         )
 
         // Convert RemoteInputStream to Flow<DeleteOperationEvent>
-        remoteInputStream.toEventFlow(DeleteOperationEvent.CREATOR)
-            .map { event ->
-                // Handle Error events by throwing appropriate exception
-                if (event is DeleteOperationEvent.Error) {
-                    if (event.cancelled) {
-                        throw CancellationException(event.error)
-                    } else {
-                        throw IOException(event.error)
+        flow {
+            var terminated = false
+            remoteInputStream.toEventFlow(DeleteOperationEvent.CREATOR).collect { event ->
+                when (event) {
+                    is DeleteOperationEvent.Error -> {
+                        terminated = true
+                        val decoded = decodeStreamError(event.error)
+                        if (event.cancelled) throw CancellationException(decoded?.message ?: event.error)
+                        throw decoded ?: IOException(event.error)
                     }
+                    is DeleteOperationEvent.Result -> {
+                        terminated = true
+                        emit(event.toDeleteActionState())
+                    }
+                    else -> emit(event.toDeleteActionState())
                 }
-                // Convert each event to DeleteAction.State
-                event.toDeleteActionState()
             }
+            if (!terminated) throw IOException("Delete stream truncated")
+        }
     } catch (e: Exception) {
         throw e.refineException()
     }
@@ -319,19 +326,25 @@ class FileOpsClient @AssistedInject constructor(
         )
 
         // Convert RemoteInputStream to Flow<CopyOperationEvent>
-        remoteInputStream.toEventFlow(CopyOperationEvent.CREATOR)
-            .map { event ->
-                // Handle Error events by throwing appropriate exception
-                if (event is CopyOperationEvent.Error) {
-                    if (event.cancelled) {
-                        throw CancellationException(event.error)
-                    } else {
-                        throw IOException(event.error)
+        flow {
+            var terminated = false
+            remoteInputStream.toEventFlow(CopyOperationEvent.CREATOR).collect { event ->
+                when (event) {
+                    is CopyOperationEvent.Error -> {
+                        terminated = true
+                        val decoded = decodeStreamError(event.error)
+                        if (event.cancelled) throw CancellationException(decoded?.message ?: event.error)
+                        throw decoded ?: IOException(event.error)
                     }
+                    is CopyOperationEvent.Result -> {
+                        terminated = true
+                        emit(event.toCopyActionState())
+                    }
+                    else -> emit(event.toCopyActionState())
                 }
-                // Convert each event to CopyAction.State
-                event.toCopyActionState()
             }
+            if (!terminated) throw IOException("Copy stream truncated")
+        }
     } catch (e: Exception) {
         throw e.refineException()
     }
@@ -382,19 +395,25 @@ class FileOpsClient @AssistedInject constructor(
         )
 
         // Convert RemoteInputStream to Flow<MoveOperationEvent>
-        remoteInputStream.toEventFlow(MoveOperationEvent.CREATOR)
-            .map { event ->
-                // Handle Error events by throwing appropriate exception
-                if (event is MoveOperationEvent.Error) {
-                    if (event.cancelled) {
-                        throw CancellationException(event.error)
-                    } else {
-                        throw IOException(event.error)
+        flow {
+            var terminated = false
+            remoteInputStream.toEventFlow(MoveOperationEvent.CREATOR).collect { event ->
+                when (event) {
+                    is MoveOperationEvent.Error -> {
+                        terminated = true
+                        val decoded = decodeStreamError(event.error)
+                        if (event.cancelled) throw CancellationException(decoded?.message ?: event.error)
+                        throw decoded ?: IOException(event.error)
                     }
+                    is MoveOperationEvent.Result -> {
+                        terminated = true
+                        emit(event.toMoveActionState())
+                    }
+                    else -> emit(event.toMoveActionState())
                 }
-                // Convert each event to MoveAction.State
-                event.toMoveActionState()
             }
+            if (!terminated) throw IOException("Move stream truncated")
+        }
     } catch (e: Exception) {
         throw e.refineException()
     }

@@ -20,15 +20,19 @@ interface IpcClientModule {
      * says an exception actually came from a host, so anything without it is handed back untouched.
      */
     fun Throwable.unwrapPropagation(): Throwable {
-        val carried = (this as? UnsupportedOperationException)
-            ?.message
-            ?.takeIf { it.startsWith(IpcErrorCodec.MARKER) }
-            ?: return this
+        val carrier = (this as? UnsupportedOperationException)?.message ?: return this
 
-        return IpcErrorCodec.decode(carried, stackTrace).also {
+        return IpcErrorCodec.decodeIfMarked(carrier, stackTrace)?.also {
             log(TAG, VERBOSE) { "Propagating unwrapped exception: $it" }
-        }
+        } ?: this
     }
+
+    /**
+     * The stream counterpart: those events carry the host error in a [String] field instead of a
+     * binder exception. Null means nothing was encoded, so the caller keeps the raw text.
+     */
+    fun decodeStreamError(carrier: String?): Throwable? =
+        IpcErrorCodec.decodeIfMarked(carrier, Throwable().stackTrace)
 
     companion object {
         private val TAG = logTag("IPC", "Module")
