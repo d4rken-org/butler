@@ -6,6 +6,10 @@ import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.MoveOutcome
+import eu.darken.butler.common.files.Existence
+import eu.darken.butler.common.files.errors.PathNotFoundException
+import eu.darken.butler.common.files.errors.PathPermissionDeniedException
+import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.local.LocalFileSystemOps
 import eu.darken.butler.common.files.metadata.OwnershipResolver
 import eu.darken.butler.workspace.core.Workspace
@@ -21,7 +25,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import testhelpers.BaseTest
 import java.io.File
-import java.io.FileNotFoundException
 import java.io.IOException
 import kotlin.uuid.Uuid
 
@@ -114,8 +117,10 @@ class FileDataSourceTest : BaseTest() {
     fun `open throws on non-existent file`(@TempDir tempDir: File) = runTest {
         // Given: Non-existent file
         val mockGateway = mockk<GatewaySwitch>().apply {
-        coEvery { canWrite(any()) } returns true
+            coEvery { canWrite(any()) } returns true
             coEvery { exists(any()) } returns false
+            coEvery { existsStrict(any()) } returns Existence.ABSENT
+            coEvery { lookup(any(), any()) } throws ReadException("no such file", null)
         }
         val dataSource = FileDataSource(
             workspaceId,
@@ -125,7 +130,47 @@ class FileDataSourceTest : BaseTest() {
 
         // When & Then: Open throws
         val exception = runCatching { dataSource.open() }.exceptionOrNull()
-        exception shouldBe instanceOf<FileNotFoundException>()
+        exception shouldBe instanceOf<PathNotFoundException>()
+        // The path travels as a field, which is what lets the UI render it without parsing
+        (exception as PathNotFoundException).path!!.name shouldBe "nonexistent.txt"
+    }
+
+    @Test
+    fun `an unreadable file is not reported as gone`(@TempDir tempDir: File) = runTest {
+        // A path the probe cannot answer for - an unreachable host, a wedged provider, or a denial.
+        // Calling that "deleted" would tell the user the wrong story AND, because the gone types
+        // are PathGoneError, suppress the permission handling that would have offered them a fix.
+        val denied = PathPermissionDeniedException(
+            path = LocalPath.build(File(tempDir, "locked.txt")),
+            operation = "lookup",
+            reason = PathPermissionDeniedException.Reason.ACCESS_DENIED,
+        )
+        val mockGateway = mockk<GatewaySwitch>().apply {
+            coEvery { canWrite(any()) } returns true
+            coEvery { existsStrict(any()) } returns Existence.UNKNOWN
+            coEvery { lookup(any(), any()) } throws denied
+        }
+        val dataSource = FileDataSource(workspaceId, LocalPath.build(File(tempDir, "locked.txt")), mockGateway)
+
+        val exception = runCatching { dataSource.open() }.exceptionOrNull()
+
+        // The original error survives untouched - it is the one carrying the signal
+        exception shouldBe denied
+    }
+
+    @Test
+    fun `a file that still exists keeps its original failure`(@TempDir tempDir: File) = runTest {
+        val boom = IOException("provider blew up")
+        val mockGateway = mockk<GatewaySwitch>().apply {
+            coEvery { canWrite(any()) } returns true
+            coEvery { existsStrict(any()) } returns Existence.PRESENT
+            coEvery { lookup(any(), any()) } throws boom
+        }
+        val dataSource = FileDataSource(workspaceId, LocalPath.build(File(tempDir, "there.txt")), mockGateway)
+
+        val exception = runCatching { dataSource.open() }.exceptionOrNull()
+
+        exception shouldBe boom
     }
 
     // ==================== Byte Source Tests ====================

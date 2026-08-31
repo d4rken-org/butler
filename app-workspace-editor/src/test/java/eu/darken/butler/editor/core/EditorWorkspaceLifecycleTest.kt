@@ -7,6 +7,7 @@ import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.MoveOutcome
+import eu.darken.butler.common.files.errors.PathNotFoundException
 import eu.darken.butler.common.files.local.LocalFileSystemOps
 import eu.darken.butler.common.files.metadata.OwnershipResolver
 import eu.darken.butler.editor.core.engine.ContentSource
@@ -20,6 +21,7 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -56,6 +58,7 @@ class EditorWorkspaceLifecycleTest : BaseTest() {
         }
         coEvery { canWrite(any()) } returns true
         coEvery { exists(any()) } coAnswers { fileSystemOps.exists(firstArg<APath<*>>() as LocalPath) }
+        coEvery { existsStrict(any()) } coAnswers { fileSystemOps.existsStrict(firstArg<APath<*>>() as LocalPath) }
         @Suppress("UNCHECKED_CAST")
         coEvery { lookup(any(), any()) } coAnswers {
             fileSystemOps.lookup(firstArg<APath<*>>() as LocalPath, secondArg<LookupOptions>()) as APathLookup<APath<*>>
@@ -320,7 +323,14 @@ class EditorWorkspaceLifecycleTest : BaseTest() {
             createMockGateway(),
         )
         try {
-            withTimeout(10_000) { workspace.state.first { it is EditorWorkspace.State.Error } }
+            val errorState = withTimeout(10_000) {
+                workspace.state.first { it is EditorWorkspace.State.Error }
+            } as EditorWorkspace.State.Error
+
+            // The type is what routes the tab to the "file is gone" screen rather than the
+            // generic report-this-error one, so it is part of the contract, not an implementation
+            // detail of FileDataSource
+            errorState.error.shouldBeInstanceOf<PathNotFoundException>()
 
             // Poke an engine state flow: the resulting internal emission must not flip the
             // tab back to a Ready scratch view

@@ -6,6 +6,7 @@ import eu.darken.butler.common.error.HasLocalizedError
 import eu.darken.butler.common.error.LocalizedError
 import eu.darken.butler.common.error.LocalizedErrorContext
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.errors.PathGoneError
 import eu.darken.butler.viewer.R
 
 class ViewerNotAFileException(
@@ -54,7 +55,7 @@ class ViewerUndecodableImageException(
 class ViewerFileGoneException(
     val displayName: String,
     cause: Throwable? = null,
-) : IllegalArgumentException("File no longer exists: $displayName", cause), HasLocalizedError {
+) : IllegalArgumentException("File no longer exists: $displayName", cause), PathGoneError {
 
     constructor(path: APath<*>, cause: Throwable? = null) : this(path.name, cause)
 

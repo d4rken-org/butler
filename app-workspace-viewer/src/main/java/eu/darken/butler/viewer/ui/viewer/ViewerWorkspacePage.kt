@@ -37,6 +37,7 @@ import eu.darken.butler.viewer.R
 import eu.darken.butler.viewer.core.ApkInstallState
 import eu.darken.butler.viewer.core.VersionComparison
 import androidx.core.net.toUri
+import eu.darken.butler.common.files.errors.PathGoneError
 import eu.darken.butler.viewer.core.ViewerContent
 import eu.darken.butler.viewer.core.ViewerExternalChange
 import eu.darken.butler.viewer.core.ViewerSource
@@ -44,6 +45,7 @@ import eu.darken.butler.viewer.core.ViewerFileInfo
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.actions.WorkspaceActionBar
 import eu.darken.butler.workspace.ui.error.ErrorCard
+import eu.darken.butler.workspace.ui.states.PathGoneBody
 import eu.darken.butler.workspace.ui.floatingbar.BarAnimation
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior
@@ -509,15 +511,26 @@ private fun ViewerContentArea(
                 onToggleChrome = onToggleChrome,
             )
 
-            is ViewerContent.Failed -> ErrorCard(
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .padding(24.dp),
-                title = stringResource(R.string.viewer_error_title),
-                error = content.error,
-                onShareError = { onShareError(content.error) },
-                onRetry = onRetry,
-            )
+            // A file that is simply gone is not a fault to report or retry, so it gets the shared
+            // "path is gone" treatment rather than an error card with a dead retry button.
+            is ViewerContent.Failed -> if (content.error is PathGoneError) {
+                PathGoneBody(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(24.dp),
+                    error = content.error,
+                )
+            } else {
+                ErrorCard(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(24.dp),
+                    title = stringResource(R.string.viewer_error_title),
+                    error = content.error,
+                    onShareError = { onShareError(content.error) },
+                    onRetry = onRetry,
+                )
+            }
         }
     }
 }

@@ -58,6 +58,10 @@
     <string name="editor_backing_lost_banner_title">File no longer available</string>
     <string name="editor_backing_lost_banner_message">It may have been moved or deleted. This view is read-only — reopen or close it.</string>
 
+    <!-- Interrupted-save recovery notice -->
+    <string name="editor_error_save_artifacts_label">File is gone, but a backup remains</string>
+    <string name="editor_error_save_artifacts_description">\"%1$s\" is missing, but a save that was interrupted left this behind: %2$s. Your content is most likely still in it.</string>
+
     <!-- External change notice -->
     <string name="editor_external_change_banner_title">File changed on disk</string>
     <string name="editor_external_change_banner_message">Another app modified this file.</string>

@@ -8,10 +8,11 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
-import eu.darken.butler.common.files.extensions.exists
+import eu.darken.butler.common.files.errors.PathNotFoundException
 import eu.darken.butler.common.files.extensions.lookup
 import eu.darken.butler.common.files.write.FileCommitContext
 import eu.darken.butler.common.files.write.AtomicFileWriter
@@ -22,6 +23,8 @@ import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -32,7 +35,6 @@ import okio.BufferedSink
 import okio.Source
 import okio.buffer
 import okio.use
-import java.io.FileNotFoundException
 import java.io.IOException
 import java.nio.charset.Charset
 import kotlin.uuid.Uuid
@@ -119,19 +121,6 @@ class FileDataSource @AssistedInject constructor(
     override suspend fun open() {
         log(tag) { "Opening file data source: $filePath" }
         try {
-            if (!filePath.exists(gatewaySwitch)) {
-                // A save crash between backup-move and restore leaves the backup as the only
-                // copy; point the user at it instead of a bare not-found
-                val backups = scanSaveArtifacts()
-                if (backups.isNotEmpty()) {
-                    throw FileNotFoundException(
-                        "File does not exist: ${filePath.path} - a backup from an interrupted save " +
-                            "exists: ${backups.joinToString { it.name }}",
-                    )
-                }
-                throw FileNotFoundException("File does not exist: ${filePath.path}")
-            }
-
             val lookup = filePath.lookup(gatewaySwitch, LookupOptions.BASE)
 
             val sampleBytes = readDetectionSample()
@@ -176,9 +165,47 @@ class FileDataSource @AssistedInject constructor(
                 "Opened FileDataSource: size=${lookup.size} bytes, charset=$detectedCharset, " +
                     "hasBOM=$hasBOM, canWrite=$canWrite"
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             log(tag, ERROR) { "Failed to open - ${e.asLog()}" }
-            throw e
+            throw e.asGoneIfAbsent()
+        }
+    }
+
+    /**
+     * Re-reads a failed open as "the file is gone" only when a probe positively says so.
+     *
+     * The probe has to be [GatewaySwitch.existsStrict], not `exists()`: the latter answers `false`
+     * for a path that is merely unreadable, and mistaking that for a deletion would both tell the
+     * user the wrong story and - because the gone types are [PathGoneError] - suppress the
+     * permission handling that would have offered them a fix. An unreachable SMB host, a wedged
+     * document provider and a failing probe all answer [Existence.UNKNOWN], where the original
+     * error is the one carrying the signal.
+     *
+     * Deliberately after the attempt rather than before it: a pre-flight check cannot see a file
+     * deleted between the check and the read, which is exactly the race a restored tab hits.
+     */
+    private suspend fun Throwable.asGoneIfAbsent(): Throwable {
+        val existence = try {
+            gatewaySwitch.existsStrict(filePath)
+        } catch (probeError: CancellationException) {
+            throw probeError
+        } catch (probeError: Exception) {
+            log(tag, WARN) { "asGoneIfAbsent(): Probe failed for $filePath: ${probeError.asLog()}" }
+            Existence.UNKNOWN
+        }
+        currentCoroutineContext().ensureActive()
+        if (existence != Existence.ABSENT) return this
+
+        // A save crash between backup-move and restore leaves the backup as the only copy;
+        // point the user at it instead of a bare not-found.
+        val backups = scanSaveArtifacts()
+        log(tag, INFO) { "asGoneIfAbsent(): $filePath is gone (${backups.size} artifacts), was ${asLog()}" }
+        return if (backups.isNotEmpty()) {
+            SaveArtifactsRemainException(filePath, backups)
+        } else {
+            PathNotFoundException(filePath)
         }
     }
 

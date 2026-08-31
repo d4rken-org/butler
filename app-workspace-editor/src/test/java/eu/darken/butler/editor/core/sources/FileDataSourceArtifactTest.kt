@@ -5,11 +5,13 @@ import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
+import eu.darken.butler.common.files.errors.PathNotFoundException
 import eu.darken.butler.common.files.local.LocalFileSystemOps
 import eu.darken.butler.common.files.metadata.OwnershipResolver
 import eu.darken.butler.editor.core.engine.ContentSource
 import eu.darken.butler.workspace.core.Workspace
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
@@ -34,6 +36,7 @@ class FileDataSourceArtifactTest : BaseTest() {
     private fun createMockGateway(): GatewaySwitch = mockk<GatewaySwitch>().apply {
         coEvery { canWrite(any()) } returns true
         coEvery { exists(any()) } coAnswers { fileSystemOps.exists(firstArg<APath<*>>() as LocalPath) }
+        coEvery { existsStrict(any()) } coAnswers { fileSystemOps.existsStrict(firstArg<APath<*>>() as LocalPath) }
         @Suppress("UNCHECKED_CAST")
         coEvery { lookup(any(), any()) } coAnswers {
             fileSystemOps.lookup(firstArg<APath<*>>() as LocalPath, secondArg<LookupOptions>()) as APathLookup<APath<*>>
@@ -106,5 +109,31 @@ class FileDataSourceArtifactTest : BaseTest() {
         val source = openSource(tempDir, gateway)
 
         (source.contentSource.value as ContentSource.File).staleBackups shouldBe emptyList()
+    }
+
+    @Test
+    fun `a gone file whose backup survives reports the artifacts as a field`(@TempDir tempDir: File) = runTest {
+        // The document itself is never created - a crash between backup-move and restore
+        File(tempDir, "doc.txt.butler-save-bak-1a2b3c4d").writeText("the only good copy")
+        val filePath = LocalPath.build(File(tempDir, "doc.txt"))
+        val source = FileDataSource(workspaceId, filePath, createMockGateway())
+
+        val error = runCatching { source.open() }.exceptionOrNull()
+
+        error.shouldBeInstanceOf<SaveArtifactsRemainException>()
+        // Structural, so a recovery action can consume it without re-scanning or parsing a message
+        error.artifacts.map { it.name } shouldBe listOf("doc.txt.butler-save-bak-1a2b3c4d")
+        error.path!!.name shouldBe "doc.txt"
+    }
+
+    @Test
+    fun `a gone file with no surviving backup is a plain not-found`(@TempDir tempDir: File) = runTest {
+        val filePath = LocalPath.build(File(tempDir, "doc.txt"))
+        val source = FileDataSource(workspaceId, filePath, createMockGateway())
+
+        val error = runCatching { source.open() }.exceptionOrNull()
+
+        error.shouldBeInstanceOf<PathNotFoundException>()
+        error.path!!.name shouldBe "doc.txt"
     }
 }

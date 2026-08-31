@@ -2,6 +2,7 @@ package eu.darken.butler.editor.core.engine
 
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.errors.PathNotFoundException
 import eu.darken.butler.common.files.errors.PathPermissionDeniedException
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.ServiceConnectionLostException
@@ -164,6 +165,8 @@ class DocumentBufferBackingLostTest : BaseTest() {
         latchesFor { ReadException("Does not exist", path) } shouldBe true
         latchesFor { FileNotFoundException("ENOENT") } shouldBe true
         latchesFor { NoSuchFileException("/tmp/mergetest.txt") } shouldBe true
+        // Matched by type, not by its message happening to contain "does not exist"
+        latchesFor { PathNotFoundException(path) } shouldBe true
         latchesFor {
             PathPermissionDeniedException(path, "lookup", PathPermissionDeniedException.Reason.ACCESS_DENIED)
         } shouldBe true
