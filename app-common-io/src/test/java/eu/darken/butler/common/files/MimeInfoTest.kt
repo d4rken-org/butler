@@ -113,6 +113,7 @@ class MimeInfoTest : BaseTest() {
         "bashrc" to "text/plain",
         "zshrc" to "text/plain",
         "profile" to "text/plain",
+        "dockerfile" to "text/plain",
     )
 
     @Test
@@ -198,6 +199,7 @@ class MimeInfoTest : BaseTest() {
                 MimeInfo.fromFileName(variant).rawType shouldBe "text/plain"
             }
         }
+        MimeInfo.fromFileName("web.dockerfile").rawType shouldBe "text/plain"
     }
 
     @Test
