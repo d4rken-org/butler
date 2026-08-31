@@ -23,7 +23,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
@@ -36,7 +35,7 @@ import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.ShizukuTestResu
 @Composable
 internal fun OptionsSection(
     optionsState: OptionsState,
-    bottomPadding: Dp = 0.dp,
+    contentPadding: PaddingValues = PaddingValues(0.dp),
     onToggleDebugMode: (Boolean) -> Unit,
     onToggleTraceMode: (Boolean) -> Unit,
     onToggleFloatingLog: (Boolean) -> Unit,
@@ -46,7 +45,7 @@ internal fun OptionsSection(
 ) {
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(8.dp),
-        contentPadding = PaddingValues(bottom = bottomPadding),
+        contentPadding = contentPadding,
     ) {
         // Debug Options Card
         item {

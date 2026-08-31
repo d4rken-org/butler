@@ -33,7 +33,7 @@ import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.DeveloperTab
 import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.Factory
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
-import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
+import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarContentPadding
 import eu.darken.butler.workspace.ui.insets.paneInsets
 import eu.darken.butler.workspace.ui.insets.rememberPaneFloatingBarStackState
 import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
@@ -173,8 +173,7 @@ fun DeveloperWorkspacePage(
         estimatedContentPadding = 80.dp,
     )
 
-    // Calculate bottom padding for content sections
-    val bottomPadding = bottomBarStackState.contentPaddingDp()
+    val contentPadding = rememberFloatingBarContentPadding(bottomStackState = bottomBarStackState)
 
     // A different tab is fresh content; reset scroll-collapse so the bar doesn't stay hidden over it.
     // Guarded on the transition: firing on initial composition would undo the restored collapse state.
@@ -233,11 +232,11 @@ fun DeveloperWorkspacePage(
             when (state.selectedTab) {
                 DeveloperTab.SYSTEM -> SystemInfoSection(
                     systemInfo = state.systemInfo,
-                    bottomPadding = bottomPadding,
+                    contentPadding = contentPadding,
                 )
                 DeveloperTab.OPTIONS -> OptionsSection(
                     optionsState = state.optionsState,
-                    bottomPadding = bottomPadding,
+                    contentPadding = contentPadding,
                     onToggleDebugMode = onToggleDebugMode,
                     onToggleTraceMode = onToggleTraceMode,
                     onToggleFloatingLog = onToggleFloatingLog,
@@ -248,13 +247,13 @@ fun DeveloperWorkspacePage(
                 DeveloperTab.LOGS -> LogsSection(
                     logs = state.logLines,
                     isPaused = state.isLogPaused,
-                    bottomPadding = bottomPadding,
+                    contentPadding = contentPadding,
                     onTogglePause = onToggleLogPause,
                     onClear = onClearLogs,
                 )
                 DeveloperTab.TEST_DATA -> TestDataSection(
                     testDataState = state.testDataState,
-                    bottomPadding = bottomPadding,
+                    contentPadding = contentPadding,
                     onAddPath = onAddPath,
                     onRemovePath = onRemovePath,
                     onLargeFilesToggled = onLargeFilesToggled,
