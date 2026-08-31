@@ -34,7 +34,11 @@ object BugReportStorage {
 
     const val SEEN_MARKER = ".seen"
 
-    /** Present only while a [BugReport.Type.RECORDING] report is actively being written. */
+    /**
+     * Present only while a [BugReport.Type.RECORDING] report is actively being written. Doubles as
+     * the resume marker: if it survives a process death, the next main-process launch reattaches to
+     * the recording ([BugReportRecorder.recoverInterruptedRecording]).
+     */
     const val RECORDING_SENTINEL = ".recording"
 
     const val RECORDING_ID_PREFIX = "recording_"

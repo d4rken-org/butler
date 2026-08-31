@@ -26,9 +26,11 @@ class FileLogger(
     fun start(): Boolean {
         if (logWriter != null) return true
         Log.i(TAG, "Starting logger for " + logFile.path)
+        var createdByUs = false
         try {
             logFile.parentFile!!.mkdirs()
-            if (logFile.createNewFile()) Log.i(TAG, "File logger writing to ${logFile.path}")
+            createdByUs = logFile.createNewFile()
+            if (createdByUs) Log.i(TAG, "File logger writing to ${logFile.path}")
             if (worldReadable) {
                 if (logFile.setReadable(true, false)) Log.i(TAG, "Debug run log read permission set")
                 if (logFile.setWritable(true, false)) Log.i(TAG, "Debug run log write permission set")
@@ -54,7 +56,9 @@ class FileLogger(
             } catch (ignore: IOException) {
             }
             logWriter = null
-            logFile.delete()
+            // A pre-existing file may hold a recording accumulated before a resume attempt — a
+            // failed (re)start must not destroy it. Only remove what this start created.
+            if (createdByUs) logFile.delete()
             false
         }
     }
@@ -64,7 +68,7 @@ class FileLogger(
         logWriter?.let {
             logWriter = null
             try {
-                it.write("=== END ===\n")
+                it.write("$END_MARKER\n")
                 it.close()
             } catch (ignore: IOException) {
             }
@@ -92,6 +96,9 @@ class FileLogger(
 
     companion object {
         private val TAG = logTag("Debug", "FileLogger")
+
+        /** Last line of a cleanly stopped log; its absence marks a log cut off by process death. */
+        const val END_MARKER = "=== END ==="
     }
 }
 

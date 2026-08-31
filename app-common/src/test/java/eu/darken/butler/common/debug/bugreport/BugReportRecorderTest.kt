@@ -8,6 +8,7 @@ import eu.darken.butler.upgrade.UpgradeDiagnostics
 import io.kotest.matchers.longs.shouldBeLessThan
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -53,6 +54,8 @@ class BugReportRecorderTest : BaseTest() {
         @Volatile var monotonic: Long = MONOTONIC_BASE,
     )
 
+    private val json = Json { ignoreUnknownKeys = true }
+
     private fun createRecorder(
         appScope: CoroutineScope,
         clocks: TestClocks,
@@ -62,13 +65,41 @@ class BugReportRecorderTest : BaseTest() {
         appScope = appScope,
         dispatcherProvider = TestDispatcherProvider(),
         butlerId = ButlerId(context),
-        json = Json { ignoreUnknownKeys = true },
+        json = json,
         storageLayout = storageLayout,
         recorderPathPublisher = recorderPathPublisher,
         upgradeDiagnostics = upgradeDiagnostics,
     ).apply {
         wallClock = { clocks.wall }
         monotonicClock = { clocks.monotonic }
+        // The JVM test process is not the app's main process; recovery fails closed without this.
+        processName = { context.packageName }
+    }
+
+    /** An on-disk recording as process death leaves it: meta + log + sentinel. */
+    private fun writeInterruptedRecording(
+        id: String,
+        root: File = reportsDir,
+        createdAt: Instant = WALL_BASE,
+        logText: String = "pre-death line\n",
+    ): File {
+        val dir = File(root, id).apply { mkdirs() }
+        val report = BugReport(
+            id = id,
+            createdAt = createdAt,
+            type = BugReport.Type.RECORDING,
+            appVersion = "1.0",
+            deviceFingerprint = "fp",
+            apiLevel = "29",
+            flavor = "FOSS",
+            buildType = "DEBUG",
+            installId = "iid",
+            locale = "en",
+        )
+        File(dir, "meta.json").writeText(json.encodeToString(BugReport.serializer(), report))
+        File(dir, "report.log").writeText(logText)
+        File(dir, ".recording").createNewFile()
+        return dir
     }
 
     /**
@@ -380,38 +411,149 @@ class BugReportRecorderTest : BaseTest() {
     }
 
     @Test
-    fun `sweep finalizes an interrupted recording and drops an incomplete one`() = runTest {
-        // Interrupted-but-complete: meta + log + dangling sentinel.
-        val interrupted = File(reportsDir, "recording_1_aaaa").apply { mkdirs() }
-        File(interrupted, "meta.json").writeText("{}")
-        File(interrupted, "report.log").writeText("x")
-        File(interrupted, ".recording").createNewFile()
+    fun `recovery finalizes an unresumable recording and drops an incomplete one`() = runTest {
+        // Sentinel present but the meta is unreadable: never append to it, finalize instead.
+        val unresumable = File(reportsDir, "recording_1_aaaa").apply { mkdirs() }
+        File(unresumable, "meta.json").writeText("{}")
+        File(unresumable, "report.log").writeText("x")
+        File(unresumable, ".recording").createNewFile()
 
         // Incomplete: meta written but log never created.
         val incomplete = File(reportsDir, "recording_2_bbbb").apply { mkdirs() }
         File(incomplete, "meta.json").writeText("{}")
 
         // No recorder is started here, so this needs neither the clock fakes nor the leak harness.
-        createRecorder(CoroutineScope(Dispatchers.Unconfined), TestClocks()).sweepOrphanedSentinels()
+        createRecorder(CoroutineScope(Dispatchers.Unconfined), TestClocks()).recoverInterruptedRecording()
 
-        interrupted.exists() shouldBe true
-        File(interrupted, ".recording").exists() shouldBe false
+        unresumable.exists() shouldBe true
+        File(unresumable, ".recording").exists() shouldBe false
         incomplete.exists() shouldBe false
     }
 
     @Test
-    fun `sweep finalizes an interrupted recording in the legacy root`() = runTest {
+    fun `recovery finalizes an unresumable recording in the legacy root`() = runTest {
         // Written by a version that still recorded into filesDir: deleteAll() skips a directory with a
-        // sentinel, so a sweep that only looks at the write root would leave this one undeletable.
-        val interrupted = File(privateReportsDir, "recording_5_eeee").apply { mkdirs() }
-        File(interrupted, "meta.json").writeText("{}")
-        File(interrupted, "report.log").writeText("x")
-        File(interrupted, ".recording").createNewFile()
+        // sentinel, so recovery that only looks at the write root would leave this one undeletable.
+        val unresumable = File(privateReportsDir, "recording_5_eeee").apply { mkdirs() }
+        File(unresumable, "meta.json").writeText("{}")
+        File(unresumable, "report.log").writeText("x")
+        File(unresumable, ".recording").createNewFile()
 
-        createRecorder(CoroutineScope(Dispatchers.Unconfined), TestClocks()).sweepOrphanedSentinels()
+        createRecorder(CoroutineScope(Dispatchers.Unconfined), TestClocks()).recoverInterruptedRecording()
 
-        interrupted.exists() shouldBe true
-        File(interrupted, ".recording").exists() shouldBe false
+        unresumable.exists() shouldBe true
+        File(unresumable, ".recording").exists() shouldBe false
+    }
+
+    @Test
+    fun `recovery resumes an interrupted recording`() = withRecorder { recorder ->
+        val id = "recording_10_rrrr"
+        val dir = writeInterruptedRecording(id, createdAt = WALL_BASE)
+
+        recorder.recoverInterruptedRecording()
+
+        val state = recorder.state.value
+        state.isRecording shouldBe true
+        state.recordingId shouldBe id
+        // The wall stamp is the logical recording's start, not the resume moment.
+        state.startedAtMs shouldBe WALL_BASE.toEpochMilliseconds()
+        recorderPathPublisher.path.value shouldBe dir.path
+        File(dir, ".recording").exists() shouldBe true
+        // Appended, not truncated: the pre-death log survives and the reattach header marks the seam.
+        val logText = File(dir, "report.log").readText()
+        logText shouldContain "pre-death line"
+        logText shouldContain "=== BEGIN"
+    }
+
+    @Test
+    fun `a resumed recording can be stopped immediately`() = withRecorder { recorder ->
+        // The session spans a process death — it was either already long enough or the death is the
+        // evidence. The short-recording prompt right after reopening would be a false positive.
+        val dir = writeInterruptedRecording("recording_11_ssss")
+
+        recorder.recoverInterruptedRecording()
+        recorder.requestStop().shouldBeInstanceOf<BugReportRecorder.StopResult.Stopped>()
+
+        recorder.state.value.isRecording shouldBe false
+        File(dir, ".recording").exists() shouldBe false
+    }
+
+    @Test
+    fun `recovery ignores a cleanly stopped recording with a leftover sentinel`() = withRecorder { recorder ->
+        // A clean stop writes the END marker before removing the sentinel; if the removal failed, the
+        // marker tells recovery this is not an interrupted recording.
+        val dir = writeInterruptedRecording("recording_12_tttt", logText = "line\n=== END ===\n")
+
+        recorder.recoverInterruptedRecording()
+
+        recorder.state.value.isRecording shouldBe false
+        dir.exists() shouldBe true
+        File(dir, ".recording").exists() shouldBe false
+    }
+
+    @Test
+    fun `recovery resumes the newest recording and finalizes older leftovers`() = withRecorder { recorder ->
+        val older = writeInterruptedRecording("recording_13_uuuu", createdAt = WALL_BASE - 1.hours)
+        val newer = writeInterruptedRecording("recording_14_vvvv", createdAt = WALL_BASE)
+
+        recorder.recoverInterruptedRecording()
+
+        recorder.state.value.recordingId shouldBe "recording_14_vvvv"
+        File(newer, ".recording").exists() shouldBe true
+        older.exists() shouldBe true
+        File(older, ".recording").exists() shouldBe false
+    }
+
+    @Test
+    fun `recovery does not disturb an active recording`() = withRecorder { recorder ->
+        recorder.start()
+        val activeId = recorder.state.value.recordingId!!
+        val leftover = writeInterruptedRecording("recording_15_wwww")
+
+        recorder.recoverInterruptedRecording()
+
+        recorder.state.value.recordingId shouldBe activeId
+        File(leftover, ".recording").exists() shouldBe false
+    }
+
+    @Test
+    fun `stop clears the sentinel of a recording resumed from the legacy root`() = withRecorder { recorder ->
+        val dir = writeInterruptedRecording("recording_16_xxxx", root = privateReportsDir)
+
+        recorder.recoverInterruptedRecording()
+        recorder.state.value.recordingId shouldBe "recording_16_xxxx"
+
+        recorder.forceStop()
+
+        File(dir, ".recording").exists() shouldBe false
+    }
+
+    @Test
+    fun `recovery never resumes a shadowed copy`() = withRecorder { recorder ->
+        // The same id in both roots, but only the legacy copy carries the sentinel. scan() surfaces
+        // the external copy, so resuming the legacy one would append to a report nobody is shown.
+        val external = writeInterruptedRecording("recording_18_zzzz")
+        File(external, ".recording").delete()
+        val legacy = writeInterruptedRecording("recording_18_zzzz", root = privateReportsDir)
+
+        recorder.recoverInterruptedRecording()
+
+        recorder.state.value.isRecording shouldBe false
+        File(legacy, ".recording").exists() shouldBe false
+    }
+
+    @Test
+    fun `recovery fails closed outside the main process`() = withRecorder(
+        configure = { processName = { "eu.darken.butler:isolated" } },
+    ) { recorder ->
+        // The :isolated process constructs the recorder too; it must neither resume nor finalize the
+        // main process's recording.
+        val dir = writeInterruptedRecording("recording_17_yyyy")
+
+        recorder.recoverInterruptedRecording()
+
+        recorder.state.value.isRecording shouldBe false
+        File(dir, ".recording").exists() shouldBe true
     }
 
     private class RecordingLogger : Logging.Logger {

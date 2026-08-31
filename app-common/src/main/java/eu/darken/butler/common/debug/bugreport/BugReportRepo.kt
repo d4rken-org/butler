@@ -76,10 +76,12 @@ class BugReportRepo @Inject constructor(
         appScope.launch(dispatcherProvider.IO) {
             try {
                 reapStaleTempDirs()
-                bugReportRecorder.sweepOrphanedSentinels()
+                // Before prune(): a resumed recording must be claimed (or its leftovers finalized)
+                // before retention decisions are made.
+                bugReportRecorder.recoverInterruptedRecording()
                 prune()
-                // Cleanup may have dropped sentinels/dirs after an early scan already ran; make sure
-                // collectors re-scan so an interrupted recording stops showing as ongoing.
+                // Cleanup may have changed dirs after an early scan already ran; make sure collectors
+                // re-scan so the list reflects the recovered/finalized state.
                 refresh()
             } catch (e: Exception) {
                 log(TAG, WARN) { "Initial cleanup failed: ${e.asLog()}" }
@@ -209,7 +211,10 @@ class BugReportRepo @Inject constructor(
      * when compression throws — a half-written `<id>.zip` would then be shared as if it were whole.
      */
     suspend fun buildShareZip(id: String): File = withContext(dispatcherProvider.IO) {
-        require(id != bugReportRecorder.state.value.recordingId) { "Cannot share an active recording" }
+        // Via the recorder mutex, not a bare state read: during the startup window an interrupted
+        // recording is listed as shareable while recovery may be about to reattach to it — this
+        // blocks until recovery has claimed or finalized it and then reflects the outcome.
+        require(!bugReportRecorder.isActiveOrStarting(id)) { "Cannot share an active recording" }
         val files = resolveReportDir(id)?.let { BugReportStorage.payloadFiles(it) } ?: emptyList()
         require(files.isNotEmpty()) { "No report files for $id" }
 
@@ -341,9 +346,9 @@ class BugReportRepo @Inject constructor(
                 }
                 val logFile = File(dir, BugReportStorage.LOG_FILE)
                 // "Ongoing" is tied to the live recorder, not just the sentinel: a recording interrupted
-                // by process death keeps a stale sentinel until the init sweep clears it, but it is a
-                // complete, surfaceable report — so it shows as a normal report immediately instead of
-                // vanishing from the list during the brief startup-cleanup window.
+                // by process death keeps its sentinel until startup recovery resumes or finalizes it, but
+                // it is a complete, surfaceable report — so it shows as a normal report immediately
+                // instead of vanishing from the list during the brief startup-recovery window.
                 val isOngoing = File(dir, BugReportStorage.RECORDING_SENTINEL).exists() &&
                     dir.name == bugReportRecorder.state.value.recordingId
                 byId[report.id] = BugReportInfo(
@@ -375,8 +380,13 @@ class BugReportRepo @Inject constructor(
     }
 
     private fun prune() {
-        // Never prune the active recording, even if it would otherwise be the oldest.
-        val valid = scan().filter { !it.isOngoingRecording }
+        // Never prune the active recording, even if it would otherwise be the oldest. Guarded by the
+        // on-disk sentinel, not just recorder state: this also runs in the :isolated process, where
+        // recorder state is empty for a recording the main process owns.
+        val valid = scan().filter { info ->
+            !info.isOngoingRecording && storageLayout.allReportDirs(info.id)
+                .none { File(it, BugReportStorage.RECORDING_SENTINEL).exists() }
+        }
         if (valid.size <= MAX_REPORTS) return
         valid.drop(MAX_REPORTS).forEach { stale ->
             storageLayout.allReportDirs(stale.id).forEach { it.deleteRecursively() }

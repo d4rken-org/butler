@@ -157,6 +157,26 @@ class BugReportRepoTest : BaseTest() {
     }
 
     @Test
+    fun `retention never prunes a sentinel-bearing recording even when the recorder looks idle`() = runTest {
+        val repo = createRepo()
+        val base = kotlin.time.Clock.System.now()
+        // Oldest report of all, sentinel on disk, recorder state empty — the :isolated process view
+        // of a recording the main process owns. Without the sentinel guard it is first to be pruned.
+        writeReportDir(
+            "recording_8_hhhh",
+            BugReport.Type.RECORDING,
+            ongoing = true,
+            createdAt = base - 100.seconds,
+        )
+        repeat(30) { writeReportDir("filler_$it", createdAt = base - (30 - it).seconds) }
+
+        repo.captureReport(IllegalStateException("boom"))
+
+        repo.reports.first() shouldHaveSize 26
+        File(reportsDir, "recording_8_hhhh").exists() shouldBe true
+    }
+
+    @Test
     fun `ongoing recording is surfaced with isOngoingRecording flag`() = runTest {
         val repo = createRepo()
         writeReportDir("recording_1_aaaa", BugReport.Type.RECORDING, ongoing = true)
@@ -225,6 +245,17 @@ class BugReportRepoTest : BaseTest() {
 
         File(reportsDir, "recording_7_gggg").exists() shouldBe false
         repo.reports.first() shouldHaveSize 0
+    }
+
+    @Test
+    fun `buildShareZip refuses a recording the recorder is about to claim`() = runTest {
+        val repo = createRepo()
+        // The startup-recovery window: the report is listed as complete while the recorder has not
+        // published the id yet. The share guard goes through the recorder mutex, so it must reject.
+        writeReportDir("recording_9_iiii", BugReport.Type.RECORDING, ongoing = true)
+        startingRecordingIds += "recording_9_iiii"
+
+        shouldThrow<IllegalArgumentException> { repo.buildShareZip("recording_9_iiii") }
     }
 
     @Test

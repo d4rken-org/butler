@@ -46,8 +46,10 @@ import kotlin.uuid.Uuid
  * report's directory in the unified store ([BugReportStorage]).
  *
  * `meta.json` is written at START, so even a crash mid-recording leaves a complete report directory;
- * a `.recording` sentinel marks the report as ongoing while the logger is attached. On the next
- * launch, [sweepOrphanedSentinels] finalizes any interrupted recording (no resume).
+ * a `.recording` sentinel marks the report as ongoing while the logger is attached. The sentinel
+ * doubles as the resume marker: on the next main-process launch, [recoverInterruptedRecording]
+ * reattaches to a recording interrupted by process death (force stop, crash, system kill) and keeps
+ * appending to its `report.log`, so the reproduction the user was capturing is not silently cut off.
  *
  * Lives in app-common so the bug-report workspace module (which cannot depend on `:app`) can drive
  * recording. Does NOT depend on [BugReportRepo] (the repo observes this recorder, not vice versa).
@@ -75,16 +77,26 @@ class BugReportRecorder @Inject constructor(
     internal var wallClock: () -> kotlin.time.Instant = { Clock.System.now() }
     internal var monotonicClock: () -> Long = android.os.SystemClock::elapsedRealtime
 
+    // Test seam for the recovery process gate: the JVM test process name is not the package name.
+    internal var processName: () -> String? = { currentProcessName() }
+
     private val mutex = Mutex()
     private var fileLogger: FileLogger? = null
 
     /**
      * Monotonic base for the duration heuristic, guarded by [mutex] like [fileLogger]. Deliberately
      * NOT part of the public [State]: no consumer measures duration itself (they all render the wall
-     * stamp), and there is no resume — an interrupted recording is finalized by
-     * [sweepOrphanedSentinels], never continued, so no monotonic base ever has to survive a process.
+     * stamp). A resumed recording gets a fresh base in the new process and waives the minimum
+     * instead ([minDurationWaived]) — the pre-death portion cannot be measured monotonically.
      */
     private var startedAtMonotonicMs: Long = 0L
+
+    /**
+     * Set for resumed recordings: the session spans a process death, so it either already met the
+     * minimum before dying or the death itself is the evidence — warning "too short" right after
+     * reopening would be a false positive.
+     */
+    private var minDurationWaived: Boolean = false
 
     private val internalState = MutableStateFlow(State())
     val state: StateFlow<State> = internalState.asStateFlow()
@@ -124,6 +136,7 @@ class BugReportRecorder @Inject constructor(
             // Committed before the session infos are logged: those reads take seconds, and until the
             // id is published the finished report directory on disk has nothing marking it as live.
             startedAtMonotonicMs = startedAtMonotonic
+            minDurationWaived = false
             internalState.value = State(
                 isRecording = true,
                 recordingId = id,
@@ -149,7 +162,7 @@ class BugReportRecorder @Inject constructor(
         // time). State.startedAtMs stays wall — that is the stamp the banner, the contact form and
         // the bug-report workspace render, and it is not what this heuristic measures.
         val elapsed = monotonicClock() - startedAtMonotonicMs
-        if (elapsed < MIN_RECORDING_MS) return@withLock StopResult.TooShort
+        if (!minDurationWaived && elapsed < MIN_RECORDING_MS) return@withLock StopResult.TooShort
         val id = current.recordingId
         stopInternal()
         if (id != null) StopResult.Stopped(id) else StopResult.NotRecording
@@ -180,9 +193,22 @@ class BugReportRecorder @Inject constructor(
         fileLogger = null
         recorderPathPublisher.publish(null)
         startedAtMonotonicMs = 0L
+        minDurationWaived = false
         val id = internalState.value.recordingId
         if (id != null) {
-            runCatching { File(File(storageLayout.writeRoot, id), BugReportStorage.RECORDING_SENTINEL).delete() }
+            // Every root: a resumed recording can live in the legacy private root. A sentinel that
+            // survives a clean stop would resurrect the recording on the next launch (recovery still
+            // guards on the log's clean END line, but that is the fallback, not the plan).
+            storageLayout.allReportDirs(id).forEach { dir ->
+                val sentinel = File(dir, BugReportStorage.RECORDING_SENTINEL)
+                try {
+                    if (sentinel.exists() && !sentinel.delete()) {
+                        log(TAG, ERROR) { "Could not remove recording sentinel: $sentinel" }
+                    }
+                } catch (e: Exception) {
+                    log(TAG, ERROR) { "Could not remove recording sentinel $sentinel: ${e.asLog()}" }
+                }
+            }
         }
         internalState.value = State()
     }
@@ -201,37 +227,132 @@ class BugReportRecorder @Inject constructor(
     }
 
     /**
-     * Finalize any recording interrupted by process death: drop `.recording` sentinels (the dir is
-     * already a complete report) and delete incomplete recording dirs that never got a `report.log`.
+     * Resume the recording interrupted by process death, if there is one: the newest sentinel-bearing
+     * recording whose log does NOT end with [FileLogger.END_MARKER] gets its [FileLogger] reattached
+     * (append mode, so its `=== BEGIN ===` header marks the process boundary in the log). Any other
+     * leftover sentinel is finalized (the dir is already a complete report): a clean-END log means a
+     * stop whose sentinel delete failed, and only one recording can ever be live. Recording dirs that
+     * never got a `report.log` are deleted.
      *
-     * MAIN PROCESS ONLY — an isolated process must never finalize the main process's live recording.
-     * Runs under [mutex] and skips the currently-active recording id so it can never race [start] and
-     * tear down a live recording (e.g. if init cleanup is delayed past a user-initiated start).
+     * MAIN PROCESS ONLY, fail-closed — the `:isolated` process constructs this class too and must
+     * neither resume nor finalize the main process's recording. Runs under [mutex] and skips the
+     * currently-active recording id so it can never race [start] and tear down a live recording
+     * (e.g. if init cleanup is delayed past a user-initiated start).
      */
-    suspend fun sweepOrphanedSentinels() = mutex.withLock {
-        if (!isMainProcess()) return@withLock
+    suspend fun recoverInterruptedRecording() = mutex.withLock {
+        if (processName() != context.packageName) return@withLock
         val activeId = internalState.value.recordingId
-        // Every root: a sentinel left behind by a version that still wrote to the private root would
-        // otherwise stay forever, and a sentinel-bearing directory is skipped by deleteAll().
+
+        val candidates = mutableListOf<Pair<File, BugReport>>()
+        val seenIds = mutableSetOf<String>()
         storageLayout.roots.forEach { root ->
             root.listFiles()?.forEach { dir ->
                 if (!dir.isDirectory) return@forEach
                 if (dir.name.startsWith(BugReportStorage.TMP_PREFIX)) return@forEach
                 if (!dir.name.startsWith(BugReportStorage.RECORDING_ID_PREFIX)) return@forEach
                 if (dir.name == activeId) return@forEach
+                // First root wins, matching scan(): a sentinel on a shadowed copy must never resume
+                // it — logging would append to a copy the report list is not showing.
+                val shadowed = !seenIds.add(dir.name)
                 val logFile = File(dir, BugReportStorage.LOG_FILE)
-                if (logFile.exists()) {
-                    val sentinel = File(dir, BugReportStorage.RECORDING_SENTINEL)
-                    if (sentinel.exists()) {
-                        runCatching { sentinel.delete() }
-                        log(TAG, WARN) { "Finalized interrupted recording: ${dir.name}" }
-                    }
-                } else {
+                if (!logFile.exists()) {
                     // Died between meta.json and report.log creation — incomplete, never surfaceable.
                     runCatching { dir.deleteRecursively() }
                     log(TAG, WARN) { "Dropped incomplete recording dir: ${dir.name}" }
+                    return@forEach
+                }
+                if (!File(dir, BugReportStorage.RECORDING_SENTINEL).exists()) return@forEach
+                val meta = readResumableMeta(dir)
+                if (shadowed || meta == null || endsCleanly(logFile)) {
+                    finalize(dir)
+                } else {
+                    candidates += dir to meta
                 }
             }
+        }
+
+        // A user-initiated start that won the race owns the session — leftovers only get finalized.
+        if (activeId != null) {
+            candidates.forEach { (dir, _) -> finalize(dir) }
+            return@withLock
+        }
+
+        // Newest wins; the sort is stable, so between equal stamps the earlier root wins — the same
+        // precedence scan() applies when an id exists in both roots.
+        val byAge = candidates.sortedByDescending { (_, meta) -> meta.createdAt }
+        byAge.drop(1).forEach { (dir, _) -> finalize(dir) }
+        byAge.firstOrNull()?.let { (dir, meta) -> resume(dir, meta) }
+    }
+
+    /** The recording's metadata, or null if it cannot be safely appended to under [dir]'s name. */
+    private fun readResumableMeta(dir: File): BugReport? {
+        val meta = try {
+            json.decodeFromString(BugReport.serializer(), File(dir, BugReportStorage.META_FILE).readText())
+        } catch (e: Exception) {
+            log(TAG, WARN) { "Unreadable meta in ${dir.name}: ${e.message}" }
+            return null
+        }
+        if (meta.type != BugReport.Type.RECORDING) return null
+        if (meta.id != dir.name) return null
+        return meta
+    }
+
+    /** Whether the log's last non-blank line is [FileLogger.END_MARKER]; bounded tail read. */
+    private fun endsCleanly(logFile: File): Boolean = try {
+        java.io.RandomAccessFile(logFile, "r").use { raf ->
+            val readSize = minOf(raf.length(), END_PROBE_BYTES)
+            raf.seek(raf.length() - readSize)
+            val tail = ByteArray(readSize.toInt())
+            raf.readFully(tail)
+            tail.decodeToString().lineSequence().lastOrNull { it.isNotBlank() } == FileLogger.END_MARKER
+        }
+    } catch (e: Exception) {
+        log(TAG, WARN) { "Could not read log tail of $logFile: ${e.asLog()}" }
+        false
+    }
+
+    private fun finalize(dir: File) {
+        val sentinel = File(dir, BugReportStorage.RECORDING_SENTINEL)
+        try {
+            if (!sentinel.exists() || sentinel.delete()) {
+                log(TAG, WARN) { "Finalized interrupted recording: ${dir.name}" }
+            } else {
+                log(TAG, ERROR) { "Could not finalize recording, sentinel not deletable: $sentinel" }
+            }
+        } catch (e: Exception) {
+            log(TAG, ERROR) { "Could not finalize recording $sentinel: ${e.asLog()}" }
+        }
+    }
+
+    /** Reattach to an interrupted recording. Caller holds [mutex]. */
+    private suspend fun resume(reportDir: File, meta: BugReport) {
+        try {
+            val logFile = File(reportDir, BugReportStorage.LOG_FILE)
+            val logger = FileLogger(logFile, worldReadable = false)
+            if (!logger.start()) {
+                log(TAG, ERROR) { "FileLogger could not reattach for ${meta.id}, finalizing instead" }
+                finalize(reportDir)
+                return
+            }
+            Logging.install(logger)
+            fileLogger = logger
+            recorderPathPublisher.publish(reportDir.path)
+
+            startedAtMonotonicMs = monotonicClock()
+            minDurationWaived = true
+            internalState.value = State(
+                isRecording = true,
+                recordingId = meta.id,
+                startedAtMs = meta.createdAt.toEpochMilliseconds(),
+                currentLogSize = logFile.length(),
+            )
+            startLogSizeUpdates(reportDir)
+
+            log(TAG, INFO) { "Recording resumed after process death: ${meta.id}" }
+            logSessionInfos()
+        } catch (e: Throwable) {
+            log(TAG, ERROR) { "resume() failed for ${meta.id}: ${e.asLog()}" }
+            runCatching { stopInternal() }
         }
     }
 
@@ -301,11 +422,6 @@ class BugReportRecorder @Inject constructor(
      */
     private class HeaderRead<T>(val value: T)
 
-    private fun isMainProcess(): Boolean {
-        val name = currentProcessName() ?: return true // best-effort: assume main if undetermined
-        return name == context.packageName
-    }
-
     private fun currentProcessName(): String? {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) return Application.getProcessName()
         val pid = android.os.Process.myPid()
@@ -350,5 +466,8 @@ class BugReportRecorder @Inject constructor(
 
         // Diagnostics read local storage only; a longer wait would just delay the recording start.
         private val DIAGNOSTICS_TIMEOUT = 5.seconds
+
+        // Comfortably covers the END marker plus a torn trailing line.
+        private const val END_PROBE_BYTES = 4096L
     }
 }
