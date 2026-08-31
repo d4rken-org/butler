@@ -16,7 +16,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,10 +50,9 @@ import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.searcher.core.resultKey
 import eu.darken.butler.searcher.ui.search.dnd.SearcherDragPayloadFactory
 import eu.darken.butler.searcher.ui.search.elements.PermissionSetupCard
-import eu.darken.butler.searcher.ui.search.elements.SearchProgressCard
 import eu.darken.butler.searcher.ui.search.elements.SearchTargetsEmptyStateCard
-import eu.darken.butler.searcher.ui.search.elements.SearchToolbarCard
-import eu.darken.butler.searcher.ui.search.elements.SearcherInfoBar
+import eu.darken.butler.searcher.ui.search.elements.SearcherBottomBars
+import eu.darken.butler.searcher.ui.search.elements.SearcherTopBars
 import eu.darken.butler.searcher.ui.search.elements.TemplatesCard
 import eu.darken.butler.searcher.ui.search.elements.searchHistorySection
 import eu.darken.butler.searcher.ui.search.items.SelectableFileGrid
@@ -63,16 +61,11 @@ import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
 import eu.darken.butler.searcher.ui.search.util.SearchListItem
 import eu.darken.butler.searcher.ui.search.util.SearcherActionBarItem
 import eu.darken.butler.searcher.ui.search.util.SearcherPageAction
-import eu.darken.butler.searcher.ui.search.util.toPageAction
 import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.ui.actions.WorkspaceActionBar
 import eu.darken.butler.workspace.ui.dnd.rememberWorkspaceDragSource
-import eu.darken.butler.workspace.ui.clipboard.bar.WorkspaceClipboardFloatingBar
 import eu.darken.butler.workspace.ui.common.WorkspacePaddings
 import eu.darken.butler.workspace.ui.error.ErrorCard
-import eu.darken.butler.workspace.ui.floatingbar.BarAnimation
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
-import eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
 import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
 import eu.darken.butler.workspace.ui.insets.rememberPaneFloatingBarStackState
@@ -80,7 +73,6 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
 import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
 import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
-import eu.darken.butler.workspace.ui.operations.bar.WorkspaceOperationsFloatingBar
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.preview.ProvideFolderPreviews
 import eu.darken.butler.workspace.ui.scroll.rememberWorkspaceLazyGridState
@@ -203,69 +195,6 @@ fun SearcherWorkspacePage(
         }
         topBarStackState.resetScrollCollapse()
         bottomBarStackState.resetScrollCollapse()
-    }
-
-    val hasActions by remember(mainState) {
-        derivedStateOf {
-            val currentState = mainState as? SearcherWorkspaceViewModel.State.Ready ?: return@derivedStateOf false
-            val showingHistory = !currentState.hasResults && currentState.searchHistory.isNotEmpty()
-
-            currentState.selectionState.selectedResultIds.isNotEmpty() ||
-                (!showingHistory && currentState.listItems.isNotEmpty())
-        }
-    }
-
-    // Determine if progress card should be visible
-    val showProgressCard by remember(mainState) {
-        derivedStateOf {
-            val currentState = mainState as? SearcherWorkspaceViewModel.State.Ready ?: return@derivedStateOf false
-            currentState.workspaceState.targetProgress.isNotEmpty() &&
-                currentState.workspaceState.searchStatus != SearcherWorkspace.State.SearchStatus.IDLE
-        }
-    }
-
-    // Determine if info bar should be visible (when there are results OR selection)
-    val showInfoBar by remember(mainState) {
-        derivedStateOf {
-            val currentState = mainState as? SearcherWorkspaceViewModel.State.Ready ?: return@derivedStateOf false
-            currentState.selectionState.selectionCount > 0 || currentState.hasResults
-        }
-    }
-
-    // Calculate results info for info bar
-    val foldersCount by remember(mainState) {
-        derivedStateOf {
-            val currentState = mainState as? SearcherWorkspaceViewModel.State.Ready ?: return@derivedStateOf 0
-            currentState.listItems.count {
-                it is SearchListItem.Result && it.searchItem is SearchItem.Directory
-            }
-        }
-    }
-
-    val filesCount by remember(mainState) {
-        derivedStateOf {
-            val currentState = mainState as? SearcherWorkspaceViewModel.State.Ready ?: return@derivedStateOf 0
-            currentState.listItems.count {
-                it is SearchListItem.Result && it.searchItem is SearchItem.File
-            }
-        }
-    }
-
-    val totalSize by remember(mainState) {
-        derivedStateOf {
-            val currentState = mainState as? SearcherWorkspaceViewModel.State.Ready ?: return@derivedStateOf 0L
-            currentState.listItems
-                .filterIsInstance<SearchListItem.Result>()
-                .sumOf { it.searchItem.size ?: 0L }
-        }
-    }
-
-    val selectedSize by remember(mainState) {
-        derivedStateOf {
-            val currentState = mainState as? SearcherWorkspaceViewModel.State.Ready ?: return@derivedStateOf 0L
-            currentState.selectionState.selectedResults
-                .sumOf { it.size ?: 0L }
-        }
     }
 
     // Only render when Ready - WorkspaceMapper handles Init/Error overlays
@@ -648,69 +577,12 @@ fun SearcherWorkspacePage(
             position = BarPosition.TOP,
             modifier = Modifier.align(Alignment.TopCenter),
             bars = {
-                // Toolbar - closest to top edge, collapses on scroll
-                FloatingBar(
-                    key = SearcherBarKeys.TOOLBAR,
-                    visible = true,
-                    scrollBehavior = BarScrollBehavior.CollapseOnScroll,
-                    animation = BarAnimation.Slide(),
-                ) {
-                    SearchToolbarCard(
-                        workspaceId = workspaceId,
-                        state = currentState,
-                        design = design,
-                        collapsedFraction = collapsedFraction,
-                        onAction = onPageAction,
-                    )
-                }
-
-                // Progress card - vanishes on scroll
-                FloatingBar(
-                    key = SearcherBarKeys.PROGRESS,
-                    visible = showProgressCard,
-                    scrollBehavior = BarScrollBehavior.VanishOnScroll,
-                    animation = BarAnimation.Slide(),
-                ) {
-                    SearchProgressCard(
-                        targetProgress = currentState.workspaceState.targetProgress,
-                        overallProgress = currentState.workspaceState.progress,
-                        searchStatus = currentState.workspaceState.searchStatus,
-                        resultCount = currentState.workspaceState.results.size,
-                        limitReached = currentState.workspaceState.limitReached,
-                        onAccessErrorsClick = { onPageAction(SearcherPageAction.Overlays.ShowAccessErrors) },
-                        onCancel = { onPageAction(SearcherPageAction.Search.Cancel) },
-                        onClear = { onPageAction(SearcherPageAction.Search.ClearResults) },
-                        onErrorClick = { path, exception ->
-                            onPageAction(SearcherPageAction.Overlays.ShowTargetError(path, exception))
-                        },
-                    )
-                }
-
-                // Info bar - static (stays visible when results or selection)
-                FloatingBar(
-                    key = SearcherBarKeys.INFOBAR,
-                    visible = showInfoBar,
-                    scrollBehavior = BarScrollBehavior.Static,
-                    animation = BarAnimation.Slide(),
-                ) {
-                    SearcherInfoBar(
-                        foldersCount = foldersCount,
-                        filesCount = filesCount,
-                        totalSize = totalSize,
-                        selectedCount = currentState.selectionState.selectionCount,
-                        selectedSize = selectedSize,
-                        onSelectAllFolders = {
-                            onPageAction(SearcherPageAction.WorkspaceAction(SearcherActionBarItem.SelectAllFolders))
-                        },
-                        onSelectAllFiles = {
-                            onPageAction(SearcherPageAction.WorkspaceAction(SearcherActionBarItem.SelectAllFiles))
-                        },
-                        onSelectAll = {
-                            onPageAction(SearcherPageAction.WorkspaceAction(SearcherActionBarItem.SelectAll))
-                        },
-                        onClearSelection = { onPageAction(SearcherPageAction.Results.ExitSelectionMode) },
-                    )
-                }
+                SearcherTopBars(
+                    workspaceId = workspaceId,
+                    design = design,
+                    state = currentState,
+                    onPageAction = onPageAction,
+                )
             },
         )
 
@@ -720,39 +592,12 @@ fun SearcherWorkspacePage(
             position = BarPosition.BOTTOM,
             modifier = Modifier.align(Alignment.BottomCenter),
             bars = {
-                // Operations bar - furthest from bottom edge
-                WorkspaceOperationsFloatingBar(
-                    key = SearcherBarKeys.OPERATIONS,
-                    operations = operationsState.operations,
-                    onAction = { onPageAction(it.toPageAction()) },
+                SearcherBottomBars(
+                    state = currentState,
+                    operationsState = operationsState,
+                    clipboardState = clipboardState,
+                    onPageAction = onPageAction,
                 )
-
-                // Clipboard bar - middle
-                WorkspaceClipboardFloatingBar(
-                    key = SearcherBarKeys.CLIPBOARD,
-                    workspaceType = Workspace.Type.SEARCHER,
-                    clipboardEntries = clipboardState.entries,
-                    onAction = { onPageAction(it.toPageAction()) },
-                )
-
-                // Action bar - closest to bottom edge, hides on scroll
-                FloatingBar(
-                    key = SearcherBarKeys.ACTIONS,
-                    visible = hasActions,
-                    scrollBehavior = BarScrollBehavior.HideOnScroll,
-                    animation = BarAnimation.Slide(),
-                    revealOn = currentState.selectionState.selectedResultIds,
-                ) {
-                    WorkspaceActionBar(
-                        actions = currentState.availableActions,
-                        onActionClick = { action ->
-                            when (action) {
-                                is SearcherActionBarItem.DeselectAll -> onPageAction(SearcherPageAction.Results.ExitSelectionMode)
-                                else -> onPageAction(SearcherPageAction.WorkspaceAction(action))
-                            }
-                        },
-                    )
-                }
             },
         )
 
