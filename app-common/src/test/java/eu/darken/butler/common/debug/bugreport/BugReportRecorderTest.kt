@@ -37,7 +37,9 @@ import kotlin.time.Instant
 class BugReportRecorderTest : BaseTest() {
 
     private val context: Context get() = ApplicationProvider.getApplicationContext()
-    private val reportsDir get() = File(context.filesDir, "bugreports")
+    private val storageLayout by lazy { BugReportStorageLayout(context) }
+    private val reportsDir get() = storageLayout.writeRoot
+    private val privateReportsDir get() = File(context.filesDir, "bugreports")
 
     /**
      * Test-controlled clocks, handed to the recorder's two seams. The durations under test are
@@ -60,6 +62,7 @@ class BugReportRecorderTest : BaseTest() {
         dispatcherProvider = TestDispatcherProvider(),
         butlerId = ButlerId(context),
         json = Json { ignoreUnknownKeys = true },
+        storageLayout = storageLayout,
         upgradeDiagnostics = upgradeDiagnostics,
     ).apply {
         wallClock = { clocks.wall }
@@ -337,6 +340,21 @@ class BugReportRecorderTest : BaseTest() {
         interrupted.exists() shouldBe true
         File(interrupted, ".recording").exists() shouldBe false
         incomplete.exists() shouldBe false
+    }
+
+    @Test
+    fun `sweep finalizes an interrupted recording in the legacy root`() = runTest {
+        // Written by a version that still recorded into filesDir: deleteAll() skips a directory with a
+        // sentinel, so a sweep that only looks at the write root would leave this one undeletable.
+        val interrupted = File(privateReportsDir, "recording_5_eeee").apply { mkdirs() }
+        File(interrupted, "meta.json").writeText("{}")
+        File(interrupted, "report.log").writeText("x")
+        File(interrupted, ".recording").createNewFile()
+
+        createRecorder(CoroutineScope(Dispatchers.Unconfined), TestClocks()).sweepOrphanedSentinels()
+
+        interrupted.exists() shouldBe true
+        File(interrupted, ".recording").exists() shouldBe false
     }
 
     private class RecordingLogger : Logging.Logger {
