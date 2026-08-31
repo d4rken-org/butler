@@ -39,6 +39,7 @@ class ButlerRootSurfaceTest : ComposeTest() {
         composeTestRule.runOnIdle {
             contentColor shouldNotBe null
             contentColor shouldBe onBackground
+            // Dark-only: black is the material3 sentinel and invisible here, light onBackground may be near-black.
             contentColor shouldNotBe Color.Black
         }
     }

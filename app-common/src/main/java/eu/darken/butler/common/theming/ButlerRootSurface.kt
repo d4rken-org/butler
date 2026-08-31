@@ -9,7 +9,7 @@ import eu.darken.butler.common.compose.SampleContent
 
 /**
  * Root of a composition: `MaterialTheme` provides no `LocalContentColor`, so without a surface at
- * the top everything falls back to the `Color.Black` sentinel. [contentColor] is passed explicitly
+ * the top everything falls back to the `Color.Black` sentinel. `contentColor` is passed explicitly
  * instead of letting [Surface] derive it, so the result does not depend on `contentColorFor`
  * matching `background` before `surface`.
  */
