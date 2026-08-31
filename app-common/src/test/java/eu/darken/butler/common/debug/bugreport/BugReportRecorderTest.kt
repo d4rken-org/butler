@@ -38,6 +38,7 @@ class BugReportRecorderTest : BaseTest() {
 
     private val context: Context get() = ApplicationProvider.getApplicationContext()
     private val storageLayout by lazy { BugReportStorageLayout(context) }
+    private val recorderPathPublisher = RecorderPathPublisher()
     private val reportsDir get() = storageLayout.writeRoot
     private val privateReportsDir get() = File(context.filesDir, "bugreports")
 
@@ -63,6 +64,7 @@ class BugReportRecorderTest : BaseTest() {
         butlerId = ButlerId(context),
         json = Json { ignoreUnknownKeys = true },
         storageLayout = storageLayout,
+        recorderPathPublisher = recorderPathPublisher,
         upgradeDiagnostics = upgradeDiagnostics,
     ).apply {
         wallClock = { clocks.wall }
@@ -125,6 +127,39 @@ class BugReportRecorderTest : BaseTest() {
         File(dir, ".recording").exists() shouldBe false
         File(dir, "meta.json").exists() shouldBe true
         File(dir, "report.log").exists() shouldBe true
+    }
+
+    @Test
+    fun `start publishes the report directory to the privileged helpers`() = withRecorder { recorder ->
+        recorder.start()
+
+        val id = recorder.state.value.recordingId!!
+        recorderPathPublisher.path.value shouldBe File(reportsDir, id).path
+    }
+
+    @Test
+    fun `stopping retracts the published path`() = withRecorder { recorder ->
+        recorder.start()
+        recorderPathPublisher.path.value shouldNotBe null
+
+        recorder.forceStop()
+
+        recorderPathPublisher.path.value shouldBe null
+    }
+
+    @Test
+    fun `a start that cannot set up its files publishes no path`() {
+        // A plain file where the report root belongs: the report directory cannot be created, so
+        // start() rolls back before it would publish.
+        reportsDir.parentFile!!.mkdirs()
+        reportsDir.writeText("not a directory")
+
+        withRecorder { recorder ->
+            recorder.start()
+
+            recorder.state.value.isRecording shouldBe false
+            recorderPathPublisher.path.value shouldBe null
+        }
     }
 
     @Test
