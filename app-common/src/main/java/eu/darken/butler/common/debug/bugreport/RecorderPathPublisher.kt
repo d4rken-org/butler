@@ -12,9 +12,10 @@ import javax.inject.Singleton
  * `report.log`.
  *
  * An output channel, never a resume marker: [BugReportRecorder] alone decides whether a recording is
- * live, via the `.recording` sentinel. Deliberately process-local and never persisted, so a fresh
- * process starts at `null` even if a recording was interrupted by process death, and so publishing
- * can neither suspend nor fail (a write that throws would abort an otherwise working recording).
+ * live, via the `.recording` sentinel, and republishes the path here once it has claimed a session
+ * (fresh start or startup resume). Deliberately process-local and never persisted, so a fresh
+ * process starts at `null` until the recorder has claimed one, and so publishing can neither suspend
+ * nor fail (a write that throws would abort an otherwise working recording).
  */
 @Singleton
 class RecorderPathPublisher @Inject constructor() {
