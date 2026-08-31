@@ -286,6 +286,49 @@ class ClosedWorkspaceStashTest : BaseTest() {
     }
 
     @Test
+    fun `dismiss(token) drops the matching offered entry and its timeout does not act afterwards`() = runTest {
+        val id = Workspace.Id()
+        val token = armed(id)
+        contributeUiHalf(token, id)
+        stash.commitIdentity(snapshotOf(token, id))
+        stash.markDestructionComplete(token)
+        stash.feedback.value shouldNotBe null
+
+        stash.dismiss(token)
+        stash.peekEntry() shouldBe null
+        stash.feedback.value shouldBe null
+
+        scope.testScheduler.advanceTimeBy(ClosedWorkspaceStash.FEEDBACK_TIMEOUT + 1.seconds)
+        scope.testScheduler.runCurrent()
+
+        stash.feedback.value shouldBe null
+    }
+
+    @Test
+    fun `dismiss(token) for a superseded entry leaves the current one intact`() = runTest {
+        val first = Workspace.Id()
+        val firstToken = armed(first)
+        contributeUiHalf(firstToken, first)
+        stash.commitIdentity(snapshotOf(firstToken, first))
+        stash.disarm(firstToken)
+        stash.markDestructionComplete(firstToken)
+
+        val second = Workspace.Id()
+        val secondToken = armed(second)
+        contributeUiHalf(secondToken, second)
+        stash.commitIdentity(snapshotOf(secondToken, second))
+        stash.disarm(secondToken)
+        stash.markDestructionComplete(secondToken)
+        stash.feedback.value?.closeToken shouldBe secondToken
+
+        // A swipe that settles on the bar the superseding entry already replaced
+        stash.dismiss(firstToken)
+
+        stash.feedback.value?.closeToken shouldBe secondToken
+        stash.peekEntry() shouldNotBe null
+    }
+
+    @Test
     fun `a stashed entry names what it holds`() = runTest {
         val id = Workspace.Id()
         val token = armed(id)

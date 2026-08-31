@@ -43,6 +43,7 @@ import eu.darken.butler.workspace.ui.LocalWorkspacePagerVisibility
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
+import eu.darken.butler.workspace.core.undo.ClosedWorkspaceFeedback
 import eu.darken.butler.workspace.ui.dialogs.ClearSessionConfirmationDialog
 import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
 import eu.darken.butler.workspace.ui.dialogs.ManagerDialogAction
@@ -59,6 +60,7 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceManagerGridDefaults
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerViewModel
 import eu.darken.butler.workspace.ui.manager.tour.WorkspaceManagerTour
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
+import eu.darken.butler.workspace.ui.floatingbar.FloatingBarScope
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
 import eu.darken.butler.workspace.ui.floatingbar.LocalWorkspaceBarCollapseStates
 import eu.darken.butler.workspace.ui.manager.rememberWindowSizeInfo
@@ -501,12 +503,11 @@ fun WorkspacesScreenHost(
                     modifier = Modifier.align(Alignment.BottomCenter),
                     position = BarPosition.BOTTOM,
                 ) {
-                    FloatingBar(key = "workspace-closed-undo") {
-                        WorkspaceClosedFeedbackBar(
-                            feedback = feedback,
-                            onUndo = { vm.undoClose() },
-                        )
-                    }
+                    WorkspaceClosedUndoBar(
+                        feedback = feedback,
+                        onUndo = { vm.undoClose() },
+                        onDismiss = { vm.dismissClosedFeedback(feedback.closeToken) },
+                    )
                 }
             }
         }
@@ -587,6 +588,30 @@ fun WorkspacesScreenHost(
                     onCloseSelected = { vm.onCloseSelectedFromLimitDialog(it) },
                 )
             }
+        }
+    }
+}
+
+/**
+ * The undo offer's bar declaration. Separate from its caller so a test drives the composition the
+ * app runs, key and all, rather than a re-declaration of it.
+ */
+@Composable
+internal fun FloatingBarScope.WorkspaceClosedUndoBar(
+    feedback: ClosedWorkspaceFeedback,
+    onUndo: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    FloatingBar(key = "workspace-closed-undo") {
+        // A superseding entry can reach composition without an intervening null, which would leave
+        // the swipe state parked at the previous entry's dismissed anchor - the new bar arrives
+        // already swiped away and takes no further gesture.
+        key(feedback.closeToken) {
+            WorkspaceClosedFeedbackBar(
+                feedback = feedback,
+                onUndo = onUndo,
+                onDismiss = onDismiss,
+            )
         }
     }
 }
