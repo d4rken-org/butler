@@ -10,6 +10,7 @@ import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -42,12 +43,19 @@ class BugReportRepoTest : BaseTest() {
     private val json = Json { ignoreUnknownKeys = true }
     private val recorderState = MutableStateFlow(BugReportRecorder.State())
 
+    /** Ids the recorder double reports as active-or-starting on top of the published recordingId. */
+    private val startingRecordingIds = mutableSetOf<String>()
+
     private fun createRepo(): BugReportRepo {
         val buffer = RingLogBuffer().apply {
             log(eu.darken.butler.common.debug.logging.Logging.Priority.INFO, "Test", "log line", null)
         }
         val recorder = mockk<BugReportRecorder>(relaxed = true) {
             every { state } returns recorderState
+            coEvery { isActiveOrStarting(any()) } answers {
+                val id = firstArg<String>()
+                id == recorderState.value.recordingId || id in startingRecordingIds
+            }
         }
         return BugReportRepo(
             context = context,
@@ -193,16 +201,30 @@ class BugReportRepoTest : BaseTest() {
     }
 
     @Test
-    fun `delete refuses a report carrying a live recording sentinel`() = runTest {
+    fun `delete refuses a recording whose start has not published its id yet`() = runTest {
         val repo = createRepo()
-        // Mid-start: the directory and its sentinel exist while the recorder has not published the
-        // id yet, so the id check alone would let this delete through.
+        // Mid-start: the directory exists while the recorder has not published the id yet, so the
+        // published id alone would let this delete through.
         writeReportDir("recording_6_ffff", BugReport.Type.RECORDING, ongoing = true)
         recorderState.value = BugReportRecorder.State()
+        startingRecordingIds += "recording_6_ffff"
 
         shouldThrow<IllegalArgumentException> { repo.delete("recording_6_ffff") }
 
         File(reportsDir, "recording_6_ffff").exists() shouldBe true
+    }
+
+    @Test
+    fun `delete removes a report with a stale recording sentinel`() = runTest {
+        val repo = createRepo()
+        // Sentinel left behind by a stop that could not remove it (or by process death after the
+        // startup sweep): the recorder is idle, so the report is finished and must be deletable.
+        writeReportDir("recording_7_gggg", BugReport.Type.RECORDING, ongoing = true)
+
+        repo.delete("recording_7_gggg")
+
+        File(reportsDir, "recording_7_gggg").exists() shouldBe false
+        repo.reports.first() shouldHaveSize 0
     }
 
     @Test
