@@ -13,7 +13,6 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.withTranslation
 import coil3.request.Options
-import eu.darken.butler.common.MimeTypes
 import coil3.size.Dimension
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
@@ -22,6 +21,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
+import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.preview.PreviewBudget
 import eu.darken.butler.common.theming.ThemeColor
 import eu.darken.butler.common.theming.ThemeColorProvider
@@ -78,43 +78,11 @@ class TextPreviewGenerator @Inject constructor(
             }
         )
 
-    fun isTextPreviewable(mimeType: String, extension: String? = null): Boolean =
-        mimeType.startsWith("text/")
-            || mimeType in TEXT_MIME_TYPES
-            || (mimeType == MimeTypes.Unknown.value && extension in TEXT_EXTENSIONS)
+    /** [MimeInfo] owns the table, so a thumbnail never disagrees with the rest of the app. */
+    fun isTextPreviewable(mimeType: String): Boolean = MimeInfo(mimeType).isText
 
     companion object {
         private val TAG = logTag("Coil", "Fetcher", "Path", "Text")
-
-        private val TEXT_MIME_TYPES = setOf(
-            "application/json",
-            "application/xml",
-            "application/x-sh",
-            "application/x-shellscript",
-            "application/javascript",
-            "application/x-httpd-php",
-            "application/sql",
-            "application/x-yaml",
-            "application/toml",
-            "application/x-perl",
-            "application/x-ruby",
-        )
-
-        /**
-         * Extensions for text files that Android's MimeTypeMap doesn't recognize,
-         * returning `application/octet-stream` instead.
-         */
-        val TEXT_EXTENSIONS = setOf(
-            "kt", "kts",
-            "gradle",
-            "rs", "go", "rb", "lua", "swift", "dart",
-            "toml", "ini", "cfg", "conf",
-            "properties",
-            "bat", "cmd", "ps1",
-            "dockerfile",
-            "gitignore", "gitattributes", "editorconfig",
-            "pro", "svg",
-        )
     }
 
     /**

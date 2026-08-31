@@ -301,30 +301,15 @@ class TextPreviewGeneratorTest : BaseTest() {
         textPreviewGenerator.isTextPreviewable("application/octet-stream") shouldBe false
     }
 
+    /**
+     * Extensions no longer reach this predicate: the file name is resolved against the shared table
+     * before the fetcher asks, so what is left to decide is the type boundary.
+     */
     @Test
-    fun `isTextPreviewable falls back to extension for unknown MIME type`() {
-        textPreviewGenerator.isTextPreviewable("application/octet-stream", "kt") shouldBe true
-        textPreviewGenerator.isTextPreviewable("application/octet-stream", "kts") shouldBe true
-        textPreviewGenerator.isTextPreviewable("application/octet-stream", "gradle") shouldBe true
-        textPreviewGenerator.isTextPreviewable("application/octet-stream", "rs") shouldBe true
-        textPreviewGenerator.isTextPreviewable("application/octet-stream", "go") shouldBe true
-        textPreviewGenerator.isTextPreviewable("application/octet-stream", "properties") shouldBe true
-        textPreviewGenerator.isTextPreviewable("application/octet-stream", "gitignore") shouldBe true
-    }
-
-    @Test
-    fun `isTextPreviewable extension fallback only applies to unknown MIME type`() {
-        // Extension fallback should NOT activate for known non-text MIME types
-        textPreviewGenerator.isTextPreviewable("application/zip", "kt") shouldBe false
-        textPreviewGenerator.isTextPreviewable("image/png", "rs") shouldBe false
-    }
-
-    @Test
-    fun `isTextPreviewable rejects unknown extensions`() {
-        textPreviewGenerator.isTextPreviewable("application/octet-stream", "apk") shouldBe false
-        textPreviewGenerator.isTextPreviewable("application/octet-stream", "so") shouldBe false
-        textPreviewGenerator.isTextPreviewable("application/octet-stream", "dex") shouldBe false
-        textPreviewGenerator.isTextPreviewable("application/octet-stream", null) shouldBe false
+    fun `isTextPreviewable decides on the resolved type alone`() {
+        textPreviewGenerator.isTextPreviewable("text/plain") shouldBe true
+        textPreviewGenerator.isTextPreviewable("application/x-yaml") shouldBe true
+        textPreviewGenerator.isTextPreviewable("application/octet-stream") shouldBe false
     }
 
     // Helper functions
