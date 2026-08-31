@@ -18,6 +18,7 @@ import eu.darken.butler.common.root.RootSettings
 import eu.darken.butler.setup.core.SetupModule
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -92,8 +93,7 @@ class RootSetupModule @Inject constructor(
                         }
                     }
 
-                    @Suppress("USELESS_CAST")
-                    baseState.copy(serviceState = serviceState) as SetupModule.State
+                    baseState.copy(serviceState = serviceState)
                 }
                 // The service client rejects a host left over from an older app installation, so obtaining
                 // the binder itself can fail. Report "no service" rather than erroring the whole setup flow.
@@ -102,7 +102,7 @@ class RootSetupModule @Inject constructor(
                     emit(baseState.copy(serviceState = RootServiceState.Failed))
                 }
                 .collect {
-                    timeout.cancel()
+                    timeout.cancelAndJoin()
                     send(it)
                 }
         }
