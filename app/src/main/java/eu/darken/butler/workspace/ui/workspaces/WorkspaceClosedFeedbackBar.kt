@@ -5,21 +5,20 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.dismiss
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
@@ -53,21 +52,14 @@ fun WorkspaceClosedFeedbackBar(
         modifier = modifier.fillMaxWidth(),
         onDismiss = onDismiss,
         dismissThreshold = 0.5f,
-        backgroundShape = RoundedCornerShape(16.dp),
-        backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
-        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-        dismissContent = {
-            Icon(
-                imageVector = Icons.TwoTone.Close,
-                contentDescription = stringResource(CommonR.string.general_dismiss_action),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(20.dp),
-            )
-        },
+        // Snackbar convention: the bar travels with the finger and nothing is revealed behind it.
+        backgroundColor = Color.Transparent,
+        dismissContent = {},
     ) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
+                .semantics { dismiss { onDismiss(); true } }
                 .border(
                     width = 1.dp,
                     color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
