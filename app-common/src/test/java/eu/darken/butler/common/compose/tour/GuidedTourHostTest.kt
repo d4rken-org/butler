@@ -266,41 +266,44 @@ class GuidedTourHostTest : ComposeTest() {
     }
 
     @Test
-    fun `onStepRendered fires when an anchored step becomes visible`() {
+    fun `onStepRendered reports the anchored step that became visible`() {
         val sessionFlow = MutableStateFlow<TourSession?>(TourSession(protectedDef, 0))
-        var rendered = 0
+        val rendered = mutableListOf<Pair<TourId, String>>()
         composeTestRule.setHostContent(
             sessionFlow,
             preregister = mapOf("first" to targetRect),
-            onStepRendered = { rendered++ },
+            onStepRendered = { tourId, stepId -> rendered += tourId to stepId },
         ) {
             Text("CONTENT_MARKER")
         }
-        (rendered > 0) shouldBe true
+        rendered.distinct() shouldBe listOf(protectedDef.id to "first")
     }
 
     @Test
-    fun `onStepRendered fires for a centerless step`() {
+    fun `onStepRendered reports a centerless step`() {
         val sessionFlow = MutableStateFlow<TourSession?>(TourSession(centerlessDef, 0))
-        var rendered = 0
-        composeTestRule.setHostContent(sessionFlow, onStepRendered = { rendered++ }) {
+        val rendered = mutableListOf<Pair<TourId, String>>()
+        composeTestRule.setHostContent(
+            sessionFlow,
+            onStepRendered = { tourId, stepId -> rendered += tourId to stepId },
+        ) {
             Text("CONTENT_MARKER")
         }
-        (rendered > 0) shouldBe true
+        rendered.distinct() shouldBe listOf(centerlessDef.id to "overview")
     }
 
     @Test
     fun `onStepRendered does not fire while the target is still pending`() {
         // protectedDef step 0 target "first" is never registered → layout stays Pending.
         val sessionFlow = MutableStateFlow<TourSession?>(TourSession(protectedDef, 0))
-        var rendered = 0
+        val rendered = mutableListOf<String>()
         composeTestRule.mainClock.autoAdvance = false
-        composeTestRule.setHostContent(sessionFlow, onStepRendered = { rendered++ }) {
+        composeTestRule.setHostContent(sessionFlow, onStepRendered = { _, stepId -> rendered += stepId }) {
             Text("CONTENT_MARKER")
         }
         composeTestRule.mainClock.advanceTimeBy(100)
         composeTestRule.mainClock.autoAdvance = true
-        rendered shouldBe 0
+        rendered shouldBe emptyList()
     }
 
     @Test
@@ -673,7 +676,7 @@ private fun ComposeContentTestRule.setHostContent(
     onPrevious: () -> Unit = {},
     onDontShowAgain: () -> Unit = {},
     onDisableAllTours: () -> Unit = {},
-    onStepRendered: (TourId) -> Unit = {},
+    onStepRendered: (TourId, String) -> Unit = { _, _ -> },
     onBackOwner: (OnBackPressedDispatcherOwner) -> Unit = {},
     content: @Composable () -> Unit,
 ) {

@@ -91,7 +91,7 @@ fun GuidedTourHost(
     onDisableAllTours: () -> Unit,
     modifier: Modifier = Modifier,
     registry: TourTargetRegistry = remember { TourTargetRegistry() },
-    onStepRendered: (TourId) -> Unit = {},
+    onStepRendered: (TourId, String) -> Unit = { _, _ -> },
     content: @Composable () -> Unit,
 ) {
     val current by session.collectAsState()
@@ -100,12 +100,13 @@ fun GuidedTourHost(
     // host is mounted at the Compose root.
     val layout = step?.let { resolveStepLayout(it, registry) }
 
-    // Tell the controller a step actually became visible. A tour that grace-skips every step
-    // (no target ever registers) must not be persisted as "completed" — see completeLocked().
+    // Tell the controller which step actually became visible. A tour whose steps grace-skip for
+    // want of a registered target must not be persisted as "completed" — see completeLocked().
     val stepRendered = layout is StepLayout.Anchored || layout is StepLayout.Centerless
     val activeTourId = current?.definition?.id
     LaunchedEffect(activeTourId?.raw, step?.stepId, stepRendered) {
-        if (stepRendered && activeTourId != null) onStepRendered(activeTourId)
+        val stepId = step?.stepId
+        if (stepRendered && activeTourId != null && stepId != null) onStepRendered(activeTourId, stepId)
     }
 
     // Deliberately NOT debounced like the bubble's Next below: this path is programmatic, already
