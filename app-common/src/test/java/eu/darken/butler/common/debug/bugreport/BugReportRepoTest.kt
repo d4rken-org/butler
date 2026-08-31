@@ -5,6 +5,7 @@ import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.ButlerId
 import eu.darken.butler.common.debug.logging.RingLogBuffer
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -24,6 +25,7 @@ import org.robolectric.annotation.Config
 import testhelpers.BaseTest
 import testhelpers.coroutine.TestDispatcherProvider
 import java.io.File
+import java.util.zip.ZipFile
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
@@ -271,6 +273,42 @@ class BugReportRepoTest : BaseTest() {
 
         repo.reports.first().single().id shouldBe "dupe_3"
         repo.readLog("dupe_3") shouldBe "legacy log"
+        // Sharing must follow the same copy the list shows, not the corrupt one it skipped.
+        ZipFile(repo.buildShareZip("dupe_3")).use { zip ->
+            zip.getInputStream(zip.getEntry("report.log")).readBytes().decodeToString()
+        } shouldBe "legacy log"
+    }
+
+    @Test
+    fun `buildShareZip packages the report payload and nothing else`() = runTest {
+        val repo = createRepo()
+        writeReportDir("share_1", logText = "report log")
+        val dir = File(reportsDir, "share_1")
+        File(dir, "root.log").writeText("root log")
+        File(dir, "adb.log").writeText("adb log")
+        File(dir, ".seen").createNewFile()
+        File(dir, ".recording").createNewFile()
+        File(dir, "injected.txt").writeText("not mine")
+
+        val zip = repo.buildShareZip("share_1")
+
+        ZipFile(zip).use { it.entries().toList().map { entry -> entry.name } } shouldContainExactly
+            listOf("meta.json", "report.log", "root.log", "adb.log")
+    }
+
+    @Test
+    fun `a failed buildShareZip leaves no zip behind`() = runTest {
+        val repo = createRepo()
+        writeReportDir("share_2")
+        val shareDir = File(context.cacheDir, "bugreports_share")
+        // The zip is built under this name before being renamed into place; an (empty) directory
+        // sitting there makes the compression fail on its very first write.
+        File(shareDir, "share_2.zip.tmp").mkdirs()
+
+        shouldThrow<Exception> { repo.buildShareZip("share_2") }
+
+        File(shareDir, "share_2.zip").exists() shouldBe false
+        File(shareDir, "share_2.zip.tmp").exists() shouldBe false
     }
 
     @Test

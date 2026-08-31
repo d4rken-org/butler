@@ -29,6 +29,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import java.io.File
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.time.Clock
@@ -195,19 +196,43 @@ class BugReportRepo @Inject constructor(
      * (Re)create the report's share zip under the cache dir and return a [FileProvider] uri. Used both
      * by [buildShareIntent] and by the support contact form when attaching a report to an email.
      */
-    suspend fun buildShareUri(id: String): Uri = withContext(dispatcherProvider.IO) {
+    suspend fun buildShareUri(id: String): Uri {
+        val zip = buildShareZip(id)
+        return FileProvider.getUriForFile(context, "${BuildConfigWrap.APPLICATION_ID}.provider", zip)
+    }
+
+    /**
+     * (Re)create the report's share zip: `meta.json`, `report.log` and the helper logs the privileged
+     * hosts wrote during a recording ([BugReportStorage.payloadFiles]).
+     *
+     * Built under a temporary name and renamed on success, because [Zipper] leaves its output behind
+     * when compression throws — a half-written `<id>.zip` would then be shared as if it were whole.
+     */
+    suspend fun buildShareZip(id: String): File = withContext(dispatcherProvider.IO) {
         require(id != bugReportRecorder.state.value.recordingId) { "Cannot share an active recording" }
-        val reportDir = resolveReportDir(id)
-        val files = reportDir?.let { listOf(File(it, BugReportStorage.META_FILE), File(it, BugReportStorage.LOG_FILE)) }
-            ?.filter { it.exists() }
-            ?: emptyList()
+        val files = resolveReportDir(id)?.let { BugReportStorage.payloadFiles(it) } ?: emptyList()
         require(files.isNotEmpty()) { "No report files for $id" }
 
         if (!shareDir.exists()) shareDir.mkdirs()
-        val zip = File(shareDir, "$id.zip")
-        Zipper().zip(files.map { it.path }, zip.path)
+        val payloadSize = files.sumOf { it.length() }
+        val usableSpace = shareDir.usableSpace
+        // A recording can be tens of MB and the zip is a second copy of it. Failing here is a message
+        // the user can act on; filling the cache volume instead breaks unrelated features.
+        check(usableSpace > payloadSize) {
+            "Not enough space for the share zip of $id: needs up to $payloadSize bytes, $usableSpace available"
+        }
 
-        FileProvider.getUriForFile(context, "${BuildConfigWrap.APPLICATION_ID}.provider", zip)
+        val zip = File(shareDir, "$id.zip")
+        val tmpZip = File(shareDir, "$id.zip${BugReportStorage.TMP_SUFFIX}")
+        try {
+            Zipper().zip(files.map { it.path }, tmpZip.path)
+            zip.delete()
+            if (!tmpZip.renameTo(zip)) throw IOException("Could not finalize the share zip for $id")
+        } catch (t: Throwable) {
+            runCatching { tmpZip.delete() }
+            throw t
+        }
+        zip
     }
 
     /**
