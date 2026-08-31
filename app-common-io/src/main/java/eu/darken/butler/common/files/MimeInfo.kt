@@ -124,6 +124,7 @@ data class MimeInfo(
                 "sh", "bash", "zsh", "fish", "ksh", "bat", "cmd", "ps1",
                 "gradle", "cmake", "make", "mk", "lua", "dart", "pro",
                 "gitignore", "gitattributes", "editorconfig", "bashrc", "zshrc", "profile",
+                "dockerfile",
                 -> "text/plain"
 
                 // Android
