@@ -18,15 +18,18 @@ import eu.darken.butler.common.root.RootSettings
 import eu.darken.butler.setup.core.SetupModule
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.time.Clock
@@ -43,6 +46,9 @@ class RootSetupModule @Inject constructor(
 
     private val refreshTrigger = MutableStateFlow(rngString)
 
+    /** Overridden in tests to keep the timeout case fast, never in production. */
+    internal var connectTimeoutMs: Long = CONNECT_TIMEOUT_MS
+
     // Last known concrete Result, kept so re-subscription (e.g. returning to the dashboard) can emit it
     // immediately instead of regressing to Loading and flickering the setup card while the availability
     // probe re-runs (acquiring the root host can cold-bind a su session). Only ever holds a real Result.
@@ -57,36 +63,49 @@ class RootSetupModule @Inject constructor(
 
         if (useRoot != true) return@combine flowOf(baseState)
 
-        rootManager.binder
-            .map { connection ->
-                val serviceState = if (connection == null) {
-                    RootServiceState.Failed
-                } else {
-                    try {
-                        // The round-trip is the liveness proof; the identity in its reply must still
-                        // be the one the connection was gated on.
-                        val ours = IpcContract.decode(connection.ipc.checkBase()) == connection.hostIdentity
-                        if (ours) RootServiceState.Available else RootServiceState.Failed
-                    } catch (e: CancellationException) {
-                        throw e
-                    } catch (e: Exception) {
-                        log(TAG, WARN) { "Error while checking for root: $e" }
-                        RootServiceState.Failed
-                    }
-                }
-
-                @Suppress("USELESS_CAST")
-                baseState.copy(serviceState = serviceState) as SetupModule.State
-            }
+        channelFlow<SetupModule.State> {
             // Resolving the connection can cold-bind an su session, so there is a window in which we
             // know nothing yet. It is a connecting state, not a failed one.
-            .onStart { emit(baseState.copy(serviceState = RootServiceState.Connecting)) }
-            // The service client rejects a host left over from an older app installation, so obtaining
-            // the binder itself can fail. Report "no service" rather than erroring the whole setup flow.
-            .catch { e ->
-                log(TAG, WARN) { "Root service unavailable: $e" }
-                emit(baseState.copy(serviceState = RootServiceState.Failed) as SetupModule.State)
+            send(baseState.copy(serviceState = RootServiceState.Connecting))
+
+            val timeout = launch {
+                delay(connectTimeoutMs)
+                log(TAG, WARN) { "Root service did not connect within ${connectTimeoutMs}ms" }
+                send(baseState.copy(serviceState = RootServiceState.TimedOut))
             }
+
+            rootManager.binder
+                .map { connection ->
+                    val serviceState = if (connection == null) {
+                        RootServiceState.Failed
+                    } else {
+                        try {
+                            // The round-trip is the liveness proof; the identity in its reply must still
+                            // be the one the connection was gated on.
+                            val ours = IpcContract.decode(connection.ipc.checkBase()) == connection.hostIdentity
+                            if (ours) RootServiceState.Available else RootServiceState.Failed
+                        } catch (e: CancellationException) {
+                            throw e
+                        } catch (e: Exception) {
+                            log(TAG, WARN) { "Error while checking for root: $e" }
+                            RootServiceState.Failed
+                        }
+                    }
+
+                    @Suppress("USELESS_CAST")
+                    baseState.copy(serviceState = serviceState) as SetupModule.State
+                }
+                // The service client rejects a host left over from an older app installation, so obtaining
+                // the binder itself can fail. Report "no service" rather than erroring the whole setup flow.
+                .catch { e ->
+                    log(TAG, WARN) { "Root service unavailable: $e" }
+                    emit(baseState.copy(serviceState = RootServiceState.Failed))
+                }
+                .collect {
+                    timeout.cancel()
+                    send(it)
+                }
+        }
     }
         .flatMapLatest { it }
         .onEach { if (it is Result) lastResult = it }
@@ -150,5 +169,9 @@ class RootSetupModule @Inject constructor(
 
     companion object {
         private val TAG = logTag("Setup", "Root", "Module")
+
+        // Generous on purpose: acquiring the host can wait on a user answering an su prompt, and a false
+        // timeout would report working root as unavailable.
+        internal const val CONNECT_TIMEOUT_MS = 60 * 1000L
     }
 }

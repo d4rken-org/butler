@@ -16,6 +16,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
@@ -185,6 +186,25 @@ class RootSetupModuleTest : BaseTest() {
 
         val result = collector.latestValues.last().shouldBeInstanceOf<RootSetupModule.Result>()
         result.serviceState shouldBe RootServiceState.Failed
+        result.ourService shouldBe false
+        result.isComplete shouldBe false
+
+        runBlocking { collector.cancelAndJoin() }
+    }
+
+    @Test fun `a binder that never resolves times out instead of staying pending`() {
+        // An su prompt the user never answers leaves the binder flow silent forever. Without a budget
+        // the card sits on "Connecting..." for the rest of the session.
+        every { rootManager.binder } returns MutableSharedFlow()
+
+        val mod = module().apply { connectTimeoutMs = 250L }
+
+        val collector = mod.state.test(tag = "timeout", scope = scope)
+        val state = collector.await(timeout = 10_000) { _, value ->
+            value is RootSetupModule.Result && value.serviceState is RootServiceState.TimedOut
+        }
+
+        val result = state.shouldBeInstanceOf<RootSetupModule.Result>()
         result.ourService shouldBe false
         result.isComplete shouldBe false
 
