@@ -239,8 +239,10 @@ class PathPermissionCheck @Inject constructor(
         trackSetupState(
             relevantTypes = combos.flatten().toSet(),
             build = { moduleStates, installState ->
+                // Re-determined per emission: a mechanism that was still resolving during the first
+                // read has to enter the combos once it reports in.
                 PathRequirements(
-                    combos = combos,
+                    combos = determineModuleRequirements(path).combos,
                     complete = moduleStates.filterValues { it }.keys,
                     shizukuInstalled = installState.shizuku,
                     rootInstalled = installState.root,
@@ -296,11 +298,11 @@ class PathPermissionCheck @Inject constructor(
         build: suspend (Map<SetupModule.Type, Boolean>, InstallState) -> PathRequirements,
     ): Flow<PathRequirements> = setupStateProvider.state
         .map { providerState ->
-            val relevantModules = providerState.modules.values
+            // Every resolved module, not just the relevant ones: a combo set rebuilt per emission
+            // can name a type that was not relevant when tracking started.
+            val moduleStates = providerState.modules.values
                 .filterIsInstance<SetupModule.State.Current>()
-                .filter { module -> module.type in relevantTypes }
-
-            val moduleStates = relevantModules.associate { it.type to it.isComplete }
+                .associate { it.type to it.isComplete }
 
             val hasAllModules = relevantTypes.all { type ->
                 moduleStates.containsKey(type)

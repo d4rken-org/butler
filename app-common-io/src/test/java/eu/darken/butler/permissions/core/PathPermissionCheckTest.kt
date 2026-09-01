@@ -22,8 +22,12 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -47,6 +51,7 @@ class PathPermissionCheckTest : BaseTest() {
         rootInstalled: Boolean = false,
         shizukuAvailable: Boolean = true,
         shizukuInstalled: Boolean = false,
+        setupStates: Flow<SetupStateProvider.State>? = null,
     ): PathPermissionCheck {
         // Create setup modules for all possible types
         val modules = mapOf(
@@ -72,7 +77,7 @@ class PathPermissionCheckTest : BaseTest() {
         val providerState = SetupStateProvider.State(modules = modules)
 
         val setupStateProvider = mockk<SetupStateProvider>(relaxed = true) {
-            every { state } returns flowOf(providerState)
+            every { state } returns (setupStates ?: flowOf(providerState))
         }
 
         val accessChecker = mockk<LocalPathAccessChecker>(relaxed = true) {
@@ -514,5 +519,62 @@ class PathPermissionCheckTest : BaseTest() {
 
         requirements shouldBe PathRequirements()
         requirements.needsSetup shouldBe false
+    }
+
+    @Test
+    fun `batch monitor picks up a mechanism that resolves after the first emission`() = runTest {
+        val androidDataPath = LocalPath.build("/storage/emulated/0/Android/data")
+        val testPath = LocalPath.build("/storage/emulated/0/Android/data/com.example")
+
+        val rootModule = mockk<SetupModule.State.Current>(relaxed = true) {
+            every { type } returns SetupModule.Type.ROOT
+            every { isComplete } returns false
+            every { isAvailable } returns true
+            every { isInstalled } returns false
+        }
+        val shizukuLoading = mockk<SetupModule.State.Loading>(relaxed = true) {
+            every { type } returns SetupModule.Type.SHIZUKU
+        }
+        val shizukuResolved = mockk<SetupModule.State.Current>(relaxed = true) {
+            every { type } returns SetupModule.Type.SHIZUKU
+            every { isComplete } returns false
+            every { isAvailable } returns true
+            every { isInstalled } returns true
+        }
+
+        val setupStates = MutableStateFlow(
+            SetupStateProvider.State(
+                modules = mapOf(
+                    SetupModule.Type.ROOT to rootModule,
+                    SetupModule.Type.SHIZUKU to shizukuLoading,
+                )
+            )
+        )
+
+        val checker = createChecker(
+            apiLevel = 33,
+            androidDataPath = androidDataPath,
+            setupStates = setupStates,
+        )
+
+        val emissions = mutableListOf<PathRequirements>()
+        val job = launch(UnconfinedTestDispatcher(testScheduler)) {
+            checker.monitor(listOf(testPath)).collect { emissions.add(it) }
+        }
+
+        emissions.last().combos shouldBe setOf(setOf(SetupModule.Type.ROOT))
+
+        setupStates.value = SetupStateProvider.State(
+            modules = mapOf(
+                SetupModule.Type.ROOT to rootModule,
+                SetupModule.Type.SHIZUKU to shizukuResolved,
+            )
+        )
+
+        emissions.last().combos shouldBe setOf(
+            setOf(SetupModule.Type.ROOT),
+            setOf(SetupModule.Type.SHIZUKU)
+        )
+        job.cancel()
     }
 }
