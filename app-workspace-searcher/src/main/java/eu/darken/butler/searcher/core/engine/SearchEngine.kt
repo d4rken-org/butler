@@ -72,9 +72,10 @@ class SearchEngine @AssistedInject constructor(
      * Setup requirements that would unlock the items the current scan could not read
      * (e.g. Android/data without root/Shizuku enabled). Complements [setupRequirements], which
      * gates on the target roots before a search starts: a target can pass that pre-flight check
-     * yet still hit protected subtrees mid-walk. Only viable mechanisms are ever suggested —
-     * [PathPermissionCheck] filters on availability (root manager / Shizuku installed). Derived
-     * from [targetProgressState], so it resets with it on every new search.
+     * yet still hit protected subtrees mid-walk. For a protected local path that needs setup
+     * escalation, [PathPermissionCheck] offers root without checking for a known root manager
+     * package, while Shizuku is only offered when its app is installed. Derived from
+     * [targetProgressState], so it resets with it on every new search.
      */
     val accessErrorRequirements: StateFlow<PathRequirements> = _targetProgressState
         .map { progress -> progress.flatMap { it.accessErrorPaths }.filterDistinctRoots() }

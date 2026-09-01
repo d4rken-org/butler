@@ -41,9 +41,10 @@ import eu.darken.butler.workspace.contracts.searcher.SearchTarget
 /**
  * Detail sheet behind the progress card's "N items couldn't be accessed" line: lists the
  * inaccessible paths in full (absolute — a file explorer must be exact about locations) and, when
- * a viable mechanism exists (root/Shizuku available — already availability-filtered by
- * PathPermissionCheck), offers the setup action. When nothing can unlock the items, the body text
- * is the terminal explanation and no action is shown.
+ * a mechanism exists that could unlock them, offers the setup action. For protected local paths
+ * that means root (offered without checking for a known root manager package) or Shizuku (only
+ * when its app is installed). When nothing can unlock the items, the body text is the terminal
+ * explanation and no action is shown.
  */
 @Composable
 fun AccessErrorsSheetContent(
