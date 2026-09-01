@@ -12,6 +12,8 @@ import eu.darken.butler.common.storage.saf.AndroidDataAccessChecker
 import eu.darken.butler.common.storage.saf.SAFPickerIntentBuilder
 import eu.darken.butler.setup.core.SetupModule
 import eu.darken.butler.setup.core.SetupStateProvider
+import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -41,6 +43,10 @@ class PathPermissionCheckTest : BaseTest() {
         documentUIAllowed: Boolean = true,
         safPickerIntent: Intent? = null,
         completedTypes: Set<SetupModule.Type> = emptySet(),
+        rootAvailable: Boolean = true,
+        rootInstalled: Boolean = false,
+        shizukuAvailable: Boolean = true,
+        shizukuInstalled: Boolean = false,
     ): PathPermissionCheck {
         // Create setup modules for all possible types
         val modules = mapOf(
@@ -52,12 +58,14 @@ class PathPermissionCheckTest : BaseTest() {
             SetupModule.Type.ROOT to mockk<SetupModule.State.Current>(relaxed = true) {
                 every { type } returns SetupModule.Type.ROOT
                 every { isComplete } returns (SetupModule.Type.ROOT in completedTypes)
-                every { isAvailable } returns true
+                every { isAvailable } returns rootAvailable
+                every { isInstalled } returns rootInstalled
             },
             SetupModule.Type.SHIZUKU to mockk<SetupModule.State.Current>(relaxed = true) {
                 every { type } returns SetupModule.Type.SHIZUKU
                 every { isComplete } returns (SetupModule.Type.SHIZUKU in completedTypes)
-                every { isAvailable } returns true
+                every { isAvailable } returns shizukuAvailable
+                every { isInstalled } returns shizukuInstalled
             }
         )
 
@@ -249,6 +257,84 @@ class PathPermissionCheckTest : BaseTest() {
             setOf(SetupModule.Type.ROOT),
             setOf(SetupModule.Type.SHIZUKU)
         )
+    }
+
+    @Test
+    fun `test Android 33+ - offers root when no root manager is installed`() = runTest {
+        val androidDataPath = LocalPath.build("/storage/emulated/0/Android/data")
+        val testPath = LocalPath.build("/storage/emulated/0/Android/data/com.example")
+
+        val checker = createChecker(
+            apiLevel = 33,
+            androidDataPath = androidDataPath,
+            rootAvailable = false,
+            rootInstalled = false,
+            shizukuAvailable = false,
+        )
+
+        val requirements = checker.monitor(testPath).first()
+
+        requirements.combos shouldBe setOf(setOf(SetupModule.Type.ROOT))
+        requirements.needsSetup shouldBe true
+    }
+
+    @Test
+    fun `test Android 33+ - offers root when the manager is unrecognised but root works`() = runTest {
+        val androidDataPath = LocalPath.build("/storage/emulated/0/Android/data")
+        val testPath = LocalPath.build("/storage/emulated/0/Android/data/com.example")
+
+        val checker = createChecker(
+            apiLevel = 33,
+            androidDataPath = androidDataPath,
+            rootAvailable = true,
+            rootInstalled = false,
+            shizukuAvailable = false,
+        )
+
+        val requirements = checker.monitor(testPath).first()
+
+        requirements.combos shouldBe setOf(setOf(SetupModule.Type.ROOT))
+        requirements.rootInstalled shouldBe false
+    }
+
+    @Test
+    fun `test Android 33+ - Shizuku stays gated on install`() = runTest {
+        val androidDataPath = LocalPath.build("/storage/emulated/0/Android/data")
+        val testPath = LocalPath.build("/storage/emulated/0/Android/data/com.example")
+
+        val withoutShizuku = createChecker(
+            apiLevel = 33,
+            androidDataPath = androidDataPath,
+            shizukuAvailable = false,
+        ).monitor(testPath).first()
+        withoutShizuku.combos.flatten() shouldNotContain SetupModule.Type.SHIZUKU
+
+        val withShizuku = createChecker(
+            apiLevel = 33,
+            androidDataPath = androidDataPath,
+            shizukuAvailable = true,
+        ).monitor(testPath).first()
+        withShizuku.combos shouldBe setOf(
+            setOf(SetupModule.Type.ROOT),
+            setOf(SetupModule.Type.SHIZUKU)
+        )
+    }
+
+    @Test
+    fun `test Android 30-32 with DocumentsUI restricted - offers root when no root manager is installed`() = runTest {
+        val androidDataPath = LocalPath.build("/storage/emulated/0/Android/data")
+        val testPath = LocalPath.build("/storage/emulated/0/Android/data/com.example")
+
+        val checker = createChecker(
+            apiLevel = 30,
+            androidDataPath = androidDataPath,
+            documentUIAllowed = false,
+            rootAvailable = false,
+        )
+
+        val requirements = checker.monitor(testPath).first()
+
+        requirements.combos shouldContain setOf(SetupModule.Type.ROOT)
     }
 
     @Test
