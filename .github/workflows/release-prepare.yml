@@ -68,7 +68,7 @@ jobs:
       - name: Pre-flight main health check
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          POLL_ATTEMPTS: "20"
+          POLL_ATTEMPTS: "60"
           POLL_INTERVAL_SECONDS: "30"
         run: |
           set -euo pipefail
