@@ -44,9 +44,6 @@ fun SetupStateIndicator(
                         RootCardStatus.CONNECTING -> {
                             Icons.TwoTone.RadioButtonUnchecked to MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         }
-                        RootCardStatus.NOT_INSTALLED -> {
-                            Icons.TwoTone.Error to MaterialTheme.colorScheme.error
-                        }
                         RootCardStatus.NOT_CONNECTED -> {
                             Icons.TwoTone.Error to MaterialTheme.colorScheme.tertiary
                         }

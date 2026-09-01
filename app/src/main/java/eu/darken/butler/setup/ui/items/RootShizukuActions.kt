@@ -48,7 +48,6 @@ fun RootShizukuActions(
                     RootCardStatus.DISABLED -> null
                     RootCardStatus.CONNECTED -> stringResource(R.string.setup_status_connected)
                     RootCardStatus.CONNECTING -> stringResource(R.string.setup_status_connecting)
-                    RootCardStatus.NOT_INSTALLED -> stringResource(R.string.setup_status_not_installed)
                     RootCardStatus.NOT_CONNECTED -> stringResource(R.string.setup_status_not_connected)
                     RootCardStatus.CONNECTION_FAILED -> stringResource(R.string.setup_status_connection_failed)
                 }

@@ -18,7 +18,8 @@ import testhelpers.ComposeTest
 /**
  * The card is where the headline and the connection sub-line meet, so this is what catches them
  * disagreeing about one state. The icon is not asserted: it carries no content description and
- * Robolectric cannot draw, [RootCardStatusTest] covers the decision both of them render.
+ * Robolectric cannot draw, [RootCardStatusTest] covers the decision the sub-line and the icon
+ * render.
  */
 class RootSetupCardStatusTest : ComposeTest() {
 
@@ -61,6 +62,14 @@ class RootSetupCardStatusTest : ComposeTest() {
         renderCard(RootServiceState.Connecting)
 
         composeTestRule.onNodeWithText(context.getString(R.string.setup_status_connecting)).assertIsDisplayed()
+        assertNotShown(context.getString(R.string.setup_status_not_installed))
+    }
+
+    @Test
+    fun `a failed probe without a known manager is reported as not connected`() {
+        renderCard(RootServiceState.Failed)
+
+        composeTestRule.onNodeWithText(context.getString(R.string.setup_status_not_connected)).assertIsDisplayed()
         assertNotShown(context.getString(R.string.setup_status_not_installed))
     }
 }
