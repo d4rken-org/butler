@@ -112,9 +112,6 @@ class PathPermissionCheck @Inject constructor(
             }
 
             val setupModules = setupStateProvider.state.first()
-            val isRootAvailable = setupModules.modules[SetupModule.Type.ROOT]
-                ?.let { it as? SetupModule.State.Current }?.isAvailable == true
-            log(TAG) { "ROOT maybe available? $isRootAvailable" }
             val isShizukuAvailable = setupModules.modules[SetupModule.Type.SHIZUKU]
                 ?.let { it as? SetupModule.State.Current }?.isAvailable == true
             log(TAG) { "SHIZUKU maybe available? $isShizukuAvailable" }
@@ -126,7 +123,10 @@ class PathPermissionCheck @Inject constructor(
                     log(TAG) { "Android 13+ detected, SAF not available for $localPath" }
                     PathRequirements(
                         combos = setOfNotNull(
-                            if (isRootAvailable) setOf(SetupModule.Type.ROOT) else null,
+                            // Offered no matter whether a known root manager package resolves: that lookup
+                            // can't tell an absent manager from an unrecognised one. Shizuku stays gated,
+                            // without its app there is no route at all.
+                            setOf(SetupModule.Type.ROOT),
                             if (isShizukuAvailable) setOf(SetupModule.Type.SHIZUKU) else null,
                         )
                     )
@@ -145,7 +145,7 @@ class PathPermissionCheck @Inject constructor(
                                 SAFPickerGrant(it, localPath)
                             },
                         combos = setOfNotNull(
-                            if (isRootAvailable) setOf(SetupModule.Type.ROOT) else null,
+                            setOf(SetupModule.Type.ROOT),
                             if (isShizukuAvailable) setOf(SetupModule.Type.SHIZUKU) else null,
                         )
                     )
