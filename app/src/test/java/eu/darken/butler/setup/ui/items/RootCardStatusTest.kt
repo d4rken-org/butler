@@ -7,8 +7,8 @@ import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 
 /**
- * The card's headline, its sub-line and its icon each render the same decision, so the decision is
- * made once, here, rather than re-derived per surface.
+ * The card's connection sub-line and its icon render the same decision, so the decision is made
+ * once, here, rather than re-derived per surface.
  */
 class RootCardStatusTest : BaseTest() {
 
@@ -59,12 +59,13 @@ class RootCardStatusTest : BaseTest() {
         result(true, isInstalled = true, RootServiceState.NotChecked).toCardStatus() shouldBe RootCardStatus.CONNECTING
     }
 
-    @Test fun `a failed probe without a known manager is not installed`() {
-        result(true, isInstalled = false, RootServiceState.Failed).toCardStatus() shouldBe RootCardStatus.NOT_INSTALLED
-    }
-
-    @Test fun `a failed probe with a known manager is not connected`() {
+    /**
+     * The lookup cannot tell an absent root manager from one it does not recognise, so a failed
+     * probe reads as not connected either way.
+     */
+    @Test fun `a failed probe is not connected`() {
         result(true, isInstalled = true, RootServiceState.Failed).toCardStatus() shouldBe RootCardStatus.NOT_CONNECTED
+        result(true, isInstalled = false, RootServiceState.Failed).toCardStatus() shouldBe RootCardStatus.NOT_CONNECTED
     }
 
     /**

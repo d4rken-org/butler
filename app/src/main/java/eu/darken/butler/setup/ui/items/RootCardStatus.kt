@@ -8,22 +8,20 @@ enum class RootCardStatus {
     DISABLED,
     CONNECTING,
     CONNECTED,
-    NOT_INSTALLED,
     NOT_CONNECTED,
     CONNECTION_FAILED,
 }
 
 /**
- * The installed-manager lookup only knows a handful of package ids, so it says nothing about a
- * device whose root manager is not one of them. It is consulted after the probe concluded it failed,
- * never as a reason to contradict a service that is answering.
+ * The installed-manager lookup only knows a handful of package ids, so it cannot tell an absent
+ * root manager from one it does not recognise. The card never keys its wording on it.
  */
 fun RootSetupModule.Result?.toCardStatus(): RootCardStatus = when {
     this == null || useRoot != true -> RootCardStatus.DISABLED
     else -> when (serviceState) {
         is RootServiceState.Available -> RootCardStatus.CONNECTED
         is RootServiceState.NotChecked, is RootServiceState.Connecting -> RootCardStatus.CONNECTING
-        is RootServiceState.Failed -> if (isInstalled) RootCardStatus.NOT_CONNECTED else RootCardStatus.NOT_INSTALLED
+        is RootServiceState.Failed -> RootCardStatus.NOT_CONNECTED
         is RootServiceState.TimedOut -> RootCardStatus.CONNECTION_FAILED
     }
 }
