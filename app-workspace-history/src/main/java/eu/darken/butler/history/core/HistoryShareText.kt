@@ -149,12 +149,20 @@ private fun Context.formatDuration(entry: HistoryEntry): String {
  * Paths and error text are arbitrary user data. A backtick inside a value would otherwise close the
  * span and corrupt the rest of the document, so the fence is one backtick longer than the longest
  * run in the value, padded when the value itself starts or ends with one.
+ *
+ * A line break ends the span outright and would leave the rendered path a truncated one, so CR and
+ * LF are written as escapes instead. The backslash is escaped first, so `we\nird.txt` and a path
+ * with a real newline stay distinguishable.
  */
 private fun codeSpan(value: String): String {
-    val longestRun = BACKTICK_RUN.findAll(value).maxOfOrNull { it.value.length } ?: 0
+    val escaped = value
+        .replace("\\", "\\\\")
+        .replace("\r", "\\r")
+        .replace("\n", "\\n")
+    val longestRun = BACKTICK_RUN.findAll(escaped).maxOfOrNull { it.value.length } ?: 0
     val fence = "`".repeat(longestRun + 1)
-    val padding = if (value.startsWith('`') || value.endsWith('`')) " " else ""
-    return "$fence$padding$value$padding$fence"
+    val padding = if (escaped.startsWith('`') || escaped.endsWith('`')) " " else ""
+    return "$fence$padding$escaped$padding$fence"
 }
 
 /** A raw newline turns the rest of a single-line field into a stray paragraph, heading or list item. */

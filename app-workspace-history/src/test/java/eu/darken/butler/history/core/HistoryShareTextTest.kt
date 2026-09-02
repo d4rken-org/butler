@@ -276,6 +276,35 @@ class HistoryShareTextTest : BaseTest() {
         text shouldEndWith "more entries not included"
         text.length shouldBeLessThanOrEqual SHARE_TEXT_MAX_CHARS
     }
+
+    @Test
+    fun `a newline in a path does not break out of its code span`() {
+        val text = share(listOf(entry(paths = listOf(added("/sdcard/we\nird.txt")))))
+
+        val pathLine = text.lines().single { it.startsWith("- added: ") }
+        pathLine shouldEndWith "`"
+        pathLine shouldContain "we\\nird.txt"
+    }
+
+    @Test
+    fun `a carriage return in a path does not break out of its code span`() {
+        val text = share(listOf(entry(paths = listOf(added("/sdcard/we\rird.txt")))))
+
+        val pathLine = text.lines().single { it.startsWith("- added: ") }
+        pathLine shouldEndWith "`"
+        pathLine shouldContain "we\\rird.txt"
+        text shouldNotContain "\r"
+    }
+
+    @Test
+    fun `a literal backslash-n in a path stays distinct from a real newline`() {
+        val literal = share(listOf(entry(paths = listOf(added("/sdcard/we\\nird.txt")))))
+        val real = share(listOf(entry(paths = listOf(added("/sdcard/we\nird.txt")))))
+
+        val literalLine = literal.lines().single { it.startsWith("- added: ") }
+        literalLine shouldBe "- added: `/sdcard/we\\\\nird.txt`"
+        (literalLine == real.lines().single { it.startsWith("- added: ") }) shouldBe false
+    }
 }
 
 /** 101 of these leaves 2 chars of headroom, less than the truncation notice needs. */
