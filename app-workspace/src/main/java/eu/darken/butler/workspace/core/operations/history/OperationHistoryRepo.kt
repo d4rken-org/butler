@@ -22,6 +22,7 @@ import eu.darken.butler.workspace.core.operations.history.db.OperationHistorySco
 import eu.darken.butler.workspace.core.operations.history.db.OperationHistoryWithPaths
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
@@ -283,9 +284,28 @@ class OperationHistoryRepo @Inject constructor(
 
         return idsFlow.flatMapLatest { ids ->
             if (ids.isEmpty()) flowOf(emptyList())
-            else dao.loadByIds(ids).map { rows -> rows.map { it.toDomain() } }
+            else loadByIdsChunked(ids).map { rows -> rows.map { it.toDomain() } }
         }
     }
+
+    /**
+     * The id list can hold as many entries as the history cap allows (2000), which overruns the
+     * bind-argument limit of a single `IN (:ids)` on API 30 and below - see
+     * [OperationHistoryDao.MAX_BIND_ARGS]. Splitting also splits the per-chunk `ORDER BY`, so the
+     * combined result is re-sorted newest-first.
+     *
+     * The single-chunk branch is a behavior guarantee, not an optimization: [combine] emits nothing
+     * until every source has produced a value, and the common case keeps emitting exactly as the
+     * plain query does.
+     */
+    private fun loadByIdsChunked(ids: List<String>): Flow<List<OperationHistoryWithPaths>> =
+        if (ids.size <= OperationHistoryDao.MAX_BIND_ARGS) {
+            dao.loadByIds(ids)
+        } else {
+            combine(ids.chunked(OperationHistoryDao.MAX_BIND_ARGS).map { dao.loadByIds(it) }) { chunks ->
+                chunks.toList().flatten().sortedByDescending { it.entry.completedAt }
+            }
+        }
 
     private fun buildScopedIdsQuery(
         outcomes: List<String>,
