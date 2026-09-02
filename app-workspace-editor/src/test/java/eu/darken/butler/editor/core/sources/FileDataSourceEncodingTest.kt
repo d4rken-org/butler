@@ -45,6 +45,10 @@ class FileDataSourceEncodingTest : BaseTest() {
             val path = firstArg<APath<*>>() as LocalPath
             fileSystemOps.exists(path)
         }
+        coEvery { existsStrict(any()) } coAnswers {
+            val path = firstArg<APath<*>>() as LocalPath
+            fileSystemOps.existsStrict(path)
+        }
 
         @Suppress("UNCHECKED_CAST")
         coEvery { lookup(any(), any()) } coAnswers {

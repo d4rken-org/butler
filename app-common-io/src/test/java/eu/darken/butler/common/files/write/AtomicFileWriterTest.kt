@@ -2,10 +2,12 @@ package eu.darken.butler.common.files.write
 
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
+import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.MoveOutcome
+import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.local.LocalFileSystemOps
 import eu.darken.butler.common.files.metadata.OwnershipResolver
 import io.kotest.assertions.throwables.shouldThrow
@@ -25,8 +27,18 @@ class AtomicFileWriterTest : BaseTest() {
     private val mockOwnershipResolver = mockk<OwnershipResolver>(relaxed = true)
     private val fileSystemOps = LocalFileSystemOps(ownershipResolver = mockOwnershipResolver)
 
+    /**
+     * What the strict probe answers for a path; `null` defers to the real file. Artifact names carry
+     * a random token, so an injection has to match on the infix rather than on a full path.
+     */
+    private var strictAnswer: (LocalPath) -> Existence? = { null }
+
     private fun createMockGateway(): GatewaySwitch = mockk<GatewaySwitch>().apply {
         coEvery { exists(any()) } coAnswers { fileSystemOps.exists(firstArg<APath<*>>() as LocalPath) }
+        coEvery { existsStrict(any()) } coAnswers {
+            val path = firstArg<APath<*>>() as LocalPath
+            strictAnswer(path) ?: if (fileSystemOps.exists(path)) Existence.PRESENT else Existence.ABSENT
+        }
         @Suppress("UNCHECKED_CAST")
         coEvery { lookup(any(), any()) } coAnswers {
             fileSystemOps.lookup(firstArg<APath<*>>() as LocalPath, secondArg<LookupOptions>()) as APathLookup<APath<*>>
@@ -309,6 +321,135 @@ class AtomicFileWriterTest : BaseTest() {
             tempDir.artifacts().single().startsWith("doc.txt.butler-save-bak-") shouldBe true
             File(tempDir, tempDir.artifacts().single()).readText() shouldBe "ORIGINAL"
         }
+
+    @Test
+    fun `a backup that cannot be inspected still funnels into the restore`(@TempDir tempDir: File) = runTest {
+        val target = File(tempDir, "doc.txt").apply { writeText("ORIGINAL") }
+        val gateway = createMockGateway()
+        // The target -> backup move lands on disk but the reply is lost, so the bookkeeping flag
+        // stays unset. A denied stat on the backup is no proof that there is nothing to restore.
+        strictAnswer = { if (it.name.contains(AtomicFileWriter.BACKUP_INFIX)) Existence.UNKNOWN else null }
+        coEvery {
+            gateway.move(
+                match<APath<*>> { it.name == "doc.txt" },
+                match<APath<*>> { it.name.contains(".butler-save-bak-") },
+            )
+        } coAnswers {
+            (firstArg<APath<*>>() as LocalPath).file.renameTo((secondArg<APath<*>>() as LocalPath).file)
+            throw IOException("lost reply")
+        }
+        val writer = AtomicFileWriter(gateway, "test")
+
+        val thrown = shouldThrow<IOException> {
+            writer.replace(LocalPath.build(target), AtomicFileWriter.OriginalAccess.None) { context ->
+                context.sink.writeUtf8("NEW")
+            }
+        }
+
+        thrown.message shouldBe "lost reply"
+        coVerify(exactly = 1) {
+            gateway.existsStrict(match<APath<*>> { it.name.contains(AtomicFileWriter.BACKUP_INFIX) })
+        }
+        coVerify(exactly = 1) {
+            gateway.move(
+                match<APath<*>> { it.name.contains(".butler-save-bak-") },
+                match<APath<*>> { it.name == "doc.txt" },
+            )
+        }
+        target.readText() shouldBe "ORIGINAL"
+        tempDir.artifacts() shouldBe emptyList()
+    }
+
+    @Test
+    fun `a backup that is provably absent needs no restore`(@TempDir tempDir: File) = runTest {
+        val target = File(tempDir, "doc.txt").apply { writeText("ORIGINAL") }
+        val gateway = createMockGateway()
+        // The backup move failed before touching anything, so there is nothing to move back.
+        strictAnswer = { if (it.name.contains(AtomicFileWriter.BACKUP_INFIX)) Existence.ABSENT else null }
+        coEvery {
+            gateway.move(
+                match<APath<*>> { it.name == "doc.txt" },
+                match<APath<*>> { it.name.contains(".butler-save-bak-") },
+            )
+        } throws IOException("backup refused")
+        val writer = AtomicFileWriter(gateway, "test")
+
+        val thrown = shouldThrow<IOException> {
+            writer.replace(LocalPath.build(target), AtomicFileWriter.OriginalAccess.None) { context ->
+                context.sink.writeUtf8("NEW")
+            }
+        }
+
+        thrown.message shouldBe "backup refused"
+        coVerify(exactly = 0) {
+            gateway.move(
+                match<APath<*>> { it.name.contains(".butler-save-bak-") },
+                match<APath<*>> { it.name == "doc.txt" },
+            )
+        }
+        target.readText() shouldBe "ORIGINAL"
+        tempDir.artifacts() shouldBe emptyList()
+    }
+
+    @Test
+    fun `a present target ends the recovery even when the backup cannot be inspected`(@TempDir tempDir: File) = runTest {
+        val target = File(tempDir, "doc.txt").apply { writeText("ORIGINAL") }
+        val gateway = createMockGateway()
+        // As far as the probes can tell the target is occupied and the backup is unreadable. A
+        // restore move cannot succeed onto an occupied target, and attempting it would report an
+        // integrity loss on top of the error that actually happened.
+        strictAnswer = {
+            when {
+                it.name.contains(AtomicFileWriter.BACKUP_INFIX) -> Existence.UNKNOWN
+                it.name == "doc.txt" -> Existence.PRESENT
+                else -> null
+            }
+        }
+        coEvery {
+            gateway.move(
+                match<APath<*>> { it.name == "doc.txt" },
+                match<APath<*>> { it.name.contains(".butler-save-bak-") },
+            )
+        } coAnswers {
+            (firstArg<APath<*>>() as LocalPath).file.renameTo((secondArg<APath<*>>() as LocalPath).file)
+            throw IOException("lost reply")
+        }
+        val writer = AtomicFileWriter(gateway, "test")
+
+        val thrown = shouldThrow<IOException> {
+            writer.replace(LocalPath.build(target), AtomicFileWriter.OriginalAccess.None) { context ->
+                context.sink.writeUtf8("NEW")
+            }
+        }
+
+        thrown.message shouldBe "lost reply"
+        coVerify(exactly = 0) {
+            gateway.move(
+                match<APath<*>> { it.name.contains(".butler-save-bak-") },
+                match<APath<*>> { it.name == "doc.txt" },
+            )
+        }
+        tempDir.artifacts().single().startsWith("doc.txt.butler-save-bak-") shouldBe true
+        File(tempDir, tempDir.artifacts().single()).readText() shouldBe "ORIGINAL"
+    }
+
+    @Test
+    fun `a target that cannot be inspected aborts before anything is moved`(@TempDir tempDir: File) = runTest {
+        val target = File(tempDir, "doc.txt").apply { writeText("ORIGINAL") }
+        val gateway = createMockGateway()
+        strictAnswer = { if (it.name == "doc.txt") Existence.UNKNOWN else null }
+        val writer = AtomicFileWriter(gateway, "test")
+
+        shouldThrow<WriteException> {
+            writer.replace(LocalPath.build(target), AtomicFileWriter.OriginalAccess.None) { context ->
+                context.sink.writeUtf8("NEW")
+            }
+        }
+
+        target.readText() shouldBe "ORIGINAL"
+        tempDir.artifacts() shouldBe emptyList()
+        coVerify(exactly = 0) { gateway.move(any<APath<*>>(), any<APath<*>>()) }
+    }
 
     // ==================== in-place strategy (SAF-analog, exercised directly) ====================
 
