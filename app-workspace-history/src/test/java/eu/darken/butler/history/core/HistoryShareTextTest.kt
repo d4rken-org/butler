@@ -6,6 +6,7 @@ import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.history.HistoryEntry
 import eu.darken.butler.workspace.core.operations.history.HistoryOutcome
 import eu.darken.butler.workspace.core.operations.history.OperationHistoryRepo
+import io.kotest.matchers.ints.shouldBeLessThanOrEqual
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldEndWith
@@ -251,4 +252,31 @@ class HistoryShareTextTest : BaseTest() {
 
         share(listOf(entry)) shouldContain "- **Duration:** 25.0 s\n"
     }
+
+    private fun added(path: String) = HistoryEntry.PathChange(
+        path = path,
+        previousPath = null,
+        change = Operation.Report.PathChange.Change.ADDED,
+    )
+
+    /**
+     * The loop stops at the first block that does not fit, so the truncation notice is appended to
+     * whatever headroom is left. Sized so the notice needs more room than remains: 101 identical
+     * blocks of [TARGET_BLOCK_CHARS], of which 100 fit exactly.
+     */
+    @Test
+    fun `the truncation notice stays inside the size budget`() {
+        val probePath = "/sdcard/pad/"
+        val padding = TARGET_BLOCK_CHARS - share(listOf(entry(paths = listOf(added(probePath))))).length
+        val path = probePath + "p".repeat(padding)
+        val entries = (1..101).map { entry(id = "entry-$it", paths = listOf(added(path))) }
+
+        val text = share(entries)
+
+        text shouldEndWith "more entries not included"
+        text.length shouldBeLessThanOrEqual SHARE_TEXT_MAX_CHARS
+    }
 }
+
+/** 101 of these leaves 2 chars of headroom, less than the truncation notice needs. */
+private const val TARGET_BLOCK_CHARS = 998
