@@ -1,9 +1,5 @@
 package eu.darken.butler.common.trash
 
-import android.content.Context
-import androidx.room.Room
-import dagger.hilt.android.qualifiers.ApplicationContext
-import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
@@ -16,8 +12,6 @@ import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.extensions.lookup
-import eu.darken.butler.common.files.room.APathConverter
-import eu.darken.butler.common.files.room.APathLookupConverter
 import eu.darken.butler.common.trash.db.TrashDao
 import eu.darken.butler.common.trash.db.TrashDatabase
 import eu.darken.butler.common.trash.db.TrashEntity
@@ -37,29 +31,11 @@ import kotlin.uuid.Uuid
 
 @Singleton
 class TrashRepo @Inject constructor(
-    @ApplicationContext private val context: Context,
     @AppScope private val appScope: CoroutineScope,
     private val dispatcherProvider: DispatcherProvider,
     private val gatewaySwitch: GatewaySwitch,
-    private val aPathConverter: APathConverter,
-    private val aPathLookupConverter: APathLookupConverter,
+    private val database: TrashDatabase,
 ) {
-
-    private val database by lazy {
-        Room.databaseBuilder(
-            context,
-            TrashDatabase::class.java,
-            "trash.db"
-        ).apply {
-            if (BuildConfigWrap.DEBUG) {
-                log(TAG) { "Debug mode: Enabling destructive migration for trash database" }
-                fallbackToDestructiveMigration()
-            }
-            addMigrations(*TrashDatabase.MIGRATIONS)
-            addTypeConverter(aPathConverter)
-            addTypeConverter(aPathLookupConverter)
-        }.build()
-    }
 
     private val dao: TrashDao
         get() = database.trashDao()
