@@ -109,6 +109,7 @@ class ViewerRenderFailureTest : BaseTest() {
         every { state } returns states
         every { this@apply.source } returns source
         every { storedPath } returns (source as? ViewerSource.Stored)?.path
+        every { listingSourceId } returns null
         every { sharedCaption } returns null
         every { info } returns MutableStateFlow(
             Workspace.Info(id = workspaceId, type = Workspace.Type.VIEWER, title = source.displayName.toCaString()),

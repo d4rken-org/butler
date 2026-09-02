@@ -23,6 +23,7 @@ import eu.darken.butler.common.files.SmbPath
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.common.flow.SingleEventFlow
+import eu.darken.butler.common.flow.combine as combineMany
 import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.common.pkgs.installer.AppInstallEvent
 import eu.darken.butler.common.pkgs.installer.AppInstallInspector
@@ -72,6 +73,7 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -167,8 +169,16 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
             )
         }
 
-    /** Which page the user navigated to. Not persisted: a restored session starts at page one again. */
-    private val pdfPageIndexFlow = MutableStateFlow(0)
+    /**
+     * Which page the user navigated to, with the source it was chosen in. Not persisted: a restored
+     * session starts at page one again.
+     *
+     * Keyed by source because this tab can be replaced under its own id - stepping to the next file,
+     * or saving a stream - while the ViewModel lives on. A bare index would carry the old document's
+     * page into the new one, and clearing it on the swap would request page 0 of the document that
+     * is on its way out.
+     */
+    private val pdfPageIndexFlow = MutableStateFlow<PdfPageSelection?>(null)
 
     /**
      * The selected page is rendered here, not in the workspace: a full-screen page bitmap must not
@@ -191,6 +201,7 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
                         flowOf<PdfPage?>(null)
                     } else {
                         pdfPageIndexFlow
+                            .map { selection -> selection?.takeIf { it.source == workspace.source }?.index ?: 0 }
                             // A document that shrank underneath the viewer must not render a page
                             // index that no longer exists.
                             .map { it.coerceIn(0, pdf.pageCount - 1) }
@@ -234,13 +245,42 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
         .distinctUntilChanged()
         .asStateFlow()
 
-    val state = combine(
+    /**
+     * The last listing the current origin published, so a paused origin - whose stand-in holds none -
+     * does not take the arrows away. Outside the per-workspace flow because a step replaces this tab
+     * under its own id and the ViewModel outlives each [ViewerWorkspace] incarnation.
+     */
+    private var lastListing: Pair<Workspace.Id, List<APath<*>>>? = null
+
+    /** Where a step from the file on display would land, or null when there is nothing to step to. */
+    private val neighboursFlow: Flow<ViewerNeighbours?> = workspaceSource.flatMapLatest { workspace ->
+        val originId = workspace.listingSourceId
+        val path = workspace.storedPath
+        if (originId == null || path == null) return@flatMapLatest flowOf(null)
+        val live = workspaceProvider.retrieve(originId).flatMapLatest { origin ->
+            (origin as? Workspace.FileListingSource)?.fileListing ?: flowOf<List<APath<*>>?>(null)
+        }
+        // A paused stand-in stays in the info list with a Paused lifecycle; a closed id leaves it.
+        val originExists = workspaceRemote.state
+            .map { state -> state.infos.any { it.id == originId } }
+            .distinctUntilChanged()
+        combine(live, originExists) { listing, exists ->
+            when {
+                !exists -> null
+                listing != null -> listing.also { lastListing = originId to it }
+                else -> lastListing?.takeIf { it.first == originId }?.second
+            }
+        }.map { files -> files?.let { resolveNeighbours(path, it) } }
+    }.distinctUntilChanged()
+
+    val state = combineMany(
         snapshots,
         renderErrorFlow,
         imageSourceFlow,
         pdfPageFlow,
         trashSettings.enabled.flow,
-    ) { snapshot, renderFailure, imageSource, pdfPage, trashEnabled ->
+        neighboursFlow,
+    ) { snapshot, renderFailure, imageSource, pdfPage, trashEnabled, rawNeighbours ->
         val (source, workspaceState) = snapshot
         // Only the failure of what is on display now: one recorded for a source this tab has since
         // been rebound away from would hide the new content behind the old one's error.
@@ -269,6 +309,9 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
         val isGone = workspaceState.externalChange == ViewerExternalChange.Gone ||
             failure is ViewerFileGoneException ||
             failure is ViewerBrokenSymlinkException
+        // Only the snapshot resolved for the file on display: this tab is replaced under its own id
+        // when a step lands, and the neighbours of the file it left would step the wrong way.
+        val neighbours = rawNeighbours?.takeIf { it.current == (source as? ViewerSource.Stored)?.path }
         State.Ready(
             content = content,
             fileInfo = workspaceState.fileInfo,
@@ -280,8 +323,10 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
                 trashEnabled = trashEnabled,
                 content = content,
                 isGone = isGone,
+                neighbours = neighbours,
             ),
             externalChange = workspaceState.externalChange,
+            neighbours = neighbours,
         ) as State
     }
         .catch { error ->
@@ -475,7 +520,51 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
             delta = delta,
         ) ?: return
         log(tag) { "movePdfPage($delta) -> page $target" }
-        pdfPageIndexFlow.value = target
+        pdfPageIndexFlow.value = PdfPageSelection(source = ready.source, index = target)
+    }
+
+    fun showPreviousFile() = stepFile(delta = -1)
+
+    fun showNextFile() = stepFile(delta = 1)
+
+    /** Held for the whole swap, not just the create; see [stepFile]. */
+    private var fileStep: Job? = null
+
+    /**
+     * Moves this tab to a neighbour by REPLACING it with a viewer on that file - the same mechanism
+     * and for the same reasons as [rebindToSavedFile]; a viewer's file comes from its creation
+     * arguments and cannot be swapped in place.
+     */
+    private fun stepFile(delta: Int) {
+        val ready = state.value as? State.Ready ?: return
+        val neighbours = ready.neighbours ?: return
+        val target = (if (delta < 0) neighbours.previous else neighbours.next) ?: run {
+            log(tag) { "stepFile($delta) ignored, no neighbour" }
+            return
+        }
+        if (fileStep?.isActive == true) {
+            log(tag) { "stepFile($delta) ignored, a step is in flight" }
+            return
+        }
+        fileStep = vmScope.launch {
+            val workspace = workspaceSource.first()
+            val arguments = workspace.siblingArguments(target) ?: return@launch
+            log(tag, INFO) { "stepFile($delta) -> $target" }
+            val result = workspaceRemote.createAndFocus(
+                type = Workspace.Type.VIEWER,
+                arguments = arguments,
+                replace = id,
+                id = id,
+                // The neighbour may already be open in another tab; sending the user there would
+                // leave this one on the file they just stepped away from.
+                skipContentDedup = true,
+            )
+            // The guard has to outlive the create: the page state observes the swap asynchronously,
+            // and a tap in between would read the old file's neighbours.
+            if (result is WorkspaceAction.Create.Result.Success) {
+                workspaceSource.first { it.storedPath == target }
+            }
+        }
     }
 
     fun close() = launch {
@@ -1002,6 +1091,12 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
         val error: Throwable,
     )
 
+    /** The page the user chose, and the document they chose it in. */
+    private data class PdfPageSelection(
+        val source: ViewerSource,
+        val index: Int,
+    )
+
     /** One rendered PDF page. A null [bitmap] with [failed] false means the render is still running. */
     data class PdfPage(
         val index: Int,
@@ -1020,7 +1115,13 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
             val source: ViewerSource,
             val imageSource: ZoomableImageSource?,
             val pdfPage: PdfPage? = null,
-            val actions: List<ViewerActionBarItem> = viewerActions(source, trashEnabled = false, content = content),
+            val neighbours: ViewerNeighbours? = null,
+            val actions: List<ViewerActionBarItem> = viewerActions(
+                source,
+                trashEnabled = false,
+                content = content,
+                neighbours = neighbours,
+            ),
             val externalChange: ViewerExternalChange? = null,
         ) : State
     }
@@ -1054,16 +1155,25 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
  * [isGone] drops everything that needs the file itself, the same way streamed content never gets
  * those entries. Opening its location survives: the folder is still there, and it is where the user
  * would go looking for what happened to the file.
+ *
+ * [neighbours] leads the bar when the viewer was opened from a listing it can step through, [isGone]
+ * or not: a file deleted behind the viewer's back stays in that listing until it is refreshed, and
+ * moving on is the useful thing to do then.
  */
 internal fun viewerActions(
     source: ViewerSource,
     trashEnabled: Boolean,
     content: ViewerContent = ViewerContent.Loading,
     isGone: Boolean = false,
+    neighbours: ViewerNeighbours? = null,
 ): List<ViewerActionBarItem> = when (source) {
     is ViewerSource.Streamed -> listOf(ViewerActionBarItem.SaveCopy)
 
     is ViewerSource.Stored -> buildList {
+        if (neighbours != null) {
+            add(ViewerActionBarItem.PreviousFile(isEnabled = neighbours.previous != null))
+            add(ViewerActionBarItem.NextFile(isEnabled = neighbours.next != null))
+        }
         if (!isGone) {
             // Leads for a package file: it is what the user came for, and everything below applies
             // to the file rather than to the app it would install.

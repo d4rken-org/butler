@@ -100,6 +100,7 @@ class ViewerWorkspaceViewModelPagingTest : BaseTest() {
             every { state } returnsMany listOf(workspaceState, pdfPageState)
             every { source } returns this@ViewerWorkspaceViewModelPagingTest.source
             every { storedPath } returns this@ViewerWorkspaceViewModelPagingTest.filePath
+            every { listingSourceId } returns null
             every { info } returns MutableStateFlow(
                 Workspace.Info(id = workspaceId, type = Workspace.Type.VIEWER, title = "manual.pdf".toCaString()),
             )

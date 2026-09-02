@@ -111,6 +111,8 @@ fun ViewerWorkspacePageHost(
             callerWorkspaceId = callerWorkspaceId,
             onAction = { action ->
                 when (action) {
+                    is ViewerActionBarItem.PreviousFile -> vm.showPreviousFile()
+                    is ViewerActionBarItem.NextFile -> vm.showNextFile()
                     ViewerActionBarItem.OpenWith -> vm.openWith()
                     ViewerActionBarItem.Share -> vm.share()
                     ViewerActionBarItem.Copy -> vm.copyToClipboard()
@@ -555,6 +557,28 @@ private fun ViewerWorkspacePageImagePreview() {
             fileInfo = previewFileInfo,
             source = previewSource,
             imageSource = null,
+        ),
+    )
+}
+
+/** Opened from an Explorer listing: the bar leads with the two steps through that listing. */
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ViewerWorkspacePageSteppablePreview() {
+    ViewerWorkspacePage(
+        workspaceId = Workspace.Id(),
+        state = ViewerWorkspaceViewModel.State.Ready(
+            content = ViewerContent.Image(MimeInfo("image/jpeg")),
+            fileInfo = previewFileInfo,
+            source = previewSource,
+            imageSource = null,
+            // Last file of its folder, so stepping forward is offered but not available.
+            neighbours = ViewerNeighbours(
+                current = previewPath,
+                previous = LocalPath.build("/storage/emulated/0/DCIM/Camera/IMG_20240817_183041.jpg"),
+                next = null,
+            ),
         ),
     )
 }

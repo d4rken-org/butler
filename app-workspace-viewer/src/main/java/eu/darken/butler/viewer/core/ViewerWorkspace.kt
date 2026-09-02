@@ -103,6 +103,20 @@ class ViewerWorkspace @AssistedInject constructor(
     val storedPath: APath<*>? = (source as? ViewerSource.Stored)?.path
 
     /**
+     * The workspace whose listing this viewer steps through with "previous" and "next", or null when
+     * it was not opened from one.
+     */
+    val listingSourceId: Workspace.Id? = (creationArguments as? ViewerArguments.Default)?.listingSourceId
+
+    /**
+     * Arguments for a viewer on [path], the neighbour of this one in that listing. The caller and
+     * the listing survive the step; the caption does not - it belonged to the shared file, not to
+     * whatever sits next to it. Null for streamed content, which has no listing to step through.
+     */
+    fun siblingArguments(path: APath<*>): ViewerArguments.Default? =
+        (creationArguments as? ViewerArguments.Default)?.copy(filePath = path, caption = null)
+
+    /**
      * Text the sender attached when this file was shared. Not part of [source] - it says nothing
      * about how the content is read - but it travels with the tab, including across the rebind a
      * saved copy performs.
