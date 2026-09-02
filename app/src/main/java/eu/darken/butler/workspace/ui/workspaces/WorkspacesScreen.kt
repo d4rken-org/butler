@@ -33,6 +33,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.tour.LocalGuidedTourController
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.NavigationEventHandler
+import eu.darken.butler.common.openPrivacyPolicy
 import eu.darken.butler.main.ui.motd.MotdCard
 import eu.darken.butler.main.ui.review.ReviewCard
 import eu.darken.butler.workspace.core.Workspace
@@ -570,6 +571,7 @@ fun WorkspacesScreenHost(
             ErrorShareConsentDialog(
                 onConfirm = { vm.confirmErrorShare() },
                 onDismiss = { vm.dismissErrorShare() },
+                onPrivacyPolicy = { openPrivacyPolicy(context) },
             )
         }
 

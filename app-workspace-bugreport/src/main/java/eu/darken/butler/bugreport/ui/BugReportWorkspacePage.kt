@@ -94,6 +94,7 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
 import kotlinx.coroutines.delay
 import kotlin.time.Instant
+import eu.darken.butler.common.R as CommonR
 
 @Composable
 fun BugReportWorkspacePageHost(
@@ -596,6 +597,7 @@ private fun EmptyState(modifier: Modifier = Modifier) {
 internal fun ShareConsentDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
+    onPrivacyPolicy: () -> Unit,
 ) {
     PaneBoundAlertDialog(
         onDismissRequest = onDismiss,
@@ -607,6 +609,11 @@ internal fun ShareConsentDialog(
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.bugreport_cancel_action)) }
+        },
+        neutralButton = {
+            TextButton(onClick = onPrivacyPolicy) {
+                Text(stringResource(CommonR.string.general_privacy_policy_action))
+            }
         },
     )
 }

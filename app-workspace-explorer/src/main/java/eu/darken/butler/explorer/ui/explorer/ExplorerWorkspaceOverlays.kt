@@ -3,6 +3,7 @@ package eu.darken.butler.explorer.ui.explorer
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
@@ -11,6 +12,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.issue.Issue
+import eu.darken.butler.common.openPrivacyPolicy
 import eu.darken.butler.common.storage.saf.StorageProviderSuggestion
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.engine.BrowsingAbortedException
@@ -154,9 +156,11 @@ fun ExplorerWorkspaceOverlays(
     }
 
     if (showErrorShareConsent) {
+        val context = LocalContext.current
         ErrorShareConsentDialog(
             onConfirm = { vm?.confirmErrorShare() },
             onDismiss = { vm?.dismissErrorShare() },
+            onPrivacyPolicy = { openPrivacyPolicy(context) },
         )
     }
 

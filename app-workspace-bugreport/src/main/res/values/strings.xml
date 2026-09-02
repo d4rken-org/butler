@@ -29,7 +29,7 @@
 
     <string name="bugreport_share_chooser_title">Share bug report</string>
     <string name="bugreport_share_consent_title">Share report?</string>
-    <string name="bugreport_share_consent_message">This report includes app logs that may contain file names and paths. Only share it with people you trust.</string>
+    <string name="bugreport_share_consent_message">This report includes app logs that can contain file names, paths, and app and device information. Only share it with people you trust.</string>
 
     <string name="bugreport_detail_back_action">Back</string>
     <string name="bugreport_detail_section_error">Error</string>

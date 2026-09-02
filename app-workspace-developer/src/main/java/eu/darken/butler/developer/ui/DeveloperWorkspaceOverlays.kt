@@ -3,8 +3,10 @@ package eu.darken.butler.developer.ui
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import eu.darken.butler.common.error.ErrorEventHandler
+import eu.darken.butler.common.openPrivacyPolicy
 import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.Factory
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.Operation
@@ -58,9 +60,11 @@ fun DeveloperWorkspaceOverlays(
     onDismissErrorShare: () -> Unit = {},
 ) {
     if (showErrorShareConsent) {
+        val context = LocalContext.current
         ErrorShareConsentDialog(
             onConfirm = onConfirmErrorShare,
             onDismiss = onDismissErrorShare,
+            onPrivacyPolicy = { openPrivacyPolicy(context) },
         )
     }
 
