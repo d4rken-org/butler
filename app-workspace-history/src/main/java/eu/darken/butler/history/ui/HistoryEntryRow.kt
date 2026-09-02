@@ -204,10 +204,8 @@ private fun HistoryEntry.headline(): String {
     }
 }
 
-private fun HistoryEntry.subline(timeAgo: String): String {
-    val originLabel = originType.name.lowercase().replaceFirstChar { it.uppercaseChar() }
-    return "$originLabel  ·  $timeAgo"
-}
+@Composable
+private fun HistoryEntry.subline(timeAgo: String): String = "${originType.label()}  ·  $timeAgo"
 
 /** The reported changes are an audit trail, so they only stand in when no subject was stored. */
 private fun HistoryEntry.displayPath(): String? = primaryPath ?: paths.firstOrNull()?.path
