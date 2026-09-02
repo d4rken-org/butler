@@ -84,9 +84,9 @@ class BugReportWorkspaceViewModel @AssistedInject constructor(
         .distinctUntilChanged()
         .flatMapLatest { (reportId, requestId) ->
             if (reportId == null || requestId == 0) {
-                flowOf(null)
+                flowOf<DetailLog?>(null)
             } else {
-                flow {
+                flow<DetailLog?> {
                     emit(DetailLog(reportId, LogState.Loading))
                     val logState = try {
                         val tail = bugReportRepo.readLogTail(reportId, MAX_LOG_PREVIEW_LINES)
