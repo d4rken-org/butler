@@ -103,4 +103,29 @@ class LocalPathCopyStrategyTest : BaseTest() {
         spyOps.hasFile("/dest/file.txt") shouldBe false
         spyOps.hasFile("/source/file.txt") shouldBe true
     }
+
+    @Test
+    fun `a symlink is followed onto the same conflict check`() = runTest {
+        mockOps.addMockSymlink("/source/link.txt", "/source/file.txt")
+        mockOps.existsStrictAnswers["/dest/file.txt"] = Existence.PRESENT
+        val spyOps = spyk(mockOps)
+
+        shouldThrow<PathAlreadyExistsException> {
+            strategy.transferFile(
+                sourceLookup = mockOps.lookup(LocalPath.build("/source/link.txt")),
+                destination = LocalPath.build("/dest/file.txt"),
+                sourceOps = spyOps,
+                destOps = spyOps,
+                options = TransferStrategy.Options(
+                    overwrite = false,
+                    preserveAttributes = false,
+                    followSymlinks = true,
+                ),
+                onProgress = {},
+            )
+        }
+
+        coVerify(exactly = 0) { spyOps.openOutputStream(any(), any()) }
+        spyOps.hasFile("/dest/file.txt") shouldBe false
+    }
 }
