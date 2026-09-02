@@ -20,7 +20,9 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import okio.FileHandle
 import org.junit.Before
@@ -222,6 +224,83 @@ class GatewaySwitchPfdTest : BaseTest() {
         job.join()
 
         verify { proxyPfd.close() }
+    }
+
+    @Test
+    fun `a proxy descriptor is closed when the caller is cancelled during an undispatched handoff`() = runTest {
+        val path = LocalPath.build("storage", "emulated", "0", "not-there")
+        val handle = mockk<FileHandle>(relaxed = true)
+        val proxyPfd = seekablePfd()
+        val gate = CompletableDeferred<Unit>()
+        coEvery { localGateway.file(path, false) } coAnswers {
+            gate.await()
+            handle
+        }
+        every { proxyPfdFactory.create(handle, "r") } returns proxyPfd
+        // Caller and lane on one dispatcher: the hand-back is then an undispatched resume, which
+        // reports no cancellation of its own.
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        val switch = GatewaySwitch(
+            appScope = TestScope(),
+            dispatcherProvider = TestDispatcherProvider(dispatcher),
+            safGateway = safGateway,
+            localGateway = localGateway,
+            archiveGateway = archiveGateway,
+            smbGateway = smbGateway,
+            safLocationManager = safLocationManager,
+            proxyPfdFactory = proxyPfdFactory,
+        )
+        var handedBack = false
+
+        val job = launch(dispatcher) {
+            switch.openReadPFD(path)
+            handedBack = true
+        }
+        runCurrent()
+
+        job.cancel()
+        gate.complete(Unit)
+        runCurrent()
+
+        verify(exactly = 1) { proxyPfd.close() }
+        handedBack shouldBe false
+        job.isCancelled shouldBe true
+    }
+
+    @Test
+    fun `a SAF descriptor is closed when the caller is cancelled during an undispatched handoff`() = runTest {
+        val safPfd = seekablePfd()
+        val gate = CompletableDeferred<Unit>()
+        coEvery { safGateway.openReadPFD(safPath) } coAnswers {
+            gate.await()
+            safPfd
+        }
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        val switch = GatewaySwitch(
+            appScope = TestScope(),
+            dispatcherProvider = TestDispatcherProvider(dispatcher),
+            safGateway = safGateway,
+            localGateway = localGateway,
+            archiveGateway = archiveGateway,
+            smbGateway = smbGateway,
+            safLocationManager = safLocationManager,
+            proxyPfdFactory = proxyPfdFactory,
+        )
+        var handedBack = false
+
+        val job = launch(dispatcher) {
+            switch.openReadPFD(safPath)
+            handedBack = true
+        }
+        runCurrent()
+
+        job.cancel()
+        gate.complete(Unit)
+        runCurrent()
+
+        verify(exactly = 1) { safPfd.close() }
+        handedBack shouldBe false
+        job.isCancelled shouldBe true
     }
 
     @Test

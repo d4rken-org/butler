@@ -1,9 +1,14 @@
 package eu.darken.butler.common.coroutine
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import java.io.Closeable
 
@@ -37,6 +42,32 @@ suspend fun <T : Any> CoroutineScope.runDetachedWithTimeout(
         // detached coroutine running unobserved on the long-lived scope. Cancelling can't interrupt a
         // thread already blocked in a binder transaction, but it does drop queued/cooperative work.
         deferred.cancel()
+    }
+}
+
+/**
+ * Opens a resource whose ownership transfers to the caller, and closes it instead of leaking it when
+ * the caller is no longer there to receive it.
+ *
+ * Two separate things can go wrong. A cancellation arriving while [open] runs would make
+ * `withContext` discard whatever the block returned, so the open runs under [NonCancellable].
+ * A cancellation arriving as the block hands its result back is reported on only one of
+ * `withContext`'s two resume paths, so the reference is kept out here and the caller's cancellation
+ * is checked explicitly. Either way nobody downstream ever receives the resource, which makes this
+ * the only place it can still be closed.
+ */
+suspend fun <T : Closeable> openForHandover(
+    dispatcher: CoroutineDispatcher,
+    open: suspend () -> T?,
+): T? {
+    var opened: T? = null
+    try {
+        withContext(NonCancellable + dispatcher) { opened = open() }
+        currentCoroutineContext().ensureActive()
+        return opened
+    } catch (e: CancellationException) {
+        runCatching { opened?.close() }
+        throw e
     }
 }
 
