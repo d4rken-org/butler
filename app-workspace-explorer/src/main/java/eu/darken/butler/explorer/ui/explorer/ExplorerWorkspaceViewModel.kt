@@ -19,6 +19,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.ErrorIncidentStore
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.ArchivePath
+import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.storage.StorageEnvironment
 import eu.darken.butler.common.storage.saf.SAFPickerIntentBuilder
 import eu.darken.butler.common.storage.saf.StorageProviderSuggester
@@ -94,6 +95,7 @@ import eu.darken.butler.explorer.ui.explorer.dialogs.RevealedPassword
 import eu.darken.butler.explorer.ui.explorer.dialogs.SortOptionsResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.SortScope
 import eu.darken.butler.explorer.ui.explorer.dnd.validateDropDestination
+import eu.darken.butler.explorer.ui.explorer.dnd.validateFolderDrop
 import eu.darken.butler.explorer.ui.explorer.dnd.validateTrashDrop
 import eu.darken.butler.explorer.ui.explorer.util.ExplorerSelectionState
 import eu.darken.butler.explorer.ui.explorer.util.ItemInfoCalculator
@@ -1908,19 +1910,50 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    /** Items dragged in from another workspace landed on this one, ask what to do with them. */
-    fun onDragDropped(payload: WorkspaceDragPayload) = launch {
-        log(tag) { "onDragDropped(${payload.items.size} items from ${payload.sourceWorkspaceId})" }
+    /**
+     * Items dropped on this workspace, ask what to do with them.
+     *
+     * [destination] is the folder the drop landed on - a row, favorite or breadcrumb; `null` means
+     * the content background, where the current listing is the destination.
+     */
+    fun onDragDropped(payload: WorkspaceDragPayload, destination: APath<*>? = null) = launch {
+        log(tag) { "onDragDropped($destination, ${payload.items.size} items from ${payload.sourceWorkspaceId})" }
+        if (destination != null) {
+            val folder = validateFolderDrop(getState(), payload, destination)
+            if (folder == null) {
+                log(tag) { "onDragDropped(): Folder drop is not valid, ignoring" }
+                return@launch
+            }
+            if (!checkDropDestination(folder)) return@launch
+            dialogs.show(DropConfirmation(payload, folder))
+            return@launch
+        }
         if (validateTrashDrop(getState(), id, payload)) {
             dialogs.show(TrashDropConfirmation(payload))
             return@launch
         }
-        val destination = validateDropDestination(getState(), id, payload)
-        if (destination == null) {
+        val paneDestination = validateDropDestination(getState(), id, payload)
+        if (paneDestination == null) {
             log(tag) { "onDragDropped(): Drop is not valid here, ignoring" }
             return@launch
         }
-        dialogs.show(DropConfirmation(payload, destination))
+        dialogs.show(DropConfirmation(payload, paneDestination))
+    }
+
+    /**
+     * Whether [destination] is a directory this app can write to right now. Only the gateway can
+     * answer that for a folder outside the current listing, and a stale answer would let the
+     * operation fail after the user already confirmed it.
+     */
+    private suspend fun checkDropDestination(destination: APath<*>): Boolean {
+        val writable = runCatching {
+            gatewaySwitch.lookup(destination, LookupOptions()).isDirectory && gatewaySwitch.canWrite(destination)
+        }.getOrDefault(false)
+        if (!writable) {
+            log(tag, WARN) { "checkDropDestination(): Not a writable directory: $destination" }
+            errorEvents.emit(WriteException("Drop destination is not writable", destination))
+        }
+        return writable
     }
 
     fun onTrashDropConfirmed(payload: WorkspaceDragPayload) {
@@ -1954,12 +1987,13 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             return@launch
         }
 
-        val target = validateDropDestination(getState(), id, payload)
-        if (target == null || !target.matches(destination)) {
+        val target = validateFolderDrop(getState(), payload, destination)
+        if (target == null) {
             log(tag, WARN) { "onDropConfirmed(): Destination is no longer valid" }
             errorEvents.emit(WriteException("Drop destination is no longer available", destination))
             return@launch
         }
+        if (!checkDropDestination(target)) return@launch
 
         val sources = payload.items.map { it.path }.toSet()
         val command = if (move) {
@@ -1982,7 +2016,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 ?.filter { it.change == Operation.Report.PathChange.Change.ADDED || it.change == Operation.Report.PathChange.Change.MOVED }
                 ?.map { it.path }
                 ?: emptyList()
-            revealItems(addedPaths)
+            // Only the listing that shows the destination can reveal them; for a drop onto some
+            // other folder the reveal would wait for paths that never enter this listing.
+            if ((getState().currentLocation as? ExplorerLocation.Directory)?.path?.matches(target) == true) {
+                revealItems(addedPaths)
+            }
         }
     }
 

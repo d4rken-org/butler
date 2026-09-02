@@ -90,7 +90,7 @@ sealed interface ExplorerDialogState {
 
     data object EmptyTrashConfirmation : ExplorerDialogState
 
-    /** Items dropped from another workspace, waiting for the user to pick copy or move. */
+    /** Items dropped onto a folder or pane, waiting for the user to pick copy or move. */
     data class DropConfirmation(
         val payload: WorkspaceDragPayload,
         val destination: APath<*>,

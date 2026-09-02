@@ -30,6 +30,24 @@ fun validateDropDestination(
 }
 
 /**
+ * Path-rule gate for a drop on an explicit folder (row, favorite or crumb); unlike a pane drop, a
+ * drop from the same workspace is fine, the destination is a different folder than the listing.
+ *
+ * Whether the folder can actually be written to is answered by the gateway at drop time: a crumb
+ * carries no such flag and a row's is a cached listing value.
+ */
+fun validateFolderDrop(
+    state: ExplorerWorkspaceViewModel.State,
+    payload: WorkspaceDragPayload,
+    destination: APath<*>,
+): APath<*>? {
+    if (state.pickerConfig != null) return null
+    if (destination is ArchivePath) return null
+    if (!validateDropPaths(payload.items, destination)) return null
+    return destination
+}
+
+/**
  * Gate for accepting a [payload] dropped onto the root Trash view. Trashing removes the items from
  * their source, so it is only offered when the source allows a move. Returns true when this
  * workspace's Trash root can take the drop.
