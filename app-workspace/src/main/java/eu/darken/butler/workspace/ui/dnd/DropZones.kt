@@ -57,9 +57,11 @@ class DropZoneRegistry {
 
     /**
      * Zones may nest (a crumb inside a bar), so the smallest one containing the point wins.
+     *
+     * [isEligible] runs before that pick, so a zone the caller can't use never shadows one it can.
      */
-    fun zoneAt(positionInRoot: Offset): Zone? = zones.values
-        .filter { it.bounds.contains(positionInRoot) }
+    fun zoneAt(positionInRoot: Offset, isEligible: (Zone) -> Boolean = { true }): Zone? = zones.values
+        .filter { it.bounds.contains(positionInRoot) && isEligible(it) }
         .minByOrNull { it.bounds.width * it.bounds.height }
 }
 

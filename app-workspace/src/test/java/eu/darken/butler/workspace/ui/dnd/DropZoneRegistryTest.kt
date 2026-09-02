@@ -68,6 +68,18 @@ class DropZoneRegistryTest : BaseTest() {
     }
 
     @Test
+    fun `zoneAt skips zones the predicate rejects`() {
+        val registry = DropZoneRegistry()
+        registry.register("row", download, Rect(0f, 0f, 400f, 100f))
+        registry.register("crumb", pictures, Rect(10f, 10f, 90f, 60f), allowOutsideContentBand = true)
+
+        registry.zoneAt(Offset(50f, 25f))?.key shouldBe "crumb"
+        registry.zoneAt(Offset(50f, 25f)) { it.allowOutsideContentBand }?.key shouldBe "crumb"
+        registry.zoneAt(Offset(50f, 25f)) { !it.allowOutsideContentBand }?.key shouldBe "row"
+        registry.zoneAt(Offset(50f, 25f)) { false } shouldBe null
+    }
+
+    @Test
     fun `hover is set and cleared`() {
         val registry = DropZoneRegistry()
         registry.hoveredKey shouldBe null
