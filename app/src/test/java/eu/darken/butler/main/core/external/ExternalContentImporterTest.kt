@@ -101,6 +101,41 @@ class ExternalContentImporterTest : BaseTest() {
     }
 
     @Test
+    fun `an extensionless text file gets an extension from its type`() = runTest {
+        register(uri) { ByteArrayInputStream("x".toByteArray()) }
+
+        val imported = create().importToCache(uri, "transcript", MimeInfo("text/plain")).shouldNotBeNull()
+
+        imported.file.name shouldBe "transcript.txt"
+    }
+
+    /** MimeInfo knows the extensionless text names, so those already reach the right renderer. */
+    @Test
+    fun `a text file named readme keeps its name`() = runTest {
+        register(uri) { ByteArrayInputStream("x".toByteArray()) }
+
+        val imported = create().importToCache(uri, "readme", MimeInfo("text/plain")).shouldNotBeNull()
+
+        imported.file.name shouldBe "readme"
+    }
+
+    /**
+     * Every other viewable type names one specific format, but senders declare text as anything from
+     * text/x-log to text/x-vendor-format. Without a generic fallback the copy keeps a name the
+     * viewer then classifies as an unsupported blob.
+     */
+    @Test
+    fun `an unrecognized text subtype still lands on a text name`() = runTest {
+        register(uri) { ByteArrayInputStream("x".toByteArray()) }
+
+        val imported = create()
+            .importToCache(uri, "payload.data", MimeInfo("text/x-vendor-format"))
+            .shouldNotBeNull()
+
+        imported.file.name shouldBe "payload.data.txt"
+    }
+
+    @Test
     fun `an extensionless pdf gets an extension from its type`() = runTest {
         register(uri) { ByteArrayInputStream("x".toByteArray()) }
 

@@ -131,6 +131,7 @@ class ViewerWorkspaceViewModelPagingTest : BaseTest() {
             },
             imageSourceFactory = mockk(relaxed = true),
             pdfPreviewLoader = loader,
+            textPreviewLoader = mockk(relaxed = true),
             openWithIntentUseCase = mockk(relaxed = true),
             shareIntentUseCase = mockk(relaxed = true),
             clipboardRepo = mockk(relaxed = true),

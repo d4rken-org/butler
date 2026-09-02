@@ -45,4 +45,11 @@ class ViewerToolbarCollapseTest : BaseTest() {
         shouldCollapseToolbar(ViewerContent.Unsupported(MimeInfo("application/pdf")), isZoomedIn = true) shouldBe false
         shouldCollapseToolbar(ViewerContent.Loading, isZoomedIn = true) shouldBe false
     }
+
+    /** Text scrolls, it does not zoom, so a stale zoom must not collapse the chrome over it. */
+    @Test
+    fun `text never collapses the toolbar`() {
+        shouldCollapseToolbar(ViewerContent.Text(MimeInfo("text/plain")), isZoomedIn = true) shouldBe false
+        shouldCollapseToolbar(ViewerContent.Text(MimeInfo("text/plain")), isZoomedIn = false) shouldBe false
+    }
 }

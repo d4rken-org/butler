@@ -49,6 +49,7 @@ class ViewerWorkspaceClassificationTest : BaseTest() {
     private val pkgRepo = mockk<PkgRepo>()
     private val userManager2 = mockk<UserManager2>()
     private val pdfPreviewLoader = mockk<PdfPreviewLoader>()
+    private val textPreviewLoader = mockk<TextPreviewLoader>()
 
     private val apkInfo = ApkArchiveInfo(
         id = "eu.darken.butler".toPkgId(),
@@ -119,10 +120,49 @@ class ViewerWorkspaceClassificationTest : BaseTest() {
         pkgRepo = pkgRepo,
         userManager2 = userManager2,
         pdfPreviewLoader = pdfPreviewLoader,
+        textPreviewLoader = textPreviewLoader,
         operationsManager = mockk(relaxed = true),
         issueHandler = mockk(relaxed = true),
         deleteOperationFactory = mockk(relaxed = true),
     )
+
+    private val textPath = LocalPath.build("/storage/emulated/0/Documents/notes.txt")
+
+    @Test
+    fun `a readable text file resolves to Text`() = runTest2 {
+        setupGateway(textPath.path to lookup(textPath))
+        coEvery { textPreviewLoader.probe(any()) } returns true
+
+        val state = workspace(textPath).state.first()
+
+        state.content.shouldBeInstanceOf<ViewerContent.Text>()
+    }
+
+    /**
+     * Empty is a failure for every renderer except the text one: an empty text file is a legitimate
+     * thing to look at, and the error card would also withhold the "Open in editor" action that is
+     * the way to put something in it.
+     */
+    @Test
+    fun `an empty text file resolves to Text rather than the empty-file error`() = runTest2 {
+        setupGateway(textPath.path to lookup(textPath, size = 0L))
+        coEvery { textPreviewLoader.probe(any()) } returns true
+
+        val state = workspace(textPath).state.first()
+
+        state.content.shouldBeInstanceOf<ViewerContent.Text>()
+    }
+
+    /** A name promising text over bytes that are not must say "unsupported", not render mojibake. */
+    @Test
+    fun `a text name over binary bytes resolves to Unsupported`() = runTest2 {
+        setupGateway(textPath.path to lookup(textPath))
+        coEvery { textPreviewLoader.probe(any()) } returns false
+
+        val state = workspace(textPath).state.first()
+
+        state.content.shouldBeInstanceOf<ViewerContent.Unsupported>()
+    }
 
     @Test
     fun `a readable image resolves to Image`() = runTest2 {
@@ -321,6 +361,7 @@ class ViewerWorkspaceClassificationTest : BaseTest() {
             pkgRepo = pkgRepo,
             userManager2 = userManager2,
             pdfPreviewLoader = pdfPreviewLoader,
+            textPreviewLoader = mockk(relaxed = true),
             operationsManager = mockk(relaxed = true),
             issueHandler = mockk(relaxed = true),
             deleteOperationFactory = mockk(relaxed = true),

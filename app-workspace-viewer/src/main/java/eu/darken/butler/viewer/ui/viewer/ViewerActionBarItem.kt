@@ -7,6 +7,7 @@ import androidx.compose.material.icons.automirrored.twotone.OpenInNew
 import androidx.compose.material.icons.twotone.ContentCopy
 import androidx.compose.material.icons.twotone.ContentCut
 import androidx.compose.material.icons.twotone.Delete
+import androidx.compose.material.icons.twotone.DriveFileRenameOutline
 import androidx.compose.material.icons.twotone.DeleteForever
 import androidx.compose.material.icons.twotone.FolderZip
 import androidx.compose.material.icons.twotone.InstallMobile
@@ -74,6 +75,15 @@ sealed interface ViewerActionBarItem : WorkspaceActionBarItem {
     data object BrowseArchive : ViewerActionBarItem {
         override val icon = Icons.TwoTone.FolderZip
         override val label = R.string.viewer_browse_archive_action.toCaString()
+    }
+
+    /**
+     * Open the text file in an Editor tab. The viewer's own preview is read-only and capped, so this
+     * is both how the file gets edited and how the part beyond the cap gets read.
+     */
+    data object OpenInEditor : ViewerActionBarItem {
+        override val icon = Icons.TwoTone.DriveFileRenameOutline
+        override val label = R.string.viewer_open_in_editor_action.toCaString()
     }
 
     /**

@@ -91,6 +91,7 @@ class ViewerWorkspaceStreamedTest : BaseTest() {
         pkgRepo = pkgRepo,
         userManager2 = userManager2,
         pdfPreviewLoader = pdfPreviewLoader,
+        textPreviewLoader = mockk(relaxed = true),
         operationsManager = mockk(relaxed = true),
         issueHandler = mockk(relaxed = true),
         deleteOperationFactory = mockk(relaxed = true),

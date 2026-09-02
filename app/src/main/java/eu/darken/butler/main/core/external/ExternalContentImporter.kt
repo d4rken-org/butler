@@ -186,6 +186,10 @@ class ExternalContentImporter @Inject constructor(
 
         val extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(mime.rawType)
             ?: VIEWABLE_EXTENSIONS[mime.rawType]
+            // Every other viewable type names one specific format, but "text" is open-ended: a
+            // sender may declare text/x-anything, and the copy has to land on a name the viewer
+            // still classifies as text rather than as an unsupported blob.
+            ?: "txt".takeIf { mime.isText }
             ?: return sanitized
 
         return "$sanitized.$extension"

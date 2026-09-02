@@ -121,12 +121,14 @@ fun ViewerWorkspacePageHost(
                     is ViewerActionBarItem.Delete -> vm.requestDelete()
                     ViewerActionBarItem.SaveCopy -> vm.saveCopy()
                     ViewerActionBarItem.BrowseArchive -> vm.browseArchive()
+                    ViewerActionBarItem.OpenInEditor -> vm.openInEditor()
                     ViewerActionBarItem.Install -> vm.install()
                 }
             },
             onOpenWith = { vm.openWith() },
             onSaveCopy = { vm.saveCopy() },
             onBrowseArchive = { vm.browseArchive() },
+            onOpenInEditor = { vm.openInEditor() },
             onRetry = { vm.retry() },
             onShareError = { error -> vm.shareError(error) },
             onShowIcon = { vm.showIconPreview() },
@@ -155,6 +157,7 @@ fun ViewerWorkspacePage(
     onOpenWith: () -> Unit = {},
     onSaveCopy: () -> Unit = {},
     onBrowseArchive: () -> Unit = {},
+    onOpenInEditor: () -> Unit = {},
     onRetry: () -> Unit = {},
     onShareError: (Throwable) -> Unit = {},
     onShowIcon: () -> Unit = {},
@@ -297,6 +300,7 @@ fun ViewerWorkspacePage(
                     onOpenWith = onOpenWith,
                     onSaveCopy = onSaveCopy,
                     onBrowseArchive = onBrowseArchive,
+                    onOpenInEditor = onOpenInEditor,
                     onRetry = onRetry,
                     onShareError = onShareError,
                     onShowIcon = onShowIcon,
@@ -440,6 +444,7 @@ private fun ViewerContentArea(
     onOpenWith: () -> Unit,
     onSaveCopy: () -> Unit = {},
     onBrowseArchive: () -> Unit = {},
+    onOpenInEditor: () -> Unit = {},
     onRetry: () -> Unit,
     onShareError: (Throwable) -> Unit,
     onShowIcon: () -> Unit = {},
@@ -492,6 +497,19 @@ private fun ViewerContentArea(
                 zoomableState = zoomableState,
                 onClick = onToggleChrome,
                 onRetry = onRetry,
+            )
+
+            is ViewerContent.Text -> TextFileContent(
+                preview = state.textPreview?.preview,
+                failed = state.textPreview?.failed == true,
+                // Asked of the action bar rather than re-derived: it already knows when the Editor
+                // has nothing to open, and two answers to that would drift apart.
+                editorAvailable = state.actions.contains(ViewerActionBarItem.OpenInEditor),
+                contentPadding = contentPadding,
+                barScrollConnections = barScrollConnections,
+                onOpenInEditor = onOpenInEditor,
+                onRetry = onRetry,
+                onToggleChrome = onToggleChrome,
             )
 
             is ViewerContent.Archive -> ArchivePlaceholder(

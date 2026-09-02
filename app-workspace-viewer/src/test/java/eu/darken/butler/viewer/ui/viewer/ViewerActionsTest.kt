@@ -84,6 +84,35 @@ class ViewerActionsTest : BaseTest() {
             .contains(ViewerActionBarItem.Install) shouldBe false
     }
 
+    private val text = ViewerContent.Text(MimeInfo("text/plain"))
+
+    @Test
+    fun `text leads with the editor`() {
+        viewerActions(stored, trashEnabled = false, content = text)
+            .first() shouldBe ViewerActionBarItem.OpenInEditor
+    }
+
+    @Test
+    fun `the editor is not offered for anything else`() {
+        viewerActions(stored, trashEnabled = false, content = apk)
+            .contains(ViewerActionBarItem.OpenInEditor) shouldBe false
+        viewerActions(stored, trashEnabled = false, content = ViewerContent.Image(MimeInfo("image/jpeg")))
+            .contains(ViewerActionBarItem.OpenInEditor) shouldBe false
+    }
+
+    /** The Editor needs a path, and there is nothing left to edit anyway. */
+    @Test
+    fun `a text file that is gone is not offered to the editor`() {
+        viewerActions(stored, trashEnabled = false, content = text, isGone = true)
+            .contains(ViewerActionBarItem.OpenInEditor) shouldBe false
+    }
+
+    @Test
+    fun `streamed text has no path for the editor`() {
+        viewerActions(streamed, trashEnabled = false, content = text)
+            .contains(ViewerActionBarItem.OpenInEditor) shouldBe false
+    }
+
     @Test
     fun `streamed content keeps its single action`() {
         viewerActions(streamed, trashEnabled = false, content = apk) shouldBe

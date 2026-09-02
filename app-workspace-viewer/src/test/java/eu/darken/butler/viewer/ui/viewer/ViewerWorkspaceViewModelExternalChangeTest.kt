@@ -110,6 +110,7 @@ class ViewerWorkspaceViewModelExternalChangeTest : BaseTest() {
                 }
             },
             pdfPreviewLoader = mockk(relaxed = true),
+            textPreviewLoader = mockk(relaxed = true),
             openWithIntentUseCase = mockk(relaxed = true),
             shareIntentUseCase = mockk(relaxed = true),
             clipboardRepo = mockk(relaxed = true),
