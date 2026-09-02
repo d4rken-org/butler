@@ -151,4 +151,50 @@ class ExplorerDropValidatorTest : BaseTest() {
         validateTrashDrop(state(), workspaceId, payload()) shouldBe false
     }
 
+    @Test
+    fun `a folder takes a drop from the same workspace`() {
+        val folder = LocalPath.build("/storage/emulated/0/Download/reports")
+
+        validateFolderDrop(state(), payload(sourceWorkspaceId = workspaceId), folder) shouldBe folder
+    }
+
+    @Test
+    fun `a folder inside an archive refuses drops`() {
+        val folder = ArchivePath(container, listOf("sub"))
+
+        validateFolderDrop(state(), payload(), folder) shouldBe null
+    }
+
+    @Test
+    fun `picker mode refuses folder drops`() {
+        val folder = LocalPath.build("/storage/emulated/0/Download/reports")
+
+        validateFolderDrop(state(pickerConfig = mockk<PickerConfig>()), payload(), folder) shouldBe null
+    }
+
+    @Test
+    fun `a folder drop onto the items own parent is refused`() {
+        val folder = LocalPath.build("/storage/emulated/0/DCIM")
+
+        validateFolderDrop(state(), payload(path = folder.child("photo.jpg")), folder) shouldBe null
+    }
+
+    @Test
+    fun `a folder drop onto the dragged folder itself is refused`() {
+        val folder = LocalPath.build("/storage/emulated/0/DCIM")
+        val dragged = payload(path = folder, kind = WorkspaceDragPayload.Kind.DIRECTORY)
+
+        validateFolderDrop(state(), dragged, folder) shouldBe null
+    }
+
+    @Test
+    fun `a folder drop into the dragged folders own subtree is refused`() {
+        val dragged = payload(
+            path = LocalPath.build("/storage/emulated/0/DCIM"),
+            kind = WorkspaceDragPayload.Kind.DIRECTORY,
+        )
+
+        validateFolderDrop(state(), dragged, LocalPath.build("/storage/emulated/0/DCIM/raw")) shouldBe null
+    }
+
 }
