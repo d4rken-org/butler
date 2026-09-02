@@ -68,8 +68,8 @@ fun ExplorerItemRenderer(
 
     Box(
         modifier = focusModifier
-            .then(dragSource?.modifier ?: Modifier)
-            .dropZone(key = item.id, destination = item.dropDestination()),
+            .dropZone(key = item.id, destination = item.dropDestination())
+            .then(dragSource?.modifier ?: Modifier),
     ) {
         ItemContent(
             item = item,
