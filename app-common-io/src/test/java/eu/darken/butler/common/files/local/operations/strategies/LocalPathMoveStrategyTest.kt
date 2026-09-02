@@ -1,11 +1,15 @@
 package eu.darken.butler.common.files.local.operations.strategies
 
+import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MoveOutcome
+import eu.darken.butler.common.files.errors.PathAlreadyExistsException
+import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.operations.MockFileSystemOps
 import eu.darken.butler.common.files.operations.TransferStrategy
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
@@ -36,6 +40,9 @@ class LocalPathMoveStrategyTest : BaseTest() {
     @BeforeEach
     fun setup() {
         mockOps = MockLocalFileSystemOps()
+        // Every case below is about a destination that is meant to be free; the ones that are not
+        // say so per path.
+        mockOps.defaultExistsStrict = Existence.ABSENT
         strategy = LocalPathMoveStrategy(mockOps)
     }
 
@@ -554,6 +561,60 @@ class LocalPathMoveStrategyTest : BaseTest() {
         // Destination created under the new name, source still present
         spyOps.hasFile("/data/dest/BBB") shouldBe true
         spyOps.hasFile("/data/source/AAAA") shouldBe true
+    }
+
+    // ============ OCCUPIED DESTINATION ============
+
+    /**
+     * A FIFO, socket or device node is FileType.UNKNOWN to the plain lookup, i.e. indistinguishable
+     * from "nothing there", and the fallback's truncating copy would write straight into it.
+     */
+    @Test
+    fun `a destination the plain lookup cannot classify is a conflict`() = runTest {
+        mockOps.addMockFile("/source/file.txt", "content".toByteArray())
+        mockOps.addMockDir("/dest")
+        mockOps.existsStrictAnswers["/dest/file.txt"] = Existence.PRESENT
+        val spyOps = spyk(mockOps)
+        val spyStrategy = LocalPathMoveStrategy(spyOps)
+
+        shouldThrow<PathAlreadyExistsException> {
+            spyStrategy.transferFile(
+                sourceLookup = mockOps.lookup(LocalPath.build("/source/file.txt")),
+                destination = LocalPath.build("/dest/file.txt"),
+                sourceOps = spyOps,
+                destOps = spyOps,
+                options = TransferStrategy.Options(overwrite = false),
+                onProgress = {},
+            )
+        }
+
+        coVerify(exactly = 0) { spyOps.openOutputStream(any(), any()) }
+        spyOps.hasFile("/dest/file.txt") shouldBe false
+        spyOps.hasFile("/source/file.txt") shouldBe true
+    }
+
+    @Test
+    fun `a destination that cannot be inspected stops the fallback copy`() = runTest {
+        mockOps.addMockFile("/source/file.txt", "content".toByteArray())
+        mockOps.addMockDir("/dest")
+        mockOps.existsStrictAnswers["/dest/file.txt"] = Existence.UNKNOWN
+        val spyOps = spyk(mockOps)
+        val spyStrategy = LocalPathMoveStrategy(spyOps)
+
+        shouldThrow<WriteException> {
+            spyStrategy.transferFile(
+                sourceLookup = mockOps.lookup(LocalPath.build("/source/file.txt")),
+                destination = LocalPath.build("/dest/file.txt"),
+                sourceOps = spyOps,
+                destOps = spyOps,
+                options = TransferStrategy.Options(overwrite = false),
+                onProgress = {},
+            )
+        }
+
+        coVerify(exactly = 0) { spyOps.openOutputStream(any(), any()) }
+        spyOps.hasFile("/dest/file.txt") shouldBe false
+        spyOps.hasFile("/source/file.txt") shouldBe true
     }
 
     @Test
