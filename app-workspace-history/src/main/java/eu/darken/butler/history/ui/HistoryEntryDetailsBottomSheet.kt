@@ -9,12 +9,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Error
 import androidx.compose.material.icons.twotone.Schedule
+import androidx.compose.material.icons.twotone.Share
 import androidx.compose.material.icons.twotone.Source
 import androidx.compose.material.icons.twotone.WarningAmber
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -35,6 +38,7 @@ import eu.darken.butler.history.core.labelRes
 import eu.darken.butler.workspace.core.operations.history.HistoryEntry
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 import kotlin.time.Duration
+import eu.darken.butler.common.R as CommonR
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -45,6 +49,7 @@ fun HistoryEntryDetailsBottomSheet(
     topInset: Dp = 0.dp,
     bottomInset: Dp,
     onDismiss: () -> Unit,
+    onShare: () -> Unit = {},
 ) {
     PaneScopedBottomSheet(
         visible = entry != null,
@@ -60,11 +65,22 @@ fun HistoryEntryDetailsBottomSheet(
                 .padding(horizontal = 20.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(
-                text = entry.title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    modifier = Modifier.weight(1f),
+                    text = entry.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                IconButton(onClick = onShare) {
+                    Icon(
+                        imageVector = Icons.TwoTone.Share,
+                        contentDescription = stringResource(CommonR.string.general_share_action),
+                    )
+                }
+            }
             Text(
                 text = entry.description,
                 style = MaterialTheme.typography.bodyMedium,
@@ -96,11 +112,13 @@ fun HistoryEntryDetailsBottomSheet(
             }
 
             entry.summary?.takeIf { it.isNotBlank() }?.let { summary ->
-                Text(
-                    text = summary,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                SelectionContainer {
+                    Text(
+                        text = summary,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
 
             if (entry.partialErrorCount > 0) {
@@ -120,6 +138,7 @@ fun HistoryEntryDetailsBottomSheet(
                     icon = Icons.TwoTone.Error,
                     iconTint = MaterialTheme.colorScheme.error,
                     text = error,
+                    selectable = true,
                 )
             }
 
@@ -150,15 +169,17 @@ fun HistoryEntryDetailsBottomSheet(
                             ),
                         )
                     }
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        attemptedPaths.forEach { path ->
-                            Text(
-                                text = path,
-                                style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 1,
-                                overflow = TextOverflow.MiddleEllipsis,
-                            )
+                    SelectionContainer {
+                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            attemptedPaths.forEach { path ->
+                                Text(
+                                    text = path,
+                                    style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.MiddleEllipsis,
+                                )
+                            }
                         }
                     }
                 }
@@ -174,9 +195,11 @@ fun HistoryEntryDetailsBottomSheet(
                         ),
                     )
                 }
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    entry.paths.forEach { p ->
-                        PathRow(p)
+                SelectionContainer {
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        entry.paths.forEach { p ->
+                            PathRow(p)
+                        }
                     }
                 }
             }
@@ -219,6 +242,7 @@ private fun Callout(
     icon: ImageVector,
     iconTint: Color,
     text: String,
+    selectable: Boolean = false,
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -236,13 +260,25 @@ private fun Callout(
                 tint = iconTint,
                 modifier = Modifier.size(18.dp),
             )
-            Text(
-                text = text,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.fillMaxWidth(),
-            )
+            SelectableIf(selectable) {
+                Text(
+                    text = text,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
         }
+    }
+}
+
+/** Only the callouts carrying user text are selectable; the rest keep their plain touch behaviour. */
+@Composable
+private fun SelectableIf(enabled: Boolean, content: @Composable () -> Unit) {
+    if (enabled) {
+        SelectionContainer(content = content)
+    } else {
+        content()
     }
 }
 
