@@ -17,14 +17,17 @@ import eu.darken.butler.common.error.ErrorReportTool
 import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.flow.replayingShare
 import eu.darken.butler.common.issue.Issue
+import eu.darken.butler.workspace.contracts.history.HistoryArguments
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceRemote
+import eu.darken.butler.workspace.core.createAndFocus
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationErrorRecorder
 import eu.darken.butler.workspace.core.operations.OperationsManager
+import eu.darken.butler.workspace.core.operations.history.HistorySettings
 import eu.darken.butler.workspace.core.operations.get
 import eu.darken.butler.workspace.core.operations.operationsForWorkspace
 import eu.darken.butler.workspace.core.operations.withStateUpdates
@@ -36,6 +39,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.map
@@ -59,6 +63,7 @@ class WorkspacePageChrome @AssistedInject constructor(
     private val errorIncidentStore: ErrorIncidentStore,
     private val systemClipboardHelper: SystemClipboardHelper,
     private val workspaceRemote: WorkspaceRemote,
+    private val historySettings: HistorySettings,
 ) {
 
     private val tag = logTag("Workspace", "PageChrome", workspaceId.shortTag)
@@ -94,7 +99,10 @@ class WorkspacePageChrome @AssistedInject constructor(
         .withStateUpdates()
         .replayingShare(scope)
 
-    val operations: Flow<OperationsDisplayState> = managedOps.toOperationsDisplayState()
+    val operations: Flow<OperationsDisplayState> = combine(
+        managedOps.toOperationsDisplayState(),
+        historySettings.saveHistory.flow,
+    ) { state, historyEnabled -> state.copy(historyEnabled = historyEnabled) }
 
     val pendingConflicts: Flow<Map<Operation.Id, Issue>> = managedOps
         .map { ops ->
@@ -134,6 +142,21 @@ class WorkspacePageChrome @AssistedInject constructor(
     fun clearCompletedOperations() {
         log(tag) { "clearCompletedOperations()" }
         scope.launch { operationsManager.clearCompleted() }
+    }
+
+    /**
+     * Opens a History tab on the operation's own entry. The entry is keyed by the operation id, and
+     * the tab waits for it, so this also works right as the operation finishes.
+     */
+    fun showOperationInHistory(id: Operation.Id) {
+        log(tag) { "showOperationInHistory($id)" }
+        scope.launch {
+            workspaceRemote.createAndFocus(
+                type = Workspace.Type.HISTORY,
+                arguments = HistoryArguments.Default(focusEntryId = id.longTag),
+                sourceWorkspaceId = workspaceId,
+            )
+        }
     }
 
     fun shareOperationError(id: Operation.Id) {

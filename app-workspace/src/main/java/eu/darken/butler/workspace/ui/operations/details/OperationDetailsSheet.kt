@@ -45,6 +45,7 @@ fun OperationDetailsSheet(
     onCancel: (() -> Unit)? = null,
     onShareError: (() -> Unit)? = null,
     onHandleIssue: (() -> Unit)? = null,
+    onShowInHistory: (() -> Unit)? = null,
 ) {
     PaneScopedBottomSheet(
         visible = true,
@@ -58,6 +59,7 @@ fun OperationDetailsSheet(
             onCancel = onCancel,
             onShareError = onShareError,
             onHandleIssue = onHandleIssue,
+            onShowInHistory = onShowInHistory,
         )
     }
 }
@@ -68,6 +70,7 @@ private fun OperationDetailsContent(
     onCancel: (() -> Unit)? = null,
     onShareError: (() -> Unit)? = null,
     onHandleIssue: (() -> Unit)? = null,
+    onShowInHistory: (() -> Unit)? = null,
 ) {
     Column(
         modifier = Modifier
@@ -123,7 +126,7 @@ private fun OperationDetailsContent(
         }
 
         // Actions Section - only show if there are available actions
-        val hasActions = when (operation.state) {
+        val hasActions = onShowInHistory != null || when (operation.state) {
             is OperationDisplay.State.Running -> onCancel != null
             is OperationDisplay.State.Failed -> onShareError != null
             is OperationDisplay.State.Waiting -> onHandleIssue != null
@@ -136,6 +139,7 @@ private fun OperationDetailsContent(
                 onCancel = onCancel,
                 onShareError = onShareError,
                 onHandleIssue = onHandleIssue,
+                onShowInHistory = onShowInHistory,
             )
         }
     }
@@ -322,8 +326,10 @@ private fun OperationDetailsSheetCompletedWithFilesPreview() {
                     )
                 )
             ),
+            kind = Operation.Metadata.Kind.DELETE,
             startedAt = Clock.System.now() - 3.minutes,
         ),
         onDismiss = {},
+        onShowInHistory = {},
     )
 }

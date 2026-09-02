@@ -14,6 +14,8 @@ fun OperationDialogHost(
     onCancelOperation: ((Operation.Id) -> Unit)? = null,
     onShareError: ((Operation.Id) -> Unit)? = null,
     onHandleIssue: ((Operation.Id) -> Unit)? = null,
+    onShowInHistory: ((Operation.Id) -> Unit)? = null,
+    historyEnabled: Boolean = false,
     topInset: Dp = 0.dp,
     bottomInset: Dp = 0.dp,
 ) {
@@ -49,6 +51,15 @@ fun OperationDialogHost(
                             onDismissDialog()
                         }
                     } else null,
+                    // Only what the Operation History has actually recorded: an operation without a
+                    // kind is never written there, and neither is anything at all while recording
+                    // is off, so there'd be nothing for the History tab to open on.
+                    onShowInHistory = if (onShowInHistory != null && historyEnabled && currentOperation.isInHistory) {
+                        {
+                            onShowInHistory.invoke(currentOperation.id)
+                            onDismissDialog()
+                        }
+                    } else null,
                 )
             } else {
                 // Operation not found, dismiss the dialog
@@ -57,3 +68,13 @@ fun OperationDialogHost(
         }
     }
 }
+
+private val OperationDisplay.isInHistory: Boolean
+    get() = kind != null && when (state) {
+        is OperationDisplay.State.Completed,
+        is OperationDisplay.State.Failed,
+        is OperationDisplay.State.Cancelled,
+            -> true
+
+        else -> false
+    }

@@ -274,6 +274,11 @@ sealed interface SearcherPageAction {
          * (sheet display is driven by issue state; see ViewModel)
          */
         data class ShowConflict(val id: Operation.Id) : Operations
+
+        /**
+         * Open the operation's entry in a History tab
+         */
+        data class ShowInHistory(val id: Operation.Id) : Operations
     }
 
     /**

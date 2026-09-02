@@ -18,6 +18,13 @@ import kotlinx.serialization.Serializable
 sealed interface HistoryArguments : Workspace.Arguments {
     val filter: HistoryFilter
 
+    /**
+     * Id of the entry the tab opens on, i.e. the id of the operation it records. One-shot: the tab
+     * consumes it once the entry exists and [Workspace.createArguments] never reports it back, so a
+     * restored session doesn't reopen the entry's details.
+     */
+    val focusEntryId: String?
+
     override val type: Workspace.Type get() = Workspace.Type.HISTORY
 
     @Serializable
@@ -25,5 +32,6 @@ sealed interface HistoryArguments : Workspace.Arguments {
     @Parcelize
     data class Default(
         override val filter: HistoryFilter = HistoryFilter(),
+        override val focusEntryId: String? = null,
     ) : HistoryArguments
 }

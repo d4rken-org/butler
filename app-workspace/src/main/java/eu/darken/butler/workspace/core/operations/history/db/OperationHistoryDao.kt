@@ -91,6 +91,15 @@ interface OperationHistoryDao {
     suspend fun getById(id: String): OperationHistoryWithPaths?
 
     /**
+     * Emits null until the row exists. Needed because an operation is persisted asynchronously
+     * after it completes, so a UI that navigates to an operation's entry can arrive before the
+     * write does.
+     */
+    @Transaction
+    @Query("SELECT * FROM operation_history WHERE id = :id")
+    fun observeById(id: String): Flow<OperationHistoryWithPaths?>
+
+    /**
      * On-demand load of one operation's scope index, bounded by [limit]. Deliberately not a
      * `@Relation` on [OperationHistoryWithPaths]: that projection powers the whole history list (up
      * to 2000 rows), so attaching the index would materialize hundreds of thousands of rows per list

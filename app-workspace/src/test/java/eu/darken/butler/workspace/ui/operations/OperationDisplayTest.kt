@@ -34,6 +34,7 @@ class OperationDisplayTest : BaseTest() {
             every { title } returns "op".toCaString()
             every { description } returns "desc".toCaString()
             every { pathPlan } returns null
+            every { kind } returns null
         }
         return op
     }

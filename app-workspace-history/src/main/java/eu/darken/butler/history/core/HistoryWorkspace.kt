@@ -66,6 +66,21 @@ class HistoryWorkspace @AssistedInject constructor(
     private val filterFlow = MutableStateFlow(creationArguments.filter)
     val filter: Flow<HistoryFilter> = filterFlow
 
+    private val pendingFocusEntryId = MutableStateFlow(creationArguments.focusEntryId)
+
+    /** The entry this tab was opened on, until it has actually been shown. */
+    val focusEntryId: StateFlow<String?> = pendingFocusEntryId
+
+    /**
+     * Drops the pending focus once its entry has been shown, so the details sheet doesn't reopen
+     * when the page is recomposed. Kept until then: a ViewModel replaced while the entry is still
+     * being written would otherwise leave the tab on an entry nobody ever opens. The compare makes
+     * a second ViewModel racing the first a no-op instead of clearing a newer request.
+     */
+    fun clearFocusEntryId(shown: String) {
+        pendingFocusEntryId.compareAndSet(expect = shown, update = null)
+    }
+
     fun setFilter(newFilter: HistoryFilter) {
         log(tag) { "setFilter($newFilter)" }
         filterFlow.value = newFilter

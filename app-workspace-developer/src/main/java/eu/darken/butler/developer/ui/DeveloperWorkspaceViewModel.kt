@@ -451,6 +451,8 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
 
     fun shareOperationError(operationId: Operation.Id) = chrome.shareOperationError(operationId)
 
+    fun showOperationInHistory(operationId: Operation.Id) = chrome.showOperationInHistory(operationId)
+
     fun confirmErrorShare() = chrome.confirmErrorShare()
 
     fun dismissErrorShare() = chrome.dismissErrorShare()

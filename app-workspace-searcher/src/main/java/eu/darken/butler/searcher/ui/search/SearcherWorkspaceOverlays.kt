@@ -220,6 +220,10 @@ fun SearcherWorkspaceOverlays(
         onHandleIssue = { operationId ->
             onPageAction(SearcherPageAction.Operations.ShowConflict(operationId))
         },
+        onShowInHistory = { operationId ->
+            onPageAction(SearcherPageAction.Operations.ShowInHistory(operationId))
+        },
+        historyEnabled = operationsState.historyEnabled,
         topInset = statusBarInset,
         bottomInset = navBarInset,
     )

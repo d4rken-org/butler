@@ -13,6 +13,7 @@ import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationErrorRecorder
 import eu.darken.butler.workspace.core.operations.OperationsManager
+import eu.darken.butler.workspace.core.operations.history.HistorySettings
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -34,6 +35,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import testhelpers.error.recordingIncidentStore
+import testhelpers.mockDataStoreValue
 import java.io.IOException
 import kotlin.time.Clock
 
@@ -59,6 +61,7 @@ class WorkspacePageChromeTest : BaseTest() {
             every { title } returns "op".toCaString()
             every { description } returns "desc".toCaString()
             every { pathPlan } returns null
+            every { kind } returns null
         }
         return op
     }
@@ -81,6 +84,9 @@ class WorkspacePageChromeTest : BaseTest() {
         errorIncidentStore = errorIncidentStore,
         systemClipboardHelper = mockk(),
         workspaceRemote = mockk(),
+        historySettings = mockk<HistorySettings>().apply {
+            every { saveHistory } returns mockDataStoreValue(true)
+        },
     )
 
     private fun completedState(error: Throwable) = object : Operation.State.Completed {

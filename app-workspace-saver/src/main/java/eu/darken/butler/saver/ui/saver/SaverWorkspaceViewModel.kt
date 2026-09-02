@@ -103,6 +103,7 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
         val operationDisplay: OperationDisplay? = null,
         /** True when launched by another workspace (APK export): render as a modal, not an app-share tab. */
         val isModal: Boolean = false,
+        val historyEnabled: Boolean = false,
     ) {
         val isBatchMode: Boolean
             get() = sourceInfos.size > 1
@@ -148,7 +149,8 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
             combine(
                 workspace.state,
                 workspace.currentOperation,
-            ) { wsState, managedOp ->
+                chrome.operations,
+            ) { wsState, managedOp, chromeOps ->
                 State(
                     sourceInfos = wsState.sourceInfos,
                     destination = wsState.destination,
@@ -159,6 +161,7 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
                     createdAt = wsState.createdAt,
                     operationDisplay = managedOp?.toDisplayModel(),
                     isModal = wsState.callerWorkspaceId != null,
+                    historyEnabled = chromeOps.historyEnabled,
                 )
             }
         }
@@ -404,6 +407,8 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun shareError(operationId: Operation.Id) = chrome.shareOperationError(operationId)
+
+    fun showOperationInHistory(operationId: Operation.Id) = chrome.showOperationInHistory(operationId)
 
     fun confirmErrorShare() = chrome.confirmErrorShare()
 
