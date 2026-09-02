@@ -94,6 +94,13 @@ class HistoryWorkspaceShareTest : BaseTest() {
         return send.getStringExtra(Intent.EXTRA_TEXT)
     }
 
+    /** The shadow pops one intent per read, so draining it is how many launches are counted. */
+    private fun startedChooserCount(): Int {
+        var count = 0
+        while (shadowOf(application).nextStartedActivity != null) count++
+        return count
+    }
+
     @Test
     fun `sharing before the attempted paths arrive still includes them`() {
         val gate = CompletableDeferred<OperationHistoryRepo.AttemptedPaths>()
@@ -131,5 +138,22 @@ class HistoryWorkspaceShareTest : BaseTest() {
 
         val text = lastSharedText()!!
         text shouldContain "- `/sdcard/ButlerQA/notes.txt`"
+    }
+
+    @Test
+    fun `tapping share twice while the paths load starts only one chooser`() {
+        val gate = CompletableDeferred<OperationHistoryRepo.AttemptedPaths>()
+        coEvery { historyRepo.getAttemptedPaths(entry.id) } coAnswers { gate.await() }
+
+        val vm = createVM()
+        vm.showEntryDetails(entry)
+
+        // The button stays enabled while the query is in flight, so a second tap is reachable.
+        vm.shareEntry(entry)
+        vm.shareEntry(entry)
+
+        gate.complete(attempted)
+
+        startedChooserCount() shouldBe 1
     }
 }

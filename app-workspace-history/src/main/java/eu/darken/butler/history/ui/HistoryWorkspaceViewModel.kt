@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.sync.Mutex
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
@@ -201,20 +202,29 @@ class HistoryWorkspaceViewModel @AssistedInject constructor(
         _overlayState.update { it.copy(deleteConfirmEntries = emptyList()) }
     }
 
+    // The sheet's Share button stays live while the query below is awaited, so a second tap starts
+    // a second coroutine. Without this it would open its own chooser on top of the first one.
+    private val detailShareLock = Mutex()
+
     fun shareEntry(entry: HistoryEntry) = launch {
-        // An entry that reported no changes shares what the operation tried to touch instead. The
-        // sheet's own load may still be in flight, and an empty list there is indistinguishable
-        // from a finished one, so query rather than share a record that claims nothing happened.
-        val attempted = if (entry.paths.isNotEmpty()) {
-            null
-        } else {
-            val overlay = _overlayState.value
-            overlay.attemptedPaths
-                .takeIf { it.isNotEmpty() && overlay.detailEntry?.id == entry.id }
-                ?.let { OperationHistoryRepo.AttemptedPaths(it, overlay.attemptedPathsTotal) }
-                ?: historyRepo.getAttemptedPaths(entry.id)
+        if (!detailShareLock.tryLock()) return@launch
+        try {
+            // An entry that reported no changes shares what the operation tried to touch instead. The
+            // sheet's own load may still be in flight, and an empty list there is indistinguishable
+            // from a finished one, so query rather than share a record that claims nothing happened.
+            val attempted = if (entry.paths.isNotEmpty()) {
+                null
+            } else {
+                val overlay = _overlayState.value
+                overlay.attemptedPaths
+                    .takeIf { it.isNotEmpty() && overlay.detailEntry?.id == entry.id }
+                    ?.let { OperationHistoryRepo.AttemptedPaths(it, overlay.attemptedPathsTotal) }
+                    ?: historyRepo.getAttemptedPaths(entry.id)
+            }
+            shareEntries(listOf(entry), attempted)
+        } finally {
+            detailShareLock.unlock()
         }
-        shareEntries(listOf(entry), attempted)
     }
 
     private fun shareEntries(
