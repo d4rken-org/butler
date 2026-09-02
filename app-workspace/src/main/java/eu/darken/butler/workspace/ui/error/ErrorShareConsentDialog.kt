@@ -22,6 +22,7 @@ import eu.darken.butler.common.R as CommonR
 fun ErrorShareConsentDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
+    onPrivacyPolicy: () -> Unit,
 ) {
     AdaptiveAlertDialog(
         onDismissRequest = onDismiss,
@@ -38,6 +39,11 @@ fun ErrorShareConsentDialog(
                 Text(stringResource(CommonR.string.general_cancel_action))
             }
         },
+        neutralButton = {
+            TextButton(onClick = onPrivacyPolicy) {
+                Text(stringResource(CommonR.string.general_privacy_policy_action))
+            }
+        },
     )
 }
 
@@ -48,5 +54,6 @@ private fun ErrorShareConsentDialogPreview() {
     ErrorShareConsentDialog(
         onConfirm = {},
         onDismiss = {},
+        onPrivacyPolicy = {},
     )
 }

@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.flowOf
 import org.junit.Test
 import testhelpers.ComposeTest
 import testhelpers.coroutine.TestDispatcherProvider
+import eu.darken.butler.common.R as CommonR
 
 /** The bug report page's dialogs render from the overlay slot, not from the page host. */
 class BugReportWorkspaceOverlaysTest : ComposeTest() {
@@ -86,6 +87,31 @@ class BugReportWorkspaceOverlaysTest : ComposeTest() {
         composeTestRule.onNodeWithText(context.getString(R.string.bugreport_share_action)).performClick()
 
         composeTestRule.runOnIdle { consentedFor shouldBe "report-1" }
+    }
+
+    @Test
+    fun `the share consent offers the privacy policy`() {
+        var opened = 0
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = true) {
+                    BugReportWorkspaceOverlays(
+                        overlayState = BugReportWorkspaceViewModel.OverlayState(
+                            activeDialog = ActiveDialog.ShareConsent("report-1"),
+                        ),
+                        onPrivacyPolicy = { opened++ },
+                    )
+                }
+            }
+        }
+
+        val label = context.getString(CommonR.string.general_privacy_policy_action)
+        composeTestRule.onNodeWithText(label).assertIsDisplayed()
+
+        composeTestRule.onNodeWithText(label).performClick()
+
+        composeTestRule.runOnIdle { opened shouldBe 1 }
     }
 
     @Test

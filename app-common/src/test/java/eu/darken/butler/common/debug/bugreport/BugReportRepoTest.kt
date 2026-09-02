@@ -3,6 +3,7 @@ package eu.darken.butler.common.debug.bugreport
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.ButlerId
+import eu.darken.butler.common.R
 import eu.darken.butler.common.debug.logging.RingLogBuffer
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldContainExactly
@@ -10,6 +11,7 @@ import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldNotContain
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -76,12 +78,16 @@ class BugReportRepoTest : BaseTest() {
         root: File = reportsDir,
         logText: String = "rec log",
         createdAt: Instant = kotlin.time.Clock.System.now(),
-    ) {
+        errorClass: String? = null,
+        errorMessage: String? = null,
+    ): BugReport {
         val dir = File(root, id).apply { mkdirs() }
         val report = BugReport(
             id = id,
             createdAt = createdAt,
             type = type,
+            errorClass = errorClass,
+            errorMessage = errorMessage,
             appVersion = "1.0",
             deviceFingerprint = "fp",
             apiLevel = "29",
@@ -93,6 +99,7 @@ class BugReportRepoTest : BaseTest() {
         File(dir, "meta.json").writeText(json.encodeToString(BugReport.serializer(), report))
         File(dir, "report.log").writeText(logText)
         if (ongoing) File(dir, ".recording").createNewFile()
+        return report
     }
 
     @Test
@@ -418,5 +425,83 @@ class BugReportRepoTest : BaseTest() {
         createRepo()
 
         stale.exists() shouldBe false
+    }
+
+    private val whatPrompt: String
+        get() = context.getString(R.string.general_bug_report_body_what_happened_prompt)
+
+    private val expectedPrompt: String
+        get() = context.getString(R.string.general_bug_report_body_expected_prompt)
+
+    @Test
+    fun `the share body carries both prompts and the report metadata`() {
+        val repo = createRepo()
+        val report = writeReportDir("body_1")
+
+        repo.buildShareBody("body_1", report) shouldBe listOf(
+            "--- What happened? ---",
+            whatPrompt,
+            "",
+            "--- Expected behavior ---",
+            expectedPrompt,
+            "",
+            "--- Report info ---",
+            "App: 1.0",
+            "Device: fp",
+            "Android: API 29",
+            "Type: REPORTED",
+            "Report: body_1",
+            "",
+            "Details are in the attached zip.",
+        ).joinToString("\n")
+    }
+
+    @Test
+    fun `a crash body names the error and its first message line`() {
+        val repo = createRepo()
+        val report = writeReportDir(
+            id = "body_2",
+            type = BugReport.Type.CRASH,
+            errorClass = "java.lang.IllegalStateException",
+            errorMessage = "boom\nsecond line",
+        )
+
+        val body = repo.buildShareBody("body_2", report)
+
+        body shouldContain "Error: java.lang.IllegalStateException: boom"
+        body shouldNotContain "second line"
+    }
+
+    // The fixture carries error fields a real recording never has, so the assertion pins the type
+    // gate rather than the metadata just happening to be null.
+    @Test
+    fun `a recording body has no error line`() {
+        val repo = createRepo()
+        val report = writeReportDir(
+            id = "body_3",
+            type = BugReport.Type.RECORDING,
+            errorClass = "java.lang.IllegalStateException",
+            errorMessage = "boom",
+        )
+
+        repo.buildShareBody("body_3", report) shouldNotContain "Error:"
+    }
+
+    @Test
+    fun `a body without metadata still identifies the report`() {
+        val repo = createRepo()
+
+        repo.buildShareBody("body_4", null) shouldBe listOf(
+            "--- What happened? ---",
+            whatPrompt,
+            "",
+            "--- Expected behavior ---",
+            expectedPrompt,
+            "",
+            "--- Report info ---",
+            "Report: body_4",
+            "",
+            "Details are in the attached zip.",
+        ).joinToString("\n")
     }
 }

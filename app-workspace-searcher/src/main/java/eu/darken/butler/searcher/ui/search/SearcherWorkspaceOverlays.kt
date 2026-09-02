@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
@@ -13,6 +14,7 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.issue.Issue
+import eu.darken.butler.common.openPrivacyPolicy
 import eu.darken.butler.searcher.ui.search.dialogs.SearchErrorDialog
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogHost
 import eu.darken.butler.searcher.ui.search.elements.AccessErrorsSheetContent
@@ -229,9 +231,11 @@ fun SearcherWorkspaceOverlays(
     )
 
     if (showErrorShareConsent) {
+        val context = LocalContext.current
         ErrorShareConsentDialog(
             onConfirm = { onPageAction(SearcherPageAction.Error.ConfirmShare) },
             onDismiss = { onPageAction(SearcherPageAction.Error.DismissShare) },
+            onPrivacyPolicy = { openPrivacyPolicy(context) },
         )
     }
 

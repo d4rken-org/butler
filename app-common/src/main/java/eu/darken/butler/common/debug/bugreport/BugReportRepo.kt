@@ -9,6 +9,7 @@ import androidx.core.content.FileProvider
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.ButlerId
+import eu.darken.butler.common.R
 import eu.darken.butler.common.compression.Zipper
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.coroutine.DispatcherProvider
@@ -215,12 +216,15 @@ class BugReportRepo @Inject constructor(
      * Built under a temporary name and renamed on success, because [Zipper] leaves its output behind
      * when compression throws — a half-written `<id>.zip` would then be shared as if it were whole.
      */
-    suspend fun buildShareZip(id: String): File = withContext(dispatcherProvider.IO) {
+    suspend fun buildShareZip(id: String): File =
+        buildShareZip(withContext(dispatcherProvider.IO) { resolveReportDir(id) }, id)
+
+    private suspend fun buildShareZip(dir: File?, id: String): File = withContext(dispatcherProvider.IO) {
         // Via the recorder mutex, not a bare state read: during the startup window an interrupted
         // recording is listed as shareable while recovery may be about to reattach to it — this
         // blocks until recovery has claimed or finalized it and then reflects the outcome.
         require(!bugReportRecorder.isActiveOrStarting(id)) { "Cannot share an active recording" }
-        val files = resolveReportDir(id)?.let { BugReportStorage.payloadFiles(it) } ?: emptyList()
+        val files = dir?.let { BugReportStorage.payloadFiles(it) } ?: emptyList()
         require(files.isNotEmpty()) { "No report files for $id" }
 
         if (!shareDir.exists()) shareDir.mkdirs()
@@ -250,13 +254,62 @@ class BugReportRepo @Inject constructor(
      * chooser. [FLAG_GRANT_READ_URI_PERMISSION] + clipData grant the receiving app read access.
      */
     suspend fun buildShareIntent(id: String): Intent {
-        val uri = buildShareUri(id)
+        // One resolve for both the zip and the body: the same id can exist under two storage roots,
+        // and resolving twice could attach one copy while describing the other.
+        val entry = withContext(dispatcherProvider.IO) { resolveReportEntry(id) }
+        val zip = buildShareZip(entry?.first, id)
+        val uri = FileProvider.getUriForFile(context, "${BuildConfigWrap.APPLICATION_ID}.provider", zip)
         return Intent(Intent.ACTION_SEND).apply {
             type = "application/zip"
+            putExtra(
+                Intent.EXTRA_SUBJECT,
+                context.getString(
+                    R.string.general_bug_report_subject,
+                    context.getString(R.string.app_name),
+                    id,
+                ),
+            )
+            putExtra(Intent.EXTRA_TEXT, buildShareBody(id, entry?.second))
             putExtra(Intent.EXTRA_STREAM, uri)
             clipData = ClipData.newRawUri("", uri)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
+    }
+
+    /**
+     * Mail body for [buildShareIntent]: two prompts for the user to fill in plus the metadata triage
+     * needs before opening the zip. Section headers and the metadata labels stay English — the
+     * developer reading them does; only the prompts, which address the user, are localized.
+     *
+     * [report] is null when the report directory vanished between resolve and read. The body is
+     * best-effort context, so that drops the metadata rather than failing the share.
+     */
+    internal fun buildShareBody(id: String, report: BugReport?): String = buildString {
+        appendLine("--- What happened? ---")
+        appendLine(context.getString(R.string.general_bug_report_body_what_happened_prompt))
+        appendLine()
+        appendLine("--- Expected behavior ---")
+        appendLine(context.getString(R.string.general_bug_report_body_expected_prompt))
+        appendLine()
+        appendLine("--- Report info ---")
+        report?.let {
+            appendLine("App: ${it.appVersion}")
+            appendLine("Device: ${it.deviceFingerprint}")
+            appendLine("Android: API ${it.apiLevel}")
+            appendLine("Type: ${it.type}")
+            // A RECORDING has no triggering exception, so it has no error fields to describe.
+            val error = when (it.type) {
+                BugReport.Type.CRASH, BugReport.Type.REPORTED -> listOfNotNull(
+                    it.errorClass,
+                    it.errorMessage?.lineSequence()?.firstOrNull(),
+                ).joinToString(": ")
+                BugReport.Type.RECORDING -> ""
+            }
+            if (error.isNotBlank()) appendLine("Error: $error")
+        }
+        appendLine("Report: $id")
+        appendLine()
+        append("Details are in the attached zip.")
     }
 
     private fun refresh() {
@@ -306,12 +359,15 @@ class BugReportRepo @Inject constructor(
     }
 
     /**
-     * The copy of [id] that [scan] surfaced: the first root holding a valid report directory. A
-     * corrupt external copy must not shadow the readable private one the list is showing.
+     * The copy of [id] that [scan] surfaced: the first root holding a valid report directory, paired
+     * with its metadata. A corrupt external copy must not shadow the readable private one the list is
+     * showing, and returning both together keeps a caller needing each from resolving twice.
      */
-    private fun resolveReportDir(id: String): File? = storageLayout
+    private fun resolveReportEntry(id: String): Pair<File, BugReport>? = storageLayout
         .allReportDirs(id)
-        .firstOrNull { readReport(it) != null }
+        .firstNotNullOfOrNull { dir -> readReport(dir)?.let { dir to it } }
+
+    private fun resolveReportDir(id: String): File? = resolveReportEntry(id)?.first
 
     /** Parses a report directory, or null if it is a temp dir, incomplete, unreadable or mislabelled. */
     private fun readReport(dir: File): BugReport? {
