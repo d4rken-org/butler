@@ -74,6 +74,7 @@ import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
+import eu.darken.butler.workspace.ui.dnd.dropZone
 import eu.darken.butler.workspace.ui.modal.DismissWhenPaneUnfocused
 import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
 import kotlinx.coroutines.delay
@@ -597,7 +598,16 @@ private fun BreadcrumbChip(
     onCopyPath: (() -> Unit)?,
 ) {
     val context = LocalContext.current
-    Box(modifier = modifier) {
+    Box(
+        modifier = modifier.dropZone(
+            key = "crumb:${breadcrumb.target}",
+            // Home, Device and Trash crumbs are no folder, so they register nothing and a drop on
+            // them resolves to nothing rather than falling through to the listing.
+            destination = (breadcrumb.target as? ExplorerNavigation.Target.Directory)
+                ?.path
+                ?.takeUnless { it is ArchivePath },
+        ),
+    ) {
         Row(
             modifier = Modifier
                 .clip(RoundedCornerShape(4.dp))

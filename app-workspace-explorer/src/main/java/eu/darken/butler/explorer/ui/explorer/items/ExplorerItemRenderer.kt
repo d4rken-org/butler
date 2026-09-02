@@ -8,6 +8,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.extensions.matches
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
@@ -26,6 +28,7 @@ import eu.darken.butler.explorer.ui.explorer.items.row.StorageRow
 import eu.darken.butler.explorer.ui.explorer.items.row.TrashItemRow
 import eu.darken.butler.explorer.ui.explorer.items.row.TrashNestedItemRow
 import eu.darken.butler.workspace.contracts.dnd.WorkspaceDragPayload
+import eu.darken.butler.workspace.ui.dnd.dropZone
 import eu.darken.butler.workspace.ui.dnd.rememberWorkspaceDragSource
 
 /**
@@ -63,7 +66,11 @@ fun ExplorerItemRenderer(
     // to pick up the drag. A null payload means no drag.
     val dragSource = dragPayloadFactory?.let { factory -> rememberWorkspaceDragSource { factory(item) } }
 
-    Box(modifier = focusModifier.then(dragSource?.modifier ?: Modifier)) {
+    Box(
+        modifier = focusModifier
+            .then(dragSource?.modifier ?: Modifier)
+            .dropZone(key = item.id, destination = item.dropDestination()),
+    ) {
         ItemContent(
             item = item,
             viewStyle = viewStyle,
@@ -85,6 +92,14 @@ fun ExplorerItemRenderer(
             previewsSettled = previewsSettled,
         )
     }
+}
+
+/** Folders take drops; a read-only one or archive content has nothing to offer a drop. */
+private fun ExplorerItem.dropDestination(): APath<*>? = when {
+    this !is ExplorerItem.Directory -> null
+    canWrite == false -> null
+    path is ArchivePath -> null
+    else -> path
 }
 
 @Composable

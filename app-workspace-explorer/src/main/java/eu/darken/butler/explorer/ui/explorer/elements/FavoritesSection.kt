@@ -44,6 +44,7 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.extensions.matches
 import eu.darken.butler.common.files.local.LocalPathLookup
@@ -53,6 +54,7 @@ import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerItem.Path.Companion.toPathItemId
 import eu.darken.butler.explorer.core.favorites.FavoriteItem
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
+import eu.darken.butler.workspace.ui.dnd.dropZone
 
 /** List-scope variant: header item + a row per favorite. */
 fun LazyListScope.favoritesSection(
@@ -200,6 +202,7 @@ fun FavoriteRow(
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .dropZone(key = favoriteKey(favorite), destination = favorite.dropDestination())
             .clip(RoundedCornerShape(8.dp))
             .background(highlightColor, RoundedCornerShape(8.dp))
             .clickable(enabled = !isResolving) { onClick() }
@@ -274,6 +277,12 @@ fun FavoriteRow(
             )
         }
     }
+}
+
+/** Only a resolved directory can take a drop; a file or an unavailable favorite has no destination. */
+private fun FavoriteItem.dropDestination(): APath<*>? {
+    val item = (state as? FavoriteItem.State.Available)?.item as? ExplorerItem.Directory ?: return null
+    return item.path.takeUnless { it is ArchivePath }
 }
 
 private fun pickIcon(favorite: FavoriteItem): ImageVector = when {

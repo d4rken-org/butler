@@ -8,20 +8,17 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.draganddrop.dragAndDropTarget
 import androidx.compose.material3.pulltorefresh.PullToRefreshState
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draganddrop.DragAndDropEvent
-import androidx.compose.ui.draganddrop.DragAndDropTarget
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.IntOffset
@@ -36,16 +33,13 @@ import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.BrowsingAbortedException
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
-import eu.darken.butler.explorer.ui.explorer.dnd.validateDropDestination
-import eu.darken.butler.explorer.ui.explorer.dnd.validateTrashDrop
+import eu.darken.butler.explorer.ui.explorer.dnd.ExplorerDropState
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.contracts.dnd.WorkspaceDragPayload
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.Operation
-import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
 import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
 import eu.darken.butler.workspace.ui.dnd.dropTargetHighlight
-import eu.darken.butler.workspace.ui.dnd.workspaceDragPayload
 import eu.darken.butler.workspace.ui.common.WorkspacePaddings
 import eu.darken.butler.workspace.ui.common.WorkspacePullToRefreshBox
 import eu.darken.butler.workspace.ui.error.ErrorCard
@@ -81,6 +75,7 @@ internal fun ExplorerReadyContent(
     initialClipboardExpanded: Boolean,
     onShowOperationDetails: (Operation.Id) -> Unit,
     dragPayloadFactory: ((ExplorerItem) -> WorkspaceDragPayload?)? = null,
+    dropState: ExplorerDropState? = null,
 ) {
     // Focus state from ViewModel
     val contentFocusedItem = state.focusedItemIndex?.let { state.items?.getOrNull(it) }
@@ -98,51 +93,15 @@ internal fun ExplorerReadyContent(
         end = WorkspacePaddings.GridHorizontal,
     )
 
-    val isDragHovered = remember { mutableStateOf(false) }
-    val currentState by rememberUpdatedState(state)
-    val currentVm by rememberUpdatedState(vm)
-    // Same focus request AdaptiveWorkspaceLayout wires to WorkspaceScreenAction.Focus(info.id),
-    // republished by WorkspacePane. Focusing the target pane before the drop opens the confirmation
-    // dialog in an already-focused pane, so its first tap confirms instead of only focusing.
-    val currentFocusRequest by rememberUpdatedState(LocalWorkspaceFocusRequest.current)
-    val dropTarget = remember {
-        object : DragAndDropTarget {
-            override fun onEntered(event: DragAndDropEvent) {
-                isDragHovered.value = true
-            }
-
-            override fun onExited(event: DragAndDropEvent) {
-                isDragHovered.value = false
-            }
-
-            override fun onEnded(event: DragAndDropEvent) {
-                isDragHovered.value = false
-            }
-
-            override fun onDrop(event: DragAndDropEvent): Boolean {
-                isDragHovered.value = false
-                val payload = event.workspaceDragPayload() ?: return false
-                currentFocusRequest?.invoke()
-                currentVm?.onDragDropped(payload)
-                return true
-            }
-        }
-    }
+    // The page owns the drop target; this content only reports the geometry it hit-tests against.
+    dropState?.topBarPaddingPx = topBarStackState.contentPaddingPx
+    dropState?.bottomBarPaddingPx = bottomBarStackState.contentPaddingPx
 
     Box(
         modifier = modifier
             .fillMaxSize()
-            .dragAndDropTarget(
-                shouldStartDragAndDrop = { event ->
-                    val payload = event.workspaceDragPayload()
-                    payload != null && (
-                        validateDropDestination(currentState, workspaceId, payload) != null ||
-                            validateTrashDrop(currentState, workspaceId, payload)
-                        )
-                },
-                target = dropTarget,
-            )
-            .dropTargetHighlight(isDragHovered.value),
+            .onGloballyPositioned { dropState?.contentBounds = it.boundsInRoot() }
+            .dropTargetHighlight(dropState?.isPaneHovered == true),
     ) {
         // Main content with pull-to-refresh
         WorkspacePullToRefreshBox(
