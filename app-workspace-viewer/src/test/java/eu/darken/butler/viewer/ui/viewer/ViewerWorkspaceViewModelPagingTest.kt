@@ -53,7 +53,11 @@ class ViewerWorkspaceViewModelPagingTest : BaseTest() {
     private val mime = MimeInfo("application/pdf")
 
     private val requestedPages = mutableListOf<Int>()
+
+    /** The same requests with the document they were made for, for the tab-swap case. */
+    private val requestedDocuments = mutableListOf<Pair<ViewerSource, Int>>()
     private lateinit var workspaceState: MutableStateFlow<ViewerWorkspace.State>
+    private lateinit var workspaces: MutableStateFlow<ViewerWorkspace>
     private lateinit var loader: PdfPreviewLoader
 
     /** Set to gate a specific page's render, so the test can hold it in flight. */
@@ -66,6 +70,7 @@ class ViewerWorkspaceViewModelPagingTest : BaseTest() {
     fun setup() {
         Dispatchers.setMain(UnconfinedTestDispatcher())
         requestedPages.clear()
+        requestedDocuments.clear()
         failingPages.clear()
         renderGate = null
         workspaceState = MutableStateFlow(
@@ -75,6 +80,7 @@ class ViewerWorkspaceViewModelPagingTest : BaseTest() {
             coEvery { page(any(), any()) } coAnswers {
                 val index = secondArg<Int>()
                 requestedPages.add(index)
+                requestedDocuments.add(firstArg<ViewerSource>() to index)
                 renderGate?.takeIf { it.first == index }?.second?.await()
                 if (index in failingPages) null else mockk<Bitmap>()
             }
@@ -106,6 +112,7 @@ class ViewerWorkspaceViewModelPagingTest : BaseTest() {
             )
             every { reload() } just Runs
         }
+        workspaces = MutableStateFlow(workspace)
         val chrome = mockk<WorkspacePageChrome>().apply {
             every { shareIntentEvent } returns SingleEventFlow()
             every { pendingErrorShare } returns MutableStateFlow(null)
@@ -117,7 +124,7 @@ class ViewerWorkspaceViewModelPagingTest : BaseTest() {
             dispatchers = TestDispatcherProvider(),
             context = mockk(relaxed = true),
             workspaceProvider = mockk<WorkspaceProvider>().apply {
-                every { retrieve(workspaceId) } returns flowOf(workspace)
+                every { retrieve(workspaceId) } returns workspaces
             },
             workspaceRemote = mockk<WorkspaceRemote>(relaxed = true).apply {
                 every { events } returns emptyFlow()
@@ -235,6 +242,42 @@ class ViewerWorkspaceViewModelPagingTest : BaseTest() {
         vm.previousPdfPage()
         vm.readyState.pdfPage!!.index shouldBe 1
         requestedPages.takeLast(2) shouldBe listOf(2, 1)
+    }
+
+    @Test
+    fun `a tab swapped to another document starts that one at its first page`() = runTest2 {
+        // Stepping to the next file replaces this tab under its own id, so the ViewModel - and with
+        // it the page the user picked - outlives the document it was picked in.
+        val vm = makeViewModel()
+        startCollecting(vm)
+
+        vm.nextPdfPage()
+        vm.nextPdfPage()
+        requestedPages shouldBe listOf(0, 1, 2)
+
+        val otherPath = LocalPath.build("/storage/emulated/0/Download/other.pdf")
+        val otherSource = ViewerSource.Stored(otherPath)
+        workspaces.value = mockk<ViewerWorkspace>().apply {
+            every { state } returns MutableStateFlow(
+                ViewerWorkspace.State(content = ViewerContent.PdfPreview(mime, pageCount = 5)),
+            )
+            every { source } returns otherSource
+            every { storedPath } returns otherPath
+            every { listingSourceId } returns null
+            every { info } returns MutableStateFlow(
+                Workspace.Info(id = workspaceId, type = Workspace.Type.VIEWER, title = "other.pdf".toCaString()),
+            )
+            every { reload() } just Runs
+        }
+
+        vm.readyState.pdfPage!!.index shouldBe 0
+        // Page 0 of the new document, and nothing more asked of the old one.
+        requestedDocuments shouldBe listOf(
+            source to 0,
+            source to 1,
+            source to 2,
+            otherSource to 0,
+        )
     }
 
     @Test
