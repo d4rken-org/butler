@@ -93,7 +93,7 @@ class ExplorerWorkspace @AssistedInject constructor(
     private val restoreOperationFactory: RestoreOperation.Factory,
     private val explorerSettings: ExplorerSettings,
     private val errorIncidentStore: ErrorIncidentStore,
-) : Workspace<ExplorerArguments> {
+) : Workspace<ExplorerArguments>, Workspace.FileListingSource {
 
     private val tag = logTag("Explorer", "Workspace", id.shortTag)
 
@@ -186,6 +186,19 @@ class ExplorerWorkspace @AssistedInject constructor(
     fun updateSaveAsFilename(filename: String) {
         log(tag) { "updateSaveAsFilename($filename)" }
         _saveAsFilename.value = filename
+    }
+
+    private val _fileListing = MutableStateFlow<List<APath<*>>>(emptyList())
+
+    /**
+     * Published by the page's ViewModel: the sorted and filtered listing only exists there, while a
+     * viewer stepping through it can only reach this instance.
+     */
+    override val fileListing: StateFlow<List<APath<*>>> = _fileListing.asStateFlow()
+
+    fun publishFileListing(files: List<APath<*>>) {
+        log(tag) { "publishFileListing(${files.size} files)" }
+        _fileListing.value = files
     }
 
     // Same derivation the factory hands the paused stand-in, so both name this tab identically

@@ -66,6 +66,7 @@ import eu.darken.butler.explorer.core.SortSettings
 import eu.darken.butler.explorer.core.smbSignInLocationId
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
+import eu.darken.butler.explorer.core.engine.toFileListing
 import eu.darken.butler.explorer.core.favorites.ExplorerFavoritesRepo
 import eu.darken.butler.explorer.core.favorites.FavoriteItem
 import eu.darken.butler.explorer.core.favorites.FavoriteFeedback
@@ -582,6 +583,14 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         // shrink-clamping always see the same list the page renders.
         processedItemsFlow
             .onEach { focus.updateItemCount(it?.size ?: 0) }
+            .launchInViewModel()
+
+        // Paired with the incarnation that produced the items, so a listing never lands in a
+        // resumed instance it was not computed for. A load in flight (null, the skeleton rows)
+        // publishes empty: a viewer must not keep stepping through a folder this tab left.
+        workspaceSource
+            .flatMapLatest { ws -> if (ws == null) emptyFlow() else processedItemsFlow.map { ws to it } }
+            .onEach { (ws, items) -> ws.publishFileListing(items?.toFileListing().orEmpty()) }
             .launchInViewModel()
     }
 
@@ -1450,6 +1459,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 ViewerArguments.Default(
                     filePath = it,
                     callerWorkspaceId = if (asDrillDown) id else null,
+                    listingSourceId = id,
                 )
             },
         )
@@ -1468,7 +1478,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             analysis = analysis,
             createExplorerArguments = { path -> ExplorerArguments.Default(startPath = path) },
             createEditorArguments = { path -> EditorArguments.Default(filePath = path) },
-            createViewerArguments = { path -> ViewerArguments.Default(filePath = path) },
+            createViewerArguments = { path ->
+                ViewerArguments.Default(filePath = path, listingSourceId = id)
+            },
         )
 
         // Execute batch creation directly - WorkspaceRepo handles confirmation and banner

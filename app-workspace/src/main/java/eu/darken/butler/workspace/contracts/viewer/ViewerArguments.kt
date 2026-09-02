@@ -33,6 +33,12 @@ sealed interface ViewerArguments : Workspace.Arguments {
         /** Text a share attached to this file, see [Streamed.caption]. */
         val caption: String? = null,
         @Transient override val callerWorkspaceId: Workspace.Id? = null,
+        /**
+         * Workspace whose [Workspace.FileListingSource] listing this viewer steps through with "next"
+         * and "previous", or null when it was not opened from one. Session-transient like
+         * [callerWorkspaceId]: a restored tab has no listing to step through.
+         */
+        @Transient val listingSourceId: Workspace.Id? = null,
     ) : ViewerArguments, Workspace.ArgumentsWithCaller, Workspace.ArgumentsWithContentPath {
         // Get-only (no backing field): invisible to kotlinx-serialization and Parcelize, so
         // persisted session arguments are unaffected.
@@ -51,7 +57,7 @@ sealed interface ViewerArguments : Workspace.Arguments {
         // so only its presence is reported.
         override fun toString(): String =
             "ViewerArguments.Default(filePath=$filePath, caption=${caption.redacted}, " +
-                "callerWorkspaceId=$callerWorkspaceId)"
+                "callerWorkspaceId=$callerWorkspaceId, listingSourceId=$listingSourceId)"
     }
 
     /**
