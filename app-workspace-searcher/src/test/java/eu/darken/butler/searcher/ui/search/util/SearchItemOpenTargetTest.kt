@@ -4,7 +4,6 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.searcher.core.SearchItem
-import eu.darken.butler.workspace.contracts.editor.EditorArguments
 import eu.darken.butler.workspace.contracts.explorer.ExplorerArguments
 import eu.darken.butler.workspace.contracts.viewer.ViewerArguments
 import eu.darken.butler.workspace.core.OpenInNewTabsUseCase
@@ -31,17 +30,17 @@ class SearchItemOpenTargetTest : BaseTest() {
     private fun request(item: SearchItem) = useCase.createRequest(
         item = item.toOpenInNewTabsItem(),
         createExplorerArguments = { ExplorerArguments.Default(startPath = it) },
-        createEditorArguments = { EditorArguments.Default(filePath = it) },
         createViewerArguments = { ViewerArguments.Default(filePath = it) },
     )
 
+    /** "Open" shows the file; the Editor is what the "Open in editor" row is for. */
     @Test
-    fun `a text file opens in the editor`() {
+    fun `a text file opens in the viewer`() {
         val target = item("/storage/emulated/0/Documents/notes.txt")
 
         val request = request(target)
-        request.type shouldBe Workspace.Type.EDITOR
-        request.arguments shouldBe EditorArguments.Default(filePath = target.path)
+        request.type shouldBe Workspace.Type.VIEWER
+        request.arguments shouldBe ViewerArguments.Default(filePath = target.path)
     }
 
     @Test
@@ -87,8 +86,7 @@ class SearchItemOpenTargetTest : BaseTest() {
             ),
         )
 
-        analysis.textFilesToOpen.size shouldBe 1
-        analysis.viewerFilesToOpen.size shouldBe 2
+        analysis.viewerFilesToOpen.size shouldBe 3
         analysis.directoriesToOpen.size shouldBe 1
 
         targets.forEach { target ->

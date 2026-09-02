@@ -4,7 +4,6 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.TextFileDetector
-import eu.darken.butler.workspace.contracts.editor.EditorArguments
 import eu.darken.butler.workspace.contracts.explorer.ExplorerArguments
 import eu.darken.butler.workspace.contracts.viewer.ViewerArguments
 import io.kotest.matchers.collections.shouldContainExactly
@@ -29,7 +28,6 @@ class OpenInNewTabsUseCaseTest : BaseTest() {
     private fun requests(analysis: OpenInNewTabsUseCase.AnalysisResult) = useCase.createRequests(
         analysis = analysis,
         createExplorerArguments = { ExplorerArguments.Default(startPath = it) },
-        createEditorArguments = { EditorArguments.Default(filePath = it) },
         createViewerArguments = { ViewerArguments.Default(filePath = it) },
     )
 
@@ -38,7 +36,6 @@ class OpenInNewTabsUseCaseTest : BaseTest() {
         val analysis = analyze(OpenInNewTabsUseCase.Item.Directory(directory))
 
         analysis.directoriesToOpen shouldContainExactly listOf<APath<*>>(directory)
-        analysis.textFilesToOpen.isEmpty() shouldBe true
         analysis.viewerFilesToOpen.isEmpty() shouldBe true
 
         val request = requests(analysis).single()
@@ -46,16 +43,17 @@ class OpenInNewTabsUseCaseTest : BaseTest() {
         request.arguments shouldBe ExplorerArguments.Default(startPath = directory)
     }
 
+    /** "Open" means look at it. The Editor is reached by the row that says so, not by this one. */
     @Test
-    fun `text files route to the editor`() {
+    fun `text files route to the viewer`() {
         val analysis = analyze(OpenInNewTabsUseCase.Item.File(textFile, isText = true))
 
-        analysis.textFilesToOpen shouldContainExactly listOf<APath<*>>(textFile)
-        analysis.viewerFilesToOpen.isEmpty() shouldBe true
+        analysis.viewerFilesToOpen shouldContainExactly listOf<APath<*>>(textFile)
+        analysis.directoriesToOpen.isEmpty() shouldBe true
 
         val request = requests(analysis).single()
-        request.type shouldBe Workspace.Type.EDITOR
-        request.arguments shouldBe EditorArguments.Default(filePath = textFile)
+        request.type shouldBe Workspace.Type.VIEWER
+        request.arguments shouldBe ViewerArguments.Default(filePath = textFile)
     }
 
     @Test
@@ -82,16 +80,15 @@ class OpenInNewTabsUseCaseTest : BaseTest() {
     private fun request(item: OpenInNewTabsUseCase.Item) = useCase.createRequest(
         item = item,
         createExplorerArguments = { ExplorerArguments.Default(startPath = it) },
-        createEditorArguments = { EditorArguments.Default(filePath = it) },
         createViewerArguments = { ViewerArguments.Default(filePath = it) },
     )
 
     @Test
-    fun `a single text file opens in the editor`() {
+    fun `a single text file opens in the viewer`() {
         val request = request(OpenInNewTabsUseCase.Item.File(textFile, isText = true))
 
-        request.type shouldBe Workspace.Type.EDITOR
-        request.arguments shouldBe EditorArguments.Default(filePath = textFile)
+        request.type shouldBe Workspace.Type.VIEWER
+        request.arguments shouldBe ViewerArguments.Default(filePath = textFile)
     }
 
     @Test
@@ -133,21 +130,22 @@ class OpenInNewTabsUseCaseTest : BaseTest() {
     }
 
     /**
-     * The plain "Open" row routes by the same predicate, so a yaml file must not land in the viewer.
-     * The Explorer feeds the [MimeInfo] overload, the Searcher the name one - both have to answer
-     * the same here.
+     * [OpenInNewTabsUseCase.Item.File.isText] no longer steers the routing, and no caller may make
+     * it do so again by the back door: whichever way text-ness was decided, a file is a file here.
+     * The Explorer feeds the [MimeInfo] overload, the Searcher the name one.
      */
     @Test
-    fun `a yaml file routes to the editor`() {
+    fun `text-ness does not change where a file opens`() {
         val yamlFile = LocalPath.build("/storage/emulated/0/Documents/notes.yaml")
 
         listOf(
             TextFileDetector.isTextFile(MimeInfo.fromFileName("notes.yaml")),
             TextFileDetector.isTextFile("notes.yaml"),
+            false,
         ).forEach { isText ->
             useCase.classify(
                 OpenInNewTabsUseCase.Item.File(yamlFile, isText = isText),
-            ) shouldBe Workspace.Type.EDITOR
+            ) shouldBe Workspace.Type.VIEWER
         }
     }
 
@@ -165,7 +163,7 @@ class OpenInNewTabsUseCaseTest : BaseTest() {
 
         requests(analysis).map { it.type } shouldContainExactly listOf(
             Workspace.Type.EXPLORER,
-            Workspace.Type.EDITOR,
+            Workspace.Type.VIEWER,
             Workspace.Type.VIEWER,
             Workspace.Type.VIEWER,
         )

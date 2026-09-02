@@ -406,7 +406,7 @@
     <string name="explorer_file_action_open_in_tab">Open in new tab</string>
     <string name="explorer_file_action_open_in_tab_subtitle">View in Butler as its own tab</string>
     <string name="explorer_file_action_open_in_editor">Open in editor</string>
-    <string name="explorer_file_action_open_in_editor_subtitle">Edit in Butler\'s text editor</string>
+    <string name="explorer_file_action_open_in_editor_subtitle">Edit in a new tab</string>
     <string name="explorer_file_action_open_with">Open with</string>
     <string name="explorer_file_action_open_with_subtitle">Choose an external app to open</string>
     <string name="explorer_file_action_share">Share</string>

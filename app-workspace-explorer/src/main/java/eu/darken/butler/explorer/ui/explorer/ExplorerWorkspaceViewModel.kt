@@ -1175,7 +1175,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             is ExplorerActionBarItem.File.Open -> {
                 try {
                     // The viewer opens as a drill-down of this workspace: an overlay in the same
-                    // pane that returns here on back. Text files still go to the Editor as a tab.
+                    // pane that returns here on back.
                     openFile(item = action.item, asDrillDown = true)
                 } catch (e: Exception) {
                     log(tag, ERROR) { "Failed to open ${action.item.lookup.name}: ${e.asLog()}" }
@@ -1465,7 +1465,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 isText = TextFileDetector.isTextFile(item.mimeType),
             ),
             createExplorerArguments = { ExplorerArguments.Default(startPath = it) },
-            createEditorArguments = { EditorArguments.Default(filePath = it) },
             createViewerArguments = {
                 ViewerArguments.Default(
                     filePath = it,
@@ -1488,7 +1487,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val requests = openInNewTabsUseCase.createRequests(
             analysis = analysis,
             createExplorerArguments = { path -> ExplorerArguments.Default(startPath = path) },
-            createEditorArguments = { path -> EditorArguments.Default(filePath = path) },
             createViewerArguments = { path ->
                 ViewerArguments.Default(filePath = path, listingSourceId = id)
             },

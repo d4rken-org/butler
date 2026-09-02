@@ -935,17 +935,15 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
     /**
      * Routes a single result to the workspace type that fits it - the same classification the
-     * multi-select path uses, so a text file reaches the Editor instead of a Viewer that can only
-     * say it does not support the type.
+     * multi-select path uses.
      *
      * [asDrillDown] only affects the Viewer: it is the one target whose whole content is this file,
-     * so it can live as an overlay in this pane. The Editor always opens as a tab of its own.
+     * so it can live as an overlay in this pane. A directory opens as an Explorer tab of its own.
      */
     private suspend fun openResult(result: SearchItem, asDrillDown: Boolean) {
         val request = openInNewTabsUseCase.createRequest(
             item = result.toOpenInNewTabsItem(),
             createExplorerArguments = { ExplorerArguments.Default(startPath = it) },
-            createEditorArguments = { EditorArguments.Default(filePath = it) },
             createViewerArguments = {
                 ViewerArguments.Default(
                     filePath = it,
@@ -967,7 +965,6 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         val requests = openInNewTabsUseCase.createRequests(
             analysis = analysis,
             createExplorerArguments = { path -> ExplorerArguments.Default(startPath = path) },
-            createEditorArguments = { path -> EditorArguments.Default(filePath = path) },
             createViewerArguments = { path -> ViewerArguments.Default(filePath = path) },
         )
 
