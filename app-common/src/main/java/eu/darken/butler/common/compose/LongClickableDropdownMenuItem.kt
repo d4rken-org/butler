@@ -7,11 +7,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 /**
@@ -24,6 +27,7 @@ fun LongClickableDropdownMenuItem(
     onClick: () -> Unit,
     onLongClick: () -> Unit,
     modifier: Modifier = Modifier,
+    contentColor: Color = LocalContentColor.current,
     leadingIcon: @Composable (() -> Unit)? = null,
 ) {
     Box(
@@ -37,15 +41,17 @@ fun LongClickableDropdownMenuItem(
             .padding(horizontal = 12.dp),
         contentAlignment = Alignment.CenterStart,
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            leadingIcon?.invoke()
-            Text(
-                text = text,
-                style = MaterialTheme.typography.labelLarge,
-            )
+        CompositionLocalProvider(LocalContentColor provides contentColor) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                leadingIcon?.invoke()
+                Text(
+                    text = text,
+                    style = MaterialTheme.typography.labelLarge,
+                )
+            }
         }
     }
 }

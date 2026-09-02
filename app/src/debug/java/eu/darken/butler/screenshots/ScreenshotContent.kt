@@ -14,6 +14,7 @@ import androidx.compose.material.icons.twotone.Settings
 import androidx.compose.material.icons.twotone.Workspaces
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -22,6 +23,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -538,10 +540,15 @@ private fun quickCreateItem(type: Workspace.Type) = QuickCreateItem(
 )
 
 @Composable
-private fun MenuEntry(text: String, icon: ImageVector) = DropdownMenuItem(
+private fun MenuEntry(text: String, icon: ImageVector, contentColor: Color? = null) = DropdownMenuItem(
     text = { Text(text) },
     onClick = {},
     leadingIcon = { Icon(imageVector = icon, contentDescription = null) },
+    colors = if (contentColor != null) {
+        MenuDefaults.itemColors(textColor = contentColor, leadingIconColor = contentColor)
+    } else {
+        MenuDefaults.itemColors()
+    },
 )
 
 /**
@@ -571,6 +578,7 @@ private fun ExpandedWorkspaceButtonMenu(modifier: Modifier = Modifier) {
             MenuEntry(
                 text = stringResource(WorkspaceR.string.workspace_button_menu_new_tab_action),
                 icon = Icons.TwoTone.Add,
+                contentColor = Color(0xFF4CAF50),
             )
 
             MenuCategoryHeader(text = stringResource(WorkspaceR.string.workspace_button_menu_category_recent))
@@ -600,6 +608,7 @@ private fun ExpandedWorkspaceButtonMenu(modifier: Modifier = Modifier) {
                 text = stringResource(WorkspaceR.string.workspace_button_menu_close_current_action),
                 onClick = {},
                 onLongClick = {},
+                contentColor = MaterialTheme.colorScheme.error,
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.TwoTone.Close,
