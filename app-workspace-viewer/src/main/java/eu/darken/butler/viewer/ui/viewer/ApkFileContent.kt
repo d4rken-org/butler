@@ -5,6 +5,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -13,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -50,8 +50,10 @@ import androidx.core.graphics.createBitmap
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.InfoBlock
 import eu.darken.butler.common.compose.InfoEntry
+import eu.darken.butler.common.compose.InfoGridGutter
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.groupInfoEntries
+import eu.darken.butler.common.compose.infoGridColumns
 import eu.darken.butler.common.pkgs.apk.ApkArchiveInfo
 import eu.darken.butler.common.pkgs.apk.ApkSignature
 import eu.darken.butler.common.pkgs.apk.apkVersionText
@@ -59,6 +61,7 @@ import eu.darken.butler.common.pkgs.toPkgId
 import eu.darken.butler.viewer.R
 import eu.darken.butler.viewer.core.ApkInstallState
 import eu.darken.butler.viewer.core.VersionComparison
+import eu.darken.butler.workspace.ui.common.WorkspacePaddings
 
 /**
  * What an APK archive says about itself. A lazy list, not a scrolling column: the permission list
@@ -85,9 +88,7 @@ fun ApkFileContent(
 ) {
     var permissionsExpanded by rememberSaveable { mutableStateOf(initiallyPermissionsExpanded) }
     val permissions = remember(apkInfo) { apkInfo.requestedPermissions.distinct().sorted() }
-    val itemModifier = Modifier
-        .widthIn(max = 480.dp)
-        .fillMaxWidth()
+    val itemModifier = Modifier.fillMaxWidth()
 
     LazyColumn(
         modifier = modifier
@@ -100,8 +101,7 @@ fun ApkFileContent(
                 else base.pointerInput(onToggleChrome) { detectTapGestures { onToggleChrome() } }
             },
         contentPadding = contentPadding,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(WorkspacePaddings.ListGap),
     ) {
         item {
             ApkHeader(
@@ -298,20 +298,29 @@ private fun ApkInfoCard(
         ),
     ) {
         SelectionContainer {
-            Column(
+            BoxWithConstraints(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 12.dp, vertical = 10.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                groupInfoEntries(entries).forEach { row ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalAlignment = Alignment.Top,
-                    ) {
-                        row.forEach { InfoBlock(entry = it, modifier = Modifier.weight(1f)) }
-                        if (row.size == 1 && row.first().pairable) Spacer(modifier = Modifier.weight(1f))
+                val columns = infoGridColumns(maxWidth)
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    groupInfoEntries(entries, columns).forEach { row ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(InfoGridGutter),
+                            verticalAlignment = Alignment.Top,
+                        ) {
+                            row.forEach { InfoBlock(entry = it, modifier = Modifier.weight(1f)) }
+                            // Keeps a short trailing run of pairable entries in their columns so
+                            // the grid stays aligned down the card.
+                            if (row.first().pairable) {
+                                repeat(columns - row.size) { Spacer(modifier = Modifier.weight(1f)) }
+                            }
+                        }
                     }
                 }
             }

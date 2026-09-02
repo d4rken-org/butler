@@ -18,6 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 data class InfoEntry(
@@ -31,14 +32,40 @@ data class InfoEntry(
     enum class ValueStyle { DEFAULT, PATH }
 }
 
-/** Groups consecutive pairable entries two-per-row; non-pairable entries get a row of their own. */
-fun groupInfoEntries(entries: List<InfoEntry>): List<List<InfoEntry>> {
+/** Gap between the columns of a metadata grid. */
+val InfoGridGutter = 12.dp
+
+/**
+ * Narrowest a metadata column may get before [infoGridColumns] drops one. Low enough that a card
+ * inside a floating bar still pairs on a 320dp pane, which is the narrowest layout that pairs
+ * today: 320dp less the bar's two 16dp insets and the card's two 12dp insets leaves 264dp.
+ */
+val InfoGridMinColumnWidth = 120.dp
+
+/**
+ * How many columns fit into [availableWidth] with every column at least [minColumnWidth] wide.
+ *
+ * At the default width and gutter: 264dp (a bar card in a 320dp pane) and 312dp (a content card
+ * on a 360dp phone) both give 2, 700dp gives 5, 1150dp gives 8. Never fewer than one.
+ */
+fun infoGridColumns(
+    availableWidth: Dp,
+    minColumnWidth: Dp = InfoGridMinColumnWidth,
+    gutter: Dp = InfoGridGutter,
+): Int {
+    if (availableWidth <= 0.dp || minColumnWidth <= 0.dp) return 1
+    return ((availableWidth + gutter) / (minColumnWidth + gutter)).toInt().coerceAtLeast(1)
+}
+
+/** Groups consecutive pairable entries [columns]-per-row; non-pairable entries get a row of their own. */
+fun groupInfoEntries(entries: List<InfoEntry>, columns: Int = 2): List<List<InfoEntry>> {
+    val perRow = columns.coerceAtLeast(1)
     val rows = mutableListOf<List<InfoEntry>>()
     var pending = mutableListOf<InfoEntry>()
     entries.forEach { entry ->
         if (entry.pairable) {
             pending.add(entry)
-            if (pending.size == 2) {
+            if (pending.size == perRow) {
                 rows.add(pending)
                 pending = mutableListOf()
             }
