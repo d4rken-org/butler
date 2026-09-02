@@ -11,6 +11,7 @@ import testhelpers.BaseTest
 class DropHitResolverTest : BaseTest() {
 
     private val download = LocalPath.build("/storage/emulated/0/Download")
+    private val pictures = LocalPath.build("/storage/emulated/0/Pictures")
     private val readOnly = LocalPath.build("/system")
 
     // The page: a 400x800 content area whose top 100px are covered by the floating bar stack.
@@ -71,5 +72,15 @@ class DropHitResolverTest : BaseTest() {
         }
 
         resolve(Offset(200f, 40f), registry) shouldBe DropHit.None
+    }
+
+    @Test
+    fun `an eligible crumb wins over a hidden row it overlaps`() {
+        val registry = DropZoneRegistry().apply {
+            register("row", download, Rect(0f, 20f, 400f, 80f))
+            register("crumb", pictures, Rect(20f, 20f, 120f, 60f), allowOutsideContentBand = true)
+        }
+
+        resolve(Offset(50f, 40f), registry) shouldBe DropHit.Explicit(pictures)
     }
 }

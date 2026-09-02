@@ -24,20 +24,19 @@ sealed interface DropHit {
 }
 
 /**
- * A zone outside [contentBand] is only a hit when it opted in, so rows scrolled behind a floating
- * bar stay out of reach of the pointer that is over the bar.
+ * A zone outside [contentBand] is only eligible when it opted in, so rows scrolled behind a
+ * floating bar stay out of reach of the pointer that is over the bar and never shadow a crumb.
  *
  * @param contentBand the content bounds minus the floating-bar insets, i.e. the area where a drop
  *        means "the directory this page shows" rather than "the bar the pointer is over".
  */
 fun resolveDropHit(
     positionInRoot: Offset,
-    zones: (Offset) -> DropZoneRegistry.Zone?,
+    zones: (Offset, (DropZoneRegistry.Zone) -> Boolean) -> DropZoneRegistry.Zone?,
     contentBand: Rect,
     isValidExplicit: (APath<*>) -> Boolean,
 ): DropHit {
-    val zone = zones(positionInRoot)
-    if (zone != null && !zone.allowOutsideContentBand && !contentBand.contains(positionInRoot)) return DropHit.None
+    val zone = zones(positionInRoot) { it.allowOutsideContentBand || contentBand.contains(positionInRoot) }
     if (zone != null) {
         return if (isValidExplicit(zone.destination)) DropHit.Explicit(zone.destination) else DropHit.Blocked
     }

@@ -202,12 +202,16 @@ private class ExplorerDropSession(
     }
 
     private fun hitTest(payload: WorkspaceDragPayload, position: Offset): DropHit {
-        val zone = dropState.registry.zoneAt(position)
+        val contentBand = dropState.contentBand
+        val eligible = { zone: DropZoneRegistry.Zone ->
+            zone.allowOutsideContentBand || contentBand.contains(position)
+        }
+        val zone = dropState.registry.zoneAt(position, eligible)
         val current = state.value
         val hit = resolveDropHit(
             positionInRoot = position,
-            zones = { zone },
-            contentBand = dropState.contentBand,
+            zones = { _, _ -> zone },
+            contentBand = contentBand,
             isValidExplicit = { validateFolderDrop(current, payload, it) != null },
         )
         dropState.registry.setHovered(if (hit is DropHit.Explicit) zone?.key else null)
