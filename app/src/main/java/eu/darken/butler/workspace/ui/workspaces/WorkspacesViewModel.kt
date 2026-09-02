@@ -26,7 +26,6 @@ import eu.darken.butler.main.core.motd.MotdRepo
 import eu.darken.butler.main.core.motd.MotdState
 import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.workspace.contracts.bugreport.BugReportArguments
-import eu.darken.butler.workspace.contracts.editor.EditorArguments
 import eu.darken.butler.workspace.contracts.explorer.ExplorerArguments
 import eu.darken.butler.workspace.contracts.viewer.ViewerArguments
 import eu.darken.butler.workspace.core.OpenInNewTabsUseCase
@@ -508,7 +507,6 @@ class WorkspacesViewModel @Inject constructor(
                 val request = openInNewTabsUseCase.createRequest(
                     item = item.toOpenInNewTabsItem(),
                     createExplorerArguments = { ExplorerArguments.Default(startPath = it) },
-                    createEditorArguments = { EditorArguments.Default(filePath = it) },
                     createViewerArguments = { ViewerArguments.Default(filePath = it) },
                 )
                 when (val result = workspaceRepo.execute(request)) {
