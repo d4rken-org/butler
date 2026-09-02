@@ -211,14 +211,16 @@ class BugReportRepo @Inject constructor(
      * Built under a temporary name and renamed on success, because [Zipper] leaves its output behind
      * when compression throws — a half-written `<id>.zip` would then be shared as if it were whole.
      */
-    suspend fun buildShareZip(id: String): File =
-        buildShareZip(withContext(dispatcherProvider.IO) { resolveReportDir(id) }, id)
+    suspend fun buildShareZip(id: String): File {
+        requireNotRecording(id)
+        val dir = withContext(dispatcherProvider.IO) { resolveReportDir(id) }
+        return buildShareZip(dir, id)
+    }
 
     private suspend fun buildShareZip(dir: File?, id: String): File = withContext(dispatcherProvider.IO) {
-        // Via the recorder mutex, not a bare state read: during the startup window an interrupted
-        // recording is listed as shareable while recovery may be about to reattach to it — this
-        // blocks until recovery has claimed or finalized it and then reflects the outcome.
-        require(!bugReportRecorder.isActiveOrStarting(id)) { "Cannot share an active recording" }
+        // Kept even though every caller here already guarded: this overload takes an
+        // already-resolved dir, so it must not be shareable past the guard on its own.
+        requireNotRecording(id)
         val files = dir?.let { BugReportStorage.payloadFiles(it) } ?: emptyList()
         require(files.isNotEmpty()) { "No report files for $id" }
 
@@ -249,6 +251,7 @@ class BugReportRepo @Inject constructor(
      * chooser. [FLAG_GRANT_READ_URI_PERMISSION] + clipData grant the receiving app read access.
      */
     suspend fun buildShareIntent(id: String): Intent {
+        requireNotRecording(id)
         // One resolve for both the zip and the body: the same id can exist under two storage roots,
         // and resolving twice could attach one copy while describing the other.
         val entry = withContext(dispatcherProvider.IO) { resolveReportEntry(id) }
@@ -305,6 +308,16 @@ class BugReportRepo @Inject constructor(
         appendLine("Report: $id")
         appendLine()
         append("Details are in the attached zip.")
+    }
+
+    /**
+     * Via the recorder mutex, not a bare state read: during the startup window an interrupted
+     * recording is listed as shareable while recovery may be about to reattach to it — this blocks
+     * until recovery has claimed or finalized it and then reflects the outcome. Run it before the
+     * store is read, so the report is resolved from the view recovery left behind.
+     */
+    private suspend fun requireNotRecording(id: String) {
+        require(!bugReportRecorder.isActiveOrStarting(id)) { "Cannot share an active recording" }
     }
 
     private fun refresh() {
