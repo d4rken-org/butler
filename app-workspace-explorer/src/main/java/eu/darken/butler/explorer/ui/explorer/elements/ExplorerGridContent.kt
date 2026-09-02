@@ -37,6 +37,7 @@ import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
 import eu.darken.butler.explorer.ui.explorer.items.ExplorerItemRenderer
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.contracts.dnd.WorkspaceDragPayload
+import eu.darken.butler.workspace.ui.common.WorkspacePaddings
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 
@@ -84,8 +85,8 @@ internal fun ExplorerGridContent(
             enabled = { id -> explorerDragSelectClaims(state, id, dragPayloadFactory) },
             contentPadding = contentPadding,
         ),
-        verticalArrangement = Arrangement.spacedBy(2.dp),
-        horizontalArrangement = Arrangement.spacedBy(2.dp),
+        verticalArrangement = Arrangement.spacedBy(WorkspacePaddings.GridGutter),
+        horizontalArrangement = Arrangement.spacedBy(WorkspacePaddings.GridGutter),
         contentPadding = contentPadding,
     ) {
         if (state.items == null) {
@@ -183,7 +184,7 @@ private fun ExplorerGridContentPreview() {
             vm = null,
             contentFocusedItem = null,
             gridState = rememberLazyGridState(),
-            contentPadding = PaddingValues(2.dp),
+            contentPadding = PaddingValues(WorkspacePaddings.GridHorizontal),
         )
     }
 }

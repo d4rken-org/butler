@@ -59,8 +59,8 @@ internal fun AppsReadyContent(
     val gridContentPadding = rememberFloatingBarContentPadding(
         topStackState = topBarStackState,
         bottomStackState = bottomBarStackState,
-        start = 8.dp,
-        end = 8.dp,
+        start = WorkspacePaddings.GridHorizontal,
+        end = WorkspacePaddings.GridHorizontal,
     )
 
     WorkspacePullToRefreshBox(
@@ -89,6 +89,7 @@ internal fun AppsReadyContent(
                             onSelectionChange = { onPageAction(AppsPageAction.Selection.SetSelection(it)) },
                         ),
                     contentPadding = listContentPadding,
+                    verticalArrangement = Arrangement.spacedBy(WorkspacePaddings.ListGapDense),
                 ) {
                     when {
                         state.isLoading && state.apps.isEmpty() -> {
@@ -147,8 +148,8 @@ internal fun AppsReadyContent(
                             contentPadding = gridContentPadding,
                         ),
                     contentPadding = gridContentPadding,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(WorkspacePaddings.GridGutter),
+                    verticalArrangement = Arrangement.spacedBy(WorkspacePaddings.GridGutter),
                 ) {
                     when {
                         state.isLoading && state.apps.isEmpty() -> {

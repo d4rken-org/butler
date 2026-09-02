@@ -94,8 +94,8 @@ internal fun ExplorerReadyContent(
     val gridContentPadding = rememberFloatingBarContentPadding(
         topStackState = topBarStackState,
         bottomStackState = bottomBarStackState,
-        start = 2.dp,
-        end = 2.dp,
+        start = WorkspacePaddings.GridHorizontal,
+        end = WorkspacePaddings.GridHorizontal,
     )
 
     val isDragHovered = remember { mutableStateOf(false) }
@@ -192,7 +192,7 @@ internal fun ExplorerReadyContent(
                     modifier = Modifier
                         .align(Alignment.TopCenter)
                         .offset { IntOffset(x = 0, y = topBarStackState.contentPaddingPx.roundToInt()) }
-                        .padding(horizontal = 16.dp),
+                        .padding(horizontal = WorkspacePaddings.BarHorizontal),
                     archiveName = error.container.name,
                     busy = archiveBusy,
                     onExtract = { vm?.extractUnbrowsableArchive(error.container) },
@@ -205,7 +205,7 @@ internal fun ExplorerReadyContent(
                     modifier = Modifier
                         .align(Alignment.TopCenter)
                         .offset { IntOffset(x = 0, y = topBarStackState.contentPaddingPx.roundToInt()) }
-                        .padding(horizontal = 16.dp),
+                        .padding(horizontal = WorkspacePaddings.BarHorizontal),
                     title = stringResource(R.string.explorer_navigation_error_title),
                     error = error,
                     onShareError = { vm?.shareNavigationError() },

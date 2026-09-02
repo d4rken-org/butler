@@ -59,7 +59,7 @@ internal fun ExplorerListContent(
             onSelectionChange = { ids -> vm?.setSelection(explorerDragSelectItems(state, ids)) },
             enabled = { id -> explorerDragSelectClaims(state, id, dragPayloadFactory) },
         ),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(WorkspacePaddings.ListGapDense),
         contentPadding = contentPadding,
     ) {
         if (state.items == null) {

@@ -262,6 +262,12 @@ fun SearcherWorkspacePage(
             start = WorkspacePaddings.ContentHorizontal,
             end = WorkspacePaddings.ContentHorizontal,
         )
+        val gridContentPaddingValues = rememberFloatingBarContentPadding(
+            topStackState = topBarStackState,
+            bottomStackState = bottomBarStackState,
+            start = WorkspacePaddings.GridHorizontal,
+            end = WorkspacePaddings.GridHorizontal,
+        )
 
         // Conditional rendering: Idle state (templates + history) vs Results mode
         val hasNoQuery = currentState.filenameQuery.isBlank() &&
@@ -473,11 +479,11 @@ fun SearcherWorkspacePage(
                                         !currentState.selectionState.isSelectionMode ||
                                         key !in currentState.selectionState.selectedResultIds
                                 },
-                                contentPadding = contentPaddingValues,
+                                contentPadding = gridContentPaddingValues,
                             ),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        contentPadding = contentPaddingValues
+                        verticalArrangement = Arrangement.spacedBy(WorkspacePaddings.GridGutter),
+                        horizontalArrangement = Arrangement.spacedBy(WorkspacePaddings.GridGutter),
+                        contentPadding = gridContentPaddingValues
                     ) {
                         // Show setup card if needed
                         if (currentState.needsSetup && currentState.workspaceState.searchTargets.isNotEmpty()) {

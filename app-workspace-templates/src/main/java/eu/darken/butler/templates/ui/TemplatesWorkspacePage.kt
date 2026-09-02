@@ -69,6 +69,7 @@ import eu.darken.butler.templates.ui.preview.TemplatesMockDataProvider
 import eu.darken.butler.templates.ui.tour.TemplatesTour
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
+import eu.darken.butler.workspace.ui.common.WorkspacePaddings
 import eu.darken.butler.workspace.ui.insets.paneInsets
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
@@ -167,7 +168,7 @@ fun TemplatesWorkspacePage(
             state = listState,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 24.dp),
+                .padding(horizontal = WorkspacePaddings.ContentHorizontal),
             verticalArrangement = Arrangement.spacedBy(12.dp),
             horizontalAlignment = Alignment.Start,
             contentPadding = PaddingValues(

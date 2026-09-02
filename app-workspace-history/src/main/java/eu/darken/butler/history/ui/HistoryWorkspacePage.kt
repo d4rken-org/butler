@@ -119,7 +119,7 @@ fun HistoryWorkspacePage(
                 top = topBarStackState.contentPaddingDp(),
                 bottom = navBarInset + 16.dp,
             ),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(WorkspacePaddings.ListGap),
         ) {
             if (state.entryCount == 0) {
                 item(key = "empty") {

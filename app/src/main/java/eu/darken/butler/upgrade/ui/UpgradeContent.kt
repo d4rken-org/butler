@@ -53,6 +53,7 @@ import eu.darken.butler.common.compose.ButlerMascotMode
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.brandTitle
+import eu.darken.butler.workspace.ui.common.WorkspacePaddings
 
 // Shared upgrade-screen primitives used by both the gplay and foss upgrade screens, mirroring
 // SD Maid SE's upgrade design system: a centered, max-width scrolling column of tonal "section"
@@ -154,7 +155,10 @@ internal fun UpgradeScreenScaffold(
 internal fun UpgradeScreenContent(
     paddingValues: PaddingValues,
     modifier: Modifier = Modifier,
-    contentPadding: PaddingValues = PaddingValues(horizontal = 24.dp, vertical = 24.dp),
+    contentPadding: PaddingValues = PaddingValues(
+        horizontal = WorkspacePaddings.ScreenHorizontal,
+        vertical = 24.dp,
+    ),
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Box(
