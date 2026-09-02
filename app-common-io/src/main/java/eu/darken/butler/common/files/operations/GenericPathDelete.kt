@@ -7,6 +7,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.causeChain
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
+import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.FileSystemOps
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
@@ -437,7 +438,15 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>>(
             return true
         }
 
-        return runCatching { !fileSystemOps.exists(path) }.getOrDefault(false)
+        // Only a definitive "not there" makes a failure a missing-path one. A denied stat reads as
+        // absent through `exists()`, which would report a permission error as a completed delete.
+        return try {
+            fileSystemOps.existsStrict(path) == Existence.ABSENT
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            false
+        }
     }
 
     private suspend fun reportScanProgress(lookup: PL, emit: suspend (DeleteAction.State<P, PL>) -> Unit) {
