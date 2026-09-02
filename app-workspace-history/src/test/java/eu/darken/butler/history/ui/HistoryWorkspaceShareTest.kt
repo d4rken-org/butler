@@ -4,10 +4,12 @@ import android.app.Application
 import android.content.Context
 import android.content.Intent
 import androidx.test.core.app.ApplicationProvider
+import eu.darken.butler.history.core.HistoryWorkspace
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.history.HistoryEntry
+import eu.darken.butler.workspace.core.operations.history.HistoryFilter
 import eu.darken.butler.workspace.core.operations.history.HistoryOutcome
 import eu.darken.butler.workspace.core.operations.history.HistorySettings
 import eu.darken.butler.workspace.core.operations.history.OperationHistoryRepo
@@ -17,7 +19,11 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -68,6 +74,13 @@ class HistoryWorkspaceShareTest : BaseTest() {
         pathsTruncated = false,
         paths = emptyList(),
     )
+
+    /** A second visible row, so a selection on it survives the state's prune-on-read. */
+    private val otherEntry = entry.copy(id = "some-id", title = "Copy 1 item")
+
+    private val historyWorkspace = mockk<HistoryWorkspace>().apply {
+        every { filter } returns flowOf(HistoryFilter())
+    }
 
     private val attempted = OperationHistoryRepo.AttemptedPaths(
         paths = listOf("/sdcard/ButlerQA", "/sdcard/ButlerQA/notes.txt"),
@@ -155,5 +168,49 @@ class HistoryWorkspaceShareTest : BaseTest() {
         gate.complete(attempted)
 
         startedChooserCount() shouldBe 1
+    }
+
+    @Test
+    fun `a selection made while the share waits survives it`() {
+        val gate = CompletableDeferred<OperationHistoryRepo.AttemptedPaths>()
+        coEvery { historyRepo.getAttemptedPaths(entry.id) } coAnswers { gate.await() }
+        every { workspaceProvider.retrieve(any()) } returns flowOf(historyWorkspace)
+        every { historySettings.maxHistoryItems.flow } returns flowOf(200)
+        every { historyRepo.query(any(), any()) } returns flowOf(listOf(entry, otherEntry))
+        every { historyRepo.observeCount() } returns flowOf(2)
+
+        val vm = createVM()
+        val states = mutableListOf<HistoryWorkspaceViewModel.State?>()
+        val collector = CoroutineScope(Dispatchers.Unconfined).launch { vm.state.toList(states) }
+
+        try {
+            vm.showEntryDetails(entry)
+            vm.shareEntry(entry)
+
+            // Selection mode is still usable behind the sheet while the query is in flight.
+            vm.toggleSelection(otherEntry.id)
+            states.last()!!.selectedIds shouldBe setOf(otherEntry.id)
+
+            gate.complete(attempted)
+
+            states.last()!!.selectedIds shouldBe setOf(otherEntry.id)
+        } finally {
+            collector.cancel()
+        }
+    }
+
+    @Test
+    fun `dismissing the sheet before the paths arrive drops the share`() {
+        val gate = CompletableDeferred<OperationHistoryRepo.AttemptedPaths>()
+        coEvery { historyRepo.getAttemptedPaths(entry.id) } coAnswers { gate.await() }
+
+        val vm = createVM()
+        vm.showEntryDetails(entry)
+        vm.shareEntry(entry)
+
+        vm.showEntryDetails(null)
+        gate.complete(attempted)
+
+        startedChooserCount() shouldBe 0
     }
 }
