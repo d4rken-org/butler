@@ -2,6 +2,7 @@ package eu.darken.butler.viewer.core
 
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
+import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.errors.ReadException
@@ -45,7 +46,7 @@ class ViewerWorkspaceExternalChangeTest : BaseTest() {
 
     /** What the gateway finds per path right now: a lookup to return, or a throwable to throw. */
     private val disk = mutableMapOf<String, Any>()
-    private var exists: (String) -> Boolean = { true }
+    private var exists: (String) -> Existence = { Existence.PRESENT }
 
     /** One-shot: holds the next lookup of that path in flight, so a test can interleave around it. */
     private var lookupGate: Pair<String, CompletableDeferred<Unit>>? = null
@@ -56,7 +57,7 @@ class ViewerWorkspaceExternalChangeTest : BaseTest() {
     @Suppress("UNCHECKED_CAST")
     fun setup() {
         disk.clear()
-        exists = { true }
+        exists = { Existence.PRESENT }
         lookupGate = null
         coEvery { gatewaySwitch.useRes(any<suspend (Any) -> Any?>()) } coAnswers {
             firstArg<suspend (Any) -> Any?>().invoke(gatewaySwitch)
@@ -73,7 +74,7 @@ class ViewerWorkspaceExternalChangeTest : BaseTest() {
                 else -> result as APathLookup<APath<*>>
             }
         }
-        coEvery { gatewaySwitch.exists(any()) } answers { exists(firstArg<APath<*>>().path) }
+        coEvery { gatewaySwitch.existsStrict(any()) } answers { exists(firstArg<APath<*>>().path) }
         coEvery { imageProbe.probe(any()) } returns ProbeResult.Probed(4032, 3024, "image/jpeg")
     }
 
@@ -165,7 +166,7 @@ class ViewerWorkspaceExternalChangeTest : BaseTest() {
     fun `a deleted file is reported as Gone`() = runTest2 {
         val ws = loadedWorkspace()
         disk[imagePath.path] = ReadException("Does not exist", imagePath)
-        exists = { false }
+        exists = { Existence.ABSENT }
 
         ws.checkExternalChange()
 
@@ -179,6 +180,19 @@ class ViewerWorkspaceExternalChangeTest : BaseTest() {
         val ws = loadedWorkspace()
         disk[imagePath.path] = ReadException("gateway gave up", imagePath)
         exists = { throw ReadException("gateway gave up", imagePath) }
+
+        ws.checkExternalChange()
+
+        ws.state.value.externalChange shouldBe null
+    }
+
+    @Test
+    fun `a file that cannot be verified is no evidence of anything`() = runTest2 {
+        // A denied stat, a dead provider or an unreachable host answer UNKNOWN. The lookup failed,
+        // but nothing here says the file is gone.
+        val ws = loadedWorkspace()
+        disk[imagePath.path] = ReadException("gateway gave up", imagePath)
+        exists = { Existence.UNKNOWN }
 
         ws.checkExternalChange()
 
@@ -207,7 +221,7 @@ class ViewerWorkspaceExternalChangeTest : BaseTest() {
         ws.state.value.externalChange shouldBe ViewerExternalChange.Modified
 
         disk[imagePath.path] = ReadException("Does not exist", imagePath)
-        exists = { false }
+        exists = { Existence.ABSENT }
         ws.checkExternalChange()
 
         ws.state.value.externalChange shouldBe ViewerExternalChange.Gone
@@ -217,13 +231,13 @@ class ViewerWorkspaceExternalChangeTest : BaseTest() {
     fun `Gone never returns to Modified`() = runTest2 {
         val ws = loadedWorkspace()
         disk[imagePath.path] = ReadException("Does not exist", imagePath)
-        exists = { false }
+        exists = { Existence.ABSENT }
         ws.checkExternalChange()
         ws.state.value.externalChange shouldBe ViewerExternalChange.Gone
 
         // A file recreated under the same name is a different file, and nothing here reloaded it.
         disk[imagePath.path] = lookup(imagePath, size = 4096L)
-        exists = { true }
+        exists = { Existence.PRESENT }
         ws.checkExternalChange()
 
         ws.state.value.externalChange shouldBe ViewerExternalChange.Gone
@@ -260,7 +274,7 @@ class ViewerWorkspaceExternalChangeTest : BaseTest() {
 
         // Queued behind the first one, which is still parked in its lookup.
         disk[imagePath.path] = ReadException("Does not exist", imagePath)
-        exists = { false }
+        exists = { Existence.ABSENT }
         val second = launch(Dispatchers.Unconfined) { ws.checkExternalChange() }
 
         gate.complete(Unit)
@@ -294,7 +308,7 @@ class ViewerWorkspaceExternalChangeTest : BaseTest() {
         val ws = workspace()
 
         disk[target.path] = ReadException("Does not exist", target)
-        exists = { it != target.path }
+        exists = { if (it == target.path) Existence.ABSENT else Existence.PRESENT }
         ws.checkExternalChange()
 
         ws.state.value.externalChange shouldBe ViewerExternalChange.Gone

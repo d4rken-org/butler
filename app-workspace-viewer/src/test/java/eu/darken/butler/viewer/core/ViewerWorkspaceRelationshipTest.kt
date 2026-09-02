@@ -2,6 +2,7 @@ package eu.darken.butler.viewer.core
 
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
+import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalPathLookup
@@ -40,7 +41,7 @@ class ViewerWorkspaceRelationshipTest : BaseTest() {
                 modifiedAt = null,
             ) as APathLookup<APath<*>>
         }
-        coEvery { gatewaySwitch.exists(any()) } returns true
+        coEvery { gatewaySwitch.existsStrict(any()) } returns Existence.PRESENT
         coEvery { imageProbe.probe(any()) } returns ProbeResult.Probed(4032, 3024, "image/jpeg")
     }
 

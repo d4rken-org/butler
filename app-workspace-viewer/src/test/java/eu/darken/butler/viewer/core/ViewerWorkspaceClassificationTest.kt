@@ -3,6 +3,7 @@ package eu.darken.butler.viewer.core
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.ArchivePath
+import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.archive.ArchiveFormat
@@ -102,7 +103,7 @@ class ViewerWorkspaceClassificationTest : BaseTest() {
                 else -> result as APathLookup<APath<*>>
             }
         }
-        coEvery { gatewaySwitch.exists(any()) } returns true
+        coEvery { gatewaySwitch.existsStrict(any()) } returns Existence.PRESENT
         coEvery { imageProbe.probe(any()) } returns ProbeResult.Probed(4032, 3024, "image/jpeg")
     }
 
@@ -158,7 +159,7 @@ class ViewerWorkspaceClassificationTest : BaseTest() {
         // The gateway maps a vanished file to a permission error, which would send the user
         // looking for an access problem that does not exist.
         setupGateway(imagePath.path to PathPermissionDeniedException(imagePath, "lookup", Reason.NO_MECHANISM))
-        coEvery { gatewaySwitch.exists(any()) } returns false
+        coEvery { gatewaySwitch.existsStrict(any()) } returns Existence.ABSENT
 
         val state = workspace().state.first()
 
@@ -170,7 +171,7 @@ class ViewerWorkspaceClassificationTest : BaseTest() {
     fun `a file that is there but unreadable keeps the original error`() = runTest2 {
         val denied = PathPermissionDeniedException(imagePath, "lookup", Reason.NO_MECHANISM)
         setupGateway(imagePath.path to denied)
-        coEvery { gatewaySwitch.exists(any()) } returns true
+        coEvery { gatewaySwitch.existsStrict(any()) } returns Existence.PRESENT
 
         val state = workspace().state.first()
 
@@ -181,7 +182,20 @@ class ViewerWorkspaceClassificationTest : BaseTest() {
     fun `a failing existence check keeps the original error`() = runTest2 {
         val denied = PathPermissionDeniedException(imagePath, "lookup", Reason.NO_MECHANISM)
         setupGateway(imagePath.path to denied)
-        coEvery { gatewaySwitch.exists(any()) } throws ReadException("gateway gave up", imagePath)
+        coEvery { gatewaySwitch.existsStrict(any()) } throws ReadException("gateway gave up", imagePath)
+
+        val state = workspace().state.first()
+
+        state.content.shouldBeInstanceOf<ViewerContent.Failed>().error shouldBe denied
+    }
+
+    @Test
+    fun `an unverifiable file keeps the original error`() = runTest2 {
+        // Denied access, a dead provider or an unreachable host answer UNKNOWN, which is no evidence
+        // the file is gone - and a gone error would veto the permission classification.
+        val denied = PathPermissionDeniedException(imagePath, "lookup", Reason.NO_MECHANISM)
+        setupGateway(imagePath.path to denied)
+        coEvery { gatewaySwitch.existsStrict(any()) } returns Existence.UNKNOWN
 
         val state = workspace().state.first()
 
