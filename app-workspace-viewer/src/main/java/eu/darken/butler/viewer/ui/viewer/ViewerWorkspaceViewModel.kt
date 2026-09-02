@@ -36,6 +36,8 @@ import eu.darken.butler.viewer.core.GatewayZoomableImageSource
 import eu.darken.butler.viewer.core.IconSaveDecision
 import eu.darken.butler.viewer.core.decideIconSave
 import eu.darken.butler.viewer.core.PdfPreviewLoader
+import eu.darken.butler.viewer.core.TextPreview
+import eu.darken.butler.viewer.core.TextPreviewLoader
 import eu.darken.butler.viewer.core.ViewerBrokenSymlinkException
 import eu.darken.butler.viewer.core.ViewerContent
 import eu.darken.butler.viewer.core.ViewerSource
@@ -45,6 +47,7 @@ import eu.darken.butler.viewer.core.ViewerFileGoneException
 import eu.darken.butler.viewer.core.ViewerIconUnavailableException
 import eu.darken.butler.viewer.core.ViewerShareUnavailableException
 import eu.darken.butler.viewer.core.ViewerWorkspace
+import eu.darken.butler.workspace.contracts.editor.EditorArguments
 import eu.darken.butler.workspace.contracts.explorer.ExplorerArguments
 import eu.darken.butler.workspace.contracts.saver.SaverArguments
 import eu.darken.butler.workspace.contracts.viewer.ViewerArguments
@@ -105,6 +108,7 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
     private val workspaceRemote: WorkspaceRemote,
     private val imageSourceFactory: GatewayZoomableImageSource.Factory,
     private val pdfPreviewLoader: PdfPreviewLoader,
+    private val textPreviewLoader: TextPreviewLoader,
     private val openWithIntentUseCase: OpenWithIntentUseCase,
     private val shareIntentUseCase: ShareIntentUseCase,
     private val clipboardRepo: ClipboardRepo,
@@ -218,6 +222,41 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
         }
 
     /**
+     * The text is read here, not in the workspace: the preview is capped but still up to a megabyte,
+     * and a paused tab must not keep holding it. Emits an empty result first so the page shows its
+     * spinner while the read runs.
+     *
+     * A read that fails after the file classified as text stays in this flow rather than reaching
+     * [renderErrorFlow]: the tab is not broken, only this preview is, and it offers its own retry.
+     */
+    private val textPreviewFlow = combine(workspaceSource, attemptFlow) { workspace, attempt ->
+        workspace to attempt
+    }
+        .distinctUntilChanged()
+        .flatMapLatest { (workspace, _) ->
+            workspace.state
+                .map { it.content as? ViewerContent.Text }
+                .distinctUntilChanged()
+                .flatMapLatest { text ->
+                    if (text == null) {
+                        flowOf<TextPreviewResult?>(null)
+                    } else {
+                        flow {
+                            emit(TextPreviewResult(source = workspace.source, preview = null))
+                            val preview = textPreviewLoader.preview(workspace.source)
+                            emit(
+                                TextPreviewResult(
+                                    source = workspace.source,
+                                    preview = preview,
+                                    failed = preview == null,
+                                ),
+                            )
+                        }
+                    }
+                }
+        }
+
+    /**
      * What [snapshots] last carried, for the failure handler below: by then the source flow has
      * already thrown, and recollecting it to name the file would run the failing lookup again.
      */
@@ -278,9 +317,10 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
         renderErrorFlow,
         imageSourceFlow,
         pdfPageFlow,
+        textPreviewFlow,
         trashSettings.enabled.flow,
         neighboursFlow,
-    ) { snapshot, renderFailure, imageSource, pdfPage, trashEnabled, rawNeighbours ->
+    ) { snapshot, renderFailure, imageSource, pdfPage, textPreview, trashEnabled, rawNeighbours ->
         val (source, workspaceState) = snapshot
         // Only the failure of what is on display now: one recorded for a source this tab has since
         // been rebound away from would hide the new content behind the old one's error.
@@ -318,6 +358,10 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
             source = source,
             imageSource = imageSource.takeIf { content is ViewerContent.Image },
             pdfPage = pdfPage.takeIf { content is ViewerContent.PdfPreview },
+            // Tagged with its source, not merely gated on the content type: combine keeps the last
+            // value of every input, so a step from one text file to the next would otherwise show
+            // the previous file's text under the new file's name until the read catches up.
+            textPreview = textPreview?.takeIf { content is ViewerContent.Text && it.source == source },
             actions = viewerActions(
                 source = source,
                 trashEnabled = trashEnabled,
@@ -761,6 +805,20 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
     }
 
     /**
+     * Opens the file in an Editor tab. Always a tab of its own: the Editor is not a drill-down
+     * target, and this viewer stays where it is so back still returns to whatever opened it.
+     */
+    fun openInEditor() = launch {
+        val path = workspaceSource.first().storedPath ?: return@launch
+        log(tag, INFO) { "openInEditor($path)" }
+        workspaceRemote.createAndFocus(
+            type = Workspace.Type.EDITOR,
+            arguments = EditorArguments.Default(filePath = path),
+            sourceWorkspaceId = id,
+        )
+    }
+
+    /**
      * Installs the APK or app bundle this tab is showing.
      *
      * Inspection runs here rather than inside the operation so an unreadable, protected or
@@ -1097,6 +1155,14 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
         val index: Int,
     )
 
+    /** One loaded text preview. A null [preview] with [failed] false means the read is still running. */
+    data class TextPreviewResult(
+        /** Which file this was read from, so a result outliving its source can be dropped. */
+        val source: ViewerSource,
+        val preview: TextPreview?,
+        val failed: Boolean = false,
+    )
+
     /** One rendered PDF page. A null [bitmap] with [failed] false means the render is still running. */
     data class PdfPage(
         val index: Int,
@@ -1115,6 +1181,7 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
             val source: ViewerSource,
             val imageSource: ZoomableImageSource?,
             val pdfPage: PdfPage? = null,
+            val textPreview: TextPreviewResult? = null,
             val neighbours: ViewerNeighbours? = null,
             val actions: List<ViewerActionBarItem> = viewerActions(
                 source,
@@ -1188,6 +1255,11 @@ internal fun viewerActions(
                 ViewerContent.Archive.Access.BROWSABLE
             if (browsable || content is ViewerContent.AppBundle) {
                 add(ViewerActionBarItem.BrowseArchive)
+            }
+            // Leads for the same reason: the preview here is read-only and stops at a cap, so the
+            // Editor is where both editing and the rest of a large file live.
+            if (content is ViewerContent.Text) {
+                add(ViewerActionBarItem.OpenInEditor)
             }
             // Handing a file to another app needs a file:// or content:// URI, which a file on a
             // server does not have, so those two are not offered for it.

@@ -17,7 +17,7 @@ class ViewerSupportTest : BaseTest() {
 
     /**
      * The types [ViewerWorkspace] branches on before falling through to
-     * [ViewerContent.Unsupported]: APK, PDF and images.
+     * [ViewerContent.Unsupported]: APK, PDF, text and images.
      */
     private val classifiedTypes = listOf(
         "application/vnd.android.package-archive",
@@ -27,11 +27,13 @@ class ViewerSupportTest : BaseTest() {
         "image/gif",
         "image/webp",
         "image/svg+xml",
+        "text/plain",
+        "text/x-log",
+        "application/json",
+        "application/xml",
     )
 
     private val unclassifiedTypes = listOf(
-        "text/plain",
-        "application/json",
         "video/mp4",
         "audio/mpeg",
         "application/zip",
@@ -67,6 +69,9 @@ class ViewerSupportTest : BaseTest() {
             MimeInfo("application/vnd.android.package-archive"),
             "app.apk",
         ) shouldBe true
+        ViewerSupport.hasMatchingName(MimeInfo("text/plain"), "notes.txt") shouldBe true
+        // Both sides answer from MimeInfo's table, so a json name satisfies a text/* type.
+        ViewerSupport.hasMatchingName(MimeInfo("text/plain"), "data.json") shouldBe true
     }
 
     @Test
@@ -78,11 +83,12 @@ class ViewerSupportTest : BaseTest() {
             "app.zip",
         ) shouldBe false
         ViewerSupport.hasMatchingName(MimeInfo("application/pdf"), "invoice") shouldBe false
+        ViewerSupport.hasMatchingName(MimeInfo("text/plain"), "photo.png") shouldBe false
     }
 
     @Test
     fun `a type the viewer cannot show never matches a name`() {
-        ViewerSupport.hasMatchingName(MimeInfo("text/plain"), "notes.txt") shouldBe false
         ViewerSupport.hasMatchingName(MimeInfo("video/mp4"), "clip.mp4") shouldBe false
+        ViewerSupport.hasMatchingName(MimeInfo("audio/mpeg"), "song.mp3") shouldBe false
     }
 }

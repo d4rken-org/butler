@@ -76,6 +76,7 @@ class ViewerWorkspace @AssistedInject constructor(
     private val pkgRepo: PkgRepo,
     private val userManager2: UserManager2,
     private val pdfPreviewLoader: PdfPreviewLoader,
+    private val textPreviewLoader: TextPreviewLoader,
     private val operationsManager: OperationsManager,
     private val issueHandler: IssueHandler,
     private val deleteOperationFactory: DeleteOperation.Factory,
@@ -449,6 +450,30 @@ class ViewerWorkspace @AssistedInject constructor(
             return
         }
 
+        // The probe doubles as the decode check, the way the image branch below uses ImageProbe: a
+        // name claiming text over bytes that are not would render mojibake instead of saying the
+        // type is unsupported.
+        if (mime.isText) {
+            if (!textPreviewLoader.probe(source)) {
+                log(tag, INFO) { "$source is named as text but does not read as text" }
+                stateFlow.value = State(
+                    content = ViewerContent.Unsupported(mime),
+                    fileInfo = fileInfo,
+                    lookup = lookup,
+                    contentLookup = contentLookup,
+                )
+                return
+            }
+            log(tag, INFO) { "$source is text ($mime)" }
+            stateFlow.value = State(
+                content = ViewerContent.Text(mime),
+                fileInfo = fileInfo,
+                lookup = lookup,
+                contentLookup = contentLookup,
+            )
+            return
+        }
+
         if (!mime.isImage) {
             log(tag, INFO) { "$source is not an image ($mime)" }
             stateFlow.value = State(
@@ -654,9 +679,13 @@ class ViewerWorkspace @AssistedInject constructor(
 
     private suspend fun validate(filePath: APath<*>, lookup: APathLookup<APath<*>>): Validation =
         when (lookup.fileType) {
-            FileType.FILE -> when (lookup.size) {
-                0L -> Validation.Rejected(ViewerEmptyFileException(filePath), contentLookup = lookup)
-                else -> Validation.Accepted(lookup)
+            // An empty file has nothing to decode, which is a failure for every renderer except the
+            // text one: an empty text file is a legitimate thing to look at, and rejecting it here
+            // would also withhold the "Open in editor" action that is the way to put something in it.
+            FileType.FILE -> when {
+                lookup.size != 0L -> Validation.Accepted(lookup)
+                MimeInfo.fromFileName(filePath.name).isText -> Validation.Accepted(lookup)
+                else -> Validation.Rejected(ViewerEmptyFileException(filePath), contentLookup = lookup)
             }
 
             FileType.DIRECTORY, FileType.UNKNOWN -> Validation.Rejected(ViewerNotAFileException(filePath))
@@ -714,7 +743,8 @@ class ViewerWorkspace @AssistedInject constructor(
             log(tag, WARN) { "Cannot read $streamed: ${e.asLog()}" }
             return ViewerContentUnreadableException(streamed.displayName, e)
         }
-        if (!hasBytes) return ViewerEmptyFileException(streamed.displayName)
+        // Same exemption [validate] makes: empty text is content, not a failure.
+        if (!hasBytes && !streamed.mime.isText) return ViewerEmptyFileException(streamed.displayName)
 
         return null
     }

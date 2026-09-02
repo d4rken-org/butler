@@ -14,6 +14,13 @@ sealed interface ViewerContent {
 
     data class Image(val mime: MimeInfo) : ViewerContent
 
+    /**
+     * A file the text preview can render. The text itself is not part of the state, only the fact
+     * that there is some - the same split [PdfPreview] makes, and for the same reason: a paused tab
+     * must not keep the payload alive.
+     */
+    data class Text(val mime: MimeInfo) : ViewerContent
+
     data class Apk(
         val mime: MimeInfo,
         val apkInfo: ApkArchiveInfo,

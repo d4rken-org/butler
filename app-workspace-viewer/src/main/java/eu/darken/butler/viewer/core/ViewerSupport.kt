@@ -27,6 +27,7 @@ object ViewerSupport {
         mime.isApk -> true
         mime.isPdf -> true
         mime.isImage -> true
+        mime.isText -> true
         else -> false
     }
 
@@ -44,6 +45,7 @@ object ViewerSupport {
             mime.isApk -> named.isApk
             mime.isPdf -> named.isPdf
             mime.isImage -> named.isImage
+            mime.isText -> named.isText
             else -> false
         }
     }

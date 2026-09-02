@@ -56,6 +56,7 @@ class ViewerWorkspaceRelationshipTest : BaseTest() {
         pkgRepo = mockk(relaxed = true),
         userManager2 = mockk(relaxed = true),
         pdfPreviewLoader = mockk(relaxed = true),
+        textPreviewLoader = mockk(relaxed = true),
         operationsManager = mockk(relaxed = true),
         issueHandler = mockk(relaxed = true),
         deleteOperationFactory = mockk(relaxed = true),
