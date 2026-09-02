@@ -7,6 +7,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -62,6 +64,43 @@ class ViewerWorkspacePageTest : ComposeTest() {
             .performClick()
 
         clicked shouldBe listOf(ViewerActionBarItem.OpenWith)
+    }
+
+    @Test
+    fun `the action bar steps through the listing the viewer was opened from`() {
+        val clicked = mutableListOf<ViewerActionBarItem>()
+        val previous = LocalPath.build("/storage/emulated/0/DCIM/earlier.jpg")
+        val current = LocalPath.build("/storage/emulated/0/DCIM/photo.jpg")
+        composeTestRule.setContent {
+            PreviewWrapper {
+                ViewerWorkspacePage(
+                    workspaceId = Workspace.Id(),
+                    design = WorkspaceDesign(layout = WorkspaceDesign.Layout.DUAL_VERTICAL),
+                    state = ViewerWorkspaceViewModel.State.Ready(
+                        content = ViewerContent.Image(MimeInfo("image/jpeg")),
+                        fileInfo = ViewerFileInfo(size = 1024L),
+                        source = ViewerSource.Stored(current),
+                        imageSource = null,
+                        // The last file of its listing: back is available, forward is not.
+                        neighbours = ViewerNeighbours(current = current, previous = previous, next = null),
+                    ),
+                    onAction = { clicked.add(it) },
+                )
+            }
+        }
+
+        composeTestRule
+            .onNodeWithContentDescription(context.getString(R.string.viewer_next_file_action))
+            .assertIsNotEnabled()
+
+        composeTestRule
+            .onNodeWithContentDescription(context.getString(R.string.viewer_previous_file_action))
+            .assertIsEnabled()
+        composeTestRule
+            .onNodeWithContentDescription(context.getString(R.string.viewer_previous_file_action))
+            .performClick()
+
+        clicked shouldBe listOf(ViewerActionBarItem.PreviousFile(isEnabled = true))
     }
 
     @Test

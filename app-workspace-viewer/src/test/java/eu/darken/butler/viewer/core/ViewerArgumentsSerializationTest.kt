@@ -55,6 +55,19 @@ class ViewerArgumentsSerializationTest : BaseTest() {
     }
 
     @Test
+    fun `the listing this viewer steps through is not persisted`() {
+        val stepping = ViewerArguments.Default(filePath = path, listingSourceId = Workspace.Id())
+
+        val serialized = json.encodeToJsonElement<ViewerArguments>(stepping)
+
+        // Byte-identical to a plain tab: the workspace it stepped through is gone by the time a
+        // saved session is restored, so there would be nothing to step with.
+        serialized shouldBe json.encodeToJsonElement<ViewerArguments>(ViewerArguments.Default(filePath = path))
+        json.decodeFromString<ViewerArguments>(serialized.toString()) shouldBe
+            ViewerArguments.Default(filePath = path)
+    }
+
+    @Test
     fun `a persisted drill-down deserializes as a tab`() {
         val modal = ViewerArguments.Default(filePath = path, callerWorkspaceId = Workspace.Id())
 

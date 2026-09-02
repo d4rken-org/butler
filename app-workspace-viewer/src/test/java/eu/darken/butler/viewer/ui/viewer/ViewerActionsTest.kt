@@ -89,4 +89,58 @@ class ViewerActionsTest : BaseTest() {
         viewerActions(streamed, trashEnabled = false, content = apk) shouldBe
             listOf(ViewerActionBarItem.SaveCopy)
     }
+
+    private val photo = LocalPath.build("/storage/emulated/0/DCIM/photo.jpg")
+    private val previous = LocalPath.build("/storage/emulated/0/DCIM/earlier.jpg")
+    private val next = LocalPath.build("/storage/emulated/0/DCIM/later.jpg")
+
+    @Test
+    fun `a viewer without a listing offers no steps`() {
+        val actions = viewerActions(stored, trashEnabled = false, content = apk)
+
+        actions.filterIsInstance<ViewerActionBarItem.PreviousFile>() shouldBe emptyList()
+        actions.filterIsInstance<ViewerActionBarItem.NextFile>() shouldBe emptyList()
+    }
+
+    @Test
+    fun `stepping leads the bar and follows what the listing holds`() {
+        val actions = viewerActions(
+            stored,
+            trashEnabled = false,
+            content = apk,
+            neighbours = ViewerNeighbours(current = photo, previous = previous, next = null),
+        )
+
+        actions.take(2) shouldBe listOf(
+            ViewerActionBarItem.PreviousFile(isEnabled = true),
+            ViewerActionBarItem.NextFile(isEnabled = false),
+        )
+    }
+
+    @Test
+    fun `a file that is gone can still be stepped away from`() {
+        // It stays in the Explorer's listing until that tab refreshes, and moving on is the way out.
+        val actions = viewerActions(
+            stored,
+            trashEnabled = false,
+            content = apk,
+            isGone = true,
+            neighbours = ViewerNeighbours(current = photo, previous = previous, next = next),
+        )
+
+        actions.take(2) shouldBe listOf(
+            ViewerActionBarItem.PreviousFile(isEnabled = true),
+            ViewerActionBarItem.NextFile(isEnabled = true),
+        )
+    }
+
+    @Test
+    fun `streamed content is never stepped through`() {
+        viewerActions(
+            streamed,
+            trashEnabled = false,
+            content = apk,
+            neighbours = ViewerNeighbours(current = photo, previous = previous, next = next),
+        ) shouldBe listOf(ViewerActionBarItem.SaveCopy)
+    }
 }
