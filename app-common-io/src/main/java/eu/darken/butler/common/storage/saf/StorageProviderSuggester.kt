@@ -6,26 +6,51 @@ import android.content.pm.ProviderInfo
 import android.provider.DocumentsContract
 import dagger.Reusable
 import dagger.hilt.android.qualifiers.ApplicationContext
+import eu.darken.butler.common.ca.CaDrawable
+import eu.darken.butler.common.ca.CaString
+import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.pkgs.Pkg
+import eu.darken.butler.common.pkgs.getPackageInfo2
 import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.withContext
 
+/**
+ * A launchable third-party app that serves storage through a documents provider.
+ *
+ * [lastUpdateTime] is what tells an icon cached before an app update from the current one.
+ */
+data class StorageProviderApp(
+    override val packageName: String,
+    val appLabel: String,
+    val lastUpdateTime: Long,
+) : Pkg {
+    override val id: Pkg.Id get() = Pkg.Id(packageName)
+    override val label: CaString get() = appLabel.toCaString()
+    override val icon: CaDrawable? get() = null
+}
+
 data class StorageProviderSuggestion(
-    val packageName: String,
+    val app: StorageProviderApp,
     val authority: String,
-    val label: String,
-    /** Non-null means the picker can be opened directly at this app's storage root. */
-    val known: KnownStorageProvider?,
-)
+    val known: KnownStorageProvider,
+) {
+    val packageName: String get() = app.packageName
+    val label: String get() = app.appLabel
+}
 
 /**
- * Finds installed apps that expose storage through a documents provider, so they can be offered
- * as add-storage shortcuts instead of leaving the user to find them in the system picker.
+ * Finds installed apps whose storage the system picker can be opened at directly, so they can be
+ * offered as add-storage shortcuts.
+ *
+ * Only curated providers qualify: whether a provider's roots can be picked as a folder at all is
+ * only visible to the picker itself, so an uncurated app would be offered without knowing if the
+ * picker can even show it.
  */
 @Reusable
 class StorageProviderSuggester @Inject constructor(
@@ -55,22 +80,21 @@ class StorageProviderSuggester @Inject constructor(
                     null
                 }
             }
-            .groupBy { it.packageName }
-            .map { (_, candidates) -> candidates.preferred() }
-            .sortedWith(compareBy({ it.known == null }, { it.label.lowercase() }))
+            .distinctBy { it.packageName }
+            .sortedBy { it.label.lowercase() }
             .also { log(TAG) { "getSuggestions(): $it" } }
     }
 
     /**
-     * Label of the app owning [authority], or null when that app would not be suggested either.
+     * The app owning [authority], or null for platform providers and apps without a launcher entry.
      *
-     * Used to pre-fill the location name after a grant, so an ordinary folder picked through the
-     * system picker keeps its path-derived default name instead of being labelled after the
-     * platform provider that served it.
+     * Lets a location granted through the system picker be labelled and iconed after the app that
+     * serves it, while an ordinary folder keeps its path-derived default name instead of being
+     * labelled after the platform provider.
      */
-    suspend fun labelForAuthority(authority: String): String? = withContext(dispatcherProvider.IO) {
+    suspend fun appForAuthority(authority: String): StorageProviderApp? = withContext(dispatcherProvider.IO) {
         try {
-            context.packageManager.resolveContentProvider(authority, 0)?.toSuggestion()?.label
+            context.packageManager.resolveContentProvider(authority, 0)?.toApp()
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -79,7 +103,7 @@ class StorageProviderSuggester @Inject constructor(
         }
     }
 
-    private fun ProviderInfo.toSuggestion(): StorageProviderSuggestion? {
+    private fun ProviderInfo.toApp(): StorageProviderApp? {
         val authority = authority ?: return null
         if (!exported) return null
         if (packageName == context.packageName) return null
@@ -88,17 +112,23 @@ class StorageProviderSuggester @Inject constructor(
         // and none of them has a launcher entry the user could act on.
         if (context.packageManager.getLaunchIntentForPackage(packageName) == null) return null
 
-        return StorageProviderSuggestion(
+        val packageInfo = context.packageManager.getPackageInfo2(Pkg.Id(packageName)) ?: return null
+
+        return StorageProviderApp(
             packageName = packageName,
-            authority = authority,
-            label = context.packageManager.getApplicationLabel(applicationInfo).toString(),
-            known = KnownStorageProvider.forPackage(packageName),
+            appLabel = context.packageManager.getApplicationLabel(applicationInfo).toString(),
+            lastUpdateTime = packageInfo.lastUpdateTime,
         )
     }
 
-    /** An app may declare several providers, prefer the one we can deep-link into. */
-    private fun List<StorageProviderSuggestion>.preferred(): StorageProviderSuggestion =
-        firstOrNull { it.known != null && it.authority == it.known.authorityFor(it.packageName) } ?: first()
+    /** An app may declare several providers, only the one we can deep-link into is a suggestion. */
+    private fun ProviderInfo.toSuggestion(): StorageProviderSuggestion? {
+        val known = KnownStorageProvider.forPackage(packageName) ?: return null
+        if (authority != known.authorityFor(packageName)) return null
+        val app = toApp() ?: return null
+
+        return StorageProviderSuggestion(app = app, authority = authority, known = known)
+    }
 
     companion object {
         private val TAG = logTag("SAF", "ProviderSuggester")

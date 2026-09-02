@@ -31,6 +31,7 @@ import eu.darken.butler.common.files.smb.credentials.SmbCredentialStore
 import eu.darken.butler.common.files.smb.location.SmbLocation
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.common.progress.Progress
+import eu.darken.butler.common.storage.saf.StorageProviderApp
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
@@ -532,6 +533,7 @@ object MockDataProvider {
         treeUri: String = SAF_TREE_URI_DOCUMENTS,
         totalBytes: Long = MockSizes.gb(999),
         availableBytes: Long = MockSizes.gb(555),
+        providerApp: StorageProviderApp? = null,
     ): ExplorerItem.Storage.SAF {
         return ExplorerItem.Storage.SAF(
             location = SAFLocation(
@@ -548,6 +550,7 @@ object MockDataProvider {
             totalBytes = totalBytes,
             availableBytes = availableBytes,
             target = ExplorerNavigation.Target.Directory(SAFPath.build(treeUri)),
+            providerApp = providerApp,
         )
     }
 

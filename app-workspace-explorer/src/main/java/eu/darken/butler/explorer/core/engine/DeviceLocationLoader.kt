@@ -32,6 +32,7 @@ import eu.darken.butler.common.root.RootManager
 import eu.darken.butler.common.root.canUseRootNow
 import eu.darken.butler.common.storage.StorageEnvironment
 import eu.darken.butler.common.storage.StorageManager2
+import eu.darken.butler.common.storage.saf.StorageProviderSuggester
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.permissions.core.PathRequirements
@@ -49,6 +50,7 @@ class DeviceLocationLoader @AssistedInject constructor(
     private val gatewaySwitch: GatewaySwitch,
     private val storageManager2: StorageManager2,
     private val safLocationManager: SAFLocationManager,
+    private val storageProviderSuggester: StorageProviderSuggester,
     private val rootManager: RootManager,
     private val adbManager: AdbManager,
 ) {
@@ -175,6 +177,7 @@ class DeviceLocationLoader @AssistedInject constructor(
 
         // Convert SAF locations to storage items (without filesystem info)
         val safStorage = safLocations.map { location ->
+            val providerApp = location.treeUri.authority?.let { storageProviderSuggester.appForAuthority(it) }
             ExplorerItem.Storage.SAF(
                 location = location,
                 displayIcon = Icons.TwoTone.FolderShared,
@@ -182,6 +185,7 @@ class DeviceLocationLoader @AssistedInject constructor(
                 target = ExplorerNavigation.Target.Directory(location.path),
                 totalBytes = null,
                 availableBytes = null,
+                providerApp = providerApp,
             )
         }
 

@@ -13,6 +13,7 @@ import eu.darken.butler.common.files.saf.location.SAFLocation
 import eu.darken.butler.common.files.smb.SmbEndpointState
 import eu.darken.butler.common.files.smb.credentials.SmbCredentialStore
 import eu.darken.butler.common.files.smb.location.SmbLocation
+import eu.darken.butler.common.storage.saf.StorageProviderApp
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
@@ -67,6 +68,7 @@ sealed interface ExplorerItem {
             override val id: String get() = "local-$localId"
         }
 
+        /** [providerApp] is the app serving this location, null when a platform provider does. */
         data class SAF(
             val location: SAFLocation,
             override val displayName: CaString,
@@ -74,6 +76,7 @@ sealed interface ExplorerItem {
             override val target: ExplorerNavigation.Target.Directory,
             override val totalBytes: Long? = null,
             override val availableBytes: Long? = null,
+            val providerApp: StorageProviderApp? = null,
         ) : Storage {
             override val id: String get() = "saf-${location.id}"
             override val canWrite: Boolean? get() = location.hasWritePermission

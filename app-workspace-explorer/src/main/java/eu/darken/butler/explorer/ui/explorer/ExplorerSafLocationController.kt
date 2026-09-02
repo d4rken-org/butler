@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
@@ -54,12 +55,19 @@ class ExplorerSafLocationController(
     /**
      * Derived from the sheet, never written by a side job: [flatMapLatest] cancels a load whose
      * sheet was closed or reopened, so a stale list can neither overwrite a newer one nor be shown
-     * again after an app was uninstalled.
+     * again after an app was uninstalled. An app whose provider is already granted is not offered
+     * again.
      */
     val storageSuggestions: StateFlow<List<StorageProviderSuggestion>> = showAddStorageSheetFlow
         .flatMapLatest { visible ->
             when {
-                visible -> flow { emit(storageProviderSuggester.getSuggestions()) }
+                visible -> combine(
+                    flow { emit(storageProviderSuggester.getSuggestions()) },
+                    safLocationManager.locations,
+                ) { suggestions, locations ->
+                    val granted = locations.mapNotNull { it.treeUri.authority }.toSet()
+                    suggestions.filter { it.authority !in granted }
+                }
                 else -> flowOf(emptyList())
             }
         }
@@ -97,16 +105,10 @@ class ExplorerSafLocationController(
     fun addSuggestedSAFLocation(suggestion: StorageProviderSuggestion) = doLaunch {
         log(tag) { "addSuggestedSAFLocation($suggestion)" }
         _pendingSAFPickerGrant.value = null
-        val known = suggestion.known
-        val intent = when {
-            known != null -> safPickerIntentBuilder.buildPickerIntent(
-                authority = known.authorityFor(suggestion.packageName),
-                rootId = known.rootIdFor(suggestion.packageName),
-            )
-            else -> Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
-                putExtra("android.content.extra.SHOW_ADVANCED", true)
-            }
-        }
+        val intent = safPickerIntentBuilder.buildPickerIntent(
+            authority = suggestion.authority,
+            rootId = suggestion.known.rootIdFor(suggestion.packageName),
+        )
         safPickerEvents.emit(intent)
     }
 
@@ -121,7 +123,7 @@ class ExplorerSafLocationController(
 
             val locationId = safLocationManager.grantPermission(treeUri)
 
-            val providerLabel = treeUri.authority?.let { storageProviderSuggester.labelForAuthority(it) }
+            val providerLabel = treeUri.authority?.let { storageProviderSuggester.appForAuthority(it)?.appLabel }
             // Seed the label before the refresh below, otherwise the list renders the path-derived
             // fallback name until the naming dialog is confirmed. Re-granting a location the user
             // renamed keeps that name, which is what gets offered in the dialog then.

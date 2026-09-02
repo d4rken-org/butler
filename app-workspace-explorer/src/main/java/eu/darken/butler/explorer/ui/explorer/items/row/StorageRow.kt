@@ -26,9 +26,11 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.icons.NetworkOffline
 import eu.darken.butler.common.compose.icons.NetworkOnline
 import eu.darken.butler.common.rememberMinuteTick
+import eu.darken.butler.explorer.ui.explorer.items.AppIconImage
 import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
 import eu.darken.butler.common.files.saf.location.SAFLocation
 import eu.darken.butler.common.files.smb.SmbEndpointState
+import eu.darken.butler.common.storage.saf.StorageProviderApp
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.items.statusLabel
@@ -59,19 +61,17 @@ fun StorageRow(
         isEnabled = isEnabled,
         decorations = decorations,
         leadingContent = {
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(MaterialTheme.colorScheme.primaryContainer),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = item.displayIcon,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.size(16.dp)
+            val providerApp = (item as? ExplorerItem.Storage.SAF)?.providerApp
+            if (providerApp != null) {
+                AppIconImage(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(RoundedCornerShape(8.dp)),
+                    pkg = providerApp,
+                    fallback = { StorageIcon(item) },
                 )
+            } else {
+                StorageIcon(item)
             }
         },
         primaryText = item.displayName.get(context),
@@ -115,6 +115,24 @@ fun StorageRow(
             else -> null
         }
     )
+}
+
+@Composable
+private fun StorageIcon(item: ExplorerItem.Storage) {
+    Box(
+        modifier = Modifier
+            .size(32.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.primaryContainer),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = item.displayIcon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+            modifier = Modifier.size(16.dp)
+        )
+    }
 }
 
 /** Nothing is drawn while the probe is still checking, so the row does not flash a wrong verdict. */
@@ -261,6 +279,20 @@ private fun StorageRowNetworkSignInRequiredPreview() {
 private fun StorageRowSAFPreview() {
     StorageRow(
         item = MockDataProvider.createMockStorageSAF(),
+        onClick = {}
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun StorageRowSAFAppPreview() {
+    StorageRow(
+        item = MockDataProvider.createMockStorageSAF(
+            name = "Termux",
+            treeUri = "content://com.termux.documents/tree/%2Fdata%2Fdata%2Fcom.termux%2Ffiles%2Fhome",
+            providerApp = StorageProviderApp(packageName = "com.termux", appLabel = "Termux", lastUpdateTime = 0L),
+        ),
         onClick = {}
     )
 }
