@@ -3,11 +3,13 @@ package eu.darken.butler.common.files.local.operations.strategies
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.FileSystemOps
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.errors.PathAlreadyExistsException
+import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.operations.TransferStrategy
@@ -164,9 +166,15 @@ class LocalPathMoveStrategy(
         destOps: FileSystemOps<LocalPath, LocalPathLookup>
     ): TransferStrategy.TransferResult<LocalPath, LocalPath> {
         // move() refuses an occupied destination; the fallback's truncating copy must not then
-        // silently overwrite it either — route it through conflict handling instead.
-        if (!options.overwrite && destOps.exists(destination)) {
-            throw PathAlreadyExistsException(path = destination)
+        // silently overwrite it either — route it through conflict handling instead. The plain
+        // lookup maps a FIFO, socket or device node to FileType.UNKNOWN, i.e. to "absent", which
+        // is exactly what the strict probe tells apart.
+        if (!options.overwrite) {
+            when (destOps.existsStrict(destination)) {
+                Existence.PRESENT -> throw PathAlreadyExistsException(path = destination)
+                Existence.UNKNOWN -> throw WriteException("Cannot tell whether $destination exists", destination)
+                Existence.ABSENT -> Unit
+            }
         }
 
         var totalBytesTransferred = 0L

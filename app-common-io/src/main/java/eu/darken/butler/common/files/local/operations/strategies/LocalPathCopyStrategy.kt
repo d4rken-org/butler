@@ -3,10 +3,12 @@ package eu.darken.butler.common.files.local.operations.strategies
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.FileSystemOps
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.errors.PathAlreadyExistsException
+import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.local.LocalFileSystemOps
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
@@ -204,10 +206,19 @@ class LocalPathCopyStrategy(
         sourceOps: FileSystemOps<LocalPath, LocalPathLookup>,
         destOps: FileSystemOps<LocalPath, LocalPathLookup>
     ): TransferStrategy.TransferResult<LocalPath, LocalPath> {
-        // Check for existing file if overwrite is disabled
-        if (!options.overwrite && destOps.exists(destination)) {
-            log(TAG, DEBUG) { "Destination exists and overwrite=false: $destination" }
-            throw PathAlreadyExistsException(path = destination)
+        // Check for existing file if overwrite is disabled. The plain lookup maps a FIFO, socket or
+        // device node to FileType.UNKNOWN, i.e. to "absent", and the copy below opens the
+        // destination with TRUNCATE_EXISTING - with root that writes raw bytes into a device node.
+        if (!options.overwrite) {
+            when (destOps.existsStrict(destination)) {
+                Existence.PRESENT -> {
+                    log(TAG, DEBUG) { "Destination exists and overwrite=false: $destination" }
+                    throw PathAlreadyExistsException(path = destination)
+                }
+
+                Existence.UNKNOWN -> throw WriteException("Cannot tell whether $destination exists", destination)
+                Existence.ABSENT -> Unit
+            }
         }
 
         var totalBytesTransferred = 0L
