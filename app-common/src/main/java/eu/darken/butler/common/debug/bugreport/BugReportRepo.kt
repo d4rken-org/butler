@@ -19,6 +19,8 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import android.net.Uri
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -181,6 +183,9 @@ class BugReportRepo @Inject constructor(
         file.bufferedReader().useLines { lines ->
             lines.forEach { line ->
                 total++
+                // The loop itself never suspends, so without this an abandoned read keeps scanning
+                // to EOF. Sampled rather than per-line to keep the check off the hot path.
+                if (total % CANCEL_CHECK_LINES == 0) currentCoroutineContext().ensureActive()
                 if (ring.size == maxLines) ring.removeFirst()
                 ring.addLast(line)
             }
@@ -405,5 +410,6 @@ class BugReportRepo @Inject constructor(
         private val TAG = logTag("Debug", "BugReport", "Repo")
         private const val MAX_REPORTS = 25
         private const val TMP_GRACE_MS = 60_000L
+        private const val CANCEL_CHECK_LINES = 1000
     }
 }

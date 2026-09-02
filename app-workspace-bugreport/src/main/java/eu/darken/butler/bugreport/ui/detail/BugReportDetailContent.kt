@@ -2,6 +2,7 @@ package eu.darken.butler.bugreport.ui.detail
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,9 +20,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.ExpandLess
+import androidx.compose.material.icons.twotone.ExpandMore
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -69,6 +75,7 @@ fun BugReportDetailContent(
     onBack: () -> Unit,
     onShare: () -> Unit,
     onDelete: () -> Unit,
+    onToggleLog: (Boolean) -> Unit,
 ) {
     val paneInsets = design.paneInsets()
     val navBarInset = paneInsets.bottom
@@ -109,7 +116,12 @@ fun BugReportDetailContent(
             if (hasError) {
                 item { ErrorCard(report = report) }
             }
-            logSection(logState = detail.logState, logSizeBytes = detail.info.logSizeBytes)
+            logSection(
+                logState = detail.logState,
+                logSizeBytes = detail.info.logSizeBytes,
+                isExpanded = detail.isLogExpanded,
+                onToggle = { onToggleLog(!detail.isLogExpanded) },
+            )
         }
 
         FloatingBarStack(
@@ -222,13 +234,18 @@ private fun ErrorCard(report: BugReport) {
 private fun LazyListScope.logSection(
     logState: BugReportWorkspaceViewModel.LogState,
     logSizeBytes: Long,
+    isExpanded: Boolean,
+    onToggle: () -> Unit,
 ) {
     item {
         // Compact header: title on the left; size + line count ("3.2 kB · X lines" or
         // "… · last X of Y lines") on the right — the size lives here rather than in the metadata card.
+        // The row is the toggle, so it carries the minimum interactive height itself.
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .heightIn(min = 48.dp)
+                .clickable(role = Role.Button) { onToggle() }
                 .padding(top = 4.dp, bottom = 2.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -252,9 +269,24 @@ private fun LazyListScope.logSection(
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            Icon(
+                imageVector = if (isExpanded) Icons.TwoTone.ExpandLess else Icons.TwoTone.ExpandMore,
+                contentDescription = stringResource(
+                    if (isExpanded) {
+                        eu.darken.butler.common.R.string.general_collapse_action
+                    } else {
+                        eu.darken.butler.common.R.string.general_expand_action
+                    },
+                ),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(20.dp),
+            )
         }
     }
+    if (!isExpanded) return
     when (logState) {
+        BugReportWorkspaceViewModel.LogState.Idle -> {}
+
         BugReportWorkspaceViewModel.LogState.Loading -> item {
             Box(modifier = Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(modifier = Modifier.size(24.dp))
@@ -372,10 +404,12 @@ private fun BugReportDetailContentCrashPreview() {
                     shownLines = 12,
                     isTruncated = true,
                 ),
+                isLogExpanded = true,
             ),
             onBack = {},
             onShare = {},
             onDelete = {},
+            onToggleLog = {},
         )
     }
 }
@@ -394,10 +428,12 @@ private fun BugReportDetailContentRecordingPreview() {
                     shownLines = 8,
                     isTruncated = false,
                 ),
+                isLogExpanded = true,
             ),
             onBack = {},
             onShare = {},
             onDelete = {},
+            onToggleLog = {},
         )
     }
 }
@@ -411,10 +447,31 @@ private fun BugReportDetailContentLoadingPreview() {
             detail = BugReportWorkspaceViewModel.Detail(
                 info = BugReportInfo(report = sampleReport(BugReport.Type.REPORTED, withError = true), isSeen = true, logSizeBytes = 12_000L),
                 logState = BugReportWorkspaceViewModel.LogState.Loading,
+                isLogExpanded = true,
             ),
             onBack = {},
             onShare = {},
             onDelete = {},
+            onToggleLog = {},
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun BugReportDetailContentLogCollapsedPreview() {
+    PreviewWrapper {
+        BugReportDetailContent(
+            design = WorkspaceDesign(),
+            detail = BugReportWorkspaceViewModel.Detail(
+                info = BugReportInfo(report = sampleReport(BugReport.Type.CRASH, withError = true), isSeen = true, logSizeBytes = 24_000L),
+                logState = BugReportWorkspaceViewModel.LogState.Idle,
+                isLogExpanded = false,
+            ),
+            onBack = {},
+            onShare = {},
+            onDelete = {},
+            onToggleLog = {},
         )
     }
 }

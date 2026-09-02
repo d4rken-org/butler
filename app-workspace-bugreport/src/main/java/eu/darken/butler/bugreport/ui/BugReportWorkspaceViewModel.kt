@@ -20,9 +20,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 
 @HiltViewModel(assistedFactory = BugReportWorkspaceViewModel.Factory::class)
@@ -33,8 +36,13 @@ class BugReportWorkspaceViewModel @AssistedInject constructor(
     private val bugReportRecorder: BugReportRecorder,
 ) : ViewModel3(dispatchers, logTag("BugReport", "Workspace", id.shortTag, "Page")) {
 
-    /** The report currently shown in the full-screen detail view, or null while on the list. */
-    private val selectedReportId = MutableStateFlow<String?>(null)
+    // One object rather than one flow per field: a report switch has to be observable as a single
+    // value, otherwise a collector can see the new report paired with the previous report's
+    // expansion and start a full log scan that is immediately cancelled again.
+    private val logSelection = MutableStateFlow(LogSelection())
+
+    // What the last completed read produced, so a retry can be told apart from a cached tail.
+    private val lastLogState = MutableStateFlow<LogState?>(null)
 
     // Overlay visibility lives here rather than in the page host: the page and its overlays are
     // siblings, so a `remember` in the page would be a different instance from the one the overlays
@@ -65,52 +73,61 @@ class BugReportWorkspaceViewModel @AssistedInject constructor(
         if (it.activeDialog is ActiveDialog.DeleteAllConfirmation) it.copy(activeDialog = null) else it
     }
 
-    // Loads the selected report's log tail. flatMapLatest cancels an in-flight load when the selection
-    // changes, and runCatching keeps a read failure (e.g. the report deleted between scan and read)
-    // from killing the collector — it surfaces as LogState.Error instead.
-    private val detailLog: Flow<DetailLog?> = selectedReportId.flatMapLatest { reportId ->
-        if (reportId == null) {
-            flowOf(null)
-        } else {
-            flow {
-                emit(DetailLog(reportId, LogState.Loading))
-                val logState = try {
-                    val tail = bugReportRepo.readLogTail(reportId, MAX_LOG_PREVIEW_LINES)
-                    if (tail.totalLines == 0) {
-                        LogState.Empty
-                    } else {
-                        LogState.Loaded(
-                            lines = tail.lines,
-                            totalLines = tail.totalLines,
-                            shownLines = tail.lines.size,
-                            isTruncated = tail.totalLines > tail.lines.size,
-                        )
+    // Loads the selected report's log tail once the user has asked for it — a requestId of 0 means
+    // the section was never expanded, so nothing is read from disk. Keying on report + request id
+    // (distinct) is what keeps a plain collapse/expand from restarting a completed read.
+    // flatMapLatest cancels an in-flight load when either changes, and catching a read failure
+    // (e.g. the report deleted between scan and read) keeps it from killing the collector — it
+    // surfaces as LogState.Error instead.
+    private val detailLog: Flow<DetailLog?> = logSelection
+        .map { it.reportId to it.requestId }
+        .distinctUntilChanged()
+        .flatMapLatest { (reportId, requestId) ->
+            if (reportId == null || requestId == 0) {
+                flowOf(null)
+            } else {
+                flow {
+                    emit(DetailLog(reportId, LogState.Loading))
+                    val logState = try {
+                        val tail = bugReportRepo.readLogTail(reportId, MAX_LOG_PREVIEW_LINES)
+                        if (tail.totalLines == 0) {
+                            LogState.Empty
+                        } else {
+                            LogState.Loaded(
+                                lines = tail.lines,
+                                totalLines = tail.totalLines,
+                                shownLines = tail.lines.size,
+                                isTruncated = tail.totalLines > tail.lines.size,
+                            )
+                        }
+                    } catch (e: CancellationException) {
+                        // Selection changed/closed mid-read — let cancellation propagate, don't log an error.
+                        throw e
+                    } catch (e: Exception) {
+                        log(tag, ERROR) { "readLogTail failed for $reportId: ${e.asLog()}" }
+                        LogState.Error
                     }
-                } catch (e: CancellationException) {
-                    // Selection changed/closed mid-read — let cancellation propagate, don't log an error.
-                    throw e
-                } catch (e: Exception) {
-                    log(tag, ERROR) { "readLogTail failed for $reportId: ${e.asLog()}" }
-                    LogState.Error
+                    emit(DetailLog(reportId, logState))
                 }
-                emit(DetailLog(reportId, logState))
             }
         }
-    }
+        .onEach { lastLogState.value = it?.state }
 
     val state = combine(
         bugReportRepo.reports,
         bugReportRecorder.state,
-        selectedReportId,
+        logSelection,
         detailLog,
-    ) { reports, recorder, selectedId, loadedLog ->
+    ) { reports, recorder, selection, loadedLog ->
         // Derive the detail from the live list: if the selected report is gone (deleted/pruned), the
         // detail collapses to null and the UI returns to the list automatically.
-        val detail = selectedId?.let { sid ->
+        val detail = selection.reportId?.let { sid ->
             reports.firstOrNull { it.id == sid }?.let { info ->
                 Detail(
                     info = info,
-                    logState = loadedLog?.takeIf { it.reportId == sid }?.state ?: LogState.Loading,
+                    logState = loadedLog?.takeIf { it.reportId == sid }?.state
+                        ?: if (selection.expanded) LogState.Loading else LogState.Idle,
+                    isLogExpanded = selection.expanded,
                 )
             }
         }
@@ -124,14 +141,32 @@ class BugReportWorkspaceViewModel @AssistedInject constructor(
         )
     }.asStateFlow()
 
+    /** Every selection change goes through here, so a report switch always resets the log state too. */
+    private fun selectReport(reportId: String?) {
+        logSelection.value = LogSelection(reportId)
+        lastLogState.value = null
+    }
+
     fun openReport(reportId: String) {
         log(tag, INFO) { "openReport($reportId)" }
-        selectedReportId.value = reportId
+        selectReport(reportId)
         markSeen(reportId)
     }
 
     fun closeReport() {
-        selectedReportId.value = null
+        selectReport(null)
+    }
+
+    fun setLogExpanded(expanded: Boolean) {
+        logSelection.update { current ->
+            // A new request id restarts the read. Re-expanding after a failure is the retry path; a
+            // successful tail stays cached across collapse/expand cycles.
+            val needsLoad = expanded && (current.requestId == 0 || lastLogState.value == LogState.Error)
+            current.copy(
+                expanded = expanded,
+                requestId = if (needsLoad) current.requestId + 1 else current.requestId,
+            )
+        }
     }
 
     /** Acknowledge a report so a crash no longer auto-surfaces. Called on explicit user actions. */
@@ -142,7 +177,7 @@ class BugReportWorkspaceViewModel @AssistedInject constructor(
     fun delete(reportId: String) = launch {
         log(tag, INFO) { "delete($reportId)" }
         bugReportRepo.delete(reportId)
-        if (selectedReportId.value == reportId) selectedReportId.value = null
+        if (logSelection.value.reportId == reportId) selectReport(null)
     }
 
     fun deleteAll() {
@@ -152,7 +187,7 @@ class BugReportWorkspaceViewModel @AssistedInject constructor(
         dismissDeleteAllConfirmation()
         launch {
             bugReportRepo.deleteAll()
-            selectedReportId.value = null
+            selectReport(null)
         }
     }
 
@@ -203,9 +238,12 @@ class BugReportWorkspaceViewModel @AssistedInject constructor(
     data class Detail(
         val info: BugReportInfo,
         val logState: LogState,
+        val isLogExpanded: Boolean,
     )
 
     sealed interface LogState {
+        /** The log has not been requested yet — the section is collapsed and nothing was read. */
+        data object Idle : LogState
         data object Loading : LogState
         data class Loaded(
             val lines: List<String>,
@@ -221,6 +259,13 @@ class BugReportWorkspaceViewModel @AssistedInject constructor(
     private data class DetailLog(
         val reportId: String,
         val state: LogState,
+    )
+
+    /** [requestId] 0 means the log was never requested; each increment starts a fresh read. */
+    private data class LogSelection(
+        val reportId: String? = null,
+        val expanded: Boolean = false,
+        val requestId: Int = 0,
     )
 
     @AssistedFactory

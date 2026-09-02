@@ -117,6 +117,7 @@ fun BugReportWorkspacePageHost(
             state = s,
             onReportClick = { info -> vm.openReport(info.id) },
             onBack = { vm.closeReport() },
+            onToggleLog = { vm.setLogExpanded(it) },
             onShareReport = { report -> vm.requestShareConsent(report.id) },
             onDeleteReport = { id -> vm.delete(id) },
             onDeleteAll = { vm.requestDeleteAllConfirmation() },
@@ -138,6 +139,7 @@ fun BugReportWorkspacePage(
     onDeleteAll: () -> Unit = {},
     onStartRecording: () -> Unit = {},
     onStopRecording: () -> Unit = {},
+    onToggleLog: (Boolean) -> Unit = {},
 ) {
     val detail = state.detail
     if (detail != null) {
@@ -148,6 +150,7 @@ fun BugReportWorkspacePage(
             onBack = onBack,
             onShare = { onShareReport(detail.info.report) },
             onDelete = { onDeleteReport(detail.info.id) },
+            onToggleLog = onToggleLog,
         )
         return
     }
