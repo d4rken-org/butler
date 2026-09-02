@@ -1,8 +1,11 @@
 package eu.darken.butler.common.files.operations
 
+import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.local.LocalPathLookup
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
@@ -374,6 +377,71 @@ class GenericPathDeleteIssueTest : BaseTest() {
         mockOps.hasFile("/file1.txt") shouldBe false
         mockOps.hasFile("/file2.txt") shouldBe false
         mockOps.hasFile("/file3.txt") shouldBe true // This one failed and still exists
+    }
+
+    /**
+     * A mock whose lookup fails with a denial rather than a "not found", so what the operation does
+     * with it is decided by the strict probe alone.
+     */
+    private fun deniedLookupOps(probe: () -> Existence) = object : MockFileSystemOps<LocalPath, LocalPathLookup>(
+        { path, type, size, modifiedAt, permissions, ownership, createdAt ->
+            LocalPathLookup(
+                lookedUp = path,
+                fileType = type,
+                size = size,
+                modifiedAt = modifiedAt ?: kotlin.time.Instant.fromEpochMilliseconds(0),
+                target = null,
+                ownership = ownership,
+                permissions = permissions,
+                createdAt = createdAt,
+            )
+        },
+    ) {
+        override suspend fun lookup(path: LocalPath, options: LookupOptions): LocalPathLookup =
+            throw SecurityException("Permission denied")
+
+        override suspend fun existsStrict(path: LocalPath): Existence {
+            existsStrictCalls.add(path.path)
+            return probe()
+        }
+    }
+
+    @Test
+    fun `a denied path that cannot be verified is not swallowed by ignoreMissing`() = runTest {
+        // ignoreMissing may only skip a definitive "not there". The probe answers UNKNOWN, so this
+        // has to surface instead of being counted as a completed delete.
+        val ops = deniedLookupOps { Existence.UNKNOWN }
+
+        shouldThrow<ReadException> {
+            LocalPath.build("/file.txt").deleteGeneric(
+                fileSystemOps = ops,
+                recursive = true,
+                ignoreMissing = true,
+                onIssue = { PathActionIssue.UnknownError.Resolution.Skip() },
+            ).last()
+        }
+
+        ops.existsStrictCalls shouldContain "/file.txt"
+    }
+
+    @Test
+    fun `a cancelled existence probe cancels the delete`() = runTest {
+        val ops = deniedLookupOps { throw CancellationException("cancel probe") }
+        var issueCount = 0
+
+        shouldThrow<CancellationException> {
+            LocalPath.build("/file.txt").deleteGeneric(
+                fileSystemOps = ops,
+                recursive = true,
+                ignoreMissing = true,
+                onIssue = {
+                    issueCount++
+                    PathActionIssue.UnknownError.Resolution.Skip()
+                },
+            ).last()
+        }
+
+        issueCount shouldBe 0
     }
 
     // ============ SCAN ERROR HANDLING ============
