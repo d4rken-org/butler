@@ -86,8 +86,14 @@ class TextPreviewLoader @Inject constructor(
         return TextPreview(
             lines = lines,
             charset = decoded.charset,
-            isTruncated = cutByBytes || cutByLines || cutByWidth,
-            limitBytes = MAX_PREVIEW_BYTES.toLong(),
+            // Outermost bound first: reading stopped before the line bounds ever saw the rest, so
+            // naming a line limit for a file cut at the byte cap would name the wrong one.
+            truncation = when {
+                cutByBytes -> TextPreview.Truncation.Bytes(MAX_PREVIEW_BYTES.toLong())
+                cutByLines -> TextPreview.Truncation.Lines(MAX_LINES)
+                cutByWidth -> TextPreview.Truncation.LineWidth(MAX_LINE_CHARS)
+                else -> null
+            },
         )
     }
 
@@ -195,8 +201,19 @@ data class TextPreview(
     /** Already bounded in both count and width - the UI renders these as they are. */
     val lines: List<String>,
     val charset: Charset,
-    /** True when any of the three bounds cut something, whichever one it was. */
-    val isTruncated: Boolean,
-    /** The byte cap, for the banner that explains it. */
-    val limitBytes: Long,
-)
+    /** Null when this is the whole file. */
+    val truncation: Truncation? = null,
+) {
+    val isTruncated: Boolean get() = truncation != null
+
+    /**
+     * Which bound cut the preview, and where it sits. The UI names the one that actually applied: a
+     * 42 kB minified file cut at the line width has not been "limited to the first 1 MB", and
+     * saying so sends the reader looking for a megabyte that was never there.
+     */
+    sealed interface Truncation {
+        data class Bytes(val limit: Long) : Truncation
+        data class Lines(val limit: Int) : Truncation
+        data class LineWidth(val limit: Int) : Truncation
+    }
+}

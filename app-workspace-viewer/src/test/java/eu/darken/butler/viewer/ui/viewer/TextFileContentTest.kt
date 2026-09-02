@@ -17,15 +17,16 @@ class TextFileContentTest : ComposeTest() {
 
     private val context = ApplicationProvider.getApplicationContext<Context>()
 
-    private fun preview(vararg lines: String, isTruncated: Boolean = false) = TextPreview(
+    private fun preview(vararg lines: String, truncation: TextPreview.Truncation? = null) = TextPreview(
         lines = lines.toList(),
         charset = Charsets.UTF_8,
-        isTruncated = isTruncated,
-        limitBytes = 1024 * 1024,
+        truncation = truncation,
     )
 
+    private val byteLimit = TextPreview.Truncation.Bytes(1024 * 1024)
+
     private fun truncationNotice() = context.getString(
-        R.string.viewer_text_truncated_notice,
+        R.string.viewer_text_truncated_bytes,
         android.text.format.Formatter.formatShortFileSize(context, 1024 * 1024),
     )
 
@@ -48,16 +49,25 @@ class TextFileContentTest : ComposeTest() {
         composeTestRule.onAllNodesWithText(truncationNotice()).fetchSemanticsNodes().size shouldBe 0
     }
 
-    /** The cut has to be stated where the reader is, not at the end of a list they may never reach. */
+    /** The notice is a bar in the viewer's chrome now, so the content itself carries none of it. */
     @Test
-    fun `a truncated file says so and offers the editor`() {
+    fun `a truncated file's content shows no notice of its own`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                TextFileContent(preview = preview("alpha", "bravo", truncation = byteLimit))
+            }
+        }
+
+        composeTestRule.onNodeWithText("alpha").assertIsDisplayed()
+        composeTestRule.onAllNodesWithText(truncationNotice()).fetchSemanticsNodes().size shouldBe 0
+    }
+
+    @Test
+    fun `the truncation bar states the limit and offers the editor`() {
         var opened = false
         composeTestRule.setContent {
             PreviewWrapper {
-                TextFileContent(
-                    preview = preview("alpha", "bravo", isTruncated = true),
-                    onOpenInEditor = { opened = true },
-                )
+                TextTruncationBar(truncation = byteLimit, onOpenInEditor = { opened = true })
             }
         }
 
@@ -71,13 +81,10 @@ class TextFileContentTest : ComposeTest() {
 
     /** The Editor needs a path, so a stream must not be offered a button that does nothing. */
     @Test
-    fun `a truncated stream offers no editor button`() {
+    fun `the truncation bar offers no editor button without a path`() {
         composeTestRule.setContent {
             PreviewWrapper {
-                TextFileContent(
-                    preview = preview("alpha", isTruncated = true),
-                    editorAvailable = false,
-                )
+                TextTruncationBar(truncation = byteLimit, onOpenInEditor = null)
             }
         }
 
@@ -135,5 +142,47 @@ class TextFileContentTest : ComposeTest() {
         }
 
         composeTestRule.onAllNodesWithText(truncationNotice()).fetchSemanticsNodes().size shouldBe 0
+    }
+
+    /**
+     * A 42 kB minified file cut at the line width has not been "limited to the first 1 MB", and
+     * saying so sends the reader looking for a megabyte that was never there.
+     */
+    @Test
+    fun `the bar names the bound that actually cut`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                TextTruncationBar(
+                    truncation = TextPreview.Truncation.LineWidth(2_000),
+                    onOpenInEditor = {},
+                )
+            }
+        }
+
+        composeTestRule
+            .onNodeWithText(context.getString(R.string.viewer_text_truncated_width))
+            .assertIsDisplayed()
+        composeTestRule.onAllNodesWithText(truncationNotice()).fetchSemanticsNodes().size shouldBe 0
+    }
+
+    @Test
+    fun `a line-count cut names the line limit`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                TextTruncationBar(
+                    truncation = TextPreview.Truncation.Lines(50_000),
+                    onOpenInEditor = {},
+                )
+            }
+        }
+
+        composeTestRule
+            .onNodeWithText(
+                context.getString(
+                    R.string.viewer_text_truncated_lines,
+                    java.text.NumberFormat.getIntegerInstance().format(50_000),
+                ),
+            )
+            .assertIsDisplayed()
     }
 }

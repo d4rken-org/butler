@@ -380,6 +380,27 @@ fun ViewerWorkspacePage(
                             }
                         }
 
+                        // A cut preview is a property of the whole file, so it belongs in the
+                        // chrome with the other bars rather than at the end of a list the reader
+                        // may never scroll to.
+                        val truncated = state.content is ViewerContent.Text &&
+                            state.textPreview?.preview?.isTruncated == true
+                        FloatingBar(
+                            key = ViewerBarKeys.TEXT_TRUNCATED,
+                            visible = chromeShown && truncated,
+                            scrollBehavior = BarScrollBehavior.HideOnScroll,
+                            animation = BarAnimation.Slide(),
+                        ) {
+                            state.textPreview?.preview?.truncation?.let {
+                                TextTruncationBar(
+                                    truncation = it,
+                                    onOpenInEditor = onOpenInEditor.takeIf {
+                                        state.actions.contains(ViewerActionBarItem.OpenInEditor)
+                                    },
+                                )
+                            }
+                        }
+
                         // Metadata read before the failure describes a file that is no longer
                         // there, so next to the error it would read as current.
                         val fileInfo = state.fileInfo?.takeIf { state.content !is ViewerContent.Failed }

@@ -17,4 +17,5 @@ internal object ViewerBarKeys {
     const val ACTIONS = "actions"
     const val FILEINFO = "fileinfo"
     const val PDF_HINT = "pdfhint"
+    const val TEXT_TRUNCATED = "texttruncated"
 }

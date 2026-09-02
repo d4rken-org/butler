@@ -4,12 +4,9 @@ import android.text.format.Formatter
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.calculateEndPadding
-import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -20,26 +17,21 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.DriveFileRenameOutline
 import androidx.compose.material.icons.twotone.WarningAmber
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
@@ -48,6 +40,7 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.viewer.R
 import eu.darken.butler.viewer.core.TextPreview
+import java.text.NumberFormat
 
 /**
  * A read-only look at a text file.
@@ -67,6 +60,7 @@ fun TextFileContent(
      * Editor to open, and neither has a file that is gone - a button for either does nothing at all.
      */
     editorAvailable: Boolean = true,
+
     contentPadding: PaddingValues = PaddingValues(0.dp),
     barScrollConnections: List<NestedScrollConnection> = emptyList(),
     onOpenInEditor: () -> Unit = {},
@@ -87,92 +81,65 @@ fun TextFileContent(
         return
     }
 
-    // The banner floats over the list like the bars do, so the list has to inset for it as well or
-    // its last lines would sit underneath it. Measured rather than assumed: the text wraps on a
-    // narrow pane and at large font scales.
-    val layoutDirection = LocalLayoutDirection.current
-    val density = LocalDensity.current
-    var bannerHeight by remember { mutableStateOf(0.dp) }
-    // bannerHeight is measured with the bar inset already inside it, so it REPLACES the bottom
-    // inset rather than adding to it. Zero unless the banner is actually on screen, or a preview
-    // that stopped being truncated would keep its gap.
-    val listBottom = if (preview.isTruncated && bannerHeight > 0.dp) {
-        bannerHeight
-    } else {
-        contentPadding.calculateBottomPadding()
-    }
-    val listPadding = remember(contentPadding, listBottom, layoutDirection) {
-        PaddingValues(
-            start = contentPadding.calculateStartPadding(layoutDirection),
-            top = contentPadding.calculateTopPadding(),
-            end = contentPadding.calculateEndPadding(layoutDirection),
-            bottom = listBottom,
-        )
-    }
-
-    Box(modifier = modifier.fillMaxSize()) {
-        SelectionContainer {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .let { base -> barScrollConnections.fold(base) { acc, c -> acc.nestedScroll(c) } }
-                    // Not `clickable`: this is a whole scrolling list, and a click role plus a
-                    // ripple on it would be wrong.
-                    .let { base ->
-                        if (onToggleChrome == null) base
-                        else base.pointerInput(onToggleChrome) { detectTapGestures { onToggleChrome() } }
-                    },
-                contentPadding = listPadding,
-            ) {
-                items(preview.lines.size) { index ->
-                    Text(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState())
-                            .padding(horizontal = 12.dp),
-                        text = preview.lines[index],
-                        style = MaterialTheme.typography.bodySmall,
-                        fontFamily = FontFamily.Monospace,
-                        softWrap = false,
-                    )
-                }
+    SelectionContainer(modifier = modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .let { base -> barScrollConnections.fold(base) { acc, c -> acc.nestedScroll(c) } }
+                // Not `clickable`: this is a whole scrolling list, and a click role plus a ripple
+                // on it would be wrong.
+                .let { base ->
+                    if (onToggleChrome == null) base
+                    else base.pointerInput(onToggleChrome) { detectTapGestures { onToggleChrome() } }
+                },
+            contentPadding = contentPadding,
+        ) {
+            items(preview.lines.size) { index ->
+                Text(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState())
+                        .padding(horizontal = 12.dp),
+                    text = preview.lines[index],
+                    style = MaterialTheme.typography.bodySmall,
+                    fontFamily = FontFamily.Monospace,
+                    softWrap = false,
+                )
             }
-        }
-
-        if (preview.isTruncated) {
-            TruncationBanner(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .onSizeChanged { bannerHeight = with(density) { it.height.toDp() } }
-                    // Only the bottom inset: the banner sits above the bottom bar, and the other
-                    // three would pad its own box rather than move it.
-                    .padding(bottom = contentPadding.calculateBottomPadding()),
-                limitBytes = preview.limitBytes,
-                onOpenInEditor = onOpenInEditor.takeIf { editorAvailable },
-            )
         }
     }
 }
 
 /**
- * Says the preview stops short and offers the one thing that does not. Anchored to the bottom rather
- * than placed at the end of the list: the cut is a property of the whole preview, and a reader who
- * never scrolls to the end would otherwise take a partial file for the whole one.
+ * Says the preview stops short and offers the one thing that does not.
+ *
+ * A bar in the viewer's chrome rather than an item at the end of the list: the cut is a property of
+ * the whole preview, and a reader who never scrolls to the end would otherwise take a partial file
+ * for the whole one. [onOpenInEditor] is null where the Editor has nothing to open.
  */
 @Composable
-private fun TruncationBanner(
+fun TextTruncationBar(
     modifier: Modifier = Modifier,
-    limitBytes: Long,
+    truncation: TextPreview.Truncation,
     onOpenInEditor: (() -> Unit)?,
 ) {
     val context = LocalContext.current
-    val limitText = remember(limitBytes) { Formatter.formatShortFileSize(context, limitBytes) }
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.secondaryContainer,
-        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-        tonalElevation = 3.dp,
-    ) {
+    val notice = remember(truncation, context) {
+        when (truncation) {
+            is TextPreview.Truncation.Bytes -> context.getString(
+                R.string.viewer_text_truncated_bytes,
+                Formatter.formatShortFileSize(context, truncation.limit),
+            )
+
+            is TextPreview.Truncation.Lines -> context.getString(
+                R.string.viewer_text_truncated_lines,
+                NumberFormat.getIntegerInstance().format(truncation.limit),
+            )
+
+            is TextPreview.Truncation.LineWidth -> context.getString(R.string.viewer_text_truncated_width)
+        }
+    }
+    Card(modifier = modifier) {
         Row(
             modifier = Modifier.padding(start = 16.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -185,7 +152,7 @@ private fun TruncationBanner(
             )
             Text(
                 modifier = Modifier.weight(1f),
-                text = stringResource(R.string.viewer_text_truncated_notice, limitText),
+                text = notice,
                 style = MaterialTheme.typography.bodySmall,
             )
             if (onOpenInEditor != null) {
@@ -249,8 +216,6 @@ private fun TextFileContentPreview() {
         preview = TextPreview(
             lines = previewLines,
             charset = Charsets.UTF_8,
-            isTruncated = false,
-            limitBytes = 1024 * 1024,
         ),
     )
 }
@@ -258,15 +223,31 @@ private fun TextFileContentPreview() {
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
-private fun TextFileContentTruncatedPreview() {
-    TextFileContent(
-        preview = TextPreview(
-            lines = previewLines,
-            charset = Charsets.UTF_8,
-            isTruncated = true,
-            limitBytes = 1024 * 1024,
-        ),
-    )
+private fun TextTruncationBarPreview() {
+    TextTruncationBar(truncation = TextPreview.Truncation.Bytes(1024 * 1024), onOpenInEditor = {})
+}
+
+/** A 42 kB minified file is not "limited to the first 1 MB" - the width bound is what cut it. */
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun TextTruncationBarWidthPreview() {
+    TextTruncationBar(truncation = TextPreview.Truncation.LineWidth(2_000), onOpenInEditor = {})
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun TextTruncationBarLinesPreview() {
+    TextTruncationBar(truncation = TextPreview.Truncation.Lines(50_000), onOpenInEditor = {})
+}
+
+/** Streamed content has no path for the Editor, so the bar states the limit and offers nothing. */
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun TextTruncationBarNoEditorPreview() {
+    TextTruncationBar(truncation = TextPreview.Truncation.Bytes(1024 * 1024), onOpenInEditor = null)
 }
 
 @Preview2
@@ -277,8 +258,6 @@ private fun TextFileContentEmptyPreview() {
         preview = TextPreview(
             lines = listOf(""),
             charset = Charsets.UTF_8,
-            isTruncated = false,
-            limitBytes = 1024 * 1024,
         ),
     )
 }

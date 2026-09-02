@@ -106,6 +106,8 @@
     <string name="viewer_error_content_unreadable_description">The app that shared %1$s is no longer letting Butler read it. Ask that app to share it again.</string>
     <string name="viewer_save_copy_action">Save a copy…</string>
     <string name="viewer_open_in_editor_action">Open in editor</string>
-    <string name="viewer_text_truncated_notice">Preview limited to the first %1$s of this file.</string>
+    <string name="viewer_text_truncated_bytes">Preview limited to the first %1$s of this file.</string>
+    <string name="viewer_text_truncated_lines">Preview limited to the first %1$s lines of this file.</string>
+    <string name="viewer_text_truncated_width">Long lines are shortened in this preview.</string>
     <string name="viewer_text_unreadable_label">This file couldn\'t be read</string>
 </resources>
