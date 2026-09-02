@@ -33,9 +33,16 @@ class EdgeAutoScroller(
 
     private var job: Job? = null
     private var pointer: Offset = Offset.Unspecified
+    private var startInset: Float = 0f
+    private var endInset: Float = 0f
 
-    fun update(pointer: Offset) {
+    /**
+     * The insets shrink the edge zones to the visible part of the viewport when bars overlay it.
+     */
+    fun update(pointer: Offset, startInset: Float = 0f, endInset: Float = 0f) {
         this.pointer = pointer
+        this.startInset = startInset
+        this.endInset = endInset
         if (speedFor(pointer) == 0f) {
             stop()
             return
@@ -64,8 +71,8 @@ class EdgeAutoScroller(
         if (pointer == Offset.Unspecified) return 0f
         val viewport = target.viewportMainAxisSize.toFloat()
         if (viewport <= 0f) return 0f
-        val toStart = pointer.y
-        val toEnd = viewport - pointer.y
+        val toStart = pointer.y - startInset
+        val toEnd = (viewport - endInset) - pointer.y
         return when {
             toStart < edgePx -> -maxSpeedPx * ((edgePx - toStart.coerceAtLeast(0f)) / edgePx)
             toEnd < edgePx -> maxSpeedPx * ((edgePx - toEnd.coerceAtLeast(0f)) / edgePx)
