@@ -279,7 +279,7 @@ private fun LazyListScope.logSection(
                     },
                 ),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(20.dp),
+                modifier = Modifier.padding(start = 4.dp).size(20.dp),
             )
         }
     }
