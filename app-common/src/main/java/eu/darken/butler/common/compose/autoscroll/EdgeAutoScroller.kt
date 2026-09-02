@@ -71,11 +71,18 @@ class EdgeAutoScroller(
         if (pointer == Offset.Unspecified) return 0f
         val viewport = target.viewportMainAxisSize.toFloat()
         if (viewport <= 0f) return 0f
+        if (viewport - startInset - endInset <= 0f) return 0f
         val toStart = pointer.y - startInset
         val toEnd = (viewport - endInset) - pointer.y
+        val nearStart = toStart < edgePx
+        val nearEnd = toEnd < edgePx
         return when {
-            toStart < edgePx -> -maxSpeedPx * ((edgePx - toStart.coerceAtLeast(0f)) / edgePx)
-            toEnd < edgePx -> maxSpeedPx * ((edgePx - toEnd.coerceAtLeast(0f)) / edgePx)
+            nearStart && nearEnd -> when {
+                toStart <= toEnd -> -maxSpeedPx * ((edgePx - toStart.coerceAtLeast(0f)) / edgePx)
+                else -> maxSpeedPx * ((edgePx - toEnd.coerceAtLeast(0f)) / edgePx)
+            }
+            nearStart -> -maxSpeedPx * ((edgePx - toStart.coerceAtLeast(0f)) / edgePx)
+            nearEnd -> maxSpeedPx * ((edgePx - toEnd.coerceAtLeast(0f)) / edgePx)
             else -> 0f
         }
     }
