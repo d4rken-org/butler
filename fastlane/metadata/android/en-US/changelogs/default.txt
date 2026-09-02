@@ -1,8 +1,5 @@
-Butler 🤵 is actively developed and getting frequent updates.
-I'm adding new stuff all the time! Got ideas? Let me know 😊
+Bug fixes and small improvements, so managing files on your device stays fast and gets out of your way.
 
-This update may contain bug fixes 🐛, performance boosts 🚀, and even new features ✨.
-A detailed list of changes can be found here: https://butler.darken.eu/changelog
+What changed in this version: butler.darken.eu/changelog
 
-Questions? Just mail me!
-Note: It’s just me here, sometimes replies might take a bit. Sorry for that!
+Something broke or behaves oddly after updating? Tell me via Settings > Support. It's a one-person project, so replies can take a little while, but every report gets read.
