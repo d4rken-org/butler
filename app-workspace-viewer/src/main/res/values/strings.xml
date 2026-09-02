@@ -7,6 +7,8 @@
     <string name="viewer_back_action">Back</string>
 
     <!-- Action bar -->
+    <string name="viewer_previous_file_action">Previous file</string>
+    <string name="viewer_next_file_action">Next file</string>
     <string name="viewer_open_location_action">Open location</string>
     <string name="viewer_clipboard_copied">%1$s copied. Paste it in an Explorer tab.</string>
     <string name="viewer_clipboard_cut">%1$s cut. Paste it in an Explorer tab to move it.</string>

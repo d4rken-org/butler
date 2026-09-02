@@ -1,6 +1,8 @@
 package eu.darken.butler.viewer.ui.viewer
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.twotone.NavigateBefore
+import androidx.compose.material.icons.automirrored.twotone.NavigateNext
 import androidx.compose.material.icons.automirrored.twotone.OpenInNew
 import androidx.compose.material.icons.twotone.ContentCopy
 import androidx.compose.material.icons.twotone.ContentCut
@@ -33,6 +35,22 @@ sealed interface ViewerActionBarItem : WorkspaceActionBarItem {
     override val isDestructive: Boolean get() = false
     override val group: WorkspaceActionBarItem.Group get() = WorkspaceActionBarItem.Group.PRIMARY
     override val badge: Boolean get() = false
+
+    /** Step to the previous file of the listing this viewer was opened from. */
+    data class PreviousFile(
+        override val isEnabled: Boolean,
+    ) : ViewerActionBarItem {
+        override val icon = Icons.AutoMirrored.TwoTone.NavigateBefore
+        override val label = R.string.viewer_previous_file_action.toCaString()
+    }
+
+    /** Step to the next file of that same listing. */
+    data class NextFile(
+        override val isEnabled: Boolean,
+    ) : ViewerActionBarItem {
+        override val icon = Icons.AutoMirrored.TwoTone.NavigateNext
+        override val label = R.string.viewer_next_file_action.toCaString()
+    }
 
     /**
      * Write streamed content to a place the user picks. The only action a streamed source offers,
