@@ -472,6 +472,44 @@ class WorkspacePageManager @Inject constructor(
         }
     }
 
+    /**
+     * Detaches [workspaceId] from the pane it occupies, leaving the tab open and in the list.
+     *
+     * Focus is repaired here rather than left to [setSelectedWorkspaces]: that one falls back to the
+     * assignment map's first entry, and the map is ordered by when panes were filled, so the fallback
+     * can land on an index no pane renders. It also cannot see a focused modal child, which never
+     * appears in the map, and would move focus off it whenever any pane is detached.
+     */
+    suspend fun unassignWorkspace(workspaceId: Workspace.Id) {
+        log(TAG) { "unassignWorkspace($workspaceId)" }
+        // Before the update block, which cannot suspend - same as handleWorkspaceSelection.
+        val infos = workspaceRemote.state.first().infos
+
+        _state.update { currentState ->
+            val remaining = currentState.selectedWorkspaces.filterValues { it != workspaceId }
+            if (remaining.size == currentState.selectedWorkspaces.size) {
+                log(TAG) { "unassignWorkspace: $workspaceId occupies no pane, nothing to do" }
+                return@update currentState
+            }
+
+            val rendered = remaining.filterKeys { it in 0 until currentState.currentPaneCount }
+            val focusedRoot = currentState.focusedWorkspaceId
+                ?.let { WorkspaceStacks(infos).rootOf(it)?.id }
+
+            val newFocus = when {
+                // The focused workspace - or the tab owning a focused modal - still has a pane on
+                // screen, so detaching a different one must not disturb it.
+                focusedRoot != null && rendered.containsValue(focusedRoot) -> currentState.focusedWorkspaceId
+                // Lowest rendered pane, so focus never lands on a retained index the layout does not
+                // draw. Retained indices are always at or above the pane count, so the minimum key is
+                // a rendered pane whenever one survives.
+                else -> rendered.minByOrNull { it.key }?.value ?: currentState.focusedWorkspaceId
+            }
+
+            currentState.copy(selectedWorkspaces = remaining, focusedWorkspaceId = newFocus)
+        }
+    }
+
     fun setSelectedWorkspaces(selections: Map<Int, Workspace.Id>) {
         _state.update { currentState ->
             // Auto-focus first selected if current focus not in selection

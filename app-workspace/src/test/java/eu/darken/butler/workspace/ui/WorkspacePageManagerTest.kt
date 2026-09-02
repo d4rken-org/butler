@@ -1510,4 +1510,144 @@ class WorkspacePageManagerTest : BaseTest() {
         collections shouldBe 0
         pageManager.state.value.selectedWorkspaces shouldBe mapOf(0 to paneOne, 1 to paneTwo)
     }
+
+    @Test
+    fun `detaching a tab frees its pane and leaves the other assignments alone`() = runTest {
+        val paneZero = Workspace.Id()
+        val paneOne = Workspace.Id()
+        val paneTwo = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(
+                createWorkspaceInfo(id = paneZero),
+                createWorkspaceInfo(id = paneOne),
+                createWorkspaceInfo(id = paneTwo),
+            )
+        )
+        pageManager.setPaneCount(3)
+        pageManager.applyRestoredUIState(paneZero, mapOf(0 to paneZero, 1 to paneOne, 2 to paneTwo))
+
+        pageManager.unassignWorkspace(paneOne)
+
+        val after = pageManager.state.value
+        after.selectedWorkspaces shouldBe mapOf(0 to paneZero, 2 to paneTwo)
+        after.focusedWorkspaceId shouldBe paneZero
+    }
+
+    @Test
+    fun `detaching a tab that occupies no pane changes nothing`() = runTest {
+        val paneZero = Workspace.Id()
+        val unassigned = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(createWorkspaceInfo(id = paneZero), createWorkspaceInfo(id = unassigned))
+        )
+        pageManager.setPaneCount(2)
+        pageManager.applyRestoredUIState(paneZero, mapOf(0 to paneZero))
+
+        val before = pageManager.state.value
+
+        pageManager.unassignWorkspace(unassigned)
+        pageManager.state.value shouldBe before
+
+        pageManager.unassignWorkspace(Workspace.Id())
+        pageManager.state.value shouldBe before
+    }
+
+    /**
+     * The assignment map is ordered by when panes filled, not by pane index, so its first entry can
+     * name a pane the current layout does not render.
+     */
+    @Test
+    fun `detaching the focused tab refocuses the lowest rendered pane`() = runTest {
+        val paneZero = Workspace.Id()
+        val retained = Workspace.Id()
+        val paneOne = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(
+                createWorkspaceInfo(id = paneZero),
+                createWorkspaceInfo(id = retained),
+                createWorkspaceInfo(id = paneOne),
+            )
+        )
+        pageManager.setPaneCount(4)
+        pageManager.applyRestoredUIState(paneZero, mapOf(0 to paneZero, 2 to retained, 1 to paneOne))
+        pageManager.setPaneCount(2)
+
+        pageManager.unassignWorkspace(paneZero)
+
+        val after = pageManager.state.value
+        after.focusedWorkspaceId shouldBe paneOne
+        after.selectedWorkspaces shouldBe mapOf(1 to paneOne, 2 to retained)
+    }
+
+    /** A modal child never appears in the assignment map, so only its owning tab can vouch for it. */
+    @Test
+    fun `a focused modal keeps focus when an unrelated pane is detached`() = runTest {
+        val owner = Workspace.Id()
+        val other = Workspace.Id()
+        val child = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(
+                createWorkspaceInfo(id = owner),
+                createWorkspaceInfo(id = other),
+                createWorkspaceInfo(id = child, callerWorkspaceId = owner),
+            )
+        )
+        pageManager.setPaneCount(2)
+        pageManager.applyRestoredUIState(child, mapOf(0 to owner, 1 to other))
+
+        pageManager.unassignWorkspace(other)
+
+        val after = pageManager.state.value
+        after.focusedWorkspaceId shouldBe child
+        after.selectedWorkspaces shouldBe mapOf(0 to owner)
+    }
+
+    /** Nothing is left on screen to focus, and a null focus is what auto-creates a tab. */
+    @Test
+    fun `detaching the last rendered tab leaves focus where it is`() = runTest {
+        val rendered = Workspace.Id()
+        val retained = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(createWorkspaceInfo(id = rendered), createWorkspaceInfo(id = retained))
+        )
+        pageManager.setPaneCount(4)
+        pageManager.applyRestoredUIState(rendered, mapOf(0 to rendered, 3 to retained))
+        pageManager.setPaneCount(1)
+
+        pageManager.unassignWorkspace(rendered)
+
+        val after = pageManager.state.value
+        after.focusedWorkspaceId shouldBe rendered
+        after.selectedWorkspaces shouldBe mapOf(3 to retained)
+    }
+
+    /** Retained assignments are what makes collapsing and expanding a layout non-destructive. */
+    @Test
+    fun `another workspace's retained assignment survives a detach`() = runTest {
+        val paneZero = Workspace.Id()
+        val paneOne = Workspace.Id()
+        val hidden = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(
+                createWorkspaceInfo(id = paneZero),
+                createWorkspaceInfo(id = paneOne),
+                createWorkspaceInfo(id = hidden),
+            )
+        )
+        pageManager.setPaneCount(4)
+        pageManager.applyRestoredUIState(paneZero, mapOf(0 to paneZero, 1 to paneOne, 3 to hidden))
+        pageManager.setPaneCount(2)
+
+        pageManager.unassignWorkspace(paneOne)
+
+        val after = pageManager.state.value
+        after.selectedWorkspaces shouldBe mapOf(0 to paneZero, 3 to hidden)
+        after.focusedWorkspaceId shouldBe paneZero
+    }
 }

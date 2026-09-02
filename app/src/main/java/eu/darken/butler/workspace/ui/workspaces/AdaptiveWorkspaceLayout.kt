@@ -117,6 +117,9 @@ fun AdaptiveWorkspaceLayout(
 
                     onPaneMenuToggle(false)
                 },
+                onPaneUnassign = { workspaceId ->
+                    onScreenAction(WorkspaceScreenAction.UnassignPane(workspaceId))
+                },
                 onRename = onRenameWorkspace,
                 onPaneMenuToggle = onPaneMenuToggle,
             )
