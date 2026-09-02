@@ -183,7 +183,7 @@ class HistoryWorkspaceViewModel @AssistedInject constructor(
         when (item) {
             is HistoryActionBarItem.SelectAll -> setSelection(item.ids)
             is HistoryActionBarItem.DeselectAll -> clearSelection()
-            is HistoryActionBarItem.Share -> shareEntries(item.entries)
+            is HistoryActionBarItem.Share -> shareEntries(item.entries, clearsSelection = true)
             is HistoryActionBarItem.Delete -> _overlayState.update { it.copy(deleteConfirmEntries = item.entries) }
         }
     }
@@ -221,14 +221,20 @@ class HistoryWorkspaceViewModel @AssistedInject constructor(
                     ?.let { OperationHistoryRepo.AttemptedPaths(it, overlay.attemptedPathsTotal) }
                     ?: historyRepo.getAttemptedPaths(entry.id)
             }
-            shareEntries(listOf(entry), attempted)
+            // The sheet may have been dismissed or moved on to another entry while the query ran,
+            // and this share belongs to the one that asked for it.
+            if (_overlayState.value.detailEntry?.id != entry.id) return@launch
+            shareEntries(listOf(entry), clearsSelection = false, attemptedPaths = attempted)
         } finally {
             detailShareLock.unlock()
         }
     }
 
+    // [clearsSelection] has no default so every caller has to state it: the action bar's share acts
+    // on the selection and ends it, the detail sheet's share does not own it.
     private fun shareEntries(
         entries: List<HistoryEntry>,
+        clearsSelection: Boolean,
         attemptedPaths: OperationHistoryRepo.AttemptedPaths? = null,
     ) {
         log(tag, INFO) { "shareEntries(): ${entries.size} entries" }
@@ -242,7 +248,7 @@ class HistoryWorkspaceViewModel @AssistedInject constructor(
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
         )
-        clearSelection()
+        if (clearsSelection) clearSelection()
     }
 
     // Every filter mutation funnels through here, so this is what ends selection mode on a filter
