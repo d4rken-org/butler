@@ -163,4 +163,16 @@
     <string name="history_workspace_title_kind_install">History: Install</string>
     <string name="history_filter_kind_install">Install</string>
 
+    <!-- Shared text -->
+    <string name="history_share_label_outcome">Outcome</string>
+    <string name="history_share_label_kind">Kind</string>
+    <string name="history_share_label_origin">Origin</string>
+    <string name="history_share_label_summary">Summary</string>
+    <string name="history_share_label_completed">Completed</string>
+    <string name="history_share_label_duration">Duration</string>
+    <string name="history_share_label_error">Error</string>
+    <string name="history_share_label_failed_items">Failed items</string>
+    <string name="history_share_label_paths">Affected paths (%1$d)</string>
+    <string name="history_share_paths_more">… and %1$d more</string>
+    <string name="history_share_truncated">… and %1$d more entries not included</string>
 </resources>
