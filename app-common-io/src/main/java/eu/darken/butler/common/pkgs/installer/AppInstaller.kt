@@ -18,6 +18,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MoveOutcome
@@ -773,9 +774,11 @@ class AppInstaller @Inject constructor(
             if (shellSwept.get()) return
             val root = LocalPath.build(SHELL_STAGING_ROOT)
             val swept = try {
-                when {
-                    !gatewaySwitch.exists(root) -> true
-                    else -> gatewaySwitch.listFiles(root)
+                when (gatewaySwitch.existsStrict(root)) {
+                    Existence.ABSENT -> true
+                    // A root that cannot be inspected leaves the sweep pending for the next run.
+                    Existence.UNKNOWN -> false
+                    Existence.PRESENT -> gatewaySwitch.listFiles(root)
                         .filter { it.name !in activeStagingNames }
                         .map { child ->
                             val removal = shellOps.execute(
@@ -846,7 +849,13 @@ class AppInstaller @Inject constructor(
     private suspend fun commitObbPartial(partial: ObbPartial) = obbLock(partial.lockKey).withLock {
         settleBackup(partial.target, partial.backup)
         try {
-            if (gatewaySwitch.exists(partial.target)) requireMoved(partial.target, partial.backup)
+            when (gatewaySwitch.existsStrict(partial.target)) {
+                Existence.PRESENT -> requireMoved(partial.target, partial.backup)
+                Existence.ABSENT -> Unit
+                // Moving the partial on top of a destination nothing could inspect would destroy
+                // whatever is there without a backup.
+                Existence.UNKNOWN -> throw IOException("Cannot tell whether ${partial.target} exists")
+            }
             requireMoved(partial.path, partial.target)
         } finally {
             // Every exit, cancellation included, and both moves inside the guard: between them the
@@ -861,10 +870,24 @@ class AppInstaller @Inject constructor(
         }
     }
 
-    /** Restores a backup whose target is gone, drops one whose target is there. */
+    /**
+     * Restores a backup whose target is gone, drops one whose target is there.
+     *
+     * A probe that cannot tell throws with the backup left in place: for a sideloaded game the
+     * backup is usually the only obtainable copy of the expansion, so neither dropping it nor
+     * moving it onto a destination nobody could inspect is an option.
+     */
     private suspend fun settleBackup(target: APath<*>, backup: APath<*>) {
-        if (!gatewaySwitch.exists(backup)) return
-        if (gatewaySwitch.exists(target)) deleteQuietly(backup) else requireMoved(backup, target)
+        when (gatewaySwitch.existsStrict(backup)) {
+            Existence.ABSENT -> return
+            Existence.UNKNOWN -> throw IOException("Cannot tell whether backup $backup exists")
+            Existence.PRESENT -> Unit
+        }
+        when (gatewaySwitch.existsStrict(target)) {
+            Existence.PRESENT -> deleteQuietly(backup)
+            Existence.ABSENT -> requireMoved(backup, target)
+            Existence.UNKNOWN -> throw IOException("Cannot tell whether $target exists, backup kept at $backup")
+        }
     }
 
     /**
