@@ -63,7 +63,7 @@ class TextPreviewLoaderTest : BaseTest() {
         val preview = loaderFor(content).preview(source)!!
 
         preview.isTruncated shouldBe true
-        preview.limitBytes shouldBe TextPreviewLoader.MAX_PREVIEW_BYTES.toLong()
+        preview.truncation shouldBe TextPreview.Truncation.Bytes(TextPreviewLoader.MAX_PREVIEW_BYTES.toLong())
         preview.lines.all { it.length == 999 } shouldBe true
     }
 
@@ -89,7 +89,7 @@ class TextPreviewLoaderTest : BaseTest() {
         val preview = loaderFor(content).preview(source)!!
 
         preview.lines.size shouldBe TextPreviewLoader.MAX_LINES
-        preview.isTruncated shouldBe true
+        preview.truncation shouldBe TextPreview.Truncation.Lines(TextPreviewLoader.MAX_LINES)
     }
 
     @Test
@@ -110,7 +110,9 @@ class TextPreviewLoaderTest : BaseTest() {
         val preview = loaderFor(content).preview(source)!!
 
         preview.lines.single().length shouldBe TextPreviewLoader.MAX_LINE_CHARS
-        preview.isTruncated shouldBe true
+        // Not the byte cap: this file is nowhere near it, and naming it would send the reader
+        // looking for a megabyte that was never there.
+        preview.truncation shouldBe TextPreview.Truncation.LineWidth(TextPreviewLoader.MAX_LINE_CHARS)
     }
 
     // ==================== charset-aware trimming ====================
