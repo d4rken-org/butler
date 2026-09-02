@@ -556,8 +556,14 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
+    /** A processed listing together with the location it was computed for. */
+    private data class ProcessedListing(
+        val locationId: String,
+        val items: List<ExplorerItem>,
+    )
+
     // Sorted/filtered items, shared to prevent duplicate processing
-    private val processedItemsFlow: Flow<List<ExplorerItem>?> = combineMany(
+    private val processedListingFlow: Flow<ProcessedListing?> = combineMany(
         workspaceReadyState
             .map { it?.currentLocation?.items }
             .distinctUntilChanged { old, new -> old.hasSameItemsAs(new) },
@@ -571,12 +577,17 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         // flatMapLatest does not clear this combine's last sort value, so items are only paired with
         // a resolution that was computed for the location they came from - otherwise the next
         // folder's listing would briefly render under the previous folder's sort.
-        if (resolvedSort == null || resolvedSort.locationKey != location?.locationId) return@combineMany null
+        if (resolvedSort == null || location == null || resolvedSort.locationKey != location.locationId) {
+            return@combineMany null
+        }
         items
             ?.let { viewSettings.applyFilters(it, filterState, useRegexPatterns) }
             ?.let { itemSorter.sortItems(it, resolvedSort.resolution.settings) }
             ?.let { applyFavoritePriority(it, location, pickerConfig, favoritePaths) }
+            ?.let { ProcessedListing(locationId = location.locationId, items = it) }
     }.shareIn(vmScope, SharingStarted.Lazily, replay = 1)
+
+    private val processedItemsFlow: Flow<List<ExplorerItem>?> = processedListingFlow.map { it?.items }
 
     init {
         // Keep the focus controller's item count in sync so wrap-around math and
@@ -585,12 +596,12 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             .onEach { focus.updateItemCount(it?.size ?: 0) }
             .launchInViewModel()
 
-        // Paired with the incarnation that produced the items, so a listing never lands in a
-        // resumed instance it was not computed for. A load in flight (null, the skeleton rows)
-        // publishes empty: a viewer must not keep stepping through a folder this tab left.
+        // Carries the location the listing was computed for, and never publishes a null: a tab being
+        // paused turns this ViewModel's workspace lookup null before the collector switches off, and
+        // an empty publication would reach the instance the viewer still reads its last listing from.
         workspaceSource
-            .flatMapLatest { ws -> if (ws == null) emptyFlow() else processedItemsFlow.map { ws to it } }
-            .onEach { (ws, items) -> ws.publishFileListing(items?.toFileListing().orEmpty()) }
+            .flatMapLatest { ws -> if (ws == null) emptyFlow() else processedListingFlow.filterNotNull().map { ws to it } }
+            .onEach { (ws, listing) -> ws.publishFileListing(listing.locationId, listing.items.toFileListing()) }
             .launchInViewModel()
     }
 
