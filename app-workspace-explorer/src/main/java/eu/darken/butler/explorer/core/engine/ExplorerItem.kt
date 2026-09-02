@@ -308,3 +308,7 @@ sealed interface ExplorerItem {
  */
 fun ExplorerItem.needsSignIn(): Boolean = this is ExplorerItem.Storage.Network &&
     status == ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED
+
+/** The entries "next file" may step to: every file (regular or symlink), never a directory, in list order. */
+internal fun List<ExplorerItem>.toFileListing(): List<APath<*>> =
+    filterIsInstance<ExplorerItem.File>().map { it.path }

@@ -160,6 +160,15 @@ interface Workspace<ArgT : Workspace.Arguments> {
     }
 
     /**
+     * A workspace showing an ordered file listing that another workspace may step through, e.g. a
+     * viewer opened from an Explorer offering "next file".
+     */
+    interface FileListingSource {
+        /** Paths of the non-directory entries on display, in display order. Empty when nothing is shown. */
+        val fileListing: StateFlow<List<APath<*>>>
+    }
+
+    /**
      * Defines how a modal workspace should be presented to the user.
      */
     enum class ModalPresentationMode {
