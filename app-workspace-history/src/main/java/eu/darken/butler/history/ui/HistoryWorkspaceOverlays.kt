@@ -11,6 +11,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.operations.history.HistoryEntry
 import eu.darken.butler.workspace.core.operations.history.HistoryFilter
 import eu.darken.butler.workspace.core.operations.history.HistoryOutcome
 import eu.darken.butler.workspace.ui.insets.paneInsets
@@ -44,6 +45,9 @@ fun HistoryWorkspaceOverlaysHost(
         onRemovePathScope = { vm.removePathScope(it) },
         onAddPathScopeRequested = { vm.openPathScopePicker() },
         onDismissEntryDetails = { vm.showEntryDetails(null) },
+        onShareEntry = { vm.shareEntry(it) },
+        onConfirmDelete = { vm.confirmDeleteSelected() },
+        onDismissDelete = { vm.dismissDeleteConfirm() },
         onDismissPathScope = { vm.closePathScopePicker() },
         onApplyPathScope = { newScope ->
             if (newScope != null) vm.addPathScope(newScope)
@@ -67,6 +71,9 @@ fun HistoryWorkspaceOverlays(
     onRemovePathScope: (String) -> Unit = {},
     onAddPathScopeRequested: () -> Unit = {},
     onDismissEntryDetails: () -> Unit = {},
+    onShareEntry: (HistoryEntry) -> Unit = {},
+    onConfirmDelete: () -> Unit = {},
+    onDismissDelete: () -> Unit = {},
     onDismissPathScope: () -> Unit = {},
     onApplyPathScope: (String?) -> Unit = {},
 ) {
@@ -88,14 +95,24 @@ fun HistoryWorkspaceOverlays(
         )
     }
 
+    val detailEntry = overlayState.detailEntry
     HistoryEntryDetailsBottomSheet(
-        entry = overlayState.detailEntry,
+        entry = detailEntry,
         attemptedPaths = overlayState.attemptedPaths,
         attemptedPathsTotal = overlayState.attemptedPathsTotal,
         topInset = statusBarInset,
         bottomInset = navBarInset,
         onDismiss = onDismissEntryDetails,
+        onShare = { if (detailEntry != null) onShareEntry(detailEntry) },
     )
+
+    if (overlayState.deleteConfirmEntries.isNotEmpty()) {
+        HistoryDeleteConfirmationDialog(
+            entryCount = overlayState.deleteConfirmEntries.size,
+            onDismiss = onDismissDelete,
+            onConfirm = onConfirmDelete,
+        )
+    }
 
     if (overlayState.pathScopeOpen) {
         PathScopeDialog(
@@ -123,5 +140,24 @@ private fun HistoryWorkspaceOverlaysPathScopePreview() {
     HistoryWorkspaceOverlays(
         filter = HistoryFilter(),
         overlayState = HistoryWorkspaceViewModel.OverlayState(pathScopeOpen = true),
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun HistoryWorkspaceOverlaysDeleteConfirmPreview() {
+    HistoryWorkspaceOverlays(
+        filter = HistoryFilter(),
+        overlayState = HistoryWorkspaceViewModel.OverlayState(
+            deleteConfirmEntries = List(3) {
+                mockEntry(
+                    id = "$it",
+                    kind = Operation.Metadata.Kind.DELETE,
+                    outcome = HistoryOutcome.COMPLETED,
+                    path = "/sdcard/ButlerQA/file_$it.txt",
+                )
+            },
+        ),
     )
 }

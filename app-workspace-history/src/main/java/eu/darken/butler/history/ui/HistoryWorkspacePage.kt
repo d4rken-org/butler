@@ -38,15 +38,16 @@ import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.history.HistoryEntry
 import eu.darken.butler.workspace.core.operations.history.HistoryFilter
 import eu.darken.butler.workspace.core.operations.history.HistoryOutcome
+import eu.darken.butler.workspace.ui.actions.WorkspaceActionBar
 import eu.darken.butler.workspace.ui.floatingbar.BarAnimation
 import eu.darken.butler.workspace.ui.common.WorkspacePaddings
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
 import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
-import eu.darken.butler.workspace.ui.insets.paneInsets
 import eu.darken.butler.workspace.ui.insets.rememberPaneFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
 import eu.darken.butler.workspace.ui.scroll.rememberWorkspaceLazyListState
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
@@ -74,6 +75,9 @@ fun HistoryWorkspacePageHost(
             onAddFilter = { vm.setAddFilterOpen(true) },
             onClearFilter = { vm.clearFilter() },
             onEntryClick = { vm.showEntryDetails(it) },
+            onEntryLongClick = { vm.toggleSelection(it.id) },
+            onClearSelection = { vm.clearSelection() },
+            onActionClick = { vm.onActionClick(it) },
         )
     }
 }
@@ -90,10 +94,11 @@ fun HistoryWorkspacePage(
     onAddFilter: () -> Unit = {},
     onClearFilter: () -> Unit = {},
     onEntryClick: (HistoryEntry) -> Unit = {},
+    onEntryLongClick: (HistoryEntry) -> Unit = {},
+    onClearSelection: () -> Unit = {},
+    onActionClick: (HistoryActionBarItem) -> Unit = {},
 ) {
-    val paneInsets = design.paneInsets()
-    val navBarInset = paneInsets.bottom
-    val statusBarInset = paneInsets.top
+    WorkspaceBackHandler(enabled = state.selectionActive) { onClearSelection() }
 
     val topBarStackState = rememberPaneFloatingBarStackState(
         position = BarPosition.TOP,
@@ -105,19 +110,32 @@ fun HistoryWorkspacePage(
         estimatedContentPadding = 192.dp,
     )
 
+    val bottomBarStackState = rememberPaneFloatingBarStackState(
+        position = BarPosition.BOTTOM,
+        workspaceId = workspaceId,
+        defaultSpacing = 8.dp,
+        edgePadding = 8.dp,
+        contentPadding = 16.dp,
+        design = design,
+        estimatedContentPadding = 80.dp,
+    )
+
     val listState = rememberWorkspaceLazyListState(workspaceId, slot = HistoryScrollSlots.LIST)
 
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             state = listState,
+            // Both connections: the stack's own nestedScroll sits on a sibling of this list, so
+            // without the second one the bottom bar never sees the list's scroll.
             modifier = Modifier
                 .fillMaxSize()
-                .nestedScroll(topBarStackState.nestedScrollConnection),
+                .nestedScroll(topBarStackState.nestedScrollConnection)
+                .nestedScroll(bottomBarStackState.nestedScrollConnection),
             contentPadding = PaddingValues(
                 start = WorkspacePaddings.ContentHorizontal,
                 end = WorkspacePaddings.ContentHorizontal,
                 top = topBarStackState.contentPaddingDp(),
-                bottom = navBarInset + 16.dp,
+                bottom = bottomBarStackState.contentPaddingDp(),
             ),
             verticalArrangement = Arrangement.spacedBy(WorkspacePaddings.ListGap),
         ) {
@@ -135,7 +153,16 @@ fun HistoryWorkspacePage(
                         DateGroupHeader(group = group)
                     }
                     items(group.entries, key = { it.id }) { entry ->
-                        HistoryEntryRow(entry = entry, onClick = { onEntryClick(entry) })
+                        HistoryEntryRow(
+                            entry = entry,
+                            // In selection mode a tap toggles the row instead of opening its sheet.
+                            onClick = {
+                                if (state.selectionActive) onEntryLongClick(entry) else onEntryClick(entry)
+                            },
+                            onLongClick = { onEntryLongClick(entry) },
+                            isSelected = entry.id in state.selectedIds,
+                            selectionActive = state.selectionActive,
+                        )
                     }
                 }
             }
@@ -164,6 +191,26 @@ fun HistoryWorkspacePage(
                         onRemovePathScope = onRemovePathScope,
                         onAddFilter = onAddFilter,
                         onClearFilter = onClearFilter,
+                    )
+                }
+            },
+        )
+
+        FloatingBarStack(
+            state = bottomBarStackState,
+            position = BarPosition.BOTTOM,
+            modifier = Modifier.align(Alignment.BottomCenter),
+            bars = {
+                FloatingBar(
+                    key = HistoryBarKeys.ACTIONS,
+                    visible = state.availableActions.isNotEmpty(),
+                    scrollBehavior = BarScrollBehavior.HideOnScroll,
+                    animation = BarAnimation.Slide(),
+                    revealOn = state.selectedIds,
+                ) {
+                    WorkspaceActionBar(
+                        actions = state.availableActions,
+                        onActionClick = onActionClick,
                     )
                 }
             },
@@ -261,7 +308,7 @@ private fun HistoryWorkspaceViewModel.GroupKey.label(): String = stringResource(
     }
 )
 
-private fun mockEntry(
+internal fun mockEntry(
     id: String,
     kind: Operation.Metadata.Kind,
     outcome: HistoryOutcome,
@@ -323,6 +370,35 @@ private fun HistoryWorkspacePageWithEntriesPreview() {
             entryCount = entries.size,
             totalCount = entries.size,
             hasAnyHistory = true,
+        ),
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun HistoryWorkspacePageSelectionPreview() {
+    val workspaceId = Workspace.Id()
+    val entries = listOf(
+        mockEntry("1", Operation.Metadata.Kind.COPY, HistoryOutcome.COMPLETED, path = "/sdcard/DCIM/photo.jpg", completedAgo = 30.seconds),
+        mockEntry("2", Operation.Metadata.Kind.MOVE, HistoryOutcome.COMPLETED, intent = Operation.Metadata.Intent.RENAME, path = "/sdcard/Documents/notes.txt", completedAgo = 5.minutes),
+        mockEntry("3", Operation.Metadata.Kind.DELETE, HistoryOutcome.FAILED, path = "/sdcard/Protected/secret.bin", completedAgo = 12.minutes),
+    )
+    HistoryWorkspacePage(
+        workspaceId = workspaceId,
+        state = HistoryWorkspaceViewModel.State(
+            id = workspaceId,
+            filter = HistoryFilter(),
+            groups = listOf(
+                HistoryWorkspaceViewModel.DateGroup(
+                    HistoryWorkspaceViewModel.GroupKey.TODAY,
+                    entries,
+                ),
+            ),
+            entryCount = entries.size,
+            totalCount = entries.size,
+            hasAnyHistory = true,
+            selectedIds = setOf("1", "3"),
         ),
     )
 }

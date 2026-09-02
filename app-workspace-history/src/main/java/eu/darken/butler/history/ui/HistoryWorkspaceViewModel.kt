@@ -1,15 +1,19 @@
 package eu.darken.butler.history.ui
 
+import android.content.Context
+import android.content.Intent
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.ui.ViewModel3
 import eu.darken.butler.history.core.HistoryWorkspace
+import eu.darken.butler.history.core.buildHistoryShareText
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.operations.Operation
@@ -36,6 +40,7 @@ import kotlin.time.toJavaInstant
 @HiltViewModel(assistedFactory = HistoryWorkspaceViewModel.Factory::class)
 class HistoryWorkspaceViewModel @AssistedInject constructor(
     @Assisted private val id: Workspace.Id,
+    @ApplicationContext private val context: Context,
     dispatchers: DispatcherProvider,
     private val workspaceProvider: WorkspaceProvider,
     private val historyRepo: OperationHistoryRepo,
@@ -55,7 +60,13 @@ class HistoryWorkspaceViewModel @AssistedInject constructor(
             historyRepo.query(filter, max).map { entries -> filter to entries }
         }
 
-    val state = combine(filterAndEntries, historyRepo.observeCount()) { pair, totalCount ->
+    private val _selectedIds = MutableStateFlow<Set<String>>(emptySet())
+
+    val state = combine(
+        filterAndEntries,
+        historyRepo.observeCount(),
+        _selectedIds,
+    ) { pair, totalCount, rawSelected ->
         val (filter, entries) = pair
         State(
             id = id,
@@ -64,6 +75,10 @@ class HistoryWorkspaceViewModel @AssistedInject constructor(
             entryCount = entries.size,
             totalCount = totalCount,
             hasAnyHistory = totalCount > 0,
+            // Pruned on read: a retention trim or a delete in another history tab removes rows this
+            // tab still has ids for, and a stale id would keep the action bar showing a count that
+            // no longer exists.
+            selectedIds = rawSelected intersect entries.map { it.id }.toSet(),
         )
     }.asStateFlow()
 
@@ -149,12 +164,76 @@ class HistoryWorkspaceViewModel @AssistedInject constructor(
         applyFilter { HistoryFilter() }
     }
 
-    fun deleteEntry(id: String) = launch {
-        log(tag, INFO) { "deleteEntry($id)" }
-        historyRepo.delete(id)
+    // Not `launch`, for the same call-order reason as showEntryDetails.
+    fun toggleSelection(entryId: String) {
+        _selectedIds.update { if (entryId in it) it - entryId else it + entryId }
     }
 
+    fun setSelection(ids: Set<String>) {
+        _selectedIds.value = ids
+    }
+
+    fun clearSelection() {
+        _selectedIds.value = emptySet()
+    }
+
+    fun onActionClick(item: HistoryActionBarItem) {
+        log(tag) { "onActionClick($item)" }
+        when (item) {
+            is HistoryActionBarItem.SelectAll -> setSelection(item.ids)
+            is HistoryActionBarItem.DeselectAll -> clearSelection()
+            is HistoryActionBarItem.Share -> shareEntries(item.entries)
+            is HistoryActionBarItem.Delete -> _overlayState.update { it.copy(deleteConfirmEntries = item.entries) }
+        }
+    }
+
+    // Selection and dialog are reset only after the delete returns: a failed delete has to leave
+    // both standing, so the error the handler shows still matches what the user sees.
+    fun confirmDeleteSelected() = launch {
+        val ids = _overlayState.value.deleteConfirmEntries.map { it.id }
+        log(tag, INFO) { "confirmDeleteSelected(): ${ids.size} entries" }
+        historyRepo.delete(ids)
+        clearSelection()
+        dismissDeleteConfirm()
+    }
+
+    fun dismissDeleteConfirm() {
+        _overlayState.update { it.copy(deleteConfirmEntries = emptyList()) }
+    }
+
+    fun shareEntry(entry: HistoryEntry) {
+        val overlay = _overlayState.value
+        // The sheet has already loaded these for an entry that reported no changes; a bulk share
+        // has none and says so instead of issuing a query per entry.
+        val attempted = overlay.attemptedPaths
+            .takeIf { it.isNotEmpty() && overlay.detailEntry?.id == entry.id }
+            ?.let { OperationHistoryRepo.AttemptedPaths(it, overlay.attemptedPathsTotal) }
+        shareEntries(listOf(entry), attempted)
+    }
+
+    private fun shareEntries(
+        entries: List<HistoryEntry>,
+        attemptedPaths: OperationHistoryRepo.AttemptedPaths? = null,
+    ) {
+        log(tag, INFO) { "shareEntries(): ${entries.size} entries" }
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, buildHistoryShareText(context, entries, attemptedPaths))
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        context.startActivity(
+            Intent.createChooser(intent, null).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+        )
+        clearSelection()
+    }
+
+    // Every filter mutation funnels through here, so this is what ends selection mode on a filter
+    // change. Pruning alone would empty the visible selection while keeping the raw ids, and
+    // resetting the filter would bring rows back already checked.
     private suspend fun applyFilter(transform: (HistoryFilter) -> HistoryFilter) {
+        _selectedIds.value = emptySet()
         val workspace = workspaceSource.first()
         workspace.updateFilter(transform)
     }
@@ -166,7 +245,16 @@ class HistoryWorkspaceViewModel @AssistedInject constructor(
         val entryCount: Int,
         val totalCount: Int,
         val hasAnyHistory: Boolean,
-    )
+        val selectedIds: Set<String> = emptySet(),
+    ) {
+        val selectionActive: Boolean get() = selectedIds.isNotEmpty()
+
+        val selectedEntries: List<HistoryEntry>
+            get() = groups.flatMap { it.entries }.filter { it.id in selectedIds }
+
+        val availableActions: List<HistoryActionBarItem>
+            get() = historyActionsFor(selectedEntries, groups.flatMap { it.entries })
+    }
 
     data class OverlayState(
         val detailEntry: HistoryEntry? = null,
@@ -174,6 +262,7 @@ class HistoryWorkspaceViewModel @AssistedInject constructor(
         val attemptedPathsTotal: Int = 0,
         val addFilterOpen: Boolean = false,
         val pathScopeOpen: Boolean = false,
+        val deleteConfirmEntries: List<HistoryEntry> = emptyList(),
     )
 
     data class DateGroup(
