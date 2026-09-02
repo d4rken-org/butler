@@ -94,6 +94,9 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapp
 import eu.darken.butler.common.R as CommonR
 
 object WorkspaceNavigationRailDefaults {
+    /** Width past the start window inset the rail pads for itself. */
+    val Width = 80.dp
+
     const val SURFACE_TEST_TAG = "workspace.rail.surface"
     const val CONTENT_TEST_TAG = "workspace.rail.content"
     const val LIST_TEST_TAG = "workspace.rail.list"
@@ -373,7 +376,7 @@ internal fun WorkspaceRailContainer(
                     systemBarsWithOptionalCutout()
                         .only(WindowInsetsSides.Start + WindowInsetsSides.Vertical)
                 )
-                .width(80.dp)
+                .width(WorkspaceNavigationRailDefaults.Width)
                 .testTag(WorkspaceNavigationRailDefaults.CONTENT_TEST_TAG)
                 // Inside the tagged 80dp, so the rail's own width is unaffected. Kept tight because
                 // the entry's spare width is what the pane glyph's notch is carved out of, and what
@@ -559,7 +562,7 @@ private fun WorkspaceRailItemRtlPreview() {
 private fun WorkspaceRailItemStates(layout: WorkspaceDesign.Layout) {
     Column(
         modifier = Modifier
-            .width(80.dp)
+            .width(WorkspaceNavigationRailDefaults.Width)
             .padding(horizontal = RailItemInset),
         verticalArrangement = Arrangement.spacedBy(RailItemSpacing),
     ) {

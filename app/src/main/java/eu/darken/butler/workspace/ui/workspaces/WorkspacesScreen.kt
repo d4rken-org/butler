@@ -4,9 +4,14 @@ import android.app.Activity
 import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.runtime.Composable
@@ -30,6 +35,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.systemBarsWithOptionalCutout
 import eu.darken.butler.common.compose.tour.LocalGuidedTourController
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.NavigationEventHandler
@@ -66,6 +72,7 @@ import eu.darken.butler.workspace.ui.floatingbar.LocalWorkspaceBarCollapseStates
 import eu.darken.butler.workspace.ui.manager.rememberWindowSizeInfo
 import eu.darken.butler.workspace.ui.scroll.LocalWorkspaceScrollPositions
 import eu.darken.butler.workspace.ui.workspaces.adaptive.DividerPositions
+import eu.darken.butler.workspace.ui.workspaces.adaptive.WorkspaceNavigationRailDefaults
 import eu.darken.butler.workspace.ui.workspaces.classic.ClassicWorkspaceContainer
 import eu.darken.butler.workspace.ui.workspaces.tour.FirstTabTour
 import kotlin.uuid.Uuid
@@ -88,11 +95,9 @@ fun WorkspaceScreen(
     onReviewNow: (Activity) -> Unit = {},
     onDismissBanner: (Workspace.Id) -> Unit = {},
     onShareError: (Workspace.Id, Throwable) -> Unit = { _, _ -> },
+    design: WorkspaceDesign = rememberWorkspaceDesign(state),
 ) {
     val workspaceActionHandler = LocalWorkspaceButtonProvider.current
-    val windowSizeInfo = rememberWindowSizeInfo()
-    val configuration = LocalConfiguration.current
-    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     var showPaneNumbers by remember { mutableStateOf(false) }
     var showPaneOverlay by remember { mutableStateOf(false) }
@@ -104,27 +109,6 @@ fun WorkspaceScreen(
     var dividerPositions by rememberSaveable {
         mutableStateOf(DividerPositions())
     }
-
-    // Select panel mode based on orientation
-    val effectivePanelMode = if (isLandscape) {
-        state.landscapePanelMode
-    } else {
-        state.portraitPanelMode
-    }
-
-    val effectivePaneLayout = when (effectivePanelMode) {
-        WorkspacePanelMode.AUTO -> windowSizeInfo.recommendedLayout
-        WorkspacePanelMode.SINGLE -> WorkspaceDesign.Layout.SINGLE
-        WorkspacePanelMode.DUAL_VERTICAL -> WorkspaceDesign.Layout.DUAL_VERTICAL
-        WorkspacePanelMode.DUAL_HORIZONTAL -> WorkspaceDesign.Layout.DUAL_HORIZONTAL
-        WorkspacePanelMode.TRIPLE_SIDEBAR_LEFT -> WorkspaceDesign.Layout.TRIPLE_MAIN_LEFT
-        WorkspacePanelMode.TRIPLE_SIDEBAR_RIGHT -> WorkspaceDesign.Layout.TRIPLE_MAIN_RIGHT
-        WorkspacePanelMode.QUAD_GRID -> WorkspaceDesign.Layout.QUAD_GRID
-    }
-
-    val design = WorkspaceDesign(
-        layout = effectivePaneLayout,
-    )
 
     // Update pane count when design changes
     LaunchedEffect(design.maxPanes) {
@@ -281,6 +265,36 @@ fun WorkspaceScreen(
 }
 
 /**
+ * The pane layout the window gets, from the orientation's panel mode setting and the window size.
+ * Shared by the screen and its host: the host draws chrome outside every pane (the close-undo bar)
+ * and has to know whether the navigation rail takes the start edge.
+ */
+@Composable
+fun rememberWorkspaceDesign(state: WorkspacesViewModel.State): WorkspaceDesign {
+    val windowSizeInfo = rememberWindowSizeInfo()
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
+    val effectivePanelMode = if (isLandscape) {
+        state.landscapePanelMode
+    } else {
+        state.portraitPanelMode
+    }
+
+    val effectivePaneLayout = when (effectivePanelMode) {
+        WorkspacePanelMode.AUTO -> windowSizeInfo.recommendedLayout
+        WorkspacePanelMode.SINGLE -> WorkspaceDesign.Layout.SINGLE
+        WorkspacePanelMode.DUAL_VERTICAL -> WorkspaceDesign.Layout.DUAL_VERTICAL
+        WorkspacePanelMode.DUAL_HORIZONTAL -> WorkspaceDesign.Layout.DUAL_HORIZONTAL
+        WorkspacePanelMode.TRIPLE_SIDEBAR_LEFT -> WorkspaceDesign.Layout.TRIPLE_MAIN_LEFT
+        WorkspacePanelMode.TRIPLE_SIDEBAR_RIGHT -> WorkspaceDesign.Layout.TRIPLE_MAIN_RIGHT
+        WorkspacePanelMode.QUAD_GRID -> WorkspaceDesign.Layout.QUAD_GRID
+    }
+
+    return WorkspaceDesign(layout = effectivePaneLayout)
+}
+
+/**
  * Dismisses the tab manager overlay on back.
  *
  * Registered above the workspace content, so it loses every LIFO race against a handler inside a
@@ -417,9 +431,11 @@ fun WorkspacesScreenHost(
         LocalWorkspacePagerVisibility provides vm.pagerVisibility,
         LocalWorkspaceTitles provides workspaceTitles,
     ) {
+        val design = state?.let { rememberWorkspaceDesign(it) }
         state?.let { state ->
             WorkspaceScreen(
                 state = state,
+                design = design ?: WorkspaceDesign(),
                 bannerStates = bannerStates,
                 managerDialogStates = managerDialogStates,
                 managerDialogs = managerDialogs,
@@ -498,7 +514,16 @@ fun WorkspacesScreenHost(
         // most likely first use of this feature. The dialogs below still cover it, which is right:
         // anything asking the user a question outranks an offer they can also just ignore.
         closedFeedback?.let { feedback ->
-            Box(modifier = Modifier.fillMaxSize()) {
+            // The rail sits inside the window's start inset and is 80dp beyond it. Only while the
+            // manager is down: the overlay covers the rail, and a bar offset over a full-width grid
+            // would look misplaced.
+            val railVisible = design?.isSingle == false && !pageManagerState.isManagerOverlayVisible
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .windowInsetsPadding(systemBarsWithOptionalCutout().only(WindowInsetsSides.Horizontal))
+                    .padding(start = if (railVisible) WorkspaceNavigationRailDefaults.Width else 0.dp),
+            ) {
                 FloatingBarStack(
                     modifier = Modifier.align(Alignment.BottomCenter),
                     position = BarPosition.BOTTOM,
@@ -603,17 +628,25 @@ internal fun FloatingBarScope.WorkspaceClosedUndoBar(
     onDismiss: () -> Unit,
 ) {
     FloatingBar(key = "workspace-closed-undo") {
-        // A superseding entry can reach composition without an intervening null, which would leave
-        // the swipe state parked at the previous entry's dismissed anchor - the new bar arrives
-        // already swiped away and takes no further gesture.
-        key(feedback.closeToken) {
-            WorkspaceClosedFeedbackBar(
-                feedback = feedback,
-                onUndo = onUndo,
-                onDismiss = onDismiss,
-            )
+        // Start-aligned and capped: a card spanning a tablet-width window reads as a banner.
+        Box(modifier = Modifier.fillMaxWidth()) {
+            // A superseding entry can reach composition without an intervening null, which would
+            // leave the swipe state parked at the previous entry's dismissed anchor - the new bar
+            // arrives already swiped away and takes no further gesture.
+            key(feedback.closeToken) {
+                WorkspaceClosedFeedbackBar(
+                    modifier = Modifier.widthIn(max = WorkspaceClosedUndoBarDefaults.MaxWidth),
+                    feedback = feedback,
+                    onUndo = onUndo,
+                    onDismiss = onDismiss,
+                )
+            }
         }
     }
+}
+
+object WorkspaceClosedUndoBarDefaults {
+    val MaxWidth = 600.dp
 }
 
 @Preview2
