@@ -2,6 +2,7 @@ package eu.darken.butler.common.files
 
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.coroutine.DispatcherProvider
+import eu.darken.butler.common.coroutine.openForHandover
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
@@ -33,11 +34,9 @@ import eu.darken.butler.common.sharedresource.adoptChildResource
 import android.os.ParcelFileDescriptor
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.plus
-import kotlinx.coroutines.withContext
 import okio.FileHandle
 import okio.IOException
 import java.io.InputStream
@@ -261,7 +260,7 @@ class GatewaySwitch @Inject constructor(
     suspend fun openReadPFD(path: APath<*>): ParcelFileDescriptor? = when (path) {
         is LocalPath -> directReadPfdOrNull(path) ?: proxyReadPfdOrNull(path)
 
-        is SAFPath -> safGateway.openReadPFD(path)?.seekableOrNull()
+        is SAFPath -> openForHandover(dispatcherProvider.IO) { safGateway.openReadPFD(path)?.seekableOrNull() }
 
         // No preview descriptors for archive entries: producing one would require decompressing
         // the entry to scratch storage, which previews must not trigger implicitly.
@@ -271,10 +270,10 @@ class GatewaySwitch @Inject constructor(
     }
 
     private suspend fun directReadPfdOrNull(path: LocalPath): ParcelFileDescriptor? =
-        withContext(dispatcherProvider.IO) {
+        openForHandover(dispatcherProvider.IO) {
             try {
                 val file = path.file
-                if (!file.isFile || !file.canRead()) return@withContext null
+                if (!file.isFile || !file.canRead()) return@openForHandover null
                 ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY).seekableOrNull()
             } catch (e: CancellationException) {
                 throw e
@@ -284,33 +283,17 @@ class GatewaySwitch @Inject constructor(
             }
         }
 
-    /**
-     * NonCancellable because both halves carry something a cancellation must not drop: the handle
-     * holds a gateway lease until the descriptor is released, and statSize below may block on a
-     * Binder call.
-     */
-    private suspend fun proxyReadPfdOrNull(path: APath<*>): ParcelFileDescriptor? {
-        var openedPfd: ParcelFileDescriptor? = null
-        return try {
-            withContext(NonCancellable + dispatcherProvider.IO) {
-                try {
-                    // create() owns the handle from here on and closes it itself if it throws.
-                    val handle = file(path, readWrite = false)
-                    openedPfd = proxyPfdFactory.create(handle, "r").seekableOrNull()
-                    openedPfd
-                } catch (e: Exception) {
-                    log(TAG, WARN) { "openReadPFD($path): Proxy lane failed: ${e.asLog()}" }
-                    null
-                }
+    private suspend fun proxyReadPfdOrNull(path: APath<*>): ParcelFileDescriptor? =
+        openForHandover(dispatcherProvider.IO) {
+            try {
+                // create() owns the handle from here on and closes it itself if it throws.
+                val handle = file(path, readWrite = false)
+                proxyPfdFactory.create(handle, "r").seekableOrNull()
+            } catch (e: Exception) {
+                log(TAG, WARN) { "openReadPFD($path): Proxy lane failed: ${e.asLog()}" }
+                null
             }
-        } catch (e: CancellationException) {
-            // Resuming into a cancelled caller discards the return value, so nobody downstream ever
-            // sees this descriptor - it has to be closed here. That also runs the proxy's release
-            // callback, which closes the handle and frees the gateway lease.
-            runCatching { openedPfd?.close() }
-            throw e
         }
-    }
 
     private fun ParcelFileDescriptor.seekableOrNull(): ParcelFileDescriptor? {
         val size = try {

@@ -2,6 +2,7 @@ package eu.darken.butler.common.coroutine
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -9,16 +10,21 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.runCurrent
+import kotlinx.coroutines.test.runTest
 import okio.IOException
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
+import java.io.Closeable
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * Real time, not [kotlinx.coroutines.test.runTest]: the point of the helper is that it survives a
- * thread blocked in a synchronous call, which virtual time would skip right past.
+ * The [runDetachedWithTimeout] tests run in real time, not [kotlinx.coroutines.test.runTest]: the
+ * point of that helper is that it survives a thread blocked in a synchronous call, which virtual
+ * time would skip right past.
  */
 class CoroutineExtensionsTest : BaseTest() {
 
@@ -82,5 +88,63 @@ class CoroutineExtensionsTest : BaseTest() {
         blockRan.get() shouldBe false
 
         scope.cancel()
+    }
+
+    private class TestCloseable : Closeable {
+        var closeCount = 0
+            private set
+
+        override fun close() {
+            closeCount++
+        }
+    }
+
+    @Test fun `a resource opened while the caller is being cancelled is closed`() = runTest {
+        // Distinct dispatchers, so the hand-back is a real dispatched resume.
+        val callerDispatcher = StandardTestDispatcher(testScheduler)
+        val openDispatcher = StandardTestDispatcher(testScheduler)
+        val gate = CompletableDeferred<Unit>()
+        val resource = TestCloseable()
+        var received: TestCloseable? = null
+
+        val job = launch(callerDispatcher) {
+            received = openForHandover(openDispatcher) {
+                gate.await()
+                resource
+            }
+        }
+        runCurrent()
+
+        job.cancel()
+        gate.complete(Unit)
+        runCurrent()
+
+        resource.closeCount shouldBe 1
+        received shouldBe null
+        job.isCancelled shouldBe true
+    }
+
+    @Test fun `a resource handed back to a cancelled caller is closed`() = runTest {
+        // One dispatcher for both, so withContext resumes undispatched and reports no cancellation.
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        val gate = CompletableDeferred<Unit>()
+        val resource = TestCloseable()
+        var received: TestCloseable? = null
+
+        val job = launch(dispatcher) {
+            received = openForHandover(dispatcher) {
+                gate.await()
+                resource
+            }
+        }
+        runCurrent()
+
+        job.cancel()
+        gate.complete(Unit)
+        runCurrent()
+
+        resource.closeCount shouldBe 1
+        received shouldBe null
+        job.isCancelled shouldBe true
     }
 }

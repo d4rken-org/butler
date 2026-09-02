@@ -12,6 +12,7 @@ import coil3.request.Options
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.coil.targetEdgePx
 import eu.darken.butler.common.coroutine.DispatcherProvider
+import eu.darken.butler.common.coroutine.openForHandover
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
@@ -19,7 +20,6 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.preview.PdfPreviewGenerator
 import eu.darken.butler.common.pkgs.ApkIconExtractor
 import eu.darken.butler.common.previews.SharedContentPreview
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 /**
@@ -71,9 +71,9 @@ class SharedContentPreviewFetcher(
 
     // Opening/statting a content:// descriptor can block (cloud/document providers), so keep it off
     // Coil's fetch dispatcher.
-    private suspend fun openReadPfd(): ParcelFileDescriptor? = withContext(dispatcherProvider.IO) {
+    private suspend fun openReadPfd(): ParcelFileDescriptor? = openForHandover(dispatcherProvider.IO) {
         try {
-            val pfd = context.contentResolver.openFileDescriptor(data.uri, "r") ?: return@withContext null
+            val pfd = context.contentResolver.openFileDescriptor(data.uri, "r") ?: return@openForHandover null
             if (pfd.statSize < 0) {
                 runCatching { pfd.close() } // non-seekable (pipe-backed provider) -> can't parse
                 null

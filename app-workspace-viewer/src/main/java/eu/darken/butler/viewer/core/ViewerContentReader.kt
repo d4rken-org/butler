@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.ParcelFileDescriptor
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.coroutine.DispatcherProvider
+import eu.darken.butler.common.coroutine.openForHandover
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
@@ -11,7 +12,6 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.InputStream
@@ -57,13 +57,11 @@ class ViewerContentReader @Inject constructor(
     suspend fun openStreamForHandover(source: ViewerSource): InputStream = when (source) {
         is ViewerSource.Stored -> gatewaySwitch.openInputStream(source.path)
 
-        // NonCancellable around the open: the provider call suspends, and a cancellation arriving
-        // as it returns would discard the only reference to an open stream. Enough of those and the
-        // process runs out of descriptors.
-        is ViewerSource.Streamed -> withContext(NonCancellable + dispatcherProvider.IO) {
+        // A cancellation racing the open would otherwise discard the only reference to an open
+        // stream. Enough of those and the process runs out of descriptors.
+        is ViewerSource.Streamed -> openForHandover(dispatcherProvider.IO) {
             context.contentResolver.openInputStream(source.uri)
-                ?: throw ViewerContentUnreadableException(source.displayName)
-        }
+        } ?: throw ViewerContentUnreadableException(source.displayName)
     }
 
     /**
@@ -76,9 +74,9 @@ class ViewerContentReader @Inject constructor(
     suspend fun openReadPfd(source: ViewerSource): ParcelFileDescriptor? = when (source) {
         is ViewerSource.Stored -> gatewaySwitch.openReadPFD(source.path)
 
-        // Same NonCancellable reasoning as openStreamForHandover: the descriptor must not be opened
-        // and then dropped by a cancellation racing the return.
-        is ViewerSource.Streamed -> withContext(NonCancellable + dispatcherProvider.IO) {
+        // Same handover reasoning as openStreamForHandover: the descriptor must not be opened and
+        // then dropped by a cancellation racing the return.
+        is ViewerSource.Streamed -> openForHandover(dispatcherProvider.IO) {
             try {
                 context.contentResolver.openFileDescriptor(source.uri, "r")?.seekableOrNull()
             } catch (e: CancellationException) {
