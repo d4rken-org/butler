@@ -60,6 +60,21 @@
     <string name="history_entry_intent_rename">Renamed</string>
     <string name="history_entry_intent_paste_copy">Pasted</string>
     <string name="history_entry_intent_paste_move">Pasted (move)</string>
+    <string name="history_entry_intent_drop_copy">Dropped (copy)</string>
+    <string name="history_entry_intent_drop_move">Dropped (move)</string>
+    <string name="history_entry_kind_copy">Copied</string>
+    <string name="history_entry_kind_move">Moved</string>
+    <string name="history_entry_kind_delete">Deleted</string>
+    <string name="history_entry_kind_create_file">Created file</string>
+    <string name="history_entry_kind_create_folder">Created folder</string>
+    <string name="history_entry_kind_save">Saved</string>
+    <string name="history_entry_kind_compress">Compressed</string>
+    <string name="history_entry_kind_extract">Extracted</string>
+    <string name="history_entry_kind_restore">Restored</string>
+    <string name="history_entry_kind_install">Installed</string>
+    <!-- Row headline: what happened, followed by the file or folder it happened to -->
+    <!-- Quoted so the double space survives the resource parser -->
+    <string name="history_entry_headline_format">"%1$s  %2$s"</string>
 
     <!-- Affected paths count -->
     <plurals name="history_entry_affected_paths">
@@ -147,4 +162,5 @@
     <string name="history_filter_kind_restore">Restore</string>
     <string name="history_workspace_title_kind_install">History: Install</string>
     <string name="history_filter_kind_install">Install</string>
+
 </resources>

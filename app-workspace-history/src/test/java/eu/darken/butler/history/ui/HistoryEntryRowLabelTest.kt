@@ -1,6 +1,8 @@
 package eu.darken.butler.history.ui
 
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.operations.Operation
@@ -64,7 +66,10 @@ class HistoryEntryRowLabelTest : ComposeTest() {
             )
         )
 
-        composeTestRule.onNodeWithText("backup.zip", substring = true).assertIsDisplayed()
+        // Headline and path line both name the subject, on separate nodes.
+        composeTestRule.onAllNodesWithText("backup.zip", substring = true, useUnmergedTree = true)
+            .assertCountEquals(2)
+        composeTestRule.onNodeWithText("Extracted  backup.zip").assertIsDisplayed()
         composeTestRule.onNodeWithText("aaa.txt", substring = true).assertDoesNotExist()
     }
 
@@ -72,6 +77,8 @@ class HistoryEntryRowLabelTest : ComposeTest() {
     fun `a row without a subject still names its first reported change`() {
         render(entry(primaryPath = null, paths = listOf("/sdcard/ButlerQA/backup/aaa.txt")))
 
-        composeTestRule.onNodeWithText("aaa.txt", substring = true).assertIsDisplayed()
+        composeTestRule.onAllNodesWithText("aaa.txt", substring = true, useUnmergedTree = true)
+            .assertCountEquals(2)
+        composeTestRule.onNodeWithText("Extracted  aaa.txt").assertIsDisplayed()
     }
 }

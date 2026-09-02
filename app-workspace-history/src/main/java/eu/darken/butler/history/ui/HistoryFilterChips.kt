@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerChip
 import eu.darken.butler.common.compose.ButlerChipDefaults
 import eu.darken.butler.history.R
+import eu.darken.butler.history.core.labelRes
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.history.HistoryFilter
 import eu.darken.butler.workspace.core.operations.history.HistoryOutcome
@@ -74,27 +75,7 @@ fun HistoryFilterChips(
 }
 
 @Composable
-internal fun HistoryOutcome.label(): String = stringResource(
-    when (this) {
-        HistoryOutcome.COMPLETED -> R.string.history_filter_outcome_completed
-        HistoryOutcome.PARTIAL -> R.string.history_filter_outcome_partial
-        HistoryOutcome.FAILED -> R.string.history_filter_outcome_failed
-        HistoryOutcome.CANCELLED -> R.string.history_filter_outcome_cancelled
-    }
-)
+internal fun HistoryOutcome.label(): String = stringResource(labelRes)
 
 @Composable
-internal fun Operation.Metadata.Kind.label(): String = stringResource(
-    when (this) {
-        Operation.Metadata.Kind.COPY -> R.string.history_filter_kind_copy
-        Operation.Metadata.Kind.MOVE -> R.string.history_filter_kind_move
-        Operation.Metadata.Kind.DELETE -> R.string.history_filter_kind_delete
-        Operation.Metadata.Kind.CREATE_FILE -> R.string.history_filter_kind_create_file
-        Operation.Metadata.Kind.CREATE_FOLDER -> R.string.history_filter_kind_create_folder
-        Operation.Metadata.Kind.SAVE -> R.string.history_filter_kind_save
-        Operation.Metadata.Kind.COMPRESS -> R.string.history_filter_kind_compress
-        Operation.Metadata.Kind.EXTRACT -> R.string.history_filter_kind_extract
-        Operation.Metadata.Kind.RESTORE -> R.string.history_filter_kind_restore
-        Operation.Metadata.Kind.INSTALL -> R.string.history_filter_kind_install
-    }
-)
+internal fun Operation.Metadata.Kind.label(): String = stringResource(labelRes)
