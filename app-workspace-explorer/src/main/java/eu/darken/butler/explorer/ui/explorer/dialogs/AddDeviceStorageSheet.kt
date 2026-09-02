@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.FolderShared
-import androidx.compose.material.icons.twotone.Terminal
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -30,8 +29,10 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.storage.saf.KnownStorageProvider
+import eu.darken.butler.common.storage.saf.StorageProviderApp
 import eu.darken.butler.common.storage.saf.StorageProviderSuggestion
 import eu.darken.butler.explorer.R
+import eu.darken.butler.explorer.ui.explorer.items.AppIconImage
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 
 @Composable
@@ -144,23 +145,27 @@ private fun SuggestionRow(
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
+        AppIconImage(
             modifier = Modifier
                 .size(40.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(MaterialTheme.colorScheme.secondaryContainer),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = when {
-                    suggestion.known != null -> Icons.TwoTone.Terminal
-                    else -> Icons.TwoTone.FolderShared
-                },
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                modifier = Modifier.size(22.dp)
-            )
-        }
+                .clip(RoundedCornerShape(12.dp)),
+            pkg = suggestion.app,
+            fallback = {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(MaterialTheme.colorScheme.secondaryContainer),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.TwoTone.FolderShared,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
+            },
+        )
 
         Column(modifier = Modifier.weight(1f)) {
             Text(
@@ -168,11 +173,7 @@ private fun SuggestionRow(
                 style = MaterialTheme.typography.bodyLarge,
             )
             Text(
-                // Only a curated provider gets navigated to, the generic path just opens the picker
-                text = when {
-                    suggestion.known != null -> stringResource(R.string.explorer_add_device_storage_suggestion_desc_direct)
-                    else -> stringResource(R.string.explorer_add_device_storage_suggestion_desc_pick)
-                },
+                text = stringResource(R.string.explorer_add_device_storage_suggestion_desc_direct),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -199,16 +200,9 @@ private fun AddDeviceStorageSheetSuggestionsPreview() {
         onContinue = {},
         suggestions = listOf(
             StorageProviderSuggestion(
-                packageName = "com.termux",
+                app = StorageProviderApp(packageName = "com.termux", appLabel = "Termux", lastUpdateTime = 0L),
                 authority = "com.termux.documents",
-                label = "Termux",
                 known = KnownStorageProvider.TERMUX,
-            ),
-            StorageProviderSuggestion(
-                packageName = "com.mixplorer",
-                authority = "com.mixplorer.documents",
-                label = "MiXplorer",
-                known = null,
             ),
         ),
     )

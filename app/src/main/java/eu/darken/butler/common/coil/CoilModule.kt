@@ -51,6 +51,7 @@ class CoilModule {
         sharedContentPreviewKeyer: SharedContentPreviewKeyer,
         workspacePreviewKeyer: WorkspacePreviewKeyer,
         pkgIconKeyer: PkgIconKeyer,
+        storageProviderIconKeyer: StorageProviderIconKeyer,
         viewerImageKeyer: ViewerImageKeyer,
         dispatcherProvider: DispatcherProvider,
     ): ImageLoader = ImageLoader.Builder(context).apply {
@@ -80,6 +81,7 @@ class CoilModule {
             add(sharedContentPreviewKeyer)
             add(workspacePreviewKeyer)
             add(pkgIconKeyer)
+            add(storageProviderIconKeyer)
             add(viewerImageKeyer)
 
             // Fetchers - load images from various sources

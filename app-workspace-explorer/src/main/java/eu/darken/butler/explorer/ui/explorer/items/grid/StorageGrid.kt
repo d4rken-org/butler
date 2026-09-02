@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material.icons.Icons
@@ -17,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -29,9 +31,11 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.icons.NetworkOffline
 import eu.darken.butler.common.compose.icons.NetworkOnline
 import eu.darken.butler.common.rememberMinuteTick
+import eu.darken.butler.explorer.ui.explorer.items.AppIconImage
 import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
 import eu.darken.butler.common.files.saf.location.SAFLocation
 import eu.darken.butler.common.files.smb.SmbEndpointState
+import eu.darken.butler.common.storage.saf.StorageProviderApp
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.items.statusLabel
@@ -104,12 +108,18 @@ fun StorageGrid(
         isEnabled = isEnabled,
         decorations = decorations,
         icon = {
-            Icon(
-                imageVector = item.displayIcon,
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.size(20.dp)
-            )
+            val providerApp = (item as? ExplorerItem.Storage.SAF)?.providerApp
+            if (providerApp != null) {
+                AppIconImage(
+                    modifier = Modifier
+                        .size(20.dp)
+                        .clip(RoundedCornerShape(5.dp)),
+                    pkg = providerApp,
+                    fallback = { StorageIcon(item) },
+                )
+            } else {
+                StorageIcon(item)
+            }
         },
         primaryText = item.displayName.get(context),
         secondaryText = run {
@@ -146,6 +156,16 @@ fun StorageGrid(
 
             else -> null
         }
+    )
+}
+
+@Composable
+private fun StorageIcon(item: ExplorerItem.Storage) {
+    Icon(
+        imageVector = item.displayIcon,
+        contentDescription = null,
+        tint = Color.White,
+        modifier = Modifier.size(20.dp)
     )
 }
 
@@ -275,6 +295,29 @@ private fun StorageGridSAFPreview() {
         items(3) {
             StorageGrid(
                 item = MockDataProvider.createMockStorageSAF(),
+                onClick = {}
+            )
+        }
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun StorageGridSAFAppPreview() {
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(3),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(3) {
+            StorageGrid(
+                item = MockDataProvider.createMockStorageSAF(
+                    name = "Termux",
+                    treeUri = "content://com.termux.documents/tree/%2Fdata%2Fdata%2Fcom.termux%2Ffiles%2Fhome",
+                    providerApp = StorageProviderApp(packageName = "com.termux", appLabel = "Termux", lastUpdateTime = 0L),
+                ),
                 onClick = {}
             )
         }

@@ -3,9 +3,12 @@ package eu.darken.butler.explorer.ui.explorer
 import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
+import eu.darken.butler.common.SafUri
+import eu.darken.butler.common.files.saf.location.SAFLocation
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.storage.saf.KnownStorageProvider
 import eu.darken.butler.common.storage.saf.SAFPickerIntentBuilder
+import eu.darken.butler.common.storage.saf.StorageProviderApp
 import eu.darken.butler.common.storage.saf.StorageProviderSuggester
 import eu.darken.butler.common.storage.saf.StorageProviderSuggestion
 import eu.darken.butler.explorer.core.ExplorerNavigation
@@ -22,6 +25,7 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -41,8 +45,12 @@ class ExplorerSafLocationControllerTest : BaseTest() {
         }
     }
 
-    private fun mockLocationManager(locationId: String = "loc-1"): SAFLocationManager =
+    private fun mockLocationManager(
+        locationId: String = "loc-1",
+        granted: List<SAFLocation> = emptyList(),
+    ): SAFLocationManager =
         mockk<SAFLocationManager>().apply {
+            every { locations } returns flowOf(granted)
             coEvery { grantPermission(any()) } returns locationId
             coEvery { revokePermission(any()) } just Runs
             coEvery { setLocationLabel(any(), any()) } just Runs
@@ -62,9 +70,9 @@ class ExplorerSafLocationControllerTest : BaseTest() {
         suggestions: List<StorageProviderSuggestion> = emptyList(),
     ): StorageProviderSuggester = mockk<StorageProviderSuggester>().apply {
         coEvery { getSuggestions() } returns suggestions
-        coEvery { labelForAuthority(any()) } answers {
+        coEvery { appForAuthority(any()) } answers {
             when (firstArg<String>()) {
-                "com.termux.documents" -> "Termux"
+                "com.termux.documents" -> StorageProviderApp(packageName = "com.termux", appLabel = "Termux", lastUpdateTime = 0L)
                 else -> null
             }
         }
@@ -295,14 +303,31 @@ class ExplorerSafLocationControllerTest : BaseTest() {
         controller.storageSuggestions.value shouldBe listOf(fresh)
     }
 
+    @Test
+    fun `an app whose provider is already granted is not suggested`() = runTest {
+        val termux = suggestion("com.termux", "Termux")
+        val other = suggestion("com.other", "Other")
+        val granted = mockk<SAFLocation>().apply {
+            every { treeUri } returns SafUri.parse("content://com.termux.documents/tree/%2Fdata%2Fdata%2Fcom.termux%2Ffiles%2Fhome")
+        }
+        val controller = controller(
+            locationManager = mockLocationManager(granted = listOf(granted)),
+            suggester = mockSuggester(listOf(termux, other)),
+        )
+
+        controller.showAddStorageSheet()
+        runCurrent()
+
+        controller.storageSuggestions.value shouldBe listOf(other)
+    }
+
     private fun suggestion(
         packageName: String,
         label: String,
-        known: KnownStorageProvider? = null,
+        known: KnownStorageProvider = KnownStorageProvider.TERMUX,
     ) = StorageProviderSuggestion(
-        packageName = packageName,
+        app = StorageProviderApp(packageName = packageName, appLabel = label, lastUpdateTime = 0L),
         authority = "$packageName.documents",
-        label = label,
         known = known,
     )
 }
