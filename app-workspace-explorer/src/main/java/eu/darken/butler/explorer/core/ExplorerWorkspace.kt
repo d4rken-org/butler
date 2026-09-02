@@ -60,12 +60,14 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -188,17 +190,26 @@ class ExplorerWorkspace @AssistedInject constructor(
         _saveAsFilename.value = filename
     }
 
-    private val _fileListing = MutableStateFlow<List<APath<*>>>(emptyList())
+    private val _published = MutableStateFlow<FileListingPublication?>(null)
 
     /**
      * Published by the page's ViewModel: the sorted and filtered listing only exists there, while a
      * viewer stepping through it can only reach this instance.
+     *
+     * Reads empty while the tab is on a different location than the listing was computed for, e.g.
+     * a load in flight or a navigation. A paused instance's state no longer changes, so its last
+     * listing stays readable until the viewer's origin lookup reports the tab gone.
      */
-    override val fileListing: StateFlow<List<APath<*>>> = _fileListing.asStateFlow()
+    override val fileListing: StateFlow<List<APath<*>>> = combine(
+        _state,
+        _published,
+    ) { state, published ->
+        resolveFileListing(state, published)
+    }.stateIn(scope, SharingStarted.Eagerly, emptyList())
 
-    fun publishFileListing(files: List<APath<*>>) {
-        log(tag) { "publishFileListing(${files.size} files)" }
-        _fileListing.value = files
+    fun publishFileListing(locationId: String, files: List<APath<*>>) {
+        log(tag) { "publishFileListing($locationId, ${files.size} files)" }
+        _published.value = FileListingPublication(locationId = locationId, files = files)
     }
 
     // Same derivation the factory hands the paused stand-in, so both name this tab identically
@@ -653,3 +664,18 @@ class ExplorerWorkspace @AssistedInject constructor(
         fun factory(factory: Factory): WorkspaceFactory<*> = factory
     }
 }
+
+/** The listing the page's ViewModel computed, tagged with the location it was computed for. */
+internal data class FileListingPublication(
+    val locationId: String,
+    val files: List<APath<*>>,
+)
+
+/** A publication only counts while the tab is still on the location it was computed for. */
+internal fun resolveFileListing(
+    state: ExplorerWorkspace.State,
+    published: FileListingPublication?,
+): List<APath<*>> = published
+    ?.takeIf { it.locationId == (state as? ExplorerWorkspace.State.Ready)?.currentLocation?.locationId }
+    ?.files
+    .orEmpty()
