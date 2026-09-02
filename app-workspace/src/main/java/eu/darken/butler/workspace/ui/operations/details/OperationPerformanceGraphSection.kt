@@ -2,6 +2,7 @@ package eu.darken.butler.workspace.ui.operations.details
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
+import eu.darken.butler.common.compose.ProGate
 import eu.darken.butler.common.files.local.operations.core.PerformanceHistory
 import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
@@ -25,6 +26,8 @@ internal fun OperationPerformanceGraphSection(
         title = stringResource(R.string.workspace_operations_performance_graph_label),
         initiallyExpanded = false,
     ) {
-        graphContent(performanceHistory)
+        ProGate {
+            graphContent(performanceHistory)
+        }
     }
 }
