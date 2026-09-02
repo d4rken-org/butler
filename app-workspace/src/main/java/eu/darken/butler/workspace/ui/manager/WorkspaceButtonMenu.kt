@@ -10,9 +10,11 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
@@ -60,6 +62,10 @@ fun WorkspaceButtonMenu(
                     contentDescription = null,
                 )
             },
+            colors = MenuDefaults.itemColors(
+                textColor = NewTabColor,
+                leadingIconColor = NewTabColor,
+            ),
         )
 
         val recentItems = state?.recentItems ?: emptyList()
@@ -149,6 +155,7 @@ fun WorkspaceButtonMenu(
                     onDismissRequest()
                     onCloseAllRequested()
                 },
+                contentColor = MaterialTheme.colorScheme.error,
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.TwoTone.Close,
@@ -159,6 +166,8 @@ fun WorkspaceButtonMenu(
         }
     }
 }
+
+private val NewTabColor = Color(0xFF4CAF50)
 
 @Composable
 fun MenuCategoryHeader(
