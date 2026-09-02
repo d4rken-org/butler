@@ -153,11 +153,7 @@ class LocalPathCopyStrategy(
         sourceOps: FileSystemOps<LocalPath, LocalPathLookup>,
         destOps: FileSystemOps<LocalPath, LocalPathLookup>
     ): TransferStrategy.TransferResult<LocalPath, LocalPath> {
-        // Check for existing file if overwrite is disabled
-        if (!options.overwrite && destOps.exists(destination)) {
-            log(TAG, DEBUG) { "Destination exists and overwrite=false: $destination" }
-            throw PathAlreadyExistsException(path = destination)
-        }
+        if (!options.overwrite) requireFreeDestination(destination, destOps)
 
         // Read the symlink target
         val linkTarget = sourceOps.readSymbolicLink(sourceLookup.lookedUp)
@@ -206,20 +202,7 @@ class LocalPathCopyStrategy(
         sourceOps: FileSystemOps<LocalPath, LocalPathLookup>,
         destOps: FileSystemOps<LocalPath, LocalPathLookup>
     ): TransferStrategy.TransferResult<LocalPath, LocalPath> {
-        // Check for existing file if overwrite is disabled. The plain lookup maps a FIFO, socket or
-        // device node to FileType.UNKNOWN, i.e. to "absent", and the copy below opens the
-        // destination with TRUNCATE_EXISTING - with root that writes raw bytes into a device node.
-        if (!options.overwrite) {
-            when (destOps.existsStrict(destination)) {
-                Existence.PRESENT -> {
-                    log(TAG, DEBUG) { "Destination exists and overwrite=false: $destination" }
-                    throw PathAlreadyExistsException(path = destination)
-                }
-
-                Existence.UNKNOWN -> throw WriteException("Cannot tell whether $destination exists", destination)
-                Existence.ABSENT -> Unit
-            }
-        }
+        if (!options.overwrite) requireFreeDestination(destination, destOps)
 
         var totalBytesTransferred = 0L
 
@@ -252,6 +235,24 @@ class LocalPathCopyStrategy(
             bytesTransferred = totalBytesTransferred,
             destinationLookup = destLookup
         )
+    }
+
+    // The plain lookup maps a FIFO, socket or device node to FileType.UNKNOWN, i.e. to "absent", and
+    // the copies below open the destination with TRUNCATE_EXISTING - with root that writes raw bytes
+    // into a device node.
+    private suspend fun requireFreeDestination(
+        destination: LocalPath,
+        destOps: FileSystemOps<LocalPath, LocalPathLookup>
+    ) {
+        when (destOps.existsStrict(destination)) {
+            Existence.PRESENT -> {
+                log(TAG, DEBUG) { "Destination exists and overwrite=false: $destination" }
+                throw PathAlreadyExistsException(path = destination)
+            }
+
+            Existence.UNKNOWN -> throw WriteException("Cannot tell whether $destination exists", destination)
+            Existence.ABSENT -> Unit
+        }
     }
 
     private suspend fun copyAttributes(
