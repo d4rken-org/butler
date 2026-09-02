@@ -147,6 +147,25 @@ interface OperationHistoryDao {
     @Query("DELETE FROM operation_history WHERE id = :id")
     suspend fun deleteById(id: String)
 
+    @Query("DELETE FROM operation_history WHERE id IN (:ids)")
+    suspend fun deleteByIds(ids: Collection<String>)
+
+    /** Deletes every id in one transaction, so a chunk failing rolls the whole delete back. */
+    @Transaction
+    suspend fun deleteByIdsChunked(ids: Collection<String>) {
+        ids.chunked(MAX_BIND_ARGS).forEach { deleteByIds(it) }
+    }
+
     @Query("DELETE FROM operation_history")
     suspend fun deleteAll()
+
+    companion object {
+        /**
+         * SQLite's `SQLITE_MAX_VARIABLE_NUMBER` is 999 on API 30 and below; API 31+ ships SQLite
+         * 3.32+ where it is 32766. `minSdk` is 26 and the history cap goes up to 2000, so a
+         * select-all delete would exceed the limit in a single `IN (:ids)` statement on the lower
+         * half of the range.
+         */
+        const val MAX_BIND_ARGS = 900
+    }
 }

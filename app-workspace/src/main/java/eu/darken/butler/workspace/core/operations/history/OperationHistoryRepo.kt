@@ -327,6 +327,16 @@ class OperationHistoryRepo @Inject constructor(
             .onFailure { log(TAG, ERROR) { "delete($id) failed: ${it.asLog()}" } }
     }
 
+    /**
+     * Deliberately not wrapped in `runCatching`: a swallowed failure would tell the caller the
+     * delete succeeded while part of the selection is still there. Callers clear their selection
+     * only once this returns normally, and the thrown exception reaches the error handler.
+     */
+    suspend fun delete(ids: Collection<String>) {
+        log(TAG, INFO) { "delete(): ${ids.size} entries" }
+        dao.deleteByIdsChunked(ids)
+    }
+
     suspend fun clearAll() {
         log(TAG, INFO) { "clearAll()" }
         dao.deleteAll()
