@@ -16,8 +16,8 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.ui.ViewModel3
 import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 
 @HiltViewModel(assistedFactory = BugReportWorkspaceViewModel.Factory::class)
@@ -79,7 +80,7 @@ class BugReportWorkspaceViewModel @AssistedInject constructor(
     // flatMapLatest cancels an in-flight load when either changes, and catching a read failure
     // (e.g. the report deleted between scan and read) keeps it from killing the collector — it
     // surfaces as LogState.Error instead.
-    private val detailLog: Flow<DetailLog?> = logSelection
+    private val detailLog: StateFlow<DetailLog?> = logSelection
         .map { it.reportId to it.requestId }
         .distinctUntilChanged()
         .flatMapLatest { (reportId, requestId) ->
@@ -112,6 +113,9 @@ class BugReportWorkspaceViewModel @AssistedInject constructor(
             }
         }
         .onEach { lastLogState.value = it?.state }
+        // Shared eagerly: the page's state flow stops when nothing collects it for 5s, and a cold
+        // detailLog would re-run the completed read from scratch on the next subscription.
+        .stateIn(vmScope, SharingStarted.Eagerly, null)
 
     val state = combine(
         bugReportRepo.reports,

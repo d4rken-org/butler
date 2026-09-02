@@ -13,14 +13,17 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.jupiter.api.AfterEach
@@ -169,5 +172,41 @@ class BugReportWorkspaceViewModelLogTest : BaseTest() {
 
         coVerify(exactly = 2) { repo.readLogTail("a", any()) }
         vm.detail().logState shouldBe loaded
+    }
+
+    @Test
+    fun `a fresh state collector after the sharing timeout does not reread the tail`() = runTest {
+        // The VM's own dispatcher has to be on the test scheduler, otherwise WhileSubscribed's 5s
+        // timeout runs on real time, advanceTimeBy() never fires it and the test passes vacuously.
+        val vm = BugReportWorkspaceViewModel(
+            id = Workspace.Id(),
+            dispatchers = TestDispatcherProvider(UnconfinedTestDispatcher(testScheduler)),
+            bugReportRepo = repo,
+            bugReportRecorder = recorder,
+        )
+
+        // Held separately from createVM()'s backgroundScope collector: this one has to be cancelled
+        // mid-test to simulate the page leaving composition.
+        val firstCollector = launch(UnconfinedTestDispatcher(testScheduler)) { vm.state.collect { } }
+
+        vm.openReport("a")
+        vm.setLogExpanded(true)
+        advanceUntilIdle()
+        coVerify(exactly = 1) { repo.readLogTail("a", any()) }
+
+        vm.setLogExpanded(false)
+        advanceUntilIdle()
+
+        firstCollector.cancelAndJoin()
+        // Past WhileSubscribed(5000), so the shared flow really stops instead of being kept alive.
+        advanceTimeBy(10_000)
+        runCurrent()
+
+        val secondCollector = launch(UnconfinedTestDispatcher(testScheduler)) { vm.state.collect { } }
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { repo.readLogTail("a", any()) }
+
+        secondCollector.cancelAndJoin()
     }
 }
