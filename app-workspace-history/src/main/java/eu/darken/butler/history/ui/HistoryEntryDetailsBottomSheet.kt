@@ -31,6 +31,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.history.R
+import eu.darken.butler.history.core.labelRes
 import eu.darken.butler.workspace.core.operations.history.HistoryEntry
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 import kotlin.time.Duration
@@ -275,15 +276,7 @@ private fun PathRow(p: HistoryEntry.PathChange) {
 }
 
 @Composable
-internal fun HistoryEntry.OriginType.label(): String = stringResource(
-    when (this) {
-        HistoryEntry.OriginType.EXPLORER -> R.string.history_origin_explorer
-        HistoryEntry.OriginType.SEARCHER -> R.string.history_origin_searcher
-        HistoryEntry.OriginType.SAVER -> R.string.history_origin_saver
-        HistoryEntry.OriginType.DEVELOPER -> R.string.history_origin_developer
-        HistoryEntry.OriginType.VIEWER -> R.string.history_origin_viewer
-    }
-)
+internal fun HistoryEntry.OriginType.label(): String = stringResource(labelRes)
 
 @Composable
 private fun formatDuration(duration: Duration): String {

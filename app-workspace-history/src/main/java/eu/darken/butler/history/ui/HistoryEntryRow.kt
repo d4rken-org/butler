@@ -1,6 +1,8 @@
 package eu.darken.butler.history.ui
 
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -24,6 +26,7 @@ import androidx.compose.material.icons.twotone.Restore
 import androidx.compose.material.icons.twotone.Save
 import androidx.compose.material.icons.twotone.Unarchive
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -35,9 +38,11 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
@@ -46,6 +51,7 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.formatRelativeTime
 import eu.darken.butler.history.R
+import eu.darken.butler.history.core.headlineLabelRes
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.history.HistoryEntry
 import eu.darken.butler.workspace.core.operations.history.HistoryOutcome
@@ -53,24 +59,39 @@ import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
+/** A checkbox carries no semantics without a click handler, so the tag is how a test finds it. */
+const val HISTORY_ROW_CHECKBOX_TAG = "history-row-checkbox"
+
 @Composable
 fun HistoryEntryRow(
     modifier: Modifier = Modifier,
     entry: HistoryEntry,
     onClick: () -> Unit,
+    onLongClick: () -> Unit = {},
+    isSelected: Boolean = false,
+    selectionActive: Boolean = false,
 ) {
     val accentColor = entry.outcome.color()
     ElevatedCard(
-        onClick = onClick,
         modifier = modifier
             .fillMaxWidth(),
         colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+            containerColor = if (isSelected) {
+                MaterialTheme.colorScheme.primaryContainer
+            } else {
+                MaterialTheme.colorScheme.surfaceContainer
+            },
         ),
     ) {
         Row(
+            // Clickable before the padding: appended after it, the gesture area would stop at the
+            // padding and leave dead bands plus an inset ripple at the card edges.
             modifier = Modifier
                 .fillMaxWidth()
+                .combinedClickable(
+                    onClick = onClick,
+                    onLongClick = onLongClick,
+                )
                 .drawBehind {
                     drawRect(
                         color = accentColor,
@@ -80,12 +101,25 @@ fun HistoryEntryRow(
                 .padding(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Icon(
-                imageVector = entry.kind.icon(),
-                contentDescription = entry.kind.name,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(20.dp),
-            )
+            Box(
+                modifier = Modifier.size(40.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (selectionActive) {
+                    Checkbox(
+                        modifier = Modifier.testTag(HISTORY_ROW_CHECKBOX_TAG),
+                        checked = isSelected,
+                        onCheckedChange = null,
+                    )
+                } else {
+                    Icon(
+                        imageVector = entry.kind.icon(),
+                        contentDescription = entry.kind.name,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
+            }
             Spacer(Modifier.width(10.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
@@ -102,6 +136,16 @@ fun HistoryEntryRow(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
+                entry.displayPath()?.takeIf { it.isNotBlank() }?.let { path ->
+                    Text(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = path,
+                        style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.MiddleEllipsis,
+                    )
+                }
             }
             Spacer(Modifier.width(8.dp))
             Column(
@@ -149,40 +193,24 @@ private fun CountText(entry: HistoryEntry) {
     )
 }
 
+@Composable
 private fun HistoryEntry.headline(): String {
-    val intentLabel = when (intent) {
-        Operation.Metadata.Intent.RENAME -> "Renamed"
-        Operation.Metadata.Intent.PASTE_COPY -> "Pasted"
-        Operation.Metadata.Intent.PASTE_MOVE -> "Pasted (move)"
-        Operation.Metadata.Intent.DROP_COPY -> "Dropped (copy)"
-        Operation.Metadata.Intent.DROP_MOVE -> "Dropped (move)"
-        null -> kind.entryHeadlineLabel()
-    }
+    val label = stringResource(intent?.headlineLabelRes ?: kind.headlineLabelRes)
     val target = displayPath()?.substringAfterLast('/')
-    return if (target.isNullOrBlank()) intentLabel else "$intentLabel  $target"
+    return if (target.isNullOrBlank()) {
+        label
+    } else {
+        stringResource(R.string.history_entry_headline_format, label, target)
+    }
 }
 
 private fun HistoryEntry.subline(timeAgo: String): String {
     val originLabel = originType.name.lowercase().replaceFirstChar { it.uppercaseChar() }
-    val pathHint = displayPath()?.substringBeforeLast('/').orEmpty()
-    return if (pathHint.isNotEmpty()) "$originLabel  ·  $timeAgo  ·  $pathHint" else "$originLabel  ·  $timeAgo"
+    return "$originLabel  ·  $timeAgo"
 }
 
 /** The reported changes are an audit trail, so they only stand in when no subject was stored. */
 private fun HistoryEntry.displayPath(): String? = primaryPath ?: paths.firstOrNull()?.path
-
-private fun Operation.Metadata.Kind.entryHeadlineLabel(): String = when (this) {
-    Operation.Metadata.Kind.COPY -> "Copied"
-    Operation.Metadata.Kind.MOVE -> "Moved"
-    Operation.Metadata.Kind.DELETE -> "Deleted"
-    Operation.Metadata.Kind.CREATE_FOLDER -> "Created folder"
-    Operation.Metadata.Kind.CREATE_FILE -> "Created file"
-    Operation.Metadata.Kind.SAVE -> "Saved"
-    Operation.Metadata.Kind.COMPRESS -> "Compressed"
-    Operation.Metadata.Kind.EXTRACT -> "Extracted"
-    Operation.Metadata.Kind.RESTORE -> "Restored"
-    Operation.Metadata.Kind.INSTALL -> "Installed"
-}
 
 internal fun Operation.Metadata.Kind.icon(): ImageVector = when (this) {
     Operation.Metadata.Kind.COPY -> Icons.TwoTone.CopyAll
@@ -349,5 +377,43 @@ private fun HistoryEntryRowNoChangesPreview() {
             primaryPath = "/storage/emulated/0/Movies/holiday.mp4",
         ),
         onClick = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun HistoryEntryRowSelectedPreview() {
+    val now = Clock.System.now()
+    HistoryEntryRow(
+        entry = HistoryEntry(
+            id = "5",
+            kind = Operation.Metadata.Kind.MOVE,
+            intent = Operation.Metadata.Intent.RENAME,
+            originType = HistoryEntry.OriginType.EXPLORER,
+            originWorkspaceId = "abc",
+            title = "Rename notes.txt",
+            description = "notes.txt to todo.txt",
+            summary = null,
+            startedAt = now - 10.seconds,
+            completedAt = now - 9.seconds,
+            duration = 1.seconds,
+            outcome = HistoryOutcome.COMPLETED,
+            errorMessage = null,
+            errorClass = null,
+            affectedPathsCount = 1,
+            partialErrorCount = 0,
+            pathsTruncated = false,
+            paths = listOf(
+                HistoryEntry.PathChange(
+                    path = "/storage/emulated/0/Documents/todo.txt",
+                    previousPath = "/storage/emulated/0/Documents/notes.txt",
+                    change = Operation.Report.PathChange.Change.MOVED,
+                ),
+            ),
+        ),
+        onClick = {},
+        isSelected = true,
+        selectionActive = true,
     )
 }
