@@ -47,6 +47,8 @@ internal fun buildHistoryShareText(
         // Budgeted per document, so one pathological entry is bounded too. A block that leaves
         // others behind also has to leave room for the notice announcing them, which is appended
         // after the loop and would otherwise push the document past the cap.
+        // The reservation holds for every smaller count only because the notice is a plain <string>,
+        // so its length grows with the number; as <plurals> a singular wording could be longer.
         val reserved = if (remaining > 0) {
             BLOCK_SEPARATOR.length + context.truncationNotice(remaining).length
         } else {
