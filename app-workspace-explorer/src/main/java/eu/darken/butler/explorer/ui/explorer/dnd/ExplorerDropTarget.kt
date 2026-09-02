@@ -162,7 +162,11 @@ private class ExplorerDropSession(
         this.payload = payload
         lastRootPointer = event.positionInRoot()
         hitTest(payload, lastRootPointer)
-        scroller?.update(lastRootPointer - dropState.contentBounds.topLeft)
+        scroller?.update(
+            pointer = lastRootPointer - dropState.contentBounds.topLeft,
+            startInset = dropState.topBarPaddingPx,
+            endInset = dropState.bottomBarPaddingPx,
+        )
     }
 
     override fun onExited(event: DragAndDropEvent) = reset()
