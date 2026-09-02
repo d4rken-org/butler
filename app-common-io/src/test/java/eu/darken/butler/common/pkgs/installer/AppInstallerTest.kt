@@ -4,8 +4,10 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.adb.AdbManager
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.archive.ArchiveEntryMeta
 import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.common.files.archive.ArchiveIndex
@@ -48,6 +50,8 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
+import okio.FileSystem
+import okio.Path.Companion.toPath
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [30])
@@ -92,6 +96,12 @@ class AppInstallerTest : BaseTest() {
 
     /** Paths a run tried to remove through the gateway, whether or not the removal worked. */
     private val gatewayRemovals = mutableListOf<String>()
+
+    /** Moves a run issued through the gateway, as source to destination. */
+    private val gatewayMoves = mutableListOf<Pair<String, String>>()
+
+    /** Overrides what the strict probe answers per path; `null` falls back to what [exists] says. */
+    private var strictAnswer: (String) -> Existence? = { null }
 
     private val systemInstallGate = SystemInstallGate()
 
@@ -191,6 +201,24 @@ class AppInstallerTest : BaseTest() {
         coEvery { gatewaySwitch.exists(any()) } answers {
             val path = firstArg<LocalPath>().path
             path in shellStagingChildren || path in obbDirChildren || path.endsWith(PARTIAL_SUFFIX)
+        }
+        coEvery { gatewaySwitch.existsStrict(any()) } answers {
+            val path = firstArg<LocalPath>().path
+            strictAnswer(path) ?: when {
+                path in shellStagingChildren || path in obbDirChildren || path.endsWith(PARTIAL_SUFFIX) ->
+                    Existence.PRESENT
+
+                else -> Existence.ABSENT
+            }
+        }
+        // Expansion payloads are streamed through a handle, which needs a real file to land in.
+        coEvery { gatewaySwitch.file(any(), any()) } answers {
+            val scratch = File(workDir, firstArg<LocalPath>().name).apply { createNewFile() }
+            FileSystem.SYSTEM.openReadWrite(scratch.path.toPath())
+        }
+        coEvery { gatewaySwitch.move(any<APath<*>>(), any<APath<*>>()) } answers {
+            gatewayMoves += firstArg<LocalPath>().path to secondArg<LocalPath>().path
+            MoveOutcome.Moved
         }
         coEvery { gatewaySwitch.delete(any<APath<*>>(), any<Boolean>()) } answers {
             gatewayRemovals += firstArg<LocalPath>().path
@@ -688,6 +716,71 @@ class AppInstallerTest : BaseTest() {
     }
 
     @Test
+    fun `a staged expansion lands on its destination`() = runTest2 {
+        stubBundleArchive(withObb = true)
+        val inspected = baseInfo(certSha256 = "aa")
+        coEvery { apkArchiveParser.parseFile(any(), any()) } returns inspected
+
+        val events = installer().install(obbBundlePlan(inspected), AppInstaller.Mode.ROOT).toList()
+
+        events.none { it is AppInstallEvent.ObbFailed } shouldBe true
+        events.last().shouldBeInstanceOf<AppInstallEvent.Success>().obbPlaced shouldBe true
+        val partial = gatewayWrites.single { it.endsWith(PARTIAL_SUFFIX) }
+        gatewayMoves shouldContainExactly listOf(partial to "$OBB_DIR/$OBB_NAME")
+    }
+
+    @Test
+    fun `an expansion backup that cannot be inspected is neither moved nor dropped`() = runTest2 {
+        // For a sideloaded game the backup is usually the only obtainable copy of the expansion.
+        stubBundleArchive(withObb = true)
+        val inspected = baseInfo(certSha256 = "aa")
+        coEvery { apkArchiveParser.parseFile(any(), any()) } returns inspected
+        strictAnswer = { if (it.endsWith(BACKUP_SUFFIX)) Existence.UNKNOWN else null }
+
+        val events = installer().install(obbBundlePlan(inspected), AppInstaller.Mode.ROOT).toList()
+
+        events.filterIsInstance<AppInstallEvent.ObbFailed>().single().reason shouldContain "Cannot tell whether backup"
+        coVerify { gatewaySwitch.existsStrict(match<APath<*>> { it.path.endsWith(BACKUP_SUFFIX) }) }
+        gatewayMoves.none { it.first.endsWith(BACKUP_SUFFIX) || it.second.endsWith(BACKUP_SUFFIX) } shouldBe true
+        gatewayRemovals.none { it.endsWith(BACKUP_SUFFIX) } shouldBe true
+    }
+
+    @Test
+    fun `an expansion destination that cannot be inspected is not overwritten`() = runTest2 {
+        stubBundleArchive(withObb = true)
+        val inspected = baseInfo(certSha256 = "aa")
+        coEvery { apkArchiveParser.parseFile(any(), any()) } returns inspected
+        strictAnswer = { if (it == "$OBB_DIR/$OBB_NAME") Existence.UNKNOWN else null }
+
+        val events = installer().install(obbBundlePlan(inspected), AppInstaller.Mode.ROOT).toList()
+
+        events.filterIsInstance<AppInstallEvent.ObbFailed>().single().reason shouldContain "$OBB_DIR/$OBB_NAME"
+        gatewayMoves.shouldBeEmpty()
+    }
+
+    @Test
+    fun `a staging root that cannot be inspected stays sweepable`() = runTest2 {
+        shellStagingChildren = listOf(SHELL_ROOT, "$SHELL_ROOT/$LEFTOVER_NAME")
+        var firstProbe = true
+        strictAnswer = {
+            when {
+                it == SHELL_ROOT && firstProbe -> Existence.UNKNOWN.also { firstProbe = false }
+                else -> null
+            }
+        }
+        val installer = installer()
+
+        installer.install(plan(), AppInstaller.Mode.ADB).toList()
+
+        // Nothing was looked at, so the root must not count as swept.
+        executed.count { it.second == "rm -rf '$SHELL_ROOT/$LEFTOVER_NAME'" } shouldBe 0
+
+        installer.install(plan(), AppInstaller.Mode.ADB).toList()
+
+        executed.count { it.second == "rm -rf '$SHELL_ROOT/$LEFTOVER_NAME'" } shouldBe 1
+    }
+
+    @Test
     fun `an expansion partial that could not be removed stops being protected`() = runTest2 {
         stubBundleArchive(withObb = true)
         val inspected = baseInfo(certSha256 = "aa")
@@ -784,5 +877,6 @@ class AppInstallerTest : BaseTest() {
         private const val OBB_DIR = "$OBB_ROOT/com.example.app"
         private const val OBB_NAME = "main.1.obb"
         private const val PARTIAL_SUFFIX = ".part"
+        private const val BACKUP_SUFFIX = ".btlbak"
     }
 }
