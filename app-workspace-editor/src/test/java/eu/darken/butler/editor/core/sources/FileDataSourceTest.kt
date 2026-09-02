@@ -43,6 +43,10 @@ class FileDataSourceTest : BaseTest() {
             val path = firstArg<APath<*>>() as LocalPath
             fileSystemOps.exists(path)
         }
+        coEvery { existsStrict(any()) } coAnswers {
+            val path = firstArg<APath<*>>() as LocalPath
+            fileSystemOps.existsStrict(path)
+        }
 
         // Mock lookup() - delegates to REAL file system operations
         @Suppress("UNCHECKED_CAST")

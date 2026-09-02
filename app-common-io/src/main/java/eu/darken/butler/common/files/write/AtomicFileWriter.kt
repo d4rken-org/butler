@@ -6,9 +6,11 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.ArchivePath
+import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.extensions.exists
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
@@ -148,15 +150,37 @@ class AtomicFileWriter(
         // Producing the content above can take arbitrarily long, so the caller's pre-check is stale
         // by now. Checked here rather than inside the commit's reconciliation block: nothing has
         // been mutated yet, so this is a clean abort and not a failed commit.
-        if (requireAbsent && target.exists(gatewaySwitch)) {
-            cleanupArtifact(tempPath)
-            throw AtomicWriteTargetExistsException(target)
+        if (requireAbsent) {
+            when (gatewaySwitch.existsStrict(target)) {
+                Existence.PRESENT -> {
+                    cleanupArtifact(tempPath)
+                    throw AtomicWriteTargetExistsException(target)
+                }
+
+                // A caller that may not replace anything cannot be served on a guess.
+                Existence.UNKNOWN -> {
+                    cleanupArtifact(tempPath)
+                    throw WriteException("Cannot tell whether $target exists", target)
+                }
+
+                Existence.ABSENT -> Unit
+            }
         }
 
         withContext(NonCancellable) {
+            // Sampled before the try: an answer that cannot tell has to abort while nothing has been
+            // mutated, rather than run the reconciliation a half-finished commit needs.
+            val targetExisted = when (gatewaySwitch.existsStrict(target)) {
+                Existence.PRESENT -> true
+                Existence.ABSENT -> false
+                Existence.UNKNOWN -> {
+                    cleanupArtifact(tempPath)
+                    throw WriteException("Cannot tell whether $target exists", target)
+                }
+            }
             var backedUp = false
             try {
-                if (target.exists(gatewaySwitch)) {
+                if (targetExisted) {
                     check(gatewaySwitch.move(target, backupPath) is MoveOutcome.Moved) { "Backup move failed: $target -> $backupPath" }
                     backedUp = true
                 }
@@ -164,16 +188,20 @@ class AtomicFileWriter(
             } catch (e: Exception) {
                 // An exception may still have moved documents (e.g. a lost IPC reply), so
                 // reconcile from observable state instead of trusting the bookkeeping flag.
-                // Failed observations are "unknown" (null), never "absent" — an unknown backup
-                // state must funnel into the restore attempt, whose own failure is loud.
-                val backupPresent = if (backedUp) true else runCatching { backupPath.exists(gatewaySwitch) }.getOrNull()
-                val targetPresent = runCatching { target.exists(gatewaySwitch) }.getOrNull()
+                // Failed observations are "unknown" (null), never "absent" — a denied stat reads
+                // as absent through `exists()`, the strict probe reports it as unknown, and an
+                // unknown backup state must funnel into the restore attempt, whose own failure is
+                // loud.
+                val backupPresent = if (backedUp) true else runCatching { observePresence(backupPath) }.getOrNull()
+                val targetPresent = runCatching { observePresence(target) }.getOrNull()
                 var restored = backupPresent == false
                 when {
                     backupPresent == false -> Unit // Provably nothing to restore
 
-                    backupPresent == true && targetPresent == true -> {
-                        // The commit landed despite the exception; keep the original as backup.
+                    targetPresent == true -> {
+                        // The commit landed despite the exception; keep the original as backup. A
+                        // restore move cannot succeed onto an occupied target, so attempting one
+                        // would only turn this into an integrity failure.
                         log(tag, WARN) { "Commit errored but target exists - original kept at $backupPath: ${e.asLog()}" }
                         restored = true
                     }
@@ -209,7 +237,13 @@ class AtomicFileWriter(
         requireAbsent: Boolean = false,
         writer: suspend (FileCommitContext) -> Unit,
     ) {
-        val targetExisted = target.exists(gatewaySwitch)
+        val targetExisted = when (gatewaySwitch.existsStrict(target)) {
+            Existence.PRESENT -> true
+            Existence.ABSENT -> false
+            // Nothing has been created yet, so this aborts instead of guessing whether the target
+            // needs a backup.
+            Existence.UNKNOWN -> throw WriteException("Cannot tell whether $target exists", target)
+        }
         if (originalAccess == OriginalAccess.FromTarget) {
             check(targetExisted) { "In-place splice requires an existing target: $target" }
         }
@@ -312,6 +346,13 @@ class AtomicFileWriter(
                 }
             }
         }
+    }
+
+    /** PRESENT and ABSENT as a verdict, [Existence.UNKNOWN] as "could not tell" (null). */
+    private suspend fun observePresence(path: APath<*>): Boolean? = when (gatewaySwitch.existsStrict(path)) {
+        Existence.PRESENT -> true
+        Existence.ABSENT -> false
+        Existence.UNKNOWN -> null
     }
 
     /** Best-effort removal of a save artifact; logs (never throws) if the delete fails or returns false. */
