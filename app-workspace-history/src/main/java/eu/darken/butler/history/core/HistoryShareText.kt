@@ -17,6 +17,8 @@ internal const val SHARE_TEXT_MAX_CHARS = 100_000
 
 private const val TIMESTAMP_PATTERN = "yyyy-MM-dd HH:mm:ss"
 
+private const val BLOCK_SEPARATOR = "\n\n"
+
 /**
  * Renders [entries] as markdown, one block per entry.
  *
@@ -40,16 +42,24 @@ internal fun buildHistoryShareText(
 
     for (entry in entries) {
         val block = entry.toShareBlock(context, entryPaths, timestamps)
-        val separator = if (document.isEmpty()) "" else "\n\n"
-        // Budgeted per document, so one pathological entry is bounded too.
-        if (document.length + separator.length + block.length > SHARE_TEXT_MAX_CHARS) break
+        val separator = if (document.isEmpty()) "" else BLOCK_SEPARATOR
+        val remaining = entries.size - (written + 1)
+        // Budgeted per document, so one pathological entry is bounded too. A block that leaves
+        // others behind also has to leave room for the notice announcing them, which is appended
+        // after the loop and would otherwise push the document past the cap.
+        val reserved = if (remaining > 0) {
+            BLOCK_SEPARATOR.length + context.truncationNotice(remaining).length
+        } else {
+            0
+        }
+        if (document.length + separator.length + block.length + reserved > SHARE_TEXT_MAX_CHARS) break
         document.append(separator).append(block)
         written++
     }
 
     if (written < entries.size) {
-        if (document.isNotEmpty()) document.append("\n\n")
-        document.append(context.getString(R.string.history_share_truncated, entries.size - written))
+        if (document.isNotEmpty()) document.append(BLOCK_SEPARATOR)
+        document.append(context.truncationNotice(entries.size - written))
     }
 
     return document.toString()
@@ -118,6 +128,9 @@ private fun HistoryEntry.toShareBlock(
         }
     }
 }.trimEnd('\n')
+
+private fun Context.truncationNotice(remaining: Int): String =
+    getString(R.string.history_share_truncated, remaining)
 
 private fun StringBuilder.metaLine(label: String, value: String) {
     append("- **").append(label).append(":** ").append(value).append('\n')
