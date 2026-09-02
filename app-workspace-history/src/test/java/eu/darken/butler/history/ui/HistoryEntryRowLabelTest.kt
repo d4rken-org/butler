@@ -1,10 +1,14 @@
 package eu.darken.butler.history.ui
 
+import android.content.Context
+import androidx.compose.foundation.layout.Column
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
+import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.history.core.labelRes
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.history.HistoryEntry
 import eu.darken.butler.workspace.core.operations.history.HistoryOutcome
@@ -71,6 +75,36 @@ class HistoryEntryRowLabelTest : ComposeTest() {
             .assertCountEquals(2)
         composeTestRule.onNodeWithText("Extracted  backup.zip").assertIsDisplayed()
         composeTestRule.onNodeWithText("aaa.txt", substring = true).assertDoesNotExist()
+    }
+
+    /**
+     * Every other label on the row comes from a resource; an enum name here would leave the row
+     * disagreeing with the detail sheet in any translated locale.
+     */
+    @Test
+    fun `each row names its origin with the label resource`() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        composeTestRule.setContent {
+            PreviewWrapper {
+                Column {
+                    HistoryEntry.OriginType.entries.forEach { origin ->
+                        HistoryEntryRow(
+                            entry = entry(
+                                primaryPath = "/sdcard/ButlerQA/backup.zip",
+                                paths = emptyList(),
+                            ).copy(originType = origin),
+                            onClick = {},
+                        )
+                    }
+                }
+            }
+        }
+
+        HistoryEntry.OriginType.entries.forEach { origin ->
+            composeTestRule
+                .onAllNodesWithText(context.getString(origin.labelRes), substring = true, useUnmergedTree = true)
+                .assertCountEquals(1)
+        }
     }
 
     @Test
