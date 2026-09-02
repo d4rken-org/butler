@@ -33,8 +33,10 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.InfoBlock
 import eu.darken.butler.common.compose.InfoEntry
+import eu.darken.butler.common.compose.InfoGridGutter
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.groupInfoEntries
+import eu.darken.butler.common.compose.infoGridColumns
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.DateTimeStyle
@@ -81,6 +83,7 @@ fun FileInfoCard(
             fileInfo = fileInfo,
             initiallyExpanded = initiallyExpanded,
             pairPermissions = permissionsFitHalfWidth(maxWidth),
+            columns = infoGridColumns(maxWidth - CardHorizontalPadding * 2),
         )
     }
 }
@@ -90,6 +93,7 @@ private fun FileInfoCardContent(
     fileInfo: ViewerFileInfo,
     initiallyExpanded: Boolean,
     pairPermissions: Boolean,
+    columns: Int,
 ) {
     val entries = buildList<InfoEntry> {
         fileInfo.size?.let {
@@ -187,8 +191,6 @@ private fun FileInfoCardContent(
     }
 
     var expanded by rememberSaveable { mutableStateOf(initiallyExpanded) }
-    val rows = groupInfoEntries(entries)
-    val canCollapse = rows.size > 1
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -197,10 +199,12 @@ private fun FileInfoCardContent(
         ),
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
+            val rows = groupInfoEntries(entries, columns)
+            val canCollapse = rows.size > 1
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                    .padding(horizontal = CardHorizontalPadding, vertical = 8.dp)
                     .animateContentSize(),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
@@ -211,12 +215,15 @@ private fun FileInfoCardContent(
                             // The toggle floats over the card's top end corner, so only the row it
                             // would overlap gets out of its way.
                             .padding(end = if (index == 0 && canCollapse) ToggleReservedWidth else 0.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(InfoGridGutter),
                         verticalAlignment = Alignment.Top,
                     ) {
                         row.forEach { InfoBlock(entry = it, modifier = Modifier.weight(1f)) }
-                        // Keeps an odd trailing pairable entry at half width so the grid stays aligned.
-                        if (row.size == 1 && row.first().pairable) Spacer(modifier = Modifier.weight(1f))
+                        // Keeps a short trailing run of pairable entries in their columns so the
+                        // grid stays aligned down the card.
+                        if (row.first().pairable) {
+                            repeat(columns - row.size) { Spacer(modifier = Modifier.weight(1f)) }
+                        }
                     }
                 }
             }
@@ -247,6 +254,8 @@ private fun FileInfoCardContent(
 
 /** Footprint of the expand/collapse button, and the end inset the first row reserves for it. */
 private val ToggleReservedWidth = 40.dp
+
+private val CardHorizontalPadding = 12.dp
 
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)

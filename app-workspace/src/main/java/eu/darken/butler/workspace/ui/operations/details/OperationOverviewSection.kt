@@ -24,9 +24,11 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.InfoBlock
 import eu.darken.butler.common.compose.InfoEntry
+import eu.darken.butler.common.compose.InfoGridGutter
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.compose.groupInfoEntries
+import eu.darken.butler.common.compose.infoGridColumns
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.formatDuration
 import eu.darken.butler.common.formatRelativeTime
@@ -38,8 +40,11 @@ import eu.darken.butler.workspace.ui.operations.bar.operationStateVisuals
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
 
-/** Below this the two-column grid leaves ~48dp per column; every entry goes full width instead. */
+/** Below this a two-column grid leaves ~48dp per column, so the section drops to one column. */
 internal val OverviewPairingMinWidth = 240.dp
+
+/** Half of [OverviewPairingMinWidth] less the gutter, so the second column appears exactly there. */
+private val OverviewMinColumnWidth = (OverviewPairingMinWidth - InfoGridGutter) / 2
 
 /**
  * Result is never paired and never capped: a move/copy summary concatenates up to four plural
@@ -150,19 +155,16 @@ private fun OperationOverviewGrid(
     )
 
     BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
-        val entries = when {
-            maxWidth >= OverviewPairingMinWidth -> baseEntries
-            else -> baseEntries.map { it.copy(pairable = false) }
-        }
+        val columns = infoGridColumns(maxWidth, minColumnWidth = OverviewMinColumnWidth)
         // Status is always first, and referential identity is what carries the state icon -
         // identity cannot collide, whereas a label comparison breaks once two entries share a label.
-        val statusEntry = entries.first()
+        val statusEntry = baseEntries.first()
 
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            groupInfoEntries(entries).forEach { row ->
+            groupInfoEntries(baseEntries, columns).forEach { row ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(InfoGridGutter),
                     verticalAlignment = Alignment.Top,
                 ) {
                     row.forEach { entry ->
@@ -184,8 +186,11 @@ private fun OperationOverviewGrid(
                             },
                         )
                     }
-                    // Keeps an odd trailing pairable entry at half width so the grid stays aligned.
-                    if (row.size == 1 && row.first().pairable) Spacer(modifier = Modifier.weight(1f))
+                    // Keeps a short trailing run of pairable entries in their columns so the grid
+                    // stays aligned down the section.
+                    if (row.first().pairable) {
+                        repeat(columns - row.size) { Spacer(modifier = Modifier.weight(1f)) }
+                    }
                 }
             }
         }

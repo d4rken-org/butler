@@ -22,6 +22,8 @@ Spacing comes from `WorkspacePaddings` (`app-workspace`, package `eu.darken.butl
 
 Card-internal paddings are not pane-edge insets and stay as they are; toolbar cards use `CutoutCardDefaults`. The Editor is deliberately full-bleed (0) because `LazyTextEditor` supplies its own gutter, and the Searcher results list spaces rows by the user's density setting rather than a token.
 
+Metadata grids (`InfoBlock` / `groupInfoEntries` in `app-common`) size themselves: pass `infoGridColumns(availableWidth)` rather than capping the content with `widthIn`.
+
 ## Pull to Refresh
 
 Workspace pages use `WorkspacePullToRefreshBox` (`app-workspace`, package `eu.darken.butler.workspace.ui.common`) and pass their top `FloatingBarStackState`. Never use `PullToRefreshBox` + `PullToRefreshDefaults.Indicator` directly: the default indicator translates vertically as the user pulls, so it emerges from behind the floating bar stack.
