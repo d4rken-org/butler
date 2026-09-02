@@ -58,9 +58,18 @@ class DropHitResolverTest : BaseTest() {
     @Test
     fun `a crumb zone inside the bar band still resolves`() {
         val registry = DropZoneRegistry().apply {
-            register("crumb", download, Rect(20f, 20f, 120f, 60f))
+            register("crumb", download, Rect(20f, 20f, 120f, 60f), allowOutsideContentBand = true)
         }
 
         resolve(Offset(50f, 40f), registry) shouldBe DropHit.Explicit(download)
+    }
+
+    @Test
+    fun `a row zone under the bar band resolves to nothing`() {
+        val registry = DropZoneRegistry().apply {
+            register("row", download, Rect(0f, 20f, 400f, 80f))
+        }
+
+        resolve(Offset(200f, 40f), registry) shouldBe DropHit.None
     }
 }
