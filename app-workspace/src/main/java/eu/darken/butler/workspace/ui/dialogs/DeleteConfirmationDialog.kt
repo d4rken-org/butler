@@ -25,6 +25,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.BulletListItem
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -104,10 +105,9 @@ fun DeleteConfirmationDialog(
                     modifier = Modifier.padding(start = 8.dp)
                 ) {
                     itemsToShow.forEach { item ->
-                        Text(
-                            text = "• ${item.name}",
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(vertical = 2.dp)
+                        BulletListItem(
+                            modifier = Modifier.padding(vertical = 2.dp),
+                            text = item.name,
                         )
                     }
 
@@ -273,6 +273,21 @@ private fun DeleteConfirmationDialogPartialTrashPreview() {
         items = setOf(
             LocalPath.build("/test/file1.txt"),
             SAFPath.build("content://com.android.externalstorage.documents/tree/primary", "file2.txt"),
+        ),
+        trashEnabled = true,
+        onDismiss = {},
+        onConfirm = { _, _ -> },
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun DeleteConfirmationDialogLongNamesPreview() {
+    DeleteConfirmationDialog(
+        items = setOf(
+            LocalPath.build("/test/termux-app_v0.118.3+github-debug_universal.apk"),
+            LocalPath.build("/test/AVeryLongNameWithoutAnySeparatorsAtAllThatCannotBeWrappedNicely"),
         ),
         trashEnabled = true,
         onDismiss = {},

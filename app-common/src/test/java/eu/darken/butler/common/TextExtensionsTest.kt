@@ -137,4 +137,56 @@ class TextExtensionsTest : BaseTest() {
         val filename = "photo${rlo}gpj.exe"
         filename.any { it.isProblematicInvisible() } shouldBe true
     }
+
+    @Test
+    fun `soft breaks are added after separators`() {
+        val zwsp = '\u200B'
+        "aaaaa-bbbbb_ccccc.ddddd+eeeee".withSoftBreaks() shouldBe
+            "aaaaa-${zwsp}bbbbb_${zwsp}ccccc.${zwsp}ddddd+${zwsp}eeeee"
+    }
+
+    @Test
+    fun `soft breaks leave text without separators alone`() {
+        "plainname".withSoftBreaks() shouldBe "plainname"
+        "with spaces only".withSoftBreaks() shouldBe "with spaces only"
+        "".withSoftBreaks() shouldBe ""
+    }
+
+    @Test
+    fun `soft breaks keep a short tail attached`() {
+        // Line filling is greedy, so a break offered before the extension would take it and strand
+        // the extension on a line of its own
+        "termux-app_v0.118.3+github-debug_universal.apk".withSoftBreaks() shouldBe
+            "termux-\u200Bapp_\u200Bv0.\u200B118.\u200B3+\u200Bgithub-\u200Bdebug_\u200Buniversal.apk"
+    }
+
+    @Test
+    fun `soft breaks keep a short head attached`() {
+        // A break after a leading dot would put the dot alone on the first line, which is the
+        // orphaned-bullet defect all over again
+        ".AVeryLongNameWithoutOtherSeparators".withSoftBreaks() shouldBe
+            ".AVeryLongNameWithoutOtherSeparators"
+        // Separators further in are still offered
+        ".hidden_config_name_here".withSoftBreaks() shouldBe ".hidden_\u200Bconfig_\u200Bname_here"
+    }
+
+    @Test
+    fun `soft breaks measure the tail in code points`() {
+        // Three code points, but five Chars: counting Chars would offer a break here
+        "name-😀😀a".withSoftBreaks() shouldBe "name-😀😀a"
+    }
+
+    @Test
+    fun `soft breaks never trail the text`() {
+        // A trailing zero-width space would let the line wrap after the last character, producing an
+        // empty final line
+        "archive.tar.".withSoftBreaks() shouldBe "archive.tar."
+        "-".withSoftBreaks() shouldBe "-"
+    }
+
+    @Test
+    fun `soft breaks preserve the visible text`() {
+        val name = "termux-app_v0.118.3+github-debug_universal.apk"
+        name.withSoftBreaks().filterNot { it == '\u200B' } shouldBe name
+    }
 }

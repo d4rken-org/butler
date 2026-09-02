@@ -19,6 +19,7 @@ import eu.darken.butler.apps.R
 import eu.darken.butler.apps.core.details.components.ComponentEnabledState
 import eu.darken.butler.apps.core.details.components.ComponentEntry
 import eu.darken.butler.apps.core.details.components.ComponentKind
+import eu.darken.butler.common.compose.BulletListItem
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -85,19 +86,19 @@ fun ComponentsConfirmDialog(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 entries.take(5).forEach { entry ->
-                    Text(
-                        text = "• ${entry.simpleName}",
-                        style = MaterialTheme.typography.bodySmall,
+                    BulletListItem(
                         modifier = Modifier.padding(vertical = 2.dp),
+                        text = entry.simpleName,
+                        style = MaterialTheme.typography.bodySmall,
                     )
                 }
 
                 if (entries.size > 5) {
-                    Text(
-                        text = "• ${stringResource(R.string.apps_components_and_more, entries.size - 5)}",
+                    BulletListItem(
+                        modifier = Modifier.padding(vertical = 2.dp),
+                        text = stringResource(R.string.apps_components_and_more, entries.size - 5),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(vertical = 2.dp),
                     )
                 }
             }

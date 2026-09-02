@@ -51,3 +51,41 @@ fun Char.isProblematicInvisible(): Boolean {
         else -> false
     }
 }
+
+private const val ZERO_WIDTH_SPACE = '\u200B'
+private val SOFT_BREAK_AFTER = setOf('-', '_', '.', '+')
+
+/** Code points a break opportunity needs on either side of it to be worth offering. */
+private const val SOFT_BREAK_MIN_EDGE = 5
+
+/**
+ * Adds zero-width spaces after separator characters so a long token can wrap at its boundaries.
+ *
+ * Without them a name that is a single unbroken token gets filled to the line's edge and split
+ * there:
+ *
+ *     termux-app_v0.118.3+github-debug_universal.ap
+ *     k
+ *
+ * Line filling is greedy, so it takes the last opportunity that fits. An opportunity with almost
+ * nothing on one side of it produces a line with almost nothing on it, hence [SOFT_BREAK_MIN_EDGE]
+ * — a trailing extension and a leading dot are the two that show up in file names:
+ *
+ *     termux-app_v0.118.3+github-debug_        .AVeryLongNameWithoutOtherSeparators
+ *     universal.apk                            (no opportunity at all, better than "." alone)
+ *
+ * Display only: the inserted characters are invisible but real, so the result must not be fed back
+ * into anything that compares, resolves or stores paths.
+ */
+fun String.withSoftBreaks(): String {
+    val builder = StringBuilder(length)
+    forEachIndexed { index, char ->
+        builder.append(char)
+        if (char !in SOFT_BREAK_AFTER) return@forEachIndexed
+        val split = index + 1
+        val fitsBefore = codePointCount(0, split) >= SOFT_BREAK_MIN_EDGE
+        val fitsAfter = codePointCount(split, length) >= SOFT_BREAK_MIN_EDGE
+        if (fitsBefore && fitsAfter) builder.append(ZERO_WIDTH_SPACE)
+    }
+    return builder.toString()
+}
