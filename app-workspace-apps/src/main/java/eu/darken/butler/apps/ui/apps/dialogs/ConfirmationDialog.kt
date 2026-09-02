@@ -12,10 +12,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.apps.R
 import eu.darken.butler.apps.core.engine.AppItem
+import eu.darken.butler.common.compose.BulletListItem
 import eu.darken.butler.workspace.ui.dialogs.PaneBoundAlertDialog
 
 @Composable
@@ -65,19 +67,19 @@ fun ConfirmationDialog(
 
                 // Show first 5 app names
                 apps.take(5).forEach { app ->
-                    Text(
-                        text = "• ${app.label.get(context)}",
+                    BulletListItem(
+                        modifier = Modifier.padding(vertical = 2.dp),
+                        text = app.label.get(context),
                         style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(vertical = 2.dp)
                     )
                 }
 
                 if (apps.size > 5) {
-                    Text(
-                        text = "• … and ${apps.size - 5} more",
+                    BulletListItem(
+                        modifier = Modifier.padding(vertical = 2.dp),
+                        text = stringResource(R.string.apps_components_and_more, apps.size - 5),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(vertical = 2.dp)
                     )
                 }
             }

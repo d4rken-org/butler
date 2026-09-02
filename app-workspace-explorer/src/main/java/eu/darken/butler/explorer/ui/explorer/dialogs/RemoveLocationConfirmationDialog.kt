@@ -15,6 +15,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.BulletListItem
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -82,10 +83,9 @@ fun RemoveLocationConfirmationDialog(
                         modifier = Modifier.padding(start = 8.dp)
                     ) {
                         items.forEach { item ->
-                            Text(
-                                text = "• ${item.displayName.get(context)}",
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(vertical = 2.dp)
+                            BulletListItem(
+                                modifier = Modifier.padding(vertical = 2.dp),
+                                text = item.displayName.get(context),
                             )
                         }
                     }
