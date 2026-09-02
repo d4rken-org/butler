@@ -165,8 +165,11 @@ private fun codeSpan(value: String): String {
     return "$fence$padding$escaped$padding$fence"
 }
 
-/** A raw newline turns the rest of a single-line field into a stray paragraph, heading or list item. */
+/**
+ * A raw line break turns the rest of a single-line field into a stray paragraph, heading or list
+ * item. CommonMark ends a line on a lone CR too, not just on LF and CRLF.
+ */
 private fun singleLine(value: String): String = value.replace(LINE_BREAK, " ")
 
 private val BACKTICK_RUN = Regex("`+")
-private val LINE_BREAK = Regex("\\r?\\n")
+private val LINE_BREAK = Regex("\\r\\n?|\\n")
