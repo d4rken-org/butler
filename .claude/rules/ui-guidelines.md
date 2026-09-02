@@ -12,12 +12,15 @@ paths: ["**/ui/**", "**/common/compose/**", "**/common/theming/**", "**/common/n
 
 ## Pane Edge Padding
 
-Horizontal insets from the pane edge come from `WorkspacePaddings` (`app-workspace`, package `eu.darken.butler.workspace.ui.common`):
+Spacing comes from `WorkspacePaddings` (`app-workspace`, package `eu.darken.butler.workspace.ui.common`). Pick by what the item is, not by which screen it is on:
 
-- `BarHorizontal` (16.dp): applied automatically by `FloatingBarStack` to every bar. Never add `Modifier.padding(horizontal = …)` to a `FloatingBar` — override the stack's `horizontalPadding` instead.
-- `ContentHorizontal` (12.dp): page content (lists, card columns) below/behind the bars.
+- `BarHorizontal` (16.dp): applied automatically by `FloatingBarStack` to every bar, and to floating chrome that lines up with one (the Explorer error cards). Never add `Modifier.padding(horizontal = …)` to a `FloatingBar` — override the stack's `horizontalPadding` instead.
+- `ContentHorizontal` (12.dp): full-width page content (lists, card columns) below/behind the bars.
+- `GridHorizontal` / `GridGutter` (both 4.dp): tile grids. The outer inset matches the gutter, so the side margins read as wide as the gaps between tiles. Change them together.
+- `ListGap` (8.dp) between standalone cards, `ListGapDense` (4.dp) between full-bleed rows that carry their own interior padding.
+- `ScreenHorizontal` (24.dp): full-window surfaces that are not a workspace pane (workspace manager, Upgrade).
 
-Exceptions: the Templates picker layout (24.dp), the Explorer grid branch (2.dp) and the Apps grid branch (8.dp). Card-internal paddings are not pane-edge insets and stay as they are.
+Card-internal paddings are not pane-edge insets and stay as they are; toolbar cards use `CutoutCardDefaults`. The Editor is deliberately full-bleed (0) because `LazyTextEditor` supplies its own gutter, and the Searcher results list spaces rows by the user's density setting rather than a token.
 
 ## Pull to Refresh
 

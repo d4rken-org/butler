@@ -26,6 +26,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.common.WorkspacePaddings
 import eu.darken.butler.workspace.ui.manager.rows.WorkspaceBadgeExplanationCard
 import eu.darken.butler.workspace.ui.manager.rows.WorkspaceGridItem
 import eu.darken.butler.workspace.ui.manager.rows.WorkspaceStatusCard
@@ -106,8 +107,8 @@ fun WorkspaceManagerGridLayout(
         contentPadding = PaddingValues(
             top = paddingValues.calculateTopPadding(),
             bottom = paddingValues.calculateBottomPadding(),
-            start = 24.dp,
-            end = 24.dp
+            start = WorkspacePaddings.ScreenHorizontal,
+            end = WorkspacePaddings.ScreenHorizontal
         ),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)

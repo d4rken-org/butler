@@ -196,7 +196,7 @@ fun BugReportWorkspacePage(
                     .fillMaxSize()
                     .nestedScroll(topBarStackState.nestedScrollConnection),
                 contentPadding = listContentPadding,
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(WorkspacePaddings.ListGap),
             ) {
                 items(listReports, key = { it.id }) { info ->
                     ReportCard(info = info, onClick = { onReportClick(info) })

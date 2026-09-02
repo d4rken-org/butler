@@ -40,6 +40,7 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.NavigationEventHandler
+import eu.darken.butler.workspace.ui.common.WorkspacePaddings
 
 @Composable
 fun UpgradeScreenHost(
@@ -214,7 +215,12 @@ internal fun UpgradeScreen(
     ) { paddingValues ->
         UpgradeScreenContent(
             paddingValues = paddingValues,
-            contentPadding = PaddingValues(start = 24.dp, top = 16.dp, end = 24.dp, bottom = 32.dp),
+            contentPadding = PaddingValues(
+                start = WorkspacePaddings.ScreenHorizontal,
+                top = 16.dp,
+                end = WorkspacePaddings.ScreenHorizontal,
+                bottom = 32.dp,
+            ),
         ) {
             if (ownedState == null) {
                 // Owners get the mascot inside the congrats hero card instead. Once a grace
