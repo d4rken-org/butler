@@ -32,6 +32,9 @@ sealed interface WorkspaceScreenAction {
         val customTitle: String?,
     ) : WorkspaceScreenAction
 
+    /** Detaches [id] from its pane, leaving the tab open. */
+    data class UnassignPane(val id: Workspace.Id) : WorkspaceScreenAction
+
     /** Resumes a paused workspace, bringing back its live instance. Does not change focus. */
     data class ResumeWorkspace(
         val id: Workspace.Id,

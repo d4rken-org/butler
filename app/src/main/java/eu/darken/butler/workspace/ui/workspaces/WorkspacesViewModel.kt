@@ -421,6 +421,9 @@ class WorkspacesViewModel @Inject constructor(
             is WorkspaceScreenAction.ToggleSelection -> {
                 workspacePageManager.toggleWorkspaceSelection(action.id, action.position)
             }
+            is WorkspaceScreenAction.UnassignPane -> {
+                workspacePageManager.unassignWorkspace(action.id)
+            }
             is WorkspaceScreenAction.SetPaneCount -> {
                 log(tag) { "Setting pane count to ${action.count}" }
                 workspacePageManager.setPaneCount(action.count)

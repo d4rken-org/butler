@@ -36,6 +36,7 @@ import androidx.compose.material.icons.twotone.Looks3
 import androidx.compose.material.icons.twotone.Looks4
 import androidx.compose.material.icons.twotone.LooksOne
 import androidx.compose.material.icons.twotone.LooksTwo
+import androidx.compose.material.icons.twotone.RemoveCircleOutline
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FloatingActionButton
@@ -103,6 +104,8 @@ object WorkspaceNavigationRailDefaults {
      * than the one under test.
      */
     const val ITEM_TEST_TAG = "workspace.rail.item"
+
+    const val UNASSIGN_TEST_TAG = "workspace.rail.unassign"
 }
 
 private val RailSectionPadding = 8.dp
@@ -213,6 +216,7 @@ fun WorkspaceNavigationRail(
     design: WorkspaceDesign = WorkspaceDesign(),
     onTabAction: (WorkspaceAction) -> Unit,
     onPaneAssignment: (workspaceId: Workspace.Id, paneIndex: Int) -> Unit,
+    onPaneUnassign: (workspaceId: Workspace.Id) -> Unit,
     onRename: (Workspace.Id) -> Unit = {},
     onPaneMenuToggle: (Boolean) -> Unit = {},
 ) {
@@ -305,6 +309,7 @@ fun WorkspaceNavigationRail(
                         ),
                         onTabAction = onTabAction,
                         onPaneAssignment = onPaneAssignment,
+                        onPaneUnassign = onPaneUnassign,
                         onRename = onRename,
                         design = design,
                         onPaneMenuToggle = onPaneMenuToggle,
@@ -616,6 +621,7 @@ private fun DraggableWorkspaceRailItem(
     closeHostId: Workspace.Id? = null,
     onTabAction: (WorkspaceAction) -> Unit,
     onPaneAssignment: (workspaceId: Workspace.Id, paneIndex: Int) -> Unit,
+    onPaneUnassign: (workspaceId: Workspace.Id) -> Unit,
     onRename: (Workspace.Id) -> Unit,
     design: WorkspaceDesign,
     onPaneMenuToggle: (Boolean) -> Unit,
@@ -655,63 +661,160 @@ private fun DraggableWorkspaceRailItem(
             onClick = { showPaneMenu = true },
         )
 
-        DropdownMenu(
+        WorkspaceRailItemMenu(
             expanded = showPaneMenu,
-            onDismissRequest = { showPaneMenu = false },
-        ) {
-            repeat(design.maxPanes) { paneIndex ->
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.workspace_pane_assign_action, paneIndex + 1)) },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = when (paneIndex) {
-                                0 -> Icons.TwoTone.LooksOne
-                                1 -> Icons.TwoTone.LooksTwo
-                                2 -> Icons.TwoTone.Looks3
-                                else -> Icons.TwoTone.Looks4
-                            },
-                            contentDescription = null,
-                        )
-                    },
-                    onClick = {
-                        showPaneMenu = false
-                        onPaneMenuToggle(false)  // Explicitly hide overlays
-                        onPaneAssignment(workspace.id, paneIndex)
-                    },
+            maxPanes = design.maxPanes,
+            currentPaneIndex = currentPaneIndex,
+            onDismiss = {
+                showPaneMenu = false
+                onPaneMenuToggle(false)  // Explicitly hide overlays
+            },
+            onAssign = { paneIndex -> onPaneAssignment(workspace.id, paneIndex) },
+            onUnassign = { onPaneUnassign(workspace.id) },
+            onRename = { onRename(workspace.id) },
+            onClose = {
+                onTabAction(
+                    WorkspaceAction.Close(workspace.id, sourceWorkspaceId = closeHostId, undoable = true)
                 )
-            }
+            },
+        )
+    }
+}
+
+/**
+ * The entry's action menu. [expanded] is hoisted, so the menu cannot close itself: every item calls
+ * [onDismiss] before its own action, and [onDismiss] is what a press outside runs too.
+ *
+ * [currentPaneIndex] is what decides whether the entry can be detached, so it has to come from the
+ * assignments the layout renders - an entry parked on a pane this layout does not have shows no pane
+ * number either, and offering to remove it from one would name a pane the user cannot see.
+ */
+@Composable
+internal fun WorkspaceRailItemMenu(
+    modifier: Modifier = Modifier,
+    expanded: Boolean,
+    maxPanes: Int,
+    currentPaneIndex: Int?,
+    onDismiss: () -> Unit,
+    onAssign: (paneIndex: Int) -> Unit,
+    onUnassign: () -> Unit,
+    onRename: () -> Unit,
+    onClose: () -> Unit,
+) {
+    DropdownMenu(
+        modifier = modifier,
+        expanded = expanded,
+        onDismissRequest = onDismiss,
+    ) {
+        repeat(maxPanes) { paneIndex ->
             DropdownMenuItem(
-                text = { Text(stringResource(CommonR.string.general_rename_action)) },
+                text = { Text(stringResource(R.string.workspace_pane_assign_action, paneIndex + 1)) },
                 leadingIcon = {
                     Icon(
-                        imageVector = Icons.TwoTone.Edit,
+                        imageVector = when (paneIndex) {
+                            0 -> Icons.TwoTone.LooksOne
+                            1 -> Icons.TwoTone.LooksTwo
+                            2 -> Icons.TwoTone.Looks3
+                            else -> Icons.TwoTone.Looks4
+                        },
                         contentDescription = null,
                     )
                 },
                 onClick = {
-                    showPaneMenu = false
-                    onPaneMenuToggle(false)
-                    onRename(workspace.id)
-                },
-            )
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.workspace_pane_close_action)) },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.TwoTone.Close,
-                        contentDescription = null,
-                    )
-                },
-                onClick = {
-                    showPaneMenu = false
-                    onPaneMenuToggle(false)  // Explicitly hide overlays before closing
-                    onTabAction(
-                        WorkspaceAction.Close(workspace.id, sourceWorkspaceId = closeHostId, undoable = true)
-                    )
+                    onDismiss()
+                    onAssign(paneIndex)
                 },
             )
         }
+        if (currentPaneIndex != null) {
+            DropdownMenuItem(
+                modifier = Modifier.testTag(WorkspaceNavigationRailDefaults.UNASSIGN_TEST_TAG),
+                text = { Text(stringResource(R.string.workspace_pane_unassign_action)) },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.TwoTone.RemoveCircleOutline,
+                        contentDescription = null,
+                    )
+                },
+                onClick = {
+                    onDismiss()
+                    onUnassign()
+                },
+            )
+        }
+        DropdownMenuItem(
+            text = { Text(stringResource(CommonR.string.general_rename_action)) },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.TwoTone.Edit,
+                    contentDescription = null,
+                )
+            },
+            onClick = {
+                onDismiss()
+                onRename()
+            },
+        )
+        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+        DropdownMenuItem(
+            text = { Text(stringResource(R.string.workspace_pane_close_action)) },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.TwoTone.Close,
+                    contentDescription = null,
+                )
+            },
+            onClick = {
+                onDismiss()
+                onClose()
+            },
+        )
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspaceRailItemMenuPreview() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        WorkspaceRailItemMenu(
+            expanded = true,
+            // maxPanes = 4 so the icon mapping's else branch is exercised.
+            maxPanes = 4,
+            currentPaneIndex = 1,
+            onDismiss = {},
+            onAssign = {},
+            onUnassign = {},
+            onRename = {},
+            onClose = {},
+        )
+    }
+}
+
+/** An entry in no pane the layout renders has nothing to be removed from. */
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspaceRailItemMenuUnassignedPreview() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        WorkspaceRailItemMenu(
+            expanded = true,
+            maxPanes = 4,
+            currentPaneIndex = null,
+            onDismiss = {},
+            onAssign = {},
+            onUnassign = {},
+            onRename = {},
+            onClose = {},
+        )
     }
 }
 
@@ -745,75 +848,7 @@ private fun WorkspaceNavigationRailPreview() {
         design = WorkspaceDesign(layout = WorkspaceDesign.Layout.TRIPLE_MAIN_LEFT),
         onTabAction = {},
         onPaneAssignment = { _, _ -> },
+        onPaneUnassign = {},
         onPaneMenuToggle = {},
     )
-}
-
-@Preview2
-@ComposePreviewWrapper(ButlerPreviewWrapper::class)
-@Composable
-private fun PaneMenuPreview() {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        DropdownMenu(
-            expanded = true,
-            onDismissRequest = {},
-        ) {
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.workspace_pane_assign_action, 1)) },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.TwoTone.LooksOne,
-                        contentDescription = null,
-                    )
-                },
-                onClick = {},
-            )
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.workspace_pane_assign_action, 2)) },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.TwoTone.LooksTwo,
-                        contentDescription = null,
-                    )
-                },
-                onClick = {},
-            )
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.workspace_pane_assign_action, 3)) },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.TwoTone.Looks3,
-                        contentDescription = null,
-                    )
-                },
-                onClick = {},
-            )
-            // Four entries, because pane 4 used to fall back to the "1" icon.
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.workspace_pane_assign_action, 4)) },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.TwoTone.Looks4,
-                        contentDescription = null,
-                    )
-                },
-                onClick = {},
-            )
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.workspace_pane_close_action)) },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.TwoTone.Close,
-                        contentDescription = null,
-                    )
-                },
-                onClick = {},
-            )
-        }
-    }
 }
