@@ -8,6 +8,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.metadata.MetadataRepo
@@ -130,8 +131,9 @@ class TrashLocationLoader @AssistedInject constructor(
                 )
             }
 
-            // Verify the path exists in filesystem
-            if (!gatewaySwitch.exists(absolutePath)) {
+            // Only a definitive "not there" earns this wording. A folder that cannot be inspected
+            // falls through to the listing below, whose own failure names the real reason.
+            if (gatewaySwitch.existsStrict(absolutePath) == Existence.ABSENT) {
                 log(tag, ERROR) { "Trash path no longer exists: $absolutePath" }
                 throw IllegalStateException("Folder contents no longer available")
             }
