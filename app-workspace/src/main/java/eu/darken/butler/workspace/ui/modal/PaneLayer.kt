@@ -73,6 +73,7 @@ fun PaneLayer(
     val layerState = LocalPaneLayerState.current
     val paneFocused = LocalPaneFocused.current
     val inheritedActive = LocalLayerActive.current
+    val inheritedOnTopPath = LocalLayerOnTopPath.current
     val parentToken = LocalPaneLayerParent.current
     val token = remember { Any() }
     val registered = enabled && layerState != null
@@ -156,6 +157,7 @@ fun PaneLayer(
         val boxScope = this
         CompositionLocalProvider(
             LocalLayerActive provides active,
+            LocalLayerOnTopPath provides if (registered) onTopPath else inheritedOnTopPath,
             LocalPaneLayerRank provides rank,
             LocalPaneLayerParent provides if (registered) token else parentToken,
         ) {

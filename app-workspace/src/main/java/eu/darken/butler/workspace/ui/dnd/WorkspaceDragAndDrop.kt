@@ -53,6 +53,9 @@ fun WorkspaceDragPayload.toTransferData(): DragAndDropTransferData = DragAndDrop
 fun DragAndDropEvent.workspaceDragPayload(): WorkspaceDragPayload? =
     toAndroidDragEvent().localState as? WorkspaceDragPayload
 
+/** Pointer position in pixels relative to the Compose root, matching `LayoutCoordinates.boundsInRoot()`. */
+fun DragAndDropEvent.positionInRoot(): Offset = toAndroidDragEvent().let { Offset(it.x, it.y) }
+
 /**
  * A drag that the caller starts itself, instead of leaving it to a built-in gesture detector.
  *

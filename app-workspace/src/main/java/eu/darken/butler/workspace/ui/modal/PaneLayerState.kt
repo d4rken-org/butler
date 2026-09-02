@@ -103,6 +103,14 @@ object PaneLayerRank {
  */
 val LocalLayerActive = compositionLocalOf { true }
 
+/**
+ * True when this composition is the topmost layer of its pane or encloses that layer.
+ *
+ * Differs from [LocalLayerActive] in ignoring pane focus, so a visible but unfocused pane still
+ * accepts a cross-pane drop while a covered layer refuses the drag session outright.
+ */
+val LocalLayerOnTopPath = compositionLocalOf { true }
+
 /** The pane's layer stack, or `null` outside a pane (previews, offscreen capture). */
 val LocalPaneLayerState = compositionLocalOf<PaneLayerState?> { null }
 
