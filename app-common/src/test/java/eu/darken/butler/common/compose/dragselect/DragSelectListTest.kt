@@ -27,7 +27,7 @@ import testhelpers.ComposeTest
 
 /**
  * Item geometry is chosen so every index these tests touch sits outside the auto-scroll edge zone
- * ([AutoScrollEdge], 56dp): index 0 is inside it, indices 1..10 are not.
+ * ([EdgeAutoScroller.DefaultEdge], 56dp): index 0 is inside it, indices 1..10 are not.
  */
 class DragSelectListTest : ComposeTest() {
 

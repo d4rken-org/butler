@@ -32,7 +32,7 @@ import testhelpers.ComposeTest
 
 /**
  * A 3-column grid of 40dp cells in a 480dp viewport: index 0..2 sit in the top auto-scroll edge
- * zone ([AutoScrollEdge], 56dp), every index these tests touch is below it.
+ * zone ([EdgeAutoScroller.DefaultEdge], 56dp), every index these tests touch is below it.
  */
 class DragSelectGridTest : ComposeTest() {
 

@@ -1,10 +1,8 @@
 package eu.darken.butler.common.compose.dragselect
 
-import androidx.compose.foundation.gestures.ScrollableState
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.awaitLongPressOrCancellation
-import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.lazy.LazyListState
@@ -14,30 +12,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
+import eu.darken.butler.common.compose.autoscroll.AutoScrollTarget
+import eu.darken.butler.common.compose.autoscroll.EdgeAutoScroller
+import eu.darken.butler.common.compose.autoscroll.LazyGridAutoScrollTarget
+import eu.darken.butler.common.compose.autoscroll.LazyListAutoScrollTarget
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.roundToInt
-
-/** How close to a viewport edge the pointer has to get before the content starts scrolling. */
-private val AutoScrollEdge = 56.dp
-
-/** Auto-scroll speed at the very edge of the viewport, scaled down with the distance to it. */
-private val AutoScrollMaxSpeed = 900.dp
 
 /**
  * Long-press-then-drag multi selection for a vertical [LazyListState] container.
@@ -62,7 +50,7 @@ fun <K : Any> Modifier.listDragSelect(
     onSelectionChange: (Set<K>) -> Unit,
     enabled: (K) -> Boolean = { true },
 ): Modifier {
-    val target = remember(state) { LazyListDragSelectTarget(state) }
+    val target = remember(state) { LazyListAutoScrollTarget(state) }
     return dragSelect(target, orderedKeys, currentSelection, onSelectionChange, enabled)
 }
 
@@ -86,7 +74,7 @@ fun <K : Any> Modifier.gridDragSelect(
     val startPaddingPx = with(LocalDensity.current) {
         contentPadding.calculateStartPadding(layoutDirection).roundToPx()
     }
-    val target = remember(state, startPaddingPx) { LazyGridDragSelectTarget(state, startPaddingPx) }
+    val target = remember(state, startPaddingPx) { LazyGridAutoScrollTarget(state, startPaddingPx) }
     return dragSelect(target, orderedKeys, currentSelection, onSelectionChange, enabled)
 }
 
@@ -101,7 +89,7 @@ fun <K : Any> Modifier.gridDragSelect(
  */
 @Composable
 private fun <K : Any> Modifier.dragSelect(
-    target: DragSelectTarget,
+    target: AutoScrollTarget,
     orderedKeys: () -> List<K>,
     currentSelection: () -> Set<K>,
     onSelectionChange: (Set<K>) -> Unit,
@@ -115,8 +103,8 @@ private fun <K : Any> Modifier.dragSelect(
     val scope = rememberCoroutineScope()
 
     return this.pointerInput(target) {
-        val edgePx = AutoScrollEdge.toPx()
-        val maxSpeedPx = AutoScrollMaxSpeed.toPx()
+        val edgePx = EdgeAutoScroller.DefaultEdge.toPx()
+        val maxSpeedPx = EdgeAutoScroller.DefaultMaxSpeed.toPx()
         awaitEachGesture {
             // The pane focus handler consumes the down on the initial pass, so an unconsumed down
             // would never arrive here.
@@ -135,7 +123,7 @@ private fun <K : Any> Modifier.dragSelect(
                 onSelectionChange = { currentOnSelectionChange(it) },
                 onEndpointChanged = { haptics.performHapticFeedback(HapticFeedbackType.SegmentTick) },
             )
-            val autoScroller = DragSelectAutoScroller(
+            val autoScroller = EdgeAutoScroller(
                 scope = scope,
                 target = target,
                 edgePx = edgePx,
@@ -215,116 +203,5 @@ private class DragSelectSession<K : Any>(
 
     fun end() {
         isActive = false
-    }
-}
-
-/**
- * Scrolls the content while the pointer rests near a viewport edge, advancing by frame delta so the
- * speed is refresh-rate independent. Stops as soon as the content bound is reached and is re-armed
- * by the next drag event.
- *
- * [onScrolled] reports whether the session is still live: a finger resting at the edge produces no
- * pointer events, so the frame loop is the only place that would notice the session ending.
- */
-private class DragSelectAutoScroller(
-    private val scope: CoroutineScope,
-    private val target: DragSelectTarget,
-    private val edgePx: Float,
-    private val maxSpeedPx: Float,
-    private val onScrolled: (Offset) -> Boolean,
-) {
-
-    private var job: Job? = null
-    private var pointer: Offset = Offset.Unspecified
-
-    fun update(pointer: Offset) {
-        this.pointer = pointer
-        if (speedFor(pointer) == 0f) {
-            stop()
-            return
-        }
-        if (job?.isActive == true) return
-        job = scope.launch {
-            var previousFrame = withFrameNanos { it }
-            while (true) {
-                val frame = withFrameNanos { it }
-                val seconds = (frame - previousFrame) / 1_000_000_000f
-                previousFrame = frame
-                val speed = speedFor(pointer)
-                if (speed == 0f) break
-                if (target.scrollableState.scrollBy(speed * seconds) == 0f) break
-                if (!onScrolled(pointer)) break
-            }
-        }
-    }
-
-    fun stop() {
-        job?.cancel()
-        job = null
-    }
-
-    private fun speedFor(pointer: Offset): Float {
-        if (pointer == Offset.Unspecified) return 0f
-        val viewport = target.viewportMainAxisSize.toFloat()
-        if (viewport <= 0f) return 0f
-        val toStart = pointer.y
-        val toEnd = viewport - pointer.y
-        return when {
-            toStart < edgePx -> -maxSpeedPx * ((edgePx - toStart.coerceAtLeast(0f)) / edgePx)
-            toEnd < edgePx -> maxSpeedPx * ((edgePx - toEnd.coerceAtLeast(0f)) / edgePx)
-            else -> 0f
-        }
-    }
-}
-
-/** The lazy container the session drives: hit-testing, viewport extent and scrolling. */
-internal interface DragSelectTarget {
-    val scrollableState: ScrollableState
-
-    /** Main-axis extent of the viewport in pixels, content padding included. */
-    val viewportMainAxisSize: Int
-
-    /** The key of the item under [position], which is relative to the container's top left. */
-    fun keyAt(position: Offset): Any?
-}
-
-/**
- * Item offsets are relative to the scrolled content, the pointer is relative to the container -
- * `viewportStartOffset` is the difference (negative by the amount of leading content padding).
- */
-internal class LazyListDragSelectTarget(private val state: LazyListState) : DragSelectTarget {
-
-    override val scrollableState: ScrollableState get() = state
-
-    override val viewportMainAxisSize: Int get() = state.layoutInfo.viewportSize.height
-
-    override fun keyAt(position: Offset): Any? {
-        val layoutInfo = state.layoutInfo
-        val mainAxis = position.y + layoutInfo.viewportStartOffset
-        return layoutInfo.visibleItemsInfo
-            .firstOrNull { mainAxis >= it.offset && mainAxis < it.offset + it.size }
-            ?.key
-    }
-}
-
-internal class LazyGridDragSelectTarget(
-    private val state: LazyGridState,
-    private val startPaddingPx: Int = 0,
-) : DragSelectTarget {
-
-    override val scrollableState: ScrollableState get() = state
-
-    override val viewportMainAxisSize: Int get() = state.layoutInfo.viewportSize.height
-
-    override fun keyAt(position: Offset): Any? {
-        val layoutInfo = state.layoutInfo
-        // Item cross-axis offsets exclude the leading content padding, so undo it on the pointer.
-        val point = IntOffset(
-            x = (position.x - startPaddingPx).roundToInt(),
-            y = (position.y + layoutInfo.viewportStartOffset).roundToInt(),
-        )
-        return layoutInfo.visibleItemsInfo
-            .firstOrNull { IntRect(it.offset, it.size).contains(point) }
-            ?.key
     }
 }
