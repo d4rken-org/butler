@@ -20,8 +20,8 @@ private const val TIMESTAMP_PATTERN = "yyyy-MM-dd HH:mm:ss"
 /**
  * Renders [entries] as markdown, one block per entry.
  *
- * [attemptedPaths] belongs to a single entry and is only passed by the detail sheet, which has
- * already loaded it; a bulk share leaves it null rather than issuing one query per entry.
+ * [attemptedPaths] describes one specific entry, so it is only applied to a single-entry share; a
+ * bulk share leaves it null rather than issuing one query per entry.
  *
  * [zone] is a parameter because the `Completed` line is a fixed pattern rather than a locale
  * format: a record meant to be pasted elsewhere should read the same everywhere, and a test can
@@ -34,11 +34,12 @@ internal fun buildHistoryShareText(
     zone: ZoneId = ZoneId.systemDefault(),
 ): String {
     val timestamps = DateTimeFormatter.ofPattern(TIMESTAMP_PATTERN).withZone(zone)
+    val entryPaths = attemptedPaths?.takeIf { entries.size == 1 }
     val document = StringBuilder()
     var written = 0
 
     for (entry in entries) {
-        val block = entry.toShareBlock(context, attemptedPaths, timestamps)
+        val block = entry.toShareBlock(context, entryPaths, timestamps)
         val separator = if (document.isEmpty()) "" else "\n\n"
         // Budgeted per document, so one pathological entry is bounded too.
         if (document.length + separator.length + block.length > SHARE_TEXT_MAX_CHARS) break

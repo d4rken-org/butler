@@ -190,13 +190,19 @@ class HistoryWorkspaceViewModel @AssistedInject constructor(
         _overlayState.update { it.copy(deleteConfirmEntries = emptyList()) }
     }
 
-    fun shareEntry(entry: HistoryEntry) {
-        val overlay = _overlayState.value
-        // The sheet has already loaded these for an entry that reported no changes; a bulk share
-        // has none and says so instead of issuing a query per entry.
-        val attempted = overlay.attemptedPaths
-            .takeIf { it.isNotEmpty() && overlay.detailEntry?.id == entry.id }
-            ?.let { OperationHistoryRepo.AttemptedPaths(it, overlay.attemptedPathsTotal) }
+    fun shareEntry(entry: HistoryEntry) = launch {
+        // An entry that reported no changes shares what the operation tried to touch instead. The
+        // sheet's own load may still be in flight, and an empty list there is indistinguishable
+        // from a finished one, so query rather than share a record that claims nothing happened.
+        val attempted = if (entry.paths.isNotEmpty()) {
+            null
+        } else {
+            val overlay = _overlayState.value
+            overlay.attemptedPaths
+                .takeIf { it.isNotEmpty() && overlay.detailEntry?.id == entry.id }
+                ?.let { OperationHistoryRepo.AttemptedPaths(it, overlay.attemptedPathsTotal) }
+                ?: historyRepo.getAttemptedPaths(entry.id)
+        }
         shareEntries(listOf(entry), attempted)
     }
 
