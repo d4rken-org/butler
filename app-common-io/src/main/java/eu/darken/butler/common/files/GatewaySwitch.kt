@@ -287,6 +287,7 @@ class GatewaySwitch @Inject constructor(
         openForHandover(dispatcherProvider.IO) {
             try {
                 // create() owns the handle from here on and closes it itself if it throws.
+                // Closing the descriptor runs the proxy's release callback, which closes the handle and frees the lease.
                 val handle = file(path, readWrite = false)
                 proxyPfdFactory.create(handle, "r").seekableOrNull()
             } catch (e: Exception) {
