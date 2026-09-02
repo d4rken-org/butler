@@ -16,6 +16,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.ArchivePath
+import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.MimeInfo
@@ -623,10 +624,14 @@ class ViewerWorkspace @AssistedInject constructor(
         ApkInstallState.Unknown
     }
 
-    /** Only a definitive "not there" counts; a failing check stays with the original error. */
+    /**
+     * Only a definitive "not there" counts. A path that merely cannot be inspected - denied access,
+     * dead provider, unreachable host - answers [Existence.UNKNOWN], and there the original error
+     * carries the signal the user needs.
+     */
     private suspend fun isGone(path: APath<*>?): Boolean = try {
         val filePath = path ?: return false
-        !gatewaySwitch.useRes { gatewaySwitch.exists(filePath) }
+        gatewaySwitch.existsStrict(filePath) == Existence.ABSENT
     } catch (e: CancellationException) {
         throw e
     } catch (e: Exception) {
