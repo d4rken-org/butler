@@ -1,16 +1,22 @@
 package eu.darken.butler.workspace.ui.workspaces
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onParent
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
 import androidx.compose.ui.test.swipeRight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.width
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.undo.ClosedWorkspaceFeedback
@@ -132,6 +138,30 @@ class WorkspaceClosedFeedbackBarTest : ComposeTest() {
         composeTestRule.waitForIdle()
 
         dismissedTokens shouldBe listOf(1L, 2L)
+    }
+
+    @Test
+    fun `the bar is capped in a wide window and starts at the stack's start edge`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                // Required: the test window is narrower than the cap, and a plain width would be
+                // clamped to it.
+                Box(modifier = Modifier.requiredWidth(1000.dp).testTag("window")) {
+                    FloatingBarStack(position = BarPosition.BOTTOM, horizontalPadding = 0.dp) {
+                        WorkspaceClosedUndoBar(
+                            feedback = feedbackOf(1L),
+                            onUndo = {},
+                            onDismiss = {},
+                        )
+                    }
+                }
+            }
+        }
+
+        val window = composeTestRule.onNodeWithTag("window").getUnclippedBoundsInRoot()
+        val bounds = composeTestRule.onNodeWithText(MESSAGE).onParent().getUnclippedBoundsInRoot()
+        bounds.left shouldBe window.left
+        bounds.width shouldBe 600.dp
     }
 
     companion object {
