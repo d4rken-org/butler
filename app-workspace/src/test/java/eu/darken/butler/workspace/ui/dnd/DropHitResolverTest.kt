@@ -77,8 +77,8 @@ class DropHitResolverTest : BaseTest() {
     @Test
     fun `an eligible crumb wins over a hidden row it overlaps`() {
         val registry = DropZoneRegistry().apply {
-            register("row", download, Rect(0f, 20f, 400f, 80f))
-            register("crumb", pictures, Rect(20f, 20f, 120f, 60f), allowOutsideContentBand = true)
+            register("row", download, Rect(30f, 20f, 90f, 80f))
+            register("crumb", pictures, Rect(0f, 20f, 300f, 60f), allowOutsideContentBand = true)
         }
 
         resolve(Offset(50f, 40f), registry) shouldBe DropHit.Explicit(pictures)
