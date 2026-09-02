@@ -163,6 +163,15 @@
     <string name="history_workspace_title_kind_install">History: Install</string>
     <string name="history_filter_kind_install">Install</string>
 
+    <!-- Selection actions -->
+    <string name="history_action_select_all">Select all</string>
+    <string name="history_action_deselect_all">Deselect all</string>
+    <plurals name="history_delete_dialog_title">
+        <item quantity="one">Delete %1$d entry</item>
+        <item quantity="other">Delete %1$d entries</item>
+    </plurals>
+    <string name="history_delete_dialog_message">Only the history records are removed, the files themselves are not touched.</string>
+
     <!-- Shared text -->
     <string name="history_share_label_outcome">Outcome</string>
     <string name="history_share_label_kind">Kind</string>

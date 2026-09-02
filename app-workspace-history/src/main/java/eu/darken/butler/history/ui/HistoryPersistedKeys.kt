@@ -20,4 +20,5 @@ internal object HistoryScrollSlots {
  */
 internal object HistoryBarKeys {
     const val TOOLBAR = "toolbar"
+    const val ACTIONS = "actions"
 }
