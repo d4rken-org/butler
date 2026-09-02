@@ -117,6 +117,8 @@ fun ExplorerWorkspaceOverlays(
         onCancelOperation = { operationId -> vm?.requestCancelOperation(operationId) },
         onShareError = { vm?.shareError(it) },
         onHandleIssue = { operationId -> vm?.showConflictSheet(operationId) },
+        onShowInHistory = { operationId -> vm?.showOperationInHistory(operationId) },
+        historyEnabled = operationsState?.historyEnabled == true,
         topInset = statusBarInset,
         bottomInset = navBarInset,
     )

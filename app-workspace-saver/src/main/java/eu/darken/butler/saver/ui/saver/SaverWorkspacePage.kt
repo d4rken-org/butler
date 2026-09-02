@@ -174,6 +174,8 @@ internal fun SaverWorkspacePage(
             onHandleIssue = { operationId ->
                 vm?.showConflictSheet(operationId)
             },
+            onShowInHistory = { operationId -> vm?.showOperationInHistory(operationId) },
+            historyEnabled = state.historyEnabled,
             topInset = statusBarInset,
             bottomInset = navBarInset,
         )

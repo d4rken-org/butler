@@ -74,6 +74,15 @@ class HistoryArgumentsSerializationTest : BaseTest() {
     }
 
     @Test
+    fun `focus entry survives a roundtrip`() {
+        val original = HistoryArguments.Default(focusEntryId = "op-1")
+
+        val serialized = json.encodeToJsonElement<HistoryArguments>(original)
+
+        json.decodeFromString<HistoryArguments>(serialized.toString()) shouldBe original
+    }
+
+    @Test
     fun `factory serialization matches direct serialization and roundtrips`() {
         val factory = object : HistoryWorkspace.Factory {
             override fun create(id: Workspace.Id, arguments: HistoryArguments): HistoryWorkspace = error("unused")

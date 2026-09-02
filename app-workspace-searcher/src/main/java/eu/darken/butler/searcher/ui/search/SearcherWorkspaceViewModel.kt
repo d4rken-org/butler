@@ -1404,6 +1404,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             is SearcherPageAction.Operations.Dismiss -> chrome.dismissOperation(action.id)
             is SearcherPageAction.Operations.ClearCompleted -> chrome.clearCompletedOperations()
             is SearcherPageAction.Operations.ShareError -> chrome.shareOperationError(action.id)
+            is SearcherPageAction.Operations.ShowInHistory -> chrome.showOperationInHistory(action.id)
             is SearcherPageAction.Operations.ShowConflict -> showConflictSheet(action.id)
 
             // Dialogs

@@ -19,6 +19,8 @@ data class OperationDisplay(
     val state: State = State.Queued,
     val canCancel: Boolean = false,
     val pathPlan: OperationPathPlan? = null,
+    /** Null for operations the Operation History doesn't record, e.g. Developer test data. */
+    val kind: Operation.Metadata.Kind? = null,
 ) {
     sealed interface State {
         data object Queued : State
@@ -60,6 +62,7 @@ fun ManagedOperation.toDisplayModel(): OperationDisplay {
         description = metadata.description,
         canCancel = canCancel,
         pathPlan = metadata.pathPlan,
+        kind = metadata.kind,
         state = when (state) {
             is Operation.State.Queued -> OperationDisplay.State.Queued
             is Operation.State.Active -> {

@@ -30,7 +30,6 @@ import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.cancellation.CancellationException
-import kotlin.uuid.Uuid
 
 @Singleton
 class OperationHistoryRepo @Inject constructor(
@@ -94,7 +93,10 @@ class OperationHistoryRepo @Inject constructor(
         val reportedChanges = collectReportedChanges(state)
         val scopePaths = collectScopePaths(metadata, state)
 
-        val rowId = Uuid.random().toString()
+        // The row is keyed by the operation it records, so UI holding an Operation.Id (the
+        // operation details sheet) can address this entry directly. Pinned by
+        // OperationHistoryPersistTest.
+        val rowId = snapshot.id.longTag
         val pathEntities = reportedChanges.take(MAX_PATHS_PER_OP).mapIndexed { index, change ->
             OperationHistoryPathEntity(
                 operationHistoryId = rowId,
@@ -293,6 +295,13 @@ class OperationHistoryRepo @Inject constructor(
     ): SimpleSQLiteQuery = buildScopedIdsQueryStatic(outcomes, kinds, pathScopes, limit)
 
     fun observeCount(): Flow<Int> = dao.observeCount()
+
+    /**
+     * Observe one entry by its id, which is the id of the operation it records. Emits null while no
+     * such row exists, so a caller that navigates to an operation right as it finishes can wait for
+     * the asynchronous ingest instead of missing it.
+     */
+    fun observeEntry(id: String): Flow<HistoryEntry?> = dao.observeById(id).map { it?.toDomain() }
 
     /**
      * Paths the operation touched or intended to touch, loaded on demand. Shown for entries that

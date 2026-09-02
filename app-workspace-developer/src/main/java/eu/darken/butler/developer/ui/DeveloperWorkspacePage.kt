@@ -127,6 +127,8 @@ fun DeveloperWorkspacePageHost(
             },
             onShareError = { vm.shareOperationError(it) },
             onHandleIssue = {},
+            onShowInHistory = { vm.showOperationInHistory(it) },
+            historyEnabled = operationsState.historyEnabled,
             topInset = statusBarInset,
             bottomInset = navBarInset,
         )

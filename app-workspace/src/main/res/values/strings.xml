@@ -145,6 +145,7 @@
     <string name="operations_details_actions">Actions</string>
     <string name="operations_details_overview">Overview</string>
     <string name="operations_details_handle_issue">Handle issue</string>
+    <string name="operations_details_show_in_history_action">Show in history</string>
     <string name="operations_details_status">Status</string>
     <string name="operations_details_result">Result</string>
     <string name="operations_details_destination_folder">Destination folder</string>

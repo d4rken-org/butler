@@ -75,6 +75,17 @@ class HistoryWorkspaceViewModel @AssistedInject constructor(
 
     init {
         log(tag) { "Initialized for workspace $id" }
+        launch {
+            val workspace = workspaceSource.first()
+            val focusId = workspace.focusEntryId.value ?: return@launch
+            // Awaited rather than read once: history ingest runs asynchronously after the operation
+            // completes, and this tab is opened straight from that operation's own sheet. The wait
+            // ends with the ViewModel, and the tab keeps the pending focus until the sheet is up.
+            val entry = historyRepo.observeEntry(focusId).filterNotNull().first()
+            log(tag, INFO) { "Focusing entry $focusId" }
+            showEntryDetails(entry)
+            workspace.clearFocusEntryId(focusId)
+        }
     }
 
     // Not `launch`: visibility must be applied in call order, and the coroutine dispatcher is a

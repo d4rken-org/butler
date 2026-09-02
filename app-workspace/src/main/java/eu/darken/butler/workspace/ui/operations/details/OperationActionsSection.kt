@@ -2,7 +2,6 @@ package eu.darken.butler.workspace.ui.operations.details
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -21,10 +20,13 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.workspace.R
+import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.icon
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 
 @Composable
@@ -33,6 +35,7 @@ internal fun OperationActionsSection(
     onCancel: (() -> Unit)? = null,
     onShareError: (() -> Unit)? = null,
     onHandleIssue: (() -> Unit)? = null,
+    onShowInHistory: (() -> Unit)? = null,
 ) {
     Card(
         colors = CardDefaults.cardColors(
@@ -58,64 +61,58 @@ internal fun OperationActionsSection(
                 color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
             )
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                when (operation.state) {
-                    is OperationDisplay.State.Running -> {
-                        if (onCancel != null) {
-                            OutlinedButton(
-                                onClick = onCancel,
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.TwoTone.Close,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(stringResource(R.string.operations_cancel_operation))
-                            }
-                        }
-                    }
-                    is OperationDisplay.State.Failed -> {
-                        if (onShareError != null) {
-                            OutlinedButton(
-                                onClick = onShareError,
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.TwoTone.Share,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(stringResource(eu.darken.butler.common.R.string.general_share_error_action))
-                            }
-                        }
-                    }
-                    is OperationDisplay.State.Waiting -> {
-                        if (onHandleIssue != null) {
-                            OutlinedButton(
-                                onClick = onHandleIssue,
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.TwoTone.Handyman,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(stringResource(R.string.operations_details_handle_issue))
-                            }
-                        }
-                    }
-                    else -> {
-                        // No specific actions for other states
-                    }
+            when (operation.state) {
+                is OperationDisplay.State.Running -> if (onCancel != null) {
+                    ActionButton(
+                        icon = Icons.TwoTone.Close,
+                        label = stringResource(R.string.operations_cancel_operation),
+                        onClick = onCancel,
+                    )
                 }
+                is OperationDisplay.State.Failed -> if (onShareError != null) {
+                    ActionButton(
+                        icon = Icons.TwoTone.Share,
+                        label = stringResource(eu.darken.butler.common.R.string.general_share_error_action),
+                        onClick = onShareError,
+                    )
+                }
+                is OperationDisplay.State.Waiting -> if (onHandleIssue != null) {
+                    ActionButton(
+                        icon = Icons.TwoTone.Handyman,
+                        label = stringResource(R.string.operations_details_handle_issue),
+                        onClick = onHandleIssue,
+                    )
+                }
+                else -> Unit
+            }
+
+            if (onShowInHistory != null) {
+                ActionButton(
+                    icon = Workspace.Type.HISTORY.icon,
+                    label = stringResource(R.string.operations_details_show_in_history_action),
+                    onClick = onShowInHistory,
+                )
             }
         }
+    }
+}
+
+@Composable
+private fun ActionButton(
+    icon: ImageVector,
+    label: String,
+    onClick: () -> Unit,
+) {
+    OutlinedButton(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            modifier = Modifier.size(18.dp)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(label)
     }
 }

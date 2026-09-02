@@ -135,6 +135,16 @@ class OperationHistoryPersistTest : BaseTest() {
     }
 
     @Test
+    fun `the row is keyed by the operation it records`() = runTest {
+        val snapshot = testSnapshot(
+            metadata = testMetadata(Operation.Metadata.Kind.DELETE, plan = planOver(source)),
+            state = TestCompletedState(report = TestReport(affectedPaths = emptyList())),
+        )
+
+        persist(snapshot) shouldBe snapshot.id.longTag
+    }
+
+    @Test
     fun `a successful single-file copy reports only the created file`() = runTest {
         val id = persist(
             testSnapshot(

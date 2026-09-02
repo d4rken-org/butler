@@ -10,6 +10,11 @@ import kotlinx.coroutines.flow.onStart
 @Stable
 data class OperationsDisplayState(
     val operations: List<OperationDisplay> = emptyList(),
+    /**
+     * Whether the Operation History is recording. False hides the paths into it, which would
+     * otherwise lead to a tab that can never show the operation.
+     */
+    val historyEnabled: Boolean = false,
 )
 
 internal val operationDisplayComparator: Comparator<OperationDisplay> =
