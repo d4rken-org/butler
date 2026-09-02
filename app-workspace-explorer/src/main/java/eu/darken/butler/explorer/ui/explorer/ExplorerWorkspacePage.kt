@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -40,6 +41,8 @@ import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel.RevealRequest
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionBarItem
 import eu.darken.butler.explorer.ui.explorer.dnd.ExplorerDragPayloadFactory
+import eu.darken.butler.explorer.ui.explorer.dnd.explorerDropTarget
+import eu.darken.butler.explorer.ui.explorer.dnd.rememberExplorerDropState
 import eu.darken.butler.explorer.ui.explorer.elements.ExplorerReadyContent
 import eu.darken.butler.explorer.ui.explorer.elements.ExplorerTopBars
 import eu.darken.butler.explorer.ui.explorer.elements.PermissionRequestCard
@@ -53,6 +56,7 @@ import eu.darken.butler.workspace.contracts.dnd.WorkspaceDragPayload
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
+import eu.darken.butler.workspace.ui.dnd.LocalDropZoneRegistry
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
 import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarContentPadding
@@ -170,13 +174,13 @@ fun ExplorerWorkspacePage(
         onClearSelection = { vm?.clearSelection() },
     )
 
-    // Dragging items to another pane needs a second pane to drop them on. The payload is built from
-    // the state this composition already holds, so a drag can't lose items to an in-flight update.
-    val dragPayloadFactory: ((ExplorerItem) -> WorkspaceDragPayload?)? = if (design.isSingle) {
-        null
-    } else {
-        { pressed -> ExplorerDragPayloadFactory.build(state, workspaceId, pressed) }
+    // The payload is built from the state this composition already holds, so a drag can't lose
+    // items to an in-flight update.
+    val dragPayloadFactory: (ExplorerItem) -> WorkspaceDragPayload? = { pressed ->
+        ExplorerDragPayloadFactory.build(state, workspaceId, pressed)
     }
+
+    val dropState = rememberExplorerDropState()
 
     // Grid columns for keyboard navigation (approximate for adaptive grid)
     val gridColumns = 3
@@ -223,59 +227,73 @@ fun ExplorerWorkspacePage(
                 },
             )
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            val topContentPadding = rememberFloatingBarContentPadding(topStackState = topBarStackState)
-
-            // Main content area
-            if (state.setupRequirements.needsAction) {
-                PermissionRequestCard(
-                    setupRequirements = state.setupRequirements,
-                    onNavigateToSetup = { vm?.navigateToSetup(state.setupRequirements) },
-                    nestedScrollConnection = topBarStackState.nestedScrollConnection,
-                    onLaunchSAFPicker = { grant -> vm?.launchAndroidDataSAFPicker(grant) },
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(topContentPadding),
-                )
-            } else {
-                ExplorerReadyContent(
-                    modifier = Modifier.fillMaxSize(),
-                    workspaceId = workspaceId,
-                    state = state,
-                    vm = vm,
-                    listState = listState,
-                    gridState = gridState,
-                    topBarStackState = topBarStackState,
-                    bottomBarStackState = bottomBarStackState,
-                    operationsState = operationsState,
-                    clipboardState = clipboardState,
-                    isRefreshing = rememberRefreshIndication(state.refreshId, state.isRefreshing),
-                    pullToRefreshState = pullToRefreshState,
-                    onRefresh = { vm?.onPullToRefresh() },
-                    initialOperationsExpanded = initialOperationsExpanded,
-                    initialClipboardExpanded = initialClipboardExpanded,
-                    onShowOperationDetails = { operationId -> vm?.showOperationDetails(operationId) },
-                    dragPayloadFactory = dragPayloadFactory,
-                )
-            }
-
-            // Top FloatingBarStack with toolbar and InfoBar - always visible
-            FloatingBarStack(
-                state = topBarStackState,
-                position = BarPosition.TOP,
-                modifier = Modifier.align(Alignment.TopCenter),
-                bars = {
-                    ExplorerTopBars(
+        CompositionLocalProvider(LocalDropZoneRegistry provides dropState.registry) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .explorerDropTarget(
+                        dropState = dropState,
                         workspaceId = workspaceId,
-                        design = design,
+                        state = state,
+                        listState = listState,
+                        gridState = gridState,
+                        onDrop = { payload, destination -> vm?.onDragDropped(payload, destination) },
+                    ),
+            ) {
+                val topContentPadding = rememberFloatingBarContentPadding(topStackState = topBarStackState)
+
+                // Main content area
+                if (state.setupRequirements.needsAction) {
+                    PermissionRequestCard(
+                        setupRequirements = state.setupRequirements,
+                        onNavigateToSetup = { vm?.navigateToSetup(state.setupRequirements) },
+                        nestedScrollConnection = topBarStackState.nestedScrollConnection,
+                        onLaunchSAFPicker = { grant -> vm?.launchAndroidDataSAFPicker(grant) },
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(topContentPadding),
+                    )
+                } else {
+                    ExplorerReadyContent(
+                        modifier = Modifier.fillMaxSize(),
+                        workspaceId = workspaceId,
                         state = state,
                         vm = vm,
-                        showProgress = showProgress,
+                        listState = listState,
+                        gridState = gridState,
+                        topBarStackState = topBarStackState,
+                        bottomBarStackState = bottomBarStackState,
+                        operationsState = operationsState,
+                        clipboardState = clipboardState,
+                        isRefreshing = rememberRefreshIndication(state.refreshId, state.isRefreshing),
+                        pullToRefreshState = pullToRefreshState,
+                        onRefresh = { vm?.onPullToRefresh() },
+                        initialOperationsExpanded = initialOperationsExpanded,
+                        initialClipboardExpanded = initialClipboardExpanded,
+                        onShowOperationDetails = { operationId -> vm?.showOperationDetails(operationId) },
+                        dragPayloadFactory = dragPayloadFactory,
+                        dropState = dropState,
                     )
-                },
-            )
+                }
 
-            // Dialogs and sheets live in the page host's overlay slot, see ExplorerWorkspaceOverlays
+                // Top FloatingBarStack with toolbar and InfoBar - always visible
+                FloatingBarStack(
+                    state = topBarStackState,
+                    position = BarPosition.TOP,
+                    modifier = Modifier.align(Alignment.TopCenter),
+                    bars = {
+                        ExplorerTopBars(
+                            workspaceId = workspaceId,
+                            design = design,
+                            state = state,
+                            vm = vm,
+                            showProgress = showProgress,
+                        )
+                    },
+                )
+
+                // Dialogs and sheets live in the page host's overlay slot, see ExplorerWorkspaceOverlays
+            }
         }
     }
 }
