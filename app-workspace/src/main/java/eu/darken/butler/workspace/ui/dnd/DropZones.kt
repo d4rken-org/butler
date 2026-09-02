@@ -28,6 +28,7 @@ class DropZoneRegistry {
         val key: Any,
         val destination: APath<*>,
         val bounds: Rect,
+        val allowOutsideContentBand: Boolean = false,
     )
 
     private val zones = mutableMapOf<Any, Zone>()
@@ -40,8 +41,13 @@ class DropZoneRegistry {
         if (hoveredKey != key) hoveredKey = key
     }
 
-    fun register(key: Any, destination: APath<*>, bounds: Rect) {
-        zones[key] = Zone(key = key, destination = destination, bounds = bounds)
+    fun register(key: Any, destination: APath<*>, bounds: Rect, allowOutsideContentBand: Boolean = false) {
+        zones[key] = Zone(
+            key = key,
+            destination = destination,
+            bounds = bounds,
+            allowOutsideContentBand = allowOutsideContentBand,
+        )
     }
 
     fun unregister(key: Any) {
@@ -67,7 +73,7 @@ val LocalDropZoneRegistry = compositionLocalOf<DropZoneRegistry?> { null }
  * registry instead of accepting a drop it can't perform.
  */
 @Composable
-fun Modifier.dropZone(key: Any, destination: APath<*>?): Modifier {
+fun Modifier.dropZone(key: Any, destination: APath<*>?, allowOutsideContentBand: Boolean = false): Modifier {
     val registry = LocalDropZoneRegistry.current ?: return this
 
     DisposableEffect(registry, key, destination) {
@@ -76,6 +82,6 @@ fun Modifier.dropZone(key: Any, destination: APath<*>?): Modifier {
 
     if (destination == null) return this
     return this
-        .onGloballyPositioned { registry.register(key, destination, it.boundsInRoot()) }
+        .onGloballyPositioned { registry.register(key, destination, it.boundsInRoot(), allowOutsideContentBand) }
         .dropTargetHighlight(registry.hoveredKey == key)
 }

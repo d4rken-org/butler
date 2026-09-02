@@ -606,6 +606,7 @@ private fun BreadcrumbChip(
             destination = (breadcrumb.target as? ExplorerNavigation.Target.Directory)
                 ?.path
                 ?.takeUnless { it is ArchivePath },
+            allowOutsideContentBand = true,
         ),
     ) {
         Row(

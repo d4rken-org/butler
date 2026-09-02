@@ -21,6 +21,16 @@ class DropZoneRegistryTest : BaseTest() {
     }
 
     @Test
+    fun `register keeps the outside-band flag`() {
+        val registry = DropZoneRegistry()
+        registry.register("row", download, Rect(0f, 0f, 100f, 50f))
+        registry.register("crumb", pictures, Rect(0f, 100f, 100f, 150f), allowOutsideContentBand = true)
+
+        registry.zoneAt(Offset(50f, 25f))?.allowOutsideContentBand shouldBe false
+        registry.zoneAt(Offset(50f, 125f))?.allowOutsideContentBand shouldBe true
+    }
+
+    @Test
     fun `a point outside every zone finds nothing`() {
         val registry = DropZoneRegistry()
         registry.register("row", download, Rect(0f, 0f, 100f, 50f))
