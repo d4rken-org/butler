@@ -297,6 +297,22 @@ class HistoryShareTextTest : BaseTest() {
     }
 
     @Test
+    fun `a carriage return in an error does not split its meta line`() {
+        val text = share(
+            listOf(
+                entry(
+                    outcome = HistoryOutcome.FAILED,
+                    errorMessage = "cannot delete /sdcard/we\rird.txt",
+                )
+            )
+        )
+
+        val errorLine = text.lines().single { it.startsWith("- **Error:** ") }
+        errorLine shouldBe "- **Error:** cannot delete /sdcard/we ird.txt"
+        text shouldNotContain "\r"
+    }
+
+    @Test
     fun `a literal backslash-n in a path stays distinct from a real newline`() {
         val literal = share(listOf(entry(paths = listOf(added("/sdcard/we\\nird.txt")))))
         val real = share(listOf(entry(paths = listOf(added("/sdcard/we\nird.txt")))))
