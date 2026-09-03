@@ -675,8 +675,14 @@ class WorkspaceRepoTest : BaseTest() {
     private suspend fun WorkspaceRepo.createRecoverable(
         type: Workspace.Type = Workspace.Type.EXPLORER,
         arguments: Workspace.Arguments = FakeArguments(type),
+        source: Workspace.Id? = null,
     ): WorkspaceAction.Create.Result = execute(
-        WorkspaceAction.Create(type = type, arguments = arguments, allowLimitRecovery = true)
+        WorkspaceAction.Create(
+            type = type,
+            arguments = arguments,
+            allowLimitRecovery = true,
+            sourceWorkspaceId = source,
+        )
     ) as WorkspaceAction.Create.Result
 
     private suspend fun WorkspaceRepo.createReadyTabAt(
@@ -1426,6 +1432,260 @@ class WorkspaceRepoTest : BaseTest() {
         repo.retrieve(ids[0]).first() shouldBe null
         createdWorkspaces.count { it.type == Workspace.Type.SEARCHER } shouldBe 1
         repo.countedTabs() shouldBe WorkspaceRepo.FREE_TIER_WORKSPACE_LIMIT
+    }
+
+    // ==================== Anchored tab placement ====================
+
+    private suspend fun WorkspaceRepo.createTabAnchoredOn(
+        anchor: Workspace.Id?,
+        type: Workspace.Type = Workspace.Type.EXPLORER,
+    ): Workspace.Id {
+        val result = execute(
+            WorkspaceAction.Create(
+                type = type,
+                arguments = FakeArguments(type),
+                sourceWorkspaceId = anchor,
+            )
+        )
+        return (result as WorkspaceAction.Create.Result.Success).newId
+    }
+
+    private suspend fun WorkspaceRepo.createBatchFrom(
+        source: Workspace.Id?,
+        vararg requests: WorkspaceAction.Create,
+    ): WorkspaceAction.CreateBatch.Result.Success = execute(
+        WorkspaceAction.CreateBatch(requests = requests.toList(), sourceWorkspaceId = source)
+    ) as WorkspaceAction.CreateBatch.Result.Success
+
+    private fun WorkspaceAction.CreateBatch.Result.Success.idOf(request: WorkspaceAction.Create): Workspace.Id =
+        (results.getValue(request) as WorkspaceAction.CreateBatch.CreationResult.Success).workspaceId
+
+    /** Only the rows the tab strip shows, i.e. the list without anything stacked on a tab. */
+    private suspend fun WorkspaceRepo.tabIds(): List<Workspace.Id> =
+        state.first().infos.filter { !it.isSubWorkspace }.map { it.id }
+
+    @Test
+    fun `a tab created from another one lands directly right of it`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo(isPro = true)
+        val first = repo.createTab()
+        val anchor = repo.createTab()
+        val last = repo.createTab()
+
+        val created = repo.createTabAnchoredOn(anchor)
+
+        repo.workspaceIds() shouldBe listOf(first, anchor, created, last)
+    }
+
+    @Test
+    fun `a tab created from the last tab is appended`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo(isPro = true)
+        val first = repo.createTab()
+        val anchor = repo.createTab()
+
+        val created = repo.createTabAnchoredOn(anchor)
+
+        repo.workspaceIds() shouldBe listOf(first, anchor, created)
+    }
+
+    @Test
+    fun `a create without an origin is appended`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo(isPro = true)
+        val first = repo.createTab()
+        val second = repo.createTab()
+
+        val created = repo.createTabAnchoredOn(null)
+
+        repo.workspaceIds() shouldBe listOf(first, second, created)
+    }
+
+    /** Limit recovery can close the very tab the create came from - that must not fail the create. */
+    @Test
+    fun `an anchor that is no longer open falls back to appending`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo(isPro = true)
+        val first = repo.createTab()
+        val gone = repo.createTab()
+        val last = repo.createTab()
+        repo.execute(WorkspaceAction.Close(gone))
+
+        val created = repo.createTabAnchoredOn(gone)
+
+        repo.workspaceIds() shouldBe listOf(first, last, created)
+    }
+
+    @Test
+    fun `a create from a stacked sub-workspace anchors on the tab it sits on`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo(isPro = true)
+            val anchor = repo.createTab()
+            val last = repo.createTab()
+            val picker = repo.createSubWorkspace(caller = anchor)
+
+            val created = repo.createTabAnchoredOn(picker)
+
+            repo.tabIds() shouldBe listOf(anchor, created, last)
+        }
+
+    @Test
+    fun `the new tab goes behind the anchor's stacked children, not between them`() =
+        runTest(UnconfinedTestDispatcher()) {
+            listOf(true, false).forEach { anchorOnChild ->
+                val repo = createRepo(isPro = true)
+                val anchor = repo.createTab()
+                val child = repo.createSubWorkspace(caller = anchor)
+                val last = repo.createTab()
+
+                val created = repo.createTabAnchoredOn(if (anchorOnChild) child else anchor)
+
+                // Raw list order: the child sits directly behind its tab, so an anchorIndex + 1
+                // insert would wedge the new tab into the middle of the stack.
+                repo.workspaceIds() shouldBe listOf(anchor, child, created, last)
+            }
+        }
+
+    @Test
+    fun `a create that produces a sub-workspace is appended even with an origin`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo(isPro = true)
+            val anchor = repo.createTab()
+            val last = repo.createTab()
+
+            val result = repo.execute(
+                WorkspaceAction.Create(
+                    type = Workspace.Type.EXPLORER,
+                    arguments = FakePickerArguments(Workspace.Type.EXPLORER, anchor),
+                    sourceWorkspaceId = anchor,
+                )
+            )
+            val picker = (result as WorkspaceAction.Create.Result.Success).newId
+
+            repo.workspaceIds() shouldBe listOf(anchor, last, picker)
+        }
+
+    @Test
+    fun `a batch opens its tabs as one run in request order after the source`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo(isPro = true)
+            val first = repo.createTab()
+            val source = repo.createTab()
+            val last = repo.createTab()
+            val requests = listOf(
+                createReq(Workspace.Type.EXPLORER),
+                createReq(Workspace.Type.SEARCHER),
+                createReq(Workspace.Type.EDITOR),
+            )
+
+            val result = repo.createBatchFrom(source, *requests.toTypedArray())
+
+            repo.workspaceIds() shouldBe listOf(first, source) + requests.map { result.idOf(it) } + listOf(last)
+        }
+
+    @Test
+    fun `already-open and failing requests do not break up the run`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo(isPro = true)
+        val source = repo.createTab()
+        val singleton = repo.createTab(type = Workspace.Type.DEVELOPER)
+        val last = repo.createTab()
+        val failingId = Workspace.Id()
+        createFailures[failingId] = IllegalStateException("Factory exploded")
+        val firstReq = createReq(Workspace.Type.EXPLORER)
+        val secondReq = createReq(Workspace.Type.SEARCHER)
+        val thirdReq = createReq(Workspace.Type.EDITOR)
+
+        val result = repo.createBatchFrom(
+            source,
+            firstReq,
+            // Resolves to the open DEVELOPER tab, so it creates nothing to anchor on
+            createReq(Workspace.Type.DEVELOPER),
+            secondReq,
+            createReq(Workspace.Type.APPS, id = failingId),
+            thirdReq,
+        )
+
+        repo.workspaceIds() shouldBe listOf(
+            source,
+            result.idOf(firstReq),
+            result.idOf(secondReq),
+            result.idOf(thirdReq),
+            singleton,
+            last,
+        )
+    }
+
+    @Test
+    fun `a sub-workspace or replace in the batch never takes the anchor`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo(isPro = true)
+        val source = repo.createTab()
+        val replaced = repo.createTab()
+        val last = repo.createTab()
+        val firstReq = createReq(Workspace.Type.EXPLORER)
+        val secondReq = createReq(Workspace.Type.SEARCHER)
+        val pickerReq = WorkspaceAction.Create(
+            type = Workspace.Type.EXPLORER,
+            arguments = FakePickerArguments(Workspace.Type.EXPLORER, source),
+        )
+        val replaceReq = WorkspaceAction.Create(
+            type = Workspace.Type.EDITOR,
+            arguments = FakeArguments(Workspace.Type.EDITOR),
+            replace = replaced,
+        )
+
+        // secondReq trails both odd requests: where it lands is what proves neither took the anchor
+        val result = repo.createBatchFrom(source, firstReq, pickerReq, replaceReq, secondReq)
+
+        repo.workspaceIds() shouldBe listOf(
+            source,
+            result.idOf(firstReq),
+            result.idOf(secondReq),
+            // The morph keeps the slot of the tab it replaced, the picker stacks at the end
+            result.idOf(replaceReq),
+            last,
+            result.idOf(pickerReq),
+        )
+    }
+
+    @Test
+    fun `a batch that replaces its own source continues the run at the replacement`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo(isPro = true)
+            val source = repo.createTab()
+            val following = repo.createTab()
+            val replaceReq = WorkspaceAction.Create(
+                type = Workspace.Type.SEARCHER,
+                arguments = FakeArguments(Workspace.Type.SEARCHER),
+                replace = source,
+            )
+            val secondReq = createReq(Workspace.Type.EDITOR)
+
+            val result = repo.createBatchFrom(source, replaceReq, secondReq)
+
+            // The morph keeps the source's slot, so the rest of the batch has to follow the
+            // replacement - the source id it took over is no longer in the list to anchor on.
+            repo.workspaceIds() shouldBe listOf(result.idOf(replaceReq), result.idOf(secondReq), following)
+        }
+
+    @Test
+    fun `a tab recovered from the limit dialog lands next to the tab it came from`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo(isPro = false)
+            val ids = repo.fillWithReadyTabs()
+
+            repo.createRecoverable(type = Workspace.Type.SEARCHER, source = ids[1])
+            repo.resolveLimit(ids[0]).await()
+
+            val recovered = createdWorkspaces.single { it.type == Workspace.Type.SEARCHER }.id
+            repo.workspaceIds() shouldBe listOf(ids[1], recovered) + ids.drop(2)
+        }
+
+    @Test
+    fun `a tab recovered by closing its own origin is appended`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo(isPro = false)
+        val ids = repo.fillWithReadyTabs()
+
+        repo.createRecoverable(type = Workspace.Type.SEARCHER, source = ids[0])
+        repo.resolveLimit(ids[0]).await()
+
+        val recovered = createdWorkspaces.single { it.type == Workspace.Type.SEARCHER }.id
+        repo.workspaceIds() shouldBe ids.drop(1) + recovered
     }
 
     // ==================== Creation timestamps ====================

@@ -27,10 +27,15 @@ sealed interface WorkspaceAction {
          */
         val skipContentDedup: Boolean = false,
         /**
-         * Workspace this create was invoked from, if any. Purely a placement hint: the UI prefers a
-         * pane adjacent to it and never evicts the pane it occupies. Null (the default) means
-         * "no origin" - global entry points, the tab manager and session restore - and keeps
-         * today's first-empty-pane behaviour.
+         * Workspace this create was invoked from, if any. Placement in both senses:
+         * - tab order: the new tab is inserted directly right of the tab this id belongs to
+         *   (a modal anchors on the tab it is stacked on), keeping it next to what it came from.
+         * - pane placement: the UI prefers a pane adjacent to it and never evicts the pane it
+         *   occupies.
+         *
+         * Null (the default) means "no origin" - global entry points and session restore - and
+         * appends at the end of the tab list, into the first empty pane. A create that produces a
+         * sub-workspace or replaces a tab is never repositioned, whatever this says.
          */
         val sourceWorkspaceId: Workspace.Id? = null,
         /**
@@ -188,6 +193,15 @@ sealed interface WorkspaceAction {
         }
     }
 
+    /**
+     * @param sourceWorkspaceId workspace the batch was invoked from, with the same meaning as
+     * [Create.sourceWorkspaceId]. The tabs it opens land as one contiguous run in request order
+     * directly right of that tab: the first create anchors on it, and each further one on the tab
+     * just created. The anchor only advances onto a committed root tab, so a request that creates a
+     * sub-workspace cannot drag the run somewhere else. Neither can one that replaces some other
+     * tab; a request that replaces the run's own anchor does carry the run onto the replacement,
+     * which took over the anchor's slot.
+     */
     data class CreateBatch(
         val requests: List<Create>,
         val sourceWorkspaceId: Workspace.Id? = null,

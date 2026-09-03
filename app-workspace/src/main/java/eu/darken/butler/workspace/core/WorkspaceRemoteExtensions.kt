@@ -99,7 +99,8 @@ suspend fun WorkspaceRemote.launchPicker(
  *
  * @param type The type of workspace to create
  * @param arguments Optional workspace-specific arguments
- * @param sourceWorkspaceId Workspace this was invoked from, used as a pane placement hint
+ * @param sourceWorkspaceId Workspace this was invoked from: the new tab is placed directly right of
+ *        it and the UI prefers a pane next to it; null appends at the end
  *        (see [WorkspaceAction.Create.sourceWorkspaceId]).
  * @param replace Workspace the new one takes the place of, inheriting its pane slot and focus
  *        (see [WorkspaceAction.Create.replace]). A replace occupies no additional slot, so the

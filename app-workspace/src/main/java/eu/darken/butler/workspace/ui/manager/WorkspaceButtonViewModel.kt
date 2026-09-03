@@ -84,14 +84,33 @@ class WorkspaceButtonViewModel @Inject constructor(
         workspaceRemote.execute(action)
     }
 
-    override fun createWorkspace(item: QuickCreateItem) = launch {
-        log(tag) { "createWorkspace(${item.type})" }
-        workspaceRemote.createAndFocus(item.type, item.arguments)
+    /**
+     * Where a tab created from this button goes: right of whatever is focused right now.
+     *
+     * Sampled synchronously, before [launch] hands the block to a dispatcher - reading focus inside
+     * the coroutine would sample it at an arbitrary later moment and anchor the tab to wherever the
+     * user has navigated since the tap.
+     */
+    private fun focusedTabId(): Workspace.Id? = workspacePageManager.state.value.focusedWorkspaceId
+
+    override fun createWorkspace(item: QuickCreateItem) {
+        val sourceId = focusedTabId()
+        launch {
+            log(tag) { "createWorkspace(${item.type}), source=$sourceId" }
+            workspaceRemote.createAndFocus(item.type, item.arguments, sourceWorkspaceId = sourceId)
+        }
     }
 
-    override fun createTemplatesWorkspace() = launch {
-        log(tag) { "createTemplatesWorkspace()" }
-        workspaceRemote.createAndFocus(Workspace.Type.TEMPLATES, TemplatesArguments.Default())
+    override fun createTemplatesWorkspace() {
+        val sourceId = focusedTabId()
+        launch {
+            log(tag) { "createTemplatesWorkspace(), source=$sourceId" }
+            workspaceRemote.createAndFocus(
+                type = Workspace.Type.TEMPLATES,
+                arguments = TemplatesArguments.Default(),
+                sourceWorkspaceId = sourceId,
+            )
+        }
     }
 
     override fun navToWorkspaceManager() {
