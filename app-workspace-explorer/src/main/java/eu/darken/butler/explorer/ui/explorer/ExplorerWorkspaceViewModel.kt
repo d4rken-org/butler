@@ -44,9 +44,6 @@ import eu.darken.butler.common.flow.combine as combineMany
 import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.destSetup
-import eu.darken.butler.common.pkgs.installer.AppInstallEvent
-import eu.darken.butler.common.pkgs.installer.AppInstallInspector
-import eu.darken.butler.common.pkgs.installer.AppInstaller
 import eu.darken.butler.common.trash.TrashManager
 import eu.darken.butler.common.trash.TrashRepo
 import eu.darken.butler.common.ui.ViewModel4
@@ -121,18 +118,16 @@ import eu.darken.butler.workspace.core.createAndFocus
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import eu.darken.butler.workspace.core.clipboard.ClipboardSettings
-import eu.darken.butler.workspace.core.operations.AppInstallOperation
+import eu.darken.butler.workspace.core.operations.AppInstallLauncher
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationPathPlan
 import eu.darken.butler.workspace.core.operations.OperationFocusRequest
-import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.ui.page.WorkspacePageChrome
 import eu.darken.butler.workspace.core.returnResult
 import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -195,10 +190,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val folderSortRules: FolderSortRulesRepo,
     private val tabSortStore: ExplorerTabSortStore,
     private val tabViewStore: ExplorerTabViewStore,
-    private val appInstallInspector: AppInstallInspector,
-    private val appInstaller: AppInstaller,
-    private val appInstallOperationFactory: AppInstallOperation.Factory,
-    private val operationsManager: OperationsManager,
+    private val appInstallLauncher: AppInstallLauncher,
     private val json: Json,
     private val errorIncidentStore: ErrorIncidentStore,
     chromeFactory: WorkspacePageChrome.Factory,
@@ -1269,42 +1261,20 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    /**
-     * Installs an APK or app bundle.
-     *
-     * Inspection runs here rather than inside the operation so an unreadable, protected or
-     * unsupported container is answered right away instead of behind a progress bar. The
-     * unknown-sources check is a preflight for the same reason: without elevated access the platform
-     * installer is the only route, and it refuses to run until Butler is an authorized install
-     * source, so the user goes to the settings page and no operation is created.
-     */
+    /** Installs an APK or app bundle. */
     private suspend fun installPackage(path: APath<*>) {
         try {
-            val plan = appInstallInspector.inspect(path)
-            if (!appInstaller.hasElevation() && !appInstaller.canUseSystemInstaller()) {
-                log(tag, INFO) { "installPackage($path): Butler is not an authorized install source yet" }
-                context.startActivity(appInstaller.unknownSourcesSettings())
-                toastEvents.emit(WorkspaceR.string.workspace_install_unknown_sources_required.toCaString())
-                return
-            }
-
-            val events = MutableSharedFlow<AppInstallEvent>(extraBufferCapacity = 16)
-            // Subscribed before submitting, so an event emitted right at the start is not missed.
-            events
-                .filterIsInstance<AppInstallEvent.ObbFailed>()
-                .onEach { toastEvents.emit(WorkspaceR.string.workspace_install_obb_failed.toCaString(it.reason)) }
-                .launchInViewModel()
-
-            // Closing this tab cancels the operation outright, which abandons the install session.
-            // If the system's confirm dialog is already on screen the platform owns it from there
-            // and may still complete the install on its own.
-            operationsManager.submit(
-                appInstallOperationFactory.create(
-                    installOrigin = Operation.Metadata.Origin.Explorer(id),
-                    plan = plan,
-                    events = events,
-                )
+            val result = appInstallLauncher.launch(
+                path = path,
+                origin = Operation.Metadata.Origin.Explorer(id),
+                collectorScope = vmScope,
+                onObbFailed = { reason ->
+                    toastEvents.emit(WorkspaceR.string.workspace_install_obb_failed.toCaString(reason))
+                },
             )
+            if (result is AppInstallLauncher.Result.UnknownSourcesRequired) {
+                toastEvents.emit(WorkspaceR.string.workspace_install_unknown_sources_required.toCaString())
+            }
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
