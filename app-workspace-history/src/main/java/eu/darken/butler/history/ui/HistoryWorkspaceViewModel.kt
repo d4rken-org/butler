@@ -11,9 +11,13 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.ui.ViewModel3
+import eu.darken.butler.common.navigation.Nav
+import eu.darken.butler.common.navigation.upgrade
+import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.history.core.HistoryWorkspace
 import eu.darken.butler.history.core.buildHistoryShareText
+import eu.darken.butler.upgrade.UpgradeRepo
+import eu.darken.butler.upgrade.isProForUi
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.operations.Operation
@@ -46,7 +50,8 @@ class HistoryWorkspaceViewModel @AssistedInject constructor(
     private val workspaceProvider: WorkspaceProvider,
     private val historyRepo: OperationHistoryRepo,
     private val historySettings: HistorySettings,
-) : ViewModel3(dispatchers, logTag("History", "Workspace", id.shortTag, "Page")) {
+    private val upgradeRepo: UpgradeRepo,
+) : ViewModel4(dispatchers, logTag("History", "Workspace", id.shortTag, "Page")) {
 
     private val workspaceSource = workspaceProvider.retrieve(id)
         .map { it as? HistoryWorkspace }
@@ -178,13 +183,43 @@ class HistoryWorkspaceViewModel @AssistedInject constructor(
         _selectedIds.value = emptySet()
     }
 
+    // One lock for BOTH gated action bar items, mirroring detailShareLock: while the gate is in
+    // flight the buttons stay live, so without it a second tap - Share twice, or Share then Delete -
+    // queues a second action that fires when billing settles.
+    private val actionGateLock = Mutex()
+
     fun onActionClick(item: HistoryActionBarItem) {
         log(tag) { "onActionClick($item)" }
         when (item) {
             is HistoryActionBarItem.SelectAll -> setSelection(item.ids)
             is HistoryActionBarItem.DeselectAll -> clearSelection()
-            is HistoryActionBarItem.Share -> shareEntries(item.entries, clearsSelection = true)
-            is HistoryActionBarItem.Delete -> _overlayState.update { it.copy(deleteConfirmEntries = item.entries) }
+            is HistoryActionBarItem.Share -> launch {
+                if (!actionGateLock.tryLock()) return@launch
+                try {
+                    if (!upgradeRepo.isProForUi()) {
+                        showProPrompt()
+                        return@launch
+                    }
+                    // The gate suspends, so the selection this action was taken on may be gone by now.
+                    if (item.entries.none { it.id in _selectedIds.value }) return@launch
+                    shareEntries(item.entries, clearsSelection = true)
+                } finally {
+                    actionGateLock.unlock()
+                }
+            }
+            is HistoryActionBarItem.Delete -> launch {
+                if (!actionGateLock.tryLock()) return@launch
+                try {
+                    if (!upgradeRepo.isProForUi()) {
+                        showProPrompt()
+                        return@launch
+                    }
+                    if (item.entries.none { it.id in _selectedIds.value }) return@launch
+                    _overlayState.update { it.copy(deleteConfirmEntries = item.entries) }
+                } finally {
+                    actionGateLock.unlock()
+                }
+            }
         }
     }
 
@@ -202,6 +237,20 @@ class HistoryWorkspaceViewModel @AssistedInject constructor(
         _overlayState.update { it.copy(deleteConfirmEntries = emptyList()) }
     }
 
+    private fun showProPrompt() {
+        log(tag, INFO) { "showProPrompt()" }
+        _overlayState.update { it.copy(proPromptOpen = true) }
+    }
+
+    fun dismissProPrompt() {
+        _overlayState.update { it.copy(proPromptOpen = false) }
+    }
+
+    fun onProPromptUpgrade() {
+        _overlayState.update { it.copy(proPromptOpen = false) }
+        navTo(Nav.Main.upgrade())
+    }
+
     // The sheet's Share button stays live while the query below is awaited, so a second tap starts
     // a second coroutine. Without this it would open its own chooser on top of the first one.
     private val detailShareLock = Mutex()
@@ -209,6 +258,14 @@ class HistoryWorkspaceViewModel @AssistedInject constructor(
     fun shareEntry(entry: HistoryEntry) = launch {
         if (!detailShareLock.tryLock()) return@launch
         try {
+            // Gated before the query below, so a denied share never runs it. The sheet may have been
+            // dismissed while the gate ran, and a prompt for a share nobody can see anymore is noise.
+            val allowed = upgradeRepo.isProForUi()
+            if (_overlayState.value.detailEntry?.id != entry.id) return@launch
+            if (!allowed) {
+                showProPrompt()
+                return@launch
+            }
             // An entry that reported no changes shares what the operation tried to touch instead. The
             // sheet's own load may still be in flight, and an empty list there is indistinguishable
             // from a finished one, so query rather than share a record that claims nothing happened.
@@ -285,6 +342,7 @@ class HistoryWorkspaceViewModel @AssistedInject constructor(
         val addFilterOpen: Boolean = false,
         val pathScopeOpen: Boolean = false,
         val deleteConfirmEntries: List<HistoryEntry> = emptyList(),
+        val proPromptOpen: Boolean = false,
     )
 
     data class DateGroup(

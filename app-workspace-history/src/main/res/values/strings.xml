@@ -171,6 +171,7 @@
         <item quantity="other">Delete %1$d entries</item>
     </plurals>
     <string name="history_delete_dialog_message">Only the history records are removed, the files themselves are not touched.</string>
+    <string name="history_pro_dialog_message">Sharing and deleting history entries is part of the upgrade. Clearing the whole history stays free in the history settings.</string>
 
     <!-- Shared text -->
     <string name="history_share_label_outcome">Outcome</string>

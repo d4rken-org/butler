@@ -9,6 +9,7 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
+import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.history.HistoryEntry
@@ -54,7 +55,11 @@ fun HistoryWorkspaceOverlaysHost(
             if (newScope != null) vm.addPathScope(newScope)
             vm.closePathScopePicker()
         },
+        onDismissProPrompt = { vm.dismissProPrompt() },
+        onProPromptUpgrade = { vm.onProPromptUpgrade() },
     )
+
+    NavigationEventHandler(vm)
 
     // Last on purpose: layers stack in composition order, so an error raised while one of
     // this page's own dialogs is up lands on top of it instead of underneath.
@@ -78,6 +83,8 @@ fun HistoryWorkspaceOverlays(
     onDismissDelete: () -> Unit = {},
     onDismissPathScope: () -> Unit = {},
     onApplyPathScope: (String?) -> Unit = {},
+    onDismissProPrompt: () -> Unit = {},
+    onProPromptUpgrade: () -> Unit = {},
 ) {
     val paneInsets = design.paneInsets()
     val navBarInset = paneInsets.bottom
@@ -124,6 +131,15 @@ fun HistoryWorkspaceOverlays(
             onApply = onApplyPathScope,
         )
     }
+
+    // Last of this page's own layers: the Pro gate can resolve while another overlay is up, and
+    // composition order is layer order.
+    if (overlayState.proPromptOpen) {
+        HistoryProUpgradeDialog(
+            onDismiss = onDismissProPrompt,
+            onUpgrade = onProPromptUpgrade,
+        )
+    }
 }
 
 @Preview2
@@ -157,6 +173,16 @@ private fun HistoryWorkspaceOverlaysPathScopePreview() {
     HistoryWorkspaceOverlays(
         filter = HistoryFilter(),
         overlayState = HistoryWorkspaceViewModel.OverlayState(pathScopeOpen = true),
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun HistoryWorkspaceOverlaysProPromptPreview() {
+    HistoryWorkspaceOverlays(
+        filter = HistoryFilter(),
+        overlayState = HistoryWorkspaceViewModel.OverlayState(proPromptOpen = true),
     )
 }
 
