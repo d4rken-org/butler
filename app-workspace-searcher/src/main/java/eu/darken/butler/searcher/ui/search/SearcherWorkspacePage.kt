@@ -381,7 +381,7 @@ fun SearcherWorkspacePage(
                                 when (item) {
                                     is SearchListItem.Result -> {
                                         val dragSource = if (dragsToOtherPanes) {
-                                            rememberWorkspaceDragSource {
+                                            rememberWorkspaceDragSource(cornerRadius = 8.dp) {
                                                 SearcherDragPayloadFactory.build(
                                                     currentState,
                                                     workspaceId,
@@ -514,7 +514,7 @@ fun SearcherWorkspacePage(
                                 contentType = { "result" },
                             ) { item ->
                                 val dragSource = if (dragsToOtherPanes) {
-                                    rememberWorkspaceDragSource {
+                                    rememberWorkspaceDragSource(cornerRadius = 4.dp) {
                                         SearcherDragPayloadFactory.build(
                                             currentState,
                                             workspaceId,
