@@ -200,8 +200,10 @@ class HistoryWorkspaceViewModel @AssistedInject constructor(
                         showProPrompt()
                         return@launch
                     }
-                    // The gate suspends, so the selection this action was taken on may be gone by now.
-                    if (item.entries.none { it.id in _selectedIds.value }) return@launch
+                    // The gate suspends, so the selection this action was taken on may have changed
+                    // by now - a single entry leaving it drops the whole action.
+                    val selectedIds = _selectedIds.value
+                    if (item.entries.any { it.id !in selectedIds }) return@launch
                     shareEntries(item.entries, clearsSelection = true)
                 } finally {
                     actionGateLock.unlock()
@@ -214,7 +216,8 @@ class HistoryWorkspaceViewModel @AssistedInject constructor(
                         showProPrompt()
                         return@launch
                     }
-                    if (item.entries.none { it.id in _selectedIds.value }) return@launch
+                    val selectedIds = _selectedIds.value
+                    if (item.entries.any { it.id !in selectedIds }) return@launch
                     _overlayState.update { it.copy(deleteConfirmEntries = item.entries) }
                 } finally {
                     actionGateLock.unlock()
