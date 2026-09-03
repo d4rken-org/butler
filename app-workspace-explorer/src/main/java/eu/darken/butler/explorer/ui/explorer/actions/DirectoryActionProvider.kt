@@ -1,7 +1,6 @@
 package eu.darken.butler.explorer.ui.explorer.actions
 
 import eu.darken.butler.common.files.ArchivePath
-import eu.darken.butler.common.files.SmbPath
 import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
@@ -9,6 +8,7 @@ import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.favorites.ExplorerFavoritesRepo
 import eu.darken.butler.explorer.core.toggled
 import eu.darken.butler.explorer.ui.explorer.util.ExplorerSelectionState
+import eu.darken.butler.workspace.ui.actions.FileActionCapabilities
 import javax.inject.Inject
 
 class DirectoryActionProvider @Inject constructor(
@@ -66,12 +66,13 @@ class DirectoryActionProvider @Inject constructor(
                 )
             }
 
-            // Handing a file to another app needs a file:// or content:// URI, which a file on a
-            // server does not have, so a selection holding one is not offered for sharing.
-            val selectionHasNetworkEntry = selectionState.selectedItems.any {
-                it is ExplorerItem.Lookup && it.path is SmbPath
+            // Handing a file to another app needs a URI the system can resolve, which is what
+            // FileActionCapabilities answers, so a selection holding anything else - or a folder -
+            // is not offered for sharing.
+            val selectionIsShareable = selectionState.selectedItems.all {
+                it is ExplorerItem.File && FileActionCapabilities.canHandOffToOtherApps(it.path)
             }
-            if (!selectionHasNetworkEntry && selectionState.selectedItems.all { it is ExplorerItem.File }) {
+            if (selectionIsShareable) {
                 actions.add(ExplorerActionBarItem.Directory.Share())
             }
 

@@ -3,9 +3,11 @@ package eu.darken.butler.explorer.ui.explorer.actions
 import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
+import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.SmbPath
 import eu.darken.butler.common.files.archive.ArchivePathLookup
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.files.saf.SAFPathLookup
 import eu.darken.butler.common.files.smb.SmbPathLookup
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
@@ -165,6 +167,26 @@ class DirectoryActionProviderTest : BaseTest() {
         actions.any { it is ExplorerActionBarItem.Directory.Share } shouldBe false
     }
 
+    private fun safFile(name: String) = ExplorerItem.RegularFile(
+        lookup = SAFPathLookup(
+            lookedUp = SAFPath.build(TREE_URI, "Documents", name),
+            fileType = FileType.FILE,
+            size = 10L,
+            modifiedAt = null,
+        ),
+        mimeType = MimeInfo("text/plain"),
+    )
+
+    @Test
+    fun `a selection holding a SAF file does not offer Share`() {
+        val actions = selectionActions(
+            directory(null),
+            setOf(MockDataProvider.createMockRegularFile(), safFile("notes.txt")),
+        )
+
+        actions.any { it is ExplorerActionBarItem.Directory.Share } shouldBe false
+    }
+
     @Test
     fun `a purely local selection offers Share`() {
         val actions = selectionActions(directory(null), setOf(MockDataProvider.createMockRegularFile()))
@@ -194,5 +216,6 @@ class DirectoryActionProviderTest : BaseTest() {
 
     companion object {
         private val LOCATION_ID = Uuid.parse("11111111-2222-3333-4444-555555555555")
+        private const val TREE_URI = "content://com.android.externalstorage.documents/tree/primary%3A"
     }
 }
