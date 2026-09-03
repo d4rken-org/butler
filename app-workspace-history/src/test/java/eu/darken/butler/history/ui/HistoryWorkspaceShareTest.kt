@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.history.core.HistoryWorkspace
+import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.operations.Operation
@@ -21,6 +22,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
@@ -82,6 +84,24 @@ class HistoryWorkspaceShareTest : BaseTest() {
         every { filter } returns flowOf(HistoryFilter())
     }
 
+    /** Settled and Pro, so the share gate resolves and these cases keep testing the share itself. */
+    private val upgradeRepo = object : UpgradeRepo {
+        override val storeSite = ""
+        override val upgradeSite = ""
+        override val betaSite = ""
+        override val upgradeInfo = MutableStateFlow<UpgradeRepo.Info>(
+            object : UpgradeRepo.Info {
+                override val type = UpgradeRepo.Type.FOSS
+                override val isPro = true
+                override val isSettled = true
+                override val upgradedAt: Instant? = null
+                override val error: Throwable? = null
+            }
+        )
+
+        override suspend fun refresh() = Unit
+    }
+
     private val attempted = OperationHistoryRepo.AttemptedPaths(
         paths = listOf("/sdcard/ButlerQA", "/sdcard/ButlerQA/notes.txt"),
         totalCount = 2,
@@ -94,6 +114,7 @@ class HistoryWorkspaceShareTest : BaseTest() {
         workspaceProvider = workspaceProvider,
         historyRepo = historyRepo,
         historySettings = historySettings,
+        upgradeRepo = upgradeRepo,
     )
 
     /**
