@@ -7,6 +7,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.errors.PathAlreadyExistsException
 import eu.darken.butler.common.files.errors.PathException
+import eu.darken.butler.common.files.errors.PathNotFoundException
 import eu.darken.butler.common.files.errors.PathPermissionDeniedException
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.UnknownFileTypeException
@@ -156,6 +157,7 @@ object IpcErrorCodec {
         is PathAlreadyExistsException -> IpcErrorCode.PATH_ALREADY_EXISTS
         is PathPermissionDeniedException -> IpcErrorCode.PATH_PERMISSION_DENIED
         is UnknownFileTypeException -> IpcErrorCode.PATH_UNKNOWN_FILE_TYPE
+        is PathNotFoundException -> IpcErrorCode.PATH_NOT_FOUND
         is ReadException -> IpcErrorCode.PATH_READ
         is WriteException -> IpcErrorCode.PATH_WRITE
         is SecurityException -> IpcErrorCode.SECURITY
@@ -212,6 +214,8 @@ object IpcErrorCodec {
     /** Null when the payload lacks something the code needs, e.g. a [PathException] without a path. */
     private fun IpcErrorPayload.rebuild(cause: Throwable?): Throwable? = when (code) {
         IpcErrorCode.PATH_READ -> ReadException(rawMessage, localPath() ?: return null, cause)
+        // Cause-less and with a fixed message by design, so only the path is rebuilt from.
+        IpcErrorCode.PATH_NOT_FOUND -> PathNotFoundException(localPath() ?: return null)
         IpcErrorCode.PATH_WRITE -> WriteException(rawMessage, localPath() ?: return null, cause)
         IpcErrorCode.PATH_ALREADY_EXISTS -> PathAlreadyExistsException(rawMessage, localPath() ?: return null, cause)
         IpcErrorCode.PATH_PERMISSION_DENIED -> PathPermissionDeniedException(
