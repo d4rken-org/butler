@@ -267,7 +267,10 @@
     <string name="workspace_file_info_total_size_label">Total size</string>
 
     <!-- Performance Graph -->
-    <string name="workspace_operation_performance_not_enough_data">Not enough data</string>
+    <string name="workspace_operation_performance_unavailable_not_started">This operation hasn\'t started yet.</string>
+    <string name="workspace_operation_performance_unavailable_collecting">Collecting performance data…</string>
+    <string name="workspace_operation_performance_unavailable_insufficient">There isn\'t enough performance data from this operation to plot a graph.</string>
+    <string name="workspace_operation_performance_unavailable_not_available">Performance data isn\'t available for this operation.</string>
     <string name="workspace_operation_performance_unit_bytes">B/s</string>
     <string name="workspace_operation_performance_unit_kilobytes">kB/s</string>
     <string name="workspace_operation_performance_unit_megabytes">MB/s</string>

@@ -61,39 +61,16 @@ private val TAG = logTag("PerformanceGraph")
 @Composable
 fun OperationPerformanceGraph(
     modifier: Modifier = Modifier,
-    performanceHistory: PerformanceHistory,
+    graphData: PerformanceGraphData,
 ) {
     val backgroundColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
-
-    val graphData = remember(performanceHistory) { PerformanceGraphData.from(performanceHistory) }
-
-    if (graphData == null) {
-        // Not enough data - show message
-        Box(
-            modifier = modifier
-                .fillMaxWidth()
-                .height(180.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .background(backgroundColor),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = stringResource(R.string.workspace_operation_performance_not_enough_data),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        return
-    }
 
     val byteSpeeds = graphData.byteSpeeds
     // Keyed by mode so a two series model can't be handed to a single layer chart
     val modelProducer = remember(byteSpeeds != null) { CartesianChartModelProducer() }
 
     LaunchedEffect(graphData) {
-        log(TAG, DEBUG) {
-            "Plotting ${graphData.progress.size} points from ${performanceHistory.samples.size} samples"
-        }
+        log(TAG, DEBUG) { "Plotting ${graphData.progress.size} points" }
         modelProducer.runTransaction {
             if (byteSpeeds != null) lineSeries { series(x = graphData.progress, y = byteSpeeds) }
             lineSeries { series(x = graphData.progress, y = graphData.itemSpeeds) }
@@ -216,7 +193,7 @@ fun OperationPerformanceGraph(
             // Recent average byte speed label (top-left, matches left Y-axis)
             if (byteSpeeds != null) {
                 SpeedChip(
-                    text = formatByteSpeed(performanceHistory.getRecentBytesPerSecond()),
+                    text = formatByteSpeed(graphData.recentBytesPerSecond),
                     color = bytesLineColor,
                     modifier = Modifier
                         .align(Alignment.TopStart)
@@ -226,7 +203,7 @@ fun OperationPerformanceGraph(
 
             // Recent average item speed label (top-right, matches right Y-axis)
             SpeedChip(
-                text = formatItemSpeed(performanceHistory.getRecentItemsPerSecond().toDouble()),
+                text = formatItemSpeed(graphData.recentItemsPerSecond.toDouble()),
                 color = itemsLineColor,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
@@ -287,33 +264,9 @@ private fun speedValueFormatter(maxY: Double) = CartesianValueFormatter { _, val
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
-private fun OperationPerformanceGraphNoDataPreview() {
-    // Not enough samples - should not render
-    val history = remember {
-        val now = kotlin.time.Clock.System.now()
-        PerformanceHistory(
-            samples = listOf(
-                PerformanceSample(
-                    timestamp = now,
-                    bytesPerSecond = 150_000_000,
-                    itemsPerSecond = 2.5f,
-                    totalBytesProcessed = 50_000_000,
-                    totalItemsProcessed = 5,
-                )
-            ),
-            startTime = now,
-            totalBytes = 1_000_000_000,
-        )
-    }
-    OperationPerformanceGraph(performanceHistory = history)
-}
-
-@Preview2
-@ComposePreviewWrapper(ButlerPreviewWrapper::class)
-@Composable
 private fun OperationPerformanceGraphHalfDataPreview() {
     // 50% completion with varying speeds (many small files scenario)
-    val history = remember {
+    val graphData = remember {
         val baseTime = kotlin.time.Clock.System.now()
         val totalBytes = 1_000_000_000L
 
@@ -331,14 +284,15 @@ private fun OperationPerformanceGraphHalfDataPreview() {
             )
         }
 
-        PerformanceHistory(
+        val history = PerformanceHistory(
             samples = samples,
             startTime = baseTime,
             totalBytes = totalBytes,
             totalItems = 1000,
         )
-    }
-    OperationPerformanceGraph(performanceHistory = history)
+        PerformanceGraphData.from(history)
+    } ?: return
+    OperationPerformanceGraph(graphData = graphData)
 }
 
 @Preview2
@@ -346,7 +300,7 @@ private fun OperationPerformanceGraphHalfDataPreview() {
 @Composable
 private fun OperationPerformanceGraphFullDataPreview() {
     // 100% completion with varying speeds (mixed file sizes scenario)
-    val history = remember {
+    val graphData = remember {
         val baseTime = kotlin.time.Clock.System.now()
         val totalBytes = 1_000_000_000L
 
@@ -368,14 +322,15 @@ private fun OperationPerformanceGraphFullDataPreview() {
             )
         }
 
-        PerformanceHistory(
+        val history = PerformanceHistory(
             samples = samples,
             startTime = baseTime,
             totalBytes = totalBytes,
             totalItems = 1000,
         )
-    }
-    OperationPerformanceGraph(performanceHistory = history)
+        PerformanceGraphData.from(history)
+    } ?: return
+    OperationPerformanceGraph(graphData = graphData)
 }
 
 @Preview2
@@ -383,7 +338,7 @@ private fun OperationPerformanceGraphFullDataPreview() {
 @Composable
 private fun OperationPerformanceGraphItemsOnlyPreview() {
     // Deleting 500 empty files: no bytes anywhere, only the items axis has data
-    val history = remember {
+    val graphData = remember {
         val baseTime = kotlin.time.Clock.System.now()
         val totalItems = 500
 
@@ -398,13 +353,14 @@ private fun OperationPerformanceGraphItemsOnlyPreview() {
             )
         }
 
-        PerformanceHistory(
+        val history = PerformanceHistory(
             samples = samples,
             startTime = baseTime,
             totalItems = totalItems,
         )
-    }
-    OperationPerformanceGraph(performanceHistory = history)
+        PerformanceGraphData.from(history)
+    } ?: return
+    OperationPerformanceGraph(graphData = graphData)
 }
 
 @Preview2
@@ -412,7 +368,7 @@ private fun OperationPerformanceGraphItemsOnlyPreview() {
 @Composable
 private fun OperationPerformanceGraphSingleFilePreview() {
     // A single large file: the item count never moves, item speed stays below 1/s
-    val history = remember {
+    val graphData = remember {
         val baseTime = kotlin.time.Clock.System.now()
         val totalBytes = 4_000_000_000L
 
@@ -428,12 +384,13 @@ private fun OperationPerformanceGraphSingleFilePreview() {
             )
         }
 
-        PerformanceHistory(
+        val history = PerformanceHistory(
             samples = samples,
             startTime = baseTime,
             totalBytes = totalBytes,
             totalItems = 1,
         )
-    }
-    OperationPerformanceGraph(performanceHistory = history)
+        PerformanceGraphData.from(history)
+    } ?: return
+    OperationPerformanceGraph(graphData = graphData)
 }
