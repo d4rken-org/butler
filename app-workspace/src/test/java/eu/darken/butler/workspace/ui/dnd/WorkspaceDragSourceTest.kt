@@ -8,6 +8,8 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.workspace.contracts.dnd.WorkspaceDragPayload
+import eu.darken.butler.workspace.core.Workspace
 import io.kotest.matchers.shouldBe
 import org.junit.Test
 import testhelpers.ComposeTest
@@ -57,6 +59,40 @@ class WorkspaceDragSourceTest : ComposeTest() {
         source.startDrag()
 
         payloadRequests shouldBe 0
+    }
+
+    @Test
+    fun `starting a drag with an empty payload is a no-op`() {
+        var decorationRequests = 0
+        val source = WorkspaceDragSource(
+            decorationProvider = {
+                decorationRequests++
+                null
+            },
+        ) {
+            WorkspaceDragPayload(
+                sourceWorkspaceId = Workspace.Id(),
+                items = emptyList(),
+                allowMove = true,
+            )
+        }
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .testTag(TAG)
+                        .then(source.modifier),
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithTag(TAG).assertIsDisplayed()
+
+        composeTestRule.runOnIdle { source.startDrag() }
+
+        composeTestRule.runOnIdle { decorationRequests shouldBe 0 }
     }
 
     companion object {

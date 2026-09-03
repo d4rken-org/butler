@@ -23,7 +23,6 @@ import androidx.compose.ui.draw.DrawResult
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.layer.GraphicsLayer
 import androidx.compose.ui.graphics.layer.drawLayer
@@ -33,6 +32,7 @@ import androidx.compose.ui.node.LayoutAwareModifierNode
 import androidx.compose.ui.node.ModifierNodeElement
 import androidx.compose.ui.platform.InspectorInfo
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
@@ -69,6 +69,8 @@ fun DragAndDropEvent.positionInRoot(): Offset = toAndroidDragEvent().let { Offse
  * [startDrag] from its long-click callback.
  */
 class WorkspaceDragSource internal constructor(
+    internal val decorationProvider: () -> WorkspaceDragDecoration? = { null },
+    internal val cornerRadius: Dp = CARD_CORNER_DEFAULT,
     internal val payloadProvider: () -> WorkspaceDragPayload?,
 ) {
 
@@ -88,11 +90,24 @@ class WorkspaceDragSource internal constructor(
 /**
  * Remembers a [WorkspaceDragSource] whose payload is resolved when the drag actually starts, so it
  * always reflects the latest state the caller has collected.
+ *
+ * [cornerRadius] is the radius of the composable the drag starts from, so the shadow's card matches
+ * the shape the user long-pressed.
  */
 @Composable
-fun rememberWorkspaceDragSource(payloadProvider: () -> WorkspaceDragPayload?): WorkspaceDragSource {
+fun rememberWorkspaceDragSource(
+    cornerRadius: Dp = CARD_CORNER_DEFAULT,
+    payloadProvider: () -> WorkspaceDragPayload?,
+): WorkspaceDragSource {
     val currentProvider by rememberUpdatedState(payloadProvider)
-    return remember { WorkspaceDragSource { currentProvider() } }
+    val currentDecoration by rememberUpdatedState(rememberWorkspaceDragDecoration())
+    return remember(cornerRadius) {
+        WorkspaceDragSource(
+            decorationProvider = { currentDecoration },
+            cornerRadius = cornerRadius,
+            payloadProvider = { currentProvider() },
+        )
+    }
 }
 
 private class WorkspaceDragSourceElement(
@@ -121,14 +136,21 @@ internal class WorkspaceDragSourceNode(
 
     private val dragAndDropNode = delegate(
         DragAndDropSourceModifierNode {
-            val payload = source.payloadProvider()
-            if (payload != null) {
-                startDragAndDropTransfer(
-                    transferData = payload.toTransferData(),
-                    decorationSize = size.toSize(),
-                    drawDragDecoration = { dragShadow.drawDragShadow(this) },
-                )
-            }
+            val payload = source.payloadProvider() ?: return@DragAndDropSourceModifierNode
+            val spec = dragDecorationSpec(payload.items) ?: return@DragAndDropSourceModifierNode
+            val decoration = source.decorationProvider()
+            val cornerRadius = source.cornerRadius
+            startDragAndDropTransfer(
+                transferData = payload.toTransferData(),
+                decorationSize = decoration?.decorationSize(spec, size.toSize(), cornerRadius) ?: size.toSize(),
+                drawDragDecoration = {
+                    if (decoration != null) {
+                        decoration.draw(this, spec, cornerRadius, dragShadow.layer)
+                    } else {
+                        dragShadow.layer?.let { drawLayer(it) }
+                    }
+                },
+            )
         }
     )
 
@@ -173,12 +195,8 @@ internal class WorkspaceDragSourceNode(
  */
 private class DragShadowCallback {
 
-    private var layer: GraphicsLayer? = null
-
-    fun drawDragShadow(scope: DrawScope) {
-        val recorded = layer ?: return
-        with(scope) { drawLayer(recorded) }
-    }
+    internal var layer: GraphicsLayer? = null
+        private set
 
     fun cachePicture(scope: CacheDrawScope): DrawResult = with(scope) {
         val recorded = obtainGraphicsLayer().apply { record { drawContent() } }
