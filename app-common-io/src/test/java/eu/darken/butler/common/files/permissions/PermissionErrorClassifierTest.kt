@@ -198,6 +198,13 @@ class PermissionErrorClassifierTest : BaseTest() {
     }
 
     @Test
+    fun `a gone error whose path contains permission is not a denial`() {
+        val gone = PathNotFoundException(LocalPath.build("/sdcard/permission-notes.txt"))
+
+        PermissionErrorClassifier.classify(gone) shouldBe null
+    }
+
+    @Test
     fun `an existing path is not a permission failure`() {
         val e = PathAlreadyExistsException(path = LocalPath.build("/sdcard/foo"))
 
