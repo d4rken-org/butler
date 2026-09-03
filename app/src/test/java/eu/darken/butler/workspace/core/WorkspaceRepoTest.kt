@@ -2981,6 +2981,19 @@ class WorkspaceRepoTest : BaseTest() {
     }
 
     @Test
+    fun `an emoji title within the cap survives whole`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val id = repo.createTab()
+        // 100 code points but 200 UTF-16 units: capping on chars would truncate it, and the cut would
+        // land inside a surrogate pair.
+        val emoji = "\uD83D\uDE42".repeat(100)
+
+        repo.rename(id, emoji)
+
+        repo.infoFor(id).customTitle shouldBe emoji
+    }
+
+    @Test
     fun `renaming an unknown id fails and mutates nothing`() = runTest(UnconfinedTestDispatcher()) {
         val repo = createRepo()
         val id = repo.createTab()

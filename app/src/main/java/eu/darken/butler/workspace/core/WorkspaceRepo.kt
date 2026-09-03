@@ -185,7 +185,7 @@ class WorkspaceRepo @Inject constructor(
     private fun normalizeCustomTitle(raw: String?): String? = raw
         ?.filterNot { it.isISOControl() }
         ?.trim()
-        ?.take(WorkspaceAction.Rename.MAX_CUSTOM_TITLE_LENGTH)
+        ?.takeCodePoints(WorkspaceAction.Rename.MAX_CUSTOM_TITLE_LENGTH)
         ?.trim()
         ?.takeIf { it.isNotEmpty() }
 
@@ -2352,4 +2352,10 @@ class WorkspaceRepo @Inject constructor(
         const val FREE_TIER_WORKSPACE_LIMIT = 5
     }
 
+}
+
+/** [String.take] on code points, so the cap can never cut a surrogate pair in half. */
+private fun String.takeCodePoints(max: Int): String {
+    if (codePointCount(0, length) <= max) return this
+    return substring(0, offsetByCodePoints(0, max))
 }
