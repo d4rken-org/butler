@@ -1,11 +1,15 @@
 package eu.darken.butler.workspace.ui.manager
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.EnterExitState
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,7 +24,6 @@ import androidx.compose.material.icons.twotone.Add
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.Folder
 import androidx.compose.material.icons.twotone.Search
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -35,11 +38,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
-import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntRect
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupPositionProvider
+import androidx.compose.ui.window.PopupProperties
 import eu.darken.butler.R
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
@@ -61,6 +71,9 @@ fun WorkspaceManagerFAB(
     modifier: Modifier = Modifier,
 ) {
     var expanded by remember { mutableStateOf(false) }
+    val expandedState = remember { MutableTransitionState(false) }
+    expandedState.targetState = expanded
+    val density = LocalDensity.current
     val iconRotation by animateFloatAsState(
         targetValue = if (expanded) 45f else 0f,
         label = "fabIcon",
@@ -94,32 +107,55 @@ fun WorkspaceManagerFAB(
         // A popup rather than an in-bar column: the floating bar stack derives the grid's bottom
         // padding from the bar's measured height, so an expanding bar would shove the grid up
         // exactly where the new-tab card sits.
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            offset = DpOffset(x = 0.dp, y = (-8).dp),
-            containerColor = Color.Transparent,
-            shadowElevation = 0.dp,
-            tonalElevation = 0.dp,
-        ) {
-            FabActionStack(
-                quickCreateItems = quickCreateItems,
-                showCloseAll = workspaceCount > 1,
-                onQuickCreate = {
-                    expanded = false
-                    onQuickCreate(it)
+        if (expandedState.currentState || expandedState.targetState) {
+            Popup(
+                popupPositionProvider = remember(density) {
+                    FabMenuPositionProvider(gapPx = with(density) { 8.dp.roundToPx() })
                 },
-                onCloseAll = {
-                    expanded = false
-                    onShowCloseAllDialog()
-                },
-            )
+                onDismissRequest = { expanded = false },
+                properties = PopupProperties(focusable = true),
+            ) {
+                AnimatedVisibility(
+                    visibleState = expandedState,
+                    enter = fadeIn(tween(100)),
+                    exit = fadeOut(tween(100)) + scaleOut(tween(100), targetScale = 0.9f),
+                ) {
+                    FabActionStack(
+                        quickCreateItems = quickCreateItems,
+                        showCloseAll = workspaceCount > 1,
+                        onQuickCreate = {
+                            expanded = false
+                            onQuickCreate(it)
+                        },
+                        onCloseAll = {
+                            expanded = false
+                            onShowCloseAllDialog()
+                        },
+                    )
+                }
+            }
         }
     }
 }
 
+private class FabMenuPositionProvider(private val gapPx: Int) : PopupPositionProvider {
+    override fun calculatePosition(
+        anchorBounds: IntRect,
+        windowSize: IntSize,
+        layoutDirection: LayoutDirection,
+        popupContentSize: IntSize,
+    ): IntOffset {
+        val x = when (layoutDirection) {
+            LayoutDirection.Ltr -> anchorBounds.right - popupContentSize.width
+            LayoutDirection.Rtl -> anchorBounds.left
+        }.coerceIn(0, (windowSize.width - popupContentSize.width).coerceAtLeast(0))
+        val y = (anchorBounds.top - gapPx - popupContentSize.height).coerceAtLeast(0)
+        return IntOffset(x, y)
+    }
+}
+
 @Composable
-private fun FabActionStack(
+private fun AnimatedVisibilityScope.FabActionStack(
     modifier: Modifier = Modifier,
     quickCreateItems: List<QuickCreateItem>,
     showCloseAll: Boolean,
@@ -169,21 +205,21 @@ private fun FabActionStack(
 
 /** Rows closest to the button arrive first, so the stack reads as unfolding out of it. */
 @Composable
-private fun StaggeredReveal(
+private fun AnimatedVisibilityScope.StaggeredReveal(
     modifier: Modifier = Modifier,
     rowCount: Int,
     index: Int,
     content: @Composable () -> Unit,
 ) {
     val delay = (rowCount - 1 - index) * 30
-    val visibleState = remember { MutableTransitionState(false).apply { targetState = true } }
 
-    AnimatedVisibility(
+    transition.AnimatedVisibility(
+        visible = { it == EnterExitState.Visible },
         modifier = modifier,
-        visibleState = visibleState,
         enter = fadeIn(tween(150, delayMillis = delay)) +
             slideInVertically(tween(200, delayMillis = delay)) { it / 2 } +
             scaleIn(tween(200, delayMillis = delay), initialScale = 0.8f),
+        exit = fadeOut(tween(100)),
     ) {
         content()
     }
@@ -238,23 +274,25 @@ private fun WorkspaceManagerFABPreview() {
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspaceManagerFABExpandedPreview() {
-    FabActionStack(
-        quickCreateItems = listOf(
-            QuickCreateItem(
-                type = Workspace.Type.EXPLORER,
-                icon = Icons.TwoTone.Folder,
-                title = "Explorer".toCaString(),
-                arguments = Workspace.Type.EXPLORER.defaultArguments!!,
+    AnimatedVisibility(visible = true) {
+        FabActionStack(
+            quickCreateItems = listOf(
+                QuickCreateItem(
+                    type = Workspace.Type.EXPLORER,
+                    icon = Icons.TwoTone.Folder,
+                    title = "Explorer".toCaString(),
+                    arguments = Workspace.Type.EXPLORER.defaultArguments!!,
+                ),
+                QuickCreateItem(
+                    type = Workspace.Type.SEARCHER,
+                    icon = Icons.TwoTone.Search,
+                    title = "Searcher".toCaString(),
+                    arguments = Workspace.Type.SEARCHER.defaultArguments!!,
+                ),
             ),
-            QuickCreateItem(
-                type = Workspace.Type.SEARCHER,
-                icon = Icons.TwoTone.Search,
-                title = "Searcher".toCaString(),
-                arguments = Workspace.Type.SEARCHER.defaultArguments!!,
-            ),
-        ),
-        showCloseAll = true,
-        onQuickCreate = {},
-        onCloseAll = {},
-    )
+            showCloseAll = true,
+            onQuickCreate = {},
+            onCloseAll = {},
+        )
+    }
 }
