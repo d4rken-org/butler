@@ -20,7 +20,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -119,21 +118,8 @@ fun GeneralSettingsScreen(
                     title = stringResource(R.string.ui_theme_mode_setting_label),
                     subtitle = stringResource(R.string.ui_theme_mode_setting_explanation),
                     value = state.themeState.mode.label.get(context),
-                    onClick = {
-                        if (state.isUpgraded) {
-                            showThemeModeDialog = true
-                        } else {
-                            scope.launch {
-                                val result = snackbarHostState.showSnackbar(
-                                    message = context.getString(R.string.upgrade_feature_requires_pro),
-                                    actionLabel = context.getString(R.string.upgrade_prompt_upgrade_action)
-                                )
-                                if (result == SnackbarResult.ActionPerformed) {
-                                    onUpgradeButler()
-                                }
-                            }
-                        }
-                    }
+                    onClick = { showThemeModeDialog = true },
+                    onUpgrade = if (state.isUpgraded) null else onUpgradeButler,
                 )
                 SettingsDivider()
             }
@@ -144,21 +130,8 @@ fun GeneralSettingsScreen(
                     title = stringResource(R.string.ui_theme_style_setting_label),
                     subtitle = stringResource(R.string.ui_theme_style_setting_explanation),
                     value = state.themeState.style.label.get(context),
-                    onClick = {
-                        if (state.isUpgraded) {
-                            showThemeStyleDialog = true
-                        } else {
-                            scope.launch {
-                                val result = snackbarHostState.showSnackbar(
-                                    message = context.getString(R.string.upgrade_feature_requires_pro),
-                                    actionLabel = context.getString(R.string.upgrade_prompt_upgrade_action)
-                                )
-                                if (result == SnackbarResult.ActionPerformed) {
-                                    onUpgradeButler()
-                                }
-                            }
-                        }
-                    }
+                    onClick = { showThemeStyleDialog = true },
+                    onUpgrade = if (state.isUpgraded) null else onUpgradeButler,
                 )
                 SettingsDivider()
             }
@@ -180,21 +153,10 @@ fun GeneralSettingsScreen(
                         state.themeState.color.label.get(context)
                     },
                     enabled = !isMaterialYouActive,
-                    onClick = {
-                        if (state.isUpgraded) {
-                            showThemeColorDialog = true
-                        } else {
-                            scope.launch {
-                                val result = snackbarHostState.showSnackbar(
-                                    message = context.getString(R.string.upgrade_feature_requires_pro),
-                                    actionLabel = context.getString(R.string.upgrade_prompt_upgrade_action)
-                                )
-                                if (result == SnackbarResult.ActionPerformed) {
-                                    onUpgradeButler()
-                                }
-                            }
-                        }
-                    }
+                    onClick = { if (!isMaterialYouActive) showThemeColorDialog = true },
+                    // Material You owning the color is not a tier problem, so no badge there:
+                    // upgrading would not unlock the row and the subtitle already explains it.
+                    onUpgrade = if (state.isUpgraded || isMaterialYouActive) null else onUpgradeButler,
                 )
                 SettingsDivider()
             }
@@ -362,6 +324,29 @@ fun GeneralSettingsScreen(
 private fun GeneralSettingsScreenPreview() {
     GeneralSettingsScreen(
         state = GeneralSettingsViewModel.State(),
+        onNavigateUp = {},
+        onLanguageSwitcher = {},
+        onThemeModeSelected = {},
+        onThemeStyleSelected = {},
+        onThemeColorSelected = {},
+        onUpdateCheckEnabledChange = {},
+        onMotdEnabledChange = {},
+        onConfirmExitEnabledChange = {},
+        onAvoidDisplayCutoutChange = {},
+        onDocumentsProviderEnabledChange = {},
+        onNavigateToPreviews = {},
+        onNavigateToShortcuts = {},
+        onResetGuidedTours = {},
+        onUpgradeButler = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun GeneralSettingsScreenUpgradedPreview() {
+    GeneralSettingsScreen(
+        state = GeneralSettingsViewModel.State(isUpgraded = true),
         onNavigateUp = {},
         onLanguageSwitcher = {},
         onThemeModeSelected = {},
