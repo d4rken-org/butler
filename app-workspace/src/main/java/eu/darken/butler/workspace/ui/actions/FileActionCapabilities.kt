@@ -40,7 +40,7 @@ data class FileActionCapabilities(
                 archiveFormat = if (isFile && !isArchiveEntry) ArchiveFormat.fromFileName(path.name) else null,
                 isArchiveEntry = isArchiveEntry,
                 isText = isFile && MimeInfo.fromFileName(path.name).isText,
-                canHandOffToOtherApps = canHandOffToOtherApps(path),
+                canHandOffToOtherApps = isFile && canHandOffToOtherApps(path),
             )
         }
 

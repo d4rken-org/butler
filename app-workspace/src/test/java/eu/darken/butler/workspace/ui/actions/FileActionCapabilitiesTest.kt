@@ -86,6 +86,9 @@ class FileActionCapabilitiesTest : BaseTest() {
     fun `only a local file can be handed to another app`() {
         FileActionCapabilities.of(localFile("notes.txt")).canHandOffToOtherApps shouldBe true
 
+        // A folder has no stream a receiver could open, so it is not something to hand off either.
+        FileActionCapabilities.of(localFile("Pictures", FileType.DIRECTORY)).canHandOffToOtherApps shouldBe false
+
         val onServer = SmbPathLookup(
             lookedUp = SmbPath(Uuid.parse("11111111-2222-3333-4444-555555555555"), listOf("notes.txt")),
             fileType = FileType.FILE,
