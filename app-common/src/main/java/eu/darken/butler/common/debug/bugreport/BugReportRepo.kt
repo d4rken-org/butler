@@ -29,6 +29,8 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import java.io.File
@@ -61,6 +63,17 @@ class BugReportRepo @Inject constructor(
 
     private val shareDir = BugReportStorage.shareDir(context)
     private val refreshTrigger = MutableStateFlow(0)
+
+    /**
+     * Guards everything that reads or writes a report's metadata together with its share zip. Without
+     * it a rename landing mid-compression produces a zip named after the old label whose sealed
+     * `meta.json` carries the new one.
+     *
+     * Not reentrant, so: the recorder mutex is always taken first ([requireNotRecording]), never the
+     * reverse, and each call path takes this exactly once — [buildShareZip] locks in the private
+     * overload only, and the public one delegates to it without locking.
+     */
+    private val mutex = Mutex()
 
     // Re-scans on manual triggers AND on recording start/stop transitions. We key on recordingId
     // (distinct) rather than the whole recorder state so the periodic live-size ticks do NOT trigger a
@@ -134,12 +147,39 @@ class BugReportRepo @Inject constructor(
         refresh()
     }
 
+    /**
+     * Sets or clears the user-set name of a report. Nothing moves on disk — the id stays the storage
+     * key — so this is safe to do while the report is being recorded ([BugReportRecorder] writes
+     * `meta.json` only when the recording starts).
+     */
+    suspend fun setLabel(id: String, rawLabel: String?) = withContext(dispatcherProvider.IO) {
+        val label = BugReport.normalizeLabel(rawLabel)
+        log(TAG, INFO) { "setLabel($id, $label)" }
+        val written = mutex.withLock {
+            // Gone (deleted or pruned meanwhile) or already named that way.
+            val current = resolveReportEntry(id)?.second ?: return@withLock false
+            if (current.label == label) return@withLock false
+            // Every copy, like delete(): updating only the resolved one would let a shadowed copy
+            // resurface later still carrying the previous name.
+            storageLayout.allReportDirs(id).forEach { dir ->
+                val report = readReport(dir) ?: return@forEach
+                writeMeta(dir, report.copy(label = label))
+            }
+            true
+        }
+        // No share-zip sweep: buildShareZip always re-zips and drops the other names afterwards, and a
+        // sweep here would delete the .tmp an in-flight zip build is still writing.
+        if (written) refresh()
+    }
+
     suspend fun delete(id: String) = withContext(dispatcherProvider.IO) {
         require(!bugReportRecorder.isActiveOrStarting(id)) { "Cannot delete an active recording" }
-        // Every copy, not just the one scan() lists: dropping only the listed copy would let the
-        // shadowed one take its place in the very next scan.
-        storageLayout.allReportDirs(id).forEach { it.deleteRecursively() }
-        File(shareDir, "$id.zip").delete()
+        mutex.withLock {
+            // Every copy, not just the one scan() lists: dropping only the listed copy would let the
+            // shadowed one take its place in the very next scan.
+            storageLayout.allReportDirs(id).forEach { it.deleteRecursively() }
+            deleteShareZips(id)
+        }
         refresh()
     }
 
@@ -149,16 +189,18 @@ class BugReportRepo @Inject constructor(
         // before publishing the id to recorder state, so the sentinel check also covers a recording
         // that is mid-start when delete-all fires.
         val activeId = bugReportRecorder.state.value.recordingId
-        storageLayout.roots.forEach { root ->
-            root.listFiles()?.forEach { entry ->
-                if (entry.name == activeId) return@forEach
-                if (entry.isDirectory && File(entry, BugReportStorage.RECORDING_SENTINEL).exists()) return@forEach
-                if (entry.isDirectory) entry.deleteRecursively() else entry.delete()
+        mutex.withLock {
+            storageLayout.roots.forEach { root ->
+                root.listFiles()?.forEach { entry ->
+                    if (entry.name == activeId) return@forEach
+                    if (entry.isDirectory && File(entry, BugReportStorage.RECORDING_SENTINEL).exists()) return@forEach
+                    if (entry.isDirectory) entry.deleteRecursively() else entry.delete()
+                }
             }
-        }
-        shareDir.listFiles()?.forEach { zip ->
-            if (activeId != null && zip.name == "$activeId.zip") return@forEach
-            zip.delete()
+            shareDir.listFiles()?.forEach { zip ->
+                if (activeId != null && BugReportStorage.isShareZipFor(zip.name, activeId)) return@forEach
+                zip.delete()
+            }
         }
         refresh()
     }
@@ -218,37 +260,54 @@ class BugReportRepo @Inject constructor(
      */
     suspend fun buildShareZip(id: String): File {
         requireNotRecording(id)
-        val dir = withContext(dispatcherProvider.IO) { resolveReportDir(id) }
-        return buildShareZip(dir, id)
+        val entry = withContext(dispatcherProvider.IO) { resolveReportEntry(id) }
+        return buildShareZip(entry?.first, entry?.second, id)
     }
 
-    private suspend fun buildShareZip(dir: File?, id: String): File = withContext(dispatcherProvider.IO) {
-        // Kept even though every caller here already guarded: this overload takes an
-        // already-resolved dir, so it must not be shareable past the guard on its own.
-        requireNotRecording(id)
-        val files = dir?.let { BugReportStorage.payloadFiles(it) } ?: emptyList()
-        require(files.isNotEmpty()) { "No report files for $id" }
+    /**
+     * [report] comes from the same resolve as [dir], so the file name and the packaged payload can
+     * never describe different copies of [id].
+     */
+    private suspend fun buildShareZip(dir: File?, report: BugReport?, id: String): File =
+        withContext(dispatcherProvider.IO) {
+            // Kept even though every caller here already guarded: this overload takes an
+            // already-resolved dir, so it must not be shareable past the guard on its own.
+            requireNotRecording(id)
+            mutex.withLock {
+                val files = dir?.let { BugReportStorage.payloadFiles(it) } ?: emptyList()
+                require(files.isNotEmpty()) { "No report files for $id" }
 
-        if (!shareDir.exists()) shareDir.mkdirs()
-        val payloadSize = files.sumOf { it.length() }
-        val usableSpace = shareDir.usableSpace
-        // A recording can be tens of MB and the zip is a second copy of it. Failing here is a message
-        // the user can act on; filling the cache volume instead breaks unrelated features.
-        check(usableSpace > payloadSize) {
-            "Not enough space for the share zip of $id: needs up to $payloadSize bytes, $usableSpace available"
+                if (!shareDir.exists()) shareDir.mkdirs()
+                val payloadSize = files.sumOf { it.length() }
+                val usableSpace = shareDir.usableSpace
+                // A recording can be tens of MB and the zip is a second copy of it. Failing here is a
+                // message the user can act on; filling the cache volume instead breaks unrelated features.
+                check(usableSpace > payloadSize) {
+                    "Not enough space for the share zip of $id: needs up to $payloadSize bytes, $usableSpace available"
+                }
+
+                val zipName = BugReportStorage.shareZipName(id, report?.label)
+                val zip = File(shareDir, zipName)
+                val tmpZip = File(shareDir, "$zipName${BugReportStorage.TMP_SUFFIX}")
+                try {
+                    Zipper().zip(files.map { it.path }, tmpZip.path)
+                    zip.delete()
+                    if (!tmpZip.renameTo(zip)) throw IOException("Could not finalize the share zip for $id")
+                } catch (t: Throwable) {
+                    runCatching { tmpZip.delete() }
+                    throw t
+                }
+                // Whatever the report was called before this build.
+                deleteShareZips(id, keep = zip.name)
+                zip
+            }
         }
 
-        val zip = File(shareDir, "$id.zip")
-        val tmpZip = File(shareDir, "$id.zip${BugReportStorage.TMP_SUFFIX}")
-        try {
-            Zipper().zip(files.map { it.path }, tmpZip.path)
-            zip.delete()
-            if (!tmpZip.renameTo(zip)) throw IOException("Could not finalize the share zip for $id")
-        } catch (t: Throwable) {
-            runCatching { tmpZip.delete() }
-            throw t
+    /** Every share zip of [id], under any label it carried, plus the leftovers of a crashed build. */
+    private fun deleteShareZips(id: String, keep: String? = null) {
+        shareDir.listFiles()?.forEach { file ->
+            if (file.name != keep && BugReportStorage.isShareZipFor(file.name, id)) file.delete()
         }
-        zip
     }
 
     /**
@@ -260,17 +319,28 @@ class BugReportRepo @Inject constructor(
         // One resolve for both the zip and the body: the same id can exist under two storage roots,
         // and resolving twice could attach one copy while describing the other.
         val entry = withContext(dispatcherProvider.IO) { resolveReportEntry(id) }
-        val zip = buildShareZip(entry?.first, id)
+        val zip = buildShareZip(entry?.first, entry?.second, id)
         val uri = FileProvider.getUriForFile(context, "${BuildConfigWrap.APPLICATION_ID}.provider", zip)
+        val label = entry?.second?.label
         return Intent(Intent.ACTION_SEND).apply {
             type = "application/zip"
             putExtra(
                 Intent.EXTRA_SUBJECT,
-                context.getString(
-                    R.string.general_bug_report_subject,
-                    context.getString(R.string.app_name),
-                    id,
-                ),
+                // The id stays in the subject either way: it is what a reply can be matched against.
+                if (label != null) {
+                    context.getString(
+                        R.string.general_bug_report_subject_labeled,
+                        context.getString(R.string.app_name),
+                        label,
+                        id,
+                    )
+                } else {
+                    context.getString(
+                        R.string.general_bug_report_subject,
+                        context.getString(R.string.app_name),
+                        id,
+                    )
+                },
             )
             putExtra(Intent.EXTRA_TEXT, buildShareBody(id, entry?.second))
             putExtra(Intent.EXTRA_STREAM, uri)
@@ -310,6 +380,7 @@ class BugReportRepo @Inject constructor(
             }
             if (error.isNotBlank()) appendLine("Error: $error")
         }
+        report?.label?.let { appendLine("Name: $it") }
         appendLine("Report: $id")
         appendLine()
         append("Details are in the attached zip.")
@@ -368,6 +439,24 @@ class BugReportRepo @Inject constructor(
             runCatching { tmpDir.deleteRecursively() }
             // Best-effort; never propagate (the crash path must still delegate to the old handler).
             log(TAG, ERROR) { "writeReport failed for ${report.id}: ${t.asLog()}" }
+        }
+    }
+
+    /**
+     * Replaces a report's `meta.json` atomically or not at all: a truncated overwrite makes
+     * [readReport] reject the report, so the whole report — logs included — would drop out of the
+     * list. A failed replace leaves the original in place and surfaces.
+     */
+    private fun writeMeta(dir: File, report: BugReport) {
+        val meta = File(dir, BugReportStorage.META_FILE)
+        val tmpMeta = File(dir, "${BugReportStorage.META_FILE}${BugReportStorage.TMP_SUFFIX}")
+        try {
+            tmpMeta.writeText(json.encodeToString(BugReport.serializer(), report))
+            if (!tmpMeta.renameTo(meta)) throw IOException("Could not replace ${meta.path}")
+        } catch (t: Throwable) {
+            runCatching { tmpMeta.delete() }
+            log(TAG, ERROR) { "writeMeta failed for ${dir.path}: ${t.asLog()}" }
+            throw t
         }
     }
 
@@ -453,7 +542,7 @@ class BugReportRepo @Inject constructor(
         }
     }
 
-    private fun prune() {
+    private suspend fun prune() = mutex.withLock {
         // Never prune the active recording, even if it would otherwise be the oldest. Guarded by the
         // on-disk sentinel, not just recorder state: this also runs in the :isolated process, where
         // recorder state is empty for a recording the main process owns.
@@ -461,10 +550,10 @@ class BugReportRepo @Inject constructor(
             !info.isOngoingRecording && storageLayout.allReportDirs(info.id)
                 .none { File(it, BugReportStorage.RECORDING_SENTINEL).exists() }
         }
-        if (valid.size <= MAX_REPORTS) return
+        if (valid.size <= MAX_REPORTS) return@withLock
         valid.drop(MAX_REPORTS).forEach { stale ->
             storageLayout.allReportDirs(stale.id).forEach { it.deleteRecursively() }
-            File(shareDir, "${stale.id}.zip").delete()
+            deleteShareZips(stale.id)
             log(TAG) { "Pruned old report: ${stale.id}" }
         }
     }
