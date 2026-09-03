@@ -1,6 +1,7 @@
 package eu.darken.butler.workspace.ui.dnd
 
 import android.content.ClipData
+import android.view.View
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
@@ -43,11 +44,13 @@ import eu.darken.butler.workspace.contracts.dnd.WorkspaceDragPayload
 
 /**
  * The payload rides along as [DragAndDropTransferData.localState], the ClipData only carries a
- * label plus an item count so a drag leaving the app can't expose any path.
+ * label plus an item count so a drag leaving the app can't expose any path. The transfer asks for an
+ * opaque shadow so nothing behind the drag decoration shows through it.
  */
 fun WorkspaceDragPayload.toTransferData(): DragAndDropTransferData = DragAndDropTransferData(
     clipData = ClipData.newPlainText(WorkspaceDragPayload.CLIP_LABEL, "${items.size}"),
     localState = this,
+    flags = View.DRAG_FLAG_OPAQUE,
 )
 
 fun DragAndDropEvent.workspaceDragPayload(): WorkspaceDragPayload? =
