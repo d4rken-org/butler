@@ -10,6 +10,7 @@ import eu.darken.butler.workspace.core.WorkspaceSettings
 import eu.darken.butler.workspace.core.WorkspaceStacks
 import eu.darken.butler.workspace.ui.WorkspacePageManager
 import io.kotest.matchers.shouldBe
+import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -522,6 +523,26 @@ class WorkspaceManagerViewModelTest : BaseTest() {
             it.filterOperations shouldBe false
             it.filteredWorkspaces.map { w -> w.id } shouldBe listOf(idA, idB)
         }
+    }
+
+    /**
+     * The manager's placeholder card is always on screen, so a create under an active filter would
+     * otherwise look dead: the new tab has no operations and needs no attention, so the filter
+     * hides the very card that was asked for.
+     */
+    @Test
+    fun `creating a tab clears the filters`() = runTest(UnconfinedTestDispatcher()) {
+        val busy = readyInfo(idA).copy(operationCount = 1)
+        repoState.value = WorkspaceRemote.State(infos = listOf(busy, readyInfo(idB)))
+        coEvery { workspaceRepo.execute(any<WorkspaceAction.Create>()) } returns
+            WorkspaceAction.Create.Result.Success(Workspace.Id())
+        val vm = createViewModel()
+        vm.toggleOperationsFilter()
+        vm.currentState().filterOperations shouldBe true
+
+        vm.createWorkspace(Workspace.Type.TEMPLATES)
+
+        vm.currentState().filterOperations shouldBe false
     }
 
     /**
