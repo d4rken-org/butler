@@ -16,6 +16,9 @@ enum class ByteSpeedUnit(val divisor: Double) {
  * Plot-ready series for [OperationPerformanceGraph].
  *
  * All series share the [progress] x values, which are completion percentages rounded to 0.5 steps.
+ *
+ * [recentBytesPerSecond] and [recentItemsPerSecond] are averages over the raw history, not over the
+ * decimated and smoothed series, so they stay the speeds the operation actually reported last.
  */
 data class PerformanceGraphData(
     val progress: List<Float>,
@@ -24,6 +27,8 @@ data class PerformanceGraphData(
     val byteUnit: ByteSpeedUnit?,
     val maxByteSpeed: Double,
     val maxItemSpeed: Double,
+    val recentBytesPerSecond: Long,
+    val recentItemsPerSecond: Float,
 ) {
 
     companion object {
@@ -89,6 +94,8 @@ data class PerformanceGraphData(
                 byteUnit = byteUnit,
                 maxByteSpeed = byteSpeeds?.max()?.toDouble() ?: 0.0,
                 maxItemSpeed = itemSpeeds.max().toDouble(),
+                recentBytesPerSecond = history.getRecentBytesPerSecond(),
+                recentItemsPerSecond = history.getRecentItemsPerSecond(),
             )
         }
 

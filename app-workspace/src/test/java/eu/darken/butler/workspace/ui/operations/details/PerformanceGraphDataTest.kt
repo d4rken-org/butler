@@ -326,4 +326,61 @@ class PerformanceGraphDataTest : BaseTest() {
         data.itemSpeeds.last() shouldBe (10.5f plusOrMinus 0.001f)
         data.maxItemSpeed shouldBe (10.5 plusOrMinus 0.001)
     }
+
+    // ============ RECENT SPEEDS ============
+
+    @Test
+    fun `recent speeds average the raw samples`() {
+        val samples = (0 until 20).map { i ->
+            sample(
+                index = i,
+                bytesPerSecond = (i + 1) * 1_000_000L,
+                itemsPerSecond = (i + 1).toFloat(),
+                totalBytesProcessed = i * 1_000_000L,
+                totalItemsProcessed = i,
+            )
+        }
+
+        val data = PerformanceGraphData
+            .from(history(samples, totalBytes = 20_000_000L, totalItems = 20))
+            .shouldNotBeNull()
+
+        // (1 + 2 + … + 20) / 20 = 10.5
+        data.recentBytesPerSecond shouldBe 10_500_000L
+        data.recentItemsPerSecond shouldBe (10.5f plusOrMinus 0.001f)
+    }
+
+    @Test
+    fun `recent speeds only cover the last 30 samples`() {
+        val samples = (0 until 40).map { i ->
+            sample(
+                index = i,
+                bytesPerSecond = if (i < 10) 500_000_000L else 1_000_000L,
+                itemsPerSecond = if (i < 10) 100f else 2f,
+                totalBytesProcessed = i * 1_000_000L,
+                totalItemsProcessed = i,
+            )
+        }
+
+        val data = PerformanceGraphData
+            .from(history(samples, totalBytes = 40_000_000L, totalItems = 40))
+            .shouldNotBeNull()
+
+        data.recentBytesPerSecond shouldBe 1_000_000L
+        data.recentItemsPerSecond shouldBe (2f plusOrMinus 0.001f)
+    }
+
+    @Test
+    fun `recent speeds ignore the filtering and smoothing of the series`() {
+        // 1 of 1000 items per sample, so most samples round onto the same 0.5% step
+        val samples = (0 until 10).map { i ->
+            sample(index = i, itemsPerSecond = (i + 1) * 10f, totalItemsProcessed = i + 1)
+        }
+
+        val data = PerformanceGraphData.from(history(samples, totalItems = 1000)).shouldNotBeNull()
+
+        data.itemSpeeds shouldHaveSize 3
+        // (10 + 20 + … + 100) / 10, over every sample rather than the three plotted points
+        data.recentItemsPerSecond shouldBe (55f plusOrMinus 0.001f)
+    }
 }
