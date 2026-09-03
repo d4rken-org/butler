@@ -356,7 +356,7 @@
     <string name="general_cancel_action">Cancel</string>
 
     <!-- Workspace Manager FAB -->
-    <string name="workspace_fab_add_workspace">Add tab</string>
+    <string name="workspace_fab_quick_shortcuts">Quick shortcuts</string>
     <string name="workspace_fab_close_all">Close all tabs</string>
 
     <!-- Workspace Navigation Rail -->

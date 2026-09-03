@@ -195,7 +195,6 @@ fun WorkspaceManagerScreen(
                         WorkspaceManagerFAB(
                             workspaceCount = state.workspaceCount,
                             quickCreateItems = state.quickCreateItems,
-                            onCreateWorkspace = onCreateWorkspace,
                             onQuickCreate = onQuickCreate,
                             onShowCloseAllDialog = { showCloseAllDialog = true },
                         )
