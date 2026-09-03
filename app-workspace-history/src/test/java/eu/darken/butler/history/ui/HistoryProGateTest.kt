@@ -328,6 +328,22 @@ class HistoryProGateTest : BaseTest() {
     }
 
     @Test
+    fun `a share tapped before the delete coroutine is scheduled is dropped`() = runTest {
+        val upgradeRepo = FakeUpgradeRepo(pro = false, settled = false)
+        val vm = createVM(upgradeRepo, TestDispatcherProvider(StandardTestDispatcher(testScheduler)))
+        vm.setSelection(setOf(entry.id))
+
+        vm.onActionClick(HistoryActionBarItem.Delete(listOf(entry)))
+        vm.onActionClick(HistoryActionBarItem.Share(listOf(entry)))
+
+        upgradeRepo.settle(pro = true)
+        advanceUntilIdle()
+
+        vm.overlayState.value.deleteConfirmEntries shouldBe listOf(entry)
+        startedChooser() shouldBe null
+    }
+
+    @Test
     fun `a sheet dismissed while the share gate waits raises no prompt`() = runTest {
         coEvery { historyRepo.getAttemptedPaths(entry.id) } returns attempted
         val upgradeRepo = FakeUpgradeRepo(pro = false, settled = false)
