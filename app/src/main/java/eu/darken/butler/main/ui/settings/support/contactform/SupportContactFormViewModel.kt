@@ -190,6 +190,10 @@ class SupportContactFormViewModel @Inject constructor(
         appendLine("Device: ${Build.MANUFACTURER} ${Build.MODEL} (${Build.DEVICE})")
         appendLine("Android: ${Build.VERSION.RELEASE} (API ${BuildWrap.VERSION.SDK_INT})")
         appendLine("Fingerprint: ${BuildWrap.FINGERPRINT}")
+        // What the user called the attached report, so a mail and a zip can be matched up by name.
+        state.reports.firstOrNull { it.id == state.selectedReportId }?.report?.label?.let {
+            appendLine("Report: $it")
+        }
     }
 
     private suspend fun buildAttachment(reportId: String?): Uri? {
