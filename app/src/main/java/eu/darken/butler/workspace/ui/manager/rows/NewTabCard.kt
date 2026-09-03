@@ -1,7 +1,6 @@
 package eu.darken.butler.workspace.ui.manager.rows
 
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,7 +24,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
@@ -47,11 +45,11 @@ fun NewTabCard(
     onClick: () -> Unit,
 ) {
     Card(
+        onClick = onClick,
         modifier = modifier
             .fillMaxWidth()
             .testTag(TEST_TAG_NEW_TAB_CARD)
             .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(16.dp))
-            .clickable(role = Role.Button, onClick = onClick)
             .guidedTourTarget(WorkspaceManagerTour.NEW_TAB_TARGET),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
