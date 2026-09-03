@@ -40,6 +40,7 @@ fun HistoryWorkspaceOverlaysHost(
         filter = state?.filter,
         overlayState = overlayState,
         onDismissAddFilter = { vm.setAddFilterOpen(false) },
+        onResetFilter = { vm.clearFilter() },
         onToggleOutcome = { vm.toggleOutcome(it) },
         onToggleKind = { vm.toggleKind(it) },
         onRemovePathScope = { vm.removePathScope(it) },
@@ -66,6 +67,7 @@ fun HistoryWorkspaceOverlays(
     filter: HistoryFilter?,
     overlayState: HistoryWorkspaceViewModel.OverlayState,
     onDismissAddFilter: () -> Unit = {},
+    onResetFilter: () -> Unit = {},
     onToggleOutcome: (HistoryOutcome) -> Unit = {},
     onToggleKind: (Operation.Metadata.Kind) -> Unit = {},
     onRemovePathScope: (String) -> Unit = {},
@@ -88,6 +90,7 @@ fun HistoryWorkspaceOverlays(
             topInset = statusBarInset,
             bottomInset = navBarInset,
             onDismiss = onDismissAddFilter,
+            onResetFilter = onResetFilter,
             onToggleOutcome = onToggleOutcome,
             onToggleKind = onToggleKind,
             onRemovePathScope = onRemovePathScope,
@@ -129,6 +132,20 @@ fun HistoryWorkspaceOverlays(
 private fun HistoryWorkspaceOverlaysAddFilterPreview() {
     HistoryWorkspaceOverlays(
         filter = HistoryFilter(),
+        overlayState = HistoryWorkspaceViewModel.OverlayState(addFilterOpen = true),
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun HistoryWorkspaceOverlaysAddFilterActivePreview() {
+    HistoryWorkspaceOverlays(
+        filter = HistoryFilter(
+            outcomes = setOf(HistoryOutcome.COMPLETED),
+            kinds = setOf(Operation.Metadata.Kind.DELETE),
+            pathScopes = setOf("/sdcard/ButlerQA"),
+        ),
         overlayState = HistoryWorkspaceViewModel.OverlayState(addFilterOpen = true),
     )
 }
