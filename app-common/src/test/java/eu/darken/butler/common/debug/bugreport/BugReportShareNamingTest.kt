@@ -3,7 +3,6 @@ package eu.darken.butler.common.debug.bugreport
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.ButlerId
-import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.RingLogBuffer
 import io.kotest.assertions.withClue
 import io.kotest.matchers.collections.shouldContainExactly
@@ -13,7 +12,6 @@ import io.kotest.matchers.string.shouldNotContain
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,10 +26,8 @@ import org.robolectric.annotation.Config
 import testhelpers.BaseTest
 import testhelpers.coroutine.TestDispatcherProvider
 import java.io.File
-import java.util.concurrent.LinkedBlockingQueue
-import java.util.concurrent.TimeUnit
+import java.nio.file.Files
 import java.util.zip.ZipFile
-import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
@@ -47,7 +43,7 @@ class BugReportShareNamingTest : BaseTest() {
     private val json = Json { ignoreUnknownKeys = true }
     private val recorderState = MutableStateFlow(BugReportRecorder.State())
 
-    private fun createRepo(dispatcherProvider: DispatcherProvider = TestDispatcherProvider()): BugReportRepo {
+    private fun createRepo(): BugReportRepo {
         val recorder = mockk<BugReportRecorder>(relaxed = true) {
             every { state } returns recorderState
             coEvery { isActiveOrStarting(any()) } answers {
@@ -57,7 +53,7 @@ class BugReportShareNamingTest : BaseTest() {
         return BugReportRepo(
             context = context,
             appScope = CoroutineScope(Dispatchers.Unconfined),
-            dispatcherProvider = dispatcherProvider,
+            dispatcherProvider = TestDispatcherProvider(),
             ringLogBuffer = RingLogBuffer(),
             bugReportRecorder = recorder,
             butlerId = ButlerId(context),
@@ -220,17 +216,63 @@ class BugReportShareNamingTest : BaseTest() {
     }
 
     /**
-     * The rename waits for the `.tmp` zip, which only exists once the lock is already held, so it
-     * queues behind the build instead of overlapping it. What this covers is that the lock spans the
-     * whole build: the zip name and the `meta.json` sealed inside it describe the same name.
+     * Both halves of what the lock buys, in one run.
+     *
+     * The rename is fired while the first build is compressing, so it must not be able to finish
+     * before that build has released. The second build is started while the rename is queued ahead
+     * of it, so it must take its name from the report as the rename leaves it - a resolve taken
+     * before the lock names the zip "Before" while sealing "After" inside it.
      */
     @Test
-    fun `a rename cannot interleave with a zip build`() = runBlocking<Unit> {
-        val repo = createRepo()
-        val bulkyLog = (1..200_000).joinToString("\n") { "line $it ${it * 7919}" }
-        writeReportDir("race_1", label = "Before", logText = bulkyLog)
+    fun `a rename can neither land inside a zip build nor name a queued build from a stale resolve`() =
+        runBlocking<Unit> {
+            val repo = createRepo()
+            writeBulkyReportDir("race_lock", label = "Before")
 
-        val zipJob = launch(Dispatchers.IO) { repo.buildShareZip("race_1") }
+            val firstBuild = launch(Dispatchers.IO) { repo.buildShareZip("race_lock") }
+            awaitTmpZip()
+
+            val rename = launch(Dispatchers.IO) { repo.setLabel("race_lock", "After") }
+            Thread.sleep(RENAME_GRACE_MS)
+            withClue("setLabel finished while a share zip was still being written") {
+                rename.isActive shouldBe true
+            }
+
+            // The rename is still blocked, so it is queued ahead of this build.
+            val secondBuild = launch(Dispatchers.IO) { runCatching { repo.buildShareZip("race_lock") } }
+
+            firstBuild.join()
+            rename.join()
+            secondBuild.join()
+
+            val zip = shareDir.listFiles()!!.single()
+            val sealed = readSealedReport(zip)
+            // The surviving zip is the one built after the rename; without this a second build that
+            // died early would leave the first build's (self-consistent) zip and pass the check below.
+            sealed.label shouldBe "After"
+            withClue("zip file is named \"${zip.name}\" but seals the name \"${sealed.label}\"") {
+                zip.name shouldBe BugReportStorage.shareZipName("race_lock", sealed.label)
+            }
+        }
+
+    /**
+     * A report whose payload takes long enough to compress that the test can act while a build holds
+     * it. `root.log`/`adb.log` are hard links rather than copies: three payload entries worth of
+     * compression for one file worth of disk.
+     */
+    private fun writeBulkyReportDir(id: String, label: String) {
+        writeReportDir(id, label = label)
+        val dir = File(reportsDir, id)
+        val log = File(dir, BugReportStorage.LOG_FILE)
+        log.bufferedWriter().use { writer ->
+            repeat(BULK_LOG_LINES) { writer.write("line $it ${it * 7919} filler that keeps the compressor busy\n") }
+        }
+        Files.createLink(File(dir, BugReportStorage.ROOT_LOG_FILE).toPath(), log.toPath())
+        Files.createLink(File(dir, BugReportStorage.ADB_LOG_FILE).toPath(), log.toPath())
+    }
+
+    /** Returns once a build has opened its `.tmp`, i.e. once it holds the report. */
+    private fun awaitTmpZip() {
         val deadline = System.currentTimeMillis() + 10_000
         while (
             shareDir.listFiles()?.none { it.name.endsWith(BugReportStorage.TMP_SUFFIX) } != false &&
@@ -238,64 +280,18 @@ class BugReportShareNamingTest : BaseTest() {
         ) {
             Thread.sleep(1)
         }
-
-        repo.setLabel("race_1", "After")
-        zipJob.join()
-
-        val zip = shareDir.listFiles()!!.single()
-        val sealed = ZipFile(zip).use { file ->
-            json.decodeFromString(
-                BugReport.serializer(),
-                file.getInputStream(file.getEntry("meta.json")).readBytes().decodeToString(),
-            )
-        }
-        zip.name shouldBe BugReportStorage.shareZipName("race_1", sealed.label)
     }
 
-    /**
-     * The rename lands in the gap between the resolve and the lock: the caller runs on a dispatcher
-     * this test pumps by hand, so the build is held right after `resolveReportEntry` returned and
-     * before it can take the mutex. The zip name and the `meta.json` sealed inside it must still
-     * describe the same name.
-     */
-    @Test
-    fun `a rename between the resolve and the lock cannot split name from metadata`() {
-        val caller = QueueDispatcher()
-        val repo = createRepo(TestDispatcherProvider(Dispatchers.IO))
-        writeReportDir("race_gap", label = "Before")
-
-        val job = CoroutineScope(caller).launch { repo.buildShareZip("race_gap") }
-        // Runs the build up to its first hop off this dispatcher.
-        caller.awaitNext()!!.run()
-        // Queued only once that hop came back, i.e. the entry is resolved and the lock is not held.
-        val afterResolve = caller.awaitNext()!!
-
-        runBlocking { repo.setLabel("race_gap", "After") }
-
-        afterResolve.run()
-        while (job.isActive) caller.awaitNext(1_000)?.run()
-        runBlocking { job.join() }
-
-        val zip = shareDir.listFiles()!!.single()
-        val sealed = ZipFile(zip).use { file ->
-            json.decodeFromString(
-                BugReport.serializer(),
-                file.getInputStream(file.getEntry("meta.json")).readBytes().decodeToString(),
-            )
-        }
-        withClue("zip file is named \"${zip.name}\" but seals the name \"${sealed.label}\"") {
-            zip.name shouldBe BugReportStorage.shareZipName("race_gap", sealed.label)
-        }
+    private fun readSealedReport(zip: File): BugReport = ZipFile(zip).use { file ->
+        json.decodeFromString(
+            BugReport.serializer(),
+            file.getInputStream(file.getEntry(BugReportStorage.META_FILE)).readBytes().decodeToString(),
+        )
     }
 
-    /** A dispatcher whose queue the test drains by hand, one task at a time. */
-    private class QueueDispatcher : CoroutineDispatcher() {
-        private val queue = LinkedBlockingQueue<Runnable>()
-
-        override fun dispatch(context: CoroutineContext, block: Runnable) {
-            queue.put(block)
-        }
-
-        fun awaitNext(timeoutMs: Long = 10_000): Runnable? = queue.poll(timeoutMs, TimeUnit.MILLISECONDS)
+    companion object {
+        /** ~48MB hard-linked into three payload entries: ~1.4s of compression to act inside. */
+        private const val BULK_LOG_LINES = 800_000
+        private const val RENAME_GRACE_MS = 100L
     }
 }
