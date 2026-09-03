@@ -22,6 +22,7 @@ Butler uses a workspace concept similar to browser tabs with 4 main workspace ty
 | Modal workspace pattern | `.claude/rules/architecture-modal-workspaces.md` |
 | Code style, composables | `.claude/rules/coding-standards.md` |
 | Testing | `.claude/rules/testing.md` |
+| Test data on device | `.claude/rules/test-data.md` |
 | UI, theming | `.claude/rules/ui-guidelines.md` |
 | Localization | `.claude/rules/localization.md` |
 | DI, logging, serialization | `.claude/rules/technical-patterns.md` |
