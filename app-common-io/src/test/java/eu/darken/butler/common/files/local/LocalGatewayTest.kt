@@ -4,14 +4,22 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import eu.darken.butler.common.adb.AdbManager
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
+import eu.darken.butler.common.files.actions.CopyAction
+import eu.darken.butler.common.files.actions.MoveAction
+import eu.darken.butler.common.files.errors.PathNotFoundException
 import eu.darken.butler.common.files.errors.PathPermissionDeniedException
 import eu.darken.butler.common.files.local.accessibility.LocalPathAccessChecker
+import eu.darken.butler.common.files.local.routing.AccessMode
 import eu.darken.butler.common.files.local.routing.LocalPathRoutingPolicy
+import eu.darken.butler.common.files.local.routing.ModeSession
 import eu.darken.butler.common.files.local.routing.ModeSessionFactory
+import eu.darken.butler.common.files.local.routing.RouteDecision
 import eu.darken.butler.common.files.local.service.IsolatedServiceClient
+import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.root.RootManager
 import eu.darken.butler.common.storage.StorageEnvironment
 import eu.darken.butler.common.storage.StorageManager2
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.Runs
 import io.mockk.coEvery
@@ -20,6 +28,7 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.test.TestScope
 import org.junit.Before
 import org.junit.Test
@@ -96,6 +105,25 @@ class LocalGatewayTest : BaseTest() {
             modeSessionFactory = mockModeSessionFactory,
         )
     }
+
+    /** Keeps the routed copy/move path in-process, so the mocked ops answer for every path. */
+    private fun routeEverythingDirect() {
+        coEvery { mockRoutingPolicy.classify(any(), any(), any()) } returns RouteDecision.Allowed(AccessMode.DIRECT)
+        every { mockRoutingPolicy.proactiveChildren(any()) } returns emptySet()
+        coEvery { mockModeSessionFactory.open(AccessMode.DIRECT) } returns ModeSession(
+            mode = AccessMode.DIRECT,
+            ops = mockFileSystemOps,
+            batch = null,
+            lease = null,
+        )
+    }
+
+    private fun directoryLookup(path: LocalPath) = LocalPathLookup(
+        lookedUp = path,
+        fileType = FileType.DIRECTORY,
+        size = null,
+        modifiedAt = null,
+    )
 
     // ========================================================================
     // AUTO Mode - Normal First Tests
@@ -290,6 +318,59 @@ class LocalGatewayTest : BaseTest() {
         exceptionThrown shouldBe true
         // Verify normal was tried
         coVerify(exactly = 1) { mockFileSystemOps.createFile(path) }
+    }
+
+    @Test
+    fun `AUTO mode surfaces a gone source as gone, not as a denial`() = runTest2 {
+        val path = LocalPath.build("/sdcard/vanished.txt")
+
+        coEvery { mockFileSystemOps.lookup(path, any()) } throws PathNotFoundException(path)
+
+        shouldThrow<PathNotFoundException> {
+            gateway.lookup(path, LookupOptions.BASE, mode = LocalGateway.Mode.AUTO)
+        }
+    }
+
+    @Test
+    fun `AUTO mode does not escalate a gone source to root`() = runTest2 {
+        val path = LocalPath.build("/sdcard/vanished.txt")
+
+        coEvery { mockFileSystemOps.lookup(path, any()) } throws PathNotFoundException(path)
+        every { mockRootManager.useRoot } returns flowOf(true)
+
+        shouldThrow<PathNotFoundException> {
+            gateway.lookup(path, LookupOptions.BASE, mode = LocalGateway.Mode.AUTO)
+        }
+
+        coVerify(exactly = 0) { mockRootManager.serviceClient.get() }
+    }
+
+    @Test
+    fun `AUTO copy surfaces a gone source as gone, not as a denial`() = runTest2 {
+        val source = LocalPath.build("/sdcard/vanished.txt")
+        val destination = LocalPath.build("/sdcard/dest")
+        routeEverythingDirect()
+
+        coEvery { mockFileSystemOps.lookup(destination, any()) } returns directoryLookup(destination)
+        coEvery { mockFileSystemOps.lookup(source, any()) } throws PathNotFoundException(source)
+
+        shouldThrow<PathNotFoundException> {
+            gateway.copy(setOf(source), destination, onIssue = null, options = CopyAction.Options()).last()
+        }
+    }
+
+    @Test
+    fun `AUTO move surfaces a gone source as gone, not as a denial`() = runTest2 {
+        val source = LocalPath.build("/sdcard/vanished.txt")
+        val destination = LocalPath.build("/sdcard/dest")
+        routeEverythingDirect()
+
+        coEvery { mockFileSystemOps.lookup(destination, any()) } returns directoryLookup(destination)
+        coEvery { mockFileSystemOps.lookup(source, any()) } throws PathNotFoundException(source)
+
+        shouldThrow<PathNotFoundException> {
+            gateway.move(setOf(source), destination, onIssue = null, options = MoveAction.Options()).last()
+        }
     }
 
     @Test
