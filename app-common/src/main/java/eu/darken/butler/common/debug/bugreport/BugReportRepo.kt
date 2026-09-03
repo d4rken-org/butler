@@ -65,13 +65,14 @@ class BugReportRepo @Inject constructor(
     private val refreshTrigger = MutableStateFlow(0)
 
     /**
-     * Guards everything that reads or writes a report's metadata together with its share zip. Without
-     * it a rename landing mid-compression produces a zip named after the old label whose sealed
-     * `meta.json` carries the new one.
+     * Guards everything that reads or writes a report's metadata together with its share zip, the
+     * resolve the zip name is taken from included. A rename landing between an unlocked resolve and
+     * the compression produces a zip named after the old label whose sealed `meta.json` carries the
+     * new one.
      *
      * Not reentrant, so: the recorder mutex is always taken first ([requireNotRecording]), never the
-     * reverse, and each call path takes this exactly once — [buildShareZip] locks in the private
-     * overload only, and the public one delegates to it without locking.
+     * reverse, and each call path takes this exactly once — the share paths lock in
+     * [buildShareZipLocked] only, and [buildShareZip] and [buildShareIntent] delegate to it.
      */
     private val mutex = Mutex()
 
@@ -258,23 +259,21 @@ class BugReportRepo @Inject constructor(
      * Built under a temporary name and renamed on success, because [Zipper] leaves its output behind
      * when compression throws — a half-written `<id>.zip` would then be shared as if it were whole.
      */
-    suspend fun buildShareZip(id: String): File {
-        requireNotRecording(id)
-        val entry = withContext(dispatcherProvider.IO) { resolveReportEntry(id) }
-        return buildShareZip(entry?.first, entry?.second, id)
-    }
+    suspend fun buildShareZip(id: String): File = buildShareZipLocked(id).first
 
     /**
-     * [report] comes from the same resolve as [dir], so the file name and the packaged payload can
-     * never describe different copies of [id].
+     * The zip plus the report it was named after, resolved under [mutex] rather than before it so the
+     * file name and the sealed `meta.json` always describe the same state. Handing that snapshot back
+     * lets [buildShareIntent] describe the very copy that was packaged without resolving again — the
+     * same id can exist under two storage roots.
      */
-    private suspend fun buildShareZip(dir: File?, report: BugReport?, id: String): File =
+    private suspend fun buildShareZipLocked(id: String): Pair<File, BugReport?> =
         withContext(dispatcherProvider.IO) {
-            // Kept even though every caller here already guarded: this overload takes an
-            // already-resolved dir, so it must not be shareable past the guard on its own.
             requireNotRecording(id)
             mutex.withLock {
-                val files = dir?.let { BugReportStorage.payloadFiles(it) } ?: emptyList()
+                val entry = resolveReportEntry(id)
+                val report = entry?.second
+                val files = entry?.first?.let { BugReportStorage.payloadFiles(it) } ?: emptyList()
                 require(files.isNotEmpty()) { "No report files for $id" }
 
                 if (!shareDir.exists()) shareDir.mkdirs()
@@ -299,7 +298,7 @@ class BugReportRepo @Inject constructor(
                 }
                 // Whatever the report was called before this build.
                 deleteShareZips(id, keep = zip.name)
-                zip
+                zip to report
             }
         }
 
@@ -315,13 +314,9 @@ class BugReportRepo @Inject constructor(
      * chooser. [FLAG_GRANT_READ_URI_PERMISSION] + clipData grant the receiving app read access.
      */
     suspend fun buildShareIntent(id: String): Intent {
-        requireNotRecording(id)
-        // One resolve for both the zip and the body: the same id can exist under two storage roots,
-        // and resolving twice could attach one copy while describing the other.
-        val entry = withContext(dispatcherProvider.IO) { resolveReportEntry(id) }
-        val zip = buildShareZip(entry?.first, entry?.second, id)
+        val (zip, report) = buildShareZipLocked(id)
         val uri = FileProvider.getUriForFile(context, "${BuildConfigWrap.APPLICATION_ID}.provider", zip)
-        val label = entry?.second?.label
+        val label = report?.label
         return Intent(Intent.ACTION_SEND).apply {
             type = "application/zip"
             putExtra(
@@ -342,7 +337,7 @@ class BugReportRepo @Inject constructor(
                     )
                 },
             )
-            putExtra(Intent.EXTRA_TEXT, buildShareBody(id, entry?.second))
+            putExtra(Intent.EXTRA_TEXT, buildShareBody(id, report))
             putExtra(Intent.EXTRA_STREAM, uri)
             clipData = ClipData.newRawUri("", uri)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
