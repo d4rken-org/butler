@@ -62,7 +62,7 @@ object BugReportStorage {
      * keeps it unique and lets [isShareZipFor] find it again.
      */
     fun shareZipName(id: String, label: String?): String {
-        val sanitized = label?.let { sanitizeForFileName(it) }?.takeIf { it.isNotEmpty() }
+        val sanitized = label?.takeUnless { it.isBlank() }?.let { sanitizeForFileName(it) }?.takeIf { it.isNotEmpty() }
         return if (sanitized == null) "$id.zip" else "${sanitized}_$id.zip"
     }
 

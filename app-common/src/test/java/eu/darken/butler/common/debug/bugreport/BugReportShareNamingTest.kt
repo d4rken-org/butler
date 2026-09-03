@@ -137,6 +137,15 @@ class BugReportShareNamingTest : BaseTest() {
     }
 
     @Test
+    fun `a name of nothing but whitespace falls back to the bare id`() = runTest {
+        val repo = createRepo()
+        // setLabel cannot store this, but a meta.json written elsewhere can carry it.
+        writeReportDir("share_blank", label = "   ")
+
+        repo.buildShareZip("share_blank").name shouldBe "share_blank.zip"
+    }
+
+    @Test
     fun `a name starting with a dot does not produce a hidden file`() = runTest {
         val repo = createRepo()
         writeReportDir("share_dot", label = ".hidden")
