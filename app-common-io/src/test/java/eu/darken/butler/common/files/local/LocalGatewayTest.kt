@@ -9,6 +9,7 @@ import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.errors.PathNotFoundException
 import eu.darken.butler.common.files.errors.PathPermissionDeniedException
 import eu.darken.butler.common.files.local.accessibility.LocalPathAccessChecker
+import eu.darken.butler.common.files.local.ipc.FileOpsClient
 import eu.darken.butler.common.files.local.routing.AccessMode
 import eu.darken.butler.common.files.local.routing.LocalPathRoutingPolicy
 import eu.darken.butler.common.files.local.routing.ModeSession
@@ -17,6 +18,8 @@ import eu.darken.butler.common.files.local.routing.RouteDecision
 import eu.darken.butler.common.files.local.service.IsolatedServiceClient
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.root.RootManager
+import eu.darken.butler.common.root.service.RootServiceClient
+import eu.darken.butler.common.sharedresource.Resource
 import eu.darken.butler.common.storage.StorageEnvironment
 import eu.darken.butler.common.storage.StorageManager2
 import io.kotest.assertions.throwables.shouldThrow
@@ -332,17 +335,37 @@ class LocalGatewayTest : BaseTest() {
     }
 
     @Test
-    fun `AUTO mode does not escalate a gone source to root`() = runTest2 {
-        val path = LocalPath.build("/sdcard/vanished.txt")
+    fun `AUTO mode escalates a gone-from-direct path that root can read`() = runTest2 {
+        val path = LocalPath.build("/proc/4242/status")
 
+        every { mockAccessibilityChecker.shouldTryNormalAccess(path, any()) } returns true
         coEvery { mockFileSystemOps.lookup(path, any()) } throws PathNotFoundException(path)
         every { mockRootManager.useRoot } returns flowOf(true)
 
-        shouldThrow<PathNotFoundException> {
-            gateway.lookup(path, LookupOptions.BASE, mode = LocalGateway.Mode.AUTO)
+        val rootFileOpsClient = mockk<FileOpsClient>()
+        coEvery { rootFileOpsClient.lookup(path, any()) } returns LocalPathLookup(
+            lookedUp = path,
+            fileType = FileType.FILE,
+            size = null,
+            modifiedAt = null,
+        )
+        val rootConnection = mockk<RootServiceClient.Connection> {
+            every { clientModules } returns listOf(rootFileOpsClient)
         }
+        val rootServiceClient = mockk<RootServiceClient>(relaxed = true)
+        coEvery { rootServiceClient.get() } answers {
+            mockk<Resource<RootServiceClient.Connection>> {
+                every { item } returns rootConnection
+                every { close() } just Runs
+            }
+        }
+        every { mockRootManager.serviceClient } returns rootServiceClient
 
-        coVerify(exactly = 0) { mockRootManager.serviceClient.get() }
+        val result = gateway.lookup(path, LookupOptions.BASE, mode = LocalGateway.Mode.AUTO)
+
+        result.fileType shouldBe FileType.FILE
+        coVerify(exactly = 1) { mockFileSystemOps.lookup(path, any()) }
+        coVerify(exactly = 1) { rootFileOpsClient.lookup(path, any()) }
     }
 
     @Test

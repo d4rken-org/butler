@@ -23,7 +23,6 @@ import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.errors.PathException
-import eu.darken.butler.common.files.errors.PathGoneError
 import eu.darken.butler.common.files.errors.PathPermissionDeniedException
 import eu.darken.butler.common.files.errors.PathPermissionDeniedException.Reason
 import eu.darken.butler.common.files.errors.ServiceConnectionLostException
@@ -341,9 +340,6 @@ class LocalGateway @Inject constructor(
                         try {
                             directOp().also { log(TAG, VERBOSE) { "$operation(AUTO:DIRECT) -> $path" } }
                         } catch (e: IOException) {
-                            // A definitive absence is not something a privileged route can improve on,
-                            // and escalating it lets a service failure replace the correct error.
-                            if (e is PathGoneError) throw e
                             log(TAG, VERBOSE) { "$operation(AUTO) failed: ${e.message}" }
                             try {
                                 escalation()
