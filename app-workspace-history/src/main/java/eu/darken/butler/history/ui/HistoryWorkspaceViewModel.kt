@@ -196,6 +196,7 @@ class HistoryWorkspaceViewModel @AssistedInject constructor(
             is HistoryActionBarItem.DeselectAll -> clearSelection()
             is HistoryActionBarItem.Share -> {
                 if (!actionGateLock.tryLock()) return
+                val selectionAtTap = _selectedIds.value
                 launch {
                     try {
                         if (!upgradeRepo.isProForUi()) {
@@ -203,8 +204,10 @@ class HistoryWorkspaceViewModel @AssistedInject constructor(
                             return@launch
                         }
                         // The gate suspends, so the selection this action was taken on may have
-                        // changed by now - a single entry leaving it drops the whole action.
+                        // changed by now - an entry entering or leaving it drops the whole action,
+                        // as does an action item whose entries are not all selected.
                         val selectedIds = _selectedIds.value
+                        if (selectedIds != selectionAtTap) return@launch
                         if (item.entries.any { it.id !in selectedIds }) return@launch
                         shareEntries(item.entries, clearsSelection = true)
                     } finally {
@@ -214,6 +217,7 @@ class HistoryWorkspaceViewModel @AssistedInject constructor(
             }
             is HistoryActionBarItem.Delete -> {
                 if (!actionGateLock.tryLock()) return
+                val selectionAtTap = _selectedIds.value
                 launch {
                     try {
                         if (!upgradeRepo.isProForUi()) {
@@ -221,6 +225,7 @@ class HistoryWorkspaceViewModel @AssistedInject constructor(
                             return@launch
                         }
                         val selectedIds = _selectedIds.value
+                        if (selectedIds != selectionAtTap) return@launch
                         if (item.entries.any { it.id !in selectedIds }) return@launch
                         _overlayState.update { it.copy(deleteConfirmEntries = item.entries) }
                     } finally {
