@@ -3,7 +3,7 @@ package eu.darken.butler.common.files.local
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.actions.MoveAction
-import eu.darken.butler.common.files.errors.ReadException
+import eu.darken.butler.common.files.errors.PathNotFoundException
 import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.metadata.OwnershipResolver
 import io.kotest.assertions.throwables.shouldThrow
@@ -183,7 +183,7 @@ class LocalPathMoveTest : BaseTest() {
         val destFolder = File(tempDir, "dest").apply { mkdirs() }
         val nonExistentFile = File(sourceFolder, "does-not-exist.txt")
 
-        shouldThrow<ReadException> {
+        shouldThrow<PathNotFoundException> {
             LocalPath.build(nonExistentFile).move(ops, LocalPath.build(destFolder)).last()
         }
     }

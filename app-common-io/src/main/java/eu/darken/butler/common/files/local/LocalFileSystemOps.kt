@@ -14,6 +14,7 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.errors.PathAlreadyExistsException
+import eu.darken.butler.common.files.errors.PathNotFoundException
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.extensions.toFile
@@ -123,7 +124,10 @@ class LocalFileSystemOps @Inject constructor(
                 FileType.UNKNOWN
             }
 
-            else -> throw ReadException("Does not exist or can't be read :(", path)
+            else -> throw when (existsStrict(path)) {
+                Existence.ABSENT -> PathNotFoundException(path)
+                else -> ReadException("Does not exist or can't be read :(", path)
+            }
         }
 
         var size: Long? = null
@@ -202,6 +206,10 @@ class LocalFileSystemOps @Inject constructor(
             createdAt = createdAt,
             error = errors.takeIf { it.isNotEmpty() }?.joinToString("; "),
         )
+    } catch (e: PathNotFoundException) {
+        // Must stay the top-level exception, a wrapper hides the gone marker
+        // (`PermissionErrorClassifierTest`).
+        throw e
     } catch (e: Exception) {
         throw ReadException(path = path, cause = e)
     }
