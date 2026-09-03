@@ -24,7 +24,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.job
-import kotlinx.coroutines.test.advanceUntilIdle
 import org.junit.Test
 import testhelpers.BaseTest
 import testhelpers.coroutine.runTest2
@@ -146,10 +145,14 @@ class AppInstallLauncherTest : BaseTest() {
             mockk(relaxed = true)
         }
 
-        launcher.launch(source, origin, backgroundScope) { reasons.add(it) }
-        advanceUntilIdle()
+        val dispatcher = ReorderingDispatcher()
+        val collectorScope = CoroutineScope(dispatcher + Job())
+
+        launcher.launch(source, origin, collectorScope) { reasons.add(it) }
+        dispatcher.runQueued()
 
         reasons shouldBe listOf("No space left")
+        collectorScope.cancel()
     }
 
     /**
