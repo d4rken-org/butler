@@ -28,6 +28,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.BugReport
+import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.DeleteSweep
 import androidx.compose.material.icons.twotone.FiberManualRecord
 import androidx.compose.material.icons.twotone.ReportProblem
@@ -120,7 +121,7 @@ fun BugReportWorkspacePageHost(
             onBack = { vm.closeReport() },
             onToggleLog = { vm.setLogExpanded(it) },
             onShareReport = { report -> vm.requestShareConsent(report.id) },
-            onDeleteReport = { id -> vm.delete(id) },
+            onDeleteReport = { id -> vm.requestDeleteConfirmation(id) },
             onDeleteAll = { vm.requestDeleteAllConfirmation() },
             onStartRecording = { vm.startRecording() },
             onStopRecording = { vm.stopRecording() },
@@ -674,6 +675,43 @@ internal fun DeleteAllConfirmationDialog(
 @Composable
 private fun DeleteAllConfirmationDialogPreview() {
     DeleteAllConfirmationDialog(onConfirm = {}, onDismiss = {})
+}
+
+@Composable
+internal fun DeleteReportConfirmationDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    PaneBoundAlertDialog(
+        onDismissRequest = onDismiss,
+        icon = {
+            Icon(
+                imageVector = Icons.TwoTone.Delete,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.error,
+            )
+        },
+        title = { Text(stringResource(R.string.bugreport_delete_confirm_title)) },
+        text = { Text(stringResource(R.string.bugreport_delete_confirm_message)) },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text(
+                    text = stringResource(R.string.bugreport_delete_action),
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.bugreport_cancel_action)) }
+        },
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun DeleteReportConfirmationDialogPreview() {
+    DeleteReportConfirmationDialog(onConfirm = {}, onDismiss = {})
 }
 
 @Composable

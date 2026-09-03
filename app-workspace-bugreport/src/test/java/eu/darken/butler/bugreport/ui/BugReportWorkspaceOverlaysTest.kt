@@ -15,6 +15,7 @@ import eu.darken.butler.common.debug.bugreport.BugReportRepo
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.modal.PaneLayerHost
 import io.kotest.matchers.shouldBe
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,12 +30,14 @@ class BugReportWorkspaceOverlaysTest : ComposeTest() {
 
     private val context: Context = ApplicationProvider.getApplicationContext()
 
+    private val bugReportRepo = mockk<BugReportRepo>(relaxed = true).apply {
+        every { reports } returns flowOf(emptyList())
+    }
+
     private fun createVM() = BugReportWorkspaceViewModel(
         id = Workspace.Id(),
         dispatchers = TestDispatcherProvider(),
-        bugReportRepo = mockk<BugReportRepo>(relaxed = true).apply {
-            every { reports } returns flowOf(emptyList())
-        },
+        bugReportRepo = bugReportRepo,
         bugReportRecorder = mockk<BugReportRecorder>(relaxed = true).apply {
             every { state } returns MutableStateFlow(BugReportRecorder.State())
         },
@@ -172,6 +175,69 @@ class BugReportWorkspaceOverlaysTest : ComposeTest() {
 
         vm.dismissDeleteAllConfirmation()
         vm.overlayState.value.activeDialog shouldBe null
+    }
+
+    @Test
+    fun `the delete confirmation renders and reports both answers`() {
+        var confirmed = 0
+        var dismissed = 0
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = true) {
+                    BugReportWorkspaceOverlays(
+                        overlayState = BugReportWorkspaceViewModel.OverlayState(
+                            activeDialog = ActiveDialog.DeleteConfirmation("report-1"),
+                        ),
+                        onConfirmDelete = { confirmed++ },
+                        onDismissDelete = { dismissed++ },
+                    )
+                }
+            }
+        }
+
+        composeTestRule
+            .onNodeWithText(context.getString(R.string.bugreport_delete_confirm_title))
+            .assertIsDisplayed()
+
+        composeTestRule.onNodeWithText(context.getString(R.string.bugreport_cancel_action)).performClick()
+        composeTestRule.runOnIdle { dismissed shouldBe 1 }
+
+        composeTestRule.onNodeWithText(context.getString(R.string.bugreport_delete_action)).performClick()
+        composeTestRule.runOnIdle { confirmed shouldBe 1 }
+    }
+
+    @Test
+    fun `the delete confirmation is requested and dismissed through the slot`() {
+        val vm = createVM()
+
+        vm.requestDeleteConfirmation("report-1")
+        vm.overlayState.value.activeDialog shouldBe ActiveDialog.DeleteConfirmation("report-1")
+
+        vm.dismissDeleteConfirmation()
+        vm.overlayState.value.activeDialog shouldBe null
+    }
+
+    @Test
+    fun `confirming consumes the dialog and deletes the named report`() {
+        val vm = createVM()
+
+        vm.requestDeleteConfirmation("report-1")
+        vm.confirmDelete()
+
+        vm.overlayState.value.activeDialog shouldBe null
+        coVerify(exactly = 1) { bugReportRepo.delete("report-1") }
+    }
+
+    @Test
+    fun `a second confirm after the dialog is consumed deletes nothing`() {
+        val vm = createVM()
+
+        vm.requestDeleteConfirmation("report-1")
+        vm.confirmDelete()
+        vm.confirmDelete()
+
+        coVerify(exactly = 1) { bugReportRepo.delete("report-1") }
     }
 
     @Test

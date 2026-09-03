@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
@@ -72,6 +73,12 @@ class BugReportWorkspaceViewModel @AssistedInject constructor(
 
     fun dismissDeleteAllConfirmation() = _overlayState.update {
         if (it.activeDialog is ActiveDialog.DeleteAllConfirmation) it.copy(activeDialog = null) else it
+    }
+
+    fun requestDeleteConfirmation(reportId: String) = requestDialog(ActiveDialog.DeleteConfirmation(reportId))
+
+    fun dismissDeleteConfirmation() = _overlayState.update {
+        if (it.activeDialog is ActiveDialog.DeleteConfirmation) it.copy(activeDialog = null) else it
     }
 
     // Loads the selected report's log tail once the user has asked for it — a requestId of 0 means
@@ -178,8 +185,16 @@ class BugReportWorkspaceViewModel @AssistedInject constructor(
         bugReportRepo.markSeen(reportId)
     }
 
-    fun delete(reportId: String) = launch {
-        log(tag, INFO) { "delete($reportId)" }
+    /** Consumes the pending confirmation and deletes the report it named; a second call is a no-op. */
+    fun confirmDelete() {
+        val pending = _overlayState.getAndUpdate {
+            if (it.activeDialog is ActiveDialog.DeleteConfirmation) it.copy(activeDialog = null) else it
+        }.activeDialog as? ActiveDialog.DeleteConfirmation ?: return
+        log(tag, INFO) { "confirmDelete(${pending.reportId})" }
+        performDelete(pending.reportId)
+    }
+
+    private fun performDelete(reportId: String) = launch {
         bugReportRepo.delete(reportId)
         if (logSelection.value.reportId == reportId) selectReport(null)
     }
@@ -236,6 +251,7 @@ class BugReportWorkspaceViewModel @AssistedInject constructor(
         data class ShareConsent(val reportId: String) : ActiveDialog
         data object ShortRecordingWarning : ActiveDialog
         data object DeleteAllConfirmation : ActiveDialog
+        data class DeleteConfirmation(val reportId: String) : ActiveDialog
     }
 
     /** The full-screen detail view's state: the report plus its (async) log tail. */

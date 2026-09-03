@@ -65,6 +65,8 @@ fun BugReportWorkspaceOverlaysHost(
         },
         onConfirmDeleteAll = { vm.deleteAll() },
         onDismissDeleteAll = { vm.dismissDeleteAllConfirmation() },
+        onConfirmDelete = { vm.confirmDelete() },
+        onDismissDelete = { vm.dismissDeleteConfirmation() },
         onPrivacyPolicy = { openPrivacyPolicy(context) },
     )
 
@@ -82,6 +84,8 @@ fun BugReportWorkspaceOverlays(
     onStopRecordingAnyway: () -> Unit = {},
     onConfirmDeleteAll: () -> Unit = {},
     onDismissDeleteAll: () -> Unit = {},
+    onConfirmDelete: () -> Unit = {},
+    onDismissDelete: () -> Unit = {},
     onPrivacyPolicy: () -> Unit = {},
 ) {
     when (val dialog = overlayState.activeDialog) {
@@ -99,6 +103,11 @@ fun BugReportWorkspaceOverlays(
         ActiveDialog.DeleteAllConfirmation -> DeleteAllConfirmationDialog(
             onConfirm = onConfirmDeleteAll,
             onDismiss = onDismissDeleteAll,
+        )
+
+        is ActiveDialog.DeleteConfirmation -> DeleteReportConfirmationDialog(
+            onConfirm = onConfirmDelete,
+            onDismiss = onDismissDelete,
         )
 
         null -> Unit
@@ -129,5 +138,14 @@ private fun BugReportWorkspaceOverlaysShortRecordingPreview() {
 private fun BugReportWorkspaceOverlaysDeleteAllPreview() {
     BugReportWorkspaceOverlays(
         overlayState = BugReportWorkspaceViewModel.OverlayState(ActiveDialog.DeleteAllConfirmation),
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun BugReportWorkspaceOverlaysDeletePreview() {
+    BugReportWorkspaceOverlays(
+        overlayState = BugReportWorkspaceViewModel.OverlayState(ActiveDialog.DeleteConfirmation("report-1")),
     )
 }
