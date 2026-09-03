@@ -182,6 +182,7 @@
     <string name="searcher_action_open_with">Open with</string>
     <string name="searcher_action_open_in_editor">Open in editor</string>
     <string name="searcher_action_open_in_explorer">Open in explorer</string>
+    <string name="searcher_action_install">Install</string>
     <string name="searcher_action_copy">Copy</string>
     <string name="searcher_action_cut">Cut</string>
     <string name="searcher_action_delete">Delete</string>

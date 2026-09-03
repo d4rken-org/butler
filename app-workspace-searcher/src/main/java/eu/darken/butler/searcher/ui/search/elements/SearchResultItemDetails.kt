@@ -14,6 +14,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -30,7 +31,6 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.TintedAsyncImage
 import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.common.files.TextFileDetector
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.DateTimeStyle
@@ -40,6 +40,7 @@ import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.ui.search.util.SearcherActionBarItem
 import eu.darken.butler.searcher.ui.search.util.getEllipsizedMatchLine
+import eu.darken.butler.workspace.ui.actions.FileActionCapabilities
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 import kotlin.time.Clock
 
@@ -54,6 +55,8 @@ fun SearchResultItemDetails(
     topInset: Dp = 0.dp,
     bottomInset: Dp = 0.dp,
 ) {
+    val caps = remember(result.lookup) { FileActionCapabilities.of(result.lookup) }
+
     PaneScopedBottomSheet(
         visible = true,
         onDismiss = onDismiss,
@@ -193,6 +196,16 @@ fun SearchResultItemDetails(
             Column(
                 modifier = Modifier.padding(top = 4.dp)
             ) {
+                // Above "Open": an app bundle is also an archive, but installing it is what the user
+                // came for.
+                if (caps.isInstallable) {
+                    QuickActionItem(
+                        action = SearcherActionBarItem.Install(result),
+                        onClick = onAction,
+                        isPrimary = true
+                    )
+                }
+
                 // Primary actions
                 if (result.fileType != FileType.DIRECTORY) {
                     QuickActionItem(
@@ -208,7 +221,7 @@ fun SearchResultItemDetails(
                     )
                 }
 
-                if (isTextFile(result)) {
+                if (caps.isText) {
                     QuickActionItem(
                         action = SearcherActionBarItem.OpenInEditor(result),
                         onClick = onAction,
@@ -216,7 +229,7 @@ fun SearchResultItemDetails(
                     )
                 }
 
-                if (result.fileType != FileType.DIRECTORY) {
+                if (result.fileType != FileType.DIRECTORY && caps.canHandOffToOtherApps) {
                     QuickActionItem(
                         action = SearcherActionBarItem.OpenWith(result),
                         onClick = onAction,
@@ -252,10 +265,12 @@ fun SearchResultItemDetails(
                 )
 
                 // Additional actions
-                QuickActionItem(
-                    action = SearcherActionBarItem.Share(listOf(result)),
-                    onClick = onAction
-                )
+                if (caps.canHandOffToOtherApps) {
+                    QuickActionItem(
+                        action = SearcherActionBarItem.Share(listOf(result)),
+                        onClick = onAction
+                    )
+                }
 
                 QuickActionItem(
                     action = SearcherActionBarItem.CopyPath(result),
@@ -324,8 +339,6 @@ private fun QuickActionItem(
         )
     }
 }
-
-private fun isTextFile(result: SearchItem): Boolean = TextFileDetector.isTextFile(result.path)
 
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)

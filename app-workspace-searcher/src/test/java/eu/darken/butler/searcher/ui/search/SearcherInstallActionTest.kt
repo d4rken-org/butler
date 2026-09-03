@@ -1,17 +1,23 @@
 package eu.darken.butler.searcher.ui.search
 
-import eu.darken.butler.common.error.ErrorIncident
+import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.local.LocalPathLookup
+import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.flow.SingleEventFlow
+import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchSortSettings
 import eu.darken.butler.searcher.core.SearcherSettings
 import eu.darken.butler.searcher.core.SearcherViewStyle
 import eu.darken.butler.searcher.core.SearcherWorkspace
+import eu.darken.butler.searcher.ui.search.util.SearcherActionBarItem
 import eu.darken.butler.searcher.ui.search.util.SearcherPageAction
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote
+import eu.darken.butler.workspace.core.operations.AppInstallLauncher
+import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.ui.page.WorkspacePageChrome
-import io.kotest.matchers.shouldBe
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -32,27 +38,29 @@ import testhelpers.coroutine.TestDispatcherProvider
 import testhelpers.coroutine.runTest2
 import testhelpers.error.recordingIncidentStore
 
-/**
- * Sharing a failure hands over the incident it was already frozen into, so the report carries the
- * log trail from around the failure rather than from whenever the user tapped Share. The search
- * state's failure is frozen by the workspace, a target failure by the page that shows it.
- */
+/** A package found by a search installs from the search, the same way it does in the Explorer. */
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
-class SearcherErrorShareTest {
+class SearcherInstallActionTest {
 
     private val workspaceId = Workspace.Id()
-    private val searchState = MutableStateFlow(SearcherWorkspace.State())
-    private val incidentStore = recordingIncidentStore()
+    private val appInstallLauncher = mockk<AppInstallLauncher>(relaxed = true)
 
-    /** What the share action handed to the chrome. */
-    private val shared = mutableListOf<ErrorIncident>()
+    private val apkPath = LocalPath.build("/storage/emulated/0/Download/app.apk")
+    private val apkResult: SearchItem = SearchItem.fromLookup(
+        lookup = LocalPathLookup(
+            lookedUp = apkPath,
+            fileType = FileType.FILE,
+            size = 1024L,
+            modifiedAt = null,
+        ),
+        matchedQuery = "app",
+    )
 
     @Before
     fun setup() {
         Dispatchers.setMain(UnconfinedTestDispatcher())
-        shared.clear()
     }
 
     @After
@@ -62,7 +70,7 @@ class SearcherErrorShareTest {
 
     private fun makeViewModel(): SearcherWorkspaceViewModel {
         val workspace = mockk<SearcherWorkspace>(relaxed = true).apply {
-            every { state } returns searchState
+            every { state } returns MutableStateFlow(SearcherWorkspace.State())
         }
         return SearcherWorkspaceViewModel(
             id = workspaceId,
@@ -85,58 +93,37 @@ class SearcherErrorShareTest {
             openWithIntentUseCase = mockk(relaxed = true),
             trashSettings = mockk(relaxed = true),
             folderPreviewResolver = mockk(relaxed = true),
-            appInstallLauncher = mockk(relaxed = true),
+            appInstallLauncher = appInstallLauncher,
             apiLevel = mockk(relaxed = true),
-            errorIncidentStore = incidentStore,
+            errorIncidentStore = recordingIncidentStore(),
             itemSorterFactory = mockk {
                 every { create(any()) } returns mockk(relaxed = true)
             },
             chromeFactory = mockk<WorkspacePageChrome.Factory>().apply {
-                every { create(any(), any()) } returns mockk<WorkspacePageChrome>().apply {
+                every { create(any(), any()) } returns mockk<WorkspacePageChrome>(relaxed = true).apply {
                     every { shareIntentEvent } returns SingleEventFlow()
                     every { pendingErrorShare } returns MutableStateFlow(null)
                     every { pendingConflicts } returns flowOf(emptyMap())
                     every { clipboard } returns emptyFlow()
                     every { operations } returns emptyFlow()
-                    every { shareWorkspaceError(any(), any()) } answers { shared += firstArg<ErrorIncident>() }
                 }
             },
         )
     }
 
     @Test
-    fun `sharing a search failure hands over the incident it was frozen into`() = runTest2 {
+    fun `installing a result submits it as an install from this search`() = runTest2 {
         val vm = makeViewModel()
 
-        val sentinel = IllegalStateException("search blew up")
-        // What the workspace does when it publishes the failure into the state the page renders
-        incidentStore.remember(sentinel, mapOf("search.targets" to ""))
-        searchState.value = SearcherWorkspace.State(
-            searchStatus = SearcherWorkspace.State.SearchStatus.ERROR,
-            error = sentinel,
-        )
+        vm.onPageAction(SearcherPageAction.WorkspaceAction(SearcherActionBarItem.Install(apkResult)))
 
-        vm.onPageAction(SearcherPageAction.Error.Share(sentinel))
-
-        val incident = shared.single()
-        (incident.error === sentinel) shouldBe true
-        incident.occurredAtIsApproximate shouldBe false
-        incident.context.containsKey("incident.frozenAtShare") shouldBe false
-    }
-
-    @Test
-    fun `sharing a target failure hands over the incident the dialog was opened with`() = runTest2 {
-        val vm = makeViewModel()
-
-        val sentinel = IllegalStateException("target unreadable")
-        vm.onPageAction(SearcherPageAction.Overlays.ShowTargetError("/sdcard/Android/data", sentinel))
-
-        vm.onPageAction(SearcherPageAction.Error.Share(sentinel, "/sdcard/Android/data"))
-
-        val incident = shared.single()
-        (incident.error === sentinel) shouldBe true
-        incident.context["search.targetPath"] shouldBe "/sdcard/Android/data"
-        incident.occurredAtIsApproximate shouldBe false
-        incident.context.containsKey("incident.frozenAtShare") shouldBe false
+        coVerify {
+            appInstallLauncher.launch(
+                path = apkPath,
+                origin = Operation.Metadata.Origin.Searcher(workspaceId),
+                collectorScope = any(),
+                onObbFailed = any(),
+            )
+        }
     }
 }
