@@ -5,6 +5,8 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.errors.PathAlreadyExistsException
+import eu.darken.butler.common.files.errors.PathGoneError
+import eu.darken.butler.common.files.errors.PathNotFoundException
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.metadata.FileType
@@ -87,11 +89,35 @@ class LocalFileSystemOpsTest : BaseTest() {
     }
 
     @Test
-    fun `lookup throws ReadException for non-existent file`() = runTest {
+    fun `lookup throws a gone error for non-existent file`() = runTest {
         val nonExistentPath = LocalPath.build("/tmp/non-existent-file-${System.currentTimeMillis()}")
 
-        shouldThrow<ReadException> {
+        val error = shouldThrow<PathNotFoundException> {
             fileSystemOps.lookup(nonExistentPath, LookupOptions())
+        }
+
+        error.shouldBeInstanceOf<PathGoneError>()
+    }
+
+    @Test
+    fun `lookup on a stat-denied file throws ReadException, not a gone error`(@TempDir tempDir: File) = runTest {
+        assumeTrue(FileSystems.getDefault().supportedFileAttributeViews().contains("posix"))
+        val locked = File(tempDir, "locked").apply { mkdirs() }
+        val target = File(locked, "secret.txt").apply { writeText("content") }
+        val originalPermissions = Files.getPosixFilePermissions(locked.toPath())
+
+        try {
+            Files.setPosixFilePermissions(locked.toPath(), emptySet())
+            // Root ignores the permission bits, there is nothing to observe then.
+            assumeTrue(!Files.isReadable(locked.toPath()))
+
+            val error = shouldThrow<ReadException> {
+                fileSystemOps.lookup(LocalPath.build(target), LookupOptions())
+            }
+
+            (error is PathGoneError) shouldBe false
+        } finally {
+            Files.setPosixFilePermissions(locked.toPath(), originalPermissions)
         }
     }
 

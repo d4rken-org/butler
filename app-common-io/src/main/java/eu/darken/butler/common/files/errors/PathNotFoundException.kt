@@ -10,9 +10,12 @@ import eu.darken.butler.common.io.R
 /**
  * The path is positively known not to exist, as opposed to being unreadable.
  *
- * Constructed locally after an existence check answered false, never thrown across the IPC
- * boundary, and deliberately without a cause: the failure it replaces would otherwise be found
- * again when the cause chain is classified (see `PermissionErrorClassifierTest`).
+ * Constructed after an existence check answered a definitive ABSENT, both by the in-process lookup
+ * and by the one running inside a privileged host, where it crosses the binder as
+ * `IpcErrorCode.PATH_NOT_FOUND`.
+ *
+ * Deliberately without a cause: the failure it replaces would otherwise be found again when the
+ * cause chain is classified (see `PermissionErrorClassifierTest`).
  */
 class PathNotFoundException(
     path: APath<*>,

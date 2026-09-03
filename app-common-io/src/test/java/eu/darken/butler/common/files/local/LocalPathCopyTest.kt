@@ -3,7 +3,7 @@ package eu.darken.butler.common.files.local
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.actions.CopyAction
-import eu.darken.butler.common.files.errors.ReadException
+import eu.darken.butler.common.files.errors.PathNotFoundException
 import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.metadata.OwnershipResolver
 import io.kotest.assertions.throwables.shouldThrow
@@ -623,7 +623,7 @@ class LocalPathCopyTest : BaseTest() {
         val nonExistent = File(sourceFolder, "does-not-exist.txt")
 
         // When & Then
-        shouldThrow<ReadException> {
+        shouldThrow<PathNotFoundException> {
             LocalPath.build(nonExistent).copy(ops, LocalPath.build(destFolder)).last()
         }
     }
