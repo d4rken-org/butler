@@ -6,6 +6,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import eu.darken.butler.bugreport.R
@@ -13,6 +14,7 @@ import eu.darken.butler.bugreport.ui.BugReportWorkspaceViewModel.ActiveDialog
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.debug.bugreport.BugReport
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
@@ -20,6 +22,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.openPrivacyPolicy
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.dialogs.CustomNameDialog
 import kotlinx.coroutines.launch
 
 private val TAG = logTag("BugReport", "Workspace", "Overlays")
@@ -67,6 +70,8 @@ fun BugReportWorkspaceOverlaysHost(
         onDismissDeleteAll = { vm.dismissDeleteAllConfirmation() },
         onConfirmDelete = { vm.confirmDelete() },
         onDismissDelete = { vm.dismissDeleteConfirmation() },
+        onRename = { reportId, label -> vm.rename(reportId, label) },
+        onDismissRename = { vm.dismissRename() },
         onPrivacyPolicy = { openPrivacyPolicy(context) },
     )
 
@@ -86,6 +91,8 @@ fun BugReportWorkspaceOverlays(
     onDismissDeleteAll: () -> Unit = {},
     onConfirmDelete: () -> Unit = {},
     onDismissDelete: () -> Unit = {},
+    onRename: (String, String?) -> Unit = { _, _ -> },
+    onDismissRename: () -> Unit = {},
     onPrivacyPolicy: () -> Unit = {},
 ) {
     when (val dialog = overlayState.activeDialog) {
@@ -110,8 +117,35 @@ fun BugReportWorkspaceOverlays(
             onDismiss = onDismissDelete,
         )
 
+        is ActiveDialog.Rename -> BugReportRenameDialog(
+            currentLabel = dialog.currentLabel,
+            autoTitle = dialog.autoTitle,
+            onConfirm = { onRename(dialog.reportId, it) },
+            onDismiss = onDismissRename,
+        )
+
         null -> Unit
     }
+}
+
+/** Names a report so it can be told apart in the list and in the shared file name. */
+@Composable
+private fun BugReportRenameDialog(
+    currentLabel: String?,
+    autoTitle: String,
+    onConfirm: (String?) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    CustomNameDialog(
+        currentName = currentLabel,
+        autoName = autoTitle,
+        dialogTitle = stringResource(R.string.bugreport_rename_dialog_title),
+        fieldLabel = stringResource(R.string.bugreport_rename_name_label),
+        fieldHint = stringResource(R.string.bugreport_rename_name_hint),
+        maxLength = BugReport.MAX_LABEL_LENGTH,
+        onConfirm = onConfirm,
+        onDismiss = onDismiss,
+    )
 }
 
 @Preview2
@@ -147,5 +181,20 @@ private fun BugReportWorkspaceOverlaysDeleteAllPreview() {
 private fun BugReportWorkspaceOverlaysDeletePreview() {
     BugReportWorkspaceOverlays(
         overlayState = BugReportWorkspaceViewModel.OverlayState(ActiveDialog.DeleteConfirmation("report-1")),
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun BugReportWorkspaceOverlaysRenamePreview() {
+    BugReportWorkspaceOverlays(
+        overlayState = BugReportWorkspaceViewModel.OverlayState(
+            ActiveDialog.Rename(
+                reportId = "crash_1",
+                currentLabel = "Crash while copying",
+                autoTitle = "NullPointerException",
+            ),
+        ),
     )
 }

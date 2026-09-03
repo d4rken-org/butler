@@ -75,6 +75,7 @@ class BugReportDetailContentTest : ComposeTest() {
                         isLogExpanded = isLogExpanded,
                     ),
                     onBack = {},
+                    onRename = {},
                     onShare = {},
                     onDelete = {},
                     onToggleLog = onToggleLog,

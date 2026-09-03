@@ -121,6 +121,7 @@ fun BugReportWorkspacePageHost(
             onBack = { vm.closeReport() },
             onToggleLog = { vm.setLogExpanded(it) },
             onShareReport = { report -> vm.requestShareConsent(report.id) },
+            onRenameReport = { report, autoTitle -> vm.requestRename(report.id, report.label, autoTitle) },
             onDeleteReport = { id -> vm.requestDeleteConfirmation(id) },
             onDeleteAll = { vm.requestDeleteAllConfirmation() },
             onStartRecording = { vm.startRecording() },
@@ -137,6 +138,7 @@ fun BugReportWorkspacePage(
     onReportClick: (BugReportInfo) -> Unit = {},
     onBack: () -> Unit = {},
     onShareReport: (BugReport) -> Unit = {},
+    onRenameReport: (BugReport, String) -> Unit = { _, _ -> },
     onDeleteReport: (String) -> Unit = {},
     onDeleteAll: () -> Unit = {},
     onStartRecording: () -> Unit = {},
@@ -145,11 +147,14 @@ fun BugReportWorkspacePage(
 ) {
     val detail = state.detail
     if (detail != null) {
+        val report = detail.info.report
+        val autoTitle = report.autoTitle()
         BugReportDetailContent(
             modifier = modifier,
             design = design,
             detail = detail,
             onBack = onBack,
+            onRename = { onRenameReport(report, autoTitle) },
             onShare = { onShareReport(detail.info.report) },
             onDelete = { onDeleteReport(detail.info.id) },
             onToggleLog = onToggleLog,
@@ -471,10 +476,20 @@ private fun ReportCard(
             val typeLabel = report.type.label()
             val prefix = if (!info.isSeen) "• " else ""
             val detail = report.errorClass?.substringAfterLast('.')
+            val autoTitle = typeLabel + if (!detail.isNullOrBlank()) " — $detail" else ""
             Text(
-                text = prefix + typeLabel + if (!detail.isNullOrBlank()) " — $detail" else "",
+                text = prefix + (report.label ?: autoTitle),
                 style = MaterialTheme.typography.titleSmall,
             )
+            // The automatic identification stays visible under a user-set name: it is what the report
+            // is actually about.
+            if (report.label != null) {
+                Text(
+                    text = autoTitle,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             report.errorMessage?.takeIf { it.isNotBlank() }?.let {
                 Text(
                     text = it,
@@ -677,6 +692,11 @@ private fun DeleteAllConfirmationDialogPreview() {
     DeleteAllConfirmationDialog(onConfirm = {}, onDismiss = {})
 }
 
+/** What a report is called without a user-set [BugReport.label]. */
+@Composable
+internal fun BugReport.autoTitle(): String =
+    errorClass?.substringAfterLast('.')?.takeIf { it.isNotBlank() } ?: type.label()
+
 @Composable
 internal fun DeleteReportConfirmationDialog(
     onConfirm: () -> Unit,
@@ -749,22 +769,7 @@ private fun BugReportWorkspacePagePreview() {
                 recordingLogSize = 24_000L,
                 reports = listOf(
                     BugReportInfo(
-                        report = BugReport(
-                            id = "crash_1",
-                            createdAt = Instant.parse("2026-06-15T10:00:00Z"),
-                            type = BugReport.Type.CRASH,
-                            errorClass = "java.lang.NullPointerException",
-                            errorMessage = "Attempt to read from null array",
-                            stackTrace = "",
-                            threadName = "main",
-                            appVersion = "v0.0.0-beta1",
-                            deviceFingerprint = "Pixel/foo",
-                            apiLevel = "36",
-                            flavor = "FOSS",
-                            buildType = "RELEASE",
-                            installId = "abc",
-                            locale = "en-US",
-                        ),
+                        report = previewReport(),
                         isSeen = false,
                     ),
                 ),
@@ -772,3 +777,39 @@ private fun BugReportWorkspacePagePreview() {
         )
     }
 }
+
+@Preview2
+@Composable
+private fun BugReportWorkspacePageLabeledPreview() {
+    PreviewWrapper {
+        BugReportWorkspacePage(
+            state = BugReportWorkspaceViewModel.State(
+                id = Workspace.Id(),
+                reports = listOf(
+                    BugReportInfo(
+                        report = previewReport(label = "Crash while copying"),
+                        isSeen = true,
+                    ),
+                ),
+            ),
+        )
+    }
+}
+
+private fun previewReport(label: String? = null) = BugReport(
+    id = "crash_1",
+    createdAt = Instant.parse("2026-06-15T10:00:00Z"),
+    type = BugReport.Type.CRASH,
+    errorClass = "java.lang.NullPointerException",
+    errorMessage = "Attempt to read from null array",
+    stackTrace = "",
+    threadName = "main",
+    appVersion = "v0.0.0-beta1",
+    deviceFingerprint = "Pixel/foo",
+    apiLevel = "36",
+    flavor = "FOSS",
+    buildType = "RELEASE",
+    installId = "abc",
+    locale = "en-US",
+    label = label,
+)
