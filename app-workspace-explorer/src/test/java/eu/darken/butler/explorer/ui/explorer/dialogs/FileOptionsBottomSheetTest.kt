@@ -14,9 +14,11 @@ import androidx.compose.ui.test.performScrollTo
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
+import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.SmbPath
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.files.saf.SAFPathLookup
 import eu.darken.butler.common.files.smb.SmbPathLookup
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionBarItem
@@ -50,6 +52,20 @@ class FileOptionsBottomSheetTest : ComposeTest() {
     private val networkFile = ExplorerItem.RegularFile(
         lookup = SmbPathLookup(
             lookedUp = SmbPath(Uuid.parse("11111111-2222-3333-4444-555555555555"), listOf("notes.txt")),
+            fileType = FileType.FILE,
+            size = 128L,
+            modifiedAt = null,
+        ),
+        mimeType = MimeInfo("text/plain"),
+    )
+
+    private val safFile = ExplorerItem.RegularFile(
+        lookup = SAFPathLookup(
+            lookedUp = SAFPath.build(
+                "content://com.android.externalstorage.documents/tree/primary%3A",
+                "Documents",
+                "notes.txt",
+            ),
             fileType = FileType.FILE,
             size = 128L,
             modifiedAt = null,
@@ -113,6 +129,16 @@ class FileOptionsBottomSheetTest : ComposeTest() {
         countOf("Open with") shouldBe 0
         countOf("Share") shouldBe 0
         // The actions that work on it are untouched
+        countOf("Copy") shouldBe 1
+    }
+
+    /** A SAF grant we were given cannot be passed on, so neither hand-off can work on one. */
+    @Test
+    fun `a file behind a storage grant offers neither sharing nor opening with another app`() {
+        setSheetContent(safFile)
+
+        countOf("Open with") shouldBe 0
+        countOf("Share") shouldBe 0
         countOf("Copy") shouldBe 1
     }
 

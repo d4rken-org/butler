@@ -50,15 +50,11 @@ import coil3.request.ImageRequest
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
-import eu.darken.butler.common.files.SmbPath
-import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.toCaString
-import eu.darken.butler.common.pkgs.installer.AppInstallFormat
 import eu.darken.butler.common.DateTimeStyle
 import eu.darken.butler.common.formatDateTime
 import eu.darken.butler.common.formatFileSize
@@ -68,6 +64,7 @@ import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionBarItem
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.icon
 import eu.darken.butler.workspace.core.operations.partitionByTrashSupport
+import eu.darken.butler.workspace.ui.actions.FileActionCapabilities
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 
 @Composable
@@ -222,29 +219,16 @@ private fun FileOptionsContent(
             fontWeight = FontWeight.Medium,
         )
 
-        // Determine if file is text-editable
-        val isTextFile = remember(item.mimeType) {
-            item.mimeType.isText
-        }
+        val caps = remember(item.lookup) { FileActionCapabilities.of(item.lookup) }
         // Archive entries are structurally read-only (checked directly so it holds even before the
         // async writability pass sets canWrite). Otherwise canWrite==false gates writes; null (still
         // loading) stays permissive.
-        val isArchiveEntry = item.lookup.lookedUp is ArchivePath
-        val isWritable = !isArchiveEntry && item.canWrite != false
-        // Handing a file to another app needs a file:// or content:// URI, which a file on a server
-        // does not have, so those entries are not offered for it.
-        val isNetworkFile = item.lookup.lookedUp is SmbPath
-        // Offer Extract only for real archive files. An entry that is itself inside an archive (a nested
-        // archive) can't be opened as a container, so extraction would fail.
-        val isArchiveFile = remember(item.lookup.name, isArchiveEntry) {
-            !isArchiveEntry && ArchiveFormat.fromFileName(item.lookup.name) != null
-        }
-        val installFormat = remember(item.lookup.name) { AppInstallFormat.fromFileName(item.lookup.name) }
+        val isWritable = !caps.isArchiveEntry && item.canWrite != false
 
         // Above "Extract" and "Open": an app bundle is also an archive, but installing it is what
         // the user came for. Suppressed inside a picker like every other action that would spawn a
         // workspace while the caller is still blocked waiting for a result.
-        if (openActionsEnabled && installFormat != null) {
+        if (openActionsEnabled && caps.isInstallable) {
             FileActionRow(
                 icon = Icons.TwoTone.InstallMobile,
                 title = stringResource(R.string.explorer_file_action_install),
@@ -253,7 +237,7 @@ private fun FileOptionsContent(
             )
         }
 
-        if (isArchiveFile) {
+        if (caps.isArchiveFile) {
             FileActionRow(
                 icon = Icons.TwoTone.Unarchive,
                 title = stringResource(R.string.explorer_file_action_extract),
@@ -265,7 +249,7 @@ private fun FileOptionsContent(
         // Inside a picker these would spawn a workspace while the caller is still blocked waiting
         // for a result, so the picker suppresses them here just like on the action bar.
         if (openActionsEnabled) {
-            if (isTextFile) {
+            if (caps.isText) {
                 FileActionRow(
                     icon = Workspace.Type.EDITOR.icon,
                     title = stringResource(R.string.explorer_file_action_open_in_editor),
@@ -288,7 +272,7 @@ private fun FileOptionsContent(
                 onClick = { onAction(ExplorerActionBarItem.File.OpenInTab(item)) },
             )
 
-            if (!isNetworkFile) {
+            if (caps.canHandOffToOtherApps) {
                 FileActionRow(
                     icon = Icons.TwoTone.OpenInBrowser,
                     title = stringResource(R.string.explorer_file_action_open_with),
@@ -298,7 +282,7 @@ private fun FileOptionsContent(
             }
         }
 
-        if (!isNetworkFile) {
+        if (caps.canHandOffToOtherApps) {
             FileActionRow(
                 icon = Icons.TwoTone.Share,
                 title = stringResource(R.string.explorer_file_action_share),
