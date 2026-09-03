@@ -81,6 +81,7 @@ fun BugReportDetailToolbarCard(
                 contentDescription = stringResource(R.string.bugreport_share_action),
                 onClick = onShare,
             )
+            Spacer(modifier = Modifier.width(8.dp))
             ToolbarControl(
                 icon = Icons.TwoTone.Delete,
                 contentDescription = stringResource(R.string.bugreport_delete_action),
