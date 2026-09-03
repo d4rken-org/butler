@@ -60,11 +60,13 @@ import eu.darken.butler.workspace.ui.dialogs.WorkspaceRenameDialog
 import eu.darken.butler.workspace.ui.error.ErrorShareConsentDialog
 import eu.darken.butler.workspace.ui.feedback.BannerState
 import eu.darken.butler.workspace.ui.manager.LocalWorkspaceButtonProvider
+import eu.darken.butler.workspace.ui.manager.LocalWorkspaceRevealOrigin
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerScreen
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerGridDefaults
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerViewModel
+import eu.darken.butler.workspace.ui.manager.WorkspaceRevealOrigin
 import eu.darken.butler.workspace.ui.manager.tour.WorkspaceManagerTour
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarScope
@@ -404,10 +406,16 @@ fun WorkspacesScreenHost(
         tourController.tryStart(managerTourDefinition)
     }
 
+    val revealOrigin = remember { WorkspaceRevealOrigin() }
+    val revealState = rememberManagerRevealState(visible = pageManagerState.isManagerOverlayVisible)
+
     // Selection mode is a state inside the overlay, so back leaves it first; dismissing the manager
     // outright would drop a selection the user is still assembling.
+    // Gated on the layer rather than the logical flag, same as the pane suppression below: both
+    // switch off together, so back during the exit cannot reach a pane handler underneath an
+    // overlay that is still drawn.
     ManagerOverlayBackHandler(
-        isOverlayVisible = pageManagerState.isManagerOverlayVisible,
+        isOverlayVisible = revealState.layerPresent,
         onDismiss = {
             // Asks the ViewModel rather than the collected state: a long-press reaches selectionFlow
             // a frame before managerState reflects it, and back in that window must not dismiss the
@@ -426,6 +434,7 @@ fun WorkspacesScreenHost(
 
     CompositionLocalProvider(
         LocalWorkspaceButtonProvider provides workspaceButtonVm,
+        LocalWorkspaceRevealOrigin provides revealOrigin,
         LocalWorkspacePageHosts provides vm.pageHosts,
         LocalWorkspaceScrollPositions provides vm.scrollPositions,
         LocalWorkspaceBarCollapseStates provides vm.barCollapseStates,
@@ -441,7 +450,7 @@ fun WorkspacesScreenHost(
                 managerDialogStates = managerDialogStates,
                 managerDialogs = managerDialogs,
                 modalDialogState = dialogRouting.modalHosted,
-                isOverlayVisible = pageManagerState.isManagerOverlayVisible,
+                isOverlayVisible = revealState.layerPresent,
                 reviewActivity = activity,
                 onScreenAction = { vm.executeScreenAction(it) },
                 onHideMotd = { vm.hideMotd(it) },
@@ -455,12 +464,15 @@ fun WorkspacesScreenHost(
         }
 
         // Manager overlay
-        if (pageManagerState.isManagerOverlayVisible) {
+        ManagerRevealOverlay(state = revealState, revealOrigin = revealOrigin) {
             managerState?.let { currentManagerState ->
                 WorkspaceManagerScreen(
                     state = currentManagerState,
                     lazyGridState = managerGridState,
-                    closeConfirmation = managerCloseConfirmation,
+                    // The manager sits outside every pane, where its dialogs are platform windows
+                    // rather than descendants of the reveal layer - a confirmation already pending
+                    // when the manager opens would show up full-size over a growing circle.
+                    closeConfirmation = managerCloseConfirmation.takeIf { revealState.revealSettled },
                     onCloseConfirmationResolve = { confirmed ->
                         managerCloseConfirmation?.let {
                             vm.executeScreenAction(
