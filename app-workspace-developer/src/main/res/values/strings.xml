@@ -72,7 +72,7 @@
     <string name="developer_testdata_large_files">Large files</string>
     <string name="developer_testdata_large_files_desc">1MB, 10MB, 100MB, 1GB, 2GB, 4GB, 8GB</string>
     <string name="developer_testdata_nested_structure">Nested structure</string>
-    <string name="developer_testdata_nested_structure_desc">~1500 folders, ~3500 files</string>
+    <string name="developer_testdata_nested_structure_desc">~1100 folders, ~1100 files</string>
     <string name="developer_testdata_text_files">Text files for Editor</string>
     <string name="developer_testdata_text_files_desc">10KB, 100KB, 1MB, 10MB, 100MB</string>
     <string name="developer_testdata_generate_action">Generate</string>
