@@ -7,6 +7,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import eu.darken.butler.common.error.LocalizedErrorContext
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.errors.PathAlreadyExistsException
+import eu.darken.butler.common.files.errors.PathNotFoundException
 import eu.darken.butler.common.files.errors.PathPermissionDeniedException
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.ServiceConnectionLostException as FileServiceConnectionLostException
@@ -44,6 +45,19 @@ class ExceptionPropagationTest : BaseTest(), IpcHostModule, IpcClientModule {
         val original = ReadException("Can't read from path.", filePath)
 
         original.propagate().shouldBeTypeOf<ReadException>().apply {
+            message shouldBe original.message
+            this.path!!.path shouldBe original.path!!.path
+        }
+    }
+
+    @Test
+    fun `round-trip - PATH_NOT_FOUND`() {
+        val original = PathNotFoundException(filePath)
+
+        // The subclass has to win over ReadException, which would drop the gone marker.
+        IpcErrorCodec.encode(original) shouldContain "\"code\":\"PATH_NOT_FOUND\""
+
+        original.propagate().shouldBeTypeOf<PathNotFoundException>().apply {
             message shouldBe original.message
             this.path!!.path shouldBe original.path!!.path
         }

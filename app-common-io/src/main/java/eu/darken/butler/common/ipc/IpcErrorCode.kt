@@ -19,6 +19,7 @@ package eu.darken.butler.common.ipc
  */
 enum class IpcErrorCode {
     PATH_READ,
+    PATH_NOT_FOUND,
     PATH_WRITE,
     PATH_ALREADY_EXISTS,
     PATH_PERMISSION_DENIED,
