@@ -19,15 +19,11 @@ import eu.darken.butler.common.error.ErrorIncidentStore
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.MimeInfo
-import eu.darken.butler.common.files.SmbPath
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.flow.combine as combineMany
 import eu.darken.butler.common.issue.Issue
-import eu.darken.butler.common.pkgs.installer.AppInstallEvent
-import eu.darken.butler.common.pkgs.installer.AppInstallInspector
-import eu.darken.butler.common.pkgs.installer.AppInstaller
 import eu.darken.butler.common.trash.TrashSettings
 import eu.darken.butler.common.ui.ViewModel3
 import eu.darken.butler.viewer.R
@@ -59,7 +55,7 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import eu.darken.butler.workspace.core.createAndFocus
-import eu.darken.butler.workspace.core.operations.AppInstallOperation
+import eu.darken.butler.workspace.core.operations.AppInstallLauncher
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.partitionByTrashSupport
@@ -69,6 +65,7 @@ import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.handleResult
 import eu.darken.butler.workspace.core.launchPicker
+import eu.darken.butler.workspace.ui.actions.FileActionCapabilities
 import eu.darken.butler.workspace.ui.page.WorkspacePageChrome
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -77,7 +74,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -114,9 +110,7 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
     private val clipboardRepo: ClipboardRepo,
     private val trashSettings: TrashSettings,
     private val operationsManager: OperationsManager,
-    private val appInstallInspector: AppInstallInspector,
-    private val appInstaller: AppInstaller,
-    private val appInstallOperationFactory: AppInstallOperation.Factory,
+    private val appInstallLauncher: AppInstallLauncher,
     private val apkIconExporter: ApkIconExporter,
     private val filenameValidator: FilenameValidator,
     private val errorIncidentStore: ErrorIncidentStore,
@@ -818,44 +812,22 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
         )
     }
 
-    /**
-     * Installs the APK or app bundle this tab is showing.
-     *
-     * Inspection runs here rather than inside the operation so an unreadable, protected or
-     * unsupported container is answered right away instead of behind a progress bar. The
-     * unknown-sources check is a preflight for the same reason: without elevated access the platform
-     * installer is the only route, and it refuses to run until Butler is an authorized install
-     * source, so the user goes to the settings page and no operation is created.
-     */
+    /** Installs the APK or app bundle this tab is showing. */
     fun install() = launch {
         val path = workspaceSource.first().storedPath ?: return@launch
         log(tag, INFO) { "install($path)" }
         try {
-            val plan = appInstallInspector.inspect(path)
-            if (!appInstaller.hasElevation() && !appInstaller.canUseSystemInstaller()) {
-                log(tag, INFO) { "install($path): Butler is not an authorized install source yet" }
-                context.startActivity(appInstaller.unknownSourcesSettings())
-                toastEvents.emit(WorkspaceR.string.workspace_install_unknown_sources_required.toCaString())
-                return@launch
-            }
-
-            val events = MutableSharedFlow<AppInstallEvent>(extraBufferCapacity = 16)
-            // Subscribed before submitting, so an event emitted right at the start is not missed.
-            events
-                .filterIsInstance<AppInstallEvent.ObbFailed>()
-                .onEach { toastEvents.emit(WorkspaceR.string.workspace_install_obb_failed.toCaString(it.reason)) }
-                .launchInViewModel()
-
-            // Closing this tab cancels the operation outright, which abandons the install session.
-            // If the system's confirm dialog is already on screen the platform owns it from there
-            // and may still complete the install on its own.
-            operationsManager.submit(
-                appInstallOperationFactory.create(
-                    installOrigin = Operation.Metadata.Origin.Viewer(id),
-                    plan = plan,
-                    events = events,
-                )
+            val result = appInstallLauncher.launch(
+                path = path,
+                origin = Operation.Metadata.Origin.Viewer(id),
+                collectorScope = vmScope,
+                onObbFailed = { reason ->
+                    toastEvents.emit(WorkspaceR.string.workspace_install_obb_failed.toCaString(reason))
+                },
             )
+            if (result is AppInstallLauncher.Result.UnknownSourcesRequired) {
+                toastEvents.emit(WorkspaceR.string.workspace_install_unknown_sources_required.toCaString())
+            }
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -1261,9 +1233,9 @@ internal fun viewerActions(
             if (content is ViewerContent.Text) {
                 add(ViewerActionBarItem.OpenInEditor)
             }
-            // Handing a file to another app needs a file:// or content:// URI, which a file on a
-            // server does not have, so those two are not offered for it.
-            if (source.path !is SmbPath) {
+            // Handing a file to another app needs a URI Butler can pass on, which is what
+            // [FileActionCapabilities.canHandOffToOtherApps] answers.
+            if (FileActionCapabilities.canHandOffToOtherApps(source.path)) {
                 add(ViewerActionBarItem.OpenWith)
                 add(ViewerActionBarItem.Share)
             }

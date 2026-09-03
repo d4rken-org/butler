@@ -186,6 +186,20 @@ class ViewerWorkspacePageTest : ComposeTest() {
         localActions.contains(ViewerActionBarItem.Share) shouldBe true
     }
 
+    @Test
+    fun `a file behind a storage grant is not offered to other apps`() {
+        // A grant Butler was given cannot be passed on, so both would fail on every tap.
+        val safPath = SAFPath.build(
+            "content://com.android.externalstorage.documents/tree/primary%3ADownload",
+            "notes.txt",
+        )
+
+        val actions = viewerActions(ViewerSource.Stored(safPath), trashEnabled = false)
+        actions.contains(ViewerActionBarItem.OpenWith) shouldBe false
+        actions.contains(ViewerActionBarItem.Share) shouldBe false
+        actions.contains(ViewerActionBarItem.Copy) shouldBe true
+    }
+
     private fun unsupportedState(content: ViewerContent) = ViewerWorkspaceViewModel.State.Ready(
         content = content,
         fileInfo = ViewerFileInfo(size = 1024L),
