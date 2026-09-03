@@ -3,7 +3,9 @@ package eu.darken.butler.common.debug.bugreport
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.ButlerId
+import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.RingLogBuffer
+import io.kotest.assertions.withClue
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -11,6 +13,7 @@ import io.kotest.matchers.string.shouldNotContain
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,7 +28,10 @@ import org.robolectric.annotation.Config
 import testhelpers.BaseTest
 import testhelpers.coroutine.TestDispatcherProvider
 import java.io.File
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.TimeUnit
 import java.util.zip.ZipFile
+import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
@@ -41,7 +47,7 @@ class BugReportShareNamingTest : BaseTest() {
     private val json = Json { ignoreUnknownKeys = true }
     private val recorderState = MutableStateFlow(BugReportRecorder.State())
 
-    private fun createRepo(): BugReportRepo {
+    private fun createRepo(dispatcherProvider: DispatcherProvider = TestDispatcherProvider()): BugReportRepo {
         val recorder = mockk<BugReportRecorder>(relaxed = true) {
             every { state } returns recorderState
             coEvery { isActiveOrStarting(any()) } answers {
@@ -51,7 +57,7 @@ class BugReportShareNamingTest : BaseTest() {
         return BugReportRepo(
             context = context,
             appScope = CoroutineScope(Dispatchers.Unconfined),
-            dispatcherProvider = TestDispatcherProvider(),
+            dispatcherProvider = dispatcherProvider,
             ringLogBuffer = RingLogBuffer(),
             bugReportRecorder = recorder,
             butlerId = ButlerId(context),
@@ -205,9 +211,9 @@ class BugReportShareNamingTest : BaseTest() {
     }
 
     /**
-     * A rename that lands while the zip is being compressed must not produce a zip named after the
-     * old name whose sealed `meta.json` carries the new one. The build runs on a real thread and the
-     * rename is fired once the compression has started, so the two genuinely overlap.
+     * The rename waits for the `.tmp` zip, which only exists once the lock is already held, so it
+     * queues behind the build instead of overlapping it. What this covers is that the lock spans the
+     * whole build: the zip name and the `meta.json` sealed inside it describe the same name.
      */
     @Test
     fun `a rename cannot interleave with a zip build`() = runBlocking<Unit> {
@@ -235,5 +241,52 @@ class BugReportShareNamingTest : BaseTest() {
             )
         }
         zip.name shouldBe BugReportStorage.shareZipName("race_1", sealed.label)
+    }
+
+    /**
+     * The rename lands in the gap between the resolve and the lock: the caller runs on a dispatcher
+     * this test pumps by hand, so the build is held right after `resolveReportEntry` returned and
+     * before it can take the mutex. The zip name and the `meta.json` sealed inside it must still
+     * describe the same name.
+     */
+    @Test
+    fun `a rename between the resolve and the lock cannot split name from metadata`() {
+        val caller = QueueDispatcher()
+        val repo = createRepo(TestDispatcherProvider(Dispatchers.IO))
+        writeReportDir("race_gap", label = "Before")
+
+        val job = CoroutineScope(caller).launch { repo.buildShareZip("race_gap") }
+        // Runs the build up to its first hop off this dispatcher.
+        caller.awaitNext()!!.run()
+        // Queued only once that hop came back, i.e. the entry is resolved and the lock is not held.
+        val afterResolve = caller.awaitNext()!!
+
+        runBlocking { repo.setLabel("race_gap", "After") }
+
+        afterResolve.run()
+        while (job.isActive) caller.awaitNext(1_000)?.run()
+        runBlocking { job.join() }
+
+        val zip = shareDir.listFiles()!!.single()
+        val sealed = ZipFile(zip).use { file ->
+            json.decodeFromString(
+                BugReport.serializer(),
+                file.getInputStream(file.getEntry("meta.json")).readBytes().decodeToString(),
+            )
+        }
+        withClue("zip file is named \"${zip.name}\" but seals the name \"${sealed.label}\"") {
+            zip.name shouldBe BugReportStorage.shareZipName("race_gap", sealed.label)
+        }
+    }
+
+    /** A dispatcher whose queue the test drains by hand, one task at a time. */
+    private class QueueDispatcher : CoroutineDispatcher() {
+        private val queue = LinkedBlockingQueue<Runnable>()
+
+        override fun dispatch(context: CoroutineContext, block: Runnable) {
+            queue.put(block)
+        }
+
+        fun awaitNext(timeoutMs: Long = 10_000): Runnable? = queue.poll(timeoutMs, TimeUnit.MILLISECONDS)
     }
 }
