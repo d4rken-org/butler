@@ -43,6 +43,7 @@ fun WorkspaceButtonMenu(
     currentWorkspaceId: Workspace.Id? = null,
     provider: WorkspaceButtonProvider?,
     onCloseAllRequested: () -> Unit,
+    onOpenManager: () -> Unit,
 ) {
     DismissWhenPaneUnfocused(expanded = expanded, onDismiss = onDismissRequest)
     DropdownMenu(
@@ -100,7 +101,7 @@ fun WorkspaceButtonMenu(
             text = { Text(stringResource(R.string.workspace_button_menu_manager_action)) },
             onClick = {
                 onDismissRequest()
-                provider?.navToWorkspaceManager()
+                onOpenManager()
             },
             leadingIcon = {
                 Icon(
@@ -216,6 +217,7 @@ private fun WorkspaceButtonMenuPreview() {
         currentWorkspaceId = Workspace.Id(),
         provider = FakeWorkspaceButtonProvider(),
         onCloseAllRequested = {},
+        onOpenManager = {},
     )
 }
 
@@ -236,6 +238,7 @@ private fun WorkspaceButtonMenuFreshInstallPreview() {
         currentWorkspaceId = null,
         provider = FakeWorkspaceButtonProvider(),
         onCloseAllRequested = {},
+        onOpenManager = {},
     )
 }
 
@@ -250,5 +253,6 @@ private fun WorkspaceButtonMenuNoRecentsPreview() {
         currentWorkspaceId = Workspace.Id(),
         provider = FakeWorkspaceButtonProvider(),
         onCloseAllRequested = {},
+        onOpenManager = {},
     )
 }

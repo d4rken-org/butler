@@ -27,7 +27,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -55,10 +58,19 @@ fun WorkspaceButton(
     mascotVariant: ButlerMascotMode = ButlerMascotMode.Animated.RandomCycling(),
 ) {
     val provider = LocalWorkspaceButtonProvider.current
+    val revealOrigin = LocalWorkspaceRevealOrigin.current
     val state = provider?.state?.collectAsState(initial = null)?.value
 
     var expanded by remember { mutableStateOf(false) }
     var showCloseAllDialog by remember { mutableStateOf(false) }
+    // The button, not the surrounding box: the badges overflow that box, so its centre is offset
+    // from the mascot the manager should appear to grow out of.
+    var buttonBounds by remember { mutableStateOf(Rect.Zero) }
+
+    val openManager: () -> Unit = {
+        revealOrigin?.offset = buttonBounds.center
+        provider?.navToWorkspaceManager()
+    }
 
     Box(modifier = modifier) {
         @Suppress("COMPOSE_APPLIER_CALL_MISMATCH")
@@ -66,13 +78,12 @@ fun WorkspaceButton(
             modifier = Modifier
                 .size(buttonSize)
                 .testTag(WorkspaceButtonDefaults.TEST_TAG)
+                .onGloballyPositioned { buttonBounds = it.boundsInRoot() }
                 .clip(RoundedCornerShape(8.dp))
                 .background(containerColor ?: MaterialTheme.colorScheme.tertiaryContainer)
                 .combinedClickable(
                     onClick = { expanded = true },
-                    onLongClick = {
-                        provider?.navToWorkspaceManager()
-                    }
+                    onLongClick = openManager
                 ),
             contentAlignment = Alignment.Center
         ) {
@@ -91,6 +102,7 @@ fun WorkspaceButton(
             currentWorkspaceId = currentWorkspaceId,
             provider = provider,
             onCloseAllRequested = { showCloseAllDialog = true },
+            onOpenManager = openManager,
         )
 
         // Close all confirmation dialog
