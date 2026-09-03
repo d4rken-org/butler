@@ -14,6 +14,11 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 
+/**
+ * A non-null [onUpgrade] marks the row as requiring an upgrade: it gets the badge and every tap
+ * goes to [onUpgrade] instead of [onClick]. A badged row without an upgrade action is therefore
+ * unrepresentable.
+ */
 @Composable
 fun SettingsPreferenceItem(
     icon: ImageVector,
@@ -23,16 +28,18 @@ fun SettingsPreferenceItem(
     subtitle: String? = null,
     value: String? = null,
     enabled: Boolean = true,
+    onUpgrade: (() -> Unit)? = null,
 ) {
     val contentAlpha = if (enabled) 1f else 0.5f
 
     SettingsBaseItem(
         icon = icon,
         title = title,
-        onClick = onClick,
+        onClick = onUpgrade ?: onClick,
         modifier = modifier,
         subtitle = subtitle,
         enabled = enabled,
+        requiresUpgrade = onUpgrade != null,
         trailingContent = if (value != null) {
             {
                 Text(
@@ -57,5 +64,20 @@ private fun SettingsPreferenceItemPreview() {
         onClick = {},
         modifier = Modifier,
         value = "Value"
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun SettingsPreferenceItemGatedPreview() {
+    SettingsPreferenceItem(
+        icon = Icons.TwoTone.Settings,
+        title = "Settings",
+        subtitle = "General settings",
+        onClick = {},
+        modifier = Modifier,
+        value = "Value",
+        onUpgrade = {},
     )
 }

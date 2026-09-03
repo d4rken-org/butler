@@ -13,6 +13,11 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 
+/**
+ * A non-null [onUpgrade] marks the row as requiring an upgrade: it gets the badge and every tap
+ * goes to [onUpgrade] instead of toggling. A badged row without an upgrade action is therefore
+ * unrepresentable.
+ */
 @Composable
 fun SettingsSwitchItem(
     icon: ImageVector,
@@ -22,19 +27,25 @@ fun SettingsSwitchItem(
     onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    onUpgrade: (() -> Unit)? = null,
 ) {
     SettingsBaseItem(
         icon = icon,
         title = title,
-        onClick = { onCheckedChange(!checked) },
+        onClick = onUpgrade ?: { onCheckedChange(!checked) },
         modifier = modifier,
         subtitle = subtitle,
         enabled = enabled,
+        requiresUpgrade = onUpgrade != null,
         trailingContent = {
             Switch(
                 checked = checked,
-                onCheckedChange = onCheckedChange,
-                enabled = enabled,
+                // A null callback drops the Switch's own toggleable node, leaving the row's
+                // combinedClickable as the only place a tap can land. Pinned by the
+                // isToggleable() assertions in SettingsUpgradeBadgeTest.
+                onCheckedChange = if (onUpgrade != null) null else onCheckedChange,
+                // Appearance only, this does not affect pointer input.
+                enabled = enabled && onUpgrade == null,
                 modifier = Modifier.padding(start = 16.dp)
             )
         }
@@ -52,5 +63,20 @@ private fun SettingsSwitchItemPreview() {
         checked = true,
         onCheckedChange = {},
         modifier = Modifier,
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun SettingsSwitchItemGatedPreview() {
+    SettingsSwitchItem(
+        icon = Icons.TwoTone.Settings,
+        title = "Settings",
+        subtitle = "General settings",
+        checked = true,
+        onCheckedChange = {},
+        modifier = Modifier,
+        onUpgrade = {},
     )
 }
