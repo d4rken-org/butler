@@ -157,6 +157,15 @@ internal fun decorationLayout(
 
 internal data class SummaryLabels(val count: String, val breakdown: String)
 
+internal class SummaryText(val count: TextLayoutResult, val breakdown: TextLayoutResult)
+
+/** A decoration measured for one drag: what the shadow shows, where it goes, and the text it carries. */
+internal class PreparedDragDecoration(
+    val spec: DragDecorationSpec,
+    val layout: DecorationLayout,
+    val text: SummaryText?,
+)
+
 /**
  * Draws the drag shadow. Built in composition so theme, density and resources are available, but
  * invoked later from the drag source's modifier node, on a canvas the platform owns.
@@ -174,17 +183,34 @@ internal class WorkspaceDragDecoration(
     private val labels: (DragDecorationSpec.Summary) -> SummaryLabels,
 ) {
 
-    private class SummaryText(val count: TextLayoutResult, val breakdown: TextLayoutResult)
-
-    fun decorationSize(spec: DragDecorationSpec, sourceSize: Size, cornerRadius: Dp): Size =
-        layout(spec, sourceSize, summaryText(spec)).size
-
-    fun draw(scope: DrawScope, spec: DragDecorationSpec, cornerRadius: Dp, recorded: GraphicsLayer?) = with(scope) {
+    /** Measures the decoration once, so the size the platform is told matches what [draw] puts on the canvas. */
+    fun prepare(spec: DragDecorationSpec, sourceSize: Size, cornerRadius: Dp): PreparedDragDecoration {
         val text = summaryText(spec)
-        val layout = layout(spec, sourceSize(spec, size), text)
+        return PreparedDragDecoration(
+            spec = spec,
+            layout = decorationLayout(
+                spec = spec,
+                sourceSize = sourceSize,
+                density = density,
+                layoutDirection = layoutDirection,
+                countSize = text?.count?.size ?: IntSize.Zero,
+                breakdownSize = text?.breakdown?.size,
+            ),
+            text = text,
+        )
+    }
+
+    fun draw(
+        scope: DrawScope,
+        prepared: PreparedDragDecoration,
+        cornerRadius: Dp,
+        recorded: GraphicsLayer?,
+    ) = with(scope) {
+        val text = prepared.text
+        val layout = prepared.layout
         val radius = CornerRadius(with(density) { cornerRadius.toPx() })
         val border = Stroke(width = with(density) { PLATE_BORDER.toPx() })
-        val content = recorded?.takeIf { spec !is DragDecorationSpec.Summary }
+        val content = recorded?.takeIf { prepared.spec !is DragDecorationSpec.Summary }
 
         layout.plates.forEachIndexed { index, plate ->
             drawRoundRect(
@@ -217,22 +243,6 @@ internal class WorkspaceDragDecoration(
             layout.countOffset?.let { drawText(text.count, topLeft = it) }
             layout.breakdownOffset?.let { drawText(text.breakdown, topLeft = it) }
         }
-    }
-
-    private fun layout(spec: DragDecorationSpec, sourceSize: Size, text: SummaryText?) = decorationLayout(
-        spec = spec,
-        sourceSize = sourceSize,
-        density = density,
-        layoutDirection = layoutDirection,
-        countSize = text?.count?.size ?: IntSize.Zero,
-        breakdownSize = text?.breakdown?.size,
-    )
-
-    /** The canvas is sized for the whole decoration, so the stack fan has to be taken back off. */
-    private fun sourceSize(spec: DragDecorationSpec, decorationSize: Size): Size {
-        if (spec !is DragDecorationSpec.Stack) return decorationSize
-        val span = with(density) { STACK_OFFSET.toPx() } * (spec.depth - 1)
-        return Size(decorationSize.width - span, decorationSize.height - span)
     }
 
     private fun summaryText(spec: DragDecorationSpec): SummaryText? {
@@ -311,11 +321,10 @@ private fun DragDecorationCanvas(
 ) {
     val decoration = rememberWorkspaceDragDecoration()
     val density = LocalDensity.current
-    val size = with(density) {
-        decoration.decorationSize(spec, sourceSize.toSize(), cornerRadius).toDpSize()
-    }
+    val prepared = with(density) { decoration.prepare(spec, sourceSize.toSize(), cornerRadius) }
+    val size = with(density) { prepared.layout.size.toDpSize() }
     Canvas(modifier = modifier.size(size)) {
-        decoration.draw(this, spec, cornerRadius, null)
+        decoration.draw(this, prepared, cornerRadius, null)
     }
 }
 
