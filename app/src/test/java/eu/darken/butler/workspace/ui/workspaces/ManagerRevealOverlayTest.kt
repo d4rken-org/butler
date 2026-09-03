@@ -10,6 +10,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.test.junit4.ComposeContentTestRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -42,6 +43,21 @@ private fun RevealHarness(
 }
 
 /**
+ * With `autoAdvance = false` nothing applies the global snapshot between a `runOnIdle` write and the
+ * next frame, so the recomposer would spend those frames on the old value. `waitForIdle` applies the
+ * write without moving the clock, so it has to come first.
+ */
+private fun ComposeContentTestRule.applyAndAdvanceBy(millis: Long) {
+    waitForIdle()
+    mainClock.advanceTimeBy(millis)
+}
+
+private fun ComposeContentTestRule.applyAndAdvanceFrame() {
+    waitForIdle()
+    mainClock.advanceTimeByFrame()
+}
+
+/**
  * Robolectric cannot draw, so the clip itself is not asserted here - `CircularRevealTest` covers the
  * geometry. What this pins is the overlay's lifetime, which is what keeps the manager's back handler
  * and the pane focus suppression alive after the flag that opens it has already gone.
@@ -60,12 +76,12 @@ class ManagerRevealOverlayTest : ComposeTest() {
             }
         }
 
-        composeTestRule.mainClock.advanceTimeBy(1_000)
+        composeTestRule.applyAndAdvanceBy(1_000)
         composeTestRule.onNodeWithTag(CONTENT_TAG).assertDoesNotExist()
         layerPresent shouldBe false
 
         composeTestRule.runOnIdle { visible = true }
-        composeTestRule.mainClock.advanceTimeByFrame()
+        composeTestRule.applyAndAdvanceFrame()
 
         composeTestRule.onNodeWithTag(CONTENT_TAG).assertExists()
         layerPresent shouldBe true
@@ -83,16 +99,16 @@ class ManagerRevealOverlayTest : ComposeTest() {
             }
         }
 
-        composeTestRule.mainClock.advanceTimeBy(1_000)
+        composeTestRule.applyAndAdvanceBy(1_000)
         composeTestRule.onNodeWithTag(CONTENT_TAG).assertExists()
 
         composeTestRule.runOnIdle { visible = false }
-        composeTestRule.mainClock.advanceTimeBy(100)
+        composeTestRule.applyAndAdvanceBy(100)
 
         composeTestRule.onNodeWithTag(CONTENT_TAG).assertExists()
         layerPresent shouldBe true
 
-        composeTestRule.mainClock.advanceTimeBy(1_000)
+        composeTestRule.applyAndAdvanceBy(1_000)
 
         composeTestRule.onNodeWithTag(CONTENT_TAG).assertDoesNotExist()
         layerPresent shouldBe false
@@ -110,21 +126,21 @@ class ManagerRevealOverlayTest : ComposeTest() {
             }
         }
 
-        composeTestRule.mainClock.advanceTimeBy(1_000)
+        composeTestRule.applyAndAdvanceBy(1_000)
         composeTestRule.runOnIdle { visible = true }
-        composeTestRule.mainClock.advanceTimeBy(100)
+        composeTestRule.applyAndAdvanceBy(100)
         composeTestRule.onNodeWithTag(CONTENT_TAG).assertExists()
 
         composeTestRule.runOnIdle { visible = false }
-        composeTestRule.mainClock.advanceTimeBy(50)
+        composeTestRule.applyAndAdvanceBy(50)
         composeTestRule.onNodeWithTag(CONTENT_TAG).assertExists()
         layerPresent shouldBe true
 
         composeTestRule.runOnIdle { visible = true }
-        composeTestRule.mainClock.advanceTimeBy(50)
+        composeTestRule.applyAndAdvanceBy(50)
         composeTestRule.onNodeWithTag(CONTENT_TAG).assertExists()
 
-        composeTestRule.mainClock.advanceTimeBy(1_000)
+        composeTestRule.applyAndAdvanceBy(1_000)
         composeTestRule.onNodeWithTag(CONTENT_TAG).assertExists()
         layerPresent shouldBe true
     }
@@ -141,13 +157,13 @@ class ManagerRevealOverlayTest : ComposeTest() {
             }
         }
 
-        composeTestRule.mainClock.advanceTimeBy(1_000)
+        composeTestRule.applyAndAdvanceBy(1_000)
         composeTestRule.runOnIdle { visible = true }
-        composeTestRule.mainClock.advanceTimeBy(100)
+        composeTestRule.applyAndAdvanceBy(100)
 
         composeTestRule.runOnIdle { settled shouldBe false }
 
-        composeTestRule.mainClock.advanceTimeBy(1_000)
+        composeTestRule.applyAndAdvanceBy(1_000)
 
         composeTestRule.runOnIdle { settled shouldBe true }
     }
@@ -164,14 +180,14 @@ class ManagerRevealOverlayTest : ComposeTest() {
             }
         }
 
-        composeTestRule.mainClock.advanceTimeBy(1_000)
+        composeTestRule.applyAndAdvanceBy(1_000)
         composeTestRule.runOnIdle { visible = true }
-        composeTestRule.mainClock.advanceTimeBy(100)
+        composeTestRule.applyAndAdvanceBy(100)
 
         composeTestRule.onNodeWithTag(CONTENT_TAG).performClick()
         composeTestRule.runOnIdle { clicks shouldBe 0 }
 
-        composeTestRule.mainClock.advanceTimeBy(1_000)
+        composeTestRule.applyAndAdvanceBy(1_000)
 
         composeTestRule.onNodeWithTag(CONTENT_TAG).performClick()
         composeTestRule.runOnIdle { clicks shouldBe 1 }
