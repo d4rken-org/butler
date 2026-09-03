@@ -29,6 +29,7 @@ class BugReportDetailContentTest : ComposeTest() {
     private val expandLabel = context.getString(eu.darken.butler.common.R.string.general_expand_action)
     private val collapseLabel = context.getString(eu.darken.butler.common.R.string.general_collapse_action)
     private val logSizeBytes = 24_000L
+    private val renameLabel = context.getString(R.string.bugreport_rename_action)
 
     // No error fields: the detail then renders without the error card, which keeps the log section
     // on screen in Robolectric's fixed-size wrapper.
@@ -64,6 +65,8 @@ class BugReportDetailContentTest : ComposeTest() {
         logState: BugReportWorkspaceViewModel.LogState,
         isLogExpanded: Boolean,
         onToggleLog: (Boolean) -> Unit = {},
+        info: BugReportInfo = this.info,
+        onRename: () -> Unit = {},
     ) {
         composeTestRule.setContent {
             PreviewWrapper {
@@ -75,7 +78,7 @@ class BugReportDetailContentTest : ComposeTest() {
                         isLogExpanded = isLogExpanded,
                     ),
                     onBack = {},
-                    onRename = {},
+                    onRename = onRename,
                     onShare = {},
                     onDelete = {},
                     onToggleLog = onToggleLog,
@@ -128,6 +131,35 @@ class BugReportDetailContentTest : ComposeTest() {
         composeTestRule.onNodeWithText(logSectionTitle).performSemanticsAction(SemanticsActions.OnClick)
 
         composeTestRule.runOnIdle { toggledTo shouldBe true }
+    }
+
+    @Test
+    fun `the toolbar shows the report's name when it has one`() {
+        setContent(
+            logState = BugReportWorkspaceViewModel.LogState.Idle,
+            isLogExpanded = false,
+            info = info.copy(report = info.report.copy(label = "Copy stalls on SD card")),
+        )
+
+        composeTestRule.onNodeWithText("Copy stalls on SD card").assertExists()
+    }
+
+    @Test
+    fun `the rename control reports the request`() {
+        var renames = 0
+        setContent(
+            logState = BugReportWorkspaceViewModel.LogState.Idle,
+            isLogExpanded = false,
+            onRename = { renames++ },
+        )
+
+        // Via the semantics action, not performClick: in this fixed-size wrapper a laid-out but
+        // off-screen node swallows a click without reporting a failure.
+        composeTestRule
+            .onNodeWithContentDescription(renameLabel)
+            .performSemanticsAction(SemanticsActions.OnClick)
+
+        composeTestRule.runOnIdle { renames shouldBe 1 }
     }
 
     companion object {

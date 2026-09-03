@@ -34,7 +34,7 @@ class BugReportWorkspacePageTest : ComposeTest() {
     private val stopLabel = context.getString(R.string.bugreport_stop_action)
     private val deleteAllLabel = context.getString(R.string.bugreport_delete_all_action)
 
-    private fun report(index: Int) = BugReportInfo(
+    private fun report(index: Int, label: String? = null) = BugReportInfo(
         report = BugReport(
             id = "report-$index",
             createdAt = Instant.parse("2026-06-15T10:00:00Z"),
@@ -50,6 +50,7 @@ class BugReportWorkspacePageTest : ComposeTest() {
             buildType = "RELEASE",
             installId = "abc",
             locale = "en-US",
+            label = label,
         ),
         isSeen = true,
     )
@@ -135,5 +136,23 @@ class BugReportWorkspacePageTest : ComposeTest() {
             .performSemanticsAction(SemanticsActions.OnClick)
 
         composeTestRule.runOnIdle { deleteAlls shouldBe 1 }
+    }
+
+    @Test
+    fun `a named report shows its name above the automatic one`() {
+        setPage(reports = listOf(report(1, label = "Copy stalls on SD card")))
+
+        composeTestRule.onNodeWithText("Copy stalls on SD card").assertExists()
+        // The type and error class stay visible: they are what the report is actually about.
+        val autoTitle = context.getString(R.string.bugreport_type_crash) + " — IllegalStateException"
+        composeTestRule.onNodeWithText(autoTitle).assertExists()
+    }
+
+    @Test
+    fun `an unnamed report shows only the automatic title`() {
+        setPage(reports = listOf(report(2)))
+
+        val autoTitle = context.getString(R.string.bugreport_type_crash) + " — IllegalStateException"
+        composeTestRule.onNodeWithText(autoTitle).assertExists()
     }
 }
