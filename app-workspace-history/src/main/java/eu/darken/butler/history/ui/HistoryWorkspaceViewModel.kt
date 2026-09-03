@@ -185,7 +185,8 @@ class HistoryWorkspaceViewModel @AssistedInject constructor(
 
     // One lock for BOTH gated action bar items, mirroring detailShareLock: while the gate is in
     // flight the buttons stay live, so without it a second tap - Share twice, or Share then Delete -
-    // queues a second action that fires when billing settles.
+    // queues a second action that fires when billing settles. Acquired synchronously, before the
+    // coroutine is launched, so two taps in the same frame cannot both dispatch.
     private val actionGateLock = Mutex()
 
     fun onActionClick(item: HistoryActionBarItem) {
@@ -193,34 +194,38 @@ class HistoryWorkspaceViewModel @AssistedInject constructor(
         when (item) {
             is HistoryActionBarItem.SelectAll -> setSelection(item.ids)
             is HistoryActionBarItem.DeselectAll -> clearSelection()
-            is HistoryActionBarItem.Share -> launch {
-                if (!actionGateLock.tryLock()) return@launch
-                try {
-                    if (!upgradeRepo.isProForUi()) {
-                        showProPrompt()
-                        return@launch
+            is HistoryActionBarItem.Share -> {
+                if (!actionGateLock.tryLock()) return
+                launch {
+                    try {
+                        if (!upgradeRepo.isProForUi()) {
+                            showProPrompt()
+                            return@launch
+                        }
+                        // The gate suspends, so the selection this action was taken on may have
+                        // changed by now - a single entry leaving it drops the whole action.
+                        val selectedIds = _selectedIds.value
+                        if (item.entries.any { it.id !in selectedIds }) return@launch
+                        shareEntries(item.entries, clearsSelection = true)
+                    } finally {
+                        actionGateLock.unlock()
                     }
-                    // The gate suspends, so the selection this action was taken on may have changed
-                    // by now - a single entry leaving it drops the whole action.
-                    val selectedIds = _selectedIds.value
-                    if (item.entries.any { it.id !in selectedIds }) return@launch
-                    shareEntries(item.entries, clearsSelection = true)
-                } finally {
-                    actionGateLock.unlock()
                 }
             }
-            is HistoryActionBarItem.Delete -> launch {
-                if (!actionGateLock.tryLock()) return@launch
-                try {
-                    if (!upgradeRepo.isProForUi()) {
-                        showProPrompt()
-                        return@launch
+            is HistoryActionBarItem.Delete -> {
+                if (!actionGateLock.tryLock()) return
+                launch {
+                    try {
+                        if (!upgradeRepo.isProForUi()) {
+                            showProPrompt()
+                            return@launch
+                        }
+                        val selectedIds = _selectedIds.value
+                        if (item.entries.any { it.id !in selectedIds }) return@launch
+                        _overlayState.update { it.copy(deleteConfirmEntries = item.entries) }
+                    } finally {
+                        actionGateLock.unlock()
                     }
-                    val selectedIds = _selectedIds.value
-                    if (item.entries.any { it.id !in selectedIds }) return@launch
-                    _overlayState.update { it.copy(deleteConfirmEntries = item.entries) }
-                } finally {
-                    actionGateLock.unlock()
                 }
             }
         }
