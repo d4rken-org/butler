@@ -108,17 +108,11 @@ internal fun ManagerRevealOverlay(
             // The origin is recorded in root coordinates while the clip shape is built in this
             // Box's own ones, so subtract wherever the Box landed.
             .onGloballyPositioned { boxOriginInRoot = it.positionInRoot() }
-            // Before the scaling layer on purpose: the clip stays the outer layer, so the circle
-            // keeps its anchor in unscaled coordinates while the content scales inside it.
-            .circularReveal(
-                progress = { state.progress.value },
-                origin = { revealOrigin.offset?.minus(boxOriginInRoot) },
-            )
-            // The manager is laid out and hit-testable from progress 0, so without this a tap lands
-            // on a card the clip has not uncovered yet, and a tap during the exit acts on an
-            // overlay the user already dismissed. The Initial pass is required: Compose dispatches
-            // it parent-to-child, while a barrier on the default Main pass would only see a card's
-            // down/up after that card's `clickable` had already fired.
+            // Outside the clip, so it swallows pointer events across the whole Box while the reveal
+            // runs: neither the cards above nor the workspace below react until it settles. The
+            // Initial pass is required: Compose dispatches it parent-to-child, while a barrier on
+            // the default Main pass would only see a card's down/up after that card's `clickable`
+            // had already fired.
             .then(
                 if (state.revealSettled) {
                     Modifier
@@ -131,6 +125,12 @@ internal fun ManagerRevealOverlay(
                         }
                     }
                 },
+            )
+            // Before the scaling layer on purpose: the clip stays the outer layer, so the circle
+            // keeps its anchor in unscaled coordinates while the content scales inside it.
+            .circularReveal(
+                progress = { state.progress.value },
+                origin = { revealOrigin.offset?.minus(boxOriginInRoot) },
             )
             .graphicsLayer {
                 alpha = (state.progress.value / 0.4f).coerceIn(0f, 1f)
