@@ -20,13 +20,17 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
@@ -37,7 +41,14 @@ class WorkspaceButtonViewModelTest : BaseTest() {
     private val workspaceRemote = mockk<WorkspaceRemote>(relaxed = true).apply {
         every { state } returns flowOf(WorkspaceRemote.State())
     }
-    private val pageManager = mockk<WorkspacePageManager>(relaxed = true)
+    private val pageManagerState = MutableStateFlow(WorkspacePageManager.State())
+    private val pageManager = mockk<WorkspacePageManager>(relaxed = true).apply {
+        every { state } returns pageManagerState
+    }
+
+    private fun focusOn(id: Workspace.Id) {
+        pageManagerState.value = WorkspacePageManager.State(focusedWorkspaceId = id)
+    }
 
     private class FakeTemplate(
         override val type: Workspace.Type,
@@ -54,8 +65,9 @@ class WorkspaceButtonViewModelTest : BaseTest() {
     private fun createVM(
         templates: Set<WorkspaceTemplate> = emptySet(),
         ranked: Flow<List<Workspace.Type>> = flowOf(emptyList()),
+        dispatcher: CoroutineDispatcher? = null,
     ) = WorkspaceButtonViewModel(
-        dispatchers = TestDispatcherProvider(),
+        dispatchers = TestDispatcherProvider(dispatcher),
         workspaceRemote = workspaceRemote,
         workspacePageManager = pageManager,
         workspaceTemplates = templates,
@@ -74,6 +86,8 @@ class WorkspaceButtonViewModelTest : BaseTest() {
     @Test
     fun `createWorkspace executes Create with the item type and args and requests selection`() {
         val newId = Workspace.Id()
+        val focused = Workspace.Id()
+        focusOn(focused)
         val action = slot<WorkspaceAction>()
         coEvery { workspaceRemote.execute(capture(action)) } returns WorkspaceAction.Create.Result.Success(newId)
         val item = explorerItem()
@@ -83,17 +97,41 @@ class WorkspaceButtonViewModelTest : BaseTest() {
         val created = action.captured as WorkspaceAction.Create
         created.type shouldBe Workspace.Type.EXPLORER
         created.arguments shouldBe item.arguments
-        coVerify { workspaceRemote.emitEvent(WorkspaceEvent.SelectionRequested(newId)) }
+        // The focused tab is the origin: the new tab is placed right of it
+        created.sourceWorkspaceId shouldBe focused
+        coVerify { workspaceRemote.emitEvent(WorkspaceEvent.SelectionRequested(newId, focused)) }
     }
 
     @Test
     fun `createWorkspace on AlreadyOpen requests selection of the existing workspace`() {
         val existingId = Workspace.Id()
+        val focused = Workspace.Id()
+        focusOn(focused)
         coEvery { workspaceRemote.execute(any()) } returns WorkspaceAction.Create.Result.AlreadyOpen(existingId)
 
         createVM().createWorkspace(explorerItem())
 
-        coVerify { workspaceRemote.emitEvent(WorkspaceEvent.SelectionRequested(existingId)) }
+        coVerify { workspaceRemote.emitEvent(WorkspaceEvent.SelectionRequested(existingId, focused)) }
+    }
+
+    /**
+     * Focus is read when the button is tapped, not when the queued create runs - anything else
+     * anchors the tab to wherever the user navigated in between.
+     */
+    @Test
+    fun `the origin is the tab focused at tap time, not when the create runs`() = runTest {
+        val focusedAtTap = Workspace.Id()
+        focusOn(focusedAtTap)
+        val action = slot<WorkspaceAction>()
+        coEvery { workspaceRemote.execute(capture(action)) } returns
+            WorkspaceAction.Create.Result.Success(Workspace.Id())
+        val vm = createVM(dispatcher = StandardTestDispatcher(testScheduler))
+
+        vm.createWorkspace(explorerItem())
+        focusOn(Workspace.Id())
+        runCurrent()
+
+        (action.captured as WorkspaceAction.Create).sourceWorkspaceId shouldBe focusedAtTap
     }
 
     @Test
@@ -108,13 +146,17 @@ class WorkspaceButtonViewModelTest : BaseTest() {
     @Test
     fun `createTemplatesWorkspace executes Create for the templates picker`() {
         val newId = Workspace.Id()
+        val focused = Workspace.Id()
+        focusOn(focused)
         val action = slot<WorkspaceAction>()
         coEvery { workspaceRemote.execute(capture(action)) } returns WorkspaceAction.Create.Result.Success(newId)
 
         createVM().createTemplatesWorkspace()
 
-        (action.captured as WorkspaceAction.Create).type shouldBe Workspace.Type.TEMPLATES
-        coVerify { workspaceRemote.emitEvent(WorkspaceEvent.SelectionRequested(newId)) }
+        val created = action.captured as WorkspaceAction.Create
+        created.type shouldBe Workspace.Type.TEMPLATES
+        created.sourceWorkspaceId shouldBe focused
+        coVerify { workspaceRemote.emitEvent(WorkspaceEvent.SelectionRequested(newId, focused)) }
     }
 
     private val allTemplates = setOf(

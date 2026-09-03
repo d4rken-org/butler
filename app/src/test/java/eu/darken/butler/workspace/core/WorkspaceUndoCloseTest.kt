@@ -177,8 +177,13 @@ class WorkspaceUndoCloseTest : BaseTest() {
     /** Lets the event collectors run without advancing virtual time past the undo window. */
     private fun settle() = scope.testScheduler.runCurrent()
 
-    private suspend fun createTab(type: Workspace.Type = Workspace.Type.EXPLORER): Workspace.Id {
-        val result = repo.execute(WorkspaceAction.Create(type = type, arguments = FakeArguments(type)))
+    private suspend fun createTab(
+        type: Workspace.Type = Workspace.Type.EXPLORER,
+        source: Workspace.Id? = null,
+    ): Workspace.Id {
+        val result = repo.execute(
+            WorkspaceAction.Create(type = type, arguments = FakeArguments(type), sourceWorkspaceId = source)
+        )
         settle()
         return (result as WorkspaceAction.Create.Result.Success).newId
     }
@@ -222,6 +227,25 @@ class WorkspaceUndoCloseTest : BaseTest() {
         openIds() shouldBe listOf(first, closed, last)
         stash.feedback.value shouldBe null
     }
+
+    /**
+     * Undo keeps deciding placement from the neighbours it captured, not from where a create would
+     * have put the tab. The order has to be built by anchored creates up front: any create after the
+     * close is a foreign mutation that drops the entry, so "close, create, undo" can never test this.
+     */
+    @Test
+    fun `an undone close ignores where a create would have placed the tab`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val first = createTab()
+            val closed = createTab(source = first)
+            val last = createTab(source = closed)
+            openIds() shouldBe listOf(first, closed, last)
+
+            closeUndoable(closed)
+            undo().shouldBeInstanceOf<WorkspaceAction.UndoClose.Result.Success>()
+
+            openIds() shouldBe listOf(first, closed, last)
+        }
 
     @Test
     fun `the restored tab holds the arguments it was closed with`() = runTest(UnconfinedTestDispatcher()) {

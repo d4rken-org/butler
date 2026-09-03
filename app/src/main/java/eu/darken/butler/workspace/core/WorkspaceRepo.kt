@@ -267,11 +267,13 @@ class WorkspaceRepo @Inject constructor(
         idToReplace: Workspace.Id? = null,
         existingId: Workspace.Id? = null,
         createdAt: Instant? = null,
+        anchorId: Workspace.Id? = null,
     ): Workspace.Id {
-        log(TAG) { "create($type, $arguments, $idToReplace, existingId=$existingId)" }
+        log(TAG) { "create($type, $arguments, $idToReplace, existingId=$existingId, anchorId=$anchorId)" }
         return commitWorkspace(
             newWorkspace = buildWorkspace(type, arguments, idToReplace, existingId),
             idToReplace = idToReplace,
+            anchorId = anchorId,
             createdAt = createdAt,
             returnsResult = arguments is Workspace.ArgumentsForResult,
         )
@@ -323,12 +325,18 @@ class WorkspaceRepo @Inject constructor(
     }
 
     /**
-     * Publishes an instance built by [buildWorkspace]: replace-or-append, creation timestamp, orphan
-     * cleanup. Must be called while holding [lock].
+     * Publishes an instance built by [buildWorkspace]: replace, insert beside [anchorId] or append,
+     * creation timestamp, orphan cleanup. Must be called while holding [lock].
+     *
+     * [anchorId] is the workspace the create was invoked from; the new tab lands directly right of
+     * the tab that anchor belongs to (see [tabInsertionIndexAfter]). It is ignored for a replace,
+     * which inherits its slot, and for a sub-workspace, whose position is stacking order rather than
+     * tab order.
      */
     private suspend fun commitWorkspace(
         newWorkspace: Workspace<out Workspace.Arguments>,
         idToReplace: Workspace.Id?,
+        anchorId: Workspace.Id?,
         createdAt: Instant?,
         returnsResult: Boolean,
     ): Workspace.Id {
@@ -358,7 +366,10 @@ class WorkspaceRepo @Inject constructor(
                 }
             }
         } else {
-            wip.add(newWorkspace)
+            val insertAt = anchorId
+                ?.takeIf { !newWorkspace.info.value.isSubWorkspace }
+                ?.let { tabInsertionIndexAfter(it) }
+            if (insertAt != null) wip.add(insertAt, newWorkspace) else wip.add(newWorkspace)
         }
 
         // Before the publish: create() returns to its caller only after the list was published, so a
@@ -571,6 +582,7 @@ class WorkspaceRepo @Inject constructor(
                     idToReplace = action.replace,
                     existingId = action.id,
                     createdAt = action.createdAt,
+                    anchorId = action.sourceWorkspaceId,
                 )
                 trackUsage(action, Clock.System.now())
                 log(TAG) { "New workspace created with ID $newId, emitting event" }
@@ -1495,6 +1507,7 @@ class WorkspaceRepo @Inject constructor(
             val newId = commitWorkspace(
                 newWorkspace = built,
                 idToReplace = action.replace,
+                anchorId = action.sourceWorkspaceId,
                 createdAt = action.createdAt,
                 returnsResult = action.arguments is Workspace.ArgumentsForResult,
             )
@@ -1603,6 +1616,10 @@ class WorkspaceRepo @Inject constructor(
             results[req] = WorkspaceAction.CreateBatch.CreationResult.AlreadyOpen(existingId)
         }
 
+        // Walks along the tabs this batch opens, so they land as one contiguous run in request order
+        // directly after the source tab instead of all stacking onto the same anchor in reverse.
+        var anchorId = sourceWorkspaceId?.let { peekStacks().ownerOf(it) }
+
         requests.forEach { createRequest ->
             // Catches the case where two requests in the same batch target the same singleton type
             // or content path: first iteration creates the instance, subsequent iterations see it
@@ -1615,13 +1632,25 @@ class WorkspaceRepo @Inject constructor(
 
             try {
                 log(TAG) { "Creating workspace: ${createRequest.type}" }
+                val replacedAnchor = createRequest.replace != null && createRequest.replace == anchorId
                 val newId = create(
                     type = createRequest.type,
                     arguments = createRequest.arguments,
                     idToReplace = createRequest.replace,
                     existingId = createRequest.id,
                     createdAt = createRequest.createdAt,
+                    anchorId = anchorId,
                 )
+                // Advanced right here, not at the Success assignment below: a cancellation between
+                // the publish and that assignment would leave the tab in the list while the anchor
+                // still pointed behind it, and the rest of the batch would interleave with it.
+                // Only onto a committed root tab - a replace took somebody else's slot, and a
+                // sub-workspace is not a tab, so anchoring on either would break the run. The one
+                // replace that does advance it is the one that took the anchor's own slot: it sits
+                // where the anchor sat, and the anchor id is gone from the list to insert after.
+                if ((createRequest.replace == null || replacedAnchor) && peek(newId)?.info?.value?.isSubWorkspace == false) {
+                    anchorId = newId
+                }
                 // Captured before the emit below can suspend, matching the single-create path
                 val usedAt = Clock.System.now()
                 _events.emit(
@@ -2211,6 +2240,24 @@ class WorkspaceRepo @Inject constructor(
         if (snapshot.unitOrderIndex >= owners.size) return current.size
         val ownerAtIndex = owners[snapshot.unitOrderIndex].id
         return current.indexOfFirst { it.id == ownerAtIndex }.takeIf { it >= 0 } ?: current.size
+    }
+
+    /**
+     * Where a tab created from [anchorId] goes: directly before the next TAB following the one the
+     * anchor belongs to, or null when it should just be appended - the anchor is the last tab, or it
+     * is not open any more (limit recovery can have closed it). Must be called while holding [lock].
+     *
+     * The anchor is resolved to its ownership root first, so a create invoked from a modal stacked
+     * on a tab anchors on that tab. And the scan skips forward instead of taking `ownerIdx + 1`:
+     * the anchor's own sub-workspaces sit directly behind it in list order and belong on its side of
+     * the boundary, never between it and the new tab.
+     */
+    private fun tabInsertionIndexAfter(anchorId: Workspace.Id): Int? {
+        val current = _workspaces.value
+        val ownerId = peekStacks().ownerOf(anchorId)
+        val ownerIdx = current.indexOfFirst { it.id == ownerId }
+        if (ownerIdx < 0) return null
+        return (ownerIdx + 1 until current.size).firstOrNull { !current[it].info.value.isSubWorkspace }
     }
 
     /**
