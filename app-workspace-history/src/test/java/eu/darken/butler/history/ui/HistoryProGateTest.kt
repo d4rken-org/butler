@@ -360,4 +360,42 @@ class HistoryProGateTest : BaseTest() {
         vm.overlayState.value.proPromptOpen shouldBe false
         startedChooser() shouldBe null
     }
+
+    /**
+     * The gate parks with only [entry] captured; adding [entry2] to the selection while it waits
+     * means the user is now looking at two selected rows, so the captured single-entry action is
+     * stale and must not fire.
+     */
+    @Test
+    fun `an entry added to the selection while the share gate waits drops the share`() = runTest {
+        val upgradeRepo = FakeUpgradeRepo(pro = false, settled = false)
+        val vm = createVM(upgradeRepo, TestDispatcherProvider(StandardTestDispatcher(testScheduler)))
+        vm.setSelection(setOf(entry.id))
+
+        vm.onActionClick(HistoryActionBarItem.Share(listOf(entry)))
+        // Billing has not settled, so the gate is parked while the action bar stays live.
+        runCurrent()
+
+        vm.toggleSelection(entry2.id)
+        upgradeRepo.settle(pro = true)
+        advanceUntilIdle()
+
+        startedChooser() shouldBe null
+    }
+
+    @Test
+    fun `an entry added to the selection while the delete gate waits drops the delete`() = runTest {
+        val upgradeRepo = FakeUpgradeRepo(pro = false, settled = false)
+        val vm = createVM(upgradeRepo, TestDispatcherProvider(StandardTestDispatcher(testScheduler)))
+        vm.setSelection(setOf(entry.id))
+
+        vm.onActionClick(HistoryActionBarItem.Delete(listOf(entry)))
+        runCurrent()
+
+        vm.toggleSelection(entry2.id)
+        upgradeRepo.settle(pro = true)
+        advanceUntilIdle()
+
+        vm.overlayState.value.deleteConfirmEntries shouldBe emptyList()
+    }
 }
