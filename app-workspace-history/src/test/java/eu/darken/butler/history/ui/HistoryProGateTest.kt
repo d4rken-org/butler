@@ -116,6 +116,9 @@ class HistoryProGateTest : BaseTest() {
         paths = emptyList(),
     )
 
+    /** A second selected entry, so a partial deselection can be distinguished from a full one. */
+    private val entry2 = entry.copy(id = "entry-2", title = "Delete 1 item")
+
     private val attempted = OperationHistoryRepo.AttemptedPaths(
         paths = listOf("/sdcard/ButlerQA", "/sdcard/ButlerQA/notes.txt"),
         totalCount = 2,
@@ -289,6 +292,39 @@ class HistoryProGateTest : BaseTest() {
 
         startedChooser() shouldBe null
         vm.overlayState.value.proPromptOpen shouldBe false
+    }
+
+    @Test
+    fun `deselecting one of two entries while the share gate waits drops the share`() = runTest {
+        val upgradeRepo = FakeUpgradeRepo(pro = false, settled = false)
+        val vm = createVM(upgradeRepo, TestDispatcherProvider(StandardTestDispatcher(testScheduler)))
+        vm.setSelection(setOf(entry.id, entry2.id))
+
+        vm.onActionClick(HistoryActionBarItem.Share(listOf(entry, entry2)))
+        // Billing has not settled, so the gate is parked while the action bar stays live.
+        runCurrent()
+
+        vm.toggleSelection(entry2.id)
+        upgradeRepo.settle(pro = true)
+        advanceUntilIdle()
+
+        startedChooser() shouldBe null
+    }
+
+    @Test
+    fun `deselecting one of two entries while the delete gate waits drops the delete`() = runTest {
+        val upgradeRepo = FakeUpgradeRepo(pro = false, settled = false)
+        val vm = createVM(upgradeRepo, TestDispatcherProvider(StandardTestDispatcher(testScheduler)))
+        vm.setSelection(setOf(entry.id, entry2.id))
+
+        vm.onActionClick(HistoryActionBarItem.Delete(listOf(entry, entry2)))
+        runCurrent()
+
+        vm.toggleSelection(entry2.id)
+        upgradeRepo.settle(pro = true)
+        advanceUntilIdle()
+
+        vm.overlayState.value.deleteConfirmEntries shouldBe emptyList()
     }
 
     @Test
