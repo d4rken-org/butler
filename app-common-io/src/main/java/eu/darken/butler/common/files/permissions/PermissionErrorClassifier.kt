@@ -24,6 +24,10 @@ import java.io.IOException
 object PermissionErrorClassifier {
 
     fun classify(error: Throwable): Reason? {
+        // Pass 0: A top-level gone-error answers for itself before any message matching. PathException
+        // renders the path into its message, so a file called "permission-notes.txt" would otherwise
+        // read as a denial in pass 2 and never reach the gone check in pass 4.
+        if (error is PathGoneError) return null
         // Pass 1: Our own typed exceptions are authoritative — their reason is set deliberately
         // and message-matching against them would re-classify (their message contains "permission").
         for (t in error.causeChain) {
