@@ -80,6 +80,7 @@ class BugReportRepoTest : BaseTest() {
         createdAt: Instant = kotlin.time.Clock.System.now(),
         errorClass: String? = null,
         errorMessage: String? = null,
+        label: String? = null,
     ): BugReport {
         val dir = File(root, id).apply { mkdirs() }
         val report = BugReport(
@@ -95,6 +96,7 @@ class BugReportRepoTest : BaseTest() {
             buildType = "DEBUG",
             installId = "iid",
             locale = "en",
+            label = label,
         )
         File(dir, "meta.json").writeText(json.encodeToString(BugReport.serializer(), report))
         File(dir, "report.log").writeText(logText)
@@ -425,6 +427,137 @@ class BugReportRepoTest : BaseTest() {
         createRepo()
 
         stale.exists() shouldBe false
+    }
+
+    private fun storedReport(id: String, root: File = reportsDir): BugReport = json.decodeFromString(
+        BugReport.serializer(),
+        File(File(root, id), "meta.json").readText(),
+    )
+
+    @Test
+    fun `setLabel round-trips through meta json`() = runTest {
+        val repo = createRepo()
+        writeReportDir("label_1")
+
+        repo.setLabel("label_1", "Copy stalls on SD card")
+
+        storedReport("label_1").label shouldBe "Copy stalls on SD card"
+        repo.reports.first().single { it.id == "label_1" }.report.label shouldBe "Copy stalls on SD card"
+    }
+
+    @Test
+    fun `setLabel clears the name again`() = runTest {
+        val repo = createRepo()
+        writeReportDir("label_2", label = "Named")
+
+        repo.setLabel("label_2", "   ")
+
+        storedReport("label_2").label shouldBe null
+    }
+
+    @Test
+    fun `a label is normalized before it is stored`() = runTest {
+        val repo = createRepo()
+        writeReportDir("label_3")
+
+        repo.setLabel("label_3", "  Copy\u00A0\n stalls\u0000 ")
+
+        storedReport("label_3").label shouldBe "Copy stalls"
+    }
+
+    @Test
+    fun `normalization collapses whitespace runs and drops control characters`() {
+        BugReport.normalizeLabel("a\u00A0\u00A0b") shouldBe "a b"
+        BugReport.normalizeLabel("a\u2028b") shouldBe "a b"
+        BugReport.normalizeLabel("a\tb\nc") shouldBe "a b c"
+        BugReport.normalizeLabel("a\u0007b") shouldBe "ab"
+        BugReport.normalizeLabel("  spaced  out  ") shouldBe "spaced out"
+    }
+
+    @Test
+    fun `normalization treats a blank label as a clear`() {
+        BugReport.normalizeLabel(null) shouldBe null
+        BugReport.normalizeLabel("") shouldBe null
+        BugReport.normalizeLabel("   ") shouldBe null
+        BugReport.normalizeLabel("\u0000\u0001") shouldBe null
+    }
+
+    @Test
+    fun `an over-length label is capped without a trailing space`() {
+        val label = BugReport.normalizeLabel("a".repeat(BugReport.MAX_LABEL_LENGTH - 1) + " b")
+
+        label shouldBe "a".repeat(BugReport.MAX_LABEL_LENGTH - 1)
+    }
+
+    // Cutting at char 128 would land inside the pair and leave a lone surrogate behind.
+    @Test
+    fun `an emoji straddling the cap is dropped whole`() {
+        val label = BugReport.normalizeLabel("a".repeat(BugReport.MAX_LABEL_LENGTH - 1) + "\uD83D\uDC1B" + "b")!!
+
+        label shouldBe "a".repeat(BugReport.MAX_LABEL_LENGTH - 1) + "\uD83D\uDC1B"
+        label.count { it.isSurrogate() } shouldBe 2
+    }
+
+    @Test
+    fun `a meta json without a label key still parses`() = runTest {
+        val repo = createRepo()
+        val dir = File(reportsDir, "label_4").apply { mkdirs() }
+        File(dir, "meta.json").writeText(
+            """{"id":"label_4","createdAt":"2026-06-15T10:00:00Z","type":"REPORTED","appVersion":"1.0",""" +
+                """"deviceFingerprint":"fp","apiLevel":"29","flavor":"FOSS","buildType":"DEBUG",""" +
+                """"installId":"iid","locale":"en"}""",
+        )
+        File(dir, "report.log").writeText("log")
+
+        repo.reports.first().single { it.id == "label_4" }.report.label shouldBe null
+    }
+
+    @Test
+    fun `setLabel on a report that is gone does nothing`() = runTest {
+        val repo = createRepo()
+
+        repo.setLabel("label_gone", "Name")
+
+        File(reportsDir, "label_gone").exists() shouldBe false
+    }
+
+    @Test
+    fun `setLabel updates every physical copy of an id`() = runTest {
+        val repo = createRepo()
+        writeReportDir("label_5")
+        writeReportDir("label_5", root = privateReportsDir)
+
+        repo.setLabel("label_5", "Named")
+
+        storedReport("label_5").label shouldBe "Named"
+        storedReport("label_5", root = privateReportsDir).label shouldBe "Named"
+    }
+
+    @Test
+    fun `a failed metadata write leaves the report readable under its old name`() = runTest {
+        val repo = createRepo()
+        writeReportDir("label_6", label = "Before")
+        // The new metadata is staged under this name before replacing meta.json; an (empty) directory
+        // sitting there makes the staging write fail.
+        File(File(reportsDir, "label_6"), "meta.json.tmp").mkdirs()
+
+        shouldThrow<Exception> { repo.setLabel("label_6", "After") }
+
+        storedReport("label_6").label shouldBe "Before"
+        repo.reports.first().single { it.id == "label_6" }.report.label shouldBe "Before"
+    }
+
+    // The recorder writes meta.json only when a recording starts, so a rename mid-recording sticks.
+    @Test
+    fun `a recording can be renamed while it is running`() = runTest {
+        val repo = createRepo()
+        writeReportDir("recording_10_jjjj", BugReport.Type.RECORDING, ongoing = true)
+        recorderState.value = BugReportRecorder.State(isRecording = true, recordingId = "recording_10_jjjj")
+        startingRecordingIds += "recording_10_jjjj"
+
+        repo.setLabel("recording_10_jjjj", "Stalling copy")
+
+        storedReport("recording_10_jjjj").label shouldBe "Stalling copy"
     }
 
     private val whatPrompt: String

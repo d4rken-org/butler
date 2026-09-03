@@ -4,8 +4,10 @@ import android.content.Context
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextReplacement
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.bugreport.R
 import eu.darken.butler.bugreport.ui.BugReportWorkspaceViewModel.ActiveDialog
@@ -15,6 +17,7 @@ import eu.darken.butler.common.debug.bugreport.BugReportRepo
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.modal.PaneLayerHost
 import io.kotest.matchers.shouldBe
+import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -248,5 +251,89 @@ class BugReportWorkspaceOverlaysTest : ComposeTest() {
         vm.requestShareConsent("report-1")
 
         vm.overlayState.value.activeDialog shouldBe ActiveDialog.DeleteAllConfirmation
+    }
+
+    @Test
+    fun `the rename dialog confirms, clears and dismisses`() {
+        var renamedTo: String? = "unset"
+        var renamedId: String? = null
+        var dismissed = 0
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = true) {
+                    BugReportWorkspaceOverlays(
+                        overlayState = BugReportWorkspaceViewModel.OverlayState(
+                            activeDialog = ActiveDialog.Rename(
+                                reportId = "report-1",
+                                currentLabel = "Copy stalls",
+                                autoTitle = "IllegalStateException",
+                            ),
+                        ),
+                        onRename = { id, label ->
+                            renamedId = id
+                            renamedTo = label
+                        },
+                        onDismissRename = { dismissed++ },
+                    )
+                }
+            }
+        }
+
+        composeTestRule
+            .onNodeWithText(context.getString(R.string.bugreport_rename_dialog_title))
+            .assertIsDisplayed()
+
+        composeTestRule.onNodeWithText(context.getString(CommonR.string.general_cancel_action)).performClick()
+        composeTestRule.runOnIdle { dismissed shouldBe 1 }
+
+        composeTestRule.onNodeWithText(context.getString(CommonR.string.general_clear_action)).performClick()
+        composeTestRule.runOnIdle {
+            renamedId shouldBe "report-1"
+            renamedTo shouldBe null
+        }
+
+        composeTestRule.onNode(hasSetTextAction()).performTextReplacement("  Renamed  ")
+        composeTestRule.onNodeWithText(context.getString(CommonR.string.general_rename_action)).performClick()
+        composeTestRule.runOnIdle { renamedTo shouldBe "Renamed" }
+    }
+
+    @Test
+    fun `a rename request while another dialog is showing is dropped`() {
+        val vm = createVM()
+
+        vm.requestDeleteAllConfirmation()
+        vm.requestRename("report-1", "Copy stalls", "IllegalStateException")
+
+        vm.overlayState.value.activeDialog shouldBe ActiveDialog.DeleteAllConfirmation
+    }
+
+    @Test
+    fun `the rename dialog is requested and dismissed through the slot`() {
+        val vm = createVM()
+
+        vm.requestRename("report-1", "Copy stalls", "IllegalStateException")
+        vm.overlayState.value.activeDialog shouldBe
+            ActiveDialog.Rename("report-1", "Copy stalls", "IllegalStateException")
+
+        vm.dismissRename()
+        vm.overlayState.value.activeDialog shouldBe null
+    }
+
+    /** The dialog is closed before the IO, so a failure inside setLabel cannot strand it open. */
+    @Test
+    fun `renaming dismisses the dialog before writing`() {
+        val vm = createVM()
+        var dialogWhileWriting: ActiveDialog? = ActiveDialog.DeleteAllConfirmation
+        coEvery { bugReportRepo.setLabel(any(), any()) } answers {
+            dialogWhileWriting = vm.overlayState.value.activeDialog
+        }
+
+        vm.requestRename("report-1", null, "IllegalStateException")
+        vm.rename("report-1", "Named")
+
+        dialogWhileWriting shouldBe null
+        vm.overlayState.value.activeDialog shouldBe null
+        coVerify { bugReportRepo.setLabel("report-1", "Named") }
     }
 }

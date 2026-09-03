@@ -53,7 +53,7 @@ class BugReportShareIntentTest : BaseTest() {
         )
     }
 
-    private fun writeReportDir(id: String): BugReport {
+    private fun writeReportDir(id: String, label: String? = null): BugReport {
         val dir = File(storageLayout.writeRoot, id).apply { mkdirs() }
         val report = BugReport(
             id = id,
@@ -68,6 +68,7 @@ class BugReportShareIntentTest : BaseTest() {
             buildType = "DEBUG",
             installId = "iid",
             locale = "en",
+            label = label,
         )
         File(dir, "meta.json").writeText(json.encodeToString(BugReport.serializer(), report))
         File(dir, "report.log").writeText("log line")
@@ -100,5 +101,25 @@ class BugReportShareIntentTest : BaseTest() {
         uri.toString() shouldContain "crash_1.zip"
         intent.clipData!!.getItemAt(0).uri shouldBe uri
         (intent.flags and Intent.FLAG_GRANT_READ_URI_PERMISSION) shouldBe Intent.FLAG_GRANT_READ_URI_PERMISSION
+    }
+
+    @Test
+    fun `a named report is named in the subject and in the attachment`() = runTest {
+        val repo = createRepo()
+        writeReportDir("crash_2", label = "Copy stalls")
+
+        val intent = repo.buildShareIntent("crash_2")
+
+        intent.getStringExtra(Intent.EXTRA_SUBJECT) shouldBe context.getString(
+            R.string.general_bug_report_subject_labeled,
+            context.getString(R.string.app_name),
+            "Copy stalls",
+            "crash_2",
+        )
+        intent.getStringExtra(Intent.EXTRA_TEXT)!! shouldContain "Name: Copy stalls"
+
+        val uri = intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)!!
+        // Decoded: the provider percent-encodes the space in the file name.
+        Uri.decode(uri.toString()) shouldContain "Copy stalls_crash_2.zip"
     }
 }
