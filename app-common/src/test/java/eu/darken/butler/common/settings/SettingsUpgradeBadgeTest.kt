@@ -112,6 +112,51 @@ class SettingsUpgradeBadgeTest : ComposeTest() {
         toggles shouldBe 1
     }
 
+    @Test
+    fun `a disabled preference row drops the badge and the upgrade route`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                SettingsPreferenceItem(
+                    icon = Icons.TwoTone.Settings,
+                    title = TITLE,
+                    subtitle = SUBTITLE,
+                    enabled = false,
+                    onClick = { clicks++ },
+                    onUpgrade = { upgrades++ },
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText(badgeLabel).assertDoesNotExist()
+
+        composeTestRule.onNodeWithText(TITLE).performClick()
+        upgrades shouldBe 0
+        clicks shouldBe 0
+    }
+
+    @Test
+    fun `a disabled switch row drops the badge and the upgrade route`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                SettingsSwitchItem(
+                    icon = Icons.TwoTone.Settings,
+                    title = TITLE,
+                    subtitle = SUBTITLE,
+                    checked = false,
+                    enabled = false,
+                    onCheckedChange = { toggles++ },
+                    onUpgrade = { upgrades++ },
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText(badgeLabel).assertDoesNotExist()
+
+        composeTestRule.onNodeWithText(TITLE).performClick()
+        upgrades shouldBe 0
+        toggles shouldBe 0
+    }
+
     companion object {
         private const val TITLE = "Row title"
         private const val SUBTITLE = "Row subtitle"
