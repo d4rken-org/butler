@@ -48,6 +48,7 @@ fun ClipboardSettingsScreen(
     onNavigateUp: () -> Unit,
     onToggleRemoveOnPaste: () -> Unit,
     onSetMaxItems: (Int) -> Unit,
+    onUpgradeButler: () -> Unit,
 ) {
     var showMaxItemsDialog by remember { mutableStateOf(false) }
 
@@ -81,7 +82,8 @@ fun ClipboardSettingsScreen(
                     title = stringResource(R.string.clipboard_settings_remove_on_paste_title),
                     subtitle = stringResource(R.string.clipboard_settings_remove_on_paste_desc),
                     checked = state.removeOnPaste,
-                    onCheckedChange = { onToggleRemoveOnPaste() }
+                    onCheckedChange = { onToggleRemoveOnPaste() },
+                    onUpgrade = if (state.isUpgraded) null else onUpgradeButler,
                 )
             }
 
@@ -91,7 +93,8 @@ fun ClipboardSettingsScreen(
                     title = stringResource(R.string.clipboard_settings_max_items_title),
                     subtitle = stringResource(R.string.clipboard_settings_max_items_desc),
                     value = state.maxItems.toString(),
-                    onClick = { showMaxItemsDialog = true }
+                    onClick = { showMaxItemsDialog = true },
+                    onUpgrade = if (state.isUpgraded) null else onUpgradeButler,
                 )
             }
         }
@@ -159,10 +162,29 @@ private fun ClipboardSettingsScreenPreview() {
         state = ClipboardSettingsViewModel.State(
             removeOnPaste = false,
             maxItems = 3,
+            isUpgraded = true,
         ),
         onNavigateUp = {},
         onToggleRemoveOnPaste = {},
         onSetMaxItems = {},
+        onUpgradeButler = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ClipboardSettingsScreenLockedPreview() {
+    ClipboardSettingsScreen(
+        state = ClipboardSettingsViewModel.State(
+            removeOnPaste = false,
+            maxItems = 3,
+            isUpgraded = false,
+        ),
+        onNavigateUp = {},
+        onToggleRemoveOnPaste = {},
+        onSetMaxItems = {},
+        onUpgradeButler = {},
     )
 }
 
@@ -179,6 +201,7 @@ fun ClipboardSettingsScreenHost(vm: ClipboardSettingsViewModel = hiltViewModel()
             onNavigateUp = { vm.navUp() },
             onToggleRemoveOnPaste = { vm.toggleRemoveOnPaste() },
             onSetMaxItems = { vm.setMaxItems(it) },
+            onUpgradeButler = { vm.upgradeButler() },
         )
     }
 }
