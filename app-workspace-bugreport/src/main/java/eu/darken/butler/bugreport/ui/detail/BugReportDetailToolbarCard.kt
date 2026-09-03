@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.ArrowBack
 import androidx.compose.material.icons.twotone.Delete
+import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material.icons.twotone.Share
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -37,7 +38,8 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonDefaults
 
 /**
- * Static, compact toolbar for the bug-report detail view: back arrow + title + Share + Delete.
+ * Static, compact toolbar for the bug-report detail view: back arrow + title + Rename + Share +
+ * Delete.
  * It stays at the compact workspace-button size (no expand/collapse) — the larger form just wasted
  * vertical space here. Controls are plain clickable boxes (not IconButton) so the bar height isn't
  * pinned to the 48dp minimum interactive size.
@@ -47,6 +49,7 @@ fun BugReportDetailToolbarCard(
     modifier: Modifier = Modifier,
     title: String,
     onBack: () -> Unit,
+    onRename: () -> Unit,
     onShare: () -> Unit,
     onDelete: () -> Unit,
 ) {
@@ -75,6 +78,11 @@ fun BugReportDetailToolbarCard(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f),
+            )
+            ToolbarControl(
+                icon = Icons.TwoTone.Edit,
+                contentDescription = stringResource(R.string.bugreport_rename_action),
+                onClick = onRename,
             )
             ToolbarControl(
                 icon = Icons.TwoTone.Share,
@@ -124,6 +132,7 @@ private fun BugReportDetailToolbarCardPreview() {
         BugReportDetailToolbarCard(
             title = "NullPointerException",
             onBack = {},
+            onRename = {},
             onShare = {},
             onDelete = {},
             modifier = Modifier.padding(16.dp),

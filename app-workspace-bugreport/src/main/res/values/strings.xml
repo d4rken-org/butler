@@ -20,6 +20,11 @@
     <string name="bugreport_recording_short_message">This recording is only a few seconds long and may not contain useful information. Stop it anyway?</string>
     <string name="bugreport_recording_short_keep_action">Keep recording</string>
 
+    <string name="bugreport_rename_action">Rename</string>
+    <string name="bugreport_rename_dialog_title">Name this report</string>
+    <string name="bugreport_rename_name_label">Name</string>
+    <string name="bugreport_rename_name_hint">Shown in the list and in the shared file name</string>
+
     <string name="bugreport_share_action">Share</string>
     <string name="bugreport_delete_action">Delete</string>
     <string name="bugreport_delete_all_action">Delete all</string>

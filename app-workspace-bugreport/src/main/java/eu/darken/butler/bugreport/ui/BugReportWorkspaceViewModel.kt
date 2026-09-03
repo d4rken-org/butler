@@ -69,6 +69,13 @@ class BugReportWorkspaceViewModel @AssistedInject constructor(
         if (it.activeDialog is ActiveDialog.ShortRecordingWarning) it.copy(activeDialog = null) else it
     }
 
+    fun requestRename(reportId: String, currentLabel: String?, autoTitle: String) =
+        requestDialog(ActiveDialog.Rename(reportId, currentLabel, autoTitle))
+
+    fun dismissRename() = _overlayState.update {
+        if (it.activeDialog is ActiveDialog.Rename) it.copy(activeDialog = null) else it
+    }
+
     fun requestDeleteAllConfirmation() = requestDialog(ActiveDialog.DeleteAllConfirmation)
 
     fun dismissDeleteAllConfirmation() = _overlayState.update {
@@ -210,6 +217,13 @@ class BugReportWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
+    fun rename(reportId: String, label: String?) {
+        log(tag, INFO) { "rename($reportId)" }
+        // Dismiss before the IO, like deleteAll(): a throw inside setLabel would strand the dialog open.
+        dismissRename()
+        launch { bugReportRepo.setLabel(reportId, label) }
+    }
+
     fun startRecording() = launch {
         log(tag, INFO) { "startRecording()" }
         bugReportRecorder.start()
@@ -252,6 +266,13 @@ class BugReportWorkspaceViewModel @AssistedInject constructor(
         data object ShortRecordingWarning : ActiveDialog
         data object DeleteAllConfirmation : ActiveDialog
         data class DeleteConfirmation(val reportId: String) : ActiveDialog
+
+        /** [autoTitle] is what the report is called without a name, shown as the field's placeholder. */
+        data class Rename(
+            val reportId: String,
+            val currentLabel: String?,
+            val autoTitle: String,
+        ) : ActiveDialog
     }
 
     /** The full-screen detail view's state: the report plus its (async) log tail. */

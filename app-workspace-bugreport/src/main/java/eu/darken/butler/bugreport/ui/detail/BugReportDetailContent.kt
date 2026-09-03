@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import eu.darken.butler.bugreport.R
 import eu.darken.butler.bugreport.ui.BugReportWorkspaceViewModel
+import eu.darken.butler.bugreport.ui.autoTitle
 import eu.darken.butler.bugreport.ui.label
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -73,6 +74,7 @@ fun BugReportDetailContent(
     design: WorkspaceDesign,
     detail: BugReportWorkspaceViewModel.Detail,
     onBack: () -> Unit,
+    onRename: () -> Unit,
     onShare: () -> Unit,
     onDelete: () -> Unit,
     onToggleLog: (Boolean) -> Unit,
@@ -89,8 +91,7 @@ fun BugReportDetailContent(
     )
 
     val report = detail.info.report
-    val errorShort = report.errorClass?.substringAfterLast('.')?.takeIf { it.isNotBlank() }
-    val title = errorShort ?: report.type.label()
+    val title = report.label ?: report.autoTitle()
     val hasError = !report.errorClass.isNullOrBlank() ||
         !report.errorMessage.isNullOrBlank() ||
         !report.stackTrace.isNullOrBlank()
@@ -138,6 +139,7 @@ fun BugReportDetailContent(
                     BugReportDetailToolbarCard(
                         title = title,
                         onBack = onBack,
+                        onRename = onRename,
                         onShare = onShare,
                         onDelete = onDelete,
                     )
@@ -407,6 +409,7 @@ private fun BugReportDetailContentCrashPreview() {
                 isLogExpanded = true,
             ),
             onBack = {},
+            onRename = {},
             onShare = {},
             onDelete = {},
             onToggleLog = {},
@@ -431,6 +434,7 @@ private fun BugReportDetailContentRecordingPreview() {
                 isLogExpanded = true,
             ),
             onBack = {},
+            onRename = {},
             onShare = {},
             onDelete = {},
             onToggleLog = {},
@@ -450,6 +454,7 @@ private fun BugReportDetailContentLoadingPreview() {
                 isLogExpanded = true,
             ),
             onBack = {},
+            onRename = {},
             onShare = {},
             onDelete = {},
             onToggleLog = {},
@@ -469,6 +474,7 @@ private fun BugReportDetailContentLogCollapsedPreview() {
                 isLogExpanded = false,
             ),
             onBack = {},
+            onRename = {},
             onShare = {},
             onDelete = {},
             onToggleLog = {},
