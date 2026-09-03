@@ -15,9 +15,9 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 
 /**
- * A non-null [onUpgrade] marks the row as requiring an upgrade: it gets the badge and every tap
- * goes to [onUpgrade] instead of [onClick]. A badged row without an upgrade action is therefore
- * unrepresentable.
+ * A non-null [onUpgrade] gates the row while it is enabled: it gets the badge and every tap goes
+ * to [onUpgrade] instead of [onClick]. A row with `enabled = false` shows no badge and keeps its
+ * normal inert behavior even with an upgrade action, because upgrading would not make it usable.
  */
 @Composable
 fun SettingsPreferenceItem(
@@ -30,16 +30,17 @@ fun SettingsPreferenceItem(
     enabled: Boolean = true,
     onUpgrade: (() -> Unit)? = null,
 ) {
+    val upgradeAction = onUpgrade?.takeIf { enabled }
     val contentAlpha = if (enabled) 1f else 0.5f
 
     SettingsBaseItem(
         icon = icon,
         title = title,
-        onClick = onUpgrade ?: onClick,
+        onClick = upgradeAction ?: onClick,
         modifier = modifier,
         subtitle = subtitle,
         enabled = enabled,
-        requiresUpgrade = onUpgrade != null,
+        requiresUpgrade = upgradeAction != null,
         trailingContent = if (value != null) {
             {
                 Text(

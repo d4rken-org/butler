@@ -14,9 +14,9 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 
 /**
- * A non-null [onUpgrade] marks the row as requiring an upgrade: it gets the badge and every tap
- * goes to [onUpgrade] instead of toggling. A badged row without an upgrade action is therefore
- * unrepresentable.
+ * A non-null [onUpgrade] gates the row while it is enabled: it gets the badge and every tap goes
+ * to [onUpgrade] instead of toggling. A row with `enabled = false` shows no badge and keeps its
+ * normal inert behavior even with an upgrade action, because upgrading would not make it usable.
  */
 @Composable
 fun SettingsSwitchItem(
@@ -29,23 +29,25 @@ fun SettingsSwitchItem(
     enabled: Boolean = true,
     onUpgrade: (() -> Unit)? = null,
 ) {
+    val upgradeAction = onUpgrade?.takeIf { enabled }
+
     SettingsBaseItem(
         icon = icon,
         title = title,
-        onClick = onUpgrade ?: { onCheckedChange(!checked) },
+        onClick = upgradeAction ?: { onCheckedChange(!checked) },
         modifier = modifier,
         subtitle = subtitle,
         enabled = enabled,
-        requiresUpgrade = onUpgrade != null,
+        requiresUpgrade = upgradeAction != null,
         trailingContent = {
             Switch(
                 checked = checked,
                 // A null callback drops the Switch's own toggleable node, leaving the row's
                 // combinedClickable as the only place a tap can land. Pinned by the
                 // isToggleable() assertions in SettingsUpgradeBadgeTest.
-                onCheckedChange = if (onUpgrade != null) null else onCheckedChange,
+                onCheckedChange = if (upgradeAction != null) null else onCheckedChange,
                 // Appearance only, this does not affect pointer input.
-                enabled = enabled && onUpgrade == null,
+                enabled = enabled && upgradeAction == null,
                 modifier = Modifier.padding(start = 16.dp)
             )
         }
