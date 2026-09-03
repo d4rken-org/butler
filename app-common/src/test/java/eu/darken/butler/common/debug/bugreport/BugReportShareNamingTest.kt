@@ -3,6 +3,7 @@ package eu.darken.butler.common.debug.bugreport
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.ButlerId
+import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.RingLogBuffer
 import io.kotest.assertions.withClue
 import io.kotest.matchers.collections.shouldContainExactly
@@ -13,6 +14,7 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -43,7 +45,7 @@ class BugReportShareNamingTest : BaseTest() {
     private val json = Json { ignoreUnknownKeys = true }
     private val recorderState = MutableStateFlow(BugReportRecorder.State())
 
-    private fun createRepo(): BugReportRepo {
+    private fun createRepo(dispatcherProvider: DispatcherProvider = TestDispatcherProvider()): BugReportRepo {
         val recorder = mockk<BugReportRecorder>(relaxed = true) {
             every { state } returns recorderState
             coEvery { isActiveOrStarting(any()) } answers {
@@ -53,7 +55,7 @@ class BugReportShareNamingTest : BaseTest() {
         return BugReportRepo(
             context = context,
             appScope = CoroutineScope(Dispatchers.Unconfined),
-            dispatcherProvider = TestDispatcherProvider(),
+            dispatcherProvider = dispatcherProvider,
             ringLogBuffer = RingLogBuffer(),
             bugReportRecorder = recorder,
             butlerId = ButlerId(context),
@@ -226,20 +228,31 @@ class BugReportShareNamingTest : BaseTest() {
     @Test
     fun `a rename can neither land inside a zip build nor name a queued build from a stale resolve`() =
         runBlocking<Unit> {
-            val repo = createRepo()
+            // The proof below needs IO to run in place: an explicit Unconfined keeps a later change
+            // to TestDispatcherProvider's default from silently weakening it.
+            val repo = createRepo(TestDispatcherProvider(Dispatchers.Unconfined))
             writeBulkyReportDir("race_lock", label = "Before")
 
             val firstBuild = launch(Dispatchers.IO) { repo.buildShareZip("race_lock") }
             awaitTmpZip()
 
-            val rename = launch(Dispatchers.IO) { repo.setLabel("race_lock", "After") }
-            Thread.sleep(RENAME_GRACE_MS)
+            // Unconfined + UNDISPATCHED: the body runs on this thread until it either finishes or
+            // suspends, so launch() returning with the job still active means the rename is parked
+            // on the mutex - not merely that it has yet to be scheduled.
+            val rename = launch(Dispatchers.Unconfined, start = CoroutineStart.UNDISPATCHED) {
+                repo.setLabel("race_lock", "After")
+            }
             withClue("setLabel finished while a share zip was still being written") {
                 rename.isActive shouldBe true
             }
 
-            // The rename is still blocked, so it is queued ahead of this build.
-            val secondBuild = launch(Dispatchers.IO) { runCatching { repo.buildShareZip("race_lock") } }
+            // Started the same way, so it parks behind the rename in the mutex's queue.
+            val secondBuild = launch(Dispatchers.Unconfined, start = CoroutineStart.UNDISPATCHED) {
+                runCatching { repo.buildShareZip("race_lock") }
+            }
+            withClue("the second build did not queue behind the rename") {
+                secondBuild.isActive shouldBe true
+            }
 
             firstBuild.join()
             rename.join()
@@ -273,11 +286,9 @@ class BugReportShareNamingTest : BaseTest() {
 
     /** Returns once a build has opened its `.tmp`, i.e. once it holds the report. */
     private fun awaitTmpZip() {
-        val deadline = System.currentTimeMillis() + 10_000
-        while (
-            shareDir.listFiles()?.none { it.name.endsWith(BugReportStorage.TMP_SUFFIX) } != false &&
-            System.currentTimeMillis() < deadline
-        ) {
+        val deadline = System.currentTimeMillis() + TMP_WAIT_MS
+        while (shareDir.listFiles()?.none { it.name.endsWith(BugReportStorage.TMP_SUFFIX) } != false) {
+            check(System.currentTimeMillis() < deadline) { "No build opened a share zip within ${TMP_WAIT_MS}ms" }
             Thread.sleep(1)
         }
     }
@@ -292,6 +303,6 @@ class BugReportShareNamingTest : BaseTest() {
     companion object {
         /** ~48MB hard-linked into three payload entries: ~1.4s of compression to act inside. */
         private const val BULK_LOG_LINES = 800_000
-        private const val RENAME_GRACE_MS = 100L
+        private const val TMP_WAIT_MS = 10_000L
     }
 }
