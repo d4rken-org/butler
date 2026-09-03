@@ -25,6 +25,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.job
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import org.junit.Test
 import testhelpers.BaseTest
@@ -178,8 +179,11 @@ class AppInstallLauncherTest : BaseTest() {
                 appInstaller = installer,
             )
         }
+        // Not backgroundScope: advanceUntilIdle() ignores background work, so the operation would
+        // never run at all and the test would pass an empty channel off as a delivered event.
+        val operationScope = CoroutineScope(UnconfinedTestDispatcher(testScheduler) + Job())
         coEvery { operationsManager.submit(any()) } coAnswers {
-            ManagedOperation(operationId, firstArg<Operation>(), backgroundScope).start()
+            ManagedOperation(operationId, firstArg<Operation>(), operationScope).start()
             operationId
         }
 
@@ -196,6 +200,7 @@ class AppInstallLauncherTest : BaseTest() {
         reasons shouldBe listOf("No space left")
         collector.isCompleted shouldBe true
         collectorScope.cancel()
+        operationScope.cancel()
     }
 
     /**
