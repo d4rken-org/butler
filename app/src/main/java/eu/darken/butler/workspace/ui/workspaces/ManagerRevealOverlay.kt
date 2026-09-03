@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
@@ -31,6 +32,7 @@ import eu.darken.butler.common.compose.EmphasizedAccelerate
 import eu.darken.butler.common.compose.EmphasizedDecelerate
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.circularReveal
+import eu.darken.butler.workspace.ui.manager.LocalWorkspaceRevealOrigin
 import eu.darken.butler.workspace.ui.manager.WorkspaceRevealOrigin
 
 /**
@@ -145,7 +147,12 @@ internal fun ManagerRevealOverlay(
                 }
             },
     ) {
-        content()
+        // The origin slot belongs to the buttons outside the manager. The manager's own content
+        // hosts a WorkspaceButton as an illustration, and pressing it would otherwise re-aim the
+        // exit animation at the middle of the grid.
+        CompositionLocalProvider(LocalWorkspaceRevealOrigin provides null) {
+            content()
+        }
     }
 }
 
