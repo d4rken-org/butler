@@ -421,6 +421,13 @@
     <string name="workspace_limit_stacked_content_desc">Closing this tab also closes what is stacked on it</string>
     <string name="workspace_limit_pro_description">Open as many tabs as you like.</string>
 
+    <!-- Drag and drop -->
+    <plurals name="workspace_drag_decoration_items">
+        <item quantity="one">%1$d item</item>
+        <item quantity="other">%1$d items</item>
+    </plurals>
+    <string name="workspace_drag_decoration_breakdown">%1$s, %2$s</string>
+
     <!-- Restore operation -->
     <string name="workspace_operation_restore_title">Trash restore</string>
     <plurals name="workspace_operation_restore_description">
