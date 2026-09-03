@@ -27,6 +27,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.common.WorkspacePaddings
+import eu.darken.butler.workspace.ui.manager.rows.NewTabCard
 import eu.darken.butler.workspace.ui.manager.rows.WorkspaceBadgeExplanationCard
 import eu.darken.butler.workspace.ui.manager.rows.WorkspaceGridItem
 import eu.darken.butler.workspace.ui.manager.rows.WorkspaceStatusCard
@@ -53,6 +54,7 @@ fun WorkspaceManagerGridLayout(
     onStartSelection: (Workspace.Id) -> Unit = {},
     onToggleSelection: (Workspace.Id) -> Unit = {},
     onRenameWorkspace: (Workspace.Id) -> Unit = {},
+    onNewTabClick: () -> Unit = {},
     onTabsClick: () -> Unit = {},
     onClearSelection: () -> Unit = {},
     onOperationsFilterClick: () -> Unit = {},
@@ -188,6 +190,15 @@ fun WorkspaceManagerGridLayout(
             ) {
                 WorkspaceBadgeExplanationCard(
                     onDismiss = onDismissBadgeExplanation
+                )
+            }
+        }
+
+        if (!state.isSelectionActive) {
+            item(key = WorkspaceManagerColumnItemKey.NewTab, span = { GridItemSpan(1) }) {
+                NewTabCard(
+                    modifier = Modifier.animateItem(),
+                    onClick = onNewTabClick,
                 )
             }
         }

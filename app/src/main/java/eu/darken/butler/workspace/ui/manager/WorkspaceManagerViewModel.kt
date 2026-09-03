@@ -251,6 +251,9 @@ class WorkspaceManagerViewModel @Inject constructor(
         when (val result = workspaceRepo.execute(request)) {
             is WorkspaceAction.Create.Result.Success -> {
                 log(tag) { "Workspace created: ${result.newId}" }
+                // A fresh tab has no operations and needs no attention, so an active filter would
+                // hide the card that was just asked for.
+                clearFilters()
             }
             is WorkspaceAction.Create.Result.AlreadyOpen -> {
                 log(tag) { "Singleton already open, focusing existing: ${result.existingId}" }

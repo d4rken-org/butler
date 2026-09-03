@@ -31,6 +31,11 @@ import eu.darken.butler.workspace.ui.manager.rows.PaneBadge
 import eu.darken.butler.workspace.ui.manager.rows.StackBadge
 import eu.darken.butler.workspace.ui.manager.rows.WorkspacePreviewInfoBar
 
+object WorkspacePreviewDefaults {
+    /** Card thumbnails are a fixed height, so anything standing in for a card has to match it. */
+    val Height = 160.dp
+}
+
 @Composable
 fun WorkspacePreview(
     modifier: Modifier = Modifier,
@@ -47,7 +52,7 @@ fun WorkspacePreview(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(160.dp),
+                .height(WorkspacePreviewDefaults.Height),
             shape = RectangleShape,
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surface

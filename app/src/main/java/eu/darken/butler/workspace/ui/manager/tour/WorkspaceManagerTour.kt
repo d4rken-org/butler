@@ -30,6 +30,7 @@ object WorkspaceManagerTour : GuidedTour {
     const val ADD_TAB_TARGET = "workspaceManager.addTab"
     const val REORDER_TARGET = "workspaceManager.cardHeader"
     const val SELECT_TARGET = "workspaceManager.cardPreview"
+    const val NEW_TAB_TARGET = "workspaceManager.newTabCard"
 
     fun definition(
         prepareAddTab: suspend () -> Unit,

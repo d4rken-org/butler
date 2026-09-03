@@ -171,6 +171,7 @@ fun WorkspaceManagerScreen(
                 onStartSelection = onStartSelection,
                 onToggleSelection = onToggleSelection,
                 onRenameWorkspace = { renameTargetId = it },
+                onNewTabClick = { onCreateWorkspace(Workspace.Type.TEMPLATES) },
                 onTabsClick = onTabsClick,
                 onClearSelection = onClearSelection,
                 onOperationsFilterClick = onOperationsFilterClick,
