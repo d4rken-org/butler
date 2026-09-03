@@ -76,6 +76,7 @@ import eu.darken.butler.workspace.core.handleResult
 import eu.darken.butler.workspace.core.launchPicker
 import eu.darken.butler.workspace.core.operations.AppInstallLauncher
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.ui.actions.FileActionCapabilities
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
 import eu.darken.butler.workspace.ui.page.WorkspacePageChrome
 import kotlinx.coroutines.flow.Flow
@@ -439,9 +440,14 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 // Cut
                 add(SearcherActionBarItem.Cut(updatedSelectionState.selectedResults))
 
-                // Share (if reasonable number of items)
+                // Share (if reasonable number of items). Handing a file to another app needs a URI
+                // the system can resolve, which is what FileActionCapabilities answers, so a
+                // selection holding anything else - or a folder - is not offered for sharing.
                 val shareAction = SearcherActionBarItem.Share(updatedSelectionState.selectedResults)
-                if (shareAction.isVisible) {
+                val selectionIsShareable = updatedSelectionState.selectedResults.all {
+                    it.fileType != FileType.DIRECTORY && FileActionCapabilities.canHandOffToOtherApps(it.path)
+                }
+                if (shareAction.isVisible && selectionIsShareable) {
                     add(shareAction)
                 }
 
