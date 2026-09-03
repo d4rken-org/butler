@@ -64,7 +64,14 @@ fun ExplorerItemRenderer(
 
     // The long press arms the drag while the pointer is still down, which is what the platform needs
     // to pick up the drag. A null payload means no drag.
-    val dragSource = dragPayloadFactory?.let { factory -> rememberWorkspaceDragSource { factory(item) } }
+    val dragSource = dragPayloadFactory?.let { factory ->
+        rememberWorkspaceDragSource(
+            cornerRadius = when (viewStyle) {
+                is ExplorerViewStyle.List -> 8.dp
+                is ExplorerViewStyle.Grid -> 4.dp
+            },
+        ) { factory(item) }
+    }
 
     Box(
         modifier = focusModifier
