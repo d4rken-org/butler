@@ -76,6 +76,7 @@
     <string name="general_error_report_consent_confirm">Share report</string>
     <string name="general_privacy_policy_action">Privacy policy</string>
     <string name="general_bug_report_subject">%1$s Bug Report (%2$s)</string>
+    <string name="general_bug_report_subject_labeled">%1$s Bug Report: %2$s (%3$s)</string>
     <string name="general_bug_report_body_what_happened_prompt">(Describe what happened here.)</string>
     <string name="general_bug_report_body_expected_prompt">(Describe what you expected instead.)</string>
     <string name="general_duration_input_label">Duration</string>
