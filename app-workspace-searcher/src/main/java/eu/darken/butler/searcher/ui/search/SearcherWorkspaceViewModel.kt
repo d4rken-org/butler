@@ -8,6 +8,8 @@ import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.ApiLevel
+import eu.darken.butler.common.ca.CaString
+import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.searcher.core.resultKey
 import eu.darken.butler.common.datastore.value
@@ -72,6 +74,7 @@ import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import eu.darken.butler.workspace.core.createAndFocus
 import eu.darken.butler.workspace.core.handleResult
 import eu.darken.butler.workspace.core.launchPicker
+import eu.darken.butler.workspace.core.operations.AppInstallLauncher
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
 import eu.darken.butler.workspace.ui.page.WorkspacePageChrome
@@ -96,7 +99,9 @@ import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
+import eu.darken.butler.workspace.R as WorkspaceR
 
 @HiltViewModel(assistedFactory = SearcherWorkspaceViewModel.Factory::class)
 class SearcherWorkspaceViewModel @AssistedInject constructor(
@@ -113,6 +118,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private val openWithIntentUseCase: OpenWithIntentUseCase,
     private val trashSettings: TrashSettings,
     private val folderPreviewResolver: FolderPreviewResolver,
+    private val appInstallLauncher: AppInstallLauncher,
     private val apiLevel: ApiLevel,
     private val errorIncidentStore: ErrorIncidentStore,
     itemSorterFactory: SearchItemSorter.Factory,
@@ -164,6 +170,9 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     val issueState = conflicts.issueState
 
     val dialogEvents = SingleEventFlow<SearcherDialogEvent>()
+
+    /** One-shot confirmations, e.g. what an install could not finish. */
+    val toastEvents = SingleEventFlow<CaString>()
 
     val shareIntentEvent = chrome.shareIntentEvent
 
@@ -858,6 +867,9 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                     }
                 }
             }
+            is SearcherActionBarItem.Install -> {
+                launch { installPackage(action.result.path) }
+            }
             is SearcherActionBarItem.OpenInEditor -> {
                 launch {
                     workspaceRemote.createAndFocus(
@@ -956,6 +968,28 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             arguments = request.arguments,
             sourceWorkspaceId = id,
         )
+    }
+
+    /** Installs an APK or app bundle found by the search. */
+    private suspend fun installPackage(path: APath<*>) {
+        try {
+            val result = appInstallLauncher.launch(
+                path = path,
+                origin = Operation.Metadata.Origin.Searcher(id),
+                collectorScope = vmScope,
+                onObbFailed = { reason ->
+                    toastEvents.emit(WorkspaceR.string.workspace_install_obb_failed.toCaString(reason))
+                },
+            )
+            if (result is AppInstallLauncher.Result.UnknownSourcesRequired) {
+                toastEvents.emit(WorkspaceR.string.workspace_install_unknown_sources_required.toCaString())
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            log(TAG, ERROR) { "installPackage($path) failed: ${e.asLog()}" }
+            errorEvents.emit(e)
+        }
     }
 
     private suspend fun executeOpenInNewTabs(analysis: OpenInNewTabsUseCase.AnalysisResult) {

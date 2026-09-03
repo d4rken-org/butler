@@ -11,6 +11,7 @@ import androidx.compose.material.icons.twotone.DeleteForever
 import androidx.compose.material.icons.twotone.Deselect
 import androidx.compose.material.icons.twotone.GridView
 import androidx.compose.material.icons.twotone.Info
+import androidx.compose.material.icons.twotone.InstallMobile
 import androidx.compose.material.icons.twotone.Link
 import androidx.compose.material.icons.twotone.OpenInBrowser
 import androidx.compose.material.icons.twotone.SelectAll
@@ -92,6 +93,13 @@ sealed interface SearcherActionBarItem : WorkspaceActionBarItem {
     ) : SearcherActionBarItem {
         override val icon = Icons.TwoTone.OpenInBrowser
         override val label = R.string.searcher_action_open_with.toCaString()
+    }
+
+    data class Install(
+        val result: SearchItem,
+    ) : SearcherActionBarItem {
+        override val icon = Icons.TwoTone.InstallMobile
+        override val label = R.string.searcher_action_install.toCaString()
     }
 
     data class OpenInEditor(

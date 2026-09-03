@@ -1,5 +1,6 @@
 package eu.darken.butler.searcher.ui.search
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -634,6 +635,13 @@ fun SearcherWorkspacePageHost(
     LaunchedEffect(vm) {
         vm.shareIntentEvent.collect { intent ->
             context.startActivity(intent)
+        }
+    }
+
+    // Handle one-shot toast confirmations (e.g. an install that needs permission first)
+    LaunchedEffect(vm) {
+        vm.toastEvents.collect { message ->
+            Toast.makeText(context, message.get(context), Toast.LENGTH_SHORT).show()
         }
     }
 
