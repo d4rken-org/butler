@@ -319,12 +319,14 @@
     <!-- Workspace > Guided tour -->
     <string name="tour_first_tab_title">Start with a tab</string>
     <string name="tour_first_tab_body">Butler works in tabs, like a browser: each one is a tool of its own — Explorer, Searcher, Editor, and more. Create your first tab.</string>
-    <string name="tour_manager_add_tab_title">Add a tab</string>
-    <string name="tour_manager_add_tab_body">Tap this to pick a tool for a new tab. Long-press it instead for a shortcut list of the tools you use most, and for closing every tab at once.</string>
+    <string name="tour_manager_fab_title">Quick shortcuts</string>
+    <string name="tour_manager_fab_body">Tap this for shortcuts to the tools you use most, and to close every tab at once.</string>
     <string name="tour_manager_reorder_title">Reorder your tabs</string>
     <string name="tour_manager_reorder_body">Press and hold a tab\'s title bar, then drag it where you want it. This is the order your tabs appear in everywhere else.</string>
     <string name="tour_manager_select_title">Work on several tabs</string>
     <string name="tour_manager_select_body">Press and hold a tab\'s preview to start picking tabs. Then tap the rest and close or pause them all in one go.</string>
+    <string name="tour_manager_new_tab_title">Start a new tab</string>
+    <string name="tour_manager_new_tab_body">Tap this card to pick any tool for a new tab.</string>
 
     <string name="workspace_creating_placeholder">Creating tab…</string>
     <string name="workspace_ondemand_swipe_title">Swipe to create new tab</string>

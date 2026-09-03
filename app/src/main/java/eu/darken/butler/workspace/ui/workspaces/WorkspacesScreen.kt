@@ -386,6 +386,11 @@ fun WorkspacesScreenHost(
             prepareFirstCard = {
                 managerGridState.scrollToItem(WorkspaceManagerGridDefaults.FIRST_WORKSPACE_CARD_INDEX)
             },
+            prepareNewTab = {
+                managerGridState.scrollToItem(
+                    (managerGridState.layoutInfo.totalItemsCount - 1).coerceAtLeast(0),
+                )
+            },
         )
     }
     // Gated on the manager's own state, not just the overlay flag: a restored session makes the

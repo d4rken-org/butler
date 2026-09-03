@@ -8,20 +8,23 @@ import eu.darken.butler.common.compose.tour.TourId
 import eu.darken.butler.common.compose.tour.TourStep
 
 /**
- * Walks the tab manager: the add-tab button, then the two card long-presses that are otherwise
- * undiscoverable — the title row reorders, the preview below it starts a selection.
+ * Walks the tab manager: the button's shortcut menu, then the two card long-presses that are
+ * otherwise undiscoverable — the title row reorders, the preview below it starts a selection — and
+ * finally the card that opens a new tab.
  *
  * [REORDER_TARGET] and [SELECT_TARGET] are registered by exactly one card, the first in the grid.
  * That is what keeps the ids unique: tagging every card would file one rect per tab under a single
- * id, and the last one positioned would win.
+ * id, and the last one positioned would win. [NEW_TAB_TARGET] belongs to the placeholder card,
+ * of which there is only ever one.
  *
  * The tour only starts once the grid holds at least one card, so those two anchors exist.
  *
  * Every step carries a `prepareTarget`. The status card above the cards is a wrapping `FlowRow` of
  * chips and each preview is a fixed 160dp, so in a short window at large font scale the first
- * card's preview sits below the viewport and never registers. The add-tab step prepares in the
- * other direction: its button hides on scroll, so stepping back to it has to restore the top of
- * the grid.
+ * card's preview sits below the viewport and never registers. The button step prepares in the
+ * other direction: it hides on scroll, so stepping back to it has to restore the top of the grid.
+ * The placeholder is the grid's last item whenever selection is off, so its step scrolls to the
+ * end.
  */
 object WorkspaceManagerTour : GuidedTour {
 
@@ -35,6 +38,7 @@ object WorkspaceManagerTour : GuidedTour {
     fun definition(
         prepareAddTab: suspend () -> Unit,
         prepareFirstCard: suspend () -> Unit,
+        prepareNewTab: suspend () -> Unit,
     ): TourDefinition = TourDefinition(
         id = id,
         clickProtection = true,
@@ -42,8 +46,8 @@ object WorkspaceManagerTour : GuidedTour {
             TourStep(
                 stepId = "addTab",
                 targetId = ADD_TAB_TARGET,
-                title = R.string.tour_manager_add_tab_title.toCaString(),
-                body = R.string.tour_manager_add_tab_body.toCaString(),
+                title = R.string.tour_manager_fab_title.toCaString(),
+                body = R.string.tour_manager_fab_body.toCaString(),
                 prepareTarget = prepareAddTab,
             ),
             TourStep(
@@ -59,6 +63,13 @@ object WorkspaceManagerTour : GuidedTour {
                 title = R.string.tour_manager_select_title.toCaString(),
                 body = R.string.tour_manager_select_body.toCaString(),
                 prepareTarget = prepareFirstCard,
+            ),
+            TourStep(
+                stepId = "newTab",
+                targetId = NEW_TAB_TARGET,
+                title = R.string.tour_manager_new_tab_title.toCaString(),
+                body = R.string.tour_manager_new_tab_body.toCaString(),
+                prepareTarget = prepareNewTab,
             ),
         ),
     )
