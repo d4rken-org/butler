@@ -141,9 +141,7 @@ class ViewerWorkspaceViewModelPagingTest : BaseTest() {
                 every { enabled.flow } returns flowOf(false)
             },
             operationsManager = mockk(relaxed = true),
-            appInstallInspector = mockk(relaxed = true),
-            appInstaller = mockk(relaxed = true),
-            appInstallOperationFactory = mockk(relaxed = true),
+            appInstallLauncher = mockk(relaxed = true),
             // Unused by the paging cases, but the ViewModel now owns the APK icon export too.
             apkIconExporter = mockk(relaxed = true),
             filenameValidator = FilenameValidator(),

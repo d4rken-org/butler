@@ -146,9 +146,7 @@ class ViewerRenderFailureTest : BaseTest() {
                 every { enabled.flow } returns trashEnabled
             },
             operationsManager = mockk(relaxed = true),
-            appInstallInspector = mockk(relaxed = true),
-            appInstaller = mockk(relaxed = true),
-            appInstallOperationFactory = mockk(relaxed = true),
+            appInstallLauncher = mockk(relaxed = true),
             apkIconExporter = mockk(relaxed = true),
             filenameValidator = FilenameValidator(),
             errorIncidentStore = incidentStore,
