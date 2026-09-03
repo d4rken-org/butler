@@ -23,7 +23,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.job
+import kotlinx.coroutines.test.advanceUntilIdle
 import org.junit.Test
 import testhelpers.BaseTest
 import testhelpers.coroutine.runTest2
@@ -156,28 +158,44 @@ class AppInstallLauncherTest : BaseTest() {
     }
 
     /**
-     * The normal case for a real install: the expansion file fails after launch() has returned, and
-     * the install finishes right behind it.
+     * The normal case for a real install, driven through the real lifecycle: the expansion file
+     * fails while the install runs, the install finishes right behind it, and the operation being
+     * discarded is what closes the channel. Nothing stands in for the operation here, so a reason
+     * lost at completion and a listener that outlives its install both surface as a failure.
      */
     @Test
     fun `a failed expansion file survives the install completing right after it`() = runTest2 {
         val launcher = create()
-        val events = slot<SendChannel<AppInstallEvent>>()
-        every { operationFactory.create(any(), any(), capture(events)) } returns mockk(relaxed = true)
+        every { installer.install(any(), any()) } returns flowOf(
+            AppInstallEvent.ObbFailed("No space left"),
+            AppInstallEvent.Success(pkgId = plan.pkgId, viaMode = AppInstaller.Mode.ROOT, obbPlaced = false),
+        )
+        every { operationFactory.create(any(), any(), any()) } answers {
+            AppInstallOperation(
+                installOrigin = firstArg<Operation.Metadata.Origin>(),
+                plan = secondArg<AppInstallPlan>(),
+                events = thirdArg<SendChannel<AppInstallEvent>>(),
+                appInstaller = installer,
+            )
+        }
+        coEvery { operationsManager.submit(any()) } coAnswers {
+            ManagedOperation(operationId, firstArg<Operation>(), backgroundScope).start()
+            operationId
+        }
 
         val dispatcher = ReorderingDispatcher()
         val collectorScope = CoroutineScope(dispatcher + Job())
         val reasons = mutableListOf<String>()
 
         launcher.launch(source, origin, collectorScope) { reasons.add(it) }
+        val collector = collectorScope.coroutineContext.job.children.single()
 
-        events.captured.send(AppInstallEvent.ObbFailed("No space left"))
-
-        dispatcher.runQueuedNewestFirst()
+        advanceUntilIdle()
         dispatcher.runQueued()
-        collectorScope.cancel()
 
         reasons shouldBe listOf("No space left")
+        collector.isCompleted shouldBe true
+        collectorScope.cancel()
     }
 
     /**
@@ -209,7 +227,7 @@ class AppInstallLauncherTest : BaseTest() {
 
     /**
      * Stands in for a multi-threaded dispatcher: it queues resumptions instead of running them, so a
-     * test can pick when and in which order ready coroutines run.
+     * test can pick when ready coroutines run.
      */
     private class ReorderingDispatcher : CoroutineDispatcher() {
 
@@ -217,11 +235,6 @@ class AppInstallLauncherTest : BaseTest() {
 
         override fun dispatch(context: CoroutineContext, block: Runnable) {
             synchronized(tasks) { tasks.add(block) }
-        }
-
-        fun runQueuedNewestFirst() {
-            val pending = synchronized(tasks) { tasks.toList().also { tasks.clear() } }
-            pending.asReversed().forEach { it.run() }
         }
 
         fun runQueued() {
