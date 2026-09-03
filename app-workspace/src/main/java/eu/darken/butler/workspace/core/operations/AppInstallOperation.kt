@@ -19,8 +19,8 @@ import eu.darken.butler.common.pkgs.installer.AppInstaller
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.workspace.R
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlin.time.Clock
 import kotlin.time.Instant
@@ -30,12 +30,13 @@ import kotlin.time.Instant
  *
  * [events] is how anything that is not progress reaches the caller: [OperationsManager.submit]
  * hands back an id and [ManagedOperation] relays nothing but [Operation.State], so there is no
- * framework channel for the rest. The submitting ViewModel subscribes to it before submitting.
+ * framework channel for the rest. [AppInstallLauncher] receives from it and closes with this
+ * operation.
  */
 class AppInstallOperation @AssistedInject constructor(
     @Assisted private val installOrigin: Operation.Metadata.Origin,
     @Assisted private val plan: AppInstallPlan,
-    @Assisted private val events: MutableSharedFlow<AppInstallEvent>,
+    @Assisted private val events: SendChannel<AppInstallEvent>,
     private val appInstaller: AppInstaller,
 ) : Operation {
 
@@ -70,7 +71,7 @@ class AppInstallOperation @AssistedInject constructor(
                     )
                 )
 
-                is AppInstallEvent.ObbFailed -> events.emit(event)
+                is AppInstallEvent.ObbFailed -> events.send(event)
                 // Waiting rather than a bespoke notification: it is what the operations framework
                 // already alerts about, and its issue is what offers the dialog again.
                 is AppInstallEvent.ConfirmationRequired -> send(
@@ -111,6 +112,11 @@ class AppInstallOperation @AssistedInject constructor(
             is AppInstallEvent.Failure -> throw result.error
             else -> throw IllegalStateException("The install ended without a result")
         }
+    }
+
+    /** Ends [AppInstallLauncher]'s collector, after it has drained what is still queued. */
+    override fun onDiscarded() {
+        events.close()
     }
 
     private fun AppInstallEvent.Progress.toProgressData() = Progress.Data(
@@ -160,7 +166,7 @@ class AppInstallOperation @AssistedInject constructor(
         fun create(
             installOrigin: Operation.Metadata.Origin,
             plan: AppInstallPlan,
-            events: MutableSharedFlow<AppInstallEvent>,
+            events: SendChannel<AppInstallEvent>,
         ): AppInstallOperation
     }
 }

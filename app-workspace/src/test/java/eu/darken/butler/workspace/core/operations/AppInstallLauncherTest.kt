@@ -18,11 +18,17 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.job
 import kotlinx.coroutines.test.advanceUntilIdle
 import org.junit.Test
 import testhelpers.BaseTest
 import testhelpers.coroutine.runTest2
+import kotlin.coroutines.CoroutineContext
 
 class AppInstallLauncherTest : BaseTest() {
 
@@ -59,7 +65,6 @@ class AppInstallLauncherTest : BaseTest() {
         every { installer.unknownSourcesSettings() } returns mockk<Intent>(relaxed = true)
         every { operationFactory.create(any(), any(), any()) } returns mockk(relaxed = true)
         coEvery { operationsManager.submit(any()) } returns operationId
-        every { operationsManager.completedOperations } returns MutableSharedFlow()
         return AppInstallLauncher(
             context = context,
             appInstallInspector = inspector,
@@ -129,15 +134,15 @@ class AppInstallLauncherTest : BaseTest() {
     }
 
     /**
-     * The operation may report a failed expansion file before the collector is running, which is
+     * The operation may report a failed expansion file while it is still being submitted, which is
      * the one window in which the toast used to be lost.
      */
     @Test
-    fun `a failed expansion file reported before the collector starts still reaches the caller`() = runTest2 {
+    fun `a failed expansion file reported during submission still reaches the caller`() = runTest2 {
         val launcher = create()
         val reasons = mutableListOf<String>()
         every { operationFactory.create(any(), any(), any()) } answers {
-            thirdArg<MutableSharedFlow<AppInstallEvent>>().tryEmit(AppInstallEvent.ObbFailed("No space left"))
+            thirdArg<SendChannel<AppInstallEvent>>().trySend(AppInstallEvent.ObbFailed("No space left"))
             mockk(relaxed = true)
         }
 
@@ -145,5 +150,82 @@ class AppInstallLauncherTest : BaseTest() {
         advanceUntilIdle()
 
         reasons shouldBe listOf("No space left")
+    }
+
+    /**
+     * The normal case for a real install: the expansion file fails after launch() has returned, and
+     * the install finishes right behind it.
+     */
+    @Test
+    fun `a failed expansion file survives the install completing right after it`() = runTest2 {
+        val launcher = create()
+        val events = slot<SendChannel<AppInstallEvent>>()
+        every { operationFactory.create(any(), any(), capture(events)) } returns mockk(relaxed = true)
+
+        val dispatcher = ReorderingDispatcher()
+        val collectorScope = CoroutineScope(dispatcher + Job())
+        val reasons = mutableListOf<String>()
+
+        launcher.launch(source, origin, collectorScope) { reasons.add(it) }
+
+        events.captured.send(AppInstallEvent.ObbFailed("No space left"))
+
+        dispatcher.runQueuedNewestFirst()
+        dispatcher.runQueued()
+        collectorScope.cancel()
+
+        reasons shouldBe listOf("No space left")
+    }
+
+    /**
+     * The operation closes the channel when it is discarded, and that is the only thing that ends
+     * the collector: an event the channel still holds has to reach the caller anyway, and the
+     * collector has to be gone afterwards so no listener outlives its install.
+     */
+    @Test
+    fun `closing the events channel delivers what it still holds and then ends the collector`() = runTest2 {
+        val launcher = create()
+        val events = slot<SendChannel<AppInstallEvent>>()
+        every { operationFactory.create(any(), any(), capture(events)) } returns mockk(relaxed = true)
+
+        val dispatcher = ReorderingDispatcher()
+        val collectorScope = CoroutineScope(dispatcher + Job())
+        val reasons = mutableListOf<String>()
+
+        launcher.launch(source, origin, collectorScope) { reasons.add(it) }
+        val collector = collectorScope.coroutineContext.job.children.single()
+
+        events.captured.send(AppInstallEvent.ObbFailed("No space left"))
+        events.captured.close()
+        dispatcher.runQueued()
+
+        reasons shouldBe listOf("No space left")
+        collector.isCompleted shouldBe true
+        collectorScope.cancel()
+    }
+
+    /**
+     * Stands in for a multi-threaded dispatcher: it queues resumptions instead of running them, so a
+     * test can pick when and in which order ready coroutines run.
+     */
+    private class ReorderingDispatcher : CoroutineDispatcher() {
+
+        private val tasks = mutableListOf<Runnable>()
+
+        override fun dispatch(context: CoroutineContext, block: Runnable) {
+            synchronized(tasks) { tasks.add(block) }
+        }
+
+        fun runQueuedNewestFirst() {
+            val pending = synchronized(tasks) { tasks.toList().also { tasks.clear() } }
+            pending.asReversed().forEach { it.run() }
+        }
+
+        fun runQueued() {
+            while (true) {
+                val next = synchronized(tasks) { tasks.firstOrNull()?.also { tasks.removeAt(0) } } ?: return
+                next.run()
+            }
+        }
     }
 }

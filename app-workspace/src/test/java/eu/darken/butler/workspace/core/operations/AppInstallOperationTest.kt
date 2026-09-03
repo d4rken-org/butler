@@ -12,7 +12,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import org.junit.Test
@@ -44,7 +44,7 @@ class AppInstallOperationTest : BaseTest() {
     private fun operation(appInstaller: AppInstaller = mockk()) = AppInstallOperation(
         installOrigin = Operation.Metadata.Origin.Explorer(Workspace.Id()),
         plan = plan,
-        events = MutableSharedFlow(),
+        events = Channel(),
         appInstaller = appInstaller,
     )
 
