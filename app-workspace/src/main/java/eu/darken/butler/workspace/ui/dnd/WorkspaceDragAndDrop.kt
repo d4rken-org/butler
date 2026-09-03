@@ -140,12 +140,13 @@ internal class WorkspaceDragSourceNode(
             val spec = dragDecorationSpec(payload.items) ?: return@DragAndDropSourceModifierNode
             val decoration = source.decorationProvider()
             val cornerRadius = source.cornerRadius
+            val prepared = decoration?.prepare(spec, size.toSize(), cornerRadius)
             startDragAndDropTransfer(
                 transferData = payload.toTransferData(),
-                decorationSize = decoration?.decorationSize(spec, size.toSize(), cornerRadius) ?: size.toSize(),
+                decorationSize = prepared?.layout?.size ?: size.toSize(),
                 drawDragDecoration = {
-                    if (decoration != null) {
-                        decoration.draw(this, spec, cornerRadius, dragShadow.layer)
+                    if (decoration != null && prepared != null) {
+                        decoration.draw(this, prepared, cornerRadius, dragShadow.layer)
                     } else {
                         dragShadow.layer?.let { drawLayer(it) }
                     }
