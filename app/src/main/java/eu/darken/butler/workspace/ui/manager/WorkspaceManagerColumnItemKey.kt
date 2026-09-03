@@ -34,5 +34,8 @@ sealed class WorkspaceManagerColumnItemKey : Parcelable {
     }
 
     @Parcelize
+    data object NewTab : WorkspaceManagerColumnItemKey()
+
+    @Parcelize
     data class Custom(val type: String, val id: String) : WorkspaceManagerColumnItemKey()
 }

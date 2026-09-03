@@ -352,6 +352,7 @@
     <string name="workspace_manager_selection_cancel_content_desc">Leave selection mode</string>
     <string name="workspace_manager_selection_clear_content_desc">Clear selection</string>
     <string name="workspace_manager_select_all_tabs_desc">Select all tabs</string>
+    <string name="workspace_manager_new_tab_card_title">New tab</string>
     <string name="workspace_row_select_content_desc">Select tab</string>
     <string name="general_cancel_action">Cancel</string>
 
