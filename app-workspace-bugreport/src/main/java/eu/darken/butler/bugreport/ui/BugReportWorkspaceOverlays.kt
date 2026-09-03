@@ -193,7 +193,7 @@ private fun BugReportWorkspaceOverlaysRenamePreview() {
             ActiveDialog.Rename(
                 reportId = "crash_1",
                 currentLabel = "Crash while copying",
-                autoTitle = "NullPointerException",
+                autoTitle = "Crash — NullPointerException",
             ),
         ),
     )
