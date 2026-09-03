@@ -484,6 +484,7 @@ fun SupportContactFormScreen(
 
 @Composable
 private fun reportTitle(info: BugReportInfo): String {
+    info.report.label?.let { return it }
     val typeLabel = when (info.report.type) {
         BugReport.Type.CRASH -> stringResource(R.string.support_contact_report_type_crash)
         BugReport.Type.REPORTED -> stringResource(R.string.support_contact_report_type_reported)
@@ -515,7 +516,13 @@ private val SupportContactFormViewModel.WorkspaceType.labelRes: Int
         SupportContactFormViewModel.WorkspaceType.EDITOR -> R.string.support_contact_workspace_editor
     }
 
-private fun previewReport(id: String, type: BugReport.Type, createdAt: Long, errorClass: String?) = BugReportInfo(
+private fun previewReport(
+    id: String,
+    type: BugReport.Type,
+    createdAt: Long,
+    errorClass: String?,
+    label: String? = null,
+) = BugReportInfo(
     report = BugReport(
         id = id,
         createdAt = Instant.fromEpochMilliseconds(createdAt),
@@ -528,6 +535,7 @@ private fun previewReport(id: String, type: BugReport.Type, createdAt: Long, err
         buildType = "DEBUG",
         installId = "id",
         locale = "en",
+        label = label,
     ),
     isSeen = true,
 )
@@ -556,7 +564,13 @@ private fun SupportContactFormBugPreview() {
             expectedBehavior = "The file list should scroll smoothly without crashing even with many files in the directory",
             reports = listOf(
                 previewReport("crash_1705312200000_abcd1234", BugReport.Type.CRASH, 1705312200000L, "java.lang.IllegalStateException"),
-                previewReport("recording_1705221300000_efgh5678", BugReport.Type.RECORDING, 1705221300000L, null),
+                previewReport(
+                    "recording_1705221300000_efgh5678",
+                    BugReport.Type.RECORDING,
+                    1705221300000L,
+                    null,
+                    label = "Copy stalls on SD card",
+                ),
             ),
             selectedReportId = "crash_1705312200000_abcd1234",
         ),
