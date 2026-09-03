@@ -473,19 +473,16 @@ private fun ReportCard(
         onClick = onClick,
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            val typeLabel = report.type.label()
             val prefix = if (!info.isSeen) "• " else ""
-            val detail = report.errorClass?.substringAfterLast('.')
-            val autoTitle = typeLabel + if (!detail.isNullOrBlank()) " — $detail" else ""
             Text(
-                text = prefix + (report.label ?: autoTitle),
+                text = prefix + (report.label ?: report.autoTitle()),
                 style = MaterialTheme.typography.titleSmall,
             )
             // The automatic identification stays visible under a user-set name: it is what the report
             // is actually about.
             if (report.label != null) {
                 Text(
-                    text = autoTitle,
+                    text = report.autoTitle(),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -692,10 +689,12 @@ private fun DeleteAllConfirmationDialogPreview() {
     DeleteAllConfirmationDialog(onConfirm = {}, onDismiss = {})
 }
 
-/** What a report is called without a user-set [BugReport.label]. */
+/** What a report is called without a user-set [BugReport.label]: its type, plus what went wrong. */
 @Composable
-internal fun BugReport.autoTitle(): String =
-    errorClass?.substringAfterLast('.')?.takeIf { it.isNotBlank() } ?: type.label()
+internal fun BugReport.autoTitle(): String {
+    val detail = errorClass?.substringAfterLast('.')?.takeIf { it.isNotBlank() }
+    return type.label() + if (detail != null) " — $detail" else ""
+}
 
 @Composable
 internal fun DeleteReportConfirmationDialog(

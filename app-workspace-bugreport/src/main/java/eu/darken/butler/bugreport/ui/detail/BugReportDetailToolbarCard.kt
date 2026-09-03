@@ -130,7 +130,7 @@ private fun ToolbarControl(
 private fun BugReportDetailToolbarCardPreview() {
     PreviewWrapper {
         BugReportDetailToolbarCard(
-            title = "NullPointerException",
+            title = "Crash — NullPointerException",
             onBack = {},
             onRename = {},
             onShare = {},
