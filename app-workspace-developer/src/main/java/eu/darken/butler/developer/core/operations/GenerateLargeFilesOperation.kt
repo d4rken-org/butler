@@ -26,7 +26,6 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.withContext
-import kotlin.random.Random
 
 class GenerateLargeFilesOperation @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
@@ -89,21 +88,7 @@ class GenerateLargeFilesOperation @AssistedInject constructor(
                     )
                 )
 
-                createLargeFile(filePath, size) { fileProgress ->
-                    send(
-                        State.Active(
-                            startedAt = operationContext.startedAt,
-                            primaryProgress = Progress.Data(
-                                primary = R.string.developer_operation_large_files_creating.toCaString(fileName),
-                                count = Progress.Count.Counter(index.toLong(), sizes.size.toLong()),
-                            ),
-                            secondaryProgress = Progress.Data(
-                                primary = fileName.toCaString(),
-                                count = Progress.Count.Size(bytesWritten + fileProgress, totalBytes),
-                            ),
-                        )
-                    )
-                }
+                createLargeFile(filePath, size)
 
                 bytesWritten += size
                 reportBuilder.addFile(filePath, size)
@@ -122,25 +107,15 @@ class GenerateLargeFilesOperation @AssistedInject constructor(
         }
     }
 
+    // Writing one byte past the end extends the file to its full size and leaves the skipped range
+    // as a hole, so an 8GB entry costs a single block. Reading it back yields zeros.
     private suspend fun createLargeFile(
         path: APath<*>,
         size: Long,
-        onProgress: suspend (Long) -> Unit,
     ) = withContext(dispatcherProvider.IO) {
         gatewaySwitch.createFile(path, createParents = false)
-        gatewaySwitch.openOutputStream(path, append = false).use { outputStream ->
-            val buffer = ByteArray(CHUNK_SIZE)
-            var position = 0L
-
-            while (position < size) {
-                currentCoroutineContext().ensureActive()
-
-                Random.nextBytes(buffer)
-                val writeSize = minOf(CHUNK_SIZE.toLong(), size - position).toInt()
-                outputStream.write(buffer, 0, writeSize)
-                position += SPARSE_INTERVAL
-                onProgress(minOf(position, size))
-            }
+        gatewaySwitch.file(path, readWrite = true).use { handle ->
+            handle.write(size - 1, ByteArray(1), 0, 1)
         }
     }
 
@@ -163,7 +138,5 @@ class GenerateLargeFilesOperation @AssistedInject constructor(
         private const val KB = 1024L
         private const val MB = 1024L * KB
         private const val GB = 1024L * MB
-        private const val CHUNK_SIZE = 1024 * 1024 // 1MB chunks
-        private const val SPARSE_INTERVAL = 10L * MB // Write every 10MB for sparse files
     }
 }
