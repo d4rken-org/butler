@@ -23,8 +23,8 @@ import eu.darken.butler.common.compose.tour.TourStep
  * chips and each preview is a fixed 160dp, so in a short window at large font scale the first
  * card's preview sits below the viewport and never registers. The button step prepares in the
  * other direction: it hides on scroll, so stepping back to it has to restore the top of the grid.
- * The placeholder is the grid's last item whenever selection is off, so its step scrolls to the
- * end.
+ * The placeholder sits at the end of the tab cards with the explanation cards below it, so its
+ * step scrolls to the end of the grid and, if needed, one item back.
  */
 object WorkspaceManagerTour : GuidedTour {
 
