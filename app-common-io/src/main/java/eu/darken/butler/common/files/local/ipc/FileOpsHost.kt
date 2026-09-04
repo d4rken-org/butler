@@ -81,27 +81,6 @@ class FileOpsHost @Inject constructor(
         throw e.wrapToPropagate()
     }
 
-    override fun walkStream(
-        path: LocalPath,
-        lookupOptions: LookupOptions,
-        pathDoesNotContain: List<String>
-    ): RemoteInputStream = try {
-        if (Bugs.isTrace) log(TAG, VERBOSE) { "walkStream($path)..." }
-        runBlocking {
-            DirectLocalWalker(
-                fileSystemOps = fileSystemOps,
-                start = path,
-                lookupOptions = lookupOptions,
-                onFilter = { lookup ->
-                    pathDoesNotContain.none { lookup.path.contains(it) }
-                },
-            )
-        }.toRemoteInputStream(appScope + dispatcherProvider.IO)
-    } catch (e: Exception) {
-        log(TAG, ERROR) { "walkStream(path=$path) failed\n${e.asLog()}" }
-        throw e.wrapToPropagate()
-    }
-
     override fun walkStreamV2(
         path: LocalPath,
         options: LookupOptions,

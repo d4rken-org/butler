@@ -31,9 +31,6 @@ interface FileOpsConnection {
     LocalPathLookup lookup(in LocalPath path, in LookupOptions options);
     RemoteInputStream lookupFilesStream(in LocalPath path, in LookupOptions options);
 
-    /** Legacy walk stream (raw lookups, no error transport). Superseded by walkStreamV2 (see end of interface). */
-    RemoteInputStream walkStream(in LocalPath path, in LookupOptions options, in List<String> pathDoesNotContain);
-
     long du(in LocalPath path);
 
     boolean createSymlink(in LocalPath linkPath, in LocalPath targetPath);

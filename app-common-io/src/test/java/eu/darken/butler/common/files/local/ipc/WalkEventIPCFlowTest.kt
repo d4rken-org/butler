@@ -64,9 +64,8 @@ class WalkEventIPCFlowTest : BaseTest() {
 
     @Test
     fun `consumer going away does not fault the host scope`() {
-        // Same containment contract as LocalPathLookupIPCFlow: when the client closes its end
-        // mid-stream, the host writer's broken-pipe failure must not fault the host's app scope
-        // (an uncaught exception there kills the privileged process).
+        // When the client closes its end mid-stream, the host writer's broken-pipe failure must not
+        // fault the host's app scope (an uncaught exception there kills the privileged process).
         val uncaught = CopyOnWriteArrayList<Throwable>()
         val supervisor = SupervisorJob()
         val scope = CoroutineScope(
