@@ -1,12 +1,14 @@
 package eu.darken.butler.common.files.local.ipc
 
 import android.os.Parcel
+import android.os.Parcelable
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.errors.PathPermissionDeniedException
 import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.permissions.PermissionErrorClassifier
 import eu.darken.butler.common.ipc.IpcClientModule
+import eu.darken.butler.common.ipc.IpcHostModule
 import eu.darken.butler.common.issue.Issue
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -20,9 +22,10 @@ import testhelpers.TestApplication
 import java.io.IOException
 
 /**
- * What reaches the client when the host raises an issue mid-operation: the exception that caused it,
- * rebuilt, rather than its rendered text. The exceptions here are shaped like the ones the local
- * file system ops actually raise, a [WriteException] wrapping the errno failure as its cause.
+ * What crosses the issue callback in both directions: the exception that caused the issue, and the
+ * one a cancelling resolution answers with, rebuilt rather than reduced to their rendered text. The
+ * failures here are shaped like the ones the local file system ops actually raise, a
+ * [WriteException] wrapping the errno failure as its cause.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [33], application = TestApplication::class)
@@ -30,13 +33,14 @@ class FileOperationIssueTransportTest : BaseTest() {
 
     private val target = LocalPath.build("/data/subtree/target.txt")
     private val client = object : IpcClientModule {}
+    private val host = object : IpcHostModule {}
 
-    private fun FileOperationIssue.throughParcel(): FileOperationIssue {
+    private inline fun <reified T : Parcelable> T.throughParcel(): T {
         val parcel = Parcel.obtain()
         return try {
             parcel.writeParcelable(this, 0)
             parcel.setDataPosition(0)
-            parcel.readParcelable<FileOperationIssue>(FileOperationIssue::class.java.classLoader)!!
+            parcel.readParcelable<T>(T::class.java.classLoader)!!
         } finally {
             parcel.recycle()
         }
@@ -111,5 +115,32 @@ class FileOperationIssueTransportTest : BaseTest() {
             rebuiltUnknown.shouldBeTypeOf<PathActionIssue.UnknownError>()
             rebuiltUnknown.exception.message shouldBe "legacy unknown text"
         }
+    }
+
+    @Test
+    fun `a cancelling resolution reaches the host as the exception it was given`() {
+        val issue = PathActionIssue.UnknownError(destinationPath = target, exception = IOException("boom"))
+        val cancel = PathActionIssue.UnknownError.Resolution.Cancel(SecurityException("x"))
+
+        val sent = with(client) { toFileOperationIssueResolution(cancel) }.throughParcel()
+        val rebuilt = with(host) { toPathActionIssueResolution(sent, issue) }
+
+        rebuilt.shouldBeTypeOf<PathActionIssue.UnknownError.Resolution.Cancel>()
+        rebuilt.error.shouldBeTypeOf<SecurityException>().message shouldBe "x"
+    }
+
+    @Test
+    fun `an unmarked cancel error is still used as a message`() {
+        val issue = PathActionIssue.UnknownError(destinationPath = target, exception = IOException("boom"))
+        val sent = FileOperationIssueResolution(
+            resolutionType = FileOperationIssueResolution.ResolutionType.CANCEL,
+            cancelled = true,
+            error = "legacy cancel text",
+        ).throughParcel()
+
+        val rebuilt = with(host) { toPathActionIssueResolution(sent, issue) }
+
+        rebuilt.shouldBeTypeOf<PathActionIssue.UnknownError.Resolution.Cancel>()
+        rebuilt.error.shouldBeTypeOf<IOException>().message shouldBe "legacy cancel text"
     }
 }

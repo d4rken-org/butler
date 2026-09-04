@@ -34,6 +34,13 @@ interface IpcClientModule {
     fun decodeStreamError(carrier: String?): Throwable? =
         IpcErrorCodec.decodeIfMarked(carrier, Throwable().stackTrace)
 
+    /**
+     * The client's encoding half, for the values it sends back to a host: an issue resolution
+     * carries the exception the user's cancel was based on. Compact, because nothing on the host
+     * renders a stack from it.
+     */
+    fun Throwable.encodeToPropagate(): String = IpcErrorCodec.encodeCompact(this)
+
     companion object {
         private val TAG = logTag("IPC", "Module")
     }

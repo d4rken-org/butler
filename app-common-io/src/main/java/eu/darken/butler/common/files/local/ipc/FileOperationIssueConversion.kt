@@ -6,6 +6,7 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.ipc.IpcClientModule
 import eu.darken.butler.common.ipc.IpcErrorCodec
+import eu.darken.butler.common.ipc.IpcHostModule
 import eu.darken.butler.common.issue.Issue
 import java.io.IOException
 import kotlin.uuid.Uuid
@@ -143,8 +144,10 @@ fun IpcClientModule.toPathActionIssue(issue: FileOperationIssue): PathActionIssu
  * Used on client side before returning resolution from callback.
  */
 @Suppress("CyclomaticComplexMethod", "ComplexMethod")
-fun PathActionIssue.Resolution.toFileOperationIssueResolution(): FileOperationIssueResolution {
-    return when (val resolution = this) {
+fun IpcClientModule.toFileOperationIssueResolution(
+    resolution: PathActionIssue.Resolution,
+): FileOperationIssueResolution {
+    return when (resolution) {
         is PathActionIssue.PathAlreadyExists.Resolution.Skip ->
             FileOperationIssueResolution(
                 resolutionType = FileOperationIssueResolution.ResolutionType.SKIP,
@@ -180,7 +183,7 @@ fun PathActionIssue.Resolution.toFileOperationIssueResolution(): FileOperationIs
             FileOperationIssueResolution(
                 resolutionType = FileOperationIssueResolution.ResolutionType.CANCEL,
                 cancelled = true,
-                error = resolution.error?.message
+                error = resolution.error?.encodeToPropagate(),
             )
 
         is PathActionIssue.InsufficientPermission.Resolution.Skip ->
@@ -193,7 +196,7 @@ fun PathActionIssue.Resolution.toFileOperationIssueResolution(): FileOperationIs
             FileOperationIssueResolution(
                 resolutionType = FileOperationIssueResolution.ResolutionType.CANCEL,
                 cancelled = true,
-                error = resolution.error?.message
+                error = resolution.error?.encodeToPropagate(),
             )
 
         is PathActionIssue.InsufficientSpace.Resolution.Retry ->
@@ -205,7 +208,7 @@ fun PathActionIssue.Resolution.toFileOperationIssueResolution(): FileOperationIs
             FileOperationIssueResolution(
                 resolutionType = FileOperationIssueResolution.ResolutionType.CANCEL,
                 cancelled = true,
-                error = resolution.error?.message
+                error = resolution.error?.encodeToPropagate(),
             )
 
         is PathActionIssue.UnknownError.Resolution.Skip ->
@@ -223,7 +226,7 @@ fun PathActionIssue.Resolution.toFileOperationIssueResolution(): FileOperationIs
             FileOperationIssueResolution(
                 resolutionType = FileOperationIssueResolution.ResolutionType.CANCEL,
                 cancelled = true,
-                error = resolution.error?.message
+                error = resolution.error?.encodeToPropagate(),
             )
 
         else -> throw IllegalArgumentException("Unknown resolution type: $resolution")
@@ -237,12 +240,15 @@ fun PathActionIssue.Resolution.toFileOperationIssueResolution(): FileOperationIs
  * @param issue Original issue (needed for type-specific resolution creation)
  */
 @Suppress("CyclomaticComplexMethod")
-fun FileOperationIssueResolution.toPathActionIssueResolution(
-    issue: PathActionIssue
-): PathActionIssue.Resolution {
+fun IpcHostModule.toPathActionIssueResolution(
+    resolution: FileOperationIssueResolution,
+    issue: PathActionIssue,
+): PathActionIssue.Resolution = with(resolution) {
     if (cancelled) {
-        val error = error?.let { IOException(it) }
-        return when (issue) {
+        // Cancel takes an Exception, so a decoded Throwable that is none falls back to its text.
+        val error = (decodeCallbackError(resolution.error) as? Exception)
+            ?: resolution.error?.let { IOException(it) }
+        return@with when (issue) {
             is PathActionIssue.PathAlreadyExists ->
                 PathActionIssue.PathAlreadyExists.Resolution.Cancel(error)
             is PathActionIssue.InsufficientPermission ->
@@ -262,7 +268,7 @@ fun FileOperationIssueResolution.toPathActionIssueResolution(
         }
     }
 
-    return when (issue) {
+    when (issue) {
         is PathActionIssue.PathAlreadyExists -> when (resolutionType) {
             FileOperationIssueResolution.ResolutionType.SKIP ->
                 PathActionIssue.PathAlreadyExists.Resolution.Skip(applyToAll)
