@@ -1,10 +1,11 @@
 package eu.darken.butler.common.files.local.ipc
 
-import android.content.Context
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalPathLookup
+import eu.darken.butler.common.ipc.IpcClientModule
+import eu.darken.butler.common.ipc.IpcErrorCodec
 import eu.darken.butler.common.issue.Issue
 import java.io.IOException
 import kotlin.uuid.Uuid
@@ -17,15 +18,20 @@ import kotlin.uuid.Uuid
 /**
  * Convert from domain PathActionIssue to IPC FileOperationIssue.
  * Used on host side before calling callback.
+ *
+ * Nothing here resolves a [eu.darken.butler.common.ca.CaString]: the host process may hold a context
+ * whose resources are not ours (the root host runs on the framework's system context), so the text
+ * the user sees is built on the client from the transported exception.
  */
-fun PathActionIssue.toFileOperationIssue(context: Context): FileOperationIssue {
+fun PathActionIssue.toFileOperationIssue(): FileOperationIssue {
     return when (this) {
         is PathActionIssue.InsufficientPermission -> FileOperationIssue(
             issueId = id.id.toString(),
             issueType = FileOperationIssue.IssueType.PERMISSION_DENIED,
             sourcePath = source as? LocalPathLookup,
             destinationPath = destinationPath as LocalPath,
-            errorMessage = exception?.toString(),
+            // Compact: nothing renders a stack for a permission issue.
+            error = exception?.let { IpcErrorCodec.encodeCompact(it) },
             canSkip = canSkip,
         )
 
@@ -57,7 +63,8 @@ fun PathActionIssue.toFileOperationIssue(context: Context): FileOperationIssue {
             sourcePath = source as? LocalPathLookup,
             destinationPath = (destinationPath as? LocalPath) ?: (source?.lookedUp as? LocalPath)
                 ?: throw IllegalArgumentException("UnknownError must have at least source or destinationPath"),
-            errorMessage = errorMessage.get(context),
+            // Full payload: the unknown-error sheet renders the host stack.
+            error = IpcErrorCodec.encode(exception),
             canSkip = canSkip,
             canRetry = canRetry,
         )
@@ -83,21 +90,26 @@ fun PathActionIssue.toFileOperationIssue(context: Context): FileOperationIssue {
 /**
  * Convert from IPC FileOperationIssue to domain PathActionIssue.
  * Used on client side when receiving issue from host.
+ *
+ * [PathActionIssue.UnknownError.errorMessage] is left at its default, so the description is derived
+ * here from the rebuilt exception, in the user's locale. A producer-supplied `errorMessage` does not
+ * survive the trip and would be silently replaced by that default.
  */
-fun FileOperationIssue.toPathActionIssue(): PathActionIssue {
-    val issueId = Issue.Id(id = Uuid.parse(issueId))
+fun IpcClientModule.toPathActionIssue(issue: FileOperationIssue): PathActionIssue = with(issue) {
+    val id = Issue.Id(id = Uuid.parse(issueId))
 
-    return when (issueType) {
+    when (issueType) {
         FileOperationIssue.IssueType.PERMISSION_DENIED -> PathActionIssue.InsufficientPermission(
-            id = issueId,
+            id = id,
             source = sourcePath,
             destinationPath = destinationPath,
             canSkip = canSkip,
-            exception = errorMessage?.let { WriteException(path = destinationPath, cause = IOException(it)) },
+            exception = decodeStreamError(error)
+                ?: error?.let { WriteException(path = destinationPath, cause = IOException(it)) },
         )
 
         FileOperationIssue.IssueType.PATH_ALREADY_EXISTS -> PathActionIssue.PathAlreadyExists(
-            id = issueId,
+            id = id,
             source = sourcePath,
             destination = destinationLookup
                 ?: throw IllegalArgumentException("PathAlreadyExists must have destinationLookup"),
@@ -110,16 +122,16 @@ fun FileOperationIssue.toPathActionIssue(): PathActionIssue {
         )
 
         FileOperationIssue.IssueType.INSUFFICIENT_SPACE -> PathActionIssue.InsufficientSpace(
-            id = issueId,
+            id = id,
             source = sourcePath!!,  // Source must be present for this issue type
             destinationPath = destinationPath,
         )
 
         FileOperationIssue.IssueType.UNKNOWN_ERROR -> PathActionIssue.UnknownError(
-            id = issueId,
+            id = id,
             source = sourcePath,
             destinationPath = destinationPath,
-            exception = IOException(errorMessage ?: "Unknown error"),
+            exception = decodeStreamError(error) ?: IOException(error ?: "Unknown error"),
             canSkip = canSkip,
             canRetry = canRetry,
         )

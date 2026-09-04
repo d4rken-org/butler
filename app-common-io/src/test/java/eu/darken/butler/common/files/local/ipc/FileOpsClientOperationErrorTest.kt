@@ -1,7 +1,5 @@
 package eu.darken.butler.common.files.local.ipc
 
-import android.content.Context
-import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.actions.CopyAction
@@ -62,7 +60,6 @@ class FileOpsClientOperationErrorTest : BaseTest() {
     )
 
     private fun host() = FileOpsHost(
-        context = ApplicationProvider.getApplicationContext<Context>(),
         appScope = scope,
         dispatcherProvider = TestDispatcherProvider(Dispatchers.IO),
         fileSystemOps = hostOps,

@@ -1,9 +1,7 @@
 package eu.darken.butler.common.files.local.ipc
 
-import android.content.Context
 import android.os.DeadObjectException
 import android.os.RemoteException
-import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.Bugs
@@ -51,7 +49,6 @@ import kotlin.time.Instant
  * Resides in extra process.
  */
 class FileOpsHost @Inject constructor(
-    @ApplicationContext private val context: Context,
     @AppScope private val appScope: CoroutineScope,
     private val dispatcherProvider: DispatcherProvider,
     private val fileSystemOps: LocalFileSystemOps,
@@ -302,7 +299,7 @@ class FileOpsHost @Inject constructor(
         val eventFlow = channelFlow {
             // Convert callback to issue handler (explicit suspend function)
             suspend fun handleIssue(issue: PathActionIssue): PathActionIssue.Resolution {
-                val ipcIssue = issue.toFileOperationIssue(context)
+                val ipcIssue = issue.toFileOperationIssue()
                 try {
                     val ipcResolution = callback!!.onIssue(ipcIssue)
                     return ipcResolution.toPathActionIssueResolution(issue)
@@ -373,7 +370,7 @@ class FileOpsHost @Inject constructor(
         val eventFlow = channelFlow {
             // Convert callback to issue handler (explicit suspend function)
             suspend fun handleIssue(issue: PathActionIssue): PathActionIssue.Resolution {
-                val ipcIssue = issue.toFileOperationIssue(context)
+                val ipcIssue = issue.toFileOperationIssue()
                 try {
                     val ipcResolution = callback!!.onIssue(ipcIssue)
                     return ipcResolution.toPathActionIssueResolution(issue)
@@ -448,7 +445,7 @@ class FileOpsHost @Inject constructor(
         val eventFlow = channelFlow {
             // Convert callback to issue handler (explicit suspend function)
             suspend fun handleIssue(issue: PathActionIssue): PathActionIssue.Resolution {
-                val ipcIssue = issue.toFileOperationIssue(context)
+                val ipcIssue = issue.toFileOperationIssue()
                 try {
                     val ipcResolution = callback!!.onIssue(ipcIssue)
                     return ipcResolution.toPathActionIssueResolution(issue)
