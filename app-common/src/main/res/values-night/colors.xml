@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!--
-    At night the butler wears a grey suit. Only the outfit moves: mascot_ink and the bright colors
-    are drawn on the head and shirt, so lightening them would wash the character out.
+    At night the butler wears a grey suit. Everything that touches the background moves with it,
+    the hat included. mascot_ink and the bright colors are drawn wholly on the head, so lightening
+    them would only wash the character out.
     Ratios are against #0F1510, the dark surface these were picked for.
     -->
     <color name="mascot_suit">#6e6e6e</color>             <!-- 3.63:1 -->
