@@ -50,7 +50,7 @@ data class LibraryPkg(
 
     override val label: CaString = caString { context ->
         context.packageManager.getLabel2(id)
-            ?: sharedLibraryInfo.name
+            ?: sharedLibraryInfo.name?.takeIf { it.isNotBlank() }
             ?: id.name
     }.cache()
 
