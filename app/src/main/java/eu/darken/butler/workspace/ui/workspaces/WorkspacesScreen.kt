@@ -560,7 +560,7 @@ fun WorkspacesScreenHost(
             // Only while the manager is down: the overlay covers the rail, and a bar offset over a
             // full-width grid would look misplaced.
             val railVisible = design?.isSingle == false && !pageManagerState.isManagerOverlayVisible
-            val bottomRailVisible = railVisible && design?.railPlacement == WorkspaceDesign.RailPlacement.BOTTOM
+            val bottomRailVisible = railVisible && design.railPlacement == WorkspaceDesign.RailPlacement.BOTTOM
             WorkspaceClosedUndoBarHost(
                 feedback = feedback,
                 startRailVisible = railVisible && !bottomRailVisible,

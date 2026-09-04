@@ -5,6 +5,7 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,6 +40,7 @@ import androidx.compose.material.icons.twotone.Looks4
 import androidx.compose.material.icons.twotone.LooksOne
 import androidx.compose.material.icons.twotone.LooksTwo
 import androidx.compose.material.icons.twotone.RemoveCircleOutline
+import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FloatingActionButton
@@ -47,7 +49,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
@@ -394,14 +395,20 @@ fun WorkspaceNavigationRail(
 }
 
 /**
- * Material3's [VerticalDivider] fills the height it is offered, which in [RailPlacement.BOTTOM] is
- * the whole window - the rail is the unweighted child of the layout's column. A finite height keeps
- * it inside what the entries already impose on the rail's cross-axis.
+ * In [RailPlacement.BOTTOM] the divider is drawn as a sized [Box] rather than Material3's
+ * `VerticalDivider`: that one fills the height it is offered, which here is the whole window - the
+ * rail is the unweighted child of the layout's column. The explicit height keeps the divider inside
+ * what the entries already impose on the rail's cross-axis.
  */
 @Composable
 private fun RailSectionDivider(placement: RailPlacement) = when (placement) {
     RailPlacement.START -> HorizontalDivider()
-    RailPlacement.BOTTOM -> VerticalDivider(modifier = Modifier.height(RailItemHeight))
+    RailPlacement.BOTTOM -> Box(
+        Modifier
+            .width(DividerDefaults.Thickness)
+            .height(RailItemHeight)
+            .background(DividerDefaults.color),
+    )
 }
 
 /**
