@@ -118,6 +118,15 @@ val LocalPaneEdges = compositionLocalOf {
 }
 
 /**
+ * How much chrome of the app's own sits below the enclosing pane, e.g. the navigation rail in its
+ * bottom placement. Non-zero only for the pane that would touch the bottom window edge if that
+ * chrome weren't there — the keyboard reaches no other pane.
+ *
+ * Defaults to nothing, so a pane with the window edge below it behaves exactly as it did.
+ */
+val LocalPaneBottomChrome = compositionLocalOf { 0.dp }
+
+/**
  * Pads content away from the horizontal system bars / cutouts its pane touches.
  *
  * Applied to what the user reads — page content, banners, the surface of a dialog or sheet — and
@@ -168,6 +177,8 @@ fun rememberPaneFloatingBarStackState(
     includeImeInset: Boolean = false,
     estimatedContentPadding: Dp = Dp.Unspecified,
 ): FloatingBarStackState {
+    val density = LocalDensity.current
+    val bottomChrome = LocalPaneBottomChrome.current
     val state = rememberFloatingBarStackState(
         position = position,
         defaultSpacing = defaultSpacing,
@@ -175,6 +186,7 @@ fun rememberPaneFloatingBarStackState(
         contentPadding = contentPadding,
         includeSystemBarInset = design.paneEdges.includesSystemBarInset(position),
         includeImeInset = includeImeInset,
+        bottomChromePx = with(density) { bottomChrome.toPx() },
         estimatedContentPadding = estimatedContentPadding,
     )
     PersistBarCollapse(workspaceId = workspaceId, position = position, state = state)
