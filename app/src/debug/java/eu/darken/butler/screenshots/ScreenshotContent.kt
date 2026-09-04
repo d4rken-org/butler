@@ -130,8 +130,21 @@ internal fun ScreenshotPaneFrame(
     layout: WorkspaceDesign.Layout? = null,
     railExtras: List<Workspace.Info> = emptyList(),
 ) {
-    val resolvedLayout = layout ?: rememberWindowSizeInfo().recommendedLayout
-    val design = remember(resolvedLayout) { WorkspaceDesign(layout = resolvedLayout) }
+    val windowSizeInfo = rememberWindowSizeInfo()
+    val resolvedLayout = layout ?: windowSizeInfo.recommendedLayout
+    // This bypasses rememberWorkspaceDesign, so the rail's edge is derived here from the same thing
+    // the app derives it from: whether the window is portrait.
+    val isPortrait = windowSizeInfo.heightDp >= windowSizeInfo.widthDp
+    val design = remember(resolvedLayout, isPortrait) {
+        WorkspaceDesign(
+            layout = resolvedLayout,
+            railPlacement = if (isPortrait) {
+                WorkspaceDesign.RailPlacement.BOTTOM
+            } else {
+                WorkspaceDesign.RailPlacement.START
+            },
+        )
+    }
 
     // Drives the navigation rail; an inconsistent list leaves the rail without tabs.
     val workspaces = remember(panes, railExtras) {
