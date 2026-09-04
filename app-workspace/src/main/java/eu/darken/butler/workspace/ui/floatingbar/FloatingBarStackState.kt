@@ -388,10 +388,14 @@ internal fun imeInsetExtraPx(imeBottomPx: Float, navBottomPx: Float): Float =
  * @param includeSystemBarInset Whether to include the relevant system bar inset
  *        (status bar for TOP position, navigation bar for BOTTOM position).
  * @param includeImeInset Whether bars and content should rise above the soft keyboard. Only
- *        meaningful for a BOTTOM stack that also includes the system bar inset, and only stacks
+ *        meaningful for a BOTTOM stack that reaches the keyboard - one that includes the system bar
+ *        inset, or one separated from the window edge by [bottomChromePx] only - and only stacks
  *        that host a text input which must stay above the keyboard (e.g. the editor) should opt
  *        in. Non-input action bars leave this `false` so a stale host IME inset (which can linger
  *        after a dialog's keyboard is dismissed) never pushes them up.
+ * @param bottomChromePx Chrome of the app's own between this stack and the bottom window edge (the
+ *        navigation rail in its bottom placement). The keyboard covers it, so it is subtracted from
+ *        the IME extra rather than added to it.
  * @param estimatedContentPadding Estimated total content padding for first-frame rendering.
  *        Used when bars haven't registered yet (e.g. screenshot tests, first composition frame).
  *        Once bars register, the actual calculated padding takes over.
@@ -404,6 +408,7 @@ fun rememberFloatingBarStackState(
     contentPadding: Dp = 0.dp,
     includeSystemBarInset: Boolean = true,
     includeImeInset: Boolean = false,
+    bottomChromePx: Float = 0f,
     estimatedContentPadding: Dp = Dp.Unspecified,
 ): FloatingBarStackState {
     val density = LocalDensity.current
@@ -433,9 +438,16 @@ fun rememberFloatingBarStackState(
     // IME contribution as an extra over the nav bar so nav+extra == max(nav, ime) (no double
     // count when the IME inset already spans the nav bar region, e.g. 3-button navigation).
     // Only BOTTOM stacks that opt in track the keyboard; reading WindowInsets.ime is confined to
-    // this branch so non-opted-in stacks never react to a stale host IME inset.
-    val imeExtraPx = if (includeImeInset && includeSystemBarInset && position == BarPosition.BOTTOM) {
-        imeInsetExtraPx(WindowInsets.ime.getBottom(density).toFloat(), systemBarInsetPx)
+    // this branch so non-opted-in stacks never react to a stale host IME inset. A stack that does
+    // not touch the bottom window edge still does when app chrome is all that separates it from the
+    // keyboard, and that chrome's own height is already below the stack.
+    val imeExtraPx = if (
+        includeImeInset &&
+        position == BarPosition.BOTTOM &&
+        (includeSystemBarInset || bottomChromePx > 0f)
+    ) {
+        (imeInsetExtraPx(WindowInsets.ime.getBottom(density).toFloat(), systemBarInsetPx) - bottomChromePx)
+            .coerceAtLeast(0f)
     } else {
         0f
     }
