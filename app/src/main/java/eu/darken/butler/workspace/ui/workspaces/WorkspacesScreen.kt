@@ -30,6 +30,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
@@ -72,6 +73,7 @@ import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarScope
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
 import eu.darken.butler.workspace.ui.floatingbar.LocalWorkspaceBarCollapseStates
+import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.rememberWindowSizeInfo
 import eu.darken.butler.workspace.ui.scroll.LocalWorkspaceScrollPositions
 import eu.darken.butler.workspace.ui.workspaces.adaptive.DividerPositions
@@ -99,6 +101,9 @@ fun WorkspaceScreen(
     onDismissBanner: (Workspace.Id) -> Unit = {},
     onShareError: (Workspace.Id, Throwable) -> Unit = { _, _ -> },
     design: WorkspaceDesign = rememberWorkspaceDesign(state),
+    /** The rail's measured height in its bottom placement; owned by the host, which draws over it. */
+    railThickness: Dp = 0.dp,
+    onRailThicknessChanged: (Dp) -> Unit = {},
 ) {
     val workspaceActionHandler = LocalWorkspaceButtonProvider.current
 
@@ -176,6 +181,8 @@ fun WorkspaceScreen(
                 fullScreenModalVisible = state.fullScreenModalWorkspace != null,
                 firstTabTourPaneNumber = firstTabTourPaneNumber,
                 firstTabTourRequester = createTabRequester,
+                railThickness = railThickness,
+                onRailThicknessChanged = onRailThicknessChanged,
                 onShareError = onShareError,
             )
         } else {
@@ -268,9 +275,15 @@ fun WorkspaceScreen(
 }
 
 /**
- * The pane layout the window gets, from the orientation's panel mode setting and the window size.
+ * The pane layout the window gets, from the orientation's panel mode setting and the window size,
+ * plus the window edge the navigation rail takes.
+ *
  * Shared by the screen and its host: the host draws chrome outside every pane (the close-undo bar)
- * and has to know whether the navigation rail takes the start edge.
+ * and has to know where the rail is.
+ *
+ * The placement follows the window, not the layout: a portrait window that ends up single-pane also
+ * says BOTTOM even though it composes no rail. Everything reading it therefore gates on the rail
+ * being visible rather than on the placement alone.
  */
 @Composable
 fun rememberWorkspaceDesign(state: WorkspacesViewModel.State): WorkspaceDesign {
@@ -294,7 +307,14 @@ fun rememberWorkspaceDesign(state: WorkspacesViewModel.State): WorkspaceDesign {
         WorkspacePanelMode.QUAD_GRID -> WorkspaceDesign.Layout.QUAD_GRID
     }
 
-    return WorkspaceDesign(layout = effectivePaneLayout)
+    return WorkspaceDesign(
+        layout = effectivePaneLayout,
+        railPlacement = if (isLandscape) {
+            WorkspaceDesign.RailPlacement.START
+        } else {
+            WorkspaceDesign.RailPlacement.BOTTOM
+        },
+    )
 }
 
 /**
@@ -414,6 +434,10 @@ fun WorkspacesScreenHost(
     val revealOrigin = remember { WorkspaceRevealOrigin() }
     val revealState = rememberManagerRevealState(visible = pageManagerState.isManagerOverlayVisible)
 
+    // Measured rather than assumed: the entries grow with the font scale, so the bottom rail is not
+    // a constant the chrome outside it could hard-code.
+    var railThickness by remember { mutableStateOf(0.dp) }
+
     // Selection mode is a state inside the overlay, so back leaves it first; dismissing the manager
     // outright would drop a selection the user is still assembling.
     // Gated on the layer rather than the logical flag, same as the pane suppression below: both
@@ -465,6 +489,8 @@ fun WorkspacesScreenHost(
                 onReviewNow = { vm.reviewNow(it) },
                 onDismissBanner = { vm.dismissBanner(it) },
                 onShareError = { workspaceId, error -> vm.shareWorkspaceError(workspaceId, error) },
+                railThickness = railThickness,
+                onRailThicknessChanged = { railThickness = it },
             )
         }
 
@@ -531,27 +557,18 @@ fun WorkspacesScreenHost(
         // most likely first use of this feature. The dialogs below still cover it, which is right:
         // anything asking the user a question outranks an offer they can also just ignore.
         closedFeedback?.let { feedback ->
-            // The rail sits inside the window's start inset and is 80dp beyond it. Only while the
-            // manager is down: the overlay covers the rail, and a bar offset over a full-width grid
-            // would look misplaced.
+            // Only while the manager is down: the overlay covers the rail, and a bar offset over a
+            // full-width grid would look misplaced.
             val railVisible = design?.isSingle == false && !pageManagerState.isManagerOverlayVisible
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .windowInsetsPadding(systemBarsWithOptionalCutout().only(WindowInsetsSides.Horizontal))
-                    .padding(start = if (railVisible) WorkspaceNavigationRailDefaults.Width else 0.dp),
-            ) {
-                FloatingBarStack(
-                    modifier = Modifier.align(Alignment.BottomCenter),
-                    position = BarPosition.BOTTOM,
-                ) {
-                    WorkspaceClosedUndoBar(
-                        feedback = feedback,
-                        onUndo = { vm.undoClose() },
-                        onDismiss = { vm.dismissClosedFeedback(feedback.closeToken) },
-                    )
-                }
-            }
+            val bottomRailVisible = railVisible && design?.railPlacement == WorkspaceDesign.RailPlacement.BOTTOM
+            WorkspaceClosedUndoBarHost(
+                feedback = feedback,
+                startRailVisible = railVisible && !bottomRailVisible,
+                bottomRailVisible = bottomRailVisible,
+                railThickness = railThickness,
+                onUndo = { vm.undoClose() },
+                onDismiss = { vm.dismissClosedFeedback(feedback.closeToken) },
+            )
         }
 
         if (showClearSessionConfirmation) {
@@ -631,6 +648,50 @@ fun WorkspacesScreenHost(
                     onCloseSelected = { vm.onCloseSelectedFromLimitDialog(it) },
                 )
             }
+        }
+    }
+}
+
+/**
+ * Where the close-undo bar sits relative to the navigation rail: beside it in the start placement,
+ * above it in the bottom one. Separate from its caller so a test can drive the geometry with a rail
+ * thickness of its own.
+ *
+ * The bar clears the bottom rail by the rail's measured height, which already contains the
+ * navigation bar inset the rail padded for - hence the stack that leaves that inset out.
+ */
+@Composable
+internal fun WorkspaceClosedUndoBarHost(
+    modifier: Modifier = Modifier,
+    feedback: ClosedWorkspaceFeedback,
+    startRailVisible: Boolean,
+    bottomRailVisible: Boolean,
+    railThickness: Dp,
+    onUndo: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .windowInsetsPadding(systemBarsWithOptionalCutout().only(WindowInsetsSides.Horizontal))
+            .padding(
+                start = if (startRailVisible) WorkspaceNavigationRailDefaults.Thickness else 0.dp,
+                bottom = if (bottomRailVisible) railThickness else 0.dp,
+            ),
+    ) {
+        FloatingBarStack(
+            modifier = Modifier.align(Alignment.BottomCenter),
+            position = BarPosition.BOTTOM,
+            state = rememberFloatingBarStackState(
+                position = BarPosition.BOTTOM,
+                includeSystemBarInset = !bottomRailVisible,
+            ),
+        ) {
+            WorkspaceClosedUndoBar(
+                feedback = feedback,
+                onUndo = onUndo,
+                onDismiss = onDismiss,
+            )
         }
     }
 }

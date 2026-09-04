@@ -8,8 +8,8 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -24,6 +24,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -45,8 +47,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -57,7 +61,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
@@ -69,6 +75,7 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.R
@@ -84,6 +91,7 @@ import eu.darken.butler.workspace.ui.common.CutoutTopRightCornerShape
 import eu.darken.butler.workspace.ui.manager.PaneLayoutGlyph
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.manager.WorkspaceDesign.RailPlacement
 import eu.darken.butler.workspace.ui.manager.paneCells
 import eu.darken.butler.workspace.ui.tour.WorkspaceTourTargets
 import eu.darken.butler.workspace.ui.workspaces.WorkspacePaneInfo
@@ -94,8 +102,8 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapp
 import eu.darken.butler.common.R as CommonR
 
 object WorkspaceNavigationRailDefaults {
-    /** Width past the start window inset the rail pads for itself. */
-    val Width = 80.dp
+    /** Cross-axis extent past the window inset the rail pads for itself. */
+    val Thickness = 80.dp
 
     const val SURFACE_TEST_TAG = "workspace.rail.surface"
     const val CONTENT_TEST_TAG = "workspace.rail.content"
@@ -222,7 +230,12 @@ fun WorkspaceNavigationRail(
     onPaneUnassign: (workspaceId: Workspace.Id) -> Unit,
     onRename: (Workspace.Id) -> Unit = {},
     onPaneMenuToggle: (Boolean) -> Unit = {},
+    /** How much of the bottom edge the rail covers, so chrome outside it can clear the rail. */
+    onRailThicknessChanged: (Dp) -> Unit = {},
 ) {
+    // Taken from the design rather than from a parameter of its own: two sources could disagree.
+    val placement = design.railPlacement
+
     // Local state for reordering
     var localWorkspaces by remember { mutableStateOf(workspaces) }
     var isDragging by remember { mutableStateOf(false) }
@@ -254,8 +267,10 @@ fun WorkspaceNavigationRail(
 
     // A workspace can gain focus without being on screen (opened from a pane far down the list), and
     // an off-screen focused entry leaves the rail looking like nothing happened.
+    // Keyed on the placement too: the two viewports differ in length, so an entry that fits the
+    // vertical one can fall outside the horizontal one without focus or order changing.
     val revealKey = railRevealKey(focusedId, localWorkspaces)
-    LaunchedEffect(revealKey) {
+    LaunchedEffect(revealKey, placement) {
         val focusedIndex = revealKey.orderedIds.indexOf(revealKey.focusedId)
         val layoutInfo = lazyListState.layoutInfo
         // visibleItemsInfo includes items clipped by the viewport, so filter down to the entries that
@@ -272,69 +287,92 @@ fun WorkspaceNavigationRail(
         if (shouldReveal) lazyListState.animateScrollToItem(focusedIndex)
     }
 
-    WorkspaceRailContainer(modifier = modifier) {
+    val railItems: LazyListScope.() -> Unit = {
+        items(
+            items = localWorkspaces,
+            key = { it.id }
+        ) { ws ->
+            ReorderableItem(
+                reorderableLazyListState,
+                key = ws.id
+            ) { isDraggingItem ->
+                val paneIndex = selected.entries.find { it.value.id == ws.id }?.key
+                DraggableWorkspaceRailItem(
+                    workspace = ws,
+                    isFocused = focusedId == ws.id,
+                    currentPaneIndex = paneIndex,
+                    closeHostId = railCloseHost(
+                        closingPaneIndex = paneIndex,
+                        visibleAssignments = selected,
+                        focusedId = focusedId,
+                    ),
+                    onTabAction = onTabAction,
+                    onPaneAssignment = onPaneAssignment,
+                    onPaneUnassign = onPaneUnassign,
+                    onRename = onRename,
+                    design = design,
+                    placement = placement,
+                    onPaneMenuToggle = onPaneMenuToggle,
+                    isDraggingItem = isDraggingItem,
+                    onDragStarted = {
+                        isDragging = true
+                    },
+                    onDragStopped = {
+                        isDragging = false
+                        // Trigger reorder action with new order
+                        val newOrder = localWorkspaces.map { it.id }
+                        onTabAction(WorkspaceAction.Reorder(newOrder))
+                    },
+                    reorderableScope = this,
+                )
+            }
+        }
+    }
+
+    val sectionSpacer = when (placement) {
+        RailPlacement.START -> Modifier.height(RailSectionPadding)
+        RailPlacement.BOTTOM -> Modifier.width(RailSectionPadding)
+    }
+
+    WorkspaceRailContainer(
+        modifier = modifier,
+        placement = placement,
+        onRailThicknessChanged = onRailThicknessChanged,
+    ) { listModifier ->
         // Unconditional: the rail exists once per screen, and only in multi-pane - where the
         // Templates page renders no Butler button of its own.
         WorkspaceButton(
-            modifier = Modifier
-                .padding(vertical = RailSectionPadding)
-                .guidedTourTarget(WorkspaceTourTargets.BUTLER_BUTTON),
+            modifier = when (placement) {
+                RailPlacement.START -> Modifier.padding(vertical = RailSectionPadding)
+                RailPlacement.BOTTOM -> Modifier.padding(horizontal = RailSectionPadding)
+            }.guidedTourTarget(WorkspaceTourTargets.BUTLER_BUTTON),
             currentWorkspaceId = focusedId,
         )
 
-        HorizontalDivider()
+        RailSectionDivider(placement = placement)
 
-        LazyColumn(
-            modifier = Modifier
-                .weight(1f)
-                .padding(vertical = RailSectionPadding)
-                .testTag(WorkspaceNavigationRailDefaults.LIST_TEST_TAG),
-            state = lazyListState,
-            verticalArrangement = Arrangement.spacedBy(RailItemSpacing),
-        ) {
-            items(
-                items = localWorkspaces,
-                key = { it.id }
-            ) { ws ->
-                ReorderableItem(
-                    reorderableLazyListState,
-                    key = ws.id
-                ) { isDraggingItem ->
-                    val paneIndex = selected.entries.find { it.value.id == ws.id }?.key
-                    DraggableWorkspaceRailItem(
-                        workspace = ws,
-                        isFocused = focusedId == ws.id,
-                        currentPaneIndex = paneIndex,
-                        closeHostId = railCloseHost(
-                            closingPaneIndex = paneIndex,
-                            visibleAssignments = selected,
-                            focusedId = focusedId,
-                        ),
-                        onTabAction = onTabAction,
-                        onPaneAssignment = onPaneAssignment,
-                        onPaneUnassign = onPaneUnassign,
-                        onRename = onRename,
-                        design = design,
-                        onPaneMenuToggle = onPaneMenuToggle,
-                        isDraggingItem = isDraggingItem,
-                        onDragStarted = {
-                            isDragging = true
-                        },
-                        onDragStopped = {
-                            isDragging = false
-                            // Trigger reorder action with new order
-                            val newOrder = localWorkspaces.map { it.id }
-                            onTabAction(WorkspaceAction.Reorder(newOrder))
-                        },
-                        reorderableScope = this,
-                    )
-                }
-            }
+        when (placement) {
+            RailPlacement.START -> LazyColumn(
+                modifier = listModifier
+                    .padding(vertical = RailSectionPadding)
+                    .testTag(WorkspaceNavigationRailDefaults.LIST_TEST_TAG),
+                state = lazyListState,
+                verticalArrangement = Arrangement.spacedBy(RailItemSpacing),
+                content = railItems,
+            )
+            RailPlacement.BOTTOM -> LazyRow(
+                modifier = listModifier
+                    .padding(horizontal = RailSectionPadding)
+                    .testTag(WorkspaceNavigationRailDefaults.LIST_TEST_TAG),
+                state = lazyListState,
+                horizontalArrangement = Arrangement.spacedBy(RailItemSpacing),
+                content = railItems,
+            )
         }
 
-        HorizontalDivider()
+        RailSectionDivider(placement = placement)
 
-        Spacer(modifier = Modifier.height(RailSectionPadding))
+        Spacer(modifier = sectionSpacer)
 
         FloatingActionButton(
             onClick = {
@@ -351,40 +389,94 @@ fun WorkspaceNavigationRail(
             )
         }
 
-        Spacer(modifier = Modifier.height(RailSectionPadding))
+        Spacer(modifier = sectionSpacer)
     }
 }
 
+/**
+ * Material3's [VerticalDivider] fills the height it is offered, which in [RailPlacement.BOTTOM] is
+ * the whole window - the rail is the unweighted child of the layout's column. A finite height keeps
+ * it inside what the entries already impose on the rail's cross-axis.
+ */
+@Composable
+private fun RailSectionDivider(placement: RailPlacement) = when (placement) {
+    RailPlacement.START -> HorizontalDivider()
+    RailPlacement.BOTTOM -> VerticalDivider(modifier = Modifier.height(RailItemHeight))
+}
+
+/**
+ * The rail's surface and the axis its content runs along.
+ *
+ * [content] receives the modifier the tab list has to carry: `weight(1f)` is the one scoped call in
+ * the rail's body, and its receiver differs between the two placements.
+ */
 @Composable
 internal fun WorkspaceRailContainer(
     modifier: Modifier = Modifier,
-    content: @Composable ColumnScope.() -> Unit,
+    placement: RailPlacement = RailPlacement.START,
+    onRailThicknessChanged: (Dp) -> Unit = {},
+    content: @Composable (listModifier: Modifier) -> Unit,
 ) {
+    val density = LocalDensity.current
+    DisposableEffect(placement) {
+        onDispose { onRailThicknessChanged(0.dp) }
+    }
     Surface(
         modifier = modifier
-            .fillMaxHeight()
+            .then(
+                when (placement) {
+                    RailPlacement.START -> Modifier.fillMaxHeight()
+                    RailPlacement.BOTTOM -> Modifier.fillMaxWidth()
+                },
+            )
+            .onSizeChanged { size ->
+                if (placement == RailPlacement.BOTTOM) {
+                    onRailThicknessChanged(with(density) { size.height.toDp() })
+                }
+            }
             .testTag(WorkspaceNavigationRailDefaults.SURFACE_TEST_TAG),
         color = MaterialTheme.colorScheme.surface,
         tonalElevation = 1.dp,
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxHeight()
-                // Only the start side: the rail doesn't touch the end edge, and padding for an end-side
-                // navigation bar here would widen the rail while the end pane pads for it as well.
-                .windowInsetsPadding(
-                    systemBarsWithOptionalCutout()
-                        .only(WindowInsetsSides.Start + WindowInsetsSides.Vertical)
-                )
-                .width(WorkspaceNavigationRailDefaults.Width)
-                .testTag(WorkspaceNavigationRailDefaults.CONTENT_TEST_TAG)
-                // Inside the tagged 80dp, so the rail's own width is unaffected. Kept tight because
-                // the entry's spare width is what the pane glyph's notch is carved out of, and what
-                // the label has left after the type icon.
-                .padding(horizontal = RailItemInset),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            content = content,
-        )
+        when (placement) {
+            RailPlacement.START -> Column(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    // Only the start side: the rail doesn't touch the end edge, and padding for an end-side
+                    // navigation bar here would widen the rail while the end pane pads for it as well.
+                    .windowInsetsPadding(
+                        systemBarsWithOptionalCutout()
+                            .only(WindowInsetsSides.Start + WindowInsetsSides.Vertical)
+                    )
+                    .width(WorkspaceNavigationRailDefaults.Thickness)
+                    .testTag(WorkspaceNavigationRailDefaults.CONTENT_TEST_TAG)
+                    // Inside the tagged 80dp, so the rail's own width is unaffected. Kept tight because
+                    // the entry's spare width is what the pane glyph's notch is carved out of, and what
+                    // the label has left after the type icon.
+                    .padding(horizontal = RailItemInset),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                content(Modifier.weight(1f))
+            }
+            // A minimum rather than a fixed extent: an entry grows with the font scale, and along
+            // this axis that growth runs across the rail instead of along its scroll direction.
+            RailPlacement.BOTTOM -> Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    // Only the bottom side: the rail doesn't touch the top edge, and the panes above
+                    // it pad for the status bar themselves.
+                    .windowInsetsPadding(
+                        systemBarsWithOptionalCutout()
+                            .only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)
+                    )
+                    .heightIn(min = WorkspaceNavigationRailDefaults.Thickness)
+                    .testTag(WorkspaceNavigationRailDefaults.CONTENT_TEST_TAG)
+                    .padding(vertical = RailItemInset),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                content(Modifier.weight(1f))
+            }
+        }
     }
 }
 
@@ -412,6 +504,7 @@ internal fun WorkspaceRailItem(
     paneIndex: Int?,
     isFocused: Boolean,
     layout: WorkspaceDesign.Layout = WorkspaceDesign.Layout.SINGLE,
+    placement: RailPlacement = RailPlacement.START,
     isDraggingItem: Boolean = false,
     dragHandleModifier: Modifier = Modifier,
     onClick: () -> Unit,
@@ -458,7 +551,15 @@ internal fun WorkspaceRailItem(
 
     Box(
         modifier = modifier
-            .fillMaxWidth()
+            .then(
+                when (placement) {
+                    // The list is the sized axis in START and the scrolling one in BOTTOM, so the
+                    // entry takes the rail's width from the container in one and states it here in
+                    // the other.
+                    RailPlacement.START -> Modifier.fillMaxWidth()
+                    RailPlacement.BOTTOM -> Modifier.width(WorkspaceNavigationRailDefaults.Thickness)
+                },
+            )
             .scale(scale),
     ) {
         Surface(
@@ -558,61 +659,95 @@ private fun WorkspaceRailItemRtlPreview() {
     }
 }
 
+/** The bottom placement puts the same entries along the other axis. */
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
-private fun WorkspaceRailItemStates(layout: WorkspaceDesign.Layout) {
-    Column(
+private fun WorkspaceRailItemBottomPreview() {
+    WorkspaceRailItemStates(
+        layout = WorkspaceDesign.Layout.TRIPLE_MAIN_LEFT,
+        placement = RailPlacement.BOTTOM,
+    )
+}
+
+@Composable
+private fun WorkspaceRailItemStates(
+    layout: WorkspaceDesign.Layout,
+    placement: RailPlacement = RailPlacement.START,
+) = when (placement) {
+    RailPlacement.START -> Column(
         modifier = Modifier
-            .width(WorkspaceNavigationRailDefaults.Width)
+            .width(WorkspaceNavigationRailDefaults.Thickness)
             .padding(horizontal = RailItemInset),
         verticalArrangement = Arrangement.spacedBy(RailItemSpacing),
     ) {
-        WorkspaceRailItem(
-            workspace = Workspace.Info(
-                id = Workspace.Id(),
-                type = Workspace.Type.EXPLORER,
-                title = "Explorer".toCaString(),
-            ),
-            paneIndex = null,
-            isFocused = false,
-            layout = layout,
-            onClick = {},
-        )
-        // Assigned but not focused: the border has to follow the notch.
-        WorkspaceRailItem(
-            workspace = Workspace.Info(
-                id = Workspace.Id(),
-                type = Workspace.Type.SEARCHER,
-                title = "Search".toCaString(),
-            ),
-            paneIndex = 1,
-            isFocused = false,
-            layout = layout,
-            onClick = {},
-        )
-        WorkspaceRailItem(
-            workspace = Workspace.Info(
-                id = Workspace.Id(),
-                type = Workspace.Type.EDITOR,
-                title = "Editor".toCaString(),
-            ),
-            paneIndex = 0,
-            isFocused = true,
-            layout = layout,
-            onClick = {},
-        )
-        WorkspaceRailItem(
-            workspace = Workspace.Info(
-                id = Workspace.Id(),
-                type = Workspace.Type.TEMPLATES,
-                title = "Templates".toCaString(),
-            ),
-            paneIndex = 2,
-            isFocused = false,
-            layout = layout,
-            isDraggingItem = true,
-            onClick = {},
-        )
+        WorkspaceRailItemStateEntries(layout = layout, placement = placement)
     }
+    RailPlacement.BOTTOM -> Row(
+        modifier = Modifier
+            .heightIn(min = WorkspaceNavigationRailDefaults.Thickness)
+            .padding(vertical = RailItemInset),
+        horizontalArrangement = Arrangement.spacedBy(RailItemSpacing),
+    ) {
+        WorkspaceRailItemStateEntries(layout = layout, placement = placement)
+    }
+}
+
+@Composable
+private fun WorkspaceRailItemStateEntries(
+    layout: WorkspaceDesign.Layout,
+    placement: RailPlacement,
+) {
+    WorkspaceRailItem(
+        workspace = Workspace.Info(
+            id = Workspace.Id(),
+            type = Workspace.Type.EXPLORER,
+            title = "Explorer".toCaString(),
+        ),
+        paneIndex = null,
+        isFocused = false,
+        layout = layout,
+        placement = placement,
+        onClick = {},
+    )
+    // Assigned but not focused: the border has to follow the notch.
+    WorkspaceRailItem(
+        workspace = Workspace.Info(
+            id = Workspace.Id(),
+            type = Workspace.Type.SEARCHER,
+            title = "Search".toCaString(),
+        ),
+        paneIndex = 1,
+        isFocused = false,
+        layout = layout,
+        placement = placement,
+        onClick = {},
+    )
+    WorkspaceRailItem(
+        workspace = Workspace.Info(
+            id = Workspace.Id(),
+            type = Workspace.Type.EDITOR,
+            title = "Editor".toCaString(),
+        ),
+        paneIndex = 0,
+        isFocused = true,
+        layout = layout,
+        placement = placement,
+        onClick = {},
+    )
+    WorkspaceRailItem(
+        workspace = Workspace.Info(
+            id = Workspace.Id(),
+            type = Workspace.Type.TEMPLATES,
+            title = "Templates".toCaString(),
+        ),
+        paneIndex = 2,
+        isFocused = false,
+        layout = layout,
+        placement = placement,
+        isDraggingItem = true,
+        onClick = {},
+    )
 }
 
 @Composable
@@ -627,6 +762,7 @@ private fun DraggableWorkspaceRailItem(
     onPaneUnassign: (workspaceId: Workspace.Id) -> Unit,
     onRename: (Workspace.Id) -> Unit,
     design: WorkspaceDesign,
+    placement: RailPlacement,
     onPaneMenuToggle: (Boolean) -> Unit,
     isDraggingItem: Boolean,
     onDragStarted: () -> Unit,
@@ -646,6 +782,7 @@ private fun DraggableWorkspaceRailItem(
             paneIndex = currentPaneIndex,
             isFocused = isFocused,
             layout = design.layout,
+            placement = placement,
             isDraggingItem = isDraggingItem,
             dragHandleModifier = with(reorderableScope) {
                 // Long press, not press: the handle drags along the list's own scroll axis, so a
@@ -824,7 +961,16 @@ private fun WorkspaceRailItemMenuUnassignedPreview() {
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
-private fun WorkspaceNavigationRailPreview() {
+private fun WorkspaceNavigationRailPreview() = WorkspaceNavigationRailStates(RailPlacement.START)
+
+/** What a portrait window gets: the same rail along the bottom edge. */
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspaceNavigationRailBottomPreview() = WorkspaceNavigationRailStates(RailPlacement.BOTTOM)
+
+@Composable
+private fun WorkspaceNavigationRailStates(placement: RailPlacement) {
     val tabs = listOf(
         Workspace.Info(
             id = Workspace.Id(),
@@ -848,7 +994,10 @@ private fun WorkspaceNavigationRailPreview() {
         focusedId = tabs[0].id,
         // The rail only exists in multi-pane mode, so previewing the default SINGLE would show a
         // rail that can never occur - and no glyphs.
-        design = WorkspaceDesign(layout = WorkspaceDesign.Layout.TRIPLE_MAIN_LEFT),
+        design = WorkspaceDesign(
+            layout = WorkspaceDesign.Layout.TRIPLE_MAIN_LEFT,
+            railPlacement = placement,
+        ),
         onTabAction = {},
         onPaneAssignment = { _, _ -> },
         onPaneUnassign = {},
