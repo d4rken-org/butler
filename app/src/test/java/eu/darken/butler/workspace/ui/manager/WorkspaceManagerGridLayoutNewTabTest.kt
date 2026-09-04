@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -14,6 +15,7 @@ import eu.darken.butler.common.compose.tour.TourTargetRegistry
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.rows.TEST_TAG_NEW_TAB_CARD
 import eu.darken.butler.workspace.ui.manager.tour.WorkspaceManagerTour
+import io.kotest.matchers.ints.shouldBeLessThan
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import org.junit.Test
@@ -22,7 +24,7 @@ import testhelpers.ComposeTest
 
 /**
  * The placeholder is the manager's only route to "pick any tool", so it has to be there whenever
- * selection is off - and it has to be the grid's last item, which is where the tour scrolls to.
+ * selection is off - and it belongs with the tab cards, above the explanation cards.
  */
 @Config(qualifiers = "w720dp-h1600dp")
 class WorkspaceManagerGridLayoutNewTabTest : ComposeTest() {
@@ -59,6 +61,7 @@ class WorkspaceManagerGridLayoutNewTabTest : ComposeTest() {
         onNewTabClick: () -> Unit = {},
         registry: TourTargetRegistry = TourTargetRegistry(),
         onGridState: (LazyGridState) -> Unit = {},
+        screenWidth: Dp = 720.dp,
     ) {
         composeTestRule.setContent {
             CompositionLocalProvider(LocalTourTargetRegistry provides registry) {
@@ -68,7 +71,7 @@ class WorkspaceManagerGridLayoutNewTabTest : ComposeTest() {
                     WorkspaceManagerGridLayout(
                         state = state,
                         paddingValues = PaddingValues(),
-                        screenWidth = 720.dp,
+                        screenWidth = screenWidth,
                         onCloseWorkspace = {},
                         onReorderWorkspaces = {},
                         onSelectWorkspace = {},
@@ -116,11 +119,38 @@ class WorkspaceManagerGridLayoutNewTabTest : ComposeTest() {
         registry.get(WorkspaceManagerTour.NEW_TAB_TARGET) shouldNotBe null
     }
 
+    /**
+     * Also the premise of [WorkspaceManagerGridDefaults.scrollToNewTabCard]: the end of the grid is
+     * at most one item past the placeholder.
+     */
     @Test
-    fun `the placeholder is the last item, even below the explanation card`() {
+    fun `the placeholder sits directly above the explanation card`() {
         lateinit var gridState: LazyGridState
         compose(state(showBadgeExplanation = true), onGridState = { gridState = it })
 
-        gridState.layoutInfo.visibleItemsInfo.last().key shouldBe WorkspaceManagerColumnItemKey.NewTab
+        val keys = gridState.layoutInfo.visibleItemsInfo.map { it.key }
+        keys.drop(keys.indexOf(WorkspaceManagerColumnItemKey.NewTab) + 1) shouldBe
+            listOf(WorkspaceManagerColumnItemKey.Explanation.BadgeExplanation)
+    }
+
+    /**
+     * Three columns fit a one-column placeholder and a two-column card on one line, so the tab count
+     * would decide whether the explanation card lands beside the placeholder or below it.
+     */
+    @Config(qualifiers = "w1000dp-h2400dp")
+    @Test
+    fun `three columns keep the explanation card on its own line`() {
+        lateinit var gridState: LazyGridState
+        val threeTabs = listOf(item(idA, "Tab one"), item(idB, "Tab two"), item(Workspace.Id(), "Tab three"))
+        compose(
+            state(workspaces = threeTabs, showBadgeExplanation = true),
+            onGridState = { gridState = it },
+            screenWidth = 900.dp,
+        )
+
+        val items = gridState.layoutInfo.visibleItemsInfo.associateBy { it.key }
+        val placeholder = items.getValue(WorkspaceManagerColumnItemKey.NewTab)
+        val explanation = items.getValue(WorkspaceManagerColumnItemKey.Explanation.BadgeExplanation)
+        placeholder.row shouldBeLessThan explanation.row
     }
 }

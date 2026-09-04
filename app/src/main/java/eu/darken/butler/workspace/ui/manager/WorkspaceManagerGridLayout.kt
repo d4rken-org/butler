@@ -15,6 +15,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
@@ -31,12 +32,36 @@ import eu.darken.butler.workspace.ui.manager.rows.NewTabCard
 import eu.darken.butler.workspace.ui.manager.rows.WorkspaceBadgeExplanationCard
 import eu.darken.butler.workspace.ui.manager.rows.WorkspaceGridItem
 import eu.darken.butler.workspace.ui.manager.rows.WorkspaceStatusCard
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyGridState
+import kotlin.time.Duration.Companion.seconds
 
 object WorkspaceManagerGridDefaults {
     /** The status card occupies grid slot 0 whenever there is at least one tab. */
     const val FIRST_WORKSPACE_CARD_INDEX = 1
+
+    private val LAYOUT_WAIT = 1.seconds
+
+    /**
+     * Brings the new-tab placeholder into view for the tour. The explanation card is the only item
+     * after it, so where the end of the grid does not show the placeholder, one item back does.
+     *
+     * A grid state from a composition that has not been measured yet reports no items, and scrolling
+     * by that count would park a long grid at the top.
+     */
+    suspend fun scrollToNewTabCard(gridState: LazyGridState) {
+        val itemCount = withTimeoutOrNull(LAYOUT_WAIT) {
+            snapshotFlow { gridState.layoutInfo.totalItemsCount }.first { it > 0 }
+        } ?: return
+        val lastIndex = itemCount - 1
+        gridState.scrollToItem(lastIndex)
+        val isPlaceholderVisible = gridState.layoutInfo.visibleItemsInfo.any {
+            it.key == WorkspaceManagerColumnItemKey.NewTab
+        }
+        if (!isPlaceholderVisible) gridState.scrollToItem((lastIndex - 1).coerceAtLeast(0))
+    }
 }
 
 @Composable
@@ -75,9 +100,6 @@ fun WorkspaceManagerGridLayout(
         screenWidth < 840.dp -> 2
         else -> 3
     }
-
-    // Calculate span for explanation cards - use 2 columns on large screens, full width otherwise
-    val explanationSpan = if (columns == 3) 2 else columns
 
     val reorderableLazyGridState = rememberReorderableLazyGridState(
         lazyGridState = lazyGridState
@@ -182,23 +204,25 @@ fun WorkspaceManagerGridLayout(
             }
         }
 
-        // Explanation cards with responsive column spans
-        if (state.showBadgeExplanation && !state.isSelectionActive) {
-            item(
-                key = WorkspaceManagerColumnItemKey.Explanation.BadgeExplanation,
-                span = { GridItemSpan(explanationSpan) }
-            ) {
-                WorkspaceBadgeExplanationCard(
-                    onDismiss = onDismissBadgeExplanation
-                )
-            }
-        }
-
+        // The placeholder stays with the tab cards, above the explanation cards below it.
         if (!state.isSelectionActive) {
             item(key = WorkspaceManagerColumnItemKey.NewTab, span = { GridItemSpan(1) }) {
                 NewTabCard(
                     modifier = Modifier.animateItem(),
                     onClick = onNewTabClick,
+                )
+            }
+        }
+
+        // Explanation cards with responsive column spans
+        if (state.showBadgeExplanation && !state.isSelectionActive) {
+            item(
+                key = WorkspaceManagerColumnItemKey.Explanation.BadgeExplanation,
+                // A full line, so the placeholder above never ends up beside it on a wide grid.
+                span = { GridItemSpan(maxLineSpan) }
+            ) {
+                WorkspaceBadgeExplanationCard(
+                    onDismiss = onDismissBadgeExplanation
                 )
             }
         }
