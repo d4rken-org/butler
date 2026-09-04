@@ -302,7 +302,7 @@ class FileOpsHost @Inject constructor(
                 val ipcIssue = issue.toFileOperationIssue()
                 try {
                     val ipcResolution = callback!!.onIssue(ipcIssue)
-                    return ipcResolution.toPathActionIssueResolution(issue)
+                    return toPathActionIssueResolution(ipcResolution, issue)
                 } catch (e: DeadObjectException) {
                     log(TAG, ERROR) { "Client process died during issue resolution" }
                     throw IOException("Client process died", e)
@@ -373,7 +373,7 @@ class FileOpsHost @Inject constructor(
                 val ipcIssue = issue.toFileOperationIssue()
                 try {
                     val ipcResolution = callback!!.onIssue(ipcIssue)
-                    return ipcResolution.toPathActionIssueResolution(issue)
+                    return toPathActionIssueResolution(ipcResolution, issue)
                 } catch (e: DeadObjectException) {
                     log(TAG, ERROR) { "Client process died during issue resolution" }
                     throw IOException("Client process died", e)
@@ -448,7 +448,7 @@ class FileOpsHost @Inject constructor(
                 val ipcIssue = issue.toFileOperationIssue()
                 try {
                     val ipcResolution = callback!!.onIssue(ipcIssue)
-                    return ipcResolution.toPathActionIssueResolution(issue)
+                    return toPathActionIssueResolution(ipcResolution, issue)
                 } catch (e: DeadObjectException) {
                     log(TAG, ERROR) { "Client process died during issue resolution" }
                     throw IOException("Client process died", e)

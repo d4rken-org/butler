@@ -243,7 +243,7 @@ class FileOpsClient @AssistedInject constructor(
                     }
 
                     // Convert domain resolution to IPC resolution
-                    return resolution.toFileOperationIssueResolution()
+                    return this@FileOpsClient.toFileOperationIssueResolution(resolution)
                 }
             }
         }
@@ -310,7 +310,7 @@ class FileOpsClient @AssistedInject constructor(
                     }
 
                     // Convert domain resolution to IPC resolution
-                    return resolution.toFileOperationIssueResolution()
+                    return this@FileOpsClient.toFileOperationIssueResolution(resolution)
                 }
             }
         }
@@ -379,7 +379,7 @@ class FileOpsClient @AssistedInject constructor(
                     }
 
                     // Convert domain resolution to IPC resolution
-                    return resolution.toFileOperationIssueResolution()
+                    return this@FileOpsClient.toFileOperationIssueResolution(resolution)
                 }
             }
         }
