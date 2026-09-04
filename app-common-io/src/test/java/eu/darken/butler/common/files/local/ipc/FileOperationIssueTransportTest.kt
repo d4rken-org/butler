@@ -35,6 +35,7 @@ class FileOperationIssueTransportTest : BaseTest() {
     private val client = object : IpcClientModule {}
     private val host = object : IpcHostModule {}
 
+    @Suppress("DEPRECATION")
     private inline fun <reified T : Parcelable> T.throughParcel(): T {
         val parcel = Parcel.obtain()
         return try {
