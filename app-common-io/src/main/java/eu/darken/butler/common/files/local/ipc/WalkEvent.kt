@@ -4,7 +4,6 @@ import android.os.Parcel
 import android.os.Parcelable
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalPathLookup
-import eu.darken.butler.common.hasApiLevel
 import kotlinx.parcelize.Parcelize
 
 /**
@@ -37,13 +36,8 @@ internal data class WalkEventsIPCWrapper(
     val payload: List<WalkEvent>,
 ) : Parcelable {
     constructor(parcel: Parcel) : this(
-        if (hasApiLevel(33)) {
-            @Suppress("NewApi")
-            (parcel.readParcelableArray(WalkEvent::class.java.classLoader, WalkEvent::class.java)!!.toList())
-        } else {
-            @Suppress("DEPRECATION", "UNCHECKED_CAST")
-            parcel.readParcelableArray(WalkEvent::class.java.classLoader)!!.toList() as List<WalkEvent>
-        }
+        @Suppress("DEPRECATION", "UNCHECKED_CAST")
+        (parcel.readParcelableArray(WalkEvent::class.java.classLoader)!!.toList() as List<WalkEvent>)
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
