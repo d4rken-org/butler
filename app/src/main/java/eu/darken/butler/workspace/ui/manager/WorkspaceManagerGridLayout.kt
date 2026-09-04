@@ -57,8 +57,7 @@ fun WorkspaceManagerGridLayout(
     onNewTabClick: () -> Unit = {},
     onTabsClick: () -> Unit = {},
     onClearSelection: () -> Unit = {},
-    onOperationsFilterClick: () -> Unit = {},
-    onAttentionFilterClick: () -> Unit = {},
+    onFilterClick: (WorkspaceManagerFilter) -> Unit = {},
     lazyGridState: LazyGridState = rememberLazyGridState(),
 ) {
     val tag = logTag("Workspace", "Manager", "GridLayout")
@@ -125,13 +124,13 @@ fun WorkspaceManagerGridLayout(
                     workspaceCount = state.workspaceCount,
                     operationsCount = state.operationsCount,
                     attentionCount = state.attentionCount,
-                    isOperationsFilterActive = state.filterOperations,
-                    isAttentionFilterActive = state.filterAttention,
+                    pausedCount = state.pausedCount,
+                    unsavedCount = state.unsavedCount,
+                    activeFilter = state.activeFilter,
                     selectedCount = state.selectedIds?.size,
                     onTabsClick = onTabsClick,
                     onClearSelection = onClearSelection,
-                    onOperationsClick = onOperationsFilterClick,
-                    onAttentionClick = onAttentionFilterClick,
+                    onFilterClick = onFilterClick,
                 )
             }
         }

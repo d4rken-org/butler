@@ -31,6 +31,8 @@ class WorkspaceManagerViewModelTest : BaseTest() {
 
     private val idA = Workspace.Id()
     private val idB = Workspace.Id()
+    private val idC = Workspace.Id()
+    private val idD = Workspace.Id()
 
     private val repoState = MutableStateFlow(WorkspaceRemote.State())
     private val pageState = MutableStateFlow(WorkspacePageManager.State())
@@ -502,6 +504,100 @@ class WorkspaceManagerViewModelTest : BaseTest() {
             }
         }
 
+    @Test
+    fun `each facet shows only its own tabs`() = runTest(UnconfinedTestDispatcher()) {
+        val busy = readyInfo(idA).copy(operationCount = 1)
+        val stuck = readyInfo(idB).copy(attentionCount = 2)
+        val paused = readyInfo(idC).copy(lifecycleState = Workspace.LifecycleState.Paused())
+        val dirty = readyInfo(idD).copy(hasUnsavedChanges = true)
+        repoState.value = WorkspaceRemote.State(infos = listOf(busy, stuck, paused, dirty))
+        val vm = createViewModel()
+
+        vm.currentState().let {
+            it.operationsCount shouldBe 1
+            it.attentionCount shouldBe 2
+            it.pausedCount shouldBe 1
+            it.unsavedCount shouldBe 1
+        }
+
+        vm.toggleFilter(WorkspaceManagerFilter.OPERATIONS)
+        vm.currentState().filteredWorkspaces.map { it.id } shouldBe listOf(idA)
+
+        vm.toggleFilter(WorkspaceManagerFilter.ATTENTION)
+        vm.currentState().filteredWorkspaces.map { it.id } shouldBe listOf(idB)
+
+        vm.toggleFilter(WorkspaceManagerFilter.PAUSED)
+        vm.currentState().filteredWorkspaces.map { it.id } shouldBe listOf(idC)
+
+        vm.toggleFilter(WorkspaceManagerFilter.UNSAVED)
+        vm.currentState().filteredWorkspaces.map { it.id } shouldBe listOf(idD)
+    }
+
+    /**
+     * Switching straight from one facet to another, rather than having to clear the first: the
+     * facets are mutually exclusive, so there is no combination for the second tap to build.
+     */
+    @Test
+    fun `picking a facet replaces the active one and tapping it again clears`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val busy = readyInfo(idA).copy(operationCount = 1)
+            repoState.value = WorkspaceRemote.State(infos = listOf(busy, readyInfo(idB)))
+            val vm = createViewModel()
+
+            vm.toggleFilter(WorkspaceManagerFilter.OPERATIONS)
+            vm.currentState().activeFilter shouldBe WorkspaceManagerFilter.OPERATIONS
+
+            vm.toggleFilter(WorkspaceManagerFilter.PAUSED)
+            vm.currentState().activeFilter shouldBe WorkspaceManagerFilter.PAUSED
+
+            vm.toggleFilter(WorkspaceManagerFilter.PAUSED)
+            vm.currentState().let {
+                it.activeFilter shouldBe null
+                it.filteredWorkspaces.map { w -> w.id } shouldBe listOf(idA, idB)
+            }
+        }
+
+    /**
+     * A modal child's unsaved buffer belongs to the tab that owns it, the same way its operation and
+     * attention counts do - the grid has one card per tab, so a facet that missed the child would
+     * hide a tab that does have unsaved work.
+     */
+    @Test
+    fun `the unsaved facet sees a modal child's changes`() = runTest(UnconfinedTestDispatcher()) {
+        val child = childInfo(caller = idA, pausableAsChild = true).copy(hasUnsavedChanges = true)
+        repoState.value = WorkspaceRemote.State(infos = listOf(readyInfo(idA), child, readyInfo(idB)))
+        val vm = createViewModel()
+
+        vm.toggleFilter(WorkspaceManagerFilter.UNSAVED)
+
+        vm.currentState().let {
+            it.unsavedCount shouldBe 1
+            it.filteredWorkspaces.map { w -> w.id } shouldBe listOf(idA)
+        }
+    }
+
+    /**
+     * Same invariant [selectAllTabs] keeps: a selection must never hold a card the grid is hiding.
+     * The filter chips go inert while selecting, so a facet left on would trap the user with a
+     * selection larger than what is on screen and no way to widen it.
+     */
+    @Test
+    fun `long-pressing a card clears the active facet`() = runTest(UnconfinedTestDispatcher()) {
+        val busy = readyInfo(idA).copy(operationCount = 1)
+        repoState.value = WorkspaceRemote.State(infos = listOf(busy, readyInfo(idB)))
+        val vm = createViewModel()
+        vm.toggleFilter(WorkspaceManagerFilter.OPERATIONS)
+        vm.currentState().filteredWorkspaces.map { it.id } shouldBe listOf(idA)
+
+        vm.startSelection(idA)
+
+        vm.currentState().let {
+            it.activeFilter shouldBe null
+            it.selectedIds shouldBe setOf(idA)
+            it.filteredWorkspaces.map { w -> w.id } shouldBe listOf(idA, idB)
+        }
+    }
+
     /**
      * The chip that triggers this shows the unfiltered tab count, so it has to deliver that many.
      * Clearing the filters in the same step is what keeps the selection from holding cards the grid
@@ -512,7 +608,7 @@ class WorkspaceManagerViewModelTest : BaseTest() {
         val busy = readyInfo(idA).copy(operationCount = 1)
         repoState.value = WorkspaceRemote.State(infos = listOf(busy, readyInfo(idB)))
         val vm = createViewModel()
-        vm.toggleOperationsFilter()
+        vm.toggleFilter(WorkspaceManagerFilter.OPERATIONS)
         vm.currentState().filteredWorkspaces.map { it.id } shouldBe listOf(idA)
 
         vm.selectAllTabs()
@@ -520,7 +616,7 @@ class WorkspaceManagerViewModelTest : BaseTest() {
         vm.currentState().let {
             it.selectedIds shouldBe setOf(idA, idB)
             it.allSelected shouldBe true
-            it.filterOperations shouldBe false
+            it.activeFilter shouldBe null
             it.filteredWorkspaces.map { w -> w.id } shouldBe listOf(idA, idB)
         }
     }
@@ -537,12 +633,12 @@ class WorkspaceManagerViewModelTest : BaseTest() {
         coEvery { workspaceRepo.execute(any<WorkspaceAction.Create>()) } returns
             WorkspaceAction.Create.Result.Success(Workspace.Id())
         val vm = createViewModel()
-        vm.toggleOperationsFilter()
-        vm.currentState().filterOperations shouldBe true
+        vm.toggleFilter(WorkspaceManagerFilter.OPERATIONS)
+        vm.currentState().activeFilter shouldBe WorkspaceManagerFilter.OPERATIONS
 
         vm.createWorkspace(Workspace.Type.TEMPLATES)
 
-        vm.currentState().filterOperations shouldBe false
+        vm.currentState().activeFilter shouldBe null
     }
 
     /**

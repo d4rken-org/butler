@@ -242,9 +242,12 @@
     <string name="workspace_status_operation_singular">Operation</string>
     <string name="workspace_status_operation_plural">Operations</string>
     <string name="workspace_status_attention_label">Attention</string>
+    <string name="workspace_status_unsaved_label">Unsaved</string>
     <string name="workspace_status_filter_tabs_desc">Show all tabs</string>
     <string name="workspace_status_filter_operations_desc">Filter by tabs with operations</string>
     <string name="workspace_status_filter_attention_desc">Filter by tabs needing attention</string>
+    <string name="workspace_status_filter_paused_desc">Filter by paused tabs</string>
+    <string name="workspace_status_filter_unsaved_desc">Filter by tabs with unsaved changes</string>
 
     <!-- Acknowledgements -->
     <string name="acknowledgement_android_title">Android</string>

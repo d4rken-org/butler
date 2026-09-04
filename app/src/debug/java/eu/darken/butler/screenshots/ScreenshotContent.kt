@@ -472,6 +472,9 @@ private fun WorkspaceManagerBody() {
             showBadgeExplanation = false,
             operationsCount = 2,
             attentionCount = 1,
+            // Derived from the items above by the real ViewModel; the mock has to state it itself,
+            // and a mismatch would show a chip row that contradicts the cards under it.
+            pausedCount = 1,
         ),
         onCloseWorkspace = {},
         onReorderWorkspaces = {},

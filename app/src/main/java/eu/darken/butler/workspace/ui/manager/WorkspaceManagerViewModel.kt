@@ -41,8 +41,7 @@ class WorkspaceManagerViewModel @Inject constructor(
     workspaceTemplates: Set<@JvmSuppressWildcards WorkspaceTemplate>,
 ) : ViewModel4(dispatchers, logTag("Workspace", "Manager", "VM")) {
 
-    private val filterOperationsFlow = MutableStateFlow(false)
-    private val filterAttentionFlow = MutableStateFlow(false)
+    private val filterFlow = MutableStateFlow<WorkspaceManagerFilter?>(null)
 
     /**
      * Null means selection mode is off; a set (never empty) means it is on. Ids can name tabs that
@@ -59,11 +58,10 @@ class WorkspaceManagerViewModel @Inject constructor(
         workspaceSettings.showTipBadgeExplanation.flow,
         workspaceSettings.livePreview.flow,
         workspacePageManager.state,
-        filterOperationsFlow,
-        filterAttentionFlow,
+        filterFlow,
         quickCreateItems,
         selectionFlow,
-    ) { repoState, showBadge, livePreview, pageManagerState, filterOps, filterAtt, quickCreate, selection ->
+    ) { repoState, showBadge, livePreview, pageManagerState, filter, quickCreate, selection ->
         val stacks = WorkspaceStacks(repoState.infos)
         val focusedId = pageManagerState.focusedWorkspaceId
         val topChains = stacks.topChainByRoot(focusedId)
@@ -71,43 +69,47 @@ class WorkspaceManagerViewModel @Inject constructor(
         // Pane chips describe where a workspace is on screen, so they follow the layout's own panes
         // rather than the raw selection map, which retains indices from wider layouts.
         val visibleAssignments = pageManagerState.visiblePaneAssignments
+        val items = stacks.unitOwners.map { owner ->
+            val chain = topChains[owner.id]
+            val top = chain?.leaf ?: owner
+            // Counts belong to the unit, not to one member: an overlay's running operation or
+            // attention badge is the tab's, and the manager's filters read these per card.
+            val members = membersByOwner[owner.id].orEmpty().ifEmpty { listOf(owner) }
+            WorkspaceItem(
+                id = owner.id,
+                topId = top.id,
+                type = top.type,
+                title = owner.customTitle?.toCaString() ?: top.title,
+                subtitle = top.subtitle,
+                autoTitle = top.title,
+                customTitle = owner.customTitle,
+                // A pane holds tabs, so pane placement and focus are the owner's; focus may sit
+                // anywhere in the unit
+                isFocused = members.any { it.id == focusedId },
+                isVisibleInPane = visibleAssignments.values.contains(owner.id),
+                paneNumber = visibleAssignments.entries.find { it.value == owner.id }?.key,
+                operationCount = members.sumOf { it.operationCount },
+                attentionCount = members.sumOf { it.attentionCount },
+                hasUnsavedChanges = members.any { it.hasUnsavedChanges },
+                isSubWorkspace = owner.isSubWorkspace,
+                isRecovery = stacks.recoveryUnits.containsKey(owner.id),
+                isPaused = owner.isPaused,
+                canPause = owner.canBePausedManually(stacks, focusedId),
+                stackDepth = chain?.modals?.size ?: 0,
+            )
+        }
         State(
-            workspaces = stacks.unitOwners.map { owner ->
-                val chain = topChains[owner.id]
-                val top = chain?.leaf ?: owner
-                // Counts belong to the unit, not to one member: an overlay's running operation or
-                // attention badge is the tab's, and the manager's filters read these per card.
-                val members = membersByOwner[owner.id].orEmpty().ifEmpty { listOf(owner) }
-                WorkspaceItem(
-                    id = owner.id,
-                    topId = top.id,
-                    type = top.type,
-                    title = owner.customTitle?.toCaString() ?: top.title,
-                    subtitle = top.subtitle,
-                    autoTitle = top.title,
-                    customTitle = owner.customTitle,
-                    // A pane holds tabs, so pane placement and focus are the owner's; focus may sit
-                    // anywhere in the unit
-                    isFocused = members.any { it.id == focusedId },
-                    isVisibleInPane = visibleAssignments.values.contains(owner.id),
-                    paneNumber = visibleAssignments.entries.find { it.value == owner.id }?.key,
-                    operationCount = members.sumOf { it.operationCount },
-                    attentionCount = members.sumOf { it.attentionCount },
-                    hasUnsavedChanges = members.any { it.hasUnsavedChanges },
-                    isSubWorkspace = owner.isSubWorkspace,
-                    isRecovery = stacks.recoveryUnits.containsKey(owner.id),
-                    isPaused = owner.isPaused,
-                    canPause = owner.canBePausedManually(stacks, focusedId),
-                    stackDepth = chain?.modals?.size ?: 0,
-                )
-            },
+            workspaces = items,
             useLivePreview = livePreview,
             showBadgeExplanation = showBadge,
             operationsCount = repoState.operationCount,
             attentionCount = repoState.attentionCount,
+            // Tab counts, not item counts like the two above: these facets have nothing to tally per
+            // tab, and the chips they feed say "Paused"/"Unsaved" rather than naming a unit of work.
+            pausedCount = items.count { it.isPaused },
+            unsavedCount = items.count { it.hasUnsavedChanges },
             currentPaneCount = pageManagerState.currentPaneCount,
-            filterOperations = filterOps,
-            filterAttention = filterAtt,
+            activeFilter = filter,
             quickCreateItems = quickCreate,
             hasUnsavedChanges = repoState.infos.any { it.hasUnsavedChanges },
             selectedIds = selection
@@ -279,8 +281,16 @@ class WorkspaceManagerViewModel @Inject constructor(
         workspaceRepo.execute(WorkspaceAction.CloseAll)
     }
 
+    /**
+     * Clears the active facet, the same reason [selectAllTabs] does: a selection must never hold a
+     * card the grid is hiding. A tab whose status changes while it is selected would otherwise drop
+     * out of the facet but stay in the batch, leaving a count that outnumbers the cards on screen
+     * and no way to widen the grid, since the chips are inert while selecting. Clearing only ever
+     * shows more cards, so the long-pressed one stays put.
+     */
     fun startSelection(id: Workspace.Id) {
         log(tag) { "startSelection($id)" }
+        filterFlow.value = null
         selectionFlow.value = setOf(id)
     }
 
@@ -300,8 +310,7 @@ class WorkspaceManagerViewModel @Inject constructor(
     fun selectAllTabs() = launch {
         val all = workspaceRepo.peekStacks().unitOwners.map { it.id }.toSet()
         log(tag) { "selectAllTabs() -> ${all.size}" }
-        filterOperationsFlow.value = false
-        filterAttentionFlow.value = false
+        filterFlow.value = null
         selectionFlow.value = all.ifEmpty { null }
     }
 
@@ -380,20 +389,15 @@ class WorkspaceManagerViewModel @Inject constructor(
         launch { workspacePreviewManager.invalidateFocusedWorkspacePreview() }
     }
 
-    fun toggleOperationsFilter() {
-        log(tag) { "toggleOperationsFilter() - current: ${filterOperationsFlow.value}" }
-        filterOperationsFlow.value = !filterOperationsFlow.value
-    }
-
-    fun toggleAttentionFilter() {
-        log(tag) { "toggleAttentionFilter() - current: ${filterAttentionFlow.value}" }
-        filterAttentionFlow.value = !filterAttentionFlow.value
+    /** Facets are mutually exclusive, so tapping the active one is the only way to see everything again. */
+    fun toggleFilter(filter: WorkspaceManagerFilter) {
+        log(tag) { "toggleFilter($filter) - current: ${filterFlow.value}" }
+        filterFlow.value = if (filterFlow.value == filter) null else filter
     }
 
     fun clearFilters() {
         log(tag) { "clearFilters()" }
-        filterOperationsFlow.value = false
-        filterAttentionFlow.value = false
+        filterFlow.value = null
     }
 
     data class State(
@@ -402,9 +406,10 @@ class WorkspaceManagerViewModel @Inject constructor(
         val useLivePreview: Boolean = true,
         val operationsCount: Int = 0,
         val attentionCount: Int = 0,
+        val pausedCount: Int = 0,
+        val unsavedCount: Int = 0,
         val currentPaneCount: Int = 1,
-        val filterOperations: Boolean = false,
-        val filterAttention: Boolean = false,
+        val activeFilter: WorkspaceManagerFilter? = null,
         val quickCreateItems: List<QuickCreateItem> = emptyList(),
         val hasUnsavedChanges: Boolean = false,
         /** Null when selection mode is off. Pruned to tabs that are still open. */
@@ -435,15 +440,12 @@ class WorkspaceManagerViewModel @Inject constructor(
             ?: false
 
         val filteredWorkspaces: List<WorkspaceItem>
-            get() {
-                // If no filters active, return all workspaces
-                if (!filterOperations && !filterAttention) return workspaces
-
-                return workspaces.filter { workspace ->
-                    val matchesOperations = !filterOperations || workspace.operationCount > 0
-                    val matchesAttention = !filterAttention || workspace.attentionCount > 0
-                    matchesOperations && matchesAttention
-                }
+            get() = when (activeFilter) {
+                null -> workspaces
+                WorkspaceManagerFilter.OPERATIONS -> workspaces.filter { it.operationCount > 0 }
+                WorkspaceManagerFilter.ATTENTION -> workspaces.filter { it.attentionCount > 0 }
+                WorkspaceManagerFilter.PAUSED -> workspaces.filter { it.isPaused }
+                WorkspaceManagerFilter.UNSAVED -> workspaces.filter { it.hasUnsavedChanges }
             }
     }
 
