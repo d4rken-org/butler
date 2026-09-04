@@ -521,8 +521,7 @@ fun WorkspacesScreenHost(
                     onPauseSelectedWorkspaces = managerVm::pauseSelectedWorkspaces,
                     onRenameWorkspace = managerVm::renameWorkspace,
                     onTabsClick = managerVm::selectAllTabs,
-                    onOperationsFilterClick = managerVm::toggleOperationsFilter,
-                    onAttentionFilterClick = managerVm::toggleAttentionFilter,
+                    onFilterClick = managerVm::toggleFilter,
                 )
             }
         }

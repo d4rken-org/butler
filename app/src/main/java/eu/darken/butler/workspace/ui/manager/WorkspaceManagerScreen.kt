@@ -80,8 +80,7 @@ fun WorkspaceManagerScreen(
     onPauseSelectedWorkspaces: () -> Unit = {},
     onRenameWorkspace: (Workspace.Id, String?) -> Unit = { _, _ -> },
     onTabsClick: () -> Unit = {},
-    onOperationsFilterClick: () -> Unit = {},
-    onAttentionFilterClick: () -> Unit = {},
+    onFilterClick: (WorkspaceManagerFilter) -> Unit = {},
     lazyGridState: LazyGridState = rememberLazyGridState(),
 ) {
     var showCloseAllDialog by remember { mutableStateOf(false) }
@@ -174,8 +173,7 @@ fun WorkspaceManagerScreen(
                 onNewTabClick = { onCreateWorkspace(Workspace.Type.TEMPLATES) },
                 onTabsClick = onTabsClick,
                 onClearSelection = onClearSelection,
-                onOperationsFilterClick = onOperationsFilterClick,
-                onAttentionFilterClick = onAttentionFilterClick,
+                onFilterClick = onFilterClick,
                 lazyGridState = lazyGridState,
             )
 

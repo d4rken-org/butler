@@ -37,8 +37,7 @@ fun AdaptiveWorkspaceManagerContent(
     onNewTabClick: () -> Unit = {},
     onTabsClick: () -> Unit = {},
     onClearSelection: () -> Unit = {},
-    onOperationsFilterClick: () -> Unit = {},
-    onAttentionFilterClick: () -> Unit = {},
+    onFilterClick: (WorkspaceManagerFilter) -> Unit = {},
     lazyGridState: LazyGridState = rememberLazyGridState(),
 ) {
     BoxWithConstraints(
@@ -73,8 +72,7 @@ fun AdaptiveWorkspaceManagerContent(
             onNewTabClick = onNewTabClick,
             onTabsClick = onTabsClick,
             onClearSelection = onClearSelection,
-            onOperationsFilterClick = onOperationsFilterClick,
-            onAttentionFilterClick = onAttentionFilterClick,
+            onFilterClick = onFilterClick,
             lazyGridState = lazyGridState,
         )
     }
