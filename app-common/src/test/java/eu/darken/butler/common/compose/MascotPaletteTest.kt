@@ -41,7 +41,7 @@ class MascotPaletteTest : BaseTest() {
 
     // Every color the butler is drawn from. Props (the coffee cup) sit outside the outfit.
     private val knownPalette = setOf(
-        0x212121, // ink: hair, moustache, tie
+        0x212121, // ink: the moustache, and ko's crossed-out eyes
         0x262626, // suit
         0x1e1e1e, // trousers
         0x3f3f3f, // lapel shadow
@@ -55,13 +55,13 @@ class MascotPaletteTest : BaseTest() {
         0x707070, // coffee
     )
 
-    // Drawable to the number of ink fills it carries: hair, moustache and tie everywhere, plus
-    // ko's four crossed-out eye strokes.
+    // Drawable to the number of ink fills it carries: the moustache everywhere, plus ko's four
+    // crossed-out eye strokes.
     private val mascotDrawables = mapOf(
-        "mascot_normal" to 3,
-        "mascot_happy" to 3,
-        "mascot_sad" to 3,
-        "mascot_ko" to 7,
+        "mascot_normal" to 1,
+        "mascot_happy" to 1,
+        "mascot_sad" to 1,
+        "mascot_ko" to 5,
     )
 
     // The "c" key is what makes it a fill or stroke color rather than an anchor that happens to be
@@ -94,12 +94,12 @@ class MascotPaletteTest : BaseTest() {
         }
     }
 
-    // He wears the same outfit in every clip: 3 ink (hair, moustache, tie), 3 suit (jacket and two
-    // upper arms), 2 trousers, and the lapel work. Counts rather than presence, so moving a single
-    // fill from ink back to suit shows up.
+    // He wears the same outfit in every clip: 1 ink (the moustache), 5 suit (jacket, two upper
+    // arms, hat and tie), 2 trousers, and the lapel work. Counts rather than presence, so moving a
+    // single fill from ink back to suit shows up.
     private val outfitFills = mapOf(
-        0x212121 to 3,
-        0x262626 to 3,
+        0x212121 to 1,
+        0x262626 to 5,
         0x1e1e1e to 2,
         0x3f3f3f to 2,
         0x565656 to 1,
@@ -144,7 +144,7 @@ class MascotPaletteTest : BaseTest() {
 
         colors.contains(0x6e6e6e) shouldBe true   // the suit lightened
         colors.contains(0x262626) shouldBe false  // and none of it was left behind
-        colors.contains(0x212121) shouldBe true   // hair, moustache and tie held
+        colors.contains(0x212121) shouldBe true   // the moustache held
         colors.contains(0x48ff80) shouldBe true   // so did the head
     }
 
@@ -173,7 +173,7 @@ class MascotPaletteTest : BaseTest() {
                 (counted["mascot_ink"] ?: 0) shouldBe inkFills
             }
             mapOf(
-                "mascot_suit" to 3, "mascot_trousers" to 2, "mascot_lapel_shadow" to 2,
+                "mascot_suit" to 5, "mascot_trousers" to 2, "mascot_lapel_shadow" to 2,
                 "mascot_lapel_edge_left" to 1, "mascot_lapel_edge_right" to 1, "mascot_cuffs" to 2,
             ).forEach { (resource, expected) ->
                 withClue("$name uses ${counted[resource] ?: 0} of $resource, expected $expected") {

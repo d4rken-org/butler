@@ -10,8 +10,8 @@ import kotlin.math.roundToInt
  * JSON blob with the colors baked in, so the swap happens on the way to the parser instead. Both
  * halves have to agree, which is what `MascotPaletteTest` checks.
  *
- * Only the outfit moves. Hair, moustache and tie are drawn on the bright head and shirt and carry
- * their own `mascot_ink` value so they stay put.
+ * Everything that touches the background moves, the hat included. The moustache is drawn wholly on
+ * the bright head and carries its own `mascot_ink` value so it stays put.
  */
 internal object MascotPalette {
 
