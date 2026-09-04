@@ -140,12 +140,15 @@ class MascotPaletteTest : BaseTest() {
 
     @Test
     fun `forNight repaints the suit and leaves the ink alone`() {
-        val colors = colorsIn(MascotPalette.forNight(rawJson(R.raw.mascot_lottie_wink)))
+        val counted = colorCounts(MascotPalette.forNight(rawJson(R.raw.mascot_lottie_wink)))
 
-        colors.contains(0x6e6e6e) shouldBe true   // the suit lightened
-        colors.contains(0x262626) shouldBe false  // and none of it was left behind
-        colors.contains(0x212121) shouldBe true   // the moustache held
-        colors.contains(0x48ff80) shouldBe true   // so did the head
+        // All five outfit fills lightened, and the day values that are also in the map as keys
+        // were each remapped once, not chained through a second entry.
+        counted[0x4d4d4d] shouldBe 5
+        counted[0x262626] shouldBe null
+        counted[0x6c6c6c] shouldBe 1   // lapel edge, left: #565656 -> #6c6c6c, not #6c6c6c -> beyond
+        counted[0x212121] shouldBe 1   // the moustache held
+        counted[0x48ff80] shouldBe 1   // so did the head
     }
 
     @Test

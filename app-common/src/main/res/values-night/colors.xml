@@ -1,15 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!--
-    At night the butler wears a grey suit. Everything that touches the background moves with it,
-    the hat included. mascot_ink and the bright colors are drawn wholly on the head, so lightening
-    them would only wash the character out.
+    At night the butler wears an anthracite suit. Everything that touches the background moves with
+    it, the hat included. mascot_ink and the bright colors are drawn wholly on the head, so
+    lightening them would only wash the character out.
+
+    As dark as the ramp goes while his body still stands off the background on its own. Below this
+    the head and shirt do the work of defining him, and at #262626 the outline is gone entirely.
     Ratios are against #0F1510, the dark surface these were picked for.
     -->
-    <color name="mascot_suit">#6e6e6e</color>             <!-- 3.63:1 -->
-    <color name="mascot_trousers">#646464</color>         <!-- 3.15:1 -->
-    <color name="mascot_lapel_shadow">#868686</color>     <!-- 5.1:1 -->
-    <color name="mascot_lapel_edge_left">#9a9a9a</color>  <!-- 6.6:1 -->
-    <color name="mascot_lapel_edge_right">#a6a6a6</color> <!-- 7.6:1 -->
-    <color name="mascot_cuffs">#cfcfcf</color>            <!-- 11.9:1, stays clear of the arms -->
+    <color name="mascot_suit">#4d4d4d</color>             <!-- 2.19:1 -->
+    <color name="mascot_trousers">#464646</color>         <!-- 1.96:1 -->
+    <color name="mascot_lapel_shadow">#5e5e5e</color>     <!-- 2.85:1 -->
+    <color name="mascot_lapel_edge_left">#6c6c6c</color>  <!-- 3.52:1 -->
+    <color name="mascot_lapel_edge_right">#747474</color> <!-- 3.96:1 -->
+    <color name="mascot_cuffs">#919191</color>            <!-- 5.87:1, stays clear of the arms -->
 </resources>

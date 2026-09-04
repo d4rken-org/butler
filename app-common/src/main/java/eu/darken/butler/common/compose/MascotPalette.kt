@@ -16,12 +16,12 @@ import kotlin.math.roundToInt
 internal object MascotPalette {
 
     val NIGHT: Map<Int, Int> = mapOf(
-        0x262626 to 0x6e6e6e, // suit
-        0x1e1e1e to 0x646464, // trousers
-        0x3f3f3f to 0x868686, // lapel shadow
-        0x565656 to 0x9a9a9a, // lapel edge, left
-        0x666666 to 0xa6a6a6, // lapel edge, right
-        0x9b9a9a to 0xcfcfcf, // cuffs
+        0x262626 to 0x4d4d4d, // suit
+        0x1e1e1e to 0x464646, // trousers
+        0x3f3f3f to 0x5e5e5e, // lapel shadow
+        0x565656 to 0x6c6c6c, // lapel edge, left
+        0x666666 to 0x747474, // lapel edge, right
+        0x9b9a9a to 0x919191, // cuffs
     )
 
     // A static fill or stroke color: {"a": 0, "k": [r, g, b]}, sometimes with a fourth alpha slot.
