@@ -25,8 +25,8 @@ import java.io.IOException
 import java.io.PipedInputStream
 import java.io.PipedOutputStream
 
-// Chunked base64/pipe protocol like LocalPathLookupIPCFlow, but carrying WalkEvents so directory
-// errors and the terminal Done/FatalError marker cross the IPC boundary alongside items.
+// Chunked base64 lines over a pipe, carrying WalkEvents so directory errors and the terminal
+// Done/FatalError marker cross the IPC boundary alongside the items.
 
 private const val CHUNK_COUNT = 100
 private const val EVENT_SIZE = 1024
