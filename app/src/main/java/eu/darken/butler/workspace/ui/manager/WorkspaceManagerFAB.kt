@@ -85,6 +85,7 @@ fun WorkspaceManagerFAB(
     val density = LocalDensity.current
     val iconRotation by animateFloatAsState(
         targetValue = if (expanded) 45f else 0f,
+        animationSpec = tween(200),
         label = "fabIcon",
     )
 
@@ -157,7 +158,7 @@ private fun FabTrigger(
             modifier = Modifier
                 .semantics(mergeDescendants = true) { contentDescription = triggerDescription }
                 .clickable(role = Role.Button, onClick = onClick)
-                .animateContentSize()
+                .animateContentSize(animationSpec = tween(150))
                 .padding(horizontal = 16.dp, vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -169,8 +170,8 @@ private fun FabTrigger(
             )
             AnimatedVisibility(
                 visible = !expanded,
-                enter = fadeIn() + expandHorizontally(expandFrom = Alignment.Start),
-                exit = fadeOut() + shrinkHorizontally(shrinkTowards = Alignment.Start),
+                enter = fadeIn(tween(150)) + expandHorizontally(tween(200), expandFrom = Alignment.Start),
+                exit = fadeOut(tween(100)) + shrinkHorizontally(tween(150), shrinkTowards = Alignment.Start),
             ) {
                 Text(stringResource(R.string.workspace_fab_quick_shortcuts))
             }
