@@ -21,7 +21,11 @@ data class FileOperationIssue(
     val sourcePath: LocalPathLookup? = null,        // For copy/move operations
     val destinationPath: LocalPath,                 // Always present (just the path)
     val destinationLookup: LocalPathLookup? = null, // For PathAlreadyExists/InsufficientSpace (with metadata)
-    val errorMessage: String? = null,
+    /**
+     * The failure that caused the issue, encoded as an [eu.darken.butler.common.ipc.IpcErrorCodec]
+     * carrier. A value without the codec's marker is a plain message and is used as one.
+     */
+    val error: String? = null,
 
     // Resolution capability flags
     // These tell the client what actions are valid for this specific issue

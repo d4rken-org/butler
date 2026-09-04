@@ -235,7 +235,7 @@ class FileOpsClient @AssistedInject constructor(
             object : FileOperationCallback.Stub() {
                 override fun onIssue(issue: FileOperationIssue): FileOperationIssueResolution {
                     // Convert IPC issue to domain issue
-                    val domainIssue = issue.toPathActionIssue()
+                    val domainIssue = this@FileOpsClient.toPathActionIssue(issue)
 
                     // Call user's issue handler (blocking call)
                     val resolution = runBlocking {
@@ -302,7 +302,7 @@ class FileOpsClient @AssistedInject constructor(
             object : FileOperationCallback.Stub() {
                 override fun onIssue(issue: FileOperationIssue): FileOperationIssueResolution {
                     // Convert IPC issue to domain issue
-                    val domainIssue = issue.toPathActionIssue()
+                    val domainIssue = this@FileOpsClient.toPathActionIssue(issue)
 
                     // Call user's issue handler (blocking call)
                     val resolution = runBlocking {
@@ -371,7 +371,7 @@ class FileOpsClient @AssistedInject constructor(
             object : FileOperationCallback.Stub() {
                 override fun onIssue(issue: FileOperationIssue): FileOperationIssueResolution {
                     // Convert IPC issue to domain issue
-                    val domainIssue = issue.toPathActionIssue()
+                    val domainIssue = this@FileOpsClient.toPathActionIssue(issue)
 
                     // Call user's issue handler (blocking call)
                     val resolution = runBlocking {

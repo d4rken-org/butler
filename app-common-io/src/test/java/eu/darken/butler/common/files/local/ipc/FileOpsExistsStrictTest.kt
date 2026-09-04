@@ -1,7 +1,5 @@
 package eu.darken.butler.common.files.local.ipc
 
-import android.content.Context
-import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalFileSystemOps
@@ -41,7 +39,6 @@ class FileOpsExistsStrictTest : BaseTest() {
     private val hostOps = mockk<LocalFileSystemOps>()
 
     private fun host() = FileOpsHost(
-        context = ApplicationProvider.getApplicationContext<Context>(),
         appScope = scope,
         dispatcherProvider = TestDispatcherProvider(),
         fileSystemOps = hostOps,
