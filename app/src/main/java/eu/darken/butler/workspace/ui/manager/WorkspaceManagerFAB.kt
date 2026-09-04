@@ -14,6 +14,7 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -115,7 +116,7 @@ fun WorkspaceManagerFAB(
                 AnimatedVisibility(
                     visibleState = expandedState,
                     enter = fadeIn(tween(100)),
-                    exit = fadeOut(tween(100)) + scaleOut(tween(100), targetScale = 0.9f),
+                    exit = fadeOut(tween(150, delayMillis = 120)),
                 ) {
                     FabActionStack(
                         quickCreateItems = quickCreateItems,
@@ -271,7 +272,7 @@ private fun AnimatedVisibilityScope.FabActionStack(
     }
 }
 
-/** Rows closest to the button arrive first, so the stack reads as unfolding out of it. */
+/** Rows closest to the button arrive first and leave last, so the stack unfolds out of it and folds back in. */
 @Composable
 private fun AnimatedVisibilityScope.StaggeredReveal(
     modifier: Modifier = Modifier,
@@ -279,15 +280,18 @@ private fun AnimatedVisibilityScope.StaggeredReveal(
     index: Int,
     content: @Composable () -> Unit,
 ) {
-    val delay = (rowCount - 1 - index) * 30
+    val enterDelay = (rowCount - 1 - index) * 30
+    val exitDelay = index * 30
 
     transition.AnimatedVisibility(
         visible = { it == EnterExitState.Visible },
         modifier = modifier,
-        enter = fadeIn(tween(150, delayMillis = delay)) +
-            slideInVertically(tween(200, delayMillis = delay)) { it / 2 } +
-            scaleIn(tween(200, delayMillis = delay), initialScale = 0.8f),
-        exit = fadeOut(tween(100)),
+        enter = fadeIn(tween(150, delayMillis = enterDelay)) +
+            slideInVertically(tween(200, delayMillis = enterDelay)) { it / 2 } +
+            scaleIn(tween(200, delayMillis = enterDelay), initialScale = 0.8f),
+        exit = fadeOut(tween(100, delayMillis = exitDelay)) +
+            slideOutVertically(tween(150, delayMillis = exitDelay)) { it / 2 } +
+            scaleOut(tween(150, delayMillis = exitDelay), targetScale = 0.8f),
     ) {
         content()
     }
