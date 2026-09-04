@@ -214,11 +214,11 @@ class TemplatesWorkspacePageTest : ComposeTest() {
         runBlocking { prepare() }
         composeTestRule.waitForIdle()
 
-        // A bare `has` check passes even on a stale index: the list composes items backward into
-        // the content padding, so an over-scrolled card is still registered, just above the top.
-        val registered = registry.get(TemplatesTour.FIRST_TEMPLATE_TARGET)
-        (registered != null) shouldBe true
-        val top = with(composeTestRule.density) { registered!!.top.toDp() }
-        (top >= 0.dp) shouldBe true
+        registry.has(TemplatesTour.FIRST_TEMPLATE_TARGET) shouldBe true
+        // The registered bounds are clipped to the viewport, so they read a top of 0 whether the
+        // card sits at the content padding or one item above it. The card's own unclipped bounds
+        // separate the two.
+        val cardTop = composeTestRule.onNodeWithText("Template 0").getUnclippedBoundsInRoot().top
+        (cardTop >= 0.dp) shouldBe true
     }
 }
