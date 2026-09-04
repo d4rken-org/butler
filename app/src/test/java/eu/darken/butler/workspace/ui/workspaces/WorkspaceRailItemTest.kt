@@ -71,6 +71,7 @@ class WorkspaceRailItemTest : ComposeTest() {
 
     private val paneIndexState = mutableStateOf<Int?>(null)
     private val layoutState = mutableStateOf(WorkspaceDesign.Layout.DUAL_VERTICAL)
+    private val placementState = mutableStateOf(WorkspaceDesign.RailPlacement.START)
     private var isRendered = false
 
     /**
@@ -85,9 +86,11 @@ class WorkspaceRailItemTest : ComposeTest() {
     private fun renderItem(
         paneIndex: Int?,
         layout: WorkspaceDesign.Layout = WorkspaceDesign.Layout.DUAL_VERTICAL,
+        placement: WorkspaceDesign.RailPlacement = WorkspaceDesign.RailPlacement.START,
     ) {
         paneIndexState.value = paneIndex
         layoutState.value = layout
+        placementState.value = placement
 
         if (isRendered) {
             composeTestRule.waitForIdle()
@@ -103,6 +106,7 @@ class WorkspaceRailItemTest : ComposeTest() {
                         paneIndex = paneIndexState.value,
                         isFocused = false,
                         layout = layoutState.value,
+                        placement = placementState.value,
                         onClick = {},
                     )
                     Text(
@@ -119,6 +123,10 @@ class WorkspaceRailItemTest : ComposeTest() {
     private fun heightOf(interaction: SemanticsNodeInteraction) = interaction
         .getUnclippedBoundsInRoot()
         .let { it.bottom - it.top }
+
+    private fun widthOf(interaction: SemanticsNodeInteraction) = interaction
+        .getUnclippedBoundsInRoot()
+        .let { it.right - it.left }
 
     private fun itemHeight() = heightOf(composeTestRule.onNodeWithTag(ITEM_TAG))
 
@@ -235,6 +243,28 @@ class WorkspaceRailItemTest : ComposeTest() {
         label shouldBe unconstrained
     }
 
+    /**
+     * Along the bottom edge the list scrolls horizontally, so the entry states the rail's
+     * cross-axis size itself instead of taking it from the container.
+     */
+    @Test
+    fun `a bottom placement entry is as wide as the rail is thick`() {
+        renderItem(paneIndex = null, placement = WorkspaceDesign.RailPlacement.BOTTOM)
+
+        widthOf(composeTestRule.onNodeWithTag(ITEM_TAG)) shouldBe RAIL_THICKNESS
+    }
+
+    /** The 80dp the entry gets there is more than the 64dp the start placement leaves it. */
+    @Test
+    fun `a bottom placement entry gives the label its whole line box`() {
+        renderItem(paneIndex = null, placement = WorkspaceDesign.RailPlacement.BOTTOM)
+
+        val label = heightOf(composeTestRule.onNodeWithText("Explorer", useUnmergedTree = true))
+        val unconstrained = heightOf(composeTestRule.onNodeWithTag(LABEL_REFERENCE_TAG, useUnmergedTree = true))
+
+        label shouldBe unconstrained
+    }
+
     @Test
     fun `the item is labelled with the workspace title`() {
         renderItem(paneIndex = null)
@@ -248,5 +278,7 @@ class WorkspaceRailItemTest : ComposeTest() {
         private const val LABEL_REFERENCE_TAG = "workspace.rail.item.label.reference"
 
         private val ITEM_MIN_HEIGHT = 56.dp
+
+        private val RAIL_THICKNESS = 80.dp
     }
 }
