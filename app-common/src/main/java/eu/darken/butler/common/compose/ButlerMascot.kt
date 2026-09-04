@@ -1,24 +1,31 @@
 package eu.darken.butler.common.compose
 
 import android.content.Context
+import android.content.res.Configuration
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.preferredFrameRate
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
@@ -29,6 +36,7 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec.*
 import com.airbnb.lottie.compose.rememberLottieAnimatable
 import com.airbnb.lottie.compose.rememberLottieComposition
+import com.airbnb.lottie.model.LottieCompositionCache
 import eu.darken.butler.common.Occasions
 import eu.darken.butler.common.R
 import eu.darken.butler.common.compose.ButlerMascotMode.*
@@ -92,8 +100,57 @@ private val randomCyclingSequences: List<List<Int>> = listOf(
 private suspend fun loadComposition(
     context: Context,
     @androidx.annotation.RawRes resId: Int,
+    night: Boolean = false,
 ): LottieComposition? = withContext(Dispatchers.Default) {
-    LottieCompositionFactory.fromRawResSync(context, resId).value
+    if (!night) return@withContext LottieCompositionFactory.fromRawResSync(context, resId).value
+
+    // Recoloring costs a read plus a pass over ~30KB of json, so ask the cache before paying it.
+    val cacheKey = "${context.resources.getResourceEntryName(resId)}_night"
+    val cached = LottieCompositionCache.getInstance().get(cacheKey)
+    if (cached != null) return@withContext cached
+
+    val json = context.resources.openRawResource(resId).bufferedReader().use { it.readText() }
+    LottieCompositionFactory.fromJsonStringSync(MascotPalette.forNight(json), cacheKey).value
+}
+
+/**
+ * Whether the mascot is standing on a dark ground. Both halves of his palette hang off this one
+ * answer, so the drawables and the clips can never end up in opposite themes.
+ */
+@Composable
+private fun isNight(): Boolean = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+
+/** Butler's own clips, repainted for the dark theme. SD Maid's cameo is not his palette. */
+@Composable
+private fun rememberButlerComposition(@androidx.annotation.RawRes resId: Int): LottieComposition? {
+    val context = LocalContext.current
+    val night = isNight()
+    return produceState<LottieComposition?>(null, resId, night) {
+        value = loadComposition(context, resId, night)
+    }.value
+}
+
+/**
+ * The mascot drawables resolve `@color/mascot_*` out of `values-night`, which the platform picks by
+ * the configuration's night bit. Butler's own theme setting does not reach that bit - the app runs
+ * on plain ComponentActivity, so nothing creates the AppCompat delegate that would apply it - which
+ * would leave a user on "dark theme, light system" with the day palette on a dark ground. Handing
+ * the parser resources configured from [isNight] instead settles it the same way the clips do.
+ */
+@Composable
+private fun mascotVector(@DrawableRes resId: Int): ImageVector {
+    val context = LocalContext.current
+    val night = isNight()
+    val resources = remember(context, night) {
+        val config = Configuration(context.resources.configuration).apply {
+            uiMode = (uiMode and Configuration.UI_MODE_NIGHT_MASK.inv()) or when {
+                night -> Configuration.UI_MODE_NIGHT_YES
+                else -> Configuration.UI_MODE_NIGHT_NO
+            }
+        }
+        context.createConfigurationContext(config).resources
+    }
+    return remember(resources, resId) { ImageVector.vectorResource(context.theme, resources, resId) }
 }
 
 @Composable
@@ -115,8 +172,8 @@ fun ButlerMascot(
     Box(modifier = modifier) {
         when (variant) {
         is Static -> Image(
-            painter = painterResource(
-                id = when (variant) {
+            imageVector = mascotVector(
+                resId = when (variant) {
                     is Static.Normal -> R.drawable.mascot_normal
                     is Static.Happy -> R.drawable.mascot_happy
                     is Static.Sad -> R.drawable.mascot_sad
@@ -148,6 +205,7 @@ fun ButlerMascot(
             when (variant) {
                 is Animated.RandomCycling -> {
                     val context = LocalContext.current
+                    val night = MaterialTheme.colorScheme.surface.luminance() < 0.5f
 
                     // Butler's clips are pure vector, but SD Maid's is built from raster layers and
                     // loadComposition() drops those - she renders as a lone coffee cup. Composing her
@@ -163,7 +221,7 @@ fun ButlerMascot(
                         }
                     }
 
-                    LaunchedEffect(variant, userActivity) {
+                    LaunchedEffect(variant, userActivity, night) {
                         val isUserActive = userActivity.isActive(MASCOT_IDLE_AFTER)
                         while (currentCoroutineContext().isActive) {
                             // A Lottie frame invalidates the whole Compose view, so an unattended
@@ -188,7 +246,7 @@ fun ButlerMascot(
                             if (!animated) {
                                 // Load on demand, one at a time - parsing all upfront saturates the CPU during startup
                                 for (resId in randomCyclingSequences.random()) {
-                                    val composition = loadComposition(context, resId) ?: continue
+                                    val composition = loadComposition(context, resId, night) ?: continue
                                     animated = true
                                     animatable.animate(
                                         composition = composition,
@@ -216,7 +274,7 @@ fun ButlerMascot(
                         )
                     } else {
                         Image(
-                            painter = painterResource(id = R.drawable.mascot_normal),
+                            imageVector = mascotVector(R.drawable.mascot_normal),
                             contentDescription = animatedDescription,
                             modifier = Modifier.fillMaxSize(),
                         )
@@ -225,7 +283,7 @@ fun ButlerMascot(
 
                 is Animated.Sleep -> when (variant) {
                     is Animated.Sleep.EyesClose -> {
-                        val composition by rememberLottieComposition(RawRes(R.raw.mascot_lottie_sleep_sleeping))
+                        val composition = rememberButlerComposition(R.raw.mascot_lottie_sleep_sleeping)
                         LottieAnimation(
                             composition = composition,
                             modifier = semanticsModifier,
@@ -235,7 +293,7 @@ fun ButlerMascot(
                     }
 
                     is Animated.Sleep.Snoring -> {
-                        val composition by rememberLottieComposition(RawRes(R.raw.mascot_lottie_sleep_snoring))
+                        val composition = rememberButlerComposition(R.raw.mascot_lottie_sleep_snoring)
                         LottieAnimation(
                             composition = composition,
                             modifier = semanticsModifier,
@@ -245,7 +303,7 @@ fun ButlerMascot(
                     }
 
                     is Animated.Sleep.WakeUp -> {
-                        val composition by rememberLottieComposition(RawRes(R.raw.mascot_lottie_sleep_waking))
+                        val composition = rememberButlerComposition(R.raw.mascot_lottie_sleep_waking)
                         LottieAnimation(
                             composition = composition,
                             modifier = semanticsModifier,
@@ -256,20 +314,19 @@ fun ButlerMascot(
                 }
 
                 else -> {
-                    val composition by rememberLottieComposition(
-                        RawRes(
-                            when (variant) {
-                                is Animated.Wink -> R.raw.mascot_lottie_wink
-                                is Animated.Greeting -> R.raw.mascot_lottie_greeting
-                                is Animated.Drink -> if (variant.standalone) R.raw.mascot_lottie_drink_standalone else R.raw.mascot_lottie_drink
-                                is Animated.HatOff -> R.raw.mascot_lottie_hatoff
-                                is Animated.MoustacheStroke -> R.raw.mascot_lottie_moustache_stroke
-                                is Animated.Cameo -> R.raw.mascot_lottie_cameo_sdmaid
-                                is Animated.Sleep -> error("Handled above")
-                                is Animated.RandomCycling -> error("Handled above")
-                            }
+                    val composition = when (variant) {
+                        // Her clip carries raster layers, which only the RawRes spec loads
+                        is Animated.Cameo -> rememberLottieComposition(RawRes(R.raw.mascot_lottie_cameo_sdmaid)).value
+                        is Animated.Wink -> rememberButlerComposition(R.raw.mascot_lottie_wink)
+                        is Animated.Greeting -> rememberButlerComposition(R.raw.mascot_lottie_greeting)
+                        is Animated.Drink -> rememberButlerComposition(
+                            if (variant.standalone) R.raw.mascot_lottie_drink_standalone else R.raw.mascot_lottie_drink
                         )
-                    )
+                        is Animated.HatOff -> rememberButlerComposition(R.raw.mascot_lottie_hatoff)
+                        is Animated.MoustacheStroke -> rememberButlerComposition(R.raw.mascot_lottie_moustache_stroke)
+                        is Animated.Sleep -> error("Handled above")
+                        is Animated.RandomCycling -> error("Handled above")
+                    }
 
                     LaunchedEffect(composition, variant.loop, variant.loopDelay, variant.speed, userActivity) {
                         composition ?: return@LaunchedEffect
@@ -307,7 +364,7 @@ fun ButlerMascot(
                         )
                     } else {
                         Image(
-                            painter = painterResource(id = R.drawable.mascot_normal),
+                            imageVector = mascotVector(R.drawable.mascot_normal),
                             contentDescription = animatedDescription,
                             modifier = Modifier.fillMaxSize(),
                         )

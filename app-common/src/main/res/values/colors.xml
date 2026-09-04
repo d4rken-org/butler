@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+    The butler's own palette. He is fixed artwork rather than tinted content, so these carry colors
+    instead of theme roles; values-night holds the dark-theme half.
+
+    mascot_ink is a hair's breadth off mascot_suit on purpose. The two look identical, but hair,
+    moustache and tie are drawn ON the head and shirt and must not lighten with the jacket, and a
+    Lottie clip has no way to say that other than by using a separate value. MascotPaletteTest
+    fails if they collapse back into one.
+    -->
+    <color name="mascot_ink">#212121</color>
+    <color name="mascot_suit">#262626</color>
+    <color name="mascot_trousers">#1e1e1e</color>
+    <color name="mascot_lapel_shadow">#3f3f3f</color>
+    <color name="mascot_lapel_edge_left">#565656</color>
+    <color name="mascot_lapel_edge_right">#666666</color>
+    <color name="mascot_cuffs">#9b9a9a</color>
+    <color name="mascot_offwhite">#f2f2f2</color>
+    <color name="mascot_white">#ffffff</color>
+    <color name="mascot_green">#48ff80</color>
+</resources>

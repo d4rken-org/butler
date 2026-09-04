@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+    At night the butler wears a grey suit. Only the outfit moves: mascot_ink and the bright colors
+    are drawn on the head and shirt, so lightening them would wash the character out.
+    Ratios are against #0F1510, the dark surface these were picked for.
+    -->
+    <color name="mascot_suit">#6e6e6e</color>             <!-- 3.63:1 -->
+    <color name="mascot_trousers">#646464</color>         <!-- 3.15:1 -->
+    <color name="mascot_lapel_shadow">#868686</color>     <!-- 5.1:1 -->
+    <color name="mascot_lapel_edge_left">#9a9a9a</color>  <!-- 6.6:1 -->
+    <color name="mascot_lapel_edge_right">#a6a6a6</color> <!-- 7.6:1 -->
+    <color name="mascot_cuffs">#cfcfcf</color>            <!-- 11.9:1, stays clear of the arms -->
+</resources>
