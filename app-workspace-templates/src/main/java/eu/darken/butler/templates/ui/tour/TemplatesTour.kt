@@ -24,8 +24,8 @@ object TemplatesTour : GuidedTour {
 
     /**
      * [prepareFirstTemplate] scrolls the template list so the first card is composed before the
-     * step is published. It is required, not optional: the template items sit after two other list
-     * items and the list restores its saved scroll offset, so on a short window, at large font
+     * step is published. It is required, not optional: the template items sit after the header item
+     * and the list restores its saved scroll offset, so on a short window, at large font
      * scale, or on a restored tab that was scrolled, the card would not be composed at all — its
      * anchor never registers and the host grace-skips the step.
      *

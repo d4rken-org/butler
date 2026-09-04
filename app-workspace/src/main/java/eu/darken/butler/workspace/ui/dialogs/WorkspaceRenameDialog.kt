@@ -16,8 +16,8 @@ import eu.darken.butler.workspace.ui.modal.PaneLayerHost
  * Sets or clears the user-set name of a workspace.
  *
  * One composable for every caller: the host follows from where it is composed. Reached from inside
- * a pane — the Templates tab's name row — it is pane-bound, so it leaves the other panes alone and
- * takes part in that pane's back, focus and accessibility containment. Reached from the tab rail or
+ * a pane, the Templates tab's headline edit icon, it is pane-bound, so it leaves the other panes
+ * alone and takes part in that pane's back, focus and accessibility containment. Reached from the tab rail or
  * the tab manager, which act on the whole screen, it is a window dialog.
  */
 @Composable
