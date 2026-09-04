@@ -28,6 +28,10 @@ fun PackageManager.getPackageInfo2(
     null
 }
 
+/**
+ * A blank label counts as no label: callers fall back to the package name on null, and an app whose
+ * label resource resolves to "" would otherwise render as an empty title with nothing beside it.
+ */
 fun PackageManager.getLabel2(
     pkgId: Pkg.Id,
 ): String? = getPackageInfo2(pkgId)
@@ -36,6 +40,7 @@ fun PackageManager.getLabel2(
         if (it.labelRes != 0) it.loadLabel(this).toString()
         else it.nonLocalizedLabel?.toString()
     }
+    ?.takeIf { it.isNotBlank() }
 
 fun PackageManager.getIcon2(
     pkgId: Pkg.Id,
