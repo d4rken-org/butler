@@ -5,8 +5,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Add
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasAnyDescendant
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
@@ -29,6 +31,7 @@ class WorkspaceManagerFABTest : ComposeTest() {
     private val context: Context get() = ApplicationProvider.getApplicationContext()
 
     private val triggerLabel: String get() = context.getString(R.string.workspace_fab_quick_shortcuts)
+    private val closeLabel: String get() = context.getString(R.string.workspace_fab_close_shortcuts)
     private val closeAllLabel: String get() = context.getString(R.string.workspace_fab_close_all)
 
     private fun quickItem(type: Workspace.Type, title: String) = QuickCreateItem(
@@ -64,7 +67,9 @@ class WorkspaceManagerFABTest : ComposeTest() {
         return answers
     }
 
-    private fun toggle() = composeTestRule.onNodeWithText(triggerLabel).performClick()
+    private fun toggle() = composeTestRule
+        .onNode(hasContentDescription(triggerLabel) or hasContentDescription(closeLabel))
+        .performClick()
 
     @Test
     fun `a tap reveals the shortcuts and the close-all action`() {
@@ -120,6 +125,22 @@ class WorkspaceManagerFABTest : ComposeTest() {
         composeTestRule.waitForIdle()
 
         composeTestRule.onNode(hasScrollAction() and hasAnyDescendant(hasText("Explorer"))).assertExists()
+    }
+
+    @Test
+    fun `expanding hides the label and renames the button`() {
+        compose()
+
+        toggle()
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNodeWithText(triggerLabel).assertDoesNotExist()
+        composeTestRule.onNodeWithContentDescription(closeLabel).assertExists()
+
+        toggle()
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNodeWithText(triggerLabel).assertExists()
     }
 
     @Test

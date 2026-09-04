@@ -3,13 +3,16 @@ package eu.darken.butler.workspace.ui.manager
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.EnterExitState
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -43,6 +46,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntRect
@@ -84,29 +89,11 @@ fun WorkspaceManagerFAB(
     )
 
     Box(modifier = modifier) {
-        Surface(
-            modifier = Modifier.guidedTourTarget(WorkspaceManagerTour.ADD_TAB_TARGET),
-            shape = FloatingActionButtonDefaults.extendedFabShape,
-            color = MaterialTheme.colorScheme.primaryContainer,
-            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-            tonalElevation = 6.dp,
-            shadowElevation = 6.dp,
-        ) {
-            Row(
-                modifier = Modifier
-                    .clickable(role = Role.Button) { expanded = !expanded }
-                    .padding(horizontal = 16.dp, vertical = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                Icon(
-                    modifier = Modifier.rotate(iconRotation),
-                    imageVector = Icons.TwoTone.Add,
-                    contentDescription = null,
-                )
-                Text(stringResource(R.string.workspace_fab_quick_shortcuts))
-            }
-        }
+        FabTrigger(
+            expanded = expanded,
+            iconRotation = iconRotation,
+            onClick = { expanded = !expanded },
+        )
 
         // A popup rather than an in-bar column: the floating bar stack derives the grid's bottom
         // padding from the bar's measured height, so an expanding bar would shove the grid up
@@ -145,6 +132,72 @@ fun WorkspaceManagerFAB(
             }
         }
     }
+}
+
+@Composable
+private fun FabTrigger(
+    modifier: Modifier = Modifier,
+    expanded: Boolean,
+    iconRotation: Float,
+    onClick: () -> Unit,
+) {
+    val triggerDescription = stringResource(
+        if (expanded) R.string.workspace_fab_close_shortcuts else R.string.workspace_fab_quick_shortcuts,
+    )
+
+    Surface(
+        modifier = modifier.guidedTourTarget(WorkspaceManagerTour.ADD_TAB_TARGET),
+        shape = FloatingActionButtonDefaults.extendedFabShape,
+        color = MaterialTheme.colorScheme.primaryContainer,
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        tonalElevation = 6.dp,
+        shadowElevation = 6.dp,
+    ) {
+        Row(
+            modifier = Modifier
+                .semantics(mergeDescendants = true) { contentDescription = triggerDescription }
+                .clickable(role = Role.Button, onClick = onClick)
+                .animateContentSize()
+                .padding(horizontal = 16.dp, vertical = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Icon(
+                modifier = Modifier.rotate(iconRotation),
+                imageVector = Icons.TwoTone.Add,
+                contentDescription = null,
+            )
+            AnimatedVisibility(
+                visible = !expanded,
+                enter = fadeIn() + expandHorizontally(expandFrom = Alignment.Start),
+                exit = fadeOut() + shrinkHorizontally(shrinkTowards = Alignment.Start),
+            ) {
+                Text(stringResource(R.string.workspace_fab_quick_shortcuts))
+            }
+        }
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun FabTriggerPreview() {
+    FabTrigger(
+        expanded = false,
+        iconRotation = 0f,
+        onClick = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun FabTriggerExpandedPreview() {
+    FabTrigger(
+        expanded = true,
+        iconRotation = 45f,
+        onClick = {},
+    )
 }
 
 internal class FabMenuPositionProvider(
