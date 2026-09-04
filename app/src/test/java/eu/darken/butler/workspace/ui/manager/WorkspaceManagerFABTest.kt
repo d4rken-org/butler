@@ -4,6 +4,9 @@ import android.content.Context
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Add
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasAnyDescendant
+import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
@@ -107,6 +110,16 @@ class WorkspaceManagerFABTest : ComposeTest() {
 
         answers.created shouldBe listOf(searcher)
         composeTestRule.onNodeWithText("Searcher").assertDoesNotExist()
+    }
+
+    @Test
+    fun `the stack scrolls when it overflows`() {
+        compose()
+
+        toggle()
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNode(hasScrollAction() and hasAnyDescendant(hasText("Explorer"))).assertExists()
     }
 
     @Test

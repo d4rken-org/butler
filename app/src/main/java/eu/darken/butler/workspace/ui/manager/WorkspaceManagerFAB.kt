@@ -18,7 +18,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Add
 import androidx.compose.material.icons.twotone.Close
@@ -61,6 +63,8 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.defaultArguments
 import eu.darken.butler.workspace.ui.manager.tour.WorkspaceManagerTour
 import eu.darken.butler.workspace.ui.template.QuickCreateItem
+
+private val StackEdgePadding = 8.dp
 
 @Composable
 fun WorkspaceManagerFAB(
@@ -107,10 +111,15 @@ fun WorkspaceManagerFAB(
         // A popup rather than an in-bar column: the floating bar stack derives the grid's bottom
         // padding from the bar's measured height, so an expanding bar would shove the grid up
         // exactly where the new-tab card sits.
-        if (expandedState.currentState || expandedState.targetState) {
+        if (expandedState.currentState || expandedState.targetState || !expandedState.isIdle) {
             Popup(
                 popupPositionProvider = remember(density) {
-                    FabMenuPositionProvider(gapPx = with(density) { 8.dp.roundToPx() })
+                    with(density) {
+                        FabMenuPositionProvider(
+                            gapPx = 8.dp.roundToPx(),
+                            edgeInsetPx = StackEdgePadding.roundToPx(),
+                        )
+                    }
                 },
                 onDismissRequest = { expanded = false },
                 properties = PopupProperties(focusable = true),
@@ -138,7 +147,10 @@ fun WorkspaceManagerFAB(
     }
 }
 
-private class FabMenuPositionProvider(private val gapPx: Int) : PopupPositionProvider {
+internal class FabMenuPositionProvider(
+    private val gapPx: Int,
+    private val edgeInsetPx: Int,
+) : PopupPositionProvider {
     override fun calculatePosition(
         anchorBounds: IntRect,
         windowSize: IntSize,
@@ -146,8 +158,8 @@ private class FabMenuPositionProvider(private val gapPx: Int) : PopupPositionPro
         popupContentSize: IntSize,
     ): IntOffset {
         val x = when (layoutDirection) {
-            LayoutDirection.Ltr -> anchorBounds.right - popupContentSize.width
-            LayoutDirection.Rtl -> anchorBounds.left
+            LayoutDirection.Ltr -> anchorBounds.right + edgeInsetPx - popupContentSize.width
+            LayoutDirection.Rtl -> anchorBounds.left - edgeInsetPx
         }.coerceIn(0, (windowSize.width - popupContentSize.width).coerceAtLeast(0))
         val y = (anchorBounds.top - gapPx - popupContentSize.height).coerceAtLeast(0)
         return IntOffset(x, y)
@@ -165,7 +177,9 @@ private fun AnimatedVisibilityScope.FabActionStack(
     val rowCount = quickCreateItems.size + if (showCloseAll) 1 else 0
 
     Column(
-        modifier = modifier.padding(horizontal = 8.dp),
+        modifier = modifier
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = StackEdgePadding),
         horizontalAlignment = Alignment.End,
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
