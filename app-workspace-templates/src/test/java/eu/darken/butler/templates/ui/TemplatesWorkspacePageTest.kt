@@ -8,6 +8,7 @@ import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -41,13 +42,16 @@ class TemplatesWorkspacePageTest : ComposeTest() {
     private val explorerTemplate = template(Workspace.Type.EXPLORER, "Explorer")
     private val searcherTemplate = template(Workspace.Type.SEARCHER, "Searcher")
 
-    private fun state(templates: List<WorkspaceTemplate> = listOf(explorerTemplate)) =
-        TemplatesWorkspaceViewModel.State(
-            id = workspaceId,
-            isUpgraded = false,
-            templates = templates,
-            versionDescription = "1.0.0-test",
-        )
+    private fun state(
+        templates: List<WorkspaceTemplate> = listOf(explorerTemplate),
+        customTitle: String? = null,
+    ) = TemplatesWorkspaceViewModel.State(
+        id = workspaceId,
+        isUpgraded = false,
+        templates = templates,
+        versionDescription = "1.0.0-test",
+        customTitle = customTitle,
+    )
 
     private fun setPage(design: WorkspaceDesign, onNavToSettings: () -> Unit = {}) {
         // Single-pane composes WorkspaceButton, whose default mascot is an infinite Lottie
@@ -75,6 +79,8 @@ class TemplatesWorkspacePageTest : ComposeTest() {
         templates: List<WorkspaceTemplate> = listOf(explorerTemplate, searcherTemplate),
         layerActive: Boolean = true,
         listState: LazyListState? = null,
+        customTitle: String? = null,
+        onEditName: () -> Unit = {},
     ) {
         composeTestRule.setContent {
             PreviewWrapper {
@@ -85,9 +91,10 @@ class TemplatesWorkspacePageTest : ComposeTest() {
                     TemplatesWorkspacePage(
                         workspaceId = workspaceId,
                         design = WorkspaceDesign(layout = WorkspaceDesign.Layout.DUAL_VERTICAL),
-                        state = state(templates),
+                        state = state(templates, customTitle = customTitle),
                         listState = listState ?: LazyListState(),
                         onNavToSettings = {},
+                        onEditName = onEditName,
                     )
                 }
             }
@@ -128,6 +135,35 @@ class TemplatesWorkspacePageTest : ComposeTest() {
         WorkspaceDesign.Layout.entries.forEach { layout ->
             WorkspaceDesign(layout = layout).isSingle shouldBe (layout == WorkspaceDesign.Layout.SINGLE)
         }
+    }
+
+    @Test
+    fun `header shows the automatic title when the tab has no custom name`() {
+        setTourPage(TourTargetRegistry(), customTitle = null)
+        composeTestRule.onNodeWithText("New tab").assertIsDisplayed()
+    }
+
+    @Test
+    fun `header shows the custom name in place of the automatic title`() {
+        setTourPage(TourTargetRegistry(), customTitle = "Holiday photos")
+        composeTestRule.onNodeWithText("Holiday photos").assertIsDisplayed()
+        composeTestRule.onNodeWithText("New tab").assertDoesNotExist()
+    }
+
+    @Test
+    fun `the standalone name row is gone in the unnamed state`() {
+        setTourPage(TourTargetRegistry(), customTitle = null)
+        composeTestRule.onNodeWithText("Name this tab").assertDoesNotExist()
+    }
+
+    @Test
+    fun `clicking the edit icon requests the rename dialog`() {
+        var requested = false
+        setTourPage(TourTargetRegistry(), onEditName = { requested = true })
+        composeTestRule
+            .onNodeWithTag(TemplatesWorkspacePageDefaults.EDIT_NAME_TEST_TAG)
+            .performClick()
+        requested shouldBe true
     }
 
     @Test
@@ -178,6 +214,11 @@ class TemplatesWorkspacePageTest : ComposeTest() {
         runBlocking { prepare() }
         composeTestRule.waitForIdle()
 
-        registry.has(TemplatesTour.FIRST_TEMPLATE_TARGET) shouldBe true
+        // A bare `has` check passes even on a stale index: the list composes items backward into
+        // the content padding, so an over-scrolled card is still registered, just above the top.
+        val registered = registry.get(TemplatesTour.FIRST_TEMPLATE_TARGET)
+        (registered != null) shouldBe true
+        val top = with(composeTestRule.density) { registered!!.top.toDp() }
+        (top >= 0.dp) shouldBe true
     }
 }

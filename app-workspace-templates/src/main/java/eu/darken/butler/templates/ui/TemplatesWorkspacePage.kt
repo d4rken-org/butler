@@ -17,10 +17,8 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Add
-import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material.icons.twotone.Settings
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
@@ -28,7 +26,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -80,9 +77,10 @@ import eu.darken.butler.workspace.ui.tour.WorkspaceTourTargets
 
 object TemplatesWorkspacePageDefaults {
     const val SETTINGS_CARD_TEST_TAG = "templates.settingsCard"
+    const val EDIT_NAME_TEST_TAG = "templates.editName"
 
-    /** Template cards follow the header and the tab-name row, so the first one is the third item. */
-    const val FIRST_TEMPLATE_ITEM_INDEX = 2
+    /** Template cards follow the header, so the first one is the second item. */
+    const val FIRST_TEMPLATE_ITEM_INDEX = 1
 }
 
 @Composable
@@ -129,7 +127,6 @@ fun TemplatesWorkspacePageHost(
             listState = listState,
             onNavToSettings = { vm.navTo(Nav.Main.settings()) },
             onCreateWorkspace = { vm.createWorkspace(it) },
-            onRename = { vm.renameWorkspace(it) },
             onEditName = { vm.showRenameDialog() },
         )
     }
@@ -143,7 +140,6 @@ fun TemplatesWorkspacePage(
     listState: LazyListState = rememberWorkspaceLazyListState(workspaceId, slot = TemplatesScrollSlots.LIST),
     onNavToSettings: () -> Unit,
     onCreateWorkspace: (WorkspaceAction.Create) -> Unit = {},
-    onRename: (String?) -> Unit = {},
     onEditName: () -> Unit = {},
 ) {
     // Previews and screenshot renders must be reproducible, a random slogan is not.
@@ -180,25 +176,41 @@ fun TemplatesWorkspacePage(
         ) {
             item {
                 Column(modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp)) {
-                    Text(
-                        text = stringResource(R.string.workspace_templates_choose_title),
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
+                    Row(
+                        // The floating Butler button overlays this row's trailing edge in
+                        // single-pane; without the reserve, a long custom title pushes the pencil
+                        // underneath it.
+                        modifier = Modifier.padding(end = if (design.isSingle) 40.dp else 0.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            // fill = false is what keeps the icon adjacent to a short title while
+                            // a long custom name ellipsizes instead of pushing the icon out.
+                            modifier = Modifier.weight(1f, fill = false),
+                            text = state.customTitle?.takeIf { it.isNotBlank() }
+                                ?: stringResource(R.string.workspace_templates_choose_title),
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.MiddleEllipsis,
+                        )
+                        IconButton(
+                            modifier = Modifier.testTag(TemplatesWorkspacePageDefaults.EDIT_NAME_TEST_TAG),
+                            onClick = onEditName,
+                        ) {
+                            Icon(
+                                modifier = Modifier.size(20.dp),
+                                imageVector = Icons.TwoTone.Edit,
+                                contentDescription = stringResource(R.string.workspace_templates_name_tab_action),
+                            )
+                        }
+                    }
                     Text(
                         text = stringResource(R.string.workspace_templates_choose_subtitle),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                     )
                 }
-            }
-            item {
-                TabNameRow(
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                    customTitle = state.customTitle,
-                    onEdit = onEditName,
-                    onClear = { onRename(null) },
-                )
             }
             items(state.templates.size) { index ->
                 val template = state.templates[index]
@@ -316,66 +328,6 @@ fun TemplatesWorkspacePage(
     }
 
     // The rename dialog lives in the page host's overlay slot, see TemplatesWorkspaceOverlays
-}
-
-/**
- * Lets the user name the tab before it becomes something: the name survives the template morph,
- * so it carries onto the resulting Explorer/Searcher/… tab.
- */
-@Composable
-private fun TabNameRow(
-    modifier: Modifier = Modifier,
-    customTitle: String?,
-    onEdit: () -> Unit,
-    onClear: () -> Unit,
-) {
-    if (customTitle == null) {
-        TextButton(
-            modifier = modifier,
-            onClick = onEdit,
-        ) {
-            Icon(
-                modifier = Modifier.size(18.dp),
-                imageVector = Icons.TwoTone.Edit,
-                contentDescription = null,
-            )
-            Text(
-                modifier = Modifier.padding(start = 8.dp),
-                text = stringResource(R.string.workspace_templates_name_tab_action),
-            )
-        }
-    } else {
-        AssistChip(
-            modifier = modifier,
-            onClick = onEdit,
-            label = {
-                Text(
-                    text = customTitle,
-                    maxLines = 1,
-                    overflow = TextOverflow.MiddleEllipsis,
-                )
-            },
-            leadingIcon = {
-                Icon(
-                    modifier = Modifier.size(18.dp),
-                    imageVector = Icons.TwoTone.Edit,
-                    contentDescription = null,
-                )
-            },
-            trailingIcon = {
-                IconButton(
-                    modifier = Modifier.size(24.dp),
-                    onClick = onClear,
-                ) {
-                    Icon(
-                        modifier = Modifier.size(18.dp),
-                        imageVector = Icons.TwoTone.Close,
-                        contentDescription = stringResource(R.string.workspace_templates_name_tab_clear_content_desc),
-                    )
-                }
-            },
-        )
-    }
 }
 
 private data class TemplateCardColors(
@@ -551,6 +503,21 @@ private fun TemplatesWorkspacePageNamedPreview() {
     TemplatesWorkspacePage(
         workspaceId = workspaceId,
         state = TemplatesMockDataProvider.createMockState(workspaceId, customTitle = "Holiday photos"),
+        onNavToSettings = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun TemplatesWorkspacePageLongNamePreview() {
+    val workspaceId = Workspace.Id()
+    TemplatesWorkspacePage(
+        workspaceId = workspaceId,
+        state = TemplatesMockDataProvider.createMockState(
+            workspaceId,
+            customTitle = "Photos from the summer trip to the coast and back again",
+        ),
         onNavToSettings = {},
     )
 }

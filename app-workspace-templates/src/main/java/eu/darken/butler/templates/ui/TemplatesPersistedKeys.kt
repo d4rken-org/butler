@@ -8,5 +8,5 @@ package eu.darken.butler.templates.ui
  * top.
  */
 internal object TemplatesScrollSlots {
-    const val LIST = "templates"
+    const val LIST = "templates.v2"
 }
