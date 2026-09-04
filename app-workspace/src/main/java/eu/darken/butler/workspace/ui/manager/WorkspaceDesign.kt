@@ -3,6 +3,7 @@ package eu.darken.butler.workspace.ui.manager
 data class WorkspaceDesign(
     val layout: Layout = Layout.SINGLE,
     val paneEdges: PaneEdges = PaneEdges.All,
+    val railPlacement: RailPlacement = RailPlacement.START,
 ) {
 
     val isSingle: Boolean
@@ -125,6 +126,16 @@ data class WorkspaceDesign(
         TRIPLE_MAIN_LEFT,
         TRIPLE_MAIN_RIGHT,
         QUAD_GRID,
+        ;
+    }
+
+    /**
+     * Which window edge the navigation rail occupies. A property of the window rather than of the
+     * layout: a single-pane window carries one too, even though it composes no rail.
+     */
+    enum class RailPlacement {
+        START,
+        BOTTOM,
         ;
     }
 }
