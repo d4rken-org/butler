@@ -44,7 +44,7 @@
     <string name="editor_backup_banner_message">A backup from an interrupted save was found:\n%1$s</string>
 
     <!-- Binary file notice -->
-    <string name="editor_binary_banner_message">Binary file — read-only view</string>
+    <string name="editor_binary_banner_message">Editing as text isn\'t supported</string>
 
     <!-- Long-lines notice -->
     <string name="editor_long_lines_banner_title">Very long lines</string>
@@ -102,7 +102,7 @@
     <string name="editor_error_paste_too_large_label">File too large</string>
     <string name="editor_error_paste_too_large">This file is too large to paste (max %1$s).</string>
     <string name="editor_error_paste_binary_label">Not a text file</string>
-    <string name="editor_error_paste_binary">Binary file content can\'t be pasted.</string>
+    <string name="editor_error_paste_binary">This file\'s content can\'t be pasted as text.</string>
     <plurals name="editor_search_results_x_of_y">
         <item quantity="one">%1$d of %2$d result</item>
         <item quantity="other">%1$d of %2$d results</item>

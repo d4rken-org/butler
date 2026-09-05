@@ -105,7 +105,7 @@ class EditorBannerGroupTest : ComposeTest() {
         composeTestRule.onNodeWithText("Disk full").assertExists()
         composeTestRule.onNodeWithText("File changed on disk").assertExists()
         composeTestRule.onNodeWithText("notes.txt.butler-save-bak-1a2b3c4d", substring = true).assertExists()
-        composeTestRule.onNodeWithText("Binary file — read-only view").assertExists()
+        composeTestRule.onNodeWithText("Editing as text isn't supported").assertExists()
         composeTestRule.onAllNodesWithContentDescription("Dismiss").assertCountEquals(2)
     }
 
@@ -121,7 +121,7 @@ class EditorBannerGroupTest : ComposeTest() {
         setGroup()
 
         composeTestRule.onAllNodesWithContentDescription("Dismiss").assertCountEquals(0)
-        composeTestRule.onNodeWithText("Binary file — read-only view").assertDoesNotExist()
+        composeTestRule.onNodeWithText("Editing as text isn't supported").assertDoesNotExist()
     }
 
     @Test
