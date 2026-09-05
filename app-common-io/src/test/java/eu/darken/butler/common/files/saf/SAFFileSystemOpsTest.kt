@@ -13,6 +13,7 @@ import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.files.permissions.PermissionErrorClassifier
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -219,6 +220,20 @@ class SAFFileSystemOpsTest : BaseTest() {
         })
 
         fileSystemOps.existsStrict(path) shouldBe Existence.UNKNOWN
+    }
+
+    @Test
+    fun `a document the provider marks read-only is a permission failure`() = runTest {
+        val path = SAFPath.build(testTreeUri, "readonly.txt")
+        val docFile = mockk<SAFDocFile> {
+            every { writable } returns false
+            every { readable } returns true
+        }
+        coEvery { mockLocationManager.getDocFileFor(path) } returns docFile
+
+        val error = shouldThrow<ReadException> { fileSystemOps.file(path, readWrite = true) }
+
+        PermissionErrorClassifier.isPermissionError(error) shouldBe true
     }
 
     companion object {

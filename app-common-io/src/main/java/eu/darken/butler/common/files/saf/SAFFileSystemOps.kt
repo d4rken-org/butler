@@ -681,8 +681,8 @@ class SAFFileSystemOps @Inject constructor(
         return try {
             log(TAG, VERBOSE) { "file(readWrite=$readWrite): $path" }
 
-            if (readWrite && !canWrite(path)) throw IOException("writable=false")
-            else if (!canRead(path)) throw IOException("readable=false")
+            if (readWrite && !canWrite(path)) throw IOException("Permission denied: writable=false")
+            else if (!canRead(path)) throw IOException("Permission denied: readable=false")
 
             val pfd = openPFD(path, if (readWrite) FileMode.READ_WRITE else FileMode.READ)
             pfd.toFileHandle(readWrite)

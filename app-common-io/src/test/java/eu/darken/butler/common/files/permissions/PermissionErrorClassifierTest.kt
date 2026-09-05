@@ -185,16 +185,90 @@ class PermissionErrorClassifierTest : BaseTest() {
     }
 
     @Test
-    fun `a gone marker nested under a generic wrapper does not veto`() {
-        // Documents the limit rather than endorsing it: pass 4 answers for the first matching chain
-        // link, and the ReadException wrapper is reached before the marker underneath it. Nothing
-        // wraps a gone-error today; if something starts to, this is the test that will say so.
+    fun `a gone marker nested under a generic wrapper still vetoes`() {
         val wrapped = ReadException(
             path = LocalPath.build("/sdcard/gone.txt"),
             cause = PathNotFoundException(LocalPath.build("/sdcard/gone.txt")),
         )
 
+        PermissionErrorClassifier.classify(wrapped) shouldBe null
+    }
+
+    @Test
+    fun `a wrapper defers to a cause the kernel named as something other than a denial`() {
+        listOf(
+            "Is a directory",
+            "Not a directory",
+            "Directory not empty",
+            "File name too long",
+            "Device or resource busy",
+            "Too many levels of symbolic links",
+            "Too many open files",
+            "No such file or directory",
+            "File too large",
+            "Invalid argument",
+        ).forEach { errno ->
+            val wrapped = WriteException(path = LocalPath.build("/sdcard/foo"), cause = IOException(errno))
+
+            PermissionErrorClassifier.classify(wrapped) shouldBe null
+        }
+    }
+
+    @Test
+    fun `a wrapper defers to a typed denial underneath it`() {
+        val nio = WriteException(
+            path = LocalPath.build("/sdcard/foo"),
+            cause = java.nio.file.AccessDeniedException("/sdcard/foo"),
+        )
+        val security = ReadException(
+            path = LocalPath.build("/sdcard/foo"),
+            cause = SecurityException("not allowed"),
+        )
+
+        PermissionErrorClassifier.classify(nio) shouldBe Reason.ACCESS_DENIED
+        PermissionErrorClassifier.classify(security) shouldBe Reason.ACCESS_DENIED
+    }
+
+    @Test
+    fun `a wrapper defers to a nio denial that lost its type on the way over IPC`() {
+        // IpcErrorCodec rebuilds every nested cause as an IOException carrying the original toString().
+        val wrapped = WriteException(
+            path = LocalPath.build("/data/x"),
+            cause = IOException("java.nio.file.AccessDeniedException: /data/x"),
+        )
+
         PermissionErrorClassifier.classify(wrapped) shouldBe Reason.ACCESS_DENIED
+    }
+
+    @Test
+    fun `a path named after the nio denial does not become one`() {
+        val wrapped = WriteException(
+            path = LocalPath.build("/sdcard/AccessDeniedException"),
+            cause = IOException("Is a directory"),
+        )
+
+        PermissionErrorClassifier.classify(wrapped) shouldBe null
+    }
+
+    @Test
+    fun `a bare wrapper keeps its verdict when wrapped again`() {
+        val rewrapped = WriteException(
+            path = LocalPath.build("/sdcard/foo"),
+            cause = WriteException(path = LocalPath.build("/sdcard/foo")),
+        )
+
+        PermissionErrorClassifier.classify(rewrapped) shouldBe Reason.ACCESS_DENIED
+    }
+
+    @Test
+    fun `a wrapper around an unnamed failure is not a denial`() {
+        val wrapped = WriteException(
+            path = LocalPath.build("/sdcard/foo"),
+            cause = RuntimeException("injected failure"),
+        )
+
+        PermissionErrorClassifier.classify(wrapped) shouldBe null
+        PermissionErrorClassifier.isPermissionError(wrapped) shouldBe false
     }
 
     @Test
