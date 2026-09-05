@@ -623,7 +623,7 @@ internal fun WorkspaceRailItem(
                     style = MaterialTheme.typography.labelSmall,
                     textAlign = TextAlign.Center,
                     maxLines = 1,
-                    overflow = TextOverflow.MiddleEllipsis,
+                    overflow = TextOverflow.StartEllipsis,
                 )
             }
         }
