@@ -54,12 +54,11 @@ object PermissionErrorClassifier {
             when (t) {
                 // A path that isn't there is not a path we were kept out of. Keyed on the marker
                 // rather than one concrete type, so a gone-error that is also a PathException does
-                // not fall through to the denial below. Like every branch in this loop it answers
-                // for the first chain link that matches, so a marker nested UNDER a generic
-                // PathException wrapper does not veto - the wrapper is reached first. No producer
-                // wraps one today; both are thrown at the top level.
+                // not fall through to the denial below.
                 is PathGoneError -> return null
-                is PathException -> return Reason.ACCESS_DENIED
+                // A wrapper with a cause carries no verdict of its own; the cause answers for itself
+                // further down the chain. Only a bare wrapper is read as a denial.
+                is PathException -> if (t.cause == null) return Reason.ACCESS_DENIED
                 is SecurityException -> return Reason.ACCESS_DENIED
                 is java.nio.file.AccessDeniedException -> return Reason.ACCESS_DENIED
                 is kotlin.io.AccessDeniedException -> return Reason.ACCESS_DENIED
@@ -76,6 +75,8 @@ object PermissionErrorClassifier {
             "read-only file system" in haystack -> Reason.READONLY_FILESYSTEM
             "operation not permitted" in haystack -> Reason.NOT_PERMITTED
             "permission" in haystack -> Reason.ACCESS_DENIED
+            // A nested nio denial crosses IPC as its toString(), see IpcErrorCodec.
+            haystack.startsWith("java.nio.file.accessdeniedexception") -> Reason.ACCESS_DENIED
             else -> null
         }
     }

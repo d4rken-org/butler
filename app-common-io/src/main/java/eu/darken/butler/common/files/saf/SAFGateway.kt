@@ -146,8 +146,8 @@ class SAFGateway @Inject constructor(
         try {
             log(TAG, VERBOSE) { "file(readWrite=$readWrite): $path" }
 
-            if (readWrite && !fileSystemOps.canWrite(path)) throw IOException("writable=false")
-            else if (!fileSystemOps.canRead(path)) throw IOException("readable=false")
+            if (readWrite && !fileSystemOps.canWrite(path)) throw IOException("Permission denied: writable=false")
+            else if (!fileSystemOps.canRead(path)) throw IOException("Permission denied: readable=false")
 
             val pfd = fileSystemOps.openPFD(path, if (readWrite) FileMode.READ_WRITE else FileMode.READ)
             pfd.toFileHandle(readWrite)
